@@ -17,6 +17,7 @@ import {
   type LinkedTextSegment,
   parseDocumentText,
 } from '@/features/library/document-medication-links';
+import { DocumentRichBlock } from '@/features/library/document-rich-block';
 import {
   type MedicationPreviewExcerpt,
   medicationPreviewExcerpts,
@@ -239,6 +240,8 @@ function InlineDocumentLink(props: {
                     <button
                       type="button"
                       class="document-inline-preview__open"
+                      title={alternative.preview?.source?.label ?? alternative.title}
+                      aria-label={`Открыть: ${alternative.title}`}
                       onClick={() => {
                         setOpen(false);
                         const source = alternative.preview?.source;
@@ -249,7 +252,7 @@ function InlineDocumentLink(props: {
                         else props.onOpen(alternative.documentId);
                       }}
                     >
-                      Открыть источник: {alternative.preview?.source?.label ?? alternative.title}
+                      Открыть
                       <AppGlyph
                         name="arrow-square-up-right"
                         class="document-inline-preview__open-icon"
@@ -262,6 +265,7 @@ function InlineDocumentLink(props: {
                 <button
                   type="button"
                   class="document-inline-preview__open"
+                  title={primarySource()?.label}
                   onClick={() => {
                     setOpen(false);
                     const source = primarySource();
@@ -273,9 +277,7 @@ function InlineDocumentLink(props: {
                       props.onOpen(selectedAlternative()?.documentId ?? props.segment.documentId);
                   }}
                 >
-                  {primarySource()
-                    ? `Открыть источник: ${primarySource()?.label}`
-                    : 'Открыть карточку и источники'}
+                  Открыть
                   <AppGlyph
                     name="arrow-square-up-right"
                     class="document-inline-preview__open-icon"
@@ -561,12 +563,14 @@ function InlineDocumentText(props: {
 }
 
 type DocumentTextGroup =
+  | { readonly kind: 'table'; readonly items: readonly DocumentTextBlock[] }
   | { readonly kind: 'paragraph'; readonly items: readonly DocumentTextBlock[] }
   | { readonly kind: 'bullet' | 'ordered'; readonly items: readonly DocumentTextBlock[] }
   | { readonly kind: 'image'; readonly items: readonly DocumentTextBlock[] };
 
 type DocumentTextBlockWithOffset = DocumentTextBlock & { readonly offset: number };
 type DocumentTextGroupWithOffsets =
+  | { readonly kind: 'table'; readonly items: readonly DocumentTextBlockWithOffset[] }
   | { readonly kind: 'paragraph'; readonly items: readonly DocumentTextBlockWithOffset[] }
   | { readonly kind: 'bullet' | 'ordered'; readonly items: readonly DocumentTextBlockWithOffset[] }
   | { readonly kind: 'image'; readonly items: readonly DocumentTextBlockWithOffset[] };
@@ -575,8 +579,8 @@ function groupBlocks(blocks: readonly DocumentTextBlock[]): readonly DocumentTex
   const groups: DocumentTextGroup[] = [];
   for (const block of blocks) {
     const previous = groups.at(-1);
-    if (block.kind === 'image') {
-      groups.push({ kind: 'image', items: [block] });
+    if (block.kind === 'image' || block.kind === 'table') {
+      groups.push({ kind: block.kind, items: [block] });
     } else if (block.kind !== 'paragraph' && previous?.kind === block.kind) {
       groups[groups.length - 1] = { ...previous, items: [...previous.items, block] };
     } else {
@@ -669,7 +673,7 @@ function ReferenceImage(props: {
                 target="_blank"
                 rel="noreferrer"
               >
-                Открыть источник
+                Открыть
               </a>
             </figcaption>
           </figure>
@@ -738,6 +742,23 @@ export function DocumentText(props: {
   return (
     <For each={groups()}>
       {(group) => {
+        if (group.kind === 'table') {
+          const item = group.items[0];
+          return item?.kind === 'table' ? (
+            <DocumentRichBlock
+              block={item.table}
+              highlight={{
+                query: props.query,
+                exact: props.exactQuery,
+                fuzzy: props.fuzzyQuery,
+                ranges: props.ranges,
+                unitId: props.unitId,
+                activeStart: props.activeStart,
+                rangeOffset: item.offset,
+              }}
+            />
+          ) : null;
+        }
         if (group.kind === 'image') {
           const item = group.items[0];
           return item?.kind === 'image' ? (

@@ -72,6 +72,7 @@ function unique<T>(values: readonly T[]): readonly T[] {
 export class MultiMedicalStore implements MedicalStore {
   private readonly mounts = new Map<string, InternalMount>();
   private initialized = false;
+  private validatedAliases: readonly AliasRecord[] | undefined;
 
   public constructor(mounts: readonly MedicalStoreMount[]) {
     if (mounts.length === 0) throw new Error('MultiMedicalStore requires at least one mount.');
@@ -97,6 +98,7 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   public async initialize(seed?: ContentPackSeed): Promise<StorageHealth> {
+    this.validatedAliases = undefined;
     const seedTargets = [...this.mounts.values()].filter((mount) => mount.acceptsSeed);
     if (seed && seedTargets.length !== 1) {
       throw new Error('A seed requires exactly one mounted store with acceptsSeed=true.');
@@ -142,6 +144,7 @@ export class MultiMedicalStore implements MedicalStore {
     if (!mount) return;
     if (mount.required) throw new Error(`Required module ${moduleId} cannot be removed.`);
     this.mounts.delete(moduleId);
+    this.validatedAliases = undefined;
     await mount.store.close();
   }
 
@@ -189,6 +192,19 @@ export class MultiMedicalStore implements MedicalStore {
   public async listDocuments(): Promise<readonly DocumentRecord[]> {
     this.assertInitialized();
     return (await Promise.all(this.activeMounts().map((mount) => mount.store.listDocuments())))
+      .flat()
+      .toSorted((left, right) => left.title.localeCompare(right.title));
+  }
+
+  public async listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
+    this.assertInitialized();
+    return (
+      await Promise.all(
+        this.activeMounts().map(({ store }) =>
+          store.listNavigationDocuments ? store.listNavigationDocuments() : store.listDocuments(),
+        ),
+      )
+    )
       .flat()
       .toSorted((left, right) => left.title.localeCompare(right.title));
   }
@@ -242,12 +258,16 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async listAliases(): Promise<readonly AliasRecord[]> {
     this.assertInitialized();
+    if (this.validatedAliases) return this.validatedAliases;
     const aliases = (
       await Promise.all(this.activeMounts().map((mount) => mount.store.listAliases()))
     ).flat();
     const byId = new Map<string, AliasRecord>();
     for (const alias of aliases) byId.set(alias.id, alias);
-    return [...byId.values()].toSorted((left, right) => left.alias.localeCompare(right.alias));
+    this.validatedAliases = [...byId.values()].toSorted((left, right) =>
+      left.alias.localeCompare(right.alias),
+    );
+    return this.validatedAliases;
   }
 
   public async listEmbeddingProfiles(): Promise<readonly EmbeddingProfile[]> {
@@ -307,6 +327,7 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   public async close(): Promise<void> {
+    this.validatedAliases = undefined;
     const results = await Promise.allSettled(
       [...this.mounts.values()].map((mount) => mount.store.close()),
     );
@@ -366,16 +387,15 @@ export class MultiMedicalStore implements MedicalStore {
       }
     }
 
-    const aliases = new Map<string, string>();
+    const aliases = new Map<string, AliasRecord>();
     for (const moduleAliases of await Promise.all(
       active.map((mount) => mount.store.listAliases()),
     )) {
       for (const alias of moduleAliases) {
-        const signature = aliasSignature(alias);
         const existing = aliases.get(alias.id);
-        if (existing && existing !== signature)
+        if (existing && aliasSignature(existing) !== aliasSignature(alias))
           throw new Error(`Conflicting alias ID: ${alias.id}`);
-        aliases.set(alias.id, signature);
+        aliases.set(alias.id, alias);
       }
     }
 
@@ -392,6 +412,9 @@ export class MultiMedicalStore implements MedicalStore {
         profiles.set(profile.id, signature);
       }
     }
+    this.validatedAliases = [...aliases.values()].toSorted((left, right) =>
+      left.alias.localeCompare(right.alias),
+    );
   }
 
   private async firstMatch<T>(

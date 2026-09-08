@@ -93,7 +93,7 @@ function finiteCoverage(values: Float32Array): number {
   return values.length > 0 ? count / values.length : 0;
 }
 
-function normalizeSparseProbability(values: Float32Array): Float32Array {
+export function normalizeSparseProbability(values: Float32Array): Float32Array {
   const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
   let maximum = 0;
   const output = Float32Array.from(values, (value) => {
@@ -108,7 +108,7 @@ function normalizeSparseProbability(values: Float32Array): Float32Array {
   return output;
 }
 
-function projection(
+export function projection(
   values: Float32Array,
   width: number,
   height: number,
@@ -280,7 +280,7 @@ function assessTwelveLeadRows(
   };
 }
 
-function traceForBand(
+export function traceForBand(
   probabilities: Float32Array,
   width: number,
   top: number,
@@ -394,7 +394,7 @@ function waveformCorrelation(left: Float32Array, right: Float32Array): number | 
   return numerator / Math.sqrt(leftEnergy * rightEnergy);
 }
 
-export function estimateRrIntervalsMs(rhythm: Float32Array): readonly number[] {
+export function findEcgRPeakIndices(rhythm: Float32Array): readonly number[] {
   const values = interpolateMissing(rhythm);
   if (!values || values.length < SAMPLE_RATE_HZ * 2) return [];
   const movingAverage = (input: Float32Array, radius: number): Float32Array => {
@@ -450,6 +450,11 @@ export function estimateRrIntervalsMs(rhythm: Float32Array): readonly number[] {
     else if (Math.abs(centered[peak] ?? 0) > Math.abs(centered[previous] ?? 0))
       peaks[peaks.length - 1] = peak;
   }
+  return peaks;
+}
+
+export function estimateRrIntervalsMs(rhythm: Float32Array): readonly number[] {
+  const peaks = findEcgRPeakIndices(rhythm);
   if (peaks.length < 3) return [];
   return peaks
     .slice(1)

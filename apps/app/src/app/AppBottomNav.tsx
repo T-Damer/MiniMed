@@ -1,6 +1,6 @@
 import { type Accessor, For, type JSX, lazy, Show, Suspense } from 'solid-js';
 
-import { ROOT_VIEW_ORDER, ROOT_VIEWS, type RootView } from '@/app/root-view';
+import type { RootView, RootViewItem } from '@/app/root-view';
 import { AppGlyph } from '@/components/AppGlyph';
 
 const ContentDownloadNavIndicator = lazy(() =>
@@ -15,6 +15,7 @@ function compactCount(value: number, cap: number): string {
 
 export function AppBottomNav(props: {
   readonly view: Accessor<RootView>;
+  readonly items: Accessor<readonly RootViewItem[]>;
   readonly downloadsReady?: Accessor<boolean>;
   readonly dragIndex: Accessor<number | undefined>;
   readonly dragging: Accessor<boolean>;
@@ -47,10 +48,11 @@ export function AppBottomNav(props: {
       onPointerCancel={props.onPointerCancel}
     >
       <span class="app-bottom-nav__bubble" style={props.bubbleStyle()} aria-hidden="true" />
-      <For each={ROOT_VIEWS}>
+      <For each={props.items()}>
         {(item, index) => {
           const selected = () =>
-            (props.dragIndex() ?? ROOT_VIEW_ORDER.get(props.view()) ?? 0) === index();
+            (props.dragIndex() ?? props.items().findIndex((entry) => entry.id === props.view())) ===
+            index();
           const label = () => {
             if (item.id === 'modules') {
               return `${item.label}, доступно: ${props.availableModuleCount()}, загружено: ${props.downloadedModuleCount()}`;

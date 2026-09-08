@@ -13,7 +13,7 @@ import { Toaster } from 'solid-sonner';
 
 import { AppBottomNav } from '@/app/AppBottomNav';
 import { BootScreen } from '@/app/BootScreen';
-import type { RootView } from '@/app/root-view';
+import { COMPACT_ROOT_VIEWS, compactRootView, ROOT_VIEWS, type RootView } from '@/app/root-view';
 import { useAppSession } from '@/app/use-app-session';
 import { useBottomNav } from '@/app/use-bottom-nav';
 import { useFindShortcut } from '@/app/use-find-shortcut';
@@ -22,8 +22,16 @@ import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
-import { readSettingsRoute } from '@/features/settings/settings-routing';
-import { getFloatingWindowsEnabled, subscribeAppPreferences } from '@/state/app-preferences';
+import {
+  isUserLibraryCatalogRoute,
+  USER_LIBRARY_CATALOG_HASH,
+} from '@/features/library/user-library-routing';
+import {
+  getFloatingWindowsEnabled,
+  getSplitNavigation,
+  subscribeAppPreferences,
+} from '@/state/app-preferences';
+import { parseDocumentReadRoute } from '@/state/document-route';
 import { createFloatingWindows } from '@/state/floating-windows';
 import { rememberReturnTo } from '@/state/return-navigation';
 import {
@@ -67,11 +75,6 @@ const KnowledgeBaseView = lazy(loadKnowledgeBaseView);
 const NotesView = lazy(loadNotesView);
 const SearchHome = lazy(loadSearchHome);
 const SettingsView = lazy(loadSettingsView);
-const DownloadsPage = lazy(() =>
-  import('@/features/downloads/DownloadsPage').then(({ DownloadsPage }) => ({
-    default: DownloadsPage,
-  })),
-);
 
 const rootViewLoaders: Readonly<Record<RootView, () => Promise<unknown>>> = {
   search: loadSearchHome,
@@ -93,16 +96,39 @@ export function App(): JSX.Element {
     embeddedFloatingWindow && floatingWindowParams.get('minimed-floating-scale') !== '0';
   const session = useAppSession();
   const navigation = useRootNavigation();
-  const [settingsRoute, setSettingsRoute] = createSignal(readSettingsRoute());
-  const earlyDownloads = () =>
-    !session.ready() && navigation.view() === 'settings' && settingsRoute() === 'downloads';
+  const [shellReady, setShellReady] = createSignal(document.readyState === 'complete');
+  const [splitNavigation, setSplitNavigation] = createSignal(getSplitNavigation());
+  const [currentHash, setCurrentHash] = createSignal(window.location.hash);
+  let lastPersonalHash = USER_LIBRARY_CATALOG_HASH;
+  const expandedNavigation = () => splitNavigation() && Boolean(session.ready());
+  const navItems = () => (expandedNavigation() ? ROOT_VIEWS : COMPACT_ROOT_VIEWS);
+  const navView = () =>
+    expandedNavigation() ? navigation.view() : compactRootView(navigation.view(), currentHash());
+  const navigateTab = (next: RootView): void => {
+    if (!expandedNavigation() && next === 'notes') {
+      window.location.hash = navView() === 'notes' ? USER_LIBRARY_CATALOG_HASH : lastPersonalHash;
+      return;
+    }
+    navigation.navigate(next);
+  };
+  const personalDocumentActive = () => parseDocumentReadRoute(currentHash())?.kind === 'user';
+  const personalLibraryActive = () =>
+    isUserLibraryCatalogRoute(currentHash().replace(/^#\/?/u, ''));
   const showingBootScreen = () =>
-    !session.ready() &&
-    navigation.view() !== 'assessments' &&
-    navigation.view() !== 'calculators' &&
-    !earlyDownloads();
+    !shellReady() ||
+    (!session.ready() &&
+      navigation.view() !== 'notes' &&
+      navigation.view() !== 'settings' &&
+      !personalLibraryActive() &&
+      !personalDocumentActive());
   onMount(() => {
-    const refresh = () => setSettingsRoute(readSettingsRoute());
+    const refresh = () => {
+      const hash = window.location.hash;
+      setCurrentHash(hash);
+      if (hash.startsWith('#/notes') || hash.startsWith(USER_LIBRARY_CATALOG_HASH))
+        lastPersonalHash = hash;
+    };
+    refresh();
     window.addEventListener('hashchange', refresh);
     onCleanup(() => window.removeEventListener('hashchange', refresh));
   });
@@ -112,12 +138,22 @@ export function App(): JSX.Element {
   );
   onMount(() => {
     // Local diagnostic marks: shell interactivity and searchable content are independent gates.
-    const navigationFrame = requestAnimationFrame(() =>
-      performance.mark('minimed:navigation-ready'),
-    );
-    onCleanup(() => cancelAnimationFrame(navigationFrame));
+    let navigationFrame: number | undefined;
+    const showShell = () => {
+      navigationFrame = requestAnimationFrame(() => {
+        setShellReady(true);
+        performance.mark('minimed:navigation-ready');
+      });
+    };
+    if (document.readyState === 'complete') showShell();
+    else window.addEventListener('load', showShell, { once: true });
+    onCleanup(() => {
+      window.removeEventListener('load', showShell);
+      if (navigationFrame !== undefined) cancelAnimationFrame(navigationFrame);
+    });
     const unsubscribePreferences = subscribeAppPreferences((preferences) => {
       setFloatingWindowsEnabled(preferences.floatingWindowsEnabled);
+      setSplitNavigation(preferences.splitNavigation);
     });
     const syncFloatingViewport = (): void => {
       if (!embeddedFloatingWindow) return;
@@ -170,8 +206,9 @@ export function App(): JSX.Element {
     }
   });
   const bottomNav = useBottomNav({
-    view: navigation.view,
-    navigate: navigation.navigate,
+    view: navView,
+    items: navItems,
+    navigate: navigateTab,
     enabled: () => true,
   });
   useFindShortcut();
@@ -201,8 +238,10 @@ export function App(): JSX.Element {
         'app-view--floating-child': embeddedFloatingWindow,
         'app-view--floating-child-scaled': scaledFloatingWindow,
       }}
-      hidden={navigation.documentReadActive() || !navigation.isViewVisible(id)}
-      aria-hidden={navigation.view() !== id}
+      hidden={
+        showingBootScreen() || navigation.documentReadActive() || !navigation.isViewVisible(id)
+      }
+      aria-hidden={showingBootScreen() || navigation.view() !== id}
     >
       {/* Keep-alive: construct on first visit, then stay mounted so tab switches
           preserve composer drafts, scroll position, and per-view state. */}
@@ -259,45 +298,62 @@ export function App(): JSX.Element {
           'app-main--medical-image': medicalImageViewerActive(),
         }}
       >
-        {rootPane('assessments', () => (
-          <AssessmentsView active={navigation.view() === 'assessments'} />
+        {rootPane('settings', () => (
+          <SettingsView
+            status={session.ready()?.status}
+            appUpdateReady={Boolean(session.appUpdateWorker() || session.availableApkUrl())}
+            appUpdating={session.appUpdating()}
+            appUpdateChecking={session.appUpdateChecking()}
+            appUpdateUpToDate={session.appUpdateUpToDate()}
+            appUpdateProgress={session.appUpdateProgress()}
+            appUpdateError={session.appUpdateError()}
+            appUpdateCancellable={session.appUpdateCancellable()}
+            onCheckAppUpdate={session.checkAvailableUpdate}
+            onActivateAppUpdate={session.activateAvailableUpdate}
+            onCancelAppUpdate={session.cancelAvailableUpdate}
+          />
         ))}
-        {rootPane('calculators', () => (
-          <CalculatorsView />
+        {rootPane('modules', () => (
+          <KnowledgeBaseView
+            core={session.ready()?.core}
+            status={session.ready()?.status}
+            active={navigation.view() === 'modules'}
+            onContentChanged={session.connectInstalledModules}
+            onAvailableUpdates={session.setAvailableModuleCount}
+          />
         ))}
-        <Show when={earlyDownloads()}>
-          <section class="app-view active" aria-hidden={false}>
-            <Suspense
-              fallback={
-                <p class="app-view__loading" role="status">
-                  Открываем очередь…
-                </p>
-              }
-            >
-              <DownloadsPage />
-            </Suspense>
-          </section>
+        {rootPane('notes', () => (
+          <NotesView
+            core={session.searchCore() ?? session.ready()?.core}
+            active={navigation.view() === 'notes'}
+            backToFiles={!expandedNavigation()}
+          />
+        ))}
+        <Show when={showingBootScreen()}>
+          <BootScreen
+            appLoading={!shellReady()}
+            error={session.error()}
+            bootSlow={session.bootSlow()}
+            coreDownloadRequired={session.coreDownloadRequired()}
+            coreDownloading={session.coreDownloading()}
+            coreProgress={session.coreProgress()}
+            onDownloadCore={session.downloadCore}
+          />
         </Show>
-        <Show
-          when={session.ready()}
-          fallback={
-            <Show when={showingBootScreen()}>
-              <BootScreen
-                error={session.error()}
-                bootSlow={session.bootSlow()}
-                coreDownloadRequired={session.coreDownloadRequired()}
-                coreDownloading={session.coreDownloading()}
-                coreProgress={session.coreProgress()}
-                onDownloadCore={session.downloadCore}
-              />
-            </Show>
-          }
-        >
+        <Show when={session.ready()}>
           {(state) => (
             <>
+              {rootPane('assessments', () => (
+                <AssessmentsView active={navigation.view() === 'assessments'} />
+              ))}
+              {rootPane('calculators', () => (
+                <CalculatorsView />
+              ))}
               {rootPane('search', () => (
                 <SearchHome
                   baseCore={session.searchCore() ?? state().core}
+                  onContentChanged={session.connectInstalledModules}
+                  splitNavigation={splitNavigation()}
                   active={navigation.view() === 'search'}
                   onOpenKnowledgeBase={() => navigation.navigate('modules')}
                   {...(session.availableUpdateVersion()
@@ -309,59 +365,31 @@ export function App(): JSX.Element {
                   }}
                 />
               ))}
-              {rootPane('modules', () => (
-                <KnowledgeBaseView
-                  core={state().core}
-                  status={state().status}
-                  active={navigation.view() === 'modules'}
-                  onContentChanged={session.connectInstalledModules}
-                  onAvailableUpdates={session.setAvailableModuleCount}
-                />
-              ))}
-              {rootPane('settings', () => (
-                <SettingsView
-                  status={state().status}
-                  appUpdateReady={Boolean(session.appUpdateWorker() || session.availableApkUrl())}
-                  appUpdating={session.appUpdating()}
-                  appUpdateChecking={session.appUpdateChecking()}
-                  appUpdateUpToDate={session.appUpdateUpToDate()}
-                  appUpdateProgress={session.appUpdateProgress()}
-                  appUpdateError={session.appUpdateError()}
-                  appUpdateCancellable={session.appUpdateCancellable()}
-                  onCheckAppUpdate={session.checkAvailableUpdate}
-                  onActivateAppUpdate={session.activateAvailableUpdate}
-                  onCancelAppUpdate={session.cancelAvailableUpdate}
-                />
-              ))}
-              {rootPane('notes', () => (
-                <NotesView
-                  core={session.searchCore() ?? state().core}
-                  active={navigation.view() === 'notes'}
-                />
-              ))}
-              <Show when={navigation.documentReadActive()}>
-                <section class="app-view app-view--document-read active" aria-hidden={false}>
-                  <Suspense
-                    fallback={
-                      <div
-                        class="app-view__loading page-surface page-grain"
-                        role="status"
-                        aria-live="polite"
-                        aria-label="Загрузка страницы"
-                      >
-                        <span class="app-view__spinner" aria-hidden="true" />
-                      </div>
-                    }
-                  >
-                    <DocumentPageHost
-                      getCore={() => state().core}
-                      reconnectContent={session.connectInstalledModules}
-                    />
-                  </Suspense>
-                </section>
-              </Show>
             </>
           )}
+        </Show>
+        <Show
+          when={navigation.documentReadActive() && (session.ready() || personalDocumentActive())}
+        >
+          <section class="app-view app-view--document-read active" aria-hidden={false}>
+            <Suspense
+              fallback={
+                <div
+                  class="app-view__loading page-surface page-grain"
+                  role="status"
+                  aria-live="polite"
+                  aria-label="Загрузка страницы"
+                >
+                  <span class="app-view__spinner" aria-hidden="true" />
+                </div>
+              }
+            >
+              <DocumentPageHost
+                getCore={() => session.ready()?.core}
+                reconnectContent={session.connectInstalledModules}
+              />
+            </Suspense>
+          </section>
         </Show>
       </main>
 
@@ -377,7 +405,7 @@ export function App(): JSX.Element {
 
       <Show
         when={
-          !(showingBootScreen() && session.coreDownloadRequired()) &&
+          shellReady() &&
           !embeddedFloatingWindow &&
           !medicalImageViewerActive() &&
           !floatingWindows.fullscreenWindowId()
@@ -386,7 +414,8 @@ export function App(): JSX.Element {
         <Portal>
           <AppBottomNav
             downloadsReady={() => Boolean(session.ready())}
-            view={navigation.view}
+            view={navView}
+            items={navItems}
             dragIndex={bottomNav.dragIndex}
             dragging={bottomNav.dragging}
             pressed={bottomNav.pressed}

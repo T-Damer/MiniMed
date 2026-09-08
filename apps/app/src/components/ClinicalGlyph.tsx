@@ -1,11 +1,16 @@
 import type { MedicalDocumentSummary, SearchResultCategory } from '@localmed/contracts';
+import babyBold from '@phosphor-icons/core/assets/bold/baby-bold.svg?raw';
+import babyCarriageBold from '@phosphor-icons/core/assets/bold/baby-carriage-bold.svg?raw';
+import boneBold from '@phosphor-icons/core/assets/bold/bone-bold.svg?raw';
 import bowlFoodBold from '@phosphor-icons/core/assets/bold/bowl-food-bold.svg?raw';
 import brainBold from '@phosphor-icons/core/assets/bold/brain-bold.svg?raw';
 import calendarBold from '@phosphor-icons/core/assets/bold/calendar-bold.svg?raw';
 import dropBold from '@phosphor-icons/core/assets/bold/drop-bold.svg?raw';
+import eyeBold from '@phosphor-icons/core/assets/bold/eye-bold.svg?raw';
 import fileTextBold from '@phosphor-icons/core/assets/bold/file-text-bold.svg?raw';
 import flaskBold from '@phosphor-icons/core/assets/bold/flask-bold.svg?raw';
 import folderOpenBold from '@phosphor-icons/core/assets/bold/folder-open-bold.svg?raw';
+import genderFemaleBold from '@phosphor-icons/core/assets/bold/gender-female-bold.svg?raw';
 import heartBold from '@phosphor-icons/core/assets/bold/heart-bold.svg?raw';
 import pathBold from '@phosphor-icons/core/assets/bold/path-bold.svg?raw';
 import pillBold from '@phosphor-icons/core/assets/bold/pill-bold.svg?raw';
@@ -17,6 +22,11 @@ import windBold from '@phosphor-icons/core/assets/bold/wind-bold.svg?raw';
 import type { JSX } from 'solid-js';
 
 export type ClinicalGlyphName =
+  | 'baby'
+  | 'baby-carriage'
+  | 'female'
+  | 'bone'
+  | 'eye'
   | 'lungs'
   | 'airway'
   | 'stomach'
@@ -59,6 +69,11 @@ function svgBody(asset: string): string {
 }
 
 const glyphBodies: Record<ClinicalGlyphName, string> = {
+  baby: svgBody(babyBold),
+  'baby-carriage': svgBody(babyCarriageBold),
+  female: svgBody(genderFemaleBold),
+  bone: svgBody(boneBold),
+  eye: svgBody(eyeBold),
   lungs: svgBody(windBold),
   airway: svgBody(windBold),
   stomach: svgBody(bowlFoodBold),
@@ -82,7 +97,7 @@ function includesAny(value: string, terms: readonly string[]): boolean {
 }
 
 export function documentClinicalSignals(
-  document: MedicalDocumentSummary,
+  document: Pick<MedicalDocumentSummary, 'title' | 'shortTitle' | 'specialties'>,
 ): readonly ClinicalSignal[] {
   const value =
     `${document.title} ${document.shortTitle ?? ''} ${document.specialties.join(' ')}`.toLowerCase();
@@ -91,16 +106,53 @@ export function documentClinicalSignals(
     if (!signals.some((item) => item.icon === signal.icon)) signals.push(signal);
   };
 
+  if (
+    includesAny(value, ['gynecology', 'obstetrics', 'гинек', 'акушер', 'беремен', 'родов', 'матки'])
+  ) {
+    add({ icon: 'female', label: 'Акушерство и гинекология', tone: 'purple', strength: 'primary' });
+  }
+  const neonatal = includesAny(value, ['neonatology', 'неонат', 'новорожд']);
+  const underThree = /до\s+(?:3|тр[её]х)\s*(?:лет|год)/u.test(value);
+  if (neonatal || underThree) {
+    add({
+      icon: 'baby-carriage',
+      label: neonatal ? 'Неонатология' : 'Дети до 3 лет',
+      tone: 'amber',
+      strength: 'primary',
+    });
+  } else if (includesAny(value, ['pediatrics', 'педиатр', 'детск', 'детей', 'ребён', 'ребен'])) {
+    add({ icon: 'baby', label: 'Педиатрия', tone: 'amber', strength: 'primary' });
+  }
+  if (includesAny(value, ['cardiology', 'кардио', 'серд', 'сосуд', 'гипертенз'])) {
+    add({ icon: 'heart', label: 'Сердце и сосуды', tone: 'red', strength: 'primary' });
+  }
+  if (includesAny(value, ['orthopedics', 'traumatology', 'сустав', 'кост', 'перелом', 'ортопед'])) {
+    add({ icon: 'bone', label: 'Кости и суставы', tone: 'neutral', strength: 'primary' });
+  }
+  if (includesAny(value, ['ophthalmology', 'офтальм', 'глаз', 'зрени'])) {
+    add({ icon: 'eye', label: 'Зрение', tone: 'blue', strength: 'primary' });
+  }
   if (includesAny(value, ['пневмон', 'бронх', 'бронхиол', 'пульмон', 'дыхатель'])) {
     add({ icon: 'lungs', label: 'Нижние дыхательные пути', tone: 'blue', strength: 'primary' });
   }
   if (includesAny(value, ['ринит', 'синус', 'гортан', 'ларинг', 'трахе', 'верхн'])) {
     add({ icon: 'airway', label: 'Верхние дыхательные пути', tone: 'cyan', strength: 'primary' });
   }
-  if (includesAny(value, ['ротавирус', 'кишеч', 'гастро', 'живот', 'питан'])) {
+  if (includesAny(value, ['ротавирус', 'кишеч', 'гастро', 'живот', 'питан', 'gastroenterology'])) {
     add({ icon: 'stomach', label: 'ЖКТ и питание', tone: 'amber', strength: 'primary' });
   }
-  if (includesAny(value, ['менинг', 'энцефал', 'неврол', 'судорог'])) {
+  if (
+    includesAny(value, [
+      'менинг',
+      'энцефал',
+      'неврол',
+      'судорог',
+      'neurology',
+      'psychiatry',
+      'psychology',
+      'псих',
+    ])
+  ) {
     add({ icon: 'brain', label: 'Нервная система', tone: 'purple', strength: 'primary' });
   }
   if (includesAny(value, ['мочев', 'нефр', 'уролог', 'почек'])) {

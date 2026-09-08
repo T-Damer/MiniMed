@@ -10,7 +10,6 @@ import {
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
-
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -97,7 +96,11 @@ import {
   snapshotCalculationForNote,
 } from '@/features/notes/note-attached-results';
 import { notesPatientsPath } from '@/features/notes/notes-routing';
-import { getExperimentalModulesEnabled, subscribeAppPreferences } from '@/state/app-preferences';
+import {
+  getExperimentalModulesEnabled,
+  getSplitNavigation,
+  subscribeAppPreferences,
+} from '@/state/app-preferences';
 import {
   type CalculationRecord,
   createCalculationRecord,
@@ -118,6 +121,7 @@ import {
   PATIENT_VAULT_LOCK_EVENT,
   readPatientVault,
 } from '@/state/patient-vault';
+import { returnFromTool } from '@/state/tool-navigation';
 
 function currentRoute(): string {
   return window.location.hash.replace(/^#\/?/u, '');
@@ -1346,6 +1350,8 @@ export function CalculatorsView(): JSX.Element {
   const [installation, setInstallation] = createSignal<CalculatorInstallationState>(
     loadCalculatorInstallationState(getCalculatorRegistry()),
   );
+  const [toolsReady, setToolsReady] = createSignal(false);
+  const [toolsError, setToolsError] = createSignal('');
   const [calculatorRegistry, setCalculatorRegistry] = createSignal(getCalculatorRegistry());
   const [experimentalModulesEnabled, setExperimentalModulesEnabled] = createSignal(
     getExperimentalModulesEnabled(),
@@ -1391,9 +1397,18 @@ export function CalculatorsView(): JSX.Element {
           .map((definition) => definition.id),
       );
       setInstallation(loadCalculatorInstallationState(next));
-    })().finally(() => {
-      downloadedToolsRefresh = undefined;
-    });
+      setToolsError('');
+      setToolsReady(true);
+    })()
+      .catch((cause: unknown) => {
+        setToolsError(
+          cause instanceof Error ? cause.message : 'Не удалось прочитать локальные инструменты.',
+        );
+        throw cause;
+      })
+      .finally(() => {
+        downloadedToolsRefresh = undefined;
+      });
     return downloadedToolsRefresh;
   };
   let unsubscribeToolTasks: (() => void) | undefined;
@@ -1410,12 +1425,13 @@ export function CalculatorsView(): JSX.Element {
     window.addEventListener(CALCULATOR_PACKS_EVENT, refreshInstallation);
     window.addEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult);
     unsubscribeToolTasks = getContentModuleRuntime(MODULE_CATALOG).subscribe((task) => {
-      if (task.state === 'completed') void refreshDownloadedTools();
+      if (task.state === 'completed')
+        void refreshDownloadedTools().catch((cause: unknown) => notify(String(cause)));
     });
     unsubscribeAppPreferences = subscribeAppPreferences((preferences) => {
       setExperimentalModulesEnabled(preferences.experimentalModulesEnabled);
     });
-    void refreshDownloadedTools();
+    void refreshDownloadedTools().catch((cause: unknown) => notify(String(cause)));
   });
   onCleanup(() => window.removeEventListener('hashchange', refresh));
   onCleanup(() => window.removeEventListener('storage', handleStorage));
@@ -1491,12 +1507,17 @@ export function CalculatorsView(): JSX.Element {
 
   const backToCatalog = (): void => {
     setActiveRecord(undefined);
-    window.location.hash = '#/calculators';
+    window.location.hash = getSplitNavigation() ? '#/calculators' : '#/search';
   };
 
   const backFromCalculator = (): void => {
-    const definition = selected();
     setActiveRecord(undefined);
+    if (returnFromTool()) return;
+    const definition = selected();
+    if (!getSplitNavigation()) {
+      window.location.hash = '#/search';
+      return;
+    }
     if (definition?.state === 'available') {
       window.location.hash = calculatorSectionPath(definition.category);
       return;
@@ -1690,27 +1711,44 @@ export function CalculatorsView(): JSX.Element {
                   );
                   return (
                     <section class="calculator-pack-required paper-card" role="status">
-                      <p class="archive-kicker">{section?.title ?? 'Раздел калькуляторов'}</p>
-                      <Heading depth={3}>{definition().title}</Heading>
-                      <p>
-                        Этот инструмент входит в скачиваемый раздел. Сначала скачайте раздел, затем
-                        откройте калькулятор без сети.
-                      </p>
-                      <div>
-                        <Button
-                          icon={<AppGlyph name="download" />}
-                          onClick={() => installSection(definition().category)}
-                        >
-                          Скачать
-                        </Button>
-                        <Button
-                          variant="quiet"
-                          icon={<AppGlyph name="arrow-left" />}
-                          onClick={backToCatalog}
-                        >
-                          К разделам
-                        </Button>
-                      </div>
+                      <Show
+                        when={toolsReady() && !toolsError()}
+                        fallback={
+                          <>
+                            <h1 class="calculator-pack-required__title">
+                              {toolsError()
+                                ? 'Не удалось открыть калькулятор'
+                                : 'Подключаем калькулятор'}
+                            </h1>
+                            <p class="calculator-pack-required__text">
+                              {toolsError() ||
+                                'Проверяем локальные пакеты и открываем калькулятор.'}
+                            </p>
+                          </>
+                        }
+                      >
+                        <p class="archive-kicker">{section?.title ?? 'Раздел калькуляторов'}</p>
+                        <Heading depth={3}>{definition().title}</Heading>
+                        <p>
+                          Этот инструмент входит в скачиваемый раздел. Сначала скачайте раздел,
+                          затем откройте калькулятор без сети.
+                        </p>
+                        <div>
+                          <Button
+                            icon={<AppGlyph name="download" />}
+                            onClick={() => installSection(definition().category)}
+                          >
+                            Скачать
+                          </Button>
+                          <Button
+                            variant="quiet"
+                            icon={<AppGlyph name="arrow-left" />}
+                            onClick={backToCatalog}
+                          >
+                            К разделам
+                          </Button>
+                        </div>
+                      </Show>
                     </section>
                   );
                 }}
@@ -1739,7 +1777,7 @@ export function CalculatorsView(): JSX.Element {
             <header class="calculator-subpage-header">
               <NavBack
                 class="knowledge-back-button"
-                aria-label="К каталогу калькуляторов"
+                aria-label="Назад"
                 onClick={backFromCalculator}
               />
               <div class="calculator-subpage-header__content">

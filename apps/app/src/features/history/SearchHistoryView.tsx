@@ -1,8 +1,8 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
+import { specialtyLabel } from '@/i18n/labels';
 import {
   clearSearchHistory,
   loadSearchHistory,
@@ -22,12 +22,15 @@ const MODE_LABELS: Readonly<Record<SearchHistoryEntry['modeUsed'], string>> = {
 };
 
 const SCOPE_LABELS: Readonly<Record<SearchHistoryEntry['scope'], string>> = {
-  diagnosis: 'Диагноз',
-  guidelines: 'КР',
+  diagnosis: 'Клинический разбор',
+  guidelines: 'Клинические рекомендации',
   medications: 'Препараты',
-  legal: 'Право',
+  legal: 'Нормативные документы',
   all: 'Все источники',
   personal: 'Ваши данные',
+  conditions: 'МКБ и состояния',
+  calculators: 'Калькуляторы',
+  assessments: 'Опросники',
 };
 
 function formatDate(value: string): string {
@@ -99,8 +102,12 @@ export function SearchHistoryView(props: SearchHistoryViewProps): JSX.Element {
                   <span class="history-copy">
                     <strong>{entry.query}</strong>
                     <small>
-                      {formatDate(entry.createdAt)} · {entry.resultCount} док. ·{' '}
-                      {SCOPE_LABELS[entry.scope]} · {MODE_LABELS[entry.modeUsed]}
+                      {formatDate(entry.createdAt)} · Результаты: {entry.resultCount} ·{' '}
+                      {SCOPE_LABELS[entry.scope]}
+                      {entry.specialty ? ` / ${specialtyLabel(entry.specialty)}` : ''} ·{' '}
+                      {entry.scope === 'calculators' || entry.scope === 'assessments'
+                        ? 'Каталог'
+                        : MODE_LABELS[entry.modeUsed]}
                     </small>
                   </span>
                   <span class="history-arrow" aria-hidden="true">

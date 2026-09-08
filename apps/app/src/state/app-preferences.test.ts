@@ -7,6 +7,7 @@ import {
   getModuleAutoUpdatesEnabled,
   getRememberSearchMode,
   getSoundVolume,
+  getSplitNavigation,
   getVibrationEnabled,
   loadAppPreferences,
   loadSearchScope,
@@ -17,6 +18,7 @@ import {
   setModuleAutoUpdatesEnabled,
   setRememberSearchMode,
   setSoundVolume,
+  setSplitNavigation,
   setVibrationEnabled,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
@@ -64,6 +66,7 @@ describe('app-preferences', () => {
 
   it('loads defaults when storage is empty', () => {
     expect(loadAppPreferences()).toEqual({
+      splitNavigation: false,
       vibrationEnabled: true,
       rememberSearchMode: false,
       soundVolume: 0.2,
@@ -85,6 +88,7 @@ describe('app-preferences', () => {
       }),
     );
     expect(loadAppPreferences()).toEqual({
+      splitNavigation: false,
       vibrationEnabled: true,
       rememberSearchMode: false,
       soundVolume: 1,
@@ -116,6 +120,10 @@ describe('app-preferences', () => {
     setVibrationEnabled(false);
     expect(getVibrationEnabled()).toBe(false);
     expect(listener).toHaveBeenCalledWith(expect.objectContaining({ vibrationEnabled: false }));
+    setSplitNavigation(true);
+    expect(getSplitNavigation()).toBe(true);
+    expect(loadAppPreferences().vibrationEnabled).toBe(false);
+    expect(listener).toHaveBeenCalledWith(expect.objectContaining({ splitNavigation: true }));
   });
 
   it('persists search scope only when remember mode is enabled', () => {

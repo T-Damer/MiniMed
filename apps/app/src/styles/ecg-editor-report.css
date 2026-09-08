@@ -1,0 +1,108 @@
+@page {
+  size: A4;
+  margin: 12mm;
+}
+.ecg-report-print {
+  margin: 0;
+  background: white;
+  color: #182321;
+  font-family: Arial, sans-serif;
+}
+.ecg-report {
+  box-sizing: border-box;
+  width: 186mm;
+  min-height: 273mm;
+  margin: 0 auto;
+  padding: 6mm;
+  background: white;
+  color: #182321;
+  font:
+    12px / 1.45 Arial,
+    sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.ecg-report__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 3mm;
+  border-bottom: 1px solid #bfccc7;
+}
+.ecg-report__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+.ecg-report__brand {
+  color: #58736a;
+  font-size: 11px;
+}
+.ecg-report__image {
+  display: block;
+  width: 100%;
+  height: 88mm;
+  margin: 4mm 0 2mm;
+  object-fit: contain;
+}
+.ecg-report__profile {
+  margin: 0 0 4mm;
+  color: #4a5c55;
+  font-size: 10px;
+}
+.ecg-report__metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3mm;
+  margin: 0 0 5mm;
+  padding: 4mm 0;
+  border-top: 1px solid #d4deda;
+  border-bottom: 1px solid #d4deda;
+}
+.ecg-report__metric {
+  min-width: 0;
+}
+.ecg-report__metric-label {
+  color: #50665c;
+  font-size: 10px;
+}
+.ecg-report__metric-value {
+  margin: 1mm 0 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.ecg-report__unit {
+  font-size: 10px;
+  font-weight: 400;
+}
+.ecg-report__heading {
+  margin: 0 0 2mm;
+  font-size: 14px;
+}
+.ecg-report__findings {
+  margin: 0;
+  padding-left: 4mm;
+}
+.ecg-report__finding {
+  margin-bottom: 1.5mm;
+}
+.ecg-report__finding--urgent {
+  font-weight: 700;
+}
+.ecg-report__text {
+  margin: 2mm 0;
+}
+.ecg-report__footer {
+  margin-top: 5mm;
+  padding-top: 3mm;
+  border-top: 1px solid #d4deda;
+  color: #516058;
+  font-size: 9px;
+}
+@media print {
+  .ecg-report {
+    width: 100%;
+    padding: 0;
+    break-inside: avoid;
+  }
+}

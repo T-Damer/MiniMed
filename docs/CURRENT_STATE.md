@@ -1,16 +1,161 @@
 # Current state
 
-> Updated: 7 September 2026
-> Repository version: `0.6.36`
-> Active target: `0.6.36` public prerelease toward `1.0`
+- Corrected reused tool-pack versions: gastroenterology, neonatology and core clinical tools now
+  use `0.1.0-preview.3`; emergency tools use `0.1.0-preview.2`. Their SQLite artifacts were rebuilt
+  from authoring JSON and resolve to local files in local-artifact mode. Existing installed
+  versions remain immutable; upgrades preserve registry history. Download errors explain a source
+  digest conflict instead of suggesting that retrying the same version will help. The versioned
+  artifacts are included in the `0.6.37` release tree for GitHub downloads.
+- Failed jobs for superseded module versions move to cancelled history once the current catalog
+  version is installed, including after reload; active transfers and current-version failures stay.
+- The app's `dev` command defaults `VITE_USE_LOCAL_MODULE_ARTIFACTS` to `true`, while respecting an
+  explicit override. Development downloads use local generated artifacts instead of GitHub copies.
+- DEV settings offer a persisted local/GitHub download switch for subsequent module transfers.
+  Production ignores this preference and hides the control. Existing checksum-keyed cached bytes
+  are retained; selecting GitHub does not publish local versions or force a cache bypass.
+
+- In compact navigation, reselecting My Files opens the file catalog root. Returning from note
+  cards, templates or the patient list also opens Files; the standalone notes index has a Files
+  back action. Switching from another tab still restores the last personal route and drafts.
+
+- Official text chunks render GFM Markdown tables through the existing table viewer, including
+  mixed prose/table chunks, numeric-column alignment, in-document find offsets, fullscreen and
+  printing. This uses the installed Markdown parser and does not rewrite source chunks or anchors.
+- Section downloads use icon-only idle controls, retain active progress and hide after verified
+  installation finishes. Nested controls align with the parent's chevron; content-kind icons use
+  a spaced row of 12px glyphs. Top-level options use one icon and bold labels.
+
+- Source catalogs share the tool-card layout (tags, title, readable kind label) across search
+  sections; document numbering remains visible and technical version strings stay in the reader.
+  Search owns the selected section's relationship-map dialog, with a round outline icon button
+  beside the submit action, matching its height and retaining an accessible name and tooltip.
+
+- Inline document links use document names and editorial `navigationAliases`; `declaredAliases`
+  remain search expansions and no longer establish a document link. Three-letter uppercase labels
+  require matching case, avoiding journal «Мед.» linking to medication «МЕД». A read-only audit of
+  `kr.rf.876_1` against the bundled catalog reduced 276 matched mentions to 91, removing links such
+  as generic «синдром» to acute coronary syndrome and «кожи» to melanoma while retaining exact
+  condition and medication names. Unreviewed synonyms can consequently remain plain text.
+
+- Official readers retain the outline/main-column shell while loading, keeping header navigation in place; the outline toggle is disabled until the document is ready.
+
+- Hidden reader chrome places sticky document headings directly at the safe-area edge, removing the extra toolbar gap while preserving the opaque Android/iOS status-bar fill.
+
+- Unified subgroups carry actual content kinds and source-document counts: tool-only groups use tool search without an empty document panel, including under All Sources. Submenu icons reflect each represented content kind. Download controls are omitted when no package is downloadable or all packages have finished installation.
+
+- Dropdown download controls keep icon and compact count/progress on one line; full status remains in accessible labels/tooltips. The menu widens to 30rem within the viewport and reserves a separate gutter for its always-visible scrollbar; the downloads footer is a slim text link, and failed downloads use an icon-only retry with error details in its tooltip.
+
+- Search-section menus use OverlayScrollbars and shade the full expanded group. Each section and subgroup exposes shared-queue download progress, package counts, completion/failure state, and installation of missing released packages. Membership comes from verified pointer targets/document manifests and declared tool ids; installed versions/digests are checked before skipping packages. Completed menu downloads reconnect the existing search core.
+
+- Clinical tags distinguish neonatology (baby carriage) from general pediatrics (child); explicit “до 3 лет” age labels also use the carriage.
+
+- Questionnaire and calculator routes wait for local tool hydration before reporting a missing pack; hydration failures remain errors instead of download prompts.
+
+> Updated: 8 September 2026
+> Repository version: `0.6.37`
+> Active target: `0.6.37` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
 
+### Unified search UI — 8 September 2026 (local build)
+
+- The section dropdown uses the shared search field with Phosphor search/clear icons, styled hover
+  controls, and a link to Downloads. Empty queries render each selected source or tool catalog in
+  both navigation layouts. Conditions offer actual ICD, symptom, condition, syndrome, and disease
+  filters for browsing and retrieval; history restores the selected type. Compact navigation
+  projections retain source kind and ICD code so the filters work with both pointers and full packs.
+- Tool Back controls and Android Back restore the actual entry page, including search selection,
+  document URLs, and tool-catalog routes. Nested tools retain their entry chain; result pages stay
+  inside their questionnaire, and creation redirects preserve the original entry point.
+- Source and tool cards show small thematic icon tags. Only ICD codes/ranges in catalog and search
+  titles use the bundled monospace face; ordinary heading text and numbers retain the heading font.
+
+- «Все источники» includes both source documents and tool catalogs in section/subsection counts.
+  Selecting a specialty shows its documents, questionnaires, and calculators; text lookup also
+  matches tool specialty labels in both navigation layouts. Obstetrics tools join the source
+  catalog's combined gynecology specialty, while separate tool sections keep their own groups.
+
+- One searchable selector combines source/tool sections and their subsections, with icons and item
+  counts. Source counts describe the indexed catalog (including source pointers); tool counts come
+  from declarative catalog entries. The separate specialty dropdown, document-count block, and
+  `@` button are removed in both navigation layouts. Missing specialty/source labels are localized.
+- Search history retains section and subsection, including explicit tool-catalog searches and opening
+  a matching tool. Replaying history restores that selection. Custom-questionnaire creation is a
+  searchable catalog card. In compact navigation, questionnaire/calculator back controls return to
+  search; result pages retain their intermediate questionnaire navigation.
+- Personal files expose notes, questionnaires, templates, demo research/books, and an entry to the
+  separate patient workspace. A one-time seed refresh restores missing demo folders without replacing
+  existing files. Patient data is never placed in the ordinary file library; its lock appears only
+  for a vault actually using native encryption. Browser plaintext mode is not labelled encrypted.
+- Catalog number columns size to their content, and long virtualized catalogs return to the top
+  without a smooth-scroll target being disrupted by row measurement. ICD codes use the bundled Cascadia
+  glyphs with the OpenType slashed-zero feature; the unchanged
+  font and its embedded license are distributed locally. Settings section headings are larger and
+  use filled icons; the navigation setting has an icon and Experimental uses a flask.
+- The shared fuzzy matcher no longer treats a one-letter conjunction inside a long query as a match
+  for an unrelated catalog label (for example, pharmacology matching obstetrics via «и»).
+- Browser regressions cover source/tool history replay, nested selection, demo folders, five-digit
+  catalog rows, and return-to-top at phone and desktop widths. Android 36 ARM64 emulator checks
+  verify the same selector, questionnaire-to-search hardware Back, and closing the selector in place.
+  The selector now caps itself to the popover’s available height on a short native viewport.
+  The local preview APK is updated; no release was published and no physical-device test was run.
+
+### Ordinary source lookup and native search ownership — 8 September 2026 (local build)
+
+- Application loading and medical-core readiness are separate gates. Bottom navigation is hidden
+  until the application document has loaded, then exposes «Поиск», «Мои файлы», and «Настройки».
+  Search shows the download/preparation screen until the core is ready. Personal files and their
+  readers, ordinary notes, and settings work without the core; readiness preserves their open state
+  and drafts. The setting «Разбивать навигацию на разделы» restores six tabs once the core is ready.
+  The updated Android 36 ARM64 preview exposed navigation in 2.06–3.26 seconds without a core;
+  Activity cold launch took 2.61–4.49 seconds across the checked starts. Offline files/settings
+  remained usable with search locked. Browser regressions also import/read a file, autosave an
+  ordinary note without a core, and preserve a folder draft when core initialization completes.
+  After restoring the installed core, navigation appeared at 2.59 seconds and search readiness at
+  18.55 seconds in the emulator; the two gates remained independent.
+- The search action row selects sources, MKB/conditions, recommendations, medications, regulations,
+  questionnaires, calculators, or explicit clinical parsing. Empty source queries show the compact
+  document catalog with specialty filtering. Tools have flat searchable catalogs and open their
+  existing local/download screens; questionnaires retain a direct custom-questionnaire action.
+  Section switches retain query/results, filters, and scroll position in the current session.
+- Search defaults to one lexical lookup branch with aliases and stemming. It does not schedule
+  clinical analysis or vector search; «Клинический разбор» is a separate explicit mode beside the
+  search actions. Existing API callers retain clinical behavior when `analysisMode` is omitted.
+- Android/iOS reuse their connected native core rather than opening a browser database in a search
+  worker. Browser workers are constructed only after eligibility is known; OPFS keeps its owner.
+- Inline links read a compact navigation projection (titles, aliases, pointer targets, definition
+  previews), excluding extraction/provenance payloads. Full document APIs retain those payloads.
+  The reader link index is built only when opening an excerpt, rather than alongside query links.
+- Alias phrase matching uses literal substring searches with the same word boundaries instead of
+  compiling a regular expression for each alias on every lookup.
+- Composition retains its validated aliases instead of reading them again for the first query.
+  SQLite metadata projection extracts multiple paths in one call, and navigation/search share the
+  loaded projection. The browser alias loader scans and sorts instead of making random indexed
+  reads across a small OPFS cache. The first UI sound no longer synthesizes eighteen unused cues.
+- Migration `008-opfs-page-layout` changes only physical SQLite layout to 64 KiB pages and verifies
+  the input checksum, integrity, and foreign keys. Bundled core shrinks from 513,986,560 to
+  422,838,272 bytes; its gzip shrinks from 99,963,494 to 78,079,240 bytes. Composed packs use the same
+  page size; small standalone packs retain 4 KiB pages. Document/source content is unchanged.
+  Android pins its separately published URL/checksum to the original encoding of this same corpus,
+  so the local APK does not request an unpublished file or invalidate an installed Android core.
+- Startup target: an interactive application shell within five seconds; core initialization may
+  continue afterward. Query latency is recorded separately, not used as the application-start gate.
+  Four isolated phone-sized Chromium runs measured first lookup at 4.24–4.65 seconds and subsequent
+  lookups at 1.01–1.88 seconds. Android 36 ARM64 emulator (2 GiB RAM), using the same preview APK and
+  native core, measured first queries after process launch at 7.07 and 14.25 seconds;
+  subsequent queries took 3.23–4.63 seconds, then 1.56–2.35 seconds once warm. Activity launch took
+  0.61–0.90 seconds, but the search-ready mark took 9.40–9.63 seconds from WebView navigation.
+  Results remained available with emulator Wi-Fi/mobile data disabled; the crash buffer was empty.
+  Physical phone measurements remain pending because USB installation was denied. This local
+  change is not a published release. These query timings predate the independent-shell change.
+
 ### Full-screen core setup and startup geometry — 7 September 2026
 
+- Superseded by the independent shell above: core setup now retains navigation after app loading,
+  and initial access is to personal files/settings rather than early calculator/assessment tabs.
 - The first-launch core prompt, its progress, and its retry state use a full-screen setup surface
   without bottom navigation. Installed-core loading retains early calculators and assessments.
 - A shared boot visibility condition restores the shell's viewport sizing only while the boot
@@ -1019,7 +1164,32 @@ checks were run independently. Native SDK builds and physical devices were not t
   for this patient handout, and the caregiver emoji stays inside the bottom-right page boundary. The
   calculation-history list resolves saved ids and legacy slugs through the currently loaded registry,
   so downloaded schema tools are labelled by calculator title after their pack becomes ready.
-  The
+  **Current ECG photo editor (2026-09-08):** opening the calculator opens a fullscreen,
+  five-stage review: photo/examples, independent horizontal/vertical grid calibration,
+  editable lead regions, P/Q/R/S/T landmarks and a printable report. Only the current stage title
+  appears in the header; side arrows overlay the image and forward navigation requires confirmation.
+  Speed is 25 or 50 mm/s; gain is 5, 10 or 20 mm/mV. Local ONNX segmentation proposes grid/regions;
+  the existing waveform heuristics propose reviewable landmarks, not validated delineation.
+  Missing/unusable model output leaves manual editing available. Late results do not overwrite
+  edited or confirmed calibration/regions. Zoom/pan, two-finger pinch (up to 20×), region movement/
+  resize, landmark addition/deletion and undo/redo stay in the viewport. Measurement boundaries
+  and R peaks belong to one explicitly selected lead; missing P/T is not inferred as normal.
+  The report uses confirmed RR, rate, P/PR/QRS/QT and QTc values with the existing adult interval
+  rules; an unknown/child age produces measurements only. The original photo remains local and
+  appears in the one-A4-page printout; on screen the entire sheet scales to the available viewport.
+  The standalone numeric tool remains available after closing the editor. This replaces the old
+  photo-to-numeric transfer and perspective/cropped-preview workflow described below; the new
+  editor requires a straight, readable photograph and retains annotations only for the current session.
+  Browser regression covers a complete manual flow at 375×667 (iPhone SE viewport), 20× zoom,
+  two-touch pinch, confirmation invalidation after undo, and a 320×568 report preview. The generated
+  PDF was checked as one A4 page. A separate browser regression installs the verified published
+  19 MB model, reviews calibration, checks generated points remain unconfirmed, then repeats
+  segmentation with the network disabled. The faint-grid public fixture needs one axis supplied
+  manually; this is expected review behavior, not a claim of automatic calibration accuracy.
+  This is browser emulation, not a physical iPhone/Safari or printer
+  qualification; the generated landmarks and findings still require clinical review.
+
+  **Earlier ECG workflow and qualification evidence (superseded UI):** the
   ECG tool imports an image without uploading it, uses a fixed
   50 мм/с and 10 мм/мВ profile (1 мм = 20 мс), calibrates five large grid cells (25 мм) from two
   points, and converts manual RR/P/PR/QRS/QT calipers into milliseconds, heart rate, and

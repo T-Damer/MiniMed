@@ -28,10 +28,8 @@ import type {
 } from '@/features/search/search-worker-protocol';
 
 export class WorkerSearchMedicalCore implements MedicalCore {
-  private worker =
-    typeof Worker === 'undefined'
-      ? undefined
-      : new Worker(new URL('./search.worker.ts', import.meta.url), { type: 'module' });
+  private worker: Worker | undefined;
+  private closed = false;
   private readonly pending = new Map<
     number,
     {
@@ -42,8 +40,10 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   private requestId = 0;
   private workerEligibility: Promise<boolean> | undefined;
 
-  public constructor(private readonly base: MedicalCore) {
-    if (!this.worker) return;
+  public constructor(private readonly base: MedicalCore) {}
+
+  private startWorker(): void {
+    this.worker = new Worker(new URL('./search.worker.ts', import.meta.url), { type: 'module' });
     this.worker.onmessage = (event: MessageEvent<SearchWorkerResponse>) => {
       const pending = this.pending.get(event.data.id);
       if (!pending) return;
@@ -64,19 +64,19 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   }
 
   private async canUseWorker(): Promise<boolean> {
-    if (!this.worker) return false;
+    if (this.closed || typeof Worker === 'undefined') return false;
     this.workerEligibility ??= this.base
       .getCapabilities()
       .then((result) => {
-        const enabled = result.ok && result.value.searchExecution !== 'direct-only';
-        if (!enabled) this.disableWorker();
+        const enabled = !this.closed && result.ok && result.value.searchExecution !== 'direct-only';
+        if (enabled) this.startWorker();
         return enabled;
       })
       .catch(() => {
         this.disableWorker();
         return false;
       });
-    return this.workerEligibility;
+    return (await this.workerEligibility) && Boolean(this.worker);
   }
 
   private request(
@@ -106,6 +106,14 @@ export class WorkerSearchMedicalCore implements MedicalCore {
 
   public listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>> {
     return this.base.listDocuments();
+  }
+
+  public listNavigationDocuments(): Promise<
+    Result<readonly MedicalDocumentSummary[], LocalMedError>
+  > {
+    return this.base.listNavigationDocuments
+      ? this.base.listNavigationDocuments()
+      : this.base.listDocuments();
   }
 
   public listSearchDocuments(): Promise<
@@ -178,6 +186,7 @@ export class WorkerSearchMedicalCore implements MedicalCore {
   }
 
   public async close(): Promise<void> {
+    this.closed = true;
     this.disableWorker();
   }
 }

@@ -2011,6 +2011,37 @@ function buildBranches(
     : selected;
 }
 
+/** Source lookup keeps vocabulary expansion but does not interpret a patient's clinical case. */
+export function buildLookupQueryPlan(
+  query: string,
+  aliases: readonly AliasRecord[],
+): ClinicalQueryPlan {
+  const expansion = expandAliases(query, aliases);
+  const branch = makeBranch(
+    'lookup',
+    'original',
+    'Поиск по источникам',
+    query,
+    [query, ...expansion.terms],
+    1,
+  );
+  const branches = branch ? [branch] : [];
+  return {
+    analysis: {
+      originalQuery: query,
+      normalizedQuery: normalizeSurfaceText(query),
+      facts: [],
+      branches,
+      suggestions: [],
+      warnings: [],
+    },
+    branches,
+    aliasMatches: expansion.matches,
+    terms: branch?.terms ?? [],
+    ftsQuery: branch?.ftsQuery ?? '',
+  };
+}
+
 export function analyzeClinicalQuery(
   query: string,
   aliases: readonly AliasRecord[],

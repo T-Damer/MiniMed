@@ -145,6 +145,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     return this.call('listDocuments', []);
   }
 
+  public listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
+    return this.call('listNavigationDocuments', []);
+  }
+
   public getDocument(id: string): Promise<DocumentRecord | null> {
     return this.call('getDocument', [id]);
   }

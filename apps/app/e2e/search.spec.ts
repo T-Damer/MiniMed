@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
-
 import { E2E_ASSET_ORIGIN, hasLocalCompanionPack, mountBuiltApp } from './mount-built-app';
+import { selectSearchSection } from './select-search-section';
 
 // These assertions qualify full-corpus results on CI; latency is measured by benchmarks.
 const query = 'пневмония';
@@ -18,20 +18,60 @@ function navigationButton(page: Page, name: string): Locator {
   return page.locator('.app-bottom-nav').getByRole('button', { name });
 }
 
-test('opens with free search ready', async ({ page }) => {
+test('opens with source lookup ready and clinical parsing as a separate mode', async ({ page }) => {
   await mountBuiltApp(page);
 
   await expect(page.getByTestId('search-input')).toBeVisible();
   await expect(page.getByTestId('search-input')).toBeEnabled();
   await expect(page.getByTestId('search-submit')).toBeEnabled();
-  await expect(page.locator('.search-mode-picker--single')).toHaveText('Свободный поиск');
+  await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
+    'Все источники',
+  );
   await expect(page.getByRole('radio')).toHaveCount(0);
+  await page.getByTestId('search-input').fill('ребёнок 5 лет кашель');
+  await page.getByTestId('search-submit').click();
+  await expect(page.getByTestId('search-results')).toBeVisible();
+  await expect(page.locator('.analysis-details')).toHaveCount(0);
+  await selectSearchSection(page, 'Клинический разбор');
+  await expect(page.locator('.analysis-details')).toBeVisible();
+  await selectSearchSection(page, 'Все источники');
+  await expect(page.locator('.analysis-details')).toHaveCount(0);
+});
+
+test('renders ordinary lookup on a phone-sized browser and records query latency', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 844 });
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true, splitNavigation: false });
+  await expect(page.getByTestId('search-input')).toBeEnabled();
+  const timings: number[] = [];
+  for (const value of ['пневмония', 'отит', 'анемия']) {
+    const started = Date.now();
+    await page.getByTestId('search-input').fill(value);
+    await page.getByTestId('search-submit').click();
+    await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByTestId('search-submit')).toBeEnabled({ timeout: 30000 });
+    timings.push(Date.now() - started);
+  }
+  console.log('ordinary lookup milliseconds:', timings);
+  await page.screenshot({ path: test.info().outputPath('ordinary-search-phone.png') });
+  const picker = await page
+    .getByRole('button', { name: 'Раздел поиска', exact: true })
+    .boundingBox();
+  const submit = await page.getByTestId('search-submit').boundingBox();
+  expect(picker).not.toBeNull();
+  expect(submit).not.toBeNull();
+  if (picker && submit) {
+    expect(picker.x).toBeGreaterThanOrEqual(0);
+    expect(submit.x + submit.width).toBeLessThanOrEqual(375);
+  }
 });
 
 test('runs a selected calculator inline without leaving search', async ({ page }) => {
   await mountBuiltApp(page);
 
-  await page.getByRole('button', { name: 'Выбрать калькулятор' }).click();
+  await expect(page.getByRole('button', { name: 'Выбрать калькулятор' })).toHaveCount(0);
+  await page.getByTestId('search-input').fill('@');
   await page.getByRole('option', { name: /^Единицы/u }).click();
 
   await expect(page.locator('.search-inline-calculator')).toBeVisible();
@@ -478,7 +518,9 @@ test('replays a saved query from the history drawer', async ({ page }) => {
   await historyEntry.click();
 
   await expect(page.getByTestId('search-input')).toHaveValue(query);
-  await expect(page.locator('.search-mode-picker--single')).toHaveText('Свободный поиск');
+  await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
+    'Все источники',
+  );
   await expect(page.getByRole('radio')).toHaveCount(0);
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
 });

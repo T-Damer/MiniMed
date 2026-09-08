@@ -10,6 +10,7 @@ import {
 } from '@/app/root-view';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
 import { isDocumentReadRoute } from '@/state/document-route';
+import { trackToolNavigation } from '@/state/tool-navigation';
 
 type RootNavigationDirection = 'forward' | 'backward';
 
@@ -253,6 +254,7 @@ export function useRootNavigation() {
   };
 
   const handleHashChange = (event: HashChangeEvent): void => {
+    trackToolNavigation(event.oldURL, event.newURL);
     if (event.isTrusted) {
       finishRootNavigationMotionIfActive();
     }
@@ -291,7 +293,8 @@ export function useRootNavigation() {
       reader.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Virtualized rows remeasure while scrolling; a smooth animation can lose its target.
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const handleScroll = (event?: Event): void => {

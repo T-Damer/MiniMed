@@ -1,4 +1,5 @@
 import {
+  batch,
   createEffect,
   createMemo,
   createSignal,
@@ -63,6 +64,7 @@ import type {
 import { UserQuestionnaireEditorPage } from '@/features/assessments/UserQuestionnaireEditorPage';
 import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import { getSplitNavigation } from '@/state/app-preferences';
 import {
   ASSESSMENT_RESULTS_EVENT,
   ASSESSMENT_RESULTS_KEY,
@@ -78,6 +80,7 @@ import {
   type PatientNotesSnapshot,
 } from '@/state/patient-notes';
 import { acknowledgePatientVaultUiCleared, PATIENT_VAULT_LOCK_EVENT } from '@/state/patient-vault';
+import { returnFromTool } from '@/state/tool-navigation';
 import { USER_LIBRARY_EVENT } from '@/state/user-library';
 import {
   createUserQuestionnaire,
@@ -122,6 +125,8 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
   );
   const [assessmentCatalog, setAssessmentCatalog] = createSignal(getAssessmentCatalog());
   const [loadedDefinition, setLoadedDefinition] = createSignal<AssessmentDefinition>();
+  const [toolsReady, setToolsReady] = createSignal(false);
+  const [toolsError, setToolsError] = createSignal('');
   const [definitionLoading, setDefinitionLoading] = createSignal(false);
   const [definitionError, setDefinitionError] = createSignal('');
   const [userQuestionnaires, setUserQuestionnaires] = createSignal<
@@ -173,18 +178,29 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
       const runtime = getContentModuleRuntime(MODULE_CATALOG);
       await runtime.whenLocalPackagedModulesReady();
       const definitions = await runtime.listInstalledToolDefinitions();
-      clearDownloadedAssessments();
-      definitions.forEach(registerDownloadedAssessment);
-      setAssessmentCatalog(getAssessmentCatalog());
-      setDatabaseAssessmentIds(
-        definitions
-          .filter((definition) => definition.kind === 'assessment')
-          .map((definition) => definition.id),
-      );
-      refreshPacks();
-    })().finally(() => {
-      downloadedToolsRefresh = undefined;
-    });
+      batch(() => {
+        clearDownloadedAssessments();
+        definitions.forEach(registerDownloadedAssessment);
+        setAssessmentCatalog(getAssessmentCatalog());
+        setDatabaseAssessmentIds(
+          definitions
+            .filter((definition) => definition.kind === 'assessment')
+            .map((definition) => definition.id),
+        );
+        refreshPacks();
+        setToolsError('');
+        setToolsReady(true);
+      });
+    })()
+      .catch((cause: unknown) => {
+        setToolsError(
+          cause instanceof Error ? cause.message : 'Не удалось прочитать локальные инструменты.',
+        );
+        throw cause;
+      })
+      .finally(() => {
+        downloadedToolsRefresh = undefined;
+      });
     return downloadedToolsRefresh;
   };
   const handleHashChange = (): void => {
@@ -224,7 +240,9 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     window.addEventListener(USER_LIBRARY_EVENT, refreshUserQuestionnaires);
     window.addEventListener(PATIENT_VAULT_LOCK_EVENT, clearProtectedResult);
     unsubscribeToolTasks = getContentModuleRuntime(MODULE_CATALOG).subscribe((task) => {
-      if (task.state === 'completed') void refreshDownloadedTools();
+      if (task.state === 'completed') {
+        void refreshDownloadedTools().catch((cause: unknown) => setMessage(String(cause)));
+      }
     });
     const initialToolsFrame = requestAnimationFrame(() => {
       void refreshDownloadedTools().catch((cause: unknown) => {
@@ -337,7 +355,8 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     const current = route();
     const entry = catalogEntry();
     const shouldLoad = Boolean(
-      entry &&
+      toolsReady() &&
+        entry &&
         (current.kind === 'result' ||
           (current.kind === 'assessment' && installation().installedIds.has(entry.id))),
     );
@@ -703,7 +722,9 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             <Button
               type="button"
               class="assessment-pack-required__button"
-              onClick={() => navigate(userQuestionnaireHomePath())}
+              onClick={() =>
+                navigate(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search')
+              }
             >
               К моим опросникам
             </Button>
@@ -721,7 +742,10 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
         {(stored) => (
           <UserQuestionnaireEditorPage
             stored={stored()}
-            onBack={() => navigate(userQuestionnaireHomePath())}
+            onBack={() => {
+              if (!returnFromTool())
+                navigate(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search');
+            }}
             onRun={() => navigate(userQuestionnairePath(stored().file.id))}
             onMessage={setMessage}
             onSaved={(saved) => {
@@ -748,7 +772,10 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             definition={definition()}
             {...(userDraftRecord() ? { initialRecord: userDraftRecord() } : {})}
             sectionTitle="Мои опросники"
-            onBack={() => navigate(userQuestionnaireHomePath())}
+            onBack={() => {
+              if (!returnFromTool())
+                navigate(getSplitNavigation() ? userQuestionnaireHomePath() : '#/search');
+            }}
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
             onSaved={(saved) => {
@@ -807,16 +834,28 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
         )}
       </Show>
 
-      <Show when={definitionLoading()}>
+      <Show
+        when={
+          definitionLoading() ||
+          (!toolsReady() &&
+            !toolsError() &&
+            (route().kind === 'assessment' || route().kind === 'result'))
+        }
+      >
         <section class="assessment-pack-required paper-card" aria-live="polite">
           <h1 class="assessment-pack-required__title">Подключаем опросник</h1>
           <p class="assessment-pack-required__text">
-            Загружаем только выбранное определение и проверяем его идентификатор.
+            Проверяем локальные пакеты и открываем опросник.
           </p>
         </section>
       </Show>
 
-      <Show when={definitionError()}>
+      <Show
+        when={
+          definitionError() ||
+          ((route().kind === 'assessment' || route().kind === 'result') && toolsError())
+        }
+      >
         {(error) => (
           <section class="assessment-pack-required paper-card" role="alert">
             <h1 class="assessment-pack-required__title">Не удалось открыть опросник</h1>
@@ -842,7 +881,9 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
               ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
               selected().bankLabel
             }
-            onBack={() => navigate(assessmentHomePath(selected().slug))}
+            onBack={() =>
+              navigate(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
+            }
             onDraftSaved={refreshRecords}
             onMessage={setMessage}
             onSaved={(saved) => {
@@ -856,6 +897,8 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
 
       <Show
         when={
+          toolsReady() &&
+          !toolsError() &&
           route().kind === 'assessment' &&
           catalogEntry() &&
           !installation().installedIds.has(catalogEntry()?.id ?? '')
@@ -870,7 +913,9 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
               selected().bankLabel
             }
             title={selected().title}
-            onBack={() => navigate(assessmentHomePath(selected().slug))}
+            onBack={() =>
+              navigate(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
+            }
             onInstall={() => installDefinition(selected().id)}
           />
         )}

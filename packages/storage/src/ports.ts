@@ -56,6 +56,8 @@ export interface MedicalStore {
   initialize(seed?: ContentPackSeed): Promise<StorageHealth>;
   getHealth(): Promise<StorageHealth>;
   listDocuments(): Promise<readonly DocumentRecord[]>;
+  /** Document labels plus aliases, pointer targets and definition previews; excludes extraction metadata. */
+  listNavigationDocuments?(): Promise<readonly DocumentRecord[]>;
   /** Optional narrow projection for cross-pack validation without loading document metadata. */
   listDocumentIdentities?(): Promise<readonly DocumentIdentity[]>;
   /** Compact ranking, audience and content-kind metadata; never a full document record. */

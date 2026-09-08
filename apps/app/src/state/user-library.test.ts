@@ -214,7 +214,7 @@ describe('user-library storage', () => {
     expect(folders).toContainEqual(
       expect.objectContaining({
         id: USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID,
-        title: 'Опросники',
+        title: 'Мои опросники',
         parentId: null,
         isSystem: true,
       }),
@@ -224,9 +224,9 @@ describe('user-library storage', () => {
     );
   });
 
-  it('creates the default books and research folders once', async () => {
+  it('restores demo folders from the previous seed version once', async () => {
     installUserLibraryIndexedDb();
-    const storage = new Map<string, string>();
+    const storage = new Map<string, string>([['minimed.userLibrary.defaultFoldersSeeded.v1', '1']]);
     vi.stubGlobal('localStorage', {
       getItem: (key: string) => storage.get(key) ?? null,
       setItem: (key: string, value: string) => storage.set(key, value),
@@ -248,6 +248,10 @@ describe('user-library storage', () => {
       }),
     );
     expect(await listUserLibraryFolders()).toEqual(folders);
+    await removeUserLibraryFolder(USER_LIBRARY_BOOKS_FOLDER_ID);
+    expect(
+      (await listUserLibraryFolders()).some((folder) => folder.id === USER_LIBRARY_BOOKS_FOLDER_ID),
+    ).toBe(false);
   });
 
   it('persists colors for documents and folders', async () => {

@@ -425,6 +425,37 @@ export class CapacitorMedicalStore implements MedicalStore {
     return this.searchDocuments;
   }
 
+  public async listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
+    this.assertInitialized();
+    return (
+      await this.query(`
+      SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
+        d.specialty_json, json_object(
+          'declaredAliases', json_extract(d.metadata_json, '$.declaredAliases'),
+          'navigationAliases', json_extract(d.metadata_json, '$.navigationAliases'),
+          'catalogFamily', json_extract(d.metadata_json, '$.catalogFamily'),
+          'ageGroups', json_extract(d.metadata_json, '$.ageGroups'),
+          'entityType', json_extract(d.metadata_json, '$.entityType'),
+          'sourceType', json_extract(d.metadata_json, '$.sourceType'),
+          'mkbCode', json_extract(d.metadata_json, '$.mkbCode'),
+          'contentMode', json_extract(d.metadata_json, '$.contentMode'),
+          'targetDocumentId', json_extract(d.metadata_json, '$.targetDocumentId'),
+          'canonicalDefinition', json_extract(d.metadata_json, '$.canonicalDefinition'),
+          'interactiveAssessmentId', json_extract(d.metadata_json, '$.interactiveAssessmentId'),
+          'interactiveCalculatorId', json_extract(d.metadata_json, '$.interactiveCalculatorId'),
+          'calculationRequired', json(CASE WHEN json_type(d.metadata_json, '$.calculationRequired') = 'true'
+            THEN 'true' ELSE 'false' END),
+          'notLegalAdvice', json(CASE WHEN json_type(d.metadata_json, '$.notLegalAdvice') = 'true'
+            THEN 'true' ELSE 'false' END)
+        ) AS metadata_json,
+        dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
+        dv.source_checksum, dv.extracted_at
+      FROM documents d JOIN document_versions dv ON dv.id = d.current_version_id
+      ORDER BY d.title COLLATE NOCASE, d.id
+    `)
+    ).map(toDocument);
+  }
+
   public async listDocuments(): Promise<readonly DocumentRecord[]> {
     this.assertInitialized();
     if (!this.documents) {
@@ -601,7 +632,8 @@ export class CapacitorMedicalStore implements MedicalStore {
   public async search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {
     // Keep the FTS phase narrow: bm25 only needs the matching virtual-table row. The expensive
     // chunk/section/document projection is hydrated after the candidate window is bounded.
-    const candidateLimit = Math.min(500, Math.max(request.limit * 5, 50));
+    // All filters are already in SQL; hydrating five times the returned limit only wastes I/O.
+    const candidateLimit = Math.min(500, request.limit);
     const clauses = ['chunks_fts MATCH ?'];
     const bind: NativeSqlValue[] = [request.ftsQuery];
     const joins: string[] = [];

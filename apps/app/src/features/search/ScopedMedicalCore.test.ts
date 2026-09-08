@@ -11,6 +11,7 @@ import type {
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  documentMatchesConditionGroup,
   documentMatchesSearchScope,
   inferSearchScope,
   ScopedMedicalCore,
@@ -346,6 +347,22 @@ describe('ScopedMedicalCore', () => {
     document('law', 'regulatory_act'),
     document('law-summary', 'regulatory_act_summary'),
   ];
+
+  it('limits conditions to ICD references and condition catalog entries', async () => {
+    const base = coreWithDocuments([
+      ...documents,
+      pointerDocument('condition', 'reference', 'condition'),
+      pointerDocument('symptom', 'reference', 'symptom'),
+      pointerDocument('recommendation', 'clinical', 'disease'),
+      pointerDocument('calculator', 'reference', 'calculator'),
+    ]);
+    await new ScopedMedicalCore(base.core, 'conditions').search(request());
+    expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([
+      'mkb',
+      'condition',
+      'symptom',
+    ]);
+  });
 
   it('distinguishes source pointers, summaries, and full documents in free search', async () => {
     const sources = [
@@ -933,4 +950,13 @@ describe('inferSearchScope', () => {
     expect(inferSearchScope(intent('mixed'))).toBeUndefined();
     expect(inferSearchScope(intent('diagnosis', 0.4))).toBeUndefined();
   });
+});
+
+it('filters legacy full ICD documents by the same entity rules as source pointers', () => {
+  const cough = { ...document('cough', 'rls_mkb_reference'), metadata: { mkbCode: 'R05' } };
+  expect(documentMatchesConditionGroup(cough, 'kind:icd')).toBe(true);
+  expect(documentMatchesConditionGroup(cough, 'kind:symptom')).toBe(true);
+  expect(documentMatchesConditionGroup(cough, 'kind:condition')).toBe(false);
+  const injury = { ...cough, metadata: { mkbCode: 'S00' } };
+  expect(documentMatchesConditionGroup(injury, 'kind:condition')).toBe(true);
 });

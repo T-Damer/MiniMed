@@ -4,9 +4,19 @@ import {
   analyzeClinicalQuery,
   buildLexicalQueryPlan,
   expandAliases,
+  findNormalizedPhraseIndex,
   lightStemRussian,
   normalizeForIndex,
 } from '../src/index';
+
+it('finds literal aliases at word boundaries without matching inside words', () => {
+  expect(findNormalizedPhraseIndex('отитный отит', 'отит')).toBe(8);
+  expect(findNormalizedPhraseIndex('5мг и мг', 'мг')).toBe(6);
+  expect(findNormalizedPhraseIndex('(а+б)', 'а+б')).toBe(1);
+  expect(findNormalizedPhraseIndex('МКБ-10 и мкб', 'мкб')).toBe(9);
+  expect(findNormalizedPhraseIndex('пневмония', 'невмо')).toBe(-1);
+  expect(findNormalizedPhraseIndex('отит', '')).toBe(-1);
+});
 
 it('retains all abbreviation meanings but prefers an explicit longer name', () => {
   const dictionary = [

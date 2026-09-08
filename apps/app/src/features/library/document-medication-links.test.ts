@@ -35,12 +35,110 @@ const recommendation = (
 });
 
 describe('document-medication-links', () => {
+  it('renders GFM tables between prose without losing values or surrounding text', () => {
+    const blocks = parseDocumentText(
+      'До таблицы.\n\n| Возраст | Мальчики |\n| --- | ---: |\n| 0–<1 года | 93–134 |\n\nПосле таблицы.',
+    );
+    expect(blocks.map((block) => block.kind)).toEqual(['paragraph', 'table', 'paragraph']);
+    expect(blocks[1]).toMatchObject({
+      kind: 'table',
+      text: 'Возраст\nМальчики\n0–<1 года\n93–134',
+      table: {
+        rows: [
+          {
+            cells: [
+              { text: 'Возраст', header: true },
+              { text: 'Мальчики', header: true, align: 'right' },
+            ],
+          },
+          {
+            cells: [
+              { text: '0–<1 года', header: false },
+              { text: '93–134', header: false, align: 'right' },
+            ],
+          },
+        ],
+      },
+    });
+    expect(blocks[0]).toMatchObject({ text: 'До таблицы.' });
+    expect(blocks[2]).toMatchObject({ text: 'После таблицы.' });
+  });
+
+  it('uses GFM escaping and ignores table-like text inside a fenced code block', () => {
+    const table = '| Название | Значение |\n| :- | -: |\n| **A** \\| B | `1 < 2` |';
+    expect(parseDocumentText(table)[0]).toMatchObject({
+      kind: 'table',
+      text: 'Название\nЗначение\nA | B\n1 < 2',
+    });
+    expect(
+      parseDocumentText(`\u0060\u0060\u0060\n${table}\n\u0060\u0060\u0060`).some(
+        (block) => block.kind === 'table',
+      ),
+    ).toBe(false);
+  });
+
+  it('does not turn a generic search alias into an unrelated syndrome link', () => {
+    const matcher = createDocumentLinkMatcher(
+      buildDocumentLinkPhrases([
+        {
+          ...recommendation(
+            'kr.rf.154_4',
+            'Острый коронарный синдром без подъема сегмента ST электрокардиограммы',
+          ),
+          metadata: { declaredAliases: ['острый коронарный синдром', 'ОКС', 'Синдром'] },
+        },
+      ]),
+    );
+    expect(matcher.segment('ПАС - периферический ангиодистонический синдром')).toEqual([
+      { kind: 'text', value: 'ПАС - периферический ангиодистонический синдром' },
+    ]);
+  });
+
+  it('rejects broader and symptom search aliases found in the vibration-disease document', () => {
+    const examples = [
+      ['Меланома кожи и слизистых оболочек', 'кожи'],
+      ['Перемежающаяся хромота', 'ангиоспазм'],
+      ['Аллергия на инсулин', 'лекарственная зависимость'],
+      ['ACNES-синдром', 'Мононевропатия'],
+      ['Другие виды недостаточности питания', 'физические перегрузки'],
+    ] as const;
+    const documents = examples.map(([title, alias], index) => ({
+      ...recommendation(`source-${index}`, title),
+      metadata: { declaredAliases: [alias] },
+    }));
+    const matcher = createDocumentLinkMatcher(buildDocumentLinkPhrases(documents));
+    for (const [, value] of examples) {
+      expect(matcher.segment(value)).toEqual([{ kind: 'text', value }]);
+    }
+    expect(matcher.segment(examples[0][0])[0]).toMatchObject({
+      kind: 'link',
+      documentId: 'source-0',
+    });
+  });
+
+  it('keeps precise single-word names without linking a journal abbreviation to honey', () => {
+    const matcher = createDocumentLinkMatcher(
+      buildDocumentLinkPhrases([
+        recommendation('arthrosis', 'Артроз'),
+        medication('papaverine', 'ПАПАВЕРИН'),
+        medication('honey', 'МЕД'),
+      ]),
+    );
+    expect(matcher.segment('Мед. журнал')).toEqual([{ kind: 'text', value: 'Мед. журнал' }]);
+    expect(
+      matcher
+        .segment('артроз, папаверин')
+        .filter((item) => item.kind === 'link')
+        .map((item) => item.documentId),
+    ).toEqual(['arthrosis', 'papaverine']);
+  });
+
   it('offers every meaning of МКБ and preserves the longer classification alias and source anchor', () => {
     const documents: MedicalDocumentSummary[] = [
       {
         ...recommendation('disease', 'Мочекаменная болезнь'),
         metadata: {
-          declaredAliases: ['МКБ'],
+          navigationAliases: ['МКБ'],
           canonicalDefinition: {
             text: 'Определение из рекомендаций.',
             sourceDocumentId: 'disease',
@@ -226,13 +324,14 @@ describe('document-medication-links', () => {
     );
   });
 
-  it('indexes bundled disease pointers by title and aliases, not broad search keywords', () => {
+  it('indexes bundled disease pointers by title and editorial aliases, not search expansions', () => {
     const pointer: MedicalDocumentSummary = {
       ...medication('core.catalog.pointer.clinical.kr.rf.1006_1', 'Острая ишемия конечностей'),
       sourceType: 'core_catalog_pointer',
       metadata: {
         entityType: 'disease',
-        declaredAliases: ['ОИК'],
+        navigationAliases: ['ОИК'],
+        declaredAliases: ['ишемия'],
         keywords: ['острая артериальная окклюзия'],
         canonicalDefinition: { text: 'Острое снижение кровотока в конечности.' },
       },
@@ -260,7 +359,7 @@ describe('document-medication-links', () => {
       sourceType: 'core_catalog_pointer',
       metadata: {
         targetDocumentId: full.id,
-        declaredAliases: ['ОИК'],
+        navigationAliases: ['ОИК'],
         canonicalDefinition: { text: 'Острое снижение кровотока в конечности.' },
       },
     };

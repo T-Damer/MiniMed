@@ -23,12 +23,14 @@ import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { NativeDateTimeField } from '@/components/NativeDateTimeField';
+import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
+import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
 import { NoteAttachedResults } from '@/features/notes/NoteAttachedResults';
 import {
   AttachmentViewerDialog,
@@ -356,15 +358,24 @@ function ReminderFields(props: {
   );
 }
 
-function deferEnrichment(noteId: string, core: MedicalCore, onSettled?: () => void): void {
+function deferEnrichment(
+  noteId: string,
+  core: MedicalCore | undefined,
+  onSettled?: () => void,
+): void {
+  if (!core) {
+    onSettled?.();
+    return;
+  }
   window.setTimeout(() => {
     void enrichPatientNote(noteId, core).finally(() => onSettled?.());
   }, 0);
 }
 
 export function NotesView(props: {
-  readonly core: MedicalCore;
+  readonly core: MedicalCore | undefined;
   readonly active: boolean;
+  readonly backToFiles?: boolean;
 }): JSX.Element {
   const [snapshot, setSnapshot] = createSignal<PatientNotesSnapshot>({ cards: [], notes: [] });
   const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
@@ -467,10 +478,13 @@ export function NotesView(props: {
     setSnapshot(loadPatientNotes());
   };
   const refreshDocuments = (): void => {
-    void props.core.listDocuments().then((result) => {
+    const core = props.core;
+    if (!core) return;
+    void core.listDocuments().then((result) => {
       if (result.ok) setDocuments(result.value);
     });
   };
+  createEffect(refreshDocuments);
   const refreshImages = (): void => {
     setImagesTick((tick) => tick + 1);
     const note = activeNote();
@@ -486,7 +500,6 @@ export function NotesView(props: {
   onMount(() => {
     refresh();
     const initialDataFrame = requestAnimationFrame(() => {
-      refreshDocuments();
       void hydratePatientNotesFromIndexedDb()
         .catch(() => console.warn('Не удалось восстановить заметки из IndexedDB.'))
         .finally(() => {
@@ -699,7 +712,11 @@ export function NotesView(props: {
     return cards.filter((card) => matchingCardIds.has(card.id));
   });
 
-  const navigate = notesRoute.navigate;
+  const navigate = (path: string): void => {
+    notesRoute.navigate(
+      props.backToFiles && path === notesPath() ? USER_LIBRARY_CATALOG_HASH : path,
+    );
+  };
   const patientRoute = createMemo<PatientRoute | null>(() => {
     const current = route();
     return current.kind === 'patients' ||
@@ -992,7 +1009,13 @@ export function NotesView(props: {
       aria-label="Личные заметки"
     >
       <Show when={props.active && patientRoute()}>
-        {(current) => <PatientWorkspace route={current()} onNavigate={navigate} />}
+        {(current) => (
+          <PatientWorkspace
+            route={current()}
+            onNavigate={navigate}
+            backLabel={props.backToFiles ? 'К файлам' : 'Назад к заметкам'}
+          />
+        )}
       </Show>
       <Show when={props.active && route().kind === 'index'}>
         <Page
@@ -1000,6 +1023,15 @@ export function NotesView(props: {
           icon={<AppGlyph name="notes" class="page__icon-glyph" />}
           title={<Heading depth={1}>Заметки</Heading>}
           description="Личный слой, только на этом устройстве."
+          navigation={
+            <Show when={props.backToFiles}>
+              <NavBack
+                class="patient-notes-heading__back knowledge-back-button"
+                aria-label="К файлам"
+                onClick={() => navigate(USER_LIBRARY_CATALOG_HASH)}
+              />
+            </Show>
+          }
         />
         <SearchField
           class="notes-search"
@@ -1154,7 +1186,7 @@ export function NotesView(props: {
                   <button
                     class="knowledge-back-button"
                     type="button"
-                    aria-label="Назад к заметкам"
+                    aria-label={props.backToFiles ? 'К файлам' : 'Назад к заметкам'}
                     onClick={() => navigate(notesPath())}
                   >
                     <AppGlyph name="arrow-left" />
@@ -1163,7 +1195,10 @@ export function NotesView(props: {
                 breadcrumbs={
                   <AppBreadcrumbs
                     items={[
-                      { label: 'Заметки', href: notesPath() },
+                      {
+                        label: props.backToFiles ? 'Мои файлы' : 'Заметки',
+                        href: props.backToFiles ? USER_LIBRARY_CATALOG_HASH : notesPath(),
+                      },
                       {
                         label: card().title,
                         ...(editingCardTitle()
@@ -1362,7 +1397,10 @@ export function NotesView(props: {
                   breadcrumbs={
                     <AppBreadcrumbs
                       items={[
-                        { label: 'Заметки', href: notesPath() },
+                        {
+                          label: props.backToFiles ? 'Мои файлы' : 'Заметки',
+                          href: props.backToFiles ? USER_LIBRARY_CATALOG_HASH : notesPath(),
+                        },
                         { label: card().title, href: notesPath(card().id) },
                         {
                           label: recordTitleDraft().trim() || 'Новая запись',

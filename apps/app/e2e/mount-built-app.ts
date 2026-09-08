@@ -16,6 +16,7 @@ export interface MountBuiltAppOptions {
   readonly skipLargeCompanionPacks?: boolean;
   readonly includeMkbCompanionPack?: boolean;
   readonly includeMedicationCompanionPack?: boolean;
+  readonly splitNavigation?: boolean;
 }
 
 async function waitForWorkspace(page: Page): Promise<void> {
@@ -46,7 +47,16 @@ export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = 
   for (const databaseName of skippedCompanionPacks) {
     await page.route(`${origin}/content/${databaseName}`, (route) => route.abort());
   }
-  const initialStorage = options.localStorage ?? {};
+  // Existing route suites also qualify the retained six-section layout. New unified-navigation
+  // cases opt out of this preference and exercise the application's actual default.
+  const initialStorage = {
+    ...(options.splitNavigation === false
+      ? {}
+      : {
+          'minimed.app-preferences.v1': JSON.stringify({ splitNavigation: true }),
+        }),
+    ...options.localStorage,
+  };
   await page.addInitScript((initialValues) => {
     for (const [key, value] of Object.entries(initialValues)) {
       window.localStorage.setItem(key, value);

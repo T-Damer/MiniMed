@@ -32,7 +32,14 @@ describe('SqliteMedicalStore', () => {
       ...DEMO_CONTENT_PACK,
       documents: DEMO_CONTENT_PACK.documents.map((document) => ({
         ...document,
-        metadata: { ...metadata, unrelated: 'x'.repeat(4096) },
+        metadata: {
+          ...metadata,
+          targetDocumentId: 'downloaded-target',
+          sourceType: 'rls_mkb_reference',
+          mkbCode: 'R05',
+          canonicalDefinition: { text: 'Определение', sourceDocumentId: document.id },
+          unrelated: 'x'.repeat(4096),
+        },
       })),
     };
     await store.initialize(seed);
@@ -46,6 +53,22 @@ describe('SqliteMedicalStore', () => {
     expect(projected).toHaveLength(seed.documents.length);
     expect(projected.every((document) => Object.keys(document).length === 3)).toBe(true);
     for (const document of projected) expect(document.metadata).toEqual(metadata);
+    const navigation = await store.listNavigationDocuments();
+    expect(navigation).toHaveLength(seed.documents.length);
+    for (const document of navigation) {
+      const original = seed.documents.find((entry) => entry.id === document.id);
+      expect(document.title).toBe(original?.title);
+      expect(document.version.id).toBe(original?.version.id);
+      expect(document.version.versionLabel).toBe(original?.version.label);
+      expect(document.metadata['declaredAliases']).toEqual(metadata.declaredAliases);
+      expect(document.metadata['targetDocumentId']).toBe('downloaded-target');
+      expect(document.metadata['sourceType']).toBe('rls_mkb_reference');
+      expect(document.metadata['mkbCode']).toBe('R05');
+      expect(document.metadata['canonicalDefinition']).toEqual(
+        original?.metadata.canonicalDefinition,
+      );
+      expect(document.metadata).not.toHaveProperty('unrelated');
+    }
     expect((await store.listDocuments())[0]?.metadata['unrelated']).toHaveLength(4096);
   });
 

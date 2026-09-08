@@ -20,6 +20,12 @@ describe('matchesFuzzyQuery', () => {
     expect(matchesFuzzyQuery('ОАК', ['ОАЭ документ'])).toBe(false);
   });
 
+  it('does not match an unrelated phrase just because its conjunction is inside the query', () => {
+    expect(matchesFuzzyQuery('фармакология', ['Акушерство и гинекология'])).toBe(false);
+    expect(matchesFuzzyQuery('фармакология', ['МКБ, симптомы и состояния'])).toBe(false);
+    expect(matchesFuzzyQuery('фармакология', ['Клиническая фармакология'])).toBe(true);
+  });
+
   it('scores an exact title above a later mention', () => {
     expect(fuzzyQueryScore('парацетамол', ['Парацетамол', 'инструкция'])).toBeGreaterThan(
       fuzzyQueryScore('парацетамол', ['Колдрекс', 'содержит парацетамол']),

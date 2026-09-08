@@ -85,32 +85,13 @@ describe('UiSoundController', () => {
     expect(mockPlayer.play).not.toHaveBeenCalled();
   });
 
-  it('unlocks and preloads common cues after the first play', async () => {
+  it('unlocks and renders only the requested cue after the first play', async () => {
     const { uiSounds } = await import('@/state/ui-sounds');
     uiSounds.play('select');
     expect(mockPlayer.unlock).toHaveBeenCalled();
     await Promise.resolve();
     expect(mockPlayer.play).toHaveBeenCalledWith('select', { volume: 0.2 * 1.25 });
-    expect(mockPlayer.preload).toHaveBeenCalledWith([
-      'hover',
-      'press',
-      'select',
-      'open',
-      'forward',
-      'back',
-      'delete',
-      'send',
-      'start',
-      'close',
-      'check',
-      'info',
-      'warning',
-      'snap',
-      'swipe',
-      'volume-change',
-      'toggle-on',
-      'toggle-off',
-    ]);
+    expect(mockPlayer.preload).not.toHaveBeenCalled();
   });
 
   it('plays hover once per control on a fine pointer', async () => {

@@ -27,8 +27,17 @@ export function nativeBackAction(
   route: string,
   currentView: RootView,
   _canGoBack: boolean,
+  splitNavigation = true,
 ): NativeBackAction {
   const parentHash = hierarchicalParentHash(route);
+  if (
+    !splitNavigation &&
+    parentHash &&
+    /^(assessments|calculators)(?:\/|$)/u.test(route) &&
+    !/\/results\//u.test(route)
+  ) {
+    return { type: 'search' };
+  }
   if (parentHash) {
     return { type: 'parent', hash: parentHash };
   }

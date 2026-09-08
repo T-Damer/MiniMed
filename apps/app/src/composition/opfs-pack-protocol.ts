@@ -7,6 +7,7 @@ export type OpfsPackWorkerMethod =
   | 'inspectIntegrity'
   | 'listDocumentIdentities'
   | 'listSearchDocuments'
+  | 'listNavigationDocuments'
   | 'listDocuments'
   | 'getDocument'
   | 'getDocumentByVersionId'
@@ -55,6 +56,7 @@ export type OpfsPackWorkerCallArgs = {
   readonly inspectIntegrity: readonly [];
   readonly listDocumentIdentities: readonly [];
   readonly listSearchDocuments: readonly [];
+  readonly listNavigationDocuments: readonly [];
   readonly listDocuments: readonly [];
   readonly getDocument: readonly [id: string];
   readonly getDocumentByVersionId: readonly [versionId: string];

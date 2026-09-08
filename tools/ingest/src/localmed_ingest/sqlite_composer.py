@@ -991,7 +991,8 @@ def _fingerprint_inputs(sources: list[Path]) -> list[_InputFingerprint]:
 def _open_staging_database(path: Path, *, initialize: bool) -> sqlite3.Connection:
     connection = sqlite3.connect(path)
     if initialize:
-        connection.execute("PRAGMA page_size = 4096")
+        # Larger composed packs need fewer synchronous OPFS reads on browser startup/search.
+        connection.execute("PRAGMA page_size = 65536")
     connection.execute("PRAGMA journal_mode = DELETE")
     connection.execute("PRAGMA synchronous = FULL")
     # FTS is rebuilt once after bulk loading. SQLite's ~2 MiB default cache causes the

@@ -138,9 +138,9 @@ export const USER_LIBRARY_EVENT = 'minimed:user-library-changed';
 export const USER_LIBRARY_NOTES_FOLDER_ID = 'user-folder-notes';
 export const USER_LIBRARY_NOTES_FOLDER_TITLE = 'Заметки';
 export const USER_LIBRARY_TEMPLATES_FOLDER_ID = 'user-folder-templates';
-export const USER_LIBRARY_TEMPLATES_FOLDER_TITLE = 'Шаблоны';
+export const USER_LIBRARY_TEMPLATES_FOLDER_TITLE = 'Мои шаблоны';
 export const USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID = 'user-folder-questionnaires';
-export const USER_LIBRARY_QUESTIONNAIRES_FOLDER_TITLE = 'Опросники';
+export const USER_LIBRARY_QUESTIONNAIRES_FOLDER_TITLE = 'Мои опросники';
 export const USER_LIBRARY_QUESTIONNAIRE_MIME_TYPE = 'application/vnd.minimed.questionnaire+json';
 export const USER_LIBRARY_QUESTIONNAIRE_FILE_EXTENSION = '.minimed-questionnaire';
 export const USER_LIBRARY_BOOKS_FOLDER_ID = 'user-folder-books';
@@ -210,7 +210,7 @@ const MEDICAL_ANNOTATIONS_STORE = 'medical-annotations';
 const DATABASE_VERSION = 3;
 const MAX_FILE_BYTES = 128 * 1024 * 1024;
 const MAX_SNIPPET_LENGTH = 180;
-const DEFAULT_FOLDERS_SEEDED_KEY = 'minimed.userLibrary.defaultFoldersSeeded.v1';
+const DEFAULT_FOLDERS_SEEDED_KEY = 'minimed.userLibrary.defaultFoldersSeeded.v2';
 
 const DEFAULT_USER_LIBRARY_FOLDERS = [
   { id: USER_LIBRARY_BOOKS_FOLDER_ID, title: USER_LIBRARY_BOOKS_FOLDER_TITLE },

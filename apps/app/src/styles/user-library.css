@@ -1484,3 +1484,11 @@
   border-radius: 0.5rem;
   background: #000;
 }
+
+.user-library-folder-card__lock {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-inline-start: 0.25rem;
+  vertical-align: baseline;
+}

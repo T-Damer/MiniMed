@@ -75,6 +75,22 @@ describe('search history', () => {
     expect(replay?.detail).toEqual({ entry, cachedResponse: RESPONSE });
   });
 
+  it('keeps different subsections and tool searches without a fabricated response', () => {
+    appendSearchHistory('риск', 'calculators', 3, 'cardiology');
+    appendSearchHistory('риск', 'calculators', 2, 'obstetrics');
+    appendSearchHistory('риск', 'calculators', 4, 'cardiology');
+    expect(
+      loadSearchHistory().map(({ specialty, resultCount }) => ({ specialty, resultCount })),
+    ).toEqual([
+      { specialty: 'cardiology', resultCount: 4 },
+      { specialty: 'obstetrics', resultCount: 2 },
+    ]);
+    const entry = loadSearchHistory()[0];
+    if (!entry) throw new Error('missing tool history');
+    replaySearch(entry);
+    expect((dispatched.at(-1) as CustomEvent).detail).toEqual({ entry });
+  });
+
   it('migrates v3 entries to the safe all-documents scope', () => {
     storage.set(
       'localmed.search-history.v3',

@@ -27,24 +27,29 @@ for (const viewport of [
       expect(bounds?.height).toBeGreaterThanOrEqual(viewport.height);
       expect(bounds?.y).toBe(0);
       await page.screenshot({ path: testInfo.outputPath('boot.png') });
-      await page.getByRole('button', { name: 'Калькуляторы', exact: true }).click();
+      await page.getByRole('button', { name: 'Мои файлы', exact: true }).click();
       await expect(boot).toHaveCount(0);
       await expect(page.locator('.app-shell')).not.toHaveClass(/app-shell--booting/);
-      await page.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
-      await expect(page.getByRole('button', { name: 'К разделам калькуляторов' })).toBeVisible();
+      await page.getByRole('button', { name: 'Действия со страницей' }).click();
+      await page.getByRole('menuitem', { name: 'Создать папку', exact: true }).click();
+      await page.getByLabel('Название новой папки').fill('До готовности ядра');
     } finally {
       releaseCore();
     }
     await expect(page.locator('.app-nav-button--active')).toHaveAttribute(
       'aria-label',
-      'Калькуляторы',
+      'Мои файлы',
     );
     await page.waitForFunction(
       () => performance.getEntriesByName('minimed:search-ready').length > 0,
       undefined,
       { timeout: 60000 },
     );
-    await expect(page.getByRole('button', { name: 'К разделам калькуляторов' })).toBeVisible();
+    await expect(page.getByLabel('Название новой папки')).toHaveValue('До готовности ядра');
+    await page.getByRole('dialog').getByRole('button', { name: 'Создать', exact: true }).click();
+    await expect(
+      page.getByRole('button', { name: 'Открыть папку «До готовности ядра»' }),
+    ).toBeVisible();
     await page.getByRole('button', { name: 'Поиск', exact: true }).click();
     await expect(page.getByTestId('search-input')).toBeVisible({ timeout: 60000 });
     await expect(boot).toHaveCount(0);
@@ -52,7 +57,9 @@ for (const viewport of [
   });
 }
 
-test('core download setup is full-screen without bottom navigation', async ({ page }, testInfo) => {
+test('missing core locks search while files and settings remain available', async ({
+  page,
+}, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
     Object.assign(window, {
@@ -78,9 +85,17 @@ test('core download setup is full-screen without bottom navigation', async ({ pa
   await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`);
   await expect(page.getByRole('heading', { name: 'Скачайте ядро MiniMed' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Скачать ядро · ~490 МБ' })).toBeVisible();
-  await expect(page.locator('.app-bottom-nav')).toHaveCount(0);
+  const navigation = page.locator('.app-bottom-nav');
+  await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
+  await expect(page.getByTestId('search-input')).toHaveCount(0);
   const bounds = await page.locator('.boot-screen').boundingBox();
   expect(bounds?.height).toBeGreaterThanOrEqual(844);
   expect(bounds?.y).toBe(0);
   await page.screenshot({ path: testInfo.outputPath('core-setup.png') });
+  await navigation.getByRole('button', { name: 'Мои файлы', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Ваши документы' })).toBeVisible();
+  await navigation.getByRole('button', { name: 'Настройки', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Настройки', exact: true })).toBeVisible();
+  await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Скачать ядро · ~490 МБ' })).toBeVisible();
 });

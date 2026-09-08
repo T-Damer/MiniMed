@@ -92,7 +92,7 @@ export function EcgModelSettings(): JSX.Element {
     >
       <header class="settings-section__heading">
         <div class="settings-section__heading-main">
-          <AppGlyph name="brain" class="settings-section__icon" />
+          <AppGlyph name="brain-fill" class="settings-section__icon" />
           <div class="settings-section__heading-copy">
             <h2 id="settings-ecg-model-heading" class="settings-section__title">
               Распознавание ЭКГ

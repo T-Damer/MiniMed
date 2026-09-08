@@ -49,13 +49,20 @@ export function rescaleEcgPointPair(
 export function calculateEcgMeasurements(
   pairs: Readonly<Partial<Record<EcgIntervalId, EcgPointPair>>>,
   pixelsPerMillimeter: number,
+  paperSpeedMmPerSecond: number = ECG_PAPER_SPEED_MM_PER_SECOND,
 ): EcgMeasurements {
-  if (!Number.isFinite(pixelsPerMillimeter) || pixelsPerMillimeter <= 0) return {};
+  if (
+    !Number.isFinite(pixelsPerMillimeter) ||
+    pixelsPerMillimeter <= 0 ||
+    !Number.isFinite(paperSpeedMmPerSecond) ||
+    paperSpeedMmPerSecond <= 0
+  )
+    return {};
   const milliseconds = (pair: EcgPointPair | undefined): number | undefined => {
     if (!pair || !Number.isFinite(pair.start) || !Number.isFinite(pair.end)) return undefined;
     const distance = Math.abs(pair.end - pair.start);
     if (distance <= 0) return undefined;
-    return Math.round((distance / pixelsPerMillimeter) * ECG_MILLISECONDS_PER_MILLIMETER);
+    return Math.round((distance / pixelsPerMillimeter) * (1000 / paperSpeedMmPerSecond));
   };
   const rrMs = milliseconds(pairs.rr);
   const pDurationMs = milliseconds(pairs.p);

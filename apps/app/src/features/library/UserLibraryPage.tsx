@@ -1,6 +1,5 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
-
 import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -17,10 +16,12 @@ import {
   parseUserLibraryFolderRoute,
   userLibraryFolderHash,
 } from '@/features/library/user-library-routing';
-import { notesTemplatesPath } from '@/features/notes/notes-routing';
+import { notesPatientsPath, notesTemplatesPath } from '@/features/notes/notes-routing';
+import { getPluralMessage } from '@/i18n/browser-i18n';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import { shareSystemFile } from '@/state/native-share';
 import { syncPatientNotesToUserLibrary } from '@/state/note-library-sync';
+import { PATIENT_VAULT_EVENT, patientVaultStorageMode } from '@/state/patient-vault';
 import {
   addUserLibraryFile,
   createUserLibraryFolder,
@@ -77,6 +78,8 @@ interface DeleteTarget {
   readonly id: string;
   readonly title: string;
 }
+
+const PATIENTS_FOLDER_ID = 'patient-vault-entry';
 
 type SortMode = 'time' | 'name' | 'type';
 
@@ -204,6 +207,7 @@ const USER_LIBRARY_FOLDER_GLYPHS: Readonly<Record<string, AppGlyphName>> = {
   [USER_LIBRARY_QUESTIONNAIRES_FOLDER_ID]: 'list-checks',
   [USER_LIBRARY_TEMPLATES_FOLDER_ID]: 'notepad',
   [USER_LIBRARY_NOTES_FOLDER_ID]: 'notes',
+  [PATIENTS_FOLDER_ID]: 'users',
 };
 
 /** Reference-stability guard: keeps virtualizer rows from re-measuring when a
@@ -389,6 +393,7 @@ export function UserLibraryPage(): JSX.Element {
     return folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID ? null : folderId;
   };
   const [documents, setDocuments] = createSignal<readonly UserLibraryDocument[]>([]);
+  const [vaultEncrypted, setVaultEncrypted] = createSignal(false);
   const [folders, setFolders] = createSignal<readonly UserLibraryFolder[]>([]);
   const [exampleUploads, setExampleUploads] = createSignal<
     Partial<Record<UserLibraryExampleId, ExampleUploadState>>
@@ -449,6 +454,17 @@ export function UserLibraryPage(): JSX.Element {
 
   useStickySurface(headingElement);
 
+  const refreshVaultMode = async (): Promise<void> => {
+    try {
+      setVaultEncrypted((await patientVaultStorageMode()) === 'native-keychain');
+    } catch (cause) {
+      setVaultEncrypted(false);
+      toast.error(
+        cause instanceof Error ? cause.message : 'Не удалось проверить хранилище пациентов.',
+      );
+    }
+  };
+
   const refresh = async (): Promise<void> => {
     const generation = ++refreshGeneration;
     try {
@@ -486,6 +502,9 @@ export function UserLibraryPage(): JSX.Element {
     };
     syncFolderFromLocation();
     refresh();
+    void refreshVaultMode();
+    window.addEventListener(PATIENT_VAULT_EVENT, refreshVaultMode);
+    onCleanup(() => window.removeEventListener(PATIENT_VAULT_EVENT, refreshVaultMode));
     window.addEventListener(USER_LIBRARY_EVENT, refresh);
     let cancelled = false;
     const syncNotes = async (): Promise<void> => {
@@ -669,12 +688,21 @@ export function UserLibraryPage(): JSX.Element {
     return record ? userLibraryFileKind(record.mimeType, record.fileName) : 'binary';
   });
 
-  const visibleFolders = createMemo(() =>
-    folders().filter(
-      (folder) =>
-        folder.parentId === currentFolderId() && folder.id !== USER_LIBRARY_TEMPLATES_FOLDER_ID,
-    ),
-  );
+  const visibleFolders = createMemo(() => [
+    ...folders().filter((folder) => folder.parentId === currentFolderId()),
+    ...(currentFolderId() === null
+      ? [
+          {
+            id: PATIENTS_FOLDER_ID,
+            title: 'Пациенты',
+            parentId: null,
+            isSystem: true,
+            createdAt: '',
+            updatedAt: '',
+          } satisfies UserLibraryFolder,
+        ]
+      : []),
+  ]);
   const visibleDocuments = createMemo(() => {
     const query = searchQuery().trim();
     return documents().filter((document) => {
@@ -1304,6 +1332,14 @@ export function UserLibraryPage(): JSX.Element {
   };
 
   const openFolder = (folderId: string | null): void => {
+    if (folderId === PATIENTS_FOLDER_ID) {
+      navigate(notesPatientsPath());
+      return;
+    }
+    if (folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID) {
+      navigate(notesTemplatesPath());
+      return;
+    }
     setSearchQuery('');
     setCurrentFolderId(folderId);
     const nextHash = userLibraryFolderHash(folderId);
@@ -1608,7 +1644,26 @@ export function UserLibraryPage(): JSX.Element {
       ).length;
     const attachmentCount = (): number =>
       fileCount() + folders().filter((item) => item.parentId === props.folder.id).length;
-    const drops = folderDropsFor(props.folder.id);
+    const isPatients = () => props.folder.id === PATIENTS_FOLDER_ID;
+    const folderDetails = () =>
+      isPatients()
+        ? vaultEncrypted()
+          ? 'Зашифровано на устройстве'
+          : 'Отдельное хранилище пациентов'
+        : getPluralMessage('attachment_count', attachmentCount());
+    const drops = isPatients()
+      ? {
+          onDragOver: (event: DragEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.dataTransfer) event.dataTransfer.dropEffect = 'none';
+          },
+          onDrop: (event: DragEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
+          },
+        }
+      : folderDropsFor(props.folder.id);
     const openThisFolder = (): void => {
       if (lastInteractedKey === props.folder.id) {
         lastInteractedKey = null;
@@ -1620,7 +1675,7 @@ export function UserLibraryPage(): JSX.Element {
     return (
       <AppContextMenu
         class={`user-library-folder-menu user-library-folder-menu--${viewMode()}`}
-        actions={folderActions(props.folder)}
+        actions={isPatients() ? [] : folderActions(props.folder)}
         buttonLabel={`Действия с папкой «${props.folder.title}»`}
         hideButton
       >
@@ -1633,7 +1688,7 @@ export function UserLibraryPage(): JSX.Element {
             'user-library-folder-card--touch-dragging': draggingKey() === props.folder.id,
             'user-library-folder-card--system': isUserLibrarySystemFolder(props.folder),
           }}
-          data-user-library-drop-target={props.folder.id}
+          data-user-library-drop-target={isPatients() ? '' : props.folder.id}
           draggable={canUseNativeLibraryDrag() && !isUserLibrarySystemFolder(props.folder)}
           onPointerDown={(event) =>
             startTouchDrag(event, {
@@ -1712,20 +1767,28 @@ export function UserLibraryPage(): JSX.Element {
                       class={`user-library-folder-card__title user-library-folder-card__title--${viewMode()}`}
                     >
                       {props.folder.title}
+                      <Show when={isPatients() && vaultEncrypted()}>
+                        <AppGlyph name="lock" class="user-library-folder-card__lock" />
+                      </Show>
                     </strong>
                     <small
                       class={`user-library-folder-card__details user-library-folder-card__details--${viewMode()}`}
                       title={timesTitleFor(props.folder)}
                     >
-                      {attachmentCount()} вложений
+                      {folderDetails()}
                     </small>
                   </>
                 }
               >
                 <span class="user-library-card__text user-library-card__text--list">
-                  <strong class="user-library-card__file-name">{props.folder.title}</strong>
+                  <strong class="user-library-card__file-name">
+                    {props.folder.title}
+                    <Show when={isPatients() && vaultEncrypted()}>
+                      <AppGlyph name="lock" class="user-library-folder-card__lock" />
+                    </Show>
+                  </strong>
                   <small class="user-library-card__meta" title={timesTitleFor(props.folder)}>
-                    {attachmentCount()} вложений
+                    {folderDetails()}
                   </small>
                 </span>
               </Show>

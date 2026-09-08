@@ -11,7 +11,7 @@ function tokens(value: string): readonly string[] {
 }
 
 function tokenMatches(queryToken: string, hayToken: string): boolean {
-  if (hayToken.includes(queryToken) || (queryToken.length >= 3 && queryToken.includes(hayToken))) {
+  if (hayToken.includes(queryToken) || (hayToken.length >= 3 && queryToken.includes(hayToken))) {
     return true;
   }
   if (queryToken.length < MIN_FUZZY_TOKEN_LENGTH && hayToken.length < MIN_FUZZY_TOKEN_LENGTH) {

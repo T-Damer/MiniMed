@@ -18,8 +18,8 @@ import { ModuleCatalogView } from '@/features/modules/ModuleCatalogView';
 type KnowledgeRoute = 'conditions' | 'documents' | 'medications';
 
 interface KnowledgeBaseViewProps {
-  readonly core: MedicalCore;
-  readonly status: CoreStatus;
+  readonly core: MedicalCore | undefined;
+  readonly status: CoreStatus | undefined;
   readonly active: boolean;
   readonly onContentChanged?: () => Promise<void>;
   readonly onAvailableUpdates?: (count: number) => void;
@@ -42,6 +42,11 @@ function documentsRouteFromLocation(): string {
 export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
   const [route, setRoute] = createSignal<KnowledgeRoute>(routeFromLocation());
   const [documentsRoute, setDocumentsRoute] = createSignal(documentsRouteFromLocation());
+  const ready = () => {
+    const core = props.core;
+    const status = props.status;
+    return core && status ? { core, status } : undefined;
+  };
 
   const canonicalizeDocumentsHash = (): void => {
     const currentRoute = window.location.hash.replace(/^#\/?/u, '');
@@ -79,29 +84,34 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
 
   return (
     <section class="knowledge-base-page page-surface page-grain">
-      <Show when={route() === 'documents'}>
-        <Show when={isUserLibraryCatalogRoute(documentsRoute())}>
-          <UserLibraryPage />
-        </Show>
-        <Show when={!isUserLibraryCatalogRoute(documentsRoute())}>
-          <ModuleCatalogView
-            core={props.core}
-            status={props.status}
-            active={props.active && route() === 'documents'}
-            embedded
-            onBack={navigateBack}
-            {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
-            {...(props.onAvailableUpdates ? { onAvailableUpdates: props.onAvailableUpdates } : {})}
-          />
-        </Show>
+      <Show when={route() === 'documents' && isUserLibraryCatalogRoute(documentsRoute())}>
+        <UserLibraryPage />
       </Show>
+      <Show when={ready()}>
+        {(state) => (
+          <>
+            <Show when={route() === 'documents' && !isUserLibraryCatalogRoute(documentsRoute())}>
+              <ModuleCatalogView
+                core={state().core}
+                status={state().status}
+                active={props.active && route() === 'documents'}
+                embedded
+                onBack={navigateBack}
+                {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
+                {...(props.onAvailableUpdates
+                  ? { onAvailableUpdates: props.onAvailableUpdates }
+                  : {})}
+              />
+            </Show>
+            <Show when={route() === 'medications'}>
+              <MedicationCatalogView core={state().core} onBack={navigateBack} />
+            </Show>
 
-      <Show when={route() === 'medications'}>
-        <MedicationCatalogView core={props.core} onBack={navigateBack} />
-      </Show>
-
-      <Show when={route() === 'conditions'}>
-        <ConditionCatalogView core={props.core} onBack={navigateBack} />
+            <Show when={route() === 'conditions'}>
+              <ConditionCatalogView core={state().core} onBack={navigateBack} />
+            </Show>
+          </>
+        )}
       </Show>
     </section>
   );

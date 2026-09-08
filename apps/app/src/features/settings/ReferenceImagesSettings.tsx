@@ -98,7 +98,7 @@ export function ReferenceImagesSettings(): JSX.Element {
     >
       <header class="settings-section__heading">
         <div class="settings-section__heading-main">
-          <AppGlyph name="image" class="settings-section__icon" />
+          <AppGlyph name="image-fill" class="settings-section__icon" />
           <div class="settings-section__heading-copy">
             <h2 id="settings-reference-images-heading" class="settings-section__title">
               Иллюстрации справочника

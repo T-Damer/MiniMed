@@ -44,6 +44,7 @@ import {
   discardPendingModuleInstall,
   enqueuePendingModuleInstall,
   recoverPendingModuleInstalls,
+  retireSupersededModuleDownloads,
 } from '@/features/modules/pending-module-installs';
 import { downloadWithRetry, isTransientDownloadError } from '@/features/network/download-retry';
 import { RELEASE_VERSION } from '../../../../../release';
@@ -482,6 +483,18 @@ export class BrowserContentModuleRuntime {
   public constructor(catalog: ContentModuleCatalog) {
     this.catalog = catalog;
     this.registry = createRegistry();
+    for (const installed of this.registry.list()) {
+      if (
+        catalog.modules.some(
+          (module) =>
+            module.id === installed.moduleId &&
+            module.version === installed.version &&
+            module.sourceSetDigest === installed.activeSourceSetDigest,
+        )
+      ) {
+        retireSupersededModuleDownloads(getDownloadQueue(), installed.moduleId, installed.version);
+      }
+    }
     this.installer = new ForegroundContentModuleInstaller(
       catalog,
       { appVersion: RELEASE_VERSION, schemaVersion: 2, coreCatalogVersion: '1' },
@@ -493,6 +506,7 @@ export class BrowserContentModuleRuntime {
     );
     this.installer.subscribe((task) => {
       if (task.state === 'completed') {
+        retireSupersededModuleDownloads(getDownloadQueue(), task.moduleId, task.version);
         this.clearRetry(task.moduleId, task.version);
         dequeuePendingModuleInstall(task.moduleId, task.version);
         void this.syncAssessmentDependencies(task.moduleId, task.version).catch(
@@ -532,7 +546,9 @@ export class BrowserContentModuleRuntime {
           totalBytes: task.totalBytes,
           errorMessage:
             task.state === 'failed'
-              ? 'Набор не установлен: загрузка или проверка не завершена.'
+              ? task.errorMessage?.includes('conflicting source-set digest')
+                ? 'Содержимое набора изменилось без новой версии. Обновите приложение: повторная загрузка этой версии не поможет.'
+                : 'Набор не установлен: загрузка или проверка не завершена.'
               : null,
         },
         {

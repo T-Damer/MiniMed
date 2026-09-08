@@ -24,13 +24,25 @@ import type {
 } from '@localmed/contracts';
 import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
-export type SearchScope = 'diagnosis' | 'guidelines' | 'medications' | 'legal' | 'all' | 'personal';
+export type SearchScope =
+  | 'diagnosis'
+  | 'guidelines'
+  | 'medications'
+  | 'legal'
+  | 'all'
+  | 'personal'
+  | 'conditions'
+  | 'calculators'
+  | 'assessments';
 export type SearchAudience = 'children' | 'adults';
 export type SearchResultDocumentKind = NonNullable<SearchResultGroup['documentKind']>;
 
 const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
 
 const SOURCE_TYPES_BY_SCOPE: Readonly<Partial<Record<SearchScope, ReadonlySet<string>>>> = {
+  conditions: new Set(['rls_mkb_reference', 'krasotaimedicina_reference']),
+  calculators: new Set<string>(),
+  assessments: new Set<string>(),
   guidelines: new Set([
     'clinical_recommendation',
     'clinical_recommendation_summary',
@@ -52,6 +64,16 @@ export function documentMatchesSearchScope(
   scope: SearchScope,
 ): boolean {
   if (scope === 'personal') return false;
+  if (scope === 'calculators') return searchResultDocumentKind(document) === 'calculator';
+  if (scope === 'assessments') return searchResultDocumentKind(document) === 'assessment';
+  if (scope === 'conditions' && document.sourceType === 'core_catalog_pointer') {
+    return (
+      document.metadata?.['catalogFamily'] === 'reference' &&
+      ['disease', 'condition', 'syndrome', 'symptom'].includes(
+        String(document.metadata?.['entityType']),
+      )
+    );
+  }
   if (document.sourceType === 'core_catalog_pointer') {
     if (scope === 'all' || scope === 'diagnosis') return true;
     const metadata = document.metadata as SearchDocumentKindMetadata | undefined;
@@ -62,6 +84,32 @@ export function documentMatchesSearchScope(
   }
   const sourceTypes = SOURCE_TYPES_BY_SCOPE[scope];
   return sourceTypes ? sourceTypes.has(document.sourceType) : true;
+}
+
+export function documentMatchesConditionGroup(
+  document: Pick<MedicalDocumentSummary, 'title' | 'sourceType' | 'metadata'>,
+  group: string,
+): boolean {
+  if (!documentMatchesSearchScope(document, 'conditions')) return false;
+  if (group === 'kind:icd') {
+    return (
+      document.sourceType === 'rls_mkb_reference' ||
+      document.metadata?.['sourceType'] === 'rls_mkb_reference'
+    );
+  }
+  let kind = document.metadata?.['entityType'];
+  if (!kind && ['rls_mkb_reference', 'krasotaimedicina_reference'].includes(document.sourceType)) {
+    // Legacy full packs lack entityType: use the deterministic preparer's source-code rules.
+    const code = document.metadata?.['mkbCode'];
+    kind = /(?:^|\s)синдром(?:\s|$)/iu.test(document.title)
+      ? 'syndrome'
+      : typeof code === 'string' && code.startsWith('R')
+        ? 'symptom'
+        : typeof code === 'string' && /^[STVWXYZ]/u.test(code)
+          ? 'condition'
+          : 'disease';
+  }
+  return group.startsWith('kind:') && kind === group.slice(5);
 }
 
 export function inferSearchScope(intent: QueryIntent | undefined): SearchScope | undefined {
@@ -402,6 +450,14 @@ export class ScopedMedicalCore implements MedicalCore {
 
   public listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>> {
     return this.base.listDocuments();
+  }
+
+  public listNavigationDocuments(): Promise<
+    Result<readonly MedicalDocumentSummary[], LocalMedError>
+  > {
+    return this.base.listNavigationDocuments
+      ? this.base.listNavigationDocuments()
+      : this.base.listDocuments();
   }
 
   public listSearchDocuments(): Promise<

@@ -24,7 +24,7 @@ describe('exported tool modules', () => {
     const core = JSON.parse(
       readFileSync(resolve(process.cwd(), 'content/tool-modules/core-clinical.json'), 'utf8'),
     ) as { version: string; tools: readonly { id: string }[] };
-    expect(core.version).toBe('0.1.0-preview.2');
+    expect(core.version).toBe('0.1.0-preview.3');
     expect(core.tools.some((tool) => tool.id === 'body-surface-area-mosteller')).toBe(true);
     expect(core.tools.length).toBe(22);
   });

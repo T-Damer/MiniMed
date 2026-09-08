@@ -444,5 +444,65 @@
         "example": "5"
       }
     }
+  },
+  "specialty_medical_law": {
+    "message": "Медицинское право",
+    "description": "Medical specialty or tool section: medical-law"
+  },
+  "specialty_medical_reference": {
+    "message": "Медицинские справочники",
+    "description": "Medical specialty or tool section: medical-reference"
+  },
+  "specialty_pharmacology": {
+    "message": "Фармакология",
+    "description": "Medical specialty or tool section: pharmacology"
+  },
+  "specialty_psychology": {
+    "message": "Психология и психодиагностика",
+    "description": "Medical specialty or tool section: psychology"
+  },
+  "specialty_unit_conversion": {
+    "message": "Преобразование единиц",
+    "description": "Medical specialty or tool section: unit-conversion"
+  },
+  "specialty_anthropometry": {
+    "message": "Антропометрия",
+    "description": "Medical specialty or tool section: anthropometry"
+  },
+  "specialty_renal": {
+    "message": "Функция почек",
+    "description": "Medical specialty or tool section: renal"
+  },
+  "specialty_fluids": {
+    "message": "Жидкость и инфузии",
+    "description": "Medical specialty or tool section: fluids"
+  },
+  "specialty_medication": {
+    "message": "Лекарственные расчёты",
+    "description": "Medical specialty or tool section: medication"
+  },
+  "specialty_emergency": {
+    "message": "Неотложная помощь",
+    "description": "Medical specialty or tool section: emergency"
+  },
+  "source_core_catalog_pointer": {
+    "message": "Карточка источника",
+    "description": "Discovery catalog entry, not a complete source document."
+  },
+  "attachment_count_one": {
+    "message": "$1 вложение",
+    "description": "Attachment count"
+  },
+  "attachment_count_few": {
+    "message": "$1 вложения",
+    "description": "Attachment count"
+  },
+  "attachment_count_many": {
+    "message": "$1 вложений",
+    "description": "Attachment count"
+  },
+  "attachment_count_other": {
+    "message": "$1 вложения",
+    "description": "Attachment count"
   }
 }

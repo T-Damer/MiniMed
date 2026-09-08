@@ -12,6 +12,7 @@ export const SearchFiltersSchema = z.object({
 export const SearchRequestSchema = z.object({
   query: z.string().trim().min(1).max(20_000),
   mode: SearchModeSchema.default('auto'),
+  analysisMode: z.enum(['lookup', 'clinical']).optional(),
   filters: SearchFiltersSchema.default({}),
   limit: z.number().int().min(1).max(100).default(20),
   includeSuggestions: z.boolean().default(true),

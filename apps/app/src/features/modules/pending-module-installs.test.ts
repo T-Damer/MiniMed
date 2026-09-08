@@ -1,5 +1,6 @@
 import type { ContentModuleCatalog } from '@localmed/contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DownloadQueue } from '@/features/downloads/download-queue';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 
 import {
@@ -8,6 +9,7 @@ import {
   enqueuePendingModuleInstall,
   listPendingModuleInstalls,
   recoverPendingModuleInstalls,
+  retireSupersededModuleDownloads,
 } from '@/features/modules/pending-module-installs';
 
 interface LocalStorageHarness {
@@ -33,6 +35,22 @@ function installLocalStorageMock(): LocalStorageHarness {
 }
 
 describe('pending-module-installs', () => {
+  it('retires obsolete failed downloads after an upgrade without touching current or active jobs', () => {
+    const queue = new DownloadQueue();
+    for (const [id, state] of [
+      ['module:tools@1', 'failed'],
+      ['module:tools@2', 'failed'],
+      ['module:tools@3', 'downloading'],
+      ['module:other@1', 'failed'],
+    ] as const) {
+      queue.observe({ id, kind: 'module', title: id }, { state }, {});
+    }
+    retireSupersededModuleDownloads(queue, 'tools', '2');
+    expect(queue.get('module:tools@1')?.state).toBe('cancelled');
+    expect(queue.get('module:tools@2')?.state).toBe('failed');
+    expect(queue.get('module:tools@3')?.state).toBe('downloading');
+    expect(queue.get('module:other@1')?.state).toBe('failed');
+  });
   let harness: LocalStorageHarness;
 
   beforeEach(() => {

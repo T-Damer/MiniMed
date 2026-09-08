@@ -87,7 +87,7 @@ export function AsrSettings(): JSX.Element {
     >
       <header class="settings-section__heading">
         <div class="settings-section__heading-main">
-          <AppGlyph name="text-aa" class="settings-section__icon" />
+          <AppGlyph name="text-aa-fill" class="settings-section__icon" />
           <div class="settings-section__heading-copy">
             <h2 id="settings-asr-heading" class="settings-section__title">
               Расшифровка голосовых заметок

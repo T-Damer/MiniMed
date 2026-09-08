@@ -49,6 +49,7 @@ import fileXlsBold from '@phosphor-icons/core/assets/bold/file-xls-bold.svg?raw'
 import fileZipBold from '@phosphor-icons/core/assets/bold/file-zip-bold.svg?raw';
 import filmSlateBold from '@phosphor-icons/core/assets/bold/film-slate-bold.svg?raw';
 import filmStripBold from '@phosphor-icons/core/assets/bold/film-strip-bold.svg?raw';
+import flaskBold from '@phosphor-icons/core/assets/bold/flask-bold.svg?raw';
 import folderOpenBold from '@phosphor-icons/core/assets/bold/folder-open-bold.svg?raw';
 import frameCornersBold from '@phosphor-icons/core/assets/bold/frame-corners-bold.svg?raw';
 import gearSixBold from '@phosphor-icons/core/assets/bold/gear-six-bold.svg?raw';
@@ -97,8 +98,14 @@ import trashBold from '@phosphor-icons/core/assets/bold/trash-bold.svg?raw';
 import usersBold from '@phosphor-icons/core/assets/bold/users-bold.svg?raw';
 import vibrateBold from '@phosphor-icons/core/assets/bold/vibrate-bold.svg?raw';
 import xBold from '@phosphor-icons/core/assets/bold/x-bold.svg?raw';
+import arrowsClockwiseFill from '@phosphor-icons/core/assets/fill/arrows-clockwise-fill.svg?raw';
+import brainFill from '@phosphor-icons/core/assets/fill/brain-fill.svg?raw';
+import downloadSimpleFill from '@phosphor-icons/core/assets/fill/download-simple-fill.svg?raw';
+import gearSixFill from '@phosphor-icons/core/assets/fill/gear-six-fill.svg?raw';
+import imageSquareFill from '@phosphor-icons/core/assets/fill/image-square-fill.svg?raw';
 import pencilSimpleFill from '@phosphor-icons/core/assets/fill/pencil-simple-fill.svg?raw';
 import stopCircleFill from '@phosphor-icons/core/assets/fill/stop-circle-fill.svg?raw';
+import textAaFill from '@phosphor-icons/core/assets/fill/text-aa-fill.svg?raw';
 import type { JSX } from 'solid-js';
 
 export type AppGlyphName =
@@ -203,13 +210,27 @@ export type AppGlyphName =
   | 'music-notes'
   | 'code'
   | 'cube'
-  | 'binary';
+  | 'binary'
+  | 'flask'
+  | 'system-fill'
+  | 'brain-fill'
+  | 'text-aa-fill'
+  | 'image-fill'
+  | 'refresh-fill'
+  | 'download-fill';
 
 function svgBody(asset: string): string {
   return asset.slice(asset.indexOf('>') + 1, asset.lastIndexOf('</svg>'));
 }
 
 const glyphBodies: Record<AppGlyphName, string> = {
+  'refresh-fill': svgBody(arrowsClockwiseFill),
+  'image-fill': svgBody(imageSquareFill),
+  'text-aa-fill': svgBody(textAaFill),
+  'brain-fill': svgBody(brainFill),
+  flask: svgBody(flaskBold),
+  'system-fill': svgBody(gearSixFill),
+  'download-fill': svgBody(downloadSimpleFill),
   search: svgBody(magnifyingGlassBold),
   archive: svgBody(archiveBold),
   modules: svgBody(stackBold),

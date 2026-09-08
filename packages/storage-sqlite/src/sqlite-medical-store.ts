@@ -184,6 +184,39 @@ function executeStatement(statement: PreparedStatement, values: readonly Bindabl
   statement.bind(values).stepReset();
 }
 
+const SEARCH_METADATA_FIELDS = [
+  'declaredAliases',
+  'navigationAliases',
+  'catalogFamily',
+  'ageGroups',
+  'entityType',
+  'contentMode',
+  'interactiveAssessmentId',
+  'interactiveCalculatorId',
+  'calculationRequired',
+  'notLegalAdvice',
+] as const;
+const NAVIGATION_METADATA_FIELDS = [
+  ...SEARCH_METADATA_FIELDS,
+  'sourceType',
+  'mkbCode',
+  'targetDocumentId',
+  'canonicalDefinition',
+] as const;
+
+function projectedMetadata(row: SqlRow, keys: readonly string[]): Record<string, unknown> {
+  const values: unknown = JSON.parse(readString(row, 'metadata_fields'));
+  if (!Array.isArray(values) || values.length !== keys.length)
+    throw new Error('Invalid document metadata projection.');
+  const fields: readonly unknown[] = values;
+  const metadata: Record<string, unknown> = Object.fromEntries(
+    keys.map((key, index) => [key, fields[index]]),
+  );
+  metadata['calculationRequired'] = metadata['calculationRequired'] === true;
+  metadata['notLegalAdvice'] = metadata['notLegalAdvice'] === true;
+  return metadata;
+}
+
 function toDocument(row: SqlRow): DocumentRecord {
   return {
     id: readString(row, 'id'),
@@ -193,7 +226,10 @@ function toDocument(row: SqlRow): DocumentRecord {
     sourceType: readString(row, 'source_type'),
     status: readString(row, 'status'),
     specialties: parseJsonStringArray(readString(row, 'specialty_json')),
-    metadata: parseJsonObject(readString(row, 'metadata_json')),
+    metadata:
+      'metadata_fields' in row
+        ? projectedMetadata(row, NAVIGATION_METADATA_FIELDS)
+        : parseJsonObject(readString(row, 'metadata_json')),
     version: {
       id: readString(row, 'version_id'),
       documentId: readString(row, 'id'),
@@ -706,29 +742,34 @@ export class SqliteMedicalStore implements MedicalStore {
 
   public async listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
     this.assertInitialized();
+    // Extract all paths in one call instead of repeatedly parsing each document's large metadata.
     return queryRows(
       this.database,
       `
-      SELECT id, source_type, json_object(
-        'declaredAliases', json_extract(metadata_json, '$.declaredAliases'),
-        'navigationAliases', json_extract(metadata_json, '$.navigationAliases'),
-        'catalogFamily', json_extract(metadata_json, '$.catalogFamily'),
-        'ageGroups', json_extract(metadata_json, '$.ageGroups'),
-        'entityType', json_extract(metadata_json, '$.entityType'),
-        'contentMode', json_extract(metadata_json, '$.contentMode'),
-        'interactiveAssessmentId', json_extract(metadata_json, '$.interactiveAssessmentId'),
-        'interactiveCalculatorId', json_extract(metadata_json, '$.interactiveCalculatorId'),
-        'calculationRequired', json(CASE WHEN json_type(metadata_json, '$.calculationRequired') = 'true'
-          THEN 'true' ELSE 'false' END),
-        'notLegalAdvice', json(CASE WHEN json_type(metadata_json, '$.notLegalAdvice') = 'true'
-          THEN 'true' ELSE 'false' END)
-      ) AS metadata_json FROM documents ORDER BY title COLLATE NOCASE, id
+      SELECT id, source_type,
+        json_extract(metadata_json, ${SEARCH_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields FROM documents ORDER BY title COLLATE NOCASE, id
     `,
     ).map((row) => ({
       id: readString(row, 'id'),
       sourceType: readString(row, 'source_type'),
-      metadata: parseJsonObject(readString(row, 'metadata_json')),
+      metadata: projectedMetadata(row, SEARCH_METADATA_FIELDS),
     }));
+  }
+
+  public async listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
+    this.assertInitialized();
+    return queryRows(
+      this.database,
+      `
+      SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
+        d.specialty_json,
+        json_extract(d.metadata_json, ${NAVIGATION_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields,
+        dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
+        dv.source_checksum, dv.extracted_at
+      FROM documents d JOIN document_versions dv ON dv.id = d.current_version_id
+      ORDER BY d.title COLLATE NOCASE, d.id
+    `,
+    ).map(toDocument);
   }
 
   public async listDocuments(): Promise<readonly DocumentRecord[]> {
@@ -815,9 +856,10 @@ export class SqliteMedicalStore implements MedicalStore {
 
   public async listAliases(): Promise<readonly AliasRecord[]> {
     this.assertInitialized();
+    // An alias-index walk randomly rereads rows beyond the OPFS cache; scan once, then sort.
     return queryRows(
       this.database,
-      'SELECT id, canonical_term, alias, category, weight FROM aliases ORDER BY alias',
+      'SELECT id, canonical_term, alias, category, weight FROM aliases NOT INDEXED ORDER BY alias',
     ).map((row) => ({
       id: readString(row, 'id'),
       canonicalTerm: readString(row, 'canonical_term'),
@@ -990,7 +1032,8 @@ export class SqliteMedicalStore implements MedicalStore {
     this.assertInitialized();
     // Keep the FTS phase narrow: bm25 only needs the matching virtual-table row. The expensive
     // chunk/section/document projection is hydrated after the candidate window is bounded.
-    const candidateLimit = Math.min(500, Math.max(request.limit * 5, 50));
+    // All filters are already in SQL; hydrating five times the returned limit only wastes I/O.
+    const candidateLimit = Math.min(500, request.limit);
     const clauses = ['chunks_fts MATCH ?'];
     const bind: BindableValue[] = [request.ftsQuery];
     const joins: string[] = [];

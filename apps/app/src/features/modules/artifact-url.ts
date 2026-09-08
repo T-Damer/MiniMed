@@ -1,9 +1,16 @@
+import { loadAppPreferences } from '@/state/app-preferences';
+
 const GITHUB_RELEASE_PATTERN =
   /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/([^/?#]+)$/u;
 
 const RAW_GITHUB_MODULE_BASE =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules';
-export const usesLocalModuleArtifacts = import.meta.env.VITE_USE_LOCAL_MODULE_ARTIFACTS === 'true';
+export function usesLocalModuleArtifacts(): boolean {
+  const configured = import.meta.env.VITE_USE_LOCAL_MODULE_ARTIFACTS === 'true';
+  return import.meta.env.DEV
+    ? (loadAppPreferences().devLocalModuleArtifacts ?? configured)
+    : configured;
+}
 
 function resolveRelativeModulePath(path: string): string {
   const normalized = path.replace(/^\./u, '');
@@ -42,7 +49,7 @@ export function resolveContentModuleArtifactUrl(url: string): string {
   }
 
   const rawGithubModulePrefix = `${RAW_GITHUB_MODULE_BASE}/`;
-  if (trimmed.startsWith(rawGithubModulePrefix) && usesLocalModuleArtifacts) {
+  if (trimmed.startsWith(rawGithubModulePrefix) && usesLocalModuleArtifacts()) {
     const localUrl = localModuleArtifactUrl(trimmed.slice(rawGithubModulePrefix.length));
     if (localUrl) return localUrl;
   }
@@ -63,14 +70,14 @@ export function resolveContentModuleArtifactUrl(url: string): string {
         return `https://media.githubusercontent.com/media/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
       }
       if (fileName.startsWith('clinical-') && fileName.endsWith('.db')) {
-        if (usesLocalModuleArtifacts && typeof window !== 'undefined') {
+        if (usesLocalModuleArtifacts() && typeof window !== 'undefined') {
           return resolveRelativeModulePath(
             `./content/releases/${encodeURIComponent(releaseTag)}/${encodeURIComponent(fileName)}`,
           );
         }
         return clinicalDatasetsBranchUrl(owner, repo, releaseTag, fileName);
       }
-      if (usesLocalModuleArtifacts) {
+      if (usesLocalModuleArtifacts()) {
         const localUrl = localModuleArtifactUrl(fileName);
         if (localUrl) return localUrl;
       }

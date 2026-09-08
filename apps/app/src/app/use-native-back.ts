@@ -1,9 +1,10 @@
 import { App as NativeApp } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { type Accessor, onCleanup, onMount } from 'solid-js';
-
 import { nativeBackAction } from '@/app/native-back';
 import type { RootView } from '@/app/root-view';
+import { getSplitNavigation } from '@/state/app-preferences';
+import { returnFromTool } from '@/state/tool-navigation';
 
 export function useNativeBack(options: {
   readonly view: Accessor<RootView>;
@@ -35,8 +36,13 @@ export function useNativeBack(options: {
         nativePrintBack.click();
         return;
       }
+      if (document.querySelector('.search-section-menu')) {
+        document.querySelector<HTMLButtonElement>('.search-source-picker')?.click();
+        return;
+      }
       const route = window.location.hash.replace(/^#\/?/u, '');
-      const action = nativeBackAction(route, options.view(), canGoBack);
+      if (!/\/results\//u.test(route) && returnFromTool()) return;
+      const action = nativeBackAction(route, options.view(), canGoBack, getSplitNavigation());
       if (action.type === 'parent') {
         window.location.hash = action.hash;
       } else if (action.type === 'history') {

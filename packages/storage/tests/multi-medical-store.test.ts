@@ -109,6 +109,29 @@ async function store(value: ContentPackSeed): Promise<InMemoryMedicalStore> {
 }
 
 describe('MultiMedicalStore', () => {
+  it('reuses validated aliases and refreshes them when the active modules change', async () => {
+    const core = await store(seed({ packId: 'core', documentId: 'core.topic', term: 'кашель' }));
+    const extra = await store(
+      seed({ packId: 'extra', documentId: 'extra.topic', term: 'лихорадка' }),
+    );
+    const readCore = vi.spyOn(core, 'listAliases');
+    const combined = new MultiMedicalStore([
+      { moduleId: 'core', store: core, required: true },
+      { moduleId: 'extra', store: extra },
+    ]);
+    await combined.initialize();
+    const expected = [...(await core.listAliases()), ...(await extra.listAliases())];
+    readCore.mockClear();
+    expect(await combined.listAliases()).toHaveLength(expected.length);
+    expect(readCore).not.toHaveBeenCalled();
+    await combined.setEnabled('extra', false);
+    expect(await combined.listAliases()).toEqual(await core.listAliases());
+    await combined.setEnabled('extra', true);
+    expect(await combined.listAliases()).toHaveLength(expected.length);
+    await combined.removeMount('extra');
+    expect(await combined.listAliases()).toEqual(await core.listAliases());
+  });
+
   it('validates native identities without loading full document metadata', async () => {
     const native = await store(
       seed({ packId: 'native', documentId: 'native.topic', term: 'кашель' }),

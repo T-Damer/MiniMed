@@ -95,7 +95,7 @@ export function AssessmentDefinitionNotice(props: {
                               target="_blank"
                               rel="noreferrer"
                             >
-                              Открыть источник
+                              Открыть
                             </a>
                           )}
                         </Show>

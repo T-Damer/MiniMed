@@ -15,6 +15,7 @@ import { usePinchZoom } from '@/features/library/use-pinch-zoom';
 import { PrintManager } from '@/features/printing/print-manager';
 
 interface RichBlockHighlightProps {
+  readonly rangeOffset?: number | undefined;
   readonly query?: string | undefined;
   readonly exact?: boolean | undefined;
   readonly fuzzy?: boolean | undefined;
@@ -62,7 +63,8 @@ function renderTableMarkup(block: DocumentTableBlock, tableClass: string): strin
           const tag = cell.header ? 'th' : 'td';
           const rowSpan = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : '';
           const colSpan = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : '';
-          return `<${tag}${rowSpan}${colSpan}>${escapeHtml(cell.text)}</${tag}>`;
+          const alignment = cell.align ? ` style="text-align:${cell.align}"` : '';
+          return `<${tag}${rowSpan}${colSpan}${alignment}>${escapeHtml(cell.text)}</${tag}>`;
         })
         .join('');
       return `<tr>${cells}</tr>`;
@@ -213,7 +215,9 @@ function RichTableMarkup(props: {
   readonly tableClass: string;
   readonly highlight?: RichBlockHighlightProps | undefined;
 }): JSX.Element {
-  let offset = props.block.caption ? props.block.caption.length + 1 : 0;
+  let offset =
+    (props.highlight?.rangeOffset ?? 0) +
+    (props.block.caption ? props.block.caption.length + 1 : 0);
   return (
     <table class={props.tableClass}>
       <Show when={props.block.caption}>
@@ -227,6 +231,7 @@ function RichTableMarkup(props: {
               ranges={props.highlight?.ranges}
               unitId={props.highlight?.unitId}
               activeStart={props.highlight?.activeStart}
+              rangeOffset={props.highlight?.rangeOffset}
             />
           </caption>
         )}
@@ -255,12 +260,20 @@ function RichTableMarkup(props: {
                     <Show
                       when={cell.header}
                       fallback={
-                        <td rowSpan={cell.rowSpan} colSpan={cell.colSpan}>
+                        <td
+                          class={`document-rich-table__cell document-rich-table__cell--${cell.align ?? 'left'}`}
+                          rowSpan={cell.rowSpan}
+                          colSpan={cell.colSpan}
+                        >
                           {text}
                         </td>
                       }
                     >
-                      <th rowSpan={cell.rowSpan} colSpan={cell.colSpan}>
+                      <th
+                        class={`document-rich-table__cell document-rich-table__cell--${cell.align ?? 'left'}`}
+                        rowSpan={cell.rowSpan}
+                        colSpan={cell.colSpan}
+                      >
                         {text}
                       </th>
                     </Show>
@@ -341,7 +354,7 @@ function ZoomableTable(props: {
   readonly highlight?: RichBlockHighlightProps | undefined;
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
-  const title = () => props.block.caption || 'Таблица из клинической рекомендации';
+  const title = () => props.block.caption || 'Таблица из документа';
 
   return (
     <section class="document-rich-table" aria-label={title()}>

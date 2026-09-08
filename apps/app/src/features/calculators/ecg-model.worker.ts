@@ -29,6 +29,7 @@ interface DigitizeMessage {
   readonly image: ArrayBuffer;
   readonly mimeType: string;
   readonly corners?: EcgPhotoCorners;
+  readonly includeReviewMaps?: boolean;
 }
 
 interface DigitizerSpec {
@@ -41,7 +42,11 @@ interface DigitizerSpec {
 }
 
 interface Digitizer {
-  (image: Blob, corners?: EcgPhotoCorners): Promise<EcgDigitizationResult>;
+  (
+    image: Blob,
+    corners?: EcgPhotoCorners,
+    includeReviewMaps?: boolean,
+  ): Promise<EcgDigitizationResult>;
   dispose: () => Promise<void>;
 }
 
@@ -106,6 +111,7 @@ async function directDigitizer(cache: Cache, spec: DigitizerSpec): Promise<Digit
   const digitize = async (
     image: Blob,
     corners?: EcgPhotoCorners,
+    includeReviewMaps = false,
   ): Promise<EcgDigitizationResult> => {
     let decoded = (await RawImage.read(image)).rgb();
     if (corners) {
@@ -199,6 +205,16 @@ async function directDigitizer(cache: Cache, spec: DigitizerSpec): Promise<Digit
           : sourceIssues;
       return {
         ...result,
+        ...(includeReviewMaps
+          ? {
+              reviewMaps: {
+                width: spec.width,
+                height: spec.height,
+                signalProbability: enhancement.signalProbability,
+                gridProbability,
+              },
+            }
+          : {}),
         quality:
           result.quality === 'usable' && sourceIssues.some((issue) => issue.severity === 'blocking')
             ? 'review'
@@ -234,6 +250,7 @@ self.onmessage = async (event: MessageEvent<DigitizeMessage>) => {
     const result = await run(
       new Blob([message.image], { type: message.mimeType }),
       message.corners,
+      message.includeReviewMaps,
     );
     self.postMessage({ type: 'digitization-result', requestId: message.requestId, result });
   } catch (cause) {

@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun ../../scripts/restore-core.mjs && vite",
+    "dev": "bun ../../scripts/restore-core.mjs && VITE_USE_LOCAL_MODULE_ARTIFACTS=${VITE_USE_LOCAL_MODULE_ARTIFACTS:-true} vite",
     "build": "bun ../../scripts/restore-core.mjs && tsc -p tsconfig.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json",

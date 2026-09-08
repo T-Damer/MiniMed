@@ -56,7 +56,7 @@ test('attributes every definition to its source without mixing ICD codes', async
   await expect(page.locator('.document-initial-anchor')).toContainText('кардиомиопатия');
 });
 
-test('uses free search even when a previous installation remembered medication mode', async ({
+test('uses source lookup even when a previous installation remembered medication mode', async ({
   page,
 }) => {
   await mountBuiltApp(page, {
@@ -65,7 +65,9 @@ test('uses free search even when a previous installation remembered medication m
       'minimed.search-scope.v1': 'medications',
     },
   });
-  await expect(page.locator('.search-mode-picker--single')).toHaveText('Свободный поиск');
+  await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
+    'Все источники',
+  );
   await expect(page.locator('.search-mode-picker input')).toHaveCount(0);
   await page.getByTestId('search-input').fill('пневмония');
   await expect(page.getByTestId('search-results').locator('.result-group').first()).toBeVisible({

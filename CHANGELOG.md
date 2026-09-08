@@ -4,6 +4,26 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.37] - 2026-09-08
+
+- Search, personal files and settings remain independently available while the medical core loads.
+  Compact navigation restores personal routes and provides consistent returns to the file catalog.
+- Unified search includes source and tool catalogs, content-kind filters, specialty tags, history,
+  relationship maps and section downloads through the shared queue.
+- Corrected four immutable tool-pack versions and regenerated their downloadable artifacts.
+  Superseded failed downloads no longer leave an attention badge after a successful update.
+  A local/GitHub source switch is available only on the development server.
+- Source readers render Markdown tables and use more precise document links. Reader navigation,
+  sticky headings, loading layouts and search-history controls have been refined.
+- The ECG photo editor supports reviewing regions and measurement points with an A4 report.
+- Browser search uses compact projections and a repacked discovery database with 64 KiB SQLite
+  pages to reduce OPFS reads. Android retains its existing verified corpus download.
+
+SQL/content-pack schema remains 2. SQLite layout migration 008 changes physical page layout only;
+source identifiers, bookmarks and anchors are preserved. The four tool packs upgrade through new
+versions, retaining prior installed versions. This is a debug-signed engineering prerelease;
+physical-device and clinical qualification remain outstanding.
+
 ## [0.6.36] - 2026-09-07
 
 - First-launch core download is a full-screen setup step without bottom navigation, including

@@ -22,6 +22,7 @@ import {
 } from '@localmed/contracts';
 import {
   analyzeClinicalQuery,
+  buildLookupQueryPlan,
   buildSnippet,
   findNormalizedPhraseIndex,
   fuzzyPhraseSpan,
@@ -702,6 +703,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   let initialized = false;
   let aliasesPromise: Promise<Result<MedicalAliasRecords, LocalMedError>> | undefined;
   let searchDocumentsPromise: Promise<readonly SearchDocumentDescriptor[]> | undefined;
+  let navigationDocumentsPromise:
+    | Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>
+    | undefined;
   let documentSummariesPromise:
     | Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>
     | undefined;
@@ -710,6 +714,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     try {
       aliasesPromise = undefined;
       documentSummariesPromise = undefined;
+      navigationDocumentsPromise = undefined;
       searchDocumentsPromise = undefined;
       const health = await options.store.initialize(seed);
       initialized = true;
@@ -743,9 +748,18 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
 
   const getSearchDocuments = (): Promise<readonly SearchDocumentDescriptor[]> => {
     searchDocumentsPromise ??= (
-      options.store.listSearchDocuments
-        ? options.store.listSearchDocuments()
-        : options.store.listDocuments()
+      navigationDocumentsPromise
+        ? navigationDocumentsPromise.then((result) => {
+            if (!result.ok) throw result.error;
+            return result.value.map((document) => ({
+              id: document.id,
+              sourceType: document.sourceType,
+              metadata: document.metadata ?? {},
+            }));
+          })
+        : options.store.listSearchDocuments
+          ? options.store.listSearchDocuments()
+          : options.store.listDocuments()
     ).catch((error: unknown) => {
       searchDocumentsPromise = undefined;
       throw error;
@@ -875,6 +889,24 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       return result;
     },
 
+    async listNavigationDocuments() {
+      navigationDocumentsPromise ??= (async () => {
+        try {
+          const ready = await ensureInitialized();
+          if (!ready.ok) return err(ready.error);
+          const documents = await (options.store.listNavigationDocuments
+            ? options.store.listNavigationDocuments()
+            : options.store.listDocuments());
+          return ok(documents.map(toDocumentSummary));
+        } catch (error) {
+          return err(asLocalMedError(error));
+        }
+      })();
+      const result = await navigationDocumentsPromise;
+      if (!result.ok) navigationDocumentsPromise = undefined;
+      return result;
+    },
+
     async listSearchDocuments() {
       try {
         const ready = await ensureInitialized();
@@ -917,11 +949,14 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       try {
         const aliasesResult = await getAliases();
         if (!aliasesResult.ok) return err(aliasesResult.error);
-        const plan = analyzeClinicalQuery(
-          parsed.data.query,
-          aliasesResult.value,
-          parsed.data.includeSuggestions,
-        );
+        const plan =
+          parsed.data.analysisMode === 'lookup'
+            ? buildLookupQueryPlan(parsed.data.query, aliasesResult.value)
+            : analyzeClinicalQuery(
+                parsed.data.query,
+                aliasesResult.value,
+                parsed.data.includeSuggestions,
+              );
         if (plan.branches.length === 0) {
           return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
         }
@@ -1170,6 +1205,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       initialized = false;
       aliasesPromise = undefined;
       documentSummariesPromise = undefined;
+      navigationDocumentsPromise = undefined;
       searchDocumentsPromise = undefined;
     },
   };

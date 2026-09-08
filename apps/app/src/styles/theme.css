@@ -1,3 +1,18 @@
+@font-face {
+  font-family: "MiniMed Code";
+  src: url("/fonts/CascadiaCode-Regular.woff2") format("woff2");
+  font-display: swap;
+  font-feature-settings: "zero" 1;
+}
+
+@font-face {
+  font-family: "MiniMed Digits";
+  src: url("/fonts/CascadiaCode-Regular.woff2") format("woff2");
+  font-display: swap;
+  font-feature-settings: "zero" 1;
+  unicode-range: U+0030-0039;
+}
+
 :root {
   color-scheme: light;
   font-family: Arial, Helvetica, sans-serif;
@@ -56,7 +71,7 @@
   --shadow-paper: 0 1px 0 rgb(255 255 255 / 75%) inset, 0 1.375rem 2.875rem rgb(34 31 25 / 20%);
   --shadow-folder: 0 1.625rem 4.0625rem rgb(36 32 24 / 24%);
   --font-serif: Georgia, "Times New Roman", Times, serif;
-  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --font-mono: "MiniMed Digits", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   --theme-space-1: 0.25rem;
   --theme-space-2: 0.5rem;
   --theme-space-3: 0.75rem;
@@ -96,4 +111,10 @@
   --theme-assessment-legend-padding: 0.45rem 0.7rem 0.45rem 0.35rem;
   --page-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.27' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.27'/%3E%3C/svg%3E");
   --masked-grain-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='3' stitchTiles='stitch' result='noise'/%3E%3CfeColorMatrix in='noise' type='luminanceToAlpha' result='alpha'/%3E%3CfeFlood flood-color='white' result='light'/%3E%3CfeComposite in='light' in2='alpha' operator='in'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+}
+
+.icd-code {
+  font-family: "MiniMed Code", var(--font-mono);
+  font-feature-settings: "zero" 1;
+  font-variant-numeric: tabular-nums;
 }

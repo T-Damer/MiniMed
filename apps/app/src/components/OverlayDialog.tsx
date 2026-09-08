@@ -11,6 +11,7 @@ interface OverlayDialogProps {
   readonly labelledBy?: string;
   readonly class?: string;
   readonly bodyClass?: string;
+  readonly headerClass?: string;
   /** When false, the dialog does not push a browser history entry (document overlays manage URL elsewhere). */
   readonly tracksHistory?: boolean;
   readonly headerStart?: JSX.Element;
@@ -148,7 +149,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
             aria-labelledby={titleId}
             tabindex={-1}
           >
-            <header class="overlay-dialog-header">
+            <header class={`overlay-dialog-header ${props.headerClass ?? ''}`}>
               {props.headerStart}
               <div class="overlay-dialog-title">
                 <h2 class="overlay-dialog__heading" id={titleId}>

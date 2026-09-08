@@ -47,6 +47,12 @@ const BUILT_IN_MKB_MODULE_ID = 'minimed.mkb.ru';
 const CONTENT_FETCH_TIMEOUT_MS = 15_000;
 const CONTENT_OPEN_TIMEOUT_MS = 15_000;
 const OPFS_PACK_FETCH_TIMEOUT_MS = 180_000;
+// Android downloads a separately published encoding of the same corpus. Its checksum belongs
+// to this immutable URL, not to the browser bundle's SQLite page layout.
+export const ANDROID_CORE_DOWNLOAD = {
+  url: 'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db',
+  checksum: 'sha256:0b2d0705af4108b4c6d84f2ce5ee627b9e5978858dc03ddc2d0f16d677571e25',
+} as const;
 const SQLITE_HEADER = new TextEncoder().encode('SQLite format 3\u0000');
 // sqlite-wasm deserializes the whole file into the WASM heap. Local-dev companions such as
 // mkb.db (~1.4 GB) and medications.db (~420 MB) cannot fit; opening them yields SQLITE_NOMEM.
@@ -137,17 +143,20 @@ export interface CoreDownloadUi {
 export async function createNativeStore(
   downloadUi?: CoreDownloadUi,
 ): Promise<CapacitorMedicalStore> {
-  const report = await readPackReport();
+  const checksum =
+    Capacitor.getPlatform() === 'android'
+      ? ANDROID_CORE_DOWNLOAD.checksum
+      : (await readPackReport()).outputChecksum;
   if (Capacitor.getPlatform() === 'android' && downloadUi) {
-    const options = { expectedSha256: report.outputChecksum };
+    const options = { expectedSha256: checksum };
     if (!(await LocalMedDatabase.hasCorePack(options)).installed) {
       const transfer = {
-        url: 'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db',
-        cacheKey: report.outputChecksum,
+        url: ANDROID_CORE_DOWNLOAD.url,
+        cacheKey: checksum,
       };
       await downloadUi.requestDownload(await hasRetainedFileDownload(transfer));
       return getDownloadQueue().run(
-        { id: `core:${report.outputChecksum}`, kind: 'core', title: 'Ядро знаний MiniMed' },
+        { id: `core:${checksum}`, kind: 'core', title: 'Ядро знаний MiniMed' },
         async (context) => {
           const listener = await LocalMedDatabase.addListener('coreDownloadProgress', (event) => {
             context.progress(event.loaded, event.total > 0 ? event.total : null);
@@ -178,7 +187,7 @@ export async function createNativeStore(
               },
             );
             context.phase('verifying', false);
-            return await openNativeStore(report.outputChecksum);
+            return await openNativeStore(checksum);
           } finally {
             await listener.remove();
           }
@@ -187,7 +196,7 @@ export async function createNativeStore(
       );
     }
   }
-  return openNativeStore(report.outputChecksum);
+  return openNativeStore(checksum);
 }
 
 async function openNativeStore(checksum: string): Promise<CapacitorMedicalStore> {
@@ -517,7 +526,8 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
         store,
         platform,
         embedder: QUERY_EMBEDDER,
-        searchExecution: companions.medicationsStore ? 'direct-only' : undefined,
+        // Search must reuse the native bridge and its installed packs, not open a second WASM core.
+        searchExecution: 'direct-only',
       });
     } catch (error) {
       await nativeStore?.close();
@@ -531,8 +541,9 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
       )
         throw error;
       if (platform === 'android') {
-        const report = await readPackReport();
-        const local = await LocalMedDatabase.hasCorePack({ expectedSha256: report.outputChecksum });
+        const local = await LocalMedDatabase.hasCorePack({
+          expectedSha256: ANDROID_CORE_DOWNLOAD.checksum,
+        });
         if (!local.installed || !local.databasePath) throw error;
         // Keep the existing WASM fallback on Android builds whose system SQLite lacks FTS5.
         // Serve the verified app-private file locally, without another network download.
@@ -548,7 +559,7 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
     const coreStore = await createRequiredWebCoreStore(
       contentBaseUrl,
       fallbackCoreUrl,
-      `core.${report.outputChecksum.slice(7)}.db`,
+      `core.${(fallbackCoreUrl ? ANDROID_CORE_DOWNLOAD.checksum : report.outputChecksum).slice(7)}.db`,
     );
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
       includeMedications: platform !== 'android' && !isFloatingWindowRuntime(),

@@ -1,10 +1,36 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
+import { APP_PREFERENCES_KEY } from '@/state/app-preferences';
 
 describe('resolveContentModuleArtifactUrl', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+  it('switches DEV downloads between local files and GitHub, ignoring the preference in production', () => {
+    let local = true;
+    vi.stubGlobal('window', {
+      location: { href: 'http://127.0.0.1:5173/' },
+      localStorage: {
+        getItem: (key: string) =>
+          key === APP_PREFERENCES_KEY
+            ? JSON.stringify({ devLocalModuleArtifacts: local, moduleAutoUpdatesEnabled: true })
+            : null,
+      },
+    });
+    vi.stubEnv('DEV', true);
+    vi.stubEnv('VITE_USE_LOCAL_MODULE_ARTIFACTS', 'false');
+    const remote =
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/tools.db';
+    expect(resolveContentModuleArtifactUrl(remote)).toBe(
+      'http://127.0.0.1:5173/content/modules/tools.db',
+    );
+    local = false;
+    expect(resolveContentModuleArtifactUrl(remote)).toBe(remote);
+    local = true;
+    vi.stubEnv('DEV', false);
+    expect(resolveContentModuleArtifactUrl(remote)).toBe(remote);
   });
   it('uses the remote clinical artifact in a default native WebView build', () => {
     vi.stubGlobal('window', { location: { href: 'https://localhost/' } });

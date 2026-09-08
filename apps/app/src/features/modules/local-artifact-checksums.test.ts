@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, statSync } from 'node:fs';
 
+import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import catalog from '@/features/modules/catalog.preview.json';
@@ -10,6 +11,7 @@ const RAW_MAIN_PREFIX = 'https://raw.githubusercontent.com/T-Damer/MiniMed/main/
 
 describe('local module artifacts', () => {
   it('keeps catalog checksums and sizes aligned with the published files', () => {
+    ContentModuleCatalogSchema.parse(catalog);
     for (const module of catalog.modules) {
       for (const artifact of module.artifacts) {
         const path = artifact.url?.startsWith(LOCAL_RELEASE_PREFIX)
@@ -24,6 +26,18 @@ describe('local module artifacts', () => {
         );
         expect(statSync(path).size, artifact.id).toBe(artifact.sizeBytes);
       }
+    }
+  });
+
+  it('keeps the corrected tool releases aligned with their authoring files', () => {
+    for (const name of ['gastroenterology', 'neonatology', 'core-clinical', 'emergency']) {
+      const bytes = readFileSync(`content/tool-modules/${name}.json`);
+      const source: { id: string; version: string } = JSON.parse(bytes.toString('utf8'));
+      const module = catalog.modules.find((module) => module.id === source.id);
+      expect(module?.version, source.id).toBe(source.version);
+      expect(module?.sourceSetDigest, source.id).toBe(
+        `sha256:${createHash('sha256').update(bytes).digest('hex')}`,
+      );
     }
   });
 });

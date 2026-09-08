@@ -21,6 +21,7 @@ export function collectionLabel(collectionId: string): string {
 export function sourceTypeLibraryLabel(sourceType: string): string {
   const keyBySourceType: Readonly<Record<string, string>> = {
     clinical_recommendation_summary: 'source_clinical_recommendation_summary_library',
+    core_catalog_pointer: 'source_core_catalog_pointer',
     official_registry_summary: 'source_official_registry_summary',
     regulatory_act: 'source_regulatory_act',
   };

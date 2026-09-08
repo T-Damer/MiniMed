@@ -1,6 +1,6 @@
 import { type Accessor, createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 
-import { ROOT_VIEW_ORDER, ROOT_VIEWS, type RootView } from '@/app/root-view';
+import { ROOT_VIEWS, type RootView, type RootViewItem } from '@/app/root-view';
 import { hapticFeedback } from '@/state/haptics';
 import { uiSounds } from '@/state/ui-sounds';
 
@@ -64,9 +64,11 @@ const DEFAULT_BOTTOM_NAV_BUBBLE: BottomNavBubblePosition = {
 
 export function useBottomNav(options: {
   readonly view: Accessor<RootView>;
+  readonly items?: Accessor<readonly RootViewItem[]>;
   readonly navigate: (next: RootView) => void;
   readonly enabled: Accessor<boolean>;
 }) {
+  const items = () => options.items?.() ?? ROOT_VIEWS;
   const [bottomNavBubble, setBottomNavBubble] =
     createSignal<BottomNavBubblePosition>(DEFAULT_BOTTOM_NAV_BUBBLE);
   const [bottomNavBubbleMotion, setBottomNavBubbleMotion] = createSignal<BottomNavBubbleMotion>({
@@ -131,7 +133,10 @@ export function useBottomNav(options: {
     bottomNavBubbleFrame = requestAnimationFrame(() => {
       bottomNavBubbleFrame = requestAnimationFrame(() => {
         bottomNavBubbleFrame = undefined;
-        const activeIndex = ROOT_VIEW_ORDER.get(options.view()) ?? 0;
+        const activeIndex = Math.max(
+          0,
+          items().findIndex((item) => item.id === options.view()),
+        );
         bottomNavGeometry = readBottomNavGeometry();
         const geometry = bottomNavGeometry;
         const button = geometry?.buttons[activeIndex];
@@ -241,7 +246,7 @@ export function useBottomNav(options: {
       pendingBottomNavMove = undefined;
     }
     const targetIndex = bottomNavDragIndex() ?? gesture.startIndex;
-    const target = ROOT_VIEWS[targetIndex];
+    const target = items()[targetIndex];
     if (gesture.moved && commit) {
       suppressNavClickUntil = performance.now() + 350;
       if (target && target.id !== options.view()) {
@@ -335,6 +340,7 @@ export function useBottomNav(options: {
   createEffect(() => {
     if (!options.enabled() || bottomNavDragIndex() !== undefined) return;
     options.view();
+    items();
     scheduleBottomNavBubble();
   });
 

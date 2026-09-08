@@ -473,11 +473,11 @@ html.app-chrome-hidden .document-overlay-paper::before {
 }
 
 html.app-chrome-hidden .document-overlay-section__title--h1 {
-  top: calc(var(--sticky-header-top) - 1px);
+  top: calc(var(--safe-top, 0px) - 1px);
 }
 
 html.app-chrome-hidden .document-overlay-section__title--h2 {
-  top: calc(var(--sticky-header-top) + var(--document-heading-h1-height) - 1px);
+  top: calc(var(--safe-top, 0px) + var(--document-heading-h1-height) - 1px);
 }
 
 .document-overlay-section__title--h3 {
@@ -506,7 +506,7 @@ html.app-chrome-hidden .document-overlay-section__title--h2 {
 
 html.app-chrome-hidden .document-overlay-section__title--h3 {
   top: calc(
-    var(--sticky-header-top) +
+    var(--safe-top, 0px) +
     var(--document-heading-h1-height) +
     var(--document-heading-h2-height) -
     1px
@@ -515,7 +515,7 @@ html.app-chrome-hidden .document-overlay-section__title--h3 {
 
 html.app-chrome-hidden .document-overlay-section__title--h4 {
   top: calc(
-    var(--sticky-header-top) +
+    var(--safe-top, 0px) +
     var(--document-heading-h1-height) +
     var(--document-heading-h2-height) +
     var(--document-heading-h3-height) -
@@ -525,7 +525,7 @@ html.app-chrome-hidden .document-overlay-section__title--h4 {
 
 html.app-chrome-hidden .document-overlay-section__title--h5 {
   top: calc(
-    var(--sticky-header-top) +
+    var(--safe-top, 0px) +
     var(--document-heading-h1-height) +
     var(--document-heading-h2-height) +
     var(--document-heading-h3-height) +
@@ -536,7 +536,7 @@ html.app-chrome-hidden .document-overlay-section__title--h5 {
 
 html.app-chrome-hidden .document-overlay-section__title--h6 {
   top: calc(
-    var(--sticky-header-top) +
+    var(--safe-top, 0px) +
     var(--document-heading-h1-height) +
     var(--document-heading-h2-height) +
     var(--document-heading-h3-height) +
@@ -702,6 +702,18 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   border-collapse: collapse;
   font-size: 0.8125rem;
   line-height: 1.35;
+}
+
+.document-rich-table__cell.document-rich-table__cell--left {
+  text-align: left;
+}
+
+.document-rich-table__cell.document-rich-table__cell--center {
+  text-align: center;
+}
+
+.document-rich-table__cell.document-rich-table__cell--right {
+  text-align: right;
 }
 
 .document-rich-table__table caption {
@@ -1231,7 +1243,7 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
 .document-library-card {
   display: grid;
   min-width: 0;
-  grid-template-columns: 2.375rem minmax(0, 1fr) auto;
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: 0.75rem;
   align-items: start;
   padding: 1rem;
@@ -1260,8 +1272,8 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   gap: 0.3125rem;
 }
 
-.document-library-copy small,
-.document-library-copy em {
+.document-library-copy__source,
+.document-library-copy__version {
   color: var(--ink-faint);
   font-family: var(--font-mono);
   font-size: 0.5rem;
@@ -1269,13 +1281,13 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   text-transform: uppercase;
 }
 
-.document-library-copy strong {
+.document-library-copy__title {
   font-family: var(--font-serif);
   font-size: 1.125rem;
   line-height: 1.2;
 }
 
-.document-library-copy > span {
+.document-library-copy__specialties {
   color: var(--ink-soft);
   font-size: 0.625rem;
 }

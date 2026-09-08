@@ -240,7 +240,7 @@
   .search-scope-unavailable p,
   .module-card__description,
   .recommendation-intro,
-  .document-library-copy > span {
+  .document-library-copy__specialties {
     color: var(--ink-soft);
   }
 

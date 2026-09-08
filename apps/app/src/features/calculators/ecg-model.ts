@@ -380,6 +380,7 @@ function workerInstance(): Worker {
 export async function digitizeEcgPhoto(
   file: File,
   corners?: EcgPhotoCorners,
+  includeReviewMaps = false,
 ): Promise<EcgDigitizationResult> {
   const descriptor = readEcgModelDescriptor();
   if (!descriptor) throw new Error('Сначала установите оцифровщик ЭКГ в настройках.');
@@ -414,6 +415,7 @@ export async function digitizeEcgPhoto(
       image,
       mimeType: file.type,
       corners,
+      includeReviewMaps,
     },
     [image],
   );

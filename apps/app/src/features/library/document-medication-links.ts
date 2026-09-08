@@ -1,5 +1,10 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { isSameDocumentFamily } from '@localmed/core';
+import { documentMarkdownTables } from '@/features/library/document-markdown-tables';
+import {
+  type DocumentTableBlock,
+  documentRenderBlockSearchText,
+} from '@/features/library/document-rich-block-data';
 
 export type DocumentInlineLinkKind = 'document' | 'medication' | 'recommendation';
 
@@ -30,6 +35,7 @@ export interface DocumentLinkAlternative {
 export type MedicationLinkPhrase = DocumentLinkPhrase;
 
 export type DocumentTextBlock =
+  | { readonly kind: 'table'; readonly text: string; readonly table: DocumentTableBlock }
   | { readonly kind: 'paragraph'; readonly text: string }
   | { readonly kind: 'bullet'; readonly text: string }
   | { readonly kind: 'ordered'; readonly text: string; readonly ordinal: number }
@@ -100,6 +106,28 @@ export function parseDocumentText(
   sourceSpans?: unknown,
 ): readonly DocumentTextBlock[] {
   const blocks: DocumentTextBlock[] = [];
+  const tables = documentMarkdownTables(value);
+  if (tables.length > 0) {
+    let cursor = 0;
+    const prose = (start: number, end: number): readonly DocumentTextBlock[] =>
+      parseDocumentText(
+        value.slice(start, end),
+        Array.isArray(sourceSpans)
+          ? sourceSpans.slice(value.slice(0, start).split(/\r?\n(?:\s*\r?\n)+/u).length - 1)
+          : sourceSpans,
+      );
+    for (const item of tables) {
+      blocks.push(...prose(cursor, item.start));
+      blocks.push({
+        kind: 'table',
+        text: documentRenderBlockSearchText(item.table),
+        table: item.table,
+      });
+      cursor = item.end;
+    }
+    blocks.push(...prose(cursor, value.length));
+    return blocks;
+  }
   const lines = value.split(/\r?\n(?:\s*\r?\n)+/u).flatMap((line, sourceIndex) =>
     line
       .trim()
@@ -214,6 +242,7 @@ interface IndexedDocumentLink {
   readonly folded: string;
   readonly preview?: DocumentLinkPreview;
   readonly title: string;
+  readonly exactCase?: string;
 }
 
 function matchFoldedPhraseAt(text: string, start: number, folded: string): number {
@@ -253,6 +282,7 @@ export function createDocumentLinkMatcher(
       linkKind: link.kind,
       folded,
       title: link.title ?? link.preview?.title ?? link.phrase,
+      ...(/^[\p{Lu}]{3}$/u.test(link.phrase) ? { exactCase: link.phrase } : {}),
       ...(link.preview ? { preview: link.preview } : {}),
     });
     buckets.set(prefix, bucket);
@@ -279,6 +309,7 @@ export function createDocumentLinkMatcher(
           for (const link of candidates) {
             const end = matchFoldedPhraseAt(text, index, link.folded);
             if (end < 0) continue;
+            if (link.exactCase && text.slice(index, end) !== link.exactCase) continue;
             best = { end, link };
             break;
           }
@@ -288,7 +319,11 @@ export function createDocumentLinkMatcher(
           const alternatives = [
             ...new Map(
               candidates
-                ?.filter((link) => link.folded === folded)
+                ?.filter(
+                  (link) =>
+                    link.folded === folded &&
+                    (!link.exactCase || text.slice(index, best.end) === link.exactCase),
+                )
                 .map((link): [string, DocumentLinkAlternative] => [
                   link.documentId,
                   {
@@ -374,12 +409,12 @@ function documentPhraseCandidates(document: MedicalDocumentSummary): readonly st
     .replace(/^клинические рекомендации\s*[—:.-]\s*/iu, '')
     .replace(/\s*\([^)]*\)\s*$/u, '')
     .trim();
-  const metadataPhrases = ['declaredAliases', 'navigationAliases'].flatMap((key) => {
-    const value = document.metadata?.[key];
-    return Array.isArray(value)
-      ? value.filter((item): item is string => typeof item === 'string')
-      : [];
-  });
+  // Search expansions can name a symptom or a broader condition, not the target itself.
+  // Only editorial navigation aliases are evidence for an inline document link.
+  const value = document.metadata?.['navigationAliases'];
+  const metadataPhrases = Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
   return [document.shortTitle?.trim() ?? '', title.split('—')[0]?.trim() ?? '', ...metadataPhrases]
     .map((value) => value.trim())
     .filter((value) => value.length >= PREFIX_LENGTH);

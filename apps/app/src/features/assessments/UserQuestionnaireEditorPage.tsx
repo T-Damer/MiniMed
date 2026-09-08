@@ -1,5 +1,4 @@
 import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
-
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -190,8 +189,8 @@ export function UserQuestionnaireEditorPage(props: {
             type="button"
             variant="icon"
             class="user-questionnaire-editor__back"
-            aria-label="К моим опросникам"
-            title="К моим опросникам"
+            aria-label="Назад"
+            title="Назад"
             onClick={props.onBack}
             icon={<AppGlyph name="arrow-left" class="user-questionnaire-editor__button-icon" />}
           />

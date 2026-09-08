@@ -1,6 +1,8 @@
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 
 export interface AppPreferences {
+  readonly devLocalModuleArtifacts?: boolean;
+  readonly splitNavigation: boolean;
   readonly vibrationEnabled: boolean;
   readonly rememberSearchMode: boolean;
   readonly soundVolume: number;
@@ -15,6 +17,7 @@ export const SEARCH_SCOPE_KEY = 'minimed.search-scope.v1';
 export const APP_PREFERENCES_EVENT = 'minimed:app-preferences';
 
 const DEFAULT_PREFERENCES: AppPreferences = {
+  splitNavigation: false,
   vibrationEnabled: true,
   rememberSearchMode: false,
   soundVolume: 0.2,
@@ -31,6 +34,9 @@ const VALID_SCOPES = new Set<SearchScope>([
   'legal',
   'all',
   'personal',
+  'conditions',
+  'calculators',
+  'assessments',
 ]);
 
 function clampVolume(value: number): number {
@@ -41,6 +47,8 @@ function clampVolume(value: number): number {
 function normalizePreferences(value: unknown): AppPreferences {
   if (!value || typeof value !== 'object') return DEFAULT_PREFERENCES;
   const candidate = value as {
+    readonly devLocalModuleArtifacts?: unknown;
+    readonly splitNavigation?: unknown;
     readonly vibrationEnabled?: unknown;
     readonly rememberSearchMode?: unknown;
     readonly soundVolume?: unknown;
@@ -50,6 +58,13 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly moduleAutoUpdatesEnabled?: unknown;
   };
   return {
+    ...(typeof candidate.devLocalModuleArtifacts === 'boolean'
+      ? { devLocalModuleArtifacts: candidate.devLocalModuleArtifacts }
+      : {}),
+    splitNavigation:
+      typeof candidate.splitNavigation === 'boolean'
+        ? candidate.splitNavigation
+        : DEFAULT_PREFERENCES.splitNavigation,
     moduleAutoUpdatesEnabled:
       typeof candidate.moduleAutoUpdatesEnabled === 'boolean'
         ? candidate.moduleAutoUpdatesEnabled
@@ -205,4 +220,12 @@ export function saveSearchScope(scope: SearchScope): void {
 
 export function clearSearchScope(): void {
   window.localStorage.removeItem(SEARCH_SCOPE_KEY);
+}
+
+export function getSplitNavigation(): boolean {
+  return loadAppPreferences().splitNavigation;
+}
+
+export function setSplitNavigation(enabled: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), splitNavigation: enabled });
 }

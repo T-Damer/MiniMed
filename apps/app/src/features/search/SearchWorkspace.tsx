@@ -5,6 +5,7 @@ import type {
   MedicalDocumentSummary,
   QueryAnalysis,
   QueryFact,
+  SearchFilters,
   SearchResponse,
   SearchResult,
   SearchResultCategory,
@@ -17,19 +18,20 @@ import {
   For,
   type JSX,
   lazy,
+  on,
   onCleanup,
   onMount,
   Show,
   Suspense,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
+import { ClinicalTags } from '@/components/ClinicalTags';
 import { DocumentText } from '@/components/DocumentText';
 import { HighlightedText } from '@/components/HighlightedText';
-import { HorizontalScroller } from '@/components/HorizontalScroller';
+import { IcdText } from '@/components/IcdText';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { saveCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
@@ -64,8 +66,9 @@ import {
   parseCalculatorToolMention,
   replaceCalculatorToolTrigger,
 } from '@/features/search/calculator-tool-mention';
-import type { SearchResultDocumentKind, SearchScope } from '@/features/search/ScopedMedicalCore';
+import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
+import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import {
@@ -79,6 +82,14 @@ interface SearchWorkspaceProps {
   readonly scope: SearchScope;
   readonly searchAllowed?: boolean;
   readonly modePicker?: JSX.Element;
+  readonly searchActions?: JSX.Element;
+  readonly catalog?: JSX.Element;
+  readonly catalogOnly?: boolean;
+  readonly specialty?: string | undefined;
+  readonly catalogResultCount?: number;
+  readonly showExamples?: boolean;
+  readonly filters?: SearchFilters;
+  readonly onQueryChange?: (query: string) => void;
   readonly placeholder?: string;
   readonly examples?: readonly string[];
   readonly onAnalysis?: (analysis: QueryAnalysis) => void;
@@ -92,6 +103,9 @@ const SearchInlineCalculatorWorkspace = lazy(async () => {
 });
 
 const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
+  conditions: ['J18', 'Головная боль', 'Отёк'],
+  calculators: [],
+  assessments: [],
   diagnosis: [
     'Ребёнок часто дышит и температурит второй день',
     'Боль справа внизу живота, тошнота и рвота',
@@ -202,20 +216,6 @@ const INTENT_LABELS: Readonly<Record<NonNullable<QueryAnalysis['intent']>['prima
   unknown: 'Свободный медицинский запрос',
 };
 
-const RESULT_KIND_VISUALS: Readonly<
-  Record<
-    SearchResultDocumentKind,
-    { readonly icon: Parameters<typeof AppGlyph>[0]['name']; readonly label: string }
-  >
-> = {
-  medication: { icon: 'prescription', label: 'Препарат' },
-  'clinical-recommendation': { icon: 'book-open', label: 'Клиническая рекомендация' },
-  legal: { icon: 'scales', label: 'Нормативный акт' },
-  calculator: { icon: 'calculator', label: 'Калькулятор' },
-  assessment: { icon: 'list-checks', label: 'Опросник' },
-  reference: { icon: 'notes', label: 'Норма / справочник' },
-};
-
 function resizeTextarea(element: HTMLTextAreaElement): void {
   const maxHeight = 260;
   element.style.height = 'auto';
@@ -269,8 +269,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const [contextDocuments, setContextDocuments] = createSignal<readonly MedicalDocumentSummary[]>(
     [],
   );
+  const contextDocumentsById = createMemo(
+    () => new Map(contextDocuments().map((document) => [document.id, document])),
+  );
   const contextLinkMatcher = createMemo(() =>
-    createDocumentLinkMatcher(buildDocumentLinkPhrases(contextDocuments(), context()?.document.id)),
+    createDocumentLinkMatcher(
+      buildDocumentLinkPhrases(context() ? contextDocuments() : [], context()?.document.id),
+    ),
   );
   const queryLinkMatcher = createMemo(() =>
     createDocumentLinkMatcher(buildDocumentLinkPhrases(contextDocuments())),
@@ -307,6 +312,27 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   let lastAnalyzedQuery = '';
   let searchWasAllowed = props.searchAllowed !== false;
   let activeScope = props.scope;
+  const sectionState = new Map<
+    SearchScope,
+    {
+      query: string;
+      response: SearchResponse | undefined;
+      scrollTop: number;
+    }
+  >();
+
+  createEffect(() => props.onQueryChange?.(query()));
+
+  createEffect(
+    on(
+      () => [props.filters, props.catalogOnly] as const,
+      () => {
+        lastSearchedQuery = '';
+        if (query().trim()) scheduleSearch(query());
+      },
+      { defer: true },
+    ),
+  );
 
   const installedCalculatorDefinitions = createMemo(() => {
     calculatorPacksRevision();
@@ -398,21 +424,43 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   createEffect(() => {
     const allowed = props.searchAllowed !== false;
     const scopeChanged = activeScope !== props.scope;
+    if (scopeChanged) {
+      const previousScope = activeScope;
+      sectionState.set(previousScope, {
+        query: query(),
+        response: response(),
+        scrollTop: window.scrollY,
+      });
+      const saved = sectionState.get(props.scope);
+      const clinicalToggle =
+        (previousScope === 'all' && props.scope === 'diagnosis') ||
+        (previousScope === 'diagnosis' && props.scope === 'all');
+      activeScope = props.scope;
+      searchGeneration += 1;
+      if (searchTimer) clearTimeout(searchTimer);
+      if (analysisTimer) clearTimeout(analysisTimer);
+      setQuery(saved?.query ?? (clinicalToggle ? query() : ''));
+      setResponse(saved?.response);
+      setDraftAnalysis(saved?.response?.analysis);
+      setContext(undefined);
+      setLoading(false);
+      setError(undefined);
+      lastAnalyzedQuery = '';
+      scheduleAnalysis(query());
+      requestAnimationFrame(() =>
+        window.scrollTo({ top: saved?.scrollTop ?? 0, behavior: 'instant' }),
+      );
+    }
     activeScope = props.scope;
     const trimmed = searchableQuery(query());
     if (allowed && trimmed.length >= 2) {
       const cached = response();
-      const hasMatchingCache = Boolean(
-        cached &&
-          cached.analysis.originalQuery === trimmed &&
-          cached.groups.length > 0 &&
-          !scopeChanged,
-      );
+      const hasMatchingCache = Boolean(cached && cached.analysis.originalQuery === trimmed);
       if (hasMatchingCache) {
         lastSearchedQuery = trimmed;
       } else if (scopeChanged || !searchWasAllowed) {
         lastSearchedQuery = '';
-        void runSearch(query(), false);
+        scheduleSearch(query());
       }
     }
     searchWasAllowed = allowed;
@@ -506,11 +554,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setAnalysisLoading(false);
       return;
     }
-    // The "Разбор запроса" panel (facts, suggestions, intent) is a clinical-case-parsing feature.
-    // A drug-name lookup in the medications scope has no use for it, and running the clinical NLP
-    // pipeline here duplicates the analysis search() already does internally — pure wasted latency
-    // between the doctor typing and the medication results appearing.
-    if (props.scope === 'medications') {
+    // Clinical parsing is opt-in; ordinary source lookup never schedules the analyzer.
+    if (props.scope !== 'diagnosis') {
       lastAnalyzedQuery = '';
       setDraftAnalysis(undefined);
       setAnalysisLoading(false);
@@ -562,6 +607,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   async function runSearch(nextQuery = query(), recordHistory = true): Promise<void> {
     const rawQuery = nextQuery.trim();
     const trimmed = searchableQuery(nextQuery);
+    if (props.catalogOnly) {
+      if (recordHistory && rawQuery)
+        appendSearchHistory(rawQuery, props.scope, props.catalogResultCount ?? 0, props.specialty);
+      setResponse(undefined);
+      setLoading(false);
+      return;
+    }
     if (!trimmed) {
       setResponse(undefined);
       setDraftAnalysis(undefined);
@@ -583,10 +635,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
     const result = await props.core.search({
       query: trimmed,
-      mode: 'auto',
-      filters: {},
+      mode: props.scope === 'diagnosis' ? 'auto' : 'lexical',
+      analysisMode: props.scope === 'diagnosis' ? 'clinical' : 'lookup',
+      filters: props.filters ?? {},
       limit: 20,
-      includeSuggestions: true,
+      includeSuggestions: props.scope === 'diagnosis',
     });
 
     if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
@@ -599,10 +652,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     lastSearchedQuery = trimmed;
     setResponse(result.value);
     setDraftAnalysis(result.value.analysis);
-    if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value);
-    // Inline links enhance the rendered results; the full catalog must not delay first search.
+    if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value, props.specialty);
+    // Link labels use the compact projection; extraction metadata stays in the database.
     if (contextDocuments().length === 0) {
-      const available = await props.core.listDocuments();
+      const available = await (props.core.listNavigationDocuments?.() ??
+        props.core.listDocuments());
       if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
       if (available.ok) setContextDocuments(available.value);
       else setError(available.error.message);
@@ -614,13 +668,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setError(undefined);
     const [resolved, available] = await Promise.all([
       props.core.getSearchResultContext(result, 3),
-      props.core.listDocuments(),
+      props.core.listNavigationDocuments?.() ?? props.core.listDocuments(),
     ]);
     setContextDocuments(available.ok ? available.value : []);
     if (!available.ok) setError(available.error.message);
     setContextLoading(false);
     if (!resolved.ok) {
-      const documents = await props.core.listDocuments();
+      const documents = await (props.core.listNavigationDocuments?.() ??
+        props.core.listDocuments());
       const documentId =
         documents.ok && documents.value.length > 0
           ? resolveReadableDocumentId(
@@ -724,25 +779,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     });
   }
 
-  function openToolPicker(): void {
-    if (toolPickerOpen()) {
-      setToolPickerOpen(false);
-      return;
-    }
-    const caret = textarea?.selectionStart ?? query().length;
-    const prefix = caret > 0 && !/\s$/u.test(query().slice(0, caret)) ? ' @' : '@';
-    const value = `${query().slice(0, caret)}${prefix}${query().slice(caret)}`;
-    const nextCaret = caret + prefix.length;
-    updateQuery(value);
-    setToolPickerQuery('');
-    setActiveTool(0);
-    setToolPickerOpen(true);
-    requestAnimationFrame(() => {
-      textarea?.focus();
-      textarea?.setSelectionRange(nextCaret, nextCaret);
-    });
-  }
-
   function selectCalculatorTool(slug: string): void {
     const caret = textarea?.selectionStart ?? query().length;
     const next = replaceCalculatorToolTrigger(query(), caret, slug);
@@ -779,18 +815,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             void runSearch(query(), true);
           }}
         >
-          <Show when={expanded()}>
-            <div class="query-actions query-mode-actions">
-              <HorizontalScroller
-                class="query-shortcuts"
-                controls
-                hideScrollbar
-                controlLabel="режимы поиска"
-              >
-                {props.modePicker}
-              </HorizontalScroller>
-            </div>
-          </Show>
           <label class="sr-only" for="clinical-query">
             Поисковый запрос
           </label>
@@ -834,7 +858,11 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   {query().length.toLocaleString('ru-RU')} / 20 000
                 </strong>
               </Show>
-              <div class="query-buttons">
+              <div
+                class="query-buttons"
+                classList={{ 'query-buttons--with-picker': Boolean(props.modePicker) }}
+              >
+                {props.modePicker}
                 <Popover
                   open={toolPickerOpen()}
                   onOpenChange={setToolPickerOpen}
@@ -845,21 +873,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   fitViewport
                   overflowPadding={8}
                 >
-                  <Popover.Anchor class="search-tool-picker">
-                    <button
-                      class="search-tool-picker__trigger"
-                      classList={{ 'search-tool-picker__trigger--active': toolPickerOpen() }}
-                      type="button"
-                      aria-label="Выбрать калькулятор"
-                      aria-expanded={toolPickerOpen()}
-                      aria-controls="search-calculator-tools"
-                      title="Вставить калькулятор (@)"
-                      disabled={props.searchAllowed === false}
-                      onClick={openToolPicker}
-                    >
-                      <AppGlyph class="search-tool-picker__trigger-icon" name="at" />
-                    </button>
-                  </Popover.Anchor>
+                  <Popover.Anchor class="search-tool-picker" />
                   <Popover.Portal>
                     <Popover.Content
                       class="search-tool-picker__menu"
@@ -912,6 +926,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     <span>Очистить</span>
                   </button>
                 </Show>
+                {props.searchActions}
                 <div
                   class="search-submit-reveal"
                   classList={{ visible: props.searchAllowed !== false }}
@@ -958,7 +973,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </aside>
         </Show>
 
-        <Show when={activeAnalysis()}>
+        <Show when={props.scope === 'diagnosis' && activeAnalysis()}>
           {(analysis) => (
             <section class="query-index query-index--content-sized" aria-label="Разбор запроса">
               <Show when={analysis().suggestions.length > 0}>
@@ -1115,7 +1130,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           )}
         </Show>
 
-        <Show when={props.searchAllowed !== false && !response() && query().length === 0}>
+        {props.catalog}
+
+        <Show
+          when={
+            (props.showExamples ?? !props.catalog) &&
+            props.searchAllowed !== false &&
+            !response() &&
+            query().length === 0
+          }
+        >
           <SearchExamples
             examples={props.examples ?? EXAMPLES_BY_SCOPE[props.scope]}
             onSelect={(example) => {
@@ -1208,7 +1232,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                               <span class="result-group-header__content-kind">
                                 {contentLabel()}
                               </span>
-                              <strong class="result-group-header__title">{group.title}</strong>
+                              <strong class="result-group-header__title">
+                                <IcdText text={group.title} />
+                              </strong>
+                              <ClinicalTags
+                                title={group.title}
+                                specialties={
+                                  contextDocumentsById().get(group.documentId)?.specialties ?? []
+                                }
+                              />
                               <span class="result-group-header__note result-minimal-note">
                                 {group.results[0]?.sectionPath.join(' / ') ??
                                   'Релевантный источник'}

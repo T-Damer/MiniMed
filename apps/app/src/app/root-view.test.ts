@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { countPublishedCatalogModules, viewFromLocation } from '@/app/root-view';
+import { compactRootView, countPublishedCatalogModules, viewFromLocation } from '@/app/root-view';
 import { clearDocumentTrail } from '@/state/document-trail';
 
 function installSessionStorage(): void {
@@ -38,6 +38,15 @@ describe('viewFromLocation', () => {
     expect(viewFromLocation('#/settings/downloads')).toBe('settings');
     expect(viewFromLocation('#/modules/model')).toBe('settings');
     expect(viewFromLocation('#/unknown')).toBe('search');
+  });
+
+  it('groups reference routes under search and keeps personal files separate', () => {
+    expect(compactRootView('calculators', '#/calculators/units')).toBe('search');
+    expect(compactRootView('modules', '#/modules/documents')).toBe('search');
+    expect(compactRootView('modules', '#/modules/documents/user')).toBe('notes');
+    expect(compactRootView('modules', '#/modules/documents/user/doc-1')).toBe('notes');
+    expect(compactRootView('notes', '#/notes')).toBe('notes');
+    expect(compactRootView('settings', '#/settings/downloads')).toBe('settings');
   });
 
   it('keeps official document reads on search when no trail is stored', () => {

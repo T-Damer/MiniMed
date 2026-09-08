@@ -13,6 +13,7 @@ export interface DocumentTableCell {
   readonly rowSpan: number;
   readonly colSpan: number;
   readonly images: readonly DocumentImageBlock[];
+  readonly align?: 'left' | 'center' | 'right';
 }
 
 export interface DocumentTableRow {

@@ -5,6 +5,7 @@ export interface SearchHistoryEntry {
   readonly id: string;
   readonly query: string;
   readonly scope: SearchScope;
+  readonly specialty?: string;
   readonly createdAt: string;
   readonly resultCount: number;
   readonly modeUsed: SearchResponse['modeUsed'];
@@ -24,9 +25,17 @@ const MAX_HISTORY = 40;
 const responseCache = new Map<string, SearchResponse>();
 
 function isScope(value: unknown): value is SearchScope {
-  return ['diagnosis', 'guidelines', 'medications', 'legal', 'all', 'personal'].includes(
-    String(value),
-  );
+  return [
+    'diagnosis',
+    'guidelines',
+    'medications',
+    'legal',
+    'all',
+    'personal',
+    'conditions',
+    'calculators',
+    'assessments',
+  ].includes(String(value));
 }
 
 function isHistoryEntry(value: unknown): value is SearchHistoryEntry {
@@ -36,6 +45,7 @@ function isHistoryEntry(value: unknown): value is SearchHistoryEntry {
     typeof candidate.id === 'string' &&
     typeof candidate.query === 'string' &&
     isScope(candidate.scope) &&
+    (candidate.specialty === undefined || typeof candidate.specialty === 'string') &&
     typeof candidate.createdAt === 'string' &&
     typeof candidate.resultCount === 'number' &&
     (candidate.modeUsed === 'lexical' ||
@@ -109,7 +119,8 @@ export function loadSearchHistory(): readonly SearchHistoryEntry[] {
 export function appendSearchHistory(
   query: string,
   scope: SearchScope,
-  response: SearchResponse,
+  response: SearchResponse | number,
+  specialty?: string,
 ): readonly SearchHistoryEntry[] {
   const trimmed = query.trim();
   const current = loadSearchHistory();
@@ -117,18 +128,22 @@ export function appendSearchHistory(
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     query: trimmed,
     scope,
+    ...(specialty ? { specialty } : {}),
     createdAt: new Date().toISOString(),
-    resultCount: response.groups.length,
-    modeUsed: response.modeUsed,
+    resultCount: typeof response === 'number' ? response : response.groups.length,
+    modeUsed: typeof response === 'number' ? 'lexical' : response.modeUsed,
   };
   const next = [
     nextEntry,
-    ...current.filter((entry) => entry.query !== trimmed || entry.scope !== scope),
+    ...current.filter(
+      (entry) => entry.query !== trimmed || entry.scope !== scope || entry.specialty !== specialty,
+    ),
   ].slice(0, MAX_HISTORY);
   for (const entry of current) {
-    if (entry.query === trimmed && entry.scope === scope) responseCache.delete(entry.id);
+    if (entry.query === trimmed && entry.scope === scope && entry.specialty === specialty)
+      responseCache.delete(entry.id);
   }
-  responseCache.set(nextEntry.id, response);
+  if (typeof response !== 'number') responseCache.set(nextEntry.id, response);
   const retainedIds = new Set(next.map((entry) => entry.id));
   for (const id of responseCache.keys()) {
     if (!retainedIds.has(id)) responseCache.delete(id);

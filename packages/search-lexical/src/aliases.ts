@@ -24,11 +24,16 @@ const MIN_FUZZY_FINAL_ALIAS_TOKEN_LENGTH = 10;
 
 export function findNormalizedPhraseIndex(text: string, phrase: string): number {
   if (!phrase) return -1;
-  const escapedPhrase = phrase.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
-  const match = new RegExp(`(?:^|[^0-9a-zа-я])(${escapedPhrase})(?![0-9a-zа-я])`, 'u').exec(text);
-  const matchedPhrase = match?.[1];
-  if (!match || !matchedPhrase) return -1;
-  return match.index + match[0].length - matchedPhrase.length;
+  let index = text.indexOf(phrase);
+  while (index >= 0) {
+    if (
+      !/[0-9a-zа-я]/u.test(text[index - 1] ?? '') &&
+      !/[0-9a-zа-я]/u.test(text[index + phrase.length] ?? '')
+    )
+      return index;
+    index = text.indexOf(phrase, index + 1);
+  }
+  return -1;
 }
 
 /**

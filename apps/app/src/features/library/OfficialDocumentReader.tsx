@@ -229,7 +229,7 @@ function ReferencePointerImage(props: { readonly documentId: string }): JSX.Elem
                 target="_blank"
                 rel="noreferrer"
               >
-                Открыть источник
+                Открыть
               </a>
             </figcaption>
           </Show>
@@ -714,7 +714,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
         </Show>
       }
       showLayout={Boolean(props.document) && !props.openError}
-      outlineEnabled={orderedSections().length > 1}
+      outlineEnabled={!props.document || orderedSections().length > 1}
       loadingBody={
         <Show when={!props.document && !props.openError}>
           <div

@@ -39,7 +39,7 @@ export function AppUpdateChecker(props: {
     >
       <header class="settings-section__heading">
         <div class="settings-section__heading-main">
-          <AppGlyph name="refresh" class="settings-section__icon" />
+          <AppGlyph name="refresh-fill" class="settings-section__icon" />
           <div class="settings-section__heading-copy">
             <h2 id="settings-update-heading" class="settings-section__title">
               Обновление приложения

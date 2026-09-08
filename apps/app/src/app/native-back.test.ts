@@ -61,6 +61,31 @@ describe('nativeBackAction', () => {
     );
   });
 
+  it('returns compact tool pages to search but keeps result-to-questionnaire navigation', () => {
+    expect(
+      nativeBackAction(
+        'assessments/psychology/braverman-behavioral-profile',
+        'assessments',
+        false,
+        false,
+      ),
+    ).toEqual({ type: 'search' });
+    expect(nativeBackAction('assessments/mine/new', 'assessments', false, false)).toEqual({
+      type: 'search',
+    });
+    expect(
+      nativeBackAction('calculators/body-surface-area-mosteller', 'calculators', false, false),
+    ).toEqual({ type: 'search' });
+    expect(
+      nativeBackAction(
+        'assessments/psychology/braverman-behavioral-profile/results/record',
+        'assessments',
+        false,
+        false,
+      ),
+    ).toEqual({ type: 'parent', hash: '#/assessments/psychology/braverman-behavioral-profile' });
+  });
+
   it('returns through nested routes before minimizing the search root', () => {
     expect(nativeBackAction('notes/card/records/note', 'notes', true)).toEqual({ type: 'history' });
     expect(nativeBackAction('notes', 'notes', false)).toEqual({ type: 'search' });

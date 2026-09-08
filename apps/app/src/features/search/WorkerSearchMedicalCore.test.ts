@@ -53,7 +53,7 @@ describe('WorkerSearchMedicalCore', () => {
     expect(analyzeQuery).toHaveBeenCalledOnce();
   });
 
-  it('keeps direct-only search on the connected backend and releases the unused worker', async () => {
+  it('keeps direct-only search on the connected backend without constructing a worker', async () => {
     const postMessage = vi.fn();
     const terminate = vi.fn();
     vi.stubGlobal(
@@ -88,13 +88,14 @@ describe('WorkerSearchMedicalCore', () => {
     expect(getCapabilities).toHaveBeenCalledOnce();
     expect(search).toHaveBeenCalledOnce();
     expect(postMessage).not.toHaveBeenCalled();
-    expect(terminate).toHaveBeenCalledOnce();
+    expect(Worker).not.toHaveBeenCalled();
+    expect(terminate).not.toHaveBeenCalled();
 
     await core.close();
-    expect(terminate).toHaveBeenCalledOnce();
+    expect(terminate).not.toHaveBeenCalled();
   });
 
-  it('keeps the worker alive when downloaded modules are already installed', async () => {
+  it('does not construct a worker before the first request', async () => {
     const postMessage = vi.fn();
     const terminate = vi.fn();
     vi.stubGlobal(
@@ -116,8 +117,42 @@ describe('WorkerSearchMedicalCore', () => {
     const base = { search, getCapabilities } as unknown as MedicalCore;
     const core = new WorkerSearchMedicalCore(base);
 
+    expect(Worker).not.toHaveBeenCalled();
     expect(terminate).not.toHaveBeenCalled();
 
+    await core.close();
+    expect(terminate).not.toHaveBeenCalled();
+  });
+
+  it('starts one browser worker lazily and delivers its response', async () => {
+    vi.stubGlobal('window', { location: { href: 'https://example.test/' } });
+    const terminate = vi.fn();
+    class FakeWorker {
+      onmessage?: (event: { data: { id: number; result: typeof RESPONSE } }) => void;
+      terminate = terminate;
+      postMessage(message: { id: number }): void {
+        queueMicrotask(() => this.onmessage?.({ data: { id: message.id, result: RESPONSE } }));
+      }
+    }
+    const workerConstructor = vi.fn(function createWorker() {
+      return new FakeWorker();
+    });
+    vi.stubGlobal('Worker', workerConstructor);
+    const getCapabilities = vi.fn(async () => ({ ok: true as const, value: CAPABILITIES }));
+    const analyzeQuery = vi.fn(async () => RESPONSE);
+    const core = new WorkerSearchMedicalCore({
+      getCapabilities,
+      analyzeQuery,
+    } as unknown as MedicalCore);
+    expect(workerConstructor).not.toHaveBeenCalled();
+    const request = { query: 'отит', includeSuggestions: true };
+    expect(await Promise.all([core.analyzeQuery(request), core.analyzeQuery(request)])).toEqual([
+      RESPONSE,
+      RESPONSE,
+    ]);
+    expect(workerConstructor).toHaveBeenCalledOnce();
+    expect(getCapabilities).toHaveBeenCalledOnce();
+    expect(analyzeQuery).not.toHaveBeenCalled();
     await core.close();
     expect(terminate).toHaveBeenCalledOnce();
   });

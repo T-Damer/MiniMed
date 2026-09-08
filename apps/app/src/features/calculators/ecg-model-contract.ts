@@ -72,6 +72,8 @@ export interface EcgDigitizedLead {
 }
 
 export interface EcgDigitizationResult {
+  /** Transient, source-image coordinates for the interactive editor; never persisted. */
+  readonly reviewMaps?: EcgReviewMaps;
   readonly detectedGridCorners?: EcgPhotoCorners;
   readonly durationSeconds: number;
   readonly gridPixelsPerMillimeter: number;
@@ -86,6 +88,13 @@ export interface EcgDigitizationResult {
   readonly rrIntervalsMs: readonly number[];
   readonly rrMs?: number;
   readonly sampleRateHz: 100;
+}
+
+export interface EcgReviewMaps {
+  readonly width: number;
+  readonly height: number;
+  readonly signalProbability: Float32Array;
+  readonly gridProbability: Float32Array;
 }
 
 export function ecgModelStorageUrl(path: string): string {

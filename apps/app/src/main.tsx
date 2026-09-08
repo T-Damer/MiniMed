@@ -20,6 +20,7 @@ import '@/styles/dataset-ux.css';
 import '@/styles/search-doctor-ux.css';
 import '@/styles/compact-release.css';
 import '@/styles/search-scope-radio.css';
+import '@/styles/unified-catalog.css';
 import '@/styles/download-status.css';
 import '@/styles/document-page.css';
 import '@/styles/medications.css';

@@ -33,6 +33,24 @@ export const ROOT_VIEWS: readonly RootViewItem[] = [
 
 export const ROOT_VIEW_ORDER = new Map(ROOT_VIEWS.map((item, index) => [item.id, index]));
 
+export const COMPACT_ROOT_VIEWS: readonly RootViewItem[] = [
+  { id: 'search', label: 'Поиск', icon: 'search' },
+  { id: 'notes', label: 'Мои файлы', icon: 'folder-open' },
+  { id: 'settings', label: 'Настройки', icon: 'system' },
+];
+
+export function compactRootView(view: RootView, hash: string): RootView {
+  if (view === 'settings') return 'settings';
+  if (
+    view === 'notes' ||
+    parseDocumentReadRoute(hash)?.kind === 'user' ||
+    (view === 'modules' && hash.startsWith('#/modules/documents/user'))
+  ) {
+    return 'notes';
+  }
+  return 'search';
+}
+
 export function viewFromLocation(hash = window.location.hash): RootView {
   if (isDocumentReadRoute(hash)) {
     const trail = loadDocumentTrail();

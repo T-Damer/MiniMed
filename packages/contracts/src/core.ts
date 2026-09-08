@@ -60,6 +60,8 @@ export interface MedicalCore {
   initialize(): Promise<Result<CoreStatus, LocalMedError>>;
   getCapabilities(): Promise<Result<CoreCapabilities, LocalMedError>>;
   listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>;
+  /** Catalog labels and link metadata, without extraction/provenance payloads. */
+  listNavigationDocuments?(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>;
   listSearchDocuments?(): Promise<Result<readonly SearchDocumentDescriptor[], LocalMedError>>;
   analyzeQuery(request: AnalyzeQueryRequest): Promise<Result<QueryAnalysis, LocalMedError>>;
   search(request: SearchRequest): Promise<Result<SearchResponse, LocalMedError>>;

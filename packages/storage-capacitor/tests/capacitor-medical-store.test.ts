@@ -170,6 +170,16 @@ describe('CapacitorMedicalStore', () => {
     await store.close();
   });
 
+  it('retains source kind and ICD code for navigation filters', async () => {
+    const plugin = new FakeNativePlugin();
+    const store = createStore(plugin);
+    await store.initialize();
+    await store.listNavigationDocuments();
+    expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.sourceType')");
+    expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.mkbCode')");
+    await store.close();
+  });
+
   it('reads document identities without metadata for composition validation', async () => {
     const plugin = new FakeNativePlugin();
     const query = vi
@@ -279,10 +289,7 @@ describe('CapacitorMedicalStore', () => {
     expect(candidateCall?.sql).toContain('SELECT chunks_fts.chunk_id AS chunk_id');
     expect(candidateCall?.sql).toContain('bm25(chunks_fts');
     expect(candidateCall?.sql).not.toContain('c.original_text');
-    expect(JSON.parse(candidateCall?.argsJson ?? '[]')).toEqual([
-      '"тахипноэ"* OR "лихорадка"*',
-      50,
-    ]);
+    expect(JSON.parse(candidateCall?.argsJson ?? '[]')).toEqual(['"тахипноэ"* OR "лихорадка"*', 5]);
     expect(hydrationCall?.sql).toContain('c.original_text');
     expect(hydrationCall?.sql).not.toContain('bm25(chunks_fts');
     expect(JSON.parse(hydrationCall?.argsJson ?? '[]')).toEqual([fixtureChunkId()]);
@@ -306,7 +313,7 @@ describe('CapacitorMedicalStore', () => {
       '"тахипноэ"*',
       'pediatrics',
       'children',
-      50,
+      1,
     ]);
 
     const profile = DEMO_CONTENT_PACK.embeddingProfiles[0];

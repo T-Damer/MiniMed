@@ -6,27 +6,6 @@ import {
   subscribeAppPreferences,
 } from '@/state/app-preferences';
 
-const PRELOAD_CUES: readonly CueName[] = [
-  'hover',
-  'press',
-  'select',
-  'open',
-  'forward',
-  'back',
-  'delete',
-  'send',
-  'start',
-  'close',
-  'check',
-  'info',
-  'warning',
-  'snap',
-  'swipe',
-  'volume-change',
-  'toggle-on',
-  'toggle-off',
-];
-
 const FINE_HOVER_QUERY = '(hover: hover) and (pointer: fine)';
 
 const CUE_GAIN: Partial<Record<CueName, number>> = {
@@ -66,10 +45,7 @@ export class UiSoundController {
   unlock(): void {
     if (this.unlocked) return;
     this.unlocked = true;
-    void this.player.unlock().then((ready) => {
-      if (!ready) return;
-      void this.player.preload(PRELOAD_CUES);
-    });
+    void this.player.unlock();
   }
 
   play(cue: CueName): void {

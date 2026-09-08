@@ -7,6 +7,7 @@ self.addEventListener('install', (event) => {
       .then((cache) =>
         cache.addAll([
           './',
+          './fonts/CascadiaCode-Regular.woff2',
           './content/core.db',
           './content/core-report.json',
           './content/medications.db',

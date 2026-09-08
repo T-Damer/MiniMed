@@ -57,6 +57,9 @@ function renderTextBlocks(text: string): string {
     } else if (block.kind === 'paragraph') {
       closeList();
       html.push(`<p class="doc-print__paragraph">${escapeHtml(block.text)}</p>`);
+    } else if (block.kind === 'table') {
+      closeList();
+      html.push(renderRichBlockHtml(block.table));
     }
   }
   closeList();
@@ -77,7 +80,8 @@ function renderRichBlockHtml(block: DocumentRenderBlock): string {
           const tag = cell.header ? 'th' : 'td';
           const rowSpan = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : '';
           const colSpan = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : '';
-          return `<${tag}${rowSpan}${colSpan}>${escapeHtml(cell.text)}</${tag}>`;
+          const alignment = cell.align ? ` style="text-align:${cell.align}"` : '';
+          return `<${tag}${rowSpan}${colSpan}${alignment}>${escapeHtml(cell.text)}</${tag}>`;
         })
         .join('');
       return `<tr>${cells}</tr>`;

@@ -14,7 +14,7 @@ body {
   min-width: 20rem;
   min-height: 100vh;
   margin: 0;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
   background:
     linear-gradient(90deg, rgb(255 255 255 / 2%) 1px, transparent 1px) 0 0 / 2.125rem 2.125rem,
     linear-gradient(rgb(255 255 255 / 2%) 1px, transparent 1px) 0 0 / 2.125rem 2.125rem,

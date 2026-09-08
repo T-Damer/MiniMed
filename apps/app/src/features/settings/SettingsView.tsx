@@ -1,5 +1,5 @@
 import type { CoreStatus } from '@localmed/contracts';
-import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createSignal, type JSX, lazy, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -24,11 +24,13 @@ import {
   getFloatingWindowsEnabled,
   getModuleAutoUpdatesEnabled,
   getSoundVolume,
+  getSplitNavigation,
   getVibrationEnabled,
   setExperimentalModulesEnabled,
   setFloatingWindowsEnabled,
   setModuleAutoUpdatesEnabled,
   setSoundVolume,
+  setSplitNavigation,
   setVibrationEnabled,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
@@ -41,8 +43,14 @@ import {
   returnToControlLabel,
 } from '@/state/return-navigation';
 
+const DevDownloadSettings = import.meta.env.DEV
+  ? lazy(() =>
+      import('./DevDownloadSettings').then((module) => ({ default: module.DevDownloadSettings })),
+    )
+  : undefined;
+
 interface SettingsViewProps {
-  readonly status: CoreStatus;
+  readonly status: CoreStatus | undefined;
   readonly appUpdateReady: boolean;
   readonly appUpdating: boolean;
   readonly appUpdateChecking: boolean;
@@ -60,6 +68,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
     getModuleAutoUpdatesEnabled(),
   );
   const [route, setRoute] = createSignal<SettingsRoute>(readSettingsRoute());
+  const [splitNavigation, setSplitNavigationState] = createSignal(getSplitNavigation());
   const [vibrationEnabled, setVibrationEnabledState] = createSignal(getVibrationEnabled());
   const [soundVolume, setSoundVolumeState] = createSignal(getSoundVolume());
   const [floatingWindowsEnabled, setFloatingWindowsEnabledState] = createSignal(
@@ -87,6 +96,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
     window.addEventListener(RETURN_TO_EVENT, syncReturnTo);
     const unsubscribePreferences = subscribeAppPreferences((preferences) => {
       setVibrationEnabledState(preferences.vibrationEnabled);
+      setSplitNavigationState(preferences.splitNavigation);
       setSoundVolumeState(preferences.soundVolume);
       setFloatingWindowsEnabledState(preferences.floatingWindowsEnabled);
       setExperimentalModulesEnabledState(preferences.experimentalModulesEnabled);
@@ -149,12 +159,30 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         >
           <header class="settings-section__heading">
             <div class="settings-section__heading-main">
-              <AppGlyph name="system" class="settings-section__icon" />
+              <AppGlyph name="system-fill" class="settings-section__icon" />
               <h2 id="settings-interface-heading" class="settings-section__title">
                 Интерфейс
               </h2>
             </div>
           </header>
+
+          {DevDownloadSettings && <DevDownloadSettings />}
+          <div class="settings-row">
+            <div class="settings-row__text">
+              <span class="settings-row__label settings-row__label--with-icon">
+                <AppGlyph name="squares-four" class="settings-row__label-icon" aria-hidden="true" />
+                Разбивать навигацию на разделы
+              </span>
+              <p class="settings-row__helper">
+                Отдельные кнопки базы знаний, опросников, калькуляторов и заметок.
+              </p>
+            </div>
+            <Switch
+              checked={splitNavigation()}
+              aria-label="Разбивать навигацию на разделы"
+              onChange={setSplitNavigation}
+            />
+          </div>
 
           <div class="settings-row">
             <div class="settings-row__text">
@@ -194,7 +222,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
           <div class="settings-row">
             <div class="settings-row__text">
               <span class="settings-row__label settings-row__label--with-icon">
-                <AppGlyph name="cube" class="settings-row__label-icon" aria-hidden="true" />
+                <AppGlyph name="flask" class="settings-row__label-icon" aria-hidden="true" />
                 Experimental
               </span>
               <p class="settings-row__helper">
@@ -255,7 +283,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
         >
           <div class="settings-section__heading">
             <div class="settings-section__heading-main">
-              <AppGlyph name="download" class="settings-section__icon" />
+              <AppGlyph name="download-fill" class="settings-section__icon" />
               <div class="settings-section__heading-copy">
                 <h2 id="settings-downloads-heading" class="settings-section__title">
                   Загрузки
@@ -285,7 +313,16 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
               aria-hidden="true"
             />
           </summary>
-          <StatusPanel initialStatus={props.status} />
+          <Show
+            when={props.status}
+            fallback={
+              <p class="settings-section__description">
+                Ядро поиска ещё не готово. Файлы и настройки доступны.
+              </p>
+            }
+          >
+            {(status) => <StatusPanel initialStatus={status()} />}
+          </Show>
         </details>
 
         <nav class="settings-page__links" aria-label="Ссылки приложения">

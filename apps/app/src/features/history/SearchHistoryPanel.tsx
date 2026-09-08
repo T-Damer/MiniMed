@@ -1,8 +1,8 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
-
 import { AppGlyph } from '@/components/AppGlyph';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
+import { searchGroupLabel } from '@/features/search/searchCatalog';
 import { hapticFeedback } from '@/state/haptics';
 import { createHorizontalGestureManager } from '@/state/horizontal-gesture';
 import {
@@ -29,12 +29,15 @@ const MODE_LABELS: Readonly<Record<SearchHistoryEntry['modeUsed'], string>> = {
 };
 
 const SCOPE_LABELS: Readonly<Record<SearchHistoryEntry['scope'], string>> = {
-  diagnosis: 'Диагноз',
-  guidelines: 'КР',
+  diagnosis: 'Клинический разбор',
+  guidelines: 'Клинические рекомендации',
   medications: 'Препараты',
-  legal: 'Право',
+  legal: 'Нормативные документы',
   all: 'Все источники',
   personal: 'Ваши данные',
+  conditions: 'МКБ и состояния',
+  calculators: 'Калькуляторы',
+  assessments: 'Опросники',
 };
 
 function formatDate(value: string): string {
@@ -166,6 +169,7 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                   type="button"
                   class="search-history-panel-header__close"
                   aria-label="Закрыть историю"
+                  title="Закрыть историю"
                   onClick={close}
                 >
                   <AppGlyph name="close" class="search-history-panel-header__close-icon" />
@@ -196,19 +200,27 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
                           >
                             <strong>{entry.query}</strong>
                             <small>
-                              {formatDate(entry.createdAt)} · {entry.resultCount} док. ·{' '}
-                              {SCOPE_LABELS[entry.scope]} · {MODE_LABELS[entry.modeUsed]}
+                              {formatDate(entry.createdAt)} · Результаты: {entry.resultCount} ·{' '}
+                              {SCOPE_LABELS[entry.scope]}
+                              {entry.specialty
+                                ? ` / ${searchGroupLabel(entry.scope, entry.specialty)}`
+                                : ''}{' '}
+                              ·{' '}
+                              {entry.scope === 'calculators' || entry.scope === 'assessments'
+                                ? 'Каталог'
+                                : MODE_LABELS[entry.modeUsed]}
                             </small>
                           </button>
                           <button
                             class="search-history-panel-remove"
                             type="button"
                             aria-label={`Удалить запрос: ${entry.query}`}
+                            title="Удалить запрос"
                             onClick={() =>
                               setEntries(removeSearchHistoryEntry(entry.id).slice(0, HISTORY_LIMIT))
                             }
                           >
-                            <AppGlyph name="close" />
+                            <AppGlyph name="close" class="search-history-panel-remove__icon" />
                           </button>
                         </li>
                       )}

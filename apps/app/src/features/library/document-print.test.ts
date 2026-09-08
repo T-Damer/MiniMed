@@ -50,7 +50,8 @@ function buildDocument(): MedicalDocument {
             sectionId: 'section-1',
             documentVersionId: 'reference.pevzner.diet-table-5@v1',
             orderIndex: 0,
-            originalText: '- нежирное мясо и рыба;\n- нежирные молочные продукты.',
+            originalText:
+              '- нежирное мясо и рыба;\n- нежирные молочные продукты.\n\n| Возраст | Значение |\n| --- | ---: |\n| 0–<1 года | 93–134 |\n\nПосле таблицы.',
             pageStart: null,
             pageEnd: null,
             anchor: 'chunk-1',
@@ -112,6 +113,9 @@ describe('document print layout', () => {
     expect(markup).toContain('<table class="doc-print__table">');
     expect(markup).toContain('<th>Заголовок</th>');
     expect(markup).toContain('<td>Значение</td>');
+    expect(markup).toContain('<td>0–&lt;1 года</td>');
+    expect(markup).toContain('<td style="text-align:right">93–134</td>');
+    expect(markup).toContain('<p class="doc-print__paragraph">После таблицы.</p>');
     expect(markup).toContain('class="doc-print__footer-qr"');
     expect(markup).toContain('href="http://127.0.0.1:5175/#/knowledge/reference/diet-table-5"');
   });

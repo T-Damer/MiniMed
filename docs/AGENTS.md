@@ -5,11 +5,16 @@ roadmap ideas.
 
 ## Product shape
 
-- Primary browser navigation: search, knowledge base/documents, settings.
+- Hide bottom navigation while the application document is loading. Once the shell has loaded,
+  expose search, personal files, and settings independently of medical-core download/initialization.
+  Until the core is ready, search shows setup/progress; personal files, their readers, ordinary notes,
+  and settings stay usable. Core readiness must not remount these pages or discard local drafts.
+  The saved setting «Разбивать навигацию на разделы» restores six tabs once the core is ready.
 - Search history belongs beside search, not in a separate top-level page.
-- The search home currently exposes one «Свободный поиск» scope across sources. Existing internal
-  scoped-search contracts remain available, but saved modes and history must not silently switch
-  the home to a hidden scope. Personal matches remain a separate local section.
+- Search opens in ordinary source lookup: one lexical branch, without clinical parsing or vectors.
+  «Клинический разбор» is an explicit separate mode beside search actions. Legacy saved scopes must
+  not silently select a hidden mode; history may restore an explicitly visible clinical mode.
+  Personal matches remain a separate local section.
 - Deterministic local search remains complete without a model. Only diagnosis may use the optional
   grounded local-model wrapper.
 - Personal notes and future transcription are a separate local trust layer; never present them as an
@@ -19,13 +24,30 @@ roadmap ideas.
 
 - Navigation is a fixed bottom bubble (`.app-bottom-nav`); there is no in-app page header. Icon
   tooltips and accessible labels are required. E2E specs locate navigation through that class.
-- The knowledge-base button carries two counters: available documents (yellow, top left) and
+- In the six-section layout, the knowledge-base button carries two counters: available documents (yellow, top left) and
   installed documents (green, bottom right). Neither resets on view change.
 - Search history opens from a floating button as a drawer, never as a route or a side column.
-- There are six primary sections: search, knowledge base, assessments, calculators, notes, and
-  settings. Personal notes are their own section, and personal matches in search render outside the
+- The optional six-section layout contains search, knowledge base, assessments, calculators, notes,
+  and settings. In the default layout, a selector beside search actions owns source/tool selection;
+  personal files reuse the user library, including notes, demo books/research, questionnaires,
+  templates, and a separate patient-workspace entry. Only a native encrypted vault gets a lock;
+  ordinary file drag/drop must never write into that entry. Personal matches render outside the
   official results container so a local record can never pass as installed content — in the DOM or on
   screen.
+- In compact navigation, reselecting My Files opens the personal file catalog root; selecting it
+  from another tab restores the last personal route. Notes/patients/templates return to Files at
+  their section boundary, while nested record and patient routes retain their immediate parents.
+- One searchable hierarchical selector owns section/subsection selection, icons, and counts; do not
+  reintroduce a separate specialty selector or document-count block. History retains both levels.
+  Source/tool selection retains each section's query, filters, and scroll in the current session.
+  Empty source queries show a flat document catalog in both navigation layouts; tool lookup uses the declarative tool catalog
+  and existing tool/download routes. Clinical parsing is an explicit separate mode.
+  Condition subtype filters use source metadata and the preparer's legacy ICD classification rules,
+  with the same document membership for browsing and retrieval. Style only ICD code/range spans as
+  monospace in titles; do not substitute the digit font across ordinary headings.
+- Section-menu downloads share the existing module queue and resolve packages through document/tool membership, never broad specialty labels. Expanded groups retain their child download status; keep download controls separate from selection buttons.
+- Tool exit follows its recorded entry page rather than the navigation layout preference. Keep
+  intermediate result routes within their tool and preserve the entry across /new creation redirects.
 - The download status page lives at `#/settings/downloads`. Active content-pack downloads (queued,
   transferring, or installing) show a pie on the top-right of the Settings tab; tapping it opens that
   page. Failed-only or idle packs hide the pie. Progress stays visible on every tab through the nav
@@ -50,6 +72,10 @@ roadmap ideas.
   fill; its dark surface requires light icons, and leaving the viewer restores the system default.
 
 ## Downloads and models
+
+- Browser and Android core files may use different SQLite page sizes for the same logical corpus.
+  Keep the Android download URL paired with its own checksum; never validate that immutable remote
+  artifact against the browser gzip's checksum. A corpus change must update both distributions.
 
 - Every artifact download — content modules and model weights alike — goes through
   `downloadWithRetry`. Never call `downloadWithResume` directly from a feature; the retry layer is

@@ -4,7 +4,6 @@ import {
   createEffect,
   createMemo,
   createSignal,
-  For,
   type JSX,
   onCleanup,
   onMount,
@@ -13,7 +12,8 @@ import {
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { ClinicalGlyph, documentClinicalSignals } from '@/components/ClinicalGlyph';
+import { ClinicalTags } from '@/components/ClinicalTags';
+import { IcdText } from '@/components/IcdText';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
@@ -21,7 +21,8 @@ import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
-import { browserI18n } from '@/i18n/browser-i18n';
+import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
+import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
 import { sourceTypeLibraryLabel, specialtyLabels } from '@/i18n/labels';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { fuzzyQueryScore } from '@/state/fuzzy-text';
@@ -29,7 +30,9 @@ import { fuzzyQueryScore } from '@/state/fuzzy-text';
 interface DocumentLibraryProps {
   readonly core: MedicalCore;
   readonly embedded?: boolean;
+  readonly hideGraphControl?: boolean;
   readonly query?: string;
+  readonly documents?: readonly MedicalDocumentSummary[];
 }
 
 type LibraryMode = 'list' | 'graph';
@@ -46,7 +49,8 @@ function documentSearchValues(document: MedicalDocumentSummary): readonly string
 }
 
 export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
-  const [documents, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
+  const [loadedDocuments, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
+  const documents = createMemo(() => props.documents ?? loadedDocuments());
   const [mode, setMode] = createSignal<LibraryMode>('list');
   const [filter, setFilter] = createSignal('');
   const [error, setError] = createSignal<string>();
@@ -86,6 +90,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   });
 
   createEffect(() => {
+    if (props.documents !== undefined) return;
     const core = props.core;
     void (async () => {
       setError(undefined);
@@ -134,7 +139,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
         />
       </Show>
 
-      <Show when={props.embedded}>
+      <Show when={props.embedded && !props.hideGraphControl}>
         <div class="library-embedded-toolbar">
           <Button
             class="library-embedded-graph-button"
@@ -203,36 +208,31 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
       </Show>
 
       <Show when={mode() === 'list'}>
-        <div class="document-library-grid">
+        <div
+          class="document-library-grid"
+          classList={{ 'document-library-grid--embedded': props.embedded }}
+        >
           <Show when={filteredDocuments().length > 0 && listReady()}>
             <LayoutVirtualizedGrid data={filteredDocuments()} bufferSize={500}>
               {(document, index) => (
                 <button
-                  class="document-library-card paper-card"
+                  class="document-library-card catalog-card paper-card"
                   type="button"
                   onClick={() => openDocumentOverlay(document.id)}
                 >
-                  <span class="document-library-index">{String(index + 1).padStart(2, '0')}</span>
-                  <span class="document-library-copy">
-                    <small>{sourceTypeLibraryLabel(document.sourceType)}</small>
-                    <strong>{document.title}</strong>
-                    <span>
-                      {specialtyLabels(document.specialties).join(' · ') ||
-                        browserI18n.getMessage('specialty_general_medicine')}
-                    </span>
-                    <em>Редакция {document.versionLabel}</em>
+                  <span class="catalog-card__tags">
+                    <span class="catalog-card__index">{String(index + 1).padStart(2, '0')}</span>
+                    <AppGlyph
+                      name={RESULT_KIND_VISUALS[searchResultDocumentKind(document)].icon}
+                      class="unified-catalog__icon"
+                    />
+                    <ClinicalTags title={document.title} specialties={document.specialties} />
                   </span>
-                  <span class="clinical-signals" aria-hidden="true">
-                    <For each={documentClinicalSignals(document).slice(0, 3)}>
-                      {(signal) => (
-                        <span
-                          class={`clinical-signal ${signal.strength} tone-${signal.tone}`}
-                          title={signal.label}
-                        >
-                          <ClinicalGlyph name={signal.icon} />
-                        </span>
-                      )}
-                    </For>
+                  <strong class="catalog-card__title">
+                    <IcdText text={document.title} />
+                  </strong>
+                  <span class="catalog-card__description">
+                    {RESULT_KIND_VISUALS[searchResultDocumentKind(document)].label}
                   </span>
                 </button>
               )}

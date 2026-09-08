@@ -61442,7 +61442,7 @@
     },
     {
       "id": "minimed.tools.gastroenterology.ru",
-      "version": "0.1.0-preview.2",
+      "version": "0.1.0-preview.3",
       "kind": "tool",
       "collection": "tool",
       "title": "Инструменты гастроэнтерологии",
@@ -61469,7 +61469,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:b9b33039e24f2dd3f64ec7546aaddd745f64636fbce3a8d162033c02b79e1f21",
+      "sourceSetDigest": "sha256:80d18bbde4e361468010deb87182586b9ae71771f572091c62f31599b4dc8d13",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -61478,8 +61478,8 @@
         }
       ],
       "sizes": {
-        "downloadBytes": 344064,
-        "installedBytes": 344064,
+        "downloadBytes": 356352,
+        "installedBytes": 356352,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       },
@@ -61494,14 +61494,14 @@
       },
       "artifacts": [
         {
-          "id": "minimed.tools.gastroenterology.ru-index-0.1.0-preview.2",
+          "id": "minimed.tools.gastroenterology.ru-index-0.1.0-preview.3",
           "kind": "index",
           "required": true,
-          "url": "https://github.com/T-Damer/MiniMed/releases/download/v0.6.33/minimed-tools-gastroenterology-0.1.0-preview.2.db",
-          "sha256": "sha256:f56597e989b674785131d3df0ea2d841936586de2f24b78fd54412211849a958",
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-gastroenterology-0.1.0-preview.3.db",
+          "sha256": "sha256:e53b0252c6b54d03365774b5e9459c1a815603650005fd13b0c2d52d47a61d13",
           "sizeBytes": 356352,
           "compression": "none",
-          "sourceSetDigest": "sha256:b9b33039e24f2dd3f64ec7546aaddd745f64636fbce3a8d162033c02b79e1f21"
+          "sourceSetDigest": "sha256:80d18bbde4e361468010deb87182586b9ae71771f572091c62f31599b4dc8d13"
         }
       ],
       "documents": [],
@@ -62023,7 +62023,7 @@
     },
     {
       "id": "minimed.tools.neonatology.ru",
-      "version": "0.1.0-preview.2",
+      "version": "0.1.0-preview.3",
       "kind": "tool",
       "collection": "tool",
       "title": "Инструменты неонатологии",
@@ -62051,7 +62051,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:fef07f8b9294d3a8ec144d759ed4a64ca38a4d13031a8dbf9079245a58d140d9",
+      "sourceSetDigest": "sha256:0b72deeb5f1408384556acfbdb1c43871c424dddbbf8b7596ac387d6254b96d1",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -62060,8 +62060,8 @@
         }
       ],
       "sizes": {
-        "downloadBytes": 368640,
-        "installedBytes": 368640,
+        "downloadBytes": 372736,
+        "installedBytes": 372736,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       },
@@ -62076,14 +62076,14 @@
       },
       "artifacts": [
         {
-          "id": "minimed.tools.neonatology.ru-index-0.1.0-preview.2",
+          "id": "minimed.tools.neonatology.ru-index-0.1.0-preview.3",
           "kind": "index",
           "required": true,
-          "url": "https://github.com/T-Damer/MiniMed/releases/download/v0.6.33/minimed-tools-neonatology-0.1.0-preview.2.db",
-          "sha256": "sha256:39294c78cc1d945ceee1de7b3a39355429e4541506ad28778d5f26f5727c97fd",
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-neonatology-0.1.0-preview.3.db",
+          "sha256": "sha256:6f056f2c553a62af96dabe39987e0cd30eebd2eb45c7fa543cd56e7d8d0d687d",
           "sizeBytes": 372736,
           "compression": "none",
-          "sourceSetDigest": "sha256:fef07f8b9294d3a8ec144d759ed4a64ca38a4d13031a8dbf9079245a58d140d9"
+          "sourceSetDigest": "sha256:0b72deeb5f1408384556acfbdb1c43871c424dddbbf8b7596ac387d6254b96d1"
         }
       ],
       "documents": [],
@@ -62837,7 +62837,7 @@
     },
     {
       "id": "minimed.tools.core-clinical.ru",
-      "version": "0.1.0-preview.2",
+      "version": "0.1.0-preview.3",
       "kind": "tool",
       "collection": "tool",
       "title": "Базовые клинические расчёты",
@@ -62870,7 +62870,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:de953f6ceac8ed015581da741733436c1127e6f5148144ef0a50d85a59f8a103",
+      "sourceSetDigest": "sha256:c65321c2b0b27f8c2f744499d085e915741e6f6abb51771ec8db43854786a218",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -62879,8 +62879,8 @@
         }
       ],
       "sizes": {
-        "downloadBytes": 417792,
-        "installedBytes": 417792,
+        "downloadBytes": 430080,
+        "installedBytes": 430080,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       },
@@ -62895,14 +62895,14 @@
       },
       "artifacts": [
         {
-          "id": "minimed.tools.core-clinical.ru-index-0.1.0-preview.2",
+          "id": "minimed.tools.core-clinical.ru-index-0.1.0-preview.3",
           "kind": "index",
           "required": true,
-          "url": "https://github.com/T-Damer/MiniMed/releases/download/v0.6.33/minimed-tools-core-clinical-0.1.0-preview.2.db",
-          "sha256": "sha256:37d3cd739229d9bc7f365480d4bd88d33df2c993f67276d484684531daadfaca",
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-core-clinical-0.1.0-preview.3.db",
+          "sha256": "sha256:61acb8b1dab12abea598454a974e16226ab898737c36cc4b3ad1e1728990df68",
           "sizeBytes": 430080,
           "compression": "none",
-          "sourceSetDigest": "sha256:de953f6ceac8ed015581da741733436c1127e6f5148144ef0a50d85a59f8a103"
+          "sourceSetDigest": "sha256:c65321c2b0b27f8c2f744499d085e915741e6f6abb51771ec8db43854786a218"
         }
       ],
       "documents": [],
@@ -65820,7 +65820,7 @@
     },
     {
       "id": "minimed.tools.emergency.ru",
-      "version": "0.1.0-preview.1",
+      "version": "0.1.0-preview.2",
       "kind": "tool",
       "collection": "tool",
       "title": "Инструменты неотложной помощи",
@@ -65846,7 +65846,7 @@
         "schemaVersion": 2,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:55ca8c66a3d62a50a0c74f08fa22d6b1f3d0f73a81fbb692933a5c3cfd0a8ff5",
+      "sourceSetDigest": "sha256:f45fd3ff42ec5921665193c28fe384a2bc42ca5ebb23a136302093c173aeb1ac",
       "dependencies": [
         {
           "moduleId": "minimed.core.ru",
@@ -65855,8 +65855,8 @@
         }
       ],
       "sizes": {
-        "downloadBytes": 323584,
-        "installedBytes": 323584,
+        "downloadBytes": 327680,
+        "installedBytes": 327680,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       },
@@ -65871,14 +65871,14 @@
       },
       "artifacts": [
         {
-          "id": "minimed.tools.emergency.ru-index-0.1.0-preview.1",
+          "id": "minimed.tools.emergency.ru-index-0.1.0-preview.2",
           "kind": "index",
           "required": true,
-          "url": "https://github.com/T-Damer/MiniMed/releases/download/v0.6.33/minimed-tools-emergency-0.1.0-preview.1.db",
-          "sha256": "sha256:b666742f1fe5f08e6c4eb5892491b71b96430b720ac4fbac2ab3b638a8c362ed",
+          "url": "https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules/minimed-tools-emergency-0.1.0-preview.2.db",
+          "sha256": "sha256:2e0aa115d6c4971b8f37c268a889ff8988a2866642472603b55633f6a0089812",
           "sizeBytes": 327680,
           "compression": "none",
-          "sourceSetDigest": "sha256:55ca8c66a3d62a50a0c74f08fa22d6b1f3d0f73a81fbb692933a5c3cfd0a8ff5"
+          "sourceSetDigest": "sha256:f45fd3ff42ec5921665193c28fe384a2bc42ca5ebb23a136302093c173aeb1ac"
         }
       ],
       "documents": [],

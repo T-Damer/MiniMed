@@ -3,6 +3,7 @@ import { type JSX, Show } from 'solid-js';
 import { formatModuleBytes } from '@/features/modules/module-display';
 
 export function BootScreen(props: {
+  readonly appLoading?: boolean;
   readonly error: string | undefined;
   readonly bootSlow: boolean;
   readonly coreDownloadRequired?: boolean;
@@ -28,21 +29,25 @@ export function BootScreen(props: {
         </Show>
         <p class="archive-kicker">Локальная медицинская база</p>
         <h1 class="boot-card__title">
-          {props.error
-            ? 'База не открылась'
-            : props.coreDownloadRequired
-              ? 'Скачайте ядро MiniMed'
-              : 'Открываем документы…'}
+          {props.appLoading
+            ? 'Запускаем MiniMed…'
+            : props.error
+              ? 'База не открылась'
+              : props.coreDownloadRequired
+                ? 'Скачайте ядро MiniMed'
+                : 'Подготавливаем поиск…'}
         </h1>
         <p class="boot-card__description">
-          {props.error ??
-            (props.coreDownloadRequired
-              ? 'Приложение установлено. Для первого запуска скачайте базу — около 490 МБ. После установки поиск и скачанные документы работают без интернета. Иллюстрации и дополнительные наборы доступны в настройках.'
-              : props.bootSlow
-                ? 'Подготовка базы продолжается. Калькуляторы и шкалы уже доступны через нижнее меню.'
-                : 'Подготавливаем локальный поиск. Калькуляторы и шкалы уже доступны через нижнее меню.')}
+          {props.appLoading
+            ? 'Загружаем интерфейс приложения…'
+            : (props.error ??
+              (props.coreDownloadRequired
+                ? 'Для поиска скачайте ядро — около 490 МБ. Пока оно не установлено, можно пользоваться своими файлами и настройками. После установки поиск работает без интернета.'
+                : props.bootSlow
+                  ? 'Подготовка базы продолжается. Свои файлы и настройки доступны через нижнее меню.'
+                  : 'Поиск откроется, когда ядро будет готово. Пока можно пользоваться своими файлами и настройками.'))}
         </p>
-        <Show when={props.coreDownloadRequired && !props.error}>
+        <Show when={!props.appLoading && props.coreDownloadRequired && !props.error}>
           <Show
             when={props.coreDownloading}
             fallback={
@@ -66,7 +71,7 @@ export function BootScreen(props: {
             </p>
           </Show>
         </Show>
-        <Show when={props.error}>
+        <Show when={!props.appLoading && props.error}>
           <button class="boot-card__action" type="button" onClick={() => window.location.reload()}>
             Повторить
           </button>

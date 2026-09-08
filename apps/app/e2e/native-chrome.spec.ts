@@ -234,52 +234,53 @@ test('hides native status blur on document readers and medical viewers', async (
   await expect.poll(() => nativeBlurOpacity(page)).toBe('0');
 });
 
-test('moves sticky document headings with the hidden reader chrome', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await mountBuiltApp(page);
-  await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/d/a3IucmYuNzE0XzIucG5ldW1vbmlh`);
-  await page.getByRole('button', { name: 'Загрузить полный текст' }).click();
+for (const safeTop of [0, 24, 47]) {
+  test(`moves sticky document headings with the hidden reader chrome (${safeTop}px)`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await mountBuiltApp(page);
+    await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/d/a3IucmYuNzE0XzIucG5ldW1vbmlh`);
+    await page.getByRole('button', { name: 'Загрузить полный текст' }).click();
 
-  const heading = page
-    .locator('.document-overlay-section__title--h1, .document-overlay-section__title--h2')
-    .first();
-  await heading.waitFor({ state: 'visible', timeout: 30_000 });
-  expect(await heading.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe(
-    await page
-      .locator('.document-page__chrome')
-      .evaluate((element) => getComputedStyle(element).transitionDuration),
-  );
-  await emulateNativeShell(page);
-  await page.evaluate(() => window.dispatchEvent(new Event('resize')));
-  await page.evaluate(() => window.scrollTo(0, 450));
-  await expect
-    .poll(() =>
-      page.locator('html').evaluate((root) => root.classList.contains('app-chrome-hidden')),
-    )
-    .toBe(true);
-
-  const gap = await heading.evaluate((element) => {
-    const safeTop = Number.parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'),
+    const heading = page
+      .locator('.document-overlay-section__title--h1, .document-overlay-section__title--h2')
+      .first();
+    await heading.waitFor({ state: 'visible', timeout: 30_000 });
+    expect(await heading.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe(
+      await page
+        .locator('.document-page__chrome')
+        .evaluate((element) => getComputedStyle(element).transitionDuration),
     );
-    return (
-      Number.parseFloat(getComputedStyle(element).top) - (Number.isFinite(safeTop) ? safeTop : 0)
-    );
-  });
-  expect(gap).toBeCloseTo(7, 0);
+    await emulateNativeShell(page);
+    await page.evaluate((inset) => {
+      document.documentElement.style.setProperty('--safe-area-inset-top', `${inset}px`);
+    }, safeTop);
+    await page.evaluate(() => window.dispatchEvent(new Event('resize')));
+    await page.evaluate(() => window.scrollTo(0, 450));
+    await expect
+      .poll(() =>
+        page.locator('html').evaluate((root) => root.classList.contains('app-chrome-hidden')),
+      )
+      .toBe(true);
 
-  const safeFill = await page.locator('.document-overlay-paper').evaluate((paper) => {
-    const styles = getComputedStyle(paper, '::before');
-    return { background: styles.backgroundColor, height: styles.height, opacity: styles.opacity };
-  });
-  expect(safeFill.height).toBe('24px');
-  expect(safeFill.background).not.toBe('rgba(0, 0, 0, 0)');
-  expect(safeFill.opacity).toBe('1');
+    await expect
+      .poll(() => heading.evaluate((element) => Number.parseFloat(getComputedStyle(element).top)))
+      .toBeCloseTo(safeTop - 1, 0);
 
-  await page.evaluate(() => window.scrollTo(0, 300));
-  await expect
-    .poll(() =>
-      page.locator('html').evaluate((root) => root.classList.contains('app-chrome-hidden')),
-    )
-    .toBe(false);
-});
+    const safeFill = await page.locator('.document-overlay-paper').evaluate((paper) => {
+      const styles = getComputedStyle(paper, '::before');
+      return { background: styles.backgroundColor, height: styles.height, opacity: styles.opacity };
+    });
+    expect(safeFill.height).toBe(`${safeTop}px`);
+    expect(safeFill.background).not.toBe('rgba(0, 0, 0, 0)');
+    expect(safeFill.opacity).toBe('1');
+
+    await page.evaluate(() => window.scrollTo(0, 300));
+    await expect
+      .poll(() =>
+        page.locator('html').evaluate((root) => root.classList.contains('app-chrome-hidden')),
+      )
+      .toBe(false);
+  });
+}

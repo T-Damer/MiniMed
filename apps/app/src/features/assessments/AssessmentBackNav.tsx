@@ -1,18 +1,19 @@
 import type { JSX } from 'solid-js';
-import { NavBackWithReturnTo } from '@/components/NavBackWithReturnTo';
+import { NavBack } from '@/components/NavBack';
+import { consumeAndRestoreReturnTo } from '@/state/return-navigation';
+import { returnFromTool } from '@/state/tool-navigation';
 
 export function AssessmentBackNav(props: {
   readonly sectionTitle?: string;
   readonly onBackToCatalog: () => void;
 }): JSX.Element {
   return (
-    <NavBackWithReturnTo
-      catalogLabel="К каталогу тестов"
-      catalogDetail={props.sectionTitle ?? 'Все опросники'}
-      catalogIcon="list-checks"
-      catalogAriaLabel="К каталогу тестов"
-      onBackToCatalog={props.onBackToCatalog}
-      chooserClass="assessment-back-chooser"
+    <NavBack
+      class="knowledge-back-button"
+      aria-label="Назад"
+      onClick={() => {
+        if (!returnFromTool() && !consumeAndRestoreReturnTo()) props.onBackToCatalog();
+      }}
     />
   );
 }

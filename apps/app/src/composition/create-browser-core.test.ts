@@ -4,6 +4,7 @@ import { CapacitorMedicalStore, LocalMedDatabase } from '@localmed/storage-capac
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '@localmed/storage-sqlite';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  ANDROID_CORE_DOWNLOAD,
   builtInCompanionMounts,
   createNativeStore,
   createRequiredWebCoreStore,
@@ -13,6 +14,7 @@ import {
 } from '@/composition/create-browser-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
+import bundledCoreReport from '../../public/content/core-report.json';
 
 vi.mock('@localmed/storage-capacitor', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@localmed/storage-capacitor')>()),
@@ -40,6 +42,11 @@ afterEach(() => {
 });
 
 describe('Android core first launch', () => {
+  it('keeps the Android download paired with the source encoding of the repacked browser corpus', () => {
+    expect(ANDROID_CORE_DOWNLOAD.checksum).toBe(
+      bundledCoreReport.sqlitePageLayoutMigration.inputChecksum,
+    );
+  });
   it('waits for the download action, forwards progress, and reuses an installed core offline', async () => {
     vi.spyOn(Capacitor, 'getPlatform').mockReturnValue('android');
     vi.stubGlobal('window', {
@@ -87,7 +94,7 @@ describe('Android core first launch', () => {
     expect(LocalMedDatabase.installDownloadedCore).toHaveBeenCalledOnce();
     expect(onProgress).toHaveBeenCalledWith({ loaded: 128, total: 512 });
     expect(LocalMedDatabase.installDownloadedCore).toHaveBeenCalledWith({
-      expectedSha256: `sha256:${'a'.repeat(64)}`,
+      expectedSha256: ANDROID_CORE_DOWNLOAD.checksum,
       id: 'a'.repeat(64),
     });
     expect(downloadFileWithRetry).toHaveBeenCalledOnce();

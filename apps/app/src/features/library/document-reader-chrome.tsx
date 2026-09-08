@@ -123,9 +123,9 @@ export function useDocumentReaderChrome(
     const observer = new ResizeObserver(schedule);
     observer.observe(element);
     const mutations = root ? new MutationObserver(schedule) : undefined;
-    const paperElement = root?.querySelector<HTMLElement>('.document-overlay-paper');
-    if (mutations && paperElement)
-      mutations.observe(paperElement, { childList: true, subtree: true });
+    const bodyElement = root?.querySelector<HTMLElement>('.document-page__body');
+    if (mutations && bodyElement)
+      mutations.observe(bodyElement, { childList: true, subtree: true });
     window.addEventListener('resize', schedule);
     onCleanup(() => {
       if (frame !== undefined) cancelAnimationFrame(frame);
@@ -378,160 +378,110 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
       classList={props.classList}
       aria-label={props.ariaLabel}
     >
-      {props.showLayout ? (
-        <div
-          ref={outlineSwipe.ref}
-          class="document-overlay-layout"
-          classList={{
-            ...props.layoutClassList,
-            'document-overlay-layout--outline-hidden':
-              props.outlineEnabled === false || !chrome.outlineOpen(),
-            'document-overlay-layout--outline-disabled': props.outlineEnabled === false,
-          }}
-        >
-          <Show when={props.outlineEnabled !== false}>
+      <div
+        ref={outlineSwipe.ref}
+        class="document-overlay-layout"
+        classList={{
+          ...props.layoutClassList,
+          'document-overlay-layout--outline-hidden':
+            props.outlineEnabled === false || !chrome.outlineOpen(),
+          'document-overlay-layout--outline-disabled': props.outlineEnabled === false,
+        }}
+      >
+        <Show when={props.outlineEnabled !== false}>
+          <button
+            type="button"
+            class="document-overlay-outline-backdrop"
+            classList={{ 'document-overlay-outline-backdrop--open': chrome.outlineOpen() }}
+            aria-label="Закрыть оглавление"
+            onClick={chrome.closeOutline}
+          />
+          <aside
+            ref={chrome.setOutline}
+            class="document-overlay-outline"
+            classList={{
+              'document-overlay-outline--hidden': !chrome.outlineOpen(),
+              'document-overlay-outline--open': chrome.outlineOpen(),
+            }}
+            aria-hidden={!chrome.outlineOpen()}
+          >
             <button
               type="button"
-              class="document-overlay-outline-backdrop"
-              classList={{ 'document-overlay-outline-backdrop--open': chrome.outlineOpen() }}
-              aria-label="Закрыть оглавление"
-              onClick={chrome.closeOutline}
-            />
-            <aside
-              ref={chrome.setOutline}
-              class="document-overlay-outline"
-              classList={{
-                'document-overlay-outline--hidden': !chrome.outlineOpen(),
-                'document-overlay-outline--open': chrome.outlineOpen(),
+              class="document-overlay-outline-resize"
+              aria-label="Изменить ширину оглавления"
+              onPointerDown={(pointerDown) => {
+                const handle = pointerDown.currentTarget;
+                const layout = handle.closest<HTMLElement>('.document-overlay-layout');
+                if (!layout) return;
+                pointerDown.preventDefault();
+                handle.setPointerCapture(pointerDown.pointerId);
+                const startX = pointerDown.clientX;
+                const outlineElement = layout.querySelector<HTMLElement>(
+                  '.document-overlay-outline',
+                );
+                const startWidth = Math.round(outlineElement?.getBoundingClientRect().width ?? 220);
+                let frame: number | undefined;
+                let width = startWidth;
+                const applyWidth = (): void => {
+                  frame = undefined;
+                  layout.style.setProperty('--outline-column-width', `${width}px`);
+                };
+                const onMove = (move: PointerEvent): void => {
+                  width = Math.min(480, Math.max(200, startWidth + move.clientX - startX));
+                  if (frame === undefined) frame = requestAnimationFrame(applyWidth);
+                };
+                const stop = (): void => {
+                  handle.removeEventListener('pointermove', onMove);
+                  handle.removeEventListener('pointerup', stop);
+                  handle.removeEventListener('pointercancel', stop);
+                  if (frame !== undefined) cancelAnimationFrame(frame);
+                  layout.classList.remove('document-overlay-layout--resizing');
+                  try {
+                    localStorage.setItem('minimed.outline.width', String(width));
+                  } catch {
+                    // storage unavailable — width applies until reload
+                  }
+                };
+                handle.addEventListener('pointermove', onMove);
+                handle.addEventListener('pointerup', stop);
+                handle.addEventListener('pointercancel', stop);
+                layout.classList.add('document-overlay-layout--resizing');
               }}
-              aria-hidden={!chrome.outlineOpen()}
-            >
+            />
+            <header class="document-overlay-outline-header">
+              <strong>Оглавление</strong>
               <button
                 type="button"
-                class="document-overlay-outline-resize"
-                aria-label="Изменить ширину оглавления"
-                onPointerDown={(pointerDown) => {
-                  const handle = pointerDown.currentTarget;
-                  const layout = handle.closest<HTMLElement>('.document-overlay-layout');
-                  if (!layout) return;
-                  pointerDown.preventDefault();
-                  handle.setPointerCapture(pointerDown.pointerId);
-                  const startX = pointerDown.clientX;
-                  const outlineElement = layout.querySelector<HTMLElement>(
-                    '.document-overlay-outline',
-                  );
-                  const startWidth = Math.round(
-                    outlineElement?.getBoundingClientRect().width ?? 220,
-                  );
-                  let frame: number | undefined;
-                  let width = startWidth;
-                  const applyWidth = (): void => {
-                    frame = undefined;
-                    layout.style.setProperty('--outline-column-width', `${width}px`);
-                  };
-                  const onMove = (move: PointerEvent): void => {
-                    width = Math.min(480, Math.max(200, startWidth + move.clientX - startX));
-                    if (frame === undefined) frame = requestAnimationFrame(applyWidth);
-                  };
-                  const stop = (): void => {
-                    handle.removeEventListener('pointermove', onMove);
-                    handle.removeEventListener('pointerup', stop);
-                    handle.removeEventListener('pointercancel', stop);
-                    if (frame !== undefined) cancelAnimationFrame(frame);
-                    layout.classList.remove('document-overlay-layout--resizing');
-                    try {
-                      localStorage.setItem('minimed.outline.width', String(width));
-                    } catch {
-                      // storage unavailable — width applies until reload
-                    }
-                  };
-                  handle.addEventListener('pointermove', onMove);
-                  handle.addEventListener('pointerup', stop);
-                  handle.addEventListener('pointercancel', stop);
-                  layout.classList.add('document-overlay-layout--resizing');
-                }}
-              />
-              <header class="document-overlay-outline-header">
-                <strong>Оглавление</strong>
-                <button
-                  type="button"
-                  class="document-overlay-outline-header__close-button"
-                  aria-label="Закрыть оглавление"
-                  onClick={chrome.closeOutline}
-                >
-                  <AppGlyph name="close" class="document-overlay-outline-header__close-icon" />
-                </button>
-              </header>
-              {props.outlineSearchSlot}
-              <OverlayScrollbarsComponent
-                ref={(value) => {
-                  chrome.setOutlineScrollbars(value);
-                  const instance = value?.osInstance();
-                  if (instance) chrome.bindOutlineScrollbars(instance);
-                }}
-                class="document-overlay-outline-nav-scroll os-theme-dark"
-                options={{ overflow: { x: 'hidden', y: 'scroll' } }}
-                defer
+                class="document-overlay-outline-header__close-button"
+                aria-label="Закрыть оглавление"
+                onClick={chrome.closeOutline}
               >
-                <nav
-                  ref={chrome.setOutlineNav}
-                  class={`document-overlay-outline-nav${chrome.outlineSearchStuck() ? ' document-overlay-outline-nav--stuck' : ''}`}
-                  aria-label="Разделы документа"
-                >
-                  {props.outlineNav}
-                </nav>
-              </OverlayScrollbarsComponent>
-              {props.outlineFooter}
-            </aside>
-          </Show>
-          <div class="document-page__main">
-            <header
-              ref={chrome.setChromeElement}
-              class={
-                props.chromeClass ??
-                'document-page__chrome sticky-surface route-sticky-chrome route-sticky-chrome--opaque'
-              }
-              classList={{
-                'document-page__chrome--with-search': Boolean(props.headerSearchSlot),
-                'document-page__chrome--with-print': Boolean(props.printButton),
-                ...props.chromeClassList,
-              }}
-            >
-              <NavBack
-                class="document-page__back"
-                aria-label={searchOpen() ? 'Закрыть поиск' : 'Назад'}
-                onClick={handleBack}
-                icon={
-                  <AppGlyph
-                    name={searchOpen() ? 'close' : 'arrow-left'}
-                    class="document-page__back-icon"
-                  />
-                }
-              />
-              <Show when={props.outlineEnabled !== false}>
-                <button
-                  type="button"
-                  class="document-overlay-outline-toggle"
-                  aria-label={chrome.outlineOpen() ? 'Скрыть оглавление' : 'Открыть оглавление'}
-                  aria-expanded={chrome.outlineOpen()}
-                  onClick={chrome.toggleOutline}
-                >
-                  <AppGlyph name="menu" class="document-overlay-outline-toggle__icon" />
-                </button>
-              </Show>
-              {props.breadcrumbs}
-              {props.headerSearchSlot}
-              <Show when={props.printButton}>{props.printButton}</Show>
+                <AppGlyph name="close" class="document-overlay-outline-header__close-icon" />
+              </button>
             </header>
-            <div class="document-page__body document-overlay__body" classList={props.bodyClassList}>
-              {props.bodyError}
-              {props.bodyPrefix}
-              {props.content}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
+            {props.outlineSearchSlot}
+            <OverlayScrollbarsComponent
+              ref={(value) => {
+                chrome.setOutlineScrollbars(value);
+                const instance = value?.osInstance();
+                if (instance) chrome.bindOutlineScrollbars(instance);
+              }}
+              class="document-overlay-outline-nav-scroll os-theme-dark"
+              options={{ overflow: { x: 'hidden', y: 'scroll' } }}
+              defer
+            >
+              <nav
+                ref={chrome.setOutlineNav}
+                class={`document-overlay-outline-nav${chrome.outlineSearchStuck() ? ' document-overlay-outline-nav--stuck' : ''}`}
+                aria-label="Разделы документа"
+              >
+                {props.outlineNav}
+              </nav>
+            </OverlayScrollbarsComponent>
+            {props.outlineFooter}
+          </aside>
+        </Show>
+        <div class="document-page__main">
           <header
             ref={chrome.setChromeElement}
             class={
@@ -555,14 +505,31 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
                 />
               }
             />
+            <Show when={props.outlineEnabled !== false}>
+              <button
+                type="button"
+                class="document-overlay-outline-toggle"
+                aria-label={chrome.outlineOpen() ? 'Скрыть оглавление' : 'Открыть оглавление'}
+                aria-expanded={chrome.outlineOpen()}
+                disabled={!props.showLayout}
+                onClick={chrome.toggleOutline}
+              >
+                <AppGlyph name="menu" class="document-overlay-outline-toggle__icon" />
+              </button>
+            </Show>
             {props.breadcrumbs}
+            {props.headerSearchSlot}
+            <Show when={props.printButton}>{props.printButton}</Show>
           </header>
           <div class="document-page__body document-overlay__body" classList={props.bodyClassList}>
             {props.bodyError}
-            {props.loadingBody}
+            {props.bodyPrefix}
+            <Show when={props.showLayout} fallback={props.loadingBody}>
+              {props.content}
+            </Show>
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </section>
   );
 }

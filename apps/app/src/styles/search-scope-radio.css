@@ -1,3 +1,30 @@
+.query-buttons--with-picker {
+  flex-wrap: wrap;
+}
+
+.search-source-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-width: 5rem;
+  min-height: 2.25rem;
+  margin-inline-end: auto;
+  padding: 0.375rem;
+  border: 1px solid var(--paper-line);
+  border-radius: 0.375rem;
+  color: var(--ink);
+  background: var(--theme-search-surface-muted);
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.search-source-picker:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
 .visually-hidden {
   position: absolute !important;
   width: 1px !important;
@@ -141,4 +168,11 @@ fieldset.search-mode-picker::-webkit-scrollbar {
   .search-mode-option-copy {
     padding: 0.1875rem 0.5rem;
   }
+}
+
+.search-source-picker__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

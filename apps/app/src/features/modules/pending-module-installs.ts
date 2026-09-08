@@ -3,12 +3,29 @@ import {
   type ContentModuleCatalogEntry,
   hasDownloadableModuleIndex,
 } from '@localmed/contracts';
-
+import type { DownloadQueue } from '@/features/downloads/download-queue';
 import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 
 const STORAGE_KEY = 'minimed.pending-module-installs.v1';
 const INSTALLED_MODULES_STORAGE_KEY = 'localmed.installed-modules.v1';
+
+export function retireSupersededModuleDownloads(
+  queue: Pick<DownloadQueue, 'list' | 'observe'>,
+  moduleId: string,
+  installedVersion: string,
+): void {
+  for (const task of queue.list()) {
+    if (
+      task.kind === 'module' &&
+      task.id.startsWith(`module:${moduleId}@`) &&
+      task.id !== `module:${moduleId}@${installedVersion}` &&
+      ['failed', 'interrupted'].includes(task.state)
+    ) {
+      queue.observe(task, { state: 'cancelled', errorMessage: null }, {});
+    }
+  }
+}
 
 export interface PendingModuleInstall {
   readonly moduleId: string;

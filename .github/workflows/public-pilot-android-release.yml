@@ -227,13 +227,15 @@ jobs:
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Changes:
-          - first-launch core setup, progress and retry now fill the screen without bottom navigation;
-          - installed-core startup retains early access to calculators and assessments;
-          - startup sizing and navigation spacing are corrected on phone and desktop;
-          - browser regressions cover the missing-core prompt and early navigation through initialization.
+          - search, personal files and settings remain independently available while the core loads;
+          - unified search includes specialty catalogs, content-kind filters, history and section downloads;
+          - four corrected tool-pack versions install without immutable-version conflicts;
+          - readers render Markdown tables and more precise source links;
+          - the ECG editor supports reviewing regions and measurement points with an A4 report;
+          - the browser core uses 64 KiB SQLite pages to reduce OPFS reads; Android keeps its verified download.
 
-          Release archives include all 770 catalog package files, including experimental packs.
-          Their preview/review status is preserved. The browser application is under /app/.
+          Catalog packs are downloaded separately, with their preview/review status preserved.
+          The browser application is under /app/. The local/GitHub download switch is DEV-only.
 
           Boundaries:
           - SQL/content-pack schema remains version 2; source identifiers and anchors are preserved;

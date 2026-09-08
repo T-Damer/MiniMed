@@ -78,6 +78,7 @@ export type PatientRoute = Extract<
 export interface PatientWorkspaceProps {
   readonly route: PatientRoute;
   readonly onNavigate: (path: string) => void;
+  readonly backLabel?: string;
 }
 
 function formatDate(value: string): string {
@@ -790,6 +791,7 @@ function ManualEventForm(props: {
 }
 
 function PatientList(props: {
+  readonly backLabel?: string;
   readonly snapshot: PatientVaultSnapshot;
   readonly onNavigate: (path: string) => void;
   readonly onExportBackup: () => void;
@@ -855,7 +857,7 @@ function PatientList(props: {
       >
         <NavBack
           class="patient-workspace__back-button knowledge-back-button knowledge-subroute-heading__control"
-          aria-label="Назад к заметкам"
+          aria-label={props.backLabel ?? 'Назад к заметкам'}
           onClick={() => props.onNavigate(notesPath())}
         />
         <SearchField
@@ -1675,6 +1677,7 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
           <>
             <Show when={props.route.kind === 'patients'}>
               <PatientList
+                backLabel={props.backLabel ?? 'Назад к заметкам'}
                 snapshot={snapshot() ?? emptyPatientVaultSnapshot()}
                 onNavigate={props.onNavigate}
                 onExportBackup={() => void exportBackup()}

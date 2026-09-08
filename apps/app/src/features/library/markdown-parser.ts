@@ -35,7 +35,7 @@ const markdownProcessor = unified()
   .use(remarkMath)
   .use(remarkMarkExtension);
 
-function markdownNodeText(node: Root | RootContent): string {
+export function markdownNodeText(node: Root | RootContent): string {
   if ('value' in node && typeof node.value === 'string') return node.value;
   if ('children' in node) {
     return node.children.map((child) => markdownNodeText(child)).join('');

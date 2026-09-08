@@ -29,6 +29,37 @@ class ObservedStore extends InMemoryMedicalStore {
   }
 }
 
+it('uses one lexical branch for source lookup without interpreting a clinical case', async () => {
+  const store = new ObservedStore();
+  const core = createMedicalCore({ store, seed: DEMO_CONTENT_PACK, platform: 'test' });
+  try {
+    await core.initialize();
+    const documentReads = vi.spyOn(store, 'listDocuments');
+    const navigation = await core.listNavigationDocuments?.();
+    expect(navigation?.ok).toBe(true);
+    const readsBeforeSearch = documentReads.mock.calls.length;
+    const result = await core.search({
+      query: 'ребёнок 5 лет кашель пневмония',
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      filters: {},
+      limit: 10,
+      includeSuggestions: true,
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.groups.length).toBeGreaterThan(0);
+    expect(store.searchCalls).toBe(1);
+    expect(documentReads).toHaveBeenCalledTimes(readsBeforeSearch);
+    expect(result.value.analysis.facts).toEqual([]);
+    expect(result.value.analysis.suggestions).toEqual([]);
+    expect(result.value.analysis.clinicalContext).toBeUndefined();
+    expect(result.value.diagnostics.semantic.status).toBe('disabled');
+  } finally {
+    await core.close();
+  }
+});
+
 it('keeps exact subject titles through the merged chunk cutoff for document ranking', async () => {
   const store = new InMemoryMedicalStore();
   const core = createMedicalCore({
