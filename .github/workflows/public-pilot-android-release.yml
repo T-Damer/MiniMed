@@ -171,7 +171,10 @@ jobs:
               'sourceCommit': os.environ['SOURCE_SHA'],
               'apk': {'path': str(apk), 'sha256': apk_sha, 'bytes': apk.stat().st_size},
               'downloadableDatabase': {
-                  'url': 'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db',
+                  'url': (
+                      f'https://github.com/{os.environ["GITHUB_REPOSITORY"]}/releases/download/'
+                      f'{os.environ["RELEASE_TAG"]}/{os.environ["CORE_DATABASE_NAME"]}'
+                  ),
                   'sha256': db_sha,
                   'bytes': db_path.stat().st_size,
                   'pack': {'id': pack[0], 'version': pack[1], 'schemaVersion': pack[2]},
@@ -249,6 +252,7 @@ jobs:
           else
             gh release create "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" "$example_ct" "$example_mri" "$example_epub" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
           fi
+          gh release upload "$RELEASE_TAG" release-output/VERIFICATION.json release-output/APK-SHA256.txt release-output/DB-SHA256.txt --clobber
           if [ "$(gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft')" = true ]; then
             echo "Draft assets uploaded; update android-latest after final publication."
             exit 0
