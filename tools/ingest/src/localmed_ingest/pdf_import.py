@@ -484,9 +484,7 @@ def _build_diagnostics(
     if removed_repeated:
         warnings.append(f"Removed or marked {removed_repeated} repeated header/footer blocks.")
     if text_extraction_mode == "ocr":
-        warnings.append(
-            "Used OCR fallback because the PDF text layer had broken Cyrillic encoding."
-        )
+        warnings.append("Used OCR fallback for pages without a usable text layer.")
         reasons.append("OCR-derived text requires source-page review before clinical promotion.")
     elif is_likely_garbled_russian_pdf_text(included_text):
         reasons.append(
@@ -630,16 +628,17 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
             raw_blocks, text_extraction_mode = _maybe_extract_with_ocr(
                 document, raw_blocks, configured
             )
-        if not raw_blocks:
-            with suppress(
-                OSError,
-                ValueError,
-                json.JSONDecodeError,
-                subprocess.SubprocessError,
-            ):
-                raw_blocks = _extract_raw_blocks_macos_vision(source)
-                if raw_blocks:
-                    text_extraction_mode = "ocr"
+        missing_pages = set(page_dimensions) - {block.page for block in raw_blocks}
+        if configured.ocr_fallback and missing_pages:
+            # Keep native text verbatim when only some PDF pages are scanned.
+            recovered = [
+                block
+                for block in _extract_raw_blocks_macos_vision(source)
+                if block.page in missing_pages
+            ]
+            if recovered:
+                raw_blocks.extend(recovered)
+                text_extraction_mode = "ocr"
         body_font_size = _weighted_body_font(raw_blocks, configured)
         pages, removed_repeated = _classify_blocks(raw_blocks, body_font_size, configured)
         existing_pages = {page.page for page in pages}

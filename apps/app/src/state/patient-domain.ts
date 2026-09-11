@@ -5,6 +5,7 @@ import type {
   ToolEvaluation,
 } from '@localmed/contracts';
 import { isHttpUrl, ReferenceVerdictSchema } from '@localmed/contracts';
+import { normalizePatientAvatar, type PatientAvatar } from '@/state/patientAvatar';
 
 export const PATIENT_DOMAIN_SCHEMA_VERSION = 2 as const;
 
@@ -22,6 +23,7 @@ export type MedicationEventKind = 'start' | 'take' | 'dose-change' | 'stop';
 export interface PatientProfile {
   readonly id: string;
   readonly displayName: string;
+  readonly avatar?: PatientAvatar;
   readonly localRecordNumber?: string;
   readonly birthDate?: string;
   readonly biologicalSex?: BiologicalSex;
@@ -185,6 +187,7 @@ export interface PatientVaultSnapshot {
 export interface CreatePatientProfileInput {
   readonly id?: string;
   readonly displayName: string;
+  readonly avatar?: PatientAvatar;
   readonly localRecordNumber?: string;
   readonly birthDate?: string;
   readonly biologicalSex?: BiologicalSex;
@@ -276,6 +279,7 @@ export function createPatientProfile(input: CreatePatientProfileInput): {
   const profile: PatientProfile = {
     id: input.id ?? createId('patient'),
     displayName,
+    ...(input.avatar ? { avatar: normalizePatientAvatar(input.avatar) } : {}),
     ...(input.localRecordNumber?.trim()
       ? { localRecordNumber: input.localRecordNumber.trim() }
       : {}),
@@ -1306,6 +1310,7 @@ function normalizeProfile(value: unknown): PatientProfile {
   return {
     id: requiredString(value, 'id', 'идентификатор пациента'),
     displayName: requiredString(value, 'displayName', 'имя пациента'),
+    ...(value['avatar'] === undefined ? {} : { avatar: normalizePatientAvatar(value['avatar']) }),
     ...(localRecordNumber ? { localRecordNumber } : {}),
     ...(birthDate ? { birthDate: validDate(birthDate, 'дата рождения') } : {}),
     ...(biologicalSex ? { biologicalSex } : {}),

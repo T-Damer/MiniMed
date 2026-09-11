@@ -16,6 +16,7 @@ import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-packs'
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
+import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
@@ -89,10 +90,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         (!specialty() ||
           (scope() === 'conditions' && specialty()?.startsWith('kind:')
             ? documentMatchesConditionGroup(entry, specialty() ?? '')
-            : entry.specialties.some(
-                (group) =>
-                  (scope() === 'all' ? unifiedSearchSpecialty(group) : group) === specialty(),
-              ))),
+            : scope() === 'medications'
+              ? medicationDocumentGroups(entry).includes(specialty() ?? '')
+              : entry.specialties.some(
+                  (group) =>
+                    (scope() === 'all' ? unifiedSearchSpecialty(group) : group) === specialty(),
+                ))),
     ),
   );
   createEffect(() => {
@@ -113,7 +116,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   });
   const filters = createMemo(() => {
     const selected = specialty();
-    return selected && !selected.startsWith('kind:') && scope() !== 'diagnosis'
+    return selected &&
+      !selected.startsWith('kind:') &&
+      scope() !== 'diagnosis' &&
+      scope() !== 'medications'
       ? {
           specialties:
             scope() === 'all' && selected === 'gynecology'
@@ -158,7 +164,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       new ScopedMedicalCore(
         props.baseCore,
         scope(),
-        scope() === 'conditions' && specialty()?.startsWith('kind:')
+        (scope() === 'conditions' && specialty()?.startsWith('kind:')) ||
+          (scope() === 'medications' && specialty())
           ? new Set(visibleDocuments().map((document) => document.id))
           : undefined,
       ),
@@ -228,7 +235,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           searchActions={
             <Show when={!catalogOnly() && scope() !== 'diagnosis'}>
               <button
-                class="search-graph-button"
+                class="search-graph-button search-graph-button--hidden"
                 type="button"
                 aria-label="Карта связей"
                 title="Карта связей"

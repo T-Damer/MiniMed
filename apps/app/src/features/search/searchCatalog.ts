@@ -11,6 +11,12 @@ import {
 import { CALCULATOR_SECTIONS } from '@/features/calculators/calculator-packs';
 import { getCalculatorRegistry } from '@/features/calculators/calculator-registry';
 import {
+  medicationDocumentGroups,
+  medicationGroupLabel,
+} from '@/features/medications/medicationGroups';
+import { isModuleReleased } from '@/features/modules/local-packaged-modules';
+import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
   type SearchResultDocumentKind,
@@ -21,7 +27,7 @@ import { specialtyLabel } from '@/i18n/labels';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 
 export const SEARCH_SECTIONS: readonly { id: SearchScope; label: string; icon: AppGlyphName }[] = [
-  { id: 'all', label: 'Все источники', icon: 'book-open' },
+  { id: 'all', label: 'Все источники', icon: 'books' },
   { id: 'conditions', label: 'МКБ, симптомы и состояния', icon: 'notes' },
   { id: 'guidelines', label: 'Клинические рекомендации', icon: 'book-open' },
   { id: 'medications', label: 'Препараты', icon: 'prescription' },
@@ -128,6 +134,7 @@ export function matchingCatalogTools(
   );
 }
 export function searchGroupLabel(scope: SearchScope, id: string): string {
+  if (scope === 'medications') return medicationGroupLabel(id);
   if (scope === 'conditions' && id.startsWith('kind:'))
     return CONDITION_GROUPS.find((group) => group.id === id)?.label ?? id;
   const labels =
@@ -185,10 +192,23 @@ export function searchCatalogSections(
     };
     for (const entry of docs)
       add(
-        section.id === 'all' ? entry.specialties.map(unifiedSearchSpecialty) : entry.specialties,
+        section.id === 'medications'
+          ? medicationDocumentGroups(entry)
+          : section.id === 'all'
+            ? entry.specialties.map(unifiedSearchSpecialty)
+            : entry.specialties,
         searchResultDocumentKind(entry),
         true,
       );
+    if (section.id === 'medications') {
+      for (const module of MODULE_CATALOG.modules) {
+        if (module.kind !== 'medication' || !isModuleReleased(module)) continue;
+        const id = `module:${module.id}`;
+        counts.set(id, module.documents.length);
+        documentCounts.set(id, module.documents.length);
+        kinds.set(id, new Set(['medication']));
+      }
+    }
     for (const entry of rows)
       add(
         [section.id === 'all' ? unifiedSearchSpecialty(entry.group) : entry.group],

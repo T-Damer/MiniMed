@@ -44,6 +44,33 @@ so ordinary pushes and PRs do not build a duplicate release APK.
 
 ## Artifacts
 
+### Compressed module indexes
+
+Downloadable SQLite indexes support `compression: "gzip"`. The installer checks the downloaded
+`sha256` and `sizeBytes`, decompresses on the device, verifies `decodedSha256` and
+`decodedSizeBytes`, then runs the existing SQLite/schema checks before activation. Download sizes
+refer to the archive; installed sizes refer to SQLite. ZIP image packs keep their existing path.
+The decoder uses `DecompressionStream('gzip')`; it does not add a codec dependency. Brotli is not
+the distribution default because native decompression is not yet available in Chrome/Android
+WebView according to [MDN compatibility data](https://github.com/mdn/browser-compat-data/blob/main/api/DecompressionStream.json).
+
+Prepare an archive and its artifact fields with the pinned Bun runtime:
+
+```bash
+bun scripts/compress-module-index.mjs --input path/to/module.db --output path/to/module.db.gz --report playwright/compression/module-artifact.json
+bun test scripts/compress-module-index.test.mjs
+```
+
+The command verifies a lossless round trip and leaves the source database untouched. Use the emitted
+fields in a newly published artifact/catalog, set its URL to the `.db.gz` file, and require the app
+release containing this decoder. Do not overwrite an existing released artifact or advertise a URL
+before publishing its bytes and CORS mirror. Previously published uncompressed indexes remain valid.
+Serve the `.gz` as archive bytes, not as an HTTP `Content-Encoding: gzip` response that fetch would
+silently decode before transport checksum verification.
+The optional decoder belongs to the module installer; the separately installed Android core retains
+its existing URL/checksum contract. This does not change background-transfer support or eliminate
+the installer's existing in-memory SQLite buffer.
+
 A release should include:
 
 - static web bundle;

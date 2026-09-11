@@ -20,6 +20,7 @@ import {
   withPatientVaultMutation,
   writePatientVault,
 } from '@/state/patient-vault';
+import { capturePatientCalculatorInputs } from '@/state/patientCalculatorCapture';
 
 export interface PatientToolRecordOutcome {
   readonly snapshot: PatientVaultSnapshot;
@@ -220,7 +221,15 @@ export async function recordCalculatorResultForPatient(input: {
     const normalizedInputs = schema
       ? normalizedCalculatorInputs(schema, input.rawInputs)
       : input.rawInputs;
-    const contextSnapshot = schema ? patientContextSnapshot(profile, snapshot, occurredAt) : {};
+    const captured = schema
+      ? capturePatientCalculatorInputs(profile, schema, normalizedInputs)
+      : undefined;
+    const contextSnapshot = schema
+      ? {
+          ...patientContextSnapshot(captured?.profile ?? profile, snapshot, occurredAt),
+          ...captured?.context,
+        }
+      : {};
     const evaluation = input.result.evaluation
       ? {
           status: input.result.evaluation.status,
@@ -259,6 +268,27 @@ export async function recordCalculatorResultForPatient(input: {
         evaluation,
       });
     }
+    for (const measurement of captured?.measurements ?? []) {
+      if (
+        observations.some(
+          (observation) =>
+            observation.metricId === measurement.metricId && observation.unit === measurement.unit,
+        )
+      )
+        continue;
+      observations.push({
+        metricId: measurement.metricId,
+        unit: measurement.unit,
+        value: measurement.value,
+        method: `input:${measurement.inputId}`,
+        observedAt: occurredAt,
+        source: {
+          kind: 'tool-result',
+          toolId: input.calculatorId,
+          toolVersion: input.calculatorVersion,
+        },
+      });
+    }
     const outcome = appendToolResultIdempotently(snapshot, {
       patientId: input.patientId,
       ...(episodeId ? { episodeId } : {}),
@@ -276,8 +306,19 @@ export async function recordCalculatorResultForPatient(input: {
       },
       observations,
     });
-    if (outcome.created) await writePatientVault(outcome.snapshot);
-    return { snapshot: outcome.snapshot, event: outcome.event, created: outcome.created };
+    const next =
+      outcome.created && captured && captured.profile !== profile
+        ? {
+            ...outcome.snapshot,
+            profiles: outcome.snapshot.profiles.map((entry) =>
+              entry.id === profile.id
+                ? { ...captured.profile, updatedAt: new Date().toISOString() }
+                : entry,
+            ),
+          }
+        : outcome.snapshot;
+    if (outcome.created) await writePatientVault(next);
+    return { snapshot: next, event: outcome.event, created: outcome.created };
   });
 }
 

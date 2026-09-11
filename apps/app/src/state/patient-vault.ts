@@ -1,4 +1,7 @@
 import {
+  appendEvent,
+  type CreatePatientProfileInput,
+  createPatientProfile,
   emptyPatientVaultSnapshot,
   normalizePatientVaultSnapshot,
   PATIENT_DOMAIN_SCHEMA_VERSION,
@@ -670,6 +673,22 @@ export function updatePatientVault(
     if (next !== snapshot) await writePatientVault(next);
     return next;
   });
+}
+
+export async function createPatientInVault(input: CreatePatientProfileInput): Promise<{
+  readonly snapshot: PatientVaultSnapshot;
+  readonly patientId: string;
+}> {
+  const created = createPatientProfile(input);
+  const snapshot = await updatePatientVault((current) => {
+    let next: PatientVaultSnapshot = {
+      ...current,
+      profiles: [...current.profiles, created.profile],
+    };
+    for (const event of created.initialEvents) next = appendEvent(next, event);
+    return next;
+  });
+  return { snapshot, patientId: created.profile.id };
 }
 
 async function storedBlob(input: {

@@ -330,6 +330,20 @@ def test_grls_projects_exact_instruction_sections_as_proposed_registration_facts
     assert report["facts"] == 4
 
 
+def test_grls_group_case_variants_preserve_names_and_share_identity(tmp_path: Path) -> None:
+    catalog, registry, workspace = _write_grls_inputs(tmp_path)
+    payload = json.loads(catalog.read_text(encoding="utf-8"))
+    for record, group in zip(payload["records"], ["Вакцины", "вакцины"], strict=True):
+        record["pharmacotherapeuticGroup"] = group
+    catalog.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    output = tmp_path / "knowledge.json"
+    build_grls_product_workspace(catalog, registry, workspace, output)
+    knowledge = json.loads(output.read_text(encoding="utf-8"))
+    groups = [item for item in knowledge["entities"] if item["entityType"] == "medication-class"]
+    assert len(groups) == 1
+    assert {name["name"] for name in groups[0]["names"]} == {"Вакцины", "вакцины"}
+
+
 def test_grls_brand_aggregates_distinct_registrations_without_merging_them(
     tmp_path: Path,
 ) -> None:

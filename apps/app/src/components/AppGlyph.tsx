@@ -17,6 +17,7 @@ import atBold from '@phosphor-icons/core/assets/bold/at-bold.svg?raw';
 import binaryBold from '@phosphor-icons/core/assets/bold/binary-bold.svg?raw';
 import binocularsBold from '@phosphor-icons/core/assets/bold/binoculars-bold.svg?raw';
 import bookOpenBold from '@phosphor-icons/core/assets/bold/book-open-bold.svg?raw';
+import booksBold from '@phosphor-icons/core/assets/bold/books-bold.svg?raw';
 import brainBold from '@phosphor-icons/core/assets/bold/brain-bold.svg?raw';
 import browsersBold from '@phosphor-icons/core/assets/bold/browsers-bold.svg?raw';
 import calculatorBold from '@phosphor-icons/core/assets/bold/calculator-bold.svg?raw';
@@ -121,6 +122,7 @@ export type AppGlyphName =
   | 'list-checks'
   | 'system'
   | 'close'
+  | 'books'
   | 'graph'
   | 'calculator'
   | 'list'
@@ -243,6 +245,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'list-checks': svgBody(listChecksBold),
   system: svgBody(gearSixBold),
   close: svgBody(xBold),
+  books: svgBody(booksBold),
   graph: svgBody(graphBold),
   calculator: svgBody(calculatorBold),
   list: svgBody(listBold),

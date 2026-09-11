@@ -1,5 +1,9 @@
+import { CalculatorSchemaSchema } from '@localmed/contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
+import {
+  evaluateCalculatorSchema,
+  toStoredCalculationResult,
+} from '@/features/calculators/calculator-schema-engine';
 import {
   appendEvent,
   createManualMeasurementEvent,
@@ -8,8 +12,10 @@ import {
   emptyPatientVaultSnapshot,
   type PatientVaultSnapshot,
 } from '@/state/patient-domain';
+import { recordCalculatorResultForPatient } from '@/state/patient-tool-recording';
 import {
   addPatientBlob,
+  createPatientInVault,
   createPatientVault,
   deletePatientFromVault,
   deletePatientVault,
@@ -26,6 +32,7 @@ import {
   updatePatientVault,
   writePatientVault,
 } from '@/state/patient-vault';
+import coreClinical from '../../../../content/tool-modules/core-clinical.json';
 
 const nativeBridge = vi.hoisted(() => {
   let rawKey = new Uint8Array();
@@ -277,6 +284,43 @@ describe('patient vault storage modes', () => {
 
     expect(fakeDatabase.stores.has('envelope')).toBe(false);
     expect(await patientVaultStorageMode()).toBe('unencrypted');
+  });
+
+  it('creates by name, captures a calculator and retains the card after locking', async () => {
+    await expect(createPatientInVault({ displayName: 'Тест' })).rejects.toThrow();
+    await createPatientVault({ allowUnencrypted: true });
+    const created = await createPatientInVault({
+      displayName: 'Тест',
+      avatar: { kind: 'symbol', value: '🌿' },
+    });
+    const schema = CalculatorSchemaSchema.parse(
+      coreClinical.tools.find((tool) => tool.id === 'body-surface-area-mosteller')?.definition,
+    );
+    const rawInputs = { heightCm: 170, weightKg: 65 };
+    const evaluated = evaluateCalculatorSchema(schema, rawInputs);
+    if (!evaluated.ok) throw new Error(evaluated.error);
+    const input = {
+      patientId: created.patientId,
+      recordId: 'test-calculation',
+      calculatorId: schema.id,
+      calculatorVersion: '1',
+      title: schema.title,
+      schema,
+      rawInputs,
+      result: toStoredCalculationResult(evaluated),
+    };
+    await recordCalculatorResultForPatient(input);
+    expect((await recordCalculatorResultForPatient(input)).created).toBe(false);
+    lockPatientVault();
+    const restored = await unlockPatientVault();
+    expect(restored.profiles[0]?.avatar).toEqual({ kind: 'symbol', value: '🌿' });
+    expect(restored.events).toHaveLength(1);
+    expect(restored.events[0]?.observations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ metricId: 'body-height', unit: 'см', value: 170 }),
+        expect.objectContaining({ metricId: 'body-mass', unit: 'кг', value: 65 }),
+      ]),
+    );
   });
 
   it('stores web snapshots as plaintext and reopens them without a password', async () => {

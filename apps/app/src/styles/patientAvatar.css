@@ -1,0 +1,149 @@
+.patient-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--theme-accent-soft);
+}
+.patient-avatar__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.patient-avatar__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.patient-avatar__symbol {
+  font-size: var(--patient-avatar-symbol-size, 1.375rem);
+  line-height: 1;
+}
+.patient-avatar--portrait {
+  --patient-avatar-symbol-size: 2.5rem;
+  --patient-avatar-initials-size: 1.5rem;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 0.375rem;
+}
+
+.patient-avatar__initials {
+  color: var(--theme-accent);
+  font-size: var(--patient-avatar-initials-size, 0.75rem);
+  font-weight: 650;
+}
+.patient-avatar-picker {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+}
+.patient-avatar-picker__actions {
+  position: relative;
+  isolation: isolate;
+}
+.patient-avatar-picker__trigger {
+  display: inline-flex;
+  padding: 0.375rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.patient-avatar-picker__stack {
+  display: inline-flex;
+  padding: 0.3rem;
+  border: 1px solid var(--theme-accent);
+  border-radius: 0.5rem;
+  background: var(--theme-surface-raised);
+}
+.patient-avatar-picker__actions::before {
+  content: "";
+  position: absolute;
+  inset: 0.375rem;
+  z-index: -1;
+  transform: translate(3px, 2px) rotate(9deg);
+  border: 1px solid var(--theme-accent);
+  border-radius: 0.5rem;
+  background: var(--theme-surface-muted);
+}
+.patient-avatar-picker__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 0.375rem;
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+.patient-avatar-picker__photo-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.patient-avatar-picker__empty-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.patient-avatar-picker__action-icon {
+  width: 1rem;
+  height: 1rem;
+}
+.patient-avatar-picker__emoji-trigger {
+  position: absolute;
+  right: -0.375rem;
+  bottom: -0.375rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-accent);
+  background: var(--theme-surface-raised);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.patient-avatar-picker__popover {
+  z-index: 1600;
+  width: min(20rem, calc(100vw - 2rem));
+  max-height: min(31rem, var(--kb-popper-content-available-height, calc(100dvh - 2rem)));
+  overflow: auto;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 18%);
+}
+.patient-avatar-picker__close {
+  display: block;
+  margin-left: auto;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--theme-accent);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.patient-emoji-picker {
+  min-height: 0;
+}
+.patient-emoji-picker__widget {
+  width: 100%;
+  height: min(27rem, 65dvh, calc(var(--kb-popper-content-available-height, 100dvh) - 2.75rem));
+  min-height: 0;
+  --border-radius: 0;
+  --shadow: none;
+  --font-family: inherit;
+  --color-border: var(--theme-border);
+  --color-border-over: var(--theme-accent);
+}
+.patient-avatar-picker__error {
+  color: var(--theme-danger);
+  font-size: 0.8125rem;
+}

@@ -38,6 +38,7 @@ import {
   localPackagedModulesToInstall,
 } from '@/features/modules/local-packaged-modules';
 import { BUNDLED_CORE_MODULE } from '@/features/modules/module-catalog';
+import { decodeModuleIndex } from '@/features/modules/module-index-compression';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
   dequeuePendingModuleInstall,
@@ -213,9 +214,10 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     if (!artifact.url) throw new Error('Для набора не указан адрес загрузки.');
     if (
       artifact.compression !== 'none' &&
+      !(artifact.kind === 'index' && artifact.compression === 'gzip') &&
       !(artifact.kind === 'source-assets' && artifact.compression === 'zip')
     ) {
-      throw new Error('Поддерживаются только несжатый index и ZIP source-assets.');
+      throw new Error('Поддерживаются SQLite, gzip для SQLite и ZIP для изображений.');
     }
     const resolvedUrl = resolveContentModuleArtifactUrl(artifact.url);
     const cacheKey = artifact.sha256 ?? `${artifact.id}:${resolvedUrl}`;
@@ -258,9 +260,6 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
     if (!index) throw new Error('В наборе нет поисковой базы.');
     const staged = this.staged.get(index.token);
     if (!staged) throw new Error('Временный файл набора потерян.');
-    if (staged.artifact.compression !== 'none') {
-      throw new Error('Index набора должен быть несжатым.');
-    }
     const sourceAssets = module.artifacts
       .filter((artifact) => artifact.kind === 'source-assets')
       .map((artifact) => {
@@ -503,6 +502,7 @@ export class BrowserContentModuleRuntime {
       new BrowserModuleValidator(),
       this.registry,
       3,
+      decodeModuleIndex,
     );
     this.installer.subscribe((task) => {
       if (task.state === 'completed') {

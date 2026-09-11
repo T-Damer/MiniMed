@@ -87,3 +87,14 @@ describe('search section downloads', () => {
     expect(blocks.has('conditions/kind:symptom')).toBe(false);
   });
 });
+
+it('offers medication packs on a fresh core without document pointers', () => {
+  const blocks = searchSectionDownloadBlocks([], [], MODULE_CATALOG);
+  const medications = blocks.get('medications/')?.modules ?? [];
+  expect(medications.length).toBeGreaterThan(0);
+  expect(medications.every((module) => module.kind === 'medication')).toBe(true);
+  expect(medications.some((module) => module.artifacts.length === 0)).toBe(false);
+  for (const module of medications) {
+    expect(blocks.get(`medications/module:${module.id}`)?.modules).toContain(module);
+  }
+});

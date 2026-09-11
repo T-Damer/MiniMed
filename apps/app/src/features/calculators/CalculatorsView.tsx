@@ -5,6 +5,7 @@ import {
   createSignal,
   For,
   type JSX,
+  on,
   onCleanup,
   onMount,
   Show,
@@ -95,7 +96,6 @@ import {
   attachedResultNoteTitle,
   snapshotCalculationForNote,
 } from '@/features/notes/note-attached-results';
-import { notesPatientsPath } from '@/features/notes/notes-routing';
 import {
   getExperimentalModulesEnabled,
   getSplitNavigation,
@@ -473,16 +473,33 @@ function CalculatorForm(props: {
   const [schemaValues, setSchemaValues] = createSignal<Record<string, string>>({});
   const [schemaStep, setSchemaStep] = createSignal(0);
   const [schemaPreview, setSchemaPreview] = createSignal<CalculatorSchemaEvaluation>();
+  let patientRefreshRequest = 0;
   const refreshPatients = (): void => {
+    const request = ++patientRefreshRequest;
     if (!isPatientVaultUnlocked()) {
+      const protectedForm = patientId() !== '';
       setPatientSnapshot(undefined);
       setPatientId('');
       setEpisodeId('');
-      setSubjectLabel('');
+      if (protectedForm) {
+        setSubjectLabel('');
+        setSchemaValues({});
+        setValue('');
+        setSchemaPreview(undefined);
+      }
       acknowledgePatientVaultUiCleared();
       return;
     }
-    void readPatientVault().then(setPatientSnapshot);
+    void readPatientVault()
+      .then((snapshot) => {
+        if (request === patientRefreshRequest && isPatientVaultUnlocked())
+          setPatientSnapshot(snapshot);
+      })
+      .catch((cause) => {
+        if (request !== patientRefreshRequest) return;
+        setPatientSnapshot(undefined);
+        props.onMessage(cause instanceof Error ? cause.message : 'Не удалось прочитать пациентов.');
+      });
   };
   onMount(() => {
     refreshPatients();
@@ -490,6 +507,7 @@ function CalculatorForm(props: {
     window.addEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPatients);
   });
   onCleanup(() => {
+    patientRefreshRequest += 1;
     window.removeEventListener(PATIENT_VAULT_EVENT, refreshPatients);
     window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPatients);
   });
@@ -506,25 +524,28 @@ function CalculatorForm(props: {
   const setSchemaValue = (id: string, fieldValue: string): void => {
     setSchemaValues((previous) => ({ ...previous, [id]: fieldValue }));
   };
+  const schemaDefinitionId = createMemo(() => props.definition.id);
   // A <select> shows its first <option> by default without firing onChange, so the reactive store never
   // learns that value on its own — without this, submitting before touching every dropdown reports the
   // untouched ones as missing. Reset to each select input's first option whenever the calculator changes.
-  createEffect(() => {
-    const schema = getCalculatorSchema(props.definition.id);
-    if (!schema) return;
-    setSchemaValues({
-      ...initialCalculatorSchemaValues(schema),
-      ...consumeCalculatorLaunchDraft(props.definition.id, schema.inputs),
-      ...Object.fromEntries(
-        Object.entries(props.initialValues ?? {}).map(([id, fieldValue]) => [
-          id,
-          String(fieldValue),
-        ]),
-      ),
-    });
-    setSchemaStep(0);
-    setSchemaPreview(undefined);
-  });
+  createEffect(
+    on([schemaDefinitionId, () => props.initialValues], () => {
+      const schema = getCalculatorSchema(props.definition.id);
+      if (!schema) return;
+      setSchemaValues({
+        ...initialCalculatorSchemaValues(schema),
+        ...consumeCalculatorLaunchDraft(props.definition.id, schema.inputs),
+        ...Object.fromEntries(
+          Object.entries(props.initialValues ?? {}).map(([id, fieldValue]) => [
+            id,
+            String(fieldValue),
+          ]),
+        ),
+      });
+      setSchemaStep(0);
+      setSchemaPreview(undefined);
+    }),
+  );
   const changeFamily = (next: QuantityFamily): void => {
     const units = unitsForFamily(next);
     setFamily(next);
@@ -540,6 +561,11 @@ function CalculatorForm(props: {
       (episode) => episode.patientId === patientId() && episode.status === 'open',
     ) ?? [];
   const selectPatient = (nextPatientId: string): void => {
+    if (patientId() && patientId() !== nextPatientId) {
+      setSchemaValues({});
+      setValue('');
+      setSchemaPreview(undefined);
+    }
     setPatientId(nextPatientId);
     setEpisodeId('');
     const patient = patientProfiles().find((profile) => profile.id === nextPatientId);
@@ -690,11 +716,12 @@ function CalculatorForm(props: {
         profiles={patientProfiles()}
         patientId={patientId()}
         subjectLabel={subjectLabel()}
-        unlocked={isPatientVaultUnlocked()}
+        unlocked={patientSnapshot() !== undefined && isPatientVaultUnlocked()}
         onPatientChange={selectPatient}
         onSubjectLabelChange={setSubjectLabel}
-        onUnlock={() => {
-          window.location.hash = notesPatientsPath();
+        onSnapshotChange={(snapshot) => {
+          patientRefreshRequest += 1;
+          setPatientSnapshot(snapshot);
         }}
       />
 

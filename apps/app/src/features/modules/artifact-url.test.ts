@@ -74,4 +74,22 @@ describe('resolveContentModuleArtifactUrl', () => {
     const url = 'https://example.test/module.db';
     expect(resolveContentModuleArtifactUrl(url)).toBe(url);
   });
+
+  it('keeps compressed clinical and ESKLP downloads on their dataset mirrors', () => {
+    vi.stubEnv('VITE_USE_LOCAL_MODULE_ARTIFACTS', 'false');
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/clinical-test/clinical-1.db.gz',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/clinical-test/apps/app/public/content/clinical/clinical-1.db.gz',
+    );
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/esklp-test/minimed.medications.test.ru.db.gz',
+      ),
+    ).toBe(
+      'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/esklp-test/modules/minimed.medications.test.ru.db.gz',
+    );
+  });
 });

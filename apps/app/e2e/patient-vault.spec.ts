@@ -182,8 +182,10 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await page.getByRole('button', { name: 'Динамика' }).click();
   await expect(page).toHaveURL(/#\/notes\/patients\/[^/]+\/dynamics$/u);
   await expect(page.getByRole('heading', { name: 'Динамика' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /body-mass/u })).toBeVisible();
-  await expect(page.getByRole('button', { name: /body-height/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /body-mass · кг · Масса тела/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /body-mass · кг · body-surface/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /body-height · см · Рост/u })).toBeVisible();
+  await expect(page.getByRole('button', { name: /body-height · см · body-/u })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'blood-pressure', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'pulse', exact: true })).toBeVisible();
   await expect(page.locator('.patient-dynamics__table')).toHaveCount(5);
@@ -192,7 +194,9 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await expect(page.getByRole('button', { name: /Изменение дозы/u })).toBeVisible();
   await expect(page.getByRole('button', { name: /Отмена/u })).toBeVisible();
 
-  const calculatorSource = page.getByRole('button', { name: /body-surface-area-mosteller/u });
+  const calculatorSource = page.getByRole('button', {
+    name: /^body-surface-area-mosteller/u,
+  });
   await calculatorSource.click();
   await expect(page.getByText(/Версия инструмента: 1\.0\.0/u)).toBeVisible();
   await expect(page.getByText(/Результат: Площадь поверхности тела/u)).toBeVisible();
@@ -212,7 +216,7 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await expect(page.getByText(/Текущий осмотр открыт:/u)).toHaveCount(0);
   await page.getByRole('button', { name: 'Динамика', exact: true }).click();
   await expect(page).toHaveURL(/#\/notes\/patients\/[^/]+\/dynamics$/u);
-  await page.getByRole('button', { name: /body-surface-area-mosteller/u }).click();
+  await page.getByRole('button', { name: /^body-surface-area-mosteller/u }).click();
   await page.getByRole('button', { name: 'Открыть осмотр', exact: true }).click();
   await expect(page).toHaveURL(/#\/notes\/patients\/[^?]+\?episode=.+$/u);
   await expect(page.getByText(/Текущий осмотр закрыт:/u)).toBeVisible();

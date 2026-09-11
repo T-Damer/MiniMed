@@ -27,7 +27,6 @@ import type {
   AssessmentResponseValue,
   IncompleteAssessmentRecord,
 } from '@/features/assessments/assessment-types';
-import { notesPatientsPath } from '@/features/notes/notes-routing';
 import {
   createCompletedAssessmentRecord,
   removeAssessmentRecord,
@@ -115,9 +114,12 @@ export function AssessmentQuestionnairePage(props: {
           setPatientSnapshot(next);
         }
       })
-      .catch(() => {
+      .catch((cause) => {
         if (request === patientRefreshRequest && isPatientVaultUnlocked()) {
           setPatientSnapshot(undefined);
+          props.onMessage(
+            cause instanceof Error ? cause.message : 'Не удалось прочитать пациентов.',
+          );
         }
       });
   };
@@ -127,6 +129,7 @@ export function AssessmentQuestionnairePage(props: {
     window.addEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPatients);
   });
   onCleanup(() => {
+    patientRefreshRequest += 1;
     window.removeEventListener(PATIENT_VAULT_EVENT, refreshPatients);
     window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPatients);
   });
@@ -435,14 +438,15 @@ export function AssessmentQuestionnairePage(props: {
           profiles={patientProfiles()}
           patientId={patientId()}
           subjectLabel={subjectLabel()}
-          unlocked={isPatientVaultUnlocked()}
+          unlocked={patientSnapshot() !== undefined && isPatientVaultUnlocked()}
           onPatientChange={selectPatient}
           onSubjectLabelChange={(value) => {
             setSubjectLabel(value);
             saveDraft(answers(), value);
           }}
-          onUnlock={() => {
-            window.location.hash = notesPatientsPath();
+          onSnapshotChange={(snapshot) => {
+            patientRefreshRequest += 1;
+            setPatientSnapshot(snapshot);
           }}
         />
         <Show when={selectedPatient()}>

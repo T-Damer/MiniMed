@@ -394,7 +394,12 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
             class="document-overlay-outline-backdrop"
             classList={{ 'document-overlay-outline-backdrop--open': chrome.outlineOpen() }}
             aria-label="Закрыть оглавление"
-            onClick={chrome.closeOutline}
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              chrome.closeOutline();
+            }}
           />
           <aside
             ref={chrome.setOutline}

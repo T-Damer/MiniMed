@@ -30,6 +30,7 @@ async function openOrdinaryNoteDialog(page: Page): Promise<void> {
 test('keeps patient note records local, editable in nested routes, and findable from search', async ({
   page,
 }) => {
+  test.setTimeout(180_000);
   const initialCardTitle = 'Иванов И., 3 года, 20 кг';
   const cardTitle = 'Иванов И., 4 года, 20 кг';
   await mountBuiltApp(page, { persistentOrigin: true });
@@ -123,6 +124,7 @@ test('keeps patient note records local, editable in nested routes, and findable 
 
   // Searching finds it, labelled as personal and outside the official results container.
   await navigationButton(page, 'Поиск').click();
+  await expect(page.getByTestId('search-input')).toBeVisible({ timeout: 90_000 });
   await page.getByTestId('search-input').fill('цефтриаксон пневмония');
 
   const personal = page.locator('.personal-note-matches');

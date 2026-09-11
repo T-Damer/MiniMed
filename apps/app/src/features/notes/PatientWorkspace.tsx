@@ -21,6 +21,9 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
+import { PatientAvatar } from '@/components/PatientAvatar';
+import { PatientAvatarPicker } from '@/components/PatientAvatarPicker';
+import { PatientVaultUnlock } from '@/components/PatientVaultUnlock';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
@@ -39,7 +42,6 @@ import {
   createLaboratoryEvent,
   createManualMeasurementEvent,
   createMedicationEvent,
-  createPatientProfile,
   type DynamicsChartGroup,
   emptyPatientVaultSnapshot,
   latestObservation,
@@ -53,7 +55,7 @@ import {
 } from '@/state/patient-domain';
 import {
   acknowledgePatientVaultUiCleared,
-  createPatientVault,
+  createPatientInVault,
   deletePatientFromVault,
   deletePatientVault,
   exportPatientVaultBackup,
@@ -62,12 +64,10 @@ import {
   lockPatientVault,
   PATIENT_VAULT_EVENT,
   PATIENT_VAULT_LOCK_EVENT,
-  patientVaultStorageMode,
   readPatientVault,
-  unlockPatientVault,
   updatePatientVault,
 } from '@/state/patient-vault';
-import { isPatientVaultNativePlatform } from '@/state/patient-vault-native';
+import type { PatientAvatar as Avatar } from '@/state/patientAvatar';
 import '@/styles/patient-workspace.css';
 
 export type PatientRoute = Extract<
@@ -295,85 +295,12 @@ function DynamicsChart(props: {
   );
 }
 
-function UnlockPanel(props: {
-  readonly onUnlocked: (snapshot: PatientVaultSnapshot) => void;
-}): JSX.Element {
-  const [storedMode, setStoredMode] =
-    createSignal<Awaited<ReturnType<typeof patientVaultStorageMode>>>();
-  const [busy, setBusy] = createSignal(true);
-  const [error, setError] = createSignal('');
-  onMount(() => {
-    void (async () => {
-      try {
-        const mode = await patientVaultStorageMode();
-        setStoredMode(mode);
-        if (mode === 'unencrypted' || (!mode && !isPatientVaultNativePlatform())) return;
-        if (!mode) {
-          await createPatientVault();
-          props.onUnlocked(await readPatientVault());
-        } else props.onUnlocked(await unlockPatientVault());
-      } catch (cause) {
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : 'Keychain/Keystore недоступен; можно продолжить без шифрования.',
-        );
-      } finally {
-        setBusy(false);
-      }
-    })();
-  });
-  const continueUnencrypted = async (): Promise<void> => {
-    setError('');
-    setBusy(true);
-    try {
-      if (storedMode() === 'unencrypted') props.onUnlocked(await unlockPatientVault());
-      else {
-        await createPatientVault({ allowUnencrypted: true });
-        props.onUnlocked(await readPatientVault());
-      }
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Не удалось открыть хранилище.');
-    } finally {
-      setBusy(false);
-    }
-  };
-  const canUseUnencrypted = (): boolean => storedMode() !== 'native-keychain';
-  return (
-    <section class="patient-workspace__unlock paper-card">
-      <AppGlyph name="lock" class="patient-workspace__unlock-icon" />
-      <Heading depth={2}>
-        {busy()
-          ? 'Открываем пациентов…'
-          : canUseUnencrypted()
-            ? 'Хранилище без шифрования'
-            : 'Не удалось открыть Keychain'}
-      </Heading>
-      <Show when={!busy() && canUseUnencrypted()}>
-        <p class="patient-workspace__warning" role="alert">
-          Keychain/Keystore недоступен. Карточки будут храниться в IndexedDB без шифрования и
-          останутся доступны любому, кто получит доступ к этому профилю браузера или устройству.
-        </p>
-      </Show>
-      <Show when={error()}>
-        <p class="patient-workspace__error" role="alert">
-          {error()}
-        </p>
-      </Show>
-      <Show when={!busy() && canUseUnencrypted()}>
-        <Button type="button" variant="primary" onClick={() => void continueUnencrypted()}>
-          {storedMode() === 'unencrypted' ? 'Открыть без шифрования' : 'Продолжить без шифрования'}
-        </Button>
-      </Show>
-    </section>
-  );
-}
-
 function NewPatientForm(props: {
   readonly onCreated: (snapshot: PatientVaultSnapshot, id: string) => void;
   readonly onCancel: () => void;
 }): JSX.Element {
   const [name, setName] = createSignal('');
+  const [avatar, setAvatar] = createSignal<Avatar>();
   const [recordNumber, setRecordNumber] = createSignal('');
   const [birthDate, setBirthDate] = createSignal('');
   const [sex, setSex] = createSignal<PatientProfile['biologicalSex']>();
@@ -399,16 +326,12 @@ function NewPatientForm(props: {
       if (selectedSex) profileInput = { ...profileInput, biologicalSex: selectedSex };
       if (selectedWeight) profileInput = { ...profileInput, weightKg: Number(selectedWeight) };
       if (selectedHeight) profileInput = { ...profileInput, heightCm: Number(selectedHeight) };
-      const created = createPatientProfile(profileInput);
-      const snapshot = await updatePatientVault((current) => {
-        let next: PatientVaultSnapshot = {
-          ...current,
-          profiles: [...current.profiles, created.profile],
-        };
-        for (const initialEvent of created.initialEvents) next = appendEvent(next, initialEvent);
-        return next;
+      const selectedAvatar = avatar();
+      const created = await createPatientInVault({
+        ...profileInput,
+        ...(selectedAvatar ? { avatar: selectedAvatar } : {}),
       });
-      props.onCreated(snapshot, created.profile.id);
+      props.onCreated(created.snapshot, created.patientId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось создать карточку пациента.');
     } finally {
@@ -419,6 +342,13 @@ function NewPatientForm(props: {
     <section class="patient-workspace__panel paper-card">
       <Heading depth={2}>Новая карточка пациента</Heading>
       <form class="patient-workspace__form" onSubmit={submit}>
+        <PatientAvatarPicker
+          name={name()}
+          value={avatar()}
+          onChange={(value) => {
+            setAvatar(value);
+          }}
+        />
         <label class="patient-workspace__field">
           <span class="patient-workspace__label">Имя или псевдоним</span>
           <input
@@ -910,6 +840,7 @@ function PatientList(props: {
                 class="patient-workspace__patient-card paper-card"
                 onClick={() => props.onNavigate(notesPatientsPath(profile.id))}
               >
+                <PatientAvatar name={profile.displayName} avatar={profile.avatar} />
                 <strong class="patient-workspace__patient-name">{profile.displayName}</strong>
                 <small class="patient-workspace__patient-meta">
                   {profile.birthDate
@@ -1047,6 +978,25 @@ function PatientDetail(props: {
           </button>
           <p class="archive-kicker">Карточка пациента</p>
           <Heading depth={1}>{props.profile.displayName}</Heading>
+          <PatientAvatarPicker
+            name={props.profile.displayName}
+            value={props.profile.avatar}
+            onChange={async (avatar) => {
+              const snapshot = await updatePatientVault((current) => ({
+                ...current,
+                profiles: current.profiles.map((profile) => {
+                  if (profile.id !== props.profile.id) return profile;
+                  const { avatar: _previous, ...rest } = profile;
+                  return {
+                    ...rest,
+                    ...(avatar ? { avatar } : {}),
+                    updatedAt: new Date().toISOString(),
+                  };
+                }),
+              }));
+              props.onSnapshot(snapshot);
+            }}
+          />
           <p>
             {props.profile.birthDate
               ? `Дата рождения: ${formatDate(props.profile.birthDate)}`
@@ -1694,16 +1644,7 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
                 onCancel={() => props.onNavigate(notesPatientsPath())}
               />
             </Show>
-            <Show
-              when={props.route.kind === 'patient' || props.route.kind === 'patient-dynamics'}
-              fallback={
-                <Show when={props.route.kind !== 'patients'}>
-                  <p class="patient-workspace__error" role="alert">
-                    Пациент не найден.
-                  </p>
-                </Show>
-              }
-            >
+            <Show when={props.route.kind === 'patient' || props.route.kind === 'patient-dynamics'}>
               <Show
                 when={selectedProfile()}
                 fallback={
@@ -1744,7 +1685,7 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
           </>
         }
       >
-        <UnlockPanel onUnlocked={onUnlocked} />
+        <PatientVaultUnlock onUnlocked={onUnlocked} />
         <Show when={error()}>
           <p class="patient-workspace__error" role="alert">
             {error()}

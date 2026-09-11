@@ -10,7 +10,7 @@ import pymupdf
 import pytest
 import yaml
 
-from localmed_ingest import source_registry
+from localmed_ingest import pdf_import, source_registry
 from localmed_ingest.builder import build_content_pack, load_content_pack
 from localmed_ingest.models import (
     ExtractedBlock,
@@ -159,6 +159,46 @@ def test_ocr_extraction_requires_source_page_review() -> None:
 
     assert diagnostics.requires_review is True
     assert "OCR-derived text requires source-page review" in diagnostics.review_reasons[0]
+
+
+def test_mixed_pdf_recovers_scanned_pages_without_replacing_native_text(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "mixed.pdf"
+    create_text_pdf(source)
+    with pymupdf.open(source) as document:
+        image = document[0].get_pixmap().tobytes("png")
+        page = document.new_page()
+        page.insert_image(page.rect, stream=image)
+        document.saveIncr()
+    recovered = RawBlock(
+        page=4,
+        page_width=595,
+        page_height=842,
+        order_index=0,
+        bbox=(50, 100, 400, 130),
+        text="Производитель: проверочный текст страницы со сканом.",
+        font_size=None,
+        font_name=None,
+        bold=False,
+        line_count=1,
+        columnar_lines=0,
+    )
+    from dataclasses import replace
+
+    monkeypatch.setattr(
+        pdf_import,
+        "_extract_raw_blocks_macos_vision",
+        lambda _source: [replace(recovered, page=1, text="НЕ ЗАМЕНЯТЬ НАТИВНЫЙ ТЕКСТ"), recovered],
+    )
+    extracted = extract_pdf(source)
+    assert extracted.pages[3].blocks[0].text == recovered.text
+    assert all("НЕ ЗАМЕНЯТЬ" not in block.text for block in extracted.pages[0].blocks)
+    assert extracted.diagnostics.text_extraction_mode == "ocr"
+    assert extracted.diagnostics.requires_review
+    without_ocr = extract_pdf(source, ExtractionOptions(ocr_fallback=False))
+    assert without_ocr.pages[3].blocks == []
+    assert extracted.pages[0].blocks == without_ocr.pages[0].blocks
 
 
 def test_plain_instruction_section_labels_are_headings() -> None:

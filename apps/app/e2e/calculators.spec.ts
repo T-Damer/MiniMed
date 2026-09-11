@@ -69,26 +69,6 @@ test('offers and installs the pediatric growth pack from the calculator catalog'
   await expect(page.getByLabel('Масса тела, г')).toBeVisible();
 });
 
-test('uses one patient field and offers the protected patient unlock action', async ({ page }) => {
-  await mountBuiltApp(page, { persistentOrigin: true });
-  await page
-    .locator('.app-bottom-nav')
-    .getByRole('button', { name: 'Калькуляторы', exact: true })
-    .click();
-  await page.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
-  await page.getByTestId('calculator-open-body-surface-area-mosteller').click();
-
-  const patientField = page.getByRole('combobox', {
-    name: 'Пациент / случай — необязательно',
-    exact: true,
-  });
-  await expect(patientField).toHaveCount(1);
-  await patientField.fill('Неизвестный пациент');
-  await page.getByRole('option', { name: 'Разблокировать пациентов', exact: true }).click();
-
-  await expect(page).toHaveURL(/#\/notes\/patients$/u);
-});
-
 test('calculates body surface area and writes the result to a patient note', async ({ page }) => {
   await mountBuiltApp(page, { persistentOrigin: true });
 

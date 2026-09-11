@@ -4,6 +4,30 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.38] - 2026-09-11
+
+- Patient selectors in calculators and assessments unlock the vault inline and support name-only
+  patient creation. Unlocking keeps unbound inputs; locking clears patient-bound fields. Calculators
+  record schema-declared measurements without inventing a birth date from age.
+- Patient avatars store an emoji or a locally re-encoded photo with the vault snapshot. Lists show
+  initials when unset; existing profiles need no migration.
+- Search dropdown rows align selection, download, count and expansion. All Sources uses a books icon,
+  and opening the menu does not steal focus. Medication groups use ATC membership and declared
+  specialties rather than inferred indications.
+- Downloadable module indexes accept gzip transport with separate archive and decoded checksums.
+  Existing uncompressed catalogs remain valid; this release does not republish module URLs.
+- Touch file/folder drags show an icon/title preview. Reader backdrop dismissal no longer activates
+  outline swipe or the content behind it.
+- Android requests the highest supported refresh rate at the current resolution; the OS still applies
+  battery, thermal and vendor limits.
+- Preparation recovers scanned pages in mixed native-text PDFs and treats GRLS group names that
+  differ only by case as the same identity.
+
+The application reuses the verified discovery corpus. SQL/content-pack schema remains 2; installed
+packs, source identifiers, bookmarks and anchors are unchanged. Gzip is optional for newly published
+module indexes and requires this app version. This is a debug-signed engineering prerelease;
+physical-device and clinical qualification remain outstanding.
+
 ## [0.6.37] - 2026-09-08
 
 - Search, personal files and settings remain independently available while the medical core loads.

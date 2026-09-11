@@ -1,4 +1,5 @@
 import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
 import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
@@ -290,6 +291,7 @@ interface ExampleUploadState {
 }
 
 interface TouchDragSource {
+  readonly title: string;
   readonly kind: 'document' | 'folder';
   readonly id: string;
   readonly key: string;
@@ -414,6 +416,12 @@ export function UserLibraryPage(): JSX.Element {
   const [creatingPdf, setCreatingPdf] = createSignal(false);
   const [viewMode, setViewMode] = createSignal<'grid' | 'list'>(initialViewMode());
   const [sortMode, setSortMode] = createSignal<SortMode>(initialSortMode());
+  const [dragPreview, setDragPreview] = createSignal<{
+    title: string;
+    kind: 'document' | 'folder';
+    x: number;
+    y: number;
+  }>();
   const [draggingKey, setDraggingKey] = createSignal<string | null>(null);
   const [mediaDocument, setMediaDocument] = createSignal<UserLibraryDocument | null>(null);
   const [mediaUrl, setMediaUrl] = createSignal('');
@@ -955,6 +963,7 @@ export function UserLibraryPage(): JSX.Element {
       window.removeEventListener('pointercancel', onCancel);
       if (dragging) {
         setDraggingKey(null);
+        setDragPreview(undefined);
         setDragTarget(undefined);
         document.body.classList.remove('user-library-touch-dragging');
         touchDragActive = false;
@@ -975,7 +984,10 @@ export function UserLibraryPage(): JSX.Element {
         dropFrame = undefined;
         const point = pendingDropPoint;
         pendingDropPoint = undefined;
-        if (point) updateDropTarget(point.x, point.y);
+        if (point) {
+          setDragPreview({ title: source.title, kind: source.kind, x: point.x, y: point.y });
+          updateDropTarget(point.x, point.y);
+        }
       });
     };
 
@@ -1023,6 +1035,7 @@ export function UserLibraryPage(): JSX.Element {
       dragging = true;
       touchDragActive = true;
       setDraggingKey(source.key);
+      setDragPreview({ title: source.title, kind: source.kind, x: startX, y: startY });
       document.body.classList.add('user-library-touch-dragging');
       try {
         item.setPointerCapture(pointerId);
@@ -1453,6 +1466,7 @@ export function UserLibraryPage(): JSX.Element {
           onPointerDown={(event) =>
             startTouchDrag(event, {
               kind: 'document',
+              title: props.document.title,
               id: props.document.id,
               key: props.document.id,
             })
@@ -1693,6 +1707,7 @@ export function UserLibraryPage(): JSX.Element {
           onPointerDown={(event) =>
             startTouchDrag(event, {
               kind: 'folder',
+              title: props.folder.title,
               id: props.folder.id,
               key: props.folder.id,
             })
@@ -1857,6 +1872,26 @@ export function UserLibraryPage(): JSX.Element {
 
   return (
     <section class="user-library-page" aria-label="Ваши документы">
+      <Show when={dragPreview()}>
+        {(preview) => (
+          <Portal>
+            <div
+              class="user-library-drag-preview"
+              aria-hidden="true"
+              style={{
+                left: `${Math.max(8, Math.min(preview().x + 16, window.innerWidth - 200))}px`,
+                top: `${Math.max(8, preview().y - 56)}px`,
+              }}
+            >
+              <AppGlyph
+                name={preview().kind === 'folder' ? 'folder-open' : 'file-text'}
+                class="user-library-drag-preview__icon"
+              />
+              <span class="user-library-drag-preview__title">{preview().title}</span>
+            </div>
+          </Portal>
+        )}
+      </Show>
       <AppContextMenu actions={pageActions()} hideButton class="user-library-page__area-context">
         <div
           ref={setHeadingElement}
@@ -1969,7 +2004,6 @@ export function UserLibraryPage(): JSX.Element {
               value={folderTitle()}
               placeholder="Название папки"
               aria-label="Название новой папки"
-              autofocus
               onInput={(event) => setFolderTitle(event.currentTarget.value)}
             />
             <div class="user-library-folder-create__actions">

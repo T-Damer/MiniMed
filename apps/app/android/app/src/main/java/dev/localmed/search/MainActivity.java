@@ -7,6 +7,8 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Display;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import androidx.core.content.pm.PackageInfoCompat;
 import androidx.core.splashscreen.SplashScreen;
@@ -17,6 +19,24 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     private static final String WEB_ASSET_CACHE_PREFS = "LocalMedWebAssetCache";
     private static final String WEB_ASSET_CACHE_VERSION = "version";
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Display display = getWindowManager().getDefaultDisplay();
+        Display.Mode current = display.getMode();
+        float refreshRate = current.getRefreshRate();
+        for (Display.Mode mode : display.getSupportedModes()) {
+            if (mode.getPhysicalWidth() == current.getPhysicalWidth()
+                    && mode.getPhysicalHeight() == current.getPhysicalHeight()) {
+                refreshRate = Math.max(refreshRate, mode.getRefreshRate());
+            }
+        }
+        // A preference only: Android retains battery, thermal and user-policy limits.
+        WindowManager.LayoutParams attributes = getWindow().getAttributes();
+        attributes.preferredRefreshRate = refreshRate;
+        getWindow().setAttributes(attributes);
+    }
 
     private boolean shouldClearWebAssetCache() {
         String version;

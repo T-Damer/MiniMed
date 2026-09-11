@@ -64,6 +64,12 @@ export interface ContentModuleIndexValidator {
   validate(module: ContentModuleCatalogEntry, indexBytes: Uint8Array): Promise<ModuleValidation>;
 }
 
+export type ContentModuleIndexDecoder = (
+  artifact: ModuleArtifact,
+  bytes: Uint8Array,
+  signal: AbortSignal,
+) => Promise<Uint8Array>;
+
 export type ContentModuleTaskListener = (task: ContentModuleDownloadTask) => void;
 type ReleaseInstallSlot = () => void;
 
@@ -189,6 +195,7 @@ export class ForegroundContentModuleInstaller {
     private readonly validator: ContentModuleIndexValidator,
     private readonly registry: InstalledModuleRegistry,
     private readonly maxConcurrentInstalls = Number.POSITIVE_INFINITY,
+    private readonly decodeIndex?: ContentModuleIndexDecoder,
   ) {
     this.catalog = ContentModuleCatalogSchema.parse(catalog);
     if (maxConcurrentInstalls < 1) {
@@ -368,9 +375,24 @@ export class ForegroundContentModuleInstaller {
         if (checksum !== artifact.sha256) {
           throw new Error(`Artifact ${artifact.id} checksum mismatch.`);
         }
-        bytesByArtifact.set(artifact.id, bytes);
         completedBytes.set(artifact.id, bytes.byteLength);
-        staged.push(await this.backend.stage(module, artifact, bytes));
+        let installedBytes = bytes;
+        if (artifact.kind === 'index' && artifact.compression !== 'none') {
+          if (!this.decodeIndex || !artifact.decodedSha256 || !artifact.decodedSizeBytes) {
+            throw new Error(`Compressed index ${artifact.id} lacks a decoder or decoded identity.`);
+          }
+          this.setTask(task.id, { state: 'verifying' });
+          installedBytes = await this.decodeIndex(artifact, bytes, signal);
+          if (signal.aborted) throw new DOMException('Installation cancelled.', 'AbortError');
+          if (
+            installedBytes.byteLength !== artifact.decodedSizeBytes ||
+            (await sha256(installedBytes)) !== artifact.decodedSha256
+          ) {
+            throw new Error(`Decoded index ${artifact.id} size/checksum mismatch.`);
+          }
+        }
+        bytesByArtifact.set(artifact.id, installedBytes);
+        staged.push(await this.backend.stage(module, artifact, installedBytes));
         this.setTask(task.id, {
           downloadedBytes: [...completedBytes.values()].reduce((total, value) => total + value, 0),
         });

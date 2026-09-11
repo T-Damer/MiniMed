@@ -277,6 +277,58 @@ const runtime = {
 } as const;
 
 describe('ForegroundContentModuleInstaller', () => {
+  it('checks transport and decoded identities before staging a compressed index', async () => {
+    const archive = new Uint8Array([1, 2, 3]);
+    const decoded = new Uint8Array([4, 5, 6, 7]);
+    for (const failure of [null, 'archive', 'decoded'] as const) {
+      const { catalog, module } = await moduleFixture({ indexBytes: archive });
+      const index = module.artifacts[0];
+      if (!index) throw new Error('Fixture has no index.');
+      Object.assign(index, {
+        compression: 'gzip',
+        decodedSizeBytes: decoded.length,
+        decodedSha256: failure === 'decoded' ? sourceSetDigest : await checksum(decoded),
+      });
+      const registry = new InMemoryInstalledModuleRegistry();
+      registry.activate(validatedInstallation());
+      registry.activate({ ...validatedInstallation(module.id), version: '0.9.0' });
+      const backend = new TestBackend();
+      const stage = vi.spyOn(backend, 'stage');
+      const decode = vi.fn(async () => decoded);
+      const check = validator();
+      const validate = vi.spyOn(check, 'validate');
+      const installer = new ForegroundContentModuleInstaller(
+        catalog,
+        runtime,
+        new TestDownloader({ index: failure === 'archive' ? new Uint8Array([9, 9, 9]) : archive }),
+        backend,
+        check,
+        registry,
+        1,
+        decode,
+      );
+      const task = installer.install({
+        moduleId: module.id,
+        version: module.version,
+        includeSourceAssets: false,
+      });
+      await installer.wait(task.id);
+      if (failure) {
+        expect(backend.activated).toBe(false);
+        expect(registry.get(module.id)?.version).toBe('0.9.0');
+        expect(stage).not.toHaveBeenCalled();
+        if (failure === 'archive') expect(decode).not.toHaveBeenCalled();
+      } else {
+        expect(stage).toHaveBeenCalledWith(expect.anything(), expect.anything(), decoded);
+        expect(validate).toHaveBeenCalledWith(expect.anything(), decoded);
+        expect(registry.get(module.id)?.installedSizeBytes).toBe(decoded.length);
+        expect(installer.listTasks().find((item) => item.id === task.id)?.downloadedBytes).toBe(
+          archive.length,
+        );
+      }
+    }
+  });
+
   it('rejects an unbuilt preview before adding a task or starting a download', async () => {
     const fixture = await moduleFixture({ indexBytes: new Uint8Array([1]) });
     const unbuilt = { ...fixture.module, releaseState: 'preview' as const, artifacts: [] };

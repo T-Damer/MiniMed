@@ -396,7 +396,6 @@ describe('ScopedMedicalCore', () => {
 
     expect(base.search).toHaveBeenCalledOnce();
     expect(base.search.mock.calls[0]?.[0].filters.documentIds).toEqual([
-      'mkb',
       'drug',
       'registry',
       'allmed',

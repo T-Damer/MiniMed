@@ -3,6 +3,7 @@ node_modules/
 dist/
 coverage/
 playwright-report/
+/playwright/
 test-results/
 .playwright-cli/
 .playwright-mcp/

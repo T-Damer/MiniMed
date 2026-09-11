@@ -4,6 +4,7 @@ import type {
   MedicalDocumentSummary,
 } from '@localmed/contracts';
 import { CALCULATOR_REGISTRY } from '@/features/calculators/calculator-registry';
+import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import {
   parseModulePointerMetadata,
@@ -83,6 +84,12 @@ export function searchSectionDownloadBlocks(
       blocks.set(key, block);
     }
   };
+  // The fresh core need not already contain pointers for every downloadable medication pack.
+  for (const module of catalog.modules) {
+    if (module.kind !== 'medication' || !isModuleReleased(module)) continue;
+    add('medications', [`module:${module.id}`], module, false);
+    add('all', [], module, false);
+  }
   for (const document of documents) {
     const pointer = parseModulePointerMetadata(document.metadata);
     const isPointer =
@@ -104,13 +111,15 @@ export function searchSectionDownloadBlocks(
       )
         continue;
       const groups =
-        section.id === 'conditions'
-          ? CONDITION_GROUPS.filter((group) =>
-              documentMatchesConditionGroup(document, group.id),
-            ).map((group) => group.id)
-          : section.id === 'all'
-            ? document.specialties.map(unifiedSearchSpecialty)
-            : document.specialties;
+        section.id === 'medications'
+          ? medicationDocumentGroups(document)
+          : section.id === 'conditions'
+            ? CONDITION_GROUPS.filter((group) =>
+                documentMatchesConditionGroup(document, group.id),
+              ).map((group) => group.id)
+            : section.id === 'all'
+              ? document.specialties.map(unifiedSearchSpecialty)
+              : document.specialties;
       add(section.id, groups, module, local);
     }
   }

@@ -26,6 +26,7 @@ export function SearchSectionPicker(props: {
   readonly group: string | undefined;
   readonly onSelect: (scope: SearchScope, group?: string) => void;
 }): JSX.Element {
+  let menu: HTMLDivElement | undefined;
   const [open, setOpen] = createSignal(false);
   const downloads = useSearchSectionDownloads(open, () => props.onContentChanged());
   const downloadBlocks = createMemo(() => {
@@ -84,7 +85,15 @@ export function SearchSectionPicker(props: {
         <AppGlyph name="caret-down" class="search-source-picker__icon" />
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content class="search-section-menu" aria-label="Разделы поиска">
+        <Popover.Content
+          ref={menu}
+          class="search-section-menu"
+          aria-label="Разделы поиска"
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            menu?.focus();
+          }}
+        >
           <SearchField
             class="search-section-menu__search"
             label="Найти раздел или подраздел"
@@ -130,13 +139,11 @@ export function SearchSectionPicker(props: {
                               ),
                           }}
                           type="button"
+                          aria-label={`${section().label} (${section().count})`}
                           onClick={() => select(section().id)}
                         >
                           <AppGlyph name={section().icon} class="search-section-menu__icon" />
                           <span class="search-section-menu__label">{section().label}</span>
-                          <Show when={section().count !== undefined}>
-                            <span class="search-section-menu__count">({section().count})</span>
-                          </Show>
                         </button>
                         <SearchSectionDownload
                           label={section().label}
@@ -145,6 +152,7 @@ export function SearchSectionPicker(props: {
                           loading={props.loading}
                           noDownload={section().id === 'diagnosis'}
                         />
+                        <span class="search-section-menu__count">{section().count}</span>
                         <Show when={groups().length > 0}>
                           <button
                             class="search-section-menu__expand"
@@ -177,6 +185,7 @@ export function SearchSectionPicker(props: {
                                     props.scope === section().id && props.group === group().id,
                                 }}
                                 type="button"
+                                aria-label={`${group().label} (${group().count})`}
                                 onClick={() => select(section().id, group().id)}
                               >
                                 <span class="search-section-menu__kinds">
@@ -195,7 +204,6 @@ export function SearchSectionPicker(props: {
                                   </For>
                                 </span>
                                 <span class="search-section-menu__label">{group().label}</span>
-                                <span class="search-section-menu__count">({group().count})</span>
                               </button>
                               <SearchSectionDownload
                                 label={group().label}
@@ -203,6 +211,7 @@ export function SearchSectionPicker(props: {
                                 downloads={downloads}
                                 loading={props.loading}
                               />
+                              <span class="search-section-menu__count">{group().count}</span>
                             </div>
                           )}
                         </Index>

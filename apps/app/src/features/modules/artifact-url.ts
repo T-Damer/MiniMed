@@ -64,12 +64,15 @@ export function resolveContentModuleArtifactUrl(url: string): string {
       if (
         releaseTag.startsWith('esklp-') &&
         fileName.startsWith('minimed.medications.') &&
-        fileName.endsWith('.db')
+        (fileName.endsWith('.db') || fileName.endsWith('.db.gz'))
       ) {
         // Large medication databases live in LFS; media URLs expose bytes with browser CORS.
         return `https://media.githubusercontent.com/media/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
       }
-      if (fileName.startsWith('clinical-') && fileName.endsWith('.db')) {
+      if (
+        fileName.startsWith('clinical-') &&
+        (fileName.endsWith('.db') || fileName.endsWith('.db.gz'))
+      ) {
         if (usesLocalModuleArtifacts() && typeof window !== 'undefined') {
           return resolveRelativeModulePath(
             `./content/releases/${encodeURIComponent(releaseTag)}/${encodeURIComponent(fileName)}`,

@@ -1,5 +1,97 @@
 # Current state
 
+- Official GRLS downloading resumed on September 9 using the existing July 24 catalog queue.
+  A 100-target batch downloaded 52 new checksum-valid PDFs (199,791,038 bytes); 48 attempts failed
+  and remain recorded for retry. The validated source registry now contains 241 documents.
+  These new downloads are raw inputs awaiting extraction/review and are not included in the
+  229-document instructions preview below. The user authorized the full available GRLS queue;
+  a detached local downloader now processes all 19,335 planned registrations in 100-target batches
+  with four workers, skips successes, and respects the existing three-attempt ceiling. Progress is
+  recorded in `playwright/instructions/download-all-progress.json`; it stops below 10 GiB free disk.
+  Completion generates a checksum-validated source registry; extraction and publication are separate.
+
+- A local instructions preview now contains 229 original instructions/leaflets (189 existing plus
+  40 vaccine documents) and 229 GRLS registration cards. All 189 existing prepared texts remain
+  byte-identical. One vaccine PDF without a registration number is held out; 22 newly prepared
+  documents require OCR/table review. Archive editions are not asserted to be current, and proposed
+  extracted knowledge is not promoted to reviewed clinical guidance.
+- The instructions SQLite is 66,781,184 bytes; its verified gzip transport is 12,549,574 bytes.
+  `data/build/medication-instructions-2026/` contains the database, gzip, edition manifest and a
+  schema-validated preview catalog entry with exact membership and no download URL. It is local-dev,
+  not published or wired into the app catalog. Exact ESKLP crosswalk: 204 matched registrations,
+  24 unmatched and one ambiguous. Packaging images and Allmed remain separate.
+- Preparation now recovers scanned pages in mixed native-text PDFs without replacing native text,
+  and GRLS group spelling variants differing only by normalized case share an identity while
+  retaining original names. Validation: 236 Python tests, Ruff, strict Pyright, workspace lint,
+  pack build, SQLite integrity, catalog schema and lossless gzip round-trip pass. No UI/native
+  code changed for this preparation; device installation and full source-page review remain open.
+
+- Downloadable module indexes now accept gzip transport with separate archive and decoded SQLite
+  sizes/checksums. Decoding is bounded by the declared installed size and cancellable; corrupted
+  transport or decoded data cannot activate over the previous version. SQLite/schema validation
+  still runs before activation. ZIP image packages remain separate. The release helper
+  `scripts/compress-module-index.mjs` emits gzip artifact fields after a lossless round-trip check;
+  existing released catalogs/URLs and the separate native-core installer are unchanged.
+- Local Allmed measurement: migration `008-opfs-page-layout` reduced 514,322,432 bytes to
+  456,654,848 bytes without changing any document, version, section, chunk or alias row. The staged
+  `data/build/medications-compact.db.gz` is 106,282,289 bytes; its decoded checksum is
+  `sha256:5cf8378a7e25c0e5ae45fdb8d67b03487650da59079acf4afa01eb4a9611afc2`.
+  These are staged local artifacts, not a published Allmed download or a replacement of the packaged
+  companion. Physical-device install and peak-memory qualification remain open. A separate
+  patient-leaflet section is deferred; the current medication direction is Allmed text, optional
+  packaging images, and separate full instructions.
+- The same round-trip check compressed the 189-instruction GRLS pack from 65,335,296 to
+  12,714,903 bytes. A desktop Brotli quality-5 comparison of compact Allmed produced 98,475,628
+  bytes versus gzip's 106,282,289; gzip remains the supported transport to avoid adding a decoder
+  for Chrome/Android WebView. Checks: all 2,826 TypeScript unit tests and the Bun SQLite packaging
+  test passed. Repository-wide build/typecheck was blocked by concurrent patient-avatar component
+  type errors; formatting checks also reported unrelated patient-component changes. No device
+  installation or publication was performed in this pass.
+
+- Patient selectors in calculators and assessments unlock the vault inline and expose patient
+  selection plus name-only creation. Unlocking preserves unbound calculator inputs; locking clears
+  patient-bound fields. Calculator recording captures schema-declared input measurements and missing
+  birth date/sex without overwriting existing demographics or inventing a birth date from age.
+  Form initialization follows calculator identity and explicit initial values; refreshing catalog
+  objects for the same calculator no longer resets typed fields.
+- Patient avatars support an emoji or a bounded, locally re-encoded photo stored with the
+  vault snapshot. A themed square photo stack opens photo upload; a separate small button opens
+  emoji-mart with bundled data and Russian localization. Unset avatars derive initials from the
+  patient name in lists; the editor shows an image icon and «+ фото» until an avatar is selected.
+  Its rotated backing resembles a photo stack. The lower-right overlay opens emoji-mart when empty
+  and becomes a delete button when a photo/emoji is present. There is no separate text/symbol editor.
+  Existing profiles need no migration. The new-patient form no longer renders the missing-patient
+  error alongside its fields; that error is reserved for unknown patient/detail routes.
+- Patient-flow validation: 2,827 JS tests and 234 Python tests pass, along with lint, app typecheck
+  and build. A mobile-width browser check covers inline unlock/create, captured measurements,
+  emoji-mart without CDN requests, direct photo selection, light/dark picker layout and avatar
+  persistence through vault locking. These patient UI changes have not been checked on a device.
+
+- Search dropdown rows align selection, download, count and expansion in fixed columns. All Sources
+  uses a books icon; opening the menu does not focus its search field, and open/close motion respects
+  reduced-motion settings. Folder creation no longer autofocuses the name input. The search graph
+  launch control is hidden while its implementation remains.
+- Medication menu downloads include released catalog packs even before core pointers exist. Medication
+  filtering excludes the ICD reference; groups use exact ATC pack membership, source pharmacotherapy
+  metadata and declared specialties. No pediatric or specialty indication is inferred from drug names.
+- Touch file/folder drags show an icon/title preview beside the finger, removed on release or cancel.
+  Reader backdrop pointer-down and click events stop at the backdrop, preventing outline swipe
+  handling and content activation from the same dismissal gesture.
+- Validation: app/build and TypeScript checks, 2,820 JS tests, 234 Python tests, Python static checks,
+  benchmarks and native source checks pass. Three browser checks cover the fresh-install dropdown,
+  keyboard-sized viewport, drag preview cleanup and touch backdrop dismissal. These UI changes have
+  not yet been installed or checked on the physical Android device.
+
+- Android requests the highest supported refresh rate at the current display resolution on
+  activity resume through `preferredRefreshRate`; OS battery, thermal and vendor policies still
+  decide the effective rate. Debug APK and instrumentation APK compile; native source checks pass.
+  On the connected HyperOS device, a separately installed `.refreshtest` build requests 120 Hz
+  (confirmed by DisplayManager), but the vendor vote still caps rendering at 60 Hz; WebView measured
+  60.17 FPS with a 16.6 ms median interval. The original app remains installed because its signing key
+  differs. The instrumentation test compiled, but execution did not finish after the device opened
+  a MIUI app-start confirmation. Android lint was blocked by an
+  uncached `androidx.concurrent:concurrent-futures:1.2.0` dependency in offline mode.
+
 - Corrected reused tool-pack versions: gastroenterology, neonatology and core clinical tools now
   use `0.1.0-preview.3`; emergency tools use `0.1.0-preview.2`. Their SQLite artifacts were rebuilt
   from authoring JSON and resolve to local files in local-artifact mode. Existing installed
@@ -51,9 +143,9 @@
 
 - Questionnaire and calculator routes wait for local tool hydration before reporting a missing pack; hydration failures remain errors instead of download prompts.
 
-> Updated: 8 September 2026
-> Repository version: `0.6.37`
-> Active target: `0.6.37` public prerelease toward `1.0`
+> Updated: 11 September 2026
+> Repository version: `0.6.38`
+> Active target: `0.6.38` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).

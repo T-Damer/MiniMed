@@ -21,7 +21,7 @@ export const ContentModuleReleaseStateSchema = z.enum([
 ]);
 
 export const ContentModuleArtifactKindSchema = z.enum(['index', 'source-assets']);
-export const ContentModuleCompressionSchema = z.enum(['none', 'zip', 'zstd']);
+export const ContentModuleCompressionSchema = z.enum(['none', 'zip', 'zstd', 'gzip']);
 export const ContentModuleSizePrecisionSchema = z.enum(['exact', 'estimate', 'unknown']);
 
 export const ContentModuleInstallStateSchema = z.enum([
@@ -78,6 +78,12 @@ export const ContentModuleArtifactSchema = z.object({
     .default(null),
   sizeBytes: z.number().int().nonnegative().nullable().default(null),
   compression: ContentModuleCompressionSchema,
+  /** Installed SQLite identity, required for a gzip index. Transport identity stays above. */
+  decodedSha256: z
+    .string()
+    .regex(/^sha256:[a-f0-9]{64}$/u)
+    .optional(),
+  decodedSizeBytes: z.number().int().positive().optional(),
   sourceSetDigest: z.string().regex(/^sha256:[a-f0-9]{64}$/u),
 });
 
@@ -214,6 +220,8 @@ export function hasDownloadableModuleIndex(module: {
         artifact.required &&
         Boolean(artifact.url) &&
         Boolean(artifact.sha256) &&
+        (artifact.compression !== 'gzip' ||
+          (Boolean(artifact.decodedSha256) && Boolean(artifact.decodedSizeBytes))) &&
         artifact.sourceSetDigest === module.sourceSetDigest,
     ) &&
     module.artifacts

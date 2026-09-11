@@ -852,6 +852,15 @@ def build_grls_product_workspace(
         for group in groups:
             class_id = _stable_id("medication.class", group)
             class_ids.append(class_id)
+            existing_class = entities.get(class_id)
+            if existing_class is not None and _normalized(
+                existing_class.canonical_name
+            ) == _normalized(group):
+                if group not in {name.name for name in existing_class.names}:
+                    existing_class.names.append(
+                        KnowledgeName(name=group, name_type="official-group", weight=1.0)
+                    )
+                continue
             _add_entity(
                 entities,
                 KnowledgeEntity(
