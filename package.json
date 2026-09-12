@@ -143,12 +143,12 @@
     "content:restore:core": "bun scripts/restore-core.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.8",
-    "@playwright/test": "1.62.1",
-    "@types/node": "26.2.0",
+    "@biomejs/biome": "2.5.12",
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.5.0",
     "clsx": "2.1.1",
     "replicate": "1.4.0",
-    "tsx": "4.23.12",
+    "tsx": "4.23.13",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
   },
