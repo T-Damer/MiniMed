@@ -1,0 +1,43 @@
+name: Temporary terminology corpus workspace
+
+on:
+  push:
+    branches: [agent/medical-terminology-collector]
+    paths: [.github/workflows/terminology-corpus-export.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terminology-bundled-corpus
+          path: content/bundled/core.db.gz
+          compression-level: 0
+          retention-days: 2
+          if-no-files-found: error
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.2.3'
+      - run: env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+      - name: Export lexical test dependencies only
+        run: |
+          cp "$(command -v bun)" bun-1.2.3
+          tar --exclude='node_modules/onnxruntime-node/bin' \
+            --exclude='node_modules/onnxruntime-web/dist/*.wasm' \
+            --exclude='node_modules/@img' \
+            -czf lexical-tools.tar.gz bun-1.2.3 node_modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terminology-lexical-tools
+          path: lexical-tools.tar.gz
+          compression-level: 0
+          retention-days: 2
+          if-no-files-found: error
