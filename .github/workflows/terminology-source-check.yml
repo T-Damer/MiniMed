@@ -1,68 +1,109 @@
-name: Terminology source verification
+name: Medical terminology
 
 on:
+  pull_request:
+    paths:
+      - 'tools/ingest/**'
+      - 'schema/sql/**'
+      - '.github/workflows/terminology-source-check.yml'
   push:
     branches: [agent/medical-terminology-collector]
-    paths: [.github/workflows/terminology-source-check.yml]
+    paths:
+      - 'tools/ingest/**'
+      - '.github/workflows/terminology-source-check.yml'
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'Explicit MeSH production year'
+        required: true
+        default: '2026'
+      with_wikidata:
+        description: 'Include Russian candidate labels from Wikidata'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
 
 jobs:
-  source-check:
+  verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Install repository-pinned formatter
-        run: python3 -m pip install --target /tmp/terminology-tools ruff==0.16.5
-      - name: Collect bounded public reference inputs and schema
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - run: uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+      - run: uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+      - run: uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+      - run: uv run --project tools/ingest pytest tools/ingest/tests
+      - name: Capture formatter patch on failure
+        if: failure()
+        run: |
+          uv run --project tools/ingest ruff check --fix tools/ingest/src/localmed_ingest/terminology_*.py tools/ingest/tests/test_terminology.py || true
+          uv run --project tools/ingest ruff format tools/ingest/src/localmed_ingest/terminology_*.py tools/ingest/tests/test_terminology.py
+          git diff > terminology-format.patch
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: terminology-format-diagnostics
+          path: terminology-format.patch
+          retention-days: 3
+
+  measure:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      MESH_YEAR: ${{ inputs.year || '2026' }}
+      INCLUDE_WIKIDATA: ${{ github.event_name == 'push' || inputs.with_wikidata }}
+      LOCALMED_HTTP_MAX_ATTEMPTS: '3'
+      LOCALMED_HTTP_INITIAL_BACKOFF_SECONDS: '1'
+      LOCALMED_HTTP_MAX_BACKOFF_SECONDS: '10'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Collect public vocabulary without provider credentials
         shell: bash
         run: |
-          python3 - <<'PY'
-          import hashlib
-          import json
-          import pathlib
-          import urllib.parse
-          import urllib.request
-          import zipfile
-          query = '''PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-          PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-          PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-          SELECT ?item ?mesh ?label ?alias WHERE {
-            ?item wdt:P486 ?mesh; rdfs:label ?label.
-            FILTER(STRSTARTS(?mesh, "D") && LANG(?label) = "ru")
-            OPTIONAL { ?item skos:altLabel ?alias. FILTER(LANG(?alias) = "ru") }
-          } LIMIT 250001'''
-          plans = [('desc2026.gz', 'https://nlmpubs.nlm.nih.gov/projects/mesh/MESH_FILES/xmlmesh/desc2026.gz'),
-                   ('wikidata-ru.json', 'https://query.wikidata.org/sparql?' + urllib.parse.urlencode({'query': query, 'format': 'json'}))]
-          report = []
-          with zipfile.ZipFile('terminology-reference.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
-              for name, url in plans:
-                  try:
-                      request = urllib.request.Request(url, headers={'User-Agent': 'MiniMed-terminology-research/1.0 (https://github.com/T-Damer/MiniMed)'})
-                      with urllib.request.urlopen(request, timeout=120) as response:
-                          data = response.read(64 * 1024 * 1024 + 1)
-                          if len(data) > 64 * 1024 * 1024:
-                              raise ValueError('public reference exceeded size bound')
-                      archive.writestr(name, data)
-                      report.append({'path': name, 'url': url, 'bytes': len(data), 'sha256': hashlib.sha256(data).hexdigest()})
-                  except Exception as error:
-                      report.append({'path': name, 'error': str(error)})
-              for path in pathlib.Path('schema/sql').glob('*.sql'):
-                  archive.write(path, str(path))
-              for path in pathlib.Path('/tmp/terminology-tools').rglob('ruff'):
-                  if path.is_file():
-                      archive.write(path, 'ruff-bin')
-                      break
-              archive.writestr('source-download-report.json', json.dumps(report, indent=2))
-          print(json.dumps(report, indent=2))
-          PY
+          extra=()
+          if [[ "$INCLUDE_WIKIDATA" == 'true' ]]; then extra+=(--with-wikidata); fi
+          uv run --project tools/ingest medbase-terminology collect --year "$MESH_YEAR" \
+            --output data/raw/terminology --cache .cache/terminology --network "${extra[@]}"
+      - name: Prepare and measure complete vocabulary
+        run: >-
+          uv run --project tools/ingest medbase-terminology prepare
+          --input data/raw/terminology --output data/intermediate/terminology
+      - name: Verify offline snapshot reuse
+        run: >-
+          uv run --project tools/ingest medbase-terminology collect --year "$MESH_YEAR"
+          --output data/raw/terminology --cache .cache/terminology --offline
+      - name: Build a psychiatric section and its exact owner dependencies
+        run: >-
+          uv run --project tools/ingest medbase-terminology build
+          --input data/intermediate/terminology --output data/build/terminology
+          --version "$MESH_YEAR.1.0" --built-at "$MESH_YEAR-01-01T00:00:00Z"
+          --section F03 --no-core --for-redistribution
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: terminology-reference
-          path: terminology-reference.zip
-          retention-days: 1
+          name: terminology-measurement
+          path: |
+            data/raw/terminology/sources.json
+            data/raw/terminology/source-sync-report.json
+            data/raw/terminology/wikidata-ru.json
+            data/intermediate/terminology/size-report.json
+            data/intermediate/terminology/sections.json
+            data/build/terminology/pack-size-report.json
+            data/build/terminology/*.report.json
+          retention-days: 7
           if-no-files-found: error
