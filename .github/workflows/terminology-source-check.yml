@@ -6,11 +6,6 @@ on:
       - 'tools/ingest/**'
       - 'schema/sql/**'
       - '.github/workflows/terminology-source-check.yml'
-  push:
-    branches: [agent/medical-terminology-collector]
-    paths:
-      - 'tools/ingest/**'
-      - '.github/workflows/terminology-source-check.yml'
   workflow_dispatch:
     inputs:
       year:
@@ -41,26 +36,15 @@ jobs:
       - run: uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
       - run: uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
       - run: uv run --project tools/ingest pytest tools/ingest/tests
-      - name: Capture formatter patch on failure
-        if: failure()
-        run: |
-          uv run --project tools/ingest ruff check --fix tools/ingest/src/localmed_ingest/terminology_*.py tools/ingest/tests/test_terminology.py || true
-          uv run --project tools/ingest ruff format tools/ingest/src/localmed_ingest/terminology_*.py tools/ingest/tests/test_terminology.py
-          git diff > terminology-format.patch
-      - uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: terminology-format-diagnostics
-          path: terminology-format.patch
-          retention-days: 3
+        if: success() || failure()
 
   measure:
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
-      MESH_YEAR: ${{ inputs.year || '2026' }}
-      INCLUDE_WIKIDATA: ${{ github.event_name == 'push' || inputs.with_wikidata }}
+      MESH_YEAR: ${{ inputs.year }}
+      INCLUDE_WIKIDATA: ${{ inputs.with_wikidata }}
       LOCALMED_HTTP_MAX_ATTEMPTS: '3'
       LOCALMED_HTTP_INITIAL_BACKOFF_SECONDS: '1'
       LOCALMED_HTTP_MAX_BACKOFF_SECONDS: '10'
@@ -100,7 +84,6 @@ jobs:
           path: |
             data/raw/terminology/sources.json
             data/raw/terminology/source-sync-report.json
-            data/raw/terminology/wikidata-ru.json
             data/intermediate/terminology/size-report.json
             data/intermediate/terminology/sections.json
             data/build/terminology/pack-size-report.json

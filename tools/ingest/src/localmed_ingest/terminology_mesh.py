@@ -170,7 +170,10 @@ def _parse_descriptor(element: ET.Element, source: TerminologySource) -> list[Me
                 definitions=definitions,
                 tree_numbers=tree_numbers,
                 semantic_types=sorted(
-                    {n.text or "" for n in concept.findall("SemanticTypeList/SemanticType/SemanticTypeUI")}
+                    {
+                        n.text or ""
+                        for n in concept.findall("SemanticTypeList/SemanticType/SemanticTypeUI")
+                    }
                 ),
                 relations=[r for r in relations if r.subject_id == f"mesh.{concept_id}"],
             )
