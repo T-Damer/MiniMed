@@ -1,0 +1,43 @@
+name: Terminology source verification
+
+on:
+  push:
+    branches: [agent/medical-terminology-collector]
+    paths: [.github/workflows/terminology-source-check.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  source-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Export tracked ingestion source for isolated checks
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import subprocess
+          import zipfile
+          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          with zipfile.ZipFile('terminology-source.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+              for item in paths:
+                  path = pathlib.Path(item)
+                  if not item or not path.is_file() or path.is_symlink():
+                      continue
+                  allowed = (item.startswith(('tools/ingest/', 'docs/', 'packages/contracts/'))
+                             or item in ('AGENTS.md', 'package.json', '.gitignore', 'biome.json', 'bun.lock')
+                             or item.startswith('content/fixtures/'))
+                  if allowed and path.suffix in ('.py', '.md', '.json', '.toml', '.yaml', '.yml', '.sql', '.ts', '.lock'):
+                      archive.write(path, item)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terminology-source
+          path: terminology-source.zip
+          retention-days: 1
+          if-no-files-found: error
