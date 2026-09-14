@@ -35,8 +35,8 @@ provider charges; no Replicate or other model credentials are needed.
 
 ```sh
 uv run --project tools/ingest medbase-terminology collect \
-  --year 2026 --output data/raw/terminology-2026 --cache .cache/terminology --network
-# Add --with-wikidata for a separate snapshot with Russian candidate names.
+  --year 2026 --output data/raw/terminology-2026 --cache .cache/terminology --network --with-wikidata
+# Omit --with-wikidata for a MeSH-only snapshot.
 # --offline verifies a completed collection without accessing the network.
 
 uv run --project tools/ingest medbase-terminology prepare \
@@ -66,6 +66,13 @@ membership, and `pack-size-report.json`. It reuses `knowledge_entities/names/fac
 content lint/SQLite integrity checks, without a schema migration. Structured facts stay **proposed**.
 MeSH hierarchy relations remain source-labelled terminology metadata, not clinical treatment edges.
 Whitespace-normalized searchable projections retain original source fields and raw checksums.
+Source titles/provenance remain MeSH; `shortTitle` and candidate names may be Russian. Definitions
+carry their own source/language. A Russian display label must not falsely classify original English
+scope notes as bad Russian OCR. Actual `ru` definitions still pass the existing Russian text guards.
+The pack's `aliases.yaml` includes explicitly labelled `terminology-search-spelling` expansions for
+Latin lookalikes inside predominantly Cyrillic words. Original labels and concept IDs remain unchanged;
+these search-only forms never establish a clinical synonym or navigation link. HLA-DR, CD4 and Latin
+terms are not rewritten. The actual Wikidata label `cиндром Мюнхгаузена` demonstrates this boundary.
 
 Compare measured JSONL/gzip and SQLite/gzip sizes before deciding how much goes into the runtime core.
 The discovery edition is a **candidate input** for the existing core composer, not a second active
@@ -73,33 +80,43 @@ core. Installing it, adding a user-facing terminology card, and publishing secti
 separate integration work. No runtime catalog is changed by these commands. Reports separately count
 Russian-name and Russian-definition coverage; English-only coverage is not a completed Russian glossary.
 
-## Measured MeSH-only baseline — 14 September 2026
+## Measured real-source run — 14 September 2026
 
-The complete `desc2026.gz` (16,812,612 bytes; SHA-256
-`ccd4d0d33bebfd4c836a59e7dd0c635b1d4e20c4f5a6abc55e2eb0ba4c8716dd`) was parsed, not sampled:
+The complete NLM `desc2026.gz` was downloaded (16,812,612 bytes; SHA-256
+`ccd4d0d33bebfd4c836a59e7dd0c635b1d4e20c4f5a6abc55e2eb0ba4c8716dd`), joined to a valid
+Russian-label Wikidata snapshot, prepared and verified for offline reuse. This is not a sample.
 
 | Metric | Value |
 | --- | ---: |
-| Descriptors | 31,110 |
+| MeSH descriptors | 31,110 |
 | Distinct concepts | 61,794 |
-| Source definition records | 33,362 |
-| Concepts missing their own source definition | 28,432 |
-| Russian names / definitions in this MeSH-only run | 0 / 0 |
-| Discovery JSONL, including supplied definitions | 44,773,523 bytes |
-| Discovery JSONL gzip | 6,068,217 bytes |
-| Full provenance-rich JSONL gzip | 10,633,650 bytes |
+| Own source-definition records | 33,362 |
+| Concepts missing their own definition | 28,432 |
+| Concepts with Russian candidate names | 16,020 |
+| Russian source definitions in this run | 0 |
+| Discovery JSONL, including supplied definitions | 45,528,519 bytes |
+| Discovery JSONL gzip | 6,391,188 bytes |
+| Full provenance-rich JSONL gzip | 11,811,961 bytes |
 
-These JSONL sizes are **not SQLite/APK sizes**. An actual `F03 --no-core` SQLite build also completed:
-539 section members resolve through 13 unique owner packs (7,587 total stored concepts), totalling
-120,504,320 SQLite bytes / 17,599,472 gzip bytes. The F03-owned pack alone contains 211 concepts and is
-3,612,672 SQLite bytes / 508,882 gzip bytes. This demonstrates a packaging tradeoff: broad owner packs
-can download substantially more than one specialty's membership. It is not a final runtime packing
-policy and no performance optimization is introduced here.
+These JSONL sizes are **not SQLite/APK sizes**. The actual bilingual `F03 --no-core` SQLite build
+completed after the language fix: 539 section members require 13 unique owner packs (7,587 stored
+concepts), totalling 130,805,760 SQLite bytes / 18,385,744 gzip bytes. The F03-owned pack alone stores
+211 concepts: 3,964,928 SQLite bytes / 546,906 gzip bytes. Full discovery SQLite size has not been
+measured on this complete corpus. Broad owner packs download more than one section's exact membership;
+this is an explicit packaging tradeoff, not a finalized or optimized runtime download policy.
 
-An initial Wikidata query with optional aliases returned a truncated HTTP-200 JSON response; the
-parser rejected it and produced no partially prepared vocabulary. The collector now requests labels
-without the multiplying optional-alias join. Russian-name coverage must be measured on a valid run;
-never infer it from the English MeSH totals or from the synthetic Russian regression fixture.
+A read-only query through the built pack's spelling expansion and FTS finds the real Munchausen
+concept `mesh.M0014205` / descriptor `D009110`. Its by-proxy concept is separate (`mesh.M0025483` /
+`D016735`). Source definitions remain the original English; do not report them as Russian coverage.
 
-The initial collector covers MeSH Descriptors. Qualifiers, Supplementary Concept Records, HPO,
-Orphanet, and a licensed full Russian translation remain follow-up adapters, not claimed coverage.
+An initial optional-alias Wikidata query returned truncated HTTP-200 JSON. The parser rejected it
+without a partial prepared output. The labels-only query succeeded; ambiguous crosswalks remain
+review tasks. Whole-source collection/measurement is manual in CI; PR validation runs offline tests.
+
+The collector tests cover identity/evidence, hostile XML, decompression limits, checksums, rights,
+path escapes, truncated JSON, exact joins, section ownership, Cyrillic FTS, source language, unchanged
+source labels, proposed-only knowledge, SQLite integrity and byte-identical rebuilds in the same
+pinned environment. No patient data or paid inference is involved.
+
+The initial collector covers MeSH Descriptors. Qualifiers, Supplementary Concept Records, HPO, Orphanet,
+and a licensed full Russian translation remain follow-up adapters, not silently claimed coverage.
