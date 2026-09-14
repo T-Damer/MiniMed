@@ -33,6 +33,7 @@ from .terminology_prepare import (
     term_sections,
 )
 from .terminology_sources import NLM_ATTRIBUTION, NLM_TERMS, sha256_file
+from .text_encoding import lint_english_dominant_russian_text, lint_garbled_russian_text
 
 
 def concept_id(term: MedicalTerm) -> str:
@@ -63,8 +64,24 @@ def _write_document(
     selected = display_name(term)
     chosen = definition(term)
     source_by_id = {s.id: s for s in manifest.sources}
-    source = source_by_id[selected.evidence.source_id]
+    # The bibliographic title belongs to the original MeSH source, not a translated label.
+    # A Russian display name does not turn an English scope note into Russian OCR output.
+    original = min(
+        (n for n in term.names if n.language == "en" and n.kind == "preferred"),
+        key=lambda n: (n.text, n.evidence.locator),
+    )
+    source = source_by_id[original.evidence.source_id]
     definitions = ([chosen] if chosen else []) if discovery else term.definitions
+    # Mixed-language reference cards are checked field by field. Never suppress the existing
+    # Russian source guards: a definition declared Russian must itself remain Russian.
+    for item in definitions:
+        if item.language != "ru":
+            continue
+        context = f"{term.id}/{item.evidence.source_id}/{item.evidence.locator}"
+        error = lint_garbled_russian_text(item.text, context=context)
+        error = error or lint_english_dominant_russian_text(item.text, context=context)
+        if error:
+            raise ValueError(error)
     target_id = term_document_id(term)
     document_id = f"discovery.{target_id}" if discovery else target_id
     sections = term_sections(term)
@@ -81,7 +98,9 @@ def _write_document(
         "meshTreeNumbers": term.tree_numbers,
         "terminologySections": sections,
         "semanticTypes": term.semantic_types,
+        "sourceTitleLanguage": original.language,
         "nameLanguage": selected.language,
+        "definitionLanguages": sorted({item.language for item in definitions}),
         "nameStatus": selected.kind,
         "sourceNames": [n.model_dump(by_alias=True) for n in term.names],
         "sourceDefinitions": [d.model_dump(by_alias=True) for d in definitions],
@@ -113,7 +132,7 @@ def _write_document(
     )
     source_metadata = SourceMetadata(
         id=document_id,
-        title=selected.text,
+        title=original.text,
         short_title=selected.text,
         version_label=version,
         source_type="core_catalog_pointer" if discovery else "medical_terminology",
