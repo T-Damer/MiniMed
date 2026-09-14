@@ -23,6 +23,7 @@ from .knowledge import (
 from .markdown_parser import parse_markdown_document
 from .models import PackDocument, SourceMetadata
 from .terminology_models import MedicalTerm, TerminologySources
+from .terminology_names import terminology_search_aliases
 from .terminology_prepare import (
     definition,
     display_name,
@@ -270,8 +271,15 @@ def _build_pack(
         ),
         "utf-8",
     )
-    # Per-document names are indexed in names sections. Avoid global name-based concept merges.
-    (workspace / "aliases.yaml").write_text("aliases: []\n", "utf-8")
+    # Source names stay in their own sections. Derived mixed-script spellings expand lookup only;
+    # they never establish concept identity, clinical synonymy, or a navigation link.
+    aliases = terminology_search_aliases(terms)
+    (workspace / "aliases.yaml").write_text(
+        yaml.safe_dump(
+            {"aliases": [a.model_dump(by_alias=True) for a in aliases]}, allow_unicode=True
+        ),
+        "utf-8",
+    )
     documents = [
         _write_document(workspace, t, manifest, version, built_at, discovery=discovery)
         for t in terms
