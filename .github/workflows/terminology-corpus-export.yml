@@ -11,38 +11,31 @@ permissions:
 jobs:
   workspace:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Fetch exact public catalog artifacts
-        run: |
-          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
-          import hashlib, json, pathlib, urllib.request
-          ids = {'451_3','674_3','675_2','301_3','457_3','650_2','617_5','742_1','741_1','594_3','397_3','455_3'}
-          catalog = json.loads(pathlib.Path('apps/app/src/features/modules/catalog.preview.json').read_text())
-          root = pathlib.Path('clinical-source-check'); root.mkdir()
-          selected = []
-          for module in catalog['modules']:
-              if module['id'] not in {'minimed.clinical.recommendation.' + value for value in ids}:
-                  continue
-              artifact = next(a for a in module['artifacts'] if a['kind'] == 'index')
-              assert artifact['url'].startswith('https://github.com/T-Damer/MiniMed/releases/download/')
-              assert artifact['compression'] == 'none' and 0 < artifact['sizeBytes'] < 32000000
-              with urllib.request.urlopen(artifact['url'], timeout=60) as response:
-                  data = response.read(32000001)
-              assert len(data) == artifact['sizeBytes']
-              assert 'sha256:' + hashlib.sha256(data).hexdigest() == artifact['sha256']
-              (root / (module['id'] + '.db')).write_bytes(data)
-              selected.append({'id': module['id'], 'artifact': artifact, 'documents': module['documents']})
-          assert len(selected) == len(ids)
-          (root / 'sources.json').write_text(json.dumps(selected, ensure_ascii=False, indent=2))
-          print('Verified clinical packs:', len(selected))
-          PY
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Collect public terminology without provider credentials
+        run: >-
+          env -i PATH="$PATH" HOME="$HOME"
+          uv run --project tools/ingest medbase-terminology collect
+          --year 2026 --output data/raw/terminology --cache .cache/terminology
+          --network --with-wikidata
+      - name: Prepare source-backed terms
+        run: >-
+          env -i PATH="$PATH" HOME="$HOME"
+          uv run --project tools/ingest medbase-terminology prepare
+          --input data/raw/terminology --output data/intermediate/terminology
+      - name: Archive only the declared public snapshot
+        run: tar -czf terminology-public-snapshot.tar.gz data/raw/terminology data/intermediate/terminology
       - uses: actions/upload-artifact@v4
         with:
-          name: terminology-clinical-corpus
-          path: clinical-source-check
+          name: terminology-public-snapshot
+          path: terminology-public-snapshot.tar.gz
           retention-days: 2
           if-no-files-found: error
