@@ -11,30 +11,54 @@ permissions:
 jobs:
   workspace:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Export original tracked application media only
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.2.3'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - name: Prepare pinned offline test dependencies without provider credentials
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked --python 3.13
+      - name: Snapshot public tracked code and existing public fixtures only
         run: |
           env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
           import pathlib, subprocess, tarfile
           files = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
-          with tarfile.open('application-media.tar.gz', 'w:gz') as archive:
+          excluded = {'.gguf', '.safetensors', '.pem', '.p12', '.pfx', '.key', '.apk', '.aab'}
+          with tarfile.open('terminology-source-workspace.tar.gz', 'w:gz') as archive:
               for name in files:
                   path = pathlib.Path(name)
-                  if not name.startswith(('apps/app/', 'apps/landing/')) or not path.is_file() or path.is_symlink():
+                  if not name or not path.is_file() or path.is_symlink():
                       continue
-                  if path.suffix.lower() not in {'.jpg','.jpeg','.png','.webp','.avif','.gif','.ico','.mp3','.wav','.ogg'}:
+                  if name.startswith(('data/raw/', 'data/intermediate/', 'data/synced/')) or path.name.startswith('.env'):
                       continue
-                  if path.stat().st_size > 16000000:
-                      raise ValueError('Unexpected large media asset: ' + name)
+                  if path.suffix.lower() in excluded or path.stat().st_size > 600000000:
+                      continue
                   archive.add(path, arcname=name, recursive=False)
+          pathlib.Path('workspace-revision.txt').write_text(subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True))
           PY
+      - name: Archive locked test dependencies and Bun for local verification
+        run: |
+          cp "$(command -v bun)" ./bun-offline
+          tar -czf terminology-test-dependencies.tar.gz node_modules tools/ingest/.venv bun-offline
       - uses: actions/upload-artifact@v4
         with:
-          name: terminology-application-media
-          path: application-media.tar.gz
+          name: terminology-source-workspace
+          path: |
+            terminology-source-workspace.tar.gz
+            workspace-revision.txt
+          retention-days: 2
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terminology-test-dependencies
+          path: terminology-test-dependencies.tar.gz
           retention-days: 2
           if-no-files-found: error
