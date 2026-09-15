@@ -26,39 +26,39 @@ jobs:
         run: |
           env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked --python 3.13
-      - name: Snapshot public tracked code and existing public fixtures only
-        run: |
-          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
-          import pathlib, subprocess, tarfile
-          files = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
-          excluded = {'.gguf', '.safetensors', '.pem', '.p12', '.pfx', '.key', '.apk', '.aab'}
-          with tarfile.open('terminology-source-workspace.tar.gz', 'w:gz') as archive:
-              for name in files:
-                  path = pathlib.Path(name)
-                  if not name or not path.is_file() or path.is_symlink():
-                      continue
-                  if name.startswith(('data/raw/', 'data/intermediate/', 'data/synced/')) or path.name.startswith('.env'):
-                      continue
-                  if path.suffix.lower() in excluded or path.stat().st_size > 600000000:
-                      continue
-                  archive.add(path, arcname=name, recursive=False)
-          pathlib.Path('workspace-revision.txt').write_text(subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True))
-          PY
-      - name: Archive locked test dependencies and Bun for local verification
+      - name: Archive only dependencies and split bounded artifacts
         run: |
           cp "$(command -v bun)" ./bun-offline
           tar -czf terminology-test-dependencies.tar.gz node_modules tools/ingest/.venv bun-offline
+          split -b 180M -d terminology-test-dependencies.tar.gz dependencies.part-
+          sha256sum terminology-test-dependencies.tar.gz > dependencies.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: terminology-source-workspace
+          name: terminology-dependencies-0
           path: |
-            terminology-source-workspace.tar.gz
-            workspace-revision.txt
+            dependencies.part-00
+            dependencies.sha256
           retention-days: 2
+          compression-level: 0
           if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
-          name: terminology-test-dependencies
-          path: terminology-test-dependencies.tar.gz
+          name: terminology-dependencies-1
+          path: dependencies.part-01
           retention-days: 2
+          compression-level: 0
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terminology-dependencies-2
+          path: dependencies.part-02
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terminology-dependencies-3
+          path: dependencies.part-03
+          retention-days: 2
+          compression-level: 0
+          if-no-files-found: warn
