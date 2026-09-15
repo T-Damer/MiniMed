@@ -39,9 +39,9 @@ test('core-only terminology keeps the term and its own definition readable witho
   await mountTerminology(page, 'discovery');
   await page.locator('.result-group').first().locator('.result-group-header').click();
   await expect(page.locator('.document-page')).toContainText(
-    'Synthetic source definition, not medical guidance.',
+    'Синтетическое определение для теста, не медицинская справка.',
   );
-  await expect(page.locator('.document-page')).toContainText('Определение 1 (en)');
+  await expect(page.locator('.document-page')).toContainText('Определение 1 (ru)');
   await expect(page.locator('.document-page')).not.toContainText('Another synthetic definition.');
 });
 

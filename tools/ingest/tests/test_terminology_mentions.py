@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from collections.abc import Callable
 from pathlib import Path
+from typing import cast
 
 import pytest
 
+import localmed_ingest.sqlite_composer as composer
 import localmed_ingest.terminology_packs as packs
 from localmed_ingest.sqlite_builder import write_sqlite_pack
 from localmed_ingest.sqlite_composer import compose_sqlite_packs
@@ -292,3 +295,51 @@ def test_recomposing_the_same_mention_index_does_not_duplicate_chunks_or_anchors
         ):
             assert after.execute(query).fetchall() == before.execute(query).fetchall()
         assert after.execute("PRAGMA foreign_key_check").fetchall() == []
+
+
+def test_terminology_source_checksums_survive_interrupted_composition_resume(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    terms, original, catalog = discovery(tmp_path), source(tmp_path), pointer(tmp_path)
+    output = tmp_path / "resumed.db"
+    manifest = tmp_path / "resumed.edition.json"
+    write_checkpoint = cast(
+        Callable[[Path, dict[str, object]], None], composer.__dict__["_write_checkpoint"]
+    )
+
+    def interrupt_first(path: Path, payload: dict[str, object]) -> None:
+        write_checkpoint(path, payload)
+        if payload["nextModule"] == 1:
+            raise KeyboardInterrupt
+
+    def run(*, resume: bool = False) -> None:
+        compose_sqlite_packs(
+            [terms, catalog],
+            output,
+            manifest,
+            edition_id="test.terminology.resume",
+            edition_version="1",
+            title="Resume fixture",
+            built_at=STAMP,
+            terminology_sources=[original],
+            resume=resume,
+        )
+
+    with monkeypatch.context() as interrupted:
+        interrupted.setattr(composer, "_write_checkpoint", interrupt_first)
+        with pytest.raises(KeyboardInterrupt):
+            run()
+    assert not output.exists()
+    assert (tmp_path / ".resumed.db.checkpoint.json").is_file()
+    run(resume=True)
+    with sqlite3.connect(output) as connection:
+        assert connection.execute("PRAGMA quick_check").fetchone() == ("ok",)
+        assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
+        assert (
+            connection.execute(
+                "SELECT count(*) FROM knowledge_document_links WHERE link_type='term-label-mention'"
+            ).fetchone()[0]
+            > 0
+        )
+    assert manifest.is_file()
+    assert not (tmp_path / ".resumed.db.checkpoint.json").exists()

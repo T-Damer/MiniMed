@@ -55,7 +55,7 @@ class _ComposeConfig:
             "output": self.output,
             "editionManifest": self.edition_manifest,
             **(
-                {"terminologySources": list(self.terminology_sources)}
+                {"terminologySources": [list(source) for source in self.terminology_sources]}
                 if self.terminology_sources
                 else {}
             ),
