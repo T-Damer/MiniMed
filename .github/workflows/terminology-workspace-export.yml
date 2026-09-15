@@ -11,46 +11,27 @@ permissions:
 jobs:
   workspace:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: '1.2.3'
-      - uses: astral-sh/setup-uv@v6
-        with:
-          version: '0.10.0'
-      - run: env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
-      - run: env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
-      - run: env -i PATH="$PATH" HOME="$HOME" bunx playwright install chromium --only-shell
-      - name: Export public verification assets only
+      - name: Recover the application's existing pinned build inputs
         run: |
           env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
-          import pathlib, subprocess, tarfile
-          home = pathlib.Path.home()
-          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
-          with tarfile.open('verification-assets.tar.gz', 'w:gz') as archive:
-              for name in paths:
-                  path = pathlib.Path(name)
-                  if not name or not path.is_file() or path.is_symlink():
-                      continue
-                  font = path.suffix in {'.woff', '.woff2', '.ttf', '.otf'}
-                  fixture = name.startswith(('packages/test-fixtures/', 'apps/app/public/content/modules/')) and path.suffix in {'.db', '.gz', '.wasm'} and path.stat().st_size < 32000000
-                  if font or fixture:
-                      archive.add(path, arcname=name, recursive=False)
-              archive.add('tools/ingest/.venv/bin/ruff', arcname='verification-tools/ruff', recursive=False)
-              for path in pathlib.Path('tools/ingest/.venv/lib').glob('python*/site-packages/pyright/dist'):
-                  archive.add(path, arcname='verification-tools/pyright')
-              browsers = home / '.cache/ms-playwright'
-              if browsers.exists():
-                  archive.add(browsers, arcname='verification-browsers')
-          print('Verification archive bytes:', pathlib.Path('verification-assets.tar.gz').stat().st_size)
+          import pathlib, urllib.request, hashlib, json
+          root = pathlib.Path('apps/app/public/tessdata'); root.mkdir(parents=True)
+          report = []
+          for lang in ('eng', 'rus'):
+              url = f'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/{lang}.traineddata.gz'
+              with urllib.request.urlopen(url, timeout=60) as response:
+                  data = response.read(25000001)
+              assert 0 < len(data) <= 25000000 and data[:2] == b'\x1f\x8b'
+              (root / f'{lang}.traineddata.gz').write_bytes(data)
+              report.append({'url': url, 'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)})
+          pathlib.Path('build-inputs.json').write_text(json.dumps(report, indent=2))
           PY
+          tar -czf ocr-build-inputs.tar.gz apps/app/public/tessdata build-inputs.json
       - uses: actions/upload-artifact@v4
         with:
-          name: terminology-browser-verification-assets
-          path: verification-assets.tar.gz
+          name: terminology-ocr-build-inputs
+          path: ocr-build-inputs.tar.gz
           retention-days: 2
           if-no-files-found: error
