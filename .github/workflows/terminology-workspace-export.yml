@@ -13,25 +13,28 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Recover the application's existing pinned build inputs
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Export original tracked application media only
         run: |
           env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
-          import pathlib, urllib.request, hashlib, json
-          root = pathlib.Path('apps/app/public/tessdata'); root.mkdir(parents=True)
-          report = []
-          for lang in ('eng', 'rus'):
-              url = f'https://cdn.jsdelivr.net/gh/naptha/tessdata@gh-pages/4.0.0/{lang}.traineddata.gz'
-              with urllib.request.urlopen(url, timeout=60) as response:
-                  data = response.read(25000001)
-              assert 0 < len(data) <= 25000000 and data[:2] == b'\x1f\x8b'
-              (root / f'{lang}.traineddata.gz').write_bytes(data)
-              report.append({'url': url, 'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)})
-          pathlib.Path('build-inputs.json').write_text(json.dumps(report, indent=2))
+          import pathlib, subprocess, tarfile
+          files = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          with tarfile.open('application-media.tar.gz', 'w:gz') as archive:
+              for name in files:
+                  path = pathlib.Path(name)
+                  if not name.startswith(('apps/app/', 'apps/landing/')) or not path.is_file() or path.is_symlink():
+                      continue
+                  if path.suffix.lower() not in {'.jpg','.jpeg','.png','.webp','.avif','.gif','.ico','.mp3','.wav','.ogg'}:
+                      continue
+                  if path.stat().st_size > 16000000:
+                      raise ValueError('Unexpected large media asset: ' + name)
+                  archive.add(path, arcname=name, recursive=False)
           PY
-          tar -czf ocr-build-inputs.tar.gz apps/app/public/tessdata build-inputs.json
       - uses: actions/upload-artifact@v4
         with:
-          name: terminology-ocr-build-inputs
-          path: ocr-build-inputs.tar.gz
+          name: terminology-application-media
+          path: application-media.tar.gz
           retention-days: 2
           if-no-files-found: error
