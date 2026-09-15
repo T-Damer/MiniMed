@@ -2,7 +2,7 @@
 
 Measured with pinned Bun 1.2.3, production `MedicalCore`, the production Capacitor SQL adapter and a
 read-only Bun SQLite transport in a Linux x64 container. No LLM, Android bridge round trip, browser
-DOM, physical phone, or cold OS disk-cache performance is represented by these numbers.
+DOM, physical phone, or cold OS disk-cache performance is represented by these engine numbers.
 
 ## Same-corpus before/after
 
@@ -45,7 +45,26 @@ On the 19,987-document core, catalog-before-document consumed 318–364 ms of co
 about 0.5 ms for the selected record first. With the terminology candidate, catalog-first consumed
 about 2,060 ms versus 1.14 ms for that selected record first. **These are data-access timings, not
 measured screen paint/complete-document timings.** Compact navigation still costs time after the
-first record. Large-document rendering and real Android timings need their own browser/device runs.
+first record. Large-document rendering and real Android timings need their own device runs.
+
+## Real Chromium verification
+
+GitHub Actions run `35033495934` verified source commit
+`b725149ddc029198feb0218a29a1f86111f518e4` with all 2,851 JavaScript tests, 278 Python tests,
+format/type checks, benchmarks, native-source checks, app build and secret scan. All five targeted
+Chromium tests passed with one worker and zero retries:
+
+- core-only term and its own source-language definition;
+- core-only literal source-occurrence pointer, without claiming installed full text;
+- installed original source text and the separate longer by-proxy concept;
+- ordinary phone-sized lookup;
+- desktop document outline and exact reader matches.
+
+The existing ordinary-browser scenario recorded **3,454 / 1,059 / 1,162 ms** to visible results.
+Those values include UI scheduling and worker/rendering costs and use the app's existing public
+pack fixture. They are not the engine timings above and not a physical Android measurement. A
+subsecond end-to-end cold query is not claimed. The full browser suite and Android instrumentation
+were not run for this slice; the full suite remains manual, while the focused smoke is reproducible.
 
 ## Reproduce
 

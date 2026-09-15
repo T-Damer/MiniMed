@@ -1,0 +1,67 @@
+name: Terminology search and reader smoke
+
+on:
+  pull_request:
+    paths:
+      - 'packages/core/src/terminology-search.ts'
+      - 'packages/core/src/query-document-index.ts'
+      - 'packages/contracts/src/terminology.ts'
+      - 'packages/search-lexical/src/aliases.ts'
+      - 'packages/search-lexical/src/analysis.ts'
+      - 'apps/app/src/features/library/DocumentPageHost.tsx'
+      - 'apps/app/src/features/modules/module-pointer-install.ts'
+      - 'apps/app/e2e/terminology.spec.ts'
+      - 'tools/ingest/src/localmed_ingest/terminology_*.py'
+      - 'tools/ingest/tests/build_terminology_e2e.py'
+      - '.github/workflows/terminology-search-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terminology-search-smoke-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromium:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.2.3'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - name: Install locked dependencies without provider credentials
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" CI=1 uv sync --project tools/ingest --all-groups --locked
+      - name: Build actual app and synthetic terminology test packs
+        run: |
+          git rev-parse HEAD > terminology-tested-sha.txt
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run build:app
+          env -i PATH="$PATH" HOME="$HOME" CI=1 uv run --project tools/ingest python tools/ingest/tests/build_terminology_e2e.py data/build/terminology-e2e
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bunx playwright install chromium --only-shell --with-deps
+      - name: Run bounded terminology, lookup and reader regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            env -i PATH="$PATH" HOME="$HOME" CI=1 bunx playwright test apps/app/e2e/terminology.spec.ts --workers=1 --retries=0 --reporter=list
+            env -i PATH="$PATH" HOME="$HOME" CI=1 bunx playwright test apps/app/e2e/search.spec.ts --grep 'toggles the document outline on desktop|renders ordinary lookup on a phone-sized' --workers=1 --retries=0 --reporter=list
+          } 2>&1 | tee terminology-browser.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terminology-search-reader-smoke
+          path: |
+            terminology-tested-sha.txt
+            terminology-browser.log
+            test-results
+          if-no-files-found: warn
+          retention-days: 7
