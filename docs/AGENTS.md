@@ -114,3 +114,8 @@ Read [MEDICAL_TERMINOLOGY.md](MEDICAL_TERMINOLOGY.md) before changing terminolog
 Preserve ConceptUI identity, source-language definitions and multi-section membership. Never turn
 Wikidata descriptions into clinical definitions, merge concepts by names, or enable runtime packs
 without measured sizes, exact membership and source redistribution review.
+
+Term-occurrence projections store literal source labels/locators, not clinical assertions. Preserve
+exact term → source mention → related-concept tiers and every active search filter. Never restore
+full-catalog work before the reader's selected-document request. Keep benchmark engine timings
+separate from browser/physical-device timings, and rebuild caches after core reinitialization.

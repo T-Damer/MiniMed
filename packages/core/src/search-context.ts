@@ -89,7 +89,7 @@ export async function resolveSearchResultChunkId(
   const existing = await store.getChunk(hint.chunkId);
   if (existing) return hint.chunkId;
 
-  const documents = await store.listDocuments();
+  const documents = await (store.listDocumentIdentities?.() ?? store.listDocuments());
   const availableIds = new Set(documents.map((document) => document.id));
   const candidateDocumentIds = [
     resolveReadableDocumentId(hint.documentId, availableIds),

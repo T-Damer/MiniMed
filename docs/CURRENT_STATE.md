@@ -1,5 +1,26 @@
 # Current state
 
+## Terminology and measured lookup — PR #171, unpublished
+
+- MeSH collector/section packs now connect to ordinary MedicalCore lookup through a versioned compact
+  projection: exact term, literal source-label mentions, then source-declared related concepts.
+  Definition text remains searchable and language-labelled; ambiguous names never merge ConceptUIs.
+- `medbase-terminology index-mentions` produces exact source-locator JSONL. `integrate` composes a new
+  offline core with term-existence cards and version-bound occurrence pointers, preserving source
+  text/anchors, proposed-only links, and exact download admission. It never replaces active catalogs.
+- Full discovery compilation uses bounded authoring batches instead of retaining 61,794 documents
+  and all knowledge evidence simultaneously. It completed at 714,932,224 SQLite bytes / 123,182,224
+  gzip bytes; keep this candidate optional, not an automatic addition to every installed core.
+- Cached aliases/projections reduced six fixed warm queries on the unchanged 19,987-document core
+  from p50 435–683 ms to 101–286 ms with identical top-five IDs. The reader requests the selected
+  document before the full catalog. These are local engine measurements, not Android/DOM timings;
+  the first query with all MeSH concepts still took 3.48 seconds. See
+  [TERMINOLOGY_PERFORMANCE.md](TERMINOLOGY_PERFORMANCE.md) for method and limits.
+- Source coverage remains 16,020 Russian candidate-name concepts and zero Russian definitions in
+  this measured snapshot. No paid inference, runtime framework migration, database deployment,
+  Android release, or clinical qualification is included in this PR.
+
+
 - Official GRLS downloading resumed on September 9 using the existing July 24 catalog queue.
   A 100-target batch downloaded 52 new checksum-valid PDFs (199,791,038 bytes); 48 attempts failed
   and remain recorded for retry. The validated source registry now contains 241 documents.

@@ -2015,8 +2015,9 @@ function buildBranches(
 export function buildLookupQueryPlan(
   query: string,
   aliases: readonly AliasRecord[],
+  preparedExpansion?: ReturnType<typeof expandAliases>,
 ): ClinicalQueryPlan {
-  const expansion = expandAliases(query, aliases);
+  const expansion = preparedExpansion ?? expandAliases(query, aliases);
   const branch = makeBranch(
     'lookup',
     'original',

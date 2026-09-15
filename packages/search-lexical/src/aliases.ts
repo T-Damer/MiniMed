@@ -50,11 +50,18 @@ export function fuzzyPhraseSpan(
   normalizedQuery: string,
   normalizedPhrase: string,
 ): TextRange | null {
-  const phraseTokens = tokenize(normalizedPhrase);
+  return fuzzyTokenSpan(normalizedQuery, tokenize(normalizedQuery), tokenize(normalizedPhrase));
+}
+
+function fuzzyTokenSpan(
+  normalizedQuery: string,
+  queryTokens: readonly string[],
+  phraseTokens: readonly string[],
+  close: (left: string, right: string) => boolean = isCloseToken,
+): TextRange | null {
   if (phraseTokens.length === 0) return null;
   if (!phraseTokens.some((token) => token.length >= MIN_FUZZY_TOKEN_LENGTH)) return null;
 
-  const queryTokens = tokenize(normalizedQuery);
   if (queryTokens.length === 1 && phraseTokens.length === 2) {
     const queryToken = queryTokens[0];
     const finalPhraseToken = phraseTokens[1];
@@ -63,7 +70,7 @@ export function fuzzyPhraseSpan(
       !finalPhraseToken ||
       queryToken.length < MIN_FUZZY_TOKEN_LENGTH ||
       finalPhraseToken.length < MIN_FUZZY_FINAL_ALIAS_TOKEN_LENGTH ||
-      !isCloseToken(finalPhraseToken, queryToken)
+      !close(finalPhraseToken, queryToken)
     ) {
       return null;
     }
@@ -78,8 +85,7 @@ export function fuzzyPhraseSpan(
 
   for (const phraseToken of phraseTokens) {
     const matchIndex = queryTokens.findIndex(
-      (queryToken, index) =>
-        !usedQueryTokenIndexes.has(index) && isCloseToken(phraseToken, queryToken),
+      (queryToken, index) => !usedQueryTokenIndexes.has(index) && close(phraseToken, queryToken),
     );
     if (matchIndex < 0) return null;
     usedQueryTokenIndexes.add(matchIndex);
@@ -95,21 +101,106 @@ export function fuzzyPhraseSpan(
   return { start, end };
 }
 
+interface PreparedAlias {
+  readonly alias: AliasRecord;
+  readonly normalized: string;
+  readonly tokens: readonly string[];
+}
+
+export type AliasExpander = (query: string) => AliasExpansion;
+
+/** A core-owned vocabulary snapshot. Rebuild after installing/removing/reinitializing content. */
+export function createAliasExpander(aliases: readonly AliasRecord[]): AliasExpander {
+  const prepared: PreparedAlias[] = aliases
+    .toSorted((left, right) => right.alias.length - left.alias.length)
+    .map((alias) => ({
+      alias: { ...alias },
+      normalized: normalizeSurfaceText(alias.alias),
+      tokens: tokenize(alias.alias),
+    }));
+  // Every fuzzy match must match the first significant alias token. The only exception is
+  // the documented one-token/device fallback, which indexes its final token as well.
+  const heads = new Map<number, Map<string, Set<PreparedAlias>>>();
+  for (const item of prepared) {
+    const tokens = [item.tokens[0]];
+    if (
+      item.tokens.length === 2 &&
+      (item.tokens[1]?.length ?? 0) >= MIN_FUZZY_FINAL_ALIAS_TOKEN_LENGTH
+    ) {
+      tokens.push(item.tokens[1]);
+    }
+    for (const token of tokens) {
+      if (!token) continue;
+      let bucket = heads.get(token.length);
+      if (!bucket) {
+        bucket = new Map();
+        heads.set(token.length, bucket);
+      }
+      let entries = bucket.get(token);
+      if (!entries) {
+        entries = new Set();
+        bucket.set(token, entries);
+      }
+      entries.add(item);
+    }
+  }
+  return (query) => expandPreparedAliases(query, prepared, heads);
+}
+
 export function expandAliases(query: string, aliases: readonly AliasRecord[]): AliasExpansion {
+  return createAliasExpander(aliases)(query);
+}
+
+function expandPreparedAliases(
+  query: string,
+  aliases: readonly PreparedAlias[],
+  heads: ReadonlyMap<number, ReadonlyMap<string, ReadonlySet<PreparedAlias>>>,
+): AliasExpansion {
   const normalizedQuery = normalizeSurfaceText(query);
+  const queryTokens = tokenize(normalizedQuery);
+  // Long vocabularies repeat tokens (e.g. синдром) in many phrases. Compare each pair once.
+  const comparisons = new Map<string, Map<string, boolean>>();
+  const close = (left: string, right: string): boolean => {
+    if (left === right) return true;
+    let compared = comparisons.get(right);
+    if (!compared) {
+      compared = new Map();
+      comparisons.set(right, compared);
+    }
+    const cached = compared.get(left);
+    if (cached !== undefined) return cached;
+    const value = isCloseToken(left, right);
+    compared.set(left, value);
+    return value;
+  };
+  const candidates = new Set<PreparedAlias>();
+  for (const queryToken of new Set(queryTokens)) {
+    for (
+      let length = Math.max(1, queryToken.length - 2);
+      length <= queryToken.length + 2;
+      length += 1
+    ) {
+      for (const [token, entries] of heads.get(length) ?? []) {
+        if (!close(token, queryToken)) continue;
+        for (const item of entries) candidates.add(item);
+      }
+    }
+  }
   const terms = new Set<string>();
   const matches: string[] = [];
   const matchedAliases: AliasRecord[] = [];
   const matchSpans: AliasMatchSpan[] = [];
 
-  for (const alias of aliases.toSorted((left, right) => right.alias.length - left.alias.length)) {
-    const normalizedAlias = normalizeSurfaceText(alias.alias);
+  for (const prepared of aliases) {
+    const { alias, normalized: normalizedAlias } = prepared;
     const exactIndex = findNormalizedPhraseIndex(normalizedQuery, normalizedAlias);
     const matchType: AliasMatchType = exactIndex >= 0 ? 'exact' : 'fuzzy';
     let span: TextRange | null =
       exactIndex >= 0
         ? { start: exactIndex, end: exactIndex + normalizedAlias.length }
-        : fuzzyPhraseSpan(normalizedQuery, normalizedAlias);
+        : candidates.has(prepared)
+          ? fuzzyTokenSpan(normalizedQuery, queryTokens, prepared.tokens, close)
+          : null;
     if (!span) continue;
     // Prefer an explicit longer name (МКБ-10) over an embedded abbreviation (МКБ),
     // while retaining every meaning that matches the same complete span.

@@ -5,6 +5,8 @@ from __future__ import annotations
 import gzip
 import hashlib
 import json
+import shutil
+import sqlite3
 import tempfile
 from pathlib import Path
 
@@ -22,8 +24,9 @@ from .knowledge import (
 )
 from .markdown_parser import parse_markdown_document
 from .models import PackDocument, SourceMetadata
+from .sqlite_composer import compose_sqlite_packs
 from .terminology_models import MedicalTerm, TerminologySources
-from .terminology_names import terminology_search_aliases
+from .terminology_names import russian_search_spelling, terminology_search_aliases
 from .terminology_prepare import (
     definition,
     display_name,
@@ -92,6 +95,22 @@ def _write_document(
         else ["medical-reference"]
     )
     metadata: dict[str, object] = {
+        "catalogFamily": "reference",
+        "entityType": "condition"
+        if any(t in {"T047", "T048", "T046", "T184"} for t in term.semantic_types)
+        else "term",
+        "terminology": {
+            "version": 1,
+            "edition": version,
+            "conceptId": term.id,
+            "names": sorted(
+                {v for n in term.names for v in (n.text, russian_search_spelling(n.text))}
+            ),
+            "relatedConceptIds": sorted({r.object_id for r in term.relations}),
+            "definitionLanguages": sorted({item.language for item in definitions}),
+            "discovery": discovery,
+            "targetDocumentId": target_id,
+        },
         "conceptId": concept_id(term),
         "terminologyId": term.id,
         "meshConceptId": term.mesh_concept_id,
@@ -122,8 +141,10 @@ def _write_document(
         metadata.pop("sourceRelations")
         metadata.update(
             {
+                "contentMode": "module-pointer",
                 "targetDocumentId": target_id,
                 "primaryModuleId": module_id(sections[0]),
+                "moduleIds": [module_id(sections[0])],
                 "clinicalSourceType": "medical_terminology",
                 "pointerKind": "terminology",
             }
@@ -145,7 +166,11 @@ def _write_document(
         metadata=metadata,
     )
     body = ["# Наименования", _source_body(selected.text)]
-    body.extend(_source_body(n) for n in sorted({n.text for n in term.names}) if n != selected.text)
+    names = [_source_body(n) for n in sorted({n.text for n in term.names}) if n != selected.text]
+    if discovery and names:
+        body.append("; ".join(names))
+    else:
+        body.extend(names)
     for index, item in enumerate(definitions):
         locator = item.evidence.model_dump(by_alias=True)
         body.extend(
@@ -244,6 +269,93 @@ def _knowledge(terms: list[MedicalTerm], documents: list[PackDocument]) -> Knowl
     return result
 
 
+DISCOVERY_BATCH_SIZE = 384
+
+
+def _compress_database(db: Path) -> Path:
+    compressed = db.with_suffix(".db.gz")
+    with (
+        db.open("rb") as source,
+        compressed.open("wb") as destination,
+        gzip.GzipFile(fileobj=destination, mode="wb", filename="", mtime=0) as stream,
+    ):
+        shutil.copyfileobj(source, stream, 1024 * 1024)
+    return compressed
+
+
+def _build_discovery_batches(
+    terms: list[MedicalTerm],
+    manifest: TerminologySources,
+    root: Path,
+    pack_id: str,
+    version: str,
+    built_at: str,
+) -> dict[str, object]:
+    """Bound authoring/knowledge validation memory, then use the existing atomic composer."""
+    intermediate = root / "discovery-build-parts"
+    databases: list[Path] = []
+    for offset in range(0, len(terms), DISCOVERY_BATCH_SIZE):
+        batch_root = intermediate / f"{offset // DISCOVERY_BATCH_SIZE:04d}"
+        part_id = f"{pack_id}.build.{offset // DISCOVERY_BATCH_SIZE:04d}"
+        _build_pack(
+            terms[offset : offset + DISCOVERY_BATCH_SIZE],
+            manifest,
+            batch_root,
+            part_id,
+            version,
+            built_at,
+            discovery=True,
+        )
+        databases.append(batch_root / f"{part_id}.db")
+    db = root / f"{pack_id}.db"
+    result = compose_sqlite_packs(
+        databases,
+        db,
+        root / f"{pack_id}.edition.json",
+        edition_id=pack_id,
+        edition_version=version,
+        title="Медицинские термины — индекс с определениями",
+        built_at=built_at,
+        compact=True,
+    )
+    compressed = _compress_database(db)
+    membership_path = root / f"{pack_id}.membership.json"
+    connection = sqlite3.connect(db.resolve().as_uri() + "?mode=ro", uri=True)
+    try:
+        membership = [
+            {"documentId": row[0], "documentVersionId": row[1], "sourceChecksum": row[2]}
+            for row in connection.execute(
+                "SELECT d.id, d.current_version_id, dv.source_checksum FROM documents d "
+                "JOIN document_versions dv ON dv.id=d.current_version_id ORDER BY d.id"
+            )
+        ]
+        chunks = connection.execute("SELECT count(*) FROM chunks").fetchone()[0]
+    finally:
+        connection.close()
+    membership_path.write_bytes(json_bytes(membership))
+    (root / f"{pack_id}.report.json").write_text(result.model_dump_json(by_alias=True, indent=2))
+    # Original authoring workspaces remain reviewable; redundant internal SQLite copies do not ship.
+    for part in databases:
+        part.unlink()
+        part.with_suffix(".db.gz").unlink()
+    return {
+        "moduleId": pack_id,
+        "version": version,
+        "database": db.name,
+        "documents": len(membership),
+        "chunks": chunks,
+        "bytes": db.stat().st_size,
+        "sha256": sha256_file(db),
+        "gzipBytes": compressed.stat().st_size,
+        "gzipSha256": sha256_file(compressed),
+        "membership": membership_path.name,
+        "membershipSha256": sha256_file(membership_path),
+        "publicationState": "local-dev",
+        "downloadUrl": None,
+        "authoringBatchSize": DISCOVERY_BATCH_SIZE,
+    }
+
+
 def _build_pack(
     terms: list[MedicalTerm],
     manifest: TerminologySources,
@@ -254,6 +366,8 @@ def _build_pack(
     *,
     discovery: bool,
 ) -> dict[str, object]:
+    if discovery and len(terms) > DISCOVERY_BATCH_SIZE:
+        return _build_discovery_batches(terms, manifest, root, pack_id, version, built_at)
     workspace = root / "workspaces" / pack_id
     workspace.mkdir(parents=True)
     (workspace / "manifest.yaml").write_text(
@@ -289,9 +403,10 @@ def _build_pack(
         knowledge.model_dump_json(by_alias=True, indent=2) + "\n", "utf-8"
     )
     db = root / f"{pack_id}.db"
-    pack, report = build_content_pack(workspace, db, report_path=root / f"{pack_id}.report.json")
-    compressed = db.with_suffix(".db.gz")
-    compressed.write_bytes(gzip.compress(db.read_bytes(), mtime=0))
+    pack, report = build_content_pack(
+        workspace, db, report_path=root / f"{pack_id}.report.json", include_embeddings=not discovery
+    )
+    compressed = _compress_database(db)
     membership = [
         {
             "documentId": d.id,

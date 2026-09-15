@@ -83,7 +83,15 @@ export function modulePointerTargetAnchor(
   metadata: Readonly<Record<string, unknown>> | undefined,
   anchor: string | null,
 ): string | null {
-  if (!anchor || metadata?.['definitionPreviewAnchor'] !== anchor) return anchor;
+  if (!anchor) return null;
+  const mentions = metadata?.['terminologyMentionAnchors'];
+  if (mentions && typeof mentions === 'object' && Object.hasOwn(mentions, anchor)) {
+    const target = (mentions as Readonly<Record<string, unknown>>)[anchor];
+    if (typeof target === 'string' && target.length > 0) return target;
+  }
+  // Discovery definitions are readable locally, but their anchors are not detail-pack anchors.
+  if (metadata?.['pointerKind'] === 'terminology') return null;
+  if (metadata?.['definitionPreviewAnchor'] !== anchor) return anchor;
   const definition = metadata['canonicalDefinition'];
   if (!definition || typeof definition !== 'object' || !('sourceAnchor' in definition))
     return anchor;

@@ -170,8 +170,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   };
 
   const listDocuments = async (core: MedicalCore): Promise<readonly MedicalDocumentSummary[]> => {
-    const list = await core.listDocuments();
-    return list.ok ? list.value : [];
+    const list = await (core.listNavigationDocuments?.() ?? core.listDocuments());
+    if (!list.ok) throw new Error(list.error.message);
+    return list.value;
   };
 
   const loadOfficial = async (parsed: DocumentReadRoute & { kind: 'official' }): Promise<void> => {
@@ -212,6 +213,18 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const preferSummary = preferSummaryId === documentId;
 
     try {
+      // Read the selected document before queuing catalog SQL on the same worker/native owner.
+      // Merely awaiting it first is insufficient when the catalog request was already dispatched.
+      const requested = await core.getDocument(documentId);
+      if (loadingDocumentId !== documentId) return;
+      if (requested.ok) {
+        setDocument(requested.value);
+        setPendingTitle(undefined);
+      }
+      if (requested.ok && globalThis.document.visibilityState === 'visible') {
+        await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        if (loadingDocumentId !== documentId) return;
+      }
       let listed = await listDocuments(core);
       if (loadingDocumentId !== documentId) return;
       setAvailableDocuments(listed);
@@ -220,7 +233,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         ? documentId
         : resolveReadableDocumentId(documentId, availableIds);
       const pointerSummary = listed.find((item) => item.id === documentId);
-      const pointerMetadata = pointerSummary?.metadata;
+      const pointerMetadata = requested.ok ? requested.value.metadata : pointerSummary?.metadata;
       const pointer = parseModulePointerMetadata(pointerMetadata);
       if (pointer) {
         const runtime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
@@ -259,7 +272,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         }
       }
 
-      let result = await core.getDocument(readableId);
+      let result = readableId === documentId ? requested : await core.getDocument(readableId);
       if (!result.ok && props.reconnectContent) {
         await props.reconnectContent();
         const refreshedCore = props.getCore();
@@ -282,7 +295,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       loadedOfficialRequestId = documentId;
       setPendingTitle(undefined);
       if (result.value.metadata['contentMode'] === 'esklp-mnn') {
-        const refreshedSummaries = await listDocuments(core);
+        // Medication supplements need complete source metadata, but only after first text is visible.
+        const fullSummaries = await core.listDocuments();
+        if (!fullSummaries.ok) throw new Error(fullSummaries.error.message);
+        const refreshedSummaries = fullSummaries.value;
         if (loadingDocumentId !== documentId) return;
         listed = refreshedSummaries;
         setAvailableDocuments(listed);

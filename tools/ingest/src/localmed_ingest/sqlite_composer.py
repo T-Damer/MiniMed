@@ -21,6 +21,7 @@ from .edition_manifest import (
 )
 from .models import CamelModel, SourceProvenance
 from .sqlite_builder import inspect_integrity, schema_sql, secondary_indexes_sql
+from .terminology_mentions import project_terminology_mentions
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,7 @@ class _ComposeConfig:
     compact: bool
     output: str
     edition_manifest: str
+    terminology_sources: tuple[tuple[str, str], ...] = ()
 
     def payload(self) -> dict[str, object]:
         return {
@@ -52,6 +54,11 @@ class _ComposeConfig:
             "compact": self.compact,
             "output": self.output,
             "editionManifest": self.edition_manifest,
+            **(
+                {"terminologySources": list(self.terminology_sources)}
+                if self.terminology_sources
+                else {}
+            ),
         }
 
 
@@ -688,7 +695,14 @@ def _rebuild_chunks_fts(connection: sqlite3.Connection) -> None:
                    ),
                    ''
                ),
-               c.normalized_text
+               c.normalized_text || COALESCE((
+                   SELECT ' ' || group_concat(value, ' ') FROM json_each(
+                       CASE WHEN json_valid(c.metadata_json)
+                       THEN COALESCE(
+                           json_extract(c.metadata_json, '$.terminologySearchNames'), '[]')
+                       ELSE '[]' END
+                   ) WHERE type = 'text'
+               ), '')
         FROM chunks c
         JOIN document_versions dv ON dv.id = c.document_version_id
         JOIN documents d ON d.id = dv.document_id
@@ -1152,6 +1166,11 @@ def _finalize_staging_database(
     for statement in secondary_indexes_sql():
         target.execute(statement)
     project_core_knowledge(target)
+    if config.terminology_sources:
+        for name, checksum in config.terminology_sources:
+            if sha256_file(Path(name)) != checksum:
+                raise ValueError("Terminology occurrence source changed since composition started.")
+        project_terminology_mentions(target, [Path(name) for name, _ in config.terminology_sources])
     _rebuild_chunks_fts(target)
     _rebuild_knowledge_fts(target)
     source_digest = _source_set_digest(target)
@@ -1180,11 +1199,13 @@ def compose_sqlite_packs(
     schema_version: int = 2,
     compact: bool = False,
     resume: bool = False,
+    terminology_sources: list[Path] | None = None,
     manifest_writer: Callable[[Path, EditionManifest], None] = write_edition_manifest,
 ) -> ComposeReport:
     started_at = perf_counter()
     sources = resolve_input_databases(inputs)
-    _validate_output_paths(inputs, output, edition_manifest_output)
+    mention_sources = sorted({path.resolve() for path in (terminology_sources or [])})
+    _validate_output_paths([*inputs, *mention_sources], output, edition_manifest_output)
     output.parent.mkdir(parents=True, exist_ok=True)
     fingerprints = _fingerprint_inputs(sources)
     config = _ComposeConfig(
@@ -1196,6 +1217,7 @@ def compose_sqlite_packs(
         compact=compact,
         output=str(output.resolve()),
         edition_manifest=str(edition_manifest_output.resolve()),
+        terminology_sources=tuple((str(path), sha256_file(path)) for path in mention_sources),
     )
     temporary, checkpoint, temporary_manifest = _staging_paths(output, edition_manifest_output)
     checkpoint_index = 0

@@ -397,6 +397,7 @@ export class CapacitorMedicalStore implements MedicalStore {
     this.assertInitialized();
     this.searchDocuments ??= this.query(`
       SELECT id, source_type, json_object(
+        'terminology', json_extract(metadata_json, '$.terminology'),
         'declaredAliases', json_extract(metadata_json, '$.declaredAliases'),
         'navigationAliases', json_extract(metadata_json, '$.navigationAliases'),
         'catalogFamily', json_extract(metadata_json, '$.catalogFamily'),
@@ -431,6 +432,11 @@ export class CapacitorMedicalStore implements MedicalStore {
       await this.query(`
       SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
         d.specialty_json, json_object(
+          'terminology', json_extract(d.metadata_json, '$.terminology'),
+          'primaryModuleId', json_extract(d.metadata_json, '$.primaryModuleId'),
+          'moduleIds', json_extract(d.metadata_json, '$.moduleIds'),
+          'definitionPreviewAnchor', json_extract(d.metadata_json, '$.definitionPreviewAnchor'),
+          'terminologyMentionAnchors', json_extract(d.metadata_json, '$.terminologyMentionAnchors'),
           'declaredAliases', json_extract(d.metadata_json, '$.declaredAliases'),
           'navigationAliases', json_extract(d.metadata_json, '$.navigationAliases'),
           'catalogFamily', json_extract(d.metadata_json, '$.catalogFamily'),

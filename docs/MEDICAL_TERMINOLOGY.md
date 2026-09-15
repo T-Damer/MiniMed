@@ -1,8 +1,8 @@
 # Medical terminology collection
 
-Build-time only. This pipeline does not change the installed core, runtime search, UI, native code,
-release catalogs, or model providers. It creates reviewable source artifacts and ordinary schema-2
-MiniMed packs. Do not publish them by adding guessed download URLs.
+The collector creates reviewable source artifacts and ordinary schema-2 MiniMed packs. Runtime
+lookup understands their compact terminology projection; collection/build commands do not change
+an installed core, active release catalog, or model provider. Do not invent publication URLs.
 
 ## Sources and identity
 
@@ -51,6 +51,8 @@ uv run --project tools/ingest medbase-terminology build \
 several sections, omitting it builds all. `--no-core` builds only section packs. Multi-section concepts
 have one deterministic storage owner (first sorted MeSH root); a section plan lists additional owner
 packs needed for its complete membership. No concept is duplicated under conflicting identities.
+`--discovery-only` builds just the complete discovery candidate, with no specialty detail packs.
+Discovery authoring/knowledge validation uses bounded batches and the existing atomic composer.
 `--for-redistribution` adds a rights preflight, not publication approval or a release action.
 All outputs are immutable directories: use a new path for a new snapshot/build.
 
@@ -76,8 +78,8 @@ terms are not rewritten. The actual Wikidata label `cиндром Мюнхгау
 
 Compare measured JSONL/gzip and SQLite/gzip sizes before deciding how much goes into the runtime core.
 The discovery edition is a **candidate input** for the existing core composer, not a second active
-core. Installing it, adding a user-facing terminology card, and publishing section download URLs are
-separate integration work. No runtime catalog is changed by these commands. Reports separately count
+core. `integrate` below builds a new unpublished core; deploying it and publishing exact specialty
+download URLs remain explicit release work. No runtime catalog is changed by these commands. Reports separately count
 Russian-name and Russian-definition coverage; English-only coverage is not a completed Russian glossary.
 
 ## Measured real-source run — 14 September 2026
@@ -101,8 +103,8 @@ Russian-label Wikidata snapshot, prepared and verified for offline reuse. This i
 These JSONL sizes are **not SQLite/APK sizes**. The actual bilingual `F03 --no-core` SQLite build
 completed after the language fix: 539 section members require 13 unique owner packs (7,587 stored
 concepts), totalling 130,805,760 SQLite bytes / 18,385,744 gzip bytes. The F03-owned pack alone stores
-211 concepts: 3,964,928 SQLite bytes / 546,906 gzip bytes. Full discovery SQLite size has not been
-measured on this complete corpus. Broad owner packs download more than one section's exact membership;
+211 concepts: 3,964,928 SQLite bytes / 546,906 gzip bytes. The complete discovery SQLite build is now measured at **714,932,224 bytes**,
+gzip **123,182,224 bytes** (61,794 documents and 123,598 chunks, no vectors). Broad owner packs download more than one section's exact membership;
 this is an explicit packaging tradeoff, not a finalized or optimized runtime download policy.
 
 A read-only query through the built pack's spelling expansion and FTS finds the real Munchausen
@@ -120,3 +122,54 @@ pinned environment. No patient data or paid inference is involved.
 
 The initial collector covers MeSH Descriptors. Qualifiers, Supplementary Concept Records, HPO, Orphanet,
 and a licensed full Russian translation remain follow-up adapters, not silently claimed coverage.
+
+
+## Runtime lookup and source occurrences — PR #171
+
+Core lookup ranks an exact source-backed concept name first, literal source-label occurrences next,
+then MeSH-declared related concepts. Existing relevance orders results within each tier. Related
+concepts and third-party candidate labels are not clinical equivalence, diagnosis, or approval.
+Names are matched without silently merging ConceptUIs; a same-concept installed detail hides its
+own discovery card only for the same terminology edition. Source/specialty/document filters remain
+applicable to every additional lexical branch. Definitions are searchable as ordinary source text,
+including queries that do not mention the concept name. English definitions remain labelled `en`.
+
+`index-mentions` writes immutable JSONL with the first literal occurrence of each concept per source
+document, exact original quote/character offsets, source checksum, document/version/section/chunk IDs,
+anchor and available page coordinates. Longest explicit names win over embedded shorter names;
+ambiguous names retain all candidate IDs. Short uppercase abbreviations are case-sensitive. This is
+label matching, not clinical entity disambiguation or an assertion about negated/positive findings.
+Personal notes/patient source types are excluded. No full-text coverage is inferred from pointers.
+
+```sh
+uv run --project tools/ingest medbase-terminology index-mentions \
+  --terminology data/build/terminology-2026/minimed.terminology.discovery.db \
+  --source-pack /path/to/verified-full-source.db \
+  --output data/build/term-occurrences-2026.jsonl
+
+uv run --project tools/ingest medbase-terminology integrate \
+  --core apps/app/public/content/core.db \
+  --discovery data/build/terminology-2026/minimed.terminology.discovery.db \
+  --source-pack /path/to/verified-full-source.db \
+  --output data/build/core-with-terminology.db \
+  --manifest data/build/core-with-terminology.edition.json \
+  --version 2026.1.0 --built-at 2026-09-14T00:00:00Z
+```
+
+Repeat `--source-pack` for explicitly available source snapshots; omitting it on `integrate` indexes
+only source text actually present in the selected core. The new core retains original documents,
+text and anchors; source-only metadata and derived pointer chunks add occurrence search. A matching
+source document/version is required; an explicit canonical version cannot be overridden by a
+matching display label. Pointer chunks contain the exact term label and source locator, never a
+fabricated full document. After exact-package installation, their anchors resolve to the source
+fragment. Existing checksum, target-membership, and SQLite activation gates remain authoritative.
+Knowledge links are `proposed` and `searchOnly`; recomposition replaces only this projection.
+
+**Placement decision:** do not silently add the 682 MiB discovery candidate to every mobile core.
+The much smaller prepared JSONL is not a deployable SQLite size estimate. Keep full MeSH optional
+until a compact presence/definition distribution is qualified; any baseline core membership change
+needs a separately built and measured immutable edition. Runtime and composition support are not
+claims that the public application already contains the new terminology. Russian-definition coverage
+and broad section-owner download overhead remain explicit follow-up work.
+
+Performance method and limits: [TERMINOLOGY_PERFORMANCE.md](TERMINOLOGY_PERFORMANCE.md).

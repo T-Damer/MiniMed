@@ -17,6 +17,16 @@ describe('SqliteMedicalStore', () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
     const metadata = {
+      terminology: {
+        version: 1,
+        edition: '2026',
+        conceptId: 'mesh.M0000001',
+        names: ['Синдром Мюнхгаузена'],
+        relatedConceptIds: [],
+        definitionLanguages: ['en'],
+        discovery: true,
+        targetDocumentId: 'medical.term.mesh.M0000001',
+      },
       declaredAliases: ['название'],
       navigationAliases: ['синоним'],
       catalogFamily: 'clinical',
@@ -35,6 +45,10 @@ describe('SqliteMedicalStore', () => {
         metadata: {
           ...metadata,
           targetDocumentId: 'downloaded-target',
+          primaryModuleId: 'minimed.terminology.F03',
+          moduleIds: ['minimed.terminology.F03'],
+          definitionPreviewAnchor: 'discovery#definition',
+          terminologyMentionAnchors: { 'discovery#term': 'source#exact-anchor' },
           sourceType: 'rls_mkb_reference',
           mkbCode: 'R05',
           canonicalDefinition: { text: 'Определение', sourceDocumentId: document.id },
@@ -62,6 +76,13 @@ describe('SqliteMedicalStore', () => {
       expect(document.version.versionLabel).toBe(original?.version.label);
       expect(document.metadata['declaredAliases']).toEqual(metadata.declaredAliases);
       expect(document.metadata['targetDocumentId']).toBe('downloaded-target');
+      expect(document.metadata['terminology']).toEqual(metadata.terminology);
+      expect(document.metadata['primaryModuleId']).toBe('minimed.terminology.F03');
+      expect(document.metadata['moduleIds']).toEqual(['minimed.terminology.F03']);
+      expect(document.metadata['definitionPreviewAnchor']).toBe('discovery#definition');
+      expect(document.metadata['terminologyMentionAnchors']).toEqual({
+        'discovery#term': 'source#exact-anchor',
+      });
       expect(document.metadata['sourceType']).toBe('rls_mkb_reference');
       expect(document.metadata['mkbCode']).toBe('R05');
       expect(document.metadata['canonicalDefinition']).toEqual(

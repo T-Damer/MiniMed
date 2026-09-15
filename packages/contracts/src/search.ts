@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { TerminologyMatchKind } from './terminology';
 
 export const SearchModeSchema = z.enum(['auto', 'lexical', 'semantic', 'hybrid']);
 
@@ -218,6 +219,8 @@ export type SearchResultCategory =
   | 'other';
 
 export interface SearchResult {
+  /** Source-backed occurrence index; not a generated clinical inference. */
+  readonly terminologyConceptIds?: readonly string[];
   readonly chunkId: string;
   readonly documentId: string;
   readonly documentVersionId: string;
@@ -237,6 +240,7 @@ export interface SearchResult {
 }
 
 export interface SearchResultGroup {
+  readonly terminologyMatch?: TerminologyMatchKind;
   readonly documentId: string;
   readonly title: string;
   readonly bestScore: number;
