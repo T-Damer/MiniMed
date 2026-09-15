@@ -9,37 +9,9 @@ permissions:
   contents: read
 
 jobs:
-  source:
+  workspace:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Export tracked source only
-        run: |
-          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
-          import pathlib, subprocess, tarfile
-          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
-          extensions = {'.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.py', '.json', '.jsonl', '.yaml', '.yml', '.toml', '.md', '.sql', '.lock', '.css', '.scss', '.html', '.xml', '.sh', '.txt', '.svg'}
-          with tarfile.open('workspace.tar.gz', 'w:gz') as archive:
-              for name in paths:
-                  path = pathlib.Path(name)
-                  if not name or not path.is_file() or path.is_symlink() or name.startswith(('data/', '.cache/')):
-                      continue
-                  if path.suffix in extensions or name in ('.gitignore', '.npmrc', '.bun-version'):
-                      archive.add(path, arcname=name, recursive=False)
-          print('Source archive bytes:', pathlib.Path('workspace.tar.gz').stat().st_size)
-          PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: terminology-verification-source
-          path: workspace.tar.gz
-          retention-days: 2
-          if-no-files-found: error
-  tools:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,15 +19,38 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.2.3'
-      - name: Install locked public dependencies
-        run: env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
-      - name: Export toolchain without credentials
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - run: env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+      - run: env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+      - run: env -i PATH="$PATH" HOME="$HOME" bunx playwright install chromium --only-shell
+      - name: Export public verification assets only
         run: |
-          cp "$(command -v bun)" bun-1.2.3
-          tar -czf js-tools.tar.gz bun-1.2.3 node_modules
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import pathlib, subprocess, tarfile
+          home = pathlib.Path.home()
+          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          with tarfile.open('verification-assets.tar.gz', 'w:gz') as archive:
+              for name in paths:
+                  path = pathlib.Path(name)
+                  if not name or not path.is_file() or path.is_symlink():
+                      continue
+                  font = path.suffix in {'.woff', '.woff2', '.ttf', '.otf'}
+                  fixture = name.startswith(('packages/test-fixtures/', 'apps/app/public/content/modules/')) and path.suffix in {'.db', '.gz', '.wasm'} and path.stat().st_size < 32000000
+                  if font or fixture:
+                      archive.add(path, arcname=name, recursive=False)
+              archive.add('tools/ingest/.venv/bin/ruff', arcname='verification-tools/ruff', recursive=False)
+              for path in pathlib.Path('tools/ingest/.venv/lib').glob('python*/site-packages/pyright/dist'):
+                  archive.add(path, arcname='verification-tools/pyright')
+              browsers = home / '.cache/ms-playwright'
+              if browsers.exists():
+                  archive.add(browsers, arcname='verification-browsers')
+          print('Verification archive bytes:', pathlib.Path('verification-assets.tar.gz').stat().st_size)
+          PY
       - uses: actions/upload-artifact@v4
         with:
-          name: terminology-verification-tools
-          path: js-tools.tar.gz
+          name: terminology-browser-verification-assets
+          path: verification-assets.tar.gz
           retention-days: 2
           if-no-files-found: error
