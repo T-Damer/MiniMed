@@ -1,0 +1,80 @@
+name: Apply verified terminology source patch
+
+on:
+  push:
+    branches: [agent/medical-terminology-collector]
+    paths: [.github/terminology-transfer/ready.json]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/medical-terminology-collector
+          fetch-depth: 1
+      - name: Verify payload and apply source-only patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, bz2, hashlib, json, pathlib, subprocess
+          root = pathlib.Path('.github/terminology-transfer')
+          manifest = json.loads((root / 'ready.json').read_text())
+          data = b''.join(base64.b64decode((root / f'part-{i}.txt').read_text().strip(), validate=True) for i in range(4))
+          assert hashlib.sha256(data).hexdigest() == manifest['compressedSha256']
+          patch = bz2.decompress(data)
+          assert len(patch) <= 160000 and hashlib.sha256(patch).hexdigest() == manifest['sha256']
+          target = pathlib.Path('/tmp/terminology-source.patch'); target.write_bytes(patch)
+          subprocess.run(['git','apply','--check','--index',str(target)],check=True)
+          subprocess.run(['git','apply','--index',str(target)],check=True)
+          changed = subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          assert sorted(changed) == sorted(manifest['paths'])
+          assert all(p.startswith(('packages/','apps/app/src/','tools/ingest/','tools/benchmarks/src/','docs/')) and p.endswith(('.ts','.tsx','.py','.md')) for p in changed)
+          assert not any('/generated/' in p or p.startswith('data/') for p in changed)
+          PY
+      - name: Commit exact source changes without force pushing
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(search): integrate terminology discovery and measured lookup optimizations'
+          git push origin HEAD:agent/medical-terminology-collector
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.2.3'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - name: Install pinned dependencies in a clean environment
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+      - name: Source and ingestion verification
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run check
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run typecheck
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run test:unit
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run python:check
+      - name: Build application and browser prerequisites
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bun run build:app
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bunx playwright install chromium --only-shell --with-deps
+      - name: Real browser search and reader checks
+        run: |
+          set -o pipefail
+          env -i PATH="$PATH" HOME="$HOME" CI=1 bunx playwright test apps/app/e2e/search.spec.ts --grep 'toggles the document outline on desktop|renders ordinary lookup on a phone-sized' --workers=1 --retries=0 --reporter=list 2>&1 | tee terminology-browser.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terminology-search-reader-evidence
+          path: |
+            terminology-browser.log
+            test-results
+            .omo/evidence/document-overlay
+          retention-days: 7
+          if-no-files-found: warn

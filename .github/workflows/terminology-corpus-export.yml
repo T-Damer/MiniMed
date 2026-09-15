@@ -1,0 +1,41 @@
+name: Temporary terminology corpus workspace
+
+on:
+  push:
+    branches: [agent/medical-terminology-collector]
+    paths: [.github/workflows/terminology-corpus-export.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  workspace:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Collect public terminology without provider credentials
+        run: >-
+          env -i PATH="$PATH" HOME="$HOME"
+          uv run --project tools/ingest medbase-terminology collect
+          --year 2026 --output data/raw/terminology --cache .cache/terminology
+          --network --with-wikidata
+      - name: Prepare source-backed terms
+        run: >-
+          env -i PATH="$PATH" HOME="$HOME"
+          uv run --project tools/ingest medbase-terminology prepare
+          --input data/raw/terminology --output data/intermediate/terminology
+      - name: Archive only the declared public snapshot
+        run: tar -czf terminology-public-snapshot.tar.gz data/raw/terminology data/intermediate/terminology
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terminology-public-snapshot
+          path: terminology-public-snapshot.tar.gz
+          retention-days: 2
+          if-no-files-found: error

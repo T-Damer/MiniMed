@@ -17,6 +17,8 @@ medbase-clinical-catalog = "localmed_ingest.clinical_catalog_cli:app"
 medbase-regulated-catalog = "localmed_ingest.regulated_catalog_cli:app"
 medbase-catalog-modules = "localmed_ingest.catalog_module_cli:app"
 
+medbase-terminology = "localmed_ingest.terminology_cli:app"
+
 [dependency-groups]
 dev = [
   "pyright==1.1.411",

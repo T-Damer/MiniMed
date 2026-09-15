@@ -107,3 +107,10 @@ roadmap ideas.
 Update `CURRENT_STATE.md` only for implemented or measured changes. Update `TECHNICAL_PLAN.md` only
 when the target architecture or release gates change. Do not duplicate long implementation details
 that are already enforced by tests or ADRs.
+
+## Terminology collection
+
+Read [MEDICAL_TERMINOLOGY.md](MEDICAL_TERMINOLOGY.md) before changing terminology adapters or packs.
+Preserve ConceptUI identity, source-language definitions and multi-section membership. Never turn
+Wikidata descriptions into clinical definitions, merge concepts by names, or enable runtime packs
+without measured sizes, exact membership and source redistribution review.

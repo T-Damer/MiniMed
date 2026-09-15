@@ -1,0 +1,92 @@
+name: Medical terminology
+
+on:
+  pull_request:
+    paths:
+      - 'tools/ingest/**'
+      - 'schema/sql/**'
+      - '.github/workflows/terminology-source-check.yml'
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'Explicit MeSH production year'
+        required: true
+        default: '2026'
+      with_wikidata:
+        description: 'Include Russian candidate labels from Wikidata'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - run: uv run --project tools/ingest ruff check tools/ingest/src tools/ingest/tests
+      - run: uv run --project tools/ingest ruff format --check tools/ingest/src tools/ingest/tests
+      - run: uv run --project tools/ingest pyright tools/ingest/src tools/ingest/tests
+      - run: uv run --project tools/ingest pytest tools/ingest/tests
+        if: success() || failure()
+
+  measure:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      MESH_YEAR: ${{ inputs.year }}
+      INCLUDE_WIKIDATA: ${{ inputs.with_wikidata }}
+      LOCALMED_HTTP_MAX_ATTEMPTS: '3'
+      LOCALMED_HTTP_INITIAL_BACKOFF_SECONDS: '1'
+      LOCALMED_HTTP_MAX_BACKOFF_SECONDS: '10'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Collect public vocabulary without provider credentials
+        shell: bash
+        run: |
+          extra=()
+          if [[ "$INCLUDE_WIKIDATA" == 'true' ]]; then extra+=(--with-wikidata); fi
+          uv run --project tools/ingest medbase-terminology collect --year "$MESH_YEAR" \
+            --output data/raw/terminology --cache .cache/terminology --network "${extra[@]}"
+      - name: Prepare and measure complete vocabulary
+        run: >-
+          uv run --project tools/ingest medbase-terminology prepare
+          --input data/raw/terminology --output data/intermediate/terminology
+      - name: Verify offline snapshot reuse
+        run: >-
+          uv run --project tools/ingest medbase-terminology collect --year "$MESH_YEAR"
+          --output data/raw/terminology --cache .cache/terminology --offline
+      - name: Build a psychiatric section and its exact owner dependencies
+        run: >-
+          uv run --project tools/ingest medbase-terminology build
+          --input data/intermediate/terminology --output data/build/terminology
+          --version "$MESH_YEAR.1.0" --built-at "$MESH_YEAR-01-01T00:00:00Z"
+          --section F03 --no-core --for-redistribution
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: terminology-measurement
+          path: |
+            data/raw/terminology/sources.json
+            data/raw/terminology/source-sync-report.json
+            data/intermediate/terminology/size-report.json
+            data/intermediate/terminology/sections.json
+            data/build/terminology/pack-size-report.json
+            data/build/terminology/*.report.json
+          retention-days: 7
+          if-no-files-found: error
