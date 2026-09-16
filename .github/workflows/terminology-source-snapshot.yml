@@ -1,0 +1,43 @@
+name: Temporary terminology source snapshot
+on:
+  push:
+    branches: [agent/medical-terminology-collector]
+    paths: [.github/workflows/terminology-source-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Export source text only, without data or credentials
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, pathlib, subprocess, tarfile
+          paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
+          manifest = {}
+          with tarfile.open('source-snapshot.tar.gz', 'w:gz') as archive:
+              for name in paths:
+                  path = pathlib.Path(name)
+                  if not path.is_file() or path.is_symlink() or path.name.startswith('.env'):
+                      continue
+                  if not name.startswith(('packages/', 'tools/', 'docs/', 'apps/app/src/', 'apps/app/e2e/', '.github/workflows/')):
+                      continue
+                  if path.suffix not in {'.ts', '.tsx', '.py', '.md', '.yml', '.yaml', '.toml', '.json', '.sql'}:
+                      continue
+                  if '/generated/' in name or path.stat().st_size > 12000000:
+                      continue
+                  archive.add(path, arcname=name, recursive=False)
+                  manifest[name] = subprocess.check_output(['git','hash-object',name],text=True).strip()
+          pathlib.Path('source-manifest.json').write_text(json.dumps({'sha': subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(), 'blobs': manifest}))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: terminology-local-source
+          path: |
+            source-snapshot.tar.gz
+            source-manifest.json
+          retention-days: 2
