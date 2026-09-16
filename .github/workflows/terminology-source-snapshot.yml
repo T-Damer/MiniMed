@@ -13,10 +13,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Export source text only, without data or credentials
+      - name: Export exact tracked source text for local Linux verification
         run: |
-          python3 - <<'PY'
-          import hashlib, json, pathlib, subprocess, tarfile
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import json, pathlib, subprocess, tarfile
           paths = subprocess.check_output(['git', 'ls-files', '-z']).decode().split('\0')
           manifest = {}
           with tarfile.open('source-snapshot.tar.gz', 'w:gz') as archive:
@@ -24,12 +24,12 @@ jobs:
                   path = pathlib.Path(name)
                   if not path.is_file() or path.is_symlink() or path.name.startswith('.env'):
                       continue
-                  if not name.startswith(('packages/', 'tools/', 'docs/', 'apps/app/src/', 'apps/app/e2e/', '.github/workflows/')):
+                  if name.startswith(('data/', 'content/', 'node_modules/', '.git/')):
                       continue
-                  if path.suffix not in {'.ts', '.tsx', '.py', '.md', '.yml', '.yaml', '.toml', '.json', '.sql'}:
+                  if path.suffix not in {'.ts', '.tsx', '.js', '.mjs', '.py', '.md', '.yml', '.yaml', '.toml', '.json', '.sql', '.css', '.scss', '.astro'}:
                       continue
-                  if '/generated/' in name or path.stat().st_size > 12000000:
-                      continue
+                  if path.stat().st_size > 50000000:
+                      raise ValueError('Unexpected source size: ' + name)
                   archive.add(path, arcname=name, recursive=False)
                   manifest[name] = subprocess.check_output(['git','hash-object',name],text=True).strip()
           pathlib.Path('source-manifest.json').write_text(json.dumps({'sha': subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(), 'blobs': manifest}))
