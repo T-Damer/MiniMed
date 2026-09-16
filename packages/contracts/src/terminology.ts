@@ -4,9 +4,9 @@ import { z } from 'zod';
 export const TerminologySearchProjectionSchema = z.object({
   version: z.literal(1),
   edition: z.string().min(1),
-  conceptId: z.string().regex(/^mesh\.M\d+$/u),
+  conceptId: z.string().regex(/^(?:mesh\.M\d+|ruwikt\.[a-f0-9]{24})$/u),
   names: z.array(z.string().min(1)).min(1),
-  relatedConceptIds: z.array(z.string().regex(/^mesh\.M\d+$/u)),
+  relatedConceptIds: z.array(z.string().regex(/^(?:mesh\.M\d+|ruwikt\.[a-f0-9]{24})$/u)),
   definitionLanguages: z.array(z.string().min(2)),
   discovery: z.boolean(),
   targetDocumentId: z.string().min(1),

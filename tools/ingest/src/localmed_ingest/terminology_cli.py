@@ -8,6 +8,8 @@ from typing import Annotated
 
 import typer
 
+from .russian_dictionary import collect_russian_dictionary, prepare_russian_dictionary
+from .russian_dictionary_packs import build_russian_dictionary
 from .sqlite_composer import compose_sqlite_packs
 from .terminology_mentions import write_occurrence_index
 from .terminology_packs import build_terminology_packs
@@ -112,6 +114,40 @@ def integrate_command(
         compact=True,
     )
     typer.echo(result.model_dump_json(by_alias=True, indent=2))
+
+
+@app.command("collect-russian")
+def collect_russian_command(
+    output: Annotated[Path, typer.Option("--output")],
+    cache: Annotated[Path, typer.Option("--cache")],
+    network: Annotated[bool, typer.Option("--network")] = False,
+) -> None:
+    """Explicit free download of the Russian Wiktionary/Kaikki lexical snapshot."""
+    collect_russian_dictionary(output, cache, network=network)
+
+
+@app.command("prepare-russian")
+def prepare_russian_command(
+    source: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    typer.echo(json.dumps(prepare_russian_dictionary(source, output), ensure_ascii=False, indent=2))
+
+
+@app.command("build-russian")
+def build_russian_command(
+    prepared: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    version: Annotated[str, typer.Option("--version")],
+    built_at: Annotated[str, typer.Option("--built-at")],
+) -> None:
+    typer.echo(
+        json.dumps(
+            build_russian_dictionary(prepared, output, version=version, built_at=built_at),
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -119,3 +119,6 @@ Term-occurrence projections store literal source labels/locators, not clinical a
 exact term → source mention → related-concept tiers and every active search filter. Never restore
 full-catalog work before the reader's selected-document request. Keep benchmark engine timings
 separate from browser/physical-device timings, and rebuild caches after core reinitialization.
+
+- For Russian terminology sources/distribution, read `RUSSIAN_TERMINOLOGY.md`. Keep sense-level
+  selection, CC-BY-SA attribution, proposed/third-party status and exact gzip/decoded checksums.

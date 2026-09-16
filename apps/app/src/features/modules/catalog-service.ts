@@ -6,7 +6,11 @@ import {
   loadContentModuleCatalog,
 } from '@localmed/core';
 
-import { MODULE_CATALOG, REMOTE_MODULE_CATALOG_URL } from '@/features/modules/module-catalog';
+import {
+  MODULE_CATALOG,
+  REMOTE_MODULE_CATALOG_URL,
+  withBundledTerminology,
+} from '@/features/modules/module-catalog';
 
 const CACHE_KEY = 'minimed.content-module-catalog.preview.v1';
 let activeCatalog: ContentModuleCatalog = MODULE_CATALOG;
@@ -41,6 +45,6 @@ export async function refreshContentModuleCatalog(): Promise<LoadedContentModule
     remoteUrl: configuredUrl || REMOTE_MODULE_CATALOG_URL,
     cache: new BrowserContentModuleCatalogCache(),
   });
-  activeCatalog = loaded.catalog;
-  return loaded;
+  activeCatalog = withBundledTerminology(loaded.catalog);
+  return { ...loaded, catalog: activeCatalog };
 }

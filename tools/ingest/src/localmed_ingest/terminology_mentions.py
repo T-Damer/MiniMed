@@ -137,7 +137,7 @@ def matcher_from_database(connection: sqlite3.Connection) -> TermLabelMatcher:
         if (
             value.get("version") != 1
             or not isinstance(concept, str)
-            or not re.fullmatch(r"mesh\.M\d+", concept)
+            or not re.fullmatch(r"(?:mesh\.M\d+|ruwikt\.[a-f0-9]{24})", concept)
             or not labels
         ):
             raise ValueError("Invalid terminology search projection.")
