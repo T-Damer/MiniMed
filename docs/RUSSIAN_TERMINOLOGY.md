@@ -40,14 +40,33 @@ The index includes **all supplied Russian definitions**, not only term names. Si
 hold disjoint owner sets; source subject memberships and additional owners are in the size report.
 Sections are optional. The initial implementation must not force a large MeSH pack onto a device.
 
-The release publisher verifies archive and decoded checksums, SQLite/FK integrity, exact document
-membership and redistribution rights. Only after GitHub confirms uploaded asset digests does it
-commit `catalog.terminology.json` to the same PR. The current gzip installer handles decompression,
-verification and atomic activation; no new download subsystem is introduced. Remote catalog refresh
-must retain these bundled verified entries when an older main catalog does not yet include them.
-Do not replace an immutable tag or mark an unuploaded catalog candidate as an available download.
+`russian_distribution_catalog` verifies archive and decoded checksums, SQLite/FK integrity, exact
+membership and source rights before producing candidate descriptors. A future publisher must still
+upload and verify all assets before committing those descriptors to the runtime catalog; this
+function alone is not proof of publication. Never replace an immutable tag or advertise an
+unuploaded candidate. The current gzip installer owns decompression, verification and atomic
+activation. Remote refresh retains verified bundled terminology entries when the main catalog
+predates this feature; no second download subsystem is introduced.
 
-## Measured local run, 16 September 2026
+## Published distribution
+
+Dataset release: `https://github.com/T-Damer/MiniMed/releases/tag/terminology-ru-2026.9.16`
+(release ID `389769808`). It is a data prerelease, not an APK release and not the latest-app release.
+
+Seven uploaded `.db.gz` assets are advertised in `catalog.terminology.json`: the complete Russian
+lexical index and six owner sections (medicine, anatomy, physiology, pharmacology, psychology,
+psychiatry). The index's actual released transfer is **18,493,069 bytes**, SHA-256
+`1730269a741ed4792c4f9922dcb178a47e990896270d3a5a85c55c5432e55096`.
+This compressed size is not the installed SQLite size. `catalog.terminology.json.gz` contains exact
+membership, archive/decoded byte counts and both hashes for every section. `senses.jsonl.gz`,
+`source.json`, `ATTRIBUTION.txt`, `pack-size-report.json` and `SHA256SUMS` accompany the data.
+
+The initial publisher checked GitHub asset state, byte count and SHA-256 receipts before advertising
+the URLs in this PR. Temporary source-transfer/export/bootstrap workflows were then removed. The
+ordinary collection/build CLI remains; a future data edition needs a new immutable tag and the same
+publication checks. Merging the application changes and deploying `/app/` remain separate actions.
+
+## Recorded local measurements, 16 September 2026
 
 - Source archive: 292,526,569 bytes; SHA-256
   `672973ab0647e1860a321ef9962cdf3d6e44e75572ebad0adde1fd87b676a755`.
@@ -63,7 +82,7 @@ Do not replace an immutable tag or mark an unuploaded catalog candidate as an av
   75,299 chunks**, SQLite 692,518,912 bytes. Composition 57.03 s; including gzip and fingerprint checks
   109.33 s; peak RSS 1,073,084 KiB. Gzip 115,461,923 bytes. SQLite/FK checks passed and input hashes
   were unchanged. This is an unpublished qualification output, not a replacement of the app core.
-- Full MeSH owner/index rebuilding is a separate local job. Do not confuse the completed Russian
+- Full MeSH owner/index rebuilding remains separate. Do not confuse the completed Russian
   combined-core measurement with completion of the larger all-MeSH combined edition.
 
 Physical-device installation and clinical/editorial qualification remain separate checks. Publishing
