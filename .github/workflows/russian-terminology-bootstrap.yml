@@ -56,7 +56,9 @@ jobs:
               assert subprocess.check_output(['git','hash-object',p],text=True).strip()==m['resultBlobs'][p],p
           PYCODE
           git rm -r .github/russian-terminology-transfer
-          git rm .github/workflows/russian-terminology-bootstrap.yml .github/workflows/terminology-source-snapshot.yml .github/workflows/terminology-russian-input.yml
+          # Workflow writes use the owner's connector, not the restricted Actions token.
+          git restore --staged .github/workflows/publish-russian-terminology.yml
+          rm .github/workflows/publish-russian-terminology.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'feat: add source-backed Russian terminology packages and complete local reconstruction'
