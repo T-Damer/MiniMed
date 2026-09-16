@@ -1,0 +1,160 @@
+name: Publish locally verified Russian terminology
+
+on:
+  push:
+    branches: [agent/medical-terminology-collector]
+    paths: [.github/workflows/russian-terminology-bootstrap.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: publish-russian-terminology-2026-9-16
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'T-Damer/MiniMed' && github.ref == 'refs/heads/agent/medical-terminology-collector'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DATA_TAG: terminology-ru-2026.9.16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify and apply the locally tested source changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PYCODE'
+          import base64,bz2,hashlib,json,pathlib,subprocess
+          root=pathlib.Path('.github/russian-terminology-transfer')
+          m=json.loads((root/'manifest.json').read_text())
+          assert m['schemaVersion']==1 and 1<=len(m['paths'])<=25
+          allowed=lambda p: p.startswith(('tools/ingest/','apps/app/src/','packages/','schema/sql/','docs/')) or p=='.github/workflows/publish-russian-terminology.yml'
+          assert all(allowed(p) and '..' not in pathlib.PurePosixPath(p).parts for p in m['paths'])
+          for p in m['paths']:
+              old=subprocess.run(['git','rev-parse',f'HEAD:{p}'],text=True,capture_output=True)
+              assert (old.stdout.strip() if old.returncode==0 else None)==m['baseBlobs'][p],p
+          compressed=base64.b64decode(''.join((root/f'part-{i}.txt').read_text().strip() for i in range(4)),validate=True)
+          assert hashlib.sha256(compressed).hexdigest()==m['compressedSha256']
+          decoder=bz2.BZ2Decompressor(); patch=decoder.decompress(compressed,max_length=180001)
+          assert decoder.eof and not decoder.unused_data and len(patch)==m['uncompressedBytes']<=180000
+          assert hashlib.sha256(patch).hexdigest()==m['sha256']
+          target=pathlib.Path('/tmp/russian-source.patch');target.write_bytes(patch)
+          subprocess.run(['git','apply','--check','--index',str(target)],check=True)
+          subprocess.run(['git','apply','--index',str(target)],check=True)
+          changed=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          assert sorted(changed)==sorted(m['paths'])
+          for p in m['paths']:
+              assert subprocess.check_output(['git','hash-object',p],text=True).strip()==m['resultBlobs'][p],p
+          PYCODE
+          git rm -r .github/russian-terminology-transfer
+          git rm .github/workflows/russian-terminology-bootstrap.yml .github/workflows/terminology-source-snapshot.yml .github/workflows/terminology-russian-input.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat: add source-backed Russian terminology packages and complete local reconstruction'
+          auth_header="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          echo "::add-mask::$auth_header"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth_header" push origin HEAD:agent/medical-terminology-collector
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.10.0'
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.2.3'
+      - uses: actions/download-artifact@v4
+        with:
+          name: russian-dictionary-raw-input
+          run-id: 35060816145
+          github-token: ${{ github.token }}
+          path: data/raw/russian-dictionary
+      - name: Reproduce the locally qualified source selection in a clean environment
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked --python 3.13
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          from localmed_ingest.russian_dictionary import prepare_russian_dictionary
+          source = Path('data/raw/russian-dictionary')
+          assert json.loads((source/'source.json').read_text())['sha256'] == '672973ab0647e1860a321ef9962cdf3d6e44e75572ebad0adde1fd87b676a755'
+          report = prepare_russian_dictionary(source, Path('data/intermediate/russian-dictionary'))
+          assert report['senses'] == 6939 and report['russianDefinitionCount'] == 6940
+          assert report['preparedSha256'] == 'sha256:5cebcb116ceb454138a5cd6667d6e724c40e4a7267dd342acdb84b99c4aa70f7'
+          PY
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest tools/ingest/tests/test_russian_dictionary.py tools/ingest/tests/test_knowledge_foreign_keys.py -q
+      - name: Build validated gzip indexes and exact memberships
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest medbase-terminology build-russian --input data/intermediate/russian-dictionary --output data/build/russian-dictionary --version 2026.9.16 --built-at 2026-09-16T00:00:00Z
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import gzip, hashlib, json, shutil
+          from pathlib import Path
+          from localmed_ingest.terminology_distribution import russian_distribution_catalog
+          root = Path('data/build/russian-dictionary')
+          modules = russian_distribution_catalog(root, 'https://github.com/T-Damer/MiniMed/releases/download/terminology-ru-2026.9.16')
+          assert len(modules) == 7
+          (root/'catalog.terminology.json').write_text(json.dumps(modules,ensure_ascii=False,separators=(',',':'))+'\n')
+          with (root/'catalog.terminology.json').open('rb') as inp, (root/'catalog.terminology.json.gz').open('wb') as out, gzip.GzipFile(fileobj=out,mode='wb',filename='',mtime=0) as z:
+              shutil.copyfileobj(inp,z)
+          with (root/'senses.jsonl').open('rb') as inp, (root/'senses.jsonl.gz').open('wb') as out, gzip.GzipFile(fileobj=out,mode='wb',filename='',mtime=0) as z:
+              shutil.copyfileobj(inp,z)
+          (root/'NOTES.md').write_text('Russian Wiktionary / Kaikki: 6,939 medical lexical senses, 6,940 Russian source glosses.\n\nCommunity lexical reference, not clinical recommendations. No AI translation or clinical approval.\n\nDownload optional .db.gz packages; verify both compressed and decoded checksums in catalog.terminology.json.gz. The index includes names and definitions; six section packs contain distinct owned entries.\n\nCC-BY-SA-4.0, per-entry source/author-history links and original source fingerprint in senses.jsonl.gz; see ATTRIBUTION.txt. No patient data, quotations or model weights.\n')
+          files = sorted([*root.glob('*.db.gz'), root/'catalog.terminology.json.gz', root/'senses.jsonl.gz', root/'source.json', root/'pack-size-report.json', root/'ATTRIBUTION.txt'])
+          (root/'SHA256SUMS').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in files))
+          PY
+      - name: Publish once without replacing an existing dataset or the latest APK release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$DATA_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'Dataset tag already exists; never overwrite immutable data.' >&2
+            exit 1
+          fi
+          root=data/build/russian-dictionary
+          gh release create "$DATA_TAG" "$root"/*.db.gz "$root/catalog.terminology.json.gz" "$root/senses.jsonl.gz" "$root/source.json" "$root/pack-size-report.json" "$root/ATTRIBUTION.txt" "$root/SHA256SUMS" --repo "$GITHUB_REPOSITORY" --target "$(git rev-parse HEAD)" --prerelease --latest=false --title 'Russian medical terminology 2026.9.16 — source-backed lexical preview' --notes-file "$root/NOTES.md"
+          gh api "repos/$GITHUB_REPOSITORY/releases/tags/$DATA_TAG" > release-receipt.json
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          receipt=json.loads(Path('release-receipt.json').read_text())
+          assets={a['name']:a for a in receipt['assets']}
+          root=Path('data/build/russian-dictionary')
+          expected=[*root.glob('*.db.gz'),root/'catalog.terminology.json.gz',root/'senses.jsonl.gz',root/'source.json',root/'pack-size-report.json',root/'ATTRIBUTION.txt',root/'SHA256SUMS']
+          for p in expected:
+              a=assets[p.name]
+              assert a['state']=='uploaded' and a['size']==p.stat().st_size,p.name
+              assert a.get('digest')=='sha256:'+hashlib.sha256(p.read_bytes()).hexdigest(),p.name
+          assert receipt['prerelease'] and not receipt['draft']
+          PY
+      - name: Advertise only uploaded and verified packages in the same PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp data/build/russian-dictionary/catalog.terminology.json apps/app/src/features/modules/catalog.terminology.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add apps/app/src/features/modules/catalog.terminology.json
+          git commit -m 'data: advertise verified gzip Russian terminology index and section downloads'
+          auth_header="$(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          echo "::add-mask::$auth_header"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth_header" push origin HEAD:agent/medical-terminology-collector
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: russian-terminology-publication-evidence
+          retention-days: 14
+          path: |
+            release-receipt.json
+            data/build/russian-dictionary/catalog.terminology.json
+            data/build/russian-dictionary/pack-size-report.json
+            data/build/russian-dictionary/SHA256SUMS
