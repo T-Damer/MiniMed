@@ -36,7 +36,7 @@ FIELDS = frozenset(
     }
 )
 HEADING = re.compile(r"h[1-6]")
-IGNORED_TAGS = frozenset({"script", "style", "nav", "header", "footer"})
+IGNORED_TAGS = frozenset({"script", "style"})
 
 
 def canonical_protocol_id(value: str) -> str:
@@ -62,13 +62,14 @@ class _MetadataParser(HTMLParser):
 
     def _flush(self) -> None:
         value = _text(self._parts)
-        if self._active in FIELDS and value:
+        active = self._active
+        if active is not None and active in FIELDS and value:
             if len(value) > MAX_FIELD_CHARS:
                 raise ValueError("PhenX metadata field exceeds the size limit.")
-            previous = self.fields.get(self._active)
+            previous = self.fields.get(active)
             if previous is not None and previous != value:
                 raise ValueError("Conflicting repeated PhenX metadata heading.")
-            self.fields[self._active] = value
+            self.fields[active] = value
         self._parts = []
         self._active = None
 
