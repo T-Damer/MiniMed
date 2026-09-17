@@ -118,7 +118,7 @@ export function AssessmentQuestionnairePage(props: {
   };
   const patientEpisodes = () =>
     patientSnapshot()?.episodes.filter(
-      (episode) => episode.patientId() === patientId() && episode.status === 'open',
+      (episode) => episode.patientId === patientId() && episode.status === 'open',
     ) ?? [];
 
   createEffect(() => {
