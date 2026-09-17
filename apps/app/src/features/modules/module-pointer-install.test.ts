@@ -228,3 +228,17 @@ describe('module-pointer-install', () => {
     await expect(installModulePointer(runtime, resolution)).rejects.toThrow('Сервер недоступен');
   });
 });
+
+it('maps a term occurrence to its exact source anchor without changing unrelated anchors', () => {
+  const metadata = { terminologyMentionAnchors: { 'core#term-one': 'source@1/section#chunk-7' } };
+  expect(modulePointerTargetAnchor(metadata, 'core#term-one')).toBe('source@1/section#chunk-7');
+  expect(modulePointerTargetAnchor(metadata, 'other#anchor')).toBe('other#anchor');
+  expect(modulePointerTargetAnchor(metadata, '__proto__')).toBe('__proto__');
+  expect(modulePointerTargetAnchor({ terminologyMentionAnchors: { invalid: 1 } }, 'invalid')).toBe(
+    'invalid',
+  );
+});
+
+it('does not treat a local discovery definition anchor as a detail-package source anchor', () => {
+  expect(modulePointerTargetAnchor({ pointerKind: 'terminology' }, 'core#definition')).toBeNull();
+});

@@ -1208,11 +1208,17 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     {(group, groupIndex) => {
                       const kind = () => RESULT_KIND_VISUALS[group.documentKind ?? 'reference'];
                       const contentLabel = () =>
-                        group.contentKind === 'summary'
-                          ? 'Краткий обзор'
-                          : group.contentKind === 'pointer'
-                            ? 'Карточка источника'
-                            : 'Полный текст';
+                        group.terminologyMatch === 'term'
+                          ? 'Медицинский термин'
+                          : group.terminologyMatch === 'term-mention'
+                            ? 'Вхождение термина в источнике'
+                            : group.terminologyMatch === 'related-term'
+                              ? 'Смежное понятие MeSH — не клинический вывод'
+                              : group.contentKind === 'summary'
+                                ? 'Краткий обзор'
+                                : group.contentKind === 'pointer'
+                                  ? 'Карточка источника'
+                                  : 'Полный текст';
                       return (
                         <section class="result-group">
                           <button

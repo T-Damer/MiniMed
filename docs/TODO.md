@@ -123,3 +123,15 @@ portability remain.
 
 - Finish search-driven installation of a missing area.
 - Verify the public `/app/` browser build and the Android release candidate after the 1.0 changes.
+
+
+## Terminology rollout after PR #171
+
+- Qualify a compact mandatory term-presence/definition edition before adding the measured large MeSH
+  candidate to the mobile core; publish exact section-owner artifact manifests/URLs only explicitly.
+- Add a licensed Russian definition/translation source, review candidate crosswalks, and broaden
+  psychiatry/psychology coverage without turning names into clinical equivalence.
+- Index occurrences from each actually collected full-text pack; the core-only run does not prove
+  coverage of absent source text. Keep ambiguous labels/search-only links reviewable.
+- Measure remaining cold lookup/index initialization and real reader paint on the physical Android
+  device. The current Linux engine speedup is not an Android latency or 120 FPS claim.

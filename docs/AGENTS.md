@@ -107,3 +107,18 @@ roadmap ideas.
 Update `CURRENT_STATE.md` only for implemented or measured changes. Update `TECHNICAL_PLAN.md` only
 when the target architecture or release gates change. Do not duplicate long implementation details
 that are already enforced by tests or ADRs.
+
+## Terminology collection
+
+Read [MEDICAL_TERMINOLOGY.md](MEDICAL_TERMINOLOGY.md) before changing terminology adapters or packs.
+Preserve ConceptUI identity, source-language definitions and multi-section membership. Never turn
+Wikidata descriptions into clinical definitions, merge concepts by names, or enable runtime packs
+without measured sizes, exact membership and source redistribution review.
+
+Term-occurrence projections store literal source labels/locators, not clinical assertions. Preserve
+exact term → source mention → related-concept tiers and every active search filter. Never restore
+full-catalog work before the reader's selected-document request. Keep benchmark engine timings
+separate from browser/physical-device timings, and rebuild caches after core reinitialization.
+
+- For Russian terminology sources/distribution, read `RUSSIAN_TERMINOLOGY.md`. Keep sense-level
+  selection, CC-BY-SA attribution, proposed/third-party status and exact gzip/decoded checksums.

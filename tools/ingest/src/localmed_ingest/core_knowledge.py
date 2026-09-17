@@ -125,7 +125,9 @@ def _project_definition_chunk(
 def project_core_knowledge(connection: sqlite3.Connection) -> None:
     rows = connection.execute(
         "SELECT id, title, current_version_id, metadata_json FROM documents "
-        "WHERE source_type = 'core_catalog_pointer' ORDER BY id"
+        "WHERE source_type = 'core_catalog_pointer' "
+        "AND COALESCE(json_extract(metadata_json, '$.pointerKind'), '') != 'terminology' "
+        "ORDER BY id"
     ).fetchall()
     if not rows:
         return
@@ -149,6 +151,8 @@ def project_core_knowledge(connection: sqlite3.Connection) -> None:
         if not isinstance(metadata_value, dict):
             raise ValueError(f"Pointer {document_id} metadata must be an object.")
         metadata = cast(dict[str, object], metadata_value)
+        if metadata.get("pointerKind") == "terminology":
+            continue  # Terminology packs already supply their exact ConceptUI/evidence projection.
         target_id = metadata.get("targetDocumentId")
         if not isinstance(target_id, str) or not target_id.strip():
             raise ValueError(f"Pointer {document_id} requires targetDocumentId.")

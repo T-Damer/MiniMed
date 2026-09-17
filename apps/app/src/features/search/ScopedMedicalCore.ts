@@ -65,6 +65,11 @@ export function documentMatchesSearchScope(
   if (scope === 'personal') return false;
   if (scope === 'calculators') return searchResultDocumentKind(document) === 'calculator';
   if (scope === 'assessments') return searchResultDocumentKind(document) === 'assessment';
+  if (scope === 'conditions' && document.metadata?.['terminology']) {
+    return ['condition', 'disease', 'syndrome', 'symptom'].includes(
+      String(document.metadata['entityType']),
+    );
+  }
   if (scope === 'conditions' && document.sourceType === 'core_catalog_pointer') {
     return (
       document.metadata?.['catalogFamily'] === 'reference' &&

@@ -185,6 +185,7 @@ function executeStatement(statement: PreparedStatement, values: readonly Bindabl
 }
 
 const SEARCH_METADATA_FIELDS = [
+  'terminology',
   'declaredAliases',
   'navigationAliases',
   'catalogFamily',
@@ -202,6 +203,10 @@ const NAVIGATION_METADATA_FIELDS = [
   'mkbCode',
   'targetDocumentId',
   'canonicalDefinition',
+  'primaryModuleId',
+  'moduleIds',
+  'definitionPreviewAnchor',
+  'terminologyMentionAnchors',
 ] as const;
 
 function projectedMetadata(row: SqlRow, keys: readonly string[]): Record<string, unknown> {

@@ -37,6 +37,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-chromium-${{ runner.os }}-${{ runner.arch }}-${{ steps.playwright-version.outputs.version }}
       - run: uv sync --project tools/ingest --all-groups --locked
+      - name: Build synthetic terminology E2E packs
+        run: uv run --project tools/ingest python tools/ingest/tests/build_terminology_e2e.py data/build/terminology-e2e
       - name: Build regulatory E2E module and built-in web packs
         run: |
           bun run content:lint:regulatory
@@ -72,7 +74,7 @@ jobs:
                   '''SELECT d.id, dv.id, dv.source_checksum, d.status
                      FROM documents d
                      JOIN document_versions dv ON dv.id = d.current_version_id
-                     ORDER BY d.id, dv.id'''
+                     ORDER BY d.id'''
               ).fetchall()
               chunks = database.execute('SELECT COUNT(*) FROM chunks').fetchone()[0]
               fts_rows = database.execute('SELECT COUNT(*) FROM chunks_fts').fetchone()[0]

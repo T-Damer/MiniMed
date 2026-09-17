@@ -1,8 +1,24 @@
-import { ContentModuleCatalogSchema } from '@localmed/contracts';
+import {
+  type ContentModuleCatalog,
+  ContentModuleCatalogEntrySchema,
+  ContentModuleCatalogSchema,
+} from '@localmed/contracts';
 
 import rawCatalog from '@/features/modules/catalog.preview.json';
+import rawTerminologyModules from '@/features/modules/catalog.terminology.json';
 
-export const MODULE_CATALOG = ContentModuleCatalogSchema.parse(rawCatalog);
+const terminologyModules = ContentModuleCatalogEntrySchema.array().parse(rawTerminologyModules);
+
+/** Release-generated descriptors: exact membership and gzip/decoded identities, never guessed URLs. */
+export function withBundledTerminology(catalog: ContentModuleCatalog): ContentModuleCatalog {
+  const known = new Set(catalog.modules.map((module) => module.id));
+  return ContentModuleCatalogSchema.parse({
+    ...catalog,
+    modules: [...catalog.modules, ...terminologyModules.filter((module) => !known.has(module.id))],
+  });
+}
+
+export const MODULE_CATALOG = withBundledTerminology(ContentModuleCatalogSchema.parse(rawCatalog));
 
 const bundledCoreModule = MODULE_CATALOG.modules.find((module) => module.id === 'minimed.core.ru');
 

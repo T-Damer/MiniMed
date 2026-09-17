@@ -24,6 +24,7 @@ import {
   analyzeClinicalQuery,
   buildLookupQueryPlan,
   buildSnippet,
+  createAliasExpander,
   findNormalizedPhraseIndex,
   fuzzyPhraseSpan,
   type LexicalQueryBranchPlan,
@@ -49,12 +50,14 @@ import {
   toMedicalDocument,
   toMedicalSection,
 } from './mappers';
-import { matchesDocumentAlias, rankSearchGroupsByQuery } from './query-group-ranking';
+import { QueryDocumentIndex } from './query-document-index';
+import { rankSearchGroupsByQuery } from './query-group-ranking';
 import {
   resolveSearchResultContext,
   type SearchResultContextHint,
   searchResultContextFallbackMessage,
 } from './search-context';
+import { TerminologySearchIndex } from './terminology-search';
 
 export interface CreateMedicalCoreOptions {
   readonly store: MedicalStore;
@@ -179,7 +182,13 @@ function toSearchResult(aggregate: AggregatedHit): SearchResult {
     documentVersionId: aggregate.hit.document.version.id,
     sectionId: aggregate.hit.section.id,
     anchor: aggregate.hit.chunk.anchor,
-    title: aggregate.hit.document.title,
+    title: aggregate.hit.document.metadata['terminology']
+      ? (aggregate.hit.document.shortTitle ?? aggregate.hit.document.title)
+      : aggregate.hit.document.title,
+    terminologyConceptIds: metadataStrings(
+      aggregate.hit.chunk.metadata,
+      'terminologyConceptIds',
+    ).filter((id) => /^mesh\.M\d+$/u.test(id)),
     sectionPath: aggregate.hit.section.sectionPath,
     snippet: snippet.text,
     highlightedRanges: snippet.ranges,
@@ -701,7 +710,13 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   const platform = options.platform ?? 'unknown';
   const seed = options.seed === undefined ? undefined : ContentPackSeedSchema.parse(options.seed);
   let initialized = false;
+  let lookupExpansion:
+    | { aliases: MedicalAliasRecords; expand: ReturnType<typeof createAliasExpander> }
+    | undefined;
+  let indexedDocuments: readonly SearchDocumentDescriptor[] | undefined;
   let aliasesPromise: Promise<Result<MedicalAliasRecords, LocalMedError>> | undefined;
+  let queryDocumentIndex: QueryDocumentIndex | undefined;
+  let terminologyIndex: TerminologySearchIndex | undefined;
   let searchDocumentsPromise: Promise<readonly SearchDocumentDescriptor[]> | undefined;
   let navigationDocumentsPromise:
     | Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>
@@ -713,9 +728,13 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   const initialize = async (): Promise<Result<CoreStatus, LocalMedError>> => {
     try {
       aliasesPromise = undefined;
+      lookupExpansion = undefined;
+      indexedDocuments = undefined;
       documentSummariesPromise = undefined;
       navigationDocumentsPromise = undefined;
       searchDocumentsPromise = undefined;
+      queryDocumentIndex = undefined;
+      terminologyIndex = undefined;
       const health = await options.store.initialize(seed);
       initialized = true;
       return ok({
@@ -762,6 +781,8 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           : options.store.listDocuments()
     ).catch((error: unknown) => {
       searchDocumentsPromise = undefined;
+      queryDocumentIndex = undefined;
+      terminologyIndex = undefined;
       throw error;
     });
     return searchDocumentsPromise;
@@ -774,7 +795,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       const ready = await ensureInitialized();
       if (!ready.ok) return err(ready.error);
       try {
-        return ok(filterQueryAliases(await options.store.listAliases()));
+        const aliases = filterQueryAliases(await options.store.listAliases());
+
+        return ok(aliases);
       } catch (error) {
         return err(asLocalMedError(error));
       }
@@ -814,8 +837,10 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   ): Promise<ChunkContext | null> => {
     const chunk = await options.store.getChunk(chunkId);
     if (!chunk) return null;
-    const section = await options.store.getSection(chunk.sectionId);
-    const document = await options.store.getDocumentByVersionId(chunk.documentVersionId);
+    const [section, document] = await Promise.all([
+      options.store.getSection(chunk.sectionId),
+      options.store.getDocumentByVersionId(chunk.documentVersionId),
+    ]);
     if (!section || !document) return null;
     const window = await options.store.getChunkWindow(chunkId, Math.max(0, Math.min(radius, 8)));
     return {
@@ -949,9 +974,22 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       try {
         const aliasesResult = await getAliases();
         if (!aliasesResult.ok) return err(aliasesResult.error);
+        if (
+          parsed.data.analysisMode === 'lookup' &&
+          lookupExpansion?.aliases !== aliasesResult.value
+        ) {
+          lookupExpansion = {
+            aliases: aliasesResult.value,
+            expand: createAliasExpander(aliasesResult.value),
+          };
+        }
         const plan =
           parsed.data.analysisMode === 'lookup'
-            ? buildLookupQueryPlan(parsed.data.query, aliasesResult.value)
+            ? buildLookupQueryPlan(
+                parsed.data.query,
+                aliasesResult.value,
+                lookupExpansion?.expand(parsed.data.query),
+              )
             : analyzeClinicalQuery(
                 parsed.data.query,
                 aliasesResult.value,
@@ -961,14 +999,28 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
         }
 
+        const documents = await getSearchDocuments();
+        if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
+          queryDocumentIndex = new QueryDocumentIndex(documents);
+          terminologyIndex = new TerminologySearchIndex(documents);
+          indexedDocuments = documents;
+        }
+        const documentIndex = queryDocumentIndex;
+        const termIndex = terminologyIndex;
+        const terminologyMatch =
+          parsed.data.analysisMode === 'lookup' ? termIndex.match(parsed.data.query) : undefined;
+        const searches = [
+          ...plan.branches.map((branch) => ({ branch, filters: parsed.data.filters })),
+          ...(terminologyMatch ? termIndex.searches(terminologyMatch, parsed.data.filters) : []),
+        ];
         const perBranchLimit = Math.max(parsed.data.limit * 5, 50);
         const branchSearches = await Promise.all(
-          plan.branches.map(async (branch) => {
+          searches.map(async ({ branch, filters }) => {
             const branchStartedAt = performance.now();
             const hits = await options.store.search({
               ftsQuery: branch.ftsQuery,
               terms: branch.terms,
-              filters: parsed.data.filters,
+              filters,
               limit: perBranchLimit,
             });
             return {
@@ -988,12 +1040,11 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
         const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
 
-        const documents = await getSearchDocuments();
-        const exactAliasDocumentIds = new Set(
-          documents
-            .filter((document) => matchesDocumentAlias(parsed.data.query, document))
-            .map((document) => document.id),
-        );
+        const exactAliasDocumentIds = new Set([
+          ...documentIndex.exactAliasIds(parsed.data.query),
+          ...(terminologyMatch?.documents.map((entry) => entry.documentId) ?? []),
+          ...(terminologyMatch?.related.map((entry) => entry.documentId) ?? []),
+        ]);
         // Keep exact names and every declared meaning through the chunk cutoff for document ranking.
         const lexicalResults = fuseBranchHits(
           branchHits,
@@ -1067,7 +1118,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 parsed.data.query,
                 exactAliasDocumentIds,
               );
-        const availableDocumentIds = new Set(documents.map((document) => document.id));
+        const availableDocumentIds = documentIndex.availableIds;
         const results = filterSupersededSummaryResults(rankedResults, availableDocumentIds);
         const candidateIds = new Set([
           ...branchHits.flatMap((item) => item.hits.map((hit) => hit.chunk.id)),
@@ -1081,7 +1132,10 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             plan.analysis.normalizedQuery,
             plan.terms,
             aliasesResult.value,
-            documents,
+            [...new Set(results.map((result) => result.documentId))].flatMap((id) => {
+              const document = documentIndex.byId.get(id);
+              return document ? [document] : [];
+            }),
             plan.analysis,
           ),
           plan.analysis.normalizedQuery,
@@ -1094,9 +1148,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           modeUsed,
           analysis: plan.analysis,
           suggestions: plan.analysis.suggestions,
-          groups: groupedResults.slice(0, parsed.data.limit),
+          groups: termIndex.rank(groupedResults, terminologyMatch).slice(0, parsed.data.limit),
           diagnostics: {
-            ftsQuery: plan.branches.map((branch) => branch.ftsQuery).join(' || '),
+            ftsQuery: branchDiagnostics.map((branch) => branch.ftsQuery).join(' || '),
             candidateCount: candidateIds.size,
             aliasMatches: plan.aliasMatches,
             terms: plan.terms,
@@ -1124,8 +1178,10 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         if (!document) {
           return err(localMedError('CONTENT_NOT_FOUND', `Document not found: ${documentId}`));
         }
-        const sectionRecords = await options.store.getSectionsByDocument(documentId);
-        const chunkRecords = await options.store.getChunksByDocument(documentId);
+        const [sectionRecords, chunkRecords] = await Promise.all([
+          options.store.getSectionsByDocument(documentId),
+          options.store.getChunksByDocument(documentId),
+        ]);
         const chunksBySection = groupChunksBySection(chunkRecords);
         const sections = sectionRecords.map((section) =>
           toMedicalSection(section, chunksBySection.get(section.id) ?? []),
@@ -1204,9 +1260,13 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       await options.store.close();
       initialized = false;
       aliasesPromise = undefined;
+      lookupExpansion = undefined;
+      indexedDocuments = undefined;
       documentSummariesPromise = undefined;
       navigationDocumentsPromise = undefined;
       searchDocumentsPromise = undefined;
+      queryDocumentIndex = undefined;
+      terminologyIndex = undefined;
     },
   };
 }
