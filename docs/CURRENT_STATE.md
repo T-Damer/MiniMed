@@ -1,14 +1,13 @@
 # Current state
 
-- PR #171 now adds a Russian Wiktionary/Kaikki lexical adapter and seven optional gzip packages
+- MiniMed `0.6.39` ships optional Russian Wiktionary/Kaikki lexical downloads: seven gzip packages
   (index with source definitions plus six owner sections). Local selection: 6,939 senses, 6,940
   Russian glosses; no MeSH equivalence or clinical approval is inferred. Current-core + Russian-index
   reconstruction completed locally with 26,926 documents and 75,299 chunks, valid SQLite/FKs and
-  unchanged source hashes. See `RUSSIAN_TERMINOLOGY.md` for source rights, sizes and measurements.
-  Dataset publication must verify uploaded asset digests before advertising downloads; the app core
-  and main are not automatically replaced.
+  unchanged source hashes. Published data remains `terminology-ru-2026.9.16`. See
+  `RUSSIAN_TERMINOLOGY.md` for source rights, sizes and measurements. The discovery core is unchanged.
 
-## Terminology and measured lookup — PR #171, unpublished
+## Terminology and measured lookup — 0.6.39
 
 - MeSH collector/section packs now connect to ordinary MedicalCore lookup through a versioned compact
   projection: exact term, literal source-label mentions, then source-declared related concepts.
@@ -24,9 +23,9 @@
   document before the full catalog. These are local engine measurements, not Android/DOM timings;
   the first query with all MeSH concepts still took 3.48 seconds. See
   [TERMINOLOGY_PERFORMANCE.md](TERMINOLOGY_PERFORMANCE.md) for method and limits.
-- Source coverage remains 16,020 Russian candidate-name concepts and zero Russian definitions in
-  this measured snapshot. No paid inference, runtime framework migration, database deployment,
-  Android release, or clinical qualification is included in this PR.
+- Source coverage remains 16,020 Russian candidate-name concepts and zero Russian MeSH definitions in
+  this measured snapshot. The Wiktionary packs supply original Russian glosses under separate
+  `ruwikt.*` identities. No paid inference or clinical qualification is included in this release.
 
 
 - Official GRLS downloading resumed on September 9 using the existing July 24 catalog queue.
@@ -172,9 +171,9 @@
 
 - Questionnaire and calculator routes wait for local tool hydration before reporting a missing pack; hydration failures remain errors instead of download prompts.
 
-> Updated: 11 September 2026
-> Repository version: `0.6.38`
-> Active target: `0.6.38` public prerelease toward `1.0`
+> Updated: 17 September 2026
+> Repository version: `0.6.39`
+> Active target: `0.6.39` public prerelease toward `1.0`
 
 This file records what exists now and the next ordered work. The target architecture and acceptance
 gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).

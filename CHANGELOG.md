@@ -4,6 +4,23 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.39] - 2026-09-17
+
+- Optional Russian Wiktionary/Kaikki medical dictionary downloads: 6,939 lexical senses and 6,940
+  original Russian glosses in seven gzip packages (complete index plus medicine, anatomy, physiology,
+  pharmacology, psychology and psychiatry owner packs). This is a community lexical reference, not
+  a clinically approved dictionary or a Russian translation of MeSH.
+- Search can look up terms, source definitions and literal occurrences without merging MeSH
+  identities. Homonyms keep separate `ruwikt.*` ids; an older remote catalog cannot drop the bundled
+  verified entries.
+- Reconstruction adds missing cascade lookup indexes. Compiled aliases and compact projections cache
+  per core revision. The reader requests the selected document before the full navigation catalog.
+
+The application reuses the verified discovery corpus. SQL/content-pack schema remains 2; installed
+packs, source identifiers, bookmarks and anchors are unchanged. Dictionary packs are optional gzip
+modules from `terminology-ru-2026.9.16` and require this app version. This is a debug-signed
+engineering prerelease; physical-device and clinical qualification remain outstanding.
+
 ## [0.6.38] - 2026-09-11
 
 - Patient selectors in calculators and assessments unlock the vault inline and support name-only

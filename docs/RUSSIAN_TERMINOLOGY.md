@@ -62,9 +62,10 @@ membership, archive/decoded byte counts and both hashes for every section. `sens
 `source.json`, `ATTRIBUTION.txt`, `pack-size-report.json` and `SHA256SUMS` accompany the data.
 
 The initial publisher checked GitHub asset state, byte count and SHA-256 receipts before advertising
-the URLs in this PR. Temporary source-transfer/export/bootstrap workflows were then removed. The
-ordinary collection/build CLI remains; a future data edition needs a new immutable tag and the same
-publication checks. Merging the application changes and deploying `/app/` remain separate actions.
+the URLs. Temporary source-transfer/export/bootstrap workflows were then removed. The ordinary
+collection/build CLI remains; a future data edition needs a new immutable tag and the same
+publication checks. Application release `0.6.39` ships the catalog so these published packages can
+be downloaded; it does not replace the discovery core.
 
 ## Recorded local measurements, 16 September 2026
 
@@ -85,5 +86,6 @@ publication checks. Merging the application changes and deploying `/app/` remain
 - Full MeSH owner/index rebuilding remains separate. Do not confuse the completed Russian
   combined-core measurement with completion of the larger all-MeSH combined edition.
 
-Physical-device installation and clinical/editorial qualification remain separate checks. Publishing
-terminology data is not an APK release, application deployment or PR merge.
+Physical-device installation and clinical/editorial qualification remain separate checks.
+Terminology data publication stays independent of APK/app releases; `0.6.39` only advertises the
+already published `terminology-ru-2026.9.16` packages.
