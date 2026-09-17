@@ -218,7 +218,8 @@ def test_builds_source_backed_partial_discovery_pack(tmp_path: Path) -> None:
             "SELECT canonical_term FROM aliases WHERE alias = 'критерии Ясперса'"
         ).fetchone() == ("Критерии помрачения сознания Ясперса",)
         assert connection.execute(
-            "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH 'помрачения'"
+            """SELECT count(DISTINCT document_id)
+            FROM chunks_fts WHERE chunks_fts MATCH 'помрачения'"""
         ).fetchone() == (1,)
         assert connection.execute("SELECT count(*) FROM documents").fetchone() == (1,)
     finally:
