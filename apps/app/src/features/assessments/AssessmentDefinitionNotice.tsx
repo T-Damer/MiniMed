@@ -2,6 +2,7 @@ import { isHttpUrl } from '@localmed/contracts';
 import { For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 
@@ -11,28 +12,24 @@ export function AssessmentDefinitionNotice(props: {
   readonly onOpenChange: (open: boolean) => void;
   readonly showTrigger?: boolean;
 }): JSX.Element {
-  const licenseSourceUrl = props.definition.license.sourceUrl;
-  const safeLicenseSourceUrl =
-    licenseSourceUrl && isHttpUrl(licenseSourceUrl) ? licenseSourceUrl : undefined;
+  const safeLicenseSourceUrl = (): string | undefined => {
+    const url = props.definition.license.sourceUrl;
+    return url && isHttpUrl(url) ? url : undefined;
+  };
   return (
     <>
       <Show when={props.showTrigger !== false}>
-        <button
+        <Button
           type="button"
-          class="assessment-methodology-trigger"
+          variant="icon"
+          class="knowledge-back-button assessment-help-button"
+          aria-label="Методика и ограничения"
           aria-haspopup="dialog"
+          aria-expanded={props.open}
+          title="О шкале и источниках"
           onClick={() => props.onOpenChange(true)}
-        >
-          <span class="assessment-methodology-trigger__icon" aria-hidden="true">
-            <AppGlyph name="list" class="assessment-methodology-trigger__glyph" />
-          </span>
-          <span class="assessment-methodology-trigger__content">
-            <strong class="assessment-methodology-trigger__label">Методика и ограничения</strong>
-            <small class="assessment-methodology-trigger__hint">
-              О подходе, источниках и правовом статусе
-            </small>
-          </span>
-        </button>
+          icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
+        />
       </Show>
       <OverlayDialog
         open={props.open}
@@ -46,26 +43,28 @@ export function AssessmentDefinitionNotice(props: {
           </p>
           <p class="assessment-methodology-body__text">{props.definition.evidenceNote}</p>
           <div class="assessment-methodology-body__scales">
-            <strong>Что описывает и как читать</strong>
+            <strong class="assessment-methodology-body__label">Что описывает и как читать</strong>
             <ul class="assessment-methodology-body__scale-list">
               <For each={props.definition.scales}>
                 {(scale) => (
-                  <li>
-                    <strong>{scale.label}:</strong> {scale.description}
+                  <li class="assessment-methodology-body__scale-item">
+                    <strong class="assessment-methodology-body__label">{scale.label}:</strong>{' '}
+                    {scale.description}
                   </li>
                 )}
               </For>
             </ul>
             <p class="assessment-methodology-body__text">
-              Итог показывает относительную выраженность шкал внутри этого опросника. Сравнивайте
-              его с описаниями выше и с контекстом ответов; это не диагноз и не замена очной оценке.
+              Оценивайте результат по правилам именно этой версии инструмента и в контексте
+              обследования. Баллы разных шкал не взаимозаменяемы; результат не устанавливает диагноз.
             </p>
           </div>
           <p class="assessment-methodology-body__text">{props.definition.disclaimer}</p>
           <p class="assessment-methodology-body__text">
-            <strong>Источник и статус:</strong> {props.definition.license.notice}
+            <strong class="assessment-methodology-body__label">Источник и статус:</strong>{' '}
+            {props.definition.license.notice}
           </p>
-          <Show when={safeLicenseSourceUrl}>
+          <Show when={safeLicenseSourceUrl()}>
             {(sourceUrl) => (
               <a
                 class="assessment-methodology-body__link"
@@ -79,14 +78,14 @@ export function AssessmentDefinitionNotice(props: {
           </Show>
           <Show when={props.definition.sourceLinks?.length}>
             <div class="assessment-methodology-body__sources">
-              <strong>Связанные источники</strong>
+              <strong class="assessment-methodology-body__label">Связанные источники</strong>
               <ul class="assessment-methodology-body__source-list">
                 <For each={props.definition.sourceLinks}>
                   {(source) => {
                     const sourceUrl = source.url && isHttpUrl(source.url) ? source.url : undefined;
                     return (
-                      <li>
-                        <span>{source.title}</span>
+                      <li class="assessment-methodology-body__source-item">
+                        <span class="assessment-methodology-body__source-title">{source.title}</span>
                         <Show when={sourceUrl}>
                           {(url) => (
                             <a

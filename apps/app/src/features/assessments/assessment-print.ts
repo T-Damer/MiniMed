@@ -4,6 +4,10 @@ import {
   formatAssessmentRecord,
   formatBlankAssessment,
 } from '@/features/assessments/assessment-engine';
+import {
+  assessmentQuestionInstructions,
+  assessmentSourceNote,
+} from '@/features/assessments/assessment-print-context';
 import type {
   AssessmentDefinition,
   AssessmentImage,
@@ -155,13 +159,16 @@ export function printText(
 export function printBlankAssessment(definition: AssessmentDefinition): boolean {
   const text = formatBlankAssessment(definition);
   const prefix = `${definition.title}\n${definition.description}\n`;
+  const body = printableAssessmentText(
+    text.startsWith(prefix)
+      ? text.slice(prefix.length)
+      : removeLeadingTitle(definition.title, text),
+  );
   return printText(
     definition.title,
-    printableAssessmentText(
-      text.startsWith(prefix)
-        ? text.slice(prefix.length)
-        : removeLeadingTitle(definition.title, text),
-    ),
+    [assessmentQuestionInstructions(definition), body, assessmentSourceNote(definition)]
+      .filter(Boolean)
+      .join('\n\n'),
     [
       ...(definition.images ?? []),
       ...definition.questions.flatMap((question) => question.images ?? []),
@@ -186,6 +193,7 @@ export function printAssessmentRecord(
             const answerLabel = options.find((option) => option.value === answer)?.label;
             return [
               `${index + 1}. ${question.prompt}`,
+              ...(question.text?.trim() ? [question.text.trim()] : []),
               `   Ответ: ${answerLabel ?? String(answer ?? 'не указан')}`,
             ];
           }),
@@ -203,6 +211,7 @@ export function printAssessmentRecord(
         noteTitle,
       ),
       questions,
+      assessmentSourceNote(definition),
     ]
       .filter(Boolean)
       .join('\n'),
@@ -215,7 +224,8 @@ export async function shareAssessmentRecord(
   definition: AssessmentDefinition,
   record: AssessmentRecord,
 ): Promise<'shared' | 'copied'> {
-  const text = formatAssessmentRecord(definition, record);
+  const text = [formatAssessmentRecord(definition, record), assessmentSourceNote(definition)]
+    .join('\n\n');
   if ('share' in navigator && typeof navigator.share === 'function') {
     await navigator.share({ title: definition.title, text });
     return 'shared';

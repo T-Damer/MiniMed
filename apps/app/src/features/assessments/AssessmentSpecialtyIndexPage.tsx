@@ -18,6 +18,8 @@ import {
   moduleIdForAssessmentSpecialty,
 } from '@/features/assessments/assessment-packs';
 import type { AssessmentRecord } from '@/features/assessments/assessment-types';
+import { searchClinicalInstrumentPresets } from '@/features/assessments/clinical-instrument-presets';
+import { ClinicalInstrumentLibrary } from '@/features/assessments/ClinicalInstrumentLibrary';
 import { assessmentCountLabel } from '@/i18n/labels';
 import {
   type StoredUserQuestionnaire,
@@ -64,6 +66,7 @@ export function AssessmentSpecialtyIndexPage(props: {
   const hasQuery = () => props.query.trim().length > 0;
   const visibleSpecialties = () =>
     visibleAssessmentSpecialties(props.query, props.definitions, props.matches);
+  const hasSourceMatches = () => searchClinicalInstrumentPresets(props.query).length > 0;
   const visibleUserQuestionnaires = () => {
     const query = props.query.trim();
     if (!query) return props.userQuestionnaires;
@@ -141,12 +144,14 @@ export function AssessmentSpecialtyIndexPage(props: {
         }
       />
 
+      <ClinicalInstrumentLibrary query={props.query} onImport={props.onImportUserQuestionnaire} />
+
       <Show when={!props.mineOnly}>
         <div class="assessment-search-row">
           <SearchField
             class="assessment-search"
             value={props.query}
-            placeholder="Например: Белбин, темперамент, эгограмма"
+            placeholder="Например: PHQ-9, GAD-7, WHO-5"
             label="Найти тест"
             hideLabel
             onInput={props.onQuery}
@@ -160,7 +165,8 @@ export function AssessmentSpecialtyIndexPage(props: {
           props.mineOnly ||
           !hasQuery() ||
           visibleSpecialties().length > 0 ||
-          visibleUserQuestionnaires().length > 0
+          visibleUserQuestionnaires().length > 0 ||
+          hasSourceMatches()
         }
         fallback={<QueryEmptyState />}
       >
