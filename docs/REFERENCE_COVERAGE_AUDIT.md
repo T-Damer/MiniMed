@@ -2,7 +2,22 @@
 
 Read with `CONTENT_BACKLOG.md`, `CONTEXT.md` and `RUSSIAN_TERMINOLOGY.md`. This is a source-code
 review and a proposed coverage plan, not a completed audit of the user's installed databases.
-No provider calls, paid inference, new source downloads or Actions runs are required by this patch.
+No provider calls, paid inference or Actions runs are required by this patch.
+
+## Subsequent instrument implementation in the same draft
+
+Read `CLINICAL_INSTRUMENTS.md` before editing the new source-form or registry code. The branch now
+adds three exact-source Russian local-import presets (PHQ-9, GAD-7, WHO-5), compact methodology help,
+direct print access and retained print attribution/instructions. The existing local questionnaire
+runner, editor and print engine are reused. Sources/editions and noncommercial data licenses are
+explicit; clinical verdicts and RF applicability are not inferred. A source instrument may have both
+a document and an executable form; these are capabilities, not mutually exclusive object kinds.
+
+The new opt-in PhenX collector prepares proposed protocol metadata with fingerprints and heading
+locators; it does not activate forms. PROQOLID remains a linked translation/permissions reference,
+not an imported authenticated database. Live collector replay, all authored tests, formatting,
+browser/device validation and release qualification remain unexecuted in this session. Keep draft.
+The observations below refer to the original 0.6.39 baseline, not an updated public deployment.
 
 ## Observed on 0.6.39 (`d85750c`)
 
@@ -16,7 +31,7 @@ No provider calls, paid inference, new source downloads or Actions runs are requ
 - Generated pointer section order is not content-first. The reader also has a separate download
   banner preceding sections, and several source kinds lack a visible human-readable reader label.
 
-## Narrow code changes in this draft
+## Narrow reader code changes in this draft
 
 - Reorder only generated `core_catalog_pointer` root subtrees so an existing `Краткое описание` or
   `Определение` precedes routing metadata. Keep all original section/chunk objects and anchors, and
@@ -30,9 +45,9 @@ No provider calls, paid inference, new source downloads or Actions runs are requ
 ## Next content slice, not claimed implemented
 
 Build on the existing tool schemas and concept layer; do not add a competing glossary database.
-Represent a criterion set, severity/staging classification, screening questionnaire, rating scale
-and calculator as different object kinds. A historical descriptive criterion set is not a numeric
-score or automatically a currently recommended diagnostic rule.
+Distinguish criterion sets, severity/staging classifications and rating instruments; independently
+record whether their description, paper form or executable calculator is available. A historical
+descriptive criterion set is not a numeric score or automatically a current diagnostic rule.
 
 Each catalog object needs source-backed names/eponyms/abbreviations, specialty memberships, intended
 purpose/population, source edition, Russian-language provenance, last verification date, rights and
