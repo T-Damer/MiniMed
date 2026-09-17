@@ -30,6 +30,8 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v4
+        with:
+          packages: ''
       - name: Build and validate application assets
         run: |
           env -i PATH="$PATH" HOME="$HOME" CI=1 bun install --frozen-lockfile

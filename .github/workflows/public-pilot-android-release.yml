@@ -47,6 +47,8 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: android-actions/setup-android@v4
+        with:
+          packages: ''
 
       - name: Install Android SDK components
         run: |
