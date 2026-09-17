@@ -3,11 +3,6 @@ import { Portal } from 'solid-js/web';
 import NumberFlow from 'solid-number-flow';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
-import {
-  AppContextMenu,
-  type AppContextMenuAction,
-  requestContextMenu,
-} from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { HorizontalScroller } from '@/components/HorizontalScroller';
@@ -67,26 +62,9 @@ export function AssessmentQuestionnairePage(props: {
   const [methodologyOpen, setMethodologyOpen] = createSignal(false);
   const [highlightedQuestionId, setHighlightedQuestionId] = createSignal<string | null>(null);
   const [nextButtonHost, setNextButtonHost] = createSignal<HTMLElement | undefined>(undefined);
-  const [showHeaderActionMenu, setShowHeaderActionMenu] = createSignal(true);
   let patientRefreshRequest = 0;
-  let breadcrumbHost: HTMLDivElement | undefined;
   onMount(() => {
     setNextButtonHost(document.getElementById('app-floating-controls') ?? undefined);
-    const updateHeaderActions = (): void => {
-      const rows = new Set(
-        Array.from(
-          breadcrumbHost?.querySelectorAll<HTMLElement>('.document-crumbs__item') ?? [],
-        ).map((item) => Math.round(item.getBoundingClientRect().top)),
-      );
-      setShowHeaderActionMenu(rows.size <= 2);
-    };
-    const observer = new ResizeObserver(updateHeaderActions);
-    if (breadcrumbHost) observer.observe(breadcrumbHost);
-    const frame = requestAnimationFrame(updateHeaderActions);
-    onCleanup(() => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    });
   });
   let draftId = props.initialRecord?.id;
   let hydratedFromInitial = false;
@@ -140,7 +118,7 @@ export function AssessmentQuestionnairePage(props: {
   };
   const patientEpisodes = () =>
     patientSnapshot()?.episodes.filter(
-      (episode) => episode.patientId === patientId() && episode.status === 'open',
+      (episode) => episode.patientId() === patientId() && episode.status === 'open',
     ) ?? [];
 
   createEffect(() => {
@@ -162,20 +140,6 @@ export function AssessmentQuestionnairePage(props: {
       props.onMessage('Не удалось открыть окно печати.');
     }
   };
-  const headerMenuActions = (): readonly AppContextMenuAction[] => [
-    {
-      id: 'print',
-      label: 'Распечатать бланк',
-      icon: 'printer',
-      onSelect: printBlank,
-    },
-    {
-      id: 'methodology',
-      label: 'Методика и ограничения',
-      icon: 'question',
-      onSelect: () => setMethodologyOpen(true),
-    },
-  ];
 
   const saveDraft = (
     nextAnswers: Record<string, AssessmentResponseValue>,
@@ -356,12 +320,7 @@ export function AssessmentQuestionnairePage(props: {
           <AssessmentBackNav sectionTitle={props.sectionTitle} onBackToCatalog={props.onBack} />
         }
         breadcrumbs={
-          <div
-            ref={(element) => {
-              breadcrumbHost = element;
-            }}
-            class="assessment-questionnaire__breadcrumbs"
-          >
+          <div class="assessment-questionnaire__breadcrumbs">
             <AppBreadcrumbs
               items={assessmentWorkspaceCrumbs(props.definition)}
               onNavigate={(href) => {
@@ -376,53 +335,39 @@ export function AssessmentQuestionnairePage(props: {
             {props.definition.title}
           </Heading>
         }
-        description={props.definition.description}
         actions={
-          <Show
-            when={showHeaderActionMenu()}
-            fallback={
-              <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
-                <Button
-                  type="button"
-                  variant="icon"
-                  class="knowledge-back-button assessment-questionnaire-print"
-                  aria-label="Распечатать бланк теста"
-                  title="Распечатать бланк теста"
-                  onClick={printBlank}
-                  icon={<AppGlyph name="printer" class="assessment-questionnaire-print__icon" />}
-                />
-                <Button
-                  type="button"
-                  variant="icon"
-                  class="knowledge-back-button assessment-help-button"
-                  aria-label="Методика и ограничения"
-                  title="Методика и ограничения"
-                  onClick={() => setMethodologyOpen(true)}
-                  icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
-                />
-              </div>
-            }
-          >
-            <AppContextMenu
-              actions={headerMenuActions()}
-              hideButton
-              class="assessment-questionnaire__header-menu"
-            >
-              <Button
-                type="button"
-                variant="icon"
-                class="knowledge-back-button assessment-questionnaire__header-menu-button"
-                aria-label="Действия опросника"
-                title="Действия опросника"
-                onClick={requestContextMenu}
-                icon={<AppGlyph name="menu" class="assessment-questionnaire__header-menu-icon" />}
-              />
-            </AppContextMenu>
-          </Show>
+          <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
+            <Button
+              type="button"
+              variant="icon"
+              class="knowledge-back-button assessment-questionnaire-print"
+              aria-label="Распечатать бланк теста"
+              title="Распечатать бланк теста"
+              onClick={printBlank}
+              icon={<AppGlyph name="printer" class="assessment-questionnaire-print__icon" />}
+            />
+            <Button
+              type="button"
+              variant="icon"
+              class="knowledge-back-button assessment-help-button"
+              aria-label="Методика и ограничения"
+              aria-haspopup="dialog"
+              aria-expanded={methodologyOpen()}
+              title="О шкале и источниках"
+              onClick={() => setMethodologyOpen(true)}
+              icon={<AppGlyph name="question" class="assessment-help-button__icon" />}
+            />
+          </div>
         }
       />
 
-      <Show when={props.definition.intro?.trim()}>
+      <Show
+        when={
+          props.definition.intro?.trim() !== props.definition.description.trim()
+            ? props.definition.intro?.trim()
+            : undefined
+        }
+      >
         {(intro) => <p class="assessment-questionnaire__intro">{intro()}</p>}
       </Show>
       <Show when={props.definition.images?.length}>
@@ -475,6 +420,7 @@ export function AssessmentQuestionnairePage(props: {
         definition={props.definition}
         open={methodologyOpen()}
         onOpenChange={setMethodologyOpen}
+        showTrigger={false}
       />
 
       <div class="assessment-progress" aria-live="polite">
