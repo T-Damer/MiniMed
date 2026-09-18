@@ -66,6 +66,30 @@ def _source(path: Path) -> None:
         connection.close()
 
 
+
+def _inventory(path: Path) -> None:
+    connection = sqlite3.connect(path)
+    try:
+        connection.executescript(schema_sql())
+        with connection:
+            connection.execute(
+                "INSERT INTO content_packs VALUES ('tools', '1', 5, 'Tools', 'sha256:t', 'now', 1)"
+            )
+            connection.execute(
+                """INSERT INTO tool_definitions(
+                    id, kind, version, slug, title, short_title, aliases_json,
+                    bank_id, bank_label, category, description, estimated_minutes,
+                    audience, definition_json
+                ) VALUES (
+                    'minimed.assessment.curb65', 'assessment', '1', 'curb65',
+                    'CURB-65', 'CURB-65', '["CURB 65"]',
+                    'emergency', 'Неотложная медицина', 'emergency',
+                    'Оценка риска', 2, 'adult', '{}'
+                )"""
+            )
+    finally:
+        connection.close()
+
 def _write_decisions(path: Path, rows: list[dict[str, object]]) -> None:
     path.write_text(
         "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
@@ -269,4 +293,54 @@ def test_review_rejects_malformed_interactive_route(tmp_path: Path) -> None:
             output,
             reviewer="doctor@example.invalid",
             reviewed_at="2026-09-18T00:00:00Z",
+        )
+
+
+def test_review_fails_closed_when_inventory_changed_after_scan(tmp_path: Path) -> None:
+    source = tmp_path / "kr.db"
+    inventory = tmp_path / "inventory.db"
+    candidates_dir = tmp_path / "candidates"
+    decisions = tmp_path / "decisions.jsonl"
+    output = tmp_path / "knowledge.reviewed-candidates.json"
+    _source(source)
+    _inventory(inventory)
+    write_candidate_workspace(
+        source,
+        candidates_dir,
+        inventory_sources=(inventory,),
+    )
+    candidate = next(
+        item
+        for item in scan_candidates(source, inventory_sources=(inventory,))
+        if item.known_source_id == "minimed.assessment.curb65"
+    )
+    _write_decisions(
+        decisions,
+        [
+            {
+                "candidateId": candidate.candidate_id,
+                "decision": "reject",
+            }
+        ],
+    )
+
+    connection = sqlite3.connect(inventory)
+    try:
+        with connection:
+            connection.execute(
+                "UPDATE tool_definitions SET description = 'changed' "
+                "WHERE id = 'minimed.assessment.curb65'"
+            )
+    finally:
+        connection.close()
+
+    with pytest.raises(ValueError, match="inventory checksum"):
+        promote_candidate_reviews(
+            candidates_dir,
+            source,
+            decisions,
+            output,
+            reviewer="doctor@example.invalid",
+            reviewed_at="2026-09-18T00:00:00Z",
+            inventory_sources=(inventory,),
         )
