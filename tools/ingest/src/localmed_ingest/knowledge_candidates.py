@@ -40,9 +40,25 @@ _METHODOLOGY_CONTEXT = re.compile(
     r"достоверност[ьи]\s+доказательств|убедительности\s+рекомендац)",
     re.IGNORECASE,
 )
-_TOC_PATTERN = re.compile(r"(?:\.{4,}|…{2,})\s*\d*\s*$", re.IGNORECASE)
-_BIBLIOGRAPHY_PATTERN = re.compile(
-    r"^\s*\d+\.\s+.*(?:19|20)\d{2}.*(?:и\s+др\.|et\s+al\.?|//|doi)",
+_TOC_PATTERN = re.compile(r"(?:\.{3,}|…+)\s*\d+\s*$", re.IGNORECASE)
+_TOC_SECTION_PATTERN = re.compile(r"^\s*\d+(?:\.\d+)+\s+", re.IGNORECASE)
+_REFERENCE_START_PATTERN = re.compile(r"^\s*\d+\.\s+", re.IGNORECASE)
+_REFERENCE_MARKER_PATTERN = re.compile(
+    r"(?:\b(?:19|20)\d{2}\b|и\s+др\.|et\s+al\.?|//|\bdoi\b|\b№\s*\d|\bМ\.:)",
+    re.IGNORECASE,
+)
+_GENERIC_CLASSIFICATION_PATTERN = re.compile(
+    r"(?:классификац(?:ия|ии)\s+заболевания\s+или\s+состояния|"
+    r"международн\w*\s+статистическ\w*\s+классификац\w*\s+болезн|"
+    r"классификац\w*\s+болезней\s+и\s+проблем)",
+    re.IGNORECASE,
+)
+_NEGATED_CLASSIFICATION_PATTERN = re.compile(
+    r"классификац\w*[^.!?\n]{0,80}\bне\s+существует\b",
+    re.IGNORECASE,
+)
+_SEVERITY_MEANING_PATTERN = re.compile(
+    r"(?:тяжест|заболеван|процесс|недостаточност|дыхательн\w*\s+недостаточност)",
     re.IGNORECASE,
 )
 
@@ -172,11 +188,39 @@ def _candidate_types(text: str) -> tuple[str, ...]:
     return tuple(candidate_type for candidate_type, pattern in _PATTERNS if pattern.search(text))
 
 
+def _heading_candidate_types(text: str) -> tuple[str, ...]:
+    if _EXCLUSIONS.search(text):
+        return ()
+    result: list[str] = []
+    for candidate_type, pattern in _PATTERNS:
+        match = pattern.search(text)
+        if match and match.start() <= 42:
+            result.append(candidate_type)
+    return tuple(result)
+
+
+def _meaningful_label(candidate_type: str, label: str, source_text: str) -> bool:
+    normalized = normalize_text(label)
+    if len(normalized) < 4:
+        return False
+    if candidate_type == "classification":
+        if _GENERIC_CLASSIFICATION_PATTERN.search(label):
+            return False
+        if _NEGATED_CLASSIFICATION_PATTERN.search(source_text):
+            return False
+    if candidate_type == "severity_grade" and not _SEVERITY_MEANING_PATTERN.search(label):
+        return False
+    if candidate_type == "scale" and normalized in {"шкала", "шкала оценки", "индекс"}:
+        return False
+    return True
+
+
 def _candidate_label(candidate_type: str, text: str) -> str | None:
     for pattern in _NAME_PATTERNS.get(candidate_type, ()):
         match = pattern.search(text)
         if match:
-            return " ".join(match.group("name").split())[:180]
+            label = " ".join(match.group("name").split())[:180]
+            return label if _meaningful_label(candidate_type, label, text) else None
     return None
 
 
@@ -188,7 +232,13 @@ def _context_kind(section_title: str, text: str) -> str:
         return "methodology"
     if _TOC_PATTERN.search(section_title):
         return "toc"
-    if _BIBLIOGRAPHY_PATTERN.search(section_title) or _BIBLIOGRAPHY_PATTERN.search(text[:500]):
+    if (
+        _TOC_SECTION_PATTERN.search(section_title)
+        and _TOC_SECTION_PATTERN.search(text.lstrip())
+        and _TOC_PATTERN.search(text[:500])
+    ):
+        return "toc"
+    if _REFERENCE_START_PATTERN.search(section_title) and _REFERENCE_MARKER_PATTERN.search(combined):
         return "bibliography"
     return "content"
 
@@ -398,9 +448,11 @@ def scan_candidates(
             suppressed_heuristic = context in {"quality", "methodology", "toc", "bibliography"}
 
             if not suppressed_heuristic:
-                heading_types = _candidate_types(section_title)
+                heading_types = _heading_candidate_types(section_title)
                 for candidate_type in heading_types:
                     label = " ".join(section_title.split())[:180]
+                    if not _meaningful_label(candidate_type, label, text):
+                        continue
                     candidate = _build_candidate(
                         row,
                         candidate_type=candidate_type,
@@ -465,18 +517,50 @@ def scan_candidates(
 
             if len(candidates) > MAX_CANDIDATES:
                 raise ValueError("Candidate scan exceeded the safety limit.")
-        return tuple(
-            sorted(
-                candidates.values(),
-                key=lambda item: (
-                    item.document_id,
-                    item.section_id,
-                    item.chunk_id,
-                    item.candidate_type,
-                    normalize_text(item.label),
-                ),
-            )
+        ordered = sorted(
+            candidates.values(),
+            key=lambda item: (
+                item.document_id,
+                item.section_id,
+                item.chunk_id,
+                item.candidate_type,
+                normalize_text(item.label),
+            ),
         )
+        known_by_chunk_type: dict[tuple[str, str], list[Candidate]] = {}
+        for candidate in ordered:
+            if candidate.known_source_id:
+                known_by_chunk_type.setdefault(
+                    (candidate.chunk_id, candidate.candidate_type),
+                    [],
+                ).append(candidate)
+
+        def label_terms(value: str) -> set[str]:
+            return {
+                term
+                for term in normalize_text(value).split()
+                if term not in {"по", "для", "им", "имени", "тест", "шкала", "индекс"}
+            }
+
+        def duplicates_known(candidate: Candidate) -> bool:
+            if candidate.known_source_id:
+                return False
+            source_terms = label_terms(candidate.label)
+            if len(source_terms) < 2:
+                return False
+            for known_candidate in known_by_chunk_type.get(
+                (candidate.chunk_id, candidate.candidate_type),
+                [],
+            ):
+                known_terms = label_terms(known_candidate.label)
+                if not known_terms:
+                    continue
+                overlap = len(source_terms & known_terms)
+                if overlap >= 2 and overlap / min(len(source_terms), len(known_terms)) >= 0.6:
+                    return True
+            return False
+
+        return tuple(candidate for candidate in ordered if not duplicates_known(candidate))
     finally:
         connection.close()
 
