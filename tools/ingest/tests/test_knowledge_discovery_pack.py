@@ -97,6 +97,7 @@ def _source_database(path: Path) -> None:
                             "specialties": ["psychiatry"],
                             "tags": ["consciousness", "psychopathology"],
                             "interactiveAssessmentId": "assessment.jaspers.test",
+                            "interactiveRoute": "#/assessments/psychiatry/jaspers-test",
                         },
                         ensure_ascii=False,
                     ),
@@ -208,6 +209,7 @@ def test_builds_source_backed_partial_discovery_pack(tmp_path: Path) -> None:
         assert metadata["declaredAliases"] == ["критерии Ясперса"]
         assert metadata["tags"] == ["consciousness", "psychopathology"]
         assert metadata["interactiveAssessmentId"] == "assessment.jaspers.test"
+        assert metadata["interactiveRoute"] == "#/assessments/psychiatry/jaspers-test"
         assert metadata["sourceDocumentIds"] == ["source.jaspers"]
         assert metadata["canonicalDefinition"]["sourceChunkId"] == "source.jaspers.chunk"
 
