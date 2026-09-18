@@ -67,6 +67,7 @@ describe('documentInteractiveToolLink', () => {
     for (const route of [
       '#/calculators/curb 65',
       '#/calculators/curb65?patient=1',
+      '#/calculators/curb65#result',
       '#/calculators//curb65',
     ]) {
       expect(
