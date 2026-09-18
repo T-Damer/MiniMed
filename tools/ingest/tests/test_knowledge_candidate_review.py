@@ -93,6 +93,7 @@ def test_review_promotes_identity_and_source_link_without_inventing_fact(tmp_pat
                 "canonicalName": "CURB-65",
                 "aliases": ["CURB 65"],
                 "interactiveCalculatorId": "calculator.curb65",
+                "interactiveRoute": "#/calculators/curb65",
                 "specialties": ["пульмонология", "неотложная медицина"],
                 "tags": ["пневмония"],
             },
@@ -121,6 +122,7 @@ def test_review_promotes_identity_and_source_link_without_inventing_fact(tmp_pat
     assert entity["metadata"]["tags"] == ["пневмония"]
     assert entity["metadata"]["specialties"] == ["пульмонология", "неотложная медицина"]
     assert entity["metadata"]["interactiveCalculatorId"] == "calculator.curb65"
+    assert entity["metadata"]["interactiveRoute"] == "#/calculators/curb65"
 
     assert len(payload["documentLinks"]) == 1
     link = payload["documentLinks"][0]
@@ -194,6 +196,39 @@ def test_review_fails_closed_when_source_changed_after_scan(tmp_path: Path) -> N
         connection.close()
 
     with pytest.raises(ValueError, match="source checksum"):
+        promote_candidate_reviews(
+            candidates_dir,
+            source,
+            decisions,
+            output,
+            reviewer="doctor@example.invalid",
+            reviewed_at="2026-09-18T00:00:00Z",
+        )
+
+
+def test_review_rejects_interactive_id_without_explicit_matching_route(tmp_path: Path) -> None:
+    source = tmp_path / "kr.db"
+    candidates_dir = tmp_path / "candidates"
+    decisions = tmp_path / "decisions.jsonl"
+    output = tmp_path / "knowledge.reviewed-candidates.json"
+    _source(source)
+    write_candidate_workspace(source, candidates_dir)
+    candidate = scan_candidates(source)[0]
+    _write_decisions(
+        decisions,
+        [
+            {
+                "candidateId": candidate.candidate_id,
+                "decision": "accept",
+                "entityId": "scale.curb65",
+                "canonicalName": "CURB-65",
+                "interactiveAssessmentId": "assessment.curb65",
+                "interactiveRoute": "#/calculators/curb65",
+            }
+        ],
+    )
+
+    with pytest.raises(ValueError, match="Assessment interactiveRoute"):
         promote_candidate_reviews(
             candidates_dir,
             source,
