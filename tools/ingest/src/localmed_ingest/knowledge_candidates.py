@@ -1,8 +1,8 @@
 """Extract review-only clinical knowledge candidates from source-preserving SQLite documents.
 
-The scanner never creates knowledge entities or claims clinical equivalence. It records exact source
-locators for headings/text that appear to describe scales, questionnaires, criteria, classifications
-or severity/stage systems so a later review step can promote selected records.
+The scanner never creates knowledge entities or claims clinical equivalence. It combines conservative
+structural heuristics with exact names from already reviewed MiniMed tools/knowledge and records exact
+source locators for later human review.
 """
 from __future__ import annotations
 
@@ -21,12 +21,31 @@ DEFAULT_SOURCE_TYPES = ("clinical_recommendation",)
 MAX_SOURCE_TEXT = 1200
 MAX_CANDIDATES = 100_000
 
+_ALLOWED_TYPES = frozenset(
+    {"scale", "questionnaire", "criterion_set", "classification", "severity_grade"}
+)
 _EXCLUSIONS = re.compile(
     r"(?:критери[ия]\s+качества|оценк[аи]\s+качества\s+медицин|"
     r"уров(?:ень|ни)\s+убедительности\s+рекомендац|"
-    r"уров(?:ень|ни)\s+достоверности\s+доказательств)",
+    r"уров(?:ень|ни)\s+достоверности\s+доказательств|"
+    r"шкал[аы]\s+оценки\s+уровней\s+(?:достоверности|убедительности))",
     re.IGNORECASE,
 )
+_QUALITY_CONTEXT = re.compile(
+    r"(?:критери[ия]\s+оценки\s+качества|критери[ия]\s+качества\s+медицин)",
+    re.IGNORECASE,
+)
+_METHODOLOGY_CONTEXT = re.compile(
+    r"(?:методологи[яи]\s+разработки\s+клинических\s+рекомендац|"
+    r"достоверност[ьи]\s+доказательств|убедительности\s+рекомендац)",
+    re.IGNORECASE,
+)
+_TOC_PATTERN = re.compile(r"(?:\.{4,}|…{2,})\s*\d*\s*$", re.IGNORECASE)
+_BIBLIOGRAPHY_PATTERN = re.compile(
+    r"^\s*\d+\.\s+.*(?:19|20)\d{2}.*(?:и\s+др\.|et\s+al\.?|//|doi)",
+    re.IGNORECASE,
+)
+
 _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("questionnaire", re.compile(r"\b(?:опросник|анкета|questionnaire)\b", re.IGNORECASE)),
     ("criterion_set", re.compile(r"\bкритери(?:й|и|ев|ями|ям)\b", re.IGNORECASE)),
@@ -39,23 +58,46 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
             re.IGNORECASE,
         ),
     ),
-    (
-        "scale",
-        re.compile(r"\b(?:шкал(?:а|ы|е|ой|у)|score|индекс)\b", re.IGNORECASE),
-    ),
+    ("scale", re.compile(r"\b(?:шкал(?:а|ы|е|ой|у)|score|индекс)\b", re.IGNORECASE)),
 )
-_NAME_PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(
-        r"(?P<name>(?:по\s+)?шкал[аеы]?\s+[A-ZА-ЯЁ][^,.;:\n()]{1,90})",
-        re.IGNORECASE,
+
+_NAME_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
+    "scale": (
+        re.compile(
+            r"(?P<name>(?:по\s+)?шкал[аеы]?\s+[A-ZА-ЯЁ0-9][^,.;:\n()]{1,90})",
+            re.IGNORECASE,
+        ),
+        re.compile(r"(?P<name>индекс\s+[^,.;:\n()]{2,80})", re.IGNORECASE),
     ),
-    re.compile(
-        r"(?P<name>(?:диагностические\s+)?критерии\s+[^,.;:\n()]{2,90})",
-        re.IGNORECASE,
+    "questionnaire": (
+        re.compile(r"(?P<name>опросник\s+[^,.;:\n()]{2,90})", re.IGNORECASE),
+        re.compile(r"(?P<name>анкета\s+[^,.;:\n()]{2,90})", re.IGNORECASE),
     ),
-    re.compile(r"(?P<name>индекс\s+[^,.;:\n()]{2,80})", re.IGNORECASE),
-    re.compile(r"(?P<name>опросник\s+[^,.;:\n()]{2,90})", re.IGNORECASE),
-)
+    "criterion_set": (
+        re.compile(
+            r"(?P<name>(?:диагностические\s+)?критерии\s+[^,.;:\n()]{2,90})",
+            re.IGNORECASE,
+        ),
+    ),
+    "classification": (
+        re.compile(r"(?P<name>классификац(?:ия|ии)\s+[^,.;:\n()]{2,90})", re.IGNORECASE),
+    ),
+    "severity_grade": (
+        re.compile(
+            r"(?P<name>(?:степен(?:ь|и)|стади(?:я|и))\s+[^,.;:\n()]{2,90})",
+            re.IGNORECASE,
+        ),
+    ),
+}
+
+
+@dataclass(frozen=True)
+class KnownName:
+    canonical_name: str
+    normalized_name: str
+    candidate_type: str
+    source_kind: str
+    source_id: str
 
 
 @dataclass(frozen=True)
@@ -74,6 +116,10 @@ class Candidate:
     anchor: str
     page_start: int | None
     source_text: str
+    context_kind: str = "content"
+    signals: tuple[str, ...] = ()
+    known_source_kind: str | None = None
+    known_source_id: str | None = None
 
     def payload(self) -> dict[str, object]:
         return {
@@ -84,6 +130,18 @@ class Candidate:
             "confidence": self.confidence,
             "reviewStatus": "proposed",
             "extractionKind": self.extraction_kind,
+            "contextKind": self.context_kind,
+            "signals": list(self.signals),
+            **(
+                {
+                    "knownMatch": {
+                        "kind": self.known_source_kind,
+                        "id": self.known_source_id,
+                    }
+                }
+                if self.known_source_kind and self.known_source_id
+                else {}
+            ),
             "source": {
                 "documentId": self.document_id,
                 "documentVersionId": self.document_version_id,
@@ -98,24 +156,41 @@ class Candidate:
         }
 
 
-def _candidate_type(text: str) -> str | None:
+def _table_exists(connection: sqlite3.Connection, name: str) -> bool:
+    return (
+        connection.execute(
+            "SELECT 1 FROM sqlite_master WHERE type IN ('table', 'view') AND name = ?",
+            (name,),
+        ).fetchone()
+        is not None
+    )
+
+
+def _candidate_types(text: str) -> tuple[str, ...]:
     if _EXCLUSIONS.search(text):
-        return None
-    for candidate_type, pattern in _PATTERNS:
-        if pattern.search(text):
-            return candidate_type
-    return None
+        return ()
+    return tuple(candidate_type for candidate_type, pattern in _PATTERNS if pattern.search(text))
 
 
-def _candidate_label(section_title: str, text: str, *, heading_match: bool) -> str:
-    if heading_match:
-        return " ".join(section_title.split())[:180]
-    for pattern in _NAME_PATTERNS:
+def _candidate_label(candidate_type: str, text: str) -> str | None:
+    for pattern in _NAME_PATTERNS.get(candidate_type, ()):
         match = pattern.search(text)
         if match:
             return " ".join(match.group("name").split())[:180]
-    line = next((line.strip() for line in text.splitlines() if line.strip()), text.strip())
-    return " ".join(line.split())[:180]
+    return None
+
+
+def _context_kind(section_title: str, text: str) -> str:
+    combined = f"{section_title}\n{text[:600]}"
+    if _QUALITY_CONTEXT.search(combined):
+        return "quality"
+    if _METHODOLOGY_CONTEXT.search(combined):
+        return "methodology"
+    if _TOC_PATTERN.search(section_title):
+        return "toc"
+    if _BIBLIOGRAPHY_PATTERN.search(section_title) or _BIBLIOGRAPHY_PATTERN.search(text[:500]):
+        return "bibliography"
+    return "content"
 
 
 def _source_excerpt(text: str, label: str) -> str:
@@ -145,14 +220,156 @@ def _candidate_id(
     return "candidate.knowledge." + hashlib.sha256(key.encode()).hexdigest()[:24]
 
 
+def _known_type_for_tool(kind: str, names: list[str]) -> str:
+    joined = " ".join(names)
+    if kind == "assessment" and re.search(r"\b(?:опросник|анкета|questionnaire)\b", joined, re.I):
+        return "questionnaire"
+    return "scale"
+
+
+def _load_known_names(paths: tuple[Path, ...]) -> tuple[KnownName, ...]:
+    known: dict[tuple[str, str, str], KnownName] = {}
+    for path in paths:
+        resolved = path.resolve(strict=True)
+        connection = sqlite3.connect(f"{resolved.as_uri()}?mode=ro", uri=True)
+        connection.row_factory = sqlite3.Row
+        try:
+            if _table_exists(connection, "tool_definitions"):
+                rows = connection.execute(
+                    """SELECT id, kind, title, short_title, aliases_json
+                    FROM tool_definitions ORDER BY id"""
+                )
+                for row in rows:
+                    aliases_raw: object = json.loads(str(row["aliases_json"]))
+                    aliases = (
+                        [item for item in aliases_raw if isinstance(item, str)]
+                        if isinstance(aliases_raw, list)
+                        else []
+                    )
+                    names = [str(row["title"]), str(row["short_title"]), *aliases]
+                    candidate_type = _known_type_for_tool(str(row["kind"]), names)
+                    for name in names:
+                        normalized = normalize_text(name)
+                        if len(normalized) < 3:
+                            continue
+                        item = KnownName(
+                            canonical_name=str(row["title"]),
+                            normalized_name=normalized,
+                            candidate_type=candidate_type,
+                            source_kind="tool",
+                            source_id=str(row["id"]),
+                        )
+                        known[(item.source_kind, item.source_id, normalized)] = item
+
+            if _table_exists(connection, "knowledge_entities"):
+                entity_rows = connection.execute(
+                    """SELECT id, entity_type, canonical_name
+                    FROM knowledge_entities ORDER BY id"""
+                ).fetchall()
+                for entity_row in entity_rows:
+                    entity_type = str(entity_row["entity_type"])
+                    if entity_type not in _ALLOWED_TYPES:
+                        continue
+                    entity_id = str(entity_row["id"])
+                    names = [str(entity_row["canonical_name"])]
+                    if _table_exists(connection, "knowledge_names"):
+                        names.extend(
+                            str(row[0])
+                            for row in connection.execute(
+                                "SELECT name FROM knowledge_names WHERE entity_id = ? ORDER BY id",
+                                (entity_id,),
+                            )
+                        )
+                    for name in names:
+                        normalized = normalize_text(name)
+                        if len(normalized) < 3:
+                            continue
+                        item = KnownName(
+                            canonical_name=str(entity_row["canonical_name"]),
+                            normalized_name=normalized,
+                            candidate_type=entity_type,
+                            source_kind="concept",
+                            source_id=entity_id,
+                        )
+                        known[(item.source_kind, item.source_id, normalized)] = item
+        finally:
+            connection.close()
+    return tuple(known[key] for key in sorted(known))
+
+
+def _known_index(items: tuple[KnownName, ...]) -> dict[str, tuple[KnownName, ...]]:
+    grouped: dict[str, list[KnownName]] = {}
+    for item in items:
+        first = item.normalized_name.split(" ", 1)[0]
+        if not first:
+            continue
+        grouped.setdefault(first, []).append(item)
+    return {key: tuple(value) for key, value in grouped.items()}
+
+
+def _known_matches(text: str, index: dict[str, tuple[KnownName, ...]]) -> tuple[KnownName, ...]:
+    normalized = normalize_text(text)
+    if not normalized:
+        return ()
+    padded = f" {normalized} "
+    first_tokens = set(normalized.split())
+    matches: dict[tuple[str, str], KnownName] = {}
+    for token in first_tokens:
+        for item in index.get(token, ()):
+            if f" {item.normalized_name} " in padded:
+                matches[(item.source_kind, item.source_id)] = item
+    return tuple(matches[key] for key in sorted(matches))
+
+
+def _build_candidate(
+    row: sqlite3.Row,
+    *,
+    candidate_type: str,
+    label: str,
+    confidence: float,
+    extraction_kind: str,
+    context_kind: str,
+    signals: tuple[str, ...],
+    known: KnownName | None = None,
+) -> Candidate:
+    return Candidate(
+        candidate_id=_candidate_id(
+            str(row["document_version_id"]),
+            str(row["section_id"]),
+            str(row["chunk_id"]),
+            candidate_type,
+            label,
+        ),
+        candidate_type=candidate_type,
+        label=label,
+        confidence=confidence,
+        extraction_kind=extraction_kind,
+        document_id=str(row["document_id"]),
+        document_version_id=str(row["document_version_id"]),
+        document_title=str(row["document_title"]),
+        section_id=str(row["section_id"]),
+        section_title=str(row["section_title"]),
+        chunk_id=str(row["chunk_id"]),
+        anchor=str(row["anchor"]),
+        page_start=int(row["page_start"]) if row["page_start"] is not None else None,
+        source_text=_source_excerpt(str(row["original_text"]), label),
+        context_kind=context_kind,
+        signals=signals,
+        known_source_kind=known.source_kind if known else None,
+        known_source_id=known.source_id if known else None,
+    )
+
+
 def scan_candidates(
     source: Path,
     *,
     source_types: tuple[str, ...] = DEFAULT_SOURCE_TYPES,
+    inventory_sources: tuple[Path, ...] = (),
 ) -> tuple[Candidate, ...]:
     path = source.resolve(strict=True)
     connection = sqlite3.connect(f"{path.as_uri()}?mode=ro", uri=True)
     connection.row_factory = sqlite3.Row
+    known = _known_index(_load_known_names(inventory_sources))
     try:
         if [str(row[0]) for row in connection.execute("PRAGMA integrity_check")] != ["ok"]:
             raise ValueError("Source SQLite failed integrity check.")
@@ -173,48 +390,93 @@ def scan_candidates(
                 ORDER BY d.id, s.order_index, c.order_index, c.id""",
             source_types,
         )
-        candidates: list[Candidate] = []
-        seen: set[tuple[str, str, str]] = set()
+        candidates: dict[tuple[str, str, str], Candidate] = {}
         for row in rows:
             section_title = str(row["section_title"])
             text = str(row["original_text"])
-            heading_type = _candidate_type(section_title)
-            body_type = _candidate_type(text)
-            candidate_type = heading_type or body_type
-            if candidate_type is None:
-                continue
-            heading_match = heading_type is not None
-            label = _candidate_label(section_title, text, heading_match=heading_match)
-            key = (str(row["document_version_id"]), candidate_type, normalize_text(label))
-            if key in seen:
-                continue
-            seen.add(key)
-            candidate = Candidate(
-                candidate_id=_candidate_id(
-                    str(row["document_version_id"]),
-                    str(row["section_id"]),
-                    str(row["chunk_id"]),
-                    candidate_type,
-                    label,
-                ),
-                candidate_type=candidate_type,
-                label=label,
-                confidence=0.88 if heading_match else 0.62,
-                extraction_kind="section-title" if heading_match else "body-mention",
-                document_id=str(row["document_id"]),
-                document_version_id=str(row["document_version_id"]),
-                document_title=str(row["document_title"]),
-                section_id=str(row["section_id"]),
-                section_title=section_title,
-                chunk_id=str(row["chunk_id"]),
-                anchor=str(row["anchor"]),
-                page_start=int(row["page_start"]) if row["page_start"] is not None else None,
-                source_text=_source_excerpt(text, label),
-            )
-            candidates.append(candidate)
+            context = _context_kind(section_title, text)
+            suppressed_heuristic = context in {"quality", "methodology", "toc", "bibliography"}
+
+            if not suppressed_heuristic:
+                heading_types = _candidate_types(section_title)
+                for candidate_type in heading_types:
+                    label = " ".join(section_title.split())[:180]
+                    candidate = _build_candidate(
+                        row,
+                        candidate_type=candidate_type,
+                        label=label,
+                        confidence=0.88,
+                        extraction_kind="section-title",
+                        context_kind=context,
+                        signals=("heuristic-heading",),
+                    )
+                    key = (
+                        candidate.document_version_id,
+                        candidate.candidate_type,
+                        normalize_text(candidate.label),
+                    )
+                    previous = candidates.get(key)
+                    if previous is None or candidate.confidence > previous.confidence:
+                        candidates[key] = candidate
+
+                for candidate_type in _candidate_types(text):
+                    label = _candidate_label(candidate_type, text)
+                    if not label:
+                        continue
+                    candidate = _build_candidate(
+                        row,
+                        candidate_type=candidate_type,
+                        label=label,
+                        confidence=0.68,
+                        extraction_kind="body-mention",
+                        context_kind=context,
+                        signals=("heuristic-body",),
+                    )
+                    key = (
+                        candidate.document_version_id,
+                        candidate.candidate_type,
+                        normalize_text(candidate.label),
+                    )
+                    previous = candidates.get(key)
+                    if previous is None or candidate.confidence > previous.confidence:
+                        candidates[key] = candidate
+
+            if context not in {"quality", "methodology", "toc"}:
+                for known_match in _known_matches(f"{section_title}\n{text}", known):
+                    confidence = 0.97 if context == "content" else 0.72
+                    candidate = _build_candidate(
+                        row,
+                        candidate_type=known_match.candidate_type,
+                        label=known_match.canonical_name,
+                        confidence=confidence,
+                        extraction_kind=f"known-{known_match.source_kind}",
+                        context_kind=context,
+                        signals=(f"known-{known_match.source_kind}",),
+                        known=known_match,
+                    )
+                    key = (
+                        candidate.document_version_id,
+                        candidate.candidate_type,
+                        normalize_text(candidate.label),
+                    )
+                    previous = candidates.get(key)
+                    if previous is None or candidate.confidence > previous.confidence:
+                        candidates[key] = candidate
+
             if len(candidates) > MAX_CANDIDATES:
                 raise ValueError("Candidate scan exceeded the safety limit.")
-        return tuple(candidates)
+        return tuple(
+            sorted(
+                candidates.values(),
+                key=lambda item: (
+                    item.document_id,
+                    item.section_id,
+                    item.chunk_id,
+                    item.candidate_type,
+                    normalize_text(item.label),
+                ),
+            )
+        )
     finally:
         connection.close()
 
@@ -224,10 +486,15 @@ def write_candidate_workspace(
     output: Path,
     *,
     source_types: tuple[str, ...] = DEFAULT_SOURCE_TYPES,
+    inventory_sources: tuple[Path, ...] = (),
 ) -> int:
     if output.exists():
         raise ValueError("Output is immutable; choose a new candidate workspace.")
-    candidates = scan_candidates(source, source_types=source_types)
+    candidates = scan_candidates(
+        source,
+        source_types=source_types,
+        inventory_sources=inventory_sources,
+    )
     output.mkdir(parents=True, exist_ok=False)
     payload = "".join(
         json.dumps(candidate.payload(), ensure_ascii=False, sort_keys=True) + "\n"
@@ -239,6 +506,13 @@ def write_candidate_workspace(
         "source": str(source.resolve()),
         "sourceSha256": sha256_file(source.resolve(strict=True)),
         "sourceTypes": list(source_types),
+        "inventorySources": [
+            {
+                "path": str(path.resolve()),
+                "sha256": sha256_file(path.resolve(strict=True)),
+            }
+            for path in inventory_sources
+        ],
         "candidateCount": len(candidates),
         "candidateSha256": "sha256:" + hashlib.sha256(payload.encode()).hexdigest(),
         "reviewStatus": "proposed",
@@ -263,11 +537,22 @@ def main() -> None:
         dest="source_types",
         help="Repeat to scan additional source types; defaults to full clinical recommendations.",
     )
+    parser.add_argument(
+        "--inventory-db",
+        action="append",
+        dest="inventory_sources",
+        type=Path,
+        help=(
+            "Optional reviewed MiniMed SQLite DB. Exact tool/concept names are used as an "
+            "additional candidate channel; repeat for multiple inventories."
+        ),
+    )
     args = parser.parse_args()
     count = write_candidate_workspace(
         args.input,
         args.output,
         source_types=tuple(args.source_types) if args.source_types else DEFAULT_SOURCE_TYPES,
+        inventory_sources=tuple(args.inventory_sources or ()),
     )
     print(f"Prepared {count} review-only knowledge candidates: {args.output}")
 
