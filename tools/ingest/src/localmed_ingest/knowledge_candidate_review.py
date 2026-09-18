@@ -77,12 +77,23 @@ class CandidateReviewDecision(CamelModel):
                 raise ValueError("interactiveRoute requires an explicit interactive tool id.")
             if (assessment or calculator) and not route:
                 raise ValueError("Interactive tool link requires interactiveRoute.")
-            if assessment and route and not route.startswith("#/assessments/"):
-                raise ValueError("Assessment interactiveRoute must start with #/assessments/.")
-            if calculator and route and not route.startswith("#/calculators/"):
-                raise ValueError("Calculator interactiveRoute must start with #/calculators/.")
-            if route and any(character.isspace() for character in route):
-                raise ValueError("interactiveRoute must not contain whitespace.")
+            expected_prefix = (
+                "#/assessments/" if assessment else "#/calculators/" if calculator else None
+            )
+            if route and expected_prefix and not route.startswith(expected_prefix):
+                label = "Assessment" if assessment else "Calculator"
+                raise ValueError(
+                    f"{label} interactiveRoute must start with {expected_prefix}."
+                )
+            if route:
+                if any(character.isspace() for character in route):
+                    raise ValueError("interactiveRoute must not contain whitespace.")
+                if "?" in route or "#" in route[1:]:
+                    raise ValueError("interactiveRoute must not contain query or nested hash parts.")
+                if expected_prefix:
+                    remainder = route[len(expected_prefix) :]
+                    if not remainder or any(not part for part in remainder.split("/")):
+                        raise ValueError("interactiveRoute contains an empty path segment.")
         return self
 
 
