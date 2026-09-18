@@ -54,8 +54,9 @@ need them, are disposable side indexes keyed by stable concept/chunk IDs.
   rather than being title-deduplicated.
 - The core can stay small and rebuild quickly because the projection is selectable and contains no
   large source body by default.
-- Future concept embeddings can be computed over canonical name + aliases + reviewed short definition
-  without changing the relational source of truth.
+- Concept embeddings are computed only from canonical name + aliases + reviewed short definition.
+  The initial optional profile is the existing deterministic int8 development profile; replacing it
+  with a qualified neural encoder does not change the relational source of truth.
 
 ## Initial implementation
 
@@ -76,3 +77,47 @@ uv run --project tools/ingest python -m localmed_ingest.knowledge_discovery_pack
 
 The command is intentionally local-dev only. Public redistribution still depends on the rights of the
 underlying source text copied into a definition card.
+
+For retrieval-mechanics testing, add `--include-portable-vectors`. This writes exactly one
+`localmed.feature-hash.384.v1` int8 embedding for each concept card's description chunk. It is a
+development profile, not evidence of neural medical semantic quality. Exact names, aliases and FTS
+remain available without it.
+
+## Guideline extraction and review
+
+Clinical recommendations can be scanned without creating medical facts:
+
+```bash
+uv run --project tools/ingest python -m localmed_ingest.knowledge_candidates \
+  --input data/build/clinical-guidelines.db \
+  --output data/intermediate/knowledge-candidates-2026.09.18
+```
+
+The immutable candidate workspace contains exact document/version/section/chunk/anchor locators and
+stays `proposed`. A reviewer records explicit accept/reject decisions. Accepted candidates are
+promoted with a stable machine ID and canonical name:
+
+```bash
+uv run --project tools/ingest python -m localmed_ingest.knowledge_candidate_review \
+  --candidates data/intermediate/knowledge-candidates-2026.09.18 \
+  --source data/build/clinical-guidelines.db \
+  --decisions data/intermediate/knowledge-candidate-decisions.jsonl \
+  --reviewer "doctor-id" \
+  --reviewed-at 2026-09-18T00:00:00+03:00 \
+  --output data/intermediate/knowledge.reviewed-candidates.json
+```
+
+Promotion creates only a canonical entity and a reviewed source-document link. It does not infer a
+definition, scoring formula, cutoff, equivalence or interactive tool. The output is intended to be
+rebuilt with the source documents through the normal `knowledge*.json` pipeline, where ordinary
+evidence/link validation still applies.
+
+Candidate workspaces fail closed when either the SQLite source fingerprint or deterministic candidate
+payload changes after review.
+
+## Runtime identity
+
+Search results and document groups may carry an optional `conceptId`. Both SQLite-WASM and
+Capacitor/native compact metadata projections preserve the field. This does not yet merge multiple
+documents into one UI group; it establishes the stable identity required for a later concept-first
+presentation while keeping existing document navigation unchanged.
