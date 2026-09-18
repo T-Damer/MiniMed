@@ -223,3 +223,43 @@ export async function shareAssessmentRecord(
   await navigator.clipboard.writeText(text);
   return 'copied';
 }
+
+
+function fileDataUrl(file: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      const value = reader.result;
+      if (typeof value === 'string') resolve(value);
+      else reject(new Error('Unable to read local assessment material.'));
+    });
+    reader.addEventListener('error', () => reject(reader.error ?? new Error('File read failed.')));
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function printExternalAssessmentMaterial(file: File, title: string): Promise<boolean> {
+  if (file.type === 'application/pdf') {
+    return PrintManager.original(file, title);
+  }
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) return false;
+
+  const source = await fileDataUrl(file);
+  return PrintManager.html(
+    `<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(title)}</title>
+  <style>
+    @page { size: A4; margin: 8mm; }
+    html, body { margin: 0; padding: 0; background: #fff; }
+    body { display: grid; place-items: start center; min-height: 100%; }
+    img { display: block; max-width: 100%; max-height: 280mm; object-fit: contain; }
+  </style>
+</head>
+<body><img src="${source}" alt="${escapeHtml(title)}" /></body>
+</html>`,
+    title,
+  );
+}
