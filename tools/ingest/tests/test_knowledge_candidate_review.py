@@ -237,3 +237,36 @@ def test_review_rejects_interactive_id_without_explicit_matching_route(tmp_path:
             reviewer="doctor@example.invalid",
             reviewed_at="2026-09-18T00:00:00Z",
         )
+
+
+def test_review_rejects_malformed_interactive_route(tmp_path: Path) -> None:
+    source = tmp_path / "kr.db"
+    candidates_dir = tmp_path / "candidates"
+    decisions = tmp_path / "decisions.jsonl"
+    output = tmp_path / "knowledge.reviewed-candidates.json"
+    _source(source)
+    write_candidate_workspace(source, candidates_dir)
+    candidate = scan_candidates(source)[0]
+    _write_decisions(
+        decisions,
+        [
+            {
+                "candidateId": candidate.candidate_id,
+                "decision": "accept",
+                "entityId": "scale.curb65",
+                "canonicalName": "CURB-65",
+                "interactiveCalculatorId": "calculator.curb65",
+                "interactiveRoute": "#/calculators/curb65?patient=1",
+            }
+        ],
+    )
+
+    with pytest.raises(ValueError, match="query or nested hash"):
+        promote_candidate_reviews(
+            candidates_dir,
+            source,
+            decisions,
+            output,
+            reviewer="doctor@example.invalid",
+            reviewed_at="2026-09-18T00:00:00Z",
+        )
