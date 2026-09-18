@@ -1,7 +1,8 @@
 """Promote explicitly reviewed extraction candidates into a MiniMed knowledge module.
 
-This module never turns a text hit into a definition, scoring rule or clinical assertion. An accepted
-candidate creates only a canonical entity plus a reviewed document link to the exact source chunk.
+This module never turns a text hit into a definition, scoring rule or clinical assertion.
+An accepted candidate creates only a canonical entity plus a reviewed document link to the exact
+source chunk.
 The resulting JSON is intended to be rebuilt with the source documents through the normal knowledge
 pipeline.
 """
@@ -89,7 +90,9 @@ class CandidateReviewDecision(CamelModel):
                 if any(character.isspace() for character in route):
                     raise ValueError("interactiveRoute must not contain whitespace.")
                 if "?" in route or "#" in route[1:]:
-                    raise ValueError("interactiveRoute must not contain query or nested hash parts.")
+                    raise ValueError(
+                        "interactiveRoute must not contain query or nested hash parts."
+                    )
                 if expected_prefix:
                     remainder = route[len(expected_prefix) :]
                     if not remainder or any(not part for part in remainder.split("/")):
