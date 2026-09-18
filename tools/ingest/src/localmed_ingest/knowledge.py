@@ -429,7 +429,7 @@ def _entity_identity_key(
     )
 
 
-def _merge_entity(existing: KnowledgeEntity, candidate: KnowledgeEntity) -> None:
+def merge_knowledge_entity(existing: KnowledgeEntity, candidate: KnowledgeEntity) -> None:
     if normalize_surface_text(existing.entity_type) != normalize_surface_text(
         candidate.entity_type
     ):
@@ -460,6 +460,33 @@ def _merge_entity(existing: KnowledgeEntity, candidate: KnowledgeEntity) -> None
                 f"Conflicting external id {namespace} for entity {existing.canonical_name}."
             )
         existing.external_ids[namespace] = value
+
+    for key, incoming in candidate.metadata.items():
+        if key not in existing.metadata:
+            existing.metadata[key] = incoming
+            continue
+        current = existing.metadata[key]
+        if current == incoming:
+            continue
+        if isinstance(current, list) and isinstance(incoming, list):
+            merged: list[object] = []
+            fingerprints: set[str] = set()
+            for item in [*current, *incoming]:
+                fingerprint = json.dumps(
+                    item,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                )
+                if fingerprint in fingerprints:
+                    continue
+                fingerprints.add(fingerprint)
+                merged.append(item)
+            existing.metadata[key] = merged
+            continue
+        raise ValueError(
+            f"Conflicting metadata field {key} for entity {existing.canonical_name}."
+        )
 
     if existing.medication is None:
         existing.medication = candidate.medication
@@ -1325,7 +1352,7 @@ def import_chatgpt_responses(
             if existing is None:
                 entities_by_id[entity_id] = candidate
             else:
-                _merge_entity(existing, candidate)
+                merge_knowledge_entity(existing, candidate)
 
             if identity is not None:
                 previous = entity_id_by_identity.get(identity)
