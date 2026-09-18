@@ -165,6 +165,7 @@ def _merge_entity(target: DiscoveryEntity, incoming: DiscoveryEntity) -> None:
         "jurisdiction",
         "interactiveAssessmentId",
         "interactiveCalculatorId",
+        "interactiveRoute",
     ):
         current = target.metadata.get(key)
         candidate = incoming.metadata.get(key)
@@ -360,7 +361,7 @@ def _document_for_entity(
     primary_module_id = entity.metadata.get("primaryModuleId")
     if isinstance(primary_module_id, str) and primary_module_id.strip():
         metadata["primaryModuleId"] = primary_module_id.strip()
-    for key in ("interactiveAssessmentId", "interactiveCalculatorId"):
+    for key in ("interactiveAssessmentId", "interactiveCalculatorId", "interactiveRoute"):
         value = entity.metadata.get(key)
         if isinstance(value, str) and value.strip():
             metadata[key] = value.strip()
