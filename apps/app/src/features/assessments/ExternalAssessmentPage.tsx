@@ -296,7 +296,11 @@ export function ExternalAssessmentPage(props: {
             onChange={(event) => {
               const file = event.currentTarget.files?.[0];
               if (!file) return;
-              if (!administration()?.material.acceptedMimeTypes.includes(file.type as never)) {
+              if (
+                !administration()?.material.acceptedMimeTypes.some(
+                  (acceptedType) => acceptedType === file.type,
+                )
+              ) {
                 props.onMessage('Выбран неподдерживаемый тип файла.');
                 event.currentTarget.value = '';
                 return;
