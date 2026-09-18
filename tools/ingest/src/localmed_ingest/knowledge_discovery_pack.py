@@ -16,9 +16,10 @@ from pathlib import Path
 from typing import cast
 
 from .edition_manifest import sha256_file
-from .embedding import normalize_text
+from .embedding import PORTABLE_HASH_PROFILE, build_chunk_embedding, normalize_text
 from .models import (
     Alias,
+    ChunkEmbedding,
     ContentPack,
     PackChunk,
     PackDocument,
@@ -266,6 +267,22 @@ def _stable_id(kind: str, value: str) -> str:
     return f"knowledge.discovery.{kind}." + hashlib.sha256(value.encode()).hexdigest()[:24]
 
 
+def _concept_embedding_text(entity: DiscoveryEntity) -> str:
+    definition = min(entity.definitions, key=_definition_priority) if entity.definitions else None
+    aliases = sorted(
+        name
+        for name in entity.names
+        if normalize_text(name) != normalize_text(entity.canonical_name)
+    )
+    return "\n".join(
+        [
+            entity.canonical_name,
+            *aliases,
+            *([definition.text] if definition is not None else []),
+        ]
+    )
+
+
 def _entity_digest(entity: DiscoveryEntity) -> str:
     payload = {
         "id": entity.id,
@@ -456,6 +473,7 @@ def build_knowledge_discovery_pack(
     version: str,
     built_at: str,
     entity_types: frozenset[str] | None = None,
+    include_portable_vectors: bool = False,
 ) -> int:
     if output.exists():
         raise ValueError("Output is immutable; choose a new discovery-pack path.")
@@ -465,10 +483,20 @@ def build_knowledge_discovery_pack(
     entities = load_discovery_entities(inputs, entity_types=entity_types)
     documents: list[PackDocument] = []
     aliases: list[Alias] = []
+    embeddings: list[ChunkEmbedding] = []
     for entity in entities:
         document, entity_aliases = _document_for_entity(entity, version=version, built_at=built_at)
         documents.append(document)
         aliases.extend(entity_aliases)
+        if include_portable_vectors:
+            description_chunk = document.sections[0].chunks[0]
+            embeddings.append(
+                build_chunk_embedding(
+                    description_chunk.id,
+                    _concept_embedding_text(entity),
+                    PORTABLE_HASH_PROFILE,
+                )
+            )
     source_fingerprints = [
         {"path": str(path.resolve()), "sha256": sha256_file(path.resolve(strict=True))}
         for path in inputs
@@ -480,6 +508,9 @@ def build_knowledge_discovery_pack(
             "entityTypes": sorted(entity_types) if entity_types is not None else None,
             "sources": source_fingerprints,
             "entityIds": [entity.id for entity in entities],
+            "embeddingProfile": (
+                PORTABLE_HASH_PROFILE.id if include_portable_vectors else None
+            ),
         },
         ensure_ascii=False,
         sort_keys=True,
@@ -497,10 +528,22 @@ def build_knowledge_discovery_pack(
         ),
         documents=documents,
         aliases=aliases,
+        embedding_profiles=[PORTABLE_HASH_PROFILE] if include_portable_vectors else [],
+        embeddings=embeddings,
     )
     write_sqlite_pack(pack, output)
-    integrity, foreign_keys, chunks, fts_rows, _, _ = inspect_integrity(output)
-    if integrity != "ok" or foreign_keys != 0 or chunks != fts_rows:
+    integrity, foreign_keys, chunks, fts_rows, embedding_profiles, embedding_count = (
+        inspect_integrity(output)
+    )
+    expected_profiles = 1 if include_portable_vectors else 0
+    expected_embeddings = len(documents) if include_portable_vectors else 0
+    if (
+        integrity != "ok"
+        or foreign_keys != 0
+        or chunks != fts_rows
+        or embedding_profiles != expected_profiles
+        or embedding_count != expected_embeddings
+    ):
         output.unlink(missing_ok=True)
         raise ValueError("Built knowledge discovery pack failed SQLite/FTS validation.")
     return len(documents)
@@ -519,6 +562,14 @@ def main() -> None:
         dest="entity_types",
         help="Repeat to project only selected entity types; omit to project every source-backed entity.",
     )
+    parser.add_argument(
+        "--include-portable-vectors",
+        action="store_true",
+        help=(
+            "Embed one compact concept card with the existing development int8 profile. "
+            "This exercises hybrid retrieval; it is not a neural medical model."
+        ),
+    )
     args = parser.parse_args()
     count = build_knowledge_discovery_pack(
         tuple(args.input),
@@ -527,6 +578,7 @@ def main() -> None:
         version=args.version,
         built_at=args.built_at,
         entity_types=frozenset(args.entity_types) if args.entity_types else None,
+        include_portable_vectors=args.include_portable_vectors,
     )
     print(f"Built {count} source-backed knowledge discovery cards: {args.output}")
 
