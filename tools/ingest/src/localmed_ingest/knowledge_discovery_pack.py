@@ -157,7 +157,10 @@ def _merge_entity(target: DiscoveryEntity, incoming: DiscoveryEntity) -> None:
         if previous is None or source.weight > previous.weight:
             target.sources[key] = source
     for key in ("tags", "specialties", "ageGroups", "moduleIds"):
-        merged = sorted(set(_strings(target.metadata.get(key))) | set(_strings(incoming.metadata.get(key))))
+        merged = sorted(
+            set(_strings(target.metadata.get(key)))
+            | set(_strings(incoming.metadata.get(key)))
+        )
         if merged:
             target.metadata[key] = merged
     for key in (
@@ -318,12 +321,22 @@ def _entity_digest(entity: DiscoveryEntity) -> str:
             }
             for item in sorted(
                 entity.sources.values(),
-                key=lambda item: (-item.weight, item.document_id, item.section_id or "", item.chunk_id or ""),
+                key=lambda item: (
+                    -item.weight,
+                    item.document_id,
+                    item.section_id or "",
+                    item.chunk_id or "",
+                ),
             )
         ],
         "metadata": entity.metadata,
     }
-    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
     return "sha256:" + hashlib.sha256(encoded).hexdigest()
 
 
@@ -334,7 +347,12 @@ def _document_for_entity(
     version_id = f"{document_id}@{version}"
     ordered_sources = sorted(
         entity.sources.values(),
-        key=lambda item: (-item.weight, item.document_id, item.section_id or "", item.chunk_id or ""),
+        key=lambda item: (
+            -item.weight,
+            item.document_id,
+            item.section_id or "",
+            item.chunk_id or "",
+        ),
     )
     definition = min(entity.definitions, key=_definition_priority) if entity.definitions else None
     aliases = sorted(
@@ -382,7 +400,10 @@ def _document_for_entity(
     description_text = (
         definition.text
         if definition is not None
-        else f"Справочная карточка «{entity.canonical_name}». Подробные сведения находятся в связанном источнике."
+        else (
+            f"Справочная карточка «{entity.canonical_name}». "
+            "Подробные сведения находятся в связанном источнике."
+        )
     )
     description_section_id = _stable_id("section", f"{entity.id}|description")
     description_chunk_id = _stable_id("chunk", f"{entity.id}|description")
@@ -402,7 +423,13 @@ def _document_for_entity(
                     order_index=0,
                     original_text=description_text,
                     normalized_text=normalize_text(
-                        " ".join([entity.canonical_name, *[name for name, _ in aliases], description_text])
+                        " ".join(
+                            [
+                                entity.canonical_name,
+                                *[name for name, _ in aliases],
+                                description_text,
+                            ]
+                        )
                     ),
                     anchor=f"{version_id}/description/{description_chunk_id}",
                     metadata={
@@ -573,7 +600,10 @@ def main() -> None:
         "--entity-type",
         action="append",
         dest="entity_types",
-        help="Repeat to project only selected entity types; omit to project every source-backed entity.",
+        help=(
+            "Repeat to project only selected entity types; omit to project every "
+            "source-backed entity."
+        ),
     )
     parser.add_argument(
         "--include-portable-vectors",
