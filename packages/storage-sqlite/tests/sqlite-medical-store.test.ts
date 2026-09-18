@@ -32,9 +32,11 @@ describe('SqliteMedicalStore', () => {
       catalogFamily: 'clinical',
       ageGroups: ['children'],
       entityType: 'disease',
+      conceptId: 'condition.test',
       contentMode: 'module-pointer',
       interactiveAssessmentId: 'assessment',
       interactiveCalculatorId: 'calculator',
+      interactiveRoute: '#/assessments/pediatrics/assessment',
       calculationRequired: true,
       notLegalAdvice: true,
     };
