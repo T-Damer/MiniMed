@@ -122,6 +122,7 @@ def _read_jsonl(path: Path) -> list[dict[str, object]]:
 def _validated_candidates(
     workspace: Path,
     source: Path,
+    inventory_sources: tuple[Path, ...] = (),
 ) -> dict[str, Candidate]:
     manifest_path = workspace / "manifest.json"
     candidates_path = workspace / "candidates.jsonl"
@@ -145,6 +146,32 @@ def _validated_candidates(
     if len(source_types) != len(source_types_value):
         raise ValueError("Candidate workspace sourceTypes must contain only non-empty strings.")
 
+    inventory_value = manifest.get("inventorySources", [])
+    if not isinstance(inventory_value, list):
+        raise ValueError("Candidate workspace inventorySources must be a list.")
+    expected_inventory: list[tuple[str, str]] = []
+    for item in inventory_value:
+        if not isinstance(item, dict):
+            raise ValueError("Candidate workspace inventory source must be an object.")
+        path_value = item.get("path")
+        checksum = item.get("sha256")
+        if not isinstance(path_value, str) or not isinstance(checksum, str):
+            raise ValueError("Candidate workspace inventory source is incomplete.")
+        expected_inventory.append((path_value, checksum))
+
+    resolved_inventory = inventory_sources
+    if not resolved_inventory and expected_inventory:
+        resolved_inventory = tuple(Path(path_value) for path_value, _ in expected_inventory)
+    if len(resolved_inventory) != len(expected_inventory):
+        raise ValueError("Candidate workspace inventory source count does not match review inputs.")
+    for path, (_, expected_checksum) in zip(
+        resolved_inventory,
+        expected_inventory,
+        strict=True,
+    ):
+        if sha256_file(path.resolve(strict=True)) != expected_checksum:
+            raise ValueError("Candidate workspace inventory checksum does not match review inputs.")
+
     stored_rows = _read_jsonl(candidates_path)
     stored_by_id: dict[str, dict[str, object]] = {}
     for row in stored_rows:
@@ -157,7 +184,11 @@ def _validated_candidates(
     if manifest.get("candidateCount") != len(stored_by_id):
         raise ValueError("Candidate workspace count does not match its manifest.")
 
-    fresh = scan_candidates(source, source_types=source_types)
+    fresh = scan_candidates(
+        source,
+        source_types=source_types,
+        inventory_sources=resolved_inventory,
+    )
     fresh_by_id = {candidate.candidate_id: candidate for candidate in fresh}
     if set(fresh_by_id) != set(stored_by_id):
         raise ValueError("Candidate workspace no longer matches deterministic source extraction.")
@@ -202,6 +233,7 @@ def promote_candidate_reviews(
     *,
     reviewer: str,
     reviewed_at: str,
+    inventory_sources: tuple[Path, ...] = (),
 ) -> tuple[int, int]:
     if output.exists():
         raise ValueError("Output is immutable; choose a new knowledge module path.")
@@ -209,7 +241,11 @@ def promote_candidate_reviews(
     if not reviewer_name:
         raise ValueError("Reviewer must not be blank.")
     reviewed_timestamp = _parse_reviewed_at(reviewed_at)
-    candidates = _validated_candidates(candidate_workspace, source)
+    candidates = _validated_candidates(
+        candidate_workspace,
+        source,
+        inventory_sources,
+    )
 
     decisions: list[CandidateReviewDecision] = []
     seen_decisions: set[str] = set()
@@ -376,6 +412,13 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--reviewer", required=True)
     parser.add_argument("--reviewed-at", required=True)
+    parser.add_argument(
+        "--inventory-db",
+        action="append",
+        dest="inventory_sources",
+        type=Path,
+        help="Repeat with the same reviewed inventory DBs used during candidate extraction.",
+    )
     args = parser.parse_args()
     accepted, rejected = promote_candidate_reviews(
         args.candidates,
@@ -384,6 +427,7 @@ def main() -> None:
         args.output,
         reviewer=args.reviewer,
         reviewed_at=args.reviewed_at,
+        inventory_sources=tuple(args.inventory_sources or ()),
     )
     print(
         f"Prepared reviewed knowledge module: {accepted} accepted source links, "
