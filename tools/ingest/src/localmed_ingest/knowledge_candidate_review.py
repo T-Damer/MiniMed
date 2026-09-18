@@ -39,6 +39,8 @@ class CandidateReviewDecision(CamelModel):
     entity_id: str | None = Field(default=None, pattern=r"^[a-z0-9][a-z0-9._:-]{2,127}$")
     canonical_name: str | None = None
     entity_type: str | None = None
+    interactive_assessment_id: str | None = None
+    interactive_calculator_id: str | None = None
     aliases: list[str] = Field(default_factory=list)
     specialties: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
@@ -219,6 +221,10 @@ def promote_candidate_reviews(
             "tags": _dedupe(decision.tags),
             "specialties": _dedupe(decision.specialties),
         }
+        if decision.interactive_assessment_id and decision.interactive_assessment_id.strip():
+            metadata["interactiveAssessmentId"] = decision.interactive_assessment_id.strip()
+        if decision.interactive_calculator_id and decision.interactive_calculator_id.strip():
+            metadata["interactiveCalculatorId"] = decision.interactive_calculator_id.strip()
         existing = entities.get(entity_id)
         if existing is None:
             entities[entity_id] = KnowledgeEntity(
@@ -243,6 +249,19 @@ def promote_candidate_reviews(
                 elif name.weight > previous.weight:
                     previous.weight = name.weight
                     previous.name_type = name.name_type
+            for scalar_key in ("interactiveAssessmentId", "interactiveCalculatorId"):
+                current_scalar = existing.metadata.get(scalar_key)
+                incoming_scalar = metadata.get(scalar_key)
+                if current_scalar is None and incoming_scalar is not None:
+                    existing.metadata[scalar_key] = incoming_scalar
+                elif (
+                    current_scalar is not None
+                    and incoming_scalar is not None
+                    and current_scalar != incoming_scalar
+                ):
+                    raise ValueError(
+                        f"Conflicting {scalar_key} for reviewed entity {entity_id}."
+                    )
             for key in ("tags", "specialties"):
                 current = existing.metadata.get(key)
                 current_values = current if isinstance(current, list) else []
