@@ -24,6 +24,7 @@ import { DocumentText, documentTextSearchText } from '@/components/DocumentText'
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import type { MutableDocumentSectionTree } from '@/features/library/document-display';
+import { documentInteractiveToolLink } from '@/features/library/document-interactive-tool';
 import {
   displayDocumentSubtitle,
   displayDocumentTitle,
@@ -579,6 +580,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   const isClinicalSummary = createMemo(
     () => props.document?.sourceType === 'clinical_recommendation_summary',
   );
+  const interactiveTool = createMemo(() => {
+    const document = props.document;
+    return document ? documentInteractiveToolLink(document.metadata) : undefined;
+  });
   const referenceImageResolver = createMemo(() => {
     const document = props.document;
     if (
@@ -893,6 +898,25 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     )}
                   </Show>
                   <div class="document-overlay-paper__actions">
+                    <Show when={interactiveTool()}>
+                      {(tool) => (
+                        <Button
+                          type="button"
+                          variant="primary"
+                          class="document-overlay-action-button document-overlay-action-button--tool"
+                          aria-label={`${tool().label}: ${displayDocumentTitle(documentValue())}`}
+                          onClick={() => props.onNavigate(tool().href)}
+                          icon={
+                            <AppGlyph
+                              name={tool().kind === 'assessment' ? 'list-checks' : 'calculator'}
+                              class="document-overlay-action-button__icon"
+                            />
+                          }
+                        >
+                          {tool().label}
+                        </Button>
+                      )}
+                    </Show>
                     <Show when={isClinicalSummary()}>
                       <Button
                         type="button"
