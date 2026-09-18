@@ -108,9 +108,17 @@ uv run --project tools/ingest python -m localmed_ingest.knowledge_candidate_revi
 ```
 
 Promotion creates only a canonical entity and a reviewed source-document link. It does not infer a
-definition, scoring formula, cutoff, equivalence or interactive tool. The output is intended to be
-rebuilt with the source documents through the normal `knowledge*.json` pipeline, where ordinary
-evidence/link validation still applies.
+definition, scoring formula, cutoff or equivalence. An already implemented assessment/calculator may
+be linked only when review supplies both an explicit tool ID and an explicit local
+`#/assessments/...` or `#/calculators/...` route. Route/type mismatches and malformed routes fail
+closed. The output is intended to be rebuilt with the source documents through the normal
+`knowledge*.json` pipeline, where ordinary evidence/link validation still applies.
+
+Knowledge modules may repeat the same stable entity ID when they describe the same concept. Module
+composition merges aliases and compatible list metadata while conflicting entity types, external IDs
+or scalar metadata still fail closed. Facts, relations, document links and review-task IDs remain
+strictly unique. This stricter metadata merge is opt-in for module composition and does not change the
+existing AI-enrichment entity merge behavior.
 
 Candidate workspaces fail closed when either the SQLite source fingerprint or deterministic candidate
 payload changes after review.
@@ -118,6 +126,11 @@ payload changes after review.
 ## Runtime identity
 
 Search results and document groups may carry an optional `conceptId`. Both SQLite-WASM and
-Capacitor/native compact metadata projections preserve the field. This does not yet merge multiple
-documents into one UI group; it establishes the stable identity required for a later concept-first
-presentation while keeping existing document navigation unchanged.
+Capacitor/native compact metadata projections preserve the field. Explicit `interactiveRoute`
+metadata is preserved through the same projections. A reference/concept card renders a generic
+`Пройти` or `Рассчитать` action only when the reviewed tool ID and route agree; it never derives a
+tool from the card title or alias.
+
+This does not yet merge multiple documents into one UI group; it establishes the stable identity
+required for a later concept-first presentation while keeping each source document and chunk
+independently navigable.
