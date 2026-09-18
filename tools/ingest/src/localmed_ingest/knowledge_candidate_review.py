@@ -245,7 +245,6 @@ def promote_candidate_reviews(
             if normalize_text(alias) != canonical_normalized
         ]
         metadata: dict[str, object] = {
-            "origin": "reviewed-knowledge-candidate",
             "tags": _dedupe(decision.tags),
             "specialties": _dedupe(decision.specialties),
         }
