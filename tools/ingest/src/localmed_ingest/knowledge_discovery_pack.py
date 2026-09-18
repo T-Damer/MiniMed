@@ -160,7 +160,12 @@ def _merge_entity(target: DiscoveryEntity, incoming: DiscoveryEntity) -> None:
         merged = sorted(set(_strings(target.metadata.get(key))) | set(_strings(incoming.metadata.get(key))))
         if merged:
             target.metadata[key] = merged
-    for key in ("primaryModuleId", "jurisdiction"):
+    for key in (
+        "primaryModuleId",
+        "jurisdiction",
+        "interactiveAssessmentId",
+        "interactiveCalculatorId",
+    ):
         current = target.metadata.get(key)
         candidate = incoming.metadata.get(key)
         if current is None and candidate is not None:
@@ -355,6 +360,13 @@ def _document_for_entity(
     primary_module_id = entity.metadata.get("primaryModuleId")
     if isinstance(primary_module_id, str) and primary_module_id.strip():
         metadata["primaryModuleId"] = primary_module_id.strip()
+    for key in ("interactiveAssessmentId", "interactiveCalculatorId"):
+        value = entity.metadata.get(key)
+        if isinstance(value, str) and value.strip():
+            metadata[key] = value.strip()
+    calculation_required = entity.metadata.get("calculationRequired")
+    if isinstance(calculation_required, bool):
+        metadata["calculationRequired"] = calculation_required
     if definition is not None:
         metadata["canonicalDefinition"] = {
             "definitionId": definition.fact_id,
