@@ -219,6 +219,8 @@ export type SearchResultCategory =
   | 'other';
 
 export interface SearchResult {
+  /** Stable canonical knowledge identity when the hit is a concept-backed card. */
+  readonly conceptId?: string;
   /** Source-backed occurrence index; not a generated clinical inference. */
   readonly terminologyConceptIds?: readonly string[];
   readonly chunkId: string;
@@ -240,6 +242,8 @@ export interface SearchResult {
 }
 
 export interface SearchResultGroup {
+  /** Present only when every grouped hit resolves to the same canonical concept. */
+  readonly conceptId?: string;
   readonly terminologyMatch?: TerminologyMatchKind;
   readonly documentId: string;
   readonly title: string;
