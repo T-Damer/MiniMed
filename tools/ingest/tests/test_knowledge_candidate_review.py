@@ -92,6 +92,7 @@ def test_review_promotes_identity_and_source_link_without_inventing_fact(tmp_pat
                 "entityId": "scale.curb65",
                 "canonicalName": "CURB-65",
                 "aliases": ["CURB 65"],
+                "interactiveCalculatorId": "calculator.curb65",
                 "specialties": ["пульмонология", "неотложная медицина"],
                 "tags": ["пневмония"],
             },
@@ -119,6 +120,7 @@ def test_review_promotes_identity_and_source_link_without_inventing_fact(tmp_pat
     assert {item["name"] for item in entity["names"]} == {"Шкала CURB-65", "CURB 65"}
     assert entity["metadata"]["tags"] == ["пневмония"]
     assert entity["metadata"]["specialties"] == ["пульмонология", "неотложная медицина"]
+    assert entity["metadata"]["interactiveCalculatorId"] == "calculator.curb65"
 
     assert len(payload["documentLinks"]) == 1
     link = payload["documentLinks"][0]
