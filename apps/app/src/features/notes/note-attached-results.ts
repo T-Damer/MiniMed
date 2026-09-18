@@ -1,3 +1,4 @@
+import { formatAssessmentRecord } from '@/features/assessments/assessment-engine';
 import type {
   AssessmentDefinition,
   AssessmentRecord,
@@ -59,6 +60,13 @@ export function snapshotAssessmentForNote(
     };
   }
 
+  if (record.kind === 'external') {
+    return {
+      ...base,
+      manualText: formatAssessmentRecord(definition, record),
+    };
+  }
+
   return {
     ...base,
     summary: `Черновик: заполнено ${Object.keys(record.answers).length} из ${record.totalQuestions}`,
@@ -91,6 +99,12 @@ export function assessmentNoteCaption(
 ): string {
   if (record.kind === 'completed' && record.result.headline.trim()) {
     return `${definition.title} — ${record.result.headline}`;
+  }
+  if (record.kind === 'external') {
+    const variant = definition.externalAdministration?.variants.find(
+      (item) => item.id === record.variantId,
+    );
+    return variant ? `${definition.title} — ${variant.shortLabel}` : definition.title;
   }
   return definition.title;
 }
