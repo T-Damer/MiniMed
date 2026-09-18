@@ -407,6 +407,7 @@ export class CapacitorMedicalStore implements MedicalStore {
         'contentMode', json_extract(metadata_json, '$.contentMode'),
         'interactiveAssessmentId', json_extract(metadata_json, '$.interactiveAssessmentId'),
         'interactiveCalculatorId', json_extract(metadata_json, '$.interactiveCalculatorId'),
+        'interactiveRoute', json_extract(metadata_json, '$.interactiveRoute'),
         'calculationRequired', json(CASE WHEN json_type(metadata_json, '$.calculationRequired') = 'true'
           THEN 'true' ELSE 'false' END),
         'notLegalAdvice', json(CASE WHEN json_type(metadata_json, '$.notLegalAdvice') = 'true'
@@ -451,6 +452,7 @@ export class CapacitorMedicalStore implements MedicalStore {
           'canonicalDefinition', json_extract(d.metadata_json, '$.canonicalDefinition'),
           'interactiveAssessmentId', json_extract(d.metadata_json, '$.interactiveAssessmentId'),
           'interactiveCalculatorId', json_extract(d.metadata_json, '$.interactiveCalculatorId'),
+          'interactiveRoute', json_extract(d.metadata_json, '$.interactiveRoute'),
           'calculationRequired', json(CASE WHEN json_type(d.metadata_json, '$.calculationRequired') = 'true'
             THEN 'true' ELSE 'false' END),
           'notLegalAdvice', json(CASE WHEN json_type(d.metadata_json, '$.notLegalAdvice') = 'true'
