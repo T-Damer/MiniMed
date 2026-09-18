@@ -1,9 +1,9 @@
 {
   "id": "minimed.tools.psychology.ru",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "title": "Инструменты психологии и психиатрии",
   "schemaVersion": 2,
-  "builtAt": "2026-09-04T00:00:00Z",
+  "builtAt": "2026-09-18T00:00:00Z",
   "tools": [
     {
       "id": "minimed.assessment.braverman-behavioral",
@@ -227,7 +227,9 @@
           "rules": [],
           "missingContext": [],
           "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
-          "sourceIds": ["minimed-braverman-educational-methodology"]
+          "sourceIds": [
+            "minimed-braverman-educational-methodology"
+          ]
         },
         "observationMappings": [
           {
@@ -504,7 +506,9 @@
           "rules": [],
           "missingContext": [],
           "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
-          "sourceIds": ["minimed-egogram-educational-methodology"]
+          "sourceIds": [
+            "minimed-egogram-educational-methodology"
+          ]
         },
         "observationMappings": [
           {
@@ -556,6 +560,114 @@
           "reviewedAt": "2026-08-18"
         }
       ]
+    },
+    {
+      "id": "minimed.assessment.mmse",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "mmse",
+      "title": "MMSE — краткая оценка когнитивного статуса",
+      "shortTitle": "MMSE",
+      "aliases": [
+        "Mini-Mental State Examination",
+        "MMSE",
+        "мини-ментальный статус",
+        "краткая шкала оценки психического статуса"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "cognitive-assessment",
+      "description": "Локальная карточка результата MMSE: общий балл, использованная редакция/перевод и комментарий по внешнему бланку.",
+      "estimatedMinutes": 10,
+      "audience": "Взрослые; скрининговая оценка когнитивного статуса.",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.assessment.mmse",
+        "slug": "mmse",
+        "title": "MMSE — краткая оценка когнитивного статуса",
+        "shortTitle": "MMSE",
+        "aliases": [
+          "Mini-Mental State Examination",
+          "MMSE",
+          "мини-ментальный статус",
+          "краткая шкала оценки психического статуса"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "cognitive-assessment",
+        "description": "MMSE используется как краткая количественная оценка когнитивного статуса. MiniMed хранит итог внешнего проведения, но не включает защищённые задания.",
+        "estimatedMinutes": 10,
+        "audience": "Взрослые; применимость и интерпретация определяются клиническим контекстом и используемой версией.",
+        "responseOptions": [],
+        "scales": [],
+        "externalAdministration": {
+          "mode": "external",
+          "variants": [
+            {
+              "id": "mmse",
+              "label": "MMSE — Mini-Mental State Examination",
+              "shortLabel": "MMSE",
+              "description": "Краткая стандартизированная оценка когнитивного статуса. MiniMed не включает вопросы/задания и не применяет пороги без контекста конкретной версии.",
+              "audience": "Взрослые; применимость определяется клинической задачей и руководством.",
+              "resultFields": [
+                {
+                  "id": "total_score",
+                  "kind": "number",
+                  "label": "Общий балл",
+                  "required": true,
+                  "unit": "/30",
+                  "minimum": 0,
+                  "maximum": 30,
+                  "integer": true
+                },
+                {
+                  "id": "edition",
+                  "kind": "text",
+                  "label": "Редакция / язык бланка",
+                  "required": false,
+                  "multiline": false,
+                  "placeholder": "Укажите использованный бланк/перевод"
+                },
+                {
+                  "id": "notes",
+                  "kind": "text",
+                  "label": "Комментарий",
+                  "required": false,
+                  "multiline": true
+                }
+              ]
+            }
+          ],
+          "material": {
+            "policy": "user-local-file",
+            "acceptedMimeTypes": [
+              "application/pdf",
+              "image/png",
+              "image/jpeg",
+              "image/webp"
+            ],
+            "note": "Стимульный материал и бланки не входят в публичный пакет MiniMed. Выберите локальный лицензированный PDF или изображение; файл используется только на устройстве."
+          }
+        },
+        "questions": [],
+        "disclaimer": "MMSE — скрининговый инструмент, а не самостоятельный диагноз. Интерпретация зависит от клинического контекста, версии, языка, возраста и образования.",
+        "evidenceNote": "Оригинальный MMSE имеет максимум 30 баллов; MiniMed сохраняет только введённый итог и сведения о бланке, не воспроизводя задания и нормы.",
+        "visuals": [],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Автоматические пороги отключены: интерпретация должна соответствовать конкретной версии, переводу и клиническому контексту.",
+          "sourceIds": []
+        },
+        "observationMappings": [],
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "MMSE — защищённая методика PAR. MiniMed не распространяет форму, задания, стимулы или нормативные таблицы.",
+          "sourceUrl": "https://www.parinc.com/products/MMSE"
+        }
+      },
+      "sources": []
     },
     {
       "id": "minimed.assessment.paei",
@@ -780,7 +892,9 @@
           "rules": [],
           "missingContext": [],
           "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
-          "sourceIds": ["paei-work-style-paei-work-style"]
+          "sourceIds": [
+            "paei-work-style-paei-work-style"
+          ]
         },
         "observationMappings": [
           {
@@ -821,6 +935,590 @@
           "title": "PAEI — профиль рабочего стиля",
           "url": "https://www.adizes.com/alis",
           "reviewedAt": "2026-08-15"
+        }
+      ]
+    },
+    {
+      "id": "minimed.assessment.raven-progressive-matrices",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "raven-progressive-matrices",
+      "title": "Матрицы Равена",
+      "shortTitle": "Матрицы Равена",
+      "aliases": [
+        "Raven Progressive Matrices",
+        "Raven",
+        "матрицы Равена",
+        "CPM",
+        "SPM",
+        "APM"
+      ],
+      "bankId": "psychology",
+      "bankLabel": "Психология и психодиагностика",
+      "category": "cognitive-assessment",
+      "description": "Семейство невербальных матричных методик Raven. В MiniMed выбирается вариант CPM, SPM или APM и сохраняется результат по внешнему лицензированному материалу.",
+      "estimatedMinutes": 40,
+      "audience": "Когнитивная оценка; конкретный вариант и нормы выбираются по лицензированному руководству.",
+      "definition": {
+        "schemaVersion": 2,
+        "id": "minimed.assessment.raven-progressive-matrices",
+        "slug": "raven-progressive-matrices",
+        "title": "Матрицы Равена",
+        "shortTitle": "Матрицы Равена",
+        "aliases": [
+          "Raven Progressive Matrices",
+          "Raven",
+          "матрицы Равена",
+          "CPM",
+          "SPM",
+          "APM"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "cognitive-assessment",
+        "description": "Семейство невербальных матричных методик Raven. Выберите CPM, SPM или APM согласно используемому руководству.",
+        "estimatedMinutes": 40,
+        "audience": "Когнитивная оценка; вариант и нормативы зависят от используемой редакции.",
+        "responseOptions": [],
+        "scales": [],
+        "externalAdministration": {
+          "mode": "external",
+          "variants": [
+            {
+              "id": "cpm",
+              "label": "CPM — Цветные прогрессивные матрицы",
+              "shortLabel": "CPM",
+              "description": "Цветной вариант семейства Raven. Точную редакцию, правила предъявления и нормы сверяйте с лицензированным руководством.",
+              "audience": "Выбор CPM определяется используемым руководством и клинической задачей.",
+              "resultFields": [
+                {
+                  "id": "raw_score",
+                  "kind": "number",
+                  "label": "Сырой балл",
+                  "required": true,
+                  "minimum": 0,
+                  "integer": true
+                },
+                {
+                  "id": "percentile",
+                  "kind": "number",
+                  "label": "Процентиль",
+                  "required": false,
+                  "unit": "%",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "integer": false
+                },
+                {
+                  "id": "edition",
+                  "kind": "text",
+                  "label": "Редакция / форма",
+                  "required": true,
+                  "multiline": false,
+                  "placeholder": "Например: SPM, конкретное издание"
+                },
+                {
+                  "id": "norm_reference",
+                  "kind": "text",
+                  "label": "Использованные нормы",
+                  "required": false,
+                  "multiline": true,
+                  "placeholder": "Возраст, страна/выборка, руководство"
+                },
+                {
+                  "id": "notes",
+                  "kind": "text",
+                  "label": "Комментарий",
+                  "required": false,
+                  "multiline": true
+                }
+              ]
+            },
+            {
+              "id": "spm",
+              "label": "SPM — Стандартные прогрессивные матрицы",
+              "shortLabel": "SPM",
+              "description": "Стандартный вариант семейства Raven. MiniMed не воспроизводит задания, ключи и нормативные таблицы.",
+              "audience": "Выбор SPM определяется используемым руководством и клинической задачей.",
+              "resultFields": [
+                {
+                  "id": "raw_score",
+                  "kind": "number",
+                  "label": "Сырой балл",
+                  "required": true,
+                  "minimum": 0,
+                  "integer": true
+                },
+                {
+                  "id": "percentile",
+                  "kind": "number",
+                  "label": "Процентиль",
+                  "required": false,
+                  "unit": "%",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "integer": false
+                },
+                {
+                  "id": "edition",
+                  "kind": "text",
+                  "label": "Редакция / форма",
+                  "required": true,
+                  "multiline": false,
+                  "placeholder": "Например: SPM, конкретное издание"
+                },
+                {
+                  "id": "norm_reference",
+                  "kind": "text",
+                  "label": "Использованные нормы",
+                  "required": false,
+                  "multiline": true,
+                  "placeholder": "Возраст, страна/выборка, руководство"
+                },
+                {
+                  "id": "notes",
+                  "kind": "text",
+                  "label": "Комментарий",
+                  "required": false,
+                  "multiline": true
+                }
+              ]
+            },
+            {
+              "id": "apm",
+              "label": "APM — Продвинутые прогрессивные матрицы",
+              "shortLabel": "APM",
+              "description": "Продвинутый вариант семейства Raven. MiniMed хранит только внесённый результат и контекст нормы.",
+              "audience": "Выбор APM определяется используемым руководством и клинической задачей.",
+              "resultFields": [
+                {
+                  "id": "raw_score",
+                  "kind": "number",
+                  "label": "Сырой балл",
+                  "required": true,
+                  "minimum": 0,
+                  "integer": true
+                },
+                {
+                  "id": "percentile",
+                  "kind": "number",
+                  "label": "Процентиль",
+                  "required": false,
+                  "unit": "%",
+                  "minimum": 0,
+                  "maximum": 100,
+                  "integer": false
+                },
+                {
+                  "id": "edition",
+                  "kind": "text",
+                  "label": "Редакция / форма",
+                  "required": true,
+                  "multiline": false,
+                  "placeholder": "Например: SPM, конкретное издание"
+                },
+                {
+                  "id": "norm_reference",
+                  "kind": "text",
+                  "label": "Использованные нормы",
+                  "required": false,
+                  "multiline": true,
+                  "placeholder": "Возраст, страна/выборка, руководство"
+                },
+                {
+                  "id": "notes",
+                  "kind": "text",
+                  "label": "Комментарий",
+                  "required": false,
+                  "multiline": true
+                }
+              ]
+            }
+          ],
+          "material": {
+            "policy": "user-local-file",
+            "acceptedMimeTypes": [
+              "application/pdf",
+              "image/png",
+              "image/jpeg",
+              "image/webp"
+            ],
+            "note": "Стимульный материал и бланки не входят в публичный пакет MiniMed. Выберите локальный лицензированный PDF или изображение; файл используется только на устройстве."
+          }
+        },
+        "questions": [],
+        "disclaimer": "Не используйте результат без проверки точной редакции, условий предъявления и подходящей нормативной выборки. MiniMed не содержит ключей, заданий или нормативных таблиц Raven.",
+        "evidenceNote": "Карточка служит для локального учёта результата и выбора варианта. Интерпретация остаётся за лицензированным руководством конкретной редакции.",
+        "visuals": [],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Для интерпретации нужны конкретная редакция Raven, нормативная выборка и официальные правила подсчёта.",
+          "sourceIds": []
+        },
+        "observationMappings": [],
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Raven’s Progressive Matrices — защищённая методика Pearson. MiniMed не распространяет стимульные материалы, ключи и нормы.",
+          "sourceUrl": "https://www.pearsonassessments.com/en-us/Store/Professional-Assessments/Cognitive-Neuro/Ability-Neuro/Standard-Progressive-Matrices-%7C-SPM/p/100000504"
+        }
+      },
+      "sources": []
+    },
+    {
+      "id": "minimed.assessment.shas",
+      "kind": "assessment",
+      "version": "1.0.0",
+      "slug": "asthenic-state-shas",
+      "title": "Шкала астенического состояния (ШАС)",
+      "shortTitle": "Шкала ШАС",
+      "aliases": [
+        "ШАС",
+        "SHAS",
+        "астения",
+        "астеническое состояние",
+        "шкала Малковой",
+        "Малкова Чертова",
+        "Asthenic State Scale"
+      ],
+      "bankId": "psychiatry",
+      "bankLabel": "Психиатрия",
+      "category": "asthenia",
+      "description": "Шкала Л. Д. Малковой в адаптации Т. Г. Чертовой: 30 утверждений для оценки выраженности астенического состояния. Оцените каждое утверждение применительно к тому, как вы чувствуете себя в настоящий момент.",
+      "estimatedMinutes": 5,
+      "audience": "Взрослые",
+      "definition": {
+        "id": "minimed.assessment.shas",
+        "slug": "asthenic-state-shas",
+        "title": "Шкала астенического состояния (ШАС)",
+        "shortTitle": "Шкала ШАС",
+        "aliases": [
+          "ШАС",
+          "SHAS",
+          "астения",
+          "астеническое состояние",
+          "шкала Малковой",
+          "Малкова Чертова",
+          "Asthenic State Scale"
+        ],
+        "bankId": "psychiatry",
+        "bankLabel": "Психиатрия",
+        "category": "asthenia",
+        "description": "Шкала Л. Д. Малковой в адаптации Т. Г. Чертовой: 30 утверждений для оценки выраженности астенического состояния. Оцените каждое утверждение применительно к тому, как вы чувствуете себя в настоящий момент.",
+        "estimatedMinutes": 5,
+        "audience": "Взрослые",
+        "responseOptions": [
+          {
+            "value": 1,
+            "label": "Нет, неверно"
+          },
+          {
+            "value": 2,
+            "label": "Пожалуй, так"
+          },
+          {
+            "value": 3,
+            "label": "Верно"
+          },
+          {
+            "value": 4,
+            "label": "Совершенно верно"
+          }
+        ],
+        "scales": [
+          {
+            "id": "shas-total",
+            "label": "Итоговый балл ШАС",
+            "shortLabel": "ШАС",
+            "description": "Прямая сумма 30 ответов по 1–4 балла, без обратных пунктов. Диапазон: 30–120 баллов. Градации ШАС: 30–50 — отсутствие астении; 51–75 — слабая; 76–100 — умеренная; 101–120 — выраженная астения."
+          }
+        ],
+        "questions": [
+          {
+            "id": "asthenic-state-shas-01",
+            "scaleId": "shas-total",
+            "prompt": "Я работаю с большим напряжением"
+          },
+          {
+            "id": "asthenic-state-shas-02",
+            "scaleId": "shas-total",
+            "prompt": "Мне трудно сосредоточиться на чем-либо"
+          },
+          {
+            "id": "asthenic-state-shas-03",
+            "scaleId": "shas-total",
+            "prompt": "Моя половая жизнь не удовлетворяет меня"
+          },
+          {
+            "id": "asthenic-state-shas-04",
+            "scaleId": "shas-total",
+            "prompt": "Ожидание нервирует меня"
+          },
+          {
+            "id": "asthenic-state-shas-05",
+            "scaleId": "shas-total",
+            "prompt": "Я испытываю мышечную слабость"
+          },
+          {
+            "id": "asthenic-state-shas-06",
+            "scaleId": "shas-total",
+            "prompt": "Мне не хочется ходить в кино или театр"
+          },
+          {
+            "id": "asthenic-state-shas-07",
+            "scaleId": "shas-total",
+            "prompt": "Я забывчив"
+          },
+          {
+            "id": "asthenic-state-shas-08",
+            "scaleId": "shas-total",
+            "prompt": "Я чувствую себя усталым"
+          },
+          {
+            "id": "asthenic-state-shas-09",
+            "scaleId": "shas-total",
+            "prompt": "Мои глаза устают при длительном чтении"
+          },
+          {
+            "id": "asthenic-state-shas-10",
+            "scaleId": "shas-total",
+            "prompt": "Мои руки дрожат"
+          },
+          {
+            "id": "asthenic-state-shas-11",
+            "scaleId": "shas-total",
+            "prompt": "У меня плохой аппетит"
+          },
+          {
+            "id": "asthenic-state-shas-12",
+            "scaleId": "shas-total",
+            "prompt": "Мне трудно быть на вечеринке или в шумной компании"
+          },
+          {
+            "id": "asthenic-state-shas-13",
+            "scaleId": "shas-total",
+            "prompt": "Я уже не так хорошо понимаю прочитанное"
+          },
+          {
+            "id": "asthenic-state-shas-14",
+            "scaleId": "shas-total",
+            "prompt": "Мои руки и ноги холодные"
+          },
+          {
+            "id": "asthenic-state-shas-15",
+            "scaleId": "shas-total",
+            "prompt": "Меня легко задеть"
+          },
+          {
+            "id": "asthenic-state-shas-16",
+            "scaleId": "shas-total",
+            "prompt": "У меня болит голова"
+          },
+          {
+            "id": "asthenic-state-shas-17",
+            "scaleId": "shas-total",
+            "prompt": "Я просыпаюсь утром усталым и не отдохнувшим"
+          },
+          {
+            "id": "asthenic-state-shas-18",
+            "scaleId": "shas-total",
+            "prompt": "У меня бывают головокружения"
+          },
+          {
+            "id": "asthenic-state-shas-19",
+            "scaleId": "shas-total",
+            "prompt": "У меня бывают подергивания мышц"
+          },
+          {
+            "id": "asthenic-state-shas-20",
+            "scaleId": "shas-total",
+            "prompt": "У меня шумит в ушах"
+          },
+          {
+            "id": "asthenic-state-shas-21",
+            "scaleId": "shas-total",
+            "prompt": "Меня беспокоят половые вопросы"
+          },
+          {
+            "id": "asthenic-state-shas-22",
+            "scaleId": "shas-total",
+            "prompt": "Я испытываю тяжесть в голове"
+          },
+          {
+            "id": "asthenic-state-shas-23",
+            "scaleId": "shas-total",
+            "prompt": "Я испытываю общую слабость"
+          },
+          {
+            "id": "asthenic-state-shas-24",
+            "scaleId": "shas-total",
+            "prompt": "Я испытываю боли в темени"
+          },
+          {
+            "id": "asthenic-state-shas-25",
+            "scaleId": "shas-total",
+            "prompt": "Жизнь для меня связана с напряжением"
+          },
+          {
+            "id": "asthenic-state-shas-26",
+            "scaleId": "shas-total",
+            "prompt": "Моя голова как бы стянута обручем"
+          },
+          {
+            "id": "asthenic-state-shas-27",
+            "scaleId": "shas-total",
+            "prompt": "Я легко просыпаюсь от шума"
+          },
+          {
+            "id": "asthenic-state-shas-28",
+            "scaleId": "shas-total",
+            "prompt": "Меня утомляют люди"
+          },
+          {
+            "id": "asthenic-state-shas-29",
+            "scaleId": "shas-total",
+            "prompt": "Когда я волнуюсь, то покрываюсь потом"
+          },
+          {
+            "id": "asthenic-state-shas-30",
+            "scaleId": "shas-total",
+            "prompt": "Мне не дают заснуть беспокойные мысли"
+          }
+        ],
+        "interpretations": [
+          {
+            "minScore": 30,
+            "maxScore": 50,
+            "scaleId": "shas-total",
+            "headline": "Отсутствие астении по ШАС",
+            "message": "30–50 баллов: отсутствие астении по градации ШАС. Низкий балл не исключает другие причины слабости или утомляемости."
+          },
+          {
+            "minScore": 51,
+            "maxScore": 75,
+            "scaleId": "shas-total",
+            "headline": "Слабая астения по ШАС",
+            "message": "51–75 баллов: слабая астения по градации ШАС."
+          },
+          {
+            "minScore": 76,
+            "maxScore": 100,
+            "scaleId": "shas-total",
+            "headline": "Умеренная астения по ШАС",
+            "message": "76–100 баллов: умеренная астения по градации ШАС."
+          },
+          {
+            "minScore": 101,
+            "maxScore": 120,
+            "scaleId": "shas-total",
+            "headline": "Выраженная астения по ШАС",
+            "message": "101–120 баллов: выраженная астения по градации ШАС."
+          }
+        ],
+        "disclaimer": "ШАС оценивает выраженность астенических жалоб и не устанавливает медицинский или психиатрический диагноз. Результат следует рассматривать вместе с клиническими данными; при сохраняющейся слабости или утомляемости обсудите симптомы с врачом.",
+        "evidenceNote": "Шкала разработана Л. Д. Малковой и адаптирована Т. Г. Чертовой. Формулировки и ответы воспроизведены по приложению 1 к статье Шаброва и соавт. «Принципы диагностики астении» (2022, с. 60); ключ и градации — с. 59–60. Оценивается состояние в настоящий момент. Баллы и нормированный процент не являются вероятностью заболевания или популяционным процентилем.",
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "ШАС: Л. Д. Малкова, адаптация Т. Г. Чертовой. Текст бланка: Шабров А. В., Фоминых Ю. А., Успенский Ю. П., Наджафова К. Н. Принципы диагностики астении. Университетский терапевтический вестник. 2022;4(3):57–63. DOI: 10.56871/3052.2022.73.10.007. Публикация доступна по CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). В MiniMed изменена компоновка для интерактивного заполнения; формулировки и ключ сохранены.",
+          "sourceUrl": "https://ojs3.gpmu.org/index.php/Un-ther-journal/article/view/4125"
+        },
+        "schemaVersion": 2,
+        "evaluation": {
+          "status": "verdict",
+          "rules": [
+            {
+              "when": "score_shas_total <= 50",
+              "verdict": {
+                "rangeId": "shas-absent",
+                "title": "Отсутствие астении по ШАС",
+                "explanation": "30–50 баллов: отсутствие астении по градации ШАС. Низкий балл не исключает другие причины слабости или утомляемости.",
+                "attentionLevel": "none",
+                "lowerBound": 30,
+                "upperBound": 50,
+                "sourceIds": [
+                  "shabrov-2022-shas"
+                ]
+              }
+            },
+            {
+              "when": "score_shas_total <= 75",
+              "verdict": {
+                "rangeId": "shas-mild",
+                "title": "Слабая астения по ШАС",
+                "explanation": "51–75 баллов: слабая астения по градации ШАС.",
+                "attentionLevel": "low",
+                "lowerBound": 51,
+                "upperBound": 75,
+                "sourceIds": [
+                  "shabrov-2022-shas"
+                ]
+              }
+            },
+            {
+              "when": "score_shas_total <= 100",
+              "verdict": {
+                "rangeId": "shas-moderate",
+                "title": "Умеренная астения по ШАС",
+                "explanation": "76–100 баллов: умеренная астения по градации ШАС.",
+                "attentionLevel": "moderate",
+                "lowerBound": 76,
+                "upperBound": 100,
+                "sourceIds": [
+                  "shabrov-2022-shas"
+                ]
+              }
+            },
+            {
+              "when": "score_shas_total >= 101",
+              "verdict": {
+                "rangeId": "shas-marked",
+                "title": "Выраженная астения по ШАС",
+                "explanation": "101–120 баллов: выраженная астения по градации ШАС.",
+                "attentionLevel": "high",
+                "lowerBound": 101,
+                "upperBound": 120,
+                "sourceIds": [
+                  "shabrov-2022-shas"
+                ]
+              }
+            }
+          ],
+          "missingContext": [],
+          "sourceIds": [
+            "shabrov-2022-shas"
+          ]
+        },
+        "observationMappings": [
+          {
+            "metricId": "minimed.assessment.shas.shas-total",
+            "label": "Итоговый балл ШАС",
+            "unit": "баллы",
+            "scaleId": "shas-total",
+            "method": "assessment:minimed.assessment.shas"
+          }
+        ]
+      },
+      "sources": [
+        {
+          "id": "shabrov-2022-shas",
+          "kind": "literature",
+          "relation": "methodology",
+          "title": "Шабров и соавт. Принципы диагностики астении (2022): ШАС, ключ и градации, с. 59–60; приложение 1, с. 60",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://ojs3.gpmu.org/index.php/Un-ther-journal/article/download/4125/4063#page=4",
+          "reviewedAt": "2026-09-02"
+        },
+        {
+          "id": "psytests-shas-context",
+          "kind": "literature",
+          "relation": "clinical-context",
+          "title": "Psytests: Шкала астенического состояния (ШАС), авторство и описание методики",
+          "moduleId": null,
+          "documentId": null,
+          "url": "https://psytests.org/depr/shas.html",
+          "reviewedAt": "2026-09-02"
         }
       ]
     },
@@ -1135,7 +1833,9 @@
           "rules": [],
           "missingContext": [],
           "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
-          "sourceIds": ["team-role-profile-team-role-profile"]
+          "sourceIds": [
+            "team-role-profile-team-role-profile"
+          ]
         },
         "observationMappings": [
           {
@@ -1470,7 +2170,11 @@
                 "kind": "rings",
                 "x": 50,
                 "y": 50,
-                "radiusPercent": [12, 24, 36]
+                "radiusPercent": [
+                  12,
+                  24,
+                  36
+                ]
               }
             ],
             "caption": "Горизонталь — экстраверсия, вертикаль — от чувствительности к эмоциональной устойчивости. Точка показывает текущий результат опросника.",
@@ -1490,7 +2194,9 @@
           "rules": [],
           "missingContext": [],
           "reason": "Проверенный референсный диапазон не заявлен в текущей версии опросника.",
-          "sourceIds": ["temperament-profile-temperament-profile"]
+          "sourceIds": [
+            "temperament-profile-temperament-profile"
+          ]
         },
         "observationMappings": [
           {
@@ -1521,350 +2227,223 @@
       ]
     },
     {
-      "id": "minimed.assessment.shas",
+      "id": "minimed.assessment.wechsler-family",
       "kind": "assessment",
       "version": "1.0.0",
-      "slug": "asthenic-state-shas",
-      "title": "Шкала астенического состояния (ШАС)",
-      "shortTitle": "Шкала ШАС",
+      "slug": "wechsler-family",
+      "title": "Шкалы интеллекта Векслера",
+      "shortTitle": "Тест Векслера",
       "aliases": [
-        "ШАС",
-        "SHAS",
-        "астения",
-        "астеническое состояние",
-        "шкала Малковой",
-        "Малкова Чертова",
-        "Asthenic State Scale"
+        "тест Векслера",
+        "Wechsler",
+        "WAIS",
+        "WISC",
+        "WPPSI",
+        "шкала Векслера"
       ],
-      "bankId": "psychiatry",
-      "bankLabel": "Психиатрия",
-      "category": "asthenia",
-      "description": "Шкала Л. Д. Малковой в адаптации Т. Г. Чертовой: 30 утверждений для оценки выраженности астенического состояния. Оцените каждое утверждение применительно к тому, как вы чувствуете себя в настоящий момент.",
-      "estimatedMinutes": 5,
-      "audience": "Взрослые",
+      "bankId": "psychology",
+      "bankLabel": "Психология и психодиагностика",
+      "category": "cognitive-assessment",
+      "description": "Карточка семейства Wechsler с выбором WAIS, WISC или WPPSI и ручным переносом показателей из официального отчёта.",
+      "estimatedMinutes": 60,
+      "audience": "Когнитивная оценка; возраст и батарея определяются выбранной редакцией.",
       "definition": {
-        "id": "minimed.assessment.shas",
-        "slug": "asthenic-state-shas",
-        "title": "Шкала астенического состояния (ШАС)",
-        "shortTitle": "Шкала ШАС",
-        "aliases": [
-          "ШАС",
-          "SHAS",
-          "астения",
-          "астеническое состояние",
-          "шкала Малковой",
-          "Малкова Чертова",
-          "Asthenic State Scale"
-        ],
-        "bankId": "psychiatry",
-        "bankLabel": "Психиатрия",
-        "category": "asthenia",
-        "description": "Шкала Л. Д. Малковой в адаптации Т. Г. Чертовой: 30 утверждений для оценки выраженности астенического состояния. Оцените каждое утверждение применительно к тому, как вы чувствуете себя в настоящий момент.",
-        "estimatedMinutes": 5,
-        "audience": "Взрослые",
-        "responseOptions": [
-          {
-            "value": 1,
-            "label": "Нет, неверно"
-          },
-          {
-            "value": 2,
-            "label": "Пожалуй, так"
-          },
-          {
-            "value": 3,
-            "label": "Верно"
-          },
-          {
-            "value": 4,
-            "label": "Совершенно верно"
-          }
-        ],
-        "scales": [
-          {
-            "id": "shas-total",
-            "label": "Итоговый балл ШАС",
-            "shortLabel": "ШАС",
-            "description": "Прямая сумма 30 ответов по 1–4 балла, без обратных пунктов. Диапазон: 30–120 баллов. Градации ШАС: 30–50 — отсутствие астении; 51–75 — слабая; 76–100 — умеренная; 101–120 — выраженная астения."
-          }
-        ],
-        "questions": [
-          {
-            "id": "asthenic-state-shas-01",
-            "scaleId": "shas-total",
-            "prompt": "Я работаю с большим напряжением"
-          },
-          {
-            "id": "asthenic-state-shas-02",
-            "scaleId": "shas-total",
-            "prompt": "Мне трудно сосредоточиться на чем-либо"
-          },
-          {
-            "id": "asthenic-state-shas-03",
-            "scaleId": "shas-total",
-            "prompt": "Моя половая жизнь не удовлетворяет меня"
-          },
-          {
-            "id": "asthenic-state-shas-04",
-            "scaleId": "shas-total",
-            "prompt": "Ожидание нервирует меня"
-          },
-          {
-            "id": "asthenic-state-shas-05",
-            "scaleId": "shas-total",
-            "prompt": "Я испытываю мышечную слабость"
-          },
-          {
-            "id": "asthenic-state-shas-06",
-            "scaleId": "shas-total",
-            "prompt": "Мне не хочется ходить в кино или театр"
-          },
-          {
-            "id": "asthenic-state-shas-07",
-            "scaleId": "shas-total",
-            "prompt": "Я забывчив"
-          },
-          {
-            "id": "asthenic-state-shas-08",
-            "scaleId": "shas-total",
-            "prompt": "Я чувствую себя усталым"
-          },
-          {
-            "id": "asthenic-state-shas-09",
-            "scaleId": "shas-total",
-            "prompt": "Мои глаза устают при длительном чтении"
-          },
-          {
-            "id": "asthenic-state-shas-10",
-            "scaleId": "shas-total",
-            "prompt": "Мои руки дрожат"
-          },
-          {
-            "id": "asthenic-state-shas-11",
-            "scaleId": "shas-total",
-            "prompt": "У меня плохой аппетит"
-          },
-          {
-            "id": "asthenic-state-shas-12",
-            "scaleId": "shas-total",
-            "prompt": "Мне трудно быть на вечеринке или в шумной компании"
-          },
-          {
-            "id": "asthenic-state-shas-13",
-            "scaleId": "shas-total",
-            "prompt": "Я уже не так хорошо понимаю прочитанное"
-          },
-          {
-            "id": "asthenic-state-shas-14",
-            "scaleId": "shas-total",
-            "prompt": "Мои руки и ноги холодные"
-          },
-          {
-            "id": "asthenic-state-shas-15",
-            "scaleId": "shas-total",
-            "prompt": "Меня легко задеть"
-          },
-          {
-            "id": "asthenic-state-shas-16",
-            "scaleId": "shas-total",
-            "prompt": "У меня болит голова"
-          },
-          {
-            "id": "asthenic-state-shas-17",
-            "scaleId": "shas-total",
-            "prompt": "Я просыпаюсь утром усталым и не отдохнувшим"
-          },
-          {
-            "id": "asthenic-state-shas-18",
-            "scaleId": "shas-total",
-            "prompt": "У меня бывают головокружения"
-          },
-          {
-            "id": "asthenic-state-shas-19",
-            "scaleId": "shas-total",
-            "prompt": "У меня бывают подергивания мышц"
-          },
-          {
-            "id": "asthenic-state-shas-20",
-            "scaleId": "shas-total",
-            "prompt": "У меня шумит в ушах"
-          },
-          {
-            "id": "asthenic-state-shas-21",
-            "scaleId": "shas-total",
-            "prompt": "Меня беспокоят половые вопросы"
-          },
-          {
-            "id": "asthenic-state-shas-22",
-            "scaleId": "shas-total",
-            "prompt": "Я испытываю тяжесть в голове"
-          },
-          {
-            "id": "asthenic-state-shas-23",
-            "scaleId": "shas-total",
-            "prompt": "Я испытываю общую слабость"
-          },
-          {
-            "id": "asthenic-state-shas-24",
-            "scaleId": "shas-total",
-            "prompt": "Я испытываю боли в темени"
-          },
-          {
-            "id": "asthenic-state-shas-25",
-            "scaleId": "shas-total",
-            "prompt": "Жизнь для меня связана с напряжением"
-          },
-          {
-            "id": "asthenic-state-shas-26",
-            "scaleId": "shas-total",
-            "prompt": "Моя голова как бы стянута обручем"
-          },
-          {
-            "id": "asthenic-state-shas-27",
-            "scaleId": "shas-total",
-            "prompt": "Я легко просыпаюсь от шума"
-          },
-          {
-            "id": "asthenic-state-shas-28",
-            "scaleId": "shas-total",
-            "prompt": "Меня утомляют люди"
-          },
-          {
-            "id": "asthenic-state-shas-29",
-            "scaleId": "shas-total",
-            "prompt": "Когда я волнуюсь, то покрываюсь потом"
-          },
-          {
-            "id": "asthenic-state-shas-30",
-            "scaleId": "shas-total",
-            "prompt": "Мне не дают заснуть беспокойные мысли"
-          }
-        ],
-        "interpretations": [
-          {
-            "minScore": 30,
-            "maxScore": 50,
-            "scaleId": "shas-total",
-            "headline": "Отсутствие астении по ШАС",
-            "message": "30–50 баллов: отсутствие астении по градации ШАС. Низкий балл не исключает другие причины слабости или утомляемости."
-          },
-          {
-            "minScore": 51,
-            "maxScore": 75,
-            "scaleId": "shas-total",
-            "headline": "Слабая астения по ШАС",
-            "message": "51–75 баллов: слабая астения по градации ШАС."
-          },
-          {
-            "minScore": 76,
-            "maxScore": 100,
-            "scaleId": "shas-total",
-            "headline": "Умеренная астения по ШАС",
-            "message": "76–100 баллов: умеренная астения по градации ШАС."
-          },
-          {
-            "minScore": 101,
-            "maxScore": 120,
-            "scaleId": "shas-total",
-            "headline": "Выраженная астения по ШАС",
-            "message": "101–120 баллов: выраженная астения по градации ШАС."
-          }
-        ],
-        "disclaimer": "ШАС оценивает выраженность астенических жалоб и не устанавливает медицинский или психиатрический диагноз. Результат следует рассматривать вместе с клиническими данными; при сохраняющейся слабости или утомляемости обсудите симптомы с врачом.",
-        "evidenceNote": "Шкала разработана Л. Д. Малковой и адаптирована Т. Г. Чертовой. Формулировки и ответы воспроизведены по приложению 1 к статье Шаброва и соавт. «Принципы диагностики астении» (2022, с. 60); ключ и градации — с. 59–60. Оценивается состояние в настоящий момент. Баллы и нормированный процент не являются вероятностью заболевания или популяционным процентилем.",
-        "license": {
-          "kind": "third-party-attributed",
-          "notice": "ШАС: Л. Д. Малкова, адаптация Т. Г. Чертовой. Текст бланка: Шабров А. В., Фоминых Ю. А., Успенский Ю. П., Наджафова К. Н. Принципы диагностики астении. Университетский терапевтический вестник. 2022;4(3):57–63. DOI: 10.56871/3052.2022.73.10.007. Публикация доступна по CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). В MiniMed изменена компоновка для интерактивного заполнения; формулировки и ключ сохранены.",
-          "sourceUrl": "https://ojs3.gpmu.org/index.php/Un-ther-journal/article/view/4125"
-        },
         "schemaVersion": 2,
-        "evaluation": {
-          "status": "verdict",
-          "rules": [
+        "id": "minimed.assessment.wechsler-family",
+        "slug": "wechsler-family",
+        "title": "Шкалы интеллекта Векслера",
+        "shortTitle": "Тест Векслера",
+        "aliases": [
+          "тест Векслера",
+          "Wechsler",
+          "WAIS",
+          "WISC",
+          "WPPSI",
+          "шкала Векслера"
+        ],
+        "bankId": "psychology",
+        "bankLabel": "Психология и психодиагностика",
+        "category": "cognitive-assessment",
+        "description": "Семейство стандартизированных методик Wechsler. MiniMed сохраняет выбранную ветвь и перенесённые из лицензированного отчёта показатели.",
+        "estimatedMinutes": 60,
+        "audience": "Возрастные диапазоны и состав батареи зависят от конкретной редакции WAIS/WISC/WPPSI.",
+        "responseOptions": [],
+        "scales": [],
+        "externalAdministration": {
+          "mode": "external",
+          "variants": [
             {
-              "when": "score_shas_total <= 50",
-              "verdict": {
-                "rangeId": "shas-absent",
-                "title": "Отсутствие астении по ШАС",
-                "explanation": "30–50 баллов: отсутствие астении по градации ШАС. Низкий балл не исключает другие причины слабости или утомляемости.",
-                "attentionLevel": "none",
-                "lowerBound": 30,
-                "upperBound": 50,
-                "sourceIds": ["shabrov-2022-shas"]
-              }
+              "id": "wais",
+              "label": "WAIS — шкала Векслера для взрослых",
+              "shortLabel": "WAIS",
+              "description": "Взрослая ветвь семейства Wechsler. Введите точную редакцию, по которой выполнялось исследование.",
+              "audience": "Взрослые; возрастные границы зависят от редакции.",
+              "resultFields": [
+                {
+                  "id": "edition",
+                  "kind": "text",
+                  "label": "Точная редакция",
+                  "required": true,
+                  "multiline": false,
+                  "placeholder": "Например: WAIS-5 / WISC-V / WPPSI-IV"
+                },
+                {
+                  "id": "fsiq",
+                  "kind": "number",
+                  "label": "Общий показатель / FSIQ",
+                  "required": false,
+                  "minimum": 0,
+                  "integer": true
+                },
+                {
+                  "id": "index_scores",
+                  "kind": "text",
+                  "label": "Индексные показатели",
+                  "required": false,
+                  "multiline": true,
+                  "placeholder": "Внесите названия и значения из официального отчёта"
+                },
+                {
+                  "id": "norm_reference",
+                  "kind": "text",
+                  "label": "Нормативная база / язык",
+                  "required": false,
+                  "multiline": true
+                },
+                {
+                  "id": "notes",
+                  "kind": "text",
+                  "label": "Комментарий",
+                  "required": false,
+                  "multiline": true
+                }
+              ]
             },
             {
-              "when": "score_shas_total <= 75",
-              "verdict": {
-                "rangeId": "shas-mild",
-                "title": "Слабая астения по ШАС",
-                "explanation": "51–75 баллов: слабая астения по градации ШАС.",
-                "attentionLevel": "low",
-                "lowerBound": 51,
-                "upperBound": 75,
-                "sourceIds": ["shabrov-2022-shas"]
-              }
+              "id": "wisc",
+              "label": "WISC — шкала Векслера для детей",
+              "shortLabel": "WISC",
+              "description": "Детская ветвь семейства Wechsler. Индексы и нормы различаются между редакциями.",
+              "audience": "Дети и подростки; возрастные границы зависят от редакции.",
+              "resultFields": [
+                {
+                  "id": "edition",
+                  "kind": "text",
+                  "label": "Точная редакция",
+                  "required": true,
+                  "multiline": false,
+                  "placeholder": "Например: WAIS-5 / WISC-V / WPPSI-IV"
+                },
+                {
+                  "id": "fsiq",
+                  "kind": "number",
+                  "label": "Общий показатель / FSIQ",
+                  "required": false,
+                  "minimum": 0,
+                  "integer": true
+                },
+                {
+                  "id": "index_scores",
+                  "kind": "text",
+                  "label": "Индексные показатели",
+                  "required": false,
+                  "multiline": true,
+                  "placeholder": "Внесите названия и значения из официального отчёта"
+                },
+                {
+                  "id": "norm_reference",
+                  "kind": "text",
+                  "label": "Нормативная база / язык",
+                  "required": false,
+                  "multiline": true
+                },
+                {
+                  "id": "notes",
+                  "kind": "text",
+                  "label": "Комментарий",
+                  "required": false,
+                  "multiline": true
+                }
+              ]
             },
             {
-              "when": "score_shas_total <= 100",
-              "verdict": {
-                "rangeId": "shas-moderate",
-                "title": "Умеренная астения по ШАС",
-                "explanation": "76–100 баллов: умеренная астения по градации ШАС.",
-                "attentionLevel": "moderate",
-                "lowerBound": 76,
-                "upperBound": 100,
-                "sourceIds": ["shabrov-2022-shas"]
-              }
-            },
-            {
-              "when": "score_shas_total >= 101",
-              "verdict": {
-                "rangeId": "shas-marked",
-                "title": "Выраженная астения по ШАС",
-                "explanation": "101–120 баллов: выраженная астения по градации ШАС.",
-                "attentionLevel": "high",
-                "lowerBound": 101,
-                "upperBound": 120,
-                "sourceIds": ["shabrov-2022-shas"]
-              }
+              "id": "wppsi",
+              "label": "WPPSI — дошкольная шкала Векслера",
+              "shortLabel": "WPPSI",
+              "description": "Ветвь семейства Wechsler для дошкольного/младшего детского возраста. Нормы зависят от редакции.",
+              "audience": "Дошкольный и младший детский возраст; сверяйте редакцию.",
+              "resultFields": [
+                {
+                  "id": "edition",
+                  "kind": "text",
+                  "label": "Точная редакция",
+                  "required": true,
+                  "multiline": false,
+                  "placeholder": "Например: WAIS-5 / WISC-V / WPPSI-IV"
+                },
+                {
+                  "id": "fsiq",
+                  "kind": "number",
+                  "label": "Общий показатель / FSIQ",
+                  "required": false,
+                  "minimum": 0,
+                  "integer": true
+                },
+                {
+                  "id": "index_scores",
+                  "kind": "text",
+                  "label": "Индексные показатели",
+                  "required": false,
+                  "multiline": true,
+                  "placeholder": "Внесите названия и значения из официального отчёта"
+                },
+                {
+                  "id": "norm_reference",
+                  "kind": "text",
+                  "label": "Нормативная база / язык",
+                  "required": false,
+                  "multiline": true
+                },
+                {
+                  "id": "notes",
+                  "kind": "text",
+                  "label": "Комментарий",
+                  "required": false,
+                  "multiline": true
+                }
+              ]
             }
           ],
-          "missingContext": [],
-          "sourceIds": ["shabrov-2022-shas"]
-        },
-        "observationMappings": [
-          {
-            "metricId": "minimed.assessment.shas.shas-total",
-            "label": "Итоговый балл ШАС",
-            "unit": "баллы",
-            "scaleId": "shas-total",
-            "method": "assessment:minimed.assessment.shas"
+          "material": {
+            "policy": "user-local-file",
+            "acceptedMimeTypes": [
+              "application/pdf",
+              "image/png",
+              "image/jpeg",
+              "image/webp"
+            ],
+            "note": "Стимульный материал и бланки не входят в публичный пакет MiniMed. Выберите локальный лицензированный PDF или изображение; файл используется только на устройстве."
           }
-        ]
-      },
-      "sources": [
-        {
-          "id": "shabrov-2022-shas",
-          "kind": "literature",
-          "relation": "methodology",
-          "title": "Шабров и соавт. Принципы диагностики астении (2022): ШАС, ключ и градации, с. 59–60; приложение 1, с. 60",
-          "moduleId": null,
-          "documentId": null,
-          "url": "https://ojs3.gpmu.org/index.php/Un-ther-journal/article/download/4125/4063#page=4",
-          "reviewedAt": "2026-09-02"
         },
-        {
-          "id": "psytests-shas-context",
-          "kind": "literature",
-          "relation": "clinical-context",
-          "title": "Psytests: Шкала астенического состояния (ШАС), авторство и описание методики",
-          "moduleId": null,
-          "documentId": null,
-          "url": "https://psytests.org/depr/shas.html",
-          "reviewedAt": "2026-09-02"
+        "questions": [],
+        "disclaimer": "Не сравнивайте индексы между несовместимыми редакциями и нормами. MiniMed не рассчитывает IQ из сырых ответов и не содержит стимульных книг, ключей или таблиц норм.",
+        "evidenceNote": "Для любого результата обязательно фиксируйте точную редакцию и используйте официальное руководство/отчёт этой редакции.",
+        "visuals": [],
+        "evaluation": {
+          "status": "unavailable",
+          "rules": [],
+          "missingContext": [],
+          "reason": "Автоматическая интерпретация отключена: индексы, преобразования и нормы зависят от конкретной редакции Wechsler.",
+          "sourceIds": []
+        },
+        "observationMappings": [],
+        "license": {
+          "kind": "third-party-attributed",
+          "notice": "Wechsler/WAIS/WISC/WPPSI — защищённые методики Pearson. MiniMed не распространяет задания, стимульные книги, ключи и нормативные таблицы.",
+          "sourceUrl": "https://www.pearsonassessments.com/store/en/usd/p/P100071002.html"
         }
-      ]
+      },
+      "sources": []
     }
   ]
 }
