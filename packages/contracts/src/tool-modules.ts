@@ -38,6 +38,82 @@ const AssessmentInterpretationSchema = z
     }
   });
 
+const ExternalAssessmentNumberFieldSchema = z.object({
+  id: z.string().regex(/^[a-z][a-z0-9_-]*$/u),
+  kind: z.literal('number'),
+  label: z.string().min(1),
+  required: z.boolean().default(true),
+  unit: z.string().min(1).optional(),
+  minimum: z.number().optional(),
+  maximum: z.number().optional(),
+  integer: z.boolean().default(false),
+});
+
+const ExternalAssessmentTextFieldSchema = z.object({
+  id: z.string().regex(/^[a-z][a-z0-9_-]*$/u),
+  kind: z.literal('text'),
+  label: z.string().min(1),
+  required: z.boolean().default(false),
+  multiline: z.boolean().default(false),
+  placeholder: z.string().min(1).optional(),
+});
+
+const ExternalAssessmentSelectFieldSchema = z.object({
+  id: z.string().regex(/^[a-z][a-z0-9_-]*$/u),
+  kind: z.literal('select'),
+  label: z.string().min(1),
+  required: z.boolean().default(true),
+  options: z
+    .array(
+      z.object({
+        value: z.string().min(1),
+        label: z.string().min(1),
+      }),
+    )
+    .min(1),
+});
+
+const ExternalAssessmentResultFieldSchema = z
+  .discriminatedUnion('kind', [
+    ExternalAssessmentNumberFieldSchema,
+    ExternalAssessmentTextFieldSchema,
+    ExternalAssessmentSelectFieldSchema,
+  ])
+  .superRefine((field, context) => {
+    if (
+      field.kind === 'number' &&
+      field.minimum !== undefined &&
+      field.maximum !== undefined &&
+      field.minimum > field.maximum
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'minimum must not exceed maximum',
+      });
+    }
+  });
+
+const ExternalAssessmentVariantSchema = z.object({
+  id: z.string().regex(/^[a-z][a-z0-9_-]*$/u),
+  label: z.string().min(1),
+  shortLabel: z.string().min(1),
+  description: z.string().min(1),
+  audience: z.string().min(1),
+  resultFields: z.array(ExternalAssessmentResultFieldSchema).min(1),
+});
+
+export const ExternalAssessmentAdministrationSchema = z.object({
+  mode: z.literal('external'),
+  variants: z.array(ExternalAssessmentVariantSchema).min(1),
+  material: z.object({
+    policy: z.literal('user-local-file'),
+    acceptedMimeTypes: z
+      .array(z.enum(['application/pdf', 'image/png', 'image/jpeg', 'image/webp']))
+      .min(1),
+    note: z.string().min(1),
+  }),
+});
+
 export const AssessmentDefinitionSchema = z.object({
   schemaVersion: z.literal(2),
   id: z.string().min(1),
@@ -62,6 +138,7 @@ export const AssessmentDefinitionSchema = z.object({
       description: z.string().min(1),
     }),
   ),
+  externalAdministration: ExternalAssessmentAdministrationSchema.optional(),
   questions: z.array(
     z.object({
       id: z.string().min(1),
@@ -116,6 +193,9 @@ export const ToolDefinitionRecordSchema = z.object({
 });
 
 export type ToolModuleKind = z.infer<typeof ToolModuleKindSchema>;
+export type ExternalAssessmentAdministration = z.infer<
+  typeof ExternalAssessmentAdministrationSchema
+>;
 export type AssessmentVisualDefinition = z.infer<typeof CalculatorVisualSchema>;
 export type ToolSourceLink = z.infer<typeof ToolSourceLinkSchema>;
 export type ToolDefinitionRecord = z.infer<typeof ToolDefinitionRecordSchema>;
