@@ -248,3 +248,40 @@ def test_requires_concrete_source_and_never_overwrites_output(tmp_path: Path) ->
             version="2026.09.18",
             built_at="2026-09-18T00:00:00Z",
         )
+
+
+def test_optional_portable_vectors_embed_only_the_concept_card(tmp_path: Path) -> None:
+    source = tmp_path / "source.db"
+    output = tmp_path / "knowledge-discovery-vectors.db"
+    _source_database(source)
+
+    count = build_knowledge_discovery_pack(
+        (source,),
+        output,
+        edition_id="minimed.knowledge.discovery.vectors.test",
+        version="2026.09.18",
+        built_at="2026-09-18T00:00:00Z",
+        entity_types=frozenset({"criterion_set"}),
+        include_portable_vectors=True,
+    )
+    assert count == 1
+
+    connection = sqlite3.connect(output)
+    try:
+        assert connection.execute("SELECT count(*) FROM embedding_profiles").fetchone() == (1,)
+        assert connection.execute("SELECT count(*) FROM chunk_embeddings").fetchone() == (1,)
+        row = connection.execute(
+            """SELECT length(e.vector), e.vector_norm, s.section_type
+            FROM chunk_embeddings e
+            JOIN chunks c ON c.id = e.chunk_id
+            JOIN sections s ON s.id = c.section_id"""
+        ).fetchone()
+        assert row is not None
+        vector_bytes, vector_norm, section_type = row
+        assert vector_bytes == 384
+        assert vector_norm > 0
+        assert section_type == "definition"
+        # The routing/source-list chunk is intentionally not embedded as a separate concept vector.
+        assert connection.execute("SELECT count(*) FROM chunks").fetchone() == (2,)
+    finally:
+        connection.close()
