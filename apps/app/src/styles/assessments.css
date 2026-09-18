@@ -1615,3 +1615,109 @@ html:has(.assessment-next-button) .patient-notes-fab {
     box-shadow: none;
   }
 }
+
+
+.assessment-external-page {
+  --assessment-content-width: 68rem;
+  display: grid;
+  gap: var(--theme-space-4);
+  width: min(100%, var(--assessment-content-width));
+  max-width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  overflow-x: clip;
+  box-sizing: border-box;
+}
+
+.assessment-external-card {
+  display: grid;
+  gap: var(--theme-space-4);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.assessment-external-card__lead,
+.assessment-external-variant p,
+.assessment-external-variant small,
+.assessment-external-material p {
+  margin: 0;
+}
+
+.assessment-external-variant,
+.assessment-external-material {
+  display: grid;
+  gap: var(--theme-space-2);
+}
+
+.assessment-external-variant small,
+.assessment-external-material p {
+  color: var(--theme-text-muted);
+}
+
+.assessment-external-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--theme-space-3);
+}
+
+.assessment-external-field {
+  display: grid;
+  gap: var(--theme-space-1);
+}
+
+.assessment-external-field__label {
+  color: var(--theme-text-muted);
+  font-size: var(--theme-type-field-label);
+  font-weight: var(--theme-weight-emphasis);
+}
+
+.assessment-external-field__control {
+  width: 100%;
+  min-height: var(--theme-control-height);
+  padding: var(--theme-space-2) var(--theme-space-3);
+  border: var(--theme-border-hairline) solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+}
+
+.assessment-external-field__control--textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+.assessment-external-material {
+  padding-top: var(--theme-space-3);
+  border-top: var(--theme-border-hairline) solid var(--theme-border);
+}
+
+.assessment-external-material__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.assessment-external-material__actions,
+.assessment-external-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--theme-space-2);
+}
+
+.assessment-external-material__name {
+  min-width: 0;
+  max-width: 24rem;
+  overflow: hidden;
+  color: var(--theme-text-muted);
+  font-size: var(--theme-type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assessment-external-actions {
+  justify-content: flex-end;
+}
