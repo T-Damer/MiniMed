@@ -23,6 +23,7 @@ from localmed_ingest.knowledge import (
     export_chatgpt_tasks,
     import_ai_fact_reviews,
     import_chatgpt_responses,
+    merge_knowledge_entity,
     validate_knowledge_workspace,
     write_knowledge_sqlite,
 )
@@ -597,3 +598,24 @@ def test_chatgpt_import_does_not_merge_medications_by_display_name(
         for entity in imported.entities
         if entity.medication is not None and entity.medication.strength is not None
     ) == ["10 мг", "5 мг"]
+
+
+def test_entity_merge_keeps_ai_metadata_behavior_unless_module_merge_is_explicit() -> None:
+    existing = KnowledgeEntity(
+        id="condition.same",
+        entity_type="condition",
+        canonical_name="Состояние",
+        metadata={"generatedBy": "chatgpt-manual", "firstTaskId": "task-1"},
+    )
+    candidate = KnowledgeEntity(
+        id="condition.same",
+        entity_type="condition",
+        canonical_name="Состояние",
+        metadata={"generatedBy": "chatgpt-manual", "firstTaskId": "task-2"},
+    )
+
+    merge_knowledge_entity(existing, candidate)
+
+    assert existing.metadata["firstTaskId"] == "task-1"
+    with pytest.raises(ValueError, match="Conflicting metadata field firstTaskId"):
+        merge_knowledge_entity(existing, candidate, merge_metadata=True)
