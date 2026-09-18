@@ -41,6 +41,7 @@ class CandidateReviewDecision(CamelModel):
     entity_type: str | None = None
     interactive_assessment_id: str | None = None
     interactive_calculator_id: str | None = None
+    interactive_route: str | None = None
     aliases: list[str] = Field(default_factory=list)
     specialties: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
@@ -55,6 +56,33 @@ class CandidateReviewDecision(CamelModel):
                 raise ValueError("Accepted candidate requires canonicalName.")
             if self.entity_type is not None and self.entity_type not in _ALLOWED_TYPES:
                 raise ValueError(f"Unsupported reviewed entityType: {self.entity_type}.")
+            assessment = (
+                self.interactive_assessment_id.strip()
+                if self.interactive_assessment_id and self.interactive_assessment_id.strip()
+                else None
+            )
+            calculator = (
+                self.interactive_calculator_id.strip()
+                if self.interactive_calculator_id and self.interactive_calculator_id.strip()
+                else None
+            )
+            route = (
+                self.interactive_route.strip()
+                if self.interactive_route and self.interactive_route.strip()
+                else None
+            )
+            if assessment and calculator:
+                raise ValueError("Reviewed candidate cannot link to two interactive tool kinds.")
+            if route and not (assessment or calculator):
+                raise ValueError("interactiveRoute requires an explicit interactive tool id.")
+            if (assessment or calculator) and not route:
+                raise ValueError("Interactive tool link requires interactiveRoute.")
+            if assessment and route and not route.startswith("#/assessments/"):
+                raise ValueError("Assessment interactiveRoute must start with #/assessments/.")
+            if calculator and route and not route.startswith("#/calculators/"):
+                raise ValueError("Calculator interactiveRoute must start with #/calculators/.")
+            if route and any(character.isspace() for character in route):
+                raise ValueError("interactiveRoute must not contain whitespace.")
         return self
 
 
@@ -225,6 +253,8 @@ def promote_candidate_reviews(
             metadata["interactiveAssessmentId"] = decision.interactive_assessment_id.strip()
         if decision.interactive_calculator_id and decision.interactive_calculator_id.strip():
             metadata["interactiveCalculatorId"] = decision.interactive_calculator_id.strip()
+        if decision.interactive_route and decision.interactive_route.strip():
+            metadata["interactiveRoute"] = decision.interactive_route.strip()
         existing = entities.get(entity_id)
         if existing is None:
             entities[entity_id] = KnowledgeEntity(
@@ -249,7 +279,11 @@ def promote_candidate_reviews(
                 elif name.weight > previous.weight:
                     previous.weight = name.weight
                     previous.name_type = name.name_type
-            for scalar_key in ("interactiveAssessmentId", "interactiveCalculatorId"):
+            for scalar_key in (
+                "interactiveAssessmentId",
+                "interactiveCalculatorId",
+                "interactiveRoute",
+            ):
                 current_scalar = existing.metadata.get(scalar_key)
                 incoming_scalar = metadata.get(scalar_key)
                 if current_scalar is None and incoming_scalar is not None:
