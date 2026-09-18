@@ -45,22 +45,50 @@ export function AssessmentDefinitionNotice(props: {
             {props.definition.description}
           </p>
           <p class="assessment-methodology-body__text">{props.definition.evidenceNote}</p>
-          <div class="assessment-methodology-body__scales">
-            <strong>Что описывает и как читать</strong>
-            <ul class="assessment-methodology-body__scale-list">
-              <For each={props.definition.scales}>
-                {(scale) => (
-                  <li>
-                    <strong>{scale.label}:</strong> {scale.description}
-                  </li>
-                )}
-              </For>
-            </ul>
-            <p class="assessment-methodology-body__text">
-              Итог показывает относительную выраженность шкал внутри этого опросника. Сравнивайте
-              его с описаниями выше и с контекстом ответов; это не диагноз и не замена очной оценке.
-            </p>
-          </div>
+          <Show
+            when={props.definition.externalAdministration}
+            fallback={
+              <div class="assessment-methodology-body__scales">
+                <strong>Что описывает и как читать</strong>
+                <ul class="assessment-methodology-body__scale-list">
+                  <For each={props.definition.scales}>
+                    {(scale) => (
+                      <li>
+                        <strong>{scale.label}:</strong> {scale.description}
+                      </li>
+                    )}
+                  </For>
+                </ul>
+                <p class="assessment-methodology-body__text">
+                  Итог показывает относительную выраженность шкал внутри этого опросника.
+                  Сравнивайте его с описаниями выше и с контекстом ответов; это не диагноз и не
+                  замена очной оценке.
+                </p>
+              </div>
+            }
+          >
+            {(administration) => (
+              <div class="assessment-methodology-body__scales">
+                <strong>Доступные варианты</strong>
+                <ul class="assessment-methodology-body__scale-list">
+                  <For each={administration().variants}>
+                    {(variant) => (
+                      <li>
+                        <strong>{variant.label}:</strong> {variant.description}
+                      </li>
+                    )}
+                  </For>
+                </ul>
+                <p class="assessment-methodology-body__text">
+                  <strong>Материал теста:</strong> {administration().material.note}
+                </p>
+                <p class="assessment-methodology-body__text">
+                  MiniMed хранит выбранный вариант и внесённые результаты, но не подменяет
+                  руководство, нормы или защищённый стимульный материал.
+                </p>
+              </div>
+            )}
+          </Show>
           <p class="assessment-methodology-body__text">{props.definition.disclaimer}</p>
           <p class="assessment-methodology-body__text">
             <strong>Источник и статус:</strong> {props.definition.license.notice}
