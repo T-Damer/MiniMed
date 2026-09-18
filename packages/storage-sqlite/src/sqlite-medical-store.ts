@@ -195,6 +195,7 @@ const SEARCH_METADATA_FIELDS = [
   'contentMode',
   'interactiveAssessmentId',
   'interactiveCalculatorId',
+  'interactiveRoute',
   'calculationRequired',
   'notLegalAdvice',
 ] as const;
