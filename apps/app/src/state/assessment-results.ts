@@ -2,6 +2,8 @@ import type {
   AssessmentAnswers,
   AssessmentRecord,
   CompletedAssessmentRecord,
+  ExternalAssessmentRecord,
+  ExternalAssessmentValue,
   IncompleteAssessmentRecord,
   ScoredAssessment,
 } from '@/features/assessments/assessment-types';
@@ -56,6 +58,19 @@ function isAssessmentAnswers(value: unknown): value is AssessmentAnswers {
   );
 }
 
+function isExternalAssessmentValues(
+  value: unknown,
+): value is Readonly<Record<string, ExternalAssessmentValue>> {
+  return (
+    isStringRecord(value) &&
+    Object.values(value).every(
+      (item) =>
+        (typeof item === 'string' && item.length <= 4_000) ||
+        (typeof item === 'number' && Number.isFinite(item) && Math.abs(item) <= 1_000_000),
+    )
+  );
+}
+
 function isAssessmentRecord(value: unknown): value is AssessmentRecord {
   if (!isStringRecord(value)) return false;
   const common =
@@ -65,6 +80,9 @@ function isAssessmentRecord(value: unknown): value is AssessmentRecord {
     typeof value['createdAt'] === 'string';
   if (!common) return false;
   if (value['kind'] === 'manual') return typeof value['text'] === 'string';
+  if (value['kind'] === 'external') {
+    return typeof value['variantId'] === 'string' && isExternalAssessmentValues(value['values']);
+  }
   if (value['kind'] === 'incomplete') {
     return (
       isAssessmentAnswers(value['answers']) &&
@@ -134,6 +152,28 @@ export function createCompletedAssessmentRecord(input: {
   if (input.persist !== false && !input.patientId) {
     persist([record, ...loadAssessmentRecords().filter((candidate) => candidate.id !== record.id)]);
   }
+  return record;
+}
+
+export function createExternalAssessmentRecord(input: {
+  readonly id?: string;
+  readonly assessmentId: string;
+  readonly subjectLabel: string;
+  readonly variantId: string;
+  readonly values: Readonly<Record<string, ExternalAssessmentValue>>;
+  readonly definitionVersion?: string;
+}): ExternalAssessmentRecord {
+  const record: ExternalAssessmentRecord = {
+    id: input.id ?? createId(),
+    assessmentId: input.assessmentId,
+    subjectLabel: input.subjectLabel.trim(),
+    createdAt: new Date().toISOString(),
+    kind: 'external',
+    variantId: input.variantId,
+    values: { ...input.values },
+    ...(input.definitionVersion ? { definitionVersion: input.definitionVersion } : {}),
+  };
+  persist([record, ...loadAssessmentRecords().filter((candidate) => candidate.id !== record.id)]);
   return record;
 }
 
