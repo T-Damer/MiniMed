@@ -7,6 +7,29 @@
   unchanged source hashes. Published data remains `terminology-ru-2026.9.16`. See
   `RUSSIAN_TERMINOLOGY.md` for source rights, sizes and measurements. The discovery core is unchanged.
 
+## Unreleased concept-first knowledge authoring — draft PR #174
+
+- The existing `knowledge_entities/names/facts/relations/evidence` model is now treated as the
+  canonical cross-domain identity layer rather than creating a second scale/term graph. A local-dev
+  discovery builder can project selected reviewed entity types into compact ordinary MiniMed cards
+  while retaining stable `conceptId`, aliases, tags, specialties and exact source locators.
+- Clinical-recommendation SQLite can be scanned for review-only scales, questionnaires, criterion
+  sets, classifications and severity/stage systems. Candidates remain `proposed`; quality-of-care
+  criteria and evidence/recommendation grading are explicitly excluded from automatic candidates.
+- Explicit reviewer decisions can promote a candidate to a stable knowledge entity plus a reviewed
+  source-document link. Promotion deliberately creates no definition, equivalence, scoring rule,
+  cutoff or executable tool.
+- Discovery packs can optionally store one 384-byte int8 development vector per concept description
+  chunk using the existing portable hash profile. This validates the current hybrid retrieval path;
+  it is not a qualified neural semantic model.
+- Search results/groups now carry optional canonical `conceptId` metadata. SQLite-WASM and
+  Capacitor/native compact projections preserve the same field; document grouping/navigation is
+  otherwise unchanged.
+- GitHub Actions remain unused. The original discovery/candidate isolated harness passed 5 cases; the
+  new review-promotion logic was executed separately against a reconstructed compatible SQLite
+  harness and preserved the reviewed-vs-proposed boundary. Repository-pinned Ruff/Pyright/Vitest,
+  full build and device checks remain required before the draft PR can be considered merge-ready.
+
 ## Terminology and measured lookup — 0.6.39
 
 - MeSH collector/section packs now connect to ordinary MedicalCore lookup through a versioned compact
