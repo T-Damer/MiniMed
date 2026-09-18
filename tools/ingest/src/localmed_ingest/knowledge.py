@@ -475,19 +475,10 @@ def merge_knowledge_entity(
             if current == incoming:
                 continue
             if isinstance(current, list) and isinstance(incoming, list):
-                merged: list[object] = []
-                fingerprints: set[str] = set()
-                for item in [*current, *incoming]:
-                    fingerprint = json.dumps(
-                        item,
-                        ensure_ascii=False,
-                        sort_keys=True,
-                        separators=(",", ":"),
-                    )
-                    if fingerprint in fingerprints:
-                        continue
-                    fingerprints.add(fingerprint)
-                    merged.append(item)
+                merged = list(current)
+                for item in incoming:
+                    if item not in merged:
+                        merged.append(item)
                 existing.metadata[key] = merged
                 continue
             raise ValueError(
