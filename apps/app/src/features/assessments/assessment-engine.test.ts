@@ -9,6 +9,8 @@ import {
 } from '@/features/assessments/assessment-catalog';
 import {
   answeredQuestionCount,
+  formatAssessmentRecord,
+  formatBlankAssessment,
   formatCompletedAssessment,
   scoreAssessment,
 } from '@/features/assessments/assessment-engine';
@@ -230,6 +232,50 @@ describe('assessment scoring', () => {
     expect(result.value.scores).toEqual([]);
     expect(result.value.summary).toBe('Выбранные ответы сохранены без подсчёта баллов.');
     expect(formatCompletedAssessment(definition, result.value)).not.toContain('Шкалы:');
+  });
+
+
+  it('loads cognitive external families and formats results without reproducing test items', async () => {
+    const records = loadToolModuleRecords(['content/tool-modules/cognitive-assessment.json']);
+    expect(records.filter((record) => record.kind === 'assessment')).toHaveLength(3);
+    for (const record of records) {
+      if (record.kind === 'assessment') registerDownloadedAssessment(record);
+    }
+
+    const raven = await loadAssessmentDefinition('raven-progressive-matrices');
+    expect(raven.externalAdministration?.variants.map((variant) => variant.id)).toEqual([
+      'cpm',
+      'spm',
+      'apm',
+    ]);
+    expect(raven.questions).toEqual([]);
+    const blank = formatBlankAssessment(raven);
+    expect(blank).toContain('Рабочий лист фиксации результата внешней методики');
+    expect(blank).toContain('CPM — Цветные прогрессивные матрицы');
+    expect(blank).toContain('SPM — Стандартные прогрессивные матрицы');
+    expect(blank).toContain('APM — Продвинутые прогрессивные матрицы');
+    expect(blank).toContain('Стимульный материал и задания в MiniMed не включены');
+
+    const mmse = await loadAssessmentDefinition('mmse');
+    const formatted = formatAssessmentRecord(mmse, {
+      id: 'external-mmse',
+      assessmentId: mmse.id,
+      subjectLabel: 'Пациент',
+      createdAt: '2026-09-18T12:00:00.000Z',
+      kind: 'external',
+      variantId: 'mmse',
+      values: { total_score: 27, edition: 'Русский бланк' },
+      definitionVersion: mmse.version,
+    });
+    expect(formatted).toContain('Общий балл: 27 /30');
+    expect(formatted).toContain('Редакция / язык бланка: Русский бланк');
+    expect(formatted).toContain('MiniMed не пересчитывал нормативы');
+    expect(mmse.externalAdministration?.variants[0]?.resultFields[0]).toMatchObject({
+      id: 'total_score',
+      minimum: 0,
+      maximum: 30,
+      integer: true,
+    });
   });
 
   describe('schema-driven interpretations', () => {
