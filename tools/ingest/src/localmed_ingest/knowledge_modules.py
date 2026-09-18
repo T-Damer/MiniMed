@@ -77,7 +77,7 @@ def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> Kn
                         entities_by_id[entity.id] = entity
                         origins[entity.id] = path
                     else:
-                        merge_knowledge_entity(existing, entity)
+                        merge_knowledge_entity(existing, entity, merge_metadata=True)
                     continue
                 if isinstance(identifier, str):
                     previous = origins.get(identifier)
