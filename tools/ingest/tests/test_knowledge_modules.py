@@ -41,11 +41,128 @@ def test_loads_multiple_knowledge_modules_as_one_workspace(tmp_path: Path) -> No
     assert [entity.id for entity in workspace.entities] == ["medication.b", "medication.a"]
 
 
-def test_rejects_duplicate_ids_across_modules(tmp_path: Path) -> None:
-    write_module(tmp_path / "knowledge.yaml", "medication.same")
-    write_module(tmp_path / "knowledge.drugs.yaml", "medication.same")
+def test_merges_same_stable_entity_across_modules(tmp_path: Path) -> None:
+    first = {
+        "schemaVersion": 1,
+        "entities": [
+            {
+                "id": "scale.curb65",
+                "entityType": "scale",
+                "canonicalName": "CURB-65",
+                "names": [{"name": "Шкала CURB-65", "nameType": "source-label", "weight": 1.4}],
+                "metadata": {
+                    "tags": ["пневмония"],
+                    "interactiveCalculatorId": "calculator.curb65",
+                    "interactiveRoute": "#/calculators/curb65",
+                },
+            }
+        ],
+        "facts": [],
+        "relations": [],
+        "documentLinks": [],
+        "reviewTasks": [],
+    }
+    second = {
+        "schemaVersion": 1,
+        "entities": [
+            {
+                "id": "scale.curb65",
+                "entityType": "scale",
+                "canonicalName": "CURB 65",
+                "names": [{"name": "CURB-65 score", "language": "en"}],
+                "metadata": {
+                    "tags": ["пульмонология"],
+                    "specialties": ["неотложная медицина"],
+                    "interactiveCalculatorId": "calculator.curb65",
+                    "interactiveRoute": "#/calculators/curb65",
+                },
+            }
+        ],
+        "facts": [],
+        "relations": [],
+        "documentLinks": [],
+        "reviewTasks": [],
+    }
+    (tmp_path / "knowledge.01.yaml").write_text(
+        yaml.safe_dump(first, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
+    (tmp_path / "knowledge.02.yaml").write_text(
+        yaml.safe_dump(second, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
 
-    with pytest.raises(ValueError, match=r"Duplicate knowledge id medication\.same"):
+    workspace = load_knowledge_modules(tmp_path, [])
+
+    assert len(workspace.entities) == 1
+    entity = workspace.entities[0]
+    assert entity.id == "scale.curb65"
+    assert entity.canonical_name == "CURB-65"
+    assert {name.name for name in entity.names} == {
+        "Шкала CURB-65",
+        "CURB 65",
+        "CURB-65 score",
+    }
+    assert entity.metadata["tags"] == ["пневмония", "пульмонология"]
+    assert entity.metadata["specialties"] == ["неотложная медицина"]
+    assert entity.metadata["interactiveRoute"] == "#/calculators/curb65"
+
+
+def test_rejects_conflicting_same_id_entities_across_modules(tmp_path: Path) -> None:
+    first = {
+        "schemaVersion": 1,
+        "entities": [{"id": "clinical.same", "entityType": "scale", "canonicalName": "Same"}],
+        "facts": [],
+        "relations": [],
+        "documentLinks": [],
+        "reviewTasks": [],
+    }
+    second = {
+        "schemaVersion": 1,
+        "entities": [
+            {"id": "clinical.same", "entityType": "condition", "canonicalName": "Same"}
+        ],
+        "facts": [],
+        "relations": [],
+        "documentLinks": [],
+        "reviewTasks": [],
+    }
+    (tmp_path / "knowledge.01.yaml").write_text(
+        yaml.safe_dump(first, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
+    (tmp_path / "knowledge.02.yaml").write_text(
+        yaml.safe_dump(second, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
+
+    with pytest.raises(ValueError, match="conflicting types"):
+        load_knowledge_modules(tmp_path, [])
+
+
+def test_keeps_non_entity_ids_strictly_unique_across_modules(tmp_path: Path) -> None:
+    for index in (1, 2):
+        payload = {
+            "schemaVersion": 1,
+            "entities": [
+                {
+                    "id": f"condition.{index}",
+                    "entityType": "condition",
+                    "canonicalName": f"Condition {index}",
+                }
+            ],
+            "facts": [],
+            "relations": [],
+            "documentLinks": [],
+            "reviewTasks": [
+                {
+                    "id": "review.same",
+                    "taskType": "review",
+                    "question": "Check",
+                }
+            ],
+        }
+        (tmp_path / f"knowledge.0{index}.yaml").write_text(
+            yaml.safe_dump(payload, allow_unicode=True, sort_keys=False), encoding="utf-8"
+        )
+
+    with pytest.raises(ValueError, match=r"Duplicate knowledge id review\.same"):
         load_knowledge_modules(tmp_path, [])
 
 
