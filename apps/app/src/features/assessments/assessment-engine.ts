@@ -356,6 +356,26 @@ export function formatCompletedAssessment(
 }
 
 export function formatBlankAssessment(definition: AssessmentDefinition): string {
+  if (definition.externalAdministration) {
+    return [
+      definition.title,
+      definition.description,
+      '',
+      'Рабочий лист фиксации результата внешней методики.',
+      'Стимульный материал и задания в MiniMed не включены.',
+      '',
+      ...definition.externalAdministration.variants.flatMap((variant) => [
+        `Вариант: ${variant.label}`,
+        ...variant.resultFields.map((field) => {
+          const unit = field.kind === 'number' && field.unit ? ` (${field.unit})` : '';
+          return `- ${field.label}${unit}: ____________________`;
+        }),
+        '',
+      ]),
+      `Ограничение: ${definition.disclaimer}`,
+      `Версия: ${definition.id}`,
+    ].join('\n');
+  }
   const hasPerQuestionOptions = definition.questions.some(
     (question) => question.responseOptions !== undefined,
   );
@@ -394,6 +414,52 @@ export function formatBlankAssessment(definition: AssessmentDefinition): string 
   ].join('\n');
 }
 
+function externalVariant(
+  definition: AssessmentDefinition,
+  variantId: string,
+) {
+  return definition.externalAdministration?.variants.find((variant) => variant.id === variantId);
+}
+
+function formatExternalAssessmentRecord(
+  definition: AssessmentDefinition,
+  record: Extract<AssessmentRecord, { readonly kind: 'external' }>,
+): string {
+  const variant = externalVariant(definition, record.variantId);
+  const fields = variant?.resultFields ?? [];
+  const values = fields
+    .map((field) => {
+      const value = record.values[field.id];
+      if (value === undefined || value === '') return undefined;
+      if (field.kind === 'select') {
+        const label = field.options.find((option) => option.value === value)?.label ?? String(value);
+        return `${field.label}: ${label}`;
+      }
+      const suffix = field.kind === 'number' && field.unit ? ` ${field.unit}` : '';
+      return `${field.label}: ${String(value)}${suffix}`;
+    })
+    .filter((value): value is string => Boolean(value));
+  const knownIds = new Set(fields.map((field) => field.id));
+  const additional = Object.entries(record.values)
+    .filter(([id, value]) => !knownIds.has(id) && value !== '')
+    .map(([id, value]) => `${id}: ${String(value)}`);
+  return [
+    definition.title,
+    variant ? `Вариант: ${variant.label}` : `Вариант: ${record.variantId}`,
+    record.subjectLabel ? `Пациент / участник: ${record.subjectLabel}` : '',
+    `Дата записи: ${new Intl.DateTimeFormat('ru-RU', { dateStyle: 'medium' }).format(
+      new Date(record.createdAt),
+    )}`,
+    '',
+    ...values,
+    ...additional,
+    '',
+    'Источник записи: результат внесён врачом по внешнему материалу; MiniMed не пересчитывал нормативы.',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
 export function formatAssessmentRecord(
   definition: AssessmentDefinition,
   record: AssessmentRecord,
@@ -412,6 +478,9 @@ export function formatAssessmentRecord(
     ]
       .filter(Boolean)
       .join('\n');
+  }
+  if (record.kind === 'external') {
+    return formatExternalAssessmentRecord(definition, record);
   }
   if (record.kind === 'incomplete') {
     return [
