@@ -23,17 +23,17 @@ import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { DocumentText, documentTextSearchText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
-import type { MutableDocumentSectionTree } from '@/features/library/document-display';
-import { documentInteractiveToolLink } from '@/features/library/document-interactive-tool';
 import {
   displayDocumentSubtitle,
   displayDocumentTitle,
   documentSectionHeadingTag,
+  type MutableDocumentSectionTree,
   nestDocumentSections,
   resolveReadableDocumentId,
   sourceTypeReaderLabel,
   visibleReaderSections,
 } from '@/features/library/document-display';
+import { documentInteractiveToolLink } from '@/features/library/document-interactive-tool';
 import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
 import {
   buildDocumentLinkPhrases,
