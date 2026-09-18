@@ -8,13 +8,16 @@ import { scoreAssessment } from '@/features/assessments/assessment-engine';
 import {
   printAssessmentRecord,
   printBlankAssessment,
+  printExternalAssessmentMaterial,
   shareAssessmentRecord,
 } from '@/features/assessments/assessment-print';
 import { loadToolModuleRecords } from '@/features/calculators/tool-module-test-helpers';
+import { PrintManager } from '@/features/printing/print-manager';
 
 beforeAll(() => {
   for (const record of loadToolModuleRecords([
     'content/tool-modules/psychology.json',
+    'content/tool-modules/cognitive-assessment.json',
     'content/tool-modules/obstetrics-gynecology.json',
   ])) {
     if (record.kind === 'assessment') registerDownloadedAssessment(record);
@@ -179,4 +182,39 @@ describe('assessment print layout', () => {
     expect(markup).toContain(definition.questions[0]?.prompt);
     expect(markup).toContain('Ответ: Очень похоже на меня');
   });
+
+  it('prints an external MMSE result sheet without bundled test items', async () => {
+    const definition = await loadAssessmentDefinition('mmse');
+    const popupDocument = { open: vi.fn(), write: vi.fn(), close: vi.fn() };
+    const popup = { document: popupDocument, focus: vi.fn(), print: vi.fn() };
+    vi.stubGlobal('window', {
+      open: vi.fn(() => popup),
+      setTimeout: (callback: () => void) => {
+        callback();
+        return 0;
+      },
+    });
+
+    expect(printBlankAssessment(definition)).toBe(true);
+    const markup = popupDocument.write.mock.calls[0]?.[0];
+    expect(markup).toContain('Рабочий лист фиксации результата внешней методики');
+    expect(markup).toContain('Общий балл (/30)');
+    expect(markup).toContain('Стимульный материал и задания в MiniMed не включены');
+    expect(markup).not.toContain('Ориентировка во времени');
+    expect(markup).not.toContain('яблоко');
+  });
+
+  it('prints user-local PDF material through the existing original-file path', async () => {
+    const original = vi.spyOn(PrintManager, 'original').mockResolvedValue(true);
+    const file = new File(['pdf'], 'mmse.pdf', { type: 'application/pdf' });
+
+    await expect(printExternalAssessmentMaterial(file, 'MMSE')).resolves.toBe(true);
+    expect(original).toHaveBeenCalledWith(file, 'MMSE');
+  });
+
+  it('rejects unsupported local material types', async () => {
+    const file = new File(['text'], 'test.txt', { type: 'text/plain' });
+    await expect(printExternalAssessmentMaterial(file, 'Тест')).resolves.toBe(false);
+  });
+
 });
