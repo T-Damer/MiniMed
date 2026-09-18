@@ -17,14 +17,18 @@
   sets, classifications and severity/stage systems. Candidates remain `proposed`; quality-of-care
   criteria and evidence/recommendation grading are explicitly excluded from automatic candidates.
 - Explicit reviewer decisions can promote a candidate to a stable knowledge entity plus a reviewed
-  source-document link. Promotion deliberately creates no definition, equivalence, scoring rule,
-  cutoff or executable tool.
+  source-document link. Promotion deliberately creates no definition, equivalence, scoring rule or
+  cutoff. An existing assessment/calculator is linked only through an explicit reviewed tool ID plus
+  matching local route; reference cards then expose a generic «Пройти»/«Рассчитать» action.
+- Repeated stable entity IDs may be composed across knowledge modules: compatible aliases/list
+  metadata merge, while conflicting types/external IDs/scalar metadata fail closed. Non-entity IDs
+  remain strictly unique, and existing AI-enrichment merge semantics are unchanged.
 - Discovery packs can optionally store one 384-byte int8 development vector per concept description
   chunk using the existing portable hash profile. This validates the current hybrid retrieval path;
   it is not a qualified neural semantic model.
 - Search results/groups now carry optional canonical `conceptId` metadata. SQLite-WASM and
-  Capacitor/native compact projections preserve the same field; document grouping/navigation is
-  otherwise unchanged.
+  Capacitor/native compact projections preserve the same field plus explicit `interactiveRoute`;
+  document grouping/navigation is otherwise unchanged.
 - GitHub Actions remain unused. The original discovery/candidate isolated harness passed 5 cases; the
   new review-promotion logic was executed separately against a reconstructed compatible SQLite
   harness and preserved the reviewed-vs-proposed boundary. Repository-pinned Ruff/Pyright/Vitest,
