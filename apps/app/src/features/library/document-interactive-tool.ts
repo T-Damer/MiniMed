@@ -12,7 +12,7 @@ function nonEmptyString(value: unknown): string | undefined {
 }
 
 function routeMatchesKind(route: string, kind: DocumentInteractiveToolKind): boolean {
-  if (/\s/u.test(route) || route.includes('?')) return false;
+  if (/\s/u.test(route) || route.includes('?') || route.slice(1).includes('#')) return false;
   const prefix = kind === 'assessment' ? '#/assessments/' : '#/calculators/';
   if (!route.startsWith(prefix)) return false;
   const remainder = route.slice(prefix.length);
