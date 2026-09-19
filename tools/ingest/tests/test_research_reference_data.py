@@ -3,7 +3,6 @@ from itertools import pairwise
 from pathlib import Path
 from typing import cast
 
-
 ROOT = Path(__file__).resolve().parents[3]
 RESEARCH_DATA = ROOT / "docs" / "research" / "data"
 
