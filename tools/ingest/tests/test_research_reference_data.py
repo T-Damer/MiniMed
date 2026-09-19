@@ -228,3 +228,27 @@ def test_pediatric_bmi_adult_equivalent_thresholds_are_complete() -> None:
         assert girls_bmi25 < girls_bmi30
 
     assert rows[-1] == [18, 25, 25, 30, 30]
+
+
+def test_infant_complementary_feeding_research_dataset_preserves_blanks_and_meat_split() -> None:
+    data = _load("infant-complementary-feeding-scheme-program2019.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["ageColumnsMonths"] == ["4-5", "6", "7", "8", "9-12"]
+
+    rows = cast(list[dict[str, object]], data["rows"])
+    assert len(rows) == 13
+
+    by_id = {str(row["id"]): row for row in rows}
+    meat_values = cast(list[object], by_id["meat"]["values"])
+    assert meat_values[0] is None
+    month_six = cast(dict[str, object], meat_values[1])
+    assert month_six == {"industrialPuree": "5-30", "boiledMeat": "3-15"}
+
+    curd_values = cast(list[object], by_id["curd"]["values"])
+    assert curd_values[:3] == [None, None, None]
+    assert curd_values[3:] == ["10-40", "50"]
+
+    footnotes = cast(dict[str, object], data["footnotes"])
+    assert footnotes["*"] == "не в качестве первого прикорма"
+    assert footnotes["**"] == "по показаниям с 6 мес."
