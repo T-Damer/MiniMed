@@ -86,6 +86,29 @@ Before promotion:
 5. verify how the recommendation handles adolescents where adult absolute thresholds may also apply;
 6. add separate ABPM references rather than reusing office-BP percentiles for ambulatory measurements.
 
+## Neonatal and one-year blood-pressure tables
+
+Two younger-age source slices are now extracted separately from the same current recommendation:
+
+- `docs/research/data/neonatal-bp-by-gestational-age-kr571-v2-2025.json` — gestational ages
+  26–44 weeks, 50th/95th/99th percentiles, with systolic/diastolic/mean arterial pressure;
+- `docs/research/data/infant-bp-age-1-year-kr571-v2-2025.json` — boys/girls at age one,
+  50th/90th/95th/99th BP percentiles across seven height percentiles.
+
+Current source tables:
+
+- Table 1:
+  https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-1/
+- Table 2:
+  https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-2/
+
+The newborn table cites Dionne et al. (2012); the one-year table cites Mattoo/UpToDate (2020 update)
+inside the recommendation appendix.
+
+These slices are deliberately separate from the 1–17 year office-BP table. Older public editions of
+KR571 expose different numeric reference tables, so MiniMed must keep recommendation edition/source
+identity on every promoted dataset and must not merge rows by table caption alone.
+
 ## Height-percentile dependency
 
 The height-percentile table used to select office-BP columns was extracted separately:
