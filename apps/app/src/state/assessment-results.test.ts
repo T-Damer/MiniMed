@@ -191,7 +191,6 @@ describe('assessment result persistence', () => {
     expect(loadAssessmentRecords()).toEqual([]);
   });
 
-
   it('rejects invalid external records before persistence', () => {
     expect(() =>
       createExternalAssessmentRecord({
