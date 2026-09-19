@@ -28,7 +28,7 @@ The downloaded MiniMed definition contains only:
 - limitations and source/licensing metadata;
 - a local-material policy.
 
-It does **not** contain protected questions, matrices, stimulus books, answer keys or norm tables.
+It does **not** contain protected questions, matrices, stimulus books, answer keys or norm tables.\nThe three draft definitions use the explicit `third-party-restricted` license kind rather than treating attribution as redistribution permission.
 
 A clinician may select a local PDF/JPEG/PNG/WebP that they already possess and send that file to the
 existing local/native print path. The selected material is not uploaded and is not copied into the
@@ -130,11 +130,11 @@ The same deterministic `build_tool_module` builder was exercised locally on the 
 - SQLite `integrity_check = ok`;
 - foreign-key violations: 0;
 - generated DB size: 385,024 bytes;
-- deterministic gzip (level 9, mtime 0): 10,551 bytes;
-- DB SHA-256: `75affe72f1622438437bbcf34339773473606e9640ae549cc408b20cceb032a5`;
-- gzip SHA-256: `581a686ebbe9d1bd0afb84cece558a1a995562edd95e1eb020e2de80ddd5662b`;
+- deterministic gzip (level 9, mtime 0): 10,549 bytes;
+- DB SHA-256: `b0cccc77b1c67587606e67a5e549635682c595a1c3d692254b886999fc50c3b5`;
+- gzip SHA-256: `ab6ff5d85d8df95a79b219f6835ee4ddfd7fe8cf8eecd63f8f419c090ee13c94`;
 - builder source-set digest:
-  `sha256:5a2623eaa4f9bdd672c12920ea35e0f22ef1021b5e84539056b506c3568fb8a8`.
+  `sha256:0d4a88ea097abb860f467796477a2400612eff7121e47a2edb8b7f9fdb7bac9e`.
 
 A separate local schema smoke confirmed unique variant/result-field IDs, no bundled questions/scales
 for external methods, no external automated verdicts, Raven variants `cpm/spm/apm`, and MMSE
