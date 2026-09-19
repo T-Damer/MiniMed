@@ -1547,5 +1547,4 @@ describe('MedicalCore', () => {
       'criterion.jaspers.clouding-consciousness',
     );
   });
-
 });
