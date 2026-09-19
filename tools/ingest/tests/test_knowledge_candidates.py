@@ -40,6 +40,8 @@ def _source(path: Path) -> None:
                 ),
                 ("s6", "Шкалы оценки ........................................ 70", "toc", 5),
                 ("s7", "Неврологический статус", "diagnostics", 6),
+                ("s8", "Приложение Г6. Тест рисования часов", "assessment", 7),
+                ("s9", "Диагностические тесты", "diagnostics", 8),
             ]
             for section_id, title, section_type, order_index in sections:
                 connection.execute(
@@ -68,6 +70,8 @@ def _source(path: Path) -> None:
                 ),
                 ("c6", "s6", 5, "Приложение Г1. Шкала комы Глазго."),
                 ("c7", "s7", 6, "Сознание оценено как 15 баллов GCS."),
+                ("c8", "s8", 7, "Пациенту предлагают нарисовать циферблат часов."),
+                ("c9", "s9", 8, "В разделе перечислены диагностические тесты."),
             ]
             for chunk_id, section_id, order_index, text in chunks:
                 connection.execute(
@@ -85,7 +89,6 @@ def _source(path: Path) -> None:
                 )
     finally:
         connection.close()
-
 
 
 def _inventory(path: Path) -> None:
@@ -111,6 +114,7 @@ def _inventory(path: Path) -> None:
     finally:
         connection.close()
 
+
 def test_scans_headings_and_body_mentions_without_quality_false_positive(tmp_path: Path) -> None:
     database = tmp_path / "kr.db"
     _source(database)
@@ -119,6 +123,7 @@ def test_scans_headings_and_body_mentions_without_quality_false_positive(tmp_pat
         ("scale", "Шкала CURB-65"),
         ("scale", "индекс PSI"),
         ("classification", "Классификация по степени тяжести"),
+        ("assessment_method", "Тест рисования часов"),
     ]
     assert candidates[0].confidence == 0.88
     assert candidates[1].confidence == 0.68
@@ -127,20 +132,21 @@ def test_scans_headings_and_body_mentions_without_quality_false_positive(tmp_pat
     assert not any("качества" in item.label.lower() for item in candidates)
     assert not any("достоверности доказательств" in item.label.lower() for item in candidates)
     assert not any(item.section_id == "s6" for item in candidates)
+    assert not any(item.section_id == "s9" for item in candidates)
 
 
 def test_workspace_is_immutable_and_keeps_source_fingerprint(tmp_path: Path) -> None:
     database = tmp_path / "kr.db"
     output = tmp_path / "candidates"
     _source(database)
-    assert write_candidate_workspace(database, output) == 3
+    assert write_candidate_workspace(database, output) == 4
     lines = [json.loads(line) for line in (output / "candidates.jsonl").read_text().splitlines()]
-    assert len(lines) == 3
+    assert len(lines) == 4
     assert all(line["reviewStatus"] == "proposed" for line in lines)
     assert lines[0]["source"]["chunkId"] == "c1"
     manifest = json.loads((output / "manifest.json").read_text())
     assert manifest["sourceSha256"].startswith("sha256:")
-    assert manifest["candidateCount"] == 3
+    assert manifest["candidateCount"] == 4
     with pytest.raises(ValueError, match="immutable"):
         write_candidate_workspace(database, output)
 
@@ -152,11 +158,7 @@ def test_known_inventory_finds_exact_alias_without_scale_word(tmp_path: Path) ->
     _inventory(inventory)
 
     candidates = scan_candidates(database, inventory_sources=(inventory,))
-    gcs = [
-        item
-        for item in candidates
-        if item.known_source_id == "minimed.assessment.gcs"
-    ]
+    gcs = [item for item in candidates if item.known_source_id == "minimed.assessment.gcs"]
 
     assert len(gcs) == 1
     assert gcs[0].label == "Шкала комы Глазго"
