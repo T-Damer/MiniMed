@@ -6,6 +6,7 @@ source chunk.
 The resulting JSON is intended to be rebuilt with the source documents through the normal knowledge
 pipeline.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -83,9 +84,7 @@ class CandidateReviewDecision(CamelModel):
             )
             if route and expected_prefix and not route.startswith(expected_prefix):
                 label = "Assessment" if assessment else "Calculator"
-                raise ValueError(
-                    f"{label} interactiveRoute must start with {expected_prefix}."
-                )
+                raise ValueError(f"{label} interactiveRoute must start with {expected_prefix}.")
             if route:
                 if any(character.isspace() for character in route):
                     raise ValueError("interactiveRoute must not contain whitespace.")
@@ -285,11 +284,7 @@ def promote_candidate_reviews(
                     if normalize_text(alias) == normalize_text(candidate.label)
                     else "alias"
                 ),
-                weight=(
-                    1.4
-                    if normalize_text(alias) == normalize_text(candidate.label)
-                    else 1.0
-                ),
+                weight=(1.4 if normalize_text(alias) == normalize_text(candidate.label) else 1.0),
             )
             for alias in aliases
             if normalize_text(alias) != canonical_normalized
@@ -342,9 +337,7 @@ def promote_candidate_reviews(
                     and incoming_scalar is not None
                     and current_scalar != incoming_scalar
                 ):
-                    raise ValueError(
-                        f"Conflicting {scalar_key} for reviewed entity {entity_id}."
-                    )
+                    raise ValueError(f"Conflicting {scalar_key} for reviewed entity {entity_id}.")
             for key in ("tags", "specialties"):
                 current = existing.metadata.get(key)
                 current_values = current if isinstance(current, list) else []
