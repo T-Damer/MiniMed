@@ -1542,12 +1542,9 @@ describe('MedicalCore', () => {
     expect(response.ok).toBe(true);
     if (!response.ok) return;
     expect(response.value.groups[0]?.documentId).toBe('knowledge.discovery.jaspers');
-    expect(response.value.groups[0]?.conceptId).toBe(
-      'criterion.jaspers.clouding-consciousness',
-    );
+    expect(response.value.groups[0]?.conceptId).toBe('criterion.jaspers.clouding-consciousness');
     expect(response.value.groups[0]?.results[0]?.conceptId).toBe(
       'criterion.jaspers.clouding-consciousness',
     );
   });
-
 });

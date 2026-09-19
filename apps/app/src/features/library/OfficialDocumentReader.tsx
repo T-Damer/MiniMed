@@ -33,8 +33,8 @@ import {
   sourceTypeReaderLabel,
   visibleReaderSections,
 } from '@/features/library/document-display';
-import { documentInteractiveToolLink } from '@/features/library/document-interactive-tool';
 import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
+import { documentInteractiveToolLink } from '@/features/library/document-interactive-tool';
 import {
   buildDocumentLinkPhrases,
   createDocumentLinkMatcher,

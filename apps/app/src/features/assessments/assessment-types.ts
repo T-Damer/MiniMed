@@ -1,6 +1,7 @@
 import type {
   AssessmentVisualDefinition,
   EvaluationStatus,
+  ExternalAssessmentAdministration,
   ObservationMapping,
   ReferenceVerdict,
   ToolEvaluation,
@@ -49,7 +50,8 @@ export interface AssessmentQuestion {
 export type AssessmentLicenseKind =
   | 'project-original'
   | 'public-domain-derived'
-  | 'third-party-attributed';
+  | 'third-party-attributed'
+  | 'third-party-restricted';
 
 export interface AssessmentLicense {
   readonly kind: AssessmentLicenseKind;
@@ -87,6 +89,11 @@ export interface AssessmentDefinition {
   readonly images?: readonly AssessmentImage[];
   readonly responseOptions: readonly AssessmentResponseOption[];
   readonly scales: readonly AssessmentScaleDefinition[];
+  /**
+   * External/proprietary instruments keep administration material outside distributed packs.
+   * MiniMed stores only the selected variant and clinician-entered result fields.
+   */
+  readonly externalAdministration?: ExternalAssessmentAdministration;
   /** Local questionnaires may record chosen answers without calculating a score. */
   readonly scoringMode?: 'responses-only';
   readonly questions: readonly AssessmentQuestion[];
@@ -156,6 +163,14 @@ export interface IncompleteAssessmentRecord extends AssessmentRecordBase {
   readonly totalQuestions: number;
 }
 
+export type ExternalAssessmentValue = string | number;
+
+export interface ExternalAssessmentRecord extends AssessmentRecordBase {
+  readonly kind: 'external';
+  readonly variantId: string;
+  readonly values: Readonly<Record<string, ExternalAssessmentValue>>;
+}
+
 export interface ManualAssessmentRecord extends AssessmentRecordBase {
   readonly kind: 'manual';
   readonly text: string;
@@ -164,4 +179,5 @@ export interface ManualAssessmentRecord extends AssessmentRecordBase {
 export type AssessmentRecord =
   | CompletedAssessmentRecord
   | IncompleteAssessmentRecord
+  | ExternalAssessmentRecord
   | ManualAssessmentRecord;

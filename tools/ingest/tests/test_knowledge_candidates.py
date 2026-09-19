@@ -87,7 +87,6 @@ def _source(path: Path) -> None:
         connection.close()
 
 
-
 def _inventory(path: Path) -> None:
     connection = sqlite3.connect(path)
     try:
@@ -110,6 +109,7 @@ def _inventory(path: Path) -> None:
             )
     finally:
         connection.close()
+
 
 def test_scans_headings_and_body_mentions_without_quality_false_positive(tmp_path: Path) -> None:
     database = tmp_path / "kr.db"
@@ -152,11 +152,7 @@ def test_known_inventory_finds_exact_alias_without_scale_word(tmp_path: Path) ->
     _inventory(inventory)
 
     candidates = scan_candidates(database, inventory_sources=(inventory,))
-    gcs = [
-        item
-        for item in candidates
-        if item.known_source_id == "minimed.assessment.gcs"
-    ]
+    gcs = [item for item in candidates if item.known_source_id == "minimed.assessment.gcs"]
 
     assert len(gcs) == 1
     assert gcs[0].label == "Шкала комы Глазго"

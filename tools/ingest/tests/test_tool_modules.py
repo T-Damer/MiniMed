@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from pathlib import Path
 
@@ -44,3 +45,56 @@ def test_build_core_clinical_tool_module_keeps_all_calculators(tmp_path: Path) -
         assert connection.execute(
             "SELECT count(*) FROM tool_definitions WHERE kind = 'calculator'"
         ).fetchone() == (calculator_count,)
+
+
+def test_build_cognitive_external_draft_keeps_only_result_schemas(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[3]
+    source = root / "content/tool-modules/drafts/cognitive-assessment.json"
+    module, _checksum = load_tool_module(source)
+    output = tmp_path / "cognitive-assessment.db"
+
+    assert [tool.id for tool in module.tools] == [
+        "minimed.assessment.mmse",
+        "minimed.assessment.raven-progressive-matrices",
+        "minimed.assessment.wechsler-family",
+    ]
+
+    report = build_tool_module(source, output)
+
+    assert report["toolCount"] == 3
+    assert report["sourceCount"] == 0
+    with sqlite3.connect(output) as connection:
+        assert connection.execute("PRAGMA integrity_check").fetchone() == ("ok",)
+        assert connection.execute("PRAGMA foreign_key_check").fetchall() == []
+        rows = connection.execute(
+            "SELECT id, definition_json FROM tool_definitions ORDER BY id"
+        ).fetchall()
+
+    definitions = {tool_id: json.loads(payload) for tool_id, payload in rows}
+    for definition in definitions.values():
+        assert definition["questions"] == []
+        assert definition["scales"] == []
+        assert definition["responseOptions"] == []
+        assert definition["externalAdministration"]["mode"] == "external"
+        assert definition["evaluation"]["status"] != "verdict"
+        assert definition["license"]["kind"] == "third-party-restricted"
+
+    raven = definitions["minimed.assessment.raven-progressive-matrices"]
+    assert [variant["id"] for variant in raven["externalAdministration"]["variants"]] == [
+        "cpm",
+        "spm",
+        "apm",
+    ]
+
+    mmse = definitions["minimed.assessment.mmse"]
+    total = mmse["externalAdministration"]["variants"][0]["resultFields"][0]
+    assert total == {
+        "id": "total_score",
+        "kind": "number",
+        "label": "Общий балл",
+        "required": True,
+        "unit": "/30",
+        "minimum": 0,
+        "maximum": 30,
+        "integer": True,
+    }

@@ -6,6 +6,7 @@ source chunk.
 The resulting JSON is intended to be rebuilt with the source documents through the normal knowledge
 pipeline.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -83,9 +84,7 @@ class CandidateReviewDecision(CamelModel):
             )
             if route and expected_prefix and not route.startswith(expected_prefix):
                 label = "Assessment" if assessment else "Calculator"
-                raise ValueError(
-                    f"{label} interactiveRoute must start with {expected_prefix}."
-                )
+                raise ValueError(f"{label} interactiveRoute must start with {expected_prefix}.")
             if route:
                 if any(character.isspace() for character in route):
                     raise ValueError("interactiveRoute must not contain whitespace.")
@@ -202,6 +201,10 @@ def _stable_id(prefix: str, value: str) -> str:
     return f"{prefix}." + hashlib.sha256(value.encode("utf-8")).hexdigest()[:20]
 
 
+def _surface_key(value: str) -> str:
+    return " ".join(value.split()).casefold()
+
+
 def _dedupe(values: list[str]) -> list[str]:
     result: list[str] = []
     seen: set[str] = set()
@@ -211,6 +214,20 @@ def _dedupe(values: list[str]) -> list[str]:
         if not normalized or normalized in seen:
             continue
         seen.add(normalized)
+        result.append(value)
+    return result
+
+
+def _dedupe_names(values: list[str]) -> list[str]:
+    """Preserve reviewed punctuation/spelling variants even if search normalization is identical."""
+    result: list[str] = []
+    seen: set[str] = set()
+    for raw in values:
+        value = " ".join(raw.split())
+        key = _surface_key(value)
+        if not key or key in seen:
+            continue
+        seen.add(key)
         result.append(value)
     return result
 
@@ -275,24 +292,18 @@ def promote_candidate_reviews(
         if entity_type not in _ALLOWED_TYPES:
             raise ValueError(f"Unsupported reviewed entity type: {entity_type}.")
 
-        aliases = _dedupe([candidate.label, *decision.aliases])
+        aliases = _dedupe_names([candidate.label, *decision.aliases])
         canonical_normalized = normalize_text(canonical_name)
+        canonical_surface = _surface_key(canonical_name)
+        candidate_surface = _surface_key(candidate.label)
         names = [
             KnowledgeName(
                 name=alias,
-                name_type=(
-                    "source-label"
-                    if normalize_text(alias) == normalize_text(candidate.label)
-                    else "alias"
-                ),
-                weight=(
-                    1.4
-                    if normalize_text(alias) == normalize_text(candidate.label)
-                    else 1.0
-                ),
+                name_type="source-label" if _surface_key(alias) == candidate_surface else "alias",
+                weight=1.4 if _surface_key(alias) == candidate_surface else 1.0,
             )
             for alias in aliases
-            if normalize_text(alias) != canonical_normalized
+            if _surface_key(alias) != canonical_surface
         ]
         metadata: dict[str, object] = {
             "tags": _dedupe(decision.tags),
@@ -319,12 +330,13 @@ def promote_candidate_reviews(
                 or normalize_text(existing.canonical_name) != canonical_normalized
             ):
                 raise ValueError(f"Conflicting reviewed identity for {entity_id}.")
-            by_name = {normalize_text(item.name): item for item in existing.names}
+            by_name = {_surface_key(item.name): item for item in existing.names}
             for name in names:
-                previous = by_name.get(normalize_text(name.name))
+                name_key = _surface_key(name.name)
+                previous = by_name.get(name_key)
                 if previous is None:
                     existing.names.append(name)
-                    by_name[normalize_text(name.name)] = name
+                    by_name[name_key] = name
                 elif name.weight > previous.weight:
                     previous.weight = name.weight
                     previous.name_type = name.name_type
@@ -342,9 +354,7 @@ def promote_candidate_reviews(
                     and incoming_scalar is not None
                     and current_scalar != incoming_scalar
                 ):
-                    raise ValueError(
-                        f"Conflicting {scalar_key} for reviewed entity {entity_id}."
-                    )
+                    raise ValueError(f"Conflicting {scalar_key} for reviewed entity {entity_id}.")
             for key in ("tags", "specialties"):
                 current = existing.metadata.get(key)
                 current_values = current if isinstance(current, list) else []

@@ -61,6 +61,7 @@ import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { ExternalAssessmentPage } from '@/features/assessments/ExternalAssessmentPage';
 import { UserQuestionnaireEditorPage } from '@/features/assessments/UserQuestionnaireEditorPage';
 import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
@@ -873,25 +874,51 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
 
       <Show when={route().kind === 'assessment' ? loadedDefinition() : undefined}>
         {(selected) => (
-          <AssessmentQuestionnairePage
-            active={props.active}
-            definition={selected()}
-            {...(draftRecord() ? { initialRecord: draftRecord() } : {})}
-            sectionTitle={
-              ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
-              selected().bankLabel
+          <Show
+            when={selected().externalAdministration ? selected() : undefined}
+            fallback={
+              <AssessmentQuestionnairePage
+                active={props.active}
+                definition={selected()}
+                {...(draftRecord() ? { initialRecord: draftRecord() } : {})}
+                sectionTitle={
+                  ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)
+                    ?.title ?? selected().bankLabel
+                }
+                onBack={() =>
+                  navigate(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
+                }
+                onDraftSaved={refreshRecords}
+                onMessage={setMessage}
+                onSaved={(saved) => {
+                  setTransientRecord(saved);
+                  refreshRecords();
+                  navigate(resultPath(selected().bankId, selected().slug, saved.id));
+                }}
+              />
             }
-            onBack={() =>
-              navigate(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
-            }
-            onDraftSaved={refreshRecords}
-            onMessage={setMessage}
-            onSaved={(saved) => {
-              setTransientRecord(saved);
-              refreshRecords();
-              navigate(resultPath(selected().bankId, selected().slug, saved.id));
-            }}
-          />
+          >
+            {(externalDefinition) => (
+              <ExternalAssessmentPage
+                definition={externalDefinition()}
+                onBack={() =>
+                  navigate(
+                    getSplitNavigation()
+                      ? assessmentHomePath(externalDefinition().slug)
+                      : '#/search',
+                  )
+                }
+                onMessage={setMessage}
+                onSaved={(saved) => {
+                  setTransientRecord(saved);
+                  refreshRecords();
+                  navigate(
+                    resultPath(externalDefinition().bankId, externalDefinition().slug, saved.id),
+                  );
+                }}
+              />
+            )}
+          </Show>
         )}
       </Show>
 

@@ -38,53 +38,193 @@ const AssessmentInterpretationSchema = z
     }
   });
 
-export const AssessmentDefinitionSchema = z.object({
-  schemaVersion: z.literal(2),
-  id: z.string().min(1),
-  slug: z.string().min(1),
-  title: z.string().min(1),
-  shortTitle: z.string().min(1),
-  aliases: z.array(z.string().min(1)),
-  bankId: z.string().min(1),
-  bankLabel: z.string().min(1),
-  category: z.string().min(1),
-  description: z.string().min(1),
-  estimatedMinutes: z.number().int().positive(),
-  audience: z.string().min(1),
-  responseOptions: z.array(
-    z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }),
-  ),
-  scales: z.array(
-    z.object({
-      id: z.string().min(1),
-      label: z.string().min(1),
-      shortLabel: z.string().min(1),
-      description: z.string().min(1),
-    }),
-  ),
-  questions: z.array(
-    z.object({
-      id: z.string().min(1),
-      prompt: z.string().min(1),
-      scaleId: z.string().min(1),
-      reverse: z.literal(true).optional(),
-      responseOptions: z
-        .array(z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }))
-        .optional(),
-    }),
-  ),
-  disclaimer: z.string().min(1),
-  evidenceNote: z.string().min(1),
-  interpretations: z.array(AssessmentInterpretationSchema).optional(),
-  visuals: z.array(CalculatorVisualSchema).default([]),
-  evaluation: ToolEvaluationSchema,
-  observationMappings: z.array(ObservationMappingSchema).default([]),
-  license: z.object({
-    kind: z.enum(['project-original', 'public-domain-derived', 'third-party-attributed']),
-    notice: z.string().min(1),
-    sourceUrl: HttpUrlSchema.optional(),
-  }),
+const ExternalAssessmentNumberFieldSchema = z.object({
+  id: z.string().regex(/^[a-z][a-z0-9_-]*$/u),
+  kind: z.literal('number'),
+  label: z.string().min(1),
+  required: z.boolean().default(true),
+  unit: z.string().min(1).optional(),
+  minimum: z.number().optional(),
+  maximum: z.number().optional(),
+  integer: z.boolean().default(false),
 });
+
+const ExternalAssessmentTextFieldSchema = z.object({
+  id: z.string().regex(/^[a-z][a-z0-9_-]*$/u),
+  kind: z.literal('text'),
+  label: z.string().min(1),
+  required: z.boolean().default(false),
+  multiline: z.boolean().default(false),
+  placeholder: z.string().min(1).optional(),
+});
+
+const ExternalAssessmentSelectFieldSchema = z.object({
+  id: z.string().regex(/^[a-z][a-z0-9_-]*$/u),
+  kind: z.literal('select'),
+  label: z.string().min(1),
+  required: z.boolean().default(true),
+  options: z
+    .array(
+      z.object({
+        value: z.string().min(1),
+        label: z.string().min(1),
+      }),
+    )
+    .min(1),
+});
+
+const ExternalAssessmentResultFieldSchema = z
+  .discriminatedUnion('kind', [
+    ExternalAssessmentNumberFieldSchema,
+    ExternalAssessmentTextFieldSchema,
+    ExternalAssessmentSelectFieldSchema,
+  ])
+  .superRefine((field, context) => {
+    if (
+      field.kind === 'number' &&
+      field.minimum !== undefined &&
+      field.maximum !== undefined &&
+      field.minimum > field.maximum
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'minimum must not exceed maximum',
+      });
+    }
+  });
+
+const ExternalAssessmentVariantSchema = z
+  .object({
+    id: z.string().regex(/^[a-z][a-z0-9_-]*$/u),
+    label: z.string().min(1),
+    shortLabel: z.string().min(1),
+    description: z.string().min(1),
+    audience: z.string().min(1),
+    resultFields: z.array(ExternalAssessmentResultFieldSchema).min(1),
+  })
+  .superRefine((variant, context) => {
+    const ids = variant.resultFields.map((field) => field.id);
+    if (new Set(ids).size !== ids.length) {
+      context.addIssue({
+        code: 'custom',
+        path: ['resultFields'],
+        message: 'result field ids must be unique inside a variant',
+      });
+    }
+  });
+
+export const ExternalAssessmentAdministrationSchema = z
+  .object({
+    mode: z.literal('external'),
+    variants: z.array(ExternalAssessmentVariantSchema).min(1),
+    material: z.object({
+      policy: z.literal('user-local-file'),
+      acceptedMimeTypes: z
+        .array(z.enum(['application/pdf', 'image/png', 'image/jpeg', 'image/webp']))
+        .min(1),
+      note: z.string().min(1),
+    }),
+  })
+  .superRefine((administration, context) => {
+    const variantIds = administration.variants.map((variant) => variant.id);
+    if (new Set(variantIds).size !== variantIds.length) {
+      context.addIssue({
+        code: 'custom',
+        path: ['variants'],
+        message: 'external assessment variant ids must be unique',
+      });
+    }
+    if (
+      new Set(administration.material.acceptedMimeTypes).size !==
+      administration.material.acceptedMimeTypes.length
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['material', 'acceptedMimeTypes'],
+        message: 'accepted MIME types must be unique',
+      });
+    }
+  });
+
+export const AssessmentDefinitionSchema = z
+  .object({
+    schemaVersion: z.literal(2),
+    id: z.string().min(1),
+    slug: z.string().min(1),
+    title: z.string().min(1),
+    shortTitle: z.string().min(1),
+    aliases: z.array(z.string().min(1)),
+    bankId: z.string().min(1),
+    bankLabel: z.string().min(1),
+    category: z.string().min(1),
+    description: z.string().min(1),
+    estimatedMinutes: z.number().int().positive(),
+    audience: z.string().min(1),
+    responseOptions: z.array(
+      z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }),
+    ),
+    scales: z.array(
+      z.object({
+        id: z.string().min(1),
+        label: z.string().min(1),
+        shortLabel: z.string().min(1),
+        description: z.string().min(1),
+      }),
+    ),
+    externalAdministration: ExternalAssessmentAdministrationSchema.optional(),
+    questions: z.array(
+      z.object({
+        id: z.string().min(1),
+        prompt: z.string().min(1),
+        scaleId: z.string().min(1),
+        reverse: z.literal(true).optional(),
+        responseOptions: z
+          .array(z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }))
+          .optional(),
+      }),
+    ),
+    disclaimer: z.string().min(1),
+    evidenceNote: z.string().min(1),
+    interpretations: z.array(AssessmentInterpretationSchema).optional(),
+    visuals: z.array(CalculatorVisualSchema).default([]),
+    evaluation: ToolEvaluationSchema,
+    observationMappings: z.array(ObservationMappingSchema).default([]),
+    license: z.object({
+      kind: z.enum([
+        'project-original',
+        'public-domain-derived',
+        'third-party-attributed',
+        'third-party-restricted',
+      ]),
+      notice: z.string().min(1),
+      sourceUrl: HttpUrlSchema.optional(),
+    }),
+  })
+  .superRefine((definition, context) => {
+    if (!definition.externalAdministration) return;
+    if (definition.questions.length > 0) {
+      context.addIssue({
+        code: 'custom',
+        path: ['questions'],
+        message: 'external assessments must not bundle questionnaire items',
+      });
+    }
+    if (definition.responseOptions.length > 0 || definition.scales.length > 0) {
+      context.addIssue({
+        code: 'custom',
+        path: ['externalAdministration'],
+        message:
+          'external assessments record schema-declared result fields, not questionnaire scales',
+      });
+    }
+    if (definition.evaluation.status === 'verdict') {
+      context.addIssue({
+        code: 'custom',
+        path: ['evaluation', 'status'],
+        message: 'external assessment automated verdicts are not supported',
+      });
+    }
+  });
 
 export const ToolSourceLinkSchema = z.object({
   id: z.string().min(1),
@@ -116,6 +256,9 @@ export const ToolDefinitionRecordSchema = z.object({
 });
 
 export type ToolModuleKind = z.infer<typeof ToolModuleKindSchema>;
+export type ExternalAssessmentAdministration = z.infer<
+  typeof ExternalAssessmentAdministrationSchema
+>;
 export type AssessmentVisualDefinition = z.infer<typeof CalculatorVisualSchema>;
 export type ToolSourceLink = z.infer<typeof ToolSourceLinkSchema>;
 export type ToolDefinitionRecord = z.infer<typeof ToolDefinitionRecordSchema>;

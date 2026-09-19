@@ -1,9 +1,10 @@
 """Extract review-only clinical knowledge candidates from source-preserving SQLite documents.
 
-The scanner never creates knowledge entities or claims clinical equivalence. It combines conservative
-structural heuristics with exact names from already reviewed MiniMed tools/knowledge and records exact
-source locators for later human review.
+The scanner never creates knowledge entities or claims clinical equivalence. It combines
+conservative structural heuristics with exact names from already reviewed MiniMed tools/knowledge
+and records exact source locators for later human review.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -59,6 +60,11 @@ _NEGATED_CLASSIFICATION_PATTERN = re.compile(
 )
 _SEVERITY_MEANING_PATTERN = re.compile(
     r"(?:тяжест|заболеван|процесс|недостаточност|дыхательн\w*\s+недостаточност)",
+    re.IGNORECASE,
+)
+_SCALE_PROSE_TAIL_PATTERN = re.compile(
+    r"\s+(?:использ\w*|примен\w*|позвол\w*|предназнач\w*|служ\w*|"
+    r"оценива\w*|рассчитыва\w*|определя\w*)\b",
     re.IGNORECASE,
 )
 
@@ -196,6 +202,10 @@ def _heading_candidate_types(text: str) -> tuple[str, ...]:
         match = pattern.search(text)
         if match and match.start() <= 42:
             result.append(candidate_type)
+    # A heading such as "Классификация по степени тяжести" names the
+    # classification itself; "степени тяжести" is not a second entity.
+    if "classification" in result and "severity_grade" in result:
+        result.remove("severity_grade")
     return tuple(result)
 
 
@@ -210,16 +220,27 @@ def _meaningful_label(candidate_type: str, label: str, source_text: str) -> bool
             return False
     if candidate_type == "severity_grade" and not _SEVERITY_MEANING_PATTERN.search(label):
         return False
-    if candidate_type == "scale" and normalized in {"шкала", "шкала оценки", "индекс"}:
-        return False
-    return True
+    return not (candidate_type == "scale" and normalized in {"шкала", "шкала оценки", "индекс"})
+
+
+def _clean_candidate_label(candidate_type: str, label: str) -> str:
+    clean = " ".join(label.split())
+    if candidate_type != "scale":
+        return clean[:180]
+
+    # Body prose often uses an inflected lead-in ("по шкале CURB-65
+    # используется..."). Keep only the instrument name so it deduplicates
+    # against the section-title candidate instead of becoming a false entity.
+    clean = re.sub(r"^(?:по\s+)?шкал[аеы]\s+", "Шкала ", clean, flags=re.IGNORECASE)
+    clean = _SCALE_PROSE_TAIL_PATTERN.split(clean, maxsplit=1)[0]
+    return clean[:180]
 
 
 def _candidate_label(candidate_type: str, text: str) -> str | None:
     for pattern in _NAME_PATTERNS.get(candidate_type, ()):
         match = pattern.search(text)
         if match:
-            label = " ".join(match.group("name").split())[:180]
+            label = _clean_candidate_label(candidate_type, match.group("name"))
             return label if _meaningful_label(candidate_type, label, text) else None
     return None
 
@@ -238,7 +259,9 @@ def _context_kind(section_title: str, text: str) -> str:
         and _TOC_PATTERN.search(text[:500])
     ):
         return "toc"
-    if _REFERENCE_START_PATTERN.search(section_title) and _REFERENCE_MARKER_PATTERN.search(combined):
+    if _REFERENCE_START_PATTERN.search(section_title) and _REFERENCE_MARKER_PATTERN.search(
+        combined
+    ):
         return "bibliography"
     return "content"
 

@@ -79,9 +79,7 @@ class DiscoveryEntity:
     metadata: dict[str, object]
     names: dict[str, float] = field(default_factory=dict)
     definitions: list[DiscoveryDefinition] = field(default_factory=list)
-    sources: dict[tuple[str, str | None, str | None], DiscoverySource] = field(
-        default_factory=dict
-    )
+    sources: dict[tuple[str, str | None, str | None], DiscoverySource] = field(default_factory=dict)
 
 
 def _json_object(raw: object, context: str) -> dict[str, object]:
@@ -144,10 +142,9 @@ def _definition_priority(item: DiscoveryDefinition) -> tuple[int, float, str, st
 
 
 def _merge_entity(target: DiscoveryEntity, incoming: DiscoveryEntity) -> None:
-    if (
-        target.entity_type != incoming.entity_type
-        or normalize_text(target.canonical_name) != normalize_text(incoming.canonical_name)
-    ):
+    if target.entity_type != incoming.entity_type or normalize_text(
+        target.canonical_name
+    ) != normalize_text(incoming.canonical_name):
         raise ValueError(f"Conflicting knowledge identity for {target.id}.")
     for name, weight in incoming.names.items():
         target.names[name] = max(target.names.get(name, 0), weight)
@@ -158,8 +155,7 @@ def _merge_entity(target: DiscoveryEntity, incoming: DiscoveryEntity) -> None:
             target.sources[key] = source
     for key in ("tags", "specialties", "ageGroups", "moduleIds"):
         merged = sorted(
-            set(_strings(target.metadata.get(key)))
-            | set(_strings(incoming.metadata.get(key)))
+            set(_strings(target.metadata.get(key))) | set(_strings(incoming.metadata.get(key)))
         )
         if merged:
             target.metadata[key] = merged
@@ -226,9 +222,7 @@ def _read_entity(connection: sqlite3.Connection, row: sqlite3.Row) -> DiscoveryE
         (entity_id, *_DEFINITION_FACT_TYPES),
     ):
         source = _source_from_row(definition_row, link_type="definition", weight=1.0)
-        entity.sources.setdefault(
-            (source.document_id, source.section_id, source.chunk_id), source
-        )
+        entity.sources.setdefault((source.document_id, source.section_id, source.chunk_id), source)
         entity.definitions.append(
             DiscoveryDefinition(
                 fact_id=str(definition_row["fact_id"]),
@@ -548,9 +542,7 @@ def build_knowledge_discovery_pack(
             "entityTypes": sorted(entity_types) if entity_types is not None else None,
             "sources": source_fingerprints,
             "entityIds": [entity.id for entity in entities],
-            "embeddingProfile": (
-                PORTABLE_HASH_PROFILE.id if include_portable_vectors else None
-            ),
+            "embeddingProfile": (PORTABLE_HASH_PROFILE.id if include_portable_vectors else None),
         },
         ensure_ascii=False,
         sort_keys=True,

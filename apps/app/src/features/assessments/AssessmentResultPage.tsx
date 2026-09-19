@@ -12,6 +12,7 @@ import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { Heading } from '@/components/Text';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
+import { formatAssessmentRecord } from '@/features/assessments/assessment-engine';
 import {
   printAssessmentRecord,
   shareAssessmentRecord,
@@ -56,7 +57,20 @@ export function AssessmentResultPage(props: {
   const [methodologyOpen, setMethodologyOpen] = createSignal(false);
   const [shareMessage, setShareMessage] = createSignal('');
   const completed = () => (props.record.kind === 'completed' ? props.record.result : undefined);
-  const manualText = () => (props.record.kind === 'manual' ? props.record.text : '');
+  const manualText = () => {
+    if (props.record.kind === 'manual') return props.record.text;
+    if (props.record.kind === 'external') {
+      return formatAssessmentRecord(props.definition, props.record);
+    }
+    return '';
+  };
+  const externalVariant = () => {
+    const record = props.record;
+    if (record.kind !== 'external') return undefined;
+    return props.definition.externalAdministration?.variants.find(
+      (variant) => variant.id === record.variantId,
+    );
+  };
   const printResult = (includeQuestions = false): void => {
     if (
       !printAssessmentRecord(
@@ -152,7 +166,15 @@ export function AssessmentResultPage(props: {
             {props.definition.title}
           </Heading>
         }
-        description={`${props.definition.description} · ${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`}
+        description={
+          props.definition.externalAdministration
+            ? `${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`
+            : [
+                props.definition.description,
+                props.record.subjectLabel || 'Без подписи',
+                formatDate(props.record.createdAt),
+              ].join(' · ')
+        }
         actions={
           <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
             <AppContextMenu
@@ -193,10 +215,14 @@ export function AssessmentResultPage(props: {
                 Результат введён вручную; MiniMed не пересчитывал его и не проверял референс.
               </p>
             </section>
-            <h2 class="assessment-result-summary__heading">Результат внесён вручную</h2>
+            <h2 class="assessment-result-summary__heading">
+              {props.record.kind === 'external'
+                ? `Внешняя методика · ${externalVariant()?.label ?? props.record.variantId}`
+                : 'Результат внесён вручную'}
+            </h2>
             <pre class="assessment-result-summary__manual-text">{manualText()}</pre>
             <p class="assessment-result-summary__text">
-              MiniMed не пересчитывал баллы и не проверял версию внешнего бланка.
+              MiniMed не пересчитывал баллы, нормативы и референсы внешней методики.
             </p>
           </section>
         }

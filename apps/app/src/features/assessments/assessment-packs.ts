@@ -95,6 +95,12 @@ export const ASSESSMENT_SECTIONS: readonly AssessmentSectionDefinition[] = [
     description: 'Опросники для оценки выраженности астенических жалоб.',
   },
   {
+    id: 'cognitive-assessment',
+    title: 'Когнитивная и нейропсихологическая оценка',
+    description:
+      'Когнитивные шкалы и стандартизированные методики с локальным хранением результатов.',
+  },
+  {
     id: 'newborn-screening',
     title: 'Оценка новорождённого',
     description: 'Стандартизированная оценка состояния новорождённого сразу после рождения.',
@@ -158,6 +164,7 @@ export const ASSESSMENT_SECTION_MODULE_IDS: Readonly<Partial<Record<AssessmentSe
     'team-role': 'minimed.tools.psychology.ru',
     temperament: 'minimed.tools.psychology.ru',
     asthenia: 'minimed.tools.psychology.ru',
+    'cognitive-assessment': 'minimed.tools.cognitive-assessment.ru',
     'newborn-screening': 'minimed.tools.obstetrics-gynecology.ru',
     'perinatal-mood': 'minimed.tools.obstetrics-gynecology.ru',
     'gynecologic-endocrinology': 'minimed.tools.obstetrics-gynecology.ru',

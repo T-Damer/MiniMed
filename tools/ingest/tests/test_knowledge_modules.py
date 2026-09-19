@@ -117,9 +117,7 @@ def test_rejects_conflicting_same_id_entities_across_modules(tmp_path: Path) -> 
     }
     second = {
         "schemaVersion": 1,
-        "entities": [
-            {"id": "clinical.same", "entityType": "condition", "canonicalName": "Same"}
-        ],
+        "entities": [{"id": "clinical.same", "entityType": "condition", "canonicalName": "Same"}],
         "facts": [],
         "relations": [],
         "documentLinks": [],

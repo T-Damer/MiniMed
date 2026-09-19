@@ -16,6 +16,7 @@ const TOOL_MODULES = [
   'content/tool-modules/pediatrics.json',
   'content/tool-modules/obstetrics-gynecology.json',
   'content/tool-modules/psychology.json',
+  'content/tool-modules/drafts/cognitive-assessment.json',
   'content/tool-modules/pediatrics-growth.json',
 ] as const;
 
@@ -226,9 +227,9 @@ async function main(): Promise<void> {
     const errors = records.flatMap(lintRecord);
     const calculators = records.filter((record) => record.kind === 'calculator').length;
     const assessments = records.filter((record) => record.kind === 'assessment').length;
-    if (calculators !== 50 || assessments !== 19) {
+    if (calculators !== 50 || assessments !== 22) {
       errors.push(
-        `expected 50 calculators and 19 assessments, got ${calculators} and ${assessments}`,
+        `expected 50 calculators and 22 assessments, got ${calculators} and ${assessments}`,
       );
     }
     if (errors.length > 0) {
