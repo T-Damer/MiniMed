@@ -186,7 +186,9 @@ export function ExternalAssessmentPage(props: {
         `${props.definition.shortTitle} — ${selected.shortLabel}`,
       );
       props.onMessage(
-        printed ? 'Материал передан на печать.' : 'Не удалось открыть локальный материал для печати.',
+        printed
+          ? 'Материал передан на печать.'
+          : 'Не удалось открыть локальный материал для печати.',
       );
     } catch (cause) {
       props.onMessage(
@@ -315,7 +317,10 @@ export function ExternalAssessmentPage(props: {
               <div class="assessment-external-fields">
                 <For each={selected().resultFields}>
                   {(field) => (
-                    <label class="assessment-external-field">
+                    <label
+                      class="assessment-external-field"
+                      for={`external-assessment-${field.id}`}
+                    >
                       <span class="assessment-external-field__label">
                         {field.label}
                         <Show when={field.kind === 'number' && field.unit}>
@@ -328,6 +333,7 @@ export function ExternalAssessmentPage(props: {
                           field.kind === 'text' && field.multiline ? (
                             <textarea
                               class="assessment-external-field__control assessment-external-field__control--textarea"
+                              id={`external-assessment-${field.id}`}
                               value={values()[field.id] ?? ''}
                               placeholder={field.kind === 'text' ? field.placeholder : undefined}
                               onInput={(event) =>
@@ -341,6 +347,7 @@ export function ExternalAssessmentPage(props: {
                             <input
                               class="assessment-external-field__control"
                               type={field.kind === 'number' ? 'number' : 'text'}
+                              id={`external-assessment-${field.id}`}
                               value={values()[field.id] ?? ''}
                               min={field.kind === 'number' ? field.minimum : undefined}
                               max={field.kind === 'number' ? field.maximum : undefined}
@@ -360,6 +367,7 @@ export function ExternalAssessmentPage(props: {
                           <select
                             class="assessment-external-field__control"
                             value={values()[selectField().id] ?? ''}
+                            id={`external-assessment-${selectField().id}`}
                             onChange={(event) =>
                               setValues((current) => ({
                                 ...current,
