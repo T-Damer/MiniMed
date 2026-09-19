@@ -1,4 +1,5 @@
 import json
+from itertools import pairwise
 from pathlib import Path
 from typing import cast
 
@@ -217,7 +218,7 @@ def test_pediatric_bmi_adult_equivalent_thresholds_are_complete() -> None:
     ages = [float(row[0]) for row in rows]
     assert ages[0] == 2
     assert ages[-1] == 18
-    assert all(right - left == 0.5 for left, right in zip(ages, ages[1:], strict=True))
+    assert all(right - left == 0.5 for left, right in pairwise(ages))
 
     for row in rows:
         boys_bmi25 = float(row[1])
