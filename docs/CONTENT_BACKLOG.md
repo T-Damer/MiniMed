@@ -256,6 +256,10 @@
   детская психиатрия;
 - инструменты: PHQ-9, GAD-7, HADS, AUDIT-C/AUDIT, DAST-10, C-SSRS, ASRS-v1.1, MDQ, OCI-R;
 - отдельная проверка валидированного русского перевода и права на распространение обязательна.
+- source-backed extraction 2026-09-19: в КР «Шизофрения» (2024, ID 451) подтверждены PANSS,
+  BNSS, Calgary Depression Scale for Schizophrenia, PSP, SAD PERSONS, C-SSRS, Simpson–Angus и
+  Bush–Francis; это пока concept/review-кандидаты, без копирования защищённых бланков и ключей.
+  Сводка: `docs/research/knowledge-candidate-scan-neuropsychiatry-2026-09.md`.
 
 Источник-кандидат: `Психиатрия/`, `psych.obschaya.ocr-draft.json`.
 
