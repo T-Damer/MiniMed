@@ -1,10 +1,11 @@
-import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
+import { PatientCaseCombobox } from '@/components/PatientCaseCombobox';
 import { Heading } from '@/components/Text';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
 import {
@@ -21,6 +22,15 @@ import {
   parseExternalAssessmentValues,
 } from '@/features/assessments/external-assessment';
 import { createExternalAssessmentRecord } from '@/state/assessment-results';
+import type { PatientProfile, PatientVaultSnapshot } from '@/state/patient-domain';
+import { recordExternalAssessmentResultForPatient } from '@/state/patient-tool-recording';
+import {
+  acknowledgePatientVaultUiCleared,
+  isPatientVaultUnlocked,
+  PATIENT_VAULT_EVENT,
+  PATIENT_VAULT_LOCK_EVENT,
+  readPatientVault,
+} from '@/state/patient-vault';
 
 export function ExternalAssessmentPage(props: {
   readonly definition: AssessmentDefinition;
@@ -32,11 +42,80 @@ export function ExternalAssessmentPage(props: {
   const firstVariantId = administration()?.variants[0]?.id ?? '';
   const [variantId, setVariantId] = createSignal(firstVariantId);
   const [subjectLabel, setSubjectLabel] = createSignal('');
+  const [patientId, setPatientId] = createSignal('');
+  const [episodeId, setEpisodeId] = createSignal('');
+  const [patientSnapshot, setPatientSnapshot] = createSignal<PatientVaultSnapshot>();
   const [values, setValues] = createSignal<Record<string, string>>({});
   const [material, setMaterial] = createSignal<File>();
   const [methodologyOpen, setMethodologyOpen] = createSignal(false);
   const [materialBusy, setMaterialBusy] = createSignal(false);
+  const [saving, setSaving] = createSignal(false);
   let materialInput: HTMLInputElement | undefined;
+  let patientRefreshRequest = 0;
+
+  const refreshPatients = (): void => {
+    const request = ++patientRefreshRequest;
+    if (!isPatientVaultUnlocked()) {
+      const protectedForm = patientId() !== '';
+      setPatientSnapshot(undefined);
+      setPatientId('');
+      setEpisodeId('');
+      if (protectedForm) {
+        setValues({});
+        setSubjectLabel('');
+        setMaterial(undefined);
+      }
+      acknowledgePatientVaultUiCleared();
+      return;
+    }
+    void readPatientVault()
+      .then((next) => {
+        if (request === patientRefreshRequest && isPatientVaultUnlocked()) {
+          setPatientSnapshot(next);
+        }
+      })
+      .catch((cause) => {
+        if (request === patientRefreshRequest && isPatientVaultUnlocked()) {
+          setPatientSnapshot(undefined);
+          props.onMessage(
+            cause instanceof Error ? cause.message : 'Не удалось прочитать пациентов.',
+          );
+        }
+      });
+  };
+  onMount(() => {
+    refreshPatients();
+    window.addEventListener(PATIENT_VAULT_EVENT, refreshPatients);
+    window.addEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPatients);
+  });
+  onCleanup(() => {
+    patientRefreshRequest += 1;
+    window.removeEventListener(PATIENT_VAULT_EVENT, refreshPatients);
+    window.removeEventListener(PATIENT_VAULT_LOCK_EVENT, refreshPatients);
+  });
+
+  const patientProfiles = (): readonly PatientProfile[] => patientSnapshot()?.profiles ?? [];
+  const selectedPatient = (): PatientProfile | undefined => {
+    const id = patientId();
+    return id ? patientProfiles().find((profile) => profile.id === id) : undefined;
+  };
+  const patientEpisodes = () =>
+    patientSnapshot()?.episodes.filter(
+      (episode) => episode.patientId === patientId() && episode.status === 'open',
+    ) ?? [];
+
+  const selectPatient = (nextPatientId: string): void => {
+    const previousPatientId = patientId();
+    if (nextPatientId !== previousPatientId) {
+      // Do not carry clinical values across the ordinary/protected storage boundary.
+      setValues({});
+      setMaterial(undefined);
+    }
+    setPatientId(nextPatientId);
+    setEpisodeId('');
+    const patient = patientProfiles().find((candidate) => candidate.id === nextPatientId);
+    setSubjectLabel(patient?.displayName ?? '');
+  };
 
   const variant = createMemo(() => {
     const current = administration();
@@ -44,7 +123,8 @@ export function ExternalAssessmentPage(props: {
   });
   const acceptedMimeTypes = () => administration()?.material.acceptedMimeTypes.join(',') ?? '';
 
-  const save = (): void => {
+  const save = async (): Promise<void> => {
+    if (saving()) return;
     const selected = variant();
     if (!selected) {
       props.onMessage('Вариант методики не выбран.');
@@ -55,14 +135,44 @@ export function ExternalAssessmentPage(props: {
       props.onMessage(parsed.error);
       return;
     }
-    const record = createExternalAssessmentRecord({
-      assessmentId: props.definition.id,
-      subjectLabel: subjectLabel(),
-      variantId: selected.id,
-      values: parsed.values,
-      ...(props.definition.version ? { definitionVersion: props.definition.version } : {}),
-    });
-    props.onSaved(record);
+    setSaving(true);
+    try {
+      const record = createExternalAssessmentRecord({
+        assessmentId: props.definition.id,
+        subjectLabel: subjectLabel(),
+        variantId: selected.id,
+        values: parsed.values,
+        ...(patientId() ? { patientId: patientId() } : {}),
+        ...(episodeId() ? { episodeId: episodeId() } : {}),
+        ...(props.definition.version ? { definitionVersion: props.definition.version } : {}),
+        persist: !patientId(),
+      });
+      if (patientId()) {
+        try {
+          const saved = await recordExternalAssessmentResultForPatient({
+            patientId: patientId(),
+            ...(episodeId() ? { episodeId: episodeId() } : {}),
+            record,
+            definition: props.definition,
+          });
+          props.onMessage(
+            saved.created
+              ? 'Результат записан в защищённую карточку.'
+              : (saved.reason ?? 'Результат уже присутствует в карточке пациента.'),
+          );
+        } catch (cause) {
+          props.onMessage(
+            cause instanceof Error
+              ? cause.message
+              : 'Не удалось записать результат в карточку пациента.',
+          );
+          return;
+        }
+      }
+      props.onSaved(record);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const printMaterial = async (): Promise<void> => {
@@ -139,15 +249,40 @@ export function ExternalAssessmentPage(props: {
           пересчитывает нормы этой методики.
         </p>
 
-        <label class="assessment-external-field">
-          <span class="assessment-external-field__label">Пациент / подпись</span>
-          <input
-            class="assessment-external-field__control"
-            value={subjectLabel()}
-            placeholder="Необязательно"
-            onInput={(event) => setSubjectLabel(event.currentTarget.value)}
+        <div class="assessment-toolbar assessment-external-card__patient">
+          <PatientCaseCombobox
+            class="assessment-toolbar__field"
+            profiles={patientProfiles()}
+            patientId={patientId()}
+            subjectLabel={subjectLabel()}
+            unlocked={patientSnapshot() !== undefined && isPatientVaultUnlocked()}
+            onPatientChange={selectPatient}
+            onSubjectLabelChange={setSubjectLabel}
+            onSnapshotChange={(snapshot) => {
+              patientRefreshRequest += 1;
+              setPatientSnapshot(snapshot);
+            }}
           />
-        </label>
+          <Show when={selectedPatient()}>
+            <label class="assessment-toolbar__episode-field">
+              <span class="assessment-toolbar__episode-label">Осмотр — необязательно</span>
+              <select
+                class="assessment-toolbar__episode-input assessment-toolbar__input"
+                value={episodeId()}
+                onChange={(event) => setEpisodeId(event.currentTarget.value)}
+              >
+                <option value="">Отдельное событие</option>
+                <For each={patientEpisodes()}>
+                  {(episode) => (
+                    <option value={episode.id}>
+                      {episode.title} · {new Date(episode.startedAt).toLocaleDateString('ru-RU')}
+                    </option>
+                  )}
+                </For>
+              </select>
+            </label>
+          </Show>
+        </div>
 
         <Show when={(administration()?.variants.length ?? 0) > 1}>
           <label class="assessment-external-field">
@@ -303,10 +438,11 @@ export function ExternalAssessmentPage(props: {
           <Button
             type="button"
             variant="primary"
-            onClick={save}
+            disabled={saving()}
+            onClick={() => void save()}
             icon={<AppGlyph name="check" />}
           >
-            Сохранить результат
+            {saving() ? 'Сохраняем…' : 'Сохранить результат'}
           </Button>
         </div>
       </section>
