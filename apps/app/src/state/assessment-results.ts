@@ -163,13 +163,18 @@ export function createExternalAssessmentRecord(input: {
   readonly values: Readonly<Record<string, ExternalAssessmentValue>>;
   readonly definitionVersion?: string;
 }): ExternalAssessmentRecord {
+  const variantId = input.variantId.trim();
+  if (!variantId) throw new Error('External assessment variant is required.');
+  if (!isExternalAssessmentValues(input.values)) {
+    throw new Error('External assessment values are invalid.');
+  }
   const record: ExternalAssessmentRecord = {
     id: input.id ?? createId(),
     assessmentId: input.assessmentId,
     subjectLabel: input.subjectLabel.trim(),
     createdAt: new Date().toISOString(),
     kind: 'external',
-    variantId: input.variantId,
+    variantId,
     values: { ...input.values },
     ...(input.definitionVersion ? { definitionVersion: input.definitionVersion } : {}),
   };
