@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.newborn-colostrum-volume-per-feed.ru.program2019",
+  "title": "Average colostrum volume consumed per feed in the first days of life",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "unresolved",
+  "verificationStatus": "single-source-visual-table-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "title": "Национальная программа оптимизации вскармливания детей первого года жизни в Российской Федерации",
+    "edition": "4-е издание, переработанное и дополненное",
+    "year": 2019,
+    "table": "3.2. Средний объем потребляемого молозива за 1 кормление в первые дни жизни",
+    "pdfUrl": "https://xn--b1aaisgq1jga.xn--p1ai/Files/RussiaGuid/Programma2019.pdf",
+    "pdfPrintedPage": 39,
+    "citedStudies": ["Dollberg S. et al., 2001", "Davila-Grijalva H. et al., 2017"]
+  },
+  "rows": [
+    {
+      "lifeHours": "0-24",
+      "sourceLabel": "24",
+      "minMlPerFeed": 2,
+      "maxMlPerFeed": 10
+    },
+    {
+      "lifeHours": "24-48",
+      "sourceLabel": "24-48",
+      "minMlPerFeed": 5,
+      "maxMlPerFeed": 15
+    },
+    {
+      "lifeHours": "48-72",
+      "sourceLabel": "48-72",
+      "minMlPerFeed": 15,
+      "maxMlPerFeed": 30
+    },
+    {
+      "lifeHours": "72-96",
+      "sourceLabel": "72-96",
+      "minMlPerFeed": 30,
+      "maxMlPerFeed": 60
+    }
+  ],
+  "unit": "ml_per_feed",
+  "reviewNotes": [
+    "The source describes these as average consumed-colostrum ranges, not a universal prescription.",
+    "The surrounding text says indicated supplemental feeding should not simply exceed these figures and should be adjusted to weight dynamics; this dataset does not encode that sentence as an automatic dosing rule.",
+    "The program separately discusses special supplemental-feeding scenarios and weight loss; those narrative suggestions are not folded into this table.",
+    "No general daily-volume formula was identified in this source during the targeted search.",
+    "Requires independent transcription verification and rights review before publication/runtime use."
+  ]
+}
