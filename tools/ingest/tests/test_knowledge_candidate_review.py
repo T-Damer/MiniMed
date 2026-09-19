@@ -66,7 +66,6 @@ def _source(path: Path) -> None:
         connection.close()
 
 
-
 def _inventory(path: Path) -> None:
     connection = sqlite3.connect(path)
     try:
@@ -89,6 +88,7 @@ def _inventory(path: Path) -> None:
             )
     finally:
         connection.close()
+
 
 def _write_decisions(path: Path, rows: list[dict[str, object]]) -> None:
     path.write_text(
