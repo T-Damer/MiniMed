@@ -248,6 +248,10 @@ def _meaningful_label(candidate_type: str, label: str, source_text: str) -> bool
             return False
     if candidate_type == "severity_grade" and not _SEVERITY_MEANING_PATTERN.search(label):
         return False
+    if candidate_type == "assessment_method" and _GENERIC_ASSESSMENT_METHOD_PATTERN.fullmatch(
+        label.strip()
+    ):
+        return False
     return not (candidate_type == "scale" and normalized in {"шкала", "шкала оценки", "индекс"})
 
 
