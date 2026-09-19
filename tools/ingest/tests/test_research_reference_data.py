@@ -425,3 +425,57 @@ def test_caliper_hematology_expansion_preserves_method_specific_intervals() -> N
         "lower": 0.9,
         "upper": 4.6,
     }
+
+
+def test_pediatric_preventive_exam_schedule_order_211n_preserves_conditionals() -> None:
+    data = _load("pediatric-preventive-exam-schedule-order-211n-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["rightsStatus"] == "official-regulatory-act"
+
+    rows = cast(list[dict[str, object]], data["rows"])
+    assert len(rows) == 31
+    assert [_int(row["order"]) for row in rows] == list(range(1, 32))
+    assert len({str(row["age"]) for row in rows}) == 31
+
+    one_month = rows[1]
+    assert one_month["age"] == "1_month"
+    assert cast(list[object], one_month["studies"]) == [
+        "abdominal_ultrasound_complete",
+        "kidney_ultrasound",
+        "bilateral_hip_ultrasound",
+        "echocardiography",
+        "neurosonography",
+        "ophthalmoscopy_with_mydriasis",
+    ]
+
+    eighteen_months = next(row for row in rows if row["age"] == "18_months")
+    assert cast(list[object], eighteen_months["studies"]) == [
+        "mental_development_risk_screening"
+    ]
+    conditional = cast(list[dict[str, object]], eighteen_months["conditionalSpecialists"])
+    assert conditional == [
+        {
+            "condition": "positive_or_at_risk_mental_development_screen",
+            "specialist": "neurologist",
+        }
+    ]
+
+    six_years = next(row for row in rows if row["age"] == "6_years")
+    conditional_studies = cast(list[dict[str, object]], six_years["conditionalStudies"])
+    assert conditional_studies == [
+        {
+            "condition": "risk_group_for_cholesterol_screening",
+            "study": "cholesterol_express_test_risk_group",
+        }
+    ]
+    sex_specialists = cast(list[dict[str, object]], six_years["conditionalSpecialists"])
+    assert {str(item["condition"]) for item in sex_specialists} == {"sex_female", "sex_male"}
+
+    seventeen_years = rows[-1]
+    assert seventeen_years["age"] == "17_years"
+    assert cast(list[object], seventeen_years["studies"]) == [
+        "complete_blood_count",
+        "urinalysis",
+        "electrocardiography",
+    ]
