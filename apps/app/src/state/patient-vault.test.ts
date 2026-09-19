@@ -390,7 +390,7 @@ describe('patient vault storage modes', () => {
       patientId: created.patientId,
       variantId: 'mmse',
       values: { total_score: 27 },
-      definitionVersion: definition.version,
+      ...(definition.version ? { definitionVersion: definition.version } : {}),
       persist: false,
     });
 
