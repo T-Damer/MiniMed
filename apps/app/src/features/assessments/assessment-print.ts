@@ -224,7 +224,6 @@ export async function shareAssessmentRecord(
   return 'copied';
 }
 
-
 function fileDataUrl(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
