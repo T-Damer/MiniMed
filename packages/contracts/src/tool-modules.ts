@@ -146,82 +146,85 @@ export const ExternalAssessmentAdministrationSchema = z
     }
   });
 
-export const AssessmentDefinitionSchema = z.object({
-  schemaVersion: z.literal(2),
-  id: z.string().min(1),
-  slug: z.string().min(1),
-  title: z.string().min(1),
-  shortTitle: z.string().min(1),
-  aliases: z.array(z.string().min(1)),
-  bankId: z.string().min(1),
-  bankLabel: z.string().min(1),
-  category: z.string().min(1),
-  description: z.string().min(1),
-  estimatedMinutes: z.number().int().positive(),
-  audience: z.string().min(1),
-  responseOptions: z.array(
-    z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }),
-  ),
-  scales: z.array(
-    z.object({
-      id: z.string().min(1),
-      label: z.string().min(1),
-      shortLabel: z.string().min(1),
-      description: z.string().min(1),
+export const AssessmentDefinitionSchema = z
+  .object({
+    schemaVersion: z.literal(2),
+    id: z.string().min(1),
+    slug: z.string().min(1),
+    title: z.string().min(1),
+    shortTitle: z.string().min(1),
+    aliases: z.array(z.string().min(1)),
+    bankId: z.string().min(1),
+    bankLabel: z.string().min(1),
+    category: z.string().min(1),
+    description: z.string().min(1),
+    estimatedMinutes: z.number().int().positive(),
+    audience: z.string().min(1),
+    responseOptions: z.array(
+      z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }),
+    ),
+    scales: z.array(
+      z.object({
+        id: z.string().min(1),
+        label: z.string().min(1),
+        shortLabel: z.string().min(1),
+        description: z.string().min(1),
+      }),
+    ),
+    externalAdministration: ExternalAssessmentAdministrationSchema.optional(),
+    questions: z.array(
+      z.object({
+        id: z.string().min(1),
+        prompt: z.string().min(1),
+        scaleId: z.string().min(1),
+        reverse: z.literal(true).optional(),
+        responseOptions: z
+          .array(z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }))
+          .optional(),
+      }),
+    ),
+    disclaimer: z.string().min(1),
+    evidenceNote: z.string().min(1),
+    interpretations: z.array(AssessmentInterpretationSchema).optional(),
+    visuals: z.array(CalculatorVisualSchema).default([]),
+    evaluation: ToolEvaluationSchema,
+    observationMappings: z.array(ObservationMappingSchema).default([]),
+    license: z.object({
+      kind: z.enum([
+        'project-original',
+        'public-domain-derived',
+        'third-party-attributed',
+        'third-party-restricted',
+      ]),
+      notice: z.string().min(1),
+      sourceUrl: HttpUrlSchema.optional(),
     }),
-  ),
-  externalAdministration: ExternalAssessmentAdministrationSchema.optional(),
-  questions: z.array(
-    z.object({
-      id: z.string().min(1),
-      prompt: z.string().min(1),
-      scaleId: z.string().min(1),
-      reverse: z.literal(true).optional(),
-      responseOptions: z
-        .array(z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }))
-        .optional(),
-    }),
-  ),
-  disclaimer: z.string().min(1),
-  evidenceNote: z.string().min(1),
-  interpretations: z.array(AssessmentInterpretationSchema).optional(),
-  visuals: z.array(CalculatorVisualSchema).default([]),
-  evaluation: ToolEvaluationSchema,
-  observationMappings: z.array(ObservationMappingSchema).default([]),
-  license: z.object({
-    kind: z.enum([
-      'project-original',
-      'public-domain-derived',
-      'third-party-attributed',
-      'third-party-restricted',
-    ]),
-    notice: z.string().min(1),
-    sourceUrl: HttpUrlSchema.optional(),
-  }),
-}).superRefine((definition, context) => {
-  if (!definition.externalAdministration) return;
-  if (definition.questions.length > 0) {
-    context.addIssue({
-      code: 'custom',
-      path: ['questions'],
-      message: 'external assessments must not bundle questionnaire items',
-    });
-  }
-  if (definition.responseOptions.length > 0 || definition.scales.length > 0) {
-    context.addIssue({
-      code: 'custom',
-      path: ['externalAdministration'],
-      message: 'external assessments record schema-declared result fields, not questionnaire scales',
-    });
-  }
-  if (definition.evaluation.status === 'verdict') {
-    context.addIssue({
-      code: 'custom',
-      path: ['evaluation', 'status'],
-      message: 'external assessment automated verdicts are not supported',
-    });
-  }
-});
+  })
+  .superRefine((definition, context) => {
+    if (!definition.externalAdministration) return;
+    if (definition.questions.length > 0) {
+      context.addIssue({
+        code: 'custom',
+        path: ['questions'],
+        message: 'external assessments must not bundle questionnaire items',
+      });
+    }
+    if (definition.responseOptions.length > 0 || definition.scales.length > 0) {
+      context.addIssue({
+        code: 'custom',
+        path: ['externalAdministration'],
+        message:
+          'external assessments record schema-declared result fields, not questionnaire scales',
+      });
+    }
+    if (definition.evaluation.status === 'verdict') {
+      context.addIssue({
+        code: 'custom',
+        path: ['evaluation', 'status'],
+        message: 'external assessment automated verdicts are not supported',
+      });
+    }
+  });
 
 export const ToolSourceLinkSchema = z.object({
   id: z.string().min(1),
