@@ -236,7 +236,7 @@ describe('assessment scoring', () => {
 
 
   it('loads cognitive external families and formats results without reproducing test items', async () => {
-    const records = loadToolModuleRecords(['content/tool-modules/cognitive-assessment.json']);
+    const records = loadToolModuleRecords(['content/tool-modules/drafts/cognitive-assessment.json']);
     expect(records.filter((record) => record.kind === 'assessment')).toHaveLength(3);
     for (const record of records) {
       if (record.kind === 'assessment') registerDownloadedAssessment(record);
