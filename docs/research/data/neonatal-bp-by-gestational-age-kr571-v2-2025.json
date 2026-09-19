@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.neonatal-bp-by-gestational-age.ru.kr571-v2.2025",
+  "title": "Neonatal blood pressure percentiles by gestational age",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "unresolved",
+  "verificationStatus": "single-source-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "recommendationTitle": "Артериальная гипертензия у детей",
+    "recommendationId": "571",
+    "recommendationVersion": 2,
+    "recommendationYear": 2025,
+    "tableNumber": 1,
+    "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-1/",
+    "underlyingCitation": "Dionne J. et al. Hypertension in infancy: diagnosis, management and outcome. Pediatric Nephrology. 2012;27(1):17-32."
+  },
+  "encoding": {
+    "percentiles": [50, 95, 99],
+    "cell": "[systolicMmHg, diastolicMmHg, meanArterialPressureMmHg]",
+    "row": "[gestationalAgeWeeks, p50, p95, p99]"
+  },
+  "rows": [
+    [
+      44,
+      [88, 50, 63],
+      [105, 68, 80],
+      [110, 73, 85]
+    ],
+    [
+      42,
+      [85, 50, 62],
+      [98, 65, 76],
+      [102, 70, 81]
+    ],
+    [
+      40,
+      [80, 50, 60],
+      [95, 65, 75],
+      [100, 70, 80]
+    ],
+    [
+      38,
+      [77, 50, 59],
+      [92, 65, 74],
+      [97, 70, 79]
+    ],
+    [
+      36,
+      [72, 50, 57],
+      [87, 65, 72],
+      [92, 70, 77]
+    ],
+    [
+      34,
+      [70, 40, 50],
+      [85, 55, 65],
+      [90, 60, 70]
+    ],
+    [
+      32,
+      [68, 40, 49],
+      [83, 55, 64],
+      [88, 60, 69]
+    ],
+    [
+      30,
+      [65, 40, 48],
+      [80, 55, 63],
+      [85, 60, 68]
+    ],
+    [
+      28,
+      [60, 38, 45],
+      [75, 50, 58],
+      [80, 54, 63]
+    ],
+    [
+      26,
+      [55, 30, 38],
+      [72, 50, 57],
+      [77, 56, 63]
+    ]
+  ],
+  "automatedChecks": {
+    "rowCount": 10,
+    "gestationalAgeWeeks": [44, 42, 40, 38, 36, 34, 32, 30, 28, 26],
+    "strictPercentileOrderingWithinRow": true
+  },
+  "reviewNotes": [
+    "Values are transcribed from Table 1 of the current recommendation mirror.",
+    "Gestational-age ordering follows the source table (44 down to 26 weeks).",
+    "Do not extrapolate between gestational ages or convert this table into a diagnosis without an explicit reviewed rule.",
+    "Requires independent value verification and redistribution-rights review before runtime/publication use."
+  ]
+}
