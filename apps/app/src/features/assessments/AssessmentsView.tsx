@@ -15,7 +15,6 @@ import { AssessmentMissingPage } from '@/features/assessments/AssessmentMissingP
 import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQuestionnairePage';
 import { AssessmentResultPage } from '@/features/assessments/AssessmentResultPage';
 import { AssessmentSpecialtyIndexPage } from '@/features/assessments/AssessmentSpecialtyIndexPage';
-import { ExternalAssessmentPage } from '@/features/assessments/ExternalAssessmentPage';
 import {
   type AssessmentCatalogEntry,
   assessmentsInSpecialty,
@@ -62,6 +61,7 @@ import type {
   AssessmentDefinition,
   AssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { ExternalAssessmentPage } from '@/features/assessments/ExternalAssessmentPage';
 import { UserQuestionnaireEditorPage } from '@/features/assessments/UserQuestionnaireEditorPage';
 import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
