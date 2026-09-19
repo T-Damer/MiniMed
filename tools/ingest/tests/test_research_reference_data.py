@@ -162,3 +162,46 @@ def test_pediatric_lipid_research_dataset_keeps_missing_operators_explicit() -> 
     target_operator = cast(dict[str, object], target["operatorStatus"])
     assert target["mmolL"] == "1.16"
     assert target_operator["mmolL"] == "missing-in-rendered-source"
+
+
+def test_neonatal_bp_research_dataset_shape_and_ordering() -> None:
+    data = _load("neonatal-bp-by-gestational-age-kr571-v2-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    rows = _rows(data, "rows")
+    assert len(rows) == 10
+    assert [int(row[0]) for row in rows] == [44, 42, 40, 38, 36, 34, 32, 30, 28, 26]
+
+    for row in rows:
+        assert len(row) == 4
+        percentiles = row[1:]
+        assert all(isinstance(cell, list) and len(cell) == 3 for cell in percentiles)
+        for component in range(3):
+            values = [int(cast(list[object], cell)[component]) for cell in percentiles]
+            assert values[0] < values[1] < values[2]
+
+
+def test_infant_one_year_bp_research_dataset_shape_and_ordering() -> None:
+    data = _load("infant-bp-age-1-year-kr571-v2-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    for sex in ("boys", "girls"):
+        rows = _rows(data, "rows", sex)
+        assert [int(row[0]) for row in rows] == [50, 90, 95, 99]
+
+        for row in rows:
+            assert len(row) == 3
+            systolic = [int(value) for value in cast(list[object], row[1])]
+            diastolic = [int(value) for value in cast(list[object], row[2])]
+            assert len(systolic) == 7
+            assert len(diastolic) == 7
+            assert systolic == sorted(systolic)
+            assert diastolic == sorted(diastolic)
+
+        for column in range(7):
+            systolic_values = [int(cast(list[object], row[1])[column]) for row in rows]
+            diastolic_values = [int(cast(list[object], row[2])[column]) for row in rows]
+            assert systolic_values == sorted(systolic_values)
+            assert diastolic_values == sorted(diastolic_values)
