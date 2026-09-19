@@ -477,3 +477,60 @@ def test_pediatric_preventive_exam_schedule_order_211n_preserves_conditionals() 
         "urinalysis",
         "electrocardiography",
     ]
+
+
+def test_neonatal_jaundice_treatment_thresholds_kr916_are_ordered() -> None:
+    data = _load("neonatal-jaundice-treatment-thresholds-kr916-v1-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    age_bins = cast(list[object], data["postnatalAgeBins"])
+    assert [str(value) for value in age_bins] == [
+        "<24h",
+        "24-48h",
+        "48-72h",
+        "72-96h",
+        "96-120h",
+        ">120h",
+    ]
+
+    thresholds = cast(dict[str, object], data["thresholds"])
+    standard = [_int(value) for value in cast(list[object], thresholds["standardPhototherapy"])]
+    intensive = [_int(value) for value in cast(list[object], thresholds["intensivePhototherapy"])]
+    exchange = [_int(value) for value in cast(list[object], thresholds["exchangeTransfusion"])]
+
+    assert standard == [171, 205, 239, 274, 291, 308]
+    assert intensive == [188, 274, 308, 342, 376, 376]
+    assert exchange == [205, 308, 342, 376, 428, 428]
+    assert all(
+        standard[index] <= intensive[index] <= exchange[index]
+        for index in range(len(age_bins))
+    )
+
+
+def test_preterm_hyperbilirubinemia_treatment_thresholds_kr917_are_complete() -> None:
+    data = _load("preterm-hyperbilirubinemia-treatment-thresholds-kr917-v1-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    bands = cast(list[object], data["gestationalOrCorrectedAgeBandsWeeks"])
+    assert [str(value) for value in bands] == ["22-25", "26-27", "28-29", "30-31", "32-34"]
+
+    thresholds = cast(dict[str, object], data["thresholds"])
+    standard = cast(list[list[object]], thresholds["standardPhototherapy"])
+    intensive = cast(list[list[object]], thresholds["intensivePhototherapy"])
+    exchange = cast(list[list[object]], thresholds["exchangeTransfusion"])
+    assert len(standard) == len(intensive) == len(exchange) == 5
+
+    for row_index in range(5):
+        assert len(standard[row_index]) == 6
+        assert len(intensive[row_index]) == 6
+        assert len(exchange[row_index]) == 6
+        for age_index in range(6):
+            standard_value = _int(standard[row_index][age_index])
+            intensive_value = _int(intensive[row_index][age_index])
+            exchange_value = _int(exchange[row_index][age_index])
+            assert standard_value <= intensive_value <= exchange_value
+
+    assert [_int(value) for value in standard[0]] == [86, 86, 86, 103, 120, 137]
+    assert [_int(value) for value in exchange[-1]] == [171, 274, 308, 342, 376, 376]
