@@ -4,6 +4,7 @@ The scanner never creates knowledge entities or claims clinical equivalence. It 
 structural heuristics with exact names from already reviewed MiniMed tools/knowledge and records exact
 source locators for later human review.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -238,7 +239,9 @@ def _context_kind(section_title: str, text: str) -> str:
         and _TOC_PATTERN.search(text[:500])
     ):
         return "toc"
-    if _REFERENCE_START_PATTERN.search(section_title) and _REFERENCE_MARKER_PATTERN.search(combined):
+    if _REFERENCE_START_PATTERN.search(section_title) and _REFERENCE_MARKER_PATTERN.search(
+        combined
+    ):
         return "bibliography"
     return "content"
 
