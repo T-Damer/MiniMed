@@ -16,7 +16,7 @@ const TOOL_MODULES = [
   'content/tool-modules/pediatrics.json',
   'content/tool-modules/obstetrics-gynecology.json',
   'content/tool-modules/psychology.json',
-  'content/tool-modules/cognitive-assessment.json',
+  'content/tool-modules/drafts/cognitive-assessment.json',
   'content/tool-modules/pediatrics-growth.json',
 ] as const;
 
