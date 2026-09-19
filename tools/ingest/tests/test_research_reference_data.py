@@ -98,3 +98,69 @@ def test_pediatric_abpm_research_dataset_preserves_known_source_anomaly() -> Non
             "upperValue": 122,
         }
     ]
+
+
+def test_pediatric_waist_research_dataset_shape_and_ordering() -> None:
+    data = _load("pediatric-waist-percentiles-kr571-v2-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    rows = _rows(data, "rows")
+    assert len(rows) == 17
+    assert [int(row[0]) for row in rows] == list(range(2, 19))
+    assert all(len(row) == 11 for row in rows)
+
+    for row in rows:
+        boys = [float(value) for value in row[1:6]]
+        girls = [float(value) for value in row[6:11]]
+        assert boys == sorted(boys)
+        assert girls == sorted(girls)
+
+    for column in range(1, 11):
+        values = [float(row[column]) for row in rows]
+        assert values == sorted(values)
+
+
+def test_pediatric_lv_mass_research_dataset_percentiles_stay_inside_source_range() -> None:
+    data = _load("pediatric-lv-mass-percentiles-kr571-v2-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    bands = cast(list[dict[str, object]], data["bands"])
+    assert len(bands) == 10
+
+    for band in bands:
+        for sex in ("boys", "girls"):
+            sex_data = cast(dict[str, object], band[sex])
+            assert int(sex_data["n"]) > 0
+            for metric in ("mass", "index"):
+                values = cast(list[object], sex_data[metric])
+                numeric = [float(value) for value in values]
+                assert len(numeric) == 8
+                percentiles = numeric[:6]
+                minimum, maximum = numeric[6:]
+                assert percentiles == sorted(percentiles)
+                assert minimum <= percentiles[0]
+                assert percentiles[-1] <= maximum
+
+
+def test_pediatric_lipid_research_dataset_keeps_missing_operators_explicit() -> None:
+    data = _load("pediatric-lipid-reference-kr571-v2-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["verificationStatus"] == (
+        "single-source-html-cell-transcription-with-operator-gaps"
+    )
+
+    rows = cast(list[dict[str, object]], data["rows"])
+    assert len(rows) == 6
+    total_cholesterol = rows[0]
+    high = cast(dict[str, object], total_cholesterol["high"])
+    assert high["mmolL"] == "5.2"
+    assert high["operatorStatus"] == "missing-in-rendered-source"
+
+    hdl = rows[-1]
+    target = cast(dict[str, object], hdl["target"])
+    target_operator = cast(dict[str, object], target["operatorStatus"])
+    assert target["mmolL"] == "1.16"
+    assert target_operator["mmolL"] == "missing-in-rendered-source"
