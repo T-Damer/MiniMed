@@ -450,9 +450,7 @@ def test_pediatric_preventive_exam_schedule_order_211n_preserves_conditionals() 
     ]
 
     eighteen_months = next(row for row in rows if row["age"] == "18_months")
-    assert cast(list[object], eighteen_months["studies"]) == [
-        "mental_development_risk_screening"
-    ]
+    assert cast(list[object], eighteen_months["studies"]) == ["mental_development_risk_screening"]
     conditional = cast(list[dict[str, object]], eighteen_months["conditionalSpecialists"])
     assert conditional == [
         {
