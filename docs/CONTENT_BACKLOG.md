@@ -83,7 +83,12 @@
   `docs/research/data/infant-complementary-feeding-scheme-program2019.json`. Артефакт остаётся
   `review-required` / `publicationState: blocked`: пустые ячейки не интерпретируются как правила,
   сроки не превращаются в автоматическое назначение, права на публикацию полной таблицы не проверены.
-- возрастные лабораторные референсы;
+- возрастные лабораторные референсы — 🧪 existing pilot + source expansion: bundled reference
+  уже содержит Hb/RBC/WBC/PLT CALIPER и выбранную биохимию/ликвор; 2026-09-19 дополнительно
+  извлечены 14 групп DxH 900 интервалов (Hct, MCV/MCH/MCHC/RDW, MPV, лейкоформула,
+  ретикулоциты) в `docs/research/data/caliper-dxh900-pediatric-hematology-expansion-2020.json`.
+  Расширение остаётся blocked/method-specific, лабораторный интервал выполняющего анализа имеет
+  приоритет. Сводка: `docs/research/pediatric-laboratory-source-extraction-2026-09.md`.
 - оценка групп здоровья и профилактических осмотров;
 - детские нормативы артериального давления.
 
