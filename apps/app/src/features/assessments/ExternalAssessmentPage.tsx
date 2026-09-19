@@ -332,6 +332,7 @@ export function ExternalAssessmentPage(props: {
                         fallback={
                           field.kind === 'text' && field.multiline ? (
                             <textarea
+                              id={`external-assessment-${field.id}`}
                               class="assessment-external-field__control assessment-external-field__control--textarea"
                               id={`external-assessment-${field.id}`}
                               value={values()[field.id] ?? ''}
@@ -345,6 +346,7 @@ export function ExternalAssessmentPage(props: {
                             />
                           ) : (
                             <input
+                              id={`external-assessment-${field.id}`}
                               class="assessment-external-field__control"
                               type={field.kind === 'number' ? 'number' : 'text'}
                               id={`external-assessment-${field.id}`}
@@ -365,6 +367,7 @@ export function ExternalAssessmentPage(props: {
                       >
                         {(selectField) => (
                           <select
+                            id={`external-assessment-${selectField().id}`}
                             class="assessment-external-field__control"
                             value={values()[selectField().id] ?? ''}
                             id={`external-assessment-${selectField().id}`}
