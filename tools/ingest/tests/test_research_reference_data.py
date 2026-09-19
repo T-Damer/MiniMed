@@ -267,3 +267,28 @@ def test_newborn_colostrum_volume_research_dataset_ranges_are_ordered() -> None:
     assert all(left <= right for left, right in zip(minimums, maximums, strict=True))
     assert minimums == sorted(minimums)
     assert maximums == sorted(maximums)
+
+
+def test_infant_neuropsych_development_milestones_cover_first_year_without_interpretation() -> None:
+    data = _load("infant-neuropsych-development-milestones-minzdrav-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["verificationStatus"] == "visual-table-review-source-context-limited"
+
+    ages = cast(list[dict[str, object]], data["ages"])
+    assert [int(row["ageMonths"]) for row in ages] == list(range(1, 13))
+
+    domains = cast(dict[str, object], data["domains"])
+    assert set(domains) == {"Az", "As", "E", "Dr", "Do", "Rp", "Ra", "N", "S"}
+
+    for row in ages:
+        items = cast(list[list[object]], row["items"])
+        assert items
+        for domain, semantic_id in items:
+            assert str(domain) in domains
+            assert str(semantic_id)
+            assert " " not in str(semantic_id)
+
+    assert sum(len(cast(list[object], row["items"])) for row in ages) == 69
+    assert "interpretation" not in data
+    assert "cutoff" not in data
