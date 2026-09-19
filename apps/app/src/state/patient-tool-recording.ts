@@ -2,6 +2,7 @@ import type { CalculatorSchema } from '@localmed/contracts';
 import type {
   AssessmentDefinition,
   CompletedAssessmentRecord,
+  ExternalAssessmentRecord,
 } from '@/features/assessments/assessment-types';
 import type { StoredCalculationResult } from '@/features/calculators/clinical-calculations';
 import {
@@ -87,6 +88,35 @@ function assessmentSourceLinks(definition: AssessmentDefinition): readonly Patie
     ...(source.documentId ? { documentId: source.documentId } : {}),
     ...(source.url ? { url: source.url } : {}),
   }));
+}
+
+function externalAssessmentSummary(
+  definition: AssessmentDefinition,
+  record: ExternalAssessmentRecord,
+): { readonly title: string; readonly text: string } {
+  const variant = definition.externalAdministration?.variants.find(
+    (candidate) => candidate.id === record.variantId,
+  );
+  const title = variant ? `${definition.title} — ${variant.shortLabel}` : definition.title;
+  if (!variant) {
+    return {
+      title,
+      text: Object.entries(record.values)
+        .map(([key, value]) => `${key}: ${String(value)}`)
+        .join('\n'),
+    };
+  }
+  const lines = [`Вариант: ${variant.label}`];
+  for (const field of variant.resultFields) {
+    const value = record.values[field.id];
+    if (value === undefined) continue;
+    const rendered =
+      field.kind === 'select'
+        ? (field.options.find((option) => option.value === String(value))?.label ?? String(value))
+        : String(value);
+    lines.push(`${field.label}: ${rendered}`);
+  }
+  return { title, text: lines.join('\n') };
 }
 
 function normalizedCalculatorInputs(
@@ -360,6 +390,51 @@ export async function recordAssessmentResultForPatient(input: {
         contextSnapshot,
       },
       observations,
+    });
+    if (outcome.created) await writePatientVault(outcome.snapshot);
+    return { snapshot: outcome.snapshot, event: outcome.event, created: outcome.created };
+  });
+}
+
+
+export async function recordExternalAssessmentResultForPatient(input: {
+  readonly patientId: string;
+  readonly episodeId?: string;
+  readonly record: ExternalAssessmentRecord;
+  readonly definition: AssessmentDefinition;
+}): Promise<PatientToolRecordOutcome> {
+  return withPatientVaultMutation(async () => {
+    if (!isPatientVaultUnlocked())
+      throw new Error('Разблокируйте карточки пациентов перед записью результата.');
+    const snapshot = await readPatientVault();
+    const profile = profileFor(snapshot, input.patientId);
+    const episodeId = episodeFor(snapshot, input.patientId, input.episodeId);
+    const contextSnapshot =
+      input.record.contextSnapshot ??
+      patientContextSnapshot(profile, snapshot, input.record.createdAt);
+    const sourceLinks = assessmentSourceLinks(input.definition);
+    const rendered = externalAssessmentSummary(input.definition, input.record);
+    const definitionVersion =
+      input.record.definitionVersion ??
+      input.definition.version ??
+      String(input.definition.schemaVersion ?? 2);
+    const outcome = appendToolResultIdempotently(snapshot, {
+      patientId: input.patientId,
+      ...(episodeId ? { episodeId } : {}),
+      occurredAt: input.record.createdAt,
+      title: rendered.title,
+      ...(rendered.text ? { text: rendered.text } : {}),
+      provenance: {
+        toolId: input.definition.id,
+        toolVersion: input.definition.version ?? definitionVersion,
+        definitionVersion,
+        sourceIds: sourceLinks.map((source) => source.id),
+        sourceLinks,
+        idempotencyKey: input.record.id,
+        normalizedInputs: input.record.values,
+        contextSnapshot,
+      },
+      observations: [],
     });
     if (outcome.created) await writePatientVault(outcome.snapshot);
     return { snapshot: outcome.snapshot, event: outcome.event, created: outcome.created };
