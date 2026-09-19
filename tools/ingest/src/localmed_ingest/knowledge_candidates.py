@@ -1,8 +1,8 @@
 """Extract review-only clinical knowledge candidates from source-preserving SQLite documents.
 
-The scanner never creates knowledge entities or claims clinical equivalence. It combines conservative
-structural heuristics with exact names from already reviewed MiniMed tools/knowledge and records exact
-source locators for later human review.
+The scanner never creates knowledge entities or claims clinical equivalence. It combines
+conservative structural heuristics with exact names from already reviewed MiniMed tools/knowledge
+and records exact source locators for later human review.
 """
 
 from __future__ import annotations
@@ -211,9 +211,9 @@ def _meaningful_label(candidate_type: str, label: str, source_text: str) -> bool
             return False
     if candidate_type == "severity_grade" and not _SEVERITY_MEANING_PATTERN.search(label):
         return False
-    if candidate_type == "scale" and normalized in {"шкала", "шкала оценки", "индекс"}:
-        return False
-    return True
+    return not (
+        candidate_type == "scale" and normalized in {"шкала", "шкала оценки", "индекс"}
+    )
 
 
 def _candidate_label(candidate_type: str, text: str) -> str | None:
