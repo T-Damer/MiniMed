@@ -50,13 +50,43 @@ These are stored as a descriptive neonatal reference, not an automatic supplemen
 The surrounding text discusses special supplementation scenarios separately; those narrative
 suggestions are intentionally not converted into a dosing engine.
 
-## Negative extraction finding
+## Energy/macronutrient requirements
 
-A targeted search of this 2019 program did not identify a general “volumetric method” / universal
-daily-volume formula such as a simple fraction of body mass. MiniMed therefore must not cite this
-program as authority for such a formula.
+Structured artifact:
 
-If a daily-volume calculator is added, it needs a separate exact source and population contract.
+`docs/research/data/infant-energy-macronutrient-needs-program2019.json`
+
+Appendix 1 (printed page 184) gives first-year requirements per kg body weight:
+
+- 0–3 months: 115 kcal/kg; protein 2.2 g/kg; fat 6.5 g/kg; carbohydrate 13 g/kg;
+- 4–6 months: 115 kcal/kg; protein 2.6 g/kg; fat 6.0 g/kg; carbohydrate 13 g/kg;
+- 7–12 months: 110 kcal/kg; protein 2.9 g/kg; fat 5.5 g/kg; carbohydrate 13 g/kg.
+
+The source also separates animal protein and the vegetable component of fat; those fields are retained
+in the dataset. The 1–3 year absolute daily row is intentionally outside this first-year artifact.
+
+## Formula-volume caloric method
+
+A deeper source pass corrected the earlier negative finding. Chapter 4 (printed page 56) explicitly
+states that adapted-formula volume is calculated on **actual body weight by the caloric method** at
+115 kcal/kg during the first six months.
+
+Structured source contract:
+
+`docs/research/data/infant-formula-volume-caloric-method-program2019.json`
+
+The same passage gives daily-volume ceilings:
+
+- 3 months: 850 ml/day;
+- 4 months: 900 ml/day;
+- source wording “after 5 months”: 1000 ml/day.
+
+MiniMed still must **not** convert this into a universal ml/kg shortcut. Turning kcal/day into ml/day
+requires the prepared formula's energy density, and the wording “after 5 months” needs an explicit
+boundary decision. The source also defers underweight/overweight cases to separate chapters.
+
+Therefore the earlier statement “no daily-volume method was found” is superseded. What remains
+unsupported by this source is a simple body-mass fraction rule such as “1/5 of body weight.”
 
 ## Next feeding slices
 
