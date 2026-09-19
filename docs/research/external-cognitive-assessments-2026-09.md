@@ -140,6 +140,13 @@ A separate local schema smoke confirmed unique variant/result-field IDs, no bund
 for external methods, no external automated verdicts, Raven variants `cpm/spm/apm`, and MMSE
 `total_score` constrained to the declared 0–30 integer range.
 
+The checked-in Python regression was also executed against the local source snapshot:
+
+```text
+pytest -q tools/ingest/tests/test_tool_modules.py -k cognitive_external
+1 passed
+```
+
 This measurement is local build evidence, not a published release artifact.
 
 ## Remaining gates
