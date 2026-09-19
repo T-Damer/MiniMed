@@ -330,3 +330,26 @@ def test_infant_formula_volume_caloric_method_keeps_source_boundaries_explicit()
     assert boundary["formulaEnergyDensityRequired"] is True
     assert boundary["directVolumeFormulaAbsent"] is True
     assert boundary["equationStatus"] == "derived-implementation-contract-requires-review"
+
+
+def test_infant_micronutrient_needs_cover_same_age_bands_and_units() -> None:
+    data = _load("infant-micronutrient-needs-program2019.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["ageBandsMonths"] == ["0-3", "4-6", "7-12"]
+
+    minerals = cast(dict[str, object], data["minerals"])
+    mineral_rows = cast(list[dict[str, object]], minerals["rows"])
+    assert [row["ageMonths"] for row in mineral_rows] == ["0-3", "4-6", "7-12"]
+    assert [int(row["iron"]) for row in mineral_rows] == [4, 7, 10]
+    assert [float(row["iodine"]) for row in mineral_rows] == [0.04, 0.04, 0.05]
+
+    vitamins = cast(dict[str, object], data["vitamins"])
+    vitamin_rows = cast(list[dict[str, object]], vitamins["rows"])
+    assert [row["ageMonths"] for row in vitamin_rows] == ["0-3", "4-6", "7-12"]
+    assert [int(row["vitaminA"]) for row in vitamin_rows] == [400, 400, 400]
+    assert [int(row["vitaminD"]) for row in vitamin_rows] == [10, 10, 10]
+    assert [int(row["folate"]) for row in vitamin_rows] == [40, 40, 60]
+
+    mineral_units = cast(dict[str, object], minerals["units"])
+    assert mineral_units["iodine"] == "mg_per_day_as_source"
