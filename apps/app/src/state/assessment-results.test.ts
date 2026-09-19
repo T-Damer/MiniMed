@@ -212,5 +212,4 @@ describe('assessment result persistence', () => {
 
     expect(storage.has(ASSESSMENT_RESULTS_KEY)).toBe(false);
   });
-
 });
