@@ -508,6 +508,8 @@ def scan_candidates(
                 heading_types = _heading_candidate_types(section_title)
                 for candidate_type in heading_types:
                     label = " ".join(section_title.split())[:180]
+                    if candidate_type == "assessment_method":
+                        label = _candidate_label(candidate_type, section_title) or label
                     if not _meaningful_label(candidate_type, label, text):
                         continue
                     candidate = _build_candidate(
