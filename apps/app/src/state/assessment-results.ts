@@ -161,7 +161,12 @@ export function createExternalAssessmentRecord(input: {
   readonly subjectLabel: string;
   readonly variantId: string;
   readonly values: Readonly<Record<string, ExternalAssessmentValue>>;
+  readonly patientId?: string;
+  readonly episodeId?: string;
   readonly definitionVersion?: string;
+  readonly contextSnapshot?: Readonly<Record<string, string | number>>;
+  /** Patient-bound results live in the patient vault, never in ordinary localStorage. */
+  readonly persist?: boolean;
 }): ExternalAssessmentRecord {
   const variantId = input.variantId.trim();
   if (!variantId) throw new Error('External assessment variant is required.');
@@ -176,9 +181,14 @@ export function createExternalAssessmentRecord(input: {
     kind: 'external',
     variantId,
     values: { ...input.values },
+    ...(input.patientId ? { patientId: input.patientId } : {}),
+    ...(input.episodeId ? { episodeId: input.episodeId } : {}),
     ...(input.definitionVersion ? { definitionVersion: input.definitionVersion } : {}),
+    ...(input.contextSnapshot ? { contextSnapshot: input.contextSnapshot } : {}),
   };
-  persist([record, ...loadAssessmentRecords().filter((candidate) => candidate.id !== record.id)]);
+  if (input.persist !== false && !input.patientId) {
+    persist([record, ...loadAssessmentRecords().filter((candidate) => candidate.id !== record.id)]);
+  }
   return record;
 }
 
