@@ -1,9 +1,10 @@
 """Extract review-only clinical knowledge candidates from source-preserving SQLite documents.
 
-The scanner never creates knowledge entities or claims clinical equivalence. It combines conservative
-structural heuristics with exact names from already reviewed MiniMed tools/knowledge and records exact
-source locators for later human review.
+The scanner never creates knowledge entities or claims clinical equivalence. It combines
+conservative structural heuristics with exact names from already reviewed MiniMed tools/knowledge
+and records exact source locators for later human review.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,7 +23,14 @@ MAX_SOURCE_TEXT = 1200
 MAX_CANDIDATES = 100_000
 
 _ALLOWED_TYPES = frozenset(
-    {"scale", "questionnaire", "criterion_set", "classification", "severity_grade"}
+    {
+        "scale",
+        "questionnaire",
+        "assessment_method",
+        "criterion_set",
+        "classification",
+        "severity_grade",
+    }
 )
 _EXCLUSIONS = re.compile(
     r"(?:критери[ия]\s+качества|оценк[аи]\s+качества\s+медицин|"
@@ -61,6 +69,17 @@ _SEVERITY_MEANING_PATTERN = re.compile(
     r"(?:тяжест|заболеван|процесс|недостаточност|дыхательн\w*\s+недостаточност)",
     re.IGNORECASE,
 )
+_GENERIC_ASSESSMENT_METHOD_PATTERN = re.compile(
+    r"^(?:приложение\s+[а-яa-z0-9.\-]+\.?\s*)?"
+    r"(?:(?:диагностические|психологические|когнитивные|нейропсихологические)\s+)?"
+    r"(?:тесты?|методики?|батареи?)$",
+    re.IGNORECASE,
+)
+_SCALE_PROSE_TAIL_PATTERN = re.compile(
+    r"\s+(?:использ\w*|примен\w*|позвол\w*|предназнач\w*|служ\w*|"
+    r"оценива\w*|рассчитыва\w*|определя\w*)\b",
+    re.IGNORECASE,
+)
 
 _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("questionnaire", re.compile(r"\b(?:опросник|анкета|questionnaire)\b", re.IGNORECASE)),
@@ -71,6 +90,14 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
         re.compile(
             r"\b(?:степен(?:ь|и|ей)|стади(?:я|и|й))\b[^\n]{0,80}"
             r"\b(?:тяжест|заболеван|процесс|недостаточност)",
+            re.IGNORECASE,
+        ),
+    ),
+    (
+        "assessment_method",
+        re.compile(
+            r"\b(?:тест(?:а|ы|ов|ом|е)?|батаре(?:я|и|ю|ей)|"
+            r"методик(?:а|и|у|ой)|test|battery)\b",
             re.IGNORECASE,
         ),
     ),
@@ -88,6 +115,13 @@ _NAME_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "questionnaire": (
         re.compile(r"(?P<name>опросник\s+[^,.;:\n()]{2,90})", re.IGNORECASE),
         re.compile(r"(?P<name>анкета\s+[^,.;:\n()]{2,90})", re.IGNORECASE),
+    ),
+    "assessment_method": (
+        re.compile(
+            r"(?P<name>(?:тест|батарея|методика)\s+[^,.;:\n()]{2,90})",
+            re.IGNORECASE,
+        ),
+        re.compile(r"(?P<name>[^,.;:\n()]{2,80}\s+(?:test|battery))", re.IGNORECASE),
     ),
     "criterion_set": (
         re.compile(
@@ -196,6 +230,10 @@ def _heading_candidate_types(text: str) -> tuple[str, ...]:
         match = pattern.search(text)
         if match and match.start() <= 42:
             result.append(candidate_type)
+    # A heading such as "Классификация по степени тяжести" names the
+    # classification itself; "степени тяжести" is not a second entity.
+    if "classification" in result and "severity_grade" in result:
+        result.remove("severity_grade")
     return tuple(result)
 
 
@@ -210,16 +248,27 @@ def _meaningful_label(candidate_type: str, label: str, source_text: str) -> bool
             return False
     if candidate_type == "severity_grade" and not _SEVERITY_MEANING_PATTERN.search(label):
         return False
-    if candidate_type == "scale" and normalized in {"шкала", "шкала оценки", "индекс"}:
-        return False
-    return True
+    return not (candidate_type == "scale" and normalized in {"шкала", "шкала оценки", "индекс"})
+
+
+def _clean_candidate_label(candidate_type: str, label: str) -> str:
+    clean = " ".join(label.split())
+    if candidate_type != "scale":
+        return clean[:180]
+
+    # Body prose often uses an inflected lead-in ("по шкале CURB-65
+    # используется..."). Keep only the instrument name so it deduplicates
+    # against the section-title candidate instead of becoming a false entity.
+    clean = re.sub(r"^(?:по\s+)?шкал[аеы]\s+", "Шкала ", clean, flags=re.IGNORECASE)
+    clean = _SCALE_PROSE_TAIL_PATTERN.split(clean, maxsplit=1)[0]
+    return clean[:180]
 
 
 def _candidate_label(candidate_type: str, text: str) -> str | None:
     for pattern in _NAME_PATTERNS.get(candidate_type, ()):
         match = pattern.search(text)
         if match:
-            label = " ".join(match.group("name").split())[:180]
+            label = _clean_candidate_label(candidate_type, match.group("name"))
             return label if _meaningful_label(candidate_type, label, text) else None
     return None
 
@@ -238,7 +287,9 @@ def _context_kind(section_title: str, text: str) -> str:
         and _TOC_PATTERN.search(text[:500])
     ):
         return "toc"
-    if _REFERENCE_START_PATTERN.search(section_title) and _REFERENCE_MARKER_PATTERN.search(combined):
+    if _REFERENCE_START_PATTERN.search(section_title) and _REFERENCE_MARKER_PATTERN.search(
+        combined
+    ):
         return "bibliography"
     return "content"
 
@@ -274,6 +325,12 @@ def _known_type_for_tool(kind: str, names: list[str]) -> str:
     joined = " ".join(names)
     if kind == "assessment" and re.search(r"\b(?:опросник|анкета|questionnaire)\b", joined, re.I):
         return "questionnaire"
+    if kind == "assessment" and re.search(
+        r"\b(?:тест|test|battery|батаре\w*|методик\w*|матриц\w*)\b",
+        joined,
+        re.I,
+    ):
+        return "assessment_method"
     return "scale"
 
 
@@ -472,6 +529,10 @@ def scan_candidates(
                         candidates[key] = candidate
 
                 for candidate_type in _candidate_types(text):
+                    # Generic "test/method" prose is far too noisy. Discover named assessment
+                    # methods structurally from headings or through the reviewed-name inventory.
+                    if candidate_type == "assessment_method":
+                        continue
                     label = _candidate_label(candidate_type, text)
                     if not label:
                         continue
