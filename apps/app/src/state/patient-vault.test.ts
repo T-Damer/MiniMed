@@ -5,6 +5,7 @@ import {
   evaluateCalculatorSchema,
   toStoredCalculationResult,
 } from '@/features/calculators/calculator-schema-engine';
+import { createExternalAssessmentRecord } from '@/state/assessment-results';
 import {
   appendEvent,
   createManualMeasurementEvent,
@@ -13,7 +14,6 @@ import {
   emptyPatientVaultSnapshot,
   type PatientVaultSnapshot,
 } from '@/state/patient-domain';
-import { createExternalAssessmentRecord } from '@/state/assessment-results';
 import {
   recordCalculatorResultForPatient,
   recordExternalAssessmentResultForPatient,
