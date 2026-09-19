@@ -271,3 +271,134 @@ or an exact reviewed-name inventory hit. Generic headings such as «Диагно
 The same patch also carries forward the previously validated scanner cleanups from the dependent
 assessment work: scale prose-tail cleanup, suppression of duplicate severity/classification candidates,
 and preservation of explicitly reviewed surface variants.
+
+
+## Batch 3 — bipolar disorder, OCD, panic disorder and PTSD
+
+Checked against publicly indexed current recommendation metadata on 2026-09-19. As in the earlier
+batches, this is an identity/source queue only: no item text, scoring keys, stimuli or normative tables
+are copied into MiniMed.
+
+### Bipolar affective disorder
+
+Current recommendation: **«Биполярное аффективное расстройство»**, ID 675_2, revision 2, approved
+2025, adults, revision due no later than 2027. The Ministry-hosted PDF identifies the 2025
+recommendation; current clinical-recommendation indexes list it as active/applied.
+
+Sources:
+
+- https://apicr.minzdrav.gov.ru/api.ashx?id=675_2&op=GetClinrecPdf
+- https://www.consultant.ru/document/cons_doc_LAW_510703/
+- https://medvestnik.ru/cr/675_2.html
+
+Confirmed appendix/source candidates:
+
+| Candidate | Type | Source position | Extraction disposition |
+| --- | --- | --- | --- |
+| C-SSRS | structured assessment | Appendix Г1 | merge with the existing C-SSRS concept |
+| HCL-32 | questionnaire | Appendix Г3 | new reviewed concept candidate |
+| YMRS / Young Mania Rating Scale | scale | Appendix Г4 | new reviewed concept candidate |
+| HAM-D-17 / HDRS-17 | scale | Appendix Г5 | merge with the depression-source concept |
+| MADRS | scale | Appendix Г6 | merge with the depression-source concept |
+| HCL-33 | questionnaire | later appendix | merge with the depression-source concept |
+
+The recommendation itself explicitly recommends a validated Russian HCL-32 or HCL-33 for hypomania
+screening in patients presenting with a depressive episode. That source context should be retained on
+the document link rather than turned into a generic diagnostic rule.
+
+### Obsessive-compulsive disorder
+
+Current recommendation: **«Обсессивно-компульсивное расстройство»**, ID 650_2, approved 2025,
+adults, revision due no later than 2027.
+
+Sources:
+
+- https://www.consultant.ru/document/cons_doc_LAW_503151/
+- https://sudact.ru/law/klinicheskie-rekomendatsii-obsessivno-kompulsivnoe-rasstroistvo-odobreny-minzdravom-rossii/klinicheskie-rekomendatsii/
+
+Confirmed candidates:
+
+| Candidate | Type | Source position | Extraction disposition |
+| --- | --- | --- | --- |
+| FLY-BOCS / Florida Yale-Brown Obsessive Compulsive Scale | scale | Appendix Г1 | new reviewed concept candidate; rights/version review before any form redistribution |
+| C-SSRS | structured assessment | Appendix Г2 | merge with the existing C-SSRS concept |
+
+This is another concrete example where source links multiply but concept identity should not.
+
+### Panic disorder
+
+Current recommendation: **«Паническое расстройство»**, ID 456, version 3, approved 2024,
+adults, revision due no later than 2026.
+
+Sources:
+
+- https://minzdrav.clinirec.ru/kr/panicheskoe-rasstroystvo/
+- https://sudact.ru/law/klinicheskie-rekomendatsii-panicheskoe-rasstroistvo-odobreny-minzdravom-rossii/klinicheskie-rekomendatsii/2/2.5/
+
+Confirmed named candidates include:
+
+| Candidate | Type | Extraction disposition |
+| --- | --- | --- |
+| PDSS / Panic Disorder Severity Scale | scale | new reviewed concept candidate |
+| Wayne/Veyn autonomic-change questionnaire/scale | questionnaire/scale | review identity and preferred canonical name |
+| Panic Screening Questions / panic-attack screening questionnaire | questionnaire | new reviewed concept candidate |
+| HARS | scale | merge with generalized-anxiety source concept |
+| SCL-90-R | questionnaire | merge with generalized-anxiety source concept |
+| Integrative Anxiety Test (ИТТ) | assessment_method | merge with generalized-anxiety source concept |
+| STAI | questionnaire/scale | merge with generalized-anxiety source concept |
+| BAI | questionnaire/scale | merge with generalized-anxiety source concept |
+| Sheehan Anxiety Scale | scale | merge with generalized-anxiety source concept |
+
+This recommendation is also a useful parser fixture because the text explicitly distinguishes
+clinical rating scales from experimental/psychological methods. MiniMed should retain that distinction.
+
+### Post-traumatic stress disorder
+
+The publicly indexed current recommendation is still **«Посттравматическое стрессовое
+расстройство»**, ID 753 / 753_1, approved 2023, adults. Its declared revision deadline was 2025.
+Current legal/recommendation indexes still expose that 2023 recommendation as active/applied in
+September 2026.
+
+A 2025 public report from the Bekhterev National Medical Research Center said an update was being
+finished and was planned for approval in early 2026, but this extraction pass did not find a newer
+approved recommendation in the current public indexes. MiniMed must therefore keep a freshness warning
+and must not synthesize a 2026 edition.
+
+Sources:
+
+- https://www.consultant.ru/document/cons_doc_LAW_519392/57e5b6d1fe0bf3adbf2b4cd7c7399fc1c3e7ce6e/
+- https://sudact.ru/law/klinicheskie-rekomendatsii-posttravmaticheskoe-stressovoe-rasstroistvo-utv-minzdravom/klinicheskie-rekomendatsii/
+- https://base.garant.ru/406526717/
+
+Confirmed 2023 appendix candidates:
+
+| Candidate | Type | Extraction disposition |
+| --- | --- | --- |
+| TSQ / Trauma Screening Questionnaire | questionnaire | new reviewed concept candidate |
+| CAPS / Clinician-Administered PTSD Scale | assessment_method | new reviewed concept candidate |
+| SCID, PTSD module | assessment_method | new reviewed concept candidate; exact edition/version required |
+| IES-R / Impact of Event Scale-Revised | scale/questionnaire | new reviewed concept candidate |
+| Mississippi Scale for post-traumatic reactions | scale | new reviewed concept candidate |
+| CES / Combat Exposure Scale | scale | new reviewed concept candidate |
+| Psychophysiological stress-reaction severity scale | scale | review canonical identity/source before promotion |
+| Peritraumatic Dissociative Experiences Questionnaire | questionnaire | new reviewed concept candidate |
+| DES / Dissociative Experiences Scale | scale | new reviewed concept candidate |
+| BHS / Beck Hopelessness Scale | scale | new reviewed concept candidate |
+| TOP-8 / Treatment Outcome PTSD Scale | questionnaire/scale | new reviewed concept candidate |
+
+The PTSD set reinforces why redistributable concept metadata and redistributable instrument content are
+different things. A recommendation naming an instrument is enough to create a review candidate and a
+source link; it is not enough to copy the form.
+
+## Batch 3 identity/freshness conclusions
+
+- C-SSRS now occurs in schizophrenia, depressive-disorder, bipolar and OCD recommendations: one stable
+  concept, at least four reviewed source-document contexts.
+- HAM-D/HDRS and MADRS occur in depressive-disorder and bipolar recommendations: reuse identity.
+- HARS, SCL-90-R, ИТТ, STAI, BAI and Sheehan recur across generalized anxiety and panic disorder:
+  reuse identity while preserving the different source sections and populations.
+- Recommendation freshness must be an explicit source property. Current 2025 BAR/OCD sources supersede
+  their older editions; the 2023 PTSD recommendation is still publicly indexed but overdue for revision,
+  so it needs a warning rather than an invented replacement.
+- Scanner promotion should remain conservative for experimental/diagnostic interviews such as CAPS,
+  SCID, MMPI and ISTA: `assessment_method` is preferable to forcing them into `scale`.
