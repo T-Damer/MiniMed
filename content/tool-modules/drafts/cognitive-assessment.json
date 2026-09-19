@@ -12,12 +12,7 @@
       "slug": "mmse",
       "title": "MMSE — краткая оценка когнитивного статуса",
       "shortTitle": "MMSE",
-      "aliases": [
-        "Mini-Mental State Examination",
-        "MMSE",
-        "мини-ментальный статус",
-        "краткая шкала оценки психического статуса"
-      ],
+      "aliases": ["Mini-Mental State Examination", "MMSE", "мини-ментальный статус", "краткая шкала оценки психического статуса"],
       "bankId": "psychiatry",
       "bankLabel": "Психиатрия",
       "category": "cognitive-assessment",
@@ -30,12 +25,7 @@
         "slug": "mmse",
         "title": "MMSE — краткая оценка когнитивного статуса",
         "shortTitle": "MMSE",
-        "aliases": [
-          "Mini-Mental State Examination",
-          "MMSE",
-          "мини-ментальный статус",
-          "краткая шкала оценки психического статуса"
-        ],
+        "aliases": ["Mini-Mental State Examination", "MMSE", "мини-ментальный статус", "краткая шкала оценки психического статуса"],
         "bankId": "psychiatry",
         "bankLabel": "Психиатрия",
         "category": "cognitive-assessment",
@@ -84,12 +74,7 @@
           ],
           "material": {
             "policy": "user-local-file",
-            "acceptedMimeTypes": [
-              "application/pdf",
-              "image/png",
-              "image/jpeg",
-              "image/webp"
-            ],
+            "acceptedMimeTypes": ["application/pdf", "image/png", "image/jpeg", "image/webp"],
             "note": "Стимульный материал и бланки не входят в публичный пакет MiniMed. Выберите локальный лицензированный PDF или изображение; файл используется только на устройстве."
           }
         },
@@ -120,14 +105,7 @@
       "slug": "raven-progressive-matrices",
       "title": "Матрицы Равена",
       "shortTitle": "Матрицы Равена",
-      "aliases": [
-        "Raven Progressive Matrices",
-        "Raven",
-        "матрицы Равена",
-        "CPM",
-        "SPM",
-        "APM"
-      ],
+      "aliases": ["Raven Progressive Matrices", "Raven", "матрицы Равена", "CPM", "SPM", "APM"],
       "bankId": "psychology",
       "bankLabel": "Психология и психодиагностика",
       "category": "cognitive-assessment",
@@ -140,14 +118,7 @@
         "slug": "raven-progressive-matrices",
         "title": "Матрицы Равена",
         "shortTitle": "Матрицы Равена",
-        "aliases": [
-          "Raven Progressive Matrices",
-          "Raven",
-          "матрицы Равена",
-          "CPM",
-          "SPM",
-          "APM"
-        ],
+        "aliases": ["Raven Progressive Matrices", "Raven", "матрицы Равена", "CPM", "SPM", "APM"],
         "bankId": "psychology",
         "bankLabel": "Психология и психодиагностика",
         "category": "cognitive-assessment",
@@ -312,12 +283,7 @@
           ],
           "material": {
             "policy": "user-local-file",
-            "acceptedMimeTypes": [
-              "application/pdf",
-              "image/png",
-              "image/jpeg",
-              "image/webp"
-            ],
+            "acceptedMimeTypes": ["application/pdf", "image/png", "image/jpeg", "image/webp"],
             "note": "Стимульный материал и бланки не входят в публичный пакет MiniMed. Выберите локальный лицензированный PDF или изображение; файл используется только на устройстве."
           }
         },
@@ -348,14 +314,7 @@
       "slug": "wechsler-family",
       "title": "Шкалы интеллекта Векслера",
       "shortTitle": "Тест Векслера",
-      "aliases": [
-        "тест Векслера",
-        "Wechsler",
-        "WAIS",
-        "WISC",
-        "WPPSI",
-        "шкала Векслера"
-      ],
+      "aliases": ["тест Векслера", "Wechsler", "WAIS", "WISC", "WPPSI", "шкала Векслера"],
       "bankId": "psychology",
       "bankLabel": "Психология и психодиагностика",
       "category": "cognitive-assessment",
@@ -368,14 +327,7 @@
         "slug": "wechsler-family",
         "title": "Шкалы интеллекта Векслера",
         "shortTitle": "Тест Векслера",
-        "aliases": [
-          "тест Векслера",
-          "Wechsler",
-          "WAIS",
-          "WISC",
-          "WPPSI",
-          "шкала Векслера"
-        ],
+        "aliases": ["тест Векслера", "Wechsler", "WAIS", "WISC", "WPPSI", "шкала Векслера"],
         "bankId": "psychology",
         "bankLabel": "Психология и психодиагностика",
         "category": "cognitive-assessment",
@@ -531,12 +483,7 @@
           ],
           "material": {
             "policy": "user-local-file",
-            "acceptedMimeTypes": [
-              "application/pdf",
-              "image/png",
-              "image/jpeg",
-              "image/webp"
-            ],
+            "acceptedMimeTypes": ["application/pdf", "image/png", "image/jpeg", "image/webp"],
             "note": "Стимульный материал и бланки не входят в публичный пакет MiniMed. Выберите локальный лицензированный PDF или изображение; файл используется только на устройстве."
           }
         },
