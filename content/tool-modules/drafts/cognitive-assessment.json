@@ -164,7 +164,7 @@
               "label": "CPM — Цветные прогрессивные матрицы",
               "shortLabel": "CPM",
               "description": "Цветной вариант семейства Raven. Точную редакцию, правила предъявления и нормы сверяйте с лицензированным руководством.",
-              "audience": "Выбор CPM определяется используемым руководством и клинической задачей.",
+              "audience": "Материалы Pearson: 5:0–11:11; применимость и нормы сверяйте по конкретной редакции.",
               "resultFields": [
                 {
                   "id": "raw_score",
@@ -214,7 +214,7 @@
               "label": "SPM — Стандартные прогрессивные матрицы",
               "shortLabel": "SPM",
               "description": "Стандартный вариант семейства Raven. MiniMed не воспроизводит задания, ключи и нормативные таблицы.",
-              "audience": "Выбор SPM определяется используемым руководством и клинической задачей.",
+              "audience": "Материалы Pearson: 6:0–16:0 и 17:0+; применимость и нормы сверяйте по конкретной редакции.",
               "resultFields": [
                 {
                   "id": "raw_score",
@@ -264,7 +264,7 @@
               "label": "APM — Продвинутые прогрессивные матрицы",
               "shortLabel": "APM",
               "description": "Продвинутый вариант семейства Raven. MiniMed хранит только внесённый результат и контекст нормы.",
-              "audience": "Выбор APM определяется используемым руководством и клинической задачей.",
+              "audience": "Материалы Pearson: 12:0–16:0 и 17:0+; применимость и нормы сверяйте по конкретной редакции.",
               "resultFields": [
                 {
                   "id": "raw_score",
@@ -336,7 +336,7 @@
         "license": {
           "kind": "third-party-attributed",
           "notice": "Raven’s Progressive Matrices — защищённая методика Pearson. MiniMed не распространяет стимульные материалы, ключи и нормы.",
-          "sourceUrl": "https://www.pearsonassessments.com/en-us/Store/Professional-Assessments/Cognitive-Neuro/Ability-Neuro/Standard-Progressive-Matrices-%7C-SPM/p/100000504"
+          "sourceUrl": "https://www.pearsonassessments.com/professional-assessments/products/products-a-z.html"
         }
       },
       "sources": []
@@ -555,7 +555,7 @@
         "license": {
           "kind": "third-party-attributed",
           "notice": "Wechsler/WAIS/WISC/WPPSI — защищённые методики Pearson. MiniMed не распространяет задания, стимульные книги, ключи и нормативные таблицы.",
-          "sourceUrl": "https://www.pearsonassessments.com/store/en/usd/p/P100071002.html"
+          "sourceUrl": "https://www.pearsonassessments.com/professional-assessments/products/products-a-z.html"
         }
       },
       "sources": []
