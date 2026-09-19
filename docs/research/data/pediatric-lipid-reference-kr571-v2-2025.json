@@ -16,13 +16,7 @@
     "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-16/",
     "underlyingCitation": "Elkins C, Fruh S, Jones L, Bydalek K. Clinical Practice Recommendations for Pediatric Dyslipidemia. J Pediatr Health Care. 2019;33(4):494-504."
   },
-  "columns": [
-    "category",
-    "target",
-    "borderline",
-    "high",
-    "low"
-  ],
+  "columns": ["category", "target", "borderline", "high", "low"],
   "rows": [
     {
       "analyte": "total_cholesterol",
