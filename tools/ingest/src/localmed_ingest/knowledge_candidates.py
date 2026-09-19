@@ -62,6 +62,11 @@ _SEVERITY_MEANING_PATTERN = re.compile(
     r"(?:тяжест|заболеван|процесс|недостаточност|дыхательн\w*\s+недостаточност)",
     re.IGNORECASE,
 )
+_SCALE_PROSE_TAIL_PATTERN = re.compile(
+    r"\s+(?:использ\w*|примен\w*|позвол\w*|предназнач\w*|служ\w*|"
+    r"оценива\w*|рассчитыва\w*|определя\w*)\b",
+    re.IGNORECASE,
+)
 
 _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("questionnaire", re.compile(r"\b(?:опросник|анкета|questionnaire)\b", re.IGNORECASE)),
@@ -227,13 +232,7 @@ def _clean_candidate_label(candidate_type: str, label: str) -> str:
     # используется..."). Keep only the instrument name so it deduplicates
     # against the section-title candidate instead of becoming a false entity.
     clean = re.sub(r"^(?:по\s+)?шкал[аеы]\s+", "Шкала ", clean, flags=re.IGNORECASE)
-    clean = re.split(
-        r"\s+(?:использ\w*|примен\w*|позвол\w*|предназнач\w*|служ\w*|"
-        r"оценива\w*|рассчитыва\w*|определя\w*)\b",
-        clean,
-        maxsplit=1,
-        flags=re.IGNORECASE,
-    )[0]
+    clean = _SCALE_PROSE_TAIL_PATTERN.split(clean, maxsplit=1)[0]
     return clean[:180]
 
 
