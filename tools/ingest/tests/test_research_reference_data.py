@@ -386,3 +386,42 @@ def test_pediatric_water_beverage_reference_keeps_scope_separate_from_total_flui
     excluded = cast(list[object], scope["excludes"])
     assert "maintenance_intravenous_fluid" in excluded
     assert "illness_related_rehydration" in excluded
+
+
+def test_caliper_hematology_expansion_preserves_method_specific_intervals() -> None:
+    data = _load("caliper-dxh900-pediatric-hematology-expansion-2020.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    source = cast(dict[str, object], data["source"])
+    assert source["analyzer"] == "Beckman Coulter DxH 900"
+
+    parameters = cast(list[dict[str, object]], data["parameters"])
+    assert len(parameters) == 14
+    by_id = {str(parameter["id"]): parameter for parameter in parameters}
+    assert "hemoglobin" not in by_id
+    assert "rbc" not in by_id
+    assert "wbc" not in by_id
+    assert "platelet_count" not in by_id
+
+    for parameter in parameters:
+        intervals = cast(list[dict[str, object]], parameter["intervals"])
+        assert intervals
+        for interval in intervals:
+            assert _float(interval["lower"]) < _float(interval["upper"])
+            assert str(interval["ageYears"])
+
+    hematocrit = cast(list[dict[str, object]], by_id["hematocrit"]["intervals"])
+    adolescent = [row for row in hematocrit if row["ageYears"] == "14-<21"]
+    assert adolescent == [
+        {"ageYears": "14-<21", "sex": "male", "lower": 0.388, "upper": 0.482},
+        {"ageYears": "14-<21", "sex": "female", "lower": 0.344, "upper": 0.437},
+    ]
+
+    neutrophils = cast(list[dict[str, object]], by_id["neutrophil_absolute"]["intervals"])
+    assert neutrophils[0] == {
+        "ageYears": "0-<1",
+        "sex": "all",
+        "lower": 0.9,
+        "upper": 4.6,
+    }
