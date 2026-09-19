@@ -106,7 +106,7 @@
         },
         "observationMappings": [],
         "license": {
-          "kind": "third-party-attributed",
+          "kind": "third-party-restricted",
           "notice": "MMSE — защищённая методика PAR. MiniMed не распространяет форму, задания, стимулы или нормативные таблицы.",
           "sourceUrl": "https://www.parinc.com/products/MMSE"
         }
@@ -334,7 +334,7 @@
         },
         "observationMappings": [],
         "license": {
-          "kind": "third-party-attributed",
+          "kind": "third-party-restricted",
           "notice": "Raven’s Progressive Matrices — защищённая методика Pearson. MiniMed не распространяет стимульные материалы, ключи и нормы.",
           "sourceUrl": "https://www.pearsonassessments.com/professional-assessments/products/products-a-z.html"
         }
@@ -553,7 +553,7 @@
         },
         "observationMappings": [],
         "license": {
-          "kind": "third-party-attributed",
+          "kind": "third-party-restricted",
           "notice": "Wechsler/WAIS/WISC/WPPSI — защищённые методики Pearson. MiniMed не распространяет задания, стимульные книги, ключи и нормативные таблицы.",
           "sourceUrl": "https://www.pearsonassessments.com/professional-assessments/products/products-a-z.html"
         }
