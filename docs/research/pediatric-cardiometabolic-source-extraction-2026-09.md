@@ -84,3 +84,31 @@ All JSON artifacts in this slice are:
 
 Before any promotion, values need independent source verification, rights review, and a separate
 clinical decision contract specifying exactly how the references are used.
+
+
+## BMI adult-equivalent threshold table
+
+The current recommendation's Table 12 was extracted into:
+
+`docs/research/data/pediatric-bmi-adult-equivalent-thresholds-kr571-v2-2025.json`
+
+It contains half-year age steps from 2 through 18 years and sex-specific BMI values corresponding,
+in the source table, to adult BMI 25 and 30 kg/m². The artifact is review-only and must not replace
+MiniMed's WHO BMI-for-age z-score/LMS path: these are different reference systems with different
+interpretive contracts.
+
+Source:
+https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-12/
+
+## Cuff-size table: source identified, structured promotion deferred
+
+Table 3 is clinically useful but the HTML rendering flattens at least two rows ambiguously (including
+the generic child row and the large-arm/thigh row). It is therefore **not** promoted into a numeric
+dataset from the HTML text alone.
+
+Source:
+https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-3/
+
+Status: `requires-pdf-visual-review`. The recommendation's rule that the inflatable bladder length
+should cover at least 80% of arm circumference is retained as source context, but no ambiguous row
+values are reconstructed by assumption.
