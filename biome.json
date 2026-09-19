@@ -77,6 +77,12 @@
           }
         }
       }
+    },
+    {
+      "includes": ["docs/research/data/*.json"],
+      "formatter": {
+        "enabled": false
+      }
     }
   ]
 }

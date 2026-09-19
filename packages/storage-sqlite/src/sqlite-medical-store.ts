@@ -191,9 +191,11 @@ const SEARCH_METADATA_FIELDS = [
   'catalogFamily',
   'ageGroups',
   'entityType',
+  'conceptId',
   'contentMode',
   'interactiveAssessmentId',
   'interactiveCalculatorId',
+  'interactiveRoute',
   'calculationRequired',
   'notLegalAdvice',
 ] as const;

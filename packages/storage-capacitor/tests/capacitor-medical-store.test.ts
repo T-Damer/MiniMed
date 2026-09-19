@@ -162,6 +162,8 @@ describe('CapacitorMedicalStore', () => {
     expect(await store.listSearchDocuments()).toBe(documents);
     expect(plugin.calls).toHaveLength(1);
     expect(plugin.calls[0]?.sql).toContain("json_type(metadata_json, '$.notLegalAdvice') = 'true'");
+    expect(plugin.calls[0]?.sql).toContain("json_extract(metadata_json, '$.conceptId')");
+    expect(plugin.calls[0]?.sql).toContain("json_extract(metadata_json, '$.interactiveRoute')");
     expect(plugin.calls[0]?.sql).not.toContain('source_checksum');
     await store.close();
     await store.initialize();
@@ -177,6 +179,8 @@ describe('CapacitorMedicalStore', () => {
     await store.listNavigationDocuments();
     expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.sourceType')");
     expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.mkbCode')");
+    expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.conceptId')");
+    expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.interactiveRoute')");
     await store.close();
   });
 

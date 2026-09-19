@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.pediatric-bmi-adult-equivalent-thresholds.ru.kr571-v2.2025",
+  "title": "Age- and sex-specific BMI values corresponding to adult BMI 25 and 30 kg/m2",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "unresolved",
+  "verificationStatus": "single-source-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "recommendationTitle": "Артериальная гипертензия у детей",
+    "recommendationId": "571",
+    "recommendationVersion": 2,
+    "recommendationYear": 2025,
+    "tableNumber": 12,
+    "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-12/",
+    "underlyingCitation": "Диагностика, лечение и профилактика артериальной гипертензии у детей и подростков. Российские рекомендации (второй пересмотр). М., 2009; 8(4):1-32."
+  },
+  "encoding": {
+    "ageUnit": "years",
+    "ageStep": 0.5,
+    "bmiUnit": "kg/m2",
+    "rowColumns": [
+      "ageYears",
+      "boysEquivalentAdultBmi25",
+      "girlsEquivalentAdultBmi25",
+      "boysEquivalentAdultBmi30",
+      "girlsEquivalentAdultBmi30"
+    ]
+  },
+  "rows": [
+    [2, 18.41, 18.02, 20.09, 19.81],
+    [2.5, 18.13, 17.76, 19.8, 19.55],
+    [3, 17.89, 17.56, 19.57, 19.36],
+    [3.5, 17.69, 17.4, 19.39, 19.23],
+    [4, 17.55, 17.28, 19.29, 19.15],
+    [4.5, 17.47, 17.19, 19.26, 19.12],
+    [5, 17.42, 17.15, 19.3, 19.17],
+    [5.5, 17.45, 17.2, 19.47, 19.34],
+    [6, 17.55, 17.34, 19.78, 19.65],
+    [6.5, 17.71, 17.53, 20.23, 20.08],
+    [7, 17.92, 17.75, 20.63, 20.51],
+    [7.5, 18.16, 18.03, 21.09, 21.01],
+    [8, 18.44, 18.35, 21.6, 21.57],
+    [8.5, 18.76, 18.69, 22.17, 22.18],
+    [9, 19.1, 19.07, 22.77, 22.81],
+    [9.5, 19.46, 19.45, 23.39, 23.46],
+    [10, 19.84, 19.86, 24, 24.11],
+    [10.5, 20.2, 20.29, 24.57, 24.77],
+    [11, 20.55, 20.74, 25.1, 25.42],
+    [11.5, 20.89, 21.2, 25.58, 26.05],
+    [12, 21.22, 21.68, 26.02, 26.67],
+    [12.5, 21.56, 22.14, 26.43, 27.24],
+    [13, 21.91, 22.58, 26.84, 27.76],
+    [13.5, 22.27, 22.98, 27.25, 28.2],
+    [14, 22.62, 23.34, 27.63, 28.57],
+    [14.5, 22.96, 23.66, 27.98, 28.87],
+    [15, 23.29, 23.94, 28.3, 29.11],
+    [15.5, 23.6, 24.17, 28.6, 29.29],
+    [16, 23.9, 24.37, 28.88, 29.43],
+    [16.5, 24.19, 24.54, 29.14, 29.56],
+    [17, 24.46, 24.7, 29.41, 29.69],
+    [17.5, 24.73, 24.85, 29.7, 29.84],
+    [18, 25, 25, 30, 30]
+  ],
+  "automatedChecks": {
+    "rowCount": 33,
+    "ageRange": "2-18",
+    "exactHalfYearSteps": true,
+    "adultEquivalentBmi30AboveBmi25ForEachSex": true,
+    "terminalAdultThresholds": {
+      "ageYears": 18,
+      "bmi25": 25,
+      "bmi30": 30
+    }
+  },
+  "reviewNotes": [
+    "Decimal commas from the rendered Russian table are normalized to JSON decimal points without changing numeric values.",
+    "The source labels these values as pediatric/adolescent Quetelet-index values corresponding to adult BMI 25 and 30 kg/m2.",
+    "This artifact is not interchangeable with WHO BMI-for-age z-score/LMS standards already used elsewhere in MiniMed.",
+    "Do not infer an obesity diagnosis or replace WHO growth tools without an explicit reviewed population/method decision.",
+    "Requires independent value verification and redistribution-rights review before runtime/publication use."
+  ]
+}

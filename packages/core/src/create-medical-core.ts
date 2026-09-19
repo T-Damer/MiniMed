@@ -148,6 +148,11 @@ function buildQueryAlignedSnippet(
   return buildSnippet(hit.chunk.originalText, snippetTerms, rowTerms.length > 0 ? 520 : 360);
 }
 
+function conceptIdFromMetadata(metadata: Readonly<Record<string, unknown>>): string | undefined {
+  const value = metadata['conceptId'];
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
 function resultCategory(sectionType: string | null): SearchResultCategory {
   switch (sectionType) {
     case 'definition':
@@ -176,7 +181,9 @@ function toSearchResult(aggregate: AggregatedHit): SearchResult {
   const terms = [...aggregate.terms];
   const matches = matchedTerms(aggregate.hit, terms);
   const snippet = buildQueryAlignedSnippet(aggregate.hit, matches.length > 0 ? matches : terms);
+  const conceptId = conceptIdFromMetadata(aggregate.hit.document.metadata);
   return {
+    ...(conceptId ? { conceptId } : {}),
     chunkId: aggregate.hit.chunk.id,
     documentId: aggregate.hit.document.id,
     documentVersionId: aggregate.hit.document.version.id,
@@ -500,7 +507,13 @@ function groupResults(
         searchTerms,
         medicationAliasCandidates,
       );
+      const conceptId = first.conceptId;
+      const sharedConceptId =
+        conceptId && sorted.every((result) => result.conceptId === conceptId)
+          ? conceptId
+          : undefined;
       return {
+        ...(sharedConceptId ? { conceptId: sharedConceptId } : {}),
         documentId,
         title: presentation ? `${presentation} · ${first.title}` : first.title,
         bestScore: Math.max(...documentResults.map((result) => result.finalScore)),
@@ -624,7 +637,9 @@ function vectorResult(
   const lexicalLikeHit: LexicalHit = { ...hit, rank: 0 };
   const matches = matchedTerms(lexicalLikeHit, terms);
   const snippet = buildQueryAlignedSnippet(lexicalLikeHit, matches.length > 0 ? matches : terms);
+  const conceptId = conceptIdFromMetadata(hit.document.metadata);
   return {
+    ...(conceptId ? { conceptId } : {}),
     chunkId: hit.chunk.id,
     documentId: hit.document.id,
     documentVersionId: hit.document.version.id,

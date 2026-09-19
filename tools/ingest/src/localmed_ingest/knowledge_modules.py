@@ -5,7 +5,13 @@ from pathlib import Path
 
 import yaml
 
-from .knowledge import KnowledgeWorkspace, authority_tier_for_document, validate_knowledge_workspace
+from .knowledge import (
+    KnowledgeEntity,
+    KnowledgeWorkspace,
+    authority_tier_for_document,
+    merge_knowledge_entity,
+    validate_knowledge_workspace,
+)
 from .models import PackDocument
 
 _COLLECTION_KEYS = ("entities", "facts", "relations", "documentLinks", "reviewTasks")
@@ -34,6 +40,7 @@ def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> Kn
 
     schema_version: int | None = None
     collections: dict[str, list[object]] = {key: [] for key in _COLLECTION_KEYS}
+    entities_by_id: dict[str, KnowledgeEntity] = {}
     origins: dict[str, Path] = {}
 
     for path in paths:
@@ -57,6 +64,21 @@ def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> Kn
                 if not isinstance(value, dict):
                     raise ValueError(f"{path}: every {key} item must be a mapping.")
                 identifier = value.get("id")
+                if key == "entities":
+                    entity = KnowledgeEntity.model_validate(value)
+                    previous_origin = origins.get(entity.id)
+                    existing = entities_by_id.get(entity.id)
+                    if previous_origin is not None and existing is None:
+                        raise ValueError(
+                            f"Knowledge id {entity.id} collides across collection kinds "
+                            f"in {previous_origin} and {path}."
+                        )
+                    if existing is None:
+                        entities_by_id[entity.id] = entity
+                        origins[entity.id] = path
+                    else:
+                        merge_knowledge_entity(existing, entity, merge_metadata=True)
+                    continue
                 if isinstance(identifier, str):
                     previous = origins.get(identifier)
                     if previous is not None:
@@ -66,6 +88,9 @@ def load_knowledge_modules(input_dir: Path, documents: list[PackDocument]) -> Kn
                     origins[identifier] = path
                 collections[key].append(value)
 
+    collections["entities"] = [
+        entity.model_dump(by_alias=True, mode="json") for entity in entities_by_id.values()
+    ]
     combined: dict[str, object] = {**collections, "schemaVersion": schema_version or 1}
     workspace = KnowledgeWorkspace.model_validate(combined)
     document_by_id = {document.id: document for document in documents}

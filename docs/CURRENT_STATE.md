@@ -7,6 +7,39 @@
   unchanged source hashes. Published data remains `terminology-ru-2026.9.16`. See
   `RUSSIAN_TERMINOLOGY.md` for source rights, sizes and measurements. The discovery core is unchanged.
 
+## Unreleased concept-first knowledge authoring — draft PR #174
+
+- The existing `knowledge_entities/names/facts/relations/evidence` model is now treated as the
+  canonical cross-domain identity layer rather than creating a second scale/term graph. A local-dev
+  discovery builder can project selected reviewed entity types into compact ordinary MiniMed cards
+  while retaining stable `conceptId`, aliases, tags, specialties and exact source locators.
+- Clinical-recommendation SQLite can be scanned for review-only scales, questionnaires, criterion
+  sets, classifications and severity/stage systems. Candidates remain `proposed`; quality-of-care
+  criteria, methodology/evidence grading, TOC/reference noise and weak generic headings are filtered
+  before review. The scanner can also use exact names/aliases from reviewed tool/knowledge SQLite as
+  a separate inventory channel; inventory fingerprints are bound into the immutable workspace.
+- On the same local respiratory verification slice of 3 clinical recommendations, the initial
+  heuristic pass produced 47 proposed rows; context filtering plus the reviewed-name channel reduced
+  the review queue to 23 (51.1% fewer rows). This is a candidate-quality smoke, not a claim of 23
+  confirmed instruments; see `docs/research/knowledge-candidate-scan-respiratory-2026-09.md`.
+- Explicit reviewer decisions can promote a candidate to a stable knowledge entity plus a reviewed
+  source-document link. Promotion deliberately creates no definition, equivalence, scoring rule or
+  cutoff. An existing assessment/calculator is linked only through an explicit reviewed tool ID plus
+  matching local route; reference cards then expose a generic «Пройти»/«Рассчитать» action.
+- Repeated stable entity IDs may be composed across knowledge modules: compatible aliases/list
+  metadata merge, while conflicting types/external IDs/scalar metadata fail closed. Non-entity IDs
+  remain strictly unique, and existing AI-enrichment merge semantics are unchanged.
+- Discovery packs can optionally store one 384-byte int8 development vector per concept description
+  chunk using the existing portable hash profile. This validates the current hybrid retrieval path;
+  it is not a qualified neural semantic model.
+- Search results/groups now carry optional canonical `conceptId` metadata. SQLite-WASM and
+  Capacitor/native compact projections preserve the same field plus explicit `interactiveRoute`;
+  document grouping/navigation is otherwise unchanged.
+- GitHub Actions remain unused. The original discovery/candidate isolated harness passed 5 cases; the
+  new review-promotion logic was executed separately against a reconstructed compatible SQLite
+  harness and preserved the reviewed-vs-proposed boundary. Repository-pinned Ruff/Pyright/Vitest,
+  full build and device checks remain required before the draft PR can be considered merge-ready.
+
 ## Terminology and measured lookup — 0.6.39
 
 - MeSH collector/section packs now connect to ordinary MedicalCore lookup through a versioned compact

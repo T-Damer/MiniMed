@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.infant-energy-macronutrient-needs.ru.program2019",
+  "title": "Physiological energy and macronutrient needs during the first year of life",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "unresolved",
+  "verificationStatus": "single-source-visual-table-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "title": "Национальная программа оптимизации вскармливания детей первого года жизни в Российской Федерации",
+    "edition": "4-е издание, переработанное и дополненное",
+    "year": 2019,
+    "table": "Приложение 1. Среднесуточные нормы физиологических потребностей в пищевых веществах и энергии",
+    "pdfUrl": "https://xn--b1aaisgq1jga.xn--p1ai/Files/RussiaGuid/Programma2019.pdf",
+    "pdfPageIndexZeroBased": 183,
+    "printedPage": 184,
+    "underlyingNormativeCitation": "Нормы потребности в пищевых веществах и энергии, утверждены МЗ СССР 28 мая 1991 г. № 5786-91"
+  },
+  "unitContract": {
+    "energy": "kcal_per_kg_body_weight_per_day",
+    "protein": "g_per_kg_body_weight_per_day",
+    "fat": "g_per_kg_body_weight_per_day",
+    "carbohydrate": "g_per_kg_body_weight_per_day"
+  },
+  "rows": [
+    {
+      "ageMonths": "0-3",
+      "energyKcalKg": 115,
+      "proteinTotalGKg": 2.2,
+      "proteinAnimalGKg": 2.2,
+      "fatTotalGKg": 6.5,
+      "fatVegetableGKg": 0.7,
+      "carbohydrateGKg": 13
+    },
+    {
+      "ageMonths": "4-6",
+      "energyKcalKg": 115,
+      "proteinTotalGKg": 2.6,
+      "proteinAnimalGKg": 2.5,
+      "fatTotalGKg": 6,
+      "fatVegetableGKg": 0.7,
+      "carbohydrateGKg": 13
+    },
+    {
+      "ageMonths": "7-12",
+      "energyKcalKg": 110,
+      "proteinTotalGKg": 2.9,
+      "proteinAnimalGKg": 2.3,
+      "fatTotalGKg": 5.5,
+      "fatVegetableGKg": 0.7,
+      "carbohydrateGKg": 13
+    }
+  ],
+  "reviewNotes": [
+    "The table footnote states first-year energy/protein/fat/carbohydrate values are expressed per kg body weight.",
+    "The 1-3 year absolute daily row is intentionally excluded from this first-year dataset.",
+    "These values are reference requirements, not an individualized nutrition prescription.",
+    "Requires independent value verification and rights review before publication/runtime use."
+  ]
+}

@@ -1450,4 +1450,101 @@ describe('MedicalCore', () => {
       expect(formoterolGroup?.results[0]?.snippet).toContain('ПОРОШОК ДЛЯ ИНГАЛЯЦИЙ ДОЗИРОВАННЫЙ');
     },
   );
+
+  it('propagates a stable concept id from discovery cards without changing document grouping', async () => {
+    const conceptPack = ContentPackSeedSchema.parse({
+      manifest: {
+        id: 'test.concept-discovery',
+        version: '1.0.0',
+        schemaVersion: 2,
+        title: 'Concept discovery fixture',
+        checksum: 'test-concept-discovery-checksum',
+        builtAt: '2026-09-18T00:00:00Z',
+      },
+      documents: [
+        {
+          id: 'knowledge.discovery.jaspers',
+          title: 'Критерии помрачения сознания Ясперса',
+          shortTitle: 'Критерии Ясперса',
+          sourceType: 'medical_reference',
+          status: 'active',
+          specialties: ['psychiatry'],
+          metadata: {
+            contentMode: 'knowledge-discovery',
+            conceptId: 'criterion.jaspers.clouding-consciousness',
+            entityType: 'criterion_set',
+          },
+          version: {
+            id: 'knowledge.discovery.jaspers@1',
+            label: '1',
+            effectiveFrom: null,
+            effectiveTo: null,
+            sourceChecksum: 'sha256:jaspers',
+            extractedAt: '2026-09-18T00:00:00Z',
+          },
+          sections: [
+            {
+              id: 'knowledge.discovery.jaspers.definition',
+              parentSectionId: null,
+              title: 'Краткое описание',
+              normalizedTitle: 'краткое описание',
+              sectionType: 'definition',
+              depth: 1,
+              orderIndex: 0,
+              pageStart: null,
+              pageEnd: null,
+              anchor: 'jaspers/definition',
+              sectionPath: ['Краткое описание'],
+              chunks: [
+                {
+                  id: 'knowledge.discovery.jaspers.definition.chunk',
+                  orderIndex: 0,
+                  originalText:
+                    'Критерии помрачения сознания рассматриваются только в совокупности признаков.',
+                  normalizedText:
+                    'критерии ясперса критерии помрачения сознания рассматриваются только в совокупности признаков',
+                  pageStart: null,
+                  pageEnd: null,
+                  charStart: null,
+                  charEnd: null,
+                  anchor: 'jaspers/definition/chunk',
+                  metadata: {
+                    knowledgeEntityId: 'criterion.jaspers.clouding-consciousness',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      aliases: [
+        {
+          id: 'alias.jaspers',
+          canonicalTerm: 'Критерии помрачения сознания Ясперса',
+          alias: 'критерии Ясперса',
+          category: 'knowledge:criterion_set',
+          weight: 1.4,
+        },
+      ],
+    });
+    const store = new InMemoryMedicalStore();
+    const core = createMedicalCore({ store, seed: conceptPack, platform: 'test' });
+    cores.push(core);
+
+    const response = await core.search({
+      query: 'критерии Ясперса',
+      mode: 'lexical',
+      filters: {},
+      limit: 5,
+      includeSuggestions: false,
+    });
+
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.groups[0]?.documentId).toBe('knowledge.discovery.jaspers');
+    expect(response.value.groups[0]?.conceptId).toBe('criterion.jaspers.clouding-consciousness');
+    expect(response.value.groups[0]?.results[0]?.conceptId).toBe(
+      'criterion.jaspers.clouding-consciousness',
+    );
+  });
 });

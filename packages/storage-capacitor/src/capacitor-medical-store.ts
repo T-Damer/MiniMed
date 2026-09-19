@@ -403,9 +403,11 @@ export class CapacitorMedicalStore implements MedicalStore {
         'catalogFamily', json_extract(metadata_json, '$.catalogFamily'),
         'ageGroups', json_extract(metadata_json, '$.ageGroups'),
         'entityType', json_extract(metadata_json, '$.entityType'),
+        'conceptId', json_extract(metadata_json, '$.conceptId'),
         'contentMode', json_extract(metadata_json, '$.contentMode'),
         'interactiveAssessmentId', json_extract(metadata_json, '$.interactiveAssessmentId'),
         'interactiveCalculatorId', json_extract(metadata_json, '$.interactiveCalculatorId'),
+        'interactiveRoute', json_extract(metadata_json, '$.interactiveRoute'),
         'calculationRequired', json(CASE WHEN json_type(metadata_json, '$.calculationRequired') = 'true'
           THEN 'true' ELSE 'false' END),
         'notLegalAdvice', json(CASE WHEN json_type(metadata_json, '$.notLegalAdvice') = 'true'
@@ -442,6 +444,7 @@ export class CapacitorMedicalStore implements MedicalStore {
           'catalogFamily', json_extract(d.metadata_json, '$.catalogFamily'),
           'ageGroups', json_extract(d.metadata_json, '$.ageGroups'),
           'entityType', json_extract(d.metadata_json, '$.entityType'),
+          'conceptId', json_extract(d.metadata_json, '$.conceptId'),
           'sourceType', json_extract(d.metadata_json, '$.sourceType'),
           'mkbCode', json_extract(d.metadata_json, '$.mkbCode'),
           'contentMode', json_extract(d.metadata_json, '$.contentMode'),
@@ -449,6 +452,7 @@ export class CapacitorMedicalStore implements MedicalStore {
           'canonicalDefinition', json_extract(d.metadata_json, '$.canonicalDefinition'),
           'interactiveAssessmentId', json_extract(d.metadata_json, '$.interactiveAssessmentId'),
           'interactiveCalculatorId', json_extract(d.metadata_json, '$.interactiveCalculatorId'),
+          'interactiveRoute', json_extract(d.metadata_json, '$.interactiveRoute'),
           'calculationRequired', json(CASE WHEN json_type(d.metadata_json, '$.calculationRequired') = 'true'
             THEN 'true' ELSE 'false' END),
           'notLegalAdvice', json(CASE WHEN json_type(d.metadata_json, '$.notLegalAdvice') = 'true'

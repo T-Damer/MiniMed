@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.infant-formula-volume-caloric-method.ru.program2019",
+  "title": "Caloric-method source contract for adapted formula volume",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "unresolved",
+  "verificationStatus": "single-source-visual-text-review",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "title": "Национальная программа оптимизации вскармливания детей первого года жизни в Российской Федерации",
+    "edition": "4-е издание, переработанное и дополненное",
+    "year": 2019,
+    "section": "Глава 4, искусственное вскармливание",
+    "pdfUrl": "https://xn--b1aaisgq1jga.xn--p1ai/Files/RussiaGuid/Programma2019.pdf",
+    "pdfPageIndexZeroBased": 55,
+    "printedPage": 56
+  },
+  "population": {
+    "feedingContext": "adapted_infant_formula",
+    "ageMonths": "first_6_months",
+    "weightBasis": "actual_body_weight"
+  },
+  "energyTarget": {
+    "kcalPerKgPerDay": 115,
+    "ageScopeSource": "на протяжении первых 6 мес. жизни"
+  },
+  "volumeCapsSource": [
+    {
+      "ageLabelSource": "3 мес.",
+      "maxMlPerDay": 850
+    },
+    {
+      "ageLabelSource": "4 мес.",
+      "maxMlPerDay": 900
+    },
+    {
+      "ageLabelSource": "после 5 мес.",
+      "maxMlPerDay": 1000,
+      "requiresBoundaryReview": true
+    }
+  ],
+  "calculationBoundary": {
+    "formulaEnergyDensityRequired": true,
+    "directVolumeFormulaAbsent": true,
+    "intendedEquation": "daily_energy_need_kcal / prepared_formula_energy_density_kcal_per_ml",
+    "equationStatus": "derived-implementation-contract-requires-review"
+  },
+  "reviewNotes": [
+    "The source explicitly says formula volume is calculated on actual body weight by the caloric method at 115 kcal/kg during the first six months.",
+    "The source provides maximum daily volumes for age 3 months, 4 months and 'after 5 months'.",
+    "The source does not provide one universal ml/kg coefficient in this passage; prepared-formula energy density is needed to turn kcal/day into ml/day.",
+    "The phrase 'after 5 months' is preserved as source wording and is not silently converted into an inclusive/exclusive numeric boundary.",
+    "Children with underweight or overweight are explicitly deferred by the source to separate chapters and must not use this contract without review."
+  ]
+}

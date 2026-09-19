@@ -1,0 +1,391 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.caliper-dxh900-pediatric-hematology-expansion.2020",
+  "title": "Selected additional pediatric hematology reference intervals — CALIPER DxH 900",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "third-party-all-rights-reserved-review-required",
+  "verificationStatus": "single-source-table-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "article": "CALIPER Hematology Reference Standards (I): Improving Laboratory Test Interpretation in Children",
+    "journal": "American Journal of Clinical Pathology",
+    "year": 2020,
+    "doi": "10.1093/ajcp/aqaa059",
+    "pmid": "32561916",
+    "pmcid": "PMC7403759",
+    "table": "Table 1 — CALIPER Reference Intervals for 47 Hematologic Parameters",
+    "analyzer": "Beckman Coulter DxH 900",
+    "cohort": "healthy Canadian children and adolescents, birth to <21 years",
+    "urls": [
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC7403759/",
+      "https://academic.oup.com/ajcp/article/154/3/330/5860205"
+    ]
+  },
+  "parameters": [
+    {
+      "id": "hematocrit",
+      "label": "Hematocrit",
+      "unit": "L/L",
+      "intervals": [
+        {
+          "ageYears": "0-<1",
+          "sex": "all",
+          "lower": 0.265,
+          "upper": 0.4
+        },
+        {
+          "ageYears": "1-<4",
+          "sex": "all",
+          "lower": 0.304,
+          "upper": 0.398
+        },
+        {
+          "ageYears": "4-<14",
+          "sex": "all",
+          "lower": 0.335,
+          "upper": 0.418
+        },
+        {
+          "ageYears": "14-<21",
+          "sex": "male",
+          "lower": 0.388,
+          "upper": 0.482
+        },
+        {
+          "ageYears": "14-<21",
+          "sex": "female",
+          "lower": 0.344,
+          "upper": 0.437
+        }
+      ]
+    },
+    {
+      "id": "mcv",
+      "label": "Mean corpuscular volume",
+      "unit": "fL",
+      "intervals": [
+        {
+          "ageYears": "0-<1",
+          "sex": "all",
+          "lower": 70.5,
+          "upper": 94.9
+        },
+        {
+          "ageYears": "1-<4",
+          "sex": "all",
+          "lower": 72.8,
+          "upper": 85.2
+        },
+        {
+          "ageYears": "4-<14",
+          "sex": "all",
+          "lower": 77.4,
+          "upper": 89.9
+        },
+        {
+          "ageYears": "14-<21",
+          "sex": "all",
+          "lower": 77.6,
+          "upper": 95.7
+        }
+      ]
+    },
+    {
+      "id": "mch",
+      "label": "Mean corpuscular hemoglobin",
+      "unit": "pg",
+      "intervals": [
+        {
+          "ageYears": "0-<1",
+          "sex": "all",
+          "lower": 22.9,
+          "upper": 32.7
+        },
+        {
+          "ageYears": "1-<3",
+          "sex": "all",
+          "lower": 22.7,
+          "upper": 29
+        },
+        {
+          "ageYears": "3-<6",
+          "sex": "all",
+          "lower": 25.2,
+          "upper": 29.3
+        },
+        {
+          "ageYears": "6-<13",
+          "sex": "all",
+          "lower": 25.4,
+          "upper": 30.8
+        },
+        {
+          "ageYears": "13-<21",
+          "sex": "all",
+          "lower": 25.9,
+          "upper": 32.4
+        }
+      ]
+    },
+    {
+      "id": "mchc",
+      "label": "Mean corpuscular hemoglobin concentration",
+      "unit": "g/L",
+      "intervals": [
+        {
+          "ageYears": "0-<21",
+          "sex": "all",
+          "lower": 323,
+          "upper": 350
+        }
+      ]
+    },
+    {
+      "id": "rdw_cv",
+      "label": "RBC distribution width",
+      "unit": "%",
+      "intervals": [
+        {
+          "ageYears": "0-<2",
+          "sex": "all",
+          "lower": 12.2,
+          "upper": 17.7
+        },
+        {
+          "ageYears": "2-<21",
+          "sex": "all",
+          "lower": 12.2,
+          "upper": 15.2
+        }
+      ]
+    },
+    {
+      "id": "mpv",
+      "label": "Mean platelet volume",
+      "unit": "fL",
+      "intervals": [
+        {
+          "ageYears": "0-<7",
+          "sex": "all",
+          "lower": 6.9,
+          "upper": 9.7
+        },
+        {
+          "ageYears": "7-<21",
+          "sex": "all",
+          "lower": 7.3,
+          "upper": 10.7
+        }
+      ]
+    },
+    {
+      "id": "lymphocyte_percent",
+      "label": "Lymphocyte percentage",
+      "unit": "%",
+      "intervals": [
+        {
+          "ageYears": "0-<2",
+          "sex": "all",
+          "lower": 34.7,
+          "upper": 81.6
+        },
+        {
+          "ageYears": "2-<4",
+          "sex": "all",
+          "lower": 20.7,
+          "upper": 72.3
+        },
+        {
+          "ageYears": "4-<12",
+          "sex": "all",
+          "lower": 22.9,
+          "upper": 58.4
+        },
+        {
+          "ageYears": "12-<21",
+          "sex": "all",
+          "lower": 20.1,
+          "upper": 48.8
+        }
+      ]
+    },
+    {
+      "id": "lymphocyte_absolute",
+      "label": "Lymphocyte absolute count",
+      "unit": "10^9/L",
+      "intervals": [
+        {
+          "ageYears": "0-<1",
+          "sex": "all",
+          "lower": 3.3,
+          "upper": 8.8
+        },
+        {
+          "ageYears": "1-<5",
+          "sex": "all",
+          "lower": 1.8,
+          "upper": 7.1
+        },
+        {
+          "ageYears": "5-<15",
+          "sex": "all",
+          "lower": 1.4,
+          "upper": 4.1
+        },
+        {
+          "ageYears": "15-<21",
+          "sex": "all",
+          "lower": 1.1,
+          "upper": 3.6
+        }
+      ]
+    },
+    {
+      "id": "neutrophil_percent",
+      "label": "Neutrophil percentage",
+      "unit": "%",
+      "intervals": [
+        {
+          "ageYears": "0-<1",
+          "sex": "all",
+          "lower": 9.2,
+          "upper": 45.3
+        },
+        {
+          "ageYears": "1-<5",
+          "sex": "all",
+          "lower": 17.6,
+          "upper": 68.1
+        },
+        {
+          "ageYears": "5-<15",
+          "sex": "all",
+          "lower": 29.7,
+          "upper": 68.6
+        },
+        {
+          "ageYears": "15-<21",
+          "sex": "male",
+          "lower": 41.3,
+          "upper": 76.1
+        },
+        {
+          "ageYears": "15-<21",
+          "sex": "female",
+          "lower": 42.8,
+          "upper": 75.1
+        }
+      ]
+    },
+    {
+      "id": "neutrophil_absolute",
+      "label": "Neutrophil absolute count",
+      "unit": "10^9/L",
+      "intervals": [
+        {
+          "ageYears": "0-<1",
+          "sex": "all",
+          "lower": 0.9,
+          "upper": 4.6
+        },
+        {
+          "ageYears": "1-<21",
+          "sex": "all",
+          "lower": 1.5,
+          "upper": 6.4
+        }
+      ]
+    },
+    {
+      "id": "monocyte_absolute",
+      "label": "Monocyte absolute count",
+      "unit": "10^9/L",
+      "intervals": [
+        {
+          "ageYears": "0-<2",
+          "sex": "all",
+          "lower": 0.4,
+          "upper": 1.1
+        },
+        {
+          "ageYears": "2-<5",
+          "sex": "all",
+          "lower": 0.3,
+          "upper": 1.1
+        },
+        {
+          "ageYears": "5-<21",
+          "sex": "all",
+          "lower": 0.3,
+          "upper": 0.8
+        }
+      ]
+    },
+    {
+      "id": "eosinophil_absolute",
+      "label": "Eosinophil absolute count",
+      "unit": "10^9/L",
+      "intervals": [
+        {
+          "ageYears": "0-<1",
+          "sex": "all",
+          "lower": 0.1,
+          "upper": 0.9
+        },
+        {
+          "ageYears": "1-<13",
+          "sex": "all",
+          "lower": 0.1,
+          "upper": 0.5
+        },
+        {
+          "ageYears": "13-<21",
+          "sex": "all",
+          "lower": 0.1,
+          "upper": 0.5
+        }
+      ]
+    },
+    {
+      "id": "reticulocyte_percent",
+      "label": "Reticulocyte percentage",
+      "unit": "%",
+      "intervals": [
+        {
+          "ageYears": "0-<2",
+          "sex": "all",
+          "lower": 0.66,
+          "upper": 2.55
+        },
+        {
+          "ageYears": "2-<21",
+          "sex": "all",
+          "lower": 0.56,
+          "upper": 1.85
+        }
+      ]
+    },
+    {
+      "id": "reticulocyte_absolute",
+      "label": "Reticulocyte absolute count",
+      "unit": "10^12/L",
+      "intervals": [
+        {
+          "ageYears": "0-<21",
+          "sex": "all",
+          "lower": 0.027,
+          "upper": 0.0902
+        }
+      ]
+    }
+  ],
+  "reviewNotes": [
+    "This artifact intentionally adds common parameters absent from MiniMed's existing small CALIPER slice; Hb/RBC/WBC/platelets are not duplicated here.",
+    "Reference intervals are analyzer- and cohort-specific and must not override the performing laboratory's own verified reference interval.",
+    "The source's age boundaries are preserved as strings; no boundary harmonization or interpolation is inferred.",
+    "Sex partitions are retained only where the source table gives different limits for the selected parameter.",
+    "Confidence intervals and sample counts are not copied into this compact research artifact; consult the source table during clinical review.",
+    "The article is not an open redistribution license for the full table; publication remains blocked pending rights/scope review."
+  ]
+}

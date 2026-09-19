@@ -429,7 +429,12 @@ def _entity_identity_key(
     )
 
 
-def _merge_entity(existing: KnowledgeEntity, candidate: KnowledgeEntity) -> None:
+def merge_knowledge_entity(
+    existing: KnowledgeEntity,
+    candidate: KnowledgeEntity,
+    *,
+    merge_metadata: bool = False,
+) -> None:
     if normalize_surface_text(existing.entity_type) != normalize_surface_text(
         candidate.entity_type
     ):
@@ -460,6 +465,25 @@ def _merge_entity(existing: KnowledgeEntity, candidate: KnowledgeEntity) -> None
                 f"Conflicting external id {namespace} for entity {existing.canonical_name}."
             )
         existing.external_ids[namespace] = value
+
+    if merge_metadata:
+        for key, incoming in candidate.metadata.items():
+            if key not in existing.metadata:
+                existing.metadata[key] = incoming
+                continue
+            current = existing.metadata[key]
+            if current == incoming:
+                continue
+            if isinstance(current, list) and isinstance(incoming, list):
+                merged = list(current)
+                for item in incoming:
+                    if item not in merged:
+                        merged.append(item)
+                existing.metadata[key] = merged
+                continue
+            raise ValueError(
+                f"Conflicting metadata field {key} for entity {existing.canonical_name}."
+            )
 
     if existing.medication is None:
         existing.medication = candidate.medication
@@ -1325,7 +1349,7 @@ def import_chatgpt_responses(
             if existing is None:
                 entities_by_id[entity_id] = candidate
             else:
-                _merge_entity(existing, candidate)
+                merge_knowledge_entity(existing, candidate)
 
             if identity is not None:
                 previous = entity_id_by_identity.get(identity)

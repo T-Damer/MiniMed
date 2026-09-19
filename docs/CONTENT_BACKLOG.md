@@ -69,24 +69,82 @@
 
 Документы:
 
-- нормы роста, массы, ИМТ, окружности головы и груди;
-- нормы психомоторного развития по возрастам;
-- нормы грудного вскармливания, прикорма и расчёта питания;
-- возрастные лабораторные референсы;
-- оценка групп здоровья и профилактических осмотров;
-- детские нормативы артериального давления.
+- нормы роста, массы, ИМТ и окружности головы — ✅ WHO 0–5/5–19 LMS уже встроены в `minimed.tools.pediatrics-growth.ru`; окружность груди остаётся отдельным source gap, старый `ПроцентильМЖ.pdf` не использовать без библиографической идентификации.
+- нормы психомоторного развития по возрастам — 🧪 source-extracted 2026-09-19: в документе
+  Минздрава 2025 найден и визуально сверен чек-лист НПР 1–12 месяцев; 69 milestone concepts
+  нормализованы без копирования полного текста в
+  `docs/research/data/infant-neuropsych-development-milestones-minzdrav-2025.json`.
+  Источник — регистрационная форма внутри протокола клинической апробации, поэтому он не считается
+  универсальной нормативной КР: `review-required`, нужен независимый validation/normative source.
+  Сводка: `docs/research/infant-neurodevelopment-source-extraction-2026-09.md`.
+- нормы грудного вскармливания, прикорма и расчёта питания — 🧪 source-extracted 2026-09-19:
+  из Национальной программы оптимизации вскармливания детей первого года жизни (2019) визуально
+  сверена и структурирована таблица 5.1 примерного введения прикорма:
+  `docs/research/data/infant-complementary-feeding-scheme-program2019.json`. Артефакт остаётся
+  `review-required` / `publicationState: blocked`: пустые ячейки не интерпретируются как правила,
+  сроки не превращаются в автоматическое назначение, права на публикацию полной таблицы не проверены.
+- возрастные лабораторные референсы — 🧪 existing pilot + source expansion: bundled reference
+  уже содержит Hb/RBC/WBC/PLT CALIPER и выбранную биохимию/ликвор; 2026-09-19 дополнительно
+  извлечены 14 групп DxH 900 интервалов (Hct, MCV/MCH/MCHC/RDW, MPV, лейкоформула,
+  ретикулоциты) в `docs/research/data/caliper-dxh900-pediatric-hematology-expansion-2020.json`.
+  Расширение остаётся blocked/method-specific, лабораторный интервал выполняющего анализа имеет
+  приоритет. Сводка: `docs/research/pediatric-laboratory-source-extraction-2026-09.md`.
+- оценка групп здоровья и профилактических осмотров — 🧪/✅: критерии I–V групп здоровья уже
+  source-linked в действующем приказе №211н; полный возрастной перечень 31 строки из приложения №1
+  визуально сверен и вынесен в
+  `docs/research/data/pediatric-preventive-exam-schedule-order-211n-2025.json`.
+  Условные специалисты/исследования (пол, группа риска, результат скрининга) не превращаются в
+  безусловные назначения. Сводка:
+  `docs/research/pediatric-preventive-exam-source-extraction-2026-09.md`.
+- детские нормативы артериального давления — 🧪 current KR571 v2 source slice уже извлечён: office BP, ABPM, neonatal/1-year BP, height dependency и связанные cardiometabolic tables; см. `docs/research/pediatric-bp-source-extraction-2026-09.md`.
 
 Инструменты:
 
-- рост/масса/ИМТ по возрасту, полу, перцентилю и Z-score;
-- окружность головы по возрасту;
-- перцентиль артериального давления;
+- рост/масса/ИМТ по возрасту, полу, перцентилю и Z-score — ✅ `minimed.calculator.pediatric-anthropometry-who`;
+- окружность головы по возрасту — ✅ тот же WHO calculator/module;
+- перцентиль артериального давления — 🧪 source-extracted 2026-09-19: из текущей КР
+  «Артериальная гипертензия у детей» (2025, ID 571 v2) структурированы таблицы 90/95/99-го
+  перцентиля АД для мальчиков и девочек 1–17 лет по семи перцентилям роста: 102 строки,
+  `docs/research/data/pediatric-bp-percentiles-kr571-v2-2025.json`. Артефакт остаётся
+  `review-required` / `publicationState: blocked`: нужна независимая сверка всех значений,
+  проверка прав на публикацию полной числовой таблицы и отдельная реализация диагностического
+  алгоритма. Подробности: `docs/research/pediatric-bp-source-extraction-2026-09.md`.
+  Таблицы СМАД 7–10 также извлечены в
+  `docs/research/data/pediatric-abpm-reference-kr571-v2-2025.json`; автоматическая проверка
+  нашла и сохранила как review-анomaly исходное значение у мальчиков 16 лет ночью
+  (САД p90=123, p95=122), без самовольной коррекции.
+  Из того же source slice извлечены связанные blocked reference-таблицы: перцентили роста
+  (`pediatric-height-percentiles-kr571-v2-2025.json`), окружности талии 2–18 лет
+  (`pediatric-waist-percentiles-kr571-v2-2025.json`), ММЛЖ/ИММЛЖ
+  (`pediatric-lv-mass-percentiles-kr571-v2-2025.json`) и липидные source-cells
+  (`pediatric-lipid-reference-kr571-v2-2025.json`). Таблица метаболического синдрома пока
+  не нормализована: HTML теряет операторы/границы колонок, нужен визуальный/PDF-review.
+  Отдельно извлечены более младшие возрастные reference-наборы из текущей редакции:
+  `neonatal-bp-by-gestational-age-kr571-v2-2025.json` (26–44 нед., p50/p95/p99,
+  САД/ДАД/срАД) и `infant-bp-age-1-year-kr571-v2-2025.json` (1 год, мальчики/девочки,
+  p50/p90/p95/p99 по ростовым перцентилям). Их не объединять с историческими таблицами старой
+  редакции КР571: численные значения между редакциями отличаются.
 - скорректированный возраст недоношенного ребёнка — ✅ выполнено (2026-08-17): модуль
   `minimed.tools.pediatrics.ru` (`minimed.calculator.preterm-corrected-age`), источники:
   AAP HealthyChildren «Corrected Age For Preemies»; популяция: недоношенные; коррекция не применяется
   при СГР ≥37 нед.; проверки: СГР 32 нед. + хронологический 20 нед. → 12 нед. скорректированного возраста.
-- суточная потребность в энергии, белке и жидкости;
-- объём одного и суточного кормления;
+- суточная потребность в энергии и белке — 🧪 source-extracted 2026-09-19: приложение 1 программы
+  2019 структурировано в `docs/research/data/infant-energy-macronutrient-needs-program2019.json`
+  (0–3 / 4–6 / 7–12 мес., энергия и БЖУ на кг массы).
+- вода/напитки — 🧪 source-extracted из официальных МР 2.3.1.0253-21:
+  `docs/research/data/pediatric-water-beverages-mr-2.3.1.0253-21.json`. Для 7–11 мес.
+  источник даёт 0,2–0,3 л/сут именно воды и напитков; для первых месяцев отдельно указывает, что
+  у здорового ребёнка до прикорма дополнительная жидкость не требуется. Это не total-fluid,
+  не мл/кг/сут и не правило инфузионной/регидратационной терапии; эти задачи остаются отдельными.
+- объём одного и суточного кормления — 🧪 source-extracted 2026-09-19: кроме таблицы среднего
+  объёма молозива на одно кормление в первые 96 часов
+  (`docs/research/data/newborn-colostrum-volume-per-feed-program2019.json`), глава 4 программы
+  2019 явно задаёт расчёт смеси по фактической массе калорийным методом 115 ккал/кг в первые
+  6 мес. и верхние суточные объёмы 850/900/1000 мл для указанных в источнике возрастов.
+  Source contract: `docs/research/data/infant-formula-volume-caloric-method-program2019.json`.
+  Это не простой ml/kg или «1/5 массы»: для перевода ккал→мл нужна энергетическая плотность смеси,
+  а граница «после 5 мес.» требует отдельного review. Сводка:
+  `docs/research/infant-feeding-source-extraction-2026-09.md`.
 - суточный диурез;
 - оценка дефицита жидкости и продолжающихся потерь;
 - PEWS;
@@ -130,7 +188,15 @@
 - GIR — скорость введения глюкозы — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.calculator.neonatal-glucose-infusion-rate`), источник: Brigham and Women’s Hospital Neonatal Glucose Assessment and Clinical Management, PDF-стр. 4 (формула GIR), клинический контекст: приказ Минздрава РФ № 222н (неонатальная гипогликемия).
 - жидкость и энергия для новорождённого;
 - физиологическая потеря массы — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.calculator.neonatal-physiologic-weight-loss`), источник: AAP First Office Visit, 3-5 Days, стр. с правилом «>10% от массы при рождении требует доп.оценки», клинический контекст: приказ № 222н.
-- **билирубин и пороги фототерапии по возрасту в часах** — ⚠️ блокер: в текущем OCR `data/intermediate/replicate-ocr/neo.shabalov.ocr-draft.json` есть текстовое описание тематики гипербилирубинемии и фототерапии, но не хватает машиночитаемой матрицы порогов по возрасту/часам. Карточка на паузе в `docs/LITERATURE_REVIEW_QUEUE.md` для `requiresOCR` повторного извлечения.
+- **билирубин и пороги фототерапии по возрасту в часах** — 🧪 source-extracted 2026-09-19:
+  текущие КР «Неонатальная желтуха» (2025, ID 916 v1) и «Гипербилирубинемия недоношенных»
+  (2025, ID 917 v1) дают полные матрицы standard/intensive phototherapy и ОЗПК.
+  Review artifacts:
+  `docs/research/data/neonatal-jaundice-treatment-thresholds-kr916-v1-2025.json` (ГВ >=35 нед.)
+  и `docs/research/data/preterm-hyperbilirubinemia-treatment-thresholds-kr917-v1-2025.json`
+  (ГВ/СВ 22–34 нед.). OCR Шабалова больше не является blocker для этих порогов; runtime
+  calculator остаётся blocked до review границ/модификаторов/полного алгоритма.
+  Сводка: `docs/research/neonatal-bilirubin-threshold-source-extraction-2026-09.md`.
 - **Fenton/INTERGROWTH для недоношенных** — ⚠️ заблокировано: текущий OCR (`data/intermediate/replicate-ocr/neo.shabalov.ocr-draft.json`) подтверждает только ссылку на критерии Fenton (график) и Dementyeva `Таблица 8.1`, но не даёт машинно-сопоставимых значений 3/10/50/90/97 перцентилей.
   Решение откладывается до нового источника/повторного OCR с извлечением числовых центильных значений по полу/неделям/показателям (масса/длина/ОГ/ОГК); карточка остаётся в `docs/LITERATURE_REVIEW_QUEUE.md` как `requiresOCR`.
 - **неонатальные лабораторные референсы** — ⚠️ блокер: `data/intermediate/replicate-ocr/neo.shabalov.ocr-draft.json` (разделы глав 9 и 10 по метаболическим нарушениям/лабораторным показателям) содержит лишь разбросанные текстовые упоминания, но без валидационного табличного блока с возрастно-специфическими референсами. Карточка на паузе в `docs/LITERATURE_REVIEW_QUEUE.md` для `requiresOCR`.
@@ -231,6 +297,12 @@
   пороки сердца, липидный риск;
 - инструменты: CHA₂DS₂-VASc, HAS-BLED, Wells DVT/PE, Geneva, Padua, Caprini, ASCVD, QTc
   Bazett/Fridericia, электрическая ось сердца, NYHA и CCS.
+- source-backed extraction 2026-09-19: актуальная КР по ФП/ТП (2025, ID 382 v2) даёт
+  текущие source-links для уже реализованных CHA₂DS₂-VASc/HAS-BLED и добавляет SAMeT₂R₂;
+  КР по ХСН (2024, ID 156 v2) подтверждает ШОКС, тест 6-минутной ходьбы, HFA-PEFF,
+  H₂FPEF и NYHA; КР по ОКСбпST (2024, ID 154 v4) — GRACE 1.0, ARC-HBR, CRUSADE,
+  PRECISE-DAPT и ОРАКУЛ. Сходные risk-score инструменты не объединять по назначению.
+  Сводка: `docs/research/knowledge-candidate-scan-cardiology-2026-09.md`.
 - источник для справочного ECG-блока: `EKG_pod_silu_kazhdomu.pdf`,
   `Karmanny_spravochnik_po_EKG.pdf`, `ПВБ/Atlas_EKG_150...pdf`.
 
@@ -240,6 +312,11 @@
   анализа мочи;
 - инструменты: Cockcroft–Gault, FENa, FEUrea, ACR/UPCR, клиренс креатинина, баланс жидкости,
   риск ХБП по KDIGO, IPSS и OAB-q.
+- source-backed extraction 2026-09-19: взрослая КР ХБП (2024, ID 469 v3) подтверждает
+  классификацию по рСКФ/альбуминурии, ACR/PCR и семейство CKD-EPI, но точную формулу нельзя
+  автоматически приравнивать к уже реализованной CKD-EPI 2021; детская КР ХБП (2025, ID 713 v2)
+  подтверждает bedside Schwartz 2009, Schwartz-Lyon, CKiD, CKiD U25 и neonatal Smits variants.
+  Сводка: `docs/research/knowledge-candidate-scan-nephrology-2026-09.md`.
 - приоритет источников: часть 4 `pdb.kapitan.merged.ocr-draft.json`, где сосредоточены
   таблицы почечных и лабораторных норм.
 
@@ -249,6 +326,23 @@
 - инструменты: NIHSS, ABCD², modified Rankin, ICH Score, Hunt–Hess, WFNS, EDSS, Canadian CT
   Head Rule, PECARN;
 - опросники: MoCA, MMSE, MIDAS, HIT-6 и PedMIDAS.
+- source check 2026-09-19 для взрослой КР «Мигрень» (2024, ID 295): подтверждены ВАШ и
+  дневник головной боли; MIDAS/HIT-6 в текущем тексте/assessment appendix этого прохода не
+  подтверждены, поэтому остаются backlog-кандидатами до отдельного актуального источника.
+- source-backed extraction 2026-09-19: КР по ишемическому инсульту/ТИА явно связывает NIHSS и GCS
+  с оценкой пациента; КР по когнитивным расстройствам подтверждает MMSE, MoCA, модифицированную
+  Addenbrooke, Mini-Cog, frontal assessment battery, clock drawing и другие именованные тесты.
+  Последние выявили пробел схемы: generic named tests нельзя автоматически притворять `scale`.
+  Сводка: `docs/research/knowledge-candidate-scan-neuropsychiatry-2026-09.md`.
+- второй проход: КР по болезни Паркинсона подтверждает MDS-UPDRS, Hoehn–Yahr, MMSE, MoCA и HADS.
+  Для ID 716 сохранён freshness-warning: в реестре по-прежнему указана редакция 2021 года с плановым
+  пересмотром не позднее 2023 года; новая версия не подставляется и не угадывается.
+- четвёртый source-backed проход 2026-09-19: актуальная КР «Рассеянный склероз»
+  (2025, ID 739_2) подтверждает РШСИ/EDSS, Berg Balance Scale, FIM, Nine-Hole Peg Test,
+  Frenchay Arm Test, Rivermead Mobility Index и SF-36, а также критерии McDonald/MAGNIMS как
+  отдельные criterion-set concepts; актуальная КР «Ишемический инсульт и транзиторная ишемическая
+  атака» (2024, ID 814_1) подтверждает NIHSS, PedNIHSS, FOUR, GCS/педиатрическую GCS, ASPECTS,
+  modified Rankin и ABCD². Педиатрические варианты не считать автоматическими синонимами взрослых.
 
 ### Психиатрия и наркология
 
@@ -256,6 +350,24 @@
   детская психиатрия;
 - инструменты: PHQ-9, GAD-7, HADS, AUDIT-C/AUDIT, DAST-10, C-SSRS, ASRS-v1.1, MDQ, OCI-R;
 - отдельная проверка валидированного русского перевода и права на распространение обязательна.
+- source-backed extraction 2026-09-19: в КР «Шизофрения» (2024, ID 451) подтверждены PANSS,
+  BNSS, Calgary Depression Scale for Schizophrenia, PSP, SAD PERSONS, C-SSRS, Simpson–Angus и
+  Bush–Francis; это пока concept/review-кандидаты, без копирования защищённых бланков и ключей.
+  Сводка: `docs/research/knowledge-candidate-scan-neuropsychiatry-2026-09.md`.
+- второй source-backed проход 2026-09-19: КР «Депрессивный эпизод, Рекуррентное
+  депрессивное расстройство» (2024, ID 301) подтверждает HDRS-17, MADRS, HCL-33 и C-SSRS; КР
+  «Генерализованное тревожное расстройство» (2024, ID 457 v3) — HARS, GAD-7, SCL-90-R, ИТТ,
+  STAI, BAI, Sheehan, MMPI, ISTA, УСК, LSI, MDMQ, KON-2006, КОП-25 и др.; алкогольные КР —
+  CIWA-Ar, AUDIT и отдельную количественную оценку патологического влечения. Все остаются
+  review-кандидатами до проверки версии/прав на конкретный бланк.
+- третий source-backed проход 2026-09-19: актуальные КР по БАР (2025, ID 675_2) добавляют
+  HCL-32 и YMRS и дают дополнительные source-links для C-SSRS, HAM-D-17/HDRS, MADRS и HCL-33;
+  КР по ОКР (2025, ID 650_2) — FLY-BOCS и C-SSRS; КР по паническому расстройству (2024,
+  ID 456 v3) — PDSS и повторные source-links для HARS/SCL-90-R/ИТТ/STAI/BAI/Sheehan;
+  ПТСР (ID 753_1) — TSQ, CAPS, SCID-модуль ПТСР, IES-R, Mississippi Scale, CES, DES, BHS,
+  TOP-8 и другие. У ПТСР сохранён freshness-warning: публичные реестры в сентябре 2026 всё ещё
+  показывают редакцию 2023 года с плановым пересмотром не позднее 2025 года; новая редакция
+  не угадывается и не подставляется автоматически.
 
 Источник-кандидат: `Психиатрия/`, `psych.obschaya.ocr-draft.json`.
 

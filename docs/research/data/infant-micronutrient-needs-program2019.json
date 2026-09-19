@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.infant-micronutrient-needs.ru.program2019",
+  "title": "Physiological mineral and vitamin needs during the first year of life",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "unresolved",
+  "verificationStatus": "single-source-visual-table-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "title": "Национальная программа оптимизации вскармливания детей первого года жизни в Российской Федерации",
+    "edition": "4-е издание, переработанное и дополненное",
+    "year": 2019,
+    "table": "Приложение 1. Среднесуточные нормы физиологических потребностей в минеральных веществах и витаминах",
+    "pdfUrl": "https://xn--b1aaisgq1jga.xn--p1ai/Files/RussiaGuid/Programma2019.pdf",
+    "pdfPageIndexZeroBased": 183,
+    "printedPage": 184
+  },
+  "ageBandsMonths": [
+    "0-3",
+    "4-6",
+    "7-12"
+  ],
+  "minerals": {
+    "units": {
+      "calcium": "mg_per_day",
+      "phosphorus": "mg_per_day",
+      "magnesium": "mg_per_day",
+      "iron": "mg_per_day",
+      "zinc": "mg_per_day",
+      "iodine": "mg_per_day_as_source"
+    },
+    "rows": [
+      {
+        "ageMonths": "0-3",
+        "calcium": 400,
+        "phosphorus": 300,
+        "magnesium": 55,
+        "iron": 4,
+        "zinc": 3,
+        "iodine": 0.04
+      },
+      {
+        "ageMonths": "4-6",
+        "calcium": 500,
+        "phosphorus": 400,
+        "magnesium": 60,
+        "iron": 7,
+        "zinc": 3,
+        "iodine": 0.04
+      },
+      {
+        "ageMonths": "7-12",
+        "calcium": 600,
+        "phosphorus": 500,
+        "magnesium": 70,
+        "iron": 10,
+        "zinc": 4,
+        "iodine": 0.05
+      }
+    ]
+  },
+  "vitamins": {
+    "units": {
+      "vitaminC": "mg_per_day",
+      "vitaminA": "mcg_per_day",
+      "vitaminE": "mg_per_day",
+      "vitaminD": "mcg_per_day",
+      "vitaminB1": "mg_per_day",
+      "vitaminB2": "mg_per_day",
+      "vitaminB6": "mg_per_day",
+      "niacinEquivalent": "mg_per_day",
+      "folate": "mcg_per_day",
+      "vitaminB12": "mcg_per_day"
+    },
+    "rows": [
+      {
+        "ageMonths": "0-3",
+        "vitaminC": 30,
+        "vitaminA": 400,
+        "vitaminE": 3,
+        "vitaminD": 10,
+        "vitaminB1": 0.3,
+        "vitaminB2": 0.4,
+        "vitaminB6": 0.4,
+        "niacinEquivalent": 5,
+        "folate": 40,
+        "vitaminB12": 0.3
+      },
+      {
+        "ageMonths": "4-6",
+        "vitaminC": 35,
+        "vitaminA": 400,
+        "vitaminE": 3,
+        "vitaminD": 10,
+        "vitaminB1": 0.4,
+        "vitaminB2": 0.5,
+        "vitaminB6": 0.5,
+        "niacinEquivalent": 6,
+        "folate": 40,
+        "vitaminB12": 0.4
+      },
+      {
+        "ageMonths": "7-12",
+        "vitaminC": 40,
+        "vitaminA": 400,
+        "vitaminE": 4,
+        "vitaminD": 10,
+        "vitaminB1": 0.5,
+        "vitaminB2": 0.6,
+        "vitaminB6": 0.6,
+        "niacinEquivalent": 7,
+        "folate": 60,
+        "vitaminB12": 0.5
+      }
+    ]
+  },
+  "reviewNotes": [
+    "Values were visually checked against Appendix 1 on printed page 184.",
+    "Iodine is preserved in the source table's mg/day unit rather than silently converting the stored source value to micrograms.",
+    "These are reference requirements, not dosing recommendations for supplements.",
+    "The program/source edition and underlying normative provenance must remain visible if promoted.",
+    "Requires independent value verification and rights review before publication/runtime use."
+  ]
+}
