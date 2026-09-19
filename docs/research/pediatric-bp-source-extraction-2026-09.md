@@ -86,12 +86,38 @@ Before promotion:
 5. verify how the recommendation handles adolescents where adult absolute thresholds may also apply;
 6. add separate ABPM references rather than reusing office-BP percentiles for ambulatory measurements.
 
+## ABPM reference extraction
+
+Tables 7–10 were also transcribed into a second review-only artifact:
+
+`docs/research/data/pediatric-abpm-reference-kr571-v2-2025.json`
+
+It contains:
+
+- age-based ABPM references for boys and girls aged 5–16 years;
+- height-based ABPM references for boys (120–185 cm) and girls (120–175 cm);
+- 24-hour, daytime and nighttime values;
+- 50th, 75th, 90th and 95th percentiles;
+- paired systolic/diastolic values in mmHg.
+
+The extraction intentionally preserves a source anomaly instead of repairing it: in Table 7, boys age
+16, nighttime systolic BP is rendered as 123 mmHg at the 90th percentile and 122 mmHg at the 95th
+percentile. The automated ordering check flags this row as `review-required`. No corrected value is
+guessed.
+
+Tables 8–10 identify Lurbe et al. (2016 European Society of Hypertension pediatric-hypertension
+guideline) as the underlying reference. The current Russian recommendation remains the source locator
+for this extraction.
+
+Like the office-BP dataset, the ABPM artifact is `publicationState: blocked`,
+`rightsStatus: unresolved`, and is not connected to runtime interpretation.
+
 ## Next pediatric-hypertension slices
 
 The same current recommendation contains several high-value structured tables that can be extracted
 without inventing clinical knowledge:
 
-- Tables 7–10: ABPM reference values by age/height and sex;
+- Table 4: height percentiles;
 - Table 4: height percentiles;
 - Table 15: LV mass/LV mass-index percentiles;
 - Table 16: pediatric lipid target/borderline/high values;
