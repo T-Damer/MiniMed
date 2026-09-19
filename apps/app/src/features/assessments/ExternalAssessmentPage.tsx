@@ -334,7 +334,6 @@ export function ExternalAssessmentPage(props: {
                             <textarea
                               id={`external-assessment-${field.id}`}
                               class="assessment-external-field__control assessment-external-field__control--textarea"
-                              id={`external-assessment-${field.id}`}
                               value={values()[field.id] ?? ''}
                               placeholder={field.kind === 'text' ? field.placeholder : undefined}
                               onInput={(event) =>
@@ -349,7 +348,6 @@ export function ExternalAssessmentPage(props: {
                               id={`external-assessment-${field.id}`}
                               class="assessment-external-field__control"
                               type={field.kind === 'number' ? 'number' : 'text'}
-                              id={`external-assessment-${field.id}`}
                               value={values()[field.id] ?? ''}
                               min={field.kind === 'number' ? field.minimum : undefined}
                               max={field.kind === 'number' ? field.maximum : undefined}
@@ -370,7 +368,6 @@ export function ExternalAssessmentPage(props: {
                             id={`external-assessment-${selectField().id}`}
                             class="assessment-external-field__control"
                             value={values()[selectField().id] ?? ''}
-                            id={`external-assessment-${selectField().id}`}
                             onChange={(event) =>
                               setValues((current) => ({
                                 ...current,
