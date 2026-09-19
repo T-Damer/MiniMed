@@ -87,6 +87,10 @@
   `review-required` / `publicationState: blocked`: нужна независимая сверка всех значений,
   проверка прав на публикацию полной числовой таблицы и отдельная реализация диагностического
   алгоритма. Подробности: `docs/research/pediatric-bp-source-extraction-2026-09.md`.
+  Таблицы СМАД 7–10 также извлечены в
+  `docs/research/data/pediatric-abpm-reference-kr571-v2-2025.json`; автоматическая проверка
+  нашла и сохранила как review-анomaly исходное значение у мальчиков 16 лет ночью
+  (САД p90=123, p95=122), без самовольной коррекции.
 - скорректированный возраст недоношенного ребёнка — ✅ выполнено (2026-08-17): модуль
   `minimed.tools.pediatrics.ru` (`minimed.calculator.preterm-corrected-age`), источники:
   AAP HealthyChildren «Corrected Age For Preemies»; популяция: недоношенные; коррекция не применяется
