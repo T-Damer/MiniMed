@@ -149,6 +149,29 @@ describe('assessment result persistence', () => {
     expect(storage.has(ASSESSMENT_RESULTS_KEY)).toBe(true);
   });
 
+  it('keeps patient-bound external results out of ordinary local storage', () => {
+    const record = createExternalAssessmentRecord({
+      id: 'patient-mmse',
+      assessmentId: 'minimed.assessment.mmse',
+      subjectLabel: 'Пациент',
+      patientId: 'patient-1',
+      episodeId: 'episode-1',
+      variantId: 'mmse',
+      values: { total_score: 27 },
+      definitionVersion: '1.0.0',
+      persist: false,
+    });
+
+    expect(record).toMatchObject({
+      kind: 'external',
+      patientId: 'patient-1',
+      episodeId: 'episode-1',
+      values: { total_score: 27 },
+    });
+    expect(storage.has(ASSESSMENT_RESULTS_KEY)).toBe(false);
+    expect(loadAssessmentRecords()).toEqual([]);
+  });
+
   it('ignores malformed external values loaded from storage', () => {
     storage.set(
       ASSESSMENT_RESULTS_KEY,
