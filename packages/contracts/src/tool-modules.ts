@@ -189,7 +189,12 @@ export const AssessmentDefinitionSchema = z.object({
   evaluation: ToolEvaluationSchema,
   observationMappings: z.array(ObservationMappingSchema).default([]),
   license: z.object({
-    kind: z.enum(['project-original', 'public-domain-derived', 'third-party-attributed']),
+    kind: z.enum([
+      'project-original',
+      'public-domain-derived',
+      'third-party-attributed',
+      'third-party-restricted',
+    ]),
     notice: z.string().min(1),
     sourceUrl: HttpUrlSchema.optional(),
   }),
