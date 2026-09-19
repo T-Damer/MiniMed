@@ -80,9 +80,11 @@ def test_build_cognitive_external_draft_keeps_only_result_schemas(tmp_path: Path
         assert definition["license"]["kind"] == "third-party-restricted"
 
     raven = definitions["minimed.assessment.raven-progressive-matrices"]
-    assert [
-        variant["id"] for variant in raven["externalAdministration"]["variants"]
-    ] == ["cpm", "spm", "apm"]
+    assert [variant["id"] for variant in raven["externalAdministration"]["variants"]] == [
+        "cpm",
+        "spm",
+        "apm",
+    ]
 
     mmse = definitions["minimed.assessment.mmse"]
     total = mmse["externalAdministration"]["variants"][0]["resultFields"][0]
