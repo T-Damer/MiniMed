@@ -205,3 +205,26 @@ def test_infant_one_year_bp_research_dataset_shape_and_ordering() -> None:
             diastolic_values = [int(cast(list[object], row[2])[column]) for row in rows]
             assert systolic_values == sorted(systolic_values)
             assert diastolic_values == sorted(diastolic_values)
+
+
+def test_pediatric_bmi_adult_equivalent_thresholds_are_complete() -> None:
+    data = _load("pediatric-bmi-adult-equivalent-thresholds-kr571-v2-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    rows = _rows(data, "rows")
+    assert len(rows) == 33
+    ages = [float(row[0]) for row in rows]
+    assert ages[0] == 2
+    assert ages[-1] == 18
+    assert all(right - left == 0.5 for left, right in zip(ages, ages[1:], strict=True))
+
+    for row in rows:
+        boys_bmi25 = float(row[1])
+        girls_bmi25 = float(row[2])
+        boys_bmi30 = float(row[3])
+        girls_bmi30 = float(row[4])
+        assert boys_bmi25 < boys_bmi30
+        assert girls_bmi25 < girls_bmi30
+
+    assert rows[-1] == [18, 25, 25, 30, 30]
