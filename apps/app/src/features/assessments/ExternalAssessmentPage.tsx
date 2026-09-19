@@ -1,4 +1,3 @@
-import type { ExternalAssessmentAdministration } from '@localmed/contracts';
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
@@ -16,43 +15,12 @@ import { assessmentWorkspaceCrumbs } from '@/features/assessments/assessment-rou
 import type {
   AssessmentDefinition,
   AssessmentRecord,
-  ExternalAssessmentValue,
 } from '@/features/assessments/assessment-types';
+import {
+  isAcceptedExternalAssessmentMaterial,
+  parseExternalAssessmentValues,
+} from '@/features/assessments/external-assessment';
 import { createExternalAssessmentRecord } from '@/state/assessment-results';
-
-type ExternalField = ExternalAssessmentAdministration['variants'][number]['resultFields'][number];
-
-function valueError(field: ExternalField, raw: string): string | undefined {
-  const value = raw.trim();
-  if (!value) return field.required ? `Заполните поле «${field.label}».` : undefined;
-  if (field.kind !== 'number') {
-    if (
-      field.kind === 'select' &&
-      !field.options.some((option) => option.value === value)
-    ) {
-      return `Выберите допустимое значение для «${field.label}».`;
-    }
-    return undefined;
-  }
-  const numeric = Number(value.replace(',', '.'));
-  if (!Number.isFinite(numeric)) return `«${field.label}» должно быть числом.`;
-  if (field.integer && !Number.isInteger(numeric)) {
-    return `«${field.label}» должно быть целым числом.`;
-  }
-  if (field.minimum !== undefined && numeric < field.minimum) {
-    return `«${field.label}» не может быть меньше ${field.minimum}.`;
-  }
-  if (field.maximum !== undefined && numeric > field.maximum) {
-    return `«${field.label}» не может быть больше ${field.maximum}.`;
-  }
-  return undefined;
-}
-
-function parsedValue(field: ExternalField, raw: string): ExternalAssessmentValue | undefined {
-  const value = raw.trim();
-  if (!value) return undefined;
-  return field.kind === 'number' ? Number(value.replace(',', '.')) : value;
-}
 
 export function ExternalAssessmentPage(props: {
   readonly definition: AssessmentDefinition;
@@ -82,22 +50,16 @@ export function ExternalAssessmentPage(props: {
       props.onMessage('Вариант методики не выбран.');
       return;
     }
-    const next: Record<string, ExternalAssessmentValue> = {};
-    for (const field of selected.resultFields) {
-      const raw = values()[field.id] ?? '';
-      const error = valueError(field, raw);
-      if (error) {
-        props.onMessage(error);
-        return;
-      }
-      const value = parsedValue(field, raw);
-      if (value !== undefined) next[field.id] = value;
+    const parsed = parseExternalAssessmentValues(selected, values());
+    if (!parsed.ok) {
+      props.onMessage(parsed.error);
+      return;
     }
     const record = createExternalAssessmentRecord({
       assessmentId: props.definition.id,
       subjectLabel: subjectLabel(),
       variantId: selected.id,
-      values: next,
+      values: parsed.values,
       ...(props.definition.version ? { definitionVersion: props.definition.version } : {}),
     });
     props.onSaved(record);
@@ -297,8 +259,9 @@ export function ExternalAssessmentPage(props: {
               const file = event.currentTarget.files?.[0];
               if (!file) return;
               if (
-                !administration()?.material.acceptedMimeTypes.some(
-                  (acceptedType) => acceptedType === file.type,
+                !isAcceptedExternalAssessmentMaterial(
+                  file,
+                  administration()?.material.acceptedMimeTypes ?? [],
                 )
               ) {
                 props.onMessage('Выбран неподдерживаемый тип файла.');
