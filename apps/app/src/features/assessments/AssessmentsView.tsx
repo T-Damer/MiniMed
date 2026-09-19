@@ -14,8 +14,8 @@ import { AssessmentCatalogPage } from '@/features/assessments/AssessmentCatalogP
 import { AssessmentMissingPage } from '@/features/assessments/AssessmentMissingPage';
 import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQuestionnairePage';
 import { AssessmentResultPage } from '@/features/assessments/AssessmentResultPage';
-import { ExternalAssessmentPage } from '@/features/assessments/ExternalAssessmentPage';
 import { AssessmentSpecialtyIndexPage } from '@/features/assessments/AssessmentSpecialtyIndexPage';
+import { ExternalAssessmentPage } from '@/features/assessments/ExternalAssessmentPage';
 import {
   type AssessmentCatalogEntry,
   assessmentsInSpecialty,
@@ -882,8 +882,8 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
                 definition={selected()}
                 {...(draftRecord() ? { initialRecord: draftRecord() } : {})}
                 sectionTitle={
-                  ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)?.title ??
-                  selected().bankLabel
+                  ASSESSMENT_SECTIONS.find((section) => section.id === selected().category)
+                    ?.title ?? selected().bankLabel
                 }
                 onBack={() =>
                   navigate(getSplitNavigation() ? assessmentHomePath(selected().slug) : '#/search')
@@ -913,11 +913,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
                   setTransientRecord(saved);
                   refreshRecords();
                   navigate(
-                    resultPath(
-                      externalDefinition().bankId,
-                      externalDefinition().slug,
-                      saved.id,
-                    ),
+                    resultPath(externalDefinition().bankId, externalDefinition().slug, saved.id),
                   );
                 }}
               />
