@@ -249,6 +249,9 @@
 - инструменты: NIHSS, ABCD², modified Rankin, ICH Score, Hunt–Hess, WFNS, EDSS, Canadian CT
   Head Rule, PECARN;
 - опросники: MoCA, MMSE, MIDAS, HIT-6 и PedMIDAS.
+- source check 2026-09-19 для взрослой КР «Мигрень» (2024, ID 295): подтверждены ВАШ и
+  дневник головной боли; MIDAS/HIT-6 в текущем тексте/assessment appendix этого прохода не
+  подтверждены, поэтому остаются backlog-кандидатами до отдельного актуального источника.
 - source-backed extraction 2026-09-19: КР по ишемическому инсульту/ТИА явно связывает NIHSS и GCS
   с оценкой пациента; КР по когнитивным расстройствам подтверждает MMSE, MoCA, модифицированную
   Addenbrooke, Mini-Cog, frontal assessment battery, clock drawing и другие именованные тесты.
