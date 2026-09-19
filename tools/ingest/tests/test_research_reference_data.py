@@ -252,3 +252,18 @@ def test_infant_complementary_feeding_research_dataset_preserves_blanks_and_meat
     footnotes = cast(dict[str, object], data["footnotes"])
     assert footnotes["*"] == "не в качестве первого прикорма"
     assert footnotes["**"] == "по показаниям с 6 мес."
+
+
+def test_newborn_colostrum_volume_research_dataset_ranges_are_ordered() -> None:
+    data = _load("newborn-colostrum-volume-per-feed-program2019.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    rows = cast(list[dict[str, object]], data["rows"])
+    assert [row["lifeHours"] for row in rows] == ["0-24", "24-48", "48-72", "72-96"]
+
+    minimums = [int(row["minMlPerFeed"]) for row in rows]
+    maximums = [int(row["maxMlPerFeed"]) for row in rows]
+    assert all(left <= right for left, right in zip(minimums, maximums, strict=True))
+    assert minimums == sorted(minimums)
+    assert maximums == sorted(maximums)
