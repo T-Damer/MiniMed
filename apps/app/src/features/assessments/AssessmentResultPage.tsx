@@ -168,7 +168,11 @@ export function AssessmentResultPage(props: {
         description={
           props.definition.externalAdministration
             ? `${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`
-            : `${props.definition.description} · ${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`
+            : [
+                props.definition.description,
+                props.record.subjectLabel || 'Без подписи',
+                formatDate(props.record.createdAt),
+              ].join(' · ')
         }
         actions={
           <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
