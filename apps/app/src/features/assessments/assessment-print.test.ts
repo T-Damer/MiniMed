@@ -17,7 +17,7 @@ import { PrintManager } from '@/features/printing/print-manager';
 beforeAll(() => {
   for (const record of loadToolModuleRecords([
     'content/tool-modules/psychology.json',
-    'content/tool-modules/cognitive-assessment.json',
+    'content/tool-modules/drafts/cognitive-assessment.json',
     'content/tool-modules/obstetrics-gynecology.json',
   ])) {
     if (record.kind === 'assessment') registerDownloadedAssessment(record);
