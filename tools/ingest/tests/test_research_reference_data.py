@@ -292,3 +292,41 @@ def test_infant_neuropsych_development_milestones_cover_first_year_without_inter
     assert sum(len(cast(list[object], row["items"])) for row in ages) == 69
     assert "interpretation" not in data
     assert "cutoff" not in data
+
+
+def test_infant_energy_macronutrient_needs_cover_first_year_age_bands() -> None:
+    data = _load("infant-energy-macronutrient-needs-program2019.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    rows = cast(list[dict[str, object]], data["rows"])
+    assert [row["ageMonths"] for row in rows] == ["0-3", "4-6", "7-12"]
+    assert [int(row["energyKcalKg"]) for row in rows] == [115, 115, 110]
+    assert [float(row["proteinTotalGKg"]) for row in rows] == [2.2, 2.6, 2.9]
+    assert [float(row["carbohydrateGKg"]) for row in rows] == [13.0, 13.0, 13.0]
+
+    for row in rows:
+        assert float(row["proteinAnimalGKg"]) <= float(row["proteinTotalGKg"])
+        assert float(row["fatVegetableGKg"]) <= float(row["fatTotalGKg"])
+
+
+def test_infant_formula_volume_caloric_method_keeps_source_boundaries_explicit() -> None:
+    data = _load("infant-formula-volume-caloric-method-program2019.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    energy_target = cast(dict[str, object], data["energyTarget"])
+    assert int(energy_target["kcalPerKgPerDay"]) == 115
+
+    caps = cast(list[dict[str, object]], data["volumeCapsSource"])
+    assert [(row["ageLabelSource"], row["maxMlPerDay"]) for row in caps] == [
+        ("3 мес.", 850),
+        ("4 мес.", 900),
+        ("после 5 мес.", 1000),
+    ]
+    assert caps[-1]["requiresBoundaryReview"] is True
+
+    boundary = cast(dict[str, object], data["calculationBoundary"])
+    assert boundary["formulaEnergyDensityRequired"] is True
+    assert boundary["directVolumeFormulaAbsent"] is True
+    assert boundary["equationStatus"] == "derived-implementation-contract-requires-review"
