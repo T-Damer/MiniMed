@@ -120,3 +120,154 @@ Run the same source-backed pass over:
 For each batch, record exact recommendation ID/version, source section/appendix, canonical instrument
 name, aliases/acronyms, and whether MiniMed may redistribute the actual form or only expose an external
 assessment/result shell.
+
+
+## Batch 2 — depression, anxiety, addictions and Parkinson disease
+
+This pass extends the same review-only queue. It intentionally records only instrument identity,
+recommendation metadata and source location. It does not copy item text, answer choices, scoring keys,
+stimuli or normative tables.
+
+### Depressive episode / recurrent depressive disorder
+
+Current source checked: Russian Ministry of Health clinical recommendation **«Депрессивный эпизод,
+Рекуррентное депрессивное расстройство»**, approved 2024, adults, ID 301, revision due no later than
+2026.
+
+Recommendation mirror:
+https://sudact.ru/law/klinicheskie-rekomendatsii-depressivnyi-epizod-rekurrentnoe-depressivnoe-rasstroistvo_1/klinicheskie-rekomendatsii/
+
+The current appendix inventory explicitly contains:
+
+| Candidate | Type | Source position | Extraction disposition |
+| --- | --- | --- | --- |
+| HDRS-17 / Hamilton Rating Scale for Depression | scale | Appendix Г1 | accept for concept review |
+| MADRS / Montgomery-Asberg Depression Rating Scale | scale | Appendix Г2 | accept for concept review |
+| HCL-33 hypomania questionnaire | questionnaire | Appendix Г3 | accept for concept review; Russian-version/rights check before any form redistribution |
+| C-SSRS / Columbia-Suicide Severity Rating Scale | structured assessment | Appendix Г4 | merge with the same stable concept already found in schizophrenia; do not create a duplicate entity |
+
+Appendix inventory:
+https://sudact.ru/law/klinicheskie-rekomendatsii-depressivnyi-epizod-rekurrentnoe-depressivnoe-rasstroistvo_1/prilozhenie-g1-gn/
+
+The same recommendation explicitly describes HDRS/MADRS as quantitative severity/dynamics tools, so
+their source links should be kept distinct from the diagnostic criteria for F32/F33.
+
+### Generalized anxiety disorder
+
+Current source checked: clinical recommendation **«Генерализованное тревожное расстройство»**,
+approved 2024, adults, registry ID 457, version 3, revision due no later than 2026.
+
+Registry summary:
+https://minzdrav.clinirec.ru/kr/generalizovannoe-trevozhnoe-rasstroystvo/
+
+The appendix contains sixteen named instruments. The high-value discovery set is:
+
+| Candidate | Type | Source position | Extraction disposition |
+| --- | --- | --- | --- |
+| HARS / Hamilton Anxiety Rating Scale | scale | Appendix Г1 | accept for concept review |
+| GAD-7 / ГТР-7 | questionnaire | Appendix Г2 | accept for concept review |
+| SCL-90-R | questionnaire | Appendix Г3 | accept for concept review; distribution rights/version review required |
+| Integrative Anxiety Test (ИТТ) | assessment_method | Appendix Г4 | accept for concept review |
+| STAI / Spielberger-Hanin anxiety inventory | questionnaire/scale | Appendix Г5 | accept; reviewer chooses stable type |
+| BAI / Beck Anxiety Inventory | questionnaire/scale | Appendix Г6 | accept; rights/version review required |
+| Sheehan Anxiety Scale | scale | Appendix Г7 | accept for concept review |
+| MMPI | assessment_method | Appendix Г8 | external/restricted assessment candidate |
+| ISTA / Ammon ego-structure test | assessment_method | Appendix Г9 | external/restricted assessment candidate |
+| УСК / subjective-control method | assessment_method | Appendix Г10 | external/restricted assessment candidate |
+| Personal Beliefs Test | questionnaire | Appendix Г11 | external/restricted assessment candidate |
+| Life Style Index (LSI) | questionnaire | Appendix Г12 | external/restricted assessment candidate |
+| Coping Strategies questionnaire (СПП) | questionnaire | Appendix Г13 | external/restricted assessment candidate |
+| Melbourne Decision Making Questionnaire (MDMQ) | questionnaire | Appendix Г14 | external/restricted assessment candidate |
+| KON-2006 | questionnaire | Appendix Г15 | external/restricted assessment candidate |
+| КОП-25 treatment-adherence questionnaire | questionnaire | Appendix Г16 | accept for concept review |
+
+Appendix inventory:
+https://www.consultant.ru/document/cons_doc_LAW_486381/6e3b74e12dd38fa2dc87ae963cb86ba66d45b2a3/
+
+This recommendation is a strong justification for the new `assessment_method` candidate type: MMPI,
+ISTA and several experimental-psychology methods are not safely represented as ordinary symptom
+scales.
+
+### Alcohol-related disorders
+
+Three current 2024 recommendations expose separate instrument families and should not be collapsed into
+one generic “alcohol scale” concept.
+
+1. **Alcohol withdrawal syndrome**, F10.3, ID 784, adults and children, revision due no later than 2026:
+   - CIWA-Ar is the explicit withdrawal-severity scale.
+   - Source:
+     https://sudact.ru/law/klinicheskie-rekomendatsii-psikhicheskie-i-povedencheskie-rasstroistva-vyzvannye_7/klinicheskie-rekomendatsii/
+   - Appendix:
+     https://sudact.ru/law/klinicheskie-rekomendatsii-psikhicheskie-i-povedencheskie-rasstroistva-vyzvannye_1/prilozhenie-g/
+
+2. **Harmful use of psychoactive substances**, current 2024 recommendation:
+   - AUDIT is explicitly recommended for detecting harmful alcohol use.
+   - Source section:
+     https://sudact.ru/law/klinicheskie-rekomendatsii-psikhicheskie-i-povedencheskie-rasstroistva-vyzvannye_11/klinicheskie-rekomendatsii/2/2.5/
+
+3. **Alcohol dependence syndrome**, F10.2, ID 899 version 1, 2024:
+   - Naranjo causality algorithm is present as a medication-adverse-reaction tool and should not be
+     misclassified as an alcohol-severity scale.
+   - the recommendation also contains the Altschuler quantitative assessment of pathological alcohol
+     craving; this should become a separate review candidate rather than an inferred synonym of AUDIT
+     or CIWA-Ar.
+   - Source:
+     https://sudact.ru/law/klinicheskie-rekomendatsii-psikhicheskie-i-povedencheskie-rasstroistva-vyzvannye_15/klinicheskie-rekomendatsii_1/
+   - Appendix:
+     https://sudact.ru/law/klinicheskie-rekomendatsii-psikhicheskie-i-povedencheskie-rasstroistva-vyzvannye_3/prilozhenie-g/
+
+A separate hepatology recommendation also names CAGE and AUDIT. Those are additional reviewed
+source-document links to the same concepts, not new instrument identities.
+
+### Parkinson disease
+
+Registry/source checked: clinical recommendation **«Болезнь Паркинсона, вторичный паркинсонизм и
+другие заболевания, проявляющиеся синдромом паркинсонизма»**, ID 716. The registry still lists the
+2021 recommendation as applicable, but its own planned revision date was no later than 2023. MiniMed
+must therefore retain an explicit freshness warning until a newer approved version appears in the
+registry.
+
+Current registry listing:
+https://www.consultant.ru/document/cons_doc_LAW_519392/6061e48b39aeace5591b55d04ff553f9ee8405e7/
+
+Confirmed candidates include:
+
+| Candidate | Type | Source position | Extraction disposition |
+| --- | --- | --- | --- |
+| MDS-UPDRS | scale | Appendix Г1 | accept for concept review; rights/licensing review before form redistribution |
+| Hoehn and Yahr scale | scale | within MDS-UPDRS appendix | accept for concept review |
+| MMSE | scale | Appendix Г2 | merge with existing stable MMSE concept |
+| MoCA | scale | Appendix Г3 | merge with existing stable MoCA concept; keep external/restricted boundary |
+| HADS | questionnaire/scale | Appendix Г4 | accept; reviewer chooses stable type |
+
+Appendix examples:
+https://www.consultant.ru/document/cons_doc_LAW_408585/58aaa924fe26d7a1cdd02aee26c60531585e4fe1/
+https://www.consultant.ru/document/cons_doc_LAW_408585/7e925fc25daa7ab125cef9ad580858558a4a3167/
+
+### Cross-source identity rules reinforced by this batch
+
+- C-SSRS now has reviewed source mentions in schizophrenia and depressive-disorder recommendations:
+  one concept, multiple document links.
+- MMSE/MoCA occur in cognitive-disorder and Parkinson recommendations: one concept each, multiple
+  document links.
+- AUDIT occurs in addiction and hepatology contexts: one concept with different clinical source
+  contexts, not duplicate tools.
+- CIWA-Ar, AUDIT and the Altschuler craving assessment measure different constructs and must remain
+  separate concepts.
+- Naranjo belongs to medication adverse-reaction causality despite appearing inside an alcohol
+  recommendation.
+- Recommendation year/version/freshness belongs in source-link metadata; it must not be inferred from
+  the date MiniMed happened to ingest the document.
+
+### Scanner change prompted by the corpus
+
+The deterministic candidate vocabulary now includes `assessment_method` in addition to scales,
+questionnaires, criterion sets, classifications and severity systems.
+
+To avoid a large false-positive jump, generic body text containing «тест»/«методика» is not enough to
+create an assessment-method candidate. This type is discovered only from a specific structural heading
+or an exact reviewed-name inventory hit. Generic headings such as «Диагностические тесты» are rejected.
+
+The same patch also carries forward the previously validated scanner cleanups from the dependent
+assessment work: scale prose-tail cleanup, suppression of duplicate severity/classification candidates,
+and preservation of explicitly reviewed surface variants.
