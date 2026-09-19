@@ -23,7 +23,7 @@ medbase-terminology = "localmed_ingest.terminology_cli:app"
 dev = [
   "pyright==1.1.411",
   "pytest==9.1.1",
-  "ruff==0.16.5",
+  "ruff==0.16.7",
 ]
 
 [build-system]
