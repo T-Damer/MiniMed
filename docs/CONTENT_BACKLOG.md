@@ -254,6 +254,9 @@
   Addenbrooke, Mini-Cog, frontal assessment battery, clock drawing и другие именованные тесты.
   Последние выявили пробел схемы: generic named tests нельзя автоматически притворять `scale`.
   Сводка: `docs/research/knowledge-candidate-scan-neuropsychiatry-2026-09.md`.
+- второй проход: КР по болезни Паркинсона подтверждает MDS-UPDRS, Hoehn–Yahr, MMSE, MoCA и HADS.
+  Для ID 716 сохранён freshness-warning: в реестре по-прежнему указана редакция 2021 года с плановым
+  пересмотром не позднее 2023 года; новая версия не подставляется и не угадывается.
 
 ### Психиатрия и наркология
 
@@ -265,6 +268,12 @@
   BNSS, Calgary Depression Scale for Schizophrenia, PSP, SAD PERSONS, C-SSRS, Simpson–Angus и
   Bush–Francis; это пока concept/review-кандидаты, без копирования защищённых бланков и ключей.
   Сводка: `docs/research/knowledge-candidate-scan-neuropsychiatry-2026-09.md`.
+- второй source-backed проход 2026-09-19: КР «Депрессивный эпизод, Рекуррентное
+  депрессивное расстройство» (2024, ID 301) подтверждает HDRS-17, MADRS, HCL-33 и C-SSRS; КР
+  «Генерализованное тревожное расстройство» (2024, ID 457 v3) — HARS, GAD-7, SCL-90-R, ИТТ,
+  STAI, BAI, Sheehan, MMPI, ISTA, УСК, LSI, MDMQ, KON-2006, КОП-25 и др.; алкогольные КР —
+  CIWA-Ar, AUDIT и отдельную количественную оценку патологического влечения. Все остаются
+  review-кандидатами до проверки версии/прав на конкретный бланк.
 
 Источник-кандидат: `Психиатрия/`, `psych.obschaya.ocr-draft.json`.
 
