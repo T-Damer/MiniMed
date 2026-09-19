@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.infant-bp-age-1-year.ru.kr571-v2.2025",
+  "title": "Blood pressure percentiles at age 1 year by sex and height percentile",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "unresolved",
+  "verificationStatus": "single-source-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "recommendationTitle": "Артериальная гипертензия у детей",
+    "recommendationId": "571",
+    "recommendationVersion": 2,
+    "recommendationYear": 2025,
+    "tableNumber": 2,
+    "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-2/",
+    "underlyingCitation": "Mattoo K. Evaluation and diagnosis of hypertension in infants between one month and one year of age. UpToDate; topic updated 2020-06-11."
+  },
+  "encoding": {
+    "ageYears": 1,
+    "heightPercentiles": [5, 10, 25, 50, 75, 90, 95],
+    "bloodPressurePercentiles": [50, 90, 95, 99],
+    "row": "[bpPercentile, systolicByHeightPercentile, diastolicByHeightPercentile]",
+    "unit": "mmHg"
+  },
+  "rows": {
+    "boys": [
+      [
+        50,
+        [80, 81, 83, 85, 87, 88, 89],
+        [34, 35, 36, 37, 38, 39, 39]
+      ],
+      [
+        90,
+        [94, 95, 97, 99, 100, 102, 103],
+        [49, 50, 51, 52, 53, 53, 54]
+      ],
+      [
+        95,
+        [98, 99, 101, 103, 104, 106, 106],
+        [54, 54, 55, 56, 57, 58, 58]
+      ],
+      [
+        99,
+        [105, 106, 108, 110, 112, 113, 114],
+        [61, 62, 63, 64, 65, 66, 66]
+      ]
+    ],
+    "girls": [
+      [
+        50,
+        [83, 84, 85, 86, 88, 89, 90],
+        [38, 39, 39, 40, 41, 41, 42]
+      ],
+      [
+        90,
+        [97, 97, 98, 100, 101, 102, 103],
+        [52, 53, 53, 54, 55, 55, 56]
+      ],
+      [
+        95,
+        [100, 101, 102, 104, 105, 106, 107],
+        [56, 57, 57, 58, 59, 59, 60]
+      ],
+      [
+        99,
+        [108, 108, 109, 111, 112, 113, 114],
+        [64, 64, 65, 65, 66, 67, 67]
+      ]
+    ]
+  },
+  "automatedChecks": {
+    "rowsPerSex": 4,
+    "nondecreasingAcrossHeightPercentiles": true,
+    "strictlyIncreasingAcrossBpPercentiles": true
+  },
+  "reviewNotes": [
+    "This one-year table includes the 50th BP percentile, unlike the separate 1-17 year office-BP research dataset that currently stores 90th/95th/99th rows only.",
+    "Values are transcribed from Table 2 of the current recommendation mirror.",
+    "Do not silently substitute the 1-year row from another historical recommendation edition; current-source provenance is retained.",
+    "Requires independent value verification and redistribution-rights review before runtime/publication use."
+  ]
+}
