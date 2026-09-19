@@ -185,6 +185,40 @@ describe('tool module contracts', () => {
     if (!field) throw new Error('Expected numeric field.');
     field.minimum = 61;
     expect(AssessmentDefinitionSchema.safeParse(invalid).success).toBe(false);
+
+    const withQuestion = structuredClone(base);
+    withQuestion.questions = [{ id: 'q1', prompt: 'Protected item', scaleId: 'total' }];
+    expect(AssessmentDefinitionSchema.safeParse(withQuestion).success).toBe(false);
+
+    const withVerdict = structuredClone(base);
+    withVerdict.evaluation = {
+      status: 'verdict',
+      rules: [
+        {
+          when: '1',
+          verdict: {
+            rangeId: 'external-verdict',
+            title: 'Should not be accepted',
+            explanation: 'External results are not automatically interpreted.',
+            attentionLevel: 'none',
+            lowerInclusive: true,
+            upperInclusive: true,
+            sourceIds: [],
+          },
+        },
+      ],
+      missingContext: [],
+      sourceIds: [],
+    };
+    expect(AssessmentDefinitionSchema.safeParse(withVerdict).success).toBe(false);
+
+    const duplicateFields = structuredClone(base);
+    const existingField = duplicateFields.externalAdministration.variants[0]?.resultFields[0];
+    if (!existingField) throw new Error('Expected result field.');
+    duplicateFields.externalAdministration.variants[0]?.resultFields.push(
+      structuredClone(existingField),
+    );
+    expect(AssessmentDefinitionSchema.safeParse(duplicateFields).success).toBe(false);
   });
 
 });
