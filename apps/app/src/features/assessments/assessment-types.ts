@@ -50,7 +50,8 @@ export interface AssessmentQuestion {
 export type AssessmentLicenseKind =
   | 'project-original'
   | 'public-domain-derived'
-  | 'third-party-attributed';
+  | 'third-party-attributed'
+  | 'third-party-restricted';
 
 export interface AssessmentLicense {
   readonly kind: AssessmentLicenseKind;
