@@ -6,7 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from localmed_ingest.knowledge_candidate_review import promote_candidate_reviews
+from localmed_ingest.knowledge_candidate_review import (
+    CandidateReviewDecision,
+    promote_candidate_reviews,
+)
 from localmed_ingest.knowledge_candidates import scan_candidates, write_candidate_workspace
 from localmed_ingest.sqlite_builder import schema_sql
 
@@ -66,7 +69,6 @@ def _source(path: Path) -> None:
         connection.close()
 
 
-
 def _inventory(path: Path) -> None:
     connection = sqlite3.connect(path)
     try:
@@ -90,11 +92,25 @@ def _inventory(path: Path) -> None:
     finally:
         connection.close()
 
+
 def _write_decisions(path: Path, rows: list[dict[str, object]]) -> None:
     path.write_text(
         "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
         encoding="utf-8",
     )
+
+
+def test_review_schema_accepts_named_assessment_method_type() -> None:
+    decision = CandidateReviewDecision.model_validate(
+        {
+            "candidateId": "candidate.knowledge.clock-drawing",
+            "decision": "accept",
+            "entityId": "assessment.clock-drawing-test",
+            "canonicalName": "Тест рисования часов",
+            "entityType": "assessment_method",
+        }
+    )
+    assert decision.entity_type == "assessment_method"
 
 
 def test_review_promotes_identity_and_source_link_without_inventing_fact(tmp_path: Path) -> None:
