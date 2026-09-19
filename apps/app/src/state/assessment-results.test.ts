@@ -168,4 +168,27 @@ describe('assessment result persistence', () => {
     expect(loadAssessmentRecords()).toEqual([]);
   });
 
+
+  it('rejects invalid external records before persistence', () => {
+    expect(() =>
+      createExternalAssessmentRecord({
+        assessmentId: 'minimed.assessment.mmse',
+        subjectLabel: '',
+        variantId: '   ',
+        values: { total_score: 27 },
+      }),
+    ).toThrow('External assessment variant is required.');
+
+    expect(() =>
+      createExternalAssessmentRecord({
+        assessmentId: 'minimed.assessment.mmse',
+        subjectLabel: '',
+        variantId: 'mmse',
+        values: { notes: 'x'.repeat(4_001) },
+      }),
+    ).toThrow('External assessment values are invalid.');
+
+    expect(storage.has(ASSESSMENT_RESULTS_KEY)).toBe(false);
+  });
+
 });
