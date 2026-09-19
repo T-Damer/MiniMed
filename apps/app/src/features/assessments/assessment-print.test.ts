@@ -216,5 +216,4 @@ describe('assessment print layout', () => {
     const file = new File(['text'], 'test.txt', { type: 'text/plain' });
     await expect(printExternalAssessmentMaterial(file, 'Тест')).resolves.toBe(false);
   });
-
 });
