@@ -77,6 +77,7 @@ def test_build_cognitive_external_draft_keeps_only_result_schemas(tmp_path: Path
         assert definition["responseOptions"] == []
         assert definition["externalAdministration"]["mode"] == "external"
         assert definition["evaluation"]["status"] != "verdict"
+        assert definition["license"]["kind"] == "third-party-restricted"
 
     raven = definitions["minimed.assessment.raven-progressive-matrices"]
     assert [
