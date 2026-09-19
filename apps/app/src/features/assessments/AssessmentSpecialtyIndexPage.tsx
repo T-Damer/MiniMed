@@ -318,6 +318,8 @@ export function AssessmentSpecialtyIndexPage(props: {
                         <small class="assessment-history__summary">
                           {record.kind === 'completed' && record.result.headline}
                           {record.kind === 'manual' && 'Результат внесён вручную'}
+                          {record.kind === 'external' &&
+                            `Внешний результат · ${record.variantId.toUpperCase()}`}
                           {record.kind === 'incomplete' && (
                             <>
                               <span class="assessment-history__tag">incomplete</span>{' '}
