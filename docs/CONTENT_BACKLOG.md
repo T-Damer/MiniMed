@@ -91,6 +91,12 @@
   `docs/research/data/pediatric-abpm-reference-kr571-v2-2025.json`; автоматическая проверка
   нашла и сохранила как review-анomaly исходное значение у мальчиков 16 лет ночью
   (САД p90=123, p95=122), без самовольной коррекции.
+  Из того же source slice извлечены связанные blocked reference-таблицы: перцентили роста
+  (`pediatric-height-percentiles-kr571-v2-2025.json`), окружности талии 2–18 лет
+  (`pediatric-waist-percentiles-kr571-v2-2025.json`), ММЛЖ/ИММЛЖ
+  (`pediatric-lv-mass-percentiles-kr571-v2-2025.json`) и липидные source-cells
+  (`pediatric-lipid-reference-kr571-v2-2025.json`). Таблица метаболического синдрома пока
+  не нормализована: HTML теряет операторы/границы колонок, нужен визуальный/PDF-review.
 - скорректированный возраст недоношенного ребёнка — ✅ выполнено (2026-08-17): модуль
   `minimed.tools.pediatrics.ru` (`minimed.calculator.preterm-corrected-age`), источники:
   AAP HealthyChildren «Corrected Age For Preemies»; популяция: недоношенные; коррекция не применяется
