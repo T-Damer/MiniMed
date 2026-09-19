@@ -249,6 +249,11 @@
 - инструменты: NIHSS, ABCD², modified Rankin, ICH Score, Hunt–Hess, WFNS, EDSS, Canadian CT
   Head Rule, PECARN;
 - опросники: MoCA, MMSE, MIDAS, HIT-6 и PedMIDAS.
+- source-backed extraction 2026-09-19: КР по ишемическому инсульту/ТИА явно связывает NIHSS и GCS
+  с оценкой пациента; КР по когнитивным расстройствам подтверждает MMSE, MoCA, модифицированную
+  Addenbrooke, Mini-Cog, frontal assessment battery, clock drawing и другие именованные тесты.
+  Последние выявили пробел схемы: generic named tests нельзя автоматически притворять `scale`.
+  Сводка: `docs/research/knowledge-candidate-scan-neuropsychiatry-2026-09.md`.
 
 ### Психиатрия и наркология
 
