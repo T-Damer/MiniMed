@@ -478,3 +478,32 @@ reviewed.
   `assessment_method` type outside psychiatry.
 - Diagnostic criteria (McDonald/MAGNIMS) and rating scales (EDSS/NIHSS) must stay different entity
   classes even when they are used in the same recommendation.
+
+
+## Batch 5 — migraine source check and negative evidence
+
+Current adult recommendation: **«Мигрень»**, ID 295, approved 2024, adults, due for revision no later
+than 2026 and applicable from 2025-01-01.
+
+Sources:
+
+- https://base.garant.ru/410613100/
+- https://base.garant.ru/410613100/7dede6ac8f25be619ed07c17ed1c62c9/
+- https://www.consultant.ru/document/cons_doc_LAW_490921/
+
+This pass confirms the **Visual Analogue Scale (VAS/ВАШ)** as a current source-backed scale and the
+headache diary as a structured patient-observation method used to establish headache days and
+analgesic-use days.
+
+The existing MiniMed backlog also names MIDAS and HIT-6. This pass did **not** find either instrument in
+the current adult 2024 recommendation's assessment appendix/text. An older Russian primary-care
+standard mentions MIDAS, but that is a different, older source class and is not enough to claim that
+MIDAS/HIT-6 are current-recommendation instruments.
+
+Extraction decision:
+
+- add VAS/ВАШ source linkage if not already represented;
+- treat the headache diary as an `assessment_method`/structured observation candidate rather than a
+  symptom scale;
+- keep MIDAS and HIT-6 in backlog pending a separately verified current source; do not manufacture a
+  link to KR ID 295.
