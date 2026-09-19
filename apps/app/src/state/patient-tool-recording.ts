@@ -396,7 +396,6 @@ export async function recordAssessmentResultForPatient(input: {
   });
 }
 
-
 export async function recordExternalAssessmentResultForPatient(input: {
   readonly patientId: string;
   readonly episodeId?: string;
