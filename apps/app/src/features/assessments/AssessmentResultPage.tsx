@@ -65,9 +65,10 @@ export function AssessmentResultPage(props: {
     return '';
   };
   const externalVariant = () => {
-    if (props.record.kind !== 'external') return undefined;
+    const record = props.record;
+    if (record.kind !== 'external') return undefined;
     return props.definition.externalAdministration?.variants.find(
-      (variant) => variant.id === props.record.variantId,
+      (variant) => variant.id === record.variantId,
     );
   };
   const printResult = (includeQuestions = false): void => {
