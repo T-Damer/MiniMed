@@ -21,7 +21,7 @@ medbase-terminology = "localmed_ingest.terminology_cli:app"
 
 [dependency-groups]
 dev = [
-  "pyright==1.1.411",
+  "pyright==1.1.414",
   "pytest==9.1.1",
   "ruff==0.16.5",
 ]
