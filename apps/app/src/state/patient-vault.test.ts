@@ -1,5 +1,6 @@
 import { CalculatorSchemaSchema } from '@localmed/contracts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import {
   evaluateCalculatorSchema,
   toStoredCalculationResult,
@@ -12,7 +13,11 @@ import {
   emptyPatientVaultSnapshot,
   type PatientVaultSnapshot,
 } from '@/state/patient-domain';
-import { recordCalculatorResultForPatient } from '@/state/patient-tool-recording';
+import { createExternalAssessmentRecord } from '@/state/assessment-results';
+import {
+  recordCalculatorResultForPatient,
+  recordExternalAssessmentResultForPatient,
+} from '@/state/patient-tool-recording';
 import {
   addPatientBlob,
   createPatientInVault,
@@ -321,6 +326,102 @@ describe('patient vault storage modes', () => {
         expect.objectContaining({ metricId: 'body-mass', unit: 'кг', value: 65 }),
       ]),
     );
+  });
+
+  it('records external assessment values only in the patient vault', async () => {
+    await createPatientVault({ allowUnencrypted: true });
+    const created = await createPatientInVault({ displayName: 'Пациент' });
+    const definition: AssessmentDefinition = {
+      schemaVersion: 2,
+      version: '1.0.0',
+      id: 'minimed.assessment.mmse',
+      slug: 'mmse',
+      title: 'Mini-Mental State Examination',
+      shortTitle: 'MMSE',
+      aliases: ['MMSE'],
+      bankId: 'psychiatry',
+      bankLabel: 'Психиатрия',
+      category: 'cognitive-assessment',
+      description: 'External result capture.',
+      estimatedMinutes: 10,
+      audience: 'Взрослые',
+      responseOptions: [],
+      scales: [],
+      externalAdministration: {
+        mode: 'external',
+        variants: [
+          {
+            id: 'mmse',
+            label: 'MMSE',
+            shortLabel: 'MMSE',
+            description: 'External MMSE result.',
+            audience: 'Взрослые',
+            resultFields: [
+              {
+                id: 'total_score',
+                kind: 'number',
+                label: 'Общий балл',
+                required: true,
+                minimum: 0,
+                maximum: 30,
+                integer: true,
+              },
+            ],
+          },
+        ],
+        material: {
+          policy: 'user-local-file',
+          acceptedMimeTypes: ['application/pdf'],
+          note: 'Локальный материал.',
+        },
+      },
+      questions: [],
+      disclaimer: 'Без автоматической интерпретации.',
+      evidenceNote: 'Сверяйте редакцию.',
+      license: {
+        kind: 'third-party-restricted',
+        notice: 'Тестовые материалы не распространяются.',
+      },
+    };
+    const record = createExternalAssessmentRecord({
+      id: 'external-mmse-1',
+      assessmentId: definition.id,
+      subjectLabel: 'Пациент',
+      patientId: created.patientId,
+      variantId: 'mmse',
+      values: { total_score: 27 },
+      definitionVersion: definition.version,
+      persist: false,
+    });
+
+    const first = await recordExternalAssessmentResultForPatient({
+      patientId: created.patientId,
+      record,
+      definition,
+    });
+    const second = await recordExternalAssessmentResultForPatient({
+      patientId: created.patientId,
+      record,
+      definition,
+    });
+
+    expect(first.created).toBe(true);
+    expect(second.created).toBe(false);
+    const restored = await readPatientVault();
+    expect(restored.events).toHaveLength(1);
+    expect(restored.events[0]).toMatchObject({
+      patientId: created.patientId,
+      kind: 'tool-result',
+      title: 'Mini-Mental State Examination — MMSE',
+      text: 'Вариант: MMSE\nОбщий балл: 27',
+      provenance: {
+        toolId: definition.id,
+        definitionVersion: '1.0.0',
+        idempotencyKey: 'external-mmse-1',
+        normalizedInputs: { total_score: 27 },
+      },
+      observations: [],
+    });
   });
 
   it('stores web snapshots as plaintext and reopens them without a password', async () => {
