@@ -66,7 +66,9 @@
   },
   "overrides": [
     {
-      "includes": ["apps/app/src/styles/global.css"],
+      "includes": [
+        "apps/app/src/styles/global.css"
+      ],
       "linter": {
         "rules": {
           "style": {
@@ -76,6 +78,14 @@
             "noImportantStyles": "off"
           }
         }
+      }
+    },
+    {
+      "includes": [
+        "docs/research/data/*.json"
+      ],
+      "formatter": {
+        "enabled": false
       }
     }
   ]
