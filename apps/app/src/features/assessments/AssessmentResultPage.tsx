@@ -165,7 +165,11 @@ export function AssessmentResultPage(props: {
             {props.definition.title}
           </Heading>
         }
-        description={`${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`}
+        description={
+          props.definition.externalAdministration
+            ? `${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`
+            : `${props.definition.description} · ${props.record.subjectLabel || 'Без подписи'} · ${formatDate(props.record.createdAt)}`
+        }
         actions={
           <div class="assessment-subpage-header-actions assessment-subpage-header-actions--trailing">
             <AppContextMenu
