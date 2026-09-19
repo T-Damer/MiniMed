@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.preterm-hyperbilirubinemia-treatment-thresholds.ru.kr917-v1-2025",
+  "title": "Preterm hyperbilirubinemia phototherapy and exchange-transfusion thresholds, GA/CA 22-34 weeks",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "clinical-recommendation-publication-scope-review-required",
+  "verificationStatus": "cross-mirror-table-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "recommendationTitle": "Гипербилирубинемия недоношенных",
+    "recommendationId": "917",
+    "recommendationVersion": 1,
+    "recommendationYear": 2025,
+    "population": "preterm_newborns_gestational_or_corrected_age_22_to_34_weeks",
+    "icd10": [
+      "P59.0"
+    ],
+    "registryMirror": "https://minzdrav.clinirec.ru/kr/giperbilirubinemiya-nedonoshennyh/",
+    "appendices": {
+      "standardPhototherapy": "A3.3.1",
+      "intensivePhototherapy": "A3.3.2",
+      "exchangeTransfusion": "A3.3.3"
+    },
+    "sourceUrls": {
+      "standard": "https://sudact.ru/law/klinicheskie-rekomendatsii-giperbilirubinemiia-nedonoshennykh-odobreny-minzdravom-rossii/prilozhenie-a3/prilozhenie-a3.3/prilozhenie-a3.3.1/",
+      "intensive": "https://base.garant.ru/412124592/851f67a6758ec26eb84630fab5fb1f07/",
+      "exchange": "https://base.garant.ru/412124592/41c3ef6fbbb50d07c3ce296a882e4389/"
+    },
+    "criteriaLabelSource": "New 2017 revised Kobe University treatment criteria"
+  },
+  "unit": "umol/L_total_serum_bilirubin",
+  "postnatalAgeBins": [
+    "<24h",
+    "24-48h",
+    "48-72h",
+    "72-96h",
+    "96-120h",
+    ">120h"
+  ],
+  "gestationalOrCorrectedAgeBandsWeeks": [
+    "22-25",
+    "26-27",
+    "28-29",
+    "30-31",
+    "32-34"
+  ],
+  "thresholds": {
+    "standardPhototherapy": [
+      [
+        86,
+        86,
+        86,
+        103,
+        120,
+        137
+      ],
+      [
+        86,
+        86,
+        103,
+        137,
+        154,
+        171
+      ],
+      [
+        103,
+        120,
+        137,
+        171,
+        188,
+        205
+      ],
+      [
+        120,
+        137,
+        171,
+        205,
+        222,
+        239
+      ],
+      [
+        137,
+        171,
+        205,
+        239,
+        257,
+        274
+      ]
+    ],
+    "intensivePhototherapy": [
+      [
+        103,
+        137,
+        137,
+        154,
+        171,
+        171
+      ],
+      [
+        103,
+        154,
+        171,
+        188,
+        205,
+        205
+      ],
+      [
+        120,
+        171,
+        205,
+        222,
+        239,
+        239
+      ],
+      [
+        137,
+        205,
+        239,
+        257,
+        274,
+        274
+      ],
+      [
+        154,
+        239,
+        274,
+        308,
+        325,
+        325
+      ]
+    ],
+    "exchangeTransfusion": [
+      [
+        137,
+        171,
+        205,
+        222,
+        222,
+        222
+      ],
+      [
+        137,
+        171,
+        205,
+        239,
+        257,
+        257
+      ],
+      [
+        154,
+        205,
+        239,
+        274,
+        308,
+        308
+      ],
+      [
+        171,
+        239,
+        274,
+        308,
+        342,
+        342
+      ],
+      [
+        171,
+        274,
+        308,
+        342,
+        376,
+        376
+      ]
+    ]
+  },
+  "automatedChecks": {
+    "gestationalAgeBandCount": 5,
+    "ageBinCount": 6,
+    "treatmentThresholdOrdering": "standard<=intensive<=exchange_at_every_cell",
+    "matricesSameShape": true
+  },
+  "reviewNotes": [
+    "The source table header uses gestational/corrected age (ГВ/СВ); this artifact preserves that wording instead of assuming birth gestational age only.",
+    "Values are total serum bilirubin thresholds in micromol/L.",
+    "No interpolation between gestational/corrected-age bands or postnatal-age bins is defined.",
+    "The recommendation states that infants <=34 weeks use these preterm appendices; the >=35-week recommendation is stored separately in the KR916 artifact.",
+    "No autonomous treatment decision is generated from the grid; full clinical context and boundary semantics require review before runtime promotion."
+  ]
+}
