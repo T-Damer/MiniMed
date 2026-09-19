@@ -197,6 +197,10 @@ def _heading_candidate_types(text: str) -> tuple[str, ...]:
         match = pattern.search(text)
         if match and match.start() <= 42:
             result.append(candidate_type)
+    # A heading such as "Классификация по степени тяжести" names the
+    # classification itself; "степени тяжести" is not a second entity.
+    if "classification" in result and "severity_grade" in result:
+        result.remove("severity_grade")
     return tuple(result)
 
 
@@ -214,11 +218,30 @@ def _meaningful_label(candidate_type: str, label: str, source_text: str) -> bool
     return not (candidate_type == "scale" and normalized in {"шкала", "шкала оценки", "индекс"})
 
 
+def _clean_candidate_label(candidate_type: str, label: str) -> str:
+    clean = " ".join(label.split())
+    if candidate_type != "scale":
+        return clean[:180]
+
+    # Body prose often uses an inflected lead-in ("по шкале CURB-65
+    # используется..."). Keep only the instrument name so it deduplicates
+    # against the section-title candidate instead of becoming a false entity.
+    clean = re.sub(r"^(?:по\s+)?шкал[аеы]\s+", "Шкала ", clean, flags=re.IGNORECASE)
+    clean = re.split(
+        r"\s+(?:использ\w*|примен\w*|позвол\w*|предназнач\w*|служ\w*|"
+        r"оценива\w*|рассчитыва\w*|определя\w*)\b",
+        clean,
+        maxsplit=1,
+        flags=re.IGNORECASE,
+    )[0]
+    return clean[:180]
+
+
 def _candidate_label(candidate_type: str, text: str) -> str | None:
     for pattern in _NAME_PATTERNS.get(candidate_type, ()):
         match = pattern.search(text)
         if match:
-            label = " ".join(match.group("name").split())[:180]
+            label = _clean_candidate_label(candidate_type, match.group("name"))
             return label if _meaningful_label(candidate_type, label, text) else None
     return None
 
