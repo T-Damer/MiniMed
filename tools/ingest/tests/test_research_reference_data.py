@@ -364,3 +364,25 @@ def test_infant_micronutrient_needs_cover_same_age_bands_and_units() -> None:
 
     mineral_units = cast(dict[str, object], minerals["units"])
     assert mineral_units["iodine"] == "mg_per_day_as_source"
+
+
+def test_pediatric_water_beverage_reference_keeps_scope_separate_from_total_fluid() -> None:
+    data = _load("pediatric-water-beverages-mr-2.3.1.0253-21.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    rows = cast(list[dict[str, object]], data["rows"])
+    infant = rows[0]
+    assert infant["age"] == "7-11_months"
+    assert _float(infant["minLitersPerDay"]) == 0.2
+    assert _float(infant["maxLitersPerDay"]) == 0.3
+
+    context = cast(dict[str, object], data["infantContext"])
+    assert context["numericAdditionalFluidFor0To6Months"] is None
+    assert context["interpretation"] == "no-numeric-extra-fluid-rule"
+
+    scope = cast(dict[str, object], data["scope"])
+    assert scope["quantity"] == "water_and_beverages"
+    excluded = cast(list[object], scope["excludes"])
+    assert "maintenance_intravenous_fluid" in excluded
+    assert "illness_related_rehydration" in excluded
