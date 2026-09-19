@@ -65,6 +65,19 @@ Appendix 1 (printed page 184) gives first-year requirements per kg body weight:
 The source also separates animal protein and the vegetable component of fat; those fields are retained
 in the dataset. The 1–3 year absolute daily row is intentionally outside this first-year artifact.
 
+## Mineral and vitamin requirements
+
+Structured artifact:
+
+`docs/research/data/infant-micronutrient-needs-program2019.json`
+
+The same visually checked Appendix 1 page contains 0–3 / 4–6 / 7–12 month reference values for
+calcium, phosphorus, magnesium, iron, zinc, iodine and vitamins C/A/E/D/B1/B2/B6, niacin equivalents,
+folate and B12.
+
+The source unit for iodine is preserved as mg/day instead of silently rewriting the stored source
+number. These are physiological reference needs, not supplement doses.
+
 ## Formula-volume caloric method
 
 A deeper source pass corrected the earlier negative finding. Chapter 4 (printed page 56) explicitly
