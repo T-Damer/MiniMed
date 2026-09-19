@@ -124,12 +124,21 @@ It is intentionally below the normal top-level `content/tool-modules/*.json` rel
 `buildToolCatalog.ts` cannot accidentally advertise a downloadable module before an actual SQLite
 artifact and catalog descriptor exist.
 
-The same deterministic `build_tool_module` builder was exercised locally on this draft:
+The same deterministic `build_tool_module` builder was exercised locally on the current draft:
 
 - 3 tool definitions;
 - SQLite `integrity_check = ok`;
 - foreign-key violations: 0;
-- generated DB size: 385,024 bytes.
+- generated DB size: 385,024 bytes;
+- deterministic gzip (level 9, mtime 0): 10,551 bytes;
+- DB SHA-256: `75affe72f1622438437bbcf34339773473606e9640ae549cc408b20cceb032a5`;
+- gzip SHA-256: `581a686ebbe9d1bd0afb84cece558a1a995562edd95e1eb020e2de80ddd5662b`;
+- builder source-set digest:
+  `sha256:5a2623eaa4f9bdd672c12920ea35e0f22ef1021b5e84539056b506c3568fb8a8`.
+
+A separate local schema smoke confirmed unique variant/result-field IDs, no bundled questions/scales
+for external methods, no external automated verdicts, Raven variants `cpm/spm/apm`, and MMSE
+`total_score` constrained to the declared 0–30 integer range.
 
 This measurement is local build evidence, not a published release artifact.
 
