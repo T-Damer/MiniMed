@@ -86,6 +86,23 @@ Before promotion:
 5. verify how the recommendation handles adolescents where adult absolute thresholds may also apply;
 6. add separate ABPM references rather than reusing office-BP percentiles for ambulatory measurements.
 
+## Height-percentile dependency
+
+The height-percentile table used to select office-BP columns was extracted separately:
+
+`docs/research/data/pediatric-height-percentiles-kr571-v2-2025.json`
+
+It contains ages 1–17 and the 5th/10th/25th/50th/75th/90th/95th height percentiles for boys and
+girls. Decimal commas from the rendered Russian source are normalized to JSON decimal points; no
+interpolation has been added.
+
+Automated checks confirm monotonic ordering across percentiles and ages, but the artifact remains
+review-only. A future BP calculator must define the exact boundary/interpolation behavior explicitly
+rather than guessing how to map an arbitrary measured height between table percentiles.
+
+Source Table 4:
+https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-4/
+
 ## ABPM reference extraction
 
 Tables 7–10 were also transcribed into a second review-only artifact:
