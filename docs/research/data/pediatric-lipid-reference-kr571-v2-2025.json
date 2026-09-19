@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.pediatric-lipid-reference.ru.kr571-v2.2025",
+  "title": "Pediatric lipid target/borderline/high reference cells",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "unresolved",
+  "verificationStatus": "single-source-html-cell-transcription-with-operator-gaps",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "recommendationTitle": "Артериальная гипертензия у детей",
+    "recommendationId": "571",
+    "recommendationVersion": 2,
+    "recommendationYear": 2025,
+    "tableNumber": 16,
+    "url": "https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-16/",
+    "underlyingCitation": "Elkins C, Fruh S, Jones L, Bydalek K. Clinical Practice Recommendations for Pediatric Dyslipidemia. J Pediatr Health Care. 2019;33(4):494-504."
+  },
+  "columns": [
+    "category",
+    "target",
+    "borderline",
+    "high",
+    "low"
+  ],
+  "rows": [
+    {
+      "analyte": "total_cholesterol",
+      "label": "Общий ХС",
+      "ageYears": null,
+      "target": {
+        "mmolL": "< 4.4",
+        "mgDl": "< 170"
+      },
+      "borderline": {
+        "mmolL": "4.4 - 5.1",
+        "mgDl": "170 - 199"
+      },
+      "high": {
+        "mmolL": "5.2",
+        "mgDl": "200",
+        "operatorStatus": "missing-in-rendered-source"
+      },
+      "low": null
+    },
+    {
+      "analyte": "ldl_cholesterol",
+      "label": "ХС ЛПНП",
+      "ageYears": null,
+      "target": {
+        "mmolL": "< 2.8",
+        "mgDl": "< 110"
+      },
+      "borderline": {
+        "mmolL": "2.8 - 3.4",
+        "mgDl": "110 - 129"
+      },
+      "high": {
+        "mmolL": "3.4",
+        "mgDl": "130",
+        "operatorStatus": "missing-in-rendered-source"
+      },
+      "low": null
+    },
+    {
+      "analyte": "non_hdl_cholesterol",
+      "label": "ХС не-ЛПНП",
+      "ageYears": null,
+      "target": {
+        "mmolL": "< 3.1",
+        "mgDl": "< 120"
+      },
+      "borderline": {
+        "mmolL": "3.1 - 3.76",
+        "mgDl": "120 - 144"
+      },
+      "high": {
+        "mmolL": "3.77",
+        "mgDl": "145",
+        "operatorStatus": "missing-in-rendered-source"
+      },
+      "low": null
+    },
+    {
+      "analyte": "triglycerides",
+      "label": "Триглицериды",
+      "ageYears": "0-9",
+      "target": {
+        "mmolL": "< 0.85",
+        "mgDl": "< 75"
+      },
+      "borderline": {
+        "mmolL": "0.85 - 1.12",
+        "mgDl": "75 - 99"
+      },
+      "high": {
+        "mmolL": "1.13",
+        "mgDl": "100",
+        "operatorStatus": "missing-in-rendered-source"
+      },
+      "low": null
+    },
+    {
+      "analyte": "triglycerides",
+      "label": "Триглицериды",
+      "ageYears": "10-19",
+      "target": {
+        "mmolL": "< 1.02",
+        "mgDl": "< 90"
+      },
+      "borderline": {
+        "mmolL": "1.02 - 1.46",
+        "mgDl": "90 - 129"
+      },
+      "high": {
+        "mmolL": "1.47",
+        "mgDl": "130",
+        "operatorStatus": "missing-in-rendered-source"
+      },
+      "low": null
+    },
+    {
+      "analyte": "hdl_cholesterol",
+      "label": "ХС ЛПВП",
+      "ageYears": null,
+      "target": {
+        "mmolL": "1.16",
+        "mgDl": "> 45",
+        "operatorStatus": {
+          "mmolL": "missing-in-rendered-source",
+          "mgDl": "present"
+        }
+      },
+      "borderline": {
+        "mmolL": "1.03 - 1.16",
+        "mgDl": "40 - 45"
+      },
+      "high": {
+        "mmolL": "> 1.6",
+        "mgDl": "> 60"
+      },
+      "low": {
+        "mmolL": "< 1.03",
+        "mgDl": "< 40"
+      }
+    }
+  ],
+  "reviewNotes": [
+    "Cells preserve the rendered table rather than inferring omitted comparison operators.",
+    "Several high-threshold cells and the target HDL mmol/L cell lose an inequality sign in the HTML rendering; these fields must be checked against the original PDF/table before rule encoding.",
+    "Do not turn this artifact into a laboratory interpretation rule until method/population context and exact inequality boundaries are independently verified."
+  ]
+}
