@@ -402,3 +402,79 @@ source link; it is not enough to copy the form.
   so it needs a warning rather than an invented replacement.
 - Scanner promotion should remain conservative for experimental/diagnostic interviews such as CAPS,
   SCID, MMPI and ISTA: `assessment_method` is preferable to forcing them into `scale`.
+
+
+## Batch 4 — multiple sclerosis and current stroke instruments
+
+### Multiple sclerosis
+
+Current recommendation: **«Рассеянный склероз»**, ID 739_2, approved 2025, adults and children,
+published 2025-07-03 and due for revision no later than 2027. This supersedes the non-current 2022
+edition.
+
+Sources:
+
+- https://base.garant.ru/412284282/
+- https://meganorm.ru/mega_doc/dop1/8/spravochnaya_informatsiya_standarty_i_poryadki_okazaniya/2/klinicheskie_rekomendatsii_rasseyannyy_skleroz_odobreny.html
+- https://www.consultant.ru/document/cons_doc_LAW_509772/6e3b74e12dd38fa2dc87ae963cb86ba66d45b2a3/
+
+Confirmed assessment candidates in the current recommendation:
+
+| Candidate | Type | Source position | Extraction disposition |
+| --- | --- | --- | --- |
+| РШСИ / Expanded Disability Status Scale (EDSS) | scale | Appendix Г1 | stable concept candidate; current KR uses the validated Russian version |
+| Berg Balance Scale | scale | Appendix Г2 | concept review candidate |
+| FIM / Functional Independence Measure | scale | Appendix Г3 | concept review candidate; rights/version review before form redistribution |
+| Nine-Hole Peg Test | assessment_method | Appendix Г4 | concept review candidate |
+| Frenchay Arm Test | assessment_method | Appendix Г5 | concept review candidate |
+| Rivermead Mobility Index | scale/index | Appendix Г6 | concept review candidate |
+| SF-36 | questionnaire | Appendix Г7 | concept review candidate; licensing/version review required |
+
+The current recommendation also carries source-backed diagnostic/clinical systems such as McDonald
+criteria (2017 and 2010 variants), MAGNIMS MRI additions, and explicit relapse-severity criteria.
+Those should be represented as `criterion_set` / classification concepts, not executable diagnostic
+verdicts.
+
+Important edition note: an older 2022 recommendation exposes a separately numbered EDSS appendix.
+The 2025 recommendation is the source to link for current MiniMed discovery; the old edition should
+remain only as historical provenance if retained at all.
+
+### Ischemic stroke and transient ischemic attack
+
+Current recommendation: **«Ишемический инсульт и транзиторная ишемическая атака»**, ID 814 /
+814_1, approved 2024, adults and children, due for revision no later than 2026 and applicable from
+2025-01-01.
+
+Sources:
+
+- https://www.consultant.ru/document/cons_doc_LAW_491652/
+- https://base.garant.ru/410977224/
+- https://sudact.ru/law/klinicheskie-rekomendatsii-ishemicheskii-insult-i-tranzitornaia-ishemicheskaia_1/klinicheskie-rekomendatsii/
+
+Confirmed/reinforced candidates:
+
+| Candidate | Type | Source evidence | Extraction disposition |
+| --- | --- | --- | --- |
+| NIHSS | scale | explicit neurological-deficit assessment; Appendix Г1 | merge with existing NIHSS concept |
+| PedNIHSS | scale | pediatric stroke assessment; Appendix Г2 | separate pediatric variant/concept review |
+| FOUR score | scale | consciousness assessment; Appendix Г8 | new concept candidate |
+| Glasgow Coma Scale | scale | consciousness assessment; Appendix Г9 | merge with existing GCS concept |
+| Pediatric Glasgow Coma Scale | scale | pediatric consciousness assessment; Appendix Г10 | variant/relation review rather than synonym by default |
+| ASPECTS | scale | CT early-ischemic-change assessment; Appendix Г12 | new concept candidate |
+| Modified Rankin Scale (mRS) | scale | repeatedly used for pre-stroke disability and outcome | new stable concept candidate |
+| ABCD² | scale | used for high-risk TIA stratification | new stable concept candidate |
+
+The recommendation uses several of these instruments together in treatment-selection conditions.
+MiniMed extraction must keep them as source-backed concepts first; it must not convert co-occurrence in
+a recommendation sentence into a new treatment rule unless that rule is separately modeled and
+reviewed.
+
+## Batch 4 extraction implications
+
+- Current-edition resolution matters: 2025 MS must supersede the old 2022 source for discovery links.
+- Pediatric variants such as PedNIHSS and pediatric GCS should not be auto-collapsed into the adult
+  instrument merely because the names overlap.
+- Named performance tests (Nine-Hole Peg Test, Frenchay Arm Test) validate the
+  `assessment_method` type outside psychiatry.
+- Diagnostic criteria (McDonald/MAGNIMS) and rating scales (EDSS/NIHSS) must stay different entity
+  classes even when they are used in the same recommendation.
