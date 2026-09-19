@@ -112,9 +112,9 @@ describe('external assessment validation', () => {
         accepted,
       ),
     ).toBe(true);
-    expect(
-      isAcceptedExternalAssessmentMaterial({ name: 'page.JPG', type: '' }, accepted),
-    ).toBe(true);
+    expect(isAcceptedExternalAssessmentMaterial({ name: 'page.JPG', type: '' }, accepted)).toBe(
+      true,
+    );
     expect(
       isAcceptedExternalAssessmentMaterial(
         { name: 'page.jpeg', type: 'application/octet-stream' },
