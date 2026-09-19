@@ -246,6 +246,11 @@
   анализа мочи;
 - инструменты: Cockcroft–Gault, FENa, FEUrea, ACR/UPCR, клиренс креатинина, баланс жидкости,
   риск ХБП по KDIGO, IPSS и OAB-q.
+- source-backed extraction 2026-09-19: взрослая КР ХБП (2024, ID 469 v3) подтверждает
+  классификацию по рСКФ/альбуминурии, ACR/PCR и семейство CKD-EPI, но точную формулу нельзя
+  автоматически приравнивать к уже реализованной CKD-EPI 2021; детская КР ХБП (2025, ID 713 v2)
+  подтверждает bedside Schwartz 2009, Schwartz-Lyon, CKiD, CKiD U25 и neonatal Smits variants.
+  Сводка: `docs/research/knowledge-candidate-scan-nephrology-2026-09.md`.
 - приоритет источников: часть 4 `pdb.kapitan.merged.ocr-draft.json`, где сосредоточены
   таблицы почечных и лабораторных норм.
 
