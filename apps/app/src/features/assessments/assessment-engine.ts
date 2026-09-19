@@ -414,10 +414,7 @@ export function formatBlankAssessment(definition: AssessmentDefinition): string 
   ].join('\n');
 }
 
-function externalVariant(
-  definition: AssessmentDefinition,
-  variantId: string,
-) {
+function externalVariant(definition: AssessmentDefinition, variantId: string) {
   return definition.externalAdministration?.variants.find((variant) => variant.id === variantId);
 }
 
@@ -432,7 +429,8 @@ function formatExternalAssessmentRecord(
       const value = record.values[field.id];
       if (value === undefined || value === '') return undefined;
       if (field.kind === 'select') {
-        const label = field.options.find((option) => option.value === value)?.label ?? String(value);
+        const label =
+          field.options.find((option) => option.value === value)?.label ?? String(value);
         return `${field.label}: ${label}`;
       }
       const suffix = field.kind === 'number' && field.unit ? ` ${field.unit}` : '';
