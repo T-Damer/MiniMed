@@ -186,29 +186,33 @@ describe('tool module contracts', () => {
     field.minimum = 61;
     expect(AssessmentDefinitionSchema.safeParse(invalid).success).toBe(false);
 
-    const withQuestion = structuredClone(base);
-    withQuestion.questions = [{ id: 'q1', prompt: 'Protected item', scaleId: 'total' }];
+    const withQuestion = {
+      ...base,
+      questions: [{ id: 'q1', prompt: 'Protected item', scaleId: 'total' }],
+    };
     expect(AssessmentDefinitionSchema.safeParse(withQuestion).success).toBe(false);
 
-    const withVerdict = structuredClone(base);
-    withVerdict.evaluation = {
-      status: 'verdict',
-      rules: [
-        {
-          when: '1',
-          verdict: {
-            rangeId: 'external-verdict',
-            title: 'Should not be accepted',
-            explanation: 'External results are not automatically interpreted.',
-            attentionLevel: 'none',
-            lowerInclusive: true,
-            upperInclusive: true,
-            sourceIds: [],
+    const withVerdict = {
+      ...base,
+      evaluation: {
+        status: 'verdict',
+        rules: [
+          {
+            when: '1',
+            verdict: {
+              rangeId: 'external-verdict',
+              title: 'Should not be accepted',
+              explanation: 'External results are not automatically interpreted.',
+              attentionLevel: 'none',
+              lowerInclusive: true,
+              upperInclusive: true,
+              sourceIds: [],
+            },
           },
-        },
-      ],
-      missingContext: [],
-      sourceIds: [],
+        ],
+        missingContext: [],
+        sourceIds: [],
+      },
     };
     expect(AssessmentDefinitionSchema.safeParse(withVerdict).success).toBe(false);
 
@@ -220,5 +224,4 @@ describe('tool module contracts', () => {
     );
     expect(AssessmentDefinitionSchema.safeParse(duplicateFields).success).toBe(false);
   });
-
 });
