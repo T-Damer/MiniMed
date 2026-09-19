@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.neonatal-jaundice-treatment-thresholds.ru.kr916-v1-2025",
+  "title": "Neonatal jaundice phototherapy and exchange-transfusion thresholds, GA >=35 weeks",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "clinical-recommendation-publication-scope-review-required",
+  "verificationStatus": "cross-mirror-table-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "recommendationTitle": "Неонатальная желтуха",
+    "recommendationId": "916",
+    "recommendationVersion": 1,
+    "recommendationYear": 2025,
+    "population": "newborns_gestational_age_35_weeks_or_more",
+    "icd10": [
+      "P58.0",
+      "P58.1",
+      "P58.3",
+      "P58.5",
+      "P58.8",
+      "P58.9",
+      "P59.8",
+      "P59.9"
+    ],
+    "registryMirror": "https://minzdrav.clinirec.ru/kr/neonatalnaya-zheltuha/",
+    "appendix": "A3.3",
+    "tableUrl": "https://base.garant.ru/412124590/8d2cab3ed1429a023f68bed96854e161/",
+    "secondaryMirror": "https://diseases.medelement.com/disease/неонатальная-желтуха-кп-рф-2025/18751",
+    "criteriaLabelSource": "New 2017 revised Kobe University treatment criteria"
+  },
+  "unit": "umol/L_total_serum_bilirubin",
+  "postnatalAgeBins": [
+    "<24h",
+    "24-48h",
+    "48-72h",
+    "72-96h",
+    "96-120h",
+    ">120h"
+  ],
+  "gestationalAge": {
+    "sourceLabel": ">=35",
+    "minWeeksInclusive": 35
+  },
+  "thresholds": {
+    "standardPhototherapy": [
+      171,
+      205,
+      239,
+      274,
+      291,
+      308
+    ],
+    "intensivePhototherapy": [
+      188,
+      274,
+      308,
+      342,
+      376,
+      376
+    ],
+    "exchangeTransfusion": [
+      205,
+      308,
+      342,
+      376,
+      428,
+      428
+    ]
+  },
+  "automatedChecks": {
+    "ageBinCount": 6,
+    "treatmentThresholdOrdering": "standard<=intensive<=exchange_at_every_age_bin",
+    "nondecreasingWithPostnatalAgeWithinEachTreatment": true
+  },
+  "reviewNotes": [
+    "The source recommendation explicitly applies this early-neonatal threshold framework to term and late-preterm newborns with gestational age >=35 weeks.",
+    "Values are total serum bilirubin thresholds in micromol/L and are not converted to mg/dL in this artifact.",
+    "No interpolation between age bins is defined here.",
+    "This artifact does not encode etiologic exclusions, bilirubin rise rate, hemolysis, neurotoxicity modifiers, treatment technique, or follow-up timing.",
+    "Do not expose as an autonomous treatment calculator until a clinician reviews boundary semantics and the full recommendation context."
+  ]
+}
