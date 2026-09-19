@@ -231,6 +231,12 @@
   пороки сердца, липидный риск;
 - инструменты: CHA₂DS₂-VASc, HAS-BLED, Wells DVT/PE, Geneva, Padua, Caprini, ASCVD, QTc
   Bazett/Fridericia, электрическая ось сердца, NYHA и CCS.
+- source-backed extraction 2026-09-19: актуальная КР по ФП/ТП (2025, ID 382 v2) даёт
+  текущие source-links для уже реализованных CHA₂DS₂-VASc/HAS-BLED и добавляет SAMeT₂R₂;
+  КР по ХСН (2024, ID 156 v2) подтверждает ШОКС, тест 6-минутной ходьбы, HFA-PEFF,
+  H₂FPEF и NYHA; КР по ОКСбпST (2024, ID 154 v4) — GRACE 1.0, ARC-HBR, CRUSADE,
+  PRECISE-DAPT и ОРАКУЛ. Сходные risk-score инструменты не объединять по назначению.
+  Сводка: `docs/research/knowledge-candidate-scan-cardiology-2026-09.md`.
 - источник для справочного ECG-блока: `EKG_pod_silu_kazhdomu.pdf`,
   `Karmanny_spravochnik_po_EKG.pdf`, `ПВБ/Atlas_EKG_150...pdf`.
 
