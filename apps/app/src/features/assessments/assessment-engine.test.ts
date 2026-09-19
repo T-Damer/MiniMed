@@ -266,7 +266,7 @@ describe('assessment scoring', () => {
       kind: 'external',
       variantId: 'mmse',
       values: { total_score: 27, edition: 'Русский бланк' },
-      definitionVersion: mmse.version,
+      ...(mmse.version ? { definitionVersion: mmse.version } : {}),
     });
     expect(formatted).toContain('Общий балл: 27 /30');
     expect(formatted).toContain('Редакция / язык бланка: Русский бланк');
