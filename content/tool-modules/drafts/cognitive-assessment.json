@@ -12,7 +12,12 @@
       "slug": "mmse",
       "title": "MMSE — краткая оценка когнитивного статуса",
       "shortTitle": "MMSE",
-      "aliases": ["Mini-Mental State Examination", "MMSE", "мини-ментальный статус", "краткая шкала оценки психического статуса"],
+      "aliases": [
+        "Mini-Mental State Examination",
+        "MMSE",
+        "мини-ментальный статус",
+        "краткая шкала оценки психического статуса"
+      ],
       "bankId": "psychiatry",
       "bankLabel": "Психиатрия",
       "category": "cognitive-assessment",
@@ -25,7 +30,12 @@
         "slug": "mmse",
         "title": "MMSE — краткая оценка когнитивного статуса",
         "shortTitle": "MMSE",
-        "aliases": ["Mini-Mental State Examination", "MMSE", "мини-ментальный статус", "краткая шкала оценки психического статуса"],
+        "aliases": [
+          "Mini-Mental State Examination",
+          "MMSE",
+          "мини-ментальный статус",
+          "краткая шкала оценки психического статуса"
+        ],
         "bankId": "psychiatry",
         "bankLabel": "Психиатрия",
         "category": "cognitive-assessment",
