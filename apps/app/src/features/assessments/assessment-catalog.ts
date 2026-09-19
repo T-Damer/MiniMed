@@ -131,13 +131,14 @@ export function registerDownloadedAssessment(record: ToolDefinitionRecord): void
   if (record.kind !== 'assessment') return;
   const parsed = AssessmentDefinitionSchema.parse(record.definition);
   if (parsed.id !== record.id) throw new Error(`Assessment payload does not match ${record.id}.`);
-  const { interpretations, license, questions, ...rest } = parsed;
+  const { externalAdministration, interpretations, license, questions, ...rest } = parsed;
   const definition: AssessmentDefinition = {
     ...rest,
     schemaVersion: 2,
     version: record.version,
     evaluation: parsed.evaluation,
     observationMappings: parsed.observationMappings,
+    ...(externalAdministration ? { externalAdministration } : {}),
     license: {
       kind: license.kind,
       notice: license.notice,
