@@ -89,7 +89,13 @@
   ретикулоциты) в `docs/research/data/caliper-dxh900-pediatric-hematology-expansion-2020.json`.
   Расширение остаётся blocked/method-specific, лабораторный интервал выполняющего анализа имеет
   приоритет. Сводка: `docs/research/pediatric-laboratory-source-extraction-2026-09.md`.
-- оценка групп здоровья и профилактических осмотров;
+- оценка групп здоровья и профилактических осмотров — 🧪/✅: критерии I–V групп здоровья уже
+  source-linked в действующем приказе №211н; полный возрастной перечень 31 строки из приложения №1
+  визуально сверен и вынесен в
+  `docs/research/data/pediatric-preventive-exam-schedule-order-211n-2025.json`.
+  Условные специалисты/исследования (пол, группа риска, результат скрининга) не превращаются в
+  безусловные назначения. Сводка:
+  `docs/research/pediatric-preventive-exam-source-extraction-2026-09.md`.
 - детские нормативы артериального давления.
 
 Инструменты:
