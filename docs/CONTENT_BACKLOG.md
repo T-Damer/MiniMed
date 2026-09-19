@@ -188,7 +188,15 @@
 - GIR — скорость введения глюкозы — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.calculator.neonatal-glucose-infusion-rate`), источник: Brigham and Women’s Hospital Neonatal Glucose Assessment and Clinical Management, PDF-стр. 4 (формула GIR), клинический контекст: приказ Минздрава РФ № 222н (неонатальная гипогликемия).
 - жидкость и энергия для новорождённого;
 - физиологическая потеря массы — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.calculator.neonatal-physiologic-weight-loss`), источник: AAP First Office Visit, 3-5 Days, стр. с правилом «>10% от массы при рождении требует доп.оценки», клинический контекст: приказ № 222н.
-- **билирубин и пороги фототерапии по возрасту в часах** — ⚠️ блокер: в текущем OCR `data/intermediate/replicate-ocr/neo.shabalov.ocr-draft.json` есть текстовое описание тематики гипербилирубинемии и фототерапии, но не хватает машиночитаемой матрицы порогов по возрасту/часам. Карточка на паузе в `docs/LITERATURE_REVIEW_QUEUE.md` для `requiresOCR` повторного извлечения.
+- **билирубин и пороги фототерапии по возрасту в часах** — 🧪 source-extracted 2026-09-19:
+  текущие КР «Неонатальная желтуха» (2025, ID 916 v1) и «Гипербилирубинемия недоношенных»
+  (2025, ID 917 v1) дают полные матрицы standard/intensive phototherapy и ОЗПК.
+  Review artifacts:
+  `docs/research/data/neonatal-jaundice-treatment-thresholds-kr916-v1-2025.json` (ГВ >=35 нед.)
+  и `docs/research/data/preterm-hyperbilirubinemia-treatment-thresholds-kr917-v1-2025.json`
+  (ГВ/СВ 22–34 нед.). OCR Шабалова больше не является blocker для этих порогов; runtime
+  calculator остаётся blocked до review границ/модификаторов/полного алгоритма.
+  Сводка: `docs/research/neonatal-bilirubin-threshold-source-extraction-2026-09.md`.
 - **Fenton/INTERGROWTH для недоношенных** — ⚠️ заблокировано: текущий OCR (`data/intermediate/replicate-ocr/neo.shabalov.ocr-draft.json`) подтверждает только ссылку на критерии Fenton (график) и Dementyeva `Таблица 8.1`, но не даёт машинно-сопоставимых значений 3/10/50/90/97 перцентилей.
   Решение откладывается до нового источника/повторного OCR с извлечением числовых центильных значений по полу/неделям/показателям (масса/длина/ОГ/ОГК); карточка остаётся в `docs/LITERATURE_REVIEW_QUEUE.md` как `requiresOCR`.
 - **неонатальные лабораторные референсы** — ⚠️ блокер: `data/intermediate/replicate-ocr/neo.shabalov.ocr-draft.json` (разделы глав 9 и 10 по метаболическим нарушениям/лабораторным показателям) содержит лишь разбросанные текстовые упоминания, но без валидационного табличного блока с возрастно-специфическими референсами. Карточка на паузе в `docs/LITERATURE_REVIEW_QUEUE.md` для `requiresOCR`.
