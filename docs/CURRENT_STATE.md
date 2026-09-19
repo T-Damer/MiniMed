@@ -15,7 +15,13 @@
   while retaining stable `conceptId`, aliases, tags, specialties and exact source locators.
 - Clinical-recommendation SQLite can be scanned for review-only scales, questionnaires, criterion
   sets, classifications and severity/stage systems. Candidates remain `proposed`; quality-of-care
-  criteria and evidence/recommendation grading are explicitly excluded from automatic candidates.
+  criteria, methodology/evidence grading, TOC/reference noise and weak generic headings are filtered
+  before review. The scanner can also use exact names/aliases from reviewed tool/knowledge SQLite as
+  a separate inventory channel; inventory fingerprints are bound into the immutable workspace.
+- On the same local respiratory verification slice of 3 clinical recommendations, the initial
+  heuristic pass produced 47 proposed rows; context filtering plus the reviewed-name channel reduced
+  the review queue to 23 (51.1% fewer rows). This is a candidate-quality smoke, not a claim of 23
+  confirmed instruments; see `docs/research/knowledge-candidate-scan-respiratory-2026-09.md`.
 - Explicit reviewer decisions can promote a candidate to a stable knowledge entity plus a reviewed
   source-document link. Promotion deliberately creates no definition, equivalence, scoring rule or
   cutoff. An existing assessment/calculator is linked only through an explicit reviewed tool ID plus
