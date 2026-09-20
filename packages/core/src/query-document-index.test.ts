@@ -30,6 +30,7 @@ describe('QueryDocumentIndex', () => {
       'exact-title',
     ]);
     expect([...index.exactNavigationAliasIds('D32.0')]).toEqual(['exact-title']);
+    expect([...index.exactShortTitleIds('D32.0')]).toEqual(['exact-title']);
     expect([...index.exactIdentityIds('D32.0')]).toEqual(['exact-title']);
     expect([...index.exactAliasIds('D32.0')].toSorted()).toEqual([
       'broad-alias',
