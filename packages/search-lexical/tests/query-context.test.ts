@@ -620,6 +620,62 @@ describe('typed dose-critical query context', () => {
     expect(context.currentMedicines).toContain(medicine);
   });
 
+  it('extracts colloquial wheeze and feeding difficulty as positive findings', () => {
+    const query =
+      'Грудничок после насморка кашляет и свистит, ест хуже — нужен ли ему антибиотик';
+    const context = contextFor(query);
+
+    expect(context.positiveFindings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'symptom',
+          normalizedValue: 'кашель',
+        }),
+        expect.objectContaining({
+          kind: 'symptom',
+          normalizedValue: 'свистящие хрипы',
+        }),
+        expect.objectContaining({
+          kind: 'symptom',
+          normalizedValue: 'затруднение кормления',
+        }),
+      ]),
+    );
+  });
+
+  it('keeps watery diarrhea positive and blood in stool negative', () => {
+    const query =
+      'У ребенка водянистый стул и температура без крови в кале — нужны ли антибактериальные препараты';
+    const context = contextFor(query);
+
+    expect(context.positiveFindings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'symptom',
+          normalizedValue: 'диарея',
+          polarity: 'positive',
+        }),
+      ]),
+    );
+    expect(context.positiveFindings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'symptom',
+          normalizedValue: 'кровь в стуле',
+        }),
+      ]),
+    );
+    expect(context.negativeFindings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'negative-finding',
+          polarity: 'negative',
+          value: 'крови в кале',
+        }),
+      ]),
+    );
+  });
+
   it('limits positive findings to observed symptoms and measurements', () => {
     const query =
       'Мальчик 5 лет, кашляет 3 дня, температура 38,5, АД 120/80. Принимает парацетамол, контакт, ОАК';
