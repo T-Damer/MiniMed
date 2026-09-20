@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { basename, dirname, resolve } from 'node:path';
 
-import { createMedicalCore } from '@localmed/core';
+import { createMedicalCore, QueryDocumentIndex } from '@localmed/core';
 import { MultiMedicalStore } from '@localmed/storage';
 
 import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
@@ -62,11 +62,72 @@ const allCases = buildLookupQualityCases(listed);
 const cases = maxValue === 0 ? allCases : allCases.slice(0, maxValue);
 if (cases.length === 0) throw new Error('No eligible lookup surfaces were found.');
 
+const identityIndex = new QueryDocumentIndex(
+  listed.map(({ id, title, shortTitle, sourceType, metadata }) => ({
+    id,
+    title,
+    shortTitle,
+    sourceType,
+    metadata: metadata ?? {},
+  })),
+);
+const sortedIds = (values: Iterable<string>): readonly string[] => [...values].toSorted();
+const sameIds = (left: readonly string[], right: readonly string[]): boolean =>
+  left.length === right.length && left.every((value, index) => value === right[index]);
+const identityAuditRows = allCases
+  .filter((fixture) => fixture.strictIdentityDocumentIds.length > 0)
+  .map((fixture) => {
+    const titleIds = sortedIds(identityIndex.exactTitleIds(fixture.query));
+    const secondaryIds = sortedIds(
+      new Set([
+        ...identityIndex.exactShortTitleIds(fixture.query),
+        ...identityIndex.exactNavigationAliasIds(fixture.query),
+      ]),
+    );
+    const identityIds = sortedIds(identityIndex.exactIdentityIds(fixture.query));
+    const expectedIdentityIds = fixture.strictIdentityDocumentIds.toSorted();
+    const expectedTopTierIds = fixture.expectedTop1DocumentIds.toSorted();
+    const actualTopTierIds = titleIds.length > 0 ? titleIds : secondaryIds;
+    return {
+      id: fixture.id,
+      query: fixture.query,
+      expectedIdentityIds,
+      actualIdentityIds: identityIds,
+      expectedTopTierIds,
+      actualTopTierIds,
+      identitySetPass: sameIds(identityIds, expectedIdentityIds),
+      topTierPass: sameIds(actualTopTierIds, expectedTopTierIds),
+    };
+  });
+if (identityAuditRows.length === 0) {
+  throw new Error('No strict identity surfaces were found for exhaustive audit.');
+}
+const auditedIdentityDocumentCount = identityAuditRows.reduce(
+  (sum, row) => sum + row.expectedIdentityIds.length,
+  0,
+);
+const retainedIdentityDocumentCount = identityAuditRows.reduce(
+  (sum, row) =>
+    sum +
+    row.expectedIdentityIds.filter((documentId) => row.actualIdentityIds.includes(documentId))
+      .length,
+  0,
+);
+const identityRecall =
+  auditedIdentityDocumentCount === 0
+    ? 0
+    : retainedIdentityDocumentCount / auditedIdentityDocumentCount;
+const identitySetAgreementRate =
+  identityAuditRows.filter((row) => row.identitySetPass).length / identityAuditRows.length;
+const identityTopTierAgreementRate =
+  identityAuditRows.filter((row) => row.topTierPass).length / identityAuditRows.length;
+
 const rows: {
   id: string;
   query: string;
   kinds: readonly string[];
   expectedTop1DocumentIds: readonly string[];
+  strictIdentityDocumentIds: readonly string[];
   exactSurfaceDocumentIds: readonly string[];
   top1DocumentId: string | null;
   firstExpectedRank: number | null;
@@ -101,6 +162,7 @@ for (const fixture of cases) {
     query: fixture.query,
     kinds: fixture.kinds,
     expectedTop1DocumentIds: fixture.expectedTop1DocumentIds,
+    strictIdentityDocumentIds: fixture.strictIdentityDocumentIds,
     exactSurfaceDocumentIds: fixture.exactSurfaceDocumentIds,
     top1DocumentId,
     firstExpectedRank: firstExpectedIndex < 0 ? null : firstExpectedIndex + 1,
@@ -144,6 +206,14 @@ const report = {
   eligibleSurfaceCount: allCases.length,
   evaluatedSurfaceCount: rows.length,
   deterministicSampleMax: maxValue,
+  identityAudit: {
+    strictCaseCount: identityAuditRows.length,
+    strictIdentityDocumentCount: auditedIdentityDocumentCount,
+    identityRecall,
+    identitySetAgreementRate,
+    topTierAgreementRate: identityTopTierAgreementRate,
+    failures: identityAuditRows.filter((row) => !row.identitySetPass || !row.topTierPass),
+  },
   metrics: {
     strictTop1Cases: strictRows.length,
     discoveryOnlyCases: rows.length - strictRows.length,
@@ -166,8 +236,16 @@ console.log(
       reportPath,
       eligibleSurfaceCount: allCases.length,
       evaluatedSurfaceCount: rows.length,
+      identityAudit: {
+        strictCaseCount: identityAuditRows.length,
+        identityRecall,
+        identitySetAgreementRate,
+        topTierAgreementRate: identityTopTierAgreementRate,
+      },
       metrics: report.metrics,
-      failureCount: report.failures.length,
+      failureCount:
+        report.failures.length +
+        identityAuditRows.filter((row) => !row.identitySetPass || !row.topTierPass).length,
     },
     null,
     2,
@@ -175,6 +253,19 @@ console.log(
 );
 
 const failures: string[] = [];
+if (identityRecall < 1) {
+  failures.push(`strict identity index recall ${identityRecall.toFixed(4)} < 1.0000`);
+}
+if (identitySetAgreementRate < 1) {
+  failures.push(
+    `strict identity set agreement ${identitySetAgreementRate.toFixed(4)} < 1.0000`,
+  );
+}
+if (identityTopTierAgreementRate < 1) {
+  failures.push(
+    `strict identity tier agreement ${identityTopTierAgreementRate.toFixed(4)} < 1.0000`,
+  );
+}
 if (top1Rate < minimumTop1) {
   failures.push(`exact lookup Top-1 ${top1Rate.toFixed(4)} < ${minimumTop1.toFixed(4)}`);
 }
