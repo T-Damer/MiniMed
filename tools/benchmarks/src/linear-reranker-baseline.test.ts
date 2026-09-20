@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  calibrateLinearAbstentionGate,
   evaluateFrozenRanking,
   groupFrozenCandidates,
   LINEAR_RERANKER_FEATURES,
   linearCandidatesForFixture,
   parseFrozenCandidate,
   rerankLinearCandidates,
+  rerankLinearCandidatesGated,
   trainPairwiseLinearReranker,
   type FrozenCandidateRow,
 } from './linear-reranker-baseline';
@@ -120,6 +122,30 @@ describe('linear frozen-candidate reranker', () => {
     expect(rerankLinearCandidates(fixture, model)[0]?.candidate.documentId).toBe('right');
   });
 
+
+  it('calibrates a conservative top-1 abstention gate on training labels only', () => {
+    const training = [
+      row('gate-fix', 'wrong-fix', 1, 0, 'clinical-picture'),
+      row('gate-fix', 'right-fix', 2, 3, 'treatment'),
+      row('gate-anchor', 'right-anchor', 1, 3, 'treatment'),
+      row('gate-anchor', 'wrong-anchor', 2, 0, 'clinical-picture'),
+    ];
+    const model = trainPairwiseLinearReranker(training, {
+      epochs: 300,
+      learningRate: 0.08,
+      l2: 0.001,
+    });
+    const groups = groupFrozenCandidates(training);
+    const gate = calibrateLinearAbstentionGate(groups, model);
+    const gated = (rows: readonly FrozenCandidateRow[]) =>
+      rerankLinearCandidatesGated(rows, model, gate);
+
+    expect(gate.policy).toBe('zero-regression-max-fixes');
+    expect(gate.trainingRegressedTop1).toBe(0);
+    expect(evaluateFrozenRanking(groups, gated).top1MaxGrade).toBeGreaterThanOrEqual(
+      evaluateFrozenRanking(groups).top1MaxGrade,
+    );
+  });
 
   it('separates previous-treatment dominance from clinical finding coverage', () => {
     const base = row('test-treatment-context', 'clinical-source', 1, 3, 'treatment');
