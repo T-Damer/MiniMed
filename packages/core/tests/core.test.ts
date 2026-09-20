@@ -570,6 +570,139 @@ describe('MedicalCore', () => {
     expect(listSearchDocuments).toHaveBeenCalledTimes(4);
   });
 
+  it('injects an exact-title lookup candidate even when lexical retrieval drops it', async () => {
+    const exactTitle = 'D32.0 Оболочек головного мозга, МКБ-10';
+    const seed = ContentPackSeedSchema.parse({
+      manifest: {
+        id: 'test.exact-identity-retention',
+        version: '1.0.0',
+        schemaVersion: 2,
+        title: 'Exact identity retention fixture',
+        checksum: 'test-exact-identity-retention',
+        builtAt: '2026-09-20T00:00:00Z',
+      },
+      documents: [
+        {
+          id: 'exact.d32',
+          title: exactTitle,
+          shortTitle: 'D32.0',
+          sourceType: 'medical_reference',
+          status: 'active',
+          specialties: ['neurology'],
+          metadata: { navigationAliases: ['D32.0 оболочек головного мозга'] },
+          version: {
+            id: 'exact.d32@1',
+            label: '1',
+            effectiveFrom: null,
+            effectiveTo: null,
+            sourceChecksum: 'sha256:exact-d32',
+            extractedAt: '2026-09-20T00:00:00Z',
+          },
+          sections: [
+            {
+              id: 'exact.d32.definition',
+              parentSectionId: null,
+              title: 'Определение',
+              normalizedTitle: 'определение',
+              sectionType: 'definition',
+              depth: 1,
+              orderIndex: 0,
+              pageStart: null,
+              pageEnd: null,
+              anchor: 'definition',
+              sectionPath: ['Определение'],
+              chunks: [
+                {
+                  id: 'exact.d32.definition.chunk',
+                  orderIndex: 0,
+                  originalText: 'Справочная статья о доброкачественном новообразовании.',
+                  normalizedText: normalizeForIndex(
+                    'Справочная статья о доброкачественном новообразовании.',
+                  ),
+                  pageStart: null,
+                  pageEnd: null,
+                  charStart: null,
+                  charEnd: null,
+                  anchor: 'definition/chunk',
+                  metadata: {},
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'distractor.g96',
+          title: 'G96.1 Другие поражения оболочек головного мозга, МКБ-10',
+          shortTitle: 'G96.1',
+          sourceType: 'medical_reference',
+          status: 'active',
+          specialties: ['neurology'],
+          metadata: {},
+          version: {
+            id: 'distractor.g96@1',
+            label: '1',
+            effectiveFrom: null,
+            effectiveTo: null,
+            sourceChecksum: 'sha256:distractor-g96',
+            extractedAt: '2026-09-20T00:00:00Z',
+          },
+          sections: [
+            {
+              id: 'distractor.g96.definition',
+              parentSectionId: null,
+              title: 'Определение',
+              normalizedTitle: 'определение',
+              sectionType: 'definition',
+              depth: 1,
+              orderIndex: 0,
+              pageStart: null,
+              pageEnd: null,
+              anchor: 'definition',
+              sectionPath: ['Определение'],
+              chunks: [
+                {
+                  id: 'distractor.g96.definition.chunk',
+                  orderIndex: 0,
+                  originalText: `Упоминается ${exactTitle} и оболочки головного мозга.`,
+                  normalizedText: normalizeForIndex(
+                    `Упоминается ${exactTitle} и оболочки головного мозга.`,
+                  ),
+                  pageStart: null,
+                  pageEnd: null,
+                  charStart: null,
+                  charEnd: null,
+                  anchor: 'definition/chunk',
+                  metadata: {},
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      aliases: [],
+    });
+    const store = new InMemoryMedicalStore();
+    const originalSearch = store.search.bind(store);
+    vi.spyOn(store, 'search').mockImplementation(async (request) =>
+      (await originalSearch(request)).filter((hit) => hit.document.id !== 'exact.d32'),
+    );
+    const core = createMedicalCore({ store, seed, platform: 'test' });
+    cores.push(core);
+
+    const response = await core.search({
+      query: exactTitle,
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      limit: 20,
+    });
+
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.groups[0]?.documentId).toBe('exact.d32');
+    expect(response.value.groups.some((group) => group.documentId === 'distractor.g96')).toBe(true);
+    expect(response.value.diagnostics.candidateCount).toBeGreaterThanOrEqual(2);
+  });
+
   it('shares concurrent document-list reads', async () => {
     const store = new InMemoryMedicalStore();
     const listDocuments = vi.spyOn(store, 'listDocuments');
