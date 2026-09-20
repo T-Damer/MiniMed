@@ -1,0 +1,32 @@
+[
+  {
+    "id": "reported.jaspers",
+    "query": "Ясперс",
+    "origin": "user-reported",
+    "expectedTerms": [
+      "ясперс",
+      "jaspers"
+    ],
+    "rationale": "Real MiniMed 0.6.39 report: lookup returned no useful result. This is a coverage/routing observation, not a synthetic relevance label."
+  },
+  {
+    "id": "audit.panss",
+    "query": "PANSS",
+    "origin": "source-coverage-audit",
+    "expectedTerms": [
+      "panss",
+      "positive and negative syndrome scale"
+    ],
+    "rationale": "PR #174 source review identifies PANSS as a source-backed scale candidate; lookup should make its presence or absence measurable."
+  },
+  {
+    "id": "audit.mmse",
+    "query": "MMSE",
+    "origin": "source-coverage-audit",
+    "expectedTerms": [
+      "mmse",
+      "mini-mental state examination"
+    ],
+    "rationale": "PR #174 records an existing stable MMSE concept; this observation catches a disconnect between known concept coverage and lookup."
+  }
+]
