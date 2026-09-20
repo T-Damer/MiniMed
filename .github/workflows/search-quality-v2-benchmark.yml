@@ -206,7 +206,10 @@ jobs:
               print("test sha256:", linear.get("test", {}).get("sha256"))
               print("test original:", json.dumps(linear.get("test", {}).get("original", {}), ensure_ascii=False, indent=2))
               print("test linear:", json.dumps(linear.get("test", {}).get("linear", {}), ensure_ascii=False, indent=2))
+              print("test gated:", json.dumps(linear.get("test", {}).get("gated", {}), ensure_ascii=False, indent=2))
               print("deltas:", json.dumps(linear.get("test", {}).get("deltas", {}), ensure_ascii=False, indent=2))
+              print("gated deltas:", json.dumps(linear.get("test", {}).get("gatedDeltas", {}), ensure_ascii=False, indent=2))
+              print("abstention:", json.dumps(linear.get("abstention", {}), ensure_ascii=False, indent=2))
               print("weights:", json.dumps(linear.get("model", {}).get("weightsByFeature", {}), ensure_ascii=False, indent=2))
               print("runtime:", json.dumps(linear.get("runtime", {}), ensure_ascii=False, indent=2))
           else:
@@ -234,12 +237,19 @@ jobs:
                   k: ablation.get("linear", {}).get(k)
                   for k in ("fixed", "regressed", "improved", "worsened", "netBestGradeFixes")
               }, ensure_ascii=False, indent=2))
+              print("gated:", json.dumps({
+                  k: ablation.get("gated", {}).get(k)
+                  for k in ("fixed", "regressed", "improved", "worsened", "netBestGradeFixes")
+              }, ensure_ascii=False, indent=2))
               print("embedding:", json.dumps({
                   k: ablation.get("embedding", {}).get(k)
                   for k in ("fixed", "regressed", "improved", "worsened", "netBestGradeFixes")
               }, ensure_ascii=False, indent=2))
               print("linear changed:", json.dumps(
                   ablation.get("linear", {}).get("changed", []), ensure_ascii=False, indent=2
+              ))
+              print("gated changed:", json.dumps(
+                  ablation.get("gated", {}).get("changed", []), ensure_ascii=False, indent=2
               ))
               print("embedding changed:", json.dumps(
                   ablation.get("embedding", {}).get("changed", []), ensure_ascii=False, indent=2
