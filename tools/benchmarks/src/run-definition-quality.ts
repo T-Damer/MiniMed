@@ -62,7 +62,15 @@ const stores = await Promise.all(
 );
 const store = new MultiMedicalStore(stores);
 const core = createMedicalCore({ store, platform: 'test', embedder: new PortableHashEmbedder() });
-const rows = [];
+const rows: {
+  id: string;
+  origin: string;
+  expectedRanks: number[];
+  rankPass: boolean;
+  definitionReadable: boolean;
+  exactContext: boolean;
+  elapsedMs: number;
+}[] = [];
 try {
   const initialized = await core.initialize();
   if (!initialized.ok) throw new Error(initialized.error.message);

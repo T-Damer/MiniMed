@@ -80,7 +80,7 @@ function comparisonRows(
   report: Record<string, unknown>,
   model: 'linear' | 'gated' | 'embedding',
 ): readonly ComparisonRow[] {
-  return arrayValue(report.rows, `${model}.rows`).map((value, index) => {
+  return arrayValue(report['rows'], `${model}.rows`).map((value, index) => {
     const row = objectValue(value, `${model}.rows[${index}]`);
     const modelGradeKey =
       model === 'linear'
@@ -95,27 +95,27 @@ function comparisonRows(
           ? 'gatedTop1DocumentId'
           : 'embeddingTop1DocumentId';
     return {
-      fixtureId: stringValue(row.fixtureId, `${model}.rows[${index}].fixtureId`),
-      family: nullableString(row.family),
-      goal: nullableString(row.goal),
+      fixtureId: stringValue(row['fixtureId'], `${model}.rows[${index}].fixtureId`),
+      family: nullableString(row['family']),
+      goal: nullableString(row['goal']),
       originalTop1Grade: numberValue(
-        row.originalTop1Grade,
+        row['originalTop1Grade'],
         `${model}.rows[${index}].originalTop1Grade`,
       ),
       modelTop1Grade: numberValue(row[modelGradeKey], `${model}.rows[${index}].${modelGradeKey}`),
       maximumAvailableGrade: numberValue(
-        row.maximumAvailableGrade,
+        row['maximumAvailableGrade'],
         `${model}.rows[${index}].maximumAvailableGrade`,
       ),
-      originalTop1DocumentId: nullableString(row.originalTop1DocumentId),
+      originalTop1DocumentId: nullableString(row['originalTop1DocumentId']),
       modelTop1DocumentId: nullableString(row[modelDocumentKey]),
     };
   });
 }
 
 function testSha(report: Record<string, unknown>, label: string): string {
-  const test = objectValue(report.test, `${label}.test`);
-  return stringValue(test.sha256, `${label}.test.sha256`);
+  const test = objectValue(report['test'], `${label}.test`);
+  return stringValue(test['sha256'], `${label}.test.sha256`);
 }
 
 function summarize(rows: readonly ComparisonRow[]) {

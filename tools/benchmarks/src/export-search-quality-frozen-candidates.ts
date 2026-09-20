@@ -79,15 +79,15 @@ function loadLegacyTrainingFixtures(path: string): readonly SearchQualityFixture
       throw new Error(`Legacy pilot fixture ${index} must be an object.`);
     }
     const row = value as Record<string, unknown>;
-    const id = String(row.id ?? '').trim();
-    const query = String(row.query ?? '').trim();
-    const expectedDocumentIds = Array.isArray(row.expectedDocumentIds)
-      ? row.expectedDocumentIds.filter((item): item is string => typeof item === 'string')
+    const id = String(row['id'] ?? '').trim();
+    const query = String(row['query'] ?? '').trim();
+    const expectedDocumentIds = Array.isArray(row['expectedDocumentIds'])
+      ? row['expectedDocumentIds'].filter((item): item is string => typeof item === 'string')
       : [];
-    const expectedSectionTypes = Array.isArray(row.expectedSectionTypes)
-      ? row.expectedSectionTypes.filter((item): item is string => typeof item === 'string')
+    const expectedSectionTypes = Array.isArray(row['expectedSectionTypes'])
+      ? row['expectedSectionTypes'].filter((item): item is string => typeof item === 'string')
       : [];
-    const category = String(row.category ?? 'legacy').trim() || 'legacy';
+    const category = String(row['category'] ?? 'legacy').trim() || 'legacy';
     if (!id || !query || expectedDocumentIds.length === 0 || expectedSectionTypes.length === 0) {
       throw new Error(`Legacy pilot fixture ${index} is incomplete.`);
     }

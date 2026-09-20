@@ -92,14 +92,14 @@ function stringArray(value: unknown, label: string, allowEmpty = false): readonl
 
 function parseTarget(value: unknown, label: string): SearchQualityTarget {
   const row = record(value, label);
-  const grade = row.grade;
+  const grade = row['grade'];
   if (grade !== 1 && grade !== 2 && grade !== 3) {
     throw new Error(`${label}.grade must be 1, 2, or 3.`);
   }
   return {
-    documentId: stringValue(row.documentId, `${label}.documentId`),
+    documentId: stringValue(row['documentId'], `${label}.documentId`),
     grade,
-    sectionTypes: stringArray(row.sectionTypes, `${label}.sectionTypes`),
+    sectionTypes: stringArray(row['sectionTypes'], `${label}.sectionTypes`),
   };
 }
 
@@ -126,26 +126,26 @@ export function parseSearchQualityFixtures(value: unknown): readonly SearchQuali
   const ids = new Set<string>();
   const fixtures = value.map((item, index): SearchQualityFixture => {
     const row = record(item, `fixture ${index}`);
-    const id = stringValue(row.id, `fixture ${index}.id`);
+    const id = stringValue(row['id'], `fixture ${index}.id`);
     if (ids.has(id)) throw new Error(`Duplicate search-quality fixture id: ${id}`);
     ids.add(id);
 
-    const origin = row.origin;
+    const origin = row['origin'];
     if (!ORIGINS.has(origin as SearchQualityOrigin)) {
       throw new Error(`${id}: unsupported origin.`);
     }
-    const goal = row.goal;
+    const goal = row['goal'];
     if (!GOALS.has(goal as SearchQualityGoal)) {
       throw new Error(`${id}: unsupported goal.`);
     }
-    const answerability = row.answerability;
+    const answerability = row['answerability'];
     if (!ANSWERABILITY.has(answerability as SearchQualityAnswerability)) {
       throw new Error(`${id}: unsupported answerability.`);
     }
-    if (!Array.isArray(row.relevance) || row.relevance.length === 0) {
+    if (!Array.isArray(row['relevance']) || row['relevance'].length === 0) {
       throw new Error(`${id}: relevance must be non-empty.`);
     }
-    const relevance = row.relevance.map((target, targetIndex) =>
+    const relevance = row['relevance'].map((target, targetIndex) =>
       parseTarget(target, `${id}.relevance[${targetIndex}]`),
     );
     const relevantIds = new Set(relevance.map((target) => target.documentId));
@@ -161,7 +161,7 @@ export function parseSearchQualityFixtures(value: unknown): readonly SearchQuali
     }
 
     const forbiddenDocumentIds = stringArray(
-      row.forbiddenDocumentIds ?? [],
+      row['forbiddenDocumentIds'] ?? [],
       `${id}.forbiddenDocumentIds`,
       true,
     );
@@ -171,15 +171,15 @@ export function parseSearchQualityFixtures(value: unknown): readonly SearchQuali
 
     const fixture: SearchQualityFixture = {
       id,
-      query: stringValue(row.query, `${id}.query`),
+      query: stringValue(row['query'], `${id}.query`),
       origin: origin as SearchQualityOrigin,
-      family: stringValue(row.family, `${id}.family`),
+      family: stringValue(row['family'], `${id}.family`),
       goal: goal as SearchQualityGoal,
       answerability: answerability as SearchQualityAnswerability,
       relevance,
-      leakageTerms: stringArray(row.leakageTerms, `${id}.leakageTerms`),
+      leakageTerms: stringArray(row['leakageTerms'], `${id}.leakageTerms`),
       forbiddenDocumentIds,
-      rationale: stringValue(row.rationale, `${id}.rationale`),
+      rationale: stringValue(row['rationale'], `${id}.rationale`),
     };
     validateLeakage(fixture);
     return fixture;

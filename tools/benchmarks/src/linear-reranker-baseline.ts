@@ -191,149 +191,158 @@ export function parseFrozenCandidate(
   label = 'frozen candidate',
 ): FrozenCandidateRow {
   const row = objectValue(value, label);
-  if (row.schemaVersion !== 2) {
+  if (row['schemaVersion'] !== 2) {
     throw new Error(`${label}.schemaVersion must be 2.`);
   }
-  const analysis = objectValue(row.analysis, `${label}.analysis`);
-  const retrieval = objectValue(row.retrieval, `${label}.retrieval`);
-  const candidate = objectValue(row.candidate, `${label}.candidate`);
-  const relevance = objectValue(row.label, `${label}.label`);
-  const relevanceGrade = numberValue(relevance.relevanceGrade, `${label}.label.relevanceGrade`);
+  const analysis = objectValue(row['analysis'], `${label}.analysis`);
+  const retrieval = objectValue(row['retrieval'], `${label}.retrieval`);
+  const candidate = objectValue(row['candidate'], `${label}.candidate`);
+  const relevance = objectValue(row['label'], `${label}.label`);
+  const relevanceGrade = numberValue(relevance['relevanceGrade'], `${label}.label.relevanceGrade`);
   if (!Number.isInteger(relevanceGrade) || relevanceGrade < 0 || relevanceGrade > 3) {
     throw new Error(`${label}.label.relevanceGrade must be an integer from 0 through 3.`);
   }
-  const originalRank = numberValue(retrieval.originalRank, `${label}.retrieval.originalRank`);
+  const originalRank = numberValue(retrieval['originalRank'], `${label}.retrieval.originalRank`);
   if (!Number.isInteger(originalRank) || originalRank < 1) {
     throw new Error(`${label}.retrieval.originalRank must be a positive integer.`);
   }
 
   return {
     schemaVersion: 2,
-    fixtureId: stringValue(row.fixtureId, `${label}.fixtureId`),
-    query: stringValue(row.query, `${label}.query`),
-    origin: stringValue(row.origin, `${label}.origin`),
-    family: stringValue(row.family, `${label}.family`),
-    goal: stringValue(row.goal, `${label}.goal`),
-    answerability: stringValue(row.answerability, `${label}.answerability`),
+    fixtureId: stringValue(row['fixtureId'], `${label}.fixtureId`),
+    query: stringValue(row['query'], `${label}.query`),
+    origin: stringValue(row['origin'], `${label}.origin`),
+    family: stringValue(row['family'], `${label}.family`),
+    goal: stringValue(row['goal'], `${label}.goal`),
+    answerability: stringValue(row['answerability'], `${label}.answerability`),
     analysis: {
-      primaryIntent: nullableString(analysis.primaryIntent, `${label}.analysis.primaryIntent`),
+      primaryIntent: nullableString(analysis['primaryIntent'], `${label}.analysis.primaryIntent`),
       secondaryIntents: stringArray(
-        analysis.secondaryIntents,
+        analysis['secondaryIntents'],
         `${label}.analysis.secondaryIntents`,
       ),
       intentConfidence: numberValue(
-        analysis.intentConfidence,
+        analysis['intentConfidence'],
         `${label}.analysis.intentConfidence`,
       ),
       needsClarification: booleanValue(
-        analysis.needsClarification,
+        analysis['needsClarification'],
         `${label}.analysis.needsClarification`,
       ),
-      ageFacts: stringArray(analysis.ageFacts, `${label}.analysis.ageFacts`),
+      ageFacts: stringArray(analysis['ageFacts'], `${label}.analysis.ageFacts`),
       positiveFindingCount: numberValue(
-        analysis.positiveFindingCount,
+        analysis['positiveFindingCount'],
         `${label}.analysis.positiveFindingCount`,
       ),
       positiveFindings: stringArray(
-        analysis.positiveFindings,
+        analysis['positiveFindings'],
         `${label}.analysis.positiveFindings`,
       ),
       negativeFindingCount: numberValue(
-        analysis.negativeFindingCount,
+        analysis['negativeFindingCount'],
         `${label}.analysis.negativeFindingCount`,
       ),
       negativeFindings: stringArray(
-        analysis.negativeFindings,
+        analysis['negativeFindings'],
         `${label}.analysis.negativeFindings`,
       ),
       currentMedicineCount: numberValue(
-        analysis.currentMedicineCount,
+        analysis['currentMedicineCount'],
         `${label}.analysis.currentMedicineCount`,
       ),
       currentMedicines: stringArray(
-        analysis.currentMedicines,
+        analysis['currentMedicines'],
         `${label}.analysis.currentMedicines`,
       ),
-      branchKinds: stringArray(analysis.branchKinds, `${label}.analysis.branchKinds`),
+      branchKinds: stringArray(analysis['branchKinds'], `${label}.analysis.branchKinds`),
     },
     retrieval: {
-      requestedMode: stringValue(retrieval.requestedMode, `${label}.retrieval.requestedMode`),
-      modeUsed: stringValue(retrieval.modeUsed, `${label}.retrieval.modeUsed`),
+      requestedMode: stringValue(retrieval['requestedMode'], `${label}.retrieval.requestedMode`),
+      modeUsed: stringValue(retrieval['modeUsed'], `${label}.retrieval.modeUsed`),
       originalRank,
-      groupBestScore: numberValue(retrieval.groupBestScore, `${label}.retrieval.groupBestScore`),
+      groupBestScore: numberValue(retrieval['groupBestScore'], `${label}.retrieval.groupBestScore`),
       maximumLexicalScore: numberValue(
-        retrieval.maximumLexicalScore,
+        retrieval['maximumLexicalScore'],
         `${label}.retrieval.maximumLexicalScore`,
       ),
       maximumSemanticScore: nullableNumber(
-        retrieval.maximumSemanticScore,
+        retrieval['maximumSemanticScore'],
         `${label}.retrieval.maximumSemanticScore`,
       ),
       maximumFinalScore: numberValue(
-        retrieval.maximumFinalScore,
+        retrieval['maximumFinalScore'],
         `${label}.retrieval.maximumFinalScore`,
       ),
-      resultCount: numberValue(retrieval.resultCount, `${label}.retrieval.resultCount`),
+      resultCount: numberValue(retrieval['resultCount'], `${label}.retrieval.resultCount`),
       matchedTermCount: numberValue(
-        retrieval.matchedTermCount,
+        retrieval['matchedTermCount'],
         `${label}.retrieval.matchedTermCount`,
       ),
       matchedBranchCount: numberValue(
-        retrieval.matchedBranchCount,
+        retrieval['matchedBranchCount'],
         `${label}.retrieval.matchedBranchCount`,
       ),
-      matchedTerms: stringArray(retrieval.matchedTerms, `${label}.retrieval.matchedTerms`),
-      matchedBranches: stringArray(retrieval.matchedBranches, `${label}.retrieval.matchedBranches`),
+      matchedTerms: stringArray(retrieval['matchedTerms'], `${label}.retrieval.matchedTerms`),
+      matchedBranches: stringArray(
+        retrieval['matchedBranches'],
+        `${label}.retrieval.matchedBranches`,
+      ),
       coreCandidateCount: numberValue(
-        retrieval.coreCandidateCount,
+        retrieval['coreCandidateCount'],
         `${label}.retrieval.coreCandidateCount`,
       ),
-      semanticStatus: stringValue(retrieval.semanticStatus, `${label}.retrieval.semanticStatus`),
+      semanticStatus: stringValue(retrieval['semanticStatus'], `${label}.retrieval.semanticStatus`),
       semanticCandidateCount: numberValue(
-        retrieval.semanticCandidateCount,
+        retrieval['semanticCandidateCount'],
         `${label}.retrieval.semanticCandidateCount`,
       ),
-      sectionTypes: stringArray(retrieval.sectionTypes, `${label}.retrieval.sectionTypes`),
-      topSectionType: nullableString(retrieval.topSectionType, `${label}.retrieval.topSectionType`),
+      sectionTypes: stringArray(retrieval['sectionTypes'], `${label}.retrieval.sectionTypes`),
+      topSectionType: nullableString(
+        retrieval['topSectionType'],
+        `${label}.retrieval.topSectionType`,
+      ),
       terminologyMatch: nullableString(
-        retrieval.terminologyMatch,
+        retrieval['terminologyMatch'],
         `${label}.retrieval.terminologyMatch`,
       ),
-      exactTitle: booleanValue(retrieval.exactTitle, `${label}.retrieval.exactTitle`),
+      exactTitle: booleanValue(retrieval['exactTitle'], `${label}.retrieval.exactTitle`),
       exactShortTitle: booleanValue(
-        retrieval.exactShortTitle,
+        retrieval['exactShortTitle'],
         `${label}.retrieval.exactShortTitle`,
       ),
       exactNavigationAlias: booleanValue(
-        retrieval.exactNavigationAlias,
+        retrieval['exactNavigationAlias'],
         `${label}.retrieval.exactNavigationAlias`,
       ),
       exactDeclaredAlias: booleanValue(
-        retrieval.exactDeclaredAlias,
+        retrieval['exactDeclaredAlias'],
         `${label}.retrieval.exactDeclaredAlias`,
       ),
     },
     candidate: {
-      documentId: stringValue(candidate.documentId, `${label}.candidate.documentId`),
-      conceptId: nullableString(candidate.conceptId, `${label}.candidate.conceptId`),
-      canonicalName: stringValue(candidate.canonicalName, `${label}.candidate.canonicalName`),
-      shortTitle: nullableString(candidate.shortTitle, `${label}.candidate.shortTitle`),
-      sourceType: nullableString(candidate.sourceType, `${label}.candidate.sourceType`),
+      documentId: stringValue(candidate['documentId'], `${label}.candidate.documentId`),
+      conceptId: nullableString(candidate['conceptId'], `${label}.candidate.conceptId`),
+      canonicalName: stringValue(candidate['canonicalName'], `${label}.candidate.canonicalName`),
+      shortTitle: nullableString(candidate['shortTitle'], `${label}.candidate.shortTitle`),
+      sourceType: nullableString(candidate['sourceType'], `${label}.candidate.sourceType`),
       navigationAliases: stringArray(
-        candidate.navigationAliases,
+        candidate['navigationAliases'],
         `${label}.candidate.navigationAliases`,
       ),
-      declaredAliases: stringArray(candidate.declaredAliases, `${label}.candidate.declaredAliases`),
-      ageGroups: stringArray(candidate.ageGroups, `${label}.candidate.ageGroups`),
-      evidence: stringValue(candidate.evidence, `${label}.candidate.evidence`),
+      declaredAliases: stringArray(
+        candidate['declaredAliases'],
+        `${label}.candidate.declaredAliases`,
+      ),
+      ageGroups: stringArray(candidate['ageGroups'], `${label}.candidate.ageGroups`),
+      evidence: stringValue(candidate['evidence'], `${label}.candidate.evidence`),
     },
     label: {
       relevanceGrade,
       expectedSectionTypes: stringArray(
-        relevance.expectedSectionTypes,
+        relevance['expectedSectionTypes'],
         `${label}.label.expectedSectionTypes`,
       ),
-      forbidden: booleanValue(relevance.forbidden, `${label}.label.forbidden`),
+      forbidden: booleanValue(relevance['forbidden'], `${label}.label.forbidden`),
     },
   };
 }

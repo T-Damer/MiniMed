@@ -60,7 +60,10 @@ function pushSurface(
 }
 
 export function buildLookupQualityCases(
-  documents: readonly MedicalDocumentSummary[],
+  documents: readonly Pick<
+    MedicalDocumentSummary,
+    'id' | 'title' | 'shortTitle' | 'metadata' | 'status'
+  >[],
 ): readonly LookupQualityCase[] {
   const entries: SurfaceEntry[] = [];
   for (const document of documents) {

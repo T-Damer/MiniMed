@@ -27,24 +27,24 @@ function loadObservations(path: string): readonly CoverageObservation[] {
     }
     const row = item as Record<string, unknown>;
     if (
-      typeof row.id !== 'string' ||
-      typeof row.query !== 'string' ||
-      (row.origin !== 'user-reported' && row.origin !== 'source-coverage-audit') ||
-      !Array.isArray(row.expectedTerms) ||
-      row.expectedTerms.length === 0 ||
-      !row.expectedTerms.every((term) => typeof term === 'string' && term.trim().length >= 2) ||
-      typeof row.rationale !== 'string'
+      typeof row['id'] !== 'string' ||
+      typeof row['query'] !== 'string' ||
+      (row['origin'] !== 'user-reported' && row['origin'] !== 'source-coverage-audit') ||
+      !Array.isArray(row['expectedTerms']) ||
+      row['expectedTerms'].length === 0 ||
+      !row['expectedTerms'].every((term) => typeof term === 'string' && term.trim().length >= 2) ||
+      typeof row['rationale'] !== 'string'
     ) {
       throw new Error(`Observation ${index} has an invalid shape.`);
     }
-    if (ids.has(row.id)) throw new Error(`Duplicate coverage observation id: ${row.id}`);
-    ids.add(row.id);
+    if (ids.has(row['id'])) throw new Error(`Duplicate coverage observation id: ${row['id']}`);
+    ids.add(row['id']);
     return {
-      id: row.id,
-      query: row.query,
-      origin: row.origin,
-      expectedTerms: row.expectedTerms,
-      rationale: row.rationale,
+      id: row['id'],
+      query: row['query'],
+      origin: row['origin'],
+      expectedTerms: row['expectedTerms'],
+      rationale: row['rationale'],
     };
   });
 }
