@@ -1,6 +1,7 @@
 import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
 export interface FrozenCandidateRow {
+  readonly schemaVersion: 2;
   readonly fixtureId: string;
   readonly query: string;
   readonly origin: string;
@@ -168,6 +169,9 @@ export function parseFrozenCandidate(
   label = 'frozen candidate',
 ): FrozenCandidateRow {
   const row = objectValue(value, label);
+  if (row.schemaVersion !== 2) {
+    throw new Error(`${label}.schemaVersion must be 2.`);
+  }
   const analysis = objectValue(row.analysis, `${label}.analysis`);
   const retrieval = objectValue(row.retrieval, `${label}.retrieval`);
   const candidate = objectValue(row.candidate, `${label}.candidate`);
@@ -182,6 +186,7 @@ export function parseFrozenCandidate(
   }
 
   return {
+    schemaVersion: 2,
     fixtureId: stringValue(row.fixtureId, `${label}.fixtureId`),
     query: stringValue(row.query, `${label}.query`),
     origin: stringValue(row.origin, `${label}.origin`),
