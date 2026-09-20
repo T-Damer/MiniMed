@@ -484,6 +484,55 @@ describe('query-aware group ranking', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['pneumonia', 'drug']);
   });
 
+  it('uses failed prior medication only as context inside a clinical recommendation', () => {
+    const query =
+      'ребенок с кашлем и высокой температурой получает амоксициллин второй день, улучшения нет — что пересмотреть';
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('bronchitis', 'Бронхит у детей', 1.4, [
+          result(
+            'bronchitis',
+            'Лечение',
+            'При бронхите антибактериальная терапия не назначается рутинно.',
+            ['кашель', 'температура'],
+          ),
+        ]),
+        group('pneumonia', 'Внебольничная пневмония у детей', 0.8, [
+          result(
+            'pneumonia',
+            'Лечение',
+            'Амоксициллин является препаратом выбора; при отсутствии ответа через 48–72 часа нужна повторная оценка.',
+            ['кашель', 'температура'],
+          ),
+        ]),
+        group('drug', 'Амоксициллин — таблетки 500 мг', 20, [
+          result('drug', 'Амоксициллин', 'Инструкция по медицинскому применению амоксициллина.'),
+        ]),
+      ],
+      query,
+      [
+        document('bronchitis', 'clinical_recommendation_summary'),
+        document('pneumonia', 'clinical_recommendation_summary'),
+        document('drug', 'official_drug_instruction'),
+      ],
+      analysis,
+    );
+
+    expect(ranked[0]?.documentId).toBe('pneumonia');
+    expect(ranked.findIndex((item) => item.documentId === 'drug')).toBeGreaterThan(
+      ranked.findIndex((item) => item.documentId === 'pneumonia'),
+    );
+  });
+
   it('does not hard-rank failed prior medication as broader clinical evidence', () => {
     const query =
       'ребенок с кашлем получает амоксициллин второй день, улучшения нет — что пересмотреть';
