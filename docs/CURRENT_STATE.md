@@ -65,6 +65,17 @@
   tests cannot generate when the content is absent. It starts with the user-reported `Ясперс` miss
   plus PANSS/MMSE coverage probes and reports first-visible rank and propagated `conceptId` without
   conflating a missing concept with a reranking error.
+- A measured GitHub-run benchmark now exists for the stacked search-quality work. On 500
+  corpus-derived bundled-core surfaces, strict identity Top-1 was 99.68% and exact-surface Recall@20
+  was 99.8%; one exact D32.0 title disappeared before Top-20, proving that candidate generation still
+  needs an exact-identity retention path in addition to final ranking priority.
+- On 33 diagnosis-free public-pilot clinical challenges, both lexical and real hybrid retrieval had
+  100% relevant Recall@20/@40 but only 75.76% maximum-grade Top-1. Hybrid raised NDCG@5 only from
+  0.891 to 0.896 and did not improve Top-1 while increasing median runner latency from about 53 ms to
+  93 ms. Treatment Top-1 was 25% and respiratory Top-1 60%, making bounded reranking the next
+  evidence-backed experiment rather than broader candidate expansion on this small set.
+- Coverage probes confirm separate data gaps: `Ясперс` and PANSS are absent from bundled-core Top-20;
+  MMSE is Top-1 with canonical concept identity propagated.
 - No Laya/Jev-like model is added by this PR. GitHub Actions remain intentionally undispatched while
   repository artifact/storage quota is exhausted; the new runners and regression tests still require
   execution in a normal checkout before the draft can be considered validated.
