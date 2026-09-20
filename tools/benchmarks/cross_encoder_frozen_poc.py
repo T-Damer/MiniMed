@@ -424,7 +424,11 @@ def changed_rows(
                 "originalTop1Grade": original_grade,
                 "rerankedTop1DocumentId": reranked_top["candidate"]["documentId"],
                 "rerankedTop1Grade": reranked_grade,
-                "rerankedTop1Score": float(reranked_top["_crossEncoderScore"]),
+                "rerankedTop1Score": (
+                    float(reranked_top["_crossEncoderScore"])
+                    if "_crossEncoderScore" in reranked_top
+                    else None
+                ),
                 "status": status,
             }
         )
