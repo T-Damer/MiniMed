@@ -45,7 +45,10 @@ export interface VectorHit {
   readonly score: number;
 }
 
-export type SearchDocumentDescriptor = Pick<DocumentRecord, 'id' | 'sourceType' | 'metadata'>;
+export type SearchDocumentDescriptor = Pick<
+  DocumentRecord,
+  'id' | 'title' | 'shortTitle' | 'sourceType' | 'metadata'
+>;
 
 export interface DocumentIdentity {
   readonly id: string;
