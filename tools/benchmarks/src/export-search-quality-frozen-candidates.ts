@@ -25,7 +25,11 @@ const option = (key: string): string | undefined =>
   args.find((arg) => arg.startsWith(`--${key}=`))?.slice(key.length + 3);
 
 for (const arg of args) {
-  if (!/^--(?:core|pack|fixtures|legacy-pilot|leakage-fixtures|output|report|mode|limit)=.+/u.test(arg)) {
+  if (
+    !/^--(?:core|pack|fixtures|legacy-pilot|leakage-fixtures|output|report|mode|limit)=.+/u.test(
+      arg,
+    )
+  ) {
     throw new Error(`Unknown argument ${arg}`);
   }
 }
@@ -79,6 +83,7 @@ for (const path of inputPaths) {
 function sha256(path: string): string {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
@@ -208,7 +213,9 @@ function loadLegacyTrainingFixtures(
     if (leaked) throw new Error(`${id}: masked training query still leaks "${leaked}".`);
     const leakedMarker = remainingLegacyAnswerMarker(maskedQuery, expectedDocumentIds);
     if (leakedMarker) {
-      throw new Error(`${id}: masked training query still contains answer marker "${leakedMarker}".`);
+      throw new Error(
+        `${id}: masked training query still contains answer marker "${leakedMarker}".`,
+      );
     }
 
     return {
@@ -226,7 +233,8 @@ function loadLegacyTrainingFixtures(
       leakageTerms,
       forbiddenDocumentIds: [],
       rationale:
-        'Legacy source-grounded query used only for reranker training after direct answer-term masking.',
+        'Legacy source-grounded query used only for reranker training after ' +
+        'direct answer-term masking.',
     };
   });
 }
@@ -333,7 +341,9 @@ const fixtureReports: {
 }[] = [];
 
 for (const fixture of fixtures) {
-  const availableRelevance = fixture.relevance.filter((target) => documentsById.has(target.documentId));
+  const availableRelevance = fixture.relevance.filter((target) =>
+    documentsById.has(target.documentId),
+  );
   if (availableRelevance.length === 0) {
     fixtureReports.push({
       id: fixture.id,
@@ -406,7 +416,8 @@ for (const fixture of fixtures) {
           secondaryIntents: response.value.analysis.intent?.secondary ?? [],
           intentConfidence: response.value.analysis.intent?.confidence ?? 0,
           needsClarification: response.value.analysis.intent?.needsClarification ?? false,
-          ageFacts: response.value.analysis.clinicalContext?.age.map((fact) => fact.normalizedValue) ?? [],
+          ageFacts:
+            response.value.analysis.clinicalContext?.age.map((fact) => fact.normalizedValue) ?? [],
           positiveFindingCount:
             response.value.analysis.clinicalContext?.positiveFindings.length ?? 0,
           negativeFindingCount:
@@ -430,6 +441,11 @@ for (const fixture of fixtures) {
           resultCount: group.results.length,
           matchedTermCount: matchedTerms.length,
           matchedBranchCount: matchedBranches.length,
+          matchedTerms,
+          matchedBranches,
+          coreCandidateCount: response.value.diagnostics.candidateCount,
+          semanticStatus: response.value.diagnostics.semantic.status,
+          semanticCandidateCount: response.value.diagnostics.semantic.candidateCount,
           sectionTypes,
           topSectionType: group.results[0]?.sectionType ?? null,
           terminologyMatch: group.terminologyMatch ?? null,
@@ -499,7 +515,8 @@ const report = {
     fixturesWithMissingRelevantCandidates: fixtureReports.filter(
       (fixture) => fixture.missingRelevantDocumentIds.length > 0,
     ).length,
-    excludedTrainingFixtures: fixtureReports.filter((fixture) => fixture.excludedFromTraining).length,
+    excludedTrainingFixtures: fixtureReports.filter((fixture) => fixture.excludedFromTraining)
+      .length,
     fixtures: fixtureReports,
   },
 };
@@ -524,7 +541,8 @@ console.log(
 
 if (missingRelevantPairs > 0) {
   const message =
-    `Frozen candidate export is incomplete: ${missingRelevantPairs} relevant document(s) are missing.`;
+    `Frozen candidate export is incomplete: ${missingRelevantPairs} relevant document(s) ` +
+    'are missing.';
   if (trainingExport) {
     console.warn(`${message} Incomplete legacy fixtures were excluded from training.`);
   } else {
