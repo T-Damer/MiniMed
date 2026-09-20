@@ -340,6 +340,29 @@ Do not automatically translate and label them to inflate benchmark size. A Russi
 retrieval test only after source-backed relevance annotation and review; translation/reconstruction
 must retain separate provenance.
 
+### Observed coverage regressions
+
+Corpus-derived lookup can only test surfaces that already exist in the installed data. A separate
+diagnostic fixture, `tools/benchmarks/search-coverage-observations.json`, records concrete missing or
+questionable lookup expectations without pretending they are relevance gold.
+
+The initial observations are:
+
+- `Ясперс` — a real user-reported MiniMed 0.6.39 miss;
+- `PANSS` — source-coverage follow-up from the neuropsychiatry review in #174;
+- `MMSE` — a consistency probe because #174 records an existing stable MMSE concept.
+
+Run:
+
+```bash
+bun run benchmark:search-coverage-observations
+```
+
+The report records whether the observed term is visible in the first 20 results, the first visible
+rank, the matching document and any propagated `conceptId`. It is diagnostic by default because a
+missing term may require content promotion rather than ranking changes. Use `--require-all=true`
+only when the corresponding content has been deliberately promoted and should become a release gate.
+
 ### Qualification boundary
 
 The checked-in challenge set remains visible to implementation agents. It is a regression/challenge
