@@ -304,8 +304,15 @@
 
 - **Glasgow Coma Scale** — ✅ выполнено (2026-08-17): модуль `minimed.tools.emergency.ru`
   (`minimed.assessment.glasgow-coma-scale`), Teasdale & Jennett 1974; градации 3–8 / 9–12 / 13–15
-  по NICE NG232. Проверки: E1+V1+M1 → 3, E4+V5+M6 → 15. FOUR Score остаётся кандидатом;
-- PEWS и Pediatric Trauma Score;
+  по NICE NG232. Проверки: E1+V1+M1 → 3, E4+V5+M6 → 15. FOUR Score остаётся кандидатом;- **PAT (Pediatric Assessment Triangle)** — 🧪 source-extracted 2026-09-20 из текущей КР
+  ОРВИ (2026, ID 25_3): `docs/research/data/pediatric-assessment-triangle-kr25_3-2026.json`.
+  Три домена и 7 source-interpreted patterns сохранены; отсутствующая 8-я бинарная комбинация
+  `pathological/pathological/normal` не достраивается. Triage levels 1–5 в источнике идут
+  отдельным пояснением, поэтому mapping PAT-pattern→level остаётся null до review source figure.
+
+- PEWS — ⚠️ current KR ОРВИ 25_3/2026 ссылается на exact методику Коммунарки 2023, но
+  scoring matrix в текущем тексте КР не воспроизводится; не подставлять другой PEWS-вариант.
+  Pediatric Trauma Score остаётся отдельным кандидатом;
 - Revised Trauma Score и Injury Severity Score;
 - **shock index** — ✅ выполнено (2026-08-17): модуль `minimed.tools.emergency.ru`
   (`minimed.calculator.shock-index`), SI = ЧСС / САД, порог ≥0,9 по Rady et al. 1992.
