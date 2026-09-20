@@ -424,8 +424,15 @@ export function rankSearchGroupsByQuery(
   analysis?: QueryAnalysis,
 ): readonly SearchResultGroup[] {
   const failedTreatmentTerms = failedTreatmentStems(query, analysis);
-  const subjectSearch = searchSubjectText(query) !== normalizeSurfaceText(query);
-  query = searchSubjectText(query);
+  const originalQuery = query;
+  const extractedSubject = searchSubjectText(originalQuery);
+  const extractedSubjectStems = tokenize(extractedSubject).map(stemToken);
+  const failedTreatmentSubject =
+    extractedSubjectStems.length > 0 &&
+    extractedSubjectStems.every((stem) => failedTreatmentTerms.has(stem));
+  const subjectSearch =
+    !failedTreatmentSubject && extractedSubject !== normalizeSurfaceText(originalQuery);
+  query = failedTreatmentSubject ? normalizeSurfaceText(originalQuery) : extractedSubject;
   const namedMedication =
     !analysis ||
     analysis.facts.some((fact) => fact.kind === 'medication' && fact.polarity === 'positive');
