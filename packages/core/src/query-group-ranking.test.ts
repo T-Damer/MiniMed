@@ -484,6 +484,38 @@ describe('query-aware group ranking', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['pneumonia', 'drug']);
   });
 
+  it('does not hard-rank failed prior medication as broader clinical evidence', () => {
+    const query =
+      'ребенок с кашлем получает амоксициллин второй день, улучшения нет — что пересмотреть';
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('drug', 'Амоксициллин', 0.1, [
+          result('drug', 'Амоксициллин', 'Амоксициллин применяется при кашле.', [
+            'амоксициллин',
+            'кашель',
+          ]),
+        ]),
+        group('condition', 'Клиническая картина', 1, [
+          result('condition', 'Клиническая картина', 'Кашель у ребенка.', ['кашель']),
+        ]),
+      ],
+      query,
+      [],
+      analysis,
+    );
+
+    expect(ranked[0]?.documentId).toBe('condition');
+  });
+
   it('binds delayed treatment failure to the medication instead of a preceding disease term', () => {
     const query =
       'пневмония у ребенка, получает амоксициллин второй день, улучшения нет — что пересмотреть';
