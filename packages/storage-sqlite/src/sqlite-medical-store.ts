@@ -753,11 +753,13 @@ export class SqliteMedicalStore implements MedicalStore {
     return queryRows(
       this.database,
       `
-      SELECT id, source_type,
+      SELECT id, title, short_title, source_type,
         json_extract(metadata_json, ${SEARCH_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields FROM documents ORDER BY title COLLATE NOCASE, id
     `,
     ).map((row) => ({
       id: readString(row, 'id'),
+      title: readString(row, 'title'),
+      shortTitle: readNullableString(row, 'short_title'),
       sourceType: readString(row, 'source_type'),
       metadata: projectedMetadata(row, SEARCH_METADATA_FIELDS),
     }));
