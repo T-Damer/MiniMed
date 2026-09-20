@@ -19,9 +19,13 @@ for (const arg of args) {
 
 const corePath = resolve(option('core') ?? resolve(root, 'apps/app/public/content/core.db'));
 const packs = args.filter((arg) => arg.startsWith('--pack=')).map((arg) => resolve(arg.slice(7)));
-const reportPath = resolve(option('report') ?? resolve(root, 'data/build/lookup-quality-report.json'));
+const reportPath = resolve(
+  option('report') ?? resolve(root, 'data/build/lookup-quality-report.json'),
+);
 const maxValue = Number(option('max') ?? '500');
-if (!Number.isInteger(maxValue) || maxValue < 0) throw new Error('--max must be a non-negative integer.');
+if (!Number.isInteger(maxValue) || maxValue < 0) {
+  throw new Error('--max must be a non-negative integer.');
+}
 const minimumTop1 = Number(option('min-top1') ?? '1');
 const minimumRecallAt20 = Number(option('min-recall20') ?? '1');
 for (const [name, value] of [
@@ -173,7 +177,9 @@ if (top1Rate < minimumTop1) {
   failures.push(`exact lookup Top-1 ${top1Rate.toFixed(4)} < ${minimumTop1.toFixed(4)}`);
 }
 if (recallAt20 < minimumRecallAt20) {
-  failures.push(`exact lookup recall@20 ${recallAt20.toFixed(4)} < ${minimumRecallAt20.toFixed(4)}`);
+  failures.push(
+    `exact lookup recall@20 ${recallAt20.toFixed(4)} < ${minimumRecallAt20.toFixed(4)}`,
+  );
 }
 if (failures.length > 0) {
   console.error(`Corpus lookup quality failed:\n- ${failures.join('\n- ')}`);
