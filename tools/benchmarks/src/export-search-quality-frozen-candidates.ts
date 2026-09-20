@@ -78,6 +78,114 @@ for (const path of inputPaths) {
 function sha256(path: string): string {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
+interface LegacyPilotFixture {
+  readonly id: string;
+  readonly query: string;
+  readonly expectedDocumentIds: readonly string[];
+  readonly expectedSectionTypes: readonly string[];
+  readonly category: string;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\function sha256(path: string): string {
+  return createHash('sha256').update(readFileSync(path)).digest('hex');
+}
+');
+}
+
+function maskLeakageTerms(query: string, terms: readonly string[]): string {
+  let masked = query;
+  for (const term of [...new Set(terms)].toSorted((left, right) => right.length - left.length)) {
+    const expression = new RegExp(
+      `(^|[^\\p{L}\\p{N}])${escapeRegExp(term)}(?=$|[^\\p{L}\\p{N}])`,
+      'giu',
+    );
+    masked = masked.replace(expression, '$1[диагноз]');
+  }
+  return masked
+    .replace(/(?:\[диагноз\]\s*){2,}/gu, '[диагноз] ')
+    .replace(/\s+/gu, ' ')
+    .trim();
+}
+
+function inferredGoal(sectionTypes: readonly string[]): SearchQualityFixture['goal'] {
+  if (sectionTypes.includes('routing')) return 'routing';
+  if (sectionTypes.includes('treatment')) return 'treatment';
+  if (sectionTypes.includes('diagnostics')) return 'diagnostics';
+  return 'diagnosis-navigation';
+}
+
+function loadLegacyTrainingFixtures(
+  path: string,
+  leakagePath: string,
+): readonly SearchQualityFixture[] {
+  const raw: unknown = JSON.parse(readFileSync(path, 'utf8'));
+  if (!Array.isArray(raw)) throw new Error('Legacy pilot fixture must be an array.');
+  const leakageFixtures = loadSearchQualityFixtures(leakagePath);
+  const leakageByDocument = new Map<string, Set<string>>();
+  for (const fixture of leakageFixtures) {
+    for (const target of fixture.relevance) {
+      let terms = leakageByDocument.get(target.documentId);
+      if (!terms) {
+        terms = new Set<string>();
+        leakageByDocument.set(target.documentId, terms);
+      }
+      for (const term of fixture.leakageTerms) terms.add(term);
+    }
+  }
+
+  return raw.map((value, index): SearchQualityFixture => {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new Error(`Legacy pilot fixture ${index} must be an object.`);
+    }
+    const row = value as Record<string, unknown>;
+    const id = String(row.id ?? '').trim();
+    const query = String(row.query ?? '').trim();
+    const expectedDocumentIds = Array.isArray(row.expectedDocumentIds)
+      ? row.expectedDocumentIds.filter((item): item is string => typeof item === 'string')
+      : [];
+    const expectedSectionTypes = Array.isArray(row.expectedSectionTypes)
+      ? row.expectedSectionTypes.filter((item): item is string => typeof item === 'string')
+      : [];
+    const category = String(row.category ?? 'legacy').trim() || 'legacy';
+    if (!id || !query || expectedDocumentIds.length === 0 || expectedSectionTypes.length === 0) {
+      throw new Error(`Legacy pilot fixture ${index} is incomplete.`);
+    }
+
+    const leakageTerms = [
+      ...new Set(
+        expectedDocumentIds.flatMap((documentId) => [
+          ...(leakageByDocument.get(documentId) ?? []),
+        ]),
+      ),
+    ];
+    const maskedQuery = maskLeakageTerms(query, leakageTerms);
+    if (!maskedQuery) throw new Error(`${id}: masking removed the entire training query.`);
+    const normalizedMasked = normalizeSurfaceText(maskedQuery);
+    const leaked = leakageTerms.find(
+      (term) => findNormalizedPhraseIndex(normalizedMasked, normalizeSurfaceText(term)) >= 0,
+    );
+    if (leaked) throw new Error(`${id}: masked training query still leaks "${leaked}".`);
+
+    return {
+      id: `legacy-train.${id}`,
+      query: maskedQuery,
+      origin: 'legacy-pilot-training',
+      family: category,
+      goal: inferredGoal(expectedSectionTypes),
+      answerability: 'focused',
+      relevance: expectedDocumentIds.map((documentId) => ({
+        documentId,
+        grade: 3,
+        sectionTypes: expectedSectionTypes,
+      })),
+      leakageTerms,
+      forbiddenDocumentIds: [],
+      rationale:
+        'Legacy source-grounded query used only for reranker training after direct answer-term masking.',
+    };
+  });
+}
 
 function metadataStrings(
   metadata: Readonly<Record<string, unknown>> | undefined,
@@ -133,7 +241,9 @@ function surfaceFlags(
   };
 }
 
-const fixtures = loadSearchQualityFixtures(fixturePath);
+const fixtures = trainingExport
+  ? loadLegacyTrainingFixtures(legacyPilotPath as string, leakageFixturePath)
+  : loadSearchQualityFixtures(fixturePath);
 const stores = await Promise.all(
   [corePath, ...packs].map(async (path, index) => ({
     moduleId: `${index}:${basename(path)}`,
