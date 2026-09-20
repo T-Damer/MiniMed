@@ -25,6 +25,13 @@ describe('legacy reranker training masking', () => {
     expect(remainingLegacyAnswerMarker(masked, [documentId])).toBeUndefined();
   });
 
+  it('masks inflected urinary diagnosis phrases', () => {
+    const query = 'Лечение фебрильной инфекции мочевых путей: нужен ли антибиотик';
+    const masked = maskLegacyTrainingQuery(query, ['kr.rf.281_3.uti'], []);
+    expect(masked).toContain('[диагноз]');
+    expect(masked).not.toContain('инфекции мочевых путей');
+  });
+
   it('masks challenge leakage phrases in addition to target stems', () => {
     const masked = maskLegacyTrainingQuery(
       'Нужна помощь при инфекции мочевых путей у ребенка',
