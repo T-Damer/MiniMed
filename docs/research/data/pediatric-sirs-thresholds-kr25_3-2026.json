@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.pediatric-sirs-thresholds.ru.kr25_3.2026",
+  "title": "Pediatric SIRS clinical and laboratory thresholds — current ARVI recommendation",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "clinical-recommendation-source-review-required",
+  "verificationStatus": "current-kr-two-table-transcription-with-source-discrepancy",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "syndrome_screening_thresholds_not_reference_intervals",
+  "source": {
+    "recommendationTitle": "Острая респираторная вирусная инфекция (ОРВИ)",
+    "recommendationId": "25_3",
+    "recommendationYear": 2026,
+    "revisionDueNoLaterThan": 2028,
+    "appendix": "А3.4",
+    "table7": "Изменение ЧДД, ЧСС, лейкоцитов и САД в зависимости от возраста при ССВР",
+    "table8": "Лабораторные маркеры ССВР и бактериальной инфекции у детей старше 1 месяца",
+    "urls": [
+      "https://www.consultant.ru/document/cons_doc_LAW_543697/37bfdd6aa47d1fad9b40ec916b338a5ee1d89720/",
+      "https://www.consultant.ru/document/cons_doc_LAW_543697/"
+    ]
+  },
+  "table7AgeSpecific": [
+    {
+      "age": "0-7_days",
+      "respiratoryRate": {
+        "operator": ">",
+        "value": 50,
+        "unit": "per_min"
+      },
+      "tachycardia": {
+        "operator": ">",
+        "value": 180,
+        "unit": "per_min"
+      },
+      "bradycardia": {
+        "operator": "<",
+        "value": 100,
+        "unit": "per_min"
+      },
+      "leukocytesHigh": {
+        "operator": ">",
+        "value": 34,
+        "unit": "10^9/L"
+      },
+      "leukocytesLow": null,
+      "systolicBloodPressure": {
+        "operator": "<",
+        "value": 65,
+        "unit": "mmHg"
+      }
+    },
+    {
+      "age": "7_days-1_month",
+      "respiratoryRate": {
+        "operator": ">",
+        "value": 40,
+        "unit": "per_min"
+      },
+      "tachycardia": {
+        "operator": ">",
+        "value": 180,
+        "unit": "per_min"
+      },
+      "bradycardia": {
+        "operator": "<",
+        "value": 100,
+        "unit": "per_min"
+      },
+      "leukocytesHigh": {
+        "operator": ">",
+        "value": 19.5,
+        "unit": "10^9/L"
+      },
+      "leukocytesLow": {
+        "operator": "<",
+        "value": 5,
+        "unit": "10^9/L"
+      },
+      "systolicBloodPressure": {
+        "operator": "<",
+        "value": 75,
+        "unit": "mmHg"
+      }
+    },
+    {
+      "age": "1_month-1_year",
+      "respiratoryRate": {
+        "operator": ">",
+        "value": 34,
+        "unit": "per_min"
+      },
+      "tachycardia": {
+        "operator": ">",
+        "value": 180,
+        "unit": "per_min"
+      },
+      "bradycardia": {
+        "operator": "<",
+        "value": 90,
+        "unit": "per_min"
+      },
+      "leukocytesHigh": {
+        "operator": ">",
+        "value": 17.5,
+        "unit": "10^9/L"
+      },
+      "leukocytesLow": {
+        "operator": "<",
+        "value": 5,
+        "unit": "10^9/L"
+      },
+      "systolicBloodPressure": {
+        "operator": "<",
+        "value": 100,
+        "unit": "mmHg"
+      }
+    },
+    {
+      "age": "2-5_years",
+      "respiratoryRate": {
+        "operator": ">",
+        "value": 22,
+        "unit": "per_min"
+      },
+      "tachycardia": {
+        "operator": ">",
+        "value": 140,
+        "unit": "per_min"
+      },
+      "bradycardia": null,
+      "leukocytesHigh": {
+        "operator": ">",
+        "value": 15.5,
+        "unit": "10^9/L"
+      },
+      "leukocytesLow": {
+        "operator": "<",
+        "value": 6,
+        "unit": "10^9/L"
+      },
+      "systolicBloodPressure": {
+        "operator": "<",
+        "value": 94,
+        "unit": "mmHg"
+      }
+    },
+    {
+      "age": "6-12_years",
+      "respiratoryRate": {
+        "operator": ">",
+        "value": 18,
+        "unit": "per_min"
+      },
+      "tachycardia": {
+        "operator": ">",
+        "value": 130,
+        "unit": "per_min"
+      },
+      "bradycardia": null,
+      "leukocytesHigh": {
+        "operator": ">",
+        "value": 13.5,
+        "unit": "10^9/L"
+      },
+      "leukocytesLow": {
+        "operator": "<",
+        "value": 4.5,
+        "unit": "10^9/L"
+      },
+      "systolicBloodPressure": {
+        "operator": "<",
+        "value": 105,
+        "unit": "mmHg"
+      }
+    },
+    {
+      "age": "13-18_years",
+      "respiratoryRate": {
+        "operator": ">",
+        "value": 16,
+        "unit": "per_min"
+      },
+      "tachycardia": {
+        "operator": ">",
+        "value": 110,
+        "unit": "per_min"
+      },
+      "bradycardia": null,
+      "leukocytesHigh": {
+        "operator": ">",
+        "value": 11,
+        "unit": "10^9/L"
+      },
+      "leukocytesLow": {
+        "operator": "<",
+        "value": 4.5,
+        "unit": "10^9/L"
+      },
+      "systolicBloodPressure": {
+        "operator": "<",
+        "value": 117,
+        "unit": "mmHg"
+      }
+    }
+  ],
+  "table8LaboratoryCutoffs": {
+    "leukocytosis": [
+      {
+        "age": "1_month-1_year",
+        "operator": ">",
+        "value": 17.7,
+        "unit": "10^9/L"
+      },
+      {
+        "age": "2-5_years",
+        "operator": ">",
+        "value": 15.5,
+        "unit": "10^9/L"
+      },
+      {
+        "age": "6-12_years",
+        "operator": ">",
+        "value": 13.5,
+        "unit": "10^9/L"
+      },
+      {
+        "age": "13-18_years",
+        "operator": ">",
+        "value": 11,
+        "unit": "10^9/L"
+      }
+    ],
+    "leukopenia": [
+      {
+        "age": "1_month-1_year",
+        "operator": "<",
+        "value": 5,
+        "unit": "10^9/L"
+      },
+      {
+        "age": "2-5_years",
+        "operator": "<",
+        "value": 6,
+        "unit": "10^9/L"
+      },
+      {
+        "age": "6-18_years",
+        "operator": "<",
+        "value": 4.5,
+        "unit": "10^9/L"
+      }
+    ],
+    "neutrophilia": {
+      "age": "1_month-18_years",
+      "operator": ">",
+      "sourceCutoffRange": {
+        "min": 7.73,
+        "max": 10
+      },
+      "unit": "10^9/L",
+      "executableStatus": "source_range_requires_clinical_review"
+    },
+    "cReactiveProtein": {
+      "age": "1_month-18_years",
+      "operator": ">",
+      "sourceCutoffRange": {
+        "min": 30,
+        "max": 37
+      },
+      "unit": "mg/L",
+      "executableStatus": "source_range_requires_clinical_review"
+    },
+    "procalcitonin": {
+      "age": "1_month-18_years",
+      "operator": ">",
+      "sourceCutoffRange": {
+        "min": 0.5,
+        "max": 0.95
+      },
+      "unit": "ng/mL",
+      "executableStatus": "source_range_requires_clinical_review"
+    }
+  },
+  "sourceDiscrepancies": [
+    {
+      "field": "leukocytosis_1_month_to_1_year",
+      "table7": {
+        "operator": ">",
+        "value": 17.5,
+        "unit": "10^9/L"
+      },
+      "table8": {
+        "operator": ">",
+        "value": 17.7,
+        "unit": "10^9/L"
+      },
+      "handling": "preserve_both_values_do_not_normalize_automatically"
+    }
+  ],
+  "clinicalBoundary": {
+    "sirsDiagnosisDerived": false,
+    "sepsisDiagnosisDerived": false,
+    "normalVitalSignsDerived": false,
+    "bacterialInfectionDiagnosisDerived": false
+  },
+  "reviewNotes": [
+    "These are syndrome/disease decision thresholds, not pediatric normal vital-sign or laboratory reference intervals.",
+    "The source has a 17.5 vs 17.7 ×10^9/L leukocytosis discrepancy for age 1 month-1 year between Table 7 and Table 8; both are preserved.",
+    "Neutrophil, CRP and procalcitonin cutoffs are printed as ranges; MiniMed must not choose one endpoint as a universal executable threshold without review.",
+    "Absence of a bradycardia value for older age bands is stored as null rather than inferred.",
+    "No autonomous SIRS, sepsis or bacterial-infection diagnosis is generated from this table."
+  ]
+}
