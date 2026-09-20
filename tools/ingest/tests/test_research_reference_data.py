@@ -1061,3 +1061,42 @@ def test_neonatal_screening_current_order_274n_revision_tracks_2026_additions() 
     workflow = cast(dict[str, object], data["workflow"])
     steps = cast(list[object], workflow["steps"])
     assert steps[-1] == "medical_genetic_counseling_for_confirmed_patients_and_family"
+
+
+def test_prenatal_screening_current_order_747n_preserves_windows_and_routing() -> None:
+    data = _load("prenatal-screening-order-747n-current-2026.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    source = cast(dict[str, object], data["source"])
+    assert source["orderNumber"] == "747н"
+    assert source["effectiveFrom"] == "2026-01-10"
+
+    windows = cast(list[dict[str, object]], data["screeningWindows"])
+    assert len(windows) == 3
+
+    expected = [
+        (1, (11, 0), (13, 6)),
+        (2, (18, 0), (20, 6)),
+        (3, (34, 0), (35, 6)),
+    ]
+    for window, (trimester, min_age, max_age) in zip(windows, expected, strict=True):
+        assert _int(window["trimester"]) == trimester
+        ga = cast(dict[str, object], window["gestationalAge"])
+        minimum = cast(dict[str, object], ga["min"])
+        maximum = cast(dict[str, object], ga["max"])
+        assert (_int(minimum["weeks"]), _int(minimum["days"])) == min_age
+        assert (_int(maximum["weeks"]), _int(maximum["days"])) == max_age
+
+    risk_groups = cast(list[dict[str, object]], data["firstTrimesterChromosomalRiskGroups"])
+    assert [str(group["id"]) for group in risk_groups] == ["high", "medium", "low"]
+    assert risk_groups[0]["sourceRange"] == "1:100 and above"
+    assert risk_groups[1]["sourceRange"] == "1:101-1:1000"
+    assert risk_groups[2]["sourceRange"] == "1:1001 and below"
+
+    nipt = cast(dict[str, object], data["nipt"])
+    assert cast(list[object], nipt["indicatedForRiskGroups"]) == ["medium", "high"]
+
+    scope = cast(dict[str, object], data["scopeBoundary"])
+    assert scope["screeningIsNotDiagnosis"] is True
+    assert scope["niptIsScreeningNotConfirmatoryDiagnosis"] is True
