@@ -1,0 +1,173 @@
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { basename, dirname, resolve } from 'node:path';
+
+import { createMedicalCore } from '@localmed/core';
+import { MultiMedicalStore } from '@localmed/storage';
+
+import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
+import { buildLookupQualityCases } from './lookup-quality-cases';
+
+const root = resolve(import.meta.dirname, '../../..');
+const args = process.argv.slice(2);
+const option = (key: string) =>
+  args.find((arg) => arg.startsWith(`--${key}=`))?.slice(key.length + 3);
+for (const arg of args) {
+  if (!/^--(?:core|pack|report|max|min-top1|min-recall20)=.+/u.test(arg)) {
+    throw new Error(`Unknown argument ${arg}`);
+  }
+}
+
+const corePath = resolve(option('core') ?? resolve(root, 'apps/app/public/content/core.db'));
+const packs = args.filter((arg) => arg.startsWith('--pack=')).map((arg) => resolve(arg.slice(7)));
+const reportPath = resolve(option('report') ?? resolve(root, 'data/build/lookup-quality-report.json'));
+const maxValue = Number(option('max') ?? '500');
+if (!Number.isInteger(maxValue) || maxValue < 0) throw new Error('--max must be a non-negative integer.');
+const minimumTop1 = Number(option('min-top1') ?? '1');
+const minimumRecallAt20 = Number(option('min-recall20') ?? '1');
+for (const [name, value] of [
+  ['--min-top1', minimumTop1],
+  ['--min-recall20', minimumRecallAt20],
+] as const) {
+  if (!Number.isFinite(value) || value < 0 || value > 1) {
+    throw new Error(`${name} must be between 0 and 1.`);
+  }
+}
+for (const path of [corePath, ...packs]) {
+  if (!existsSync(path)) throw new Error(`Lookup benchmark database does not exist: ${path}`);
+}
+
+const store = new MultiMedicalStore(
+  await Promise.all(
+    [corePath, ...packs].map(async (path, index) => ({
+      moduleId: `${index}:${basename(path)}`,
+      store: await createBunFileMedicalStore(path),
+      required: true,
+      searchWeight: index === 0 ? 1.1 : 1,
+    })),
+  ),
+);
+const core = createMedicalCore({ store, platform: 'test' });
+const initialized = await core.initialize();
+if (!initialized.ok) throw new Error(initialized.error.message);
+const listed = await core.listDocuments();
+if (!listed.ok) throw new Error(listed.error.message);
+
+const allCases = buildLookupQualityCases(listed.value);
+const cases = maxValue === 0 ? allCases : allCases.slice(0, maxValue);
+if (cases.length === 0) throw new Error('No eligible lookup surfaces were found.');
+
+const rows: {
+  id: string;
+  query: string;
+  kinds: readonly string[];
+  expectedTop1DocumentIds: readonly string[];
+  exactSurfaceDocumentIds: readonly string[];
+  top1DocumentId: string | null;
+  firstExpectedRank: number | null;
+  firstExactRank: number | null;
+  top1Pass: boolean;
+  recallAt20: boolean;
+  bodyOnlyIntrusion: boolean;
+  weakerExactWon: boolean;
+  elapsedMs: number;
+}[] = [];
+
+for (const fixture of cases) {
+  const response = await core.search({
+    query: fixture.query,
+    mode: 'lexical',
+    analysisMode: 'lookup',
+    filters: {},
+    limit: 20,
+    includeSuggestions: false,
+  });
+  if (!response.ok) throw new Error(`${fixture.id}: ${response.error.message}`);
+  const documentIds = response.value.groups.map((group) => group.documentId);
+  const top1DocumentId = documentIds[0] ?? null;
+  const firstExpectedIndex = documentIds.findIndex((documentId) =>
+    fixture.expectedTop1DocumentIds.includes(documentId),
+  );
+  const firstExactIndex = documentIds.findIndex((documentId) =>
+    fixture.exactSurfaceDocumentIds.includes(documentId),
+  );
+  rows.push({
+    id: fixture.id,
+    query: fixture.query,
+    kinds: fixture.kinds,
+    expectedTop1DocumentIds: fixture.expectedTop1DocumentIds,
+    exactSurfaceDocumentIds: fixture.exactSurfaceDocumentIds,
+    top1DocumentId,
+    firstExpectedRank: firstExpectedIndex < 0 ? null : firstExpectedIndex + 1,
+    firstExactRank: firstExactIndex < 0 ? null : firstExactIndex + 1,
+    top1Pass: top1DocumentId !== null && fixture.expectedTop1DocumentIds.includes(top1DocumentId),
+    recallAt20: firstExactIndex >= 0 && firstExactIndex < 20,
+    bodyOnlyIntrusion:
+      top1DocumentId !== null && !fixture.exactSurfaceDocumentIds.includes(top1DocumentId),
+    weakerExactWon:
+      top1DocumentId !== null &&
+      fixture.exactSurfaceDocumentIds.includes(top1DocumentId) &&
+      !fixture.expectedTop1DocumentIds.includes(top1DocumentId),
+    elapsedMs: response.value.elapsedMs,
+  });
+}
+await core.close();
+
+const top1Rate = rows.filter((row) => row.top1Pass).length / rows.length;
+const recallAt20 = rows.filter((row) => row.recallAt20).length / rows.length;
+const bodyOnlyIntrusionRate = rows.filter((row) => row.bodyOnlyIntrusion).length / rows.length;
+const weakerExactRate = rows.filter((row) => row.weakerExactWon).length / rows.length;
+const timings = rows.map((row) => row.elapsedMs).toSorted((left, right) => left - right);
+const percentile = (p: number) =>
+  timings[Math.min(timings.length - 1, Math.floor(timings.length * p))] ?? 0;
+
+const report = {
+  schemaVersion: 1,
+  dataset: 'minimed-corpus-derived-lookup-quality',
+  generatedAt: new Date().toISOString(),
+  corpus: {
+    contentPackIds: initialized.value.contentPackIds,
+    documentCount: listed.value.length,
+    databasePaths: [corePath, ...packs],
+  },
+  eligibleSurfaceCount: allCases.length,
+  evaluatedSurfaceCount: rows.length,
+  deterministicSampleMax: maxValue,
+  metrics: {
+    top1Rate,
+    recallAt20,
+    bodyOnlyIntrusionRate,
+    weakerExactRate,
+    p50Ms: percentile(0.5),
+    p95Ms: percentile(0.95),
+  },
+  failures: rows.filter((row) => !row.top1Pass || !row.recallAt20),
+  rows,
+};
+mkdirSync(dirname(reportPath), { recursive: true });
+writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+
+console.log(
+  JSON.stringify(
+    {
+      reportPath,
+      eligibleSurfaceCount: allCases.length,
+      evaluatedSurfaceCount: rows.length,
+      metrics: report.metrics,
+      failureCount: report.failures.length,
+    },
+    null,
+    2,
+  ),
+);
+
+const failures: string[] = [];
+if (top1Rate < minimumTop1) {
+  failures.push(`exact lookup Top-1 ${top1Rate.toFixed(4)} < ${minimumTop1.toFixed(4)}`);
+}
+if (recallAt20 < minimumRecallAt20) {
+  failures.push(`exact lookup recall@20 ${recallAt20.toFixed(4)} < ${minimumRecallAt20.toFixed(4)}`);
+}
+if (failures.length > 0) {
+  console.error(`Corpus lookup quality failed:\n- ${failures.join('\n- ')}`);
+  process.exitCode = 1;
+}
