@@ -249,10 +249,12 @@ exact-surface Recall@20 diagnostics. This avoids turning the benchmark into a ne
 identity assumptions while directly measuring the reported UX failure where a named document is
 buried by a body-text match.
 
-The first strict gate deliberately excludes `short_title`. Unlike `title`, it is not currently a
-uniform FTS/search surface in every adapter. Adding it to a failing ranking gate would conflate an
-indexing/content-contract gap with ranking quality; it should become a separate gate after the runtime
-contract is made uniform.
+The strict identity gate now also includes `shortTitle`. This no longer depends on whether every
+storage adapter indexes short titles in FTS: the core builds an immutable document-identity index and
+injects missing exact title / short-title / editorial navigation-alias documents before final grouping.
+Exact full titles retain the highest precedence; short titles and navigation aliases share the
+secondary editorial-identity tier. Normalized collisions are accepted as a set rather than inventing
+one arbitrary gold document.
 
 Default command:
 
@@ -321,6 +323,23 @@ a `Ясперс` title-versus-alias collision.
 
 This does not make semantic ranking unnecessary. It keeps a problem with a deterministic answer out
 of the model's responsibility.
+
+### Frozen-candidate reranking integrity
+
+The reranker ablation freezes the same retrieval candidate pool before comparing ranking systems.
+Training rows come from the older source-grounded pilot and test rows come from the 33-case graded
+challenge.
+
+Two leakage controls are explicit:
+
+- target-answer markers are **removed** from legacy training queries instead of being replaced by an
+  intent-bearing placeholder such as `[диагноз]`;
+- challenge-set `leakageTerms` are not read or reused while preparing training queries. The test
+  annotations therefore do not influence training preprocessing.
+
+The exported candidate contract also carries previous-treatment context and candidate-specific match
+dominance, so a medicine mentioned as already given can be learned as context rather than blindly
+rewarded as the search target.
 
 ### Natural-distribution queries
 
@@ -396,6 +415,13 @@ There was one failure in the sample:
 
 This is important: the exact-title hard ordering fix cannot repair a document that disappears before
 group ranking. Exact identity must therefore also be retained/injected in candidate generation.
+
+
+That retention path is now implemented: after lexical candidate fusion, strict identity documents
+missing from the candidate set are loaded directly through the store document/section/chunk contract,
+filtered by the original request filters, merged before grouping, and protected through the remaining
+deterministic filters. Runtime regressions force storage search to drop the exact document and verify
+that title, navigation-alias and short-title identities still survive.
 
 #### Diagnosis-free clinical retrieval
 
