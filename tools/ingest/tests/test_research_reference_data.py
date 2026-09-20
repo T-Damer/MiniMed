@@ -725,3 +725,42 @@ def test_nsofa_research_definition_has_no_invented_risk_cutoffs() -> None:
     hematologic_rules = cast(list[dict[str, object]], hematologic["rules"])
     assert [_int(rule["score"]) for rule in hematologic_rules] == [3, 2, 1, 0]
     assert hematologic["selectionPolicy"] == "choose_highest_score_whose_condition_is_met"
+
+
+def test_neomod_variants_remain_separate_and_modified_is_non_executable() -> None:
+    data = _load("neomod-assessment-variants-kr912_1-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["semanticClass"] == "assessment_definitions"
+
+    variants = cast(list[dict[str, object]], data["variants"])
+    assert [variant["id"] for variant in variants] == ["neomod-original", "neomod-modified"]
+
+    original = variants[0]
+    assert original["executableStatus"] == "reviewable-semantic-definition"
+    original_score = cast(dict[str, object], original["scoreRange"])
+    assert (_int(original_score["min"]), _int(original_score["max"])) == (0, 14)
+    original_systems = cast(list[dict[str, object]], original["systems"])
+    assert len(original_systems) == 7
+
+    modified = variants[1]
+    assert modified["executableStatus"] == "blocked-combination-logic-review-required"
+    modified_score = cast(dict[str, object], modified["scoreRange"])
+    assert (_int(modified_score["min"]), _int(modified_score["max"])) == (0, 16)
+    modified_systems = cast(list[dict[str, object]], modified["systems"])
+    assert len(modified_systems) == 8
+
+    for system in modified_systems:
+        cells = cast(list[dict[str, object]], system["cells"])
+        assert [_int(cell["score"]) for cell in cells] == [2, 1, 0]
+        assert all(cell["combinationLogic"] == "requires_pdf_visual_review" for cell in cells)
+
+    microcirculation = next(
+        system for system in modified_systems if system["id"] == "microcirculation"
+    )
+    assert microcirculation["sourceGap"] == (
+        "flattened_source_leaves_albumin_30_to_39_without_an_explicit_cell"
+    )
+
+    assert original["categoricalCutoffs"] is None
+    assert modified["categoricalCutoffs"] is None
