@@ -8,7 +8,7 @@ const LEGACY_ANSWER_MARKERS_BY_DOCUMENT: Readonly<Record<string, readonly string
   'kr.rf.281_3.uti': ['пиелонефрит', 'цистит', 'имп', 'имвп'],
   'kr.rf.381_3.bronchitis': ['бронхит'],
   'kr.rf.360_3.bronchiolitis': ['бронхиолит'],
-  'kr.rf.563_2.measles': ['корь'],
+  'kr.rf.563_2.measles': ['корь', 'кори', 'корью'],
   'kr.rf.755_1.rotavirus': ['ротавирус', 'ротавирусный'],
   'kr.rf.58_2.meningococcal': [
     'менингококк',
@@ -17,6 +17,12 @@ const LEGACY_ANSWER_MARKERS_BY_DOCUMENT: Readonly<Record<string, readonly string
     'менингококцемия',
   ],
   'kr.rf.714_2.pneumonia': ['пневмония'],
+};
+
+const LEGACY_ANSWER_PHRASES_BY_DOCUMENT: Readonly<Record<string, readonly RegExp[]>> = {
+  'kr.rf.281_3.uti': [
+    /\bинфекц[\p{L}-]*\s+мочев[\p{L}-]*\s+пут[\p{L}-]*\b/giu,
+  ],
 };
 
 function escapeRegExp(value: string): string {
@@ -46,9 +52,16 @@ function maskPhraseLeakage(query: string, terms: readonly string[]): string {
 }
 
 function maskTargetMarkers(query: string, documentIds: readonly string[]): string {
+  let masked = query;
+  for (const pattern of documentIds.flatMap(
+    (documentId) => LEGACY_ANSWER_PHRASES_BY_DOCUMENT[documentId] ?? [],
+  )) {
+    masked = masked.replace(pattern, '[диагноз]');
+  }
+
   const stems = markerStems(documentIds);
-  if (stems.size === 0) return query;
-  return query.replace(/[\p{L}\p{N}-]+/gu, (token) =>
+  if (stems.size === 0) return masked;
+  return masked.replace(/[\p{L}\p{N}-]+/gu, (token) =>
     stems.has(lightStemRussian(normalizeSurfaceText(token))) ? '[диагноз]' : token,
   );
 }
