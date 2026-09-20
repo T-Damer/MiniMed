@@ -92,6 +92,12 @@ export const LINEAR_RERANKER_FEATURES = [
   'sectionTreatment',
   'sectionRouting',
   'terminologyExact',
+  'candidateQueryTokenCoverage',
+  'candidatePositiveFindingCoverage',
+  'candidateCurrentMedicineCoverage',
+  'clinicalNarrativeMedicationSource',
+  'treatmentIntentClinicalRecommendation',
+  'diagnosisIntentClinicalRecommendation',
 ] as const;
 
 export type LinearRerankerFeature = (typeof LINEAR_RERANKER_FEATURES)[number];
@@ -105,6 +111,9 @@ export interface LinearRerankerModel {
   readonly featureNames: readonly LinearRerankerFeature[];
   readonly weights: readonly number[];
   readonly trainingPairs: number;
+  readonly hardTrainingPairs: number;
+  readonly easyTrainingPairs: number;
+  readonly weightedTrainingPairs: number;
   readonly epochs: number;
   readonly learningRate: number;
   readonly l2: number;
@@ -376,6 +385,46 @@ function matchedFactCoverage(
   return covered / factStems.size;
 }
 
+function candidateText(row: FrozenCandidateRow): string {
+  return [
+    row.candidate.canonicalName,
+    row.candidate.shortTitle ?? '',
+    ...row.candidate.navigationAliases,
+    ...row.candidate.declaredAliases,
+    row.candidate.evidence,
+  ].join(' ');
+}
+
+function factCoverageInCandidate(facts: readonly string[], row: FrozenCandidateRow): number {
+  return matchedFactCoverage(facts, tokenize(candidateText(row)));
+}
+
+function queryCoverageInCandidate(row: FrozenCandidateRow): number {
+  const queryTerms = tokenize(row.query)
+    .filter((term) => term.length >= 3)
+    .map(lightStemRussian);
+  if (queryTerms.length === 0) return 0;
+  const candidateStems = stemSet([candidateText(row)]);
+  const uniqueQueryStems = [...new Set(queryTerms)];
+  const covered = uniqueQueryStems.filter((stem) => candidateStems.has(stem)).length;
+  return covered / uniqueQueryStems.length;
+}
+
+function isMedicationSource(sourceType: string | null): boolean {
+  return (
+    sourceType === 'official_drug_instruction' ||
+    sourceType === 'official_registry_summary' ||
+    sourceType === 'allmed_reference'
+  );
+}
+
+function isClinicalRecommendationSource(sourceType: string | null): boolean {
+  return (
+    sourceType === 'clinical_recommendation' ||
+    sourceType === 'clinical_recommendation_summary'
+  );
+}
+
 function hasMatchedFactConflict(
   facts: readonly string[],
   matchedTerms: readonly string[],
@@ -469,15 +518,21 @@ export function linearCandidatesForFixture(
   return rows.map((row) => {
     const section = row.retrieval.topSectionType;
     const intent = sectionMatchesIntent(row.analysis.primaryIntent, section);
+    // Retrieval already produced this frozen candidate set. Keep it as a weak prior rather than
+    // letting the baseline simply relearn BM25/original rank and call that "reranking".
+    const retrievalPriorScale = 0.25;
+    const clinicalNarrative =
+      row.analysis.primaryIntent !== 'medication' && row.analysis.positiveFindingCount > 0;
+    const clinicalRecommendation = isClinicalRecommendationSource(row.candidate.sourceType);
     const features = [
-      1 / row.retrieval.originalRank,
-      normalized(row.retrieval.groupBestScore, groupScoreMax),
-      normalized(row.retrieval.maximumLexicalScore, lexicalMax),
-      normalized(row.retrieval.maximumSemanticScore ?? 0, semanticMax),
-      normalized(row.retrieval.maximumFinalScore, finalMax),
-      normalized(row.retrieval.matchedTermCount, matchedTermsMax),
-      normalized(row.retrieval.matchedBranchCount, matchedBranchesMax),
-      normalized(row.retrieval.resultCount, resultCountMax),
+      retrievalPriorScale / row.retrieval.originalRank,
+      retrievalPriorScale * normalized(row.retrieval.groupBestScore, groupScoreMax),
+      retrievalPriorScale * normalized(row.retrieval.maximumLexicalScore, lexicalMax),
+      retrievalPriorScale * normalized(row.retrieval.maximumSemanticScore ?? 0, semanticMax),
+      retrievalPriorScale * normalized(row.retrieval.maximumFinalScore, finalMax),
+      retrievalPriorScale * normalized(row.retrieval.matchedTermCount, matchedTermsMax),
+      retrievalPriorScale * normalized(row.retrieval.matchedBranchCount, matchedBranchesMax),
+      retrievalPriorScale * normalized(row.retrieval.resultCount, resultCountMax),
       Number(row.retrieval.exactTitle),
       Number(row.retrieval.exactShortTitle),
       Number(row.retrieval.exactNavigationAlias),
@@ -500,6 +555,20 @@ export function linearCandidatesForFixture(
       Number(section === 'treatment'),
       Number(section === 'routing'),
       Number(row.retrieval.terminologyMatch === 'term'),
+      queryCoverageInCandidate(row),
+      factCoverageInCandidate(row.analysis.positiveFindings, row),
+      factCoverageInCandidate(row.analysis.currentMedicines, row),
+      Number(clinicalNarrative && isMedicationSource(row.candidate.sourceType)),
+      Number(
+        clinicalRecommendation &&
+          (row.analysis.primaryIntent === 'treatment' ||
+            row.analysis.primaryIntent === 'care-guidance'),
+      ),
+      Number(
+        clinicalRecommendation &&
+          (row.analysis.primaryIntent === 'diagnosis' ||
+            row.analysis.primaryIntent === 'disease-reference'),
+      ),
     ] satisfies number[];
 
     if (features.length !== LINEAR_RERANKER_FEATURES.length) {
@@ -522,6 +591,8 @@ export function scoreLinearCandidate(
 
 interface TrainingPair {
   readonly difference: readonly number[];
+  readonly weight: number;
+  readonly hard: boolean;
 }
 
 function trainingPairs(
@@ -533,10 +604,19 @@ function trainingPairs(
     for (const preferred of candidates) {
       for (const other of candidates) {
         if (preferred.row.label.relevanceGrade <= other.row.label.relevanceGrade) continue;
+        const relevanceGap = preferred.row.label.relevanceGrade - other.row.label.relevanceGrade;
+        const hard =
+          preferred.row.retrieval.originalRank > other.row.retrieval.originalRank;
+        // Easy pairs mostly teach the model to imitate the existing search order. Hard pairs are the
+        // actual reranking problem, so give them much more influence while retaining a small anchor
+        // from correctly ordered pairs.
+        const weight = relevanceGap * (hard ? 4 : 0.25);
         pairs.push({
           difference: preferred.features.map(
             (value, index) => value - (other.features[index] ?? 0),
           ),
+          weight,
+          hard,
         });
       }
     }
@@ -562,16 +642,24 @@ export function trainPairwiseLinearReranker(
   }
 
   const weights = Array<number>(LINEAR_RERANKER_FEATURES.length).fill(0);
+  const totalPairWeight = pairs.reduce((sum, pair) => sum + pair.weight, 0);
   for (let epoch = 0; epoch < epochs; epoch += 1) {
     const rate = learningRate / Math.sqrt(1 + epoch * 0.05);
+    const gradient = Array<number>(weights.length).fill(0);
     for (const pair of pairs) {
       const margin = Math.max(-30, Math.min(30, dot(weights, pair.difference)));
       const error = 1 / (1 + Math.exp(margin));
       for (let index = 0; index < weights.length; index += 1) {
-        const weight = weights[index] ?? 0;
-        const gradient = error * (pair.difference[index] ?? 0) - l2 * weight;
-        weights[index] = weight + rate * gradient;
+        gradient[index] =
+          (gradient[index] ?? 0) +
+          pair.weight * error * (pair.difference[index] ?? 0);
       }
+    }
+    for (let index = 0; index < weights.length; index += 1) {
+      const weight = weights[index] ?? 0;
+      const dataGradient =
+        totalPairWeight > 0 ? (gradient[index] ?? 0) / totalPairWeight : 0;
+      weights[index] = weight + rate * (dataGradient - l2 * weight);
     }
   }
 
@@ -579,6 +667,9 @@ export function trainPairwiseLinearReranker(
     featureNames: LINEAR_RERANKER_FEATURES,
     weights,
     trainingPairs: pairs.length,
+    hardTrainingPairs: pairs.filter((pair) => pair.hard).length,
+    easyTrainingPairs: pairs.filter((pair) => !pair.hard).length,
+    weightedTrainingPairs: totalPairWeight,
     epochs,
     learningRate,
     l2,
