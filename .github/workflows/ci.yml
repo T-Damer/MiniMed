@@ -89,6 +89,7 @@ jobs:
           packages/core/src/query-document-index.test.ts
           packages/core/tests/core.test.ts
           tools/benchmarks/src/legacy-training-mask.test.ts
+          tools/benchmarks/src/frozen-embedding-baseline.test.ts
           tools/benchmarks/src/linear-reranker-baseline.test.ts
           tools/benchmarks/src/lookup-quality-cases.test.ts
           tools/benchmarks/src/search-quality-dataset.test.ts
@@ -98,11 +99,12 @@ jobs:
           --max=500
           --core=apps/app/public/content/core.db
           --report=data/build/search-quality-v2-lookup.json
-      - name: Freeze candidates and run linear reranker ablation
+      - name: Freeze candidates and run reranker ablations
         run: |
           bun run benchmark:freeze-training --             --core=data/build/rf-public-pilot.db             --mode=hybrid             --limit=40
           bun run benchmark:freeze-candidates --             --core=data/build/rf-public-pilot.db             --mode=hybrid             --limit=40
           bun run benchmark:linear-reranker
+          bun run benchmark:embedding-baseline
       - name: Print storage-free search summary
         if: always()
         shell: bash
@@ -114,6 +116,7 @@ jobs:
           build = Path("data/build")
           lookup_path = build / "search-quality-v2-lookup.json"
           linear_path = build / "search-quality-linear-reranker-report.json"
+          embedding_path = build / "search-quality-frozen-embedding-report.json"
 
           print("=== LOOKUP ===")
           if lookup_path.exists():
@@ -139,6 +142,18 @@ jobs:
               }, ensure_ascii=False, indent=2))
           else:
               print("linear report missing")
+
+          print("=== PORTABLE EMBEDDING ===")
+          if embedding_path.exists():
+              embedding = json.loads(embedding_path.read_text())
+              print(json.dumps({
+                  "test": embedding.get("test"),
+                  "profile": embedding.get("embeddingProfile"),
+                  "runtime": embedding.get("runtime"),
+                  "abstention": embedding.get("abstention"),
+              }, ensure_ascii=False, indent=2))
+          else:
+              print("embedding report missing")
           PY
           {
             echo "### Search-quality v2"
