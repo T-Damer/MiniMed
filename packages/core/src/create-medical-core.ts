@@ -541,6 +541,86 @@ function filterSupersededSummaryResults(
   );
 }
 
+function exactIdentityDocumentMatchesFilters(
+  document: LexicalHit['document'],
+  filters: SearchFilters,
+): boolean {
+  if (filters.documentIds?.length && !filters.documentIds.includes(document.id)) return false;
+  if (
+    filters.specialties?.length &&
+    !filters.specialties.some((specialty) => document.specialties.includes(specialty))
+  ) {
+    return false;
+  }
+  if (filters.ageGroups?.length) {
+    const ageGroups = metadataStrings(document.metadata, 'ageGroups');
+    if (!filters.ageGroups.some((ageGroup) => ageGroups.includes(ageGroup))) return false;
+  }
+  return true;
+}
+
+async function buildExactIdentityResults(
+  store: MedicalStore,
+  documentIds: ReadonlySet<string>,
+  filters: SearchFilters,
+  terms: readonly string[],
+): Promise<readonly SearchResult[]> {
+  if (documentIds.size === 0) return [];
+  const results = await Promise.all(
+    [...documentIds].map(async (documentId): Promise<SearchResult | null> => {
+      const [document, sections, chunks] = await Promise.all([
+        store.getDocument(documentId),
+        store.getSectionsByDocument(documentId),
+        store.getChunksByDocument(documentId),
+      ]);
+      if (!document || !exactIdentityDocumentMatchesFilters(document, filters)) return null;
+
+      const sectionsById = new Map(sections.map((section) => [section.id, section]));
+      const chunk = chunks.find((candidate) => {
+        const section = sectionsById.get(candidate.sectionId);
+        if (!section) return false;
+        return (
+          !filters.sectionTypes?.length ||
+          (section.sectionType !== null && filters.sectionTypes.includes(section.sectionType))
+        );
+      });
+      if (!chunk) return null;
+      const section = sectionsById.get(chunk.sectionId);
+      if (!section) return null;
+
+      const hit: LexicalHit = {
+        chunk,
+        section,
+        document,
+        rank: 1,
+      };
+      return toSearchResult({
+        hit,
+        branchIds: new Set(['exact-identity']),
+        branchLabels: new Set(['Точное название']),
+        terms: new Set(terms),
+        branchScores: [1],
+        sectionBoost: 0,
+        score: 1,
+        bestLexicalScore: 1,
+      });
+    }),
+  );
+  return results.filter((result): result is SearchResult => result !== null);
+}
+
+function mergeExactIdentityResults(
+  rankedResults: readonly SearchResult[],
+  exactResults: readonly SearchResult[],
+): readonly SearchResult[] {
+  if (exactResults.length === 0) return rankedResults;
+  const byChunk = new Map(rankedResults.map((result) => [result.chunkId, result]));
+  for (const result of exactResults) {
+    if (!byChunk.has(result.chunkId)) byChunk.set(result.chunkId, result);
+  }
+  return [...byChunk.values()];
+}
+
 function requestId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `search-${Date.now()}-${Math.random()}`;
 }
