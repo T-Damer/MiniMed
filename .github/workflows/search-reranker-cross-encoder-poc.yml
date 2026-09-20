@@ -1,0 +1,105 @@
+name: Search reranker cross-encoder PoC
+
+on:
+  pull_request:
+    branches:
+      - agent/concept-first-knowledge-search
+    paths:
+      - .github/workflows/search-reranker-cross-encoder-poc.yml
+      - tools/benchmarks/cross_encoder_frozen_poc.py
+
+permissions:
+  contents: read
+
+concurrency:
+  group: search-reranker-cross-encoder-poc
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.0"
+          enable-cache: false
+
+      - name: Install locked MiniMed dependencies
+        run: |
+          bun install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+
+      - name: Build public clinical pilot and freeze Top-40
+        run: |
+          bun run content:lint:pilot
+          bun run content:build:pilot
+          bun run benchmark:freeze-candidates -- \
+            --core=data/build/rf-public-pilot.db \
+            --mode=hybrid \
+            --limit=40
+
+      - name: Self-test cross-encoder benchmark harness
+        run: python3 tools/benchmarks/cross_encoder_frozen_poc.py --self-test
+
+      - name: Install CPU-only cross-encoder environment
+        run: |
+          uv venv .venv-cross --python 3.12
+          uv pip install \
+            --python .venv-cross/bin/python \
+            --index-url https://download.pytorch.org/whl/cpu \
+            torch==2.8.0
+          uv pip install \
+            --python .venv-cross/bin/python \
+            sentence-transformers==5.6.0 \
+            transformers==5.12.1
+
+      - name: Run zero-shot Russian cross-encoder reranker
+        env:
+          HF_HOME: ${{ runner.temp }}/hf-cross-encoder
+          HF_HUB_DISABLE_XET: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: |
+          .venv-cross/bin/python tools/benchmarks/cross_encoder_frozen_poc.py \
+            --input=data/build/search-quality-v2-frozen-candidates.jsonl \
+            --report=data/build/search-quality-cross-encoder-report.json \
+            --model=ARGA100/ru-reranker-modernbert-small \
+            --revision=8d4ea05d7c793bc812879ca18e7e310ac4cb228f \
+            --batch-size=32 \
+            --max-length=512
+
+      - name: Print compact cross-encoder report
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("data/build/search-quality-cross-encoder-report.json")
+          print("\n=== ZERO-SHOT CROSS-ENCODER ===")
+          if not path.exists():
+              print("report missing")
+              raise SystemExit(0)
+          data = json.loads(path.read_text())
+          print("frozen:", json.dumps(data.get("frozenCandidates", {}), ensure_ascii=False, indent=2))
+          print("model:", json.dumps(data.get("model", {}), ensure_ascii=False, indent=2))
+          print("original:", json.dumps(data.get("original", {}), ensure_ascii=False, indent=2))
+          print("crossEncoder:", json.dumps(data.get("crossEncoder", {}), ensure_ascii=False, indent=2))
+          print("deltas:", json.dumps(data.get("deltas", {}), ensure_ascii=False, indent=2))
+          print("top1Changes:", json.dumps(data.get("top1Changes", {}), ensure_ascii=False, indent=2))
+          PY
+
+      - name: Record storage-free summary
+        if: always()
+        run: |
+          {
+            echo "### Zero-shot Russian cross-encoder reranker"
+            echo
+            echo "No Actions artifacts are uploaded. Metrics and changed Top-1 cases are printed in the job log."
+          } >> "$GITHUB_STEP_SUMMARY"
