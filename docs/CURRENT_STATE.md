@@ -61,6 +61,10 @@
 - The existing Real-POCQi importer remains useful for natural clinician-query distribution, but its
   English/US questions are not treated as Russian MiniMed relevance labels. A production reranker
   decision still requires a private 200–300-query Russian clinician set outside the tuning context.
+- A separate observed-coverage diagnostic records real/coverage-audit terms that corpus-derived
+  tests cannot generate when the content is absent. It starts with the user-reported `Ясперс` miss
+  plus PANSS/MMSE coverage probes and reports first-visible rank and propagated `conceptId` without
+  conflating a missing concept with a reranking error.
 - No Laya/Jev-like model is added by this PR. GitHub Actions remain intentionally undispatched while
   repository artifact/storage quota is exhausted; the new runners and regression tests still require
   execution in a normal checkout before the draft can be considered validated.
