@@ -588,3 +588,86 @@ def test_neonatal_fluid_parenteral_nutrition_kr905_preserves_source_structure() 
     assert calcium["pretermColumnsMerged"] is True
     magnesium = cast(dict[str, object], electrolytes["magnesium"])
     assert magnesium["pretermColumnsMerged"] is True
+
+
+def test_neonatal_lab_decision_thresholds_are_not_reference_intervals() -> None:
+    data = _load("neonatal-lab-decision-thresholds-krs-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["semanticClass"] == "clinical_decision_thresholds_not_reference_intervals"
+
+    sepsis = cast(dict[str, object], data["sepsis"])
+    support = cast(list[dict[str, object]], sepsis["diagnosticSupport"])
+    assert len(support) == 15
+
+    by_analyte: dict[str, list[dict[str, object]]] = {}
+    for threshold in support:
+        by_analyte.setdefault(str(threshold["analyte"]), []).append(threshold)
+
+    platelets = by_analyte["platelets"]
+    assert platelets == [
+        {
+            "analyte": "platelets",
+            "operator": "<",
+            "value": 123,
+            "unit": "10^9/L",
+            "context": "thrombocytopenia",
+            "gestationalAgeWeeks": ">=33",
+            "postnatalAge": "first_72_hours",
+        },
+        {
+            "analyte": "platelets",
+            "operator": "<",
+            "value": 104,
+            "unit": "10^9/L",
+            "context": "thrombocytopenia",
+            "gestationalAgeWeeks": "<=32",
+            "postnatalAge": "first_72_hours",
+        },
+        {
+            "analyte": "platelets",
+            "operator": "<",
+            "value": 150,
+            "unit": "10^9/L",
+            "context": "thrombocytopenia",
+            "gestationalAgeWeeks": "any",
+            "postnatalAge": ">72_hours",
+        },
+    ]
+
+    neutropenia_groups = cast(list[dict[str, object]], sepsis["neutropeniaByBirthWeight"])
+    assert [group["birthWeight"] for group in neutropenia_groups] == ["<=1500_g", ">1500_g"]
+
+    low_weight = cast(list[dict[str, object]], neutropenia_groups[0]["thresholds"])
+    assert low_weight[-1] == {
+        "postnatalAgeHours": ">48",
+        "ancLessThanCellsPerMicroliter": 1100,
+    }
+
+    high_weight = cast(list[dict[str, object]], neutropenia_groups[1]["thresholds"])
+    assert high_weight[-1] == {
+        "postnatalAgeHours": ">72",
+        "ancLessThanCellsPerMicroliter": 1500,
+    }
+
+    pct = by_analyte["procalcitonin"]
+    assert [(_float(row["value"]), row["sourceAppendixAgeHours"]) for row in pct] == [
+        (2.5, "0-72"),
+        (2.0, ">72"),
+    ]
+
+    polycythemia = cast(dict[str, object], data["polycythemia"])
+    definition = cast(dict[str, object], polycythemia["definitionThreshold"])
+    assert definition == {
+        "analyte": "venous_hematocrit",
+        "operator": ">=",
+        "value": 65,
+        "unit": "percent",
+        "context": "polycythemia_definition",
+    }
+
+    sampling = cast(dict[str, object], polycythemia["samplingBoundary"])
+    trigger = cast(dict[str, object], sampling["peripheralHematocritTriggerForVenousConfirmation"])
+    assert trigger["operator"] == ">"
+    assert _int(trigger["value"]) == 65
+    assert sampling["numericDifferenceInterpretation"] == "source-relative-wording-only"
