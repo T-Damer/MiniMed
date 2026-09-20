@@ -1152,14 +1152,10 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           ...(terminologyMatch?.documents.map((entry) => entry.documentId) ?? []),
           ...(terminologyMatch?.related.map((entry) => entry.documentId) ?? []),
         ]);
-        const exactTitleDocumentIds =
-          parsed.data.analysisMode === 'lookup'
-            ? documentIndex.exactTitleIds(parsed.data.query)
-            : new Set<string>();
-        const exactNavigationAliasDocumentIds =
-          parsed.data.analysisMode === 'lookup'
-            ? documentIndex.exactNavigationAliasIds(parsed.data.query)
-            : new Set<string>();
+        const exactTitleDocumentIds = documentIndex.exactTitleIds(parsed.data.query);
+        const exactNavigationAliasDocumentIds = documentIndex.exactNavigationAliasIds(
+          parsed.data.query,
+        );
         const exactIdentityDocumentIds = new Set([
           ...exactTitleDocumentIds,
           ...exactNavigationAliasDocumentIds,
