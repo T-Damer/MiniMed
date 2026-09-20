@@ -112,9 +112,14 @@ const core = createMedicalCore({
 const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);
 
-const listed = await core.listDocuments();
-if (!listed.ok) throw new Error(listed.error.message);
-const availableDocumentIds = new Set(listed.value.map((document) => document.id));
+const targetDocumentIds = [
+  ...new Set(fixtures.flatMap((fixture) => fixture.relevance.map((target) => target.documentId))),
+];
+const availableDocumentIds = new Set<string>();
+for (const documentId of targetDocumentIds) {
+  if (await store.getDocument(documentId)) availableDocumentIds.add(documentId);
+}
+const health = await store.getHealth();
 
 const coverageRows = fixtures.map((fixture) => {
   const covered = fixtureWithAvailableTargets(fixture, availableDocumentIds);
@@ -202,7 +207,7 @@ const report = {
   corpus: {
     contentPackIds: initialized.value.contentPackIds,
     paths: [corePath, ...packs].map((path) => ({ path, sha256: sha256(path) })),
-    documentCount: listed.value.length,
+    documentCount: health.documentCount,
   },
   coverage: {
     fullyCovered: coverageRows.filter((row) => row.missingRelevantDocumentIds.length === 0).length,
