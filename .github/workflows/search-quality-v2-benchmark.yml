@@ -13,10 +13,15 @@ on:
       - tools/benchmarks/src/run-search-coverage-observations.ts
       - tools/benchmarks/package.json
       - tools/benchmarks/src/search-quality-dataset.ts
+      - tools/benchmarks/src/search-quality-dataset.test.ts
       - tools/benchmarks/src/lookup-quality-cases.ts
+      - tools/benchmarks/src/lookup-quality-cases.test.ts
       - packages/core/src/query-group-ranking.ts
+      - packages/core/src/query-group-ranking.test.ts
       - packages/core/src/query-document-index.ts
+      - packages/core/src/query-document-index.test.ts
       - packages/core/src/create-medical-core.ts
+      - packages/core/tests/core.test.ts
       - packages/contracts/src/documents.ts
       - packages/storage/src/ports.ts
       - packages/storage-sqlite/src/sqlite-medical-store.ts
