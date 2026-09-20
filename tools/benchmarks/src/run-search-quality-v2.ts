@@ -31,14 +31,8 @@ const corePath = projectPath(option('core'), 'data/build/rf-public-pilot.db');
 const packs = args
   .filter((arg) => arg.startsWith('--pack='))
   .map((arg) => projectPath(arg.slice(7), ''));
-const fixturePath = projectPath(
-  option('fixtures'),
-  'tools/benchmarks/search-quality-v2.json',
-);
-const reportPath = projectPath(
-  option('report'),
-  'data/build/search-quality-v2-report.json',
-);
+const fixturePath = projectPath(option('fixtures'), 'tools/benchmarks/search-quality-v2.json');
+const reportPath = projectPath(option('report'), 'data/build/search-quality-v2-report.json');
 const profileNames = (option('profiles') ?? 'lexical,hybrid')
   .split(',')
   .map((value) => value.trim())
@@ -110,10 +104,7 @@ const stores = await Promise.all(
     searchWeight: index === 0 ? 1.1 : 1,
   })),
 );
-const store =
-  stores.length === 1 && stores[0]
-    ? stores[0].store
-    : new MultiMedicalStore(stores);
+const store = stores.length === 1 && stores[0] ? stores[0].store : new MultiMedicalStore(stores);
 const core = createMedicalCore({
   store,
   platform: 'test',
@@ -226,8 +217,7 @@ const report = {
   coverage: {
     fullyCovered: coverageRows.filter((row) => row.missingRelevantDocumentIds.length === 0).length,
     partiallyCovered: coverageRows.filter(
-      (row) =>
-        row.availableRelevantDocuments > 0 && row.missingRelevantDocumentIds.length > 0,
+      (row) => row.availableRelevantDocuments > 0 && row.missingRelevantDocumentIds.length > 0,
     ).length,
     uncovered: excluded.length,
     rows: coverageRows,

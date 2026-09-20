@@ -383,9 +383,7 @@ function groupRankingText(group: SearchResultGroup): string {
   ].join(' ');
 }
 
-function isClinicalRecommendationDocument(
-  document: SearchDocumentDescriptor | undefined,
-): boolean {
+function isClinicalRecommendationDocument(document: SearchDocumentDescriptor | undefined): boolean {
   return (
     document?.sourceType === 'clinical_recommendation' ||
     document?.sourceType === 'clinical_recommendation_summary'
@@ -524,8 +522,8 @@ export function rankSearchGroupsByQuery(
             ...group.results.map((result) => {
               const words = tokenize(result.snippet);
               return (
-                evidenceTerms.filter((term) => words.some((word) => tokensMatch(term, word))).length /
-                evidenceTerms.length
+                evidenceTerms.filter((term) => words.some((word) => tokensMatch(term, word)))
+                  .length / evidenceTerms.length
               );
             }),
           ),

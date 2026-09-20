@@ -8,13 +8,13 @@ import {
   calibrateLinearAbstentionGate,
   evaluateFrozenRanking,
   evaluationSlices,
+  type FrozenCandidateRow,
   groupFrozenCandidates,
   LINEAR_RERANKER_FEATURES,
   parseFrozenCandidate,
   rerankLinearCandidates,
   rerankLinearCandidatesGated,
   trainPairwiseLinearReranker,
-  type FrozenCandidateRow,
 } from './linear-reranker-baseline';
 
 const root = resolve(import.meta.dirname, '../../..');

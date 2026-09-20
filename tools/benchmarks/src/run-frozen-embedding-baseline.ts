@@ -8,9 +8,9 @@ import { rerankPortableEmbeddingCandidates } from './frozen-embedding-baseline';
 import {
   evaluateFrozenRanking,
   evaluationSlices,
+  type FrozenCandidateRow,
   groupFrozenCandidates,
   parseFrozenCandidate,
-  type FrozenCandidateRow,
 } from './linear-reranker-baseline';
 
 const root = resolve(import.meta.dirname, '../../..');
@@ -62,8 +62,7 @@ if (testRows.some((row) => row.origin === 'legacy-pilot-training')) {
   throw new Error('Frozen embedding qualification rows must not use legacy-pilot-training origin.');
 }
 const testGroups = groupFrozenCandidates(testRows);
-const rerank = (rows: readonly FrozenCandidateRow[]) =>
-  rerankPortableEmbeddingCandidates(rows);
+const rerank = (rows: readonly FrozenCandidateRow[]) => rerankPortableEmbeddingCandidates(rows);
 
 const original = evaluateFrozenRanking(testGroups);
 const embedding = evaluateFrozenRanking(testGroups, rerank);
@@ -88,8 +87,7 @@ for (let repeat = 0; repeat < repeats; repeat += 1) {
   }
 }
 const elapsedMs = performance.now() - scoringStartedAt;
-const microsecondsPerCandidate =
-  scoredCandidates === 0 ? 0 : (elapsedMs * 1000) / scoredCandidates;
+const microsecondsPerCandidate = scoredCandidates === 0 ? 0 : (elapsedMs * 1000) / scoredCandidates;
 
 const rows = [...testGroups.entries()].map(([fixtureId, candidates]) => {
   const embedded = rerank(candidates);
@@ -102,8 +100,7 @@ const rows = [...testGroups.entries()].map(([fixtureId, candidates]) => {
     embeddingTop1DocumentId: embedded[0]?.candidate.documentId ?? null,
     embeddingTop1Grade: embedded[0]?.label.relevanceGrade ?? 0,
     maximumAvailableGrade: Math.max(0, ...candidates.map((row) => row.label.relevanceGrade)),
-    changedTop1:
-      candidates[0]?.candidate.documentId !== embedded[0]?.candidate.documentId,
+    changedTop1: candidates[0]?.candidate.documentId !== embedded[0]?.candidate.documentId,
   };
 });
 

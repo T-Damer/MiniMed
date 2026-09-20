@@ -102,10 +102,7 @@ function comparisonRows(
         row.originalTop1Grade,
         `${model}.rows[${index}].originalTop1Grade`,
       ),
-      modelTop1Grade: numberValue(
-        row[modelGradeKey],
-        `${model}.rows[${index}].${modelGradeKey}`,
-      ),
+      modelTop1Grade: numberValue(row[modelGradeKey], `${model}.rows[${index}].${modelGradeKey}`),
       maximumAvailableGrade: numberValue(
         row.maximumAvailableGrade,
         `${model}.rows[${index}].maximumAvailableGrade`,
@@ -160,9 +157,7 @@ const embedding = readJson(embeddingPath);
 const linearSha = testSha(linear, 'linear');
 const embeddingSha = testSha(embedding, 'embedding');
 if (linearSha !== embeddingSha) {
-  throw new Error(
-    `Frozen candidate pool mismatch: linear=${linearSha}, embedding=${embeddingSha}`,
-  );
+  throw new Error(`Frozen candidate pool mismatch: linear=${linearSha}, embedding=${embeddingSha}`);
 }
 
 const linearRows = comparisonRows(linear, 'linear');

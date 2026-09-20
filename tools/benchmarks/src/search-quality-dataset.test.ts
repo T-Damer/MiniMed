@@ -37,7 +37,6 @@ const group = (documentId: string, sectionType = 'clinical-picture') => ({
 });
 
 describe('search quality v2 dataset', () => {
-
   it('validates the checked-in diagnosis-free challenge set in ordinary unit tests', () => {
     const fixtures = loadSearchQualityFixtures(
       resolve(import.meta.dirname, '../search-quality-v2.json'),
@@ -58,9 +57,7 @@ describe('search quality v2 dataset', () => {
           family: 'respiratory',
           goal: 'diagnosis-navigation',
           answerability: 'focused',
-          relevance: [
-            { documentId: 'pneumonia', grade: 3, sectionTypes: ['clinical-picture'] },
-          ],
+          relevance: [{ documentId: 'pneumonia', grade: 3, sectionTypes: ['clinical-picture'] }],
           leakageTerms: ['пневмония'],
           forbiddenDocumentIds: [],
           rationale: 'fixture',

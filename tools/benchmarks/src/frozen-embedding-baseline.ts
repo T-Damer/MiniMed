@@ -22,10 +22,7 @@ export function frozenCandidateText(row: FrozenCandidateRow): string {
     .join('\n');
 }
 
-export function portableEmbeddingCandidateScore(
-  query: string,
-  row: FrozenCandidateRow,
-): number {
+export function portableEmbeddingCandidateScore(query: string, row: FrozenCandidateRow): number {
   const queryVector = embedPortableText(query);
   const candidateVector = embedPortableText(frozenCandidateText(row));
   return cosineInt8(

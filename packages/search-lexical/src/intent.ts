@@ -127,8 +127,7 @@ const MEDICAL_SIGNALS: readonly IntentSignal<MedicalBaseIntent>[] = [
   },
   {
     intent: 'treatment',
-    pattern:
-      /(?:(?:чем|как)\s+(?:лучше\s+)?(?:отпаивать|поить)|оральн[а-я]*\s+регидратац[а-я]*)/u,
+    pattern: /(?:(?:чем|как)\s+(?:лучше\s+)?(?:отпаивать|поить)|оральн[а-я]*\s+регидратац[а-я]*)/u,
     weight: 5.2,
     label: 'практическая регидратация',
   },

@@ -2,26 +2,17 @@ import { describe, expect, it } from 'vitest';
 
 import {
   maskLegacyTrainingQuery,
-  remainingLegacyAnswerMarker,
   remainingLeakagePhrase,
+  remainingLegacyAnswerMarker,
 } from './legacy-training-mask';
 
 describe('legacy reranker training masking', () => {
   it.each([
-    [
-      'kr.rf.714_2.pneumonia',
-      'Диагностика пневмонии: нужна ли повторная рентгенография',
-    ],
+    ['kr.rf.714_2.pneumonia', 'Диагностика пневмонии: нужна ли повторная рентгенография'],
     ['kr.rf.381_3.bronchitis', 'Маршрутизация при бронхите: нарастает одышка'],
     ['kr.rf.563_2.measles', 'Диагностика кори после контакта'],
-    [
-      'kr.rf.58_2.meningococcal',
-      'Лечение генерализованной менингококковой инфекции без задержки',
-    ],
-    [
-      'kr.rf.58_2.meningococcal',
-      'Подозрение на генерализованную менингококковую инфекцию',
-    ],
+    ['kr.rf.58_2.meningococcal', 'Лечение генерализованной менингококковой инфекции без задержки'],
+    ['kr.rf.58_2.meningococcal', 'Подозрение на генерализованную менингококковую инфекцию'],
     ['kr.rf.281_3.uti', 'Ребенок 4 месяцев с фебрильной ИМП'],
   ])('masks inflected answer markers for %s', (documentId, query) => {
     const masked = maskLegacyTrainingQuery(query, [documentId], []);

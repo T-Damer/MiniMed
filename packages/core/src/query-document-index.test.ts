@@ -37,10 +37,7 @@ describe('QueryDocumentIndex', () => {
     expect([...index.exactNavigationAliasIds('D32.0')]).toEqual(['exact-title']);
     expect([...index.exactShortTitleIds('D32.0')]).toEqual(['exact-title']);
     expect([...index.exactIdentityIds('D32.0')]).toEqual(['exact-title']);
-    expect([...index.exactAliasIds('D32.0')].toSorted()).toEqual([
-      'broad-alias',
-      'exact-title',
-    ]);
+    expect([...index.exactAliasIds('D32.0')].toSorted()).toEqual(['broad-alias', 'exact-title']);
   });
 
   it('normalizes strict identity surfaces consistently with lookup subjects', () => {
@@ -169,7 +166,12 @@ afterEach(async () => {
 async function retentionFixture() {
   const store = new InMemoryMedicalStore();
   const embedder = new PortableHashEmbedder();
-  const core = createMedicalCore({ store, embedder, seed: IDENTITY_RETENTION_SEED, platform: 'test' });
+  const core = createMedicalCore({
+    store,
+    embedder,
+    seed: IDENTITY_RETENTION_SEED,
+    platform: 'test',
+  });
   retentionCores.push(core);
   expect((await core.initialize()).ok).toBe(true);
   return { store, embedder, core };

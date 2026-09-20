@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   calibrateLinearAbstentionGate,
   evaluateFrozenRanking,
+  type FrozenCandidateRow,
   groupFrozenCandidates,
   LINEAR_RERANKER_FEATURES,
   linearCandidatesForFixture,
@@ -10,7 +11,6 @@ import {
   rerankLinearCandidates,
   rerankLinearCandidatesGated,
   trainPairwiseLinearReranker,
-  type FrozenCandidateRow,
 } from './linear-reranker-baseline';
 
 function row(
@@ -121,7 +121,6 @@ describe('linear frozen-candidate reranker', () => {
     ];
     expect(rerankLinearCandidates(fixture, model)[0]?.candidate.documentId).toBe('right');
   });
-
 
   it('calibrates a conservative top-1 abstention gate on training labels only', () => {
     const training = [
@@ -246,8 +245,9 @@ describe('linear frozen-candidate reranker', () => {
     );
 
     const gapped = row('fixture-gap', 'two', 3, 0, 'clinical-picture');
-    expect(() => groupFrozenCandidates([row('fixture-gap', 'one', 1, 3, 'treatment'), gapped]))
-      .toThrow('ranks must be contiguous');
+    expect(() =>
+      groupFrozenCandidates([row('fixture-gap', 'one', 1, 3, 'treatment'), gapped]),
+    ).toThrow('ranks must be contiguous');
 
     const mixedQuery: FrozenCandidateRow = {
       ...row('fixture-mixed', 'two', 2, 0, 'clinical-picture'),

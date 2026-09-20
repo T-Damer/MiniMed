@@ -466,9 +466,7 @@ function preserveStrictIdentities(
       index,
       priority: strictLookupIdentityPriority(query, documents.get(group.documentId)),
     }))
-    .toSorted(
-      (left, right) => right.priority - left.priority || left.index - right.index,
-    )
+    .toSorted((left, right) => right.priority - left.priority || left.index - right.index)
     .map((entry) => entry.group);
 }
 

@@ -130,7 +130,7 @@ for (const observation of observations) {
     const text = resultText(group);
     return expectedTerms.some((term) => text.includes(term));
   });
-  const matchingGroup = rank < 0 ? null : response.value.groups[rank] ?? null;
+  const matchingGroup = rank < 0 ? null : (response.value.groups[rank] ?? null);
   rows.push({
     id: observation.id,
     origin: observation.origin,

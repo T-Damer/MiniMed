@@ -126,8 +126,6 @@ describe('frozen portable embedding baseline', () => {
     const first = row('one', 1, 'Первый', 'Кашель.');
     const secondBase = row('two', 2, 'Второй', 'Лихорадка.');
     const second = { ...secondBase, query: 'Другой запрос' };
-    expect(() => rerankPortableEmbeddingCandidates([first, second])).toThrow(
-      'one frozen query',
-    );
+    expect(() => rerankPortableEmbeddingCandidates([first, second])).toThrow('one frozen query');
   });
 });

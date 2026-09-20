@@ -703,7 +703,9 @@ describe('MedicalCore', () => {
       expect(response.ok).toBe(true);
       if (!response.ok) return;
       expect(response.value.groups[0]?.documentId).toBe('exact.d32');
-      expect(response.value.groups.some((group) => group.documentId === 'distractor.g96')).toBe(true);
+      expect(response.value.groups.some((group) => group.documentId === 'distractor.g96')).toBe(
+        true,
+      );
       expect(response.value.diagnostics.candidateCount).toBeGreaterThanOrEqual(2);
       expect(getChunksByDocument).not.toHaveBeenCalled();
       expect(getChunksBySection).toHaveBeenCalledWith('exact.d32.definition');

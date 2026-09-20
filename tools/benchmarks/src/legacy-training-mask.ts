@@ -21,9 +21,7 @@ const LEGACY_ANSWER_MARKERS_BY_DOCUMENT: Readonly<Record<string, readonly string
 };
 
 const LEGACY_ANSWER_PHRASES_BY_DOCUMENT: Readonly<Record<string, readonly RegExp[]>> = {
-  'kr.rf.281_3.uti': [
-    /инфекц[\p{L}-]*\s+мочев[\p{L}-]*\s+пут[\p{L}-]*/giu,
-  ],
+  'kr.rf.281_3.uti': [/инфекц[\p{L}-]*\s+мочев[\p{L}-]*\s+пут[\p{L}-]*/giu],
 };
 
 function escapeRegExp(value: string): string {

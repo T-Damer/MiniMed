@@ -14,8 +14,8 @@ import {
   ok,
   type QueryAnalysis,
   type Result,
-  SearchRequestSchema,
   type SearchFilters,
+  SearchRequestSchema,
   type SearchResponse,
   type SearchResult,
   type SearchResultCategory,
@@ -1241,7 +1241,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         );
         const retainedDocumentIds = new Set(retainedResults.map((result) => result.documentId));
         const missingExactIdentityDocumentIds = new Set(
-          [...exactIdentityDocumentIds].filter((documentId) => !retainedDocumentIds.has(documentId)),
+          [...exactIdentityDocumentIds].filter(
+            (documentId) => !retainedDocumentIds.has(documentId),
+          ),
         );
         const exactIdentityResults = await buildExactIdentityResults(
           options.store,

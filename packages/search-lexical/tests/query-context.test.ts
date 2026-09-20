@@ -621,8 +621,7 @@ describe('typed dose-critical query context', () => {
   });
 
   it('extracts colloquial wheeze and feeding difficulty as positive findings', () => {
-    const query =
-      'Грудничок после насморка кашляет и свистит, ест хуже — нужен ли ему антибиотик';
+    const query = 'Грудничок после насморка кашляет и свистит, ест хуже — нужен ли ему антибиотик';
     const context = contextFor(query);
 
     expect(context.positiveFindings).toEqual(

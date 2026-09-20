@@ -197,10 +197,7 @@ function targetGrade(fixture: SearchQualityFixture, documentId: string): number 
 }
 
 function dcg(grades: readonly number[]): number {
-  return grades.reduce(
-    (sum, grade, index) => sum + (2 ** grade - 1) / Math.log2(index + 2),
-    0,
-  );
+  return grades.reduce((sum, grade, index) => sum + (2 ** grade - 1) / Math.log2(index + 2), 0);
 }
 
 function ndcg(
@@ -227,8 +224,7 @@ function recallAt(
 ): number {
   const selected = new Set(documentIds.slice(0, limit));
   const numerator = fixture.relevance.reduce(
-    (sum, target) =>
-      sum + (selected.has(target.documentId) ? (weighted ? target.grade : 1) : 0),
+    (sum, target) => sum + (selected.has(target.documentId) ? (weighted ? target.grade : 1) : 0),
     0,
   );
   const denominator = fixture.relevance.reduce(

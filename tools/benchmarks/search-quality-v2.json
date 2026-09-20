@@ -10,31 +10,20 @@
       {
         "documentId": "kr.rf.360_3.bronchiolitis",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture",
-          "routing"
-        ]
+        "sectionTypes": ["clinical-picture", "routing"]
       },
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 1,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       },
       {
         "documentId": "kr.rf.381_3.bronchitis",
         "grade": 1,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "бронхиолит",
-      "пневмония",
-      "бронхит"
-    ],
+    "leakageTerms": ["бронхиолит", "пневмония", "бронхит"],
     "forbiddenDocumentIds": [],
     "rationale": "Common infant respiratory presentation; several sources are relevant, but the infant small-airway source should rank highest."
   },
@@ -49,24 +38,15 @@
       {
         "documentId": "kr.rf.360_3.bronchiolitis",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture",
-          "routing"
-        ]
+        "sectionTypes": ["clinical-picture", "routing"]
       },
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture",
-          "routing"
-        ]
+        "sectionTypes": ["clinical-picture", "routing"]
       }
     ],
-    "leakageTerms": [
-      "бронхиолит",
-      "пневмония"
-    ],
+    "leakageTerms": ["бронхиолит", "пневмония"],
     "forbiddenDocumentIds": [],
     "rationale": "Replaces the old forced pneumonia-only gold with graded multi-relevance."
   },
@@ -81,23 +61,15 @@
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture",
-          "routing"
-        ]
+        "sectionTypes": ["clinical-picture", "routing"]
       },
       {
         "documentId": "kr.rf.381_3.bronchitis",
         "grade": 1,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "пневмония",
-      "бронхит"
-    ],
+    "leakageTerms": ["пневмония", "бронхит"],
     "forbiddenDocumentIds": [],
     "rationale": "Diagnosis-free school-age respiratory vignette with severity clues."
   },
@@ -112,22 +84,15 @@
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       },
       {
         "documentId": "kr.rf.381_3.bronchitis",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "пневмония",
-      "бронхит"
-    ],
+    "leakageTerms": ["пневмония", "бронхит"],
     "forbiddenDocumentIds": [],
     "rationale": "Natural symptom-only wording with two plausible respiratory sources."
   },
@@ -142,15 +107,10 @@
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 3,
-        "sectionTypes": [
-          "routing",
-          "clinical-picture"
-        ]
+        "sectionTypes": ["routing", "clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "пневмония"
-    ],
+    "leakageTerms": ["пневмония"],
     "forbiddenDocumentIds": [],
     "rationale": "Tests routing retrieval without naming the diagnosis."
   },
@@ -165,22 +125,15 @@
       {
         "documentId": "kr.rf.381_3.bronchitis",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       },
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 1,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "бронхит",
-      "пневмония"
-    ],
+    "leakageTerms": ["бронхит", "пневмония"],
     "forbiddenDocumentIds": [],
     "rationale": "Common outpatient respiratory wording where a generic cough source must not dominate."
   },
@@ -195,15 +148,10 @@
       {
         "documentId": "kr.rf.381_3.bronchitis",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture",
-          "diagnostics"
-        ]
+        "sectionTypes": ["clinical-picture", "diagnostics"]
       }
     ],
-    "leakageTerms": [
-      "бронхит"
-    ],
+    "leakageTerms": ["бронхит"],
     "forbiddenDocumentIds": [],
     "rationale": "Practical diagnostic question using a symptom rather than a disease name."
   },
@@ -218,15 +166,10 @@
       {
         "documentId": "kr.rf.360_3.bronchiolitis",
         "grade": 3,
-        "sectionTypes": [
-          "diagnostics",
-          "clinical-picture"
-        ]
+        "sectionTypes": ["diagnostics", "clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "бронхиолит"
-    ],
+    "leakageTerms": ["бронхиолит"],
     "forbiddenDocumentIds": [],
     "rationale": "Age and first-episode context should route to the infant wheeze diagnostic source."
   },
@@ -241,22 +184,15 @@
       {
         "documentId": "kr.rf.360_3.bronchiolitis",
         "grade": 3,
-        "sectionTypes": [
-          "treatment"
-        ]
+        "sectionTypes": ["treatment"]
       },
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 1,
-        "sectionTypes": [
-          "treatment"
-        ]
+        "sectionTypes": ["treatment"]
       }
     ],
-    "leakageTerms": [
-      "бронхиолит",
-      "пневмония"
-    ],
+    "leakageTerms": ["бронхиолит", "пневмония"],
     "forbiddenDocumentIds": [],
     "rationale": "Treatment intent must not make an incidental antibiotic/drug card the main answer."
   },
@@ -271,24 +207,15 @@
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 3,
-        "sectionTypes": [
-          "treatment",
-          "diagnostics"
-        ]
+        "sectionTypes": ["treatment", "diagnostics"]
       },
       {
         "documentId": "kr.rf.381_3.bronchitis",
         "grade": 2,
-        "sectionTypes": [
-          "treatment",
-          "diagnostics"
-        ]
+        "sectionTypes": ["treatment", "diagnostics"]
       }
     ],
-    "leakageTerms": [
-      "пневмония",
-      "бронхит"
-    ],
+    "leakageTerms": ["пневмония", "бронхит"],
     "forbiddenDocumentIds": [],
     "rationale": "Prior medication is context, not automatically the requested result."
   },
@@ -303,16 +230,10 @@
       {
         "documentId": "kr.rf.58_2.meningococcal",
         "grade": 3,
-        "sectionTypes": [
-          "routing",
-          "clinical-picture"
-        ]
+        "sectionTypes": ["routing", "clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "менингокок",
-      "менингит"
-    ],
+    "leakageTerms": ["менингокок", "менингит"],
     "forbiddenDocumentIds": [],
     "rationale": "High-salience emergency presentation without the diagnosis term."
   },
@@ -327,16 +248,10 @@
       {
         "documentId": "kr.rf.58_2.meningococcal",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture",
-          "routing"
-        ]
+        "sectionTypes": ["clinical-picture", "routing"]
       }
     ],
-    "leakageTerms": [
-      "менингокок",
-      "менингит"
-    ],
+    "leakageTerms": ["менингокок", "менингит"],
     "forbiddenDocumentIds": [],
     "rationale": "Infant presentation from the source clinical picture."
   },
@@ -351,15 +266,10 @@
       {
         "documentId": "kr.rf.58_2.meningococcal",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "менингокок",
-      "менингит"
-    ],
+    "leakageTerms": ["менингокок", "менингит"],
     "forbiddenDocumentIds": [],
     "rationale": "Colloquial symptom description that previously existed only as a brittle single-gold alias test."
   },
@@ -374,16 +284,10 @@
       {
         "documentId": "kr.rf.58_2.meningococcal",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture",
-          "diagnostics"
-        ]
+        "sectionTypes": ["clinical-picture", "diagnostics"]
       }
     ],
-    "leakageTerms": [
-      "менингокок",
-      "менингит"
-    ],
+    "leakageTerms": ["менингокок", "менингит"],
     "forbiddenDocumentIds": [],
     "rationale": "Natural description of meningeal symptoms without naming the condition."
   },
@@ -398,16 +302,10 @@
       {
         "documentId": "kr.rf.58_2.meningococcal",
         "grade": 3,
-        "sectionTypes": [
-          "routing",
-          "clinical-picture"
-        ]
+        "sectionTypes": ["routing", "clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "менингокок",
-      "менингит"
-    ],
+    "leakageTerms": ["менингокок", "менингит"],
     "forbiddenDocumentIds": [],
     "rationale": "Emergency routing should survive noisy symptom phrasing."
   },
@@ -422,16 +320,10 @@
       {
         "documentId": "kr.rf.563_2.measles",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "корь",
-      "кори",
-      "корью"
-    ],
+    "leakageTerms": ["корь", "кори", "корью"],
     "forbiddenDocumentIds": [],
     "rationale": "Classic chronology expressed without the diagnosis."
   },
@@ -446,16 +338,10 @@
       {
         "documentId": "kr.rf.563_2.measles",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "корь",
-      "кори",
-      "корью"
-    ],
+    "leakageTerms": ["корь", "кори", "корью"],
     "forbiddenDocumentIds": [],
     "rationale": "Tests forgotten-term style search without spelling out Koplik or the disease name."
   },
@@ -470,17 +356,10 @@
       {
         "documentId": "kr.rf.563_2.measles",
         "grade": 3,
-        "sectionTypes": [
-          "diagnostics",
-          "clinical-picture"
-        ]
+        "sectionTypes": ["diagnostics", "clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "корь",
-      "кори",
-      "корью"
-    ],
+    "leakageTerms": ["корь", "кори", "корью"],
     "forbiddenDocumentIds": [],
     "rationale": "Epidemiology plus chronology without direct diagnosis leakage."
   },
@@ -495,16 +374,10 @@
       {
         "documentId": "kr.rf.563_2.measles",
         "grade": 3,
-        "sectionTypes": [
-          "routing"
-        ]
+        "sectionTypes": ["routing"]
       }
     ],
-    "leakageTerms": [
-      "корь",
-      "кори",
-      "корью"
-    ],
+    "leakageTerms": ["корь", "кори", "корью"],
     "forbiddenDocumentIds": [],
     "rationale": "Workflow query aimed at the routing/infection-control section."
   },
@@ -519,14 +392,10 @@
       {
         "documentId": "kr.rf.755_1.rotavirus",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "ротавирус"
-    ],
+    "leakageTerms": ["ротавирус"],
     "forbiddenDocumentIds": [],
     "rationale": "Diagnosis-free acute gastroenteritis presentation."
   },
@@ -541,15 +410,10 @@
       {
         "documentId": "kr.rf.755_1.rotavirus",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture",
-          "routing"
-        ]
+        "sectionTypes": ["clinical-picture", "routing"]
       }
     ],
-    "leakageTerms": [
-      "ротавирус"
-    ],
+    "leakageTerms": ["ротавирус"],
     "forbiddenDocumentIds": [],
     "rationale": "Dehydration signs should retrieve the relevant disease/routing material."
   },
@@ -564,14 +428,10 @@
       {
         "documentId": "kr.rf.755_1.rotavirus",
         "grade": 3,
-        "sectionTypes": [
-          "treatment"
-        ]
+        "sectionTypes": ["treatment"]
       }
     ],
-    "leakageTerms": [
-      "ротавирус"
-    ],
+    "leakageTerms": ["ротавирус"],
     "forbiddenDocumentIds": [],
     "rationale": "Practical treatment search without a diagnostic label."
   },
@@ -586,14 +446,10 @@
       {
         "documentId": "kr.rf.755_1.rotavirus",
         "grade": 3,
-        "sectionTypes": [
-          "routing"
-        ]
+        "sectionTypes": ["routing"]
       }
     ],
-    "leakageTerms": [
-      "ротавирус"
-    ],
+    "leakageTerms": ["ротавирус"],
     "forbiddenDocumentIds": [],
     "rationale": "Severe dehydration/routing case."
   },
@@ -608,14 +464,10 @@
       {
         "documentId": "kr.rf.755_1.rotavirus",
         "grade": 3,
-        "sectionTypes": [
-          "treatment"
-        ]
+        "sectionTypes": ["treatment"]
       }
     ],
-    "leakageTerms": [
-      "ротавирус"
-    ],
+    "leakageTerms": ["ротавирус"],
     "forbiddenDocumentIds": [],
     "rationale": "Medication intent should retrieve treatment guidance rather than an unrelated antibiotic card."
   },
@@ -630,18 +482,10 @@
       {
         "documentId": "kr.rf.281_3.uti",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "имп",
-      "имвп",
-      "инфекция мочевых путей",
-      "пиелонефрит",
-      "цистит"
-    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит"],
     "forbiddenDocumentIds": [],
     "rationale": "Natural urinary symptom cluster."
   },
@@ -656,18 +500,10 @@
       {
         "documentId": "kr.rf.281_3.uti",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "имп",
-      "имвп",
-      "инфекция мочевых путей",
-      "пиелонефрит",
-      "цистит"
-    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит"],
     "forbiddenDocumentIds": [],
     "rationale": "Colloquial urinary presentation with new daytime wetting."
   },
@@ -682,27 +518,15 @@
       {
         "documentId": "kr.rf.281_3.uti",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture",
-          "diagnostics"
-        ]
+        "sectionTypes": ["clinical-picture", "diagnostics"]
       },
       {
         "documentId": "kr.rf.755_1.rotavirus",
         "grade": 1,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "имп",
-      "имвп",
-      "инфекция мочевых путей",
-      "пиелонефрит",
-      "цистит",
-      "ротавирус"
-    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит", "ротавирус"],
     "forbiddenDocumentIds": [],
     "rationale": "Systemic symptoms overlap; flank pain should favor the urinary source without making GI content impossible."
   },
@@ -717,18 +541,10 @@
       {
         "documentId": "kr.rf.281_3.uti",
         "grade": 3,
-        "sectionTypes": [
-          "diagnostics"
-        ]
+        "sectionTypes": ["diagnostics"]
       }
     ],
-    "leakageTerms": [
-      "имп",
-      "имвп",
-      "инфекция мочевых путей",
-      "пиелонефрит",
-      "цистит"
-    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит"],
     "forbiddenDocumentIds": [],
     "rationale": "Common diagnostic workflow question where the disease term is absent."
   },
@@ -743,19 +559,10 @@
       {
         "documentId": "kr.rf.281_3.uti",
         "grade": 3,
-        "sectionTypes": [
-          "routing",
-          "clinical-picture"
-        ]
+        "sectionTypes": ["routing", "clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "имп",
-      "имвп",
-      "инфекция мочевых путей",
-      "пиелонефрит",
-      "цистит"
-    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит"],
     "forbiddenDocumentIds": [],
     "rationale": "Age, inability to drink and urinary clue should retrieve routing material."
   },
@@ -770,27 +577,15 @@
       {
         "documentId": "kr.rf.563_2.measles",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture",
-          "diagnostics"
-        ]
+        "sectionTypes": ["clinical-picture", "diagnostics"]
       },
       {
         "documentId": "kr.rf.58_2.meningococcal",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture",
-          "routing"
-        ]
+        "sectionTypes": ["clinical-picture", "routing"]
       }
     ],
-    "leakageTerms": [
-      "корь",
-      "кори",
-      "корью",
-      "менингокок",
-      "менингит"
-    ],
+    "leakageTerms": ["корь", "кори", "корью", "менингокок", "менингит"],
     "forbiddenDocumentIds": [],
     "rationale": "Deliberately underspecified rash case; benchmark rewards candidate coverage, not a forced diagnosis."
   },
@@ -805,31 +600,20 @@
       {
         "documentId": "kr.rf.360_3.bronchiolitis",
         "grade": 3,
-        "sectionTypes": [
-          "clinical-picture",
-          "routing"
-        ]
+        "sectionTypes": ["clinical-picture", "routing"]
       },
       {
         "documentId": "kr.rf.381_3.bronchitis",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       },
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 1,
-        "sectionTypes": [
-          "clinical-picture"
-        ]
+        "sectionTypes": ["clinical-picture"]
       }
     ],
-    "leakageTerms": [
-      "бронхиолит",
-      "бронхит",
-      "пневмония"
-    ],
+    "leakageTerms": ["бронхиолит", "бронхит", "пневмония"],
     "forbiddenDocumentIds": [],
     "rationale": "Overlap case that tests graded ranking instead of one-label accuracy."
   },
@@ -844,24 +628,15 @@
       {
         "documentId": "kr.rf.714_2.pneumonia",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture",
-          "diagnostics"
-        ]
+        "sectionTypes": ["clinical-picture", "diagnostics"]
       },
       {
         "documentId": "kr.rf.381_3.bronchitis",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture",
-          "diagnostics"
-        ]
+        "sectionTypes": ["clinical-picture", "diagnostics"]
       }
     ],
-    "leakageTerms": [
-      "пневмония",
-      "бронхит"
-    ],
+    "leakageTerms": ["пневмония", "бронхит"],
     "forbiddenDocumentIds": [],
     "rationale": "Intentionally incomplete respiratory case where both documents should remain candidates."
   },
@@ -876,26 +651,17 @@
       {
         "documentId": "kr.rf.755_1.rotavirus",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture",
-          "diagnostics"
-        ]
+        "sectionTypes": ["clinical-picture", "diagnostics"]
       },
       {
         "documentId": "kr.rf.281_3.uti",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture",
-          "diagnostics"
-        ]
+        "sectionTypes": ["clinical-picture", "diagnostics"]
       },
       {
         "documentId": "kr.rf.58_2.meningococcal",
         "grade": 2,
-        "sectionTypes": [
-          "clinical-picture",
-          "routing"
-        ]
+        "sectionTypes": ["clinical-picture", "routing"]
       }
     ],
     "leakageTerms": [

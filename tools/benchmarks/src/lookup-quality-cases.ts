@@ -3,11 +3,7 @@ import { createHash } from 'node:crypto';
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
-export type LookupSurfaceKind =
-  | 'title'
-  | 'short-title'
-  | 'navigation-alias'
-  | 'declared-alias';
+export type LookupSurfaceKind = 'title' | 'short-title' | 'navigation-alias' | 'declared-alias';
 
 export interface LookupQualityCase {
   readonly id: string;

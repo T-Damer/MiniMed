@@ -229,7 +229,6 @@ function document(
 }
 
 describe('query-aware group ranking', () => {
-
   it('makes an exact title a hard invariant over stronger body-text evidence', () => {
     const query = 'Шкала депрессии Бека';
     const ranked = rankSearchGroupsByQuery(

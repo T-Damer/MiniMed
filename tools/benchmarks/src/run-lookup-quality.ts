@@ -171,10 +171,8 @@ for (const fixture of cases) {
     exactSurfaceDocumentIds: fixture.exactSurfaceDocumentIds,
     top1DocumentId,
     firstExpectedRank: firstExpectedIndex < 0 ? null : firstExpectedIndex + 1,
-    firstStrictIdentityRank:
-      firstStrictIdentityIndex < 0 ? null : firstStrictIdentityIndex + 1,
-    firstExactSurfaceRank:
-      firstExactSurfaceIndex < 0 ? null : firstExactSurfaceIndex + 1,
+    firstStrictIdentityRank: firstStrictIdentityIndex < 0 ? null : firstStrictIdentityIndex + 1,
+    firstExactSurfaceRank: firstExactSurfaceIndex < 0 ? null : firstExactSurfaceIndex + 1,
     top1Pass:
       fixture.expectedTop1DocumentIds.length === 0
         ? null
@@ -291,9 +289,7 @@ if (identityRecall < 1) {
   failures.push(`strict identity index recall ${identityRecall.toFixed(4)} < 1.0000`);
 }
 if (identitySetAgreementRate < 1) {
-  failures.push(
-    `strict identity set agreement ${identitySetAgreementRate.toFixed(4)} < 1.0000`,
-  );
+  failures.push(`strict identity set agreement ${identitySetAgreementRate.toFixed(4)} < 1.0000`);
 }
 if (identityTopTierAgreementRate < 1) {
   failures.push(

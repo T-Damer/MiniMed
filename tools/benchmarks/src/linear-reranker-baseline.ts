@@ -216,10 +216,7 @@ export function parseFrozenCandidate(
     goal: stringValue(row.goal, `${label}.goal`),
     answerability: stringValue(row.answerability, `${label}.answerability`),
     analysis: {
-      primaryIntent: nullableString(
-        analysis.primaryIntent,
-        `${label}.analysis.primaryIntent`,
-      ),
+      primaryIntent: nullableString(analysis.primaryIntent, `${label}.analysis.primaryIntent`),
       secondaryIntents: stringArray(
         analysis.secondaryIntents,
         `${label}.analysis.secondaryIntents`,
@@ -263,10 +260,7 @@ export function parseFrozenCandidate(
       requestedMode: stringValue(retrieval.requestedMode, `${label}.retrieval.requestedMode`),
       modeUsed: stringValue(retrieval.modeUsed, `${label}.retrieval.modeUsed`),
       originalRank,
-      groupBestScore: numberValue(
-        retrieval.groupBestScore,
-        `${label}.retrieval.groupBestScore`,
-      ),
+      groupBestScore: numberValue(retrieval.groupBestScore, `${label}.retrieval.groupBestScore`),
       maximumLexicalScore: numberValue(
         retrieval.maximumLexicalScore,
         `${label}.retrieval.maximumLexicalScore`,
@@ -289,27 +283,18 @@ export function parseFrozenCandidate(
         `${label}.retrieval.matchedBranchCount`,
       ),
       matchedTerms: stringArray(retrieval.matchedTerms, `${label}.retrieval.matchedTerms`),
-      matchedBranches: stringArray(
-        retrieval.matchedBranches,
-        `${label}.retrieval.matchedBranches`,
-      ),
+      matchedBranches: stringArray(retrieval.matchedBranches, `${label}.retrieval.matchedBranches`),
       coreCandidateCount: numberValue(
         retrieval.coreCandidateCount,
         `${label}.retrieval.coreCandidateCount`,
       ),
-      semanticStatus: stringValue(
-        retrieval.semanticStatus,
-        `${label}.retrieval.semanticStatus`,
-      ),
+      semanticStatus: stringValue(retrieval.semanticStatus, `${label}.retrieval.semanticStatus`),
       semanticCandidateCount: numberValue(
         retrieval.semanticCandidateCount,
         `${label}.retrieval.semanticCandidateCount`,
       ),
       sectionTypes: stringArray(retrieval.sectionTypes, `${label}.retrieval.sectionTypes`),
-      topSectionType: nullableString(
-        retrieval.topSectionType,
-        `${label}.retrieval.topSectionType`,
-      ),
+      topSectionType: nullableString(retrieval.topSectionType, `${label}.retrieval.topSectionType`),
       terminologyMatch: nullableString(
         retrieval.terminologyMatch,
         `${label}.retrieval.terminologyMatch`,
@@ -338,10 +323,7 @@ export function parseFrozenCandidate(
         candidate.navigationAliases,
         `${label}.candidate.navigationAliases`,
       ),
-      declaredAliases: stringArray(
-        candidate.declaredAliases,
-        `${label}.candidate.declaredAliases`,
-      ),
+      declaredAliases: stringArray(candidate.declaredAliases, `${label}.candidate.declaredAliases`),
       ageGroups: stringArray(candidate.ageGroups, `${label}.candidate.ageGroups`),
       evidence: stringValue(candidate.evidence, `${label}.candidate.evidence`),
     },
@@ -443,10 +425,7 @@ function stemSet(values: readonly string[]): ReadonlySet<string> {
   return new Set(values.flatMap((value) => tokenize(value).map(lightStemRussian)));
 }
 
-function matchedFactCoverage(
-  facts: readonly string[],
-  matchedTerms: readonly string[],
-): number {
+function matchedFactCoverage(facts: readonly string[], matchedTerms: readonly string[]): number {
   const factStems = stemSet(facts);
   if (factStems.size === 0) return 0;
   const matchedStems = stemSet(matchedTerms);
@@ -489,8 +468,7 @@ function isMedicationSource(sourceType: string | null): boolean {
 
 function isClinicalRecommendationSource(sourceType: string | null): boolean {
   return (
-    sourceType === 'clinical_recommendation' ||
-    sourceType === 'clinical_recommendation_summary'
+    sourceType === 'clinical_recommendation' || sourceType === 'clinical_recommendation_summary'
   );
 }
 
@@ -544,7 +522,10 @@ function currentMedicineMatchDominance(row: FrozenCandidateRow): number {
   return medicineCoverage * (1 - clinicalCoverage);
 }
 
-function sectionMatchesIntent(intent: string | null, section: string | null): {
+function sectionMatchesIntent(
+  intent: string | null,
+  section: string | null,
+): {
   treatment: number;
   diagnosis: number;
   care: number;
@@ -576,9 +557,7 @@ export function linearCandidatesForFixture(
   if (rows.length === 0) return [];
   const groupScoreMax = maximumAbsolute(rows.map((row) => row.retrieval.groupBestScore));
   const lexicalMax = maximumAbsolute(rows.map((row) => row.retrieval.maximumLexicalScore));
-  const semanticMax = maximumAbsolute(
-    rows.map((row) => row.retrieval.maximumSemanticScore ?? 0),
-  );
+  const semanticMax = maximumAbsolute(rows.map((row) => row.retrieval.maximumSemanticScore ?? 0));
   const finalMax = maximumAbsolute(rows.map((row) => row.retrieval.maximumFinalScore));
   const matchedTermsMax = maximumAbsolute(rows.map((row) => row.retrieval.matchedTermCount));
   const matchedBranchesMax = maximumAbsolute(rows.map((row) => row.retrieval.matchedBranchCount));
@@ -674,8 +653,7 @@ function trainingPairs(
       for (const other of candidates) {
         if (preferred.row.label.relevanceGrade <= other.row.label.relevanceGrade) continue;
         const relevanceGap = preferred.row.label.relevanceGrade - other.row.label.relevanceGrade;
-        const hard =
-          preferred.row.retrieval.originalRank > other.row.retrieval.originalRank;
+        const hard = preferred.row.retrieval.originalRank > other.row.retrieval.originalRank;
         // Easy pairs mostly teach the model to imitate the existing search order. Hard pairs are the
         // actual reranking problem, so give them much more influence while retaining a small anchor
         // from correctly ordered pairs.
@@ -720,14 +698,12 @@ export function trainPairwiseLinearReranker(
       const error = 1 / (1 + Math.exp(margin));
       for (let index = 0; index < weights.length; index += 1) {
         gradient[index] =
-          (gradient[index] ?? 0) +
-          pair.weight * error * (pair.difference[index] ?? 0);
+          (gradient[index] ?? 0) + pair.weight * error * (pair.difference[index] ?? 0);
       }
     }
     for (let index = 0; index < weights.length; index += 1) {
       const weight = weights[index] ?? 0;
-      const dataGradient =
-        totalPairWeight > 0 ? (gradient[index] ?? 0) / totalPairWeight : 0;
+      const dataGradient = totalPairWeight > 0 ? (gradient[index] ?? 0) / totalPairWeight : 0;
       weights[index] = weight + rate * (dataGradient - l2 * weight);
     }
   }
@@ -748,9 +724,7 @@ export function trainPairwiseLinearReranker(
 function originalCandidateOrder(
   rows: readonly FrozenCandidateRow[],
 ): readonly FrozenCandidateRow[] {
-  return rows.toSorted(
-    (left, right) => left.retrieval.originalRank - right.retrieval.originalRank,
-  );
+  return rows.toSorted((left, right) => left.retrieval.originalRank - right.retrieval.originalRank);
 }
 
 function scoredLinearCandidates(
@@ -798,8 +772,9 @@ export function linearTop1Proposal(
     };
   }
   const originalScore =
-    scored.find((entry) => entry.candidate.row.candidate.documentId === originalTop.candidate.documentId)
-      ?.score ?? Number.NEGATIVE_INFINITY;
+    scored.find(
+      (entry) => entry.candidate.row.candidate.documentId === originalTop.candidate.documentId,
+    )?.score ?? Number.NEGATIVE_INFINITY;
   return {
     changed: proposedTop.candidate.row.candidate.documentId !== originalTop.candidate.documentId,
     margin: Math.max(0, proposedTop.score - originalScore),
@@ -922,10 +897,7 @@ export function calibrateLinearAbstentionGate(
 }
 
 function dcg(grades: readonly number[]): number {
-  return grades.reduce(
-    (sum, grade, index) => sum + (2 ** grade - 1) / Math.log2(index + 2),
-    0,
-  );
+  return grades.reduce((sum, grade, index) => sum + (2 ** grade - 1) / Math.log2(index + 2), 0);
 }
 
 function fixtureMetrics(rows: readonly FrozenCandidateRow[]) {
@@ -939,11 +911,7 @@ function fixtureMetrics(rows: readonly FrozenCandidateRow[]) {
     const numerator = relevant.reduce(
       (sum, row) =>
         sum +
-        (selected.has(row.candidate.documentId)
-          ? weighted
-            ? row.label.relevanceGrade
-            : 1
-          : 0),
+        (selected.has(row.candidate.documentId) ? (weighted ? row.label.relevanceGrade : 1) : 0),
       0,
     );
     const denominator = weighted ? relevantWeight : relevant.length;
