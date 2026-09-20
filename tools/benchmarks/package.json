@@ -37,7 +37,8 @@
     "benchmark:freeze-candidates": "bun src/export-search-quality-frozen-candidates.ts",
     "benchmark:freeze-training": "bun src/export-search-quality-frozen-candidates.ts --legacy-pilot=tools/benchmarks/pilot-rf-queries.json",
     "benchmark:linear-reranker": "bun src/run-linear-reranker-baseline.ts",
-    "benchmark:embedding-baseline": "bun src/run-frozen-embedding-baseline.ts"
+    "benchmark:embedding-baseline": "bun src/run-frozen-embedding-baseline.ts",
+    "benchmark:reranker-summary": "bun src/summarize-reranker-ablation.ts"
   },
   "dependencies": {
     "@localmed/contracts": "workspace:*",
