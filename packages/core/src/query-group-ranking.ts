@@ -453,7 +453,8 @@ export function rankSearchGroupsByQuery(
             (term) =>
               isTitleQueryTerm(term) &&
               !GENERIC_QUERY_TERMS.has(term) &&
-              !negativeTerms.has(stemToken(term)),
+              !negativeTerms.has(stemToken(term)) &&
+              !failedTreatmentTerms.has(stemToken(term)),
           ),
         ),
       ]
