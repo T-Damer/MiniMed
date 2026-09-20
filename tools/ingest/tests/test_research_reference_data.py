@@ -834,3 +834,52 @@ def test_pediatric_assessment_triangle_preserves_source_pattern_gap() -> None:
     assert data["patternToTriageLevelMapping"] is None
     levels = cast(list[dict[str, object]], data["triageLevelGuidance"])
     assert [item["levels"] for item in levels] == [[1, 2], [3], [4], [5]]
+
+
+def test_pediatric_sirs_thresholds_preserve_table_discrepancy() -> None:
+    data = _load("pediatric-sirs-thresholds-kr25_3-2026.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["semanticClass"] == "syndrome_screening_thresholds_not_reference_intervals"
+
+    rows = cast(list[dict[str, object]], data["table7AgeSpecific"])
+    assert len(rows) == 6
+    assert [row["age"] for row in rows] == [
+        "0-7_days",
+        "7_days-1_month",
+        "1_month-1_year",
+        "2-5_years",
+        "6-12_years",
+        "13-18_years",
+    ]
+    assert rows[3]["bradycardia"] is None
+    assert rows[4]["bradycardia"] is None
+    assert rows[5]["bradycardia"] is None
+
+    one_to_twelve = rows[2]
+    table7_high = cast(dict[str, object], one_to_twelve["leukocytesHigh"])
+    assert _float(table7_high["value"]) == 17.5
+
+    table8 = cast(dict[str, object], data["table8LaboratoryCutoffs"])
+    leukocytosis = cast(list[dict[str, object]], table8["leukocytosis"])
+    assert _float(leukocytosis[0]["value"]) == 17.7
+
+    discrepancies = cast(list[dict[str, object]], data["sourceDiscrepancies"])
+    assert len(discrepancies) == 1
+    discrepancy = discrepancies[0]
+    assert discrepancy["field"] == "leukocytosis_1_month_to_1_year"
+    assert discrepancy["handling"] == "preserve_both_values_do_not_normalize_automatically"
+
+    for key, expected in (
+        ("neutrophilia", (7.73, 10.0)),
+        ("cReactiveProtein", (30.0, 37.0)),
+        ("procalcitonin", (0.5, 0.95)),
+    ):
+        marker = cast(dict[str, object], table8[key])
+        source_range = cast(dict[str, object], marker["sourceCutoffRange"])
+        assert (_float(source_range["min"]), _float(source_range["max"])) == expected
+        assert marker["executableStatus"] == "source_range_requires_clinical_review"
+
+    boundary = cast(dict[str, object], data["clinicalBoundary"])
+    assert boundary["sirsDiagnosisDerived"] is False
+    assert boundary["normalVitalSignsDerived"] is False
