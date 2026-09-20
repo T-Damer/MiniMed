@@ -175,6 +175,40 @@ function document(
 }
 
 describe('query-aware group ranking', () => {
+
+  it('makes an exact title a hard invariant over stronger body-text evidence', () => {
+    const query = 'Шкала депрессии Бека';
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('body', 'Обзор психиатрических шкал', 100, [
+          result(
+            'body',
+            'Обзор психиатрических шкал',
+            'В тексте несколько раз упоминается шкала депрессии Бека.',
+          ),
+        ]),
+        group('exact', 'Шкала депрессии Бека', 0.01),
+      ],
+      query,
+    );
+
+    expect(ranked[0]?.documentId).toBe('exact');
+  });
+
+  it('prefers an exact title over another document that declares the same surface as an alias', () => {
+    const query = 'Ясперс';
+    const ranked = rankSearchGroupsByQuery(
+      [group('alias', 'Общая психопатология', 100), group('title', 'Ясперс', 0.01)],
+      query,
+      [
+        document('alias', 'medical_reference', { declaredAliases: ['Ясперс'] }),
+        document('title', 'medical_reference'),
+      ],
+    );
+
+    expect(ranked[0]?.documentId).toBe('title');
+  });
+
   it('does not promote generic legal titles above the requested health-group section', () => {
     const groups = [
       group('tuberculosis', 'Диспансерное наблюдение больных туберкулезом', 0.9),
