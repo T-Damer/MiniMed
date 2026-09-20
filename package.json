@@ -144,7 +144,8 @@
     "benchmark:lookup-quality": "bun run --filter @localmed/benchmarks benchmark:lookup-quality",
     "benchmark:clinical-quality": "bun run --filter @localmed/benchmarks benchmark:clinical-quality",
     "benchmark:search-quality-v2": "bun run benchmark:lookup-quality && bun run benchmark:clinical-quality",
-    "benchmark:search-coverage-observations": "bun run --filter @localmed/benchmarks benchmark:search-coverage-observations"
+    "benchmark:search-coverage-observations": "bun run --filter @localmed/benchmarks benchmark:search-coverage-observations",
+    "benchmark:freeze-candidates": "bun run --filter @localmed/benchmarks benchmark:freeze-candidates"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
