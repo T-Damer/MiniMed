@@ -69,6 +69,31 @@ it('prefers several clinical clues in one passage over a single symptom in a tit
   expect(ranked[0]?.documentId).toBe('source');
 });
 
+it('ranks broader positive-finding coverage above a high-score single-symptom match', () => {
+  const query = 'кашель высокая температура боль в груди у ребенка';
+  const { analysis } = analyzeClinicalQuery(query, []);
+  const ranked = rankSearchGroupsByQuery(
+    [
+      group('single', 'Кашель', 100, [
+        result('single', 'Кашель', 'Отмечается кашель.', ['кашель']),
+      ]),
+      group('multi', 'Клиническая картина', 0.1, [
+        result(
+          'multi',
+          'Клиническая картина',
+          'Боль в груди сочетается с высокой температурой и кашлем.',
+          ['кашель', 'температура', 'боль', 'груди'],
+        ),
+      ]),
+    ],
+    query,
+    [],
+    analysis,
+  );
+
+  expect(ranked[0]?.documentId).toBe('multi');
+});
+
 it('does not promote plant medicines for a chest pain query', () => {
   const ranked = rankSearchGroupsByQuery(
     [group('plant', 'ПОДОРОЖНИКА БОЛЬШОГО ЛИСТЬЯ', 0.9), group('clinical', 'Боль в груди', 1.1)],
@@ -402,16 +427,33 @@ describe('query-aware group ranking', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['drug', 'pneumonia']);
   });
 
-  it('does not promote a failed prior medication over the condition card', () => {
+  it.each([
+    'чем лечить пневмонию у ребенка если амоксициллин не помог',
+    'ребенок получает амоксициллин второй день, улучшения нет — что пересмотреть',
+    'нет эффекта от амоксициллина у ребенка с кашлем и высокой температурой',
+    'улучшения нет на амоксициллине, что пересмотреть',
+  ])('does not promote a failed prior medication over the condition card: %s', (query) => {
     const ranked = rankSearchGroupsByQuery(
       [
         group('drug', 'Амоксициллин — таблетки 500 мг', 0.37),
         group('pneumonia', 'Внебольничная пневмония у детей', 0.84),
       ],
-      'чем лечить пневмонию у ребенка если амоксициллин не помог',
+      query,
     );
 
     expect(ranked.map((item) => item.documentId)).toEqual(['pneumonia', 'drug']);
+  });
+
+  it('does not classify a medication that helped as failed prior treatment', () => {
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('drug', 'Амоксициллин — таблетки 500 мг', 0.37),
+        group('pneumonia', 'Внебольничная пневмония у детей', 0.84),
+      ],
+      'амоксициллин помог ребенку, как продолжить лечение',
+    );
+
+    expect(ranked[0]?.documentId).toBe('drug');
   });
 
   it('recognizes compact and hyphenated document numbers as the same reference', () => {
