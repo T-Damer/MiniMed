@@ -801,3 +801,36 @@ def test_cds_dehydration_assessment_preserves_source_interpretation() -> None:
     boundary = cast(dict[str, object], data["clinicalBoundary"])
     assert boundary["fluidDeficitPercentDerived"] is False
     assert boundary["automaticRehydrationPrescription"] is False
+
+
+def test_pediatric_assessment_triangle_preserves_source_pattern_gap() -> None:
+    data = _load("pediatric-assessment-triangle-kr25_3-2026.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["semanticClass"] == "categorical_triage_assessment"
+
+    domains = cast(list[dict[str, object]], data["domains"])
+    assert [domain["id"] for domain in domains] == [
+        "appearance",
+        "breathing",
+        "skin_circulation",
+    ]
+
+    patterns = cast(list[dict[str, object]], data["patternInterpretations"])
+    assert len(patterns) == 7
+    pattern_keys = {
+        tuple(str(value) for value in cast(list[object], item["pattern"])) for item in patterns
+    }
+    assert ("normal", "normal", "normal") in pattern_keys
+    assert ("pathological", "pathological", "pathological") in pattern_keys
+    assert ("pathological", "pathological", "normal") not in pattern_keys
+
+    gap = cast(dict[str, object], data["sourcePatternGap"])
+    assert _int(gap["allBinaryPatternCount"]) == 8
+    assert _int(gap["explicitlyInterpretedPatternCount"]) == 7
+    assert gap["missingPattern"] == ["pathological", "pathological", "normal"]
+    assert gap["handling"] == "no_interpretation_invented"
+
+    assert data["patternToTriageLevelMapping"] is None
+    levels = cast(list[dict[str, object]], data["triageLevelGuidance"])
+    assert [item["levels"] for item in levels] == [[1, 2], [3], [4], [5]]
