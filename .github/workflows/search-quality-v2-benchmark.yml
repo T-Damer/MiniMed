@@ -36,6 +36,7 @@ on:
       - tools/benchmarks/src/legacy-training-mask.test.ts
       - tools/benchmarks/src/run-linear-reranker-baseline.ts
       - tools/benchmarks/src/run-frozen-embedding-baseline.ts
+      - tools/benchmarks/src/summarize-reranker-ablation.ts
       - tools/benchmarks/src/frozen-embedding-baseline.test.ts
       - tools/benchmarks/src/frozen-embedding-baseline.ts
   workflow_dispatch:
@@ -133,14 +134,22 @@ jobs:
             reranker_exit="${PIPESTATUS[0]}"
             bun run benchmark:embedding-baseline 2>&1 | tee data/build/search-quality-v2-embedding.log
             embedding_exit="${PIPESTATUS[0]}"
+            if [[ "$reranker_exit" == "0" && "$embedding_exit" == "0" ]]; then
+              bun run benchmark:reranker-summary 2>&1 | tee data/build/search-quality-v2-reranker-summary.log
+              summary_exit="${PIPESTATUS[0]}"
+            else
+              summary_exit=1
+            fi
           else
             reranker_exit=1
             embedding_exit=1
+            summary_exit=1
           fi
           echo "$train_exit" > data/build/search-quality-v2-freeze-training.exit
           echo "$test_exit" > data/build/search-quality-v2-freeze-test.exit
           echo "$reranker_exit" > data/build/search-quality-v2-linear.exit
           echo "$embedding_exit" > data/build/search-quality-v2-embedding.exit
+          echo "$summary_exit" > data/build/search-quality-v2-reranker-summary.exit
 
       - name: Print compact benchmark summary
         if: always()
@@ -213,6 +222,28 @@ jobs:
               print("test embedding:", json.dumps(embedding.get("test", {}).get("embedding", {}), ensure_ascii=False, indent=2))
               print("deltas:", json.dumps(embedding.get("test", {}).get("deltas", {}), ensure_ascii=False, indent=2))
               print("runtime:", json.dumps(embedding.get("runtime", {}), ensure_ascii=False, indent=2))
+          else:
+              print("report missing")
+
+          ablation_path = build / "search-quality-reranker-ablation-summary.json"
+          print("\n=== RERANKER ABLATION CHANGES ===")
+          if ablation_path.exists():
+              ablation = json.loads(ablation_path.read_text())
+              print("frozen sha256:", ablation.get("frozenCandidateSha256"))
+              print("linear:", json.dumps({
+                  k: ablation.get("linear", {}).get(k)
+                  for k in ("fixed", "regressed", "improved", "worsened", "netBestGradeFixes")
+              }, ensure_ascii=False, indent=2))
+              print("embedding:", json.dumps({
+                  k: ablation.get("embedding", {}).get(k)
+                  for k in ("fixed", "regressed", "improved", "worsened", "netBestGradeFixes")
+              }, ensure_ascii=False, indent=2))
+              print("linear changed:", json.dumps(
+                  ablation.get("linear", {}).get("changed", []), ensure_ascii=False, indent=2
+              ))
+              print("embedding changed:", json.dumps(
+                  ablation.get("embedding", {}).get("changed", []), ensure_ascii=False, indent=2
+              ))
           else:
               print("report missing")
           PY
