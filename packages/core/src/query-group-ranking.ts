@@ -254,7 +254,9 @@ function isFailedQueryTerm(query: string, term: string): boolean {
   const after = normalizedQuery.slice(termIndex + term.length, termIndex + term.length + 96);
 
   const directAfter =
-    /^\s*(?:не\s+)?(?:помог|сработ|подейств|эффектив|перенос)/u.test(after) ||
+    /^\s*(?:не\s+(?:помог\p{L}*|сработ\p{L}*|подейств\p{L}*|перенос\p{L}*)|неэффектив\p{L}*)/u.test(
+      after,
+    ) ||
     /^\s*(?:оказал|дал)\p{L}*\s+(?:недостаточн\p{L}*|нулев\p{L}*)\s+эффект/u.test(after);
   const failureAfter =
     /(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*|не\s+наблюда\p{L}*)/u.test(
@@ -263,6 +265,9 @@ function isFailedQueryTerm(query: string, term: string): boolean {
     /(?:ухудш\p{L}*|без\s+улучшен\p{L}*|неэффектив\p{L}*)/u.test(after);
   const failureBefore =
     /(?:нет|без|отсутств\p{L}*)\s+(?:клиническ\p{L}*\s+)?(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:от|на|после)\s*$/u.test(
+      before,
+    ) ||
+    /(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*)\s+(?:от|на|после)\s*$/u.test(
       before,
     ) ||
     /(?:неэффектив\p{L}*|безрезультат\p{L}*)\s+(?:лечени\p{L}*\s+)?(?:от|на)?\s*$/u.test(
