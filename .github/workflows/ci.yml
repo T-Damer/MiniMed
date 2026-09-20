@@ -32,7 +32,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.0"
-          enable-cache: true
+          enable-cache: false
       - run: uv sync --project tools/ingest --all-groups --locked
       - run: uv run --project tools/ingest medbase lint --input content/fixtures
       - run: uv run --project tools/ingest medbase lint --input content/regulatory-rf-pilot
@@ -58,3 +58,91 @@ jobs:
           --output data/build/reference-rf-pilot.db
           --report data/build/reference-rf-pilot-report.json
       - run: git diff --exit-code -- packages/test-fixtures/src/generated/core-demo.json
+
+
+  search-quality-v2:
+    if: ${{ github.event_name == 'pull_request' && github.head_ref == 'experiment/system-one-search-benchmark' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.0"
+          enable-cache: false
+      - name: Install locked dependencies
+        run: |
+          bun install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+      - name: Restore core and build public pilot
+        run: |
+          bun run content:restore:core
+          bun run content:lint:pilot
+          bun run content:build:pilot
+      - name: Search benchmark regression tests
+        run: >-
+          bunx vitest run
+          packages/core/src/query-group-ranking.test.ts
+          packages/core/src/query-document-index.test.ts
+          packages/core/tests/core.test.ts
+          tools/benchmarks/src/legacy-training-mask.test.ts
+          tools/benchmarks/src/linear-reranker-baseline.test.ts
+          tools/benchmarks/src/lookup-quality-cases.test.ts
+          tools/benchmarks/src/search-quality-dataset.test.ts
+      - name: Exhaustive exact-identity lookup gate
+        run: >-
+          bun run --filter @localmed/benchmarks benchmark:lookup-quality --
+          --max=0
+          --core=apps/app/public/content/core.db
+          --report=data/build/search-quality-v2-lookup.json
+      - name: Freeze candidates and run linear reranker ablation
+        run: |
+          bun run benchmark:freeze-training --             --core=data/build/rf-public-pilot.db             --mode=hybrid             --limit=40
+          bun run benchmark:freeze-candidates --             --core=data/build/rf-public-pilot.db             --mode=hybrid             --limit=40
+          bun run benchmark:linear-reranker
+      - name: Print storage-free search summary
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          build = Path("data/build")
+          lookup_path = build / "search-quality-v2-lookup.json"
+          linear_path = build / "search-quality-linear-reranker-report.json"
+
+          print("=== LOOKUP ===")
+          if lookup_path.exists():
+              lookup = json.loads(lookup_path.read_text())
+              print(json.dumps({
+                  "eligibleSurfaceCount": lookup.get("eligibleSurfaceCount"),
+                  "metrics": lookup.get("metrics"),
+                  "identityAudit": lookup.get("identityAudit"),
+                  "failures": lookup.get("failures", [])[:10],
+              }, ensure_ascii=False, indent=2))
+          else:
+              print("lookup report missing")
+
+          print("=== LINEAR RERANKER ===")
+          if linear_path.exists():
+              linear = json.loads(linear_path.read_text())
+              print(json.dumps({
+                  "train": linear.get("train"),
+                  "test": linear.get("test"),
+                  "weights": linear.get("model", {}).get("weightsByFeature"),
+                  "runtime": linear.get("runtime"),
+                  "abstention": linear.get("abstention"),
+              }, ensure_ascii=False, indent=2))
+          else:
+              print("linear report missing")
+          PY
+          {
+            echo "### Search-quality v2"
+            echo
+            echo "No Actions artifacts or caches are uploaded by this job."
+            echo "Benchmark reports remain ephemeral; metrics are printed in the job log."
+          } >> "$GITHUB_STEP_SUMMARY"
