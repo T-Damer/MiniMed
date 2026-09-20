@@ -6,8 +6,10 @@ export interface FrozenCandidateRow {
   readonly origin: string;
   readonly family: string;
   readonly goal: string;
+  readonly answerability: string;
   readonly analysis: {
     readonly primaryIntent: string | null;
+    readonly secondaryIntents: readonly string[];
     readonly intentConfidence: number;
     readonly needsClarification: boolean;
     readonly ageFacts: readonly string[];
@@ -17,8 +19,11 @@ export interface FrozenCandidateRow {
     readonly negativeFindings: readonly string[];
     readonly currentMedicineCount: number;
     readonly currentMedicines: readonly string[];
+    readonly branchKinds: readonly string[];
   };
   readonly retrieval: {
+    readonly requestedMode: string;
+    readonly modeUsed: string;
     readonly originalRank: number;
     readonly groupBestScore: number;
     readonly maximumLexicalScore: number;
@@ -32,6 +37,7 @@ export interface FrozenCandidateRow {
     readonly coreCandidateCount: number;
     readonly semanticStatus: string;
     readonly semanticCandidateCount: number;
+    readonly sectionTypes: readonly string[];
     readonly topSectionType: string | null;
     readonly terminologyMatch: string | null;
     readonly exactTitle: boolean;
@@ -40,12 +46,18 @@ export interface FrozenCandidateRow {
   };
   readonly candidate: {
     readonly documentId: string;
+    readonly conceptId: string | null;
+    readonly canonicalName: string;
+    readonly shortTitle: string | null;
     readonly sourceType: string | null;
+    readonly navigationAliases: readonly string[];
+    readonly declaredAliases: readonly string[];
     readonly ageGroups: readonly string[];
     readonly evidence: string;
   };
   readonly label: {
     readonly relevanceGrade: number;
+    readonly expectedSectionTypes: readonly string[];
     readonly forbidden: boolean;
   };
 }
@@ -172,10 +184,15 @@ export function parseFrozenCandidate(
     origin: stringValue(row.origin, `${label}.origin`),
     family: stringValue(row.family, `${label}.family`),
     goal: stringValue(row.goal, `${label}.goal`),
+    answerability: stringValue(row.answerability, `${label}.answerability`),
     analysis: {
       primaryIntent: nullableString(
         analysis.primaryIntent,
         `${label}.analysis.primaryIntent`,
+      ),
+      secondaryIntents: stringArray(
+        analysis.secondaryIntents,
+        `${label}.analysis.secondaryIntents`,
       ),
       intentConfidence: numberValue(
         analysis.intentConfidence,
@@ -210,8 +227,11 @@ export function parseFrozenCandidate(
         analysis.currentMedicines,
         `${label}.analysis.currentMedicines`,
       ),
+      branchKinds: stringArray(analysis.branchKinds, `${label}.analysis.branchKinds`),
     },
     retrieval: {
+      requestedMode: stringValue(retrieval.requestedMode, `${label}.retrieval.requestedMode`),
+      modeUsed: stringValue(retrieval.modeUsed, `${label}.retrieval.modeUsed`),
       originalRank,
       groupBestScore: numberValue(
         retrieval.groupBestScore,
@@ -255,6 +275,7 @@ export function parseFrozenCandidate(
         retrieval.semanticCandidateCount,
         `${label}.retrieval.semanticCandidateCount`,
       ),
+      sectionTypes: stringArray(retrieval.sectionTypes, `${label}.retrieval.sectionTypes`),
       topSectionType: nullableString(
         retrieval.topSectionType,
         `${label}.retrieval.topSectionType`,
@@ -275,12 +296,27 @@ export function parseFrozenCandidate(
     },
     candidate: {
       documentId: stringValue(candidate.documentId, `${label}.candidate.documentId`),
+      conceptId: nullableString(candidate.conceptId, `${label}.candidate.conceptId`),
+      canonicalName: stringValue(candidate.canonicalName, `${label}.candidate.canonicalName`),
+      shortTitle: nullableString(candidate.shortTitle, `${label}.candidate.shortTitle`),
       sourceType: nullableString(candidate.sourceType, `${label}.candidate.sourceType`),
+      navigationAliases: stringArray(
+        candidate.navigationAliases,
+        `${label}.candidate.navigationAliases`,
+      ),
+      declaredAliases: stringArray(
+        candidate.declaredAliases,
+        `${label}.candidate.declaredAliases`,
+      ),
       ageGroups: stringArray(candidate.ageGroups, `${label}.candidate.ageGroups`),
       evidence: stringValue(candidate.evidence, `${label}.candidate.evidence`),
     },
     label: {
       relevanceGrade,
+      expectedSectionTypes: stringArray(
+        relevance.expectedSectionTypes,
+        `${label}.label.expectedSectionTypes`,
+      ),
       forbidden: booleanValue(relevance.forbidden, `${label}.label.forbidden`),
     },
   };
