@@ -1,0 +1,59 @@
+name: Search formatting repair (temporary)
+
+on:
+  pull_request:
+    branches: [agent/concept-first-knowledge-search]
+    paths: [.github/workflows/search-format-repair.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  repair:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'experiment/system-one-search-benchmark'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+      - name: Install locked dependencies without provider credentials
+        run: env -i HOME="$HOME" PATH="$PATH" CI=true bun install --frozen-lockfile
+      - name: Format only the search and benchmark slice
+        run: |
+          env -i HOME="$HOME" PATH="$PATH" CI=true bunx biome check --write --linter-enabled=false \
+            apps/app/src/features/search \
+            packages/core/src/query-document-index.test.ts \
+            packages/core/src/query-group-ranking.ts \
+            packages/core/src/query-group-ranking.test.ts \
+            packages/core/src/create-medical-core.ts \
+            packages/core/tests/core.test.ts \
+            packages/search-lexical/src/intent.ts \
+            packages/search-lexical/src/symptom-expressions.ru.json \
+            packages/search-lexical/tests/query-context.test.ts \
+            packages/search-lexical/tests/query-intent.test.ts \
+            tools/benchmarks
+          git diff --stat
+      - name: Commit formatting with a fast-forward-only branch update
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          branch=experiment/system-one-search-benchmark
+          if git diff --quiet; then exit 0; fi
+          git add apps/app/src/features/search packages/core packages/search-lexical tools/benchmarks
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'style(search): apply pinned Biome formatting and import order'
+          header="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+          remote_sha=$(git -c "http.https://github.com/.extraheader=$header" ls-remote origin "refs/heads/$branch" | cut -f1)
+          test "$remote_sha" = "$EXPECTED_SHA"
+          git -c "http.https://github.com/.extraheader=$header" push origin "HEAD:refs/heads/$branch"
+          echo "Formatted revision: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
