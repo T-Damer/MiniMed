@@ -193,6 +193,17 @@
   2) все критерии = 0 → суммарный балл 0 → 24 недели; 3) все критерии = 5 (где допустимо) → суммарный балл 60 (ограничен до 50) → 44 недели.
 - **Silverman–Andersen** — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.assessment.silverman-andersen-respiratory-distress`), источник: `https://newbornwhocc.org/pdf/Approach-to-Respiratory-Distress-in-the-Newborn.pdf`, таблица 14.2; популяция: новорожденные с признаками респираторного дистресса; ограничения: не заменяет пульсоксиметрию, газовый анализ, рентген и решение о респираторной поддержке; клинический контекст — приказ № 222н. Проверки: `0,0,0,0,0,0` → 0 (лёгкий), `2,2,2,2,2,2` → 10 (тяжёлый), `0,1,2,2,1,1` → 7 (тяжёлый диапазон).
 - **Downes–Vidyasagar** — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.assessment.downes-vidyasagar-respiratory-distress`), источник: `https://newbornwhocc.org/pdf/Respiratory_System_2019.pdf`, Table 15.4 (раздел Respiratory Distress, Section 15, 5 компонентов); популяция: новорожденные с признаками острого респираторного дистресса; ограничения: не заменяет ABG, пульсоксиметрию, рентген и решение о респираторной поддержке; клинический контекст — приказ № 222н; проверки: `0,0,0,0,0` → 0 (лёгкая), `2,2,2,2,2` → 10 (тяжёлый), `1,1,1,1,1` → 5 (умеренный).
+- **nSOFA** — 🧪 source-extracted 2026-09-20 из текущей КР «Сепсис новорожденных»
+  (2025, ID 912_1), приложение Г1:
+  `docs/research/data/nsofa-assessment-kr912_1-2025.json`. Сохранены respiratory /
+  cardiovascular / hematologic rules, ежедневная оценка по худшему значению за сутки и диапазон
+  0–15; выдуманные low/moderate/high пороги не добавлены. Runtime blocked до review validation
+  population/прав/UX. NEOMOD и modified NEOMOD остаются отдельными следующими assessment candidates.
+- **Среднее АД по ГВ/часам** — 🧪 source-extracted из приложения А3.8 той же КР:
+  `docs/research/data/neonatal-mean-arterial-pressure-kr912_1-2025.json`;
+  semantic class — `source_reference_table_not_treatment_threshold`, то есть таблица не превращается
+  автоматически в порог лечения гипотензии.
+
 - GIR — скорость введения глюкозы — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.calculator.neonatal-glucose-infusion-rate`), источник: Brigham and Women’s Hospital Neonatal Glucose Assessment and Clinical Management, PDF-стр. 4 (формула GIR), клинический контекст: приказ Минздрава РФ № 222н (неонатальная гипогликемия).
 - жидкость и энергия для новорождённого — 🧪 source-extracted 2026-09-20: текущая КР
   «Врожденная пневмония» (2025, ID 905_1), приложение А3.3, визуально сверена по PDF и
