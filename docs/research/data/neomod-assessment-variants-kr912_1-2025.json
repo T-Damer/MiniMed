@@ -1,0 +1,628 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.assessment.neomod-variants.ru.kr912_1.2025",
+  "title": "NEOMOD and modified NEOMOD source definitions — KR 912_1",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "assessment-source-review-required",
+  "verificationStatus": "current-kr-source-cell-extraction",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "assessment_definitions",
+  "source": {
+    "recommendationTitle": "Сепсис новорожденных",
+    "recommendationId": "912_1",
+    "recommendationYear": 2025,
+    "revisionDueNoLaterThan": 2027,
+    "urls": [
+      "https://sudact.ru/law/klinicheskie-rekomendatsii-sepsis-novorozhdennykh-odobreny-minzdravom-rossii/",
+      "https://www.consultant.ru/document/cons_doc_LAW_505687/"
+    ]
+  },
+  "application": {
+    "cadence": "daily_in_intensive_care",
+    "observationWindow": "worst_value_or_state_during_the_day",
+    "interpretation": "higher_score_indicates_greater_risk_of_adverse_course_and_death"
+  },
+  "variants": [
+    {
+      "id": "neomod-original",
+      "sourceAppendix": "Г2",
+      "validationPublication": "Janota J et al. Shock. 2001;15(5):348-352.",
+      "validationPopulation": "very_low_birth_weight_newborns",
+      "executableStatus": "reviewable-semantic-definition",
+      "systems": [
+        {
+          "id": "central_nervous_system",
+          "rules": [
+            {
+              "score": 2,
+              "semantic": "severe_structural_brain_injury",
+              "includes": [
+                "intraparenchymal_hemorrhage",
+                "hydrocephalus",
+                "leukomalacia",
+                "atrophy"
+              ]
+            },
+            {
+              "score": 1,
+              "semantic": "intraventricular_hemorrhage"
+            },
+            {
+              "score": 0,
+              "semantic": "subependymal_hemorrhage_only"
+            }
+          ],
+          "sourceGap": "absence_of_hemorrhage_not_explicitly_described_in_flattened_source_cell"
+        },
+        {
+          "id": "hemostasis",
+          "rules": [
+            {
+              "score": 2,
+              "semantic": "platelets_below_30",
+              "platelets10e9L": {
+                "operator": "<",
+                "value": 30
+              }
+            },
+            {
+              "score": 1,
+              "semantic": "platelets_30_to_100",
+              "platelets10e9L": {
+                "operator": "range_inclusive",
+                "min": 30,
+                "max": 100
+              }
+            },
+            {
+              "score": 0,
+              "semantic": "platelets_above_100",
+              "platelets10e9L": {
+                "operator": ">",
+                "value": 100
+              }
+            }
+          ]
+        },
+        {
+          "id": "respiratory",
+          "rules": [
+            {
+              "score": 2,
+              "semantic": "invasive_mechanical_ventilation"
+            },
+            {
+              "score": 1,
+              "semantic": "cpap_or_supplemental_oxygen",
+              "fio2": {
+                "operator": ">",
+                "value": 0.21
+              },
+              "targetSaturationPercent": "88-95"
+            },
+            {
+              "score": 0,
+              "semantic": "spontaneous_breathing_without_respiratory_support"
+            }
+          ]
+        },
+        {
+          "id": "gastrointestinal",
+          "rules": [
+            {
+              "score": 2,
+              "semantic": "necrotizing_enterocolitis_or_bowel_perforation"
+            },
+            {
+              "score": 1,
+              "semantic": "total_parenteral_nutrition"
+            },
+            {
+              "score": 0,
+              "semantic": "enteral_or_combined_enteral_parenteral_feeding"
+            }
+          ]
+        },
+        {
+          "id": "cardiovascular",
+          "rules": [
+            {
+              "score": 2,
+              "semantic": "persistent_hypotension_despite_pharmacologic_therapy"
+            },
+            {
+              "score": 1,
+              "semantic": "blood_pressure_normalized_with_inotropic_support"
+            },
+            {
+              "score": 0,
+              "semantic": "blood_pressure_within_normal_values"
+            }
+          ]
+        },
+        {
+          "id": "urinary",
+          "rules": [
+            {
+              "score": 2,
+              "semantic": "severe_oliguria_or_renal_replacement",
+              "urineOutputMlKgHour": {
+                "operator": "<",
+                "value": 0.2
+              },
+              "alternativeStates": [
+                "peritoneal_dialysis",
+                "hemodialysis",
+                "hemosorption"
+              ]
+            },
+            {
+              "score": 1,
+              "semantic": "oliguria",
+              "urineOutputMlKgHour": {
+                "operator": "range_inclusive",
+                "min": 0.2,
+                "max": 1
+              }
+            },
+            {
+              "score": 0,
+              "semantic": "urine_output_above_1",
+              "urineOutputMlKgHour": {
+                "operator": ">",
+                "value": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "acid_base",
+          "rules": [
+            {
+              "score": 2,
+              "semantic": "base_deficit_above_15",
+              "baseDeficitMeqL": {
+                "operator": ">",
+                "value": 15
+              }
+            },
+            {
+              "score": 1,
+              "semantic": "base_deficit_7_to_15",
+              "baseDeficitMeqL": {
+                "operator": "range_inclusive",
+                "min": 7,
+                "max": 15
+              }
+            },
+            {
+              "score": 0,
+              "semantic": "base_deficit_below_7",
+              "baseDeficitMeqL": {
+                "operator": "<",
+                "value": 7
+              }
+            }
+          ]
+        }
+      ],
+      "scoreRange": {
+        "min": 0,
+        "max": 14
+      },
+      "interpretation": "higher_score_indicates_greater_risk_of_adverse_course_and_death",
+      "categoricalCutoffs": null
+    },
+    {
+      "id": "neomod-modified",
+      "sourceAppendix": "Г3",
+      "validationPublication": "Cetinkaya M, Koksal N, Ozkan H. Am J Crit Care. 2012;21(5):328-337.",
+      "validationPopulation": "premature_infants",
+      "executableStatus": "blocked-combination-logic-review-required",
+      "systems": [
+        {
+          "id": "central_nervous_system",
+          "cells": [
+            {
+              "score": 2,
+              "sourceCriteriaConcepts": [
+                "intraparenchymal_hemorrhage",
+                "hydrocephalus",
+                "leukomalacia",
+                "cerebral_atrophy"
+              ],
+              "structuredFields": {},
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 1,
+              "sourceCriteriaConcepts": [
+                "intraventricular_hemorrhage"
+              ],
+              "structuredFields": {},
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 0,
+              "sourceCriteriaConcepts": [
+                "no_hemorrhage",
+                "subependymal_germinal_matrix_hemorrhage"
+              ],
+              "structuredFields": {},
+              "combinationLogic": "requires_pdf_visual_review"
+            }
+          ]
+        },
+        {
+          "id": "hemostasis",
+          "cells": [
+            {
+              "score": 2,
+              "sourceCriteriaConcepts": [
+                "platelets_below_30",
+                "leukocytes_below_3"
+              ],
+              "structuredFields": {
+                "platelets10e9L": {
+                  "operator": "<",
+                  "value": 30
+                },
+                "leukocytes10e9L": {
+                  "operator": "<",
+                  "value": 3
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 1,
+              "sourceCriteriaConcepts": [
+                "platelets_30_to_100",
+                "leukocytes_3_to_5"
+              ],
+              "structuredFields": {
+                "platelets10e9L": {
+                  "operator": "range_inclusive",
+                  "min": 30,
+                  "max": 100
+                },
+                "leukocytes10e9L": {
+                  "operator": "range_inclusive",
+                  "min": 3,
+                  "max": 5
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 0,
+              "sourceCriteriaConcepts": [
+                "platelets_above_100",
+                "leukocytes_above_5"
+              ],
+              "structuredFields": {
+                "platelets10e9L": {
+                  "operator": ">",
+                  "value": 100
+                },
+                "leukocytes10e9L": {
+                  "operator": ">",
+                  "value": 5
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            }
+          ]
+        },
+        {
+          "id": "respiratory",
+          "cells": [
+            {
+              "score": 2,
+              "sourceCriteriaConcepts": [
+                "invasive_mechanical_ventilation"
+              ],
+              "structuredFields": {},
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 1,
+              "sourceCriteriaConcepts": [
+                "cpap_or_fio2_above_0_21"
+              ],
+              "structuredFields": {
+                "fio2": {
+                  "operator": ">",
+                  "value": 0.21
+                },
+                "targetSaturationPercent": "88-95"
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 0,
+              "sourceCriteriaConcepts": [
+                "spontaneous_breathing_without_support"
+              ],
+              "structuredFields": {},
+              "combinationLogic": "requires_pdf_visual_review"
+            }
+          ]
+        },
+        {
+          "id": "cardiovascular",
+          "cells": [
+            {
+              "score": 2,
+              "sourceCriteriaConcepts": [
+                "hypotension_despite_pharmacologic_support",
+                "heart_rate_above_180_or_below_100"
+              ],
+              "structuredFields": {
+                "heartRatePerMin": {
+                  "outsideInclusiveRange": {
+                    "min": 100,
+                    "max": 180
+                  }
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 1,
+              "sourceCriteriaConcepts": [
+                "blood_pressure_normalized_with_inotropic_support"
+              ],
+              "structuredFields": {},
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 0,
+              "sourceCriteriaConcepts": [
+                "normal_blood_pressure",
+                "heart_rate_100_to_180"
+              ],
+              "structuredFields": {
+                "heartRatePerMin": {
+                  "operator": "range_inclusive",
+                  "min": 100,
+                  "max": 180
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            }
+          ]
+        },
+        {
+          "id": "urinary",
+          "cells": [
+            {
+              "score": 2,
+              "sourceCriteriaConcepts": [
+                "urine_output_below_0_2",
+                "creatinine_above_2"
+              ],
+              "structuredFields": {
+                "urineOutputMlKgHour": {
+                  "operator": "<",
+                  "value": 0.2
+                },
+                "creatinineMgDl": {
+                  "operator": ">",
+                  "value": 2
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 1,
+              "sourceCriteriaConcepts": [
+                "urine_output_0_2_to_1",
+                "creatinine_1_to_2"
+              ],
+              "structuredFields": {
+                "urineOutputMlKgHour": {
+                  "operator": "range_inclusive",
+                  "min": 0.2,
+                  "max": 1
+                },
+                "creatinineMgDl": {
+                  "operator": "range_inclusive",
+                  "min": 1,
+                  "max": 2
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 0,
+              "sourceCriteriaConcepts": [
+                "urine_output_above_1",
+                "creatinine_below_1"
+              ],
+              "structuredFields": {
+                "urineOutputMlKgHour": {
+                  "operator": ">",
+                  "value": 1
+                },
+                "creatinineMgDl": {
+                  "operator": "<",
+                  "value": 1
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            }
+          ]
+        },
+        {
+          "id": "gastrointestinal",
+          "cells": [
+            {
+              "score": 2,
+              "sourceCriteriaConcepts": [
+                "necrotizing_enterocolitis_or_perforation",
+                "bilirubin_above_102_6",
+                "alt_at_least_2x_upper_normal"
+              ],
+              "structuredFields": {
+                "totalBilirubinUmolL": {
+                  "operator": ">",
+                  "value": 102.6
+                },
+                "altMultipleUpperNormal": {
+                  "operator": ">=",
+                  "value": 2
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 1,
+              "sourceCriteriaConcepts": [
+                "total_parenteral_nutrition",
+                "bilirubin_68_4_to_102_6",
+                "alt_below_2x_upper_normal"
+              ],
+              "structuredFields": {
+                "totalBilirubinUmolL": {
+                  "operator": "range_inclusive",
+                  "min": 68.4,
+                  "max": 102.6
+                },
+                "altMultipleUpperNormal": {
+                  "operator": "<",
+                  "value": 2
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 0,
+              "sourceCriteriaConcepts": [
+                "enteral_feeding",
+                "bilirubin_below_68_4",
+                "alt_within_normal"
+              ],
+              "structuredFields": {
+                "totalBilirubinUmolL": {
+                  "operator": "<",
+                  "value": 68.4
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            }
+          ]
+        },
+        {
+          "id": "acid_base",
+          "cells": [
+            {
+              "score": 2,
+              "sourceCriteriaConcepts": [
+                "base_deficit_above_15"
+              ],
+              "structuredFields": {
+                "baseDeficitMeqL": {
+                  "operator": ">",
+                  "value": 15
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 1,
+              "sourceCriteriaConcepts": [
+                "base_deficit_7_to_15"
+              ],
+              "structuredFields": {
+                "baseDeficitMeqL": {
+                  "operator": "range_inclusive",
+                  "min": 7,
+                  "max": 15
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 0,
+              "sourceCriteriaConcepts": [
+                "base_deficit_below_7"
+              ],
+              "structuredFields": {
+                "baseDeficitMeqL": {
+                  "operator": "<",
+                  "value": 7
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            }
+          ]
+        },
+        {
+          "id": "microcirculation",
+          "cells": [
+            {
+              "score": 2,
+              "sourceCriteriaConcepts": [
+                "generalized_edema",
+                "albumin_below_25"
+              ],
+              "structuredFields": {
+                "albuminGL": {
+                  "operator": "<",
+                  "value": 25
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 1,
+              "sourceCriteriaConcepts": [
+                "subcutaneous_edema",
+                "albumin_25_to_30"
+              ],
+              "structuredFields": {
+                "albuminGL": {
+                  "operator": "range_inclusive",
+                  "min": 25,
+                  "max": 30
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            },
+            {
+              "score": 0,
+              "sourceCriteriaConcepts": [
+                "no_edema",
+                "albumin_above_39"
+              ],
+              "structuredFields": {
+                "albuminGL": {
+                  "operator": ">",
+                  "value": 39
+                }
+              },
+              "combinationLogic": "requires_pdf_visual_review"
+            }
+          ],
+          "sourceGap": "flattened_source_leaves_albumin_30_to_39_without_an_explicit_cell"
+        }
+      ],
+      "scoreRange": {
+        "min": 0,
+        "max": 16
+      },
+      "interpretation": "higher_score_indicates_greater_risk_of_adverse_course_and_death",
+      "categoricalCutoffs": null
+    }
+  ],
+  "reviewNotes": [
+    "Original NEOMOD and modified NEOMOD are separate validated variants and must not be represented as aliases with identical scoring.",
+    "The original seven-system source table is semantically structured but still remains unpublished/review-only.",
+    "Modified NEOMOD source cells frequently list multiple findings in the same score cell; flattened HTML does not prove whether the intended combination logic is AND, OR, or another rule.",
+    "Modified NEOMOD therefore remains non-executable until the original PDF/publication is visually reviewed.",
+    "The modified microcirculation row visibly leaves an albumin interval between 30 and 39 g/L without an explicit score in the flattened source; MiniMed does not fill that gap.",
+    "No low/moderate/high total-score categories are added."
+  ]
+}
