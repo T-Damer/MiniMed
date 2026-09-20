@@ -29,8 +29,11 @@ function row(
       needsClarification: false,
       ageFacts: ['6 лет'],
       positiveFindingCount: 2,
+      positiveFindings: ['кашель', 'лихорадка'],
       negativeFindingCount: 0,
+      negativeFindings: [],
       currentMedicineCount: 1,
+      currentMedicines: ['амоксициллин'],
     },
     retrieval: {
       originalRank,
@@ -41,6 +44,11 @@ function row(
       resultCount: 1,
       matchedTermCount: 2,
       matchedBranchCount: 1,
+      matchedTerms: ['кашель', 'лихорадка'],
+      matchedBranches: ['clinical'],
+      coreCandidateCount: 2,
+      semanticStatus: 'disabled',
+      semanticCandidateCount: 0,
       topSectionType,
       terminologyMatch: null,
       exactTitle: false,
@@ -50,6 +58,8 @@ function row(
     candidate: {
       documentId,
       sourceType: 'clinical_recommendation',
+      ageGroups: ['children'],
+      evidence: 'Кашель и лихорадка у ребенка.',
     },
     label: {
       relevanceGrade,
