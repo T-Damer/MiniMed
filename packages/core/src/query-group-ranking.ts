@@ -245,47 +245,97 @@ function isTitleQueryTerm(term: string): boolean {
   return term.length >= 3 && !TITLE_CONTEXT_STEMS.has(stemToken(term));
 }
 
-function isFailedQueryTerm(query: string, term: string): boolean {
+function hasImmediateFailureContext(query: string, term: string): boolean {
   const normalizedQuery = normalizeSurfaceText(query);
-  const termIndex = normalizedQuery.indexOf(term);
-  if (termIndex < 0) return false;
+  const normalizedTerm = normalizeSurfaceText(term);
+  if (!normalizedTerm) return false;
 
-  const before = normalizedQuery.slice(Math.max(0, termIndex - 96), termIndex);
-  const after = normalizedQuery.slice(termIndex + term.length, termIndex + term.length + 96);
+  let searchFrom = 0;
+  while (searchFrom < normalizedQuery.length) {
+    const termIndex = normalizedQuery.indexOf(normalizedTerm, searchFrom);
+    if (termIndex < 0) return false;
 
-  const directAfter =
-    /^\s*(?:не\s+(?:помог\p{L}*|сработ\p{L}*|подейств\p{L}*|перенос\p{L}*)|неэффектив\p{L}*)/u.test(
-      after,
-    ) ||
-    /^\s*(?:оказал|дал)\p{L}*\s+(?:недостаточн\p{L}*|нулев\p{L}*)\s+эффект/u.test(after);
-  const failureAfter =
-    /(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*|не\s+наблюда\p{L}*)/u.test(
-      after,
-    ) ||
-    /(?:ухудш\p{L}*|без\s+улучшен\p{L}*|неэффектив\p{L}*)/u.test(after);
-  const failureBefore =
-    /(?:нет|без|отсутств\p{L}*)\s+(?:клиническ\p{L}*\s+)?(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:от|на|после)\s*$/u.test(
-      before,
-    ) ||
-    /(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*)\s+(?:от|на|после)\s*$/u.test(
-      before,
-    ) ||
-    /(?:неэффектив\p{L}*|безрезультат\p{L}*)\s+(?:лечени\p{L}*\s+)?(?:от|на)?\s*$/u.test(
-      before,
+    const before = normalizedQuery.slice(Math.max(0, termIndex - 72), termIndex);
+    const after = normalizedQuery.slice(
+      termIndex + normalizedTerm.length,
+      termIndex + normalizedTerm.length + 72,
     );
+    const directAfter =
+      /^\s*(?:не\s+(?:помог\p{L}*|сработ\p{L}*|подейств\p{L}*|перенос\p{L}*)|неэффектив\p{L}*)/u.test(
+        after,
+      );
+    const directBefore =
+      /(?:нет|без|отсутств\p{L}*)\s+(?:клиническ\p{L}*\s+)?(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:от|на|после)\s*$/u.test(
+        before,
+      ) ||
+      /(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*)\s+(?:от|на|после)\s*$/u.test(
+        before,
+      );
 
-  return directAfter || failureAfter || failureBefore;
+    if (directAfter || directBefore) return true;
+    searchFrom = termIndex + normalizedTerm.length;
+  }
+  return false;
+}
+
+function hasDelayedMedicationFailureContext(query: string, medication: string): boolean {
+  if (hasImmediateFailureContext(query, medication)) return true;
+  const normalizedQuery = normalizeSurfaceText(query);
+  const normalizedMedication = normalizeSurfaceText(medication);
+  if (!normalizedMedication) return false;
+
+  let searchFrom = 0;
+  while (searchFrom < normalizedQuery.length) {
+    const termIndex = normalizedQuery.indexOf(normalizedMedication, searchFrom);
+    if (termIndex < 0) return false;
+    const after = normalizedQuery.slice(
+      termIndex + normalizedMedication.length,
+      termIndex + normalizedMedication.length + 112,
+    );
+    if (
+      /(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*|не\s+наблюда\p{L}*)/u.test(
+        after,
+      ) ||
+      /(?:ухудш\p{L}*|без\s+улучшен\p{L}*|неэффектив\p{L}*)/u.test(after)
+    ) {
+      return true;
+    }
+    searchFrom = termIndex + normalizedMedication.length;
+  }
+  return false;
+}
+
+function failedTreatmentStems(query: string, analysis?: QueryAnalysis): ReadonlySet<string> {
+  const failed = new Set<string>();
+  for (const fact of analysis?.clinicalContext?.currentMedicines ?? []) {
+    if (
+      !hasDelayedMedicationFailureContext(query, fact.value) &&
+      !hasDelayedMedicationFailureContext(query, fact.normalizedValue)
+    ) {
+      continue;
+    }
+    for (const term of tokenize(`${fact.value} ${fact.normalizedValue}`)) {
+      failed.add(stemToken(term));
+    }
+  }
+  return failed;
 }
 
 function titleTermBoost(
   query: string,
   title: string,
   candidateTerms: readonly ReadonlySet<string>[],
+  failedTreatmentTerms: ReadonlySet<string>,
 ): number {
   const queryTerms = [...new Set(tokenize(query).filter(isTitleQueryTerm))];
   const titleTerms = tokenize(title);
   return queryTerms.reduce((boost, queryTerm) => {
-    if (isFailedQueryTerm(query, queryTerm)) return boost;
+    if (
+      failedTreatmentTerms.has(stemToken(queryTerm)) ||
+      hasImmediateFailureContext(query, queryTerm)
+    ) {
+      return boost;
+    }
     const titleIndex = titleTerms.findIndex(
       (titleTerm) => !isFormOrStrengthToken(titleTerm) && tokensMatch(queryTerm, titleTerm),
     );
@@ -373,6 +423,7 @@ export function rankSearchGroupsByQuery(
   documents: readonly SearchDocumentDescriptor[] = [],
   analysis?: QueryAnalysis,
 ): readonly SearchResultGroup[] {
+  const failedTreatmentTerms = failedTreatmentStems(query, analysis);
   const subjectSearch = searchSubjectText(query) !== normalizeSurfaceText(query);
   query = searchSubjectText(query);
   const namedMedication =
@@ -467,7 +518,7 @@ export function rankSearchGroupsByQuery(
         (documentsById.get(group.documentId)?.sourceType === 'regulatory_act_summary' ||
         documentsById.get(group.documentId)?.metadata?.['notLegalAdvice'] === true
           ? 0
-          : titleTermBoost(positiveQuery, group.title, candidateTerms)) +
+          : titleTermBoost(positiveQuery, group.title, candidateTerms, failedTreatmentTerms)) +
         exactTitleMatchBoost(positiveQuery, group.title) +
         (clinicalNarrative || !namedMedication
           ? 0
