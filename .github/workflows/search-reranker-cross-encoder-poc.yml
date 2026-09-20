@@ -40,6 +40,10 @@ jobs:
         run: |
           bun run content:lint:pilot
           bun run content:build:pilot
+          bun run benchmark:freeze-training -- \
+            --core=data/build/rf-public-pilot.db \
+            --mode=hybrid \
+            --limit=40
           bun run benchmark:freeze-candidates -- \
             --core=data/build/rf-public-pilot.db \
             --mode=hybrid \
@@ -68,6 +72,7 @@ jobs:
         run: |
           .venv-cross/bin/python tools/benchmarks/cross_encoder_frozen_poc.py \
             --input=data/build/search-quality-v2-frozen-candidates.jsonl \
+            --train=data/build/search-quality-linear-training-candidates.jsonl \
             --report=data/build/search-quality-cross-encoder-report.json \
             --model=ARGA100/ru-reranker-modernbert-small \
             --revision=8d4ea05d7c793bc812879ca18e7e310ac4cb228f \
@@ -90,9 +95,14 @@ jobs:
           print("frozen:", json.dumps(data.get("frozenCandidates", {}), ensure_ascii=False, indent=2))
           print("model:", json.dumps(data.get("model", {}), ensure_ascii=False, indent=2))
           print("original:", json.dumps(data.get("original", {}), ensure_ascii=False, indent=2))
+          print("calibration:", json.dumps(data.get("calibrationCandidates", {}), ensure_ascii=False, indent=2))
+          print("gate:", json.dumps(data.get("gate", {}), ensure_ascii=False, indent=2))
           print("crossEncoder:", json.dumps(data.get("crossEncoder", {}), ensure_ascii=False, indent=2))
+          print("gatedCrossEncoder:", json.dumps(data.get("gatedCrossEncoder", {}), ensure_ascii=False, indent=2))
           print("deltas:", json.dumps(data.get("deltas", {}), ensure_ascii=False, indent=2))
+          print("gatedDeltas:", json.dumps(data.get("gatedDeltas", {}), ensure_ascii=False, indent=2))
           print("top1Changes:", json.dumps(data.get("top1Changes", {}), ensure_ascii=False, indent=2))
+          print("gatedTop1Changes:", json.dumps(data.get("gatedTop1Changes", {}), ensure_ascii=False, indent=2))
           PY
 
       - name: Record storage-free summary
