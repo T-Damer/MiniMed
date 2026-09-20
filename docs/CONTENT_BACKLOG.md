@@ -151,9 +151,11 @@
   КР прямо задаёт 4 признака × 0–2 и категории 0 / 1–4 / 5–8; диапазон 5–8 сохранён как
   единая `moderate_or_severe` категория без выдуманного split point. Расчёт процента дефицита
   жидкости и продолжающихся потерь остаётся отдельным source contract.
-- PEWS — ⚠️ current KR ОРВИ 25_3/2026 ссылается на методику Коммунарки 2023, но не
-  воспроизводит каноническую scoring matrix; из-за множества PEWS-вариантов не подставлять
-  стороннюю шкалу. Нужен exact cited source/version;
+- PEWS — ⚠️ exact cited source resolved: методика Коммунарки/ДЗМ 2023, 23 с.,
+  `docs/research/data/pews-kommunarka-source-metadata-2023.json`. Пять age-specific форм,
+  domains и escalation workflow зафиксированы, но `scoringMatrix=null`,
+  `runtimeComputable=false`: методичка прямо ограничивает тиражирование/распространение без
+  разрешения. Не подставлять NHS/Brighton/Bedside PEWS под эту source identity;
 - **FLACC** — ✅ выполнено (2026-08-17): модуль `minimed.tools.pediatrics.ru`
   (`minimed.assessment.flacc-pain-scale`), источник: Merkel et al., PubMed 9220806; пять пунктов 0–2,
   сумма 0–10 без выдуманных порогов mild/moderate/severe. Проверки: все 0 → 0, все 2 → 10.
@@ -316,8 +318,9 @@
   `pathological/pathological/normal` не достраивается. Triage levels 1–5 в источнике идут
   отдельным пояснением, поэтому mapping PAT-pattern→level остаётся null до review source figure.
 
-- PEWS — ⚠️ current KR ОРВИ 25_3/2026 ссылается на exact методику Коммунарки 2023, но
-  scoring matrix в текущем тексте КР не воспроизводится; не подставлять другой PEWS-вариант.
+- PEWS — ⚠️ exact Коммунарка/ДЗМ 2023 source identified; metadata/age forms/domains/escalation
+  workflow сохранены в `docs/research/data/pews-kommunarka-source-metadata-2023.json`, но
+  complete scoring matrix не копируется из-за явного rights restriction; runtime blocked.
   Pediatric Trauma Score остаётся отдельным кандидатом;
 - Revised Trauma Score и Injury Severity Score;
 - **shock index** — ✅ выполнено (2026-08-17): модуль `minimed.tools.emergency.ru`
