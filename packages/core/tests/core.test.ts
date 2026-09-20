@@ -570,8 +570,10 @@ describe('MedicalCore', () => {
     expect(listSearchDocuments).toHaveBeenCalledTimes(4);
   });
 
-  it('injects an exact-title lookup candidate even when lexical retrieval drops it', async () => {
-    const exactTitle = 'D32.0 Оболочек головного мозга, МКБ-10';
+  it.each(['lookup', 'clinical'] as const)(
+    'injects an exact-title candidate when %s retrieval drops it',
+    async (analysisMode) => {
+      const exactTitle = 'D32.0 Оболочек головного мозга, МКБ-10';
     const seed = ContentPackSeedSchema.parse({
       manifest: {
         id: 'test.exact-identity-retention',
@@ -692,16 +694,17 @@ describe('MedicalCore', () => {
     const response = await core.search({
       query: exactTitle,
       mode: 'lexical',
-      analysisMode: 'lookup',
+      analysisMode,
       limit: 20,
     });
 
-    expect(response.ok).toBe(true);
-    if (!response.ok) return;
-    expect(response.value.groups[0]?.documentId).toBe('exact.d32');
-    expect(response.value.groups.some((group) => group.documentId === 'distractor.g96')).toBe(true);
-    expect(response.value.diagnostics.candidateCount).toBeGreaterThanOrEqual(2);
-  });
+      expect(response.ok).toBe(true);
+      if (!response.ok) return;
+      expect(response.value.groups[0]?.documentId).toBe('exact.d32');
+      expect(response.value.groups.some((group) => group.documentId === 'distractor.g96')).toBe(true);
+      expect(response.value.diagnostics.candidateCount).toBeGreaterThanOrEqual(2);
+    },
+  );
 
   it('shares concurrent document-list reads', async () => {
     const store = new InMemoryMedicalStore();
