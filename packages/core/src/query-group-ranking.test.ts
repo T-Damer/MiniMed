@@ -499,7 +499,7 @@ describe('query-aware group ranking', () => {
     const ranked = rankSearchGroupsByQuery(
       [
         group('drug', 'Амоксициллин', 0.1, [
-          result('drug', 'Амоксициллин', 'Амоксициллин применяется при кашле.', [
+          result('drug', 'Амоксициллин', 'Амоксициллин. Кашель у ребенка.', [
             'амоксициллин',
             'кашель',
           ]),
