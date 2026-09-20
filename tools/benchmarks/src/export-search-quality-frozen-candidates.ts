@@ -301,7 +301,7 @@ for (const fixture of fixtures) {
 
     lines.push(
       JSON.stringify({
-        schemaVersion: 1,
+        schemaVersion: 2,
         fixtureId: fixture.id,
         query: fixture.query,
         origin: fixture.origin,
@@ -394,7 +394,7 @@ const missingRelevantPairs = fixtureReports.reduce(
   0,
 );
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   dataset: trainingExport
     ? 'minimed-search-quality-linear-training-candidates'
     : 'minimed-search-quality-v2-frozen-candidates',
