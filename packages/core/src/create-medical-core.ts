@@ -577,25 +577,20 @@ async function buildExactIdentityResults(
   if (documentIds.size === 0) return [];
   const results = await Promise.all(
     [...documentIds].map(async (documentId): Promise<SearchResult | null> => {
-      const [document, sections, chunks] = await Promise.all([
+      const [document, sections] = await Promise.all([
         store.getDocument(documentId),
         store.getSectionsByDocument(documentId),
-        store.getChunksByDocument(documentId),
       ]);
       if (!document || !exactIdentityDocumentMatchesFilters(document, filters)) return null;
 
-      const sectionsById = new Map(sections.map((section) => [section.id, section]));
-      const chunk = chunks.find((candidate) => {
-        const section = sectionsById.get(candidate.sectionId);
-        if (!section) return false;
-        return (
+      const section = sections.find(
+        (candidate) =>
           !filters.sectionTypes?.length ||
-          (section.sectionType !== null && filters.sectionTypes.includes(section.sectionType))
-        );
-      });
-      if (!chunk) return null;
-      const section = sectionsById.get(chunk.sectionId);
+          (candidate.sectionType !== null && filters.sectionTypes.includes(candidate.sectionType)),
+      );
       if (!section) return null;
+      const chunk = (await store.getChunksBySection(section.id))[0];
+      if (!chunk) return null;
 
       const hit: LexicalHit = {
         chunk,
