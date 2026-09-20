@@ -343,6 +343,53 @@ export function parseFrozenCandidate(
   };
 }
 
+function validateFrozenCandidateGroup(
+  fixtureId: string,
+  group: readonly FrozenCandidateRow[],
+): void {
+  const first = group[0];
+  if (!first) throw new Error(`${fixtureId}: frozen candidate group is empty.`);
+
+  const analysisKey = JSON.stringify(first.analysis);
+  const seenDocuments = new Set<string>();
+  const seenRanks = new Set<number>();
+  for (const row of group) {
+    if (
+      row.query !== first.query ||
+      row.origin !== first.origin ||
+      row.family !== first.family ||
+      row.goal !== first.goal ||
+      row.answerability !== first.answerability
+    ) {
+      throw new Error(`${fixtureId}: frozen candidate rows disagree on fixture metadata.`);
+    }
+    if (JSON.stringify(row.analysis) !== analysisKey) {
+      throw new Error(`${fixtureId}: frozen candidate rows disagree on query analysis.`);
+    }
+    if (
+      row.retrieval.requestedMode !== first.retrieval.requestedMode ||
+      row.retrieval.modeUsed !== first.retrieval.modeUsed ||
+      row.retrieval.coreCandidateCount !== first.retrieval.coreCandidateCount ||
+      row.retrieval.semanticStatus !== first.retrieval.semanticStatus ||
+      row.retrieval.semanticCandidateCount !== first.retrieval.semanticCandidateCount
+    ) {
+      throw new Error(`${fixtureId}: frozen candidate rows disagree on retrieval context.`);
+    }
+    if (seenDocuments.has(row.candidate.documentId)) {
+      throw new Error(
+        `${fixtureId}: duplicate frozen candidate document ${row.candidate.documentId}.`,
+      );
+    }
+    if (seenRanks.has(row.retrieval.originalRank)) {
+      throw new Error(
+        `${fixtureId}: duplicate frozen candidate rank ${row.retrieval.originalRank}.`,
+      );
+    }
+    seenDocuments.add(row.candidate.documentId);
+    seenRanks.add(row.retrieval.originalRank);
+  }
+}
+
 export function groupFrozenCandidates(
   rows: readonly FrozenCandidateRow[],
 ): ReadonlyMap<string, readonly FrozenCandidateRow[]> {
@@ -355,8 +402,17 @@ export function groupFrozenCandidates(
     }
     group.push(row);
   }
-  for (const group of groups.values()) {
+  for (const [fixtureId, group] of groups) {
+    validateFrozenCandidateGroup(fixtureId, group);
     group.sort((left, right) => left.retrieval.originalRank - right.retrieval.originalRank);
+    for (const [index, row] of group.entries()) {
+      const expectedRank = index + 1;
+      if (row.retrieval.originalRank !== expectedRank) {
+        throw new Error(
+          `${fixtureId}: frozen candidate ranks must be contiguous from 1; expected ${expectedRank}, got ${row.retrieval.originalRank}.`,
+        );
+      }
+    }
   }
   return groups;
 }
