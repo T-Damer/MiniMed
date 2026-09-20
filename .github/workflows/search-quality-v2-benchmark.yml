@@ -6,6 +6,14 @@ on:
       - experiment/system-one-search-benchmark
     paths:
       - .github/workflows/search-quality-v2-benchmark.yml
+      - tools/benchmarks/search-quality-v2.json
+      - tools/benchmarks/search-coverage-observations.json
+      - tools/benchmarks/src/run-lookup-quality.ts
+      - tools/benchmarks/src/run-search-quality-v2.ts
+      - tools/benchmarks/src/run-search-coverage-observations.ts
+      - tools/benchmarks/src/search-quality-dataset.ts
+      - tools/benchmarks/src/lookup-quality-cases.ts
+      - packages/core/src/query-group-ranking.ts
   workflow_dispatch:
 
 permissions:
