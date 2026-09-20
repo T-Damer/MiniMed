@@ -706,6 +706,183 @@ describe('MedicalCore', () => {
     },
   );
 
+  it('injects strict navigation aliases, keeps exact titles first, and does not inject broad aliases', async () => {
+    const makeDocument = (
+      id: string,
+      title: string,
+      metadata: Record<string, unknown> = {},
+    ) => ({
+      id,
+      title,
+      shortTitle: null,
+      sourceType: 'medical_reference',
+      status: 'active',
+      specialties: ['psychiatry'],
+      metadata,
+      version: {
+        id: `${id}@1`,
+        label: '1',
+        effectiveFrom: null,
+        effectiveTo: null,
+        sourceChecksum: `sha256:${id}`,
+        extractedAt: '2026-09-20T00:00:00Z',
+      },
+      sections: [
+        {
+          id: `${id}.definition`,
+          parentSectionId: null,
+          title: 'Определение',
+          normalizedTitle: 'определение',
+          sectionType: 'definition',
+          depth: 1,
+          orderIndex: 0,
+          pageStart: null,
+          pageEnd: null,
+          anchor: 'definition',
+          sectionPath: ['Определение'],
+          chunks: [
+            {
+              id: `${id}.definition.chunk`,
+              orderIndex: 0,
+              originalText: 'Текст не содержит поисковую поверхность.',
+              normalizedText: normalizeForIndex('Текст не содержит поисковую поверхность.'),
+              pageStart: null,
+              pageEnd: null,
+              charStart: null,
+              charEnd: null,
+              anchor: 'definition/chunk',
+              metadata: {},
+            },
+          ],
+        },
+      ],
+    });
+    const seed = ContentPackSeedSchema.parse({
+      manifest: {
+        id: 'test.strict-identity-precedence',
+        version: '1.0.0',
+        schemaVersion: 2,
+        title: 'Strict identity precedence fixture',
+        checksum: 'test-strict-identity-precedence',
+        builtAt: '2026-09-20T00:00:00Z',
+      },
+      documents: [
+        makeDocument('identity.title', 'Ясперс'),
+        makeDocument('identity.navigation', 'Критерии помрачения сознания', {
+          navigationAliases: ['Ясперс'],
+        }),
+        makeDocument('identity.declared', 'История психопатологии', {
+          declaredAliases: ['Ясперс'],
+        }),
+      ],
+      aliases: [],
+    });
+    const store = new InMemoryMedicalStore();
+    vi.spyOn(store, 'search').mockResolvedValue([]);
+    const core = createMedicalCore({ store, seed, platform: 'test' });
+    cores.push(core);
+
+    const response = await core.search({
+      query: 'Ясперс',
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      limit: 20,
+    });
+
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.groups.map((group) => group.documentId)).toEqual([
+      'identity.title',
+      'identity.navigation',
+    ]);
+    expect(response.value.groups.some((group) => group.documentId === 'identity.declared')).toBe(
+      false,
+    );
+    expect(response.value.diagnostics.candidateCount).toBe(2);
+  });
+
+  it('does not inject a strict identity candidate through incompatible request filters', async () => {
+    const seed = ContentPackSeedSchema.parse({
+      manifest: {
+        id: 'test.exact-identity-filtering',
+        version: '1.0.0',
+        schemaVersion: 2,
+        title: 'Exact identity filtering fixture',
+        checksum: 'test-exact-identity-filtering',
+        builtAt: '2026-09-20T00:00:00Z',
+      },
+      documents: [
+        {
+          id: 'identity.filtered',
+          title: 'Ясперс',
+          shortTitle: null,
+          sourceType: 'medical_reference',
+          status: 'active',
+          specialties: ['psychiatry'],
+          metadata: { ageGroups: ['children'] },
+          version: {
+            id: 'identity.filtered@1',
+            label: '1',
+            effectiveFrom: null,
+            effectiveTo: null,
+            sourceChecksum: 'sha256:identity-filtered',
+            extractedAt: '2026-09-20T00:00:00Z',
+          },
+          sections: [
+            {
+              id: 'identity.filtered.definition',
+              parentSectionId: null,
+              title: 'Определение',
+              normalizedTitle: 'определение',
+              sectionType: 'definition',
+              depth: 1,
+              orderIndex: 0,
+              pageStart: null,
+              pageEnd: null,
+              anchor: 'definition',
+              sectionPath: ['Определение'],
+              chunks: [
+                {
+                  id: 'identity.filtered.definition.chunk',
+                  orderIndex: 0,
+                  originalText: 'Справочная статья.',
+                  normalizedText: normalizeForIndex('Справочная статья.'),
+                  pageStart: null,
+                  pageEnd: null,
+                  charStart: null,
+                  charEnd: null,
+                  anchor: 'definition/chunk',
+                  metadata: {},
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      aliases: [],
+    });
+    const store = new InMemoryMedicalStore();
+    vi.spyOn(store, 'search').mockResolvedValue([]);
+    const core = createMedicalCore({ store, seed, platform: 'test' });
+    cores.push(core);
+
+    for (const filters of [
+      { specialties: ['cardiology'] },
+      { documentIds: ['another.document'] },
+      { sectionTypes: ['treatment'] },
+    ]) {
+      const response = await core.search({
+        query: 'Ясперс',
+        mode: 'lexical',
+        analysisMode: 'lookup',
+        filters,
+        limit: 20,
+      });
+      expect(response.ok).toBe(true);
+      if (response.ok) expect(response.value.groups).toEqual([]);
+    }
+  });
+
   it('shares concurrent document-list reads', async () => {
     const store = new InMemoryMedicalStore();
     const listDocuments = vi.spyOn(store, 'listDocuments');
