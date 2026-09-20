@@ -227,13 +227,126 @@ clinician-authored set shows:
 - no increase in forbidden-result rate;
 - acceptable device cost.
 
-## Checked-in smoke suite
+## Implemented benchmark v2
 
-`tools/benchmarks/search-quality-v2.json` and
-`tools/benchmarks/src/run-search-quality-v2.ts` provide a small visible smoke suite. It intentionally
-separates strict lookup cases from multi-relevance clinical cases. Because it is checked into the
-repository, it is **not** a blind qualification set and must not be used as evidence that a trained
-model generalizes.
+The stacked research branch now has two separate executable gates.
 
-The next meaningful dataset is 200–300 private clinician-authored queries kept outside the repository
-and outside the context used to tune ranking.
+### Corpus-derived exact lookup
+
+`tools/benchmarks/src/run-lookup-quality.ts` derives its cases from the corpus being evaluated rather
+than from a hand-picked list. It loads the same `MedicalCore` over `core.db` plus any repeatable
+`--pack` arguments and enumerates:
+
+- every active document title;
+- every declared search alias in `metadata.declaredAliases`.
+
+Identical normalized surfaces are grouped instead of assigning an arbitrary single gold document.
+When a surface is an exact title for one document and only an alias for another, exact-title documents
+form the strict Top-1 set. This directly measures the reported UX failure where a document that merely
+mentions a term can appear above the document named by that term.
+
+The first strict gate deliberately excludes `short_title`. Unlike `title`, it is not currently a
+uniform FTS/search surface in every adapter. Adding it to a failing ranking gate would conflate an
+indexing/content-contract gap with ranking quality; it should become a separate gate after the runtime
+contract is made uniform.
+
+Default command:
+
+```bash
+bun run benchmark:lookup-quality
+```
+
+Run every eligible surface and include installed modules:
+
+```bash
+bun run --filter @localmed/benchmarks benchmark:lookup-quality -- \
+  --max=0 \
+  --core=/path/to/core.db \
+  --pack=/path/to/module-a.db \
+  --pack=/path/to/module-b.db
+```
+
+The report separates:
+
+- strict exact Top-1;
+- exact-surface Recall@20;
+- body-only Top-1 intrusions;
+- weaker alias hits that beat an exact title;
+- engine p50/p95.
+
+This gate is intentionally deterministic and model-independent.
+
+### Diagnosis-free graded clinical challenge
+
+`tools/benchmarks/search-quality-v2.json` is no longer a small one-label smoke list. It contains
+natural Russian clinical formulations across respiratory, meningococcal, measles, gastroenteritis,
+urinary and deliberately ambiguous scenarios. Direct answer names are absent by contract.
+
+Every row declares `leakageTerms`. The fixture loader fails if an answer term is reintroduced into the
+query, preventing the benchmark from silently drifting back toward target-name lookup.
+
+Relevant documents have grades 1–3 rather than a forced single label. Ambiguous cases must contain at
+least two relevant sources. The runner reports:
+
+- maximum-grade Top-1;
+- Hit@5;
+- relevant and weighted Recall@20/@40;
+- NDCG@5/@10;
+- MRR@20;
+- expected-section Hit@5;
+- forbidden-result rate;
+- p50/p95;
+- corpus coverage separately from ranking quality.
+
+The same fixture is run under lexical and hybrid profiles and publishes the delta between them:
+
+```bash
+bun run benchmark:clinical-quality
+```
+
+If a relevant document is not installed, that fact is recorded as a corpus-coverage gap. It is not
+silently counted as a ranking failure.
+
+### Exact-title runtime invariant
+
+The experiment also fixed one concrete ranking weakness exposed by the new methodology. An exact
+document title is now a hard ordering key before exact aliases, exact source phrases, symptom
+coverage and numeric relevance score. It can no longer lose to a high-scoring document that merely
+contains the same words in body text. A dedicated regression covers the same failure shape, including
+a `Ясперс` title-versus-alias collision.
+
+This does not make semantic ranking unnecessary. It keeps a problem with a deterministic answer out
+of the model's responsibility.
+
+### Natural-distribution queries
+
+MiniMed already imports a deterministic sample of 120 questions from Real-POCQi, a dataset of
+deidentified point-of-care questions submitted by practicing US physicians. These are valuable for
+checking whether our hand-authored challenge set has realistic query length, intent mixture and
+workflow shape.
+
+They are **not** Russian MiniMed relevance gold:
+
+- wording is English;
+- jurisdiction is US;
+- the imported questions intentionally have no MiniMed document labels;
+- source model answers are not treated as ground truth.
+
+Do not automatically translate and label them to inflate benchmark size. A Russian version becomes a
+retrieval test only after source-backed relevance annotation and review; translation/reconstruction
+must retain separate provenance.
+
+### Qualification boundary
+
+The checked-in challenge set remains visible to implementation agents. It is a regression/challenge
+suite, not evidence of generalization. A production decision about a Laya/Jev-like reranker still
+requires 200–300 private clinician-authored Russian queries that are held outside the tuning context,
+with multi-relevance judgments and corpus-coverage annotation.
+
+The order of work is therefore:
+
+1. make exact lookup deterministic and keep its corpus-derived gate green;
+2. raise oracle candidate Recall@20/@40 on the clinical challenge and private set;
+3. freeze candidate sets and compare deterministic ranking, embeddings, a trivial discriminative
+   baseline and the proposed local decision model;
+4. only then measure mobile/web model cost and consider production integration.
