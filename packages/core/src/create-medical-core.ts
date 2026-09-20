@@ -787,6 +787,8 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             if (!result.ok) throw result.error;
             return result.value.map((document) => ({
               id: document.id,
+              title: document.title,
+              shortTitle: document.shortTitle,
               sourceType: document.sourceType,
               metadata: document.metadata ?? {},
             }));
