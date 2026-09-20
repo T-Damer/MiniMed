@@ -148,7 +148,8 @@
     "benchmark:freeze-candidates": "bun run --filter @localmed/benchmarks benchmark:freeze-candidates",
     "benchmark:freeze-training": "bun run --filter @localmed/benchmarks benchmark:freeze-training",
     "benchmark:linear-reranker": "bun run --filter @localmed/benchmarks benchmark:linear-reranker",
-    "benchmark:reranker-ablation": "bun run content:build:pilot && bun run benchmark:freeze-training -- --core=data/build/rf-public-pilot.db --mode=hybrid --limit=40 && bun run benchmark:freeze-candidates -- --core=data/build/rf-public-pilot.db --mode=hybrid --limit=40 && bun run benchmark:linear-reranker"
+    "benchmark:embedding-baseline": "bun run --filter @localmed/benchmarks benchmark:embedding-baseline",
+    "benchmark:reranker-ablation": "bun run content:build:pilot && bun run benchmark:freeze-training -- --core=data/build/rf-public-pilot.db --mode=hybrid --limit=40 && bun run benchmark:freeze-candidates -- --core=data/build/rf-public-pilot.db --mode=hybrid --limit=40 && bun run benchmark:linear-reranker && bun run benchmark:embedding-baseline"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
