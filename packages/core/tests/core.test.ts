@@ -533,8 +533,10 @@ describe('MedicalCore', () => {
     const baseline = await core.search(request);
     const documents = await store.listDocuments();
     const listSearchDocuments = vi.fn(async () =>
-      documents.map(({ id, sourceType, metadata }) => ({
+      documents.map(({ id, title, shortTitle, sourceType, metadata }) => ({
         id,
+        title,
+        shortTitle,
         sourceType,
         metadata,
       })),
