@@ -135,10 +135,26 @@ export function nestDocumentSections(
   return roots;
 }
 
+function pointerDescriptionFirst(sections: readonly MedicalSection[]): readonly MedicalSection[] {
+  const roots = nestDocumentSections(sections);
+  const isDescription = (node: DocumentSectionTree): boolean =>
+    /^(?:краткое описание|определение)$/iu.test(node.section.title.trim());
+  const descriptions = roots.filter(isDescription);
+  if (descriptions.length === 0) return sections;
+  // Move whole generated-card subtrees, not individual rows. Source text, IDs and anchors remain
+  // unchanged, and this presentation policy never changes a full source document's section order.
+  const flatten = (node: DocumentSectionTree): readonly MedicalSection[] => [
+    node.section,
+    ...node.children.flatMap(flatten),
+  ];
+  return [...descriptions, ...roots.filter((node) => !isDescription(node))].flatMap(flatten);
+}
+
 export function orderDocumentSections(
   sections: readonly MedicalSection[],
   sourceType: string,
 ): readonly MedicalSection[] {
+  if (sourceType === 'core_catalog_pointer') return pointerDescriptionFirst(sections);
   if (sourceType !== 'official_registry_summary') return sections;
   const primary = sections.filter((section) => !REGISTRY_SECTION_PATTERN.test(section.title));
   const administrative = sections.filter((section) => REGISTRY_SECTION_PATTERN.test(section.title));

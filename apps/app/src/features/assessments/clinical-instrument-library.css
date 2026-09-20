@@ -1,0 +1,74 @@
+.clinical-instrument-library {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block: 0.5rem;
+}
+
+.clinical-instrument-library__hint {
+  font-size: 0.8125rem;
+}
+
+.clinical-instrument-library__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.clinical-instrument-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.clinical-instrument-dialog__text,
+.clinical-instrument-dialog__source {
+  margin: 0;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.clinical-instrument-dialog__source {
+  font-size: 0.8125rem;
+}
+
+.clinical-instrument-dialog__list {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.clinical-instrument-choice {
+  padding: 0.625rem;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 0.625rem;
+}
+
+.clinical-instrument-choice__title {
+  margin: 0;
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.clinical-instrument-choice__specialties {
+  margin-block: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.clinical-instrument-choice__actions,
+.clinical-instrument-dialog__registries {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.clinical-instrument-dialog__link {
+  color: inherit;
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.clinical-instrument-dialog__error {
+  margin-block: 0.75rem 0;
+  font-weight: 600;
+}

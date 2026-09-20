@@ -467,6 +467,15 @@ export function buildDocumentLinkPhrases(
   ]);
   const candidatesByPhrase = new Map<string, Map<string, DocumentLinkPhrase>>();
   const documentsById = new Map(documents.map((document) => [document.id, document]));
+  const currentDocument = currentDocumentId ? documentsById.get(currentDocumentId) : undefined;
+  // Suppress a misleading self-title link even when another source has the same caption. This is
+  // presentation only: keep distinct source identities and alternatives in all other documents.
+  // Do not infer equivalence from shared search aliases, eponyms, prefixes or parenthetical text.
+  const currentCaptions = new Set(
+    [currentDocument?.title, currentDocument?.shortTitle]
+      .filter((value): value is string => typeof value === 'string' && Boolean(value.trim()))
+      .map(foldPhrase),
+  );
 
   for (const document of documents) {
     const pointerTarget = document.metadata?.['targetDocumentId'];
@@ -485,7 +494,7 @@ export function buildDocumentLinkPhrases(
       documentLinkPreview(document, documentsById) ?? documentLinkPreview(target, documentsById);
     for (const phrase of documentPhraseCandidates(document)) {
       const key = foldPhrase(phrase);
-      if (!key) continue;
+      if (!key || currentCaptions.has(key)) continue;
       const candidates = candidatesByPhrase.get(key) ?? new Map();
       const existing = candidates.get(target.id);
       if (!existing || (!existing.preview && preview)) {
