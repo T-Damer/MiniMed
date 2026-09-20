@@ -883,3 +883,42 @@ def test_pediatric_sirs_thresholds_preserve_table_discrepancy() -> None:
     boundary = cast(dict[str, object], data["clinicalBoundary"])
     assert boundary["sirsDiagnosisDerived"] is False
     assert boundary["normalVitalSignsDerived"] is False
+
+
+def test_pews_exact_source_metadata_stays_non_computable() -> None:
+    data = _load("pews-kommunarka-source-metadata-2023.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["rightsStatus"] == "restricted-no-redistribution-without-permission"
+    assert data["runtimeComputable"] is False
+    assert data["scoringMatrix"] is None
+    assert data["scoringMatrixStatus"] == (
+        "not_redistributed_rights_and_exact_cutoffs_required"
+    )
+
+    assert data["ageSpecificForms"] == [
+        "1-12_months",
+        "1-3_years",
+        "4-6_years",
+        "7-12_years",
+        "13-19_years",
+    ]
+
+    domains = cast(list[object], data["commonObservedDomains"])
+    assert len(domains) == 9
+    assert "respiratory_rate" in domains
+    assert "consciousness_or_behavior" in domains
+
+    bands = cast(list[dict[str, object]], data["publishedEscalationWorkflow"])
+    assert len(bands) == 4
+    last = bands[-1]
+    assert last["alternativeTrigger"] == "any_single_component_score_equals_3"
+    workflow = cast(dict[str, object], last["workflow"])
+    assert workflow["continuousVitalSignMonitoring"] is True
+    assert _int(workflow["reassessmentIntervalMinutes"]) == 30
+    assert _int(workflow["anesthesiologistIntensivistReviewWithinMinutes"]) == 10
+
+    boundary = cast(dict[str, object], data["clinicalBoundary"])
+    assert boundary["totalScoreCannotBeComputedFromThisArtifact"] is True
+    assert boundary["ageSpecificPhysiologicCutoffsAbsent"] is True
+    assert boundary["doNotSubstituteOtherPewsVariant"] is True
