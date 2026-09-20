@@ -56,7 +56,7 @@ def candidate_text(row: dict[str, Any]) -> str:
     return "\n".join(result)
 
 
-def load_frozen(path: Path) -> list[dict[str, Any]]:
+def load_frozen(path: Path, *, training: bool = False) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for line_no, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
         if not raw.strip():
@@ -64,7 +64,10 @@ def load_frozen(path: Path) -> list[dict[str, Any]]:
         value = json.loads(raw)
         if value.get("schemaVersion") != 2:
             raise ValueError(f"{path}:{line_no}: expected schemaVersion=2")
-        if value.get("origin") == "legacy-pilot-training":
+        origin = value.get("origin")
+        if training and origin != "legacy-pilot-training":
+            raise ValueError(f"{path}:{line_no}: calibration rows must use legacy-pilot-training origin")
+        if not training and origin == "legacy-pilot-training":
             raise ValueError(f"{path}:{line_no}: qualification input must not be legacy training")
         rank = value.get("retrieval", {}).get("originalRank")
         if not isinstance(rank, int) or rank < 1:
@@ -288,6 +291,102 @@ def apply_scores(
     return result, decorated
 
 
+def top1_proposal(
+    original_rows: list[dict[str, Any]],
+    reranked_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    original_top = original_rows[0] if original_rows else None
+    proposed_top = reranked_rows[0] if reranked_rows else None
+    if not original_top or not proposed_top:
+        return {"changed": False, "margin": 0.0}
+    original_id = original_top["candidate"]["documentId"]
+    original_scored = next(
+        (row for row in reranked_rows if row["candidate"]["documentId"] == original_id),
+        None,
+    )
+    if original_scored is None:
+        raise ValueError(f"{original_top['fixtureId']}: original Top-1 missing from scored pool")
+    return {
+        "changed": proposed_top["candidate"]["documentId"] != original_id,
+        "margin": max(
+            0.0,
+            float(proposed_top["_crossEncoderScore"])
+            - float(original_scored["_crossEncoderScore"]),
+        ),
+    }
+
+
+def apply_gate(
+    original: dict[str, list[dict[str, Any]]],
+    reranked: dict[str, list[dict[str, Any]]],
+    min_margin: float,
+) -> dict[str, list[dict[str, Any]]]:
+    result: dict[str, list[dict[str, Any]]] = {}
+    for fixture_id, source in original.items():
+        proposed = reranked[fixture_id]
+        proposal = top1_proposal(source, proposed)
+        if proposal["changed"] and proposal["margin"] >= min_margin:
+            result[fixture_id] = proposed
+        else:
+            result[fixture_id] = source
+    return result
+
+
+def calibrate_gate(
+    original: dict[str, list[dict[str, Any]]],
+    reranked: dict[str, list[dict[str, Any]]],
+) -> dict[str, Any]:
+    margins = sorted(
+        {
+            float(proposal["margin"])
+            for fixture_id, source in original.items()
+            if (proposal := top1_proposal(source, reranked[fixture_id]))["changed"]
+            and math.isfinite(float(proposal["margin"]))
+        }
+    )
+    candidates: list[dict[str, Any]] = []
+    for min_margin in [math.inf, 0.0, *margins]:
+        gated = apply_gate(original, reranked, min_margin)
+        changes = changed_rows(original, gated)
+        fixed = sum(change["status"] == "fixed" for change in changes)
+        regressed = sum(change["status"] == "regressed" for change in changes)
+        improved = sum(change["status"] == "improved" for change in changes)
+        worsened = sum(change["status"] == "worsened" for change in changes)
+        grade_delta = sum(
+            int(change["rerankedTop1Grade"]) - int(change["originalTop1Grade"])
+            for change in changes
+        )
+        metrics = evaluate(gated)
+        candidates.append(
+            {
+                "minMargin": min_margin,
+                "fixed": fixed,
+                "regressed": regressed,
+                "improved": improved,
+                "worsened": worsened,
+                "gradeDelta": grade_delta,
+                "changed": sum(change["status"] != "unchanged" for change in changes),
+                "ndcgAt5": float(metrics["ndcgAt5"]),
+            }
+        )
+
+    selected = min(
+        candidates,
+        key=lambda item: (
+            int(item["regressed"]),
+            -int(item["fixed"]),
+            -int(item["gradeDelta"]),
+            -float(item["ndcgAt5"]),
+            -float(item["minMargin"]),
+        ),
+    )
+    return {
+        **selected,
+        "policy": "zero-regression-max-fixes",
+        "candidateThresholdCount": len(candidates),
+    }
+
+
 def changed_rows(
     original: dict[str, list[dict[str, Any]]],
     reranked: dict[str, list[dict[str, Any]]],
@@ -382,6 +481,8 @@ def self_test() -> None:
     reranked, _ = apply_scores(rows, [0.1, 0.9])
     assert evaluate(reranked)["top1MaxGrade"] == 0.0
     assert changed_rows(original, reranked)[0]["status"] == "regressed"
+    assert evaluate(apply_gate(original, reranked, math.inf))["top1MaxGrade"] == 1.0
+    assert evaluate(apply_gate(original, reranked, 0.0))["top1MaxGrade"] == 0.0
     print("cross_encoder_frozen_poc self-test: ok")
 
 
@@ -391,6 +492,11 @@ def main() -> None:
         "--input",
         type=Path,
         default=Path("data/build/search-quality-v2-frozen-candidates.jsonl"),
+    )
+    parser.add_argument(
+        "--train",
+        type=Path,
+        default=Path("data/build/search-quality-linear-training-candidates.jsonl"),
     )
     parser.add_argument(
         "--report",
@@ -412,19 +518,37 @@ def main() -> None:
     if args.max_length < 64 or args.max_length > 2048:
         parser.error("--max-length must be in 64..2048")
 
+    train_rows = load_frozen(args.train, training=True)
     rows = load_frozen(args.input)
+    train_original_groups = grouped(train_rows)
     original_groups = grouped(rows)
+    train_original_metrics = evaluate(train_original_groups)
     original_metrics = evaluate(original_groups)
-    scores, model_metadata = score_rows(
-        rows,
+
+    combined_rows = [*train_rows, *rows]
+    combined_scores, model_metadata = score_rows(
+        combined_rows,
         model_name=args.model,
         revision=args.revision,
         batch_size=args.batch_size,
         max_length=args.max_length,
     )
+    train_scores = combined_scores[: len(train_rows)]
+    scores = combined_scores[len(train_rows) :]
+    train_reranked_groups, _ = apply_scores(train_rows, train_scores)
     reranked_groups, _ = apply_scores(rows, scores)
+
+    gate = calibrate_gate(train_original_groups, train_reranked_groups)
+    gate_margin = float(gate["minMargin"])
+    train_gated_groups = apply_gate(train_original_groups, train_reranked_groups, gate_margin)
+    gated_groups = apply_gate(original_groups, reranked_groups, gate_margin)
+
+    train_raw_metrics = evaluate(train_reranked_groups)
+    train_gated_metrics = evaluate(train_gated_groups)
     reranked_metrics = evaluate(reranked_groups)
+    gated_metrics = evaluate(gated_groups)
     changes = changed_rows(original_groups, reranked_groups)
+    gated_changes = changed_rows(original_groups, gated_groups)
 
     report = {
         "schemaVersion": 1,
@@ -434,6 +558,15 @@ def main() -> None:
             "The 33-case checked-in challenge is visible to developers and has already informed "
             "deterministic ranking repairs. This is an engineering ablation, not final clinical qualification."
         ),
+        "calibrationCandidates": {
+            "path": str(args.train),
+            "sha256": sha256_file(args.train),
+            "fixtureCount": len(train_original_groups),
+            "candidatePairCount": len(train_rows),
+            "original": train_original_metrics,
+            "crossEncoder": train_raw_metrics,
+            "gated": train_gated_metrics,
+        },
         "frozenCandidates": {
             "path": str(args.input),
             "sha256": sha256_file(args.input),
@@ -441,12 +574,20 @@ def main() -> None:
             "candidatePairCount": len(rows),
         },
         "model": model_metadata,
+        "gate": {
+            **gate,
+            "minMargin": gate["minMargin"] if math.isfinite(gate_margin) else "Infinity",
+            "calibratedOn": "legacy-pilot-training only",
+        },
         "original": original_metrics,
         "crossEncoder": reranked_metrics,
+        "gatedCrossEncoder": gated_metrics,
         "deltas": metric_deltas(reranked_metrics, original_metrics),
+        "gatedDeltas": metric_deltas(gated_metrics, original_metrics),
         "slices": {
             "original": slices(original_groups),
             "crossEncoder": slices(reranked_groups),
+            "gatedCrossEncoder": slices(gated_groups),
         },
         "top1Changes": {
             "fixed": sum(change["status"] == "fixed" for change in changes),
@@ -458,9 +599,22 @@ def main() -> None:
             ),
             "changed": [change for change in changes if change["status"] != "unchanged"],
         },
+        "gatedTop1Changes": {
+            "fixed": sum(change["status"] == "fixed" for change in gated_changes),
+            "regressed": sum(change["status"] == "regressed" for change in gated_changes),
+            "improved": sum(change["status"] == "improved" for change in gated_changes),
+            "worsened": sum(change["status"] == "worsened" for change in gated_changes),
+            "changedSameGrade": sum(
+                change["status"] == "changed-same-grade" for change in gated_changes
+            ),
+            "changed": [
+                change for change in gated_changes if change["status"] != "unchanged"
+            ],
+        },
         "abstention": {
-            "status": "not-qualified",
-            "reason": "No private negative/out-of-scope clinician holdout is available in this PR.",
+            "status": "selective-top1-measured",
+            "policy": "margin threshold calibrated on legacy masked queries only",
+            "remainingGap": "No private negative/out-of-scope clinician holdout is available in this PR.",
         },
     }
     args.report.parent.mkdir(parents=True, exist_ok=True)
@@ -483,8 +637,15 @@ def main() -> None:
                 "originalNdcgAt5": original_metrics["ndcgAt5"],
                 "crossEncoderNdcgAt5": reranked_metrics["ndcgAt5"],
                 "ndcgAt5Delta": report["deltas"]["ndcgAt5"],
+                "gate": report["gate"],
+                "gatedTop1MaxGrade": gated_metrics["top1MaxGrade"],
+                "gatedTop1Delta": report["gatedDeltas"]["top1MaxGrade"],
+                "gatedNdcgAt5": gated_metrics["ndcgAt5"],
+                "gatedNdcgAt5Delta": report["gatedDeltas"]["ndcgAt5"],
                 "fixed": report["top1Changes"]["fixed"],
                 "regressed": report["top1Changes"]["regressed"],
+                "gatedFixed": report["gatedTop1Changes"]["fixed"],
+                "gatedRegressed": report["gatedTop1Changes"]["regressed"],
                 "millisecondsPerCandidate": model_metadata["millisecondsPerCandidate"],
                 "processPeakRssBytes": model_metadata["processPeakRssBytes"],
             },
