@@ -433,24 +433,72 @@ describe('query-aware group ranking', () => {
     'нет эффекта от амоксициллина у ребенка с кашлем и высокой температурой',
     'улучшения нет на амоксициллине, что пересмотреть',
   ])('does not promote a failed prior medication over the condition card: %s', (query) => {
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
     const ranked = rankSearchGroupsByQuery(
       [
         group('drug', 'Амоксициллин — таблетки 500 мг', 0.37),
         group('pneumonia', 'Внебольничная пневмония у детей', 0.84),
       ],
       query,
+      [],
+      analysis,
     );
 
     expect(ranked.map((item) => item.documentId)).toEqual(['pneumonia', 'drug']);
   });
 
+  it('binds delayed treatment failure to the medication instead of a preceding disease term', () => {
+    const query =
+      'пневмония у ребенка, получает амоксициллин второй день, улучшения нет — что пересмотреть';
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('drug', 'Амоксициллин — таблетки 500 мг', 0.37),
+        group('pneumonia', 'Пневмония у детей', 0.2),
+      ],
+      query,
+      [],
+      analysis,
+    );
+
+    expect(ranked[0]?.documentId).toBe('pneumonia');
+  });
+
   it('does not classify a medication that helped as failed prior treatment', () => {
+    const query = 'амоксициллин помог ребенку, как продолжить лечение';
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
     const ranked = rankSearchGroupsByQuery(
       [
         group('drug', 'Амоксициллин — таблетки 500 мг', 0.37),
         group('pneumonia', 'Внебольничная пневмония у детей', 0.84),
       ],
-      'амоксициллин помог ребенку, как продолжить лечение',
+      query,
+      [],
+      analysis,
     );
 
     expect(ranked[0]?.documentId).toBe('drug');
