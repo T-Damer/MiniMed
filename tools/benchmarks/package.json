@@ -33,7 +33,8 @@
     "benchmark:search-quality-v2": "bun run benchmark:lookup-quality && bun run benchmark:clinical-quality",
     "benchmark:lookup-quality": "bun src/run-lookup-quality.ts",
     "benchmark:clinical-quality": "bun src/run-search-quality-v2.ts",
-    "benchmark:search-coverage-observations": "bun src/run-search-coverage-observations.ts"
+    "benchmark:search-coverage-observations": "bun src/run-search-coverage-observations.ts",
+    "benchmark:freeze-candidates": "bun src/export-search-quality-frozen-candidates.ts"
   },
   "dependencies": {
     "@localmed/contracts": "workspace:*",
