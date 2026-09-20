@@ -196,12 +196,26 @@ for (const fixture of cases) {
 }
 await core.close();
 
-const strictRows = rows.filter((row) => row.top1Pass !== null);
+const strictRows = rows.filter((row) => row.strictIdentityRecallAt20 !== null);
 if (strictRows.length === 0) throw new Error('No strict identity lookup surfaces were found.');
+const discoveryRows = rows.filter((row) => row.strictIdentityRecallAt20 === null);
 const top1Rate = strictRows.filter((row) => row.top1Pass === true).length / strictRows.length;
-const recallAt20 = rows.filter((row) => row.recallAt20).length / rows.length;
+const strictIdentityRecallAt20 =
+  strictRows.filter((row) => row.strictIdentityRecallAt20 === true).length / strictRows.length;
+const discoveryAliasRecallAt20 =
+  discoveryRows.length === 0
+    ? 1
+    : discoveryRows.filter((row) => row.exactSurfaceRecallAt20).length / discoveryRows.length;
+const overallExactSurfaceRecallAt20 =
+  rows.filter((row) => row.exactSurfaceRecallAt20).length / rows.length;
+const strictBodyOnlyIntrusionRate =
+  strictRows.filter((row) => row.bodyOnlyIntrusion).length / strictRows.length;
+const discoveryBodyOnlyIntrusionRate =
+  discoveryRows.length === 0
+    ? 0
+    : discoveryRows.filter((row) => row.bodyOnlyIntrusion).length / discoveryRows.length;
 const bodyOnlyIntrusionRate = rows.filter((row) => row.bodyOnlyIntrusion).length / rows.length;
-const weakerExactRate = rows.filter((row) => row.weakerExactWon).length / rows.length;
+const weakerExactRate = strictRows.filter((row) => row.weakerExactWon).length / strictRows.length;
 const timings = rows.map((row) => row.elapsedMs).toSorted((left, right) => left - right);
 const percentile = (p: number) =>
   timings[Math.min(timings.length - 1, Math.floor(timings.length * p))] ?? 0;
