@@ -4,12 +4,7 @@ import { basename, dirname, resolve } from 'node:path';
 
 import type { SearchDocumentDescriptor, SearchResultGroup } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
-import {
-  findNormalizedPhraseIndex,
-  lightStemRussian,
-  normalizeSurfaceText,
-  searchSubjectText,
-} from '@localmed/search-lexical';
+import { normalizeSurfaceText, searchSubjectText } from '@localmed/search-lexical';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
@@ -18,6 +13,11 @@ import {
   loadSearchQualityFixtures,
   type SearchQualityFixture,
 } from './search-quality-dataset';
+import {
+  maskLegacyTrainingQuery,
+  remainingLegacyAnswerMarker,
+  remainingLeakagePhrase,
+} from './legacy-training-mask';
 
 const root = resolve(import.meta.dirname, '../../..');
 const args = process.argv.slice(2);
@@ -84,72 +84,6 @@ function sha256(path: string): string {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
-}
-
-const LEGACY_ANSWER_MARKERS_BY_DOCUMENT: Readonly<Record<string, readonly string[]>> = {
-  'kr.rf.281_3.uti': ['пиелонефрит', 'цистит', 'имп', 'имвп'],
-  'kr.rf.381_3.bronchitis': ['бронхит'],
-  'kr.rf.360_3.bronchiolitis': ['бронхиолит'],
-  'kr.rf.563_2.measles': ['корь'],
-  'kr.rf.755_1.rotavirus': ['ротавирус', 'ротавирусный'],
-  'kr.rf.58_2.meningococcal': [
-    'менингококк',
-    'менингококковый',
-    'менингит',
-    'менингококцемия',
-  ],
-  'kr.rf.714_2.pneumonia': ['пневмония'],
-};
-
-function legacyAnswerMarkerStems(documentIds: readonly string[]): ReadonlySet<string> {
-  return new Set(
-    documentIds.flatMap((documentId) =>
-      (LEGACY_ANSWER_MARKERS_BY_DOCUMENT[documentId] ?? []).map((marker) =>
-        lightStemRussian(normalizeSurfaceText(marker)),
-      ),
-    ),
-  );
-}
-
-function maskLegacyAnswerMarkerTokens(query: string, documentIds: readonly string[]): string {
-  const stems = legacyAnswerMarkerStems(documentIds);
-  if (stems.size === 0) return query;
-  return query
-    .replace(/[\p{L}\p{N}-]+/gu, (token) =>
-      stems.has(lightStemRussian(normalizeSurfaceText(token))) ? '[диагноз]' : token,
-    )
-    .replace(/(?:\[диагноз\]\s*){2,}/gu, '[диагноз] ')
-    .replace(/\s+/gu, ' ')
-    .trim();
-}
-
-function remainingLegacyAnswerMarker(
-  query: string,
-  documentIds: readonly string[],
-): string | undefined {
-  const stems = legacyAnswerMarkerStems(documentIds);
-  return query
-    .match(/[\p{L}\p{N}-]+/gu)
-    ?.find((token) => stems.has(lightStemRussian(normalizeSurfaceText(token))));
-}
-
-function maskLeakageTerms(query: string, terms: readonly string[]): string {
-  let masked = query;
-  for (const term of [...new Set(terms)].toSorted((left, right) => right.length - left.length)) {
-    const expression = new RegExp(
-      `(^|[^\\p{L}\\p{N}])${escapeRegExp(term)}(?=$|[^\\p{L}\\p{N}])`,
-      'giu',
-    );
-    masked = masked.replace(expression, '$1[диагноз]');
-  }
-  return masked
-    .replace(/(?:\[диагноз\]\s*){2,}/gu, '[диагноз] ')
-    .replace(/\s+/gu, ' ')
-    .trim();
-}
-
 function inferredGoal(sectionTypes: readonly string[]): SearchQualityFixture['goal'] {
   if (sectionTypes.includes('routing')) return 'routing';
   if (sectionTypes.includes('treatment')) return 'treatment';
@@ -201,15 +135,9 @@ function loadLegacyTrainingFixtures(
         ]),
       ),
     ];
-    const maskedQuery = maskLegacyAnswerMarkerTokens(
-      maskLeakageTerms(query, leakageTerms),
-      expectedDocumentIds,
-    );
+    const maskedQuery = maskLegacyTrainingQuery(query, expectedDocumentIds, leakageTerms);
     if (!maskedQuery) throw new Error(`${id}: masking removed the entire training query.`);
-    const normalizedMasked = normalizeSurfaceText(maskedQuery);
-    const leaked = leakageTerms.find(
-      (term) => findNormalizedPhraseIndex(normalizedMasked, normalizeSurfaceText(term)) >= 0,
-    );
+    const leaked = remainingLeakagePhrase(maskedQuery, leakageTerms);
     if (leaked) throw new Error(`${id}: masked training query still leaks "${leaked}".`);
     const leakedMarker = remainingLegacyAnswerMarker(maskedQuery, expectedDocumentIds);
     if (leakedMarker) {
