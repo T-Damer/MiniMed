@@ -15,6 +15,7 @@ import {
   type QueryAnalysis,
   type Result,
   SearchRequestSchema,
+  type SearchFilters,
   type SearchResponse,
   type SearchResult,
   type SearchResultCategory,
