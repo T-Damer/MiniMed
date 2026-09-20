@@ -1,9 +1,9 @@
 name: Search quality v2 benchmark
 
 on:
-  push:
+  pull_request:
     branches:
-      - experiment/system-one-search-benchmark
+      - agent/concept-first-knowledge-search
     paths:
       - .github/workflows/search-quality-v2-benchmark.yml
       - tools/benchmarks/search-quality-v2.json
