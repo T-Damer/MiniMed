@@ -198,7 +198,12 @@
   `docs/research/data/nsofa-assessment-kr912_1-2025.json`. Сохранены respiratory /
   cardiovascular / hematologic rules, ежедневная оценка по худшему значению за сутки и диапазон
   0–15; выдуманные low/moderate/high пороги не добавлены. Runtime blocked до review validation
-  population/прав/UX. NEOMOD и modified NEOMOD остаются отдельными следующими assessment candidates.
+  population/прав/UX.
+- **NEOMOD / modified NEOMOD** — 🧪 source-extracted 2026-09-20 из приложений Г2/Г3 КР 912_1:
+  `docs/research/data/neomod-assessment-variants-kr912_1-2025.json`. Оригинальный 7-системный
+  вариант и modified 8-системный вариант сохранены как разные definitions. Modified остаётся
+  non-executable: составные source cells не дают надёжной AND/OR-логики, а microcirculation имеет
+  явный source-gap по albumin 30–39 г/л.
 - **Среднее АД по ГВ/часам** — 🧪 source-extracted из приложения А3.8 той же КР:
   `docs/research/data/neonatal-mean-arterial-pressure-kr912_1-2025.json`;
   semantic class — `source_reference_table_not_treatment_threshold`, то есть таблица не превращается
