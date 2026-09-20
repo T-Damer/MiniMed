@@ -25,6 +25,9 @@ on:
       - apps/app/src/features/search/ScopedMedicalCore.test.ts
       - tools/benchmarks/src/export-search-quality-frozen-candidates.ts
       - tools/benchmarks/src/linear-reranker-baseline.ts
+      - tools/benchmarks/src/linear-reranker-baseline.test.ts
+      - tools/benchmarks/src/legacy-training-mask.ts
+      - tools/benchmarks/src/legacy-training-mask.test.ts
       - tools/benchmarks/src/run-linear-reranker-baseline.ts
   workflow_dispatch:
 
