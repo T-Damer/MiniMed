@@ -232,6 +232,8 @@ const fixtureReports: {
   relevantCandidateCount: number;
   relevantDocumentCount: number;
   missingRelevantDocumentIds: string[];
+  candidateDocumentIds: string[];
+  candidateOrderSha256: string;
   modeUsed: string;
   elapsedMs: number;
   excludedFromTraining: boolean;
@@ -248,6 +250,8 @@ for (const fixture of fixtures) {
       relevantCandidateCount: 0,
       relevantDocumentCount: 0,
       missingRelevantDocumentIds: fixture.relevance.map((target) => target.documentId),
+      candidateDocumentIds: [],
+      candidateOrderSha256: createHash('sha256').update('').digest('hex'),
       modeUsed: 'unavailable',
       elapsedMs: 0,
       excludedFromTraining: trainingExport,
@@ -265,7 +269,8 @@ for (const fixture of fixtures) {
   });
   if (!response.ok) throw new Error(`${fixture.id}: ${response.error.message}`);
 
-  const candidateIds = new Set(response.value.groups.map((group) => group.documentId));
+  const candidateDocumentIds = response.value.groups.map((group) => group.documentId);
+  const candidateIds = new Set(candidateDocumentIds);
   const relevantCandidateCount = availableRelevance.filter((target) =>
     candidateIds.has(target.documentId),
   ).length;
@@ -279,6 +284,10 @@ for (const fixture of fixtures) {
     relevantCandidateCount,
     relevantDocumentCount: availableRelevance.length,
     missingRelevantDocumentIds,
+    candidateDocumentIds,
+    candidateOrderSha256: createHash('sha256')
+      .update(candidateDocumentIds.join('\n'))
+      .digest('hex'),
     modeUsed: response.value.modeUsed,
     elapsedMs: response.value.elapsedMs,
     excludedFromTraining,
@@ -417,6 +426,7 @@ const report = {
   },
   output: {
     path: outputPath,
+    sha256: sha256(outputPath),
     candidatePairCount: lines.length,
   },
   coverage: {
