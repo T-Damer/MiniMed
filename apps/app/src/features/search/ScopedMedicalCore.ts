@@ -455,13 +455,11 @@ function strictLookupIdentityPriority(
   return 0;
 }
 
-function preserveStrictLookupIdentities(
+function preserveStrictIdentities(
   groups: readonly SearchResultGroup[],
   query: string,
   documents: ReadonlyMap<string, SearchDocumentDescriptor>,
-  analysisMode: SearchRequest['analysisMode'],
 ): readonly SearchResultGroup[] {
-  if (analysisMode !== 'lookup') return groups;
   return groups
     .map((group, index) => ({
       group,
@@ -569,12 +567,7 @@ export class ScopedMedicalCore implements MedicalCore {
     const summaries = new Map(documents.value.map((document) => [document.id, document]));
     const ranked =
       this.scope === 'diagnosis' ? rankDiagnosisGroups(audienceRanked) : audienceRanked;
-    const strictIdentityRanked = preserveStrictLookupIdentities(
-      ranked,
-      request.query,
-      summaries,
-      request.analysisMode,
-    );
+    const strictIdentityRanked = preserveStrictIdentities(ranked, request.query, summaries);
     return {
       ok: true,
       value: {
