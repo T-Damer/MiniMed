@@ -15,6 +15,15 @@ on:
       - tools/benchmarks/src/search-quality-dataset.ts
       - tools/benchmarks/src/lookup-quality-cases.ts
       - packages/core/src/query-group-ranking.ts
+      - packages/core/src/query-document-index.ts
+      - packages/core/src/create-medical-core.ts
+      - packages/contracts/src/documents.ts
+      - packages/storage/src/ports.ts
+      - packages/storage-sqlite/src/sqlite-medical-store.ts
+      - packages/storage-capacitor/src/capacitor-medical-store.ts
+      - tools/benchmarks/src/export-search-quality-frozen-candidates.ts
+      - tools/benchmarks/src/linear-reranker-baseline.ts
+      - tools/benchmarks/src/run-linear-reranker-baseline.ts
   workflow_dispatch:
 
 permissions:
@@ -57,6 +66,9 @@ jobs:
         run: >-
           bunx vitest run
           packages/core/src/query-group-ranking.test.ts
+          packages/core/src/query-document-index.test.ts
+          packages/core/tests/core.test.ts
+          tools/benchmarks/src/linear-reranker-baseline.test.ts
           tools/benchmarks/src/search-quality-dataset.test.ts
           tools/benchmarks/src/lookup-quality-cases.test.ts
           tools/benchmarks/src/search-coverage-observations.test.ts
@@ -131,14 +143,13 @@ jobs:
                   print(json.dumps(data.get("rows", []), ensure_ascii=False, indent=2))
           PY
 
-      - name: Upload benchmark reports
+      - name: Preserve reports without Actions artifact storage
         if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: search-quality-v2-benchmark
-          retention-days: 3
-          if-no-files-found: warn
-          path: |
-            data/build/search-quality-v2-*.json
-            data/build/search-quality-v2-*.log
-            data/build/search-quality-v2-*.exit
+        shell: bash
+        run: |
+          {
+            echo "### Search-quality v2 reports"
+            echo
+            echo "Reports stay in the ephemeral runner workspace and are not uploaded as artifacts."
+            echo "Key metrics and failures are printed in the previous step logs."
+          } >> "$GITHUB_STEP_SUMMARY"
