@@ -21,6 +21,8 @@ on:
       - packages/storage/src/ports.ts
       - packages/storage-sqlite/src/sqlite-medical-store.ts
       - packages/storage-capacitor/src/capacitor-medical-store.ts
+      - apps/app/src/features/search/ScopedMedicalCore.ts
+      - apps/app/src/features/search/ScopedMedicalCore.test.ts
       - tools/benchmarks/src/export-search-quality-frozen-candidates.ts
       - tools/benchmarks/src/linear-reranker-baseline.ts
       - tools/benchmarks/src/run-linear-reranker-baseline.ts
@@ -68,6 +70,7 @@ jobs:
           packages/core/src/query-group-ranking.test.ts
           packages/core/src/query-document-index.test.ts
           packages/core/tests/core.test.ts
+          apps/app/src/features/search/ScopedMedicalCore.test.ts
           tools/benchmarks/src/linear-reranker-baseline.test.ts
           tools/benchmarks/src/search-quality-dataset.test.ts
           tools/benchmarks/src/lookup-quality-cases.test.ts
