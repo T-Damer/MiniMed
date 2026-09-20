@@ -78,7 +78,7 @@ export const LINEAR_RERANKER_FEATURES = [
   'intentDiagnosisSection',
   'intentCareGuidanceSection',
   'currentMedicineTreatmentSection',
-  'currentMedicineMatchedTermCoverage',
+  'currentMedicineMatchDominance',
   'negativeFindingSignal',
   'negativeMatchedTermConflict',
   'positiveFindingMatchedTermCoverage',
@@ -390,11 +390,29 @@ function pediatricCompatibility(row: FrozenCandidateRow): number {
   if (!queryLooksPediatric(row.analysis.ageFacts, row.query)) return 0;
   const ageGroups = new Set(row.candidate.ageGroups.map((value) => normalizeSurfaceText(value)));
   if (ageGroups.size === 0) return 0;
-  return [...ageGroups].some((value) =>
-    /(?:child|pediatric|infant|newborn|adolescent|дет|младен|новорож|подрост)/u.test(value),
-  )
-    ? 1
-    : -1;
+  if (
+    [...ageGroups].some((value) =>
+      /(?:child|pediatric|infant|newborn|adolescent|дет|младен|новорож|подрост)/u.test(value),
+    )
+  ) {
+    return 1;
+  }
+  // Generic/all-age labels are not evidence of incompatibility. Only an explicitly adult-only
+  // candidate should contribute a negative audience signal for a pediatric query.
+  return [...ageGroups].every((value) => /(?:adult|взросл)/u.test(value)) ? -1 : 0;
+}
+
+function currentMedicineMatchDominance(row: FrozenCandidateRow): number {
+  const medicineCoverage = matchedFactCoverage(
+    row.analysis.currentMedicines,
+    row.retrieval.matchedTerms,
+  );
+  if (medicineCoverage === 0) return 0;
+  const clinicalCoverage = matchedFactCoverage(
+    row.analysis.positiveFindings,
+    row.retrieval.matchedTerms,
+  );
+  return medicineCoverage * (1 - clinicalCoverage);
 }
 
 function sectionMatchesIntent(intent: string | null, section: string | null): {
@@ -456,7 +474,7 @@ export function linearCandidatesForFixture(
       intent.diagnosis,
       intent.care,
       Number(row.analysis.currentMedicineCount > 0 && section === 'treatment'),
-      matchedFactCoverage(row.analysis.currentMedicines, row.retrieval.matchedTerms),
+      currentMedicineMatchDominance(row),
       Number(row.analysis.negativeFindingCount > 0),
       Number(hasMatchedFactConflict(row.analysis.negativeFindings, row.retrieval.matchedTerms)),
       matchedFactCoverage(row.analysis.positiveFindings, row.retrieval.matchedTerms),
