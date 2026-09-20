@@ -94,6 +94,35 @@ it('ranks broader positive-finding coverage above a high-score single-symptom ma
   expect(ranked[0]?.documentId).toBe('multi');
 });
 
+it('uses positive measurement context when ordering clinical candidates', () => {
+  const query = 'у ребенка сатурация 88 процентов — когда нужна госпитализация';
+  const { analysis } = analyzeClinicalQuery(query, []);
+  expect(analysis.clinicalContext?.positiveFindings).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: 'measurement' })]),
+  );
+
+  const ranked = rankSearchGroupsByQuery(
+    [
+      group('generic', 'Госпитализация детей', 100, [
+        result('generic', 'Госпитализация детей', 'Общие организационные сведения.', []),
+      ]),
+      group('hypoxemia', 'Дыхательная недостаточность', 0.1, [
+        result(
+          'hypoxemia',
+          'Дыхательная недостаточность',
+          'Низкая сатурация требует оценки тяжести и маршрутизации.',
+          ['сатурация'],
+        ),
+      ]),
+    ],
+    query,
+    [],
+    analysis,
+  );
+
+  expect(ranked[0]?.documentId).toBe('hypoxemia');
+});
+
 it('does not promote plant medicines for a chest pain query', () => {
   const ranked = rankSearchGroupsByQuery(
     [group('plant', 'ПОДОРОЖНИКА БОЛЬШОГО ЛИСТЬЯ', 0.9), group('clinical', 'Боль в груди', 1.1)],
