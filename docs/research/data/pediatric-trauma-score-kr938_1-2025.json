@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.assessment.pediatric-trauma-score.ru.kr938_1.2025",
+  "title": "Pediatric Trauma Score (PTS) with current Russian guideline linkage",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "assessment-source-review-required",
+  "verificationStatus": "classic-definition-plus-current-russian-kr-link",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "assessment_definition",
+  "sources": {
+    "currentRussianRecommendation": {
+      "recommendationTitle": "Травма селезенки у детей",
+      "recommendationId": "938_1",
+      "recommendationYear": 2025,
+      "revisionDueNoLaterThan": 2027,
+      "developer": "Российская ассоциация детских хирургов",
+      "currentUse": "injury_severity_context",
+      "severeTraumaThreshold": {
+        "operator": "<=",
+        "value": 8
+      },
+      "urls": [
+        "https://www.consultant.ru/document/cons_doc_LAW_513863/ce7bcf6109e4b251019bb2dc2d604cd153adf200/",
+        "https://base.garant.ru/412625633/a0f3366566979975060200ca24a3c7a2/"
+      ]
+    },
+    "classicValidation": [
+      {
+        "citation": "Tepas JJ, Mollitt DL, Talbert JL, Bryant M. J Pediatr Surg. 1987;22(1):14-18.",
+        "doi": "10.1016/S0022-3468(87)80006-4",
+        "pmid": "3102714"
+      },
+      {
+        "citation": "Classic Pediatric Trauma Score definition as reproduced in pediatric trauma education sources.",
+        "role": "component_matrix_cross_check"
+      }
+    ]
+  },
+  "scoring": {
+    "method": "sum_six_components",
+    "componentScores": [
+      2,
+      1,
+      -1
+    ],
+    "totalRange": {
+      "min": -6,
+      "max": 12
+    }
+  },
+  "components": [
+    {
+      "id": "weight",
+      "label": "Масса тела",
+      "unit": "kg",
+      "rules": [
+        {
+          "score": 2,
+          "condition": {
+            "operator": ">",
+            "value": 20
+          }
+        },
+        {
+          "score": 1,
+          "condition": {
+            "operator": "range_inclusive",
+            "min": 10,
+            "max": 20
+          }
+        },
+        {
+          "score": -1,
+          "condition": {
+            "operator": "<",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "airway",
+      "label": "Дыхательные пути",
+      "rules": [
+        {
+          "score": 2,
+          "semantic": "normal"
+        },
+        {
+          "score": 1,
+          "semantic": "maintainable_or_stable"
+        },
+        {
+          "score": -1,
+          "semantic": "unmaintainable_or_unstable"
+        }
+      ]
+    },
+    {
+      "id": "systolic_blood_pressure",
+      "label": "Систолическое артериальное давление",
+      "unit": "mmHg",
+      "rules": [
+        {
+          "score": 2,
+          "condition": {
+            "operator": ">",
+            "value": 90
+          }
+        },
+        {
+          "score": 1,
+          "condition": {
+            "operator": "range_inclusive",
+            "min": 50,
+            "max": 90
+          }
+        },
+        {
+          "score": -1,
+          "condition": {
+            "operator": "<",
+            "value": 50
+          }
+        }
+      ]
+    },
+    {
+      "id": "central_nervous_system",
+      "label": "Центральная нервная система",
+      "rules": [
+        {
+          "score": 2,
+          "semantic": "awake"
+        },
+        {
+          "score": 1,
+          "semantic": "obtunded"
+        },
+        {
+          "score": -1,
+          "semantic": "coma"
+        }
+      ]
+    },
+    {
+      "id": "open_wound",
+      "label": "Открытая рана",
+      "rules": [
+        {
+          "score": 2,
+          "semantic": "none"
+        },
+        {
+          "score": 1,
+          "semantic": "minor"
+        },
+        {
+          "score": -1,
+          "semantic": "major_or_penetrating"
+        }
+      ]
+    },
+    {
+      "id": "fractures",
+      "label": "Переломы",
+      "rules": [
+        {
+          "score": 2,
+          "semantic": "none"
+        },
+        {
+          "score": 1,
+          "semantic": "closed"
+        },
+        {
+          "score": -1,
+          "semantic": "open_or_multiple"
+        }
+      ]
+    }
+  ],
+  "currentRussianInterpretation": [
+    {
+      "operator": "<=",
+      "value": 8,
+      "semantic": "severe_trauma",
+      "source": "KR_938_1_2025"
+    }
+  ],
+  "omittedHistoricalInterpretations": [
+    "specific_mortality_percentages_by_score",
+    "automatic_trauma_center_transfer_rule_outside_current_source_contract"
+  ],
+  "clinicalBoundary": {
+    "triageSupportOnly": true,
+    "diagnosisDerived": false,
+    "treatmentDerived": false,
+    "currentKrDoesNotReproduceFullMatrix": true,
+    "fullMatrixCrossCheckedAgainstClassicDefinition": true
+  },
+  "reviewNotes": [
+    "The current 2025 Russian spleen-trauma recommendation confirms PTS use and defines severe trauma as score <=8.",
+    "The six-component scoring matrix is linked to the classic PTS definition; current Russian KR relevance and classic matrix provenance are kept separate.",
+    "Historical mortality percentages sometimes reproduced with PTS are intentionally omitted because they are not needed for the current Russian source contract.",
+    "Subjective categories such as airway and open-wound severity require clinical judgment; MiniMed must not imply measurement precision that the score does not have.",
+    "Promotion to runtime requires rights review and clinician review of terminology."
+  ]
+}
