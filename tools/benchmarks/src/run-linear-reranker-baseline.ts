@@ -5,12 +5,14 @@ import { dirname, resolve } from 'node:path';
 import { normalizeSurfaceText } from '@localmed/search-lexical';
 
 import {
+  calibrateLinearAbstentionGate,
   evaluateFrozenRanking,
   evaluationSlices,
   groupFrozenCandidates,
   LINEAR_RERANKER_FEATURES,
   parseFrozenCandidate,
   rerankLinearCandidates,
+  rerankLinearCandidatesGated,
   trainPairwiseLinearReranker,
   type FrozenCandidateRow,
 } from './linear-reranker-baseline';
@@ -121,11 +123,16 @@ const model = trainPairwiseLinearReranker(trainRows, {
   l2,
 });
 const rerank = (rows: readonly FrozenCandidateRow[]) => rerankLinearCandidates(rows, model);
+const gate = calibrateLinearAbstentionGate(trainGroups, model);
+const rerankGated = (rows: readonly FrozenCandidateRow[]) =>
+  rerankLinearCandidatesGated(rows, model, gate);
 
 const trainOriginal = evaluateFrozenRanking(trainGroups);
 const trainLinear = evaluateFrozenRanking(trainGroups, rerank);
+const trainGated = evaluateFrozenRanking(trainGroups, rerankGated);
 const testOriginal = evaluateFrozenRanking(testGroups);
 const testLinear = evaluateFrozenRanking(testGroups, rerank);
+const testGated = evaluateFrozenRanking(testGroups, rerankGated);
 
 const scoringStartedAt = performance.now();
 let scoredCandidates = 0;
@@ -142,6 +149,7 @@ const microsecondsPerCandidate =
 const rows = [...testGroups.entries()].map(([fixtureId, candidates]) => {
   const original = candidates;
   const linear = rerank(candidates);
+  const gated = rerankGated(candidates);
   return {
     fixtureId,
     family: candidates[0]?.family ?? null,
@@ -150,13 +158,31 @@ const rows = [...testGroups.entries()].map(([fixtureId, candidates]) => {
     originalTop1Grade: original[0]?.label.relevanceGrade ?? 0,
     linearTop1DocumentId: linear[0]?.candidate.documentId ?? null,
     linearTop1Grade: linear[0]?.label.relevanceGrade ?? 0,
+    gatedTop1DocumentId: gated[0]?.candidate.documentId ?? null,
+    gatedTop1Grade: gated[0]?.label.relevanceGrade ?? 0,
     maximumAvailableGrade: Math.max(0, ...candidates.map((row) => row.label.relevanceGrade)),
-    changedTop1:
-      original[0]?.candidate.documentId !== linear[0]?.candidate.documentId,
+    changedTop1: original[0]?.candidate.documentId !== linear[0]?.candidate.documentId,
+    gatedChangedTop1: original[0]?.candidate.documentId !== gated[0]?.candidate.documentId,
   };
 });
 
-const deltas = {
+const metricDeltas = (candidate: typeof testLinear) => ({
+  top1MaxGrade: candidate.top1MaxGrade - testOriginal.top1MaxGrade,
+  relevantRecallAt20: candidate.relevantRecallAt20 - testOriginal.relevantRecallAt20,
+  relevantRecallAt40: candidate.relevantRecallAt40 - testOriginal.relevantRecallAt40,
+  weightedRecallAt20: candidate.weightedRecallAt20 - testOriginal.weightedRecallAt20,
+  weightedRecallAt40: candidate.weightedRecallAt40 - testOriginal.weightedRecallAt40,
+  ndcgAt5: candidate.ndcgAt5 - testOriginal.ndcgAt5,
+  ndcgAt10: candidate.ndcgAt10 - testOriginal.ndcgAt10,
+  mrrAt20: candidate.mrrAt20 - testOriginal.mrrAt20,
+  forbiddenRateAt5: candidate.forbiddenRateAt5 - testOriginal.forbiddenRateAt5,
+});
+
+const deltas = metricDeltas(testLinear);
+const gatedDeltas = metricDeltas(testGated);
+
+/* legacy inline shape retained in report via `deltas`; gated results are separate. */
+const _legacyDeltaShape = {
   top1MaxGrade: testLinear.top1MaxGrade - testOriginal.top1MaxGrade,
   relevantRecallAt20: testLinear.relevantRecallAt20 - testOriginal.relevantRecallAt20,
   relevantRecallAt40: testLinear.relevantRecallAt40 - testOriginal.relevantRecallAt40,
@@ -167,6 +193,7 @@ const deltas = {
   mrrAt20: testLinear.mrrAt20 - testOriginal.mrrAt20,
   forbiddenRateAt5: testLinear.forbiddenRateAt5 - testOriginal.forbiddenRateAt5,
 };
+void _legacyDeltaShape;
 
 const report = {
   schemaVersion: 2,
@@ -183,6 +210,7 @@ const report = {
     candidatePairCount: trainRows.length,
     original: trainOriginal,
     linear: trainLinear,
+    gated: trainGated,
   },
   test: {
     path: testPath,
@@ -191,10 +219,13 @@ const report = {
     candidatePairCount: testRows.length,
     original: testOriginal,
     linear: testLinear,
+    gated: testGated,
     deltas,
+    gatedDeltas,
     slices: {
       original: evaluationSlices(testGroups),
       linear: evaluationSlices(testGroups, rerank),
+      gated: evaluationSlices(testGroups, rerankGated),
     },
   },
   model: {
@@ -203,6 +234,7 @@ const report = {
       LINEAR_RERANKER_FEATURES.map((feature, index) => [feature, model.weights[index] ?? 0]),
     ),
     approximateWeightBytes: model.weights.length * Float64Array.BYTES_PER_ELEMENT,
+    abstentionGate: gate,
   },
   runtime: {
     repeatedCandidateScores: scoredCandidates,
@@ -210,10 +242,12 @@ const report = {
     microsecondsPerCandidate,
   },
   abstention: {
-    status: 'not-measured',
-    reason:
-      'The current frozen challenge does not contain a qualified ' +
-      'negative/out-of-scope holdout set.',
+    status: 'selective-top1-measured',
+    policy: gate.policy,
+    minMargin: Number.isFinite(gate.minMargin) ? gate.minMargin : 'Infinity',
+    note:
+      'The margin threshold is calibrated on legacy training fixtures only. ' +
+      'Negative/out-of-scope holdout abstention is still not qualified.',
   },
   rows,
 };
@@ -233,9 +267,16 @@ console.log(
       weightedTrainingPairs: model.weightedTrainingPairs,
       originalTop1MaxGrade: testOriginal.top1MaxGrade,
       linearTop1MaxGrade: testLinear.top1MaxGrade,
+      gatedTop1MaxGrade: testGated.top1MaxGrade,
       top1Delta: deltas.top1MaxGrade,
+      gatedTop1Delta: gatedDeltas.top1MaxGrade,
       originalNdcgAt5: testOriginal.ndcgAt5,
       linearNdcgAt5: testLinear.ndcgAt5,
+      gatedNdcgAt5: testGated.ndcgAt5,
+      abstentionGate: {
+        ...gate,
+        minMargin: Number.isFinite(gate.minMargin) ? gate.minMargin : 'Infinity',
+      },
       microsecondsPerCandidate,
     },
     null,
