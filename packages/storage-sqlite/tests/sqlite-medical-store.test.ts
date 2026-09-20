@@ -67,7 +67,9 @@ describe('SqliteMedicalStore', () => {
     });
     const projected = await store.listSearchDocuments();
     expect(projected).toHaveLength(seed.documents.length);
-    expect(projected.every((document) => Object.keys(document).length === 3)).toBe(true);
+    expect(projected.every((document) => Object.keys(document).length === 5)).toBe(true);
+    expect(projected[0]?.title).toBe(seed.documents[0]?.title);
+    expect(projected[0]?.shortTitle).toBe(seed.documents[0]?.shortTitle);
     for (const document of projected) expect(document.metadata).toEqual(metadata);
     const navigation = await store.listNavigationDocuments();
     expect(navigation).toHaveLength(seed.documents.length);
