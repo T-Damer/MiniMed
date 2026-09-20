@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.neonatal-mean-arterial-pressure.ru.kr912_1.2025",
+  "title": "Mean arterial pressure by gestational-age band and postnatal hours — KR 912_1",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "clinical-recommendation-source-review-required",
+  "verificationStatus": "current-kr-table-cross-mirror-review",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "source_reference_table_not_treatment_threshold",
+  "source": {
+    "recommendationTitle": "Сепсис новорожденных",
+    "recommendationId": "912_1",
+    "recommendationYear": 2025,
+    "revisionDueNoLaterThan": 2027,
+    "appendix": "А3.8",
+    "title": "Среднее артериальное давление у новорожденных в зависимости от срока гестации и постконцептуального возраста",
+    "urls": [
+      "https://sudact.ru/law/klinicheskie-rekomendatsii-sepsis-novorozhdennykh-odobreny-minzdravom-rossii/",
+      "https://www.consultant.ru/document/cons_doc_LAW_505687/"
+    ]
+  },
+  "postnatalHours": [
+    0,
+    12,
+    24,
+    36,
+    48,
+    60,
+    72
+  ],
+  "unit": "mmHg",
+  "rows": [
+    {
+      "gestationalAgeWeeks": "23-26",
+      "values": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ]
+    },
+    {
+      "gestationalAgeWeeks": "27-32",
+      "values": [
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36
+      ]
+    },
+    {
+      "gestationalAgeWeeks": "33-36",
+      "values": [
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42
+      ]
+    },
+    {
+      "gestationalAgeWeeks": "37-43",
+      "values": [
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49
+      ]
+    }
+  ],
+  "reviewNotes": [
+    "The current recommendation presents this as a reference appendix table; this artifact does not reinterpret a table value as an autonomous hypotension-treatment trigger.",
+    "Values are grouped by gestational-age bands and postnatal hours exactly as the source table structure.",
+    "Clinical blood-pressure interpretation still depends on perfusion, measurement method, illness, medications and the full recommendation.",
+    "Runtime use requires clinician review of whether these values represent expected means, action thresholds, or a specific source cohort's summary."
+  ]
+}
