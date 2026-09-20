@@ -685,6 +685,8 @@ describe('MedicalCore', () => {
       });
       const store = new InMemoryMedicalStore();
       const originalSearch = store.search.bind(store);
+      const getChunksByDocument = vi.spyOn(store, 'getChunksByDocument');
+      const getChunksBySection = vi.spyOn(store, 'getChunksBySection');
       vi.spyOn(store, 'search').mockImplementation(async (request) =>
         (await originalSearch(request)).filter((hit) => hit.document.id !== 'exact.d32'),
       );
@@ -703,6 +705,8 @@ describe('MedicalCore', () => {
       expect(response.value.groups[0]?.documentId).toBe('exact.d32');
       expect(response.value.groups.some((group) => group.documentId === 'distractor.g96')).toBe(true);
       expect(response.value.diagnostics.candidateCount).toBeGreaterThanOrEqual(2);
+      expect(getChunksByDocument).not.toHaveBeenCalled();
+      expect(getChunksBySection).toHaveBeenCalledWith('exact.d32.definition');
     },
   );
 
