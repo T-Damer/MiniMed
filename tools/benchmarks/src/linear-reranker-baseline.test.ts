@@ -4,6 +4,7 @@ import {
   evaluateFrozenRanking,
   groupFrozenCandidates,
   LINEAR_RERANKER_FEATURES,
+  linearCandidatesForFixture,
   parseFrozenCandidate,
   rerankLinearCandidates,
   trainPairwiseLinearReranker,
@@ -110,6 +111,26 @@ describe('linear frozen-candidate reranker', () => {
       row('test', 'right', 2, 3, 'treatment'),
     ];
     expect(rerankLinearCandidates(fixture, model)[0]?.candidate.documentId).toBe('right');
+  });
+
+
+  it('exposes previous-treatment lexical overlap as a candidate-specific feature', () => {
+    const base = row('test-treatment-context', 'disease-source', 1, 3, 'treatment');
+    const medicationHeavy: FrozenCandidateRow = {
+      ...base,
+      candidate: { ...base.candidate, documentId: 'medication-heavy-source' },
+      retrieval: {
+        ...base.retrieval,
+        originalRank: 2,
+        matchedTermCount: 3,
+        matchedTerms: ['кашель', 'лихорадка', 'амоксициллин'],
+      },
+    };
+    const candidates = linearCandidatesForFixture([base, medicationHeavy]);
+    const featureIndex = LINEAR_RERANKER_FEATURES.indexOf('currentMedicineMatchedTermCoverage');
+    expect(featureIndex).toBeGreaterThanOrEqual(0);
+    expect(candidates[0]?.features[featureIndex]).toBe(0);
+    expect(candidates[1]?.features[featureIndex]).toBeGreaterThan(0);
   });
 
   it('reports ranking metrics from exactly the frozen document set', () => {
