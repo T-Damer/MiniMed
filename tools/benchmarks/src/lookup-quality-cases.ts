@@ -15,6 +15,7 @@ export interface LookupQualityCase {
   readonly normalizedQuery: string;
   /** Empty when a discovery-only alias has no stronger identity surface. */
   readonly expectedTop1DocumentIds: readonly string[];
+  readonly strictIdentityDocumentIds: readonly string[];
   readonly exactSurfaceDocumentIds: readonly string[];
   readonly kinds: readonly LookupSurfaceKind[];
 }
@@ -116,6 +117,9 @@ export function buildLookupQualityCases(
         normalizedQuery,
         expectedTop1DocumentIds: [
           ...new Set(strongestIdentity.map((entry) => entry.documentId)),
+        ].toSorted(),
+        strictIdentityDocumentIds: [
+          ...new Set(identityEntries.map((entry) => entry.documentId)),
         ].toSorted(),
         exactSurfaceDocumentIds: [...new Set(group.map((entry) => entry.documentId))].toSorted(),
         kinds: [...new Set(group.map((entry) => entry.kind))].toSorted(),
