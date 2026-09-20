@@ -1,8 +1,11 @@
+import { resolve } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
   aggregateSearchQuality,
   evaluateSearchQuality,
+  loadSearchQualityFixtures,
   parseSearchQualityFixtures,
 } from './search-quality-dataset';
 
@@ -34,6 +37,17 @@ const group = (documentId: string, sectionType = 'clinical-picture') => ({
 });
 
 describe('search quality v2 dataset', () => {
+
+  it('validates the checked-in diagnosis-free challenge set in ordinary unit tests', () => {
+    const fixtures = loadSearchQualityFixtures(
+      resolve(import.meta.dirname, '../search-quality-v2.json'),
+    );
+
+    expect(fixtures.length).toBeGreaterThanOrEqual(30);
+    expect(fixtures.some((fixture) => fixture.answerability === 'ambiguous')).toBe(true);
+    expect(new Set(fixtures.map((fixture) => fixture.family)).size).toBeGreaterThanOrEqual(5);
+  });
+
   it('rejects answer-name leakage in clinical queries', () => {
     expect(() =>
       parseSearchQualityFixtures([
