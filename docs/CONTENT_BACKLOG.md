@@ -146,8 +146,14 @@
   а граница «после 5 мес.» требует отдельного review. Сводка:
   `docs/research/infant-feeding-source-extraction-2026-09.md`.
 - суточный диурез;
-- оценка дефицита жидкости и продолжающихся потерь;
-- PEWS;
+- оценка обезвоживания — 🧪 CDS source-extracted 2026-09-20 из текущей КР ОРВИ
+  (2026, ID 25_3): `docs/research/data/cds-dehydration-assessment-kr25_3-2026.json`.
+  КР прямо задаёт 4 признака × 0–2 и категории 0 / 1–4 / 5–8; диапазон 5–8 сохранён как
+  единая `moderate_or_severe` категория без выдуманного split point. Расчёт процента дефицита
+  жидкости и продолжающихся потерь остаётся отдельным source contract.
+- PEWS — ⚠️ current KR ОРВИ 25_3/2026 ссылается на методику Коммунарки 2023, но не
+  воспроизводит каноническую scoring matrix; из-за множества PEWS-вариантов не подставлять
+  стороннюю шкалу. Нужен exact cited source/version;
 - **FLACC** — ✅ выполнено (2026-08-17): модуль `minimed.tools.pediatrics.ru`
   (`minimed.assessment.flacc-pain-scale`), источник: Merkel et al., PubMed 9220806; пять пунктов 0–2,
   сумма 0–10 без выдуманных порогов mild/moderate/severe. Проверки: все 0 → 0, все 2 → 10.
@@ -273,7 +279,10 @@
   источник-контекст: `Клинические рекомендации: Запор` (kr.rf.274_3, `minimed.clinical.gastro-hepatology.ru`);
   популяция: взрослые и дети; ограничения: не диагноз, не применимо как единственный критерий терапии и не заменяет оценку признаков тяжести, обезвоживания и системной декомпенсации.
   Независимые проверки: `type=1 → constipated pattern`, `type=4 → normative`, `type=7 → diarrheal pattern`.
-- детская оценка обезвоживания и расчёт дефицита жидкости;
+- детская оценка обезвоживания — 🧪 CDS из текущей КР ОРВИ 25_3/2026 уже извлечена:
+  `docs/research/data/cds-dehydration-assessment-kr25_3-2026.json`; fluid-deficit calculation
+  намеренно не выводится из CDS и остаётся отдельным кандидатом. Сводка:
+  `docs/research/pediatric-dehydration-source-extraction-2026-09.md`.
 - Child–Pugh, MELD/MELD-Na, FIB-4 и APRI для взрослой гепатологии;
 - Glasgow-Blatchford и Rockall для верхнего ЖКТ-кровотечения.
 
@@ -303,7 +312,8 @@
   Проверка: 90/90 → 1,00;
 - anion gap, скорректированный натрий, скорректированный кальций и осмолярность;
 - Winter’s formula;
-- дефицит жидкости;
+- дефицит жидкости — CDS assessment уже source-extracted отдельно; численный расчёт дефицита
+  жидкости/ongoing losses не смешивать со score CDS и не реализовывать без отдельного источника;
 - Parkland и TBSA по Lund–Browder;
 - **Alvarado** — ✅ выполнено (2026-08-17): модуль `minimed.tools.emergency.ru`
   (`minimed.assessment.alvarado-appendicitis`), MANTRELS по Alvarado 1986 (PubMed 3946867).
