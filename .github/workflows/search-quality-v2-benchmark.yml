@@ -35,6 +35,9 @@ on:
       - tools/benchmarks/src/legacy-training-mask.ts
       - tools/benchmarks/src/legacy-training-mask.test.ts
       - tools/benchmarks/src/run-linear-reranker-baseline.ts
+      - tools/benchmarks/src/run-frozen-embedding-baseline.ts
+      - tools/benchmarks/src/frozen-embedding-baseline.test.ts
+      - tools/benchmarks/src/frozen-embedding-baseline.ts
   workflow_dispatch:
 
 permissions:
@@ -127,12 +130,16 @@ jobs:
           if [[ "$train_exit" == "0" && "$test_exit" == "0" ]]; then
             bun run benchmark:linear-reranker 2>&1 | tee data/build/search-quality-v2-linear.log
             reranker_exit="${PIPESTATUS[0]}"
+            bun run benchmark:embedding-baseline 2>&1 | tee data/build/search-quality-v2-embedding.log
+            embedding_exit="${PIPESTATUS[0]}"
           else
             reranker_exit=1
+            embedding_exit=1
           fi
           echo "$train_exit" > data/build/search-quality-v2-freeze-training.exit
           echo "$test_exit" > data/build/search-quality-v2-freeze-test.exit
           echo "$reranker_exit" > data/build/search-quality-v2-linear.exit
+          echo "$embedding_exit" > data/build/search-quality-v2-embedding.exit
 
       - name: Print compact benchmark summary
         if: always()
@@ -192,6 +199,19 @@ jobs:
               print("deltas:", json.dumps(linear.get("test", {}).get("deltas", {}), ensure_ascii=False, indent=2))
               print("weights:", json.dumps(linear.get("model", {}).get("weightsByFeature", {}), ensure_ascii=False, indent=2))
               print("runtime:", json.dumps(linear.get("runtime", {}), ensure_ascii=False, indent=2))
+          else:
+              print("report missing")
+
+          embedding_path = build / "search-quality-frozen-embedding-report.json"
+          print("\n=== FROZEN EMBEDDING ===")
+          if embedding_path.exists():
+              embedding = json.loads(embedding_path.read_text())
+              print("test sha256:", embedding.get("test", {}).get("sha256"))
+              print("profile:", json.dumps(embedding.get("embeddingProfile", {}), ensure_ascii=False, indent=2))
+              print("test original:", json.dumps(embedding.get("test", {}).get("original", {}), ensure_ascii=False, indent=2))
+              print("test embedding:", json.dumps(embedding.get("test", {}).get("embedding", {}), ensure_ascii=False, indent=2))
+              print("deltas:", json.dumps(embedding.get("test", {}).get("deltas", {}), ensure_ascii=False, indent=2))
+              print("runtime:", json.dumps(embedding.get("runtime", {}), ensure_ascii=False, indent=2))
           else:
               print("report missing")
           PY
