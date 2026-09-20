@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { queryGroupRelevanceBoost, rankSearchGroupsByQuery } from './query-group-ranking';
 
-it('keeps all explicitly declared abbreviation meanings ahead of incidental mentions', () => {
+it('makes navigation aliases strict identities without promoting broad declared aliases', () => {
   const documents = [
     {
       id: 'classifier',
@@ -18,12 +18,12 @@ it('keeps all explicitly declared abbreviation meanings ahead of incidental ment
     group('disease', 'Мочекаменная болезнь', 0.1),
     group('classifier', 'Международная классификация болезней', 0.2),
   ];
-  expect(
-    rankSearchGroupsByQuery(groups, 'МКБ', documents)
-      .slice(0, 2)
-      .map((g) => g.documentId)
-      .toSorted(),
-  ).toEqual(['classifier', 'disease']);
+
+  const ranked = rankSearchGroupsByQuery(groups, 'МКБ', documents);
+  expect(ranked[0]?.documentId).toBe('classifier');
+  expect(ranked.findIndex((entry) => entry.documentId === 'incidental')).toBeLessThan(
+    ranked.findIndex((entry) => entry.documentId === 'disease'),
+  );
   expect(rankSearchGroupsByQuery(groups, 'МКБ-10', documents)[0]?.documentId).toBe('classifier');
 });
 
