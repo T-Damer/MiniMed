@@ -78,13 +78,22 @@ function nullableString(value: unknown): string | null {
 
 function comparisonRows(
   report: Record<string, unknown>,
-  model: 'linear' | 'embedding',
+  model: 'linear' | 'gated' | 'embedding',
 ): readonly ComparisonRow[] {
   return arrayValue(report.rows, `${model}.rows`).map((value, index) => {
     const row = objectValue(value, `${model}.rows[${index}]`);
-    const modelGradeKey = model === 'linear' ? 'linearTop1Grade' : 'embeddingTop1Grade';
+    const modelGradeKey =
+      model === 'linear'
+        ? 'linearTop1Grade'
+        : model === 'gated'
+          ? 'gatedTop1Grade'
+          : 'embeddingTop1Grade';
     const modelDocumentKey =
-      model === 'linear' ? 'linearTop1DocumentId' : 'embeddingTop1DocumentId';
+      model === 'linear'
+        ? 'linearTop1DocumentId'
+        : model === 'gated'
+          ? 'gatedTop1DocumentId'
+          : 'embeddingTop1DocumentId';
     return {
       fixtureId: stringValue(row.fixtureId, `${model}.rows[${index}].fixtureId`),
       family: nullableString(row.family),
@@ -157,6 +166,7 @@ if (linearSha !== embeddingSha) {
 }
 
 const linearRows = comparisonRows(linear, 'linear');
+const gatedRows = comparisonRows(linear, 'gated');
 const embeddingRows = comparisonRows(embedding, 'embedding');
 const linearIds = linearRows.map((row) => row.fixtureId).toSorted();
 const embeddingIds = embeddingRows.map((row) => row.fixtureId).toSorted();
@@ -168,11 +178,12 @@ if (
 }
 
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   experiment: 'minimed-frozen-reranker-ablation-summary',
   generatedAt: new Date().toISOString(),
   frozenCandidateSha256: linearSha,
   linear: summarize(linearRows),
+  gated: summarize(gatedRows),
   embedding: summarize(embeddingRows),
 };
 
@@ -188,6 +199,11 @@ console.log(
         fixed: report.linear.fixed,
         regressed: report.linear.regressed,
         netBestGradeFixes: report.linear.netBestGradeFixes,
+      },
+      gated: {
+        fixed: report.gated.fixed,
+        regressed: report.gated.regressed,
+        netBestGradeFixes: report.gated.netBestGradeFixes,
       },
       embedding: {
         fixed: report.embedding.fixed,
