@@ -101,7 +101,9 @@ function validateLeakage(fixture: SearchQualityFixture): void {
   for (const term of fixture.leakageTerms) {
     const normalizedTerm = normalizeSurfaceText(term);
     if (normalizedTerm.length < 2) {
-      throw new Error(`${fixture.id}: leakage terms must contain at least two normalized characters.`);
+      throw new Error(
+        `${fixture.id}: leakage terms must contain at least two normalized characters.`,
+      );
     }
     if (findNormalizedPhraseIndex(normalizedQuery, normalizedTerm) >= 0) {
       throw new Error(`${fixture.id}: query leaks answer term "${term}".`);
@@ -194,8 +196,14 @@ function dcg(grades: readonly number[]): number {
   );
 }
 
-function ndcg(fixture: SearchQualityFixture, documentIds: readonly string[], limit: number): number {
-  const actual = dcg(documentIds.slice(0, limit).map((documentId) => targetGrade(fixture, documentId)));
+function ndcg(
+  fixture: SearchQualityFixture,
+  documentIds: readonly string[],
+  limit: number,
+): number {
+  const actual = dcg(
+    documentIds.slice(0, limit).map((documentId) => targetGrade(fixture, documentId)),
+  );
   const idealGrades = fixture.relevance
     .map((target) => target.grade)
     .toSorted((left, right) => right - left)
@@ -246,7 +254,9 @@ export function evaluateSearchQuality(
   modeUsed: string,
 ): SearchQualityEvaluation {
   const documentIds = groups.map((group) => group.documentId);
-  const firstRelevantIndex = documentIds.findIndex((documentId) => targetGrade(fixture, documentId) > 0);
+  const firstRelevantIndex = documentIds.findIndex(
+    (documentId) => targetGrade(fixture, documentId) > 0,
+  );
   const maxGrade = Math.max(...fixture.relevance.map((target) => target.grade));
   return {
     id: fixture.id,
@@ -298,7 +308,8 @@ export function aggregateSearchQuality(rows: readonly SearchQualityEvaluation[])
   const mean = (selector: (row: SearchQualityEvaluation) => number) =>
     rows.reduce((sum, row) => sum + selector(row), 0) / rows.length;
   const timings = rows.map((row) => row.elapsedMs).toSorted((left, right) => left - right);
-  const percentile = (p: number) => timings[Math.min(timings.length - 1, Math.floor(timings.length * p))] ?? 0;
+  const percentile = (p: number) =>
+    timings[Math.min(timings.length - 1, Math.floor(timings.length * p))] ?? 0;
   return {
     cases: rows.length,
     top1MaxGrade: mean((row) => Number(row.top1MaxGrade)),
