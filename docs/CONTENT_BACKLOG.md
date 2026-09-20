@@ -321,7 +321,11 @@
 - PEWS — ⚠️ exact Коммунарка/ДЗМ 2023 source identified; metadata/age forms/domains/escalation
   workflow сохранены в `docs/research/data/pews-kommunarka-source-metadata-2023.json`, но
   complete scoring matrix не копируется из-за явного rights restriction; runtime blocked.
-  Pediatric Trauma Score остаётся отдельным кандидатом;
+  **Pediatric Trauma Score** — 🧪 source-extracted 2026-09-20:
+  `docs/research/data/pediatric-trauma-score-kr938_1-2025.json`. Шесть компонентов
+  +2/+1/−1 и total −6…12 сохранены из classic definition; актуальная КР «Травма селезёнки
+  у детей» (2025, ID 938_1) отдельно подтверждает current use и `PTS ≤ 8` как тяжёлую травму.
+  Historical mortality percentages намеренно не переносились;
 - Revised Trauma Score и Injury Severity Score;
 - **shock index** — ✅ выполнено (2026-08-17): модуль `minimed.tools.emergency.ru`
   (`minimed.calculator.shock-index`), SI = ЧСС / САД, порог ≥0,9 по Rady et al. 1992.
