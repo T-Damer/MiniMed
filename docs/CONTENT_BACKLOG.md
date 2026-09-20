@@ -171,7 +171,15 @@
 - неонатальный сепсис;
 - ретинопатия недоношенных;
 - перинатальные поражения ЦНС;
-- неонатальные лабораторные референсы.
+- неонатальные лабораторные референсы — ⚠️ нормальные method-specific интервалы всё ещё
+  требуют отдельного validated source, но disease-specific **decision thresholds** уже извлечены
+  отдельно из текущих КР «Сепсис новорожденных» (2025, ID 912_1) и «Полицитемия
+  новорожденного» (2025, ID 909_1):
+  `docs/research/data/neonatal-lab-decision-thresholds-krs-2025.json`.
+  Dataset намеренно имеет semantic class `clinical_decision_thresholds_not_reference_intervals`:
+  WBC/ANC, PLT, PCT/CRP/presepsin, I/T, glucose/lactate и venous-Hct пороги нельзя показывать как
+  «нормы анализов». Сводка:
+  `docs/research/neonatal-lab-threshold-source-extraction-2026-09.md`.
 
 Инструменты:
 
