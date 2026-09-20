@@ -131,9 +131,11 @@ const rows: {
   exactSurfaceDocumentIds: readonly string[];
   top1DocumentId: string | null;
   firstExpectedRank: number | null;
-  firstExactRank: number | null;
+  firstStrictIdentityRank: number | null;
+  firstExactSurfaceRank: number | null;
   top1Pass: boolean | null;
-  recallAt20: boolean;
+  strictIdentityRecallAt20: boolean | null;
+  exactSurfaceRecallAt20: boolean;
   bodyOnlyIntrusion: boolean;
   weakerExactWon: boolean;
   elapsedMs: number;
