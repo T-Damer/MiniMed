@@ -16,6 +16,7 @@ on:
       - tools/benchmarks/src/search-quality-dataset.test.ts
       - tools/benchmarks/src/lookup-quality-cases.ts
       - tools/benchmarks/src/lookup-quality-cases.test.ts
+      - packages/core/src/index.ts
       - packages/core/src/query-group-ranking.ts
       - packages/core/src/query-group-ranking.test.ts
       - packages/core/src/query-document-index.ts
@@ -150,6 +151,7 @@ jobs:
                   continue
               data = json.loads(path.read_text())
               if name == "lookup":
+                  print("identityAudit:", json.dumps(data.get("identityAudit", {}), ensure_ascii=False, indent=2))
                   print(json.dumps(data.get("metrics", {}), ensure_ascii=False, indent=2))
                   print("eligibleSurfaceCount:", data.get("eligibleSurfaceCount"))
                   print("evaluatedSurfaceCount:", data.get("evaluatedSurfaceCount"))
@@ -183,6 +185,8 @@ jobs:
           print("\n=== LINEAR RERANKER ===")
           if linear_path.exists():
               linear = json.loads(linear_path.read_text())
+              print("train sha256:", linear.get("train", {}).get("sha256"))
+              print("test sha256:", linear.get("test", {}).get("sha256"))
               print("test original:", json.dumps(linear.get("test", {}).get("original", {}), ensure_ascii=False, indent=2))
               print("test linear:", json.dumps(linear.get("test", {}).get("linear", {}), ensure_ascii=False, indent=2))
               print("deltas:", json.dumps(linear.get("test", {}).get("deltas", {}), ensure_ascii=False, indent=2))
