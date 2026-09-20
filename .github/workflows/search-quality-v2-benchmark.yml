@@ -1,0 +1,120 @@
+name: Search quality v2 benchmark
+
+on:
+  push:
+    branches:
+      - experiment/system-one-search-benchmark
+    paths:
+      - .github/workflows/search-quality-v2-benchmark.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: search-quality-v2-benchmark
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.0"
+          enable-cache: true
+
+      - name: Install locked dependencies
+        run: |
+          bun install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+
+      - name: Restore bundled MiniMed core
+        run: bun run content:restore:core
+
+      - name: Build public clinical pilot
+        run: |
+          bun run content:lint:pilot
+          bun run content:build:pilot
+
+      - name: Run search-quality regression tests
+        run: >-
+          bunx vitest run
+          packages/core/src/query-group-ranking.test.ts
+          tools/benchmarks/src/search-quality-dataset.test.ts
+          tools/benchmarks/src/lookup-quality-cases.test.ts
+          tools/benchmarks/src/search-coverage-observations.test.ts
+
+      - name: Benchmark corpus-derived exact lookup
+        shell: bash
+        run: |
+          set +e
+          mkdir -p data/build
+          bun run --filter @localmed/benchmarks benchmark:lookup-quality --             --max=500             --core=apps/app/public/content/core.db             --report=data/build/search-quality-v2-lookup.json             2>&1 | tee data/build/search-quality-v2-lookup.log
+          echo "${PIPESTATUS[0]}" > data/build/search-quality-v2-lookup.exit
+
+      - name: Benchmark diagnosis-free clinical retrieval
+        shell: bash
+        run: |
+          set +e
+          bun run --filter @localmed/benchmarks benchmark:clinical-quality --             --core=data/build/rf-public-pilot.db             --profiles=lexical,hybrid             --report=data/build/search-quality-v2-clinical.json             2>&1 | tee data/build/search-quality-v2-clinical.log
+          echo "${PIPESTATUS[0]}" > data/build/search-quality-v2-clinical.exit
+
+      - name: Benchmark observed coverage terms
+        shell: bash
+        run: |
+          set +e
+          bun run --filter @localmed/benchmarks benchmark:search-coverage-observations --             --core=apps/app/public/content/core.db             --report=data/build/search-quality-v2-coverage.json             2>&1 | tee data/build/search-quality-v2-coverage.log
+          echo "${PIPESTATUS[0]}" > data/build/search-quality-v2-coverage.exit
+
+      - name: Print compact benchmark summary
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          build = Path("data/build")
+          for name in ("lookup", "clinical", "coverage"):
+              path = build / f"search-quality-v2-{name}.json"
+              print(f"\n=== {name.upper()} ===")
+              if not path.exists():
+                  print("report missing")
+                  continue
+              data = json.loads(path.read_text())
+              if name == "lookup":
+                  print(json.dumps(data.get("metrics", {}), ensure_ascii=False, indent=2))
+                  print("eligibleSurfaceCount:", data.get("eligibleSurfaceCount"))
+                  print("evaluatedSurfaceCount:", data.get("evaluatedSurfaceCount"))
+                  print("failureCount:", len(data.get("failures", [])))
+              elif name == "clinical":
+                  print(json.dumps(data.get("profiles", {}), ensure_ascii=False, indent=2))
+                  print("deltas:", json.dumps(data.get("deltas"), ensure_ascii=False, indent=2))
+                  print("coverage:", json.dumps({
+                      k: data.get("coverage", {}).get(k)
+                      for k in ("fullyCovered", "partiallyCovered", "uncovered")
+                  }, ensure_ascii=False))
+              else:
+                  print("visibleAt20:", data.get("visibleAt20"))
+                  print(json.dumps(data.get("rows", []), ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload benchmark reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: search-quality-v2-benchmark
+          retention-days: 3
+          if-no-files-found: warn
+          path: |
+            data/build/search-quality-v2-*.json
+            data/build/search-quality-v2-*.log
+            data/build/search-quality-v2-*.exit
