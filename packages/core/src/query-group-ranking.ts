@@ -440,10 +440,14 @@ export function rankSearchGroupsByQuery(
       .filter((fact) => fact.polarity === 'negative')
       .flatMap((fact) => tokenize(fact.normalizedValue).map(stemToken)),
   );
+  const rankingExcludedTerms = new Set([
+    ...negativeTerms,
+    ...(clinicalNarrative ? failedTreatmentTerms : []),
+  ]);
   const positiveQuery =
-    negativeTerms.size > 0
+    rankingExcludedTerms.size > 0
       ? tokenize(query)
-          .filter((term) => !negativeTerms.has(stemToken(term)))
+          .filter((term) => !rankingExcludedTerms.has(stemToken(term)))
           .join(' ')
       : query;
   const evidenceTerms = clinicalNarrative
