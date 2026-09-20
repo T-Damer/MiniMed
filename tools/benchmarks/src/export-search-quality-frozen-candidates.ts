@@ -247,7 +247,7 @@ for (const fixture of fixtures) {
           sourceType: document?.sourceType ?? null,
           navigationAliases: metadataStrings(document?.metadata, 'navigationAliases'),
           declaredAliases: metadataStrings(document?.metadata, 'declaredAliases'),
-          ageGroups: document?.ageGroups ?? metadataStrings(document?.metadata, 'ageGroups'),
+          ageGroups: metadataStrings(document?.metadata, 'ageGroups'),
           evidence: compactEvidence(group),
         },
         label: {
