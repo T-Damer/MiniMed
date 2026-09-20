@@ -25,25 +25,34 @@ describe('legacy reranker training masking', () => {
     ['kr.rf.281_3.uti', 'Ребенок 4 месяцев с фебрильной ИМП'],
   ])('masks inflected answer markers for %s', (documentId, query) => {
     const masked = maskLegacyTrainingQuery(query, [documentId], []);
-    expect(masked).toContain('[диагноз]');
+    expect(masked).not.toContain('[диагноз]');
     expect(remainingLegacyAnswerMarker(masked, [documentId])).toBeUndefined();
   });
 
   it('masks inflected urinary diagnosis phrases', () => {
     const query = 'Лечение фебрильной инфекции мочевых путей: нужен ли антибиотик';
     const masked = maskLegacyTrainingQuery(query, ['kr.rf.281_3.uti'], []);
-    expect(masked).toContain('[диагноз]');
+    expect(masked).not.toContain('[диагноз]');
     expect(masked).not.toContain('инфекции мочевых путей');
   });
 
-  it('masks challenge leakage phrases in addition to target stems', () => {
+  it('can strip explicit leakage phrases without adding an intent-bearing placeholder', () => {
     const masked = maskLegacyTrainingQuery(
       'Нужна помощь при инфекции мочевых путей у ребенка',
       ['kr.rf.281_3.uti'],
       ['инфекция мочевых путей'],
     );
-    expect(masked).toContain('[диагноз]');
+    expect(masked).toBe('Нужна помощь при у ребенка');
+    expect(masked).not.toContain('диагноз');
     expect(remainingLeakagePhrase(masked, ['инфекция мочевых путей'])).toBeUndefined();
+  });
+
+  it('preserves the original task wording around a removed answer term', () => {
+    const masked = maskLegacyTrainingQuery(
+      'Диагностика пневмонии: нужна ли повторная рентгенография',
+      ['kr.rf.714_2.pneumonia'],
+    );
+    expect(masked).toBe('Диагностика: нужна ли повторная рентгенография');
   });
 
   it('does not erase symptom-only training language', () => {
