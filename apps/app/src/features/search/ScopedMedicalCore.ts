@@ -22,7 +22,12 @@ import type {
   SearchResult,
   SearchResultGroup,
 } from '@localmed/contracts';
-import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
+import {
+  lightStemRussian,
+  normalizeSurfaceText,
+  searchSubjectText,
+  tokenize,
+} from '@localmed/search-lexical';
 
 export type SearchScope =
   | 'diagnosis'
@@ -430,6 +435,45 @@ export function rankDiagnosisGroups(
     .map((entry) => entry.group);
 }
 
+function strictLookupIdentityPriority(
+  query: string,
+  document: SearchDocumentDescriptor | undefined,
+): number {
+  if (!document) return 0;
+  const subject = normalizeSurfaceText(searchSubjectText(query)).trim();
+  if (!subject) return 0;
+  if (normalizeSurfaceText(document.title).trim() === subject) return 2;
+  const navigationAliases = document.metadata?.['navigationAliases'];
+  if (
+    Array.isArray(navigationAliases) &&
+    navigationAliases.some(
+      (alias) => typeof alias === 'string' && normalizeSurfaceText(alias).trim() === subject,
+    )
+  ) {
+    return 1;
+  }
+  return 0;
+}
+
+function preserveStrictLookupIdentities(
+  groups: readonly SearchResultGroup[],
+  query: string,
+  documents: ReadonlyMap<string, SearchDocumentDescriptor>,
+  analysisMode: SearchRequest['analysisMode'],
+): readonly SearchResultGroup[] {
+  if (analysisMode !== 'lookup') return groups;
+  return groups
+    .map((group, index) => ({
+      group,
+      index,
+      priority: strictLookupIdentityPriority(query, documents.get(group.documentId)),
+    }))
+    .toSorted(
+      (left, right) => right.priority - left.priority || left.index - right.index,
+    )
+    .map((entry) => entry.group);
+}
+
 /**
  * A UI-level core view that keeps the public MedicalCore contract intact while constraining
  * retrieval to the source family explicitly chosen by the clinician.
@@ -525,11 +569,17 @@ export class ScopedMedicalCore implements MedicalCore {
     const summaries = new Map(documents.value.map((document) => [document.id, document]));
     const ranked =
       this.scope === 'diagnosis' ? rankDiagnosisGroups(audienceRanked) : audienceRanked;
+    const strictIdentityRanked = preserveStrictLookupIdentities(
+      ranked,
+      request.query,
+      summaries,
+      request.analysisMode,
+    );
     return {
       ok: true,
       value: {
         ...scopedResponse,
-        groups: ranked.map((group) => {
+        groups: strictIdentityRanked.map((group) => {
           const document = summaries.get(group.documentId);
           const contentKind =
             document?.metadata?.['contentMode'] === 'module-pointer'
