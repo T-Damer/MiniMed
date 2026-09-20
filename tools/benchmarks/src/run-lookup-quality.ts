@@ -221,7 +221,7 @@ const percentile = (p: number) =>
   timings[Math.min(timings.length - 1, Math.floor(timings.length * p))] ?? 0;
 
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   dataset: 'minimed-corpus-derived-lookup-quality',
   generatedAt: new Date().toISOString(),
   corpus: {
@@ -279,6 +279,7 @@ console.log(
       failureCount:
         report.failures.length +
         identityAuditRows.filter((row) => !row.identitySetPass || !row.topTierPass).length,
+      discoveryMissCount: report.discoveryMisses.length,
     },
     null,
     2,
