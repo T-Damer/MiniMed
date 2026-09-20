@@ -14,7 +14,8 @@ import { type LocalCandidate, validateLocalRankingResponse } from './local-reran
 
 const root = resolve(import.meta.dirname, '../../..');
 const args = process.argv.slice(2);
-const option = (key: string) => args.find((arg) => arg.startsWith(`--${key}=`))?.slice(key.length + 3);
+const option = (key: string) =>
+  args.find((arg) => arg.startsWith(`--${key}=`))?.slice(key.length + 3);
 for (const arg of args) {
   if (arg !== '--experimental-apply' && !/^--(?:core|pack|python|model-dir|mode)=.+$/u.test(arg)) {
     throw new Error('Unknown option. Queries are read from stdin, not command-line arguments.');
@@ -25,12 +26,23 @@ if (mode !== 'clinical' && mode !== 'lookup') throw new Error('Expected clinical
 const allowApply = mode === 'clinical' && args.includes('--experimental-apply');
 const python = resolve(root, option('python') ?? '.venv-cross/bin/python');
 const modelDir = resolve(root, option('model-dir') ?? '.cache/minimed/ru-reranker');
-const childArgs = [resolve(root, 'tools/benchmarks/local_reranker.py'), 'serve', '--model-dir', modelDir];
+const childArgs = [
+  resolve(root, 'tools/benchmarks/local_reranker.py'),
+  'serve',
+  '--model-dir',
+  modelDir,
+];
 if (allowApply) childArgs.push('--experimental-apply');
 const child = spawn(python, childArgs, {
   cwd: root,
-  env: { PATH: process.env.PATH ?? '', HOME: process.env.HOME ?? '', LANG: 'C.UTF-8',
-    HF_HUB_OFFLINE: '1', TRANSFORMERS_OFFLINE: '1', PYTHONNOUSERSITE: '1' },
+  env: {
+    PATH: process.env.PATH ?? '',
+    HOME: process.env.HOME ?? '',
+    LANG: 'C.UTF-8',
+    HF_HUB_OFFLINE: '1',
+    TRANSFORMERS_OFFLINE: '1',
+    PYTHONNOUSERSITE: '1',
+  },
   stdio: ['pipe', 'pipe', 'ignore'],
 });
 const output = createInterface({ input: child.stdout });
@@ -48,8 +60,11 @@ output.on('line', (line) => {
   const current = pending;
   pending = undefined;
   if (!current) return;
-  try { current.resolve(JSON.parse(line)); }
-  catch { current.reject(new Error('Invalid local model JSON.')); }
+  try {
+    current.resolve(JSON.parse(line));
+  } catch {
+    current.reject(new Error('Invalid local model JSON.'));
+  }
 });
 async function classify(query: string, candidates: readonly LocalCandidate[]) {
   if (!alive) throw new Error('Local model process unavailable.');
@@ -73,18 +88,22 @@ const paths = [
   resolve(root, option('core') ?? 'data/build/definitions.db'),
   ...args.filter((arg) => arg.startsWith('--pack=')).map((arg) => resolve(root, arg.slice(7))),
 ];
-const stores = await Promise.all(paths.map(async (path, index) => ({
-  moduleId: `demo:${index}`,
-  store: await SqliteMedicalStore.createFromBytes(new Uint8Array(readFileSync(path))),
-  required: true,
-  searchWeight: 1,
-})));
+const stores = await Promise.all(
+  paths.map(async (path, index) => ({
+    moduleId: `demo:${index}`,
+    store: await SqliteMedicalStore.createFromBytes(new Uint8Array(readFileSync(path))),
+    required: true,
+    searchWeight: 1,
+  })),
+);
 const store = new MultiMedicalStore(stores);
 const core = createMedicalCore({ store, platform: 'test', embedder: new PortableHashEmbedder() });
 try {
   const initialized = await core.initialize();
   if (!initialized.ok) throw new Error(initialized.error.message);
-  const documents = new Map((await store.listDocuments()).map((document) => [document.id, document]));
+  const documents = new Map(
+    (await store.listDocuments()).map((document) => [document.id, document]),
+  );
   const input = createInterface({ input: process.stdin, crlfDelay: Infinity });
   for await (const query of input) {
     if (!query.trim()) continue;
@@ -93,8 +112,14 @@ try {
       continue;
     }
     const start = performance.now();
-    const found = await core.search({ query, mode: mode === 'clinical' ? 'hybrid' : 'lexical', analysisMode: mode,
-      filters: {}, limit: 40, includeSuggestions: false });
+    const found = await core.search({
+      query,
+      mode: mode === 'clinical' ? 'hybrid' : 'lexical',
+      analysisMode: mode,
+      filters: {},
+      limit: 40,
+      includeSuggestions: false,
+    });
     if (!found.ok) {
       console.log(JSON.stringify({ status: 'search-error', code: found.error.code }));
       continue;
@@ -104,32 +129,56 @@ try {
     const candidates = groups.map((group): LocalCandidate => {
       const document = documents.get(group.documentId);
       const rawAliases = document?.metadata.navigationAliases;
-      const aliases = Array.isArray(rawAliases) ? rawAliases.filter((x): x is string => typeof x === 'string') : [];
+      const aliases = Array.isArray(rawAliases)
+        ? rawAliases.filter((x): x is string => typeof x === 'string')
+        : [];
       const names = [document?.title ?? group.title, document?.shortTitle ?? '', ...aliases];
       return {
         id: group.documentId,
-        text: [group.title, ...group.results.slice(0, 3).map((hit) => hit.snippet)].join('\n').slice(0, 4000),
-        strictIdentity: names.some((name) => Boolean(name) && normalizeSurfaceText(name).trim() === subject),
+        text: [group.title, ...group.results.slice(0, 3).map((hit) => hit.snippet)]
+          .join('\n')
+          .slice(0, 4000),
+        strictIdentity: names.some(
+          (name) => Boolean(name) && normalizeSurfaceText(name).trim() === subject,
+        ),
       };
     });
     const baselineIds = groups.map((group) => group.documentId);
     let ranking;
-    try { ranking = await classify(query, candidates); }
-    catch {
-      ranking = { status: 'fallback', applied: false, orderedIds: baselineIds,
-        experimentalIds: baselineIds, inferenceMs: null };
+    try {
+      ranking = await classify(query, candidates);
+    } catch {
+      ranking = {
+        status: 'fallback',
+        applied: false,
+        orderedIds: baselineIds,
+        experimentalIds: baselineIds,
+        inferenceMs: null,
+      };
     }
     const byId = new Map(groups.map((group) => [group.documentId, group]));
-    const display = (ids: readonly string[]) => ids.slice(0, 5).map((id) => {
-      const group = byId.get(id);
-      return { documentId: id, title: group?.title, snippet: group?.results[0]?.snippet,
-        anchor: group?.results[0]?.anchor };
-    });
-    console.log(JSON.stringify({ status: ranking.status, applied: ranking.applied,
-      inferenceMs: ranking.inferenceMs, elapsedMs: performance.now() - start,
-      baseline: display(baselineIds), experimental: display(ranking.experimentalIds),
-      selected: display(ranking.orderedIds),
-      warning: 'Research classifier; reference relevance is not a diagnosis probability.' }));
+    const display = (ids: readonly string[]) =>
+      ids.slice(0, 5).map((id) => {
+        const group = byId.get(id);
+        return {
+          documentId: id,
+          title: group?.title,
+          snippet: group?.results[0]?.snippet,
+          anchor: group?.results[0]?.anchor,
+        };
+      });
+    console.log(
+      JSON.stringify({
+        status: ranking.status,
+        applied: ranking.applied,
+        inferenceMs: ranking.inferenceMs,
+        elapsedMs: performance.now() - start,
+        baseline: display(baselineIds),
+        experimental: display(ranking.experimentalIds),
+        selected: display(ranking.orderedIds),
+        warning: 'Research classifier; reference relevance is not a diagnosis probability.',
+      }),
+    );
   }
 } finally {
   child.kill();

@@ -1,39 +1,273 @@
 [
-  {"id":"capillary-refill.0","query":"Симптом белого пятна","expectedIds":["definition.pilot.capillary-refill"],"maxRank":1,"origin":"user-requested-definition-regression","expectedDefinition":"после краткого надавливания до побледнения ткани наблюдают, за какое время восстанавливается её окраска"},
-  {"id":"capillary-refill.1","query":"Время капиллярного наполнения","expectedIds":["definition.pilot.capillary-refill"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"capillary-refill.2","query":"Тест капиллярного наполнения","expectedIds":["definition.pilot.capillary-refill"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"capillary-refill.3","query":"Симтом белого пятна","expectedIds":["definition.pilot.capillary-refill"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"kandinsky-clerambault.0","query":"Синдром Кандинского—Клерамбо","expectedIds":["definition.pilot.kandinsky-clerambault"],"maxRank":1,"origin":"user-requested-definition-regression","expectedDefinition":"сочетание психических автоматизмов, псевдогаллюцинаций и бреда воздействия или преследования"},
-  {"id":"kandinsky-clerambault.1","query":"Синдром Кандинского","expectedIds":["definition.pilot.kandinsky-clerambault"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"kandinsky-clerambault.2","query":"Синдром психического автоматизма","expectedIds":["definition.pilot.kandinsky-clerambault"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"kandinsky-clerambault.3","query":"Синдром Кандинского-Клерамбо","expectedIds":["definition.pilot.kandinsky-clerambault"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"kocher-volkovich.0","query":"Симптом Кохера—Волковича","expectedIds":["definition.pilot.kocher-volkovich"],"maxRank":1,"origin":"user-requested-definition-regression","expectedDefinition":"перемещение боли из эпигастрия или околопупочной области в правую подвздошную область"},
-  {"id":"kocher-volkovich.1","query":"Симптом Кохера-Волковича","expectedIds":["definition.pilot.kocher-volkovich"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"kocher-volkovich.2","query":"Симптом Кохера","expectedIds":["definition.pilot.kocher-volkovich"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"kocher-volkovich.3","query":"Миграция боли при аппендиците","expectedIds":["definition.pilot.kocher-volkovich"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"volkovich-dyakonov-access.0","query":"Доступ Волковича—Дьяконова","expectedIds":["definition.pilot.volkovich-dyakonov-access"],"maxRank":1,"origin":"user-requested-definition-regression","expectedDefinition":"косой переменный хирургический доступ в правой подвздошной области для аппендэктомии"},
-  {"id":"volkovich-dyakonov-access.1","query":"Доступ Волковича-Дьяконова","expectedIds":["definition.pilot.volkovich-dyakonov-access"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"volkovich-dyakonov-access.2","query":"Разрез Волковича-Дьяконова","expectedIds":["definition.pilot.volkovich-dyakonov-access"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"volkovich-dyakonov-access.3","query":"Доступ Мак-Бурнея","expectedIds":["definition.pilot.volkovich-dyakonov-access"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"volkovich-dyakonov-query.0","query":"Симптом Волковича-Дьяконова — уточнение названия","expectedIds":["definition.pilot.volkovich-dyakonov-query"],"maxRank":1,"origin":"user-requested-definition-regression","expectedDefinition":"отдельное определение симптома с таким названием из этого источника не получено"},
-  {"id":"volkovich-dyakonov-query.1","query":"Симптом Волковича-Дьяконова","expectedIds":["definition.pilot.volkovich-dyakonov-query"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"volkovich-dyakonov-query.2","query":"Симптом Волковича—Дьяконова","expectedIds":["definition.pilot.volkovich-dyakonov-query"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"voskresensky-shirt.0","query":"Симптом рубашки","expectedIds":["definition.pilot.voskresensky-shirt"],"maxRank":1,"origin":"user-requested-definition-regression","expectedDefinition":"при скользящем движении пальцев вниз по животу через натянутую рубашку"},
-  {"id":"voskresensky-shirt.1","query":"Симптом Воскресенского при аппендиците","expectedIds":["definition.pilot.voskresensky-shirt"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"voskresensky-shirt.2","query":"Симптом скольжения","expectedIds":["definition.pilot.voskresensky-shirt"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"voskresensky-pancreatitis.0","query":"Симптом Воскресенского при панкреатите","expectedIds":["definition.pilot.voskresensky-pancreatitis"],"maxRank":1,"origin":"user-requested-definition-regression","expectedDefinition":"отсутствие определяемой при пальпации пульсации брюшной аорты"},
-  {"id":"childhood-masturbation.0","query":"Детская мастурбация","expectedIds":["definition.pilot.childhood-masturbation"],"maxRank":1,"origin":"user-requested-definition-regression","expectedDefinition":"само по себе не означает психическое заболевание"},
-  {"id":"childhood-masturbation.1","query":"Мастурбация у детей","expectedIds":["definition.pilot.childhood-masturbation"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"childhood-masturbation.2","query":"Детский онанизм","expectedIds":["definition.pilot.childhood-masturbation"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"neonatal-transient-states.0","query":"Транзиторные состояния новорождённых","expectedIds":["definition.pilot.neonatal-transient-states"],"maxRank":1,"origin":"user-requested-definition-regression","expectedDefinition":"временные изменения периода приспособления ребёнка к внеутробной жизни"},
-  {"id":"neonatal-transient-states.1","query":"Транзиторные состояния новорожденных","expectedIds":["definition.pilot.neonatal-transient-states"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"neonatal-transient-states.2","query":"Пограничные состояния новорождённых","expectedIds":["definition.pilot.neonatal-transient-states"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"neonatal-transient-states.3","query":"Транзиторные состояния детей","expectedIds":["definition.pilot.neonatal-transient-states"],"maxRank":1,"origin":"user-requested-definition-regression"},
-  {"id":"voskresensky.ambiguous","query":"Симптом Воскресенского","expectedIds":["definition.pilot.voskresensky-shirt","definition.pilot.voskresensky-pancreatitis"],"maxRank":5,"origin":"eponym-disambiguation-regression"},
-  {"id":"capillary-refill.description","query":"после надавливания кожа белеет затем восстанавливает цвет","expectedIds":["definition.pilot.capillary-refill"],"maxRank":5,"origin":"authored-description-probe"},
-  {"id":"kandinsky-clerambault.description","query":"мысли и движения ощущаются сделанными извне","expectedIds":["definition.pilot.kandinsky-clerambault"],"maxRank":5,"origin":"authored-description-probe"},
-  {"id":"kocher-volkovich.description","query":"боль из эпигастрия переместилась в правую подвздошную область","expectedIds":["definition.pilot.kocher-volkovich"],"maxRank":5,"origin":"authored-description-probe"},
-  {"id":"voskresensky-shirt.description","query":"боль при скольжении пальцами через натянутую рубашку","expectedIds":["definition.pilot.voskresensky-shirt"],"maxRank":5,"origin":"authored-description-probe"},
-  {"id":"childhood-masturbation.description","query":"ребёнок занимается самостимуляцией это обязательно заболевание","expectedIds":["definition.pilot.childhood-masturbation"],"maxRank":5,"origin":"authored-description-probe"},
-  {"id":"neonatal-transient-states.description","query":"временные изменения после рождения при адаптации к внеутробной жизни","expectedIds":["definition.pilot.neonatal-transient-states"],"maxRank":5,"origin":"authored-description-probe"}
+  {
+    "id": "capillary-refill.0",
+    "query": "Симптом белого пятна",
+    "expectedIds": ["definition.pilot.capillary-refill"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression",
+    "expectedDefinition": "после краткого надавливания до побледнения ткани наблюдают, за какое время восстанавливается её окраска"
+  },
+  {
+    "id": "capillary-refill.1",
+    "query": "Время капиллярного наполнения",
+    "expectedIds": ["definition.pilot.capillary-refill"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "capillary-refill.2",
+    "query": "Тест капиллярного наполнения",
+    "expectedIds": ["definition.pilot.capillary-refill"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "capillary-refill.3",
+    "query": "Симтом белого пятна",
+    "expectedIds": ["definition.pilot.capillary-refill"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "kandinsky-clerambault.0",
+    "query": "Синдром Кандинского—Клерамбо",
+    "expectedIds": ["definition.pilot.kandinsky-clerambault"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression",
+    "expectedDefinition": "сочетание психических автоматизмов, псевдогаллюцинаций и бреда воздействия или преследования"
+  },
+  {
+    "id": "kandinsky-clerambault.1",
+    "query": "Синдром Кандинского",
+    "expectedIds": ["definition.pilot.kandinsky-clerambault"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "kandinsky-clerambault.2",
+    "query": "Синдром психического автоматизма",
+    "expectedIds": ["definition.pilot.kandinsky-clerambault"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "kandinsky-clerambault.3",
+    "query": "Синдром Кандинского-Клерамбо",
+    "expectedIds": ["definition.pilot.kandinsky-clerambault"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "kocher-volkovich.0",
+    "query": "Симптом Кохера—Волковича",
+    "expectedIds": ["definition.pilot.kocher-volkovich"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression",
+    "expectedDefinition": "перемещение боли из эпигастрия или околопупочной области в правую подвздошную область"
+  },
+  {
+    "id": "kocher-volkovich.1",
+    "query": "Симптом Кохера-Волковича",
+    "expectedIds": ["definition.pilot.kocher-volkovich"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "kocher-volkovich.2",
+    "query": "Симптом Кохера",
+    "expectedIds": ["definition.pilot.kocher-volkovich"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "kocher-volkovich.3",
+    "query": "Миграция боли при аппендиците",
+    "expectedIds": ["definition.pilot.kocher-volkovich"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "volkovich-dyakonov-access.0",
+    "query": "Доступ Волковича—Дьяконова",
+    "expectedIds": ["definition.pilot.volkovich-dyakonov-access"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression",
+    "expectedDefinition": "косой переменный хирургический доступ в правой подвздошной области для аппендэктомии"
+  },
+  {
+    "id": "volkovich-dyakonov-access.1",
+    "query": "Доступ Волковича-Дьяконова",
+    "expectedIds": ["definition.pilot.volkovich-dyakonov-access"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "volkovich-dyakonov-access.2",
+    "query": "Разрез Волковича-Дьяконова",
+    "expectedIds": ["definition.pilot.volkovich-dyakonov-access"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "volkovich-dyakonov-access.3",
+    "query": "Доступ Мак-Бурнея",
+    "expectedIds": ["definition.pilot.volkovich-dyakonov-access"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "volkovich-dyakonov-query.0",
+    "query": "Симптом Волковича-Дьяконова — уточнение названия",
+    "expectedIds": ["definition.pilot.volkovich-dyakonov-query"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression",
+    "expectedDefinition": "отдельное определение симптома с таким названием из этого источника не получено"
+  },
+  {
+    "id": "volkovich-dyakonov-query.1",
+    "query": "Симптом Волковича-Дьяконова",
+    "expectedIds": ["definition.pilot.volkovich-dyakonov-query"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "volkovich-dyakonov-query.2",
+    "query": "Симптом Волковича—Дьяконова",
+    "expectedIds": ["definition.pilot.volkovich-dyakonov-query"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "voskresensky-shirt.0",
+    "query": "Симптом рубашки",
+    "expectedIds": ["definition.pilot.voskresensky-shirt"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression",
+    "expectedDefinition": "при скользящем движении пальцев вниз по животу через натянутую рубашку"
+  },
+  {
+    "id": "voskresensky-shirt.1",
+    "query": "Симптом Воскресенского при аппендиците",
+    "expectedIds": ["definition.pilot.voskresensky-shirt"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "voskresensky-shirt.2",
+    "query": "Симптом скольжения",
+    "expectedIds": ["definition.pilot.voskresensky-shirt"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "voskresensky-pancreatitis.0",
+    "query": "Симптом Воскресенского при панкреатите",
+    "expectedIds": ["definition.pilot.voskresensky-pancreatitis"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression",
+    "expectedDefinition": "отсутствие определяемой при пальпации пульсации брюшной аорты"
+  },
+  {
+    "id": "childhood-masturbation.0",
+    "query": "Детская мастурбация",
+    "expectedIds": ["definition.pilot.childhood-masturbation"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression",
+    "expectedDefinition": "само по себе не означает психическое заболевание"
+  },
+  {
+    "id": "childhood-masturbation.1",
+    "query": "Мастурбация у детей",
+    "expectedIds": ["definition.pilot.childhood-masturbation"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "childhood-masturbation.2",
+    "query": "Детский онанизм",
+    "expectedIds": ["definition.pilot.childhood-masturbation"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "neonatal-transient-states.0",
+    "query": "Транзиторные состояния новорождённых",
+    "expectedIds": ["definition.pilot.neonatal-transient-states"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression",
+    "expectedDefinition": "временные изменения периода приспособления ребёнка к внеутробной жизни"
+  },
+  {
+    "id": "neonatal-transient-states.1",
+    "query": "Транзиторные состояния новорожденных",
+    "expectedIds": ["definition.pilot.neonatal-transient-states"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "neonatal-transient-states.2",
+    "query": "Пограничные состояния новорождённых",
+    "expectedIds": ["definition.pilot.neonatal-transient-states"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "neonatal-transient-states.3",
+    "query": "Транзиторные состояния детей",
+    "expectedIds": ["definition.pilot.neonatal-transient-states"],
+    "maxRank": 1,
+    "origin": "user-requested-definition-regression"
+  },
+  {
+    "id": "voskresensky.ambiguous",
+    "query": "Симптом Воскресенского",
+    "expectedIds": [
+      "definition.pilot.voskresensky-shirt",
+      "definition.pilot.voskresensky-pancreatitis"
+    ],
+    "maxRank": 5,
+    "origin": "eponym-disambiguation-regression"
+  },
+  {
+    "id": "capillary-refill.description",
+    "query": "после надавливания кожа белеет затем восстанавливает цвет",
+    "expectedIds": ["definition.pilot.capillary-refill"],
+    "maxRank": 5,
+    "origin": "authored-description-probe"
+  },
+  {
+    "id": "kandinsky-clerambault.description",
+    "query": "мысли и движения ощущаются сделанными извне",
+    "expectedIds": ["definition.pilot.kandinsky-clerambault"],
+    "maxRank": 5,
+    "origin": "authored-description-probe"
+  },
+  {
+    "id": "kocher-volkovich.description",
+    "query": "боль из эпигастрия переместилась в правую подвздошную область",
+    "expectedIds": ["definition.pilot.kocher-volkovich"],
+    "maxRank": 5,
+    "origin": "authored-description-probe"
+  },
+  {
+    "id": "voskresensky-shirt.description",
+    "query": "боль при скольжении пальцами через натянутую рубашку",
+    "expectedIds": ["definition.pilot.voskresensky-shirt"],
+    "maxRank": 5,
+    "origin": "authored-description-probe"
+  },
+  {
+    "id": "childhood-masturbation.description",
+    "query": "ребёнок занимается самостимуляцией это обязательно заболевание",
+    "expectedIds": ["definition.pilot.childhood-masturbation"],
+    "maxRank": 5,
+    "origin": "authored-description-probe"
+  },
+  {
+    "id": "neonatal-transient-states.description",
+    "query": "временные изменения после рождения при адаптации к внеутробной жизни",
+    "expectedIds": ["definition.pilot.neonatal-transient-states"],
+    "maxRank": 5,
+    "origin": "authored-description-probe"
+  }
 ]

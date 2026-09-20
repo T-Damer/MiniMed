@@ -17,7 +17,10 @@ const response = {
 
 describe('local classifier boundary', () => {
   it('keeps observe mode separate from the displayed deterministic order', () => {
-    expect(validateLocalRankingResponse(response, candidates, false).orderedIds).toEqual(['a', 'b']);
+    expect(validateLocalRankingResponse(response, candidates, false).orderedIds).toEqual([
+      'a',
+      'b',
+    ]);
   });
 
   it.each([
