@@ -209,6 +209,29 @@ describe('linear frozen-candidate reranker', () => {
     expect(candidates[2]?.features[featureIndex]).toBe(-1);
   });
 
+  it('rejects duplicate, gapped, or mixed frozen candidate groups', () => {
+    const first = row('fixture-integrity', 'one', 1, 3, 'treatment');
+    const duplicateDocument: FrozenCandidateRow = {
+      ...row('fixture-integrity', 'two', 2, 0, 'clinical-picture'),
+      candidate: { ...first.candidate },
+    };
+    expect(() => groupFrozenCandidates([first, duplicateDocument])).toThrow(
+      'duplicate frozen candidate document',
+    );
+
+    const gapped = row('fixture-gap', 'two', 3, 0, 'clinical-picture');
+    expect(() => groupFrozenCandidates([row('fixture-gap', 'one', 1, 3, 'treatment'), gapped]))
+      .toThrow('ranks must be contiguous');
+
+    const mixedQuery: FrozenCandidateRow = {
+      ...row('fixture-mixed', 'two', 2, 0, 'clinical-picture'),
+      query: 'Совсем другой запрос',
+    };
+    expect(() =>
+      groupFrozenCandidates([row('fixture-mixed', 'one', 1, 3, 'treatment'), mixedQuery]),
+    ).toThrow('disagree on fixture metadata');
+  });
+
   it('reports ranking metrics from exactly the frozen document set', () => {
     const groups = groupFrozenCandidates([
       row('fixture-1', 'wrong', 1, 0, 'clinical-picture'),
