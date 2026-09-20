@@ -65,7 +65,7 @@ const rows: {
   top1DocumentId: string | null;
   firstExpectedRank: number | null;
   firstExactRank: number | null;
-  top1Pass: boolean;
+  top1Pass: boolean | null;
   recallAt20: boolean;
   bodyOnlyIntrusion: boolean;
   weakerExactWon: boolean;
@@ -99,20 +99,26 @@ for (const fixture of cases) {
     top1DocumentId,
     firstExpectedRank: firstExpectedIndex < 0 ? null : firstExpectedIndex + 1,
     firstExactRank: firstExactIndex < 0 ? null : firstExactIndex + 1,
-    top1Pass: top1DocumentId !== null && fixture.expectedTop1DocumentIds.includes(top1DocumentId),
+    top1Pass:
+      fixture.expectedTop1DocumentIds.length === 0
+        ? null
+        : top1DocumentId !== null && fixture.expectedTop1DocumentIds.includes(top1DocumentId),
     recallAt20: firstExactIndex >= 0 && firstExactIndex < 20,
     bodyOnlyIntrusion:
       top1DocumentId !== null && !fixture.exactSurfaceDocumentIds.includes(top1DocumentId),
     weakerExactWon:
       top1DocumentId !== null &&
       fixture.exactSurfaceDocumentIds.includes(top1DocumentId) &&
+      fixture.expectedTop1DocumentIds.length > 0 &&
       !fixture.expectedTop1DocumentIds.includes(top1DocumentId),
     elapsedMs: response.value.elapsedMs,
   });
 }
 await core.close();
 
-const top1Rate = rows.filter((row) => row.top1Pass).length / rows.length;
+const strictRows = rows.filter((row) => row.top1Pass !== null);
+if (strictRows.length === 0) throw new Error('No strict identity lookup surfaces were found.');
+const top1Rate = strictRows.filter((row) => row.top1Pass === true).length / strictRows.length;
 const recallAt20 = rows.filter((row) => row.recallAt20).length / rows.length;
 const bodyOnlyIntrusionRate = rows.filter((row) => row.bodyOnlyIntrusion).length / rows.length;
 const weakerExactRate = rows.filter((row) => row.weakerExactWon).length / rows.length;
@@ -133,6 +139,8 @@ const report = {
   evaluatedSurfaceCount: rows.length,
   deterministicSampleMax: maxValue,
   metrics: {
+    strictTop1Cases: strictRows.length,
+    discoveryOnlyCases: rows.length - strictRows.length,
     top1Rate,
     recallAt20,
     bodyOnlyIntrusionRate,
@@ -140,7 +148,7 @@ const report = {
     p50Ms: percentile(0.5),
     p95Ms: percentile(0.95),
   },
-  failures: rows.filter((row) => !row.top1Pass || !row.recallAt20),
+  failures: rows.filter((row) => row.top1Pass === false || !row.recallAt20),
   rows,
 };
 mkdirSync(dirname(reportPath), { recursive: true });
