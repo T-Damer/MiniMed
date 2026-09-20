@@ -110,6 +110,9 @@ describe('linear frozen-candidate reranker', () => {
     });
 
     expect(model.weights).toHaveLength(LINEAR_RERANKER_FEATURES.length);
+    expect(model.hardTrainingPairs).toBe(2);
+    expect(model.easyTrainingPairs).toBe(0);
+    expect(model.weightedTrainingPairs).toBeGreaterThan(model.trainingPairs);
     const fixture = [
       row('test', 'wrong', 1, 0, 'clinical-picture'),
       row('test', 'right', 2, 3, 'treatment'),
@@ -146,6 +149,44 @@ describe('linear frozen-candidate reranker', () => {
     expect(candidates[0]?.features[featureIndex]).toBe(0);
     expect(candidates[1]?.features[featureIndex]).toBe(1);
     expect(candidates[2]?.features[featureIndex]).toBe(0.5);
+  });
+
+  it('separates clinical candidate text from medication-source dominance', () => {
+    const base = row('test-candidate-text', 'clinical-source', 1, 3, 'treatment');
+    const clinical: FrozenCandidateRow = {
+      ...base,
+      candidate: {
+        ...base.candidate,
+        canonicalName: 'Пневмония у детей',
+        evidence: 'Кашель, лихорадка и ухудшение состояния требуют пересмотра терапии.',
+      },
+    };
+    const medicine: FrozenCandidateRow = {
+      ...base,
+      candidate: {
+        ...base.candidate,
+        documentId: 'drug-source',
+        canonicalName: 'Амоксициллин',
+        sourceType: 'official_drug_instruction',
+        evidence: 'Амоксициллин: инструкция по медицинскому применению.',
+      },
+      retrieval: {
+        ...base.retrieval,
+        originalRank: 2,
+        matchedTerms: ['амоксициллин'],
+        matchedTermCount: 1,
+      },
+    };
+    const candidates = linearCandidatesForFixture([clinical, medicine]);
+    const findingIndex = LINEAR_RERANKER_FEATURES.indexOf('candidatePositiveFindingCoverage');
+    const medicineSourceIndex = LINEAR_RERANKER_FEATURES.indexOf(
+      'clinicalNarrativeMedicationSource',
+    );
+    expect(candidates[0]?.features[findingIndex]).toBeGreaterThan(
+      candidates[1]?.features[findingIndex] ?? 0,
+    );
+    expect(candidates[0]?.features[medicineSourceIndex]).toBe(0);
+    expect(candidates[1]?.features[medicineSourceIndex]).toBe(1);
   });
 
   it('treats universal age metadata as neutral instead of adult-only', () => {
