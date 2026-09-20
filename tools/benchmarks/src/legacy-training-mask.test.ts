@@ -18,6 +18,10 @@ describe('legacy reranker training masking', () => {
       'kr.rf.58_2.meningococcal',
       'Лечение генерализованной менингококковой инфекции без задержки',
     ],
+    [
+      'kr.rf.58_2.meningococcal',
+      'Подозрение на генерализованную менингококковую инфекцию',
+    ],
     ['kr.rf.281_3.uti', 'Ребенок 4 месяцев с фебрильной ИМП'],
   ])('masks inflected answer markers for %s', (documentId, query) => {
     const masked = maskLegacyTrainingQuery(query, [documentId], []);
