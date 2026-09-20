@@ -69,6 +69,7 @@ jobs:
           bun run --filter @localmed/benchmarks benchmark:lookup-quality --             --max=500             --core=apps/app/public/content/core.db             --report=data/build/search-quality-v2-lookup.json             2>&1 | tee data/build/search-quality-v2-lookup.log
           echo "${PIPESTATUS[0]}" > data/build/search-quality-v2-lookup.exit
 
+      # Uses the vector-capable SQLite adapter so requested hybrid mode cannot silently degrade.
       - name: Benchmark diagnosis-free clinical retrieval
         shell: bash
         run: |
