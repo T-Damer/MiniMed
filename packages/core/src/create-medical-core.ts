@@ -1151,9 +1151,14 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         const exactNavigationAliasDocumentIds = documentIndex.exactNavigationAliasIds(
           parsed.data.query,
         );
+        const exactShortTitleDocumentIds = documentIndex.exactShortTitleIds(parsed.data.query);
+        const exactSecondaryIdentityDocumentIds = new Set([
+          ...exactNavigationAliasDocumentIds,
+          ...exactShortTitleDocumentIds,
+        ]);
         const exactIdentityDocumentIds = new Set([
           ...exactTitleDocumentIds,
-          ...exactNavigationAliasDocumentIds,
+          ...exactSecondaryIdentityDocumentIds,
         ]);
         // Keep exact names and every declared meaning through the chunk cutoff for document ranking.
         const lexicalResults = fuseBranchHits(
@@ -1279,8 +1284,8 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
               (left, right) =>
                 Number(exactTitleDocumentIds.has(right.documentId)) -
                   Number(exactTitleDocumentIds.has(left.documentId)) ||
-                Number(exactNavigationAliasDocumentIds.has(right.documentId)) -
-                  Number(exactNavigationAliasDocumentIds.has(left.documentId)),
+                Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
+                  Number(exactSecondaryIdentityDocumentIds.has(left.documentId)),
             )
             .slice(0, parsed.data.limit),
           diagnostics: {
