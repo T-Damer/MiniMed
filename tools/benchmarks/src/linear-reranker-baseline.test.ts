@@ -59,6 +59,7 @@ function row(
       topSectionType,
       terminologyMatch: null,
       exactTitle: false,
+      exactShortTitle: false,
       exactNavigationAlias: false,
       exactDeclaredAlias: false,
     },
@@ -86,6 +87,7 @@ describe('linear frozen-candidate reranker', () => {
     const parsed = parseFrozenCandidate(row('fixture', 'doc', 1, 3, 'treatment'));
     expect(parsed.fixtureId).toBe('fixture');
     expect(parsed.retrieval.originalRank).toBe(1);
+    expect(parsed.retrieval.exactShortTitle).toBe(false);
     expect(parsed.candidate.canonicalName).toBe('doc');
     expect(parsed.retrieval.sectionTypes).toEqual(['treatment']);
     expect(parsed.label.expectedSectionTypes).toEqual(['treatment']);
