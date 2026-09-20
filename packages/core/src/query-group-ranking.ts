@@ -249,9 +249,27 @@ function isFailedQueryTerm(query: string, term: string): boolean {
   const normalizedQuery = normalizeSurfaceText(query);
   const termIndex = normalizedQuery.indexOf(term);
   if (termIndex < 0) return false;
-  return /^(?:\s+)(?:не\s+)?(?:помог|сработ|эффект|подейств|перенос)/u.test(
-    normalizedQuery.slice(termIndex + term.length),
-  );
+
+  const before = normalizedQuery.slice(Math.max(0, termIndex - 96), termIndex);
+  const after = normalizedQuery.slice(termIndex + term.length, termIndex + term.length + 96);
+
+  const directAfter =
+    /^\s*(?:не\s+)?(?:помог|сработ|подейств|эффектив|перенос)/u.test(after) ||
+    /^\s*(?:оказал|дал)\p{L}*\s+(?:недостаточн\p{L}*|нулев\p{L}*)\s+эффект/u.test(after);
+  const failureAfter =
+    /(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*|не\s+наблюда\p{L}*)/u.test(
+      after,
+    ) ||
+    /(?:ухудш\p{L}*|без\s+улучшен\p{L}*|неэффектив\p{L}*)/u.test(after);
+  const failureBefore =
+    /(?:нет|без|отсутств\p{L}*)\s+(?:клиническ\p{L}*\s+)?(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:от|на|после)\s*$/u.test(
+      before,
+    ) ||
+    /(?:неэффектив\p{L}*|безрезультат\p{L}*)\s+(?:лечени\p{L}*\s+)?(?:от|на)?\s*$/u.test(
+      before,
+    );
+
+  return directAfter || failureAfter || failureBefore;
 }
 
 function titleTermBoost(
@@ -385,8 +403,12 @@ export function rankSearchGroupsByQuery(
     clinicalNarrative && analysis
       ? analysis.facts
           .filter((fact) => fact.kind === 'symptom' && fact.polarity === 'positive')
-          .flatMap((fact) => [tokenize(fact.value), tokenize(fact.normalizedValue)])
-          .filter((terms) => terms.length > 0)
+          .map((fact) =>
+            [tokenize(fact.value), tokenize(fact.normalizedValue)].filter(
+              (terms) => terms.length > 0,
+            ),
+          )
+          .filter((variants) => variants.length > 0)
       : [];
   // ponytail: scan the bounded candidate window; use corpus-wide document frequencies if this grows hot.
   const phrase = normalizeSurfaceText(query);
@@ -405,9 +427,16 @@ export function rankSearchGroupsByQuery(
       index,
       exactTitle: matchesExactDocumentTitle(query, group),
       exactAlias: matchesNavigationAlias(query, documentsById.get(group.documentId)),
-      hasPositiveFinding: positiveFindings.some((terms) =>
-        terms.every((term) => (findingWords[index] ?? []).some((word) => tokensMatch(term, word))),
-      ),
+      positiveFindingCoverage:
+        positiveFindings.length === 0
+          ? 0
+          : positiveFindings.filter((variants) =>
+              variants.some((terms) =>
+                terms.every((term) =>
+                  (findingWords[index] ?? []).some((word) => tokensMatch(term, word)),
+                ),
+              ),
+            ).length / positiveFindings.length,
       sourcePhrase:
         hasSourcePhrase &&
         ((subjectSearch &&
@@ -444,7 +473,7 @@ export function rankSearchGroupsByQuery(
         Number(right.exactTitle) - Number(left.exactTitle) ||
         Number(right.exactAlias) - Number(left.exactAlias) ||
         Number(right.sourcePhrase) - Number(left.sourcePhrase) ||
-        Number(right.hasPositiveFinding) - Number(left.hasPositiveFinding) ||
+        right.positiveFindingCoverage - left.positiveFindingCoverage ||
         right.score - left.score ||
         left.index - right.index,
     )
