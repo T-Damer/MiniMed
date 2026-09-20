@@ -166,6 +166,7 @@ function surfaceFlags(
   document: SearchDocumentDescriptor | undefined,
 ): {
   readonly exactTitle: boolean;
+  readonly exactShortTitle: boolean;
   readonly exactNavigationAlias: boolean;
   readonly exactDeclaredAlias: boolean;
 } {
@@ -173,6 +174,7 @@ function surfaceFlags(
   if (!subject || !document) {
     return {
       exactTitle: false,
+      exactShortTitle: false,
       exactNavigationAlias: false,
       exactDeclaredAlias: false,
     };
@@ -181,6 +183,8 @@ function surfaceFlags(
     values.some((value) => normalizeSurfaceText(value).trim() === subject);
   return {
     exactTitle: normalizeSurfaceText(document.title).trim() === subject,
+    exactShortTitle:
+      document.shortTitle !== null && normalizeSurfaceText(document.shortTitle).trim() === subject,
     exactNavigationAlias: matches(metadataStrings(document.metadata, 'navigationAliases')),
     exactDeclaredAlias: matches(metadataStrings(document.metadata, 'declaredAliases')),
   };
@@ -355,6 +359,7 @@ for (const fixture of fixtures) {
           topSectionType: group.results[0]?.sectionType ?? null,
           terminologyMatch: group.terminologyMatch ?? null,
           exactTitle: surfaces.exactTitle,
+          exactShortTitle: surfaces.exactShortTitle,
           exactNavigationAlias: surfaces.exactNavigationAlias,
           exactDeclaredAlias: surfaces.exactDeclaredAlias,
         },
