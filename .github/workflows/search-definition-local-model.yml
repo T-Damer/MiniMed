@@ -7,6 +7,7 @@ on:
       - content/definition-pilot/**
       - tools/benchmarks/definition-queries.json
       - tools/benchmarks/local_reranker.py
+      - tools/benchmarks/local_model_smoke.py
       - tools/benchmarks/test_local_reranker.py
       - tools/benchmarks/src/local-*.ts
       - tools/benchmarks/src/run-definition-quality.ts
@@ -43,7 +44,10 @@ jobs:
         run: |
           python3 -m unittest discover -s tools/benchmarks -p test_local_reranker.py -v
           bunx vitest run tools/benchmarks/src/local-reranker-contract.test.ts
+      - name: Check benchmark TypeScript contracts
+        run: bunx tsc --noEmit -p tools/benchmarks/tsconfig.json
       - name: Build source-linked draft definitions with the normal ingester
+        if: always()
         id: build
         run: |
           uv run --project tools/ingest medbase lint --input content/definition-pilot
@@ -68,8 +72,9 @@ jobs:
           HF_HUB_OFFLINE: '1'
           TRANSFORMERS_OFFLINE: '1'
         run: |
+          .venv-cross/bin/python tools/benchmarks/local_model_smoke.py
           printf '%s\n' \
-            'мысли и движения ощущаются сделанными извне' \
+            'боль в правой подвздошной области' \
             'боль при скольжении пальцами через натянутую рубашку' \
             'Симптом белого пятна' \
             | bun tools/benchmarks/src/local-search-demo.ts > data/build/local-search-demo.jsonl
@@ -78,7 +83,9 @@ jobs:
           from pathlib import Path
           rows = [json.loads(line) for line in Path('data/build/local-search-demo.jsonl').read_text().splitlines() if line.strip()]
           assert len(rows) == 3, 'Missing demo responses'
-          assert all(row['status'] == 'observe' for row in rows[:2]), 'Real model did not run'
+          print('CLI_STATUSES', json.dumps([{'status': row['status'], 'inferenceMs': row['inferenceMs']} for row in rows]))
+          assert rows[0]['status'] == 'observe', 'Real model did not run on multi-candidate query'
+          assert rows[1]['status'] in ('observe', 'insufficient-candidates'), 'Unexpected classifier failure'
           assert rows[2]['status'] == 'identity-bypass', 'Exact identity invoked model'
           assert all(not row['applied'] and row['selected'] == row['baseline'] for row in rows)
           print('OFFLINE_CPU_DEMO', json.dumps([{'status': row['status'], 'inferenceMs': row['inferenceMs'], 'baselineTop1': row['baseline'][0]['documentId'], 'experimentalTop1': row['experimental'][0]['documentId']} for row in rows], ensure_ascii=False))

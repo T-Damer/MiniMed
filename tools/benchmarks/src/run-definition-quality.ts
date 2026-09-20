@@ -5,7 +5,7 @@ import { dirname, resolve } from 'node:path';
 import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
-import { SqliteMedicalStore } from '@localmed/storage-sqlite';
+import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 
 interface DefinitionCase {
   readonly id: string;
@@ -32,7 +32,9 @@ const raw: unknown = JSON.parse(readFileSync(fixturePath, 'utf8'));
 if (!Array.isArray(raw) || !raw.length) throw new Error('Missing definition cases.');
 const fixtures = raw.map((value: unknown): DefinitionCase => {
   if (!value || typeof value !== 'object') throw new Error('Invalid definition case.');
-  const item = value as Record<string, unknown>;
+  const item = value as Partial<
+    Record<'id' | 'query' | 'origin' | 'expectedIds' | 'maxRank' | 'expectedDefinition', unknown>
+  >;
   if (
     typeof item.id !== 'string' ||
     typeof item.query !== 'string' ||
@@ -53,7 +55,7 @@ if (new Set(fixtures.map((item) => item.id)).size !== fixtures.length)
 const stores = await Promise.all(
   paths.map(async (path, index) => ({
     moduleId: `definition-benchmark:${index}`,
-    store: await SqliteMedicalStore.createFromBytes(new Uint8Array(readFileSync(path))),
+    store: await createBunFileMedicalStore(path),
     required: true,
     searchWeight: 1,
   })),
@@ -96,9 +98,9 @@ try {
         (!fixture.expectedDefinition || text.includes(fixture.expectedDefinition));
       const metadata = document.value.metadata;
       definitionReadable &&=
-        metadata.definitionStatus === 'proposed' &&
-        metadata.releaseEligible === false &&
-        typeof metadata.officialSourceUrl === 'string';
+        metadata['definitionStatus'] === 'proposed' &&
+        metadata['releaseEligible'] === false &&
+        typeof metadata['officialSourceUrl'] === 'string';
       const group = found.value.groups.find((item) => item.documentId === id);
       if (!group) exactContext = false;
       for (const hit of group?.results ?? []) {

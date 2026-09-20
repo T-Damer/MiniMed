@@ -1,6 +1,5 @@
 /** Local terminal demo over the real MedicalCore. No listener or hosted inference. */
 import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 
@@ -8,7 +7,7 @@ import { createMedicalCore } from '@localmed/core';
 import { normalizeSurfaceText, searchSubjectText } from '@localmed/search-lexical';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
-import { SqliteMedicalStore } from '@localmed/storage-sqlite';
+import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 
 import { type LocalCandidate, validateLocalRankingResponse } from './local-reranker-contract';
 
@@ -36,8 +35,8 @@ if (allowApply) childArgs.push('--experimental-apply');
 const child = spawn(python, childArgs, {
   cwd: root,
   env: {
-    PATH: process.env.PATH ?? '',
-    HOME: process.env.HOME ?? '',
+    PATH: process.env['PATH'] ?? '',
+    HOME: process.env['HOME'] ?? '',
     LANG: 'C.UTF-8',
     HF_HUB_OFFLINE: '1',
     TRANSFORMERS_OFFLINE: '1',
@@ -91,7 +90,7 @@ const paths = [
 const stores = await Promise.all(
   paths.map(async (path, index) => ({
     moduleId: `demo:${index}`,
-    store: await SqliteMedicalStore.createFromBytes(new Uint8Array(readFileSync(path))),
+    store: await createBunFileMedicalStore(path),
     required: true,
     searchWeight: 1,
   })),
@@ -128,7 +127,7 @@ try {
     const subject = normalizeSurfaceText(searchSubjectText(query)).trim();
     const candidates = groups.map((group): LocalCandidate => {
       const document = documents.get(group.documentId);
-      const rawAliases = document?.metadata.navigationAliases;
+      const rawAliases = document?.metadata['navigationAliases'];
       const aliases = Array.isArray(rawAliases)
         ? rawAliases.filter((x): x is string => typeof x === 'string')
         : [];

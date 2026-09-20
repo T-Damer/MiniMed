@@ -19,7 +19,12 @@ export function validateLocalRankingResponse(
   allowApply: boolean,
 ): LocalRankingResponse {
   if (!value || typeof value !== 'object') throw new Error('Invalid local model response.');
-  const row = value as Record<string, unknown>;
+  const row = value as Partial<
+    Record<
+      'schemaVersion' | 'status' | 'orderedIds' | 'experimentalIds' | 'applied' | 'inferenceMs',
+      unknown
+    >
+  >;
   const original = candidates.map((candidate) => candidate.id);
   const allowed = new Set(original);
   if (allowed.size !== original.length) throw new Error('Duplicate source identities.');

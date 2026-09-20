@@ -1,5 +1,9 @@
 # Current state
 
+## Definition pilot and offline CPU demo (2026-09-20)
+
+PR #180 adds an optional source-linked definition-draft pack and a research-only local CPU classifier demo. See `docs/research/local-definition-model-demo-2026-09-20.md` for the source/review boundary, commands and separate measurements. Definitions remain local-dev/proposed; no reviewed facts, same-as edges, released core or APK are replaced. The neural test was worse than deterministic ranking (19/33 versus 27/33); it is not enabled in the application. The new integration workflow uses the existing file-backed Bun SQLite adapter for the full corpus and checks CPU inference with networking blocked in the model process. Consult commit checks for execution status; authored tests are not automatically validated.
+
 - MiniMed `0.6.39` ships optional Russian Wiktionary/Kaikki lexical downloads: seven gzip packages
   (index with source definitions plus six owner sections). Local selection: 6,939 senses, 6,940
   Russian glosses; no MeSH equivalence or clinical approval is inferred. Current-core + Russian-index
