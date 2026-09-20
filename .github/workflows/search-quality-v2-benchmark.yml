@@ -11,6 +11,7 @@ on:
       - tools/benchmarks/src/run-lookup-quality.ts
       - tools/benchmarks/src/run-search-quality-v2.ts
       - tools/benchmarks/src/run-search-coverage-observations.ts
+      - tools/benchmarks/package.json
       - tools/benchmarks/src/search-quality-dataset.ts
       - tools/benchmarks/src/lookup-quality-cases.ts
       - packages/core/src/query-group-ranking.ts
@@ -102,14 +103,28 @@ jobs:
                   print(json.dumps(data.get("metrics", {}), ensure_ascii=False, indent=2))
                   print("eligibleSurfaceCount:", data.get("eligibleSurfaceCount"))
                   print("evaluatedSurfaceCount:", data.get("evaluatedSurfaceCount"))
-                  print("failureCount:", len(data.get("failures", [])))
+                  failures = data.get("failures", [])
+                  print("failureCount:", len(failures))
+                  print("failures:", json.dumps(failures[:10], ensure_ascii=False, indent=2))
               elif name == "clinical":
-                  print(json.dumps(data.get("profiles", {}), ensure_ascii=False, indent=2))
+                  profiles = data.get("profiles", {})
+                  print(json.dumps(profiles, ensure_ascii=False, indent=2))
                   print("deltas:", json.dumps(data.get("deltas"), ensure_ascii=False, indent=2))
                   print("coverage:", json.dumps({
                       k: data.get("coverage", {}).get(k)
                       for k in ("fullyCovered", "partiallyCovered", "uncovered")
                   }, ensure_ascii=False))
+                  rows = data.get("rows", [])
+                  for profile in ("lexical", "hybrid"):
+                      worst = sorted(
+                          [row for row in rows if row.get("profile") == profile],
+                          key=lambda row: (
+                              row.get("ndcgAt5", 0),
+                              row.get("relevantRecallAt20", 0),
+                              row.get("mrrAt20", 0),
+                          ),
+                      )[:10]
+                      print(f"worst {profile}:", json.dumps(worst, ensure_ascii=False, indent=2))
               else:
                   print("visibleAt20:", data.get("visibleAt20"))
                   print(json.dumps(data.get("rows", []), ensure_ascii=False, indent=2))
