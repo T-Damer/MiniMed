@@ -41,6 +41,7 @@ export interface FrozenCandidateRow {
     readonly topSectionType: string | null;
     readonly terminologyMatch: string | null;
     readonly exactTitle: boolean;
+    readonly exactShortTitle: boolean;
     readonly exactNavigationAlias: boolean;
     readonly exactDeclaredAlias: boolean;
   };
@@ -72,6 +73,7 @@ export const LINEAR_RERANKER_FEATURES = [
   'matchedBranchesNormalized',
   'resultCountNormalized',
   'exactTitle',
+  'exactShortTitle',
   'exactNavigationAlias',
   'exactDeclaredAlias',
   'intentTreatmentSection',
@@ -286,6 +288,10 @@ export function parseFrozenCandidate(
         `${label}.retrieval.terminologyMatch`,
       ),
       exactTitle: booleanValue(retrieval.exactTitle, `${label}.retrieval.exactTitle`),
+      exactShortTitle: booleanValue(
+        retrieval.exactShortTitle,
+        `${label}.retrieval.exactShortTitle`,
+      ),
       exactNavigationAlias: booleanValue(
         retrieval.exactNavigationAlias,
         `${label}.retrieval.exactNavigationAlias`,
@@ -468,6 +474,7 @@ export function linearCandidatesForFixture(
       normalized(row.retrieval.matchedBranchCount, matchedBranchesMax),
       normalized(row.retrieval.resultCount, resultCountMax),
       Number(row.retrieval.exactTitle),
+      Number(row.retrieval.exactShortTitle),
       Number(row.retrieval.exactNavigationAlias),
       Number(row.retrieval.exactDeclaredAlias),
       intent.treatment,
