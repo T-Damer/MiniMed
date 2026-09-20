@@ -922,3 +922,50 @@ def test_pews_exact_source_metadata_stays_non_computable() -> None:
     assert boundary["totalScoreCannotBeComputedFromThisArtifact"] is True
     assert boundary["ageSpecificPhysiologicCutoffsAbsent"] is True
     assert boundary["doNotSubstituteOtherPewsVariant"] is True
+
+
+def test_pediatric_trauma_score_keeps_current_kr_interpretation_separate() -> None:
+    data = _load("pediatric-trauma-score-kr938_1-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["semanticClass"] == "assessment_definition"
+
+    scoring = cast(dict[str, object], data["scoring"])
+    total_range = cast(dict[str, object], scoring["totalRange"])
+    assert (_int(total_range["min"]), _int(total_range["max"])) == (-6, 12)
+    assert scoring["componentScores"] == [2, 1, -1]
+
+    components = cast(list[dict[str, object]], data["components"])
+    assert [component["id"] for component in components] == [
+        "weight",
+        "airway",
+        "systolic_blood_pressure",
+        "central_nervous_system",
+        "open_wound",
+        "fractures",
+    ]
+
+    weight_rules = cast(list[dict[str, object]], components[0]["rules"])
+    assert [_int(rule["score"]) for rule in weight_rules] == [2, 1, -1]
+    assert cast(dict[str, object], weight_rules[1]["condition"]) == {
+        "operator": "range_inclusive",
+        "min": 10,
+        "max": 20,
+    }
+
+    interpretations = cast(list[dict[str, object]], data["currentRussianInterpretation"])
+    assert interpretations == [
+        {
+            "operator": "<=",
+            "value": 8,
+            "semantic": "severe_trauma",
+            "source": "KR_938_1_2025",
+        }
+    ]
+
+    omitted = cast(list[object], data["omittedHistoricalInterpretations"])
+    assert "specific_mortality_percentages_by_score" in omitted
+
+    boundary = cast(dict[str, object], data["clinicalBoundary"])
+    assert boundary["currentKrDoesNotReproduceFullMatrix"] is True
+    assert boundary["fullMatrixCrossCheckedAgainstClassicDefinition"] is True
