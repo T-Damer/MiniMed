@@ -56,5 +56,5 @@ export interface ChunkContext {
 /** Compact fields used to rank and label search groups; metadata is not a full document record. */
 export type SearchDocumentDescriptor = Pick<
   MedicalDocumentSummary,
-  'id' | 'sourceType' | 'metadata' | 'ageGroups'
+  'id' | 'title' | 'shortTitle' | 'sourceType' | 'metadata' | 'ageGroups'
 >;
