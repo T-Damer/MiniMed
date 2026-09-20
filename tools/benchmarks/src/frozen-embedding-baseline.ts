@@ -1,16 +1,24 @@
+import { normalizeSurfaceText } from '@localmed/search-lexical';
 import { cosineInt8, embedPortableText } from '@localmed/search-semantic';
 
 import type { FrozenCandidateRow } from './linear-reranker-baseline';
 
 export function frozenCandidateText(row: FrozenCandidateRow): string {
-  return [
+  const identitySurfaces = [
     row.candidate.canonicalName,
     row.candidate.shortTitle,
     ...row.candidate.navigationAliases,
     ...row.candidate.declaredAliases,
-    row.candidate.evidence,
-  ]
-    .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+  ].filter((value): value is string => typeof value === 'string' && value.trim().length > 0);
+  const seen = new Set<string>();
+  const uniqueIdentitySurfaces = identitySurfaces.filter((value) => {
+    const normalized = normalizeSurfaceText(value);
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
+  return [...uniqueIdentitySurfaces, row.candidate.evidence]
+    .filter((value) => value.trim().length > 0)
     .join('\n');
 }
 
