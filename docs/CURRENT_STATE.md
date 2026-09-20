@@ -40,6 +40,30 @@
   harness and preserved the reviewed-vs-proposed boundary. Repository-pinned Ruff/Pyright/Vitest,
   full build and device checks remain required before the draft PR can be considered merge-ready.
 
+## Unreleased search-quality evaluation — stacked draft PR #180
+
+- Search quality is now split into two measured contracts instead of treating one hybrid benchmark as
+  representative of every search surface. Ordinary lookup stays deterministic; free-form clinical
+  retrieval is evaluated separately before any local decision model is considered.
+- A corpus-derived lookup runner enumerates active document titles and declared search aliases from
+  the evaluated `core.db` plus optional installed packs. Surface collisions are grouped rather than
+  assigned an arbitrary single gold document. Exact-title matches are expected ahead of alias-only
+  matches and incidental body mentions; the runner reports Top-1, Recall@20, body-only intrusions and
+  alias-over-title inversions.
+- Runtime ranking now treats an exact document title as a hard ordering invariant ahead of aliases,
+  source phrases and numeric relevance score. This addresses the observed case where a directly named
+  document could appear below a document that merely mentioned the term.
+- The clinical challenge set uses diagnosis-free Russian formulations with answer-leakage validation,
+  graded multi-document relevance, deliberate ambiguity and separate lexical/hybrid runs. Reports
+  include Recall@20/@40, NDCG, MRR, section hit rate and corpus coverage so a missing pack is not
+  misreported as a ranking failure.
+- The existing Real-POCQi importer remains useful for natural clinician-query distribution, but its
+  English/US questions are not treated as Russian MiniMed relevance labels. A production reranker
+  decision still requires a private 200–300-query Russian clinician set outside the tuning context.
+- No Laya/Jev-like model is added by this PR. GitHub Actions remain intentionally undispatched while
+  repository artifact/storage quota is exhausted; the new runners and regression tests still require
+  execution in a normal checkout before the draft can be considered validated.
+
 ## Terminology and measured lookup — 0.6.39
 
 - MeSH collector/section packs now connect to ordinary MedicalCore lookup through a versioned compact
