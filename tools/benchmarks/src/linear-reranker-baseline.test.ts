@@ -23,8 +23,10 @@ function row(
     origin: 'legacy-pilot-training',
     family: 'synthetic',
     goal: 'treatment',
+    answerability: 'focused',
     analysis: {
       primaryIntent: 'treatment',
+      secondaryIntents: [],
       intentConfidence: 0.9,
       needsClarification: false,
       ageFacts: ['6 лет'],
@@ -34,8 +36,11 @@ function row(
       negativeFindings: [],
       currentMedicineCount: 1,
       currentMedicines: ['амоксициллин'],
+      branchKinds: ['clinical'],
     },
     retrieval: {
+      requestedMode: 'lexical',
+      modeUsed: 'lexical',
       originalRank,
       groupBestScore: originalRank === 1 ? 2 : 1,
       maximumLexicalScore: originalRank === 1 ? 2 : 1,
@@ -49,6 +54,7 @@ function row(
       coreCandidateCount: 2,
       semanticStatus: 'disabled',
       semanticCandidateCount: 0,
+      sectionTypes: [topSectionType],
       topSectionType,
       terminologyMatch: null,
       exactTitle: false,
@@ -57,12 +63,18 @@ function row(
     },
     candidate: {
       documentId,
+      conceptId: null,
+      canonicalName: documentId,
+      shortTitle: null,
       sourceType: 'clinical_recommendation',
+      navigationAliases: [],
+      declaredAliases: [],
       ageGroups: ['children'],
       evidence: 'Кашель и лихорадка у ребенка.',
     },
     label: {
       relevanceGrade,
+      expectedSectionTypes: [topSectionType],
       forbidden: false,
     },
   };
@@ -73,6 +85,9 @@ describe('linear frozen-candidate reranker', () => {
     const parsed = parseFrozenCandidate(row('fixture', 'doc', 1, 3, 'treatment'));
     expect(parsed.fixtureId).toBe('fixture');
     expect(parsed.retrieval.originalRank).toBe(1);
+    expect(parsed.candidate.canonicalName).toBe('doc');
+    expect(parsed.retrieval.sectionTypes).toEqual(['treatment']);
+    expect(parsed.label.expectedSectionTypes).toEqual(['treatment']);
     expect(parsed.label.relevanceGrade).toBe(3);
   });
 
