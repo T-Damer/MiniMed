@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.neonatal-lab-decision-thresholds.ru.krs-2025",
+  "title": "Neonatal laboratory decision thresholds from current Russian clinical recommendations",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "clinical-recommendation-source-review-required",
+  "verificationStatus": "current-krs-cross-mirror-review",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "clinical_decision_thresholds_not_reference_intervals",
+  "sources": [
+    {
+      "recommendationTitle": "Сепсис новорожденных",
+      "recommendationId": "912_1",
+      "recommendationYear": 2025,
+      "revisionDueNoLaterThan": 2027,
+      "developer": "Российское общество неонатологов",
+      "urls": [
+        "https://minzdrav.clinirec.ru/kr/sepsis-novorozhdennyh/",
+        "https://sudact.ru/law/klinicheskie-rekomendatsii-sepsis-novorozhdennykh-odobreny-minzdravom-rossii/klinicheskie-rekomendatsii/",
+        "https://www.consultant.ru/document/cons_doc_LAW_505687/"
+      ]
+    },
+    {
+      "recommendationTitle": "Полицитемия новорожденного",
+      "recommendationId": "909_1",
+      "recommendationYear": 2025,
+      "revisionDueNoLaterThan": 2027,
+      "developers": [
+        "Российское общество неонатологов",
+        "Ассоциация специалистов в области перинатальной медицины (АСПМ)"
+      ],
+      "urls": [
+        "https://cr.minzdrav.gov.ru/preview-cr/909_1",
+        "https://sudact.ru/law/klinicheskie-rekomendatsii-politsitemiia-novorozhdennogo-odobreny-minzdravom-rossii/klinicheskie-rekomendatsii/",
+        "https://www.consultant.ru/document/cons_doc_LAW_505360/"
+      ]
+    }
+  ],
+  "sepsis": {
+    "recommendationId": "912_1",
+    "diagnosticSupport": [
+      {
+        "analyte": "leukocytes",
+        "operator": ">",
+        "value": 30,
+        "unit": "10^9/L",
+        "context": "leukocytosis"
+      },
+      {
+        "analyte": "leukocytes",
+        "operator": "<",
+        "value": 5,
+        "unit": "10^9/L",
+        "context": "leukopenia"
+      },
+      {
+        "analyte": "absolute_neutrophils",
+        "operator": ">",
+        "value": 20,
+        "unit": "10^9/L",
+        "context": "neutrophilia",
+        "postnatalAge": "day_1_to_2"
+      },
+      {
+        "analyte": "absolute_neutrophils",
+        "operator": ">",
+        "value": 7,
+        "unit": "10^9/L",
+        "context": "neutrophilia",
+        "postnatalAge": ">3_days"
+      },
+      {
+        "analyte": "platelets",
+        "operator": "<",
+        "value": 123,
+        "unit": "10^9/L",
+        "context": "thrombocytopenia",
+        "gestationalAgeWeeks": ">=33",
+        "postnatalAge": "first_72_hours"
+      },
+      {
+        "analyte": "platelets",
+        "operator": "<",
+        "value": 104,
+        "unit": "10^9/L",
+        "context": "thrombocytopenia",
+        "gestationalAgeWeeks": "<=32",
+        "postnatalAge": "first_72_hours"
+      },
+      {
+        "analyte": "platelets",
+        "operator": "<",
+        "value": 150,
+        "unit": "10^9/L",
+        "context": "thrombocytopenia",
+        "gestationalAgeWeeks": "any",
+        "postnatalAge": ">72_hours"
+      },
+      {
+        "analyte": "procalcitonin",
+        "operator": ">=",
+        "value": 2.5,
+        "unit": "ng/mL",
+        "context": "early_neonatal_sepsis",
+        "sourceAppendixAgeHours": "0-72"
+      },
+      {
+        "analyte": "procalcitonin",
+        "operator": ">=",
+        "value": 2,
+        "unit": "ng/mL",
+        "context": "late_neonatal_sepsis",
+        "sourceAppendixAgeHours": ">72"
+      },
+      {
+        "analyte": "c_reactive_protein",
+        "operator": ">",
+        "value": 10,
+        "unit": "mg/L",
+        "context": "sepsis_support"
+      },
+      {
+        "analyte": "presepsin",
+        "operator": ">",
+        "value": 800,
+        "unit": "pg/mL",
+        "context": "sepsis_support"
+      },
+      {
+        "analyte": "immature_to_total_neutrophil_ratio",
+        "operator": ">",
+        "value": 0.2,
+        "unit": "ratio",
+        "context": "neutrophil_index"
+      },
+      {
+        "analyte": "glucose",
+        "operator": "<",
+        "value": 2.6,
+        "unit": "mmol/L",
+        "context": "hypoglycemia"
+      },
+      {
+        "analyte": "glucose",
+        "operator": ">",
+        "value": 10,
+        "unit": "mmol/L",
+        "context": "hyperglycemia"
+      },
+      {
+        "analyte": "lactate",
+        "operator": ">",
+        "value": 2,
+        "unit": "mmol/L",
+        "context": "lactate_acidosis"
+      }
+    ],
+    "neutropeniaByBirthWeight": [
+      {
+        "birthWeight": "<=1500_g",
+        "thresholds": [
+          {
+            "postnatalAgeHours": "0-6",
+            "ancLessThanCellsPerMicroliter": 500
+          },
+          {
+            "postnatalAgeHours": ">6-12",
+            "ancLessThanCellsPerMicroliter": 1500
+          },
+          {
+            "postnatalAgeHours": ">12-30",
+            "ancLessThanCellsPerMicroliter": 1800
+          },
+          {
+            "postnatalAgeHours": ">30-48",
+            "ancLessThanCellsPerMicroliter": 1500
+          },
+          {
+            "postnatalAgeHours": ">48",
+            "ancLessThanCellsPerMicroliter": 1100
+          }
+        ]
+      },
+      {
+        "birthWeight": ">1500_g",
+        "thresholds": [
+          {
+            "postnatalAgeHours": "0-6",
+            "ancLessThanCellsPerMicroliter": 2000
+          },
+          {
+            "postnatalAgeHours": ">6-12",
+            "ancLessThanCellsPerMicroliter": 4000
+          },
+          {
+            "postnatalAgeHours": ">12-24",
+            "ancLessThanCellsPerMicroliter": 6000
+          },
+          {
+            "postnatalAgeHours": ">24-48",
+            "ancLessThanCellsPerMicroliter": 4000
+          },
+          {
+            "postnatalAgeHours": ">48-72",
+            "ancLessThanCellsPerMicroliter": 2000
+          },
+          {
+            "postnatalAgeHours": ">72",
+            "ancLessThanCellsPerMicroliter": 1500
+          }
+        ]
+      }
+    ],
+    "plateletTransfusionDecisionThresholds": [
+      {
+        "analyte": "platelets",
+        "operator": "<",
+        "value": 25,
+        "unit": "10^9/L",
+        "context": "sepsis_or_septic_shock_or_dic",
+        "bleeding": "absent"
+      },
+      {
+        "analyte": "platelets",
+        "operator": "<",
+        "value": 50,
+        "unit": "10^9/L",
+        "context": "sepsis_or_septic_shock_or_dic",
+        "bleeding": "ongoing"
+      }
+    ],
+    "treatmentMonitoringTargets": [
+      {
+        "analyte": "glucose",
+        "range": {
+          "min": 3.5,
+          "max": 5.5
+        },
+        "unit": "mmol/L",
+        "context": "planned_infusion_therapy_in_sepsis"
+      },
+      {
+        "analyte": "ionized_calcium",
+        "operator": ">=",
+        "value": 1.15,
+        "unit": "mmol/L",
+        "context": "planned_infusion_therapy_in_sepsis"
+      }
+    ]
+  },
+  "polycythemia": {
+    "recommendationId": "909_1",
+    "definitionThreshold": {
+      "analyte": "venous_hematocrit",
+      "operator": ">=",
+      "value": 65,
+      "unit": "percent",
+      "context": "polycythemia_definition"
+    },
+    "samplingBoundary": {
+      "peripheralHematocritTriggerForVenousConfirmation": {
+        "analyte": "peripheral_hematocrit",
+        "operator": ">",
+        "value": 65,
+        "unit": "percent",
+        "context": "confirm_with_venous_hematocrit"
+      },
+      "sourceStatement": "Capillary hematocrit is typically higher than venous by 5-15%; treatment decisions use venous hematocrit.",
+      "numericDifferenceInterpretation": "source-relative-wording-only"
+    },
+    "treatmentDecisionThresholds": [
+      {
+        "venousHematocritPercent": {
+          "min": 70,
+          "max": 75
+        },
+        "symptoms": "absent",
+        "actionConcept": "dextrose_infusion_considered_by_recommendation",
+        "actionDetailsOmitted": true
+      },
+      {
+        "venousHematocritPercent": {
+          "operator": ">=",
+          "value": 65
+        },
+        "symptoms": "two_or_more_polycythemia_symptoms",
+        "dehydration": "absent",
+        "actionConcept": "partial_exchange_transfusion",
+        "actionDetailsOmitted": true
+      },
+      {
+        "venousHematocritPercent": {
+          "operator": ">=",
+          "value": 76
+        },
+        "symptoms": "absent",
+        "actionConcept": "partial_exchange_transfusion",
+        "actionDetailsOmitted": true
+      }
+    ],
+    "dischargeLaboratoryBoundary": {
+      "analyte": "venous_hematocrit",
+      "operator": "<",
+      "value": 65,
+      "unit": "percent",
+      "context": "one_of_discharge_criteria"
+    }
+  },
+  "reviewNotes": [
+    "These values are diagnostic/treatment decision thresholds from disease-specific clinical recommendations, not population reference intervals.",
+    "Do not render this dataset under a generic 'normal laboratory ranges' label.",
+    "Sepsis thresholds are nonspecific and the source explicitly frames neonatal sepsis as a clinical syndrome requiring combined clinical, laboratory and microbiological assessment.",
+    "The neutropenia table is preserved by birth-weight and postnatal-age bands; do not merge it into a generic ANC reference range.",
+    "Polycythemia treatment decisions are based on venous hematocrit; capillary/peripheral values are a trigger for confirmation, not an interchangeable measurement.",
+    "Treatment action details are intentionally omitted from this compact threshold dataset and require the full recommendation/runtime clinical contract.",
+    "Promotion requires clinician review of every comparator, boundary and source version."
+  ]
+}
