@@ -149,8 +149,13 @@
 - оценка обезвоживания — 🧪 CDS source-extracted 2026-09-20 из текущей КР ОРВИ
   (2026, ID 25_3): `docs/research/data/cds-dehydration-assessment-kr25_3-2026.json`.
   КР прямо задаёт 4 признака × 0–2 и категории 0 / 1–4 / 5–8; диапазон 5–8 сохранён как
-  единая `moderate_or_severe` категория без выдуманного split point. Расчёт процента дефицита
-  жидкости и продолжающихся потерь остаётся отдельным source contract.
+  единая `moderate_or_severe` категория без выдуманного split point.
+- дефицит/инфузионный fluid contract — 🧪 текущая КР 1041_1/2026 структурирована в
+  `docs/research/data/pediatric-fluid-therapy-source-contract-kr1041_1-2026.json`:
+  ФП + ЖВО + ЖТПП, weight-based ФП, A3.17/A3.18 и текущие потери. Колонка <1 года из A3.18
+  сохранена, но помечена out-of-parent-scope, потому что родительская КР — «старше 1 года».
+  Это не universal emergency protocol. Сводка:
+  `docs/research/pediatric-fluid-source-extraction-2026-09.md`.
 - PEWS — ⚠️ exact cited source resolved: методика Коммунарки/ДЗМ 2023, 23 с.,
   `docs/research/data/pews-kommunarka-source-metadata-2023.json`. Пять age-specific форм,
   domains и escalation workflow зафиксированы, но `scoringMatrix=null`,
@@ -332,8 +337,10 @@
   Проверка: 90/90 → 1,00;
 - anion gap, скорректированный натрий, скорректированный кальций и осмолярность;
 - Winter’s formula;
-- дефицит жидкости — CDS assessment уже source-extracted отдельно; численный расчёт дефицита
-  жидкости/ongoing losses не смешивать со score CDS и не реализовывать без отдельного источника;
+- дефицит жидкости — 🧪 численный source contract теперь есть в KR1041_1/2026:
+  `docs/research/data/pediatric-fluid-therapy-source-contract-kr1041_1-2026.json`.
+  Не смешивать с CDS score, ОРС/гастроэнтеритными протоколами, шоковой ресусцитацией или
+  condition-specific fluid restriction;
 - Parkland и TBSA по Lund–Browder;
 - **Alvarado** — ✅ выполнено (2026-08-17): модуль `minimed.tools.emergency.ru`
   (`minimed.assessment.alvarado-appendicitis`), MANTRELS по Alvarado 1986 (PubMed 3946867).
