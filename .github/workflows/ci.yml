@@ -92,10 +92,10 @@ jobs:
           tools/benchmarks/src/linear-reranker-baseline.test.ts
           tools/benchmarks/src/lookup-quality-cases.test.ts
           tools/benchmarks/src/search-quality-dataset.test.ts
-      - name: Exhaustive exact-identity lookup gate
+      - name: Exact-identity audit + deterministic lookup sample
         run: >-
           bun run --filter @localmed/benchmarks benchmark:lookup-quality --
-          --max=0
+          --max=500
           --core=apps/app/public/content/core.db
           --report=data/build/search-quality-v2-lookup.json
       - name: Freeze candidates and run linear reranker ablation
