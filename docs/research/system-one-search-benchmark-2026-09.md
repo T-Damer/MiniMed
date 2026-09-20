@@ -238,12 +238,16 @@ than from a hand-picked list. It loads the same `MedicalCore` over `core.db` plu
 `--pack` arguments and enumerates:
 
 - every active document title;
-- every declared search alias in `metadata.declaredAliases`.
+- editorial identity/navigation aliases from `metadata.navigationAliases`;
+- broader search-expansion aliases from `metadata.declaredAliases`.
 
 Identical normalized surfaces are grouped instead of assigning an arbitrary single gold document.
-When a surface is an exact title for one document and only an alias for another, exact-title documents
-form the strict Top-1 set. This directly measures the reported UX failure where a document that merely
-mentions a term can appear above the document named by that term.
+Titles and editorial navigation aliases form the strict identity Top-1 contract; an exact title wins
+when the same surface is only an alias elsewhere. `declaredAliases` are deliberately **not** forced
+to Top-1: MiniMed uses them as search expansions and they may be broad. They still participate in
+exact-surface Recall@20 diagnostics. This avoids turning the benchmark into a new source of false
+identity assumptions while directly measuring the reported UX failure where a named document is
+buried by a body-text match.
 
 The first strict gate deliberately excludes `short_title`. Unlike `title`, it is not currently a
 uniform FTS/search surface in every adapter. Adding it to a failing ranking gate would conflate an
