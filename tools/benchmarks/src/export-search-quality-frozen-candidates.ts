@@ -219,6 +219,22 @@ for (const fixture of fixtures) {
         family: fixture.family,
         goal: fixture.goal,
         answerability: fixture.answerability,
+        analysis: {
+          primaryIntent: response.value.analysis.intent?.primary ?? null,
+          secondaryIntents: response.value.analysis.intent?.secondary ?? [],
+          intentConfidence: response.value.analysis.intent?.confidence ?? 0,
+          needsClarification: response.value.analysis.intent?.needsClarification ?? false,
+          ageFacts: response.value.analysis.clinicalContext?.age.map((fact) => fact.normalizedValue) ?? [],
+          positiveFindingCount:
+            response.value.analysis.clinicalContext?.positiveFindings.length ?? 0,
+          negativeFindingCount:
+            response.value.analysis.clinicalContext?.negativeFindings.length ?? 0,
+          currentMedicineCount:
+            response.value.analysis.clinicalContext?.currentMedicines.length ?? 0,
+          branchKinds: [
+            ...new Set(response.value.analysis.branches.map((branch) => branch.kind)),
+          ],
+        },
         retrieval: {
           requestedMode: mode,
           modeUsed: response.value.modeUsed,
