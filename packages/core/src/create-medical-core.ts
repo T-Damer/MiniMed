@@ -442,14 +442,23 @@ function filterSuffixFallbackGroups(
   groups: readonly SearchResultGroup[],
   query: string,
   aliases: MedicalAliasRecords,
+  protectedDocumentIds: ReadonlySet<string> = new Set(),
 ): readonly SearchResultGroup[] {
   const canonicalTerms = suffixFallbackCanonicalTerms(query, aliases);
   if (canonicalTerms.size === 0) return groups;
 
-  const canonicalGroups = groups.filter((group) =>
-    group.results.some((result) => canonicalTerms.has(normalizeSurfaceText(result.title))),
+  const canonicalDocumentIds = new Set(
+    groups
+      .filter((group) =>
+        group.results.some((result) => canonicalTerms.has(normalizeSurfaceText(result.title))),
+      )
+      .map((group) => group.documentId),
   );
-  return canonicalGroups.length > 0 ? canonicalGroups : groups;
+  if (canonicalDocumentIds.size === 0) return groups;
+  return groups.filter(
+    (group) =>
+      canonicalDocumentIds.has(group.documentId) || protectedDocumentIds.has(group.documentId),
+  );
 }
 
 function groupResults(
@@ -1264,6 +1273,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           ),
           plan.analysis.normalizedQuery,
           aliasesResult.value,
+          exactIdentityDocumentIds,
         );
         return ok({
           requestId: requestId(),
