@@ -168,7 +168,8 @@ const report = {
   experiment: 'minimed-frozen-candidate-linear-reranker',
   generatedAt: new Date().toISOString(),
   caveat:
-    'Training uses the old 42-case public pilot after answer-term masking. This is a weak, visible ' +
+    'Training uses the old 42-case public pilot after answer-term masking. ' +
+    'This is a weak, visible ' +
     'training source and not a substitute for a private clinician-authored qualification set.',
   train: {
     path: trainPath,
@@ -204,7 +205,8 @@ const report = {
   abstention: {
     status: 'not-measured',
     reason:
-      'The current frozen challenge does not contain a qualified negative/out-of-scope holdout set.',
+      'The current frozen challenge does not contain a qualified ' +
+      'negative/out-of-scope holdout set.',
   },
   rows,
 };
