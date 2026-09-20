@@ -17,11 +17,13 @@ for (const arg of args) {
   }
 }
 
-const corePath = resolve(option('core') ?? resolve(root, 'apps/app/public/content/core.db'));
-const packs = args.filter((arg) => arg.startsWith('--pack=')).map((arg) => resolve(arg.slice(7)));
-const reportPath = resolve(
-  option('report') ?? resolve(root, 'data/build/lookup-quality-report.json'),
-);
+const projectPath = (value: string | undefined, fallback: string) =>
+  resolve(root, value ?? fallback);
+const corePath = projectPath(option('core'), 'apps/app/public/content/core.db');
+const packs = args
+  .filter((arg) => arg.startsWith('--pack='))
+  .map((arg) => projectPath(arg.slice(7), ''));
+const reportPath = projectPath(option('report'), 'data/build/lookup-quality-report.json');
 const maxValue = Number(option('max') ?? '500');
 if (!Number.isInteger(maxValue) || maxValue < 0) {
   throw new Error('--max must be a non-negative integer.');
