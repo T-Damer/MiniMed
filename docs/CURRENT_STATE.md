@@ -45,10 +45,11 @@
 - Search quality is now split into two measured contracts instead of treating one hybrid benchmark as
   representative of every search surface. Ordinary lookup stays deterministic; free-form clinical
   retrieval is evaluated separately before any local decision model is considered.
-- A corpus-derived lookup runner enumerates active document titles and declared search aliases from
-  the evaluated `core.db` plus optional installed packs. Surface collisions are grouped rather than
-  assigned an arbitrary single gold document. Exact-title matches are expected ahead of alias-only
-  matches and incidental body mentions; the runner reports Top-1, Recall@20, body-only intrusions and
+- A corpus-derived lookup runner enumerates active document titles, editorial navigation aliases and
+  declared search-expansion aliases from the evaluated `core.db` plus optional installed packs.
+  Surface collisions are grouped rather than assigned an arbitrary single gold document. Titles and
+  navigation aliases define strict identity Top-1; broad `declaredAliases` are recall surfaces rather
+  than forced identities. The runner reports Top-1, Recall@20, body-only intrusions and
   alias-over-title inversions.
 - Runtime ranking now treats an exact document title as a hard ordering invariant ahead of aliases,
   source phrases and numeric relevance score. This addresses the observed case where a directly named
