@@ -8,12 +8,16 @@ export class QueryDocumentIndex {
   private readonly aliases = new Map<string, Set<string>>();
   private readonly titles = new Map<string, Set<string>>();
   private readonly navigationAliases = new Map<string, Set<string>>();
+  private readonly shortTitles = new Map<string, Set<string>>();
 
   constructor(documents: readonly SearchDocumentDescriptor[]) {
     this.byId = new Map(documents.map((document) => [document.id, document]));
     this.availableIds = new Set(this.byId.keys());
     for (const document of documents) {
       this.addIdentity(document.title, document.id, this.titles);
+      if (document.shortTitle) {
+        this.addIdentity(document.shortTitle, document.id, this.shortTitles);
+      }
       for (const key of ['declaredAliases', 'navigationAliases'] as const) {
         const names = document.metadata[key];
         if (!Array.isArray(names)) continue;
@@ -40,8 +44,16 @@ export class QueryDocumentIndex {
     return this.navigationAliases.get(searchSubjectText(query)) ?? new Set();
   }
 
+  exactShortTitleIds(query: string): ReadonlySet<string> {
+    return this.shortTitles.get(searchSubjectText(query)) ?? new Set();
+  }
+
   exactIdentityIds(query: string): ReadonlySet<string> {
-    return new Set([...this.exactTitleIds(query), ...this.exactNavigationAliasIds(query)]);
+    return new Set([
+      ...this.exactTitleIds(query),
+      ...this.exactNavigationAliasIds(query),
+      ...this.exactShortTitleIds(query),
+    ]);
   }
 
   private addIdentity(value: string, documentId: string, index: Map<string, Set<string>>): void {
