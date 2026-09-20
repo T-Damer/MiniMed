@@ -363,6 +363,98 @@ rank, the matching document and any propagated `conceptId`. It is diagnostic by 
 missing term may require content promotion rather than ranking changes. Use `--require-all=true`
 only when the corresponding content has been deliberately promoted and should become a release gate.
 
+### Measured benchmark — 2026-09-20
+
+GitHub Actions run
+[`35504716258`](https://github.com/T-Damer/MiniMed/actions/runs/35504716258)
+executed the checked-in benchmark against the restored bundled core and a freshly built public
+clinical pilot. The benchmark artifact is intentionally short-lived; the measurements below are
+retained here.
+
+#### Corpus-derived ordinary lookup
+
+The bundled core exposed **29,611 eligible lookup surfaces**. A deterministic 500-surface sample
+contained 309 strict identity cases and 191 discovery-only aliases.
+
+| Metric | Result |
+| --- | ---: |
+| strict identity Top-1 | **99.68%** |
+| exact-surface Recall@20 | **99.80%** |
+| body-only Top-1 intrusion | **0.20%** |
+| weaker exact alias beating an exact title | **0%** |
+| runner p50 | **~220 ms** |
+| runner p95 | **~515 ms** |
+
+There was one failure in the sample:
+
+- query: `D32.0 Оболочек головного мозга, МКБ-10`;
+- expected exact-title document:
+  `core.catalog.pointer.reference.rls.mkb.node.d32-0-fc1750e43c06172f`;
+- returned Top-1:
+  `core.catalog.pointer.reference.rls.mkb.node.g96-1-bad075e57ec8ed42`;
+- the expected document was absent from Top-20.
+
+This is important: the exact-title hard ordering fix cannot repair a document that disappears before
+group ranking. Exact identity must therefore also be retained/injected in candidate generation.
+
+#### Diagnosis-free clinical retrieval
+
+All **33/33** challenge cases had their relevant public-pilot documents installed.
+
+| Metric | Lexical | Hybrid |
+| --- | ---: | ---: |
+| maximum-grade Top-1 | **75.76%** | **75.76%** |
+| Hit@5 | **100%** | **100%** |
+| relevant Recall@20 | **100%** | **100%** |
+| relevant Recall@40 | **100%** | **100%** |
+| NDCG@5 | **0.891** | **0.896** |
+| NDCG@10 | **0.892** | **0.897** |
+| MRR@20 | **0.886** | **0.891** |
+| expected-section Hit@5 | **96.97%** | **100%** |
+| forbidden-result rate@5 | **0%** | **0%** |
+| runner p50 | **~53 ms** | **~93 ms** |
+| runner p95 | **~110 ms** | **~108 ms** |
+
+The final run used real vector-capable `SqliteMedicalStore`; requested hybrid mode was actually used
+for all 33 hybrid cases. The current portable feature-hash semantic profile therefore adds about
+**0.5 percentage points NDCG@5** and fixes one section-ranking miss, but does not improve maximum-grade
+Top-1 while adding roughly 40 ms to median runner latency.
+
+The critical result is the separation between candidate generation and ranking:
+
+- relevant candidate Recall@20/@40 is already **100% on this small public-pilot challenge**;
+- maximum-grade Top-1 is only **75.76%**;
+- the bottleneck on this set is therefore primarily **candidate ordering**, not candidate absence.
+
+This does not establish 100% candidate recall on the full clinical corpus; the current challenge has
+seven clinical target documents and must be repeated on the private 200–300-query qualification set.
+
+Weak slices are particularly informative:
+
+- respiratory: maximum-grade Top-1 **60%**;
+- treatment queries: maximum-grade Top-1 **25%**;
+- diagnosis/navigation: **83.3%**;
+- routing: **85.7%**.
+
+Examples of wrong maximum-grade Top-1 include hypoxemic pneumonia being headed by bronchiolitis,
+post-viral school-age bronchitis being headed by bronchiolitis, a bronchiolitis treatment query being
+headed by measles, a measles confirmation query being headed by meningococcal disease, a diarrheal
+antibiotic question being headed by bronchitis, and a urinary urgency/new-wetting presentation being
+headed by meningococcal disease.
+
+These failures are exactly the class a bounded discriminative reranker should be tested on.
+
+#### Observed corpus coverage
+
+The bundled core exposed only one of the three diagnostic coverage probes in Top-20:
+
+- `Ясперс`: **absent**;
+- `PANSS`: **absent**;
+- `MMSE`: **Top-1**, with propagated
+  `conceptId=core.concept.03d81c905327d8127ccf83fd`.
+
+The first two are content/discovery coverage gaps, not evidence for a reranking failure.
+
 ### Qualification boundary
 
 The checked-in challenge set remains visible to implementation agents. It is a regression/challenge
