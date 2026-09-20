@@ -1,3 +1,5 @@
+import { lightStemRussian, normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
+
 export interface FrozenCandidateRow {
   readonly fixtureId: string;
   readonly query: string;
@@ -10,8 +12,11 @@ export interface FrozenCandidateRow {
     readonly needsClarification: boolean;
     readonly ageFacts: readonly string[];
     readonly positiveFindingCount: number;
+    readonly positiveFindings: readonly string[];
     readonly negativeFindingCount: number;
+    readonly negativeFindings: readonly string[];
     readonly currentMedicineCount: number;
+    readonly currentMedicines: readonly string[];
   };
   readonly retrieval: {
     readonly originalRank: number;
@@ -22,6 +27,11 @@ export interface FrozenCandidateRow {
     readonly resultCount: number;
     readonly matchedTermCount: number;
     readonly matchedBranchCount: number;
+    readonly matchedTerms: readonly string[];
+    readonly matchedBranches: readonly string[];
+    readonly coreCandidateCount: number;
+    readonly semanticStatus: string;
+    readonly semanticCandidateCount: number;
     readonly topSectionType: string | null;
     readonly terminologyMatch: string | null;
     readonly exactTitle: boolean;
@@ -31,6 +41,8 @@ export interface FrozenCandidateRow {
   readonly candidate: {
     readonly documentId: string;
     readonly sourceType: string | null;
+    readonly ageGroups: readonly string[];
+    readonly evidence: string;
   };
   readonly label: {
     readonly relevanceGrade: number;
@@ -55,6 +67,10 @@ export const LINEAR_RERANKER_FEATURES = [
   'intentCareGuidanceSection',
   'currentMedicineTreatmentSection',
   'negativeFindingSignal',
+  'negativeMatchedTermConflict',
+  'positiveFindingMatchedTermCoverage',
+  'pediatricAgeCompatibility',
+  'sourceClinicalRecommendation',
   'sectionClinicalPicture',
   'sectionDiagnostics',
   'sectionTreatment',
@@ -171,13 +187,25 @@ export function parseFrozenCandidate(value: unknown, label = 'frozen candidate')
         analysis.positiveFindingCount,
         `${label}.analysis.positiveFindingCount`,
       ),
+      positiveFindings: stringArray(
+        analysis.positiveFindings,
+        `${label}.analysis.positiveFindings`,
+      ),
       negativeFindingCount: numberValue(
         analysis.negativeFindingCount,
         `${label}.analysis.negativeFindingCount`,
       ),
+      negativeFindings: stringArray(
+        analysis.negativeFindings,
+        `${label}.analysis.negativeFindings`,
+      ),
       currentMedicineCount: numberValue(
         analysis.currentMedicineCount,
         `${label}.analysis.currentMedicineCount`,
+      ),
+      currentMedicines: stringArray(
+        analysis.currentMedicines,
+        `${label}.analysis.currentMedicines`,
       ),
     },
     retrieval: {
@@ -207,6 +235,23 @@ export function parseFrozenCandidate(value: unknown, label = 'frozen candidate')
         retrieval.matchedBranchCount,
         `${label}.retrieval.matchedBranchCount`,
       ),
+      matchedTerms: stringArray(retrieval.matchedTerms, `${label}.retrieval.matchedTerms`),
+      matchedBranches: stringArray(
+        retrieval.matchedBranches,
+        `${label}.retrieval.matchedBranches`,
+      ),
+      coreCandidateCount: numberValue(
+        retrieval.coreCandidateCount,
+        `${label}.retrieval.coreCandidateCount`,
+      ),
+      semanticStatus: stringValue(
+        retrieval.semanticStatus,
+        `${label}.retrieval.semanticStatus`,
+      ),
+      semanticCandidateCount: numberValue(
+        retrieval.semanticCandidateCount,
+        `${label}.retrieval.semanticCandidateCount`,
+      ),
       topSectionType: nullableString(
         retrieval.topSectionType,
         `${label}.retrieval.topSectionType`,
@@ -228,6 +273,8 @@ export function parseFrozenCandidate(value: unknown, label = 'frozen candidate')
     candidate: {
       documentId: stringValue(candidate.documentId, `${label}.candidate.documentId`),
       sourceType: nullableString(candidate.sourceType, `${label}.candidate.sourceType`),
+      ageGroups: stringArray(candidate.ageGroups, `${label}.candidate.ageGroups`),
+      evidence: stringValue(candidate.evidence, `${label}.candidate.evidence`),
     },
     label: {
       relevanceGrade,
@@ -261,6 +308,53 @@ function maximumAbsolute(values: readonly number[]): number {
 
 function normalized(value: number, denominator: number): number {
   return value / denominator;
+}
+
+function stemSet(values: readonly string[]): ReadonlySet<string> {
+  return new Set(values.flatMap((value) => tokenize(value).map(lightStemRussian)));
+}
+
+function matchedFactCoverage(
+  facts: readonly string[],
+  matchedTerms: readonly string[],
+): number {
+  const factStems = stemSet(facts);
+  if (factStems.size === 0) return 0;
+  const matchedStems = stemSet(matchedTerms);
+  const covered = [...factStems].filter((stem) => matchedStems.has(stem)).length;
+  return covered / factStems.size;
+}
+
+function hasMatchedFactConflict(
+  facts: readonly string[],
+  matchedTerms: readonly string[],
+): boolean {
+  if (facts.length === 0 || matchedTerms.length === 0) return false;
+  const factStems = stemSet(facts);
+  return [...stemSet(matchedTerms)].some((stem) => factStems.has(stem));
+}
+
+function queryLooksPediatric(ageFacts: readonly string[], query: string): boolean {
+  const normalized = normalizeSurfaceText([query, ...ageFacts].join(' '));
+  if (/(?:ребен|ребён|младен|груднич|новорож|подрост|мальчик|девочк)/u.test(normalized)) {
+    return true;
+  }
+  for (const match of normalized.matchAll(/(\d{1,2})\s*(?:лет|год|года|месяц|месяца|месяцев)/gu)) {
+    const age = Number(match[1]);
+    if (Number.isFinite(age) && age < 18) return true;
+  }
+  return false;
+}
+
+function pediatricCompatibility(row: FrozenCandidateRow): number {
+  if (!queryLooksPediatric(row.analysis.ageFacts, row.query)) return 0;
+  const ageGroups = new Set(row.candidate.ageGroups.map((value) => normalizeSurfaceText(value)));
+  if (ageGroups.size === 0) return 0;
+  return [...ageGroups].some((value) =>
+    /(?:child|pediatric|infant|newborn|adolescent|дет|младен|новорож|подрост)/u.test(value),
+  )
+    ? 1
+    : -1;
 }
 
 function sectionMatchesIntent(intent: string | null, section: string | null): {
@@ -323,6 +417,13 @@ export function linearCandidatesForFixture(
       intent.care,
       Number(row.analysis.currentMedicineCount > 0 && section === 'treatment'),
       Number(row.analysis.negativeFindingCount > 0),
+      Number(hasMatchedFactConflict(row.analysis.negativeFindings, row.retrieval.matchedTerms)),
+      matchedFactCoverage(row.analysis.positiveFindings, row.retrieval.matchedTerms),
+      pediatricCompatibility(row),
+      Number(
+        row.candidate.sourceType === 'clinical_recommendation' ||
+          row.candidate.sourceType === 'clinical_recommendation_summary',
+      ),
       Number(section === 'clinical-picture'),
       Number(section === 'diagnostics'),
       Number(section === 'treatment'),
