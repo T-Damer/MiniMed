@@ -48,8 +48,8 @@ jobs:
               change(base + 'local-search-demo.ts', 'process.env.' + key, "process.env['" + key + "']")
           change(base + 'local-search-demo.ts', 'metadata.navigationAliases', "metadata['navigationAliases']")
           workflow = '.github/workflows/search-definition-local-model.yml'
-          change(workflow, '          python3 -m unittest discover', '          python3 -m unittest discover')
-          change(workflow, '      - name: Build source-linked draft definitions with the normal ingester', '      - name: Check benchmark TypeScript contracts\n        run: bunx tsc --noEmit -p tools/benchmarks/tsconfig.json\n      - name: Build source-linked draft definitions with the normal ingester\n        if: ${{ !cancelled() }}')
+          change(workflow, '      - name: Build source-linked draft definitions with the normal ingester', '      - name: Check benchmark TypeScript contracts\n        run: bunx tsc --noEmit -p tools/benchmarks/tsconfig.json\n      - name: Build source-linked draft definitions with the normal ingester\n        if: always()')
+          change(workflow, '      - tools/benchmarks/local_reranker.py', '      - tools/benchmarks/local_reranker.py\n      - tools/benchmarks/local_model_smoke.py')
           change(workflow, "          printf '%s\\n' \\", "          .venv-cross/bin/python tools/benchmarks/local_model_smoke.py\n          printf '%s\\n' \\")
           change(workflow, "            'мысли и движения ощущаются сделанными извне' \\", "            'боль в правой подвздошной области' \\")
           change(workflow, "          assert all(row['status'] == 'observe' for row in rows[:2]), 'Real model did not run'", "          print('CLI_STATUSES', json.dumps([{'status': row['status'], 'inferenceMs': row['inferenceMs']} for row in rows]))\n          assert rows[0]['status'] == 'observe', 'Real model did not run on multi-candidate query'\n          assert rows[1]['status'] in ('observe', 'insufficient-candidates'), 'Unexpected classifier failure'")
