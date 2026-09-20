@@ -87,10 +87,7 @@ interface LegacyPilotFixture {
 }
 
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\function sha256(path: string): string {
-  return createHash('sha256').update(readFileSync(path)).digest('hex');
-}
-');
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
 
 function maskLeakageTerms(query: string, terms: readonly string[]): string {
