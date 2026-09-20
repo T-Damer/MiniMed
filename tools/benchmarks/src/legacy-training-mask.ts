@@ -16,12 +16,12 @@ const LEGACY_ANSWER_MARKERS_BY_DOCUMENT: Readonly<Record<string, readonly string
     'менингит',
     'менингококцемия',
   ],
-  'kr.rf.714_2.pneumonia': ['пневмония'],
+  'kr.rf.714_2.pneumonia': ['пневмония', 'пневмонии'],
 };
 
 const LEGACY_ANSWER_PHRASES_BY_DOCUMENT: Readonly<Record<string, readonly RegExp[]>> = {
   'kr.rf.281_3.uti': [
-    /\bинфекц[\p{L}-]*\s+мочев[\p{L}-]*\s+пут[\p{L}-]*\b/giu,
+    /инфекц[\p{L}-]*\s+мочев[\p{L}-]*\s+пут[\p{L}-]*/giu,
   ],
 };
 
