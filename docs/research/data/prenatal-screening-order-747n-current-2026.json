@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.rf-prenatal-screening.order-747n-2025-effective-2026-01-10",
+  "title": "Prenatal screening windows and risk-routing — current Order 747n",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "official-regulatory-act",
+  "verificationStatus": "current-legal-text-single-pass-review",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "authority": "Министерство здравоохранения Российской Федерации",
+    "orderNumber": "747н",
+    "signedAt": "2025-12-19",
+    "title": "О Порядке оказания медицинской помощи по профилю «акушерство и гинекология»",
+    "minjustRegistrationNumber": "84894",
+    "officialPublicationNumber": "0001202512300089",
+    "officialPublicationDate": "2025-12-30",
+    "effectiveFrom": "2026-01-10",
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001202512300089",
+    "currentTextUrls": [
+      "https://sudact.ru/law/prikaz-minzdrava-rossii-ot-19122025-n-747n/poriadok-okazaniia-meditsinskoi-pomoshchi-po/ii/",
+      "https://base.garant.ru/413395780/"
+    ],
+    "retainedLegacyForms": {
+      "priorOrder": "1130н",
+      "appendices": [
+        7,
+        8,
+        9
+      ],
+      "note": "Order 747n repeals the prior order except these retained protocol/referral form appendices."
+    }
+  },
+  "screeningWindows": [
+    {
+      "trimester": 1,
+      "gestationalAge": {
+        "min": {
+          "weeks": 11,
+          "days": 0
+        },
+        "max": {
+          "weeks": 13,
+          "days": 6
+        }
+      },
+      "components": [
+        "maternal_height_weight_and_blood_pressure",
+        "family_history_review",
+        "screening_ultrasound_first_trimester",
+        "maternal_serum_papp_a",
+        "maternal_serum_free_beta_hcg",
+        "individual_risk_calculation"
+      ],
+      "riskTargets": [
+        "fetal_chromosomal_anomalies",
+        "fetal_growth_restriction",
+        "preterm_birth",
+        "preeclampsia"
+      ]
+    },
+    {
+      "trimester": 2,
+      "gestationalAge": {
+        "min": {
+          "weeks": 18,
+          "days": 0
+        },
+        "max": {
+          "weeks": 20,
+          "days": 6
+        }
+      },
+      "components": [
+        "screening_ultrasound_second_trimester",
+        "cervicometry"
+      ],
+      "ultrasoundSourceWindow": "19-21 weeks",
+      "riskTargets": [
+        "congenital_and_hereditary_disease_signs",
+        "genetic_disorder_signs",
+        "chromosomal_anomalies",
+        "fetal_malformations",
+        "fetal_growth_restriction",
+        "preterm_birth"
+      ]
+    },
+    {
+      "trimester": 3,
+      "gestationalAge": {
+        "min": {
+          "weeks": 34,
+          "days": 0
+        },
+        "max": {
+          "weeks": 35,
+          "days": 6
+        }
+      },
+      "components": [
+        "fetal_ultrasound_third_trimester",
+        "uteroplacental_doppler_ultrasound"
+      ],
+      "riskTargets": [
+        "late_manifesting_fetal_malformations",
+        "large_for_gestational_age_fetus",
+        "small_for_gestational_age_fetus",
+        "abnormal_fetal_position"
+      ]
+    }
+  ],
+  "firstTrimesterChromosomalRiskGroups": [
+    {
+      "id": "high",
+      "sourceRange": "1:100 and above",
+      "denominatorMaxInclusive": 100
+    },
+    {
+      "id": "medium",
+      "sourceRange": "1:101-1:1000",
+      "denominatorMinInclusive": 101,
+      "denominatorMaxInclusive": 1000
+    },
+    {
+      "id": "low",
+      "sourceRange": "1:1001 and below",
+      "denominatorMinInclusive": 1001
+    }
+  ],
+  "nipt": {
+    "indicatedForRiskGroups": [
+      "medium",
+      "high"
+    ],
+    "test": "cell_free_fetal_dna_from_maternal_blood",
+    "sourceName": "неинвазивный пренатальный тест",
+    "exception": "not represented here as indicated when first-trimester screening ultrasound already shows fetal malformation signs",
+    "multifetalPregnancy": "source permits NIPT for multifetal pregnancy with no more than two fetuses"
+  },
+  "invasivePrenatalDiagnostics": {
+    "sourceIndications": [
+      "increased_monogenic_or_chromosomal_risk_by_history_regardless_of_first_trimester_screening",
+      "fetal_malformation_signs_on_first_trimester_screening_ultrasound",
+      "high_chromosomal_risk_after_repeat_first_trimester_screening",
+      "high_chromosomal_risk_after_nipt"
+    ],
+    "methods": [
+      "chorionic_or_placental_biopsy",
+      "amniocentesis",
+      "cordocentesis"
+    ],
+    "decisionBy": [
+      "medical_geneticist",
+      "obstetrician_gynecologist"
+    ],
+    "preferenceNote": "For high chromosomal risk after NIPT, the source gives preference to amniocentesis."
+  },
+  "scopeBoundary": {
+    "screeningIsNotDiagnosis": true,
+    "riskThresholdIsNotConfirmedChromosomalDiagnosis": true,
+    "niptIsScreeningNotConfirmatoryDiagnosis": true,
+    "invasiveTestingRequiresClinicalDecision": true
+  },
+  "reviewNotes": [
+    "This contract follows Order 747n effective 2026-01-10; do not use repealed Order 1130n routing as the current clinical workflow.",
+    "The surviving 1130n appendices 7-9 are form/protocol dependencies, not the current care-order logic.",
+    "The second-trimester order window is 18+0 to 20+6, while the ultrasound component is described as 19-21 weeks; both source expressions are preserved instead of being silently collapsed.",
+    "Risk ratios are routing categories; they must not be converted into diagnostic certainty.",
+    "No proprietary risk-calculation algorithm or ultrasound scoring formula is reconstructed here.",
+    "A second legal-text review is required before this dataset can leave research status."
+  ]
+}
