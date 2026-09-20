@@ -1030,3 +1030,34 @@ def test_pediatric_fluid_therapy_contract_keeps_components_and_population_bounda
     assert boundary["notUniversalEmergencyProtocol"] is True
     assert boundary["under1YearAppendixRowsNotPromotedToParentPopulation"] is True
     assert boundary["doesNotReplaceOralRehydrationGuidelines"] is True
+
+
+def test_neonatal_screening_current_order_274n_revision_tracks_2026_additions() -> None:
+    data = _load("neonatal-screening-order-274n-current-2026.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["rightsStatus"] == "official-regulatory-act"
+
+    source = cast(dict[str, object], data["source"])
+    amendment = cast(dict[str, object], source["currentAmendment"])
+    assert amendment["number"] == "745н"
+    assert amendment["effectiveFrom"] == "2026-04-01"
+
+    collection = cast(dict[str, object], data["collection"])
+    term = cast(dict[str, object], collection["termNewborn"])
+    preterm = cast(dict[str, object], collection["pretermNewborn"])
+    assert (_int(term["ageHoursMin"]), _int(term["ageHoursMax"])) == (24, 48)
+    assert (_int(preterm["ageHoursMin"]), _int(preterm["ageHoursMax"])) == (144, 168)
+
+    groups = cast(list[dict[str, object]], data["expandedScreeningGroups"])
+    concepts = {
+        str(concept)
+        for group in groups
+        for concept in cast(list[object], group["concepts"])
+    }
+    assert "aromatic_l_amino_acid_decarboxylase_deficiency_aadc" in concepts
+    assert "x_linked_adrenoleukodystrophy" in concepts
+
+    workflow = cast(dict[str, object], data["workflow"])
+    steps = cast(list[object], workflow["steps"])
+    assert steps[-1] == "medical_genetic_counseling_for_confirmed_patients_and_family"
