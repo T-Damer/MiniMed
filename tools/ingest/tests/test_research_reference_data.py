@@ -1100,3 +1100,39 @@ def test_prenatal_screening_current_order_747n_preserves_windows_and_routing() -
     scope = cast(dict[str, object], data["scopeBoundary"])
     assert scope["screeningIsNotDiagnosis"] is True
     assert scope["niptIsScreeningNotConfirmatoryDiagnosis"] is True
+
+
+def test_rop_current_screening_contract_preserves_type_and_timing_rules() -> None:
+    data = _load("rop-screening-classification-kr107_2-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    risk = cast(dict[str, object], data["riskGroup"])
+    criteria = cast(list[dict[str, object]], risk["includeIfAny"])
+    assert criteria == [
+        {"field": "gestationalAgeAtBirthWeeks", "operator": "<", "value": 35},
+        {"field": "birthWeightG", "operator": "<", "value": 2000},
+    ]
+
+    schedule = cast(list[dict[str, object]], data["firstScreeningSchedule"])
+    assert len(schedule) == 3
+    first = schedule[0]
+    birth_ga = cast(dict[str, object], first["birthGestationalAgeWeeks"])
+    first_exam = cast(dict[str, object], first["firstExam"])
+    assert (_int(birth_ga["min"]), _int(birth_ga["max"])) == (22, 27)
+    assert first_exam["basis"] == "postconceptual_age"
+
+    course_types = cast(list[dict[str, object]], data["courseTypes"])
+    assert [_int(item["type"]) for item in course_types] == [1, 2]
+    assert course_types[0]["treatmentIndication"] is True
+    assert course_types[1]["treatmentIndication"] is False
+
+    threshold = cast(dict[str, object], data["thresholdRop"])
+    clock_hours = cast(dict[str, object], threshold["extraretinalProliferationClockHours"])
+    assert _int(clock_hours["consecutive"]) == 5
+    assert _int(clock_hours["cumulative"]) == 8
+
+    overlay = cast(dict[str, object], data["regulatoryOverlay"])
+    timing = cast(dict[str, object], overlay["treatmentTiming"])
+    type1 = cast(dict[str, object], timing["activeProgressiveType1Rop"])
+    assert _int(type1["maxHoursAfterIndication"]) == 72
