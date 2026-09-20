@@ -34,18 +34,16 @@ const REGISTRY_QUERY =
 
 type SearchDocumentDescriptor = Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>;
 
-export function matchesDocumentAlias(
+export function matchesNavigationAlias(
   query: string,
   document: Pick<MedicalDocumentSummary, 'metadata'> | undefined,
 ): boolean {
   const subject = searchSubjectText(query);
-  return ['declaredAliases', 'navigationAliases'].some((key) => {
-    const aliases = document?.metadata?.[key];
-    return (
-      Array.isArray(aliases) &&
-      aliases.some((alias) => typeof alias === 'string' && normalizeSurfaceText(alias) === subject)
-    );
-  });
+  const aliases = document?.metadata?.['navigationAliases'];
+  return (
+    Array.isArray(aliases) &&
+    aliases.some((alias) => typeof alias === 'string' && normalizeSurfaceText(alias) === subject)
+  );
 }
 
 function compactReference(value: string): string {
@@ -406,7 +404,7 @@ export function rankSearchGroupsByQuery(
       group,
       index,
       exactTitle: matchesExactDocumentTitle(query, group),
-      exactAlias: matchesDocumentAlias(query, documentsById.get(group.documentId)),
+      exactAlias: matchesNavigationAlias(query, documentsById.get(group.documentId)),
       hasPositiveFinding: positiveFindings.some((terms) =>
         terms.every((term) => (findingWords[index] ?? []).some((word) => tokensMatch(term, word))),
       ),
