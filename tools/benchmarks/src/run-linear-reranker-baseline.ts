@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
@@ -55,6 +56,10 @@ if (!Number.isFinite(l2) || l2 < 0 || l2 > 1) {
 if (trainPath === testPath) throw new Error('Training and test candidate files must be different.');
 for (const path of [trainPath, testPath]) {
   if (!existsSync(path)) throw new Error(`Linear-reranker input does not exist: ${path}`);
+}
+
+function sha256File(path: string): string {
+  return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
 
 function loadJsonl(path: string): readonly FrozenCandidateRow[] {
@@ -164,7 +169,7 @@ const deltas = {
 };
 
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   experiment: 'minimed-frozen-candidate-linear-reranker',
   generatedAt: new Date().toISOString(),
   caveat:
@@ -173,6 +178,7 @@ const report = {
     'training source and not a substitute for a private clinician-authored qualification set.',
   train: {
     path: trainPath,
+    sha256: sha256File(trainPath),
     fixtureCount: trainGroups.size,
     candidatePairCount: trainRows.length,
     original: trainOriginal,
@@ -180,6 +186,7 @@ const report = {
   },
   test: {
     path: testPath,
+    sha256: sha256File(testPath),
     fixtureCount: testGroups.size,
     candidatePairCount: testRows.length,
     original: testOriginal,
