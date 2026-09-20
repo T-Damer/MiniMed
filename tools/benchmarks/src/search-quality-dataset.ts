@@ -5,7 +5,10 @@ import { findNormalizedPhraseIndex, normalizeSurfaceText } from '@localmed/searc
 
 export type SearchQualityGoal = 'diagnosis-navigation' | 'diagnostics' | 'treatment' | 'routing';
 export type SearchQualityAnswerability = 'focused' | 'ambiguous';
-export type SearchQualityOrigin = 'manual-challenge' | 'real-clinician-query';
+export type SearchQualityOrigin =
+  | 'manual-challenge'
+  | 'real-clinician-query'
+  | 'legacy-pilot-training';
 
 export interface SearchQualityTarget {
   readonly documentId: string;
@@ -58,7 +61,11 @@ const GOALS = new Set<SearchQualityGoal>([
   'routing',
 ]);
 const ANSWERABILITY = new Set<SearchQualityAnswerability>(['focused', 'ambiguous']);
-const ORIGINS = new Set<SearchQualityOrigin>(['manual-challenge', 'real-clinician-query']);
+const ORIGINS = new Set<SearchQualityOrigin>([
+  'manual-challenge',
+  'real-clinician-query',
+  'legacy-pilot-training',
+]);
 
 function record(value: unknown, label: string): Record<string, unknown> {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) {
