@@ -1143,12 +1143,26 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           ...(terminologyMatch?.documents.map((entry) => entry.documentId) ?? []),
           ...(terminologyMatch?.related.map((entry) => entry.documentId) ?? []),
         ]);
+        const exactIdentityDocumentIds =
+          parsed.data.analysisMode === 'lookup'
+            ? documentIndex.exactIdentityIds(parsed.data.query)
+            : new Set<string>();
         // Keep exact names and every declared meaning through the chunk cutoff for document ranking.
         const lexicalResults = fuseBranchHits(
           branchHits,
           perBranchLimit,
           parsed.data.query,
           exactAliasDocumentIds,
+        );
+        const lexicalDocumentIds = new Set(lexicalResults.map((result) => result.documentId));
+        const missingExactIdentityDocumentIds = new Set(
+          [...exactIdentityDocumentIds].filter((documentId) => !lexicalDocumentIds.has(documentId)),
+        );
+        const exactIdentityResults = await buildExactIdentityResults(
+          options.store,
+          missingExactIdentityDocumentIds,
+          parsed.data.filters,
+          plan.terms,
         );
         const requestedMode = parsed.data.mode;
         let modeUsed: SearchResponse['modeUsed'] = 'lexical';
@@ -1217,10 +1231,14 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 exactAliasDocumentIds,
               );
         const availableDocumentIds = documentIndex.availableIds;
-        const results = filterSupersededSummaryResults(rankedResults, availableDocumentIds);
+        const results = filterSupersededSummaryResults(
+          mergeExactIdentityResults(rankedResults, exactIdentityResults),
+          availableDocumentIds,
+        );
         const candidateIds = new Set([
           ...branchHits.flatMap((item) => item.hits.map((hit) => hit.chunk.id)),
           ...vectorHits.map((hit) => hit.chunk.id),
+          ...exactIdentityResults.map((result) => result.chunkId),
         ]);
         const groupedResults = filterSuffixFallbackGroups(
           groupResults(
