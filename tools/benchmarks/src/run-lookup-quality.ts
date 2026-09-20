@@ -156,7 +156,10 @@ for (const fixture of cases) {
   const firstExpectedIndex = documentIds.findIndex((documentId) =>
     fixture.expectedTop1DocumentIds.includes(documentId),
   );
-  const firstExactIndex = documentIds.findIndex((documentId) =>
+  const firstStrictIdentityIndex = documentIds.findIndex((documentId) =>
+    fixture.strictIdentityDocumentIds.includes(documentId),
+  );
+  const firstExactSurfaceIndex = documentIds.findIndex((documentId) =>
     fixture.exactSurfaceDocumentIds.includes(documentId),
   );
   rows.push({
@@ -168,12 +171,19 @@ for (const fixture of cases) {
     exactSurfaceDocumentIds: fixture.exactSurfaceDocumentIds,
     top1DocumentId,
     firstExpectedRank: firstExpectedIndex < 0 ? null : firstExpectedIndex + 1,
-    firstExactRank: firstExactIndex < 0 ? null : firstExactIndex + 1,
+    firstStrictIdentityRank:
+      firstStrictIdentityIndex < 0 ? null : firstStrictIdentityIndex + 1,
+    firstExactSurfaceRank:
+      firstExactSurfaceIndex < 0 ? null : firstExactSurfaceIndex + 1,
     top1Pass:
       fixture.expectedTop1DocumentIds.length === 0
         ? null
         : top1DocumentId !== null && fixture.expectedTop1DocumentIds.includes(top1DocumentId),
-    recallAt20: firstExactIndex >= 0 && firstExactIndex < 20,
+    strictIdentityRecallAt20:
+      fixture.strictIdentityDocumentIds.length === 0
+        ? null
+        : firstStrictIdentityIndex >= 0 && firstStrictIdentityIndex < 20,
+    exactSurfaceRecallAt20: firstExactSurfaceIndex >= 0 && firstExactSurfaceIndex < 20,
     bodyOnlyIntrusion:
       top1DocumentId !== null && !fixture.exactSurfaceDocumentIds.includes(top1DocumentId),
     weakerExactWon:
