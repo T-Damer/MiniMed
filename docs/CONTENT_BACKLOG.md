@@ -294,6 +294,12 @@
 Документы:
 
 - сепсис и септический шок;
+- pediatric SIRS thresholds — 🧪 source-extracted 2026-09-20 из текущей КР ОРВИ
+  25_3/2026, приложение А3.4:
+  `docs/research/data/pediatric-sirs-thresholds-kr25_3-2026.json`.
+  Это syndrome-screening thresholds, не нормы: source discrepancy WBC >17,5 vs >17,7
+  (1 мес.–1 год) сохранена, CRP/PCT/neutrophil cutoff ranges не сведены к одной цифре.
+  Сводка: `docs/research/pediatric-sirs-source-extraction-2026-09.md`.
 - анафилаксия и острые отравления;
 - острая дыхательная недостаточность;
 - травма, политравма и ожоги;
