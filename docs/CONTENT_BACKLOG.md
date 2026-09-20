@@ -186,7 +186,14 @@
 - **Silverman–Andersen** — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.assessment.silverman-andersen-respiratory-distress`), источник: `https://newbornwhocc.org/pdf/Approach-to-Respiratory-Distress-in-the-Newborn.pdf`, таблица 14.2; популяция: новорожденные с признаками респираторного дистресса; ограничения: не заменяет пульсоксиметрию, газовый анализ, рентген и решение о респираторной поддержке; клинический контекст — приказ № 222н. Проверки: `0,0,0,0,0,0` → 0 (лёгкий), `2,2,2,2,2,2` → 10 (тяжёлый), `0,1,2,2,1,1` → 7 (тяжёлый диапазон).
 - **Downes–Vidyasagar** — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.assessment.downes-vidyasagar-respiratory-distress`), источник: `https://newbornwhocc.org/pdf/Respiratory_System_2019.pdf`, Table 15.4 (раздел Respiratory Distress, Section 15, 5 компонентов); популяция: новорожденные с признаками острого респираторного дистресса; ограничения: не заменяет ABG, пульсоксиметрию, рентген и решение о респираторной поддержке; клинический контекст — приказ № 222н; проверки: `0,0,0,0,0` → 0 (лёгкая), `2,2,2,2,2` → 10 (тяжёлый), `1,1,1,1,1` → 5 (умеренный).
 - GIR — скорость введения глюкозы — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.calculator.neonatal-glucose-infusion-rate`), источник: Brigham and Women’s Hospital Neonatal Glucose Assessment and Clinical Management, PDF-стр. 4 (формула GIR), клинический контекст: приказ Минздрава РФ № 222н (неонатальная гипогликемия).
-- жидкость и энергия для новорождённого;
+- жидкость и энергия для новорождённого — 🧪 source-extracted 2026-09-20: текущая КР
+  «Врожденная пневмония» (2025, ID 905_1), приложение А3.3, визуально сверена по PDF и
+  структурирована в
+  `docs/research/data/neonatal-fluid-parenteral-nutrition-kr905_1-2025.json`:
+  жидкость по суткам/массе, энергия, белки/жиры/углеводы и электролиты при полном ПП.
+  Пустые/merged source cells сохранены, а не интерполированы. Runtime/order-set blocked до review
+  показаний, фаз/границ, энтерального вклада и мониторинга. Сводка:
+  `docs/research/neonatal-fluid-nutrition-source-extraction-2026-09.md`.
 - физиологическая потеря массы — ✅ выполнено (2026-08-15): модуль `minimed.tools.neonatology.ru` (`minimed.calculator.neonatal-physiologic-weight-loss`), источник: AAP First Office Visit, 3-5 Days, стр. с правилом «>10% от массы при рождении требует доп.оценки», клинический контекст: приказ № 222н.
 - **билирубин и пороги фототерапии по возрасту в часах** — 🧪 source-extracted 2026-09-19:
   текущие КР «Неонатальная желтуха» (2025, ID 916 v1) и «Гипербилирубинемия недоношенных»
