@@ -30,7 +30,9 @@ const packs = args.filter((arg) => arg.startsWith('--pack=')).map((arg) => resol
 const fixturePath = resolve(
   option('fixtures') ?? resolve(root, 'tools/benchmarks/search-quality-v2.json'),
 );
-const reportPath = resolve(option('report') ?? resolve(root, 'data/build/search-quality-v2-report.json'));
+const reportPath = resolve(
+  option('report') ?? resolve(root, 'data/build/search-quality-v2-report.json'),
+);
 const profileNames = (option('profiles') ?? 'lexical,hybrid')
   .split(',')
   .map((value) => value.trim())
@@ -133,7 +135,10 @@ const coverageRows = fixtures.map((fixture) => {
 });
 const excluded = coverageRows
   .filter((row) => row.availableRelevantDocuments === 0)
-  .map((row) => ({ id: row.id, reason: 'No relevant document is installed in the evaluated corpus.' }));
+  .map((row) => ({
+    id: row.id,
+    reason: 'No relevant document is installed in the evaluated corpus.',
+  }));
 
 const rows: SearchQualityEvaluation[] = [];
 for (const profile of profileNames) {
@@ -202,7 +207,8 @@ const report = {
   dataset: 'minimed-search-quality-v2-manual-challenge',
   generatedAt: new Date().toISOString(),
   note:
-    'Visible manual regression set. It is diagnosis-name-free and graded, but it is not a blind clinician qualification set.',
+    'Visible manual regression set. It is diagnosis-name-free and graded, ' +
+    'but it is not a blind clinician qualification set.',
   fixture: { path: fixturePath, sha256: sha256(fixturePath), count: fixtures.length },
   corpus: {
     contentPackIds: initialized.value.contentPackIds,
@@ -254,7 +260,8 @@ if (
   gateMetrics.relevantRecallAt20 < minimumCandidateRecallAt20
 ) {
   failures.push(
-    `relevant recall@20 ${gateMetrics.relevantRecallAt20.toFixed(3)} < ${minimumCandidateRecallAt20.toFixed(3)}`,
+    `relevant recall@20 ${gateMetrics.relevantRecallAt20.toFixed(3)} < ` +
+      minimumCandidateRecallAt20.toFixed(3),
   );
 }
 if (gateMetrics && minimumNdcgAt5 !== undefined && gateMetrics.ndcgAt5 < minimumNdcgAt5) {
@@ -275,7 +282,8 @@ if (
   gateMetrics.forbiddenRateAt5 > maximumForbiddenRateAt5
 ) {
   failures.push(
-    `forbidden rate@5 ${gateMetrics.forbiddenRateAt5.toFixed(3)} > ${maximumForbiddenRateAt5.toFixed(3)}`,
+    `forbidden rate@5 ${gateMetrics.forbiddenRateAt5.toFixed(3)} > ` +
+      maximumForbiddenRateAt5.toFixed(3),
   );
 }
 if (failures.length > 0) {
