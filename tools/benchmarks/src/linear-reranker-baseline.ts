@@ -119,6 +119,19 @@ export interface LinearRerankerModel {
   readonly l2: number;
 }
 
+export interface LinearAbstentionGate {
+  readonly minMargin: number;
+  readonly trainingChangedTop1: number;
+  readonly trainingFixedTop1: number;
+  readonly trainingRegressedTop1: number;
+  readonly trainingImprovedTop1: number;
+  readonly trainingWorsenedTop1: number;
+  readonly trainingGradeDelta: number;
+  readonly trainingNdcgAt5: number;
+  readonly candidateThresholdCount: number;
+  readonly policy: 'zero-regression-max-fixes';
+}
+
 export interface RerankerMetrics {
   readonly fixtureCount: number;
   readonly top1MaxGrade: number;
@@ -732,10 +745,18 @@ export function trainPairwiseLinearReranker(
   };
 }
 
-export function rerankLinearCandidates(
+function originalCandidateOrder(
+  rows: readonly FrozenCandidateRow[],
+): readonly FrozenCandidateRow[] {
+  return rows.toSorted(
+    (left, right) => left.retrieval.originalRank - right.retrieval.originalRank,
+  );
+}
+
+function scoredLinearCandidates(
   rows: readonly FrozenCandidateRow[],
   model: Pick<LinearRerankerModel, 'weights'>,
-): readonly FrozenCandidateRow[] {
+) {
   return linearCandidatesForFixture(rows)
     .map((candidate) => ({
       candidate,
@@ -745,8 +766,159 @@ export function rerankLinearCandidates(
       (left, right) =>
         right.score - left.score ||
         left.candidate.row.retrieval.originalRank - right.candidate.row.retrieval.originalRank,
-    )
-    .map((entry) => entry.candidate.row);
+    );
+}
+
+export function rerankLinearCandidates(
+  rows: readonly FrozenCandidateRow[],
+  model: Pick<LinearRerankerModel, 'weights'>,
+): readonly FrozenCandidateRow[] {
+  return scoredLinearCandidates(rows, model).map((entry) => entry.candidate.row);
+}
+
+export function linearTop1Proposal(
+  rows: readonly FrozenCandidateRow[],
+  model: Pick<LinearRerankerModel, 'weights'>,
+): {
+  readonly changed: boolean;
+  readonly margin: number;
+  readonly originalTop1DocumentId: string | null;
+  readonly proposedTop1DocumentId: string | null;
+} {
+  const original = originalCandidateOrder(rows);
+  const scored = scoredLinearCandidates(rows, model);
+  const originalTop = original[0] ?? null;
+  const proposedTop = scored[0] ?? null;
+  if (!originalTop || !proposedTop) {
+    return {
+      changed: false,
+      margin: 0,
+      originalTop1DocumentId: originalTop?.candidate.documentId ?? null,
+      proposedTop1DocumentId: proposedTop?.candidate.row.candidate.documentId ?? null,
+    };
+  }
+  const originalScore =
+    scored.find((entry) => entry.candidate.row.candidate.documentId === originalTop.candidate.documentId)
+      ?.score ?? Number.NEGATIVE_INFINITY;
+  return {
+    changed: proposedTop.candidate.row.candidate.documentId !== originalTop.candidate.documentId,
+    margin: Math.max(0, proposedTop.score - originalScore),
+    originalTop1DocumentId: originalTop.candidate.documentId,
+    proposedTop1DocumentId: proposedTop.candidate.row.candidate.documentId,
+  };
+}
+
+export function rerankLinearCandidatesGated(
+  rows: readonly FrozenCandidateRow[],
+  model: Pick<LinearRerankerModel, 'weights'>,
+  gate: Pick<LinearAbstentionGate, 'minMargin'> | number,
+): readonly FrozenCandidateRow[] {
+  const minMargin = typeof gate === 'number' ? gate : gate.minMargin;
+  const proposal = linearTop1Proposal(rows, model);
+  if (!proposal.changed || proposal.margin < minMargin) {
+    return originalCandidateOrder(rows);
+  }
+  return rerankLinearCandidates(rows, model);
+}
+
+interface Top1ChangeStats {
+  readonly changed: number;
+  readonly fixed: number;
+  readonly regressed: number;
+  readonly improved: number;
+  readonly worsened: number;
+  readonly gradeDelta: number;
+}
+
+function top1ChangeStats(
+  groups: ReadonlyMap<string, readonly FrozenCandidateRow[]>,
+  rerank: (rows: readonly FrozenCandidateRow[]) => readonly FrozenCandidateRow[],
+): Top1ChangeStats {
+  let changed = 0;
+  let fixed = 0;
+  let regressed = 0;
+  let improved = 0;
+  let worsened = 0;
+  let gradeDelta = 0;
+
+  for (const rows of groups.values()) {
+    const original = originalCandidateOrder(rows);
+    const reranked = rerank(rows);
+    const originalTop = original[0];
+    const rerankedTop = reranked[0];
+    if (!originalTop || !rerankedTop) continue;
+    if (originalTop.candidate.documentId === rerankedTop.candidate.documentId) continue;
+
+    changed += 1;
+    const maximumGrade = Math.max(0, ...rows.map((row) => row.label.relevanceGrade));
+    const originalGrade = originalTop.label.relevanceGrade;
+    const rerankedGrade = rerankedTop.label.relevanceGrade;
+    const originalBest = originalGrade === maximumGrade;
+    const rerankedBest = rerankedGrade === maximumGrade;
+    gradeDelta += rerankedGrade - originalGrade;
+
+    if (!originalBest && rerankedBest) fixed += 1;
+    else if (originalBest && !rerankedBest) regressed += 1;
+    else if (rerankedGrade > originalGrade) improved += 1;
+    else if (rerankedGrade < originalGrade) worsened += 1;
+  }
+
+  return { changed, fixed, regressed, improved, worsened, gradeDelta };
+}
+
+export function calibrateLinearAbstentionGate(
+  groups: ReadonlyMap<string, readonly FrozenCandidateRow[]>,
+  model: Pick<LinearRerankerModel, 'weights'>,
+): LinearAbstentionGate {
+  const margins = [
+    ...new Set(
+      [...groups.values()]
+        .map((rows) => linearTop1Proposal(rows, model))
+        .filter((proposal) => proposal.changed && Number.isFinite(proposal.margin))
+        .map((proposal) => proposal.margin),
+    ),
+  ].toSorted((left, right) => left - right);
+
+  // Infinity is an explicit "abstain everywhere" fallback. The calibration objective is deliberately
+  // conservative: never trade a known-good Top-1 training case for a fix elsewhere.
+  const thresholds = [Number.POSITIVE_INFINITY, 0, ...margins];
+  const candidates = thresholds.map((minMargin) => {
+    const rerank = (rows: readonly FrozenCandidateRow[]) =>
+      rerankLinearCandidatesGated(rows, model, minMargin);
+    const stats = top1ChangeStats(groups, rerank);
+    const metrics = evaluateFrozenRanking(groups, rerank);
+    return { minMargin, stats, metrics };
+  });
+
+  const selected = candidates.toSorted((left, right) => {
+    if (left.stats.regressed !== right.stats.regressed) {
+      return left.stats.regressed - right.stats.regressed;
+    }
+    if (left.stats.fixed !== right.stats.fixed) {
+      return right.stats.fixed - left.stats.fixed;
+    }
+    if (left.stats.gradeDelta !== right.stats.gradeDelta) {
+      return right.stats.gradeDelta - left.stats.gradeDelta;
+    }
+    if (left.metrics.ndcgAt5 !== right.metrics.ndcgAt5) {
+      return right.metrics.ndcgAt5 - left.metrics.ndcgAt5;
+    }
+    return right.minMargin - left.minMargin;
+  })[0];
+  if (!selected) throw new Error('Linear abstention calibration requires at least one threshold.');
+
+  return {
+    minMargin: selected.minMargin,
+    trainingChangedTop1: selected.stats.changed,
+    trainingFixedTop1: selected.stats.fixed,
+    trainingRegressedTop1: selected.stats.regressed,
+    trainingImprovedTop1: selected.stats.improved,
+    trainingWorsenedTop1: selected.stats.worsened,
+    trainingGradeDelta: selected.stats.gradeDelta,
+    trainingNdcgAt5: selected.metrics.ndcgAt5,
+    candidateThresholdCount: thresholds.length,
+    policy: 'zero-regression-max-fixes',
+  };
 }
 
 function dcg(grades: readonly number[]): number {
