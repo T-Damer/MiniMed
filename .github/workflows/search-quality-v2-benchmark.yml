@@ -49,7 +49,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           version: "0.10.0"
-          enable-cache: true
+          enable-cache: false
 
       - name: Install locked dependencies
         run: |
@@ -99,6 +99,32 @@ jobs:
           bun run --filter @localmed/benchmarks benchmark:search-coverage-observations --             --core=apps/app/public/content/core.db             --report=data/build/search-quality-v2-coverage.json             2>&1 | tee data/build/search-quality-v2-coverage.log
           echo "${PIPESTATUS[0]}" > data/build/search-quality-v2-coverage.exit
 
+      - name: Run frozen-candidate linear reranker ablation
+        shell: bash
+        run: |
+          set +e
+          bun run benchmark:freeze-training -- \
+            --core=data/build/rf-public-pilot.db \
+            --mode=hybrid \
+            --limit=40 \
+            2>&1 | tee data/build/search-quality-v2-freeze-training.log
+          train_exit="${PIPESTATUS[0]}"
+          bun run benchmark:freeze-candidates -- \
+            --core=data/build/rf-public-pilot.db \
+            --mode=hybrid \
+            --limit=40 \
+            2>&1 | tee data/build/search-quality-v2-freeze-test.log
+          test_exit="${PIPESTATUS[0]}"
+          if [[ "$train_exit" == "0" && "$test_exit" == "0" ]]; then
+            bun run benchmark:linear-reranker 2>&1 | tee data/build/search-quality-v2-linear.log
+            reranker_exit="${PIPESTATUS[0]}"
+          else
+            reranker_exit=1
+          fi
+          echo "$train_exit" > data/build/search-quality-v2-freeze-training.exit
+          echo "$test_exit" > data/build/search-quality-v2-freeze-test.exit
+          echo "$reranker_exit" > data/build/search-quality-v2-linear.exit
+
       - name: Print compact benchmark summary
         if: always()
         shell: bash
@@ -144,6 +170,18 @@ jobs:
               else:
                   print("visibleAt20:", data.get("visibleAt20"))
                   print(json.dumps(data.get("rows", []), ensure_ascii=False, indent=2))
+
+          linear_path = build / "search-quality-linear-reranker-report.json"
+          print("\n=== LINEAR RERANKER ===")
+          if linear_path.exists():
+              linear = json.loads(linear_path.read_text())
+              print("test original:", json.dumps(linear.get("test", {}).get("original", {}), ensure_ascii=False, indent=2))
+              print("test linear:", json.dumps(linear.get("test", {}).get("linear", {}), ensure_ascii=False, indent=2))
+              print("deltas:", json.dumps(linear.get("test", {}).get("deltas", {}), ensure_ascii=False, indent=2))
+              print("weights:", json.dumps(linear.get("model", {}).get("weightsByFeature", {}), ensure_ascii=False, indent=2))
+              print("runtime:", json.dumps(linear.get("runtime", {}), ensure_ascii=False, indent=2))
+          else:
+              print("report missing")
           PY
 
       - name: Preserve reports without Actions artifact storage
