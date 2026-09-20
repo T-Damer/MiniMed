@@ -34,7 +34,8 @@
     "benchmark:lookup-quality": "bun src/run-lookup-quality.ts",
     "benchmark:clinical-quality": "bun src/run-search-quality-v2.ts",
     "benchmark:search-coverage-observations": "bun src/run-search-coverage-observations.ts",
-    "benchmark:freeze-candidates": "bun src/export-search-quality-frozen-candidates.ts"
+    "benchmark:freeze-candidates": "bun src/export-search-quality-frozen-candidates.ts",
+    "benchmark:freeze-training": "bun src/export-search-quality-frozen-candidates.ts --legacy-pilot=tools/benchmarks/pilot-rf-queries.json"
   },
   "dependencies": {
     "@localmed/contracts": "workspace:*",
