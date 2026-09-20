@@ -84,7 +84,9 @@ export function buildLookupQualityCases(
     .map(([normalizedQuery, group]): LookupQualityCase => {
       const identityEntries = group.filter((entry) => entry.priority >= 2);
       const strongestIdentityPriority =
-        identityEntries.length > 0 ? Math.max(...identityEntries.map((entry) => entry.priority)) : null;
+        identityEntries.length > 0
+          ? Math.max(...identityEntries.map((entry) => entry.priority))
+          : null;
       const strongestIdentity =
         strongestIdentityPriority === null
           ? []
