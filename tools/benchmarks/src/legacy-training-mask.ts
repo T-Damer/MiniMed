@@ -48,7 +48,7 @@ function maskPhraseLeakage(query: string, terms: readonly string[]): string {
 function maskTargetMarkers(query: string, documentIds: readonly string[]): string {
   const stems = markerStems(documentIds);
   if (stems.size === 0) return query;
-  return query.replace(/[\\p{L}\\p{N}-]+/gu, (token) =>
+  return query.replace(/[\p{L}\p{N}-]+/gu, (token) =>
     stems.has(lightStemRussian(normalizeSurfaceText(token))) ? '[диагноз]' : token,
   );
 }
@@ -59,7 +59,7 @@ export function remainingLegacyAnswerMarker(
 ): string | undefined {
   const stems = markerStems(documentIds);
   return query
-    .match(/[\\p{L}\\p{N}-]+/gu)
+    .match(/[\p{L}\p{N}-]+/gu)
     ?.find((token) => stems.has(lightStemRussian(normalizeSurfaceText(token))));
 }
 
@@ -79,7 +79,7 @@ export function maskLegacyTrainingQuery(
   leakageTerms: readonly string[],
 ): string {
   return maskTargetMarkers(maskPhraseLeakage(query, leakageTerms), documentIds)
-    .replace(/(?:\\[диагноз\\]\\s*){2,}/gu, '[диагноз] ')
-    .replace(/\\s+/gu, ' ')
+    .replace(/(?:\[диагноз\]\s*){2,}/gu, '[диагноз] ')
+    .replace(/\s+/gu, ' ')
     .trim();
 }
