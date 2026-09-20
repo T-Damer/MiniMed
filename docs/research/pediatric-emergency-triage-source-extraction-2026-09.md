@@ -53,14 +53,35 @@ A future runtime implementation must review the source figure/key before connect
 
 ## PEWS
 
-The same current recommendation cites the 2023 Kommunarka methodology
-**«Методика применения шкалы PEWS при оказании стационарной помощи детям»**.
+The exact cited source is now identified:
 
-The current recommendation does not itself provide the complete canonical PEWS scoring matrix.
-Because PEWS has multiple implementations, MiniMed must not substitute a different hospital/NHS
-variant merely because the name matches.
+**«Методика применения шкалы PEWS при оказании стационарной помощи детям»**, Kommunarka / Moscow
+Department of Health, 2023, 23 pages.
 
-PEWS stays blocked until the exact cited methodology or a version-equivalent source can be reviewed.
+Research metadata artifact:
+
+`docs/research/data/pews-kommunarka-source-metadata-2023.json`
+
+The methodology itself states that the document is property of the Moscow Department of Health and
+may not be reproduced/distributed without permission. MiniMed therefore does **not** copy the complete
+age-specific scoring matrices.
+
+Public implementation literature is sufficient to record:
+
+- five age-specific forms (1–12 months; 1–3, 4–6, 7–12, 13–19 years);
+- the common monitored domains (respiratory rate/work, oxygen therapy, SpO2, pulse, blood pressure,
+  capillary refill, temperature, behavior/consciousness);
+- component score range 0–3;
+- the published escalation workflow for total scores 0–2, 3–4, 5 and >=6 / any component score 3.
+
+The artifact deliberately has:
+
+- `scoringMatrix: null`;
+- `runtimeComputable: false`;
+- `rightsStatus: restricted-no-redistribution-without-permission`.
+
+A runtime PEWS tool requires permission or another legally redistributable, version-equivalent source
+with the exact age-specific cutoffs. MiniMed must not substitute an NHS/Brighton/Bedside PEWS variant.
 
 ## Boundary
 
