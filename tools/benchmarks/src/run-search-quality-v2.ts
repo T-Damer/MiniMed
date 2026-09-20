@@ -25,13 +25,19 @@ for (const arg of args) {
   }
 }
 
-const corePath = resolve(option('core') ?? resolve(root, 'data/build/rf-public-pilot.db'));
-const packs = args.filter((arg) => arg.startsWith('--pack=')).map((arg) => resolve(arg.slice(7)));
-const fixturePath = resolve(
-  option('fixtures') ?? resolve(root, 'tools/benchmarks/search-quality-v2.json'),
+const projectPath = (value: string | undefined, fallback: string) =>
+  resolve(root, value ?? fallback);
+const corePath = projectPath(option('core'), 'data/build/rf-public-pilot.db');
+const packs = args
+  .filter((arg) => arg.startsWith('--pack='))
+  .map((arg) => projectPath(arg.slice(7), ''));
+const fixturePath = projectPath(
+  option('fixtures'),
+  'tools/benchmarks/search-quality-v2.json',
 );
-const reportPath = resolve(
-  option('report') ?? resolve(root, 'data/build/search-quality-v2-report.json'),
+const reportPath = projectPath(
+  option('report'),
+  'data/build/search-quality-v2-report.json',
 );
 const profileNames = (option('profiles') ?? 'lexical,hybrid')
   .split(',')
