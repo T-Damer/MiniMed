@@ -1,110 +1,108 @@
+import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { basename, dirname, resolve } from 'node:path';
 
 import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
-import { SqliteMedicalStore } from '@localmed/storage-sqlite';
+import { MultiMedicalStore } from '@localmed/storage';
 
-type Surface = 'lookup' | 'clinical';
+import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
+import {
+  aggregateSearchQuality,
+  evaluateSearchQuality,
+  loadSearchQualityFixtures,
+  type SearchQualityEvaluation,
+  type SearchQualityFixture,
+} from './search-quality-dataset';
 
-interface SearchQualityFixture {
-  readonly id: string;
-  readonly surface: Surface;
-  readonly query: string;
-  readonly relevantDocumentIds: readonly string[];
-  readonly strictTop1: boolean;
-  readonly rationale: string;
-}
-
-interface SearchQualityRow {
-  readonly id: string;
-  readonly surface: Surface;
-  readonly query: string;
-  readonly relevantDocumentIds: readonly string[];
-  readonly firstRelevantRank: number | null;
-  readonly top1DocumentId: string | null;
-  readonly top5DocumentIds: readonly string[];
-  readonly top20DocumentIds: readonly string[];
-  readonly top1Pass: boolean | null;
-  readonly hitAt5: boolean;
-  readonly hitAt20: boolean;
-  readonly reciprocalRankAt20: number;
-  readonly elapsedMs: number;
-}
-
-function loadFixtures(path: string): readonly SearchQualityFixture[] {
-  const parsed = JSON.parse(readFileSync(path, 'utf8')) as unknown;
-  if (!Array.isArray(parsed) || parsed.length === 0) {
-    throw new Error('search-quality-v2 fixture must be a non-empty array.');
+const root = resolve(import.meta.dirname, '../../..');
+const args = process.argv.slice(2);
+const option = (key: string) =>
+  args.find((arg) => arg.startsWith(`--${key}=`))?.slice(key.length + 3);
+for (const arg of args) {
+  if (!/^--(?:core|pack|fixtures|report|profiles)=.+/u.test(arg)) {
+    throw new Error(`Unknown argument ${arg}`);
   }
-
-  return parsed.map((value, index) => {
-    if (typeof value !== 'object' || value === null) {
-      throw new Error(`Fixture ${index} must be an object.`);
-    }
-    const row = value as Record<string, unknown>;
-    if (
-      typeof row.id !== 'string' ||
-      (row.surface !== 'lookup' && row.surface !== 'clinical') ||
-      typeof row.query !== 'string' ||
-      !Array.isArray(row.relevantDocumentIds) ||
-      row.relevantDocumentIds.length === 0 ||
-      !row.relevantDocumentIds.every((item) => typeof item === 'string' && item.length > 0) ||
-      typeof row.strictTop1 !== 'boolean' ||
-      typeof row.rationale !== 'string'
-    ) {
-      throw new Error(`Fixture ${index} has an invalid shape.`);
-    }
-    return {
-      id: row.id,
-      surface: row.surface,
-      query: row.query,
-      relevantDocumentIds: row.relevantDocumentIds,
-      strictTop1: row.strictTop1,
-      rationale: row.rationale,
-    };
-  });
 }
 
-function aggregate(rows: readonly SearchQualityRow[]) {
-  const strictRows = rows.filter((row) => row.top1Pass !== null);
-  const foundRanks = rows
-    .map((row) => row.firstRelevantRank)
-    .filter((rank): rank is number => rank !== null);
+const corePath = resolve(option('core') ?? resolve(root, 'data/build/rf-public-pilot.db'));
+const packs = args.filter((arg) => arg.startsWith('--pack=')).map((arg) => resolve(arg.slice(7)));
+const fixturePath = resolve(
+  option('fixtures') ?? resolve(root, 'tools/benchmarks/search-quality-v2.json'),
+);
+const reportPath = resolve(option('report') ?? resolve(root, 'data/build/search-quality-v2-report.json'));
+const profileNames = (option('profiles') ?? 'lexical,hybrid')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
+if (
+  profileNames.length === 0 ||
+  profileNames.some((profile) => profile !== 'lexical' && profile !== 'hybrid')
+) {
+  throw new Error('--profiles must contain lexical and/or hybrid.');
+}
+
+for (const path of [corePath, ...packs, fixturePath]) {
+  if (!existsSync(path)) throw new Error(`Search-quality input does not exist: ${path}`);
+}
+
+function sha256(path: string): string {
+  return createHash('sha256').update(readFileSync(path)).digest('hex');
+}
+
+function fixtureWithAvailableTargets(
+  fixture: SearchQualityFixture,
+  availableDocumentIds: ReadonlySet<string>,
+): {
+  readonly fixture: SearchQualityFixture | null;
+  readonly missingRelevantDocumentIds: readonly string[];
+} {
+  const availableTargets = fixture.relevance.filter((target) =>
+    availableDocumentIds.has(target.documentId),
+  );
+  const missingRelevantDocumentIds = fixture.relevance
+    .filter((target) => !availableDocumentIds.has(target.documentId))
+    .map((target) => target.documentId);
+  if (availableTargets.length === 0) return { fixture: null, missingRelevantDocumentIds };
   return {
-    cases: rows.length,
-    strictLookupCases: strictRows.length,
-    strictLookupTop1:
-      strictRows.length === 0
-        ? null
-        : strictRows.filter((row) => row.top1Pass === true).length / strictRows.length,
-    hitAt5: rows.filter((row) => row.hitAt5).length / rows.length,
-    candidateRecallAt20: rows.filter((row) => row.hitAt20).length / rows.length,
-    mrrAt20: rows.reduce((sum, row) => sum + row.reciprocalRankAt20, 0) / rows.length,
-    meanFoundRank:
-      foundRanks.length === 0
-        ? null
-        : foundRanks.reduce((sum, rank) => sum + rank, 0) / foundRanks.length,
+    fixture: { ...fixture, relevance: availableTargets },
+    missingRelevantDocumentIds,
   };
 }
 
-const root = resolve(import.meta.dirname, '../../..');
-const databasePath = resolve(
-  root,
-  process.env.MINIMED_SEARCH_QUALITY_DB ?? 'data/build/rf-public-pilot.db',
-);
-const fixturePath = resolve(root, 'tools/benchmarks/search-quality-v2.json');
-const reportPath = resolve(root, 'data/build/search-quality-v2-report.json');
-
-if (!existsSync(databasePath)) {
-  throw new Error(
-    `Search-quality database does not exist: ${databasePath}. Build it or set MINIMED_SEARCH_QUALITY_DB.`,
+function groupedMetrics(rows: readonly SearchQualityEvaluation[], key: 'family' | 'goal') {
+  return Object.fromEntries(
+    [...new Set(rows.map((row) => row[key]))]
+      .toSorted()
+      .map((value) => [value, aggregateSearchQuality(rows.filter((row) => row[key] === value))]),
   );
 }
 
-const fixtures = loadFixtures(fixturePath);
-const store = await SqliteMedicalStore.createFromBytes(
-  new Uint8Array(readFileSync(databasePath)),
+function threshold(name: string): number | undefined {
+  const raw = process.env[name];
+  if (raw === undefined) return undefined;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0 || value > 1) {
+    throw new Error(`${name} must be a number between 0 and 1.`);
+  }
+  return value;
+}
+
+const minimumCandidateRecallAt20 = threshold('MINIMED_SEARCH_QUALITY_MIN_RECALL_AT_20');
+const minimumNdcgAt5 = threshold('MINIMED_SEARCH_QUALITY_MIN_NDCG_AT_5');
+const minimumSectionHitAt5 = threshold('MINIMED_SEARCH_QUALITY_MIN_SECTION_HIT_AT_5');
+const maximumForbiddenRateAt5 = threshold('MINIMED_SEARCH_QUALITY_MAX_FORBIDDEN_RATE_AT_5');
+
+const fixtures = loadSearchQualityFixtures(fixturePath);
+const store = new MultiMedicalStore(
+  await Promise.all(
+    [corePath, ...packs].map(async (path, index) => ({
+      moduleId: `${index}:${basename(path)}`,
+      store: await createBunFileMedicalStore(path),
+      required: true,
+      searchWeight: index === 0 ? 1.1 : 1,
+    })),
+  ),
 );
 const core = createMedicalCore({
   store,
@@ -114,56 +112,168 @@ const core = createMedicalCore({
 const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);
 
-const rows: SearchQualityRow[] = [];
-for (const fixture of fixtures) {
-  const relevant = new Set(fixture.relevantDocumentIds);
-  const response = await core.search({
-    query: fixture.query,
-    mode: fixture.surface === 'lookup' ? 'lexical' : 'hybrid',
-    analysisMode: fixture.surface,
-    filters: {},
-    limit: 20,
-    includeSuggestions: false,
-  });
-  if (!response.ok) throw new Error(`${fixture.id}: ${response.error.message}`);
+const listed = await core.listDocuments();
+if (!listed.ok) throw new Error(listed.error.message);
+const availableDocumentIds = new Set(listed.value.map((document) => document.id));
 
-  const documentIds = response.value.groups.map((group) => group.documentId);
-  const firstRelevantIndex = documentIds.findIndex((documentId) => relevant.has(documentId));
-  const firstRelevantRank = firstRelevantIndex < 0 ? null : firstRelevantIndex + 1;
-  rows.push({
+const coverageRows = fixtures.map((fixture) => {
+  const covered = fixtureWithAvailableTargets(fixture, availableDocumentIds);
+  return {
     id: fixture.id,
-    surface: fixture.surface,
-    query: fixture.query,
-    relevantDocumentIds: fixture.relevantDocumentIds,
-    firstRelevantRank,
-    top1DocumentId: documentIds[0] ?? null,
-    top5DocumentIds: documentIds.slice(0, 5),
-    top20DocumentIds: documentIds.slice(0, 20),
-    top1Pass: fixture.strictTop1 ? firstRelevantRank === 1 : null,
-    hitAt5: firstRelevantRank !== null && firstRelevantRank <= 5,
-    hitAt20: firstRelevantRank !== null && firstRelevantRank <= 20,
-    reciprocalRankAt20:
-      firstRelevantRank !== null && firstRelevantRank <= 20 ? 1 / firstRelevantRank : 0,
-    elapsedMs: response.value.elapsedMs,
-  });
+    family: fixture.family,
+    availableRelevantDocuments: covered.fixture?.relevance.length ?? 0,
+    totalRelevantDocuments: fixture.relevance.length,
+    missingRelevantDocumentIds: covered.missingRelevantDocumentIds,
+  };
+});
+const excluded = coverageRows
+  .filter((row) => row.availableRelevantDocuments === 0)
+  .map((row) => ({ id: row.id, reason: 'No relevant document is installed in the evaluated corpus.' }));
+
+const rows: SearchQualityEvaluation[] = [];
+for (const profile of profileNames) {
+  for (const originalFixture of fixtures) {
+    const { fixture } = fixtureWithAvailableTargets(originalFixture, availableDocumentIds);
+    if (!fixture) continue;
+    const response = await core.search({
+      query: fixture.query,
+      mode: profile as 'lexical' | 'hybrid',
+      analysisMode: 'clinical',
+      filters: {},
+      limit: 40,
+      includeSuggestions: false,
+    });
+    if (!response.ok) throw new Error(`${fixture.id}/${profile}: ${response.error.message}`);
+    rows.push(
+      evaluateSearchQuality(
+        fixture,
+        response.value.groups,
+        profile,
+        response.value.elapsedMs,
+        response.value.modeUsed,
+      ),
+    );
+  }
 }
 await core.close();
 
-const lookupRows = rows.filter((row) => row.surface === 'lookup');
-const clinicalRows = rows.filter((row) => row.surface === 'clinical');
+const byProfile = Object.fromEntries(
+  profileNames.map((profile) => {
+    const profileRows = rows.filter((row) => row.profile === profile);
+    return [
+      profile,
+      {
+        ...aggregateSearchQuality(profileRows),
+        slices: {
+          family: groupedMetrics(profileRows, 'family'),
+          goal: groupedMetrics(profileRows, 'goal'),
+        },
+        modeUsedCounts: Object.fromEntries(
+          [...new Set(profileRows.map((row) => row.modeUsed))]
+            .toSorted()
+            .map((mode) => [mode, profileRows.filter((row) => row.modeUsed === mode).length]),
+        ),
+      },
+    ];
+  }),
+);
+
+const hybrid = byProfile['hybrid'] as ReturnType<typeof aggregateSearchQuality> | undefined;
+const lexical = byProfile['lexical'] as ReturnType<typeof aggregateSearchQuality> | undefined;
+const deltas =
+  hybrid && lexical
+    ? {
+        top1MaxGrade: hybrid.top1MaxGrade - lexical.top1MaxGrade,
+        relevantRecallAt20: hybrid.relevantRecallAt20 - lexical.relevantRecallAt20,
+        relevantRecallAt40: hybrid.relevantRecallAt40 - lexical.relevantRecallAt40,
+        ndcgAt5: hybrid.ndcgAt5 - lexical.ndcgAt5,
+        ndcgAt10: hybrid.ndcgAt10 - lexical.ndcgAt10,
+        sectionHitAt5: hybrid.sectionHitAt5 - lexical.sectionHitAt5,
+      }
+    : null;
+
 const report = {
+  schemaVersion: 2,
+  dataset: 'minimed-search-quality-v2-manual-challenge',
   generatedAt: new Date().toISOString(),
-  dataset: 'minimed-search-quality-v2-visible-smoke',
-  databasePath,
-  corpus: initialized.value.contentPackIds,
   note:
-    'Visible research smoke only. Do not use this checked-in set as blind qualification for a trained reranker.',
-  aggregate: aggregate(rows),
-  lookup: aggregate(lookupRows),
-  clinical: aggregate(clinicalRows),
+    'Visible manual regression set. It is diagnosis-name-free and graded, but it is not a blind clinician qualification set.',
+  fixture: { path: fixturePath, sha256: sha256(fixturePath), count: fixtures.length },
+  corpus: {
+    contentPackIds: initialized.value.contentPackIds,
+    paths: [corePath, ...packs].map((path) => ({ path, sha256: sha256(path) })),
+    documentCount: listed.value.length,
+  },
+  coverage: {
+    fullyCovered: coverageRows.filter((row) => row.missingRelevantDocumentIds.length === 0).length,
+    partiallyCovered: coverageRows.filter(
+      (row) =>
+        row.availableRelevantDocuments > 0 && row.missingRelevantDocumentIds.length > 0,
+    ).length,
+    uncovered: excluded.length,
+    rows: coverageRows,
+  },
+  profiles: byProfile,
+  deltas,
+  excluded,
   rows,
 };
 
-mkdirSync(resolve(root, 'data/build'), { recursive: true });
+mkdirSync(dirname(reportPath), { recursive: true });
 writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
-console.log(JSON.stringify({ ...report.aggregate, reportPath }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      reportPath,
+      fixtureCount: fixtures.length,
+      evaluatedCases: rows.length,
+      uncoveredCases: excluded.length,
+      profiles: byProfile,
+      deltas,
+    },
+    null,
+    2,
+  ),
+);
+
+const gateProfileName = profileNames.includes('hybrid') ? 'hybrid' : profileNames[0];
+const gateMetrics =
+  gateProfileName === undefined
+    ? undefined
+    : (byProfile[gateProfileName] as ReturnType<typeof aggregateSearchQuality> | undefined);
+const failures: string[] = [];
+if (!gateMetrics) failures.push('No benchmark profile produced metrics.');
+if (
+  gateMetrics &&
+  minimumCandidateRecallAt20 !== undefined &&
+  gateMetrics.relevantRecallAt20 < minimumCandidateRecallAt20
+) {
+  failures.push(
+    `relevant recall@20 ${gateMetrics.relevantRecallAt20.toFixed(3)} < ${minimumCandidateRecallAt20.toFixed(3)}`,
+  );
+}
+if (gateMetrics && minimumNdcgAt5 !== undefined && gateMetrics.ndcgAt5 < minimumNdcgAt5) {
+  failures.push(`NDCG@5 ${gateMetrics.ndcgAt5.toFixed(3)} < ${minimumNdcgAt5.toFixed(3)}`);
+}
+if (
+  gateMetrics &&
+  minimumSectionHitAt5 !== undefined &&
+  gateMetrics.sectionHitAt5 < minimumSectionHitAt5
+) {
+  failures.push(
+    `section hit@5 ${gateMetrics.sectionHitAt5.toFixed(3)} < ${minimumSectionHitAt5.toFixed(3)}`,
+  );
+}
+if (
+  gateMetrics &&
+  maximumForbiddenRateAt5 !== undefined &&
+  gateMetrics.forbiddenRateAt5 > maximumForbiddenRateAt5
+) {
+  failures.push(
+    `forbidden rate@5 ${gateMetrics.forbiddenRateAt5.toFixed(3)} > ${maximumForbiddenRateAt5.toFixed(3)}`,
+  );
+}
+if (failures.length > 0) {
+  console.error(`Search quality v2 failed:\n- ${failures.join('\n- ')}`);
+  process.exitCode = 1;
+}
