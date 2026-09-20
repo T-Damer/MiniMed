@@ -715,10 +715,11 @@ describe('MedicalCore', () => {
       id: string,
       title: string,
       metadata: Record<string, unknown> = {},
+      shortTitle: string | null = null,
     ) => ({
       id,
       title,
-      shortTitle: null,
+      shortTitle,
       sourceType: 'medical_reference',
       status: 'active',
       specialties: ['psychiatry'],
@@ -775,6 +776,7 @@ describe('MedicalCore', () => {
         makeDocument('identity.navigation', 'Критерии помрачения сознания', {
           navigationAliases: ['Ясперс'],
         }),
+        makeDocument('identity.short', 'Краткая карточка критерия', {}, 'Ясперс'),
         makeDocument('identity.declared', 'История психопатологии', {
           declaredAliases: ['Ясперс'],
         }),
@@ -795,14 +797,14 @@ describe('MedicalCore', () => {
 
     expect(response.ok).toBe(true);
     if (!response.ok) return;
-    expect(response.value.groups.map((group) => group.documentId)).toEqual([
-      'identity.title',
-      'identity.navigation',
-    ]);
+    expect(response.value.groups[0]?.documentId).toBe('identity.title');
+    expect(new Set(response.value.groups.map((group) => group.documentId))).toEqual(
+      new Set(['identity.title', 'identity.navigation', 'identity.short']),
+    );
     expect(response.value.groups.some((group) => group.documentId === 'identity.declared')).toBe(
       false,
     );
-    expect(response.value.diagnostics.candidateCount).toBe(2);
+    expect(response.value.diagnostics.candidateCount).toBe(3);
   });
 
   it('does not inject a strict identity candidate through incompatible request filters', async () => {
