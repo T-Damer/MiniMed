@@ -40,14 +40,14 @@ function markerStems(documentIds: readonly string[]): ReadonlySet<string> {
   );
 }
 
-function maskPhraseLeakage(query: string, terms: readonly string[]): string {
+function stripPhraseLeakage(query: string, terms: readonly string[]): string {
   let masked = query;
   for (const term of [...new Set(terms)].toSorted((left, right) => right.length - left.length)) {
     const expression = new RegExp(
       `(^|[^\\p{L}\\p{N}])${escapeRegExp(term)}(?=$|[^\\p{L}\\p{N}])`,
       'giu',
     );
-    masked = masked.replace(expression, '$1[диагноз]');
+    masked = masked.replace(expression, '$1 ');
   }
   return masked;
 }
@@ -57,13 +57,13 @@ function maskTargetMarkers(query: string, documentIds: readonly string[]): strin
   for (const pattern of documentIds.flatMap(
     (documentId) => LEGACY_ANSWER_PHRASES_BY_DOCUMENT[documentId] ?? [],
   )) {
-    masked = masked.replace(pattern, '[диагноз]');
+    masked = masked.replace(pattern, ' ');
   }
 
   const stems = markerStems(documentIds);
   if (stems.size === 0) return masked;
   return masked.replace(/[\p{L}\p{N}-]+/gu, (token) =>
-    stems.has(lightStemRussian(normalizeSurfaceText(token))) ? '[диагноз]' : token,
+    stems.has(lightStemRussian(normalizeSurfaceText(token))) ? ' ' : token,
   );
 }
 
@@ -90,10 +90,12 @@ export function remainingLeakagePhrase(
 export function maskLegacyTrainingQuery(
   query: string,
   documentIds: readonly string[],
-  leakageTerms: readonly string[],
+  leakageTerms: readonly string[] = [],
 ): string {
-  return maskTargetMarkers(maskPhraseLeakage(query, leakageTerms), documentIds)
-    .replace(/(?:\[диагноз\]\s*){2,}/gu, '[диагноз] ')
+  return maskTargetMarkers(stripPhraseLeakage(query, leakageTerms), documentIds)
+    .replace(/\s+([,.;:!?])/gu, '$1')
+    .replace(/([([{])\s+/gu, '$1')
+    .replace(/\s+([)\]}])/gu, '$1')
     .replace(/\s+/gu, ' ')
     .trim();
 }
