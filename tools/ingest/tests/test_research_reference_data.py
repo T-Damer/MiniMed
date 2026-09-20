@@ -503,8 +503,7 @@ def test_neonatal_jaundice_treatment_thresholds_kr916_are_ordered() -> None:
     assert intensive == [188, 274, 308, 342, 376, 376]
     assert exchange == [205, 308, 342, 376, 428, 428]
     assert all(
-        standard[index] <= intensive[index] <= exchange[index]
-        for index in range(len(age_bins))
+        standard[index] <= intensive[index] <= exchange[index] for index in range(len(age_bins))
     )
 
 
