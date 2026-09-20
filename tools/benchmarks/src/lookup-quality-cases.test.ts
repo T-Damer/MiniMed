@@ -33,6 +33,7 @@ describe('corpus-derived lookup quality cases', () => {
     ]);
     const fixture = cases.find((item) => item.normalizedQuery === 'шкала abc');
     expect(fixture?.expectedTop1DocumentIds).toEqual(['a', 'c']);
+    expect(fixture?.strictIdentityDocumentIds).toEqual(['a', 'c']);
     expect(fixture?.exactSurfaceDocumentIds).toEqual(['a', 'b', 'c']);
   });
 
@@ -44,6 +45,7 @@ describe('corpus-derived lookup quality cases', () => {
     ]);
     const fixture = cases.find((item) => item.normalizedQuery === 'ясперс');
     expect(fixture?.expectedTop1DocumentIds).toEqual(['title']);
+    expect(fixture?.strictIdentityDocumentIds).toEqual(['navigation', 'title']);
     expect(fixture?.exactSurfaceDocumentIds).toEqual(['declared', 'navigation', 'title']);
   });
 
@@ -55,6 +57,7 @@ describe('corpus-derived lookup quality cases', () => {
     ]);
     const fixture = cases.find((item) => item.normalizedQuery === 'abc');
     expect(fixture?.expectedTop1DocumentIds).toEqual(['navigation', 'short']);
+    expect(fixture?.strictIdentityDocumentIds).toEqual(['navigation', 'short']);
     expect(fixture?.exactSurfaceDocumentIds).toEqual(['declared', 'navigation', 'short']);
     expect(fixture?.kinds).toEqual(['declared-alias', 'navigation-alias', 'short-title']);
   });
@@ -73,6 +76,7 @@ describe('corpus-derived lookup quality cases', () => {
     ]);
     const fixture = cases.find((item) => item.normalizedQuery === 'синдром');
     expect(fixture?.expectedTop1DocumentIds).toEqual([]);
+    expect(fixture?.strictIdentityDocumentIds).toEqual([]);
     expect(fixture?.exactSurfaceDocumentIds).toEqual(['declared']);
   });
 
