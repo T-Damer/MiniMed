@@ -429,9 +429,12 @@ export function rankSearchGroupsByQuery(
   const namedMedication =
     !analysis ||
     analysis.facts.some((fact) => fact.kind === 'medication' && fact.polarity === 'positive');
+  const clinicalPositiveFacts =
+    analysis?.clinicalContext?.positiveFindings ??
+    analysis?.facts.filter((fact) => fact.kind === 'symptom' && fact.polarity === 'positive') ??
+    [];
   const clinicalNarrative =
-    analysis?.intent?.primary !== 'medication' &&
-    analysis?.facts.some((fact) => fact.kind === 'symptom' && fact.polarity === 'positive');
+    analysis?.intent?.primary !== 'medication' && clinicalPositiveFacts.length > 0;
   const negativeTerms = new Set(
     analysis?.facts
       .filter((fact) => fact.polarity === 'negative')
@@ -455,17 +458,17 @@ export function rankSearchGroupsByQuery(
         ),
       ]
     : [];
-  const positiveFindings =
-    clinicalNarrative && analysis
-      ? analysis.facts
-          .filter((fact) => fact.kind === 'symptom' && fact.polarity === 'positive')
-          .map((fact) =>
-            [tokenize(fact.value), tokenize(fact.normalizedValue)].filter(
-              (terms) => terms.length > 0,
-            ),
-          )
-          .filter((variants) => variants.length > 0)
-      : [];
+  const positiveFindings = clinicalNarrative
+    ? clinicalPositiveFacts
+        .map((fact) => {
+          const variants = [tokenize(fact.value), tokenize(fact.normalizedValue)];
+          if (fact.kind === 'measurement' || fact.kind === 'temperature') {
+            variants.push(tokenize(fact.label));
+          }
+          return variants.filter((terms) => terms.length > 0);
+        })
+        .filter((variants) => variants.length > 0)
+    : [];
   // ponytail: scan the bounded candidate window; use corpus-wide document frequencies if this grows hot.
   const phrase = normalizeSurfaceText(query);
   const hasSourcePhrase = tokenize(phrase).length >= (subjectSearch ? 2 : 3);
