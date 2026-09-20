@@ -9,7 +9,7 @@ export interface LookupQualityCase {
   readonly id: string;
   readonly query: string;
   readonly normalizedQuery: string;
-  /** Empty for discovery-only surfaces such as declaredAliases without a stronger identity surface. */
+  /** Empty when a discovery-only alias has no stronger identity surface. */
   readonly expectedTop1DocumentIds: readonly string[];
   readonly exactSurfaceDocumentIds: readonly string[];
   readonly kinds: readonly LookupSurfaceKind[];
@@ -95,7 +95,8 @@ export function buildLookupQualityCases(
         strongestIdentity.length > 0
           ? strongestIdentity
           : group.filter(
-              (entry) => entry.priority === Math.max(...group.map((candidate) => candidate.priority)),
+              (entry) =>
+                entry.priority === Math.max(...group.map((candidate) => candidate.priority)),
             );
       const representative = representativeEntries
         .map((entry) => entry.query)
