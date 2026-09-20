@@ -533,3 +533,58 @@ def test_preterm_hyperbilirubinemia_treatment_thresholds_kr917_are_complete() ->
 
     assert [_int(value) for value in standard[0]] == [86, 86, 86, 103, 120, 137]
     assert [_int(value) for value in exchange[-1]] == [171, 274, 308, 342, 376, 376]
+
+
+def test_neonatal_fluid_parenteral_nutrition_kr905_preserves_source_structure() -> None:
+    data = _load("neonatal-fluid-parenteral-nutrition-kr905_1-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+
+    source = cast(dict[str, object], data["source"])
+    assert source["recommendationId"] == "905_1"
+    assert source["recommendationYear"] == 2025
+
+    fluid = cast(dict[str, object], data["fluid"])
+    transitional = cast(list[dict[str, object]], fluid["transitionalDays"])
+    assert [_int(row["day"]) for row in transitional] == [1, 2, 3, 4, 5]
+
+    day_one = transitional[0]
+    term = cast(dict[str, object], day_one["term"])
+    lt1000 = cast(dict[str, object], day_one["pretermLt1000"])
+    assert (_int(term["min"]), _int(term["max"])) == (40, 60)
+    assert (_int(lt1000["min"]), _int(lt1000["max"])) == (80, 100)
+
+    intermediate = cast(dict[str, object], fluid["intermediatePhase"])
+    assert intermediate["preterm1000To1500"] is None
+    assert intermediate["pretermLt1000"] is None
+
+    stable = cast(dict[str, object], fluid["stableGrowthPhase"])
+    assert stable["appliesTo"] == "table-wide-merged-cell"
+    preferred = cast(dict[str, object], stable["preferred"])
+    parenthetical = cast(dict[str, object], stable["parentheticalRange"])
+    assert (_int(preferred["min"]), _int(preferred["max"])) == (140, 160)
+    assert (_int(parenthetical["min"]), _int(parenthetical["max"])) == (135, 200)
+
+    nutrition = cast(dict[str, object], data["parenteralNutrition"])
+    energy = cast(dict[str, object], nutrition["energy"])
+    initial = cast(dict[str, object], energy["initialRecommended"])
+    target = cast(dict[str, object], energy["targetTotal"])
+    target_term = cast(dict[str, object], target["term"])
+    target_preterm = cast(dict[str, object], target["preterm"])
+    assert (_int(initial["min"]), _int(initial["max"])) == (40, 60)
+    assert (_int(target_term["min"]), _int(target_term["max"])) == (85, 100)
+    assert (_int(target_preterm["min"]), _int(target_preterm["max"])) == (90, 120)
+
+    electrolytes = cast(dict[str, object], data["electrolytes"])
+    sodium = cast(dict[str, object], electrolytes["sodium"])
+    assert sodium["startAfterEstablishedDiuresis"] is True
+    sodium_rows = cast(list[dict[str, object]], sodium["rows"])
+    day_six = sodium_rows[-1]
+    preterm_low = cast(dict[str, object], day_six["pretermLt1500"])
+    assert (_int(preterm_low["min"]), _int(preterm_low["max"])) == (2, 5)
+    assert _int(preterm_low["parentheticalMax"]) == 7
+
+    calcium = cast(dict[str, object], electrolytes["calcium"])
+    assert calcium["pretermColumnsMerged"] is True
+    magnesium = cast(dict[str, object], electrolytes["magnesium"])
+    assert magnesium["pretermColumnsMerged"] is True
