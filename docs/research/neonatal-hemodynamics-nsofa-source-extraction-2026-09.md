@@ -48,7 +48,23 @@ validation population is narrower (preterm very-low-birth-weight infants with la
 an unrestricted neonatal population, so that provenance must stay visible if this becomes a runtime
 tool.
 
-## Next assessment work
+## NEOMOD variants
 
-Current KR 912_1 also contains NEOMOD and a modified NEOMOD. They should be extracted separately rather
-than treated as aliases of nSOFA because their domains, scoring and validation populations differ.
+Research artifact:
+
+`docs/research/data/neomod-assessment-variants-kr912_1-2025.json`
+
+Current KR 912_1 contains two distinct NEOMOD definitions:
+
+- Appendix G2: the original Janota et al. seven-system NEOMOD for very-low-birth-weight newborns;
+- Appendix G3: the Cetinkaya et al. modified eight-system NEOMOD for premature infants.
+
+They are not aliases of nSOFA and are not aliases of each other.
+
+The original seven-system table can be represented as a compact semantic definition, but it remains
+review-only. The modified table is deliberately marked non-executable: multiple findings appear inside
+single score cells and the flattened web source does not establish whether they are AND/OR conditions.
+The microcirculation section also leaves a visible albumin 30–39 g/L gap between the score-1 and
+score-0 cells. MiniMed preserves both uncertainties rather than inventing executable behavior.
+
+As with nSOFA, no total-score low/moderate/high categories are introduced by MiniMed.
