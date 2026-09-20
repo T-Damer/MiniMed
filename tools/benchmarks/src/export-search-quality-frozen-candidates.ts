@@ -4,7 +4,11 @@ import { basename, dirname, resolve } from 'node:path';
 
 import type { SearchDocumentDescriptor, SearchResultGroup } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
-import { normalizeSurfaceText, searchSubjectText } from '@localmed/search-lexical';
+import {
+  findNormalizedPhraseIndex,
+  normalizeSurfaceText,
+  searchSubjectText,
+} from '@localmed/search-lexical';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
 import { SqliteMedicalStore } from '@localmed/storage-sqlite';
@@ -20,7 +24,7 @@ const option = (key: string): string | undefined =>
   args.find((arg) => arg.startsWith(`--${key}=`))?.slice(key.length + 3);
 
 for (const arg of args) {
-  if (!/^--(?:core|pack|fixtures|output|report|mode|limit)=.+/u.test(arg)) {
+  if (!/^--(?:core|pack|fixtures|legacy-pilot|leakage-fixtures|output|report|mode|limit)=.+/u.test(arg)) {
     throw new Error(`Unknown argument ${arg}`);
   }
 }
@@ -32,13 +36,25 @@ const packs = args
   .filter((arg) => arg.startsWith('--pack='))
   .map((arg) => projectPath(arg.slice(7), ''));
 const fixturePath = projectPath(option('fixtures'), 'tools/benchmarks/search-quality-v2.json');
+const legacyPilotPath = option('legacy-pilot')
+  ? projectPath(option('legacy-pilot'), 'tools/benchmarks/pilot-rf-queries.json')
+  : undefined;
+const leakageFixturePath = projectPath(
+  option('leakage-fixtures'),
+  'tools/benchmarks/search-quality-v2.json',
+);
+const trainingExport = legacyPilotPath !== undefined;
 const outputPath = projectPath(
   option('output'),
-  'data/build/search-quality-v2-frozen-candidates.jsonl',
+  trainingExport
+    ? 'data/build/search-quality-linear-training-candidates.jsonl'
+    : 'data/build/search-quality-v2-frozen-candidates.jsonl',
 );
 const reportPath = projectPath(
   option('report'),
-  'data/build/search-quality-v2-frozen-candidates-report.json',
+  trainingExport
+    ? 'data/build/search-quality-linear-training-candidates-report.json'
+    : 'data/build/search-quality-v2-frozen-candidates-report.json',
 );
 const mode = option('mode') ?? 'hybrid';
 if (mode !== 'lexical' && mode !== 'hybrid') {
@@ -49,7 +65,13 @@ if (!Number.isInteger(limit) || limit < 20 || limit > 100) {
   throw new Error('--limit must be an integer between 20 and 100.');
 }
 
-for (const path of [corePath, ...packs, fixturePath]) {
+const inputPaths = [
+  corePath,
+  ...packs,
+  trainingExport ? (legacyPilotPath as string) : fixturePath,
+  ...(trainingExport ? [leakageFixturePath] : []),
+];
+for (const path of inputPaths) {
   if (!existsSync(path)) throw new Error(`Frozen-candidate input does not exist: ${path}`);
 }
 
