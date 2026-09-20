@@ -13,6 +13,7 @@ const LEGACY_ANSWER_MARKERS_BY_DOCUMENT: Readonly<Record<string, readonly string
   'kr.rf.58_2.meningococcal': [
     'менингококк',
     'менингококковый',
+    'менингококковую',
     'менингит',
     'менингококцемия',
   ],
