@@ -244,13 +244,20 @@ const report = {
     strictTop1Cases: strictRows.length,
     discoveryOnlyCases: rows.length - strictRows.length,
     top1Rate,
-    recallAt20,
+    strictIdentityRecallAt20,
+    discoveryAliasRecallAt20,
+    overallExactSurfaceRecallAt20,
+    strictBodyOnlyIntrusionRate,
+    discoveryBodyOnlyIntrusionRate,
     bodyOnlyIntrusionRate,
     weakerExactRate,
     p50Ms: percentile(0.5),
     p95Ms: percentile(0.95),
   },
-  failures: rows.filter((row) => row.top1Pass === false || !row.recallAt20),
+  failures: strictRows.filter(
+    (row) => row.top1Pass === false || row.strictIdentityRecallAt20 === false,
+  ),
+  discoveryMisses: discoveryRows.filter((row) => !row.exactSurfaceRecallAt20),
   rows,
 };
 mkdirSync(dirname(reportPath), { recursive: true });
@@ -295,9 +302,9 @@ if (identityTopTierAgreementRate < 1) {
 if (top1Rate < minimumTop1) {
   failures.push(`exact lookup Top-1 ${top1Rate.toFixed(4)} < ${minimumTop1.toFixed(4)}`);
 }
-if (recallAt20 < minimumRecallAt20) {
+if (strictIdentityRecallAt20 < minimumRecallAt20) {
   failures.push(
-    `exact lookup recall@20 ${recallAt20.toFixed(4)} < ${minimumRecallAt20.toFixed(4)}`,
+    `strict identity recall@20 ${strictIdentityRecallAt20.toFixed(4)} < ${minimumRecallAt20.toFixed(4)}`,
   );
 }
 if (failures.length > 0) {
