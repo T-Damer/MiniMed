@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.pediatric-fluid-therapy-source-contract.ru.kr1041_1.2026",
+  "title": "Pediatric fluid-therapy source contract — current KR 1041_1 (2026)",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "clinical-recommendation-source-review-required",
+  "verificationStatus": "current-kr-text-and-appendix-transcription",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "fluid_therapy_source_contract",
+  "source": {
+    "recommendationTitle": "Недостаточность питания у детей старше 1 года (Белково-энергетическая недостаточность)",
+    "recommendationId": "1041_1",
+    "recommendationYear": 2026,
+    "revisionDueNoLaterThan": 2028,
+    "effectiveFrom": "2026-05-29",
+    "developers": [
+      "Союз педиатров России",
+      "Российская Гастроэнтерологическая Ассоциация",
+      "Общество детских гастроэнтерологов, гепатологов и нутрициологов"
+    ],
+    "urls": [
+      "https://cr.minzdrav.gov.ru/preview-cr/1041_1",
+      "https://www.consultant.ru/document/cons_doc_LAW_535890/",
+      "https://base.garant.ru/414308892/"
+    ],
+    "appendices": [
+      "А3.17",
+      "А3.18",
+      "А3.25"
+    ]
+  },
+  "populationBoundary": {
+    "parentRecommendationTitlePopulation": "children_over_1_year",
+    "appendixContainsUnder1YearColumn": true,
+    "handling": "preserve_source_row_but_mark_out_of_parent_scope_until_cross_source_review"
+  },
+  "totalInfusionContract": {
+    "equationSemantic": "total_infusion = physiologic_need + dehydration_correction + current_pathologic_losses",
+    "sourceSymbols": {
+      "total": "V_it",
+      "physiologic": "FP",
+      "dehydrationCorrection": "ZhVO",
+      "ongoingLosses": "ZhTPP"
+    },
+    "sourceExplicitlyStatesFormulaForWeightKg": {
+      "operator": ">",
+      "value": 10
+    },
+    "automaticTreatmentOrder": false
+  },
+  "physiologicNeed": {
+    "unit": "ml_per_day",
+    "rules": [
+      {
+        "weightKg": {
+          "operator": "<=",
+          "value": 10
+        },
+        "expression": "100 * weight_kg",
+        "equivalentUnit": "100_ml_per_kg_per_day"
+      },
+      {
+        "weightKg": {
+          "operator": "range",
+          "minExclusive": 10,
+          "maxInclusive": 20
+        },
+        "expression": "1000 + 50 * (weight_kg - 10)"
+      },
+      {
+        "weightKg": {
+          "operator": ">",
+          "value": 20
+        },
+        "expression": "1500 + 25 * (weight_kg - 20)"
+      }
+    ],
+    "administrationContext": "source_states_physiologic_need_is_replaced_evenly_over_24_hours"
+  },
+  "dehydrationSeverity": {
+    "sourceAppendix": "А3.17",
+    "degrees": [
+      {
+        "degree": "I",
+        "estimatedWeightLossPercent": {
+          "min": 4,
+          "max": 5
+        }
+      },
+      {
+        "degree": "II",
+        "estimatedWeightLossPercent": {
+          "min": 6,
+          "max": 9
+        }
+      },
+      {
+        "degree": "III",
+        "estimatedWeightLossPercent": {
+          "min": 10,
+          "max": null
+        }
+      }
+    ],
+    "signs": [
+      {
+        "id": "stool",
+        "degreeI": "liquid_4_to_6_per_day",
+        "degreeII": "liquid_up_to_10_per_day",
+        "degreeIII": "watery_more_than_10_per_day"
+      },
+      {
+        "id": "vomiting",
+        "degreeI": "one_or_two_times",
+        "degreeII": "repeated",
+        "degreeIII": "multiple"
+      },
+      {
+        "id": "thirst",
+        "degreeI": "moderate",
+        "degreeII": "marked",
+        "degreeIII": "weak_desire_to_drink"
+      },
+      {
+        "id": "appearance",
+        "degreeI": "excited_or_irritable",
+        "degreeII": "restless_or_inhibited",
+        "degreeIII": "drowsy_possible_unconsciousness"
+      },
+      {
+        "id": "skin_elasticity",
+        "degreeI": "preserved",
+        "degreeII": "reduced_slow_skin_fold_return",
+        "degreeIII": "markedly_reduced_skin_fold_returns_after_2_seconds"
+      },
+      {
+        "id": "eyes",
+        "degreeI": "normal",
+        "degreeII": "sunken",
+        "degreeIII": "markedly_sunken"
+      },
+      {
+        "id": "tears",
+        "degreeI": "present",
+        "degreeII": "absent",
+        "degreeIII": "absent"
+      },
+      {
+        "id": "anterior_fontanelle",
+        "degreeI": "normal",
+        "degreeII": "sunken",
+        "degreeIII": "markedly_sunken"
+      },
+      {
+        "id": "mucous_membranes",
+        "degreeI": "moist_or_slightly_dry",
+        "degreeII": "dryish",
+        "degreeIII": "dry_and_markedly_hyperemic"
+      },
+      {
+        "id": "heart_sounds",
+        "degreeI": "loud",
+        "degreeII": "muffled",
+        "degreeIII": "distant"
+      },
+      {
+        "id": "tachycardia",
+        "degreeI": "absent",
+        "degreeII": "moderate",
+        "degreeIII": "marked"
+      },
+      {
+        "id": "radial_pulse",
+        "degreeI": "normal_or_slightly_fast",
+        "degreeII": "fast_and_weak",
+        "degreeIII": "frequent_thready_may_be_impalpable"
+      },
+      {
+        "id": "cyanosis",
+        "degreeI": "absent",
+        "degreeII": "moderate",
+        "degreeIII": "marked"
+      },
+      {
+        "id": "breathing",
+        "degreeI": "normal",
+        "degreeII": "moderate_dyspnea",
+        "degreeIII": "deep_rapid_breathing"
+      },
+      {
+        "id": "voice",
+        "degreeI": "preserved",
+        "degreeII": "weakened",
+        "degreeIII": "often_aphonia"
+      },
+      {
+        "id": "urine_output",
+        "degreeI": "normal",
+        "degreeII": "reduced",
+        "degreeIII": "absent_for_6_to_8_hours"
+      },
+      {
+        "id": "body_temperature",
+        "degreeI": "normal_or_elevated",
+        "degreeII": "often_elevated",
+        "degreeIII": "below_normal"
+      }
+    ],
+    "scoreDerived": false,
+    "singleSignDiagnosisDerived": false
+  },
+  "dehydrationCorrection": {
+    "sourceAppendix": "А3.18",
+    "unit": "ml_per_kg_per_day",
+    "table": [
+      {
+        "degree": "I",
+        "under1Year": {
+          "min": 170,
+          "max": 170,
+          "outOfParentRecommendationScope": true
+        },
+        "age1To5Years": {
+          "min": 100,
+          "max": 125
+        },
+        "olderThan5Years": {
+          "min": 75,
+          "max": 100
+        }
+      },
+      {
+        "degree": "II",
+        "under1Year": {
+          "min": 200,
+          "max": 200,
+          "outOfParentRecommendationScope": true
+        },
+        "age1To5Years": {
+          "min": 130,
+          "max": 150
+        },
+        "olderThan5Years": {
+          "min": 110,
+          "max": 110
+        }
+      },
+      {
+        "degree": "III",
+        "under1Year": {
+          "min": 220,
+          "max": 220,
+          "outOfParentRecommendationScope": true
+        },
+        "age1To5Years": {
+          "min": 150,
+          "max": 170
+        },
+        "olderThan5Years": {
+          "min": 120,
+          "max": 120
+        }
+      }
+    ],
+    "stableHemodynamicsSchedule": {
+      "firstHalfFraction": 0.5,
+      "firstHalfHours": 8,
+      "secondHalfFraction": 0.5,
+      "secondHalfHours": 16
+    }
+  },
+  "ongoingPathologicLosses": {
+    "unit": "ml_per_kg",
+    "rules": [
+      {
+        "trigger": "each_degree_celsius_above_37_for_at_least_8_hours",
+        "amount": 10
+      },
+      {
+        "trigger": "each_20_respirations_per_minute_above_age_norm",
+        "amount": 15
+      },
+      {
+        "trigger": "vomiting",
+        "amount": 20
+      },
+      {
+        "trigger": "frequent_stool_each_defecation",
+        "amountRange": {
+          "min": 20,
+          "max": 30
+        }
+      },
+      {
+        "trigger": "intestinal_paresis_degree_2",
+        "amount": 20
+      },
+      {
+        "trigger": "intestinal_paresis_degree_3",
+        "amount": 40
+      }
+    ],
+    "replacementTiming": "source_states_current_pathologic_losses_are_replaced_when_recorded"
+  },
+  "fluidRestrictionContext": {
+    "sourceLists": [
+      "cerebral_edema",
+      "heart_failure",
+      "edema",
+      "acute_kidney_injury",
+      "respiratory_failure_from_acute_lung_injury",
+      "respiratory_distress_syndrome",
+      "pneumonia"
+    ],
+    "alternativeApproaches": [
+      "two_thirds_to_three_quarters_of_physiologic_need",
+      "insensible_losses_300_to_400_ml_per_m2_plus_previous_day_diuresis"
+    ],
+    "automaticRestrictionCalculation": false
+  },
+  "clinicalBoundary": {
+    "currentRecommendationDiseaseContext": "nutrition_deficiency",
+    "notUniversalEmergencyProtocol": true,
+    "under1YearAppendixRowsNotPromotedToParentPopulation": true,
+    "requiresMeasuredOngoingLossesWherePossible": true,
+    "doesNotReplaceOralRehydrationGuidelines": true,
+    "doesNotReplaceShockResuscitation": true,
+    "doesNotReplaceConditionSpecificFluidRestriction": true
+  },
+  "reviewNotes": [
+    "The parent recommendation is for children older than one year, although Appendix A3.18 contains an under-one-year column; those cells are preserved but explicitly marked out of parent-scope pending cross-source review.",
+    "A3.18 values are labeled by the source as infusion volume for dehydration correction, not simple percent-deficit ml/kg equivalents.",
+    "The A3.17 sign table is categorical and is not converted to an additive score.",
+    "Current pathological-loss rules are retained separately from baseline physiologic need and dehydration correction.",
+    "This contract is not a runtime treatment order; clinical status and condition-specific restrictions remain mandatory."
+  ]
+}
