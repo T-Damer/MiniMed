@@ -13,11 +13,7 @@ import {
   loadSearchQualityFixtures,
   type SearchQualityFixture,
 } from './search-quality-dataset';
-import {
-  maskLegacyTrainingQuery,
-  remainingLegacyAnswerMarker,
-  remainingLeakagePhrase,
-} from './legacy-training-mask';
+import { maskLegacyTrainingQuery, remainingLegacyAnswerMarker } from './legacy-training-mask';
 
 const root = resolve(import.meta.dirname, '../../..');
 const args = process.argv.slice(2);
@@ -26,9 +22,7 @@ const option = (key: string): string | undefined =>
 
 for (const arg of args) {
   if (
-    !/^--(?:core|pack|fixtures|legacy-pilot|leakage-fixtures|output|report|mode|limit)=.+/u.test(
-      arg,
-    )
+    !/^--(?:core|pack|fixtures|legacy-pilot|output|report|mode|limit)=.+/u.test(arg)
   ) {
     throw new Error(`Unknown argument ${arg}`);
   }
@@ -44,10 +38,6 @@ const fixturePath = projectPath(option('fixtures'), 'tools/benchmarks/search-qua
 const legacyPilotPath = option('legacy-pilot')
   ? projectPath(option('legacy-pilot'), 'tools/benchmarks/pilot-rf-queries.json')
   : undefined;
-const leakageFixturePath = projectPath(
-  option('leakage-fixtures'),
-  'tools/benchmarks/search-quality-v2.json',
-);
 const trainingExport = legacyPilotPath !== undefined;
 const outputPath = projectPath(
   option('output'),
@@ -74,7 +64,6 @@ const inputPaths = [
   corePath,
   ...packs,
   trainingExport ? (legacyPilotPath as string) : fixturePath,
-  ...(trainingExport ? [leakageFixturePath] : []),
 ];
 for (const path of inputPaths) {
   if (!existsSync(path)) throw new Error(`Frozen-candidate input does not exist: ${path}`);
@@ -91,24 +80,9 @@ function inferredGoal(sectionTypes: readonly string[]): SearchQualityFixture['go
   return 'diagnosis-navigation';
 }
 
-function loadLegacyTrainingFixtures(
-  path: string,
-  leakagePath: string,
-): readonly SearchQualityFixture[] {
+function loadLegacyTrainingFixtures(path: string): readonly SearchQualityFixture[] {
   const raw: unknown = JSON.parse(readFileSync(path, 'utf8'));
   if (!Array.isArray(raw)) throw new Error('Legacy pilot fixture must be an array.');
-  const leakageFixtures = loadSearchQualityFixtures(leakagePath);
-  const leakageByDocument = new Map<string, Set<string>>();
-  for (const fixture of leakageFixtures) {
-    for (const target of fixture.relevance) {
-      let terms = leakageByDocument.get(target.documentId);
-      if (!terms) {
-        terms = new Set<string>();
-        leakageByDocument.set(target.documentId, terms);
-      }
-      for (const term of fixture.leakageTerms) terms.add(term);
-    }
-  }
 
   return raw.map((value, index): SearchQualityFixture => {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
@@ -128,17 +102,8 @@ function loadLegacyTrainingFixtures(
       throw new Error(`Legacy pilot fixture ${index} is incomplete.`);
     }
 
-    const leakageTerms = [
-      ...new Set(
-        expectedDocumentIds.flatMap((documentId) => [
-          ...(leakageByDocument.get(documentId) ?? []),
-        ]),
-      ),
-    ];
-    const maskedQuery = maskLegacyTrainingQuery(query, expectedDocumentIds, leakageTerms);
+    const maskedQuery = maskLegacyTrainingQuery(query, expectedDocumentIds);
     if (!maskedQuery) throw new Error(`${id}: masking removed the entire training query.`);
-    const leaked = remainingLeakagePhrase(maskedQuery, leakageTerms);
-    if (leaked) throw new Error(`${id}: masked training query still leaks "${leaked}".`);
     const leakedMarker = remainingLegacyAnswerMarker(maskedQuery, expectedDocumentIds);
     if (leakedMarker) {
       throw new Error(
@@ -158,7 +123,7 @@ function loadLegacyTrainingFixtures(
         grade: 3,
         sectionTypes: expectedSectionTypes,
       })),
-      leakageTerms,
+      leakageTerms: [],
       forbiddenDocumentIds: [],
       rationale:
         'Legacy source-grounded query used only for reranker training after ' +
@@ -222,7 +187,7 @@ function surfaceFlags(
 }
 
 const fixtures = trainingExport
-  ? loadLegacyTrainingFixtures(legacyPilotPath as string, leakageFixturePath)
+  ? loadLegacyTrainingFixtures(legacyPilotPath as string)
   : loadSearchQualityFixtures(fixturePath);
 const stores = await Promise.all(
   [corePath, ...packs].map(async (path, index) => ({
@@ -435,10 +400,9 @@ const report = {
     kind: trainingExport ? 'legacy-pilot-masked-training' : 'graded-challenge',
     path: trainingExport ? (legacyPilotPath as string) : fixturePath,
     sha256: sha256(trainingExport ? (legacyPilotPath as string) : fixturePath),
-    leakageFixturePath: trainingExport ? leakageFixturePath : null,
-    leakageFixtureSha256: trainingExport ? sha256(leakageFixturePath) : null,
+    testSetAnnotationsUsedForTrainingMask: false,
     maskingPolicy: trainingExport
-      ? 'challenge leakage phrases + target-specific light-stem answer markers'
+      ? 'target-specific explicit phrase + light-stem answer-marker removal'
       : null,
     count: fixtures.length,
   },
