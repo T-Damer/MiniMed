@@ -328,7 +328,12 @@ def apply_gate(
         if proposal["changed"] and proposal["margin"] >= min_margin:
             result[fixture_id] = proposed
         else:
-            result[fixture_id] = source
+            # Preserve deterministic order while keeping scored copies so diagnostics can always
+            # report the model score even when the gate abstains.
+            result[fixture_id] = sorted(
+                proposed,
+                key=lambda row: int(row["retrieval"]["originalRank"]),
+            )
     return result
 
 
