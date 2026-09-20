@@ -764,3 +764,40 @@ def test_neomod_variants_remain_separate_and_modified_is_non_executable() -> Non
 
     assert original["categoricalCutoffs"] is None
     assert modified["categoricalCutoffs"] is None
+
+
+def test_cds_dehydration_assessment_preserves_source_interpretation() -> None:
+    data = _load("cds-dehydration-assessment-kr25_3-2026.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["semanticClass"] == "assessment_definition"
+
+    scoring = cast(dict[str, object], data["scoring"])
+    total_range = cast(dict[str, object], scoring["totalScoreRange"])
+    assert (_int(total_range["min"]), _int(total_range["max"])) == (0, 8)
+
+    items = cast(list[dict[str, object]], data["items"])
+    assert [item["id"] for item in items] == [
+        "appearance",
+        "eyes",
+        "mucous_membranes",
+        "tears",
+    ]
+    for item in items:
+        options = cast(list[dict[str, object]], item["options"])
+        assert [_int(option["score"]) for option in options] == [0, 1, 2]
+
+    interpretations = cast(list[dict[str, object]], data["interpretations"])
+    assert [
+        (_int(item["minScore"]), _int(item["maxScore"]), item["semantic"])
+        for item in interpretations
+    ] == [
+        (0, 0, "dehydration_absent"),
+        (1, 4, "mild_dehydration"),
+        (5, 8, "moderate_or_severe_dehydration"),
+    ]
+    assert interpretations[-1]["splitIntoSeparateModerateSevereCategories"] is False
+
+    boundary = cast(dict[str, object], data["clinicalBoundary"])
+    assert boundary["fluidDeficitPercentDerived"] is False
+    assert boundary["automaticRehydrationPrescription"] is False
