@@ -577,37 +577,37 @@ async function buildExactIdentityResults(
   if (documentIds.size === 0) return [];
   const results = await Promise.all(
     [...documentIds].map(async (documentId): Promise<SearchResult | null> => {
-      const [document, sections] = await Promise.all([
-        store.getDocument(documentId),
-        store.getSectionsByDocument(documentId),
-      ]);
+      const document = await store.getDocument(documentId);
       if (!document || !exactIdentityDocumentMatchesFilters(document, filters)) return null;
 
-      const section = sections.find(
-        (candidate) =>
-          !filters.sectionTypes?.length ||
-          (candidate.sectionType !== null && filters.sectionTypes.includes(candidate.sectionType)),
-      );
-      if (!section) return null;
-      const chunk = (await store.getChunksBySection(section.id))[0];
-      if (!chunk) return null;
+      const sections = await store.getSectionsByDocument(documentId);
+      // Outline/parent sections can be empty. Stop at the first readable eligible section;
+      // do not hydrate the entire document or cross the caller's section filters.
+      for (const section of sections) {
+        if (
+          filters.sectionTypes?.length &&
+          (section.sectionType === null || !filters.sectionTypes.includes(section.sectionType))
+        ) {
+          continue;
+        }
+        const chunk = (await store.getChunksBySection(section.id)).find(
+          (candidate) => candidate.originalText.trim().length > 0,
+        );
+        if (!chunk) continue;
 
-      const hit: LexicalHit = {
-        chunk,
-        section,
-        document,
-        rank: 1,
-      };
-      return toSearchResult({
-        hit,
-        branchIds: new Set(['exact-identity']),
-        branchLabels: new Set(['Точное название']),
-        terms: new Set(terms),
-        branchScores: [1],
-        sectionBoost: 0,
-        score: 1,
-        bestLexicalScore: 1,
-      });
+        const hit: LexicalHit = { chunk, section, document, rank: 1 };
+        return toSearchResult({
+          hit,
+          branchIds: new Set(['exact-identity']),
+          branchLabels: new Set(['Точное название']),
+          terms: new Set(terms),
+          branchScores: [1],
+          sectionBoost: 0,
+          score: 1,
+          bestLexicalScore: 1,
+        });
+      }
+      return null;
     }),
   );
   return results.filter((result): result is SearchResult => result !== null);
@@ -1167,16 +1167,6 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           parsed.data.query,
           exactAliasDocumentIds,
         );
-        const lexicalDocumentIds = new Set(lexicalResults.map((result) => result.documentId));
-        const missingExactIdentityDocumentIds = new Set(
-          [...exactIdentityDocumentIds].filter((documentId) => !lexicalDocumentIds.has(documentId)),
-        );
-        const exactIdentityResults = await buildExactIdentityResults(
-          options.store,
-          missingExactIdentityDocumentIds,
-          parsed.data.filters,
-          plan.terms,
-        );
         const requestedMode = parsed.data.mode;
         let modeUsed: SearchResponse['modeUsed'] = 'lexical';
         let vectorHits: readonly VectorHit[] = [];
@@ -1243,9 +1233,25 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 parsed.data.query,
                 exactAliasDocumentIds,
               );
+        // Semantic-only retrieval and hybrid truncation may discard an identity that survived
+        // lexical fusion. Reuse its source-backed lexical hits before reading missing identities.
+        const retainedResults = mergeExactIdentityResults(
+          rankedResults,
+          lexicalResults.filter((result) => exactIdentityDocumentIds.has(result.documentId)),
+        );
+        const retainedDocumentIds = new Set(retainedResults.map((result) => result.documentId));
+        const missingExactIdentityDocumentIds = new Set(
+          [...exactIdentityDocumentIds].filter((documentId) => !retainedDocumentIds.has(documentId)),
+        );
+        const exactIdentityResults = await buildExactIdentityResults(
+          options.store,
+          missingExactIdentityDocumentIds,
+          parsed.data.filters,
+          plan.terms,
+        );
         const availableDocumentIds = documentIndex.availableIds;
         const results = filterSupersededSummaryResults(
-          mergeExactIdentityResults(rankedResults, exactIdentityResults),
+          mergeExactIdentityResults(retainedResults, exactIdentityResults),
           availableDocumentIds,
         );
         const candidateIds = new Set([
