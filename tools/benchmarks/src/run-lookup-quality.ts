@@ -49,10 +49,10 @@ const store = new MultiMedicalStore(
 const core = createMedicalCore({ store, platform: 'test' });
 const initialized = await core.initialize();
 if (!initialized.ok) throw new Error(initialized.error.message);
-const listed = await core.listDocuments();
-if (!listed.ok) throw new Error(listed.error.message);
+const listed = await store.listNavigationDocuments();
+const health = await store.getHealth();
 
-const allCases = buildLookupQualityCases(listed.value);
+const allCases = buildLookupQualityCases(listed);
 const cases = maxValue === 0 ? allCases : allCases.slice(0, maxValue);
 if (cases.length === 0) throw new Error('No eligible lookup surfaces were found.');
 
@@ -132,7 +132,7 @@ const report = {
   generatedAt: new Date().toISOString(),
   corpus: {
     contentPackIds: initialized.value.contentPackIds,
-    documentCount: listed.value.length,
+    documentCount: health.documentCount,
     databasePaths: [corePath, ...packs],
   },
   eligibleSurfaceCount: allCases.length,
