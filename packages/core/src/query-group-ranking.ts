@@ -293,6 +293,15 @@ export function queryGroupRelevanceBoost(query: string, text: string): number {
   );
 }
 
+function matchesExactDocumentTitle(query: string, group: SearchResultGroup): boolean {
+  const subject = normalizeSurfaceText(searchSubjectText(query)).trim();
+  if (!subject) return false;
+  return (
+    normalizeSurfaceText(group.title).trim() === subject ||
+    group.results.some((result) => normalizeSurfaceText(result.title).trim() === subject)
+  );
+}
+
 function groupRankingText(group: SearchResultGroup): string {
   return [
     group.title,
@@ -396,6 +405,7 @@ export function rankSearchGroupsByQuery(
     .map((group, index) => ({
       group,
       index,
+      exactTitle: matchesExactDocumentTitle(query, group),
       exactAlias: matchesDocumentAlias(query, documentsById.get(group.documentId)),
       hasPositiveFinding: positiveFindings.some((terms) =>
         terms.every((term) => (findingWords[index] ?? []).some((word) => tokensMatch(term, word))),
@@ -433,6 +443,7 @@ export function rankSearchGroupsByQuery(
     }))
     .toSorted(
       (left, right) =>
+        Number(right.exactTitle) - Number(left.exactTitle) ||
         Number(right.exactAlias) - Number(left.exactAlias) ||
         Number(right.sourcePhrase) - Number(left.sourcePhrase) ||
         Number(right.hasPositiveFinding) - Number(left.hasPositiveFinding) ||
