@@ -80,11 +80,7 @@ function sha256(path: string): string {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
 function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
-}
-
-');
 }
 
 const LEGACY_ANSWER_MARKERS_BY_DOCUMENT: Readonly<Record<string, readonly string[]>> = {
