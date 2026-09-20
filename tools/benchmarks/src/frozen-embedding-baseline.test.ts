@@ -79,14 +79,24 @@ function row(
 
 describe('frozen portable embedding baseline', () => {
   it('scores only user-visible candidate text and does not leak internal IDs', () => {
-    const candidate = row(
+    const base = row(
       'SECRET_DOCUMENT_TOKEN',
       1,
       'Инфекция мочевых путей',
       'Дизурия и изменения анализа мочи.',
     );
+    const candidate: FrozenCandidateRow = {
+      ...base,
+      candidate: {
+        ...base.candidate,
+        shortTitle: 'Инфекция мочевых путей',
+        navigationAliases: ['ИНФЕКЦИЯ МОЧЕВЫХ ПУТЕЙ'],
+      },
+    };
     const text = frozenCandidateText(candidate);
     expect(text).toContain('Инфекция мочевых путей');
+    expect(text.match(/Инфекция мочевых путей/gu)).toHaveLength(1);
+    expect(text).not.toContain('ИНФЕКЦИЯ МОЧЕВЫХ ПУТЕЙ');
     expect(text).not.toContain('SECRET_DOCUMENT_TOKEN');
     expect(text).not.toContain('SECRET_CONCEPT_TOKEN');
   });
