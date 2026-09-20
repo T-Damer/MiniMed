@@ -1,0 +1,166 @@
+[
+  {
+    "id": "lookup.pneumonia.exact",
+    "surface": "lookup",
+    "query": "пневмония",
+    "relevantDocumentIds": [
+      "kr.rf.714_2.pneumonia"
+    ],
+    "strictTop1": true,
+    "rationale": "Exact disease-name lookup must beat incidental body mentions."
+  },
+  {
+    "id": "lookup.bronchiolitis.exact",
+    "surface": "lookup",
+    "query": "бронхиолит",
+    "relevantDocumentIds": [
+      "kr.rf.360_3.bronchiolitis"
+    ],
+    "strictTop1": true,
+    "rationale": "Exact disease-name lookup."
+  },
+  {
+    "id": "lookup.bronchitis.exact",
+    "surface": "lookup",
+    "query": "бронхит",
+    "relevantDocumentIds": [
+      "kr.rf.381_3.bronchitis"
+    ],
+    "strictTop1": true,
+    "rationale": "Exact disease-name lookup."
+  },
+  {
+    "id": "lookup.measles.exact",
+    "surface": "lookup",
+    "query": "корь",
+    "relevantDocumentIds": [
+      "kr.rf.563_2.measles"
+    ],
+    "strictTop1": true,
+    "rationale": "Exact disease-name lookup."
+  },
+  {
+    "id": "lookup.rotavirus.exact",
+    "surface": "lookup",
+    "query": "ротавирус",
+    "relevantDocumentIds": [
+      "kr.rf.755_1.rotavirus"
+    ],
+    "strictTop1": true,
+    "rationale": "Exact disease-name lookup."
+  },
+  {
+    "id": "lookup.meningococcal.exact",
+    "surface": "lookup",
+    "query": "менингококковая инфекция",
+    "relevantDocumentIds": [
+      "kr.rf.58_2.meningococcal"
+    ],
+    "strictTop1": true,
+    "rationale": "Exact disease-name lookup."
+  },
+  {
+    "id": "lookup.uti.alias",
+    "surface": "lookup",
+    "query": "ИМП",
+    "relevantDocumentIds": [
+      "kr.rf.281_3.uti"
+    ],
+    "strictTop1": true,
+    "rationale": "Common clinical abbreviation should behave as a reviewed alias."
+  },
+  {
+    "id": "lookup.koplik.term",
+    "surface": "lookup",
+    "query": "пятна Бельского-Филатова-Коплика",
+    "relevantDocumentIds": [
+      "kr.rf.563_2.measles"
+    ],
+    "strictTop1": true,
+    "rationale": "A distinctive source term should not be buried under weaker mentions."
+  },
+  {
+    "id": "clinical.infant-wheeze",
+    "surface": "clinical",
+    "query": "Грудничок после насморка свистит, хуже ест и втягивает межреберья",
+    "relevantDocumentIds": [
+      "kr.rf.360_3.bronchiolitis",
+      "kr.rf.714_2.pneumonia",
+      "kr.rf.381_3.bronchitis"
+    ],
+    "strictTop1": false,
+    "rationale": "Overlap is intentional; do not force one diagnosis as the only relevant source."
+  },
+  {
+    "id": "clinical.cough-chest-pain-fever",
+    "surface": "clinical",
+    "query": "Кашель неделю, болит в грудной клетке при кашле, температура держится",
+    "relevantDocumentIds": [
+      "kr.rf.714_2.pneumonia",
+      "kr.rf.381_3.bronchitis"
+    ],
+    "strictTop1": false,
+    "rationale": "Respiratory narrative with more than one reasonable source candidate."
+  },
+  {
+    "id": "clinical.infant-apnea-after-uri",
+    "surface": "clinical",
+    "query": "Грудничок после ОРВИ периодически перестает дышать на несколько секунд",
+    "relevantDocumentIds": [
+      "kr.rf.360_3.bronchiolitis",
+      "kr.rf.714_2.pneumonia"
+    ],
+    "strictTop1": false,
+    "rationale": "Multi-relevance case replacing the old forced pneumonia-only gold."
+  },
+  {
+    "id": "clinical.bulging-fontanelle",
+    "surface": "clinical",
+    "query": "Грудничок вялый, родничок выбухает, температура 39",
+    "relevantDocumentIds": [
+      "kr.rf.58_2.meningococcal"
+    ],
+    "strictTop1": false,
+    "rationale": "Source retrieval for a high-salience symptom cluster."
+  },
+  {
+    "id": "clinical.nonblanching-rash",
+    "surface": "clinical",
+    "query": "У ребенка температура, вялость и сыпь на ногах не исчезает при надавливании",
+    "relevantDocumentIds": [
+      "kr.rf.58_2.meningococcal"
+    ],
+    "strictTop1": false,
+    "rationale": "Diagnosis-free wording."
+  },
+  {
+    "id": "clinical.diarrhea-vomiting",
+    "surface": "clinical",
+    "query": "Ребенка второй день рвет, водянистый стул, плохо пьет и редко мочится",
+    "relevantDocumentIds": [
+      "kr.rf.755_1.rotavirus"
+    ],
+    "strictTop1": false,
+    "rationale": "Diagnosis-free gastroenteritis/dehydration wording."
+  },
+  {
+    "id": "clinical.dysuria-cloudy-urine",
+    "surface": "clinical",
+    "query": "У девочки мутная моча с неприятным запахом, больно писать и часто просится в туалет",
+    "relevantDocumentIds": [
+      "kr.rf.281_3.uti"
+    ],
+    "strictTop1": false,
+    "rationale": "Diagnosis-free urinary symptoms."
+  },
+  {
+    "id": "clinical.measles-pattern",
+    "surface": "clinical",
+    "query": "Температура, кашель и конъюнктивит, затем сыпь появилась на лице и пошла вниз",
+    "relevantDocumentIds": [
+      "kr.rf.563_2.measles"
+    ],
+    "strictTop1": false,
+    "rationale": "Diagnosis name intentionally absent."
+  }
+]
