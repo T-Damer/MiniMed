@@ -78,13 +78,19 @@ for (const arg of args) {
     throw new Error(`Unknown argument ${arg}`);
   }
 }
-const corePath = resolve(option('core') ?? resolve(root, 'apps/app/public/content/core.db'));
-const packs = args.filter((arg) => arg.startsWith('--pack=')).map((arg) => resolve(arg.slice(7)));
-const observationsPath = resolve(
-  option('observations') ?? resolve(root, 'tools/benchmarks/search-coverage-observations.json'),
+const projectPath = (value: string | undefined, fallback: string) =>
+  resolve(root, value ?? fallback);
+const corePath = projectPath(option('core'), 'apps/app/public/content/core.db');
+const packs = args
+  .filter((arg) => arg.startsWith('--pack='))
+  .map((arg) => projectPath(arg.slice(7), ''));
+const observationsPath = projectPath(
+  option('observations'),
+  'tools/benchmarks/search-coverage-observations.json',
 );
-const reportPath = resolve(
-  option('report') ?? resolve(root, 'data/build/search-coverage-observations-report.json'),
+const reportPath = projectPath(
+  option('report'),
+  'data/build/search-coverage-observations-report.json',
 );
 const requireAll = (option('require-all') ?? 'false') === 'true';
 
