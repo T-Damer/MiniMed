@@ -274,6 +274,7 @@ const fixtureReports: {
   missingRelevantDocumentIds: string[];
   modeUsed: string;
   elapsedMs: number;
+  excludedFromTraining: boolean;
 }[] = [];
 
 for (const fixture of fixtures) {
@@ -287,6 +288,7 @@ for (const fixture of fixtures) {
       missingRelevantDocumentIds: fixture.relevance.map((target) => target.documentId),
       modeUsed: 'unavailable',
       elapsedMs: 0,
+      excludedFromTraining: trainingExport,
     });
     continue;
   }
@@ -305,17 +307,21 @@ for (const fixture of fixtures) {
   const relevantCandidateCount = availableRelevance.filter((target) =>
     candidateIds.has(target.documentId),
   ).length;
+  const missingRelevantDocumentIds = availableRelevance
+    .filter((target) => !candidateIds.has(target.documentId))
+    .map((target) => target.documentId);
+  const excludedFromTraining = trainingExport && missingRelevantDocumentIds.length > 0;
   fixtureReports.push({
     id: fixture.id,
     candidateCount: response.value.groups.length,
     relevantCandidateCount,
     relevantDocumentCount: availableRelevance.length,
-    missingRelevantDocumentIds: availableRelevance
-      .filter((target) => !candidateIds.has(target.documentId))
-      .map((target) => target.documentId),
+    missingRelevantDocumentIds,
     modeUsed: response.value.modeUsed,
     elapsedMs: response.value.elapsedMs,
+    excludedFromTraining,
   });
+  if (excludedFromTraining) continue;
 
   for (const [index, group] of response.value.groups.entries()) {
     const document = documentsById.get(group.documentId);
@@ -435,6 +441,7 @@ const report = {
     fixturesWithMissingRelevantCandidates: fixtureReports.filter(
       (fixture) => fixture.missingRelevantDocumentIds.length > 0,
     ).length,
+    excludedTrainingFixtures: fixtureReports.filter((fixture) => fixture.excludedFromTraining).length,
     fixtures: fixtureReports,
   },
 };
@@ -458,8 +465,12 @@ console.log(
 );
 
 if (missingRelevantPairs > 0) {
-  console.error(
-    `Frozen candidate export is incomplete: ${missingRelevantPairs} relevant document(s) are missing.`,
-  );
-  process.exitCode = 1;
+  const message =
+    `Frozen candidate export is incomplete: ${missingRelevantPairs} relevant document(s) are missing.`;
+  if (trainingExport) {
+    console.warn(`${message} Incomplete legacy fixtures were excluded from training.`);
+  } else {
+    console.error(message);
+    process.exitCode = 1;
+  }
 }
