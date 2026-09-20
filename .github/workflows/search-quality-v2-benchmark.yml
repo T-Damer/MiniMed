@@ -258,3 +258,24 @@ jobs:
             echo "Reports stay in the ephemeral runner workspace and are not uploaded as artifacts."
             echo "Key metrics and failures are printed in the previous step logs."
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enforce benchmark exit codes
+        if: always()
+        shell: bash
+        run: |
+          failed=0
+          for name in             lookup             clinical             freeze-training             freeze-test             linear             embedding             reranker-summary
+          do
+            path="data/build/search-quality-v2-${name}.exit"
+            if [[ ! -f "$path" ]]; then
+              echo "::error::Missing benchmark exit file: $path"
+              failed=1
+              continue
+            fi
+            code="$(cat "$path")"
+            if [[ "$code" != "0" ]]; then
+              echo "::error::Benchmark stage $name failed with exit code $code"
+              failed=1
+            fi
+          done
+          exit "$failed"
