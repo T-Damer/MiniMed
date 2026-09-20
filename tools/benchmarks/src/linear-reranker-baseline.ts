@@ -148,7 +148,10 @@ function stringArray(value: unknown, label: string): readonly string[] {
   return value;
 }
 
-export function parseFrozenCandidate(value: unknown, label = 'frozen candidate'): FrozenCandidateRow {
+export function parseFrozenCandidate(
+  value: unknown,
+  label = 'frozen candidate',
+): FrozenCandidateRow {
   const row = objectValue(value, label);
   const analysis = objectValue(row.analysis, `${label}.analysis`);
   const retrieval = objectValue(row.retrieval, `${label}.retrieval`);
@@ -486,7 +489,9 @@ export function trainPairwiseLinearReranker(
   const l2 = options.l2 ?? 0.002;
   const groups = groupFrozenCandidates(rows);
   const pairs = trainingPairs(groups);
-  if (pairs.length === 0) throw new Error('Linear reranker training requires graded candidate pairs.');
+  if (pairs.length === 0) {
+    throw new Error('Linear reranker training requires graded candidate pairs.');
+  }
 
   const weights = Array<number>(LINEAR_RERANKER_FEATURES.length).fill(0);
   for (let epoch = 0; epoch < epochs; epoch += 1) {
@@ -540,7 +545,8 @@ function fixtureMetrics(rows: readonly FrozenCandidateRow[]) {
   const maxGrade = Math.max(0, ...rows.map((row) => row.label.relevanceGrade));
   const relevant = rows.filter((row) => row.label.relevanceGrade > 0);
   const relevantWeight = relevant.reduce((sum, row) => sum + row.label.relevanceGrade, 0);
-  const idsAt = (limit: number) => new Set(rows.slice(0, limit).map((row) => row.candidate.documentId));
+  const idsAt = (limit: number) =>
+    new Set(rows.slice(0, limit).map((row) => row.candidate.documentId));
   const recall = (limit: number, weighted: boolean) => {
     const selected = idsAt(limit);
     const numerator = relevant.reduce(
