@@ -19,6 +19,7 @@ function row(
   topSectionType: string,
 ): FrozenCandidateRow {
   return {
+    schemaVersion: 2,
     fixtureId,
     query: 'У ребенка сохраняются симптомы — что менять в лечении',
     origin: 'legacy-pilot-training',
@@ -85,6 +86,7 @@ function row(
 describe('linear frozen-candidate reranker', () => {
   it('parses the exported pair contract', () => {
     const parsed = parseFrozenCandidate(row('fixture', 'doc', 1, 3, 'treatment'));
+    expect(parsed.schemaVersion).toBe(2);
     expect(parsed.fixtureId).toBe('fixture');
     expect(parsed.retrieval.originalRank).toBe(1);
     expect(parsed.retrieval.exactShortTitle).toBe(false);
