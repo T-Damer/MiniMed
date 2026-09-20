@@ -420,10 +420,22 @@ for (const fixture of fixtures) {
             response.value.analysis.clinicalContext?.age.map((fact) => fact.normalizedValue) ?? [],
           positiveFindingCount:
             response.value.analysis.clinicalContext?.positiveFindings.length ?? 0,
+          positiveFindings:
+            response.value.analysis.clinicalContext?.positiveFindings.map(
+              (fact) => fact.normalizedValue,
+            ) ?? [],
           negativeFindingCount:
             response.value.analysis.clinicalContext?.negativeFindings.length ?? 0,
+          negativeFindings:
+            response.value.analysis.clinicalContext?.negativeFindings.map(
+              (fact) => fact.normalizedValue,
+            ) ?? [],
           currentMedicineCount:
             response.value.analysis.clinicalContext?.currentMedicines.length ?? 0,
+          currentMedicines:
+            response.value.analysis.clinicalContext?.currentMedicines.map(
+              (fact) => fact.normalizedValue,
+            ) ?? [],
           branchKinds: [
             ...new Set(response.value.analysis.branches.map((branch) => branch.kind)),
           ],
