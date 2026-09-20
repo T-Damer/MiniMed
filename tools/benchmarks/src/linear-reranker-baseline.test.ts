@@ -114,23 +114,54 @@ describe('linear frozen-candidate reranker', () => {
   });
 
 
-  it('exposes previous-treatment lexical overlap as a candidate-specific feature', () => {
-    const base = row('test-treatment-context', 'disease-source', 1, 3, 'treatment');
-    const medicationHeavy: FrozenCandidateRow = {
+  it('separates previous-treatment dominance from clinical finding coverage', () => {
+    const base = row('test-treatment-context', 'clinical-source', 1, 3, 'treatment');
+    const medicineOnly: FrozenCandidateRow = {
       ...base,
-      candidate: { ...base.candidate, documentId: 'medication-heavy-source' },
+      candidate: { ...base.candidate, documentId: 'medicine-only-source' },
       retrieval: {
         ...base.retrieval,
         originalRank: 2,
-        matchedTermCount: 3,
-        matchedTerms: ['кашель', 'лихорадка', 'амоксициллин'],
+        matchedTermCount: 1,
+        matchedTerms: ['амоксициллин'],
       },
     };
-    const candidates = linearCandidatesForFixture([base, medicationHeavy]);
-    const featureIndex = LINEAR_RERANKER_FEATURES.indexOf('currentMedicineMatchedTermCoverage');
+    const mixed: FrozenCandidateRow = {
+      ...base,
+      candidate: { ...base.candidate, documentId: 'mixed-source' },
+      retrieval: {
+        ...base.retrieval,
+        originalRank: 3,
+        matchedTermCount: 2,
+        matchedTerms: ['амоксициллин', 'кашель'],
+      },
+    };
+    const candidates = linearCandidatesForFixture([base, medicineOnly, mixed]);
+    const featureIndex = LINEAR_RERANKER_FEATURES.indexOf('currentMedicineMatchDominance');
     expect(featureIndex).toBeGreaterThanOrEqual(0);
     expect(candidates[0]?.features[featureIndex]).toBe(0);
-    expect(candidates[1]?.features[featureIndex]).toBeGreaterThan(0);
+    expect(candidates[1]?.features[featureIndex]).toBe(1);
+    expect(candidates[2]?.features[featureIndex]).toBe(0.5);
+  });
+
+  it('treats universal age metadata as neutral instead of adult-only', () => {
+    const child = row('test-age', 'child', 1, 3, 'clinical-picture');
+    const universal: FrozenCandidateRow = {
+      ...child,
+      candidate: { ...child.candidate, documentId: 'universal', ageGroups: ['all'] },
+      retrieval: { ...child.retrieval, originalRank: 2 },
+    };
+    const adult: FrozenCandidateRow = {
+      ...child,
+      candidate: { ...child.candidate, documentId: 'adult', ageGroups: ['adults'] },
+      retrieval: { ...child.retrieval, originalRank: 3 },
+    };
+    const candidates = linearCandidatesForFixture([child, universal, adult]);
+    const featureIndex = LINEAR_RERANKER_FEATURES.indexOf('pediatricAgeCompatibility');
+    expect(featureIndex).toBeGreaterThanOrEqual(0);
+    expect(candidates[0]?.features[featureIndex]).toBe(1);
+    expect(candidates[1]?.features[featureIndex]).toBe(0);
+    expect(candidates[2]?.features[featureIndex]).toBe(-1);
   });
 
   it('reports ranking metrics from exactly the frozen document set', () => {
