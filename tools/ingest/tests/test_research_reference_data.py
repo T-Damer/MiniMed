@@ -969,3 +969,64 @@ def test_pediatric_trauma_score_keeps_current_kr_interpretation_separate() -> No
     boundary = cast(dict[str, object], data["clinicalBoundary"])
     assert boundary["currentKrDoesNotReproduceFullMatrix"] is True
     assert boundary["fullMatrixCrossCheckedAgainstClassicDefinition"] is True
+
+
+def test_pediatric_fluid_therapy_contract_keeps_components_and_population_boundary() -> None:
+    data = _load("pediatric-fluid-therapy-source-contract-kr1041_1-2026.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["semanticClass"] == "fluid_therapy_source_contract"
+
+    population = cast(dict[str, object], data["populationBoundary"])
+    assert population["parentRecommendationTitlePopulation"] == "children_over_1_year"
+    assert population["appendixContainsUnder1YearColumn"] is True
+    assert population["handling"] == (
+        "preserve_source_row_but_mark_out_of_parent_scope_until_cross_source_review"
+    )
+
+    physiologic = cast(dict[str, object], data["physiologicNeed"])
+    rules = cast(list[dict[str, object]], physiologic["rules"])
+    assert [rule["expression"] for rule in rules] == [
+        "100 * weight_kg",
+        "1000 + 50 * (weight_kg - 10)",
+        "1500 + 25 * (weight_kg - 20)",
+    ]
+
+    severity = cast(dict[str, object], data["dehydrationSeverity"])
+    degrees = cast(list[dict[str, object]], severity["degrees"])
+    assert [degree["degree"] for degree in degrees] == ["I", "II", "III"]
+    assert len(cast(list[dict[str, object]], severity["signs"])) == 17
+    assert severity["scoreDerived"] is False
+    assert severity["singleSignDiagnosisDerived"] is False
+
+    correction = cast(dict[str, object], data["dehydrationCorrection"])
+    rows = cast(list[dict[str, object]], correction["table"])
+    assert len(rows) == 3
+    for row in rows:
+        under_one = cast(dict[str, object], row["under1Year"])
+        assert under_one["outOfParentRecommendationScope"] is True
+
+    degree_one = rows[0]
+    age_one_to_five = cast(dict[str, object], degree_one["age1To5Years"])
+    older_five = cast(dict[str, object], degree_one["olderThan5Years"])
+    assert (_int(age_one_to_five["min"]), _int(age_one_to_five["max"])) == (100, 125)
+    assert (_int(older_five["min"]), _int(older_five["max"])) == (75, 100)
+
+    losses = cast(dict[str, object], data["ongoingPathologicLosses"])
+    loss_rules = cast(list[dict[str, object]], losses["rules"])
+    assert [rule["trigger"] for rule in loss_rules] == [
+        "each_degree_celsius_above_37_for_at_least_8_hours",
+        "each_20_respirations_per_minute_above_age_norm",
+        "vomiting",
+        "frequent_stool_each_defecation",
+        "intestinal_paresis_degree_2",
+        "intestinal_paresis_degree_3",
+    ]
+
+    frequent_stool = cast(dict[str, object], loss_rules[3]["amountRange"])
+    assert (_int(frequent_stool["min"]), _int(frequent_stool["max"])) == (20, 30)
+
+    boundary = cast(dict[str, object], data["clinicalBoundary"])
+    assert boundary["notUniversalEmergencyProtocol"] is True
+    assert boundary["under1YearAppendixRowsNotPromotedToParentPopulation"] is True
+    assert boundary["doesNotReplaceOralRehydrationGuidelines"] is True
