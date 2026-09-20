@@ -383,6 +383,31 @@ function groupRankingText(group: SearchResultGroup): string {
   ].join(' ');
 }
 
+function isClinicalRecommendationDocument(
+  document: SearchDocumentDescriptor | undefined,
+): boolean {
+  return (
+    document?.sourceType === 'clinical_recommendation' ||
+    document?.sourceType === 'clinical_recommendation_summary'
+  );
+}
+
+function failedTreatmentContextCoverage(
+  failedTreatmentTerms: ReadonlySet<string>,
+  group: SearchResultGroup,
+  document: SearchDocumentDescriptor | undefined,
+): number {
+  if (failedTreatmentTerms.size === 0 || !isClinicalRecommendationDocument(document)) return 0;
+  const words = tokenize(
+    [group.title, ...group.results.map((result) => result.snippet)].join(' '),
+  ).map(stemToken);
+  if (words.length === 0) return 0;
+  const matched = [...failedTreatmentTerms].filter((term) =>
+    words.some((word) => tokensMatch(term, word)),
+  ).length;
+  return matched / failedTreatmentTerms.size;
+}
+
 function medicationDocumentBoost(
   query: string,
   document: SearchDocumentDescriptor | undefined,
@@ -529,6 +554,11 @@ export function rankSearchGroupsByQuery(
           findNormalizedPhraseIndex(normalizeSurfaceText(group.title), phrase) >= 0) ||
           group.results.some((result) => normalizeSurfaceText(result.snippet).includes(phrase))),
       clinicalEvidenceCoverage: clinicalEvidenceCoverages[index] ?? 0,
+      failedTreatmentContextCoverage: failedTreatmentContextCoverage(
+        failedTreatmentTerms,
+        group,
+        documentsById.get(group.documentId),
+      ),
       score:
         group.bestScore +
         8 * (clinicalEvidenceCoverages[index] ?? 0) +
@@ -549,6 +579,7 @@ export function rankSearchGroupsByQuery(
         Number(right.exactAlias) - Number(left.exactAlias) ||
         Number(right.sourcePhrase) - Number(left.sourcePhrase) ||
         right.positiveFindingCoverage - left.positiveFindingCoverage ||
+        right.failedTreatmentContextCoverage - left.failedTreatmentContextCoverage ||
         right.clinicalEvidenceCoverage - left.clinicalEvidenceCoverage ||
         right.score - left.score ||
         left.index - right.index,
