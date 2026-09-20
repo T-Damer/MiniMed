@@ -671,3 +671,57 @@ def test_neonatal_lab_decision_thresholds_are_not_reference_intervals() -> None:
     assert trigger["operator"] == ">"
     assert _int(trigger["value"]) == 65
     assert sampling["numericDifferenceInterpretation"] == "source-relative-wording-only"
+
+
+def test_neonatal_map_kr912_preserves_ga_and_hour_grid() -> None:
+    data = _load("neonatal-mean-arterial-pressure-kr912_1-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["semanticClass"] == "source_reference_table_not_treatment_threshold"
+    assert data["postnatalHours"] == [0, 12, 24, 36, 48, 60, 72]
+
+    rows = cast(list[dict[str, object]], data["rows"])
+    assert [row["gestationalAgeWeeks"] for row in rows] == [
+        "23-26",
+        "27-32",
+        "33-36",
+        "37-43",
+    ]
+    assert [cast(list[object], row["values"]) for row in rows] == [
+        [24, 25, 26, 27, 28, 29, 30],
+        [30, 31, 32, 33, 34, 35, 36],
+        [36, 37, 38, 39, 40, 41, 42],
+        [43, 44, 45, 46, 47, 48, 49],
+    ]
+
+
+def test_nsofa_research_definition_has_no_invented_risk_cutoffs() -> None:
+    data = _load("nsofa-assessment-kr912_1-2025.json")
+    assert data["status"] == "review-required"
+    assert data["publicationState"] == "blocked"
+    assert data["semanticClass"] == "assessment_definition"
+
+    application = cast(dict[str, object], data["application"])
+    assert application["cadence"] == "daily"
+    assert application["observationWindow"] == "worst_value_or_state_during_the_day"
+    assert application["categoricalCutoffs"] is None
+
+    score_range = cast(dict[str, object], data["scoreRange"])
+    assert (_int(score_range["min"]), _int(score_range["max"])) == (0, 15)
+
+    systems = cast(list[dict[str, object]], data["systems"])
+    assert [system["id"] for system in systems] == [
+        "respiratory",
+        "cardiovascular",
+        "hematologic",
+    ]
+
+    respiratory = systems[0]
+    respiratory_rules = cast(list[dict[str, object]], respiratory["rules"])
+    assert [_int(rule["score"]) for rule in respiratory_rules] == [8, 6, 4, 2, 0]
+    assert respiratory["selectionPolicy"] == "choose_highest_score_whose_condition_is_met"
+
+    hematologic = systems[2]
+    hematologic_rules = cast(list[dict[str, object]], hematologic["rules"])
+    assert [_int(rule["score"]) for rule in hematologic_rules] == [3, 2, 1, 0]
+    assert hematologic["selectionPolicy"] == "choose_highest_score_whose_condition_is_met"
