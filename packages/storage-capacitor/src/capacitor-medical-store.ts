@@ -396,7 +396,7 @@ export class CapacitorMedicalStore implements MedicalStore {
   public async listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {
     this.assertInitialized();
     this.searchDocuments ??= this.query(`
-      SELECT id, source_type, json_object(
+      SELECT id, title, short_title, source_type, json_object(
         'terminology', json_extract(metadata_json, '$.terminology'),
         'declaredAliases', json_extract(metadata_json, '$.declaredAliases'),
         'navigationAliases', json_extract(metadata_json, '$.navigationAliases'),
@@ -417,6 +417,8 @@ export class CapacitorMedicalStore implements MedicalStore {
       .then((rows) =>
         rows.map((row) => ({
           id: readString(row, 'id'),
+          title: readString(row, 'title'),
+          shortTitle: readNullableString(row, 'short_title'),
           sourceType: readString(row, 'source_type'),
           metadata: parseJsonObject(readString(row, 'metadata_json')),
         })),
