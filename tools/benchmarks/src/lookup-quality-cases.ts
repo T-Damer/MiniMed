@@ -3,7 +3,11 @@ import { createHash } from 'node:crypto';
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { normalizeSurfaceText, tokenize } from '@localmed/search-lexical';
 
-export type LookupSurfaceKind = 'title' | 'navigation-alias' | 'declared-alias';
+export type LookupSurfaceKind =
+  | 'title'
+  | 'short-title'
+  | 'navigation-alias'
+  | 'declared-alias';
 
 export interface LookupQualityCase {
   readonly id: string;
@@ -20,7 +24,7 @@ interface SurfaceEntry {
   readonly query: string;
   readonly normalizedQuery: string;
   readonly kind: LookupSurfaceKind;
-  /** 3=title, 2=editorial navigation alias, 1=search-expansion alias. */
+  /** 3=title, 2=editorial short/navigation identity, 1=search-expansion alias. */
   readonly priority: 1 | 2 | 3;
 }
 
@@ -65,6 +69,9 @@ export function buildLookupQualityCases(
   for (const document of documents) {
     if (document.status !== 'active') continue;
     pushSurface(entries, document.id, document.title, 'title', 3);
+    if (document.shortTitle) {
+      pushSurface(entries, document.id, document.shortTitle, 'short-title', 2);
+    }
     for (const alias of strings(document.metadata?.['navigationAliases'])) {
       pushSurface(entries, document.id, alias, 'navigation-alias', 2);
     }
