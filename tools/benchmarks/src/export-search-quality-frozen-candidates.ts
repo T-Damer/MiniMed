@@ -78,14 +78,6 @@ for (const path of inputPaths) {
 function sha256(path: string): string {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
-interface LegacyPilotFixture {
-  readonly id: string;
-  readonly query: string;
-  readonly expectedDocumentIds: readonly string[];
-  readonly expectedSectionTypes: readonly string[];
-  readonly category: string;
-}
-
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
