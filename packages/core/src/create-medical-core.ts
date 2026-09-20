@@ -1143,10 +1143,18 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           ...(terminologyMatch?.documents.map((entry) => entry.documentId) ?? []),
           ...(terminologyMatch?.related.map((entry) => entry.documentId) ?? []),
         ]);
-        const exactIdentityDocumentIds =
+        const exactTitleDocumentIds =
           parsed.data.analysisMode === 'lookup'
-            ? documentIndex.exactIdentityIds(parsed.data.query)
+            ? documentIndex.exactTitleIds(parsed.data.query)
             : new Set<string>();
+        const exactNavigationAliasDocumentIds =
+          parsed.data.analysisMode === 'lookup'
+            ? documentIndex.exactNavigationAliasIds(parsed.data.query)
+            : new Set<string>();
+        const exactIdentityDocumentIds = new Set([
+          ...exactTitleDocumentIds,
+          ...exactNavigationAliasDocumentIds,
+        ]);
         // Keep exact names and every declared meaning through the chunk cutoff for document ranking.
         const lexicalResults = fuseBranchHits(
           branchHits,
@@ -1264,7 +1272,16 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           modeUsed,
           analysis: plan.analysis,
           suggestions: plan.analysis.suggestions,
-          groups: termIndex.rank(groupedResults, terminologyMatch).slice(0, parsed.data.limit),
+          groups: termIndex
+            .rank(groupedResults, terminologyMatch)
+            .toSorted(
+              (left, right) =>
+                Number(exactTitleDocumentIds.has(right.documentId)) -
+                  Number(exactTitleDocumentIds.has(left.documentId)) ||
+                Number(exactNavigationAliasDocumentIds.has(right.documentId)) -
+                  Number(exactNavigationAliasDocumentIds.has(left.documentId)),
+            )
+            .slice(0, parsed.data.limit),
           diagnostics: {
             ftsQuery: branchDiagnostics.map((branch) => branch.ftsQuery).join(' || '),
             candidateCount: candidateIds.size,
