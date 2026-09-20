@@ -84,6 +84,7 @@ jobs:
           packages/core/tests/core.test.ts
           apps/app/src/features/search/ScopedMedicalCore.test.ts
           tools/benchmarks/src/linear-reranker-baseline.test.ts
+          tools/benchmarks/src/frozen-embedding-baseline.test.ts
           tools/benchmarks/src/search-quality-dataset.test.ts
           tools/benchmarks/src/lookup-quality-cases.test.ts
           tools/benchmarks/src/search-coverage-observations.test.ts
