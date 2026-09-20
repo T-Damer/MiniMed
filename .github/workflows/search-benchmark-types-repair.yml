@@ -85,7 +85,8 @@ jobs:
             console.log(`${relative(root, path)}: ${edits.size} compiler-diagnosed accesses repaired`);
           }
           JS
-      - name: Format, typecheck and run all benchmark unit tests
+      - name: Format and typecheck benchmark contracts
+        id: types
         run: |
           bunx biome check --write --linter-enabled=false \
             tools/benchmarks/src/run-definition-quality.ts \
@@ -96,9 +97,11 @@ jobs:
             tools/benchmarks/src/search-quality-dataset.ts \
             tools/benchmarks/src/summarize-reranker-ablation.ts
           bunx tsc --noEmit -p tools/benchmarks/tsconfig.json
-          bunx vitest run tools/benchmarks/src
           git diff --stat
-      - name: Publish source files only with fast-forward protection
+      - name: Run all benchmark unit tests without hiding failures
+        run: bunx vitest run tools/benchmarks/src
+      - name: Publish source-only type repair even when an unrelated fixture is invalid
+        if: ${{ !cancelled() && steps.types.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
           EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
@@ -113,4 +116,4 @@ jobs:
           remote_sha=$(git -c "http.https://github.com/.extraheader=$header" ls-remote origin "refs/heads/$branch" | cut -f1)
           test "$remote_sha" = "$EXPECTED_SHA"
           git -c "http.https://github.com/.extraheader=$header" push origin "HEAD:refs/heads/$branch"
-          echo "Validated revision: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Typechecked revision: $(git rev-parse HEAD). Unit-test failures, if any, remain failures above." >> "$GITHUB_STEP_SUMMARY"
