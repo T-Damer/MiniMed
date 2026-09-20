@@ -5,8 +5,8 @@ import { basename, dirname, resolve } from 'node:path';
 import { createMedicalCore } from '@localmed/core';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
+import { SqliteMedicalStore } from '@localmed/storage-sqlite';
 
-import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 import {
   aggregateSearchQuality,
   evaluateSearchQuality,
@@ -102,16 +102,18 @@ const minimumSectionHitAt5 = threshold('MINIMED_SEARCH_QUALITY_MIN_SECTION_HIT_A
 const maximumForbiddenRateAt5 = threshold('MINIMED_SEARCH_QUALITY_MAX_FORBIDDEN_RATE_AT_5');
 
 const fixtures = loadSearchQualityFixtures(fixturePath);
-const store = new MultiMedicalStore(
-  await Promise.all(
-    [corePath, ...packs].map(async (path, index) => ({
-      moduleId: `${index}:${basename(path)}`,
-      store: await createBunFileMedicalStore(path),
-      required: true,
-      searchWeight: index === 0 ? 1.1 : 1,
-    })),
-  ),
+const stores = await Promise.all(
+  [corePath, ...packs].map(async (path, index) => ({
+    moduleId: `${index}:${basename(path)}`,
+    store: await SqliteMedicalStore.createFromBytes(new Uint8Array(readFileSync(path))),
+    required: true,
+    searchWeight: index === 0 ? 1.1 : 1,
+  })),
 );
+const store =
+  stores.length === 1 && stores[0]
+    ? stores[0].store
+    : new MultiMedicalStore(stores);
 const core = createMedicalCore({
   store,
   platform: 'test',
