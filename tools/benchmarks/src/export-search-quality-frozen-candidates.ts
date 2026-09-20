@@ -419,13 +419,18 @@ const missingRelevantPairs = fixtureReports.reduce(
 );
 const report = {
   schemaVersion: 1,
-  dataset: 'minimed-search-quality-v2-frozen-candidates',
+  dataset: trainingExport
+    ? 'minimed-search-quality-linear-training-candidates'
+    : 'minimed-search-quality-v2-frozen-candidates',
   generatedAt: new Date().toISOString(),
   retrievalProfile: mode,
   candidateLimit: limit,
   fixture: {
-    path: fixturePath,
-    sha256: sha256(fixturePath),
+    kind: trainingExport ? 'legacy-pilot-masked-training' : 'graded-challenge',
+    path: trainingExport ? (legacyPilotPath as string) : fixturePath,
+    sha256: sha256(trainingExport ? (legacyPilotPath as string) : fixturePath),
+    leakageFixturePath: trainingExport ? leakageFixturePath : null,
+    leakageFixtureSha256: trainingExport ? sha256(leakageFixturePath) : null,
     count: fixtures.length,
   },
   corpus: {
