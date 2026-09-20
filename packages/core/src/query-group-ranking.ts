@@ -479,6 +479,21 @@ export function rankSearchGroupsByQuery(
           tokenize([group.title, ...group.results.map((result) => result.snippet)].join(' ')),
         )
       : [];
+  const clinicalEvidenceCoverages =
+    evidenceTerms.length >= 3
+      ? groups.map((group) =>
+          Math.max(
+            0,
+            ...group.results.map((result) => {
+              const words = tokenize(result.snippet);
+              return (
+                evidenceTerms.filter((term) => words.some((word) => tokensMatch(term, word))).length /
+                evidenceTerms.length
+              );
+            }),
+          ),
+        )
+      : [];
   const documentsById = new Map(documents.map((document) => [document.id, document]));
   return groups
     .map((group, index) => ({
@@ -501,21 +516,10 @@ export function rankSearchGroupsByQuery(
         ((subjectSearch &&
           findNormalizedPhraseIndex(normalizeSurfaceText(group.title), phrase) >= 0) ||
           group.results.some((result) => normalizeSurfaceText(result.snippet).includes(phrase))),
+      clinicalEvidenceCoverage: clinicalEvidenceCoverages[index] ?? 0,
       score:
         group.bestScore +
-        (evidenceTerms.length >= 3
-          ? 8 *
-            Math.max(
-              0,
-              ...group.results.map((result) => {
-                const words = tokenize(result.snippet);
-                return (
-                  evidenceTerms.filter((term) => words.some((word) => tokensMatch(term, word)))
-                    .length / evidenceTerms.length
-                );
-              }),
-            )
-          : 0) +
+        8 * (clinicalEvidenceCoverages[index] ?? 0) +
         queryGroupRelevanceBoost(positiveQuery, groupRankingText(group)) +
         // Drug-name title boosts must not outweigh legal references and subject sections.
         (documentsById.get(group.documentId)?.sourceType === 'regulatory_act_summary' ||
@@ -533,6 +537,7 @@ export function rankSearchGroupsByQuery(
         Number(right.exactAlias) - Number(left.exactAlias) ||
         Number(right.sourcePhrase) - Number(left.sourcePhrase) ||
         right.positiveFindingCoverage - left.positiveFindingCoverage ||
+        right.clinicalEvidenceCoverage - left.clinicalEvidenceCoverage ||
         right.score - left.score ||
         left.index - right.index,
     )
