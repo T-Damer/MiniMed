@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.assessment.nsofa.ru.kr912_1.2025",
+  "title": "nSOFA — neonatal sequential organ failure assessment",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "assessment-source-review-required",
+  "verificationStatus": "current-kr-and-validation-publication-identity-reviewed",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "assessment_definition",
+  "source": {
+    "recommendationTitle": "Сепсис новорожденных",
+    "recommendationId": "912_1",
+    "recommendationYear": 2025,
+    "appendix": "Г1",
+    "validationPublication": "Wynn JL, Polin RA. Pediatr Res. 2020;88(1).",
+    "validationContext": "late-onset sepsis in preterm very-low-birth-weight infants",
+    "urls": [
+      "https://sudact.ru/law/klinicheskie-rekomendatsii-sepsis-novorozhdennykh-odobreny-minzdravom-rossii/",
+      "https://www.consultant.ru/document/cons_doc_LAW_505687/d6a8649c8b5a92083a0dcc0755131f392d3ece01/"
+    ]
+  },
+  "application": {
+    "recommendationContext": "newborns_in_intensive_care",
+    "cadence": "daily",
+    "observationWindow": "worst_value_or_state_during_the_day",
+    "totalMethod": "sum_system_scores",
+    "interpretation": "higher_total_indicates_greater_risk_of_adverse_course_and_death",
+    "categoricalCutoffs": null
+  },
+  "systems": [
+    {
+      "id": "respiratory",
+      "inputContract": {
+        "intubated": "boolean",
+        "spo2ToFio2Ratio": "number_or_null"
+      },
+      "selectionPolicy": "choose_highest_score_whose_condition_is_met",
+      "rules": [
+        {
+          "score": 8,
+          "condition": {
+            "intubated": true,
+            "spo2ToFio2Ratio": {
+              "operator": "<",
+              "value": 100
+            }
+          }
+        },
+        {
+          "score": 6,
+          "condition": {
+            "intubated": true,
+            "spo2ToFio2Ratio": {
+              "operator": "<",
+              "value": 150
+            }
+          }
+        },
+        {
+          "score": 4,
+          "condition": {
+            "intubated": true,
+            "spo2ToFio2Ratio": {
+              "operator": "<",
+              "value": 200
+            }
+          }
+        },
+        {
+          "score": 2,
+          "condition": {
+            "intubated": true,
+            "spo2ToFio2Ratio": {
+              "operator": "<",
+              "value": 300
+            }
+          }
+        },
+        {
+          "score": 0,
+          "condition": {
+            "anyOf": [
+              {
+                "intubated": false
+              },
+              {
+                "intubated": true,
+                "spo2ToFio2Ratio": {
+                  "operator": ">=",
+                  "value": 300
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cardiovascular",
+      "inputContract": {
+        "adrenergicOrDopaminergicAgentCount": "integer",
+        "systemicCorticosteroids": "boolean"
+      },
+      "rules": [
+        {
+          "score": 0,
+          "condition": {
+            "agentCount": 0,
+            "systemicCorticosteroids": false
+          }
+        },
+        {
+          "score": 1,
+          "condition": {
+            "agentCount": 0,
+            "systemicCorticosteroids": true
+          }
+        },
+        {
+          "score": 2,
+          "condition": {
+            "agentCount": 1,
+            "systemicCorticosteroids": false
+          }
+        },
+        {
+          "score": 3,
+          "condition": {
+            "anyOf": [
+              {
+                "agentCount": {
+                  "operator": ">=",
+                  "value": 2
+                },
+                "systemicCorticosteroids": false
+              },
+              {
+                "agentCount": 1,
+                "systemicCorticosteroids": true
+              }
+            ]
+          }
+        },
+        {
+          "score": 4,
+          "condition": {
+            "agentCount": {
+              "operator": ">=",
+              "value": 2
+            },
+            "systemicCorticosteroids": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "hematologic",
+      "inputContract": {
+        "platelets": "10^9/L"
+      },
+      "selectionPolicy": "choose_highest_score_whose_condition_is_met",
+      "rules": [
+        {
+          "score": 3,
+          "condition": {
+            "platelets": {
+              "operator": "<",
+              "value": 50
+            }
+          }
+        },
+        {
+          "score": 2,
+          "condition": {
+            "platelets": {
+              "operator": "<",
+              "value": 100
+            }
+          }
+        },
+        {
+          "score": 1,
+          "condition": {
+            "platelets": {
+              "operator": "range_inclusive",
+              "min": 100,
+              "max": 149
+            }
+          }
+        },
+        {
+          "score": 0,
+          "condition": {
+            "platelets": {
+              "operator": ">=",
+              "value": 150
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "scoreRange": {
+    "min": 0,
+    "max": 15
+  },
+  "reviewNotes": [
+    "No low/moderate/high risk categories are invented; the current recommendation only states that increasing score is associated with worse course and mortality risk.",
+    "Respiratory and hematologic source comparators overlap at lower values; highest-score precedence makes the executable meaning explicit without changing the source thresholds.",
+    "The original validation context is narrower than all newborns with sepsis, so MiniMed must display population/provenance when this instrument is eventually promoted.",
+    "This research definition is not yet a published MiniMed tool."
+  ]
+}
