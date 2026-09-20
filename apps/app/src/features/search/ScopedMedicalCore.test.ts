@@ -419,7 +419,7 @@ describe('ScopedMedicalCore', () => {
     const result = await new ScopedMedicalCore(base.core, 'diagnosis').search({
       ...request(),
       query: exactTitle,
-      analysisMode: 'lookup',
+      analysisMode: 'clinical',
     });
 
     expect(result.ok).toBe(true);
