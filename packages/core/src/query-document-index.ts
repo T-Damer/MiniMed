@@ -6,13 +6,14 @@ export class QueryDocumentIndex {
   readonly byId: ReadonlyMap<string, SearchDocumentDescriptor>;
   readonly availableIds: ReadonlySet<string>;
   private readonly aliases = new Map<string, Set<string>>();
-  private readonly strictIdentities = new Map<string, Set<string>>();
+  private readonly titles = new Map<string, Set<string>>();
+  private readonly navigationAliases = new Map<string, Set<string>>();
 
   constructor(documents: readonly SearchDocumentDescriptor[]) {
     this.byId = new Map(documents.map((document) => [document.id, document]));
     this.availableIds = new Set(this.byId.keys());
     for (const document of documents) {
-      this.addIdentity(document.title, document.id, this.strictIdentities);
+      this.addIdentity(document.title, document.id, this.titles);
       for (const key of ['declaredAliases', 'navigationAliases'] as const) {
         const names = document.metadata[key];
         if (!Array.isArray(names)) continue;
@@ -20,7 +21,7 @@ export class QueryDocumentIndex {
           if (typeof name !== 'string') continue;
           this.addIdentity(name, document.id, this.aliases);
           if (key === 'navigationAliases') {
-            this.addIdentity(name, document.id, this.strictIdentities);
+            this.addIdentity(name, document.id, this.navigationAliases);
           }
         }
       }
@@ -31,8 +32,16 @@ export class QueryDocumentIndex {
     return this.aliases.get(searchSubjectText(query)) ?? new Set();
   }
 
+  exactTitleIds(query: string): ReadonlySet<string> {
+    return this.titles.get(searchSubjectText(query)) ?? new Set();
+  }
+
+  exactNavigationAliasIds(query: string): ReadonlySet<string> {
+    return this.navigationAliases.get(searchSubjectText(query)) ?? new Set();
+  }
+
   exactIdentityIds(query: string): ReadonlySet<string> {
-    return this.strictIdentities.get(searchSubjectText(query)) ?? new Set();
+    return new Set([...this.exactTitleIds(query), ...this.exactNavigationAliasIds(query)]);
   }
 
   private addIdentity(value: string, documentId: string, index: Map<string, Set<string>>): void {
