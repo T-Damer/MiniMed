@@ -388,6 +388,45 @@ describe('ScopedMedicalCore', () => {
     ]);
   });
 
+  it('keeps an exact-title lookup above diagnosis source-type reranking', async () => {
+    const exactTitle = 'D32.0 Оболочек головного мозга, МКБ-10';
+    const exactReference = {
+      ...document('exact-reference', 'medical_reference'),
+      title: exactTitle,
+      shortTitle: 'D32.0',
+    };
+    const clinicalDistractor = document('clinical-distractor', 'clinical_recommendation');
+    const base = coreWithDocuments([exactReference, clinicalDistractor]);
+    base.search.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        ...response(),
+        groups: [
+          searchGroup(
+            exactReference.id,
+            [searchResult(exactReference.id, 'Точное справочное совпадение')],
+            exactTitle,
+          ),
+          searchGroup(
+            clinicalDistractor.id,
+            [searchResult(clinicalDistractor.id, 'Клинический документ')],
+            clinicalDistractor.title,
+          ),
+        ],
+      },
+    });
+
+    const result = await new ScopedMedicalCore(base.core, 'diagnosis').search({
+      ...request(),
+      query: exactTitle,
+      analysisMode: 'lookup',
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.groups[0]?.documentId).toBe(exactReference.id);
+  });
+
   it('limits medication searches to installed medication documents', async () => {
     const base = coreWithDocuments(documents);
     const scoped = new ScopedMedicalCore(base.core, 'medications');
