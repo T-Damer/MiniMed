@@ -186,7 +186,13 @@
 - питание и парентеральное питание;
 - неонатальные желтухи и фототерапия;
 - неонатальный сепсис;
-- ретинопатия недоношенных;
+- ретинопатия недоношенных — 🧪 source-extracted из текущей КР 107_2/2025
+  (применяется с 19.01.2026): группа риска, Table 2 сроков первого осмотра, follow-up,
+  type 1/type 2, threshold ROP и treatment triggers вынесены в
+  `docs/research/data/rop-screening-classification-kr107_2-2025.json`.
+  Приказ №614н хранится отдельным regulatory overlay (в т.ч. лечение type 1 <=72 ч);
+  runtime scheduler/treatment остаётся blocked до ophthalmology review.
+  Сводка: `docs/research/rop-source-extraction-2026-09.md`.
 - перинатальные поражения ЦНС;
 - неонатальные лабораторные референсы — ⚠️ нормальные method-specific интервалы всё ещё
   требуют отдельного validated source, но disease-specific **decision thresholds** уже извлечены
