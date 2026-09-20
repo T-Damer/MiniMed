@@ -5,5 +5,6 @@ export * from './document-siblings';
 export * from './in-memory';
 export * from './l-note-adapter';
 export * from './mappers';
+export * from './query-document-index';
 export * from './query-group-ranking';
 export * from './search-context';
