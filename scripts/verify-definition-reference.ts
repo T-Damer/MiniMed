@@ -1,5 +1,6 @@
 import { Database } from 'bun:sqlite';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { writeFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import { createSqliteDefinitionReference } from '../packages/storage-sqlite/src/definition-reference-reader';
@@ -10,7 +11,7 @@ if (!path || !output || !expectedCount || !['corpus', 'fixture'].includes(mode))
 }
 const beforeOpen = process.memoryUsage().rss;
 const database = new Database(path, { readonly: true });
-// A caller-owned file handle; these are benchmark settings, not claims about Android pragmas.
+// Caller-owned file handle; these benchmark settings are not Android qualification.
 database.exec('PRAGMA query_only=ON; PRAGMA cache_size=-2048; PRAGMA mmap_size=0;');
 let calls = 0;
 let maxRows = 0;
@@ -34,12 +35,12 @@ try {
   assert.equal(database.query<{ count: number }, []>('SELECT count(*) AS count FROM knowledge_relations').get()?.count, 0);
   for (const limit of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) assert.deepEqual(await reader.search('test', limit), []);
   assert.deepEqual(await reader.search('x'.repeat(2049)), []);
-  assert.deepEqual(await reader.search('\0')), []);
+  assert.deepEqual(await reader.search('\0'), []);
   const durations: number[] = [];
   const missing: string[] = [];
   let after = '';
   let names = 0;
-  // Audit helper reads only 256 source-name strings at a time. The adapter itself never lists the corpus.
+  // Audit helper reads 256 names at a time. The reference reader never enumerates the corpus.
   for (;;) {
     const batch = database.query<{ name: string }, [string]>(
       'SELECT DISTINCT normalized_name AS name FROM knowledge_names WHERE normalized_name > ? ORDER BY normalized_name LIMIT 256',
@@ -51,9 +52,8 @@ try {
       durations.push(performance.now() - t);
       names++;
       assert(hits.length <= 20);
-      if (!hits.length) {
-        missing.push(new Bun.CryptoHasher('sha256').update(name).digest('hex'));
-      } else {
+      if (!hits.length) missing.push(createHash('sha256').update(name).digest('hex'));
+      else {
         assert(!('definition' in (hits[0] ?? {})) && !('references' in (hits[0] ?? {})));
         assert.equal(hits[0]?.reviewStatus, 'requires-review');
         assert.equal(hits[0]?.identityStatus, 'source-local-proposed');
