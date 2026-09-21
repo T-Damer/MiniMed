@@ -1,0 +1,160 @@
+name: Reference metadata fidelity
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/reference-metadata-check.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-reference-metadata
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'T-Damer/MiniMed'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: '0.10.0'
+          enable-cache: false
+      - name: Wire explicit optional metadata layout into existing builder and reader
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          from pathlib import Path
+          def edit(path, pairs):
+              p=Path(path); s=p.read_text()
+              for old,new in pairs:
+                  if s.count(old)!=1: raise ValueError('Patch anchor changed: '+path+' '+old[:60])
+                  s=s.replace(old,new)
+              p.write_text(s)
+          edit('tools/ingest/src/localmed_ingest/definition_reference_layout.py', [
+            ('database: sqlite3.Connection, *, compact: bool) -> dict[str, object]:',
+             'database: sqlite3.Connection, *, compact: bool, restored_metadata: bool = False\n) -> dict[str, object]:'),
+            ('    for table in LOGICAL_TABLES:\n', '    for table in LOGICAL_TABLES:\n        selected_table = "definition_reference_chunks" if restored_metadata and table == "chunks" else table\n'),
+            ('f\'SELECT * FROM "{table}" ORDER BY id\'', 'f\'SELECT * FROM "{selected_table}" ORDER BY id\''),
+          ])
+          edit('tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py', [
+            ('from .definition_reference_layout import compact_reference_links, reference_content_digest',
+             'from .definition_reference_layout import compact_reference_links, reference_content_digest\nfrom .definition_reference_metadata import compact_reference_metadata'),
+            ('    profile: bool = False,\n', '    profile: bool = False,\n    compact_metadata: bool = False,\n'),
+            ('            database.execute("UPDATE app_metadata SET value=\'7\' WHERE key=\'schema_version\'")', '''            metadata = compact_reference_metadata(database) if compact_metadata else None
+                      schema_version = 8 if compact_metadata else 7
+                      if compact_metadata:
+                          manifest["metadataLayout"] = "fragments-v1"
+                          database.execute(
+                              "UPDATE app_metadata SET value=? WHERE key='definition_reference'",
+                              (encoded(manifest),),
+                          )
+                          database.execute(
+                              "INSERT INTO schema_migrations(version, applied_at) VALUES (8, ?)",
+                              (built_at,),
+                          )
+                      database.execute(
+                          "UPDATE app_metadata SET value=? WHERE key='schema_version'",
+                          (str(schema_version),),
+                      )'''.replace('\n          ', '\n')),
+            ('"UPDATE content_packs SET schema_version=7, checksum=? WHERE id=?",\n                ("sha256:" + digest(encoded(manifest)), edition_id),',
+             '"UPDATE content_packs SET schema_version=?, checksum=? WHERE id=?",\n                (schema_version, "sha256:" + digest(encoded(manifest)), edition_id),'),
+            ('after = reference_content_digest(database, compact=True)',
+             'after = reference_content_digest(database, compact=True, restored_metadata=compact_metadata)'),
+            ('"schemaVersion": 7,', '"schemaVersion": schema_version,\n        "metadataCompaction": metadata,'),
+            ('    parser.add_argument("--profile", action="store_true")',
+             '    parser.add_argument("--profile", action="store_true")\n    parser.add_argument("--compact-metadata", action="store_true")'),
+            ('        profile=args.profile,', '        profile=args.profile,\n        compact_metadata=args.compact_metadata,'),
+          ])
+          edit('tools/ingest/src/localmed_ingest/definition_reference_metadata.py', [
+            ('rows = cast(Iterator[tuple[str, str]],', 'rows = cast(Iterator[tuple[str, object]],'),
+          ])
+          edit('packages/storage-sqlite/src/definition-reference-reader.ts', [
+            ('  const scope = [editionId, editionId];', '''  const metadataLayout = manifest['metadataLayout'];
+            if (metadataLayout !== undefined && metadataLayout !== 'fragments-v1') {
+              throw new Error('Unsupported definition reference metadata layout.');
+            }
+            if (metadataLayout === 'fragments-v1' && layout !== 'numeric-v1') {
+              throw new Error('Fragment metadata layout requires numeric reference keys.');
+            }
+            const blockTable = metadataLayout === 'fragments-v1' ? 'definition_reference_chunks' : 'chunks';
+            const scope = [editionId, editionId];'''),
+            ('FROM chunks c JOIN ${links} l ON l.chunk_id = c.id', 'FROM ${blockTable} c JOIN ${links} l ON l.chunk_id = c.id'),
+            ("      const body = string(row['body'], BLOCK_CHARACTERS * 2);", "      const body = string(row['body'], BLOCK_CHARACTERS * 2);\n      const provenance = jsonObject(row['metadata']);\n      if (provenance['$p'] === 1 && Object.keys(provenance).length === 1) {\n        throw new Error('Unresolved reference metadata storage marker.');\n      }"),
+            ("        provenance: jsonObject(row['metadata']),", '        provenance,'),
+          ])
+          p=Path('packages/storage-sqlite/tests/definition-reference-metadata.test.ts');s=p.read_text()
+          s=s.replace("linkLayout === undefined ? {}", "linkLayout === 'legacy' ? {}")
+          s=s.replace("[undefined, 'numeric-v1']", "['legacy', 'numeric-v1']")
+          s=s.replace("executor('fragments-v1', null)", "executor('fragments-v1', 'legacy')")
+          p.write_text(s)
+          p=Path('tools/ingest/tests/test_definition_reference_metadata.py');s=p.read_text()
+          s=s.replace("'SELECT count(*) FROM definition_reference_chunks WHERE metadata_json IS NULL'", "'SELECT count(*) FROM definition_reference_chunks '\n            'WHERE metadata_json IS NULL'")
+          s=s.replace('"CREATE VIEW definition_reference_chunks AS SELECT id, \'wrong\' AS metadata_json FROM chunks"', '"CREATE VIEW definition_reference_chunks AS "\n            "SELECT id, \'wrong\' AS metadata_json FROM chunks"')
+          p.write_text(s)
+          PY
+      - name: Locked tools, schema and scoped checks
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          files='tools/ingest/src/localmed_ingest/definition_reference_metadata.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py tools/ingest/src/localmed_ingest/definition_reference_layout.py tools/ingest/tests/test_definition_reference_metadata.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write packages/storage-sqlite/src/definition-reference-reader.ts packages/storage-sqlite/tests/definition-reference-metadata.test.ts scripts/verify-definition-metadata.ts
+          env -i PATH="$PATH" HOME="$HOME" bun run schema:generate
+          env -i PATH="$PATH" HOME="$HOME" bun run schema:check
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p packages/storage-sqlite/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_definition_reference_pack.py tools/ingest/tests/test_definition_reference_compact.py tools/ingest/tests/test_definition_reference_metadata.py
+          env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/storage-sqlite/tests/definition-reference-layout.test.ts packages/storage-sqlite/tests/definition-reference-metadata.test.ts
+      - name: Build same-run numeric baseline and optional metadata edition
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import hashlib,json,sqlite3
+          from pathlib import Path
+          from contextlib import closing
+          from localmed_ingest.definition_reference_compact_pack import build_compact_definition_reference
+          from localmed_ingest.definition_reference_layout import reference_content_digest
+          root=Path('.').resolve(); content=root/'content/definition-drafts'
+          manifest=json.loads((content/'clinical-source-excerpts-2026.09.21.json').read_text())
+          parts=[]
+          for part in manifest['parts']:
+              p=content/part['path'];raw=p.read_bytes()
+              assert p.resolve().parent==content.resolve()
+              assert len(raw)==part['bytes'] and hashlib.sha256(raw).hexdigest()==part['sha256']
+              parts.append(p.relative_to(root))
+          inputs=tuple([Path('content/definition-drafts')/name for name in ['catalog.json','ruwiktionary-2026.9.16.json','prepared-source-excerpts-2026.09.21.json']]+parts)
+          reports={}
+          for label,flag in [('numeric',False),('metadata',True)]:
+              reports[label]=build_compact_definition_reference(inputs,Path('data/build/reference-'+label+'.db'),input_root=root,edition_id='minimed.definition.reference.2026-09-21',version='r1',built_at='2026-09-21',profile=True,compact_metadata=flag)
+              assert reports[label]['entries']==18133
+          before=reports['numeric'];after=reports['metadata']
+          with closing(sqlite3.connect('data/build/reference-numeric.db')) as a, closing(sqlite3.connect('data/build/reference-metadata.db')) as b:
+              assert reference_content_digest(a,compact=True)==reference_content_digest(b,compact=True,restored_metadata=True)
+          assert after['sqliteBytes'] < before['sqliteBytes'], 'Do not adopt a storage regression'
+          after['sameRunNumericBaseline']={k:before[k] for k in ['sqliteBytes','gzipBytes','sqliteSha256']}
+          Path('docs/research/definition-reference-metadata-build-2026-09-21.json').write_text(json.dumps(after,ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps({k:after[k] for k in ['entries','sqliteBytes','gzipBytes','metadataCompaction','sameRunNumericBaseline']},indent=2))
+          PY
+      - name: Real Bun SQLite reader and bounded source fidelity comparisons
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun scripts/verify-definition-reference.ts data/build/reference-metadata.db docs/research/definition-reference-metadata-runtime-2026-09-21.json 18133 corpus
+          env -i PATH="$PATH" HOME="$HOME" bun scripts/verify-definition-metadata.ts data/build/reference-numeric.db data/build/reference-metadata.db docs/research/definition-reference-metadata-reads-2026-09-21.json
+      - name: Persist only verified scoped code and numeric reports
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/ingest/src/localmed_ingest/definition_reference_metadata.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py tools/ingest/src/localmed_ingest/definition_reference_layout.py tools/ingest/tests/test_definition_reference_metadata.py packages/storage-sqlite/src/definition-reference-reader.ts packages/storage-sqlite/src/generated/schema.ts packages/storage-sqlite/tests/definition-reference-metadata.test.ts scripts/verify-definition-metadata.ts docs/research/definition-reference-metadata-build-2026-09-21.json docs/research/definition-reference-metadata-runtime-2026-09-21.json docs/research/definition-reference-metadata-reads-2026-09-21.json
+          git commit -m 'feat(reference): verify optional exact metadata compaction on all source records [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: Storage-free summary
+        if: always()
+        run: echo 'No database binaries, private PDF inputs, model downloads, release assets or Actions artifacts uploaded.' >> "$GITHUB_STEP_SUMMARY"
