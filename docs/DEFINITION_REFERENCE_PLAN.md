@@ -34,15 +34,18 @@ Evidence: `research/definition-reference-sqlite-build-2026-09-21.json`, `researc
 
 ### R1b — Installed-size qualification (numeric-link pass verified; remaining gates open)
 
-The first correct SQLite projection is **159,125,504 bytes (151.75 MiB)**. This is not yet the small installable reference requested by the user, and an external-content FTS index does not make all existing schema/index overhead disappear. Keep this measured baseline rather than advertising the earlier gzip JSON figure as installed size.
+The original R1 projection was **159,125,504 bytes (151.75 MiB)**. The measured numeric-link pass is now **110,387,200 bytes**, preserving all 18,133 records and 40,625 logical links. Its same-run baseline with empty migration-007 structures was 159,154,176 bytes: **48,766,976 bytes saved, approximately 30.6%**. This is not yet a qualified small general phone download. Gzip comparison is 27,393,160 bytes; it is not installed size or RAM.
 
 - [x] Profile actual table, index, repeated identifier/provenance and annotation allocation using read-only storage diagnostics; do not guess which structure dominates.
-- [ ] Reduce unnecessary duplication within the existing pack/storage architecture. Evaluate compact internal reference mappings while retaining stable external source identities, edition binding and every locator. No new parallel canonical graph or storage owner.
-- [ ] Preserve module-local mappings needed by optional etymology/history annotations and qualify them with synthetic cross-reference fixtures before owner-module integration.
-- [ ] Recheck FTS integrity after final physical database compaction, and run complete source-text/identity round-trip comparison on the resulting edition.
-- [ ] Rebuild and report installed bytes, transport bytes, per-table costs and reader measurements. Do not remove substantive definitions, context, provenance or alternative meanings solely to lower a size metric.
+- [x] Implement and measure compact internal navigation references while retaining stable external source identities, edition binding and every locator. No new parallel canonical graph or storage owner.
+- [x] Recheck FTS integrity after final physical database compaction, and run complete source-text/identity/logical-link round-trip comparison on the resulting edition.
+- [x] Rebuild and report installed bytes, transport comparison, per-table costs and bounded reader measurements. No substantive definitions, context, provenance or alternative meanings were removed.
+- [ ] Reduce further measured chunk/provenance overhead without changing source fidelity or requiring custom unsupported SQLite extensions. Record actual additional savings and reader costs rather than setting an unmeasured target.
+- [ ] Preserve module-local mappings needed by optional etymology/history annotations and qualify them with synthetic cross-reference fixtures before owner-module integration. Raw annotation preservation alone does not resolve their local references.
 
-R2 development may use the R1 baseline, but it must not be presented as a compact general phone download until this gate and actual app/device measurements pass.
+Evidence and reproducible commands: [R1b verification](research/definition-reference-r1b-verification-2026-09-21.md), implementation `df1c402377bfe1db276aeb588dd87925c5ba85fa`, successful run https://github.com/T-Damer/MiniMed/actions/runs/35641414351. All original source rows and logical links were compared before/after; migration 007 changes physical reference storage only. New readers explicitly dispatch by layout; general clinical consumers are not silently redirected. The two temporary R1b workflows were removed after successful delivery.
+
+R2 development may use this reference edition, but it must not be presented as a compact general phone download until the remaining size/annotation gates and actual app/device measurements pass. The current DEV UI has not yet switched from JSON.
 
 ### R2 — Existing installer, app composition and lifecycle (pending)
 
@@ -53,7 +56,7 @@ R2 development may use the R1 baseline, but it must not be presented as a compac
 - [ ] Test interrupted/corrupt updates, offline restart, disable/remove, search after each transition, cancellation and stale-response races. Prove that whole-corpus text does not cross into UI memory.
 - [ ] Exercise actual browser/app composition and Android. Measure native and WASM fallback separately where both are supported: cold/warm latency, baseline/incremental memory, install/open peak and actual installed/transport bytes.
 
-R2 exit: install the reference, restart offline, search and open a complete sourced card in the normal application. No APK publication or merge without authorization. The current DEV UI is still the older JSON preview; R1 alone did not fix its memory consumption.
+R2 exit: install the reference, restart offline, search and open a complete sourced card in the normal application. No APK publication or merge without authorization. The current DEV UI is still the older JSON preview; R1/R1b alone did not fix its memory consumption.
 
 ### R3 — Useful cards, extraction QA and conservative grouping (pending)
 
@@ -67,7 +70,6 @@ R3 exit: understandable cards for confirmed concepts, explicit ambiguous alterna
 ### R4 — Coverage and reverse-search work boundary (pending)
 
 - [x] Register **SemIf** as a user-approved research candidate, not an installed dependency. Follow [the pinned candidate/evaluation note](research/semif-candidate-2026-09-21.md); no download, inference, adoption or diagnostic confidence is implied. R1b/R2 remain ahead of the experiment.
-
 - [ ] Create approximately 200–300 varied development probes across terms, symptoms, syndromes, criteria and scales, with multi-target and corpus-absent/out-of-scope queries. This is a target, not completed independent clinician gold.
 - [ ] Separate name availability, exact identity, candidate recall, concept ranking, source-variant visibility, no-answer behavior and latency. Source-text quotations are not independent paraphrases.
 - [ ] Keep an independent clinician-authored holdout when available. Visible authored probes remain development tests, not clinical qualification.
@@ -89,8 +91,6 @@ No arbitrary final device budget is advertised before measurement. The invariant
 
 - 2026-09-21: executable subplan established from the mass-extraction baseline.
 - 2026-09-21: R1 implemented and verified on all 18,133 public records; 20 Python tests, 83 selected Vitest checks, strict Python/storage TypeScript checks and real file-backed reader assertions passed. The temporary verification workflow was removed after delivery; normal builder, migration, reader, verifier and reports remain.
-- 2026-09-21: added R1b because the measured 159 MB installed projection is not yet the requested small phone package. R1b and R2 are the next work; R3–R5 remain open. No new APK, released database or merge was performed.
-
-- 2026-09-21: SemIf registered as an R4 candidate; no model was downloaded or run. R1b read-only table/index/column profiling is recorded in `research/definition-reference-r1b-baseline-profile-2026-09-21.json`. This is the measured baseline before optimization; R1b size reduction and R2 app integration remain open.
-
-- 2026-09-21: R1b numeric navigation links and empty-FTS cleanup verified. SQLite 159154176 -> 110387200 bytes in the same builder environment; gzip comparison 27393160 bytes. Complete logical table/link/text/provenance equality and post-VACUUM FTS integrity passed. Normal R1 reader compatibility and compact file-backed reader were tested. Raw optional annotation mapping and further metadata/size work remain open; R2 has not been implemented.
+- 2026-09-21: added R1b because the measured 159 MB installed projection was not yet the requested small phone package. R1b and R2 remain the priority; R3–R5 are open. No APK, released database or merge was performed.
+- 2026-09-21: SemIf registered as an R4 candidate; no model was downloaded or run. Read-only baseline profiling saved in `research/definition-reference-r1b-baseline-profile-2026-09-21.json` before selecting the physical optimization.
+- 2026-09-21: R1b numeric navigation and empty-FTS cleanup verified in `df1c402377bfe1db276aeb588dd87925c5ba85fa`. Installed bytes 159154176 -> 110387200; gzip comparison 27393160 bytes. Complete logical source/link equality and post-VACUUM FTS checks passed. 34 Python and 91 selected Vitest cases, strict type/schema checks and 21 file-backed reader assertions per synthetic layout passed. Full-corpus name availability remained 13146/13146, not independent relevance or reverse-search quality. Details and compatibility/measurement boundaries are in the R1b verification note. Optional annotation mapping, further metadata/size work and R2 remain open.
