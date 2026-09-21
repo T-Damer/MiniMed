@@ -68,11 +68,13 @@ jobs:
         with:
           version: 0.10.0
           enable-cache: false
-      - name: Locked dependencies and scoped formatting
+      - name: Locked dependencies
         run: |
           env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
-          python3 - <<'PY'
+      - name: All scoped gates with complete error diagnostics
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
           import json,subprocess
           from pathlib import Path
           paths=json.loads(Path('data/build/reference-r2-changed.json').read_text())
@@ -81,18 +83,23 @@ jobs:
               paths += [str(p) for p in Path(folder).glob('*') if p.suffix in ['.ts','.tsx','.css']]
           paths=list(dict.fromkeys(p for p in paths if Path(p).suffix in ['.ts','.tsx','.css']))
           Path('data/build/reference-r2-code-paths.json').write_text(json.dumps(paths))
-          subprocess.run(['env','-i','PATH='+__import__('os').environ['PATH'],'HOME='+str(Path.home()),'bunx','biome','check','--write',*paths],check=True)
+          commands=[
+            ['bunx','biome','check','--write','--diagnostic-level=error','--max-diagnostics=100',*paths],
+            ['bun','run','schema:check'],
+            ['bunx','tsc','--noEmit','-p','packages/storage-sqlite/tsconfig.json'],
+            ['bunx','tsc','--noEmit','-p','packages/core/tsconfig.json'],
+            ['bunx','tsc','--noEmit','-p','apps/app/tsconfig.json'],
+            ['python3','-m','py_compile','scripts/prepare-definition-reference.py'],
+            ['bunx','vitest','run','packages/storage/tests/reference-mount.test.ts','packages/storage-sqlite/tests/definition-reference-layout.test.ts','packages/storage-sqlite/tests/definition-reference-metadata.test.ts','apps/app/src/features/setup/setup-state.test.ts','apps/app/src/composition/worker-opfs-medical-store.test.ts','apps/app/src/composition/create-browser-core.test.ts'],
+          ]
+          statuses=[]
+          for command in commands:
+              print('::group::'+ ' '.join(command[:6]),flush=True)
+              statuses.append(subprocess.run(command).returncode)
+              print('::endgroup::',flush=True)
+          print('Gate exit codes:',statuses,flush=True)
+          if any(statuses): raise SystemExit(1)
           PY
-      - name: Strict type and schema checks
-        run: |
-          env -i PATH="$PATH" HOME="$HOME" bun run schema:check
-          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p packages/storage-sqlite/tsconfig.json
-          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p packages/core/tsconfig.json
-          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p apps/app/tsconfig.json
-          env -i PATH="$PATH" HOME="$HOME" python3 -m py_compile scripts/prepare-definition-reference.py
-      - name: Scoped unit regression checks
-        run: |
-          env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/storage/tests/reference-mount.test.ts packages/storage-sqlite/tests/definition-reference-layout.test.ts packages/storage-sqlite/tests/definition-reference-metadata.test.ts apps/app/src/features/setup/setup-state.test.ts apps/app/src/composition/worker-opfs-medical-store.test.ts apps/app/src/composition/create-browser-core.test.ts
       - name: Persist verified code only
         env:
           PUSH_TOKEN: ${{ github.token }}
@@ -109,10 +116,8 @@ jobs:
           git commit -m 'feat(reference): wire bounded dictionary and package onboarding through existing owners [skip ci]'
           auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
-      - name: Integration diagnostics
+      - name: Storage-free summary
         if: always()
         run: |
           git diff --stat
-          grep -n 'connectInstalledModules\|refreshDueReminders\|search-ready\|disposed' apps/app/src/app/use-app-session.ts || true
-          grep -R -n 'definition-draft-lookup\|DefinitionDraft' apps/app/src --include='*.tsx' --include='*.ts' | head -35 || true
           echo 'No database binaries, source PDF, model, release or Actions artifacts uploaded.' >> "$GITHUB_STEP_SUMMARY"
