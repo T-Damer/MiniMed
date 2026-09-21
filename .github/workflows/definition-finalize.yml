@@ -22,7 +22,7 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
-      - name: Reuse exact reviewed verification steps from the preceding one-time workflow
+      - name: Reuse exact verification steps from the preceding one-time workflow
         run: |
           cat > "$RUNNER_TEMP/definition-step.py" <<'PY'
           import os, re, subprocess, sys, textwrap
@@ -32,11 +32,17 @@ jobs:
           marker='      - name: '+name+'\n'
           if source.count(marker)!=1: raise ValueError('Unknown/ambiguous verification step')
           block=source.split(marker,1)[1].split('\n      - name:',1)[0]
-          if '        run: |\n' not in block: raise ValueError('Expected reviewed shell step')
-          command=textwrap.dedent(block.split('        run: |\n',1)[1]).replace('${{ github.sha }}',os.environ['HEAD_SHA'])
+          if '        run: |\n' not in block: raise ValueError('Expected shell step')
+          token='$'+'{{ github.sha }}'
+          command=textwrap.dedent(block.split('        run: |\n',1)[1]).replace(token,os.environ['HEAD_SHA'])
+          if '$'+'{{' in command: raise ValueError('Unresolved workflow expression')
           if name=='Audit every new source identity in combined lookup':
               command=command.replace("const clinical=load('content/definition-drafts/clinical-source-excerpts-2026.09.21.json');", "const manifest=load('content/definition-drafts/clinical-source-excerpts-2026.09.21.json') as {parts:{path:string}[]};\nconst clinical=manifest.parts.map(p=>load('content/definition-drafts/'+p.path));")
               command=command.replace('...parseDefinitionCatalog(clinical).terms', '...clinical.flatMap(p=>parseDefinitionCatalog(p).terms)').replace('prepared,clinical);','prepared,...clinical);')
+          if name=='Record actual scope':
+              start=command.index('          The owner-supplied Semenov/Bersenev') if '          The owner-supplied Semenov/Bersenev' in command else command.index('The owner-supplied Semenov/Bersenev')
+              end=command.index('The actual Solid definition component',start)
+              command=command[:start]+'Owner PDF extraction is separate; this workflow does not measure or upload that source.\n\n'+command[end:]
           subprocess.run(['bash','-e','-o','pipefail','-c',command],check=True)
           PY
           env -i PATH="$PATH" HOME="$HOME" RUNNER_TEMP="$RUNNER_TEMP" HEAD_SHA='${{ github.sha }}' python3 "$RUNNER_TEMP/definition-step.py" 'Prepare integration from the reviewed previous bootstrap and tighten boundaries'
@@ -70,7 +76,7 @@ jobs:
           PY
       - name: Extract bundled source summaries and tool descriptions
         run: env -i PATH="$PATH" HOME="$HOME" RUNNER_TEMP="$RUNNER_TEMP" HEAD_SHA='${{ github.sha }}' python3 "$RUNNER_TEMP/definition-step.py" 'Verify the local exporter and extract bundled summaries and all tool schemas'
-      - name: Extract all 744 pinned clinical detail packs into bounded shards
+      - name: Extract all pinned clinical detail packs into bounded shards
         run: env -i PATH="$PATH" HOME="$HOME" RUNNER_TEMP="$RUNNER_TEMP" HEAD_SHA='${{ github.sha }}' python3 "$RUNNER_TEMP/definition-step.py" 'Extract every full clinical detail pack from the pinned existing dataset'
       - name: Run locked definition suites and core typecheck
         run: env -i PATH="$PATH" HOME="$HOME" RUNNER_TEMP="$RUNNER_TEMP" HEAD_SHA='${{ github.sha }}' python3 "$RUNNER_TEMP/definition-step.py" 'Locked formatting, definition tests and real core typecheck'
