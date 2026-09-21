@@ -20,9 +20,10 @@ def metadata_digest(database: sqlite3.Connection, *, restored: bool) -> tuple[in
     table = "definition_reference_chunks" if restored else "chunks"
     digest = hashlib.sha256()
     count = 0
-    rows = cast(Iterator[tuple[str, str]], database.execute(
-        f"SELECT id, metadata_json FROM {table} ORDER BY id"
-    ))
+    rows = cast(
+        Iterator[tuple[str, object]],
+        database.execute(f"SELECT id, metadata_json FROM {table} ORDER BY id"),
+    )
     for identity, raw in rows:
         if not isinstance(raw, str):
             raise ValueError("Unresolved reference metadata")
@@ -42,7 +43,7 @@ def encode_metadata(raw: str, fragments: dict[str, int]) -> str | None:
         if reference is None:
             continue
         if match.start() > start:
-            parts.append(raw[start:match.start()])
+            parts.append(raw[start : match.start()])
         parts.append(reference)
         start = match.end()
     if not parts:
@@ -62,7 +63,8 @@ def compact_reference_metadata(database: sqlite3.Connection) -> dict[str, object
     database.execute("SAVEPOINT compact_reference_metadata")
     try:
         for table in (
-            "definition_reference_metadata_fragments", "definition_reference_metadata_programs"
+            "definition_reference_metadata_fragments",
+            "definition_reference_metadata_programs",
         ):
             if database.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone():
                 raise ValueError("Metadata fragment tables must start empty")
@@ -96,29 +98,34 @@ def compact_reference_metadata(database: sqlite3.Connection) -> dict[str, object
         before = metadata_digest(database, restored=False)
         frequencies: Counter[str] = Counter()
         raw_bytes = 0
-        for (raw,) in cast(Iterator[tuple[str]], database.execute(
-            "SELECT metadata_json FROM chunks ORDER BY id"
-        )):
+        for (raw,) in cast(
+            Iterator[tuple[str]], database.execute("SELECT metadata_json FROM chunks ORDER BY id")
+        ):
             size = len(raw.encode("utf-8"))
             raw_bytes += size
             if size > MAX_METADATA:
                 continue
             frequencies.update(
-                match.group() for match in JSON_STRING.finditer(raw)
+                match.group()
+                for match in JSON_STRING.finditer(raw)
                 if len(match.group().encode("utf-8")) >= 32
             )
         candidates = {
-            fragment: count for fragment, count in frequencies.items()
+            fragment: count
+            for fragment, count in frequencies.items()
             if count >= 3 and (len(fragment.encode("utf-8")) - 16) * (count - 1) >= 128
         }
         keys = {fragment: index + 1 for index, fragment in enumerate(sorted(candidates))}
         programs: list[tuple[int, str]] = []
         used: set[int] = set()
         replaced_bytes = 0
-        for key, raw in cast(Iterator[tuple[int, str]], database.execute(
-            "SELECT k.local_id, c.metadata_json FROM chunks c "
-            "JOIN definition_reference_chunk_keys k ON k.chunk_id=c.id ORDER BY c.id"
-        )):
+        for key, raw in cast(
+            Iterator[tuple[int, str]],
+            database.execute(
+                "SELECT k.local_id, c.metadata_json FROM chunks c "
+                "JOIN definition_reference_chunk_keys k ON k.chunk_id=c.id ORDER BY c.id"
+            ),
+        ):
             if len(raw.encode("utf-8")) > MAX_METADATA:
                 continue
             encoded = encode_metadata(raw, keys)
@@ -152,11 +159,16 @@ def compact_reference_metadata(database: sqlite3.Connection) -> dict[str, object
             raise ValueError("Metadata transformation changed exact source representation")
         database.execute("RELEASE compact_reference_metadata")
         return {
-            "layout": "fragments-v1", "chunks": before[0], "encodedChunks": len(programs),
-            "fragments": len(selected), "originalMetadataBytes": raw_bytes,
-            "encodedProgramBytes": program_bytes, "sharedFragmentBytes": fragment_bytes,
+            "layout": "fragments-v1",
+            "chunks": before[0],
+            "encodedChunks": len(programs),
+            "fragments": len(selected),
+            "originalMetadataBytes": raw_bytes,
+            "encodedProgramBytes": program_bytes,
+            "sharedFragmentBytes": fragment_bytes,
             "logicalRepresentationBytes": raw_bytes - replaced_bytes + representation_bytes,
-            "metadataSha256": before[1], "exactRoundTripEqual": True,
+            "metadataSha256": before[1],
+            "exactRoundTripEqual": True,
         }
     except BaseException:
         database.execute("ROLLBACK TO compact_reference_metadata")

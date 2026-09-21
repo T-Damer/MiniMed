@@ -11,6 +11,7 @@ from contextlib import closing
 from pathlib import Path
 
 from .definition_reference_layout import compact_reference_links, reference_content_digest
+from .definition_reference_metadata import compact_reference_metadata
 from .definition_reference_pack import build_definition_reference, digest, encoded, obj
 from .definition_reference_profile import file_receipt, profile_reference
 from .sqlite_builder import inspect_integrity
@@ -25,6 +26,7 @@ def build_compact_definition_reference(
     version: str,
     built_at: str,
     profile: bool = False,
+    compact_metadata: bool = False,
 ) -> dict[str, object]:
     if output.exists():
         raise ValueError("Compact edition output must be a new immutable path")
@@ -55,13 +57,28 @@ def build_compact_definition_reference(
                 "UPDATE app_metadata SET value=? WHERE key='definition_reference'",
                 (encoded(manifest),),
             )
-            database.execute("UPDATE app_metadata SET value='7' WHERE key='schema_version'")
+            metadata = compact_reference_metadata(database) if compact_metadata else None
+            schema_version = 8 if compact_metadata else 7
+            if compact_metadata:
+                manifest["metadataLayout"] = "fragments-v1"
+                database.execute(
+                    "UPDATE app_metadata SET value=? WHERE key='definition_reference'",
+                    (encoded(manifest),),
+                )
+                database.execute(
+                    "INSERT INTO schema_migrations(version, applied_at) VALUES (8, ?)",
+                    (built_at,),
+                )
+            database.execute(
+                "UPDATE app_metadata SET value=? WHERE key='schema_version'",
+                (str(schema_version),),
+            )
             database.execute(
                 "INSERT INTO schema_migrations(version, applied_at) VALUES (7, ?)", (built_at,)
             )
             database.execute(
-                "UPDATE content_packs SET schema_version=7, checksum=? WHERE id=?",
-                ("sha256:" + digest(encoded(manifest)), edition_id),
+                "UPDATE content_packs SET schema_version=?, checksum=? WHERE id=?",
+                (schema_version, "sha256:" + digest(encoded(manifest)), edition_id),
             )
             # R1 clears this ordinary index. Rebuild from its empty content to discard
             # obsolete postings as well; no document/body index configuration is changed.
@@ -76,7 +93,9 @@ def build_compact_definition_reference(
                 database.execute(
                     f"INSERT INTO {table}({table}, rank) VALUES ('integrity-check', 1)"
                 )
-            after = reference_content_digest(database, compact=True)
+            after = reference_content_digest(
+                database, compact=True, restored_metadata=compact_metadata
+            )
             if before != after:
                 raise ValueError("Compaction changed source text, identities, links or annotations")
         integrity, foreign_keys, *_ = inspect_integrity(staged)
@@ -90,7 +109,8 @@ def build_compact_definition_reference(
         "contract": 1,
         "editionId": edition_id,
         "version": version,
-        "schemaVersion": 7,
+        "schemaVersion": schema_version,
+        "metadataCompaction": metadata,
         "linkLayout": "numeric-v1",
         "entries": baseline["entries"],
         "sources": baseline["sources"],
@@ -125,6 +145,7 @@ def main() -> None:
     parser.add_argument("--version", required=True)
     parser.add_argument("--built-at", required=True)
     parser.add_argument("--profile", action="store_true")
+    parser.add_argument("--compact-metadata", action="store_true")
     args = parser.parse_args()
     if args.report.exists() or args.output.resolve() == args.report.resolve():
         parser.error("Choose distinct new output/report paths")
@@ -136,6 +157,7 @@ def main() -> None:
         version=args.version,
         built_at=args.built_at,
         profile=args.profile,
+        compact_metadata=args.compact_metadata,
     )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     with args.report.open("x", encoding="utf-8") as stream:

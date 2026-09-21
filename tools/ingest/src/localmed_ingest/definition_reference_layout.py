@@ -46,13 +46,19 @@ def link_digest(database: sqlite3.Connection, *, compact: bool) -> tuple[int, st
     )
 
 
-def reference_content_digest(database: sqlite3.Connection, *, compact: bool) -> dict[str, object]:
+def reference_content_digest(
+    database: sqlite3.Connection, *, compact: bool, restored_metadata: bool = False
+) -> dict[str, object]:
     """Full logical source/text/identity comparison, not a sample or only row counts."""
     result: dict[str, object] = {}
     for table in LOGICAL_TABLES:
+        selected_table = (
+            "definition_reference_chunks" if restored_metadata and table == "chunks" else table
+        )
         count, checksum = row_digest(
             cast(
-                Iterable[tuple[Cell, ...]], database.execute(f'SELECT * FROM "{table}" ORDER BY id')
+                Iterable[tuple[Cell, ...]],
+                database.execute(f'SELECT * FROM "{selected_table}" ORDER BY id'),
             )
         )
         result[table] = {"rows": count, "sha256": checksum}

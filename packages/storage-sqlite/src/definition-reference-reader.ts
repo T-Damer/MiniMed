@@ -103,6 +103,14 @@ export async function createSqliteDefinitionReference(
     throw new Error('Unsupported definition reference link layout.');
   }
   const links = layout === 'numeric-v1' ? 'definition_reference_links' : 'knowledge_document_links';
+  const metadataLayout = manifest['metadataLayout'];
+  if (metadataLayout !== undefined && metadataLayout !== 'fragments-v1') {
+    throw new Error('Unsupported definition reference metadata layout.');
+  }
+  if (metadataLayout === 'fragments-v1' && layout !== 'numeric-v1') {
+    throw new Error('Fragment metadata layout requires numeric reference keys.');
+  }
+  const blockTable = metadataLayout === 'fragments-v1' ? 'definition_reference_chunks' : 'chunks';
   const scope = [editionId, editionId];
 
   return {
@@ -210,7 +218,7 @@ export async function createSqliteDefinitionReference(
         `SELECT substr(c.original_text, ?, ?) AS body,
           length(c.original_text) AS characters, substr(c.metadata_json, 1, 65537) AS metadata,
           l.document_id
-        FROM chunks c JOIN ${links} l ON l.chunk_id = c.id
+        FROM ${blockTable} c JOIN ${links} l ON l.chunk_id = c.id
         JOIN knowledge_entities e ON e.id = l.entity_id
         WHERE e.id = ? AND c.id = ? AND l.review_status = 'proposed' AND ${SCOPE} LIMIT 1`,
         [offset + 1, BLOCK_CHARACTERS, id, chunkId, ...scope],
@@ -219,12 +227,16 @@ export async function createSqliteDefinitionReference(
       if (!row) return null;
       const total = integer(row['characters']);
       const body = string(row['body'], BLOCK_CHARACTERS * 2);
+      const provenance = jsonObject(row['metadata']);
+      if (provenance['$p'] === 1 && Object.keys(provenance).length === 1) {
+        throw new Error('Unresolved reference metadata storage marker.');
+      }
       return {
         text: body,
         totalCharacters: total,
         nextOffset: offset + BLOCK_CHARACTERS < total ? offset + BLOCK_CHARACTERS : null,
         sourceId: string(row['document_id'], 256),
-        provenance: jsonObject(row['metadata']),
+        provenance,
       };
     },
     async getSource(id) {

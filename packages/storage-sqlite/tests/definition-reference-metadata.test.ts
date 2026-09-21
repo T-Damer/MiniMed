@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { createSqliteDefinitionReference } from '../src/definition-reference-reader';
 
-function executor(metadataLayout?: unknown, linkLayout: unknown = 'numeric-v1', metadata: unknown = '{}') {
+function executor(
+  metadataLayout?: unknown,
+  linkLayout: unknown = 'numeric-v1',
+  metadata: unknown = '{}',
+) {
   const statements: string[] = [];
   const manifest = {
     contract: 1,
@@ -9,7 +13,7 @@ function executor(metadataLayout?: unknown, linkLayout: unknown = 'numeric-v1', 
     publicationState: 'local-dev',
     reviewStatus: 'requires-review',
     identityStatus: 'source-local-proposed',
-    ...(linkLayout === undefined ? {} : { linkLayout }),
+    ...(linkLayout === 'legacy' ? {} : { linkLayout }),
     ...(metadataLayout === undefined ? {} : { metadataLayout }),
   };
   return {
@@ -17,8 +21,10 @@ function executor(metadataLayout?: unknown, linkLayout: unknown = 'numeric-v1', 
     sql: {
       async read(sql: string, _parameters: readonly (string | number)[]) {
         statements.push(sql);
-        if (sql.includes("key = 'definition_reference'")) return [{ value: JSON.stringify(manifest) }];
-        if (sql.includes('AS body')) return [{ body: 'x', characters: 1, metadata, document_id: 'fixture.source' }];
+        if (sql.includes("key = 'definition_reference'"))
+          return [{ value: JSON.stringify(manifest) }];
+        if (sql.includes('AS body'))
+          return [{ body: 'x', characters: 1, metadata, document_id: 'fixture.source' }];
         return [];
       },
     },
@@ -27,7 +33,7 @@ function executor(metadataLayout?: unknown, linkLayout: unknown = 'numeric-v1', 
 
 describe('reference metadata layout capability', () => {
   it('does not reference metadata tables in legacy or numeric-only reads', async () => {
-    for (const linkLayout of [undefined, 'numeric-v1']) {
+    for (const linkLayout of ['legacy', 'numeric-v1']) {
       const fixture = executor(undefined, linkLayout);
       const reader = await createSqliteDefinitionReference(fixture.sql);
       await reader.readBlock('fixture.term', 'fixture.block');
@@ -37,7 +43,10 @@ describe('reference metadata layout capability', () => {
   });
 
   it('decodes only the requested block, never source metadata during search/listing', async () => {
-    const original = { definitionReference: 1, nested: { literal: null, text: 'Exact source locator' } };
+    const original = {
+      definitionReference: 1,
+      nested: { literal: null, text: 'Exact source locator' },
+    };
     const fixture = executor('fragments-v1', 'numeric-v1', JSON.stringify(original));
     const reader = await createSqliteDefinitionReference(fixture.sql);
     await reader.search('missing title');
@@ -60,7 +69,7 @@ describe('reference metadata layout capability', () => {
   );
 
   it('requires numeric keys for fragment metadata', async () => {
-    const fixture = executor('fragments-v1', null);
+    const fixture = executor('fragments-v1', 'legacy');
     await expect(createSqliteDefinitionReference(fixture.sql)).rejects.toThrow();
     expect(fixture.statements).toHaveLength(1);
   });

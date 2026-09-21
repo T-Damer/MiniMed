@@ -1,0 +1,17 @@
+{
+  "contract": 1,
+  "comparedBlocks": 128,
+  "exactTextAndProvenanceEqual": true,
+  "unrelatedEntryBlocked": true,
+  "readMs": {
+    "p50": 0.04365399999999653,
+    "p95": 0.0931280000000001
+  },
+  "maxRowsPerCall": 1,
+  "maxReplyBytes": 6561,
+  "rssBytes": {
+    "before": 55644160,
+    "after": 64983040
+  },
+  "boundaries": "128 deterministic encoded-block host smoke reads at most, versus the same-run inline baseline. Complete raw table/metadata equality is checked separately in the builder. Two caller-owned read-only database handles; not Android, whole-app, clinical quality or peak/incremental memory qualification. No source text or query content in this report."
+}
