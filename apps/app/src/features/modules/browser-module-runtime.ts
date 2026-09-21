@@ -62,6 +62,7 @@ const MODULE_OPFS_FETCH_TIMEOUT_MS = 180_000;
 type ModuleArtifact = ContentModuleCatalogEntry['artifacts'][number];
 
 interface StoredModuleVersion {
+  readonly definitionReference?: ContentModuleCatalogEntry['definitionReference'];
   readonly key: string;
   readonly moduleId: string;
   readonly version: string;
@@ -298,6 +299,7 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
       const storedBytes = staged.bytes.slice().buffer;
       const stored: StoredModuleVersion = {
         key: versionKey(module.id, module.version),
+        ...(module.definitionReference ? { definitionReference: module.definitionReference } : {}),
         moduleId: module.id,
         version: module.version,
         bytes: storedBytes,
@@ -392,10 +394,25 @@ export class BrowserModuleValidator implements ContentModuleIndexValidator {
       const health = await store.initialize();
       const integrity = await store.inspectIntegrity();
       const schemaCompatible = health.schemaVersion === module.compatibility.schemaVersion;
+      let referenceValid = false;
+      if (module.definitionReference) {
+        const reference = await store.reference({
+          op: 'status',
+          moduleId: module.id,
+          editionId: module.definitionReference.editionId,
+        });
+        referenceValid =
+          reference.op === 'status' &&
+          reference.entries === module.definitionReference.entries &&
+          health.contentPackIds.length === 1 &&
+          health.contentPackIds[0] === module.definitionReference.editionId;
+      }
       const valid =
         integrity.integrity === 'ok' &&
         integrity.foreignKeyViolations === 0 &&
-        integrity.chunkCount === integrity.ftsRowCount &&
+        (module.definitionReference
+          ? referenceValid
+          : integrity.chunkCount === integrity.ftsRowCount) &&
         schemaCompatible;
       return {
         checkedAt: new Date().toISOString(),
@@ -496,7 +513,12 @@ export class BrowserContentModuleRuntime {
     }
     this.installer = new ForegroundContentModuleInstaller(
       catalog,
-      { appVersion: RELEASE_VERSION, schemaVersion: 2, coreCatalogVersion: '1' },
+      {
+        appVersion: RELEASE_VERSION,
+        schemaVersion: 2,
+        coreCatalogVersion: '1',
+        definitionReferenceSchemaVersions: [7],
+      },
       new BrowserModuleDownloader(),
       this.backend,
       new BrowserModuleValidator(),
@@ -988,7 +1010,30 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
           pointer.version,
           new Uint8Array(stored.bytes.slice(0)),
         );
-        mounts.push({ moduleId: pointer.moduleId, store, enabled: true, searchWeight: 1 });
+        if (stored.definitionReference) {
+          await store.initialize();
+          try {
+            const status = await store.reference({
+              op: 'status',
+              moduleId: pointer.moduleId,
+              editionId: stored.definitionReference.editionId,
+            });
+            if (status.op !== 'status' || status.entries !== stored.definitionReference.entries)
+              throw new Error('Installed reference descriptor mismatch.');
+          } catch (cause) {
+            await store.close();
+            throw cause;
+          }
+        }
+        mounts.push({
+          moduleId: pointer.moduleId,
+          store,
+          enabled: true,
+          searchWeight: 1,
+          ...(stored.definitionReference
+            ? { definitionReference: stored.definitionReference }
+            : {}),
+        });
       } catch (cause) {
         console.warn(`Unable to mount content module ${pointer.moduleId}.`, cause);
       }

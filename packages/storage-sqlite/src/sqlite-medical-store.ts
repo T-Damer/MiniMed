@@ -1,6 +1,8 @@
 import {
   type ContentPackSeed,
   ContentPackSeedSchema,
+  type DefinitionReferenceReply,
+  type DefinitionReferenceRequest,
   type EmbeddingProfile,
   type SearchFilters,
   type ToolDefinitionRecord,
@@ -33,6 +35,7 @@ import sqlite3InitModule, {
   type SqlValue,
 } from '@sqlite.org/sqlite-wasm';
 
+import { createDefinitionReferenceDispatch } from './definition-reference-dispatch';
 import { SCHEMA_SQL } from './generated/schema';
 import {
   createStreamChunkImporter,
@@ -148,10 +151,20 @@ async function importOpfsPack(
   databaseName: string,
   vfsName: string,
   fetchTimeoutMs: number,
+  onProgress?: (loaded: number) => void,
 ): Promise<void> {
   const response = await fetchPack(url, fetchTimeoutMs);
   if (!response.body) throw new Error(`Unable to stream ${databaseName}.`);
-  await pool.importDb(vfsName, createStreamChunkImporter(response.body));
+  const read = createStreamChunkImporter(response.body);
+  let loaded = 0;
+  await pool.importDb(vfsName, async () => {
+    const bytes = await read();
+    if (bytes) {
+      loaded += bytes.byteLength;
+      onProgress?.(loaded);
+    }
+    return bytes;
+  });
 }
 
 async function fetchPackByteLength(url: string, timeoutMs: number): Promise<number | null> {
@@ -409,6 +422,16 @@ export interface SqliteIntegrityReport {
 
 export class SqliteMedicalStore implements MedicalStore {
   private initialized = false;
+  private referenceDispatch: ReturnType<typeof createDefinitionReferenceDispatch> | undefined;
+
+  public async reference(request: DefinitionReferenceRequest): Promise<DefinitionReferenceReply> {
+    if (!this.initialized || !this.database.pointer)
+      throw new Error('Reference database is not open.');
+    this.referenceDispatch ??= createDefinitionReferenceDispatch({
+      read: async (sql, parameters) => queryRows(this.database, sql, [...parameters]),
+    });
+    return this.referenceDispatch(request);
+  }
 
   private constructor(
     private readonly database: Database,
@@ -457,7 +480,12 @@ export class SqliteMedicalStore implements MedicalStore {
   public static async createFromOpfsUrl(
     url: string,
     databaseName: string,
-    options: { readonly fetchTimeoutMs?: number; readonly poolName?: string } = {},
+    options: {
+      readonly fetchTimeoutMs?: number;
+      readonly poolName?: string;
+      readonly beforeImport?: () => Promise<void>;
+      readonly onImportProgress?: (loaded: number, total: number) => void;
+    } = {},
   ): Promise<SqliteMedicalStore> {
     const sqlite = await getSqliteModule();
     const poolName = options.poolName ?? sahPoolContextName();
@@ -491,7 +519,17 @@ export class SqliteMedicalStore implements MedicalStore {
         pool.unlink(vfsName);
       }
     }
-    await importOpfsPack(pool, url, databaseName, vfsName, fetchTimeoutMs);
+    await options.beforeImport?.();
+    await importOpfsPack(
+      pool,
+      url,
+      databaseName,
+      vfsName,
+      fetchTimeoutMs,
+      options.onImportProgress
+        ? (loaded) => options.onImportProgress?.(loaded, byteLength ?? 0)
+        : undefined,
+    );
     if (legacyVfsName !== vfsName) pool.unlink(legacyVfsName);
     return open('copied');
   }

@@ -4,6 +4,7 @@ import {
   ContentPackSeedSchema,
   type CoreCapabilities,
   type CoreStatus,
+  DefinitionReferenceRequestSchema,
   err,
   type LocalMedError,
   localMedError,
@@ -1312,6 +1313,23 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             },
           },
         });
+      } catch (error) {
+        return err(asLocalMedError(error));
+      }
+    },
+
+    async reference(request) {
+      try {
+        const ready = await ensureInitialized();
+        if (!ready.ok) return err(ready.error);
+        const parsed = DefinitionReferenceRequestSchema.safeParse(request);
+        if (!parsed.success)
+          return err(localMedError('INVALID_REQUEST', 'Invalid reference request.'));
+        return ok(
+          options.store.reference
+            ? await options.store.reference(parsed.data)
+            : { op: 'unavailable' as const },
+        );
       } catch (error) {
         return err(asLocalMedError(error));
       }

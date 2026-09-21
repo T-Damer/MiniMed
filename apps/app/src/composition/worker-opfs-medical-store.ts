@@ -1,4 +1,9 @@
-import type { ContentPackSeed, EmbeddingProfile } from '@localmed/contracts';
+import type {
+  ContentPackSeed,
+  DefinitionReferenceReply,
+  DefinitionReferenceRequest,
+  EmbeddingProfile,
+} from '@localmed/contracts';
 import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
 import type {
   DocumentIdentity,
@@ -30,7 +35,13 @@ type SharedWorkerStore = {
   owner: Promise<WorkerOpfsMedicalStore>;
 };
 
+export interface OpfsDownloadUi {
+  requestDownload(): Promise<void>;
+  onProgress(progress: { loaded: number; total: number }): void;
+}
+
 export class WorkerOpfsMedicalStore implements MedicalStore {
+  private onDownloadWait: (waiting: boolean) => void = () => {};
   private static readonly sharedStores = new Map<string, SharedWorkerStore>();
 
   private requestId = 0;
@@ -45,10 +56,36 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     private readonly worker: Worker,
     private readonly shared?: SharedWorkerStore,
     owner?: WorkerOpfsMedicalStore,
+    private readonly downloadUi?: OpfsDownloadUi,
   ) {
     this.owner = owner ?? this;
     if (owner) return;
     worker.onmessage = (event: MessageEvent<OpfsPackWorkerResponse>) => {
+      if ('event' in event.data) {
+        const message = event.data;
+        if (this.connectionClosed) return;
+        if (message.event === 'download-progress') {
+          this.downloadUi?.onProgress({ loaded: message.loaded, total: message.total });
+        } else {
+          this.onDownloadWait(true);
+          if (!this.downloadUi) {
+            this.shutdown(new Error('Unexpected core download request.'));
+            return;
+          }
+          void this.downloadUi.requestDownload().then(
+            () => {
+              if (this.connectionClosed) return;
+              this.onDownloadWait(false);
+              this.worker.postMessage({ type: 'approve-download', id: message.id });
+            },
+            (cause: unknown) =>
+              this.shutdown(
+                cause instanceof Error ? cause : new Error('Core download was not approved.'),
+              ),
+          );
+        }
+        return;
+      }
       const pending = this.pending.get(event.data.id);
       if (!pending) return;
       this.pending.delete(event.data.id);
@@ -58,7 +95,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     worker.onerror = () => this.shutdown(new Error('OPFS pack worker failed.'));
   }
 
-  public static async open(options: OpfsPackWorkerOpenOptions): Promise<WorkerOpfsMedicalStore> {
+  public static async open(
+    options: OpfsPackWorkerOpenOptions,
+    downloadUi?: OpfsDownloadUi,
+  ): Promise<WorkerOpfsMedicalStore> {
     const optionsKey = JSON.stringify([options.databaseName, options.fetchTimeoutMs]);
     const existing = WorkerOpfsMedicalStore.sharedStores.get(options.poolName);
     if (existing) {
@@ -68,18 +108,18 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
       const owner = await existing.owner;
       if (owner.closing) {
         await owner.closing;
-        return WorkerOpfsMedicalStore.open(options);
+        return WorkerOpfsMedicalStore.open(options, downloadUi);
       }
       if (owner.connectionClosed) {
         WorkerOpfsMedicalStore.sharedStores.delete(options.poolName);
-        return WorkerOpfsMedicalStore.open(options);
+        return WorkerOpfsMedicalStore.open(options, downloadUi);
       }
       owner.leaseCount += 1;
       return new WorkerOpfsMedicalStore(owner.worker, existing, owner);
     }
 
     const shared = { optionsKey, poolName: options.poolName } as SharedWorkerStore;
-    shared.owner = WorkerOpfsMedicalStore.openOwner(options, shared);
+    shared.owner = WorkerOpfsMedicalStore.openOwner(options, shared, downloadUi);
     WorkerOpfsMedicalStore.sharedStores.set(options.poolName, shared);
     try {
       return await shared.owner;
@@ -94,21 +134,33 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   private static async openOwner(
     options: OpfsPackWorkerOpenOptions,
     shared: SharedWorkerStore,
+    downloadUi?: OpfsDownloadUi,
   ): Promise<WorkerOpfsMedicalStore> {
     const worker = new Worker(new URL('./opfs-pack.worker.ts', import.meta.url), {
       type: 'module',
     });
-    const store = new WorkerOpfsMedicalStore(worker, shared);
-    const opened = store.request('open', options);
+    const store = new WorkerOpfsMedicalStore(worker, shared, undefined, downloadUi);
+    const opened = store.request('open', {
+      ...options,
+      ...(downloadUi ? { waitForDownloadApproval: true } : {}),
+    });
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       await Promise.race([
         opened,
         new Promise<never>((_, reject) => {
-          timer = setTimeout(
-            () => reject(new Error(`Opening ${options.databaseName} timed out.`)),
-            options.fetchTimeoutMs,
-          );
+          const arm = () => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(
+              () => reject(new Error(`Opening ${options.databaseName} timed out.`)),
+              options.fetchTimeoutMs,
+            );
+          };
+          store.onDownloadWait = (waiting) => {
+            if (timer) clearTimeout(timer);
+            if (!waiting) arm();
+          };
+          arm();
         }),
       ]);
       return store;
@@ -117,8 +169,14 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
       void opened.catch(() => undefined);
       throw cause;
     } finally {
+      store.onDownloadWait = () => {};
       if (timer) clearTimeout(timer);
     }
+  }
+
+  public reference(request: DefinitionReferenceRequest): Promise<DefinitionReferenceReply> {
+    if (this.leaseClosed) return Promise.reject(new Error('Reference lease is closed.'));
+    return this.call('reference', [request]);
   }
 
   public initialize(seed?: ContentPackSeed): Promise<StorageHealth> {

@@ -3,9 +3,9 @@ import {
   ContentModuleCatalogEntrySchema,
   ContentModuleCatalogSchema,
 } from '@localmed/contracts';
-
 import rawCatalog from '@/features/modules/catalog.preview.json';
 import rawTerminologyModules from '@/features/modules/catalog.terminology.json';
+import { withLocalDefinitionReference } from '@/features/modules/local-definition-reference';
 
 const terminologyModules = ContentModuleCatalogEntrySchema.array().parse(rawTerminologyModules);
 
@@ -14,7 +14,10 @@ export function withBundledTerminology(catalog: ContentModuleCatalog): ContentMo
   const known = new Set(catalog.modules.map((module) => module.id));
   return ContentModuleCatalogSchema.parse({
     ...catalog,
-    modules: [...catalog.modules, ...terminologyModules.filter((module) => !known.has(module.id))],
+    modules: withLocalDefinitionReference([
+      ...catalog.modules,
+      ...terminologyModules.filter((module) => !known.has(module.id)),
+    ]),
   });
 }
 

@@ -2,18 +2,54 @@ import { ContentModuleCatalogEntrySchema } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 import { downloadPercent, setupPackageGroups } from './setup-state';
 
-function module(id: string, kind: 'core' | 'reference' | 'tool', required = false, releaseState = 'published') {
+function module(
+  id: string,
+  kind: 'core' | 'reference' | 'tool',
+  required = false,
+  releaseState = 'published',
+) {
   return ContentModuleCatalogEntrySchema.parse({
-    id, version: '1.0.0', kind, collection: 'test', title: id, description: 'Fixture', required, releaseState,
+    id,
+    version: '1.0.0',
+    kind,
+    collection: 'test',
+    title: id,
+    description: 'Fixture',
+    required,
+    releaseState,
     compatibility: { minAppVersion: '0.6.39', schemaVersion: 2, coreCatalogVersion: '1' },
-    sourceSetDigest: `sha256:${'a'.repeat(64)}`, sizes: {},
-    capabilities: { search: true, fullText: true, structuredTables: false, images: false, originalPdf: false, structuredKnowledge: false, calculations: false },
-    artifacts: [{ id: 'index', kind: 'index', required: true, url: 'https://example.invalid/fixture.db', sha256: `sha256:${'b'.repeat(64)}`, sizeBytes: 100, compression: 'none', sourceSetDigest: `sha256:${'a'.repeat(64)}` }],
+    sourceSetDigest: `sha256:${'a'.repeat(64)}`,
+    sizes: {},
+    capabilities: {
+      search: true,
+      fullText: true,
+      structuredTables: false,
+      images: false,
+      originalPdf: false,
+      structuredKnowledge: false,
+      calculations: false,
+    },
+    artifacts: [
+      {
+        id: 'index',
+        kind: 'index',
+        required: true,
+        url: 'https://example.invalid/fixture.db',
+        sha256: `sha256:${'b'.repeat(64)}`,
+        sizeBytes: 100,
+        compression: 'none',
+        sourceSetDigest: `sha256:${'a'.repeat(64)}`,
+      },
+    ],
   });
 }
 describe('package setup', () => {
   it('keeps the required core out of optional groups and never fabricates a missing group', () => {
-    const groups = setupPackageGroups([module('core', 'core', true), module('dictionary', 'reference'), module('built-in', 'tool', false, 'bundled')]);
+    const groups = setupPackageGroups([
+      module('core', 'core', true),
+      module('dictionary', 'reference'),
+      module('built-in', 'tool', false, 'bundled'),
+    ]);
     expect(groups).toHaveLength(1);
     expect(groups[0]?.modules.map((entry) => entry.id)).toEqual(['dictionary']);
   });

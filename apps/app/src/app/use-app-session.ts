@@ -343,7 +343,7 @@ export function useAppSession() {
     );
   };
 
-  const connectInstalledModules = async (): Promise<void> => {
+  const reconnectInstalledModules = async (): Promise<void> => {
     const current = ready();
     if (!current) throw new Error('Локальный поиск ещё не готов.');
     const next = await swapMedicalCore(current, createBrowserCore, (core) => {
@@ -358,6 +358,23 @@ export function useAppSession() {
       moduleRuntimeService?.peekContentModuleRuntime()?.listInstalled().length ?? 0,
     );
     notifyContentChanged();
+  };
+
+  let reconnecting: Promise<void> | undefined;
+  let reconnectRequested = false;
+  const connectInstalledModules = (): Promise<void> => {
+    reconnectRequested = true;
+    if (!ready() || disposed) return Promise.resolve();
+    if (reconnecting) return reconnecting;
+    reconnecting = (async () => {
+      while (reconnectRequested && !disposed) {
+        reconnectRequested = false;
+        await reconnectInstalledModules();
+      }
+    })().finally(() => {
+      reconnecting = undefined;
+    });
+    return reconnecting;
   };
 
   const refreshDueReminders = (): void => {
@@ -423,6 +440,8 @@ export function useAppSession() {
       setSearchCore(initializedSearchCore);
       setReady(initialized);
       performance.mark('minimed:search-ready');
+      setCoreDownloading(false);
+      if (reconnectRequested) await connectInstalledModules();
       const moduleRuntimeLoad = scheduleIdle(() =>
         Promise.all([
           import('@/features/modules/module-catalog'),

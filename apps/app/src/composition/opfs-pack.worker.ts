@@ -8,10 +8,17 @@ import type {
 } from '@/composition/opfs-pack-protocol';
 
 let store: SqliteMedicalStore | undefined;
+let downloadApproval: { id: number; resolve: () => void } | undefined;
 
 self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<void> => {
   const message = event.data;
   try {
+    if (message.type === 'approve-download') {
+      if (downloadApproval?.id !== message.id) throw new Error('Unexpected download approval.');
+      downloadApproval.resolve();
+      downloadApproval = undefined;
+      return;
+    }
     if (message.type === 'open') {
       if (store) throw new Error('OPFS pack worker is already open.');
       // A pool owns exclusive filesystem handles until its worker terminates. Keep the matching
@@ -24,6 +31,25 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
       const next = await SqliteMedicalStore.createFromOpfsUrl(message.url, message.databaseName, {
         fetchTimeoutMs: message.fetchTimeoutMs,
         poolName: message.poolName,
+        ...(message.waitForDownloadApproval
+          ? {
+              beforeImport: () =>
+                new Promise<void>((resolve) => {
+                  downloadApproval = { id: message.id, resolve };
+                  self.postMessage({
+                    id: message.id,
+                    event: 'download-required',
+                  } satisfies OpfsPackWorkerResponse);
+                }),
+              onImportProgress: (loaded: number, total: number) =>
+                self.postMessage({
+                  id: message.id,
+                  event: 'download-progress',
+                  loaded,
+                  total,
+                } satisfies OpfsPackWorkerResponse),
+            }
+          : {}),
       });
       const health = await next.initialize();
       store = next;

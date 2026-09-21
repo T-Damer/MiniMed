@@ -15,6 +15,7 @@ type ModuleValidation = NonNullable<InstalledContentModule['lastValidation']>;
 export interface ContentModuleRuntimeCompatibility {
   readonly appVersion: string;
   readonly schemaVersion: number;
+  readonly definitionReferenceSchemaVersions?: readonly number[];
   readonly coreCatalogVersion: string;
 }
 
@@ -127,7 +128,10 @@ function assertRuntimeCompatible(
   ) {
     throw new Error(`Module ${module.id} is not compatible with MiniMed ${runtime.appVersion}.`);
   }
-  if (runtime.schemaVersion !== compatibility.schemaVersion) {
+  const referenceCompatible =
+    module.definitionReference?.contract === 1 &&
+    runtime.definitionReferenceSchemaVersions?.includes(compatibility.schemaVersion) === true;
+  if (!referenceCompatible && runtime.schemaVersion !== compatibility.schemaVersion) {
     throw new Error(
       `Module ${module.id} requires schema ${compatibility.schemaVersion}, current ${runtime.schemaVersion}.`,
     );

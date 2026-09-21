@@ -111,8 +111,7 @@ export function localPackagedModulesToInstall(
 ): readonly ContentModuleCatalogEntry[] {
   return catalog.modules.filter((module) => {
     const installed = installedModules.get(module.id);
-    const autoInstallable =
-      module.releaseState === 'published' || (installed !== undefined && isModuleReleased(module));
+    const autoInstallable = installed !== undefined && isModuleReleased(module);
     return (
       module.kind === 'tool' &&
       autoInstallable &&
