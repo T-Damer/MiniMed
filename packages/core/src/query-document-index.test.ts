@@ -1,4 +1,8 @@
-import { ContentPackSeedSchema, type SearchFilters } from '@localmed/contracts';
+import {
+  ContentPackSeedSchema,
+  type SearchFilters,
+  SearchRequestSchema,
+} from '@localmed/contracts';
 import { normalizeForIndex } from '@localmed/search-lexical';
 import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { InMemoryMedicalStore, type LexicalHit } from '@localmed/storage';
@@ -194,7 +198,12 @@ describe('exact identity retention through MedicalCore', () => {
       vi.spyOn(store, 'search').mockResolvedValue([]);
       const sections = vi.spyOn(store, 'getChunksBySection');
       const wholeDocument = vi.spyOn(store, 'getChunksByDocument');
-      const response = await core.search({ query, analysisMode: 'lookup', mode: 'lexical' });
+      const response = await core.search({
+        ...SearchRequestSchema.parse({ query: 'fixture' }),
+        query,
+        analysisMode: 'lookup',
+        mode: 'lexical',
+      });
       expect(response.ok).toBe(true);
       if (!response.ok) throw response.error;
       const group = response.value.groups[0];
@@ -217,6 +226,7 @@ describe('exact identity retention through MedicalCore', () => {
     vi.spyOn(store, 'search').mockResolvedValue([]);
     const sections = vi.spyOn(store, 'getChunksBySection');
     const response = await core.search({
+      ...SearchRequestSchema.parse({ query: 'fixture' }),
       query: IDENTITY_TITLE,
       filters: { sectionTypes: ['treatment'] },
     });
@@ -234,7 +244,11 @@ describe('exact identity retention through MedicalCore', () => {
     const { store, core } = await retentionFixture();
     vi.spyOn(store, 'search').mockResolvedValue([]);
     const sections = vi.spyOn(store, 'getSectionsByDocument');
-    const response = await core.search({ query: IDENTITY_TITLE, filters });
+    const response = await core.search({
+      ...SearchRequestSchema.parse({ query: 'fixture' }),
+      query: IDENTITY_TITLE,
+      filters,
+    });
     expect(response.ok).toBe(true);
     if (!response.ok) throw response.error;
     expect(response.value.groups).toEqual([]);
@@ -245,7 +259,10 @@ describe('exact identity retention through MedicalCore', () => {
     const { store, core } = await retentionFixture();
     vi.spyOn(store, 'search').mockResolvedValue([]);
     vi.spyOn(store, 'getChunksBySection').mockResolvedValue([]);
-    const response = await core.search({ query: IDENTITY_TITLE });
+    const response = await core.search({
+      ...SearchRequestSchema.parse({ query: 'fixture' }),
+      query: IDENTITY_TITLE,
+    });
     expect(response.ok).toBe(true);
     if (response.ok) expect(response.value.groups).toEqual([]);
   });
@@ -260,7 +277,10 @@ describe('exact identity retention through MedicalCore', () => {
         ? [{ ...hit.chunk, id: 'blank', originalText: '  \n  ' }, hit.chunk]
         : getChunks(sectionId),
     );
-    const response = await core.search({ query: IDENTITY_TITLE });
+    const response = await core.search({
+      ...SearchRequestSchema.parse({ query: 'fixture' }),
+      query: IDENTITY_TITLE,
+    });
     expect(response.ok).toBe(true);
     if (response.ok) expect(response.value.groups[0]?.results[0]?.chunkId).toBe('definition.0');
   });
@@ -269,7 +289,10 @@ describe('exact identity retention through MedicalCore', () => {
     const { store, core } = await retentionFixture();
     vi.spyOn(store, 'search').mockResolvedValue([]);
     vi.spyOn(store, 'getChunksBySection').mockRejectedValue(new Error('test storage failure'));
-    const response = await core.search({ query: IDENTITY_TITLE });
+    const response = await core.search({
+      ...SearchRequestSchema.parse({ query: 'fixture' }),
+      query: IDENTITY_TITLE,
+    });
     expect(response.ok).toBe(false);
     if (!response.ok) expect(response.error.message).toBe('test storage failure');
   });
@@ -292,6 +315,7 @@ describe('exact identity retention through MedicalCore', () => {
       );
       const sections = vi.spyOn(store, 'getChunksBySection');
       const response = await core.search({
+        ...SearchRequestSchema.parse({ query: 'fixture' }),
         query: IDENTITY_SHORT_TITLE,
         analysisMode: 'lookup',
         mode,
@@ -316,7 +340,11 @@ describe('exact identity retention through MedicalCore', () => {
     vi.spyOn(store, 'listEmbeddingProfiles').mockResolvedValue([embedder.profile]);
     vi.spyOn(store, 'searchVector').mockResolvedValue([{ ...identity, score: 1 }]);
     const sections = vi.spyOn(store, 'getChunksBySection');
-    const response = await core.search({ query: IDENTITY_TITLE, mode: 'semantic' });
+    const response = await core.search({
+      ...SearchRequestSchema.parse({ query: 'fixture' }),
+      query: IDENTITY_TITLE,
+      mode: 'semantic',
+    });
     expect(response.ok).toBe(true);
     if (!response.ok) throw response.error;
     expect(response.value.groups[0]?.documentId).toBe('identity');
@@ -326,7 +354,11 @@ describe('exact identity retention through MedicalCore', () => {
   it('does not inject a broad discovery alias as a strict identity', async () => {
     const { store, core } = await retentionFixture();
     vi.spyOn(store, 'search').mockResolvedValue([]);
-    const response = await core.search({ query: 'Обзорное слово', analysisMode: 'lookup' });
+    const response = await core.search({
+      ...SearchRequestSchema.parse({ query: 'fixture' }),
+      query: 'Обзорное слово',
+      analysisMode: 'lookup',
+    });
     expect(response.ok).toBe(true);
     if (response.ok) expect(response.value.groups).toEqual([]);
   });

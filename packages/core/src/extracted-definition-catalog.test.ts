@@ -9,13 +9,53 @@ function first<T>(values: readonly T[]): T {
 
 function fixture() {
   return {
-    version: 3, id: 'fixture.excerpt', reviewStatus: 'requires-review', publicationState: 'local-dev', textKind: 'source-excerpt',
-    sources: [{ id: 2001, title: 'Учебный источник — синтетическая проверка', authority: 'professional-reference', accessed: '2026-09-21', sourceType: 'owner-pdf', fileName: 'fixture.pdf', baseUrl: '', sourceSha256: 'a'.repeat(64), rightsStatus: 'owner-provided-not-redistribution-permission', releaseEligible: false }],
-    blocks: [
-      { id: 1, source: 2001, text: 'Альфа — пояснение из источника.', locator: 'PDF p. 1', textSha256: 'b'.repeat(64) },
-      { id: 2, source: 2001, text: '1. Первое условие.\n2. Второе условие. Все условия необходимы.', locator: 'PDF pp. 1–2', textSha256: 'c'.repeat(64) },
+    version: 3,
+    id: 'fixture.excerpt',
+    reviewStatus: 'requires-review',
+    publicationState: 'local-dev',
+    textKind: 'source-excerpt',
+    sources: [
+      {
+        id: 2001,
+        title: 'Учебный источник — синтетическая проверка',
+        authority: 'professional-reference',
+        accessed: '2026-09-21',
+        sourceType: 'owner-pdf',
+        fileName: 'fixture.pdf',
+        baseUrl: '',
+        sourceSha256: 'a'.repeat(64),
+        rightsStatus: 'owner-provided-not-redistribution-permission',
+        releaseEligible: false,
+      },
     ],
-    terms: [{ id: 'fixture.alpha', title: 'Альфа', kind: 'criterion_set', aliases: [] as string[], blockIds: [1, 2], itemBlocks: [2], coverage: 'criterion-list', note: 'Историческая редакция источника; требует проверки.' }],
+    blocks: [
+      {
+        id: 1,
+        source: 2001,
+        text: 'Альфа — пояснение из источника.',
+        locator: 'PDF p. 1',
+        textSha256: 'b'.repeat(64),
+      },
+      {
+        id: 2,
+        source: 2001,
+        text: '1. Первое условие.\n2. Второе условие. Все условия необходимы.',
+        locator: 'PDF pp. 1–2',
+        textSha256: 'c'.repeat(64),
+      },
+    ],
+    terms: [
+      {
+        id: 'fixture.alpha',
+        title: 'Альфа',
+        kind: 'criterion_set',
+        aliases: [] as string[],
+        blockIds: [1, 2],
+        itemBlocks: [2],
+        coverage: 'criterion-list',
+        note: 'Историческая редакция источника; требует проверки.',
+      },
+    ],
   };
 }
 
@@ -87,6 +127,8 @@ describe('source-excerpt catalog boundary', () => {
     const raw = fixture();
     first(raw.sources).sourceSha256 = 'invalid';
     expect(() => parseDefinitionCatalog(raw)).toThrow();
-    expect(() => parseDefinitionCatalog({ ...fixture(), extra: 'x'.repeat(17 * 1024 * 1024) })).toThrow();
+    expect(() =>
+      parseDefinitionCatalog({ ...fixture(), extra: 'x'.repeat(17 * 1024 * 1024) }),
+    ).toThrow();
   });
 });

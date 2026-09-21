@@ -4,6 +4,7 @@ import {
   normalizeSurfaceText,
   tokenize,
 } from '@localmed/search-lexical';
+import { parseExtractedDefinitionCatalog } from './extracted-definition-catalog';
 import { parseSourceDefinitionCatalog } from './source-definition-catalog';
 
 /** A read-only draft projection, never an approved knowledge graph or diagnostic model. */
@@ -20,6 +21,9 @@ export interface DefinitionSource {
   readonly preparedSha256?: string;
   readonly sourceUrl?: string;
   readonly changes?: string;
+  readonly sourceType?: string;
+  readonly rightsStatus?: string;
+  readonly fileName?: string;
 }
 
 export interface DefinitionReference {
@@ -33,26 +37,37 @@ export interface DraftDefinition {
   /** Stable staging identity, not a same-as assertion or an approved concept ID. */
   readonly id: string;
   readonly title: string;
-  readonly kind: 'term' | 'symptom' | 'syndrome' | 'criterion_set';
+  readonly kind:
+    | 'term'
+    | 'symptom'
+    | 'syndrome'
+    | 'criterion_set'
+    | 'scale'
+    | 'classification'
+    | 'law'
+    | 'tool'
+    | 'history_note';
   readonly aliases: readonly string[];
   readonly definition: string;
   readonly items: readonly string[];
   readonly note: string;
+  readonly coverage?: string;
+  readonly etymology?: readonly string[];
   readonly references: readonly DefinitionReference[];
 }
 
 export interface DefinitionCatalog {
-  readonly version: 1 | 2;
+  readonly version: 1 | 2 | 3;
   readonly reviewStatus: 'requires-review';
   readonly publicationState: 'local-dev';
-  readonly textKind: 'editorial-paraphrase' | 'source-gloss';
+  readonly textKind: 'editorial-paraphrase' | 'source-gloss' | 'source-excerpt';
   readonly sources: readonly DefinitionSource[];
   readonly terms: readonly DraftDefinition[];
 }
 
 export interface DefinitionMatch {
   readonly term: DraftDefinition;
-  readonly textKind: 'editorial-paraphrase' | 'source-gloss';
+  readonly textKind: 'editorial-paraphrase' | 'source-gloss' | 'source-excerpt';
   readonly matchKind: 'name' | 'definition';
   readonly reviewStatus: 'requires-review';
   readonly citations: readonly {
@@ -116,6 +131,7 @@ function positiveInteger(value: unknown): number {
 }
 
 export function definitionSourceUrl(source: DefinitionSource, path: string): string {
+  if (source.sourceType === 'owner-pdf' && !source.baseUrl && !path) return '';
   const base = new URL(source.baseUrl);
   const resolved = new URL(path, base);
   if (
@@ -140,6 +156,7 @@ export function definitionSourceUrl(source: DefinitionSource, path: string): str
 
 /** Validate at the asset boundary; authoring cannot silently promote a draft to reviewed. */
 export function parseDefinitionCatalog(input: unknown): DefinitionCatalog {
+  if (object(input)['version'] === 3) return parseExtractedDefinitionCatalog(input);
   if (object(input)['version'] === 2) return parseSourceDefinitionCatalog(input);
   const serialized = JSON.stringify(input);
   if (!serialized || new TextEncoder().encode(serialized).length > DEFINITION_CATALOG_MAX_BYTES) {
@@ -270,7 +287,7 @@ export function createDefinitionLookup(
   input: unknown,
   ...additional: readonly unknown[]
 ): DefinitionLookup {
-  if (additional.length > 7) throw new Error('Too many glossary modules.');
+  if (additional.length > 31) throw new Error('Too many glossary modules.');
   const inputs = [input, ...additional].map(parseDefinitionCatalog);
   const sourceMap = new Map<number, DefinitionSource>();
   const termKinds = new Map<string, DefinitionCatalog['textKind']>();

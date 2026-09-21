@@ -1,5 +1,26 @@
 # Current state
 
+## Mass source definitions and owner-only overlays (2026-09-21)
+
+The lightweight core contains mostly pointers, so its exhaustive scan added only 76
+summary/tool-description records. A separate complete scan of 744
+pinned clinical detail packs produced 11082 source-excerpt records, plus
+987 separate mention-only review candidates. Original source
+text, numbered criterion lists, source snapshots and exact chunk/anchor locators are retained.
+These counts are source records, not disjoint canonical concepts or clinically qualified scales.
+Combined DEV lookup has 18133 records. Source-name audit: 6480 Top-1
+and 9842 Top-20 out of 11158 newly extracted records. All misses remain in
+the report. Independent reverse-definition qualification is not established.
+
+Owner PDF extraction is separate; this workflow does not measure or upload that source.
+
+The actual Solid definition component was browser-tested in isolation with the real loader
+and core: opt-in source loading, owner JSON import, local citations, invalid-file preservation
+and no external network requests. Core typecheck and both definition unit suites passed.
+No complete app build, production-bundle audit, physical-device or clinical validation is
+claimed. Sources remain requires-review/local-dev; no APK, released data or merge occurred.
+See the prepared/clinical extraction, lookup and component-browser reports under research/.
+
 ## Full Russian definition corpus — development preview (2026-09-21)
 
 The optional definition preview now loads the complete released Russian Wiktionary medical

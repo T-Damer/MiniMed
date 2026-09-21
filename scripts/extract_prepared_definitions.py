@@ -214,7 +214,7 @@ def scan_tools(directory: Path, collector: Collector, repo_ref: str):
                 if value:
                     notes.append({"field": key, "value": value})
             block_id = collector.block(4001, description, f"{path.name}#/tools/{index}/definition; tool={tool['id']}", path=path.name, rawFileSha256=digest(raw), toolId=tool["id"], sourceCaveats=notes)
-            collector.term("prepared.tool." + digest(tool["id"].encode())[:24], tool["title"], "scale" if tool.get("kind") == "assessment" else "tool", [block_id], coverage="tool-description", aliases=[x for x in tool.get("aliases", []) if isinstance(x, str)], toolId=tool["id"], originalKind=tool.get("kind"), sourceCaveats=notes)
+            collector.term("prepared.tool." + digest(tool["id"].encode())[:24], tool["title"], kind_for(tool["title"]) if kind_for(tool["title"]) != "term" else "tool", [block_id], coverage="tool-description", aliases=[x for x in tool.get("aliases", []) if isinstance(x, str)], toolId=tool["id"], originalKind=tool.get("kind"), sourceCaveats=notes)
 
 
 def main():

@@ -80,3 +80,15 @@
   min-height: 2.75rem;
   cursor: pointer;
 }
+
+.definition-drafts__definition {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.definition-drafts__import-label {
+  display: grid;
+  gap: 0.5rem;
+}
+.definition-drafts__import {
+  max-width: 100%;
+}
