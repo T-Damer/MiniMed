@@ -1,5 +1,15 @@
 # Current state
 
+## Definition reference R2 and package setup — 2026-09-22
+
+The actual App offers a full-screen first-run package list. Required core is bold and starred; other real catalog packages are optional with per-package status/progress. Closing preserves downloads and dismissal. Core consent uses the existing OPFS owner and pauses its deadline during human choice. Reconnect uses the same session factory; dictionary lookup waits for active-core capability, not just registry completion. Offline core recovery only accepts an unambiguous checksum-qualified cache name when HEAD cannot supply a size.
+
+The normal search screen has a dictionary entry. Numeric schema-7 reference requests use the existing installer, registry, MedicalStore/MedicalCore and OPFS owner; ordinary clinical projections exclude the reference-only mount. The unbounded JSON preview is no longer mounted. The local public draft has 18133 source records, not reviewed canonical concepts; transport/installed sizes are 27399431/110960640 bytes. It remains local-dev, not a public download or released APK.
+
+Headless Chromium exercised actual App/core consent, closure, the complete reference installer and sourced bounded card, followed by reload with database network reads blocked. Development JS/core-report remained served. Existing metadata-only catalog refreshes were blocked, not removed. Evidence: research/definition-reference-app-browser-2026-09-22.json; input 358b2ec6605b697f18c03d50ac3e073d35078801, run 35666818734.
+
+Android/native, production/offline bundle, process/install peak memory, complete corrupt/interrupted update matrix and owner-PDF annotations remain unqualified. No private PDF, model, binary, Actions artifact, release or merge was published.
+
 ## Definition reference R1b — numeric link pass (2026-09-21)
 
 Active plan: [DEFINITION_REFERENCE_PLAN.md](DEFINITION_REFERENCE_PLAN.md). SemIf is registered

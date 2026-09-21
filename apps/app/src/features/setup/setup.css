@@ -1,4 +1,4 @@
-.first-run-setup {
+.overlay-dialog.first-run-setup {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -11,9 +11,8 @@
   background: var(--theme-surface);
   color: var(--theme-text);
 }
-.first-run-setup__header {
+.overlay-dialog-header.first-run-setup__header {
   padding: calc(var(--safe-top, 0px) + 1rem) clamp(1rem, 4vw, 3rem) 1rem;
-  background: var(--theme-surface);
   border-bottom: 1px solid var(--theme-border);
 }
 .first-run-setup__body {

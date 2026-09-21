@@ -48,6 +48,7 @@ export function DefinitionReferencePanel(props: {
   const [source, setSource] = createSignal<Readonly<Record<string, unknown>> | null>(null);
   const [error, setError] = createSignal<string>();
   const [busy, setBusy] = createSignal(false);
+  const [connected, setConnected] = createSignal(false);
   let generation = 0;
   const refresh = () => setRevision((value) => value + 1);
   onCleanup(runtime.subscribe(refresh));
@@ -77,9 +78,8 @@ export function DefinitionReferencePanel(props: {
     () => available().find((module) => module.id === selection()) ?? available()[0],
   );
   createEffect(() => {
-    props.core;
-    selected()?.id;
-    selected()?.version;
+    const activeCore = props.core;
+    const module = selected();
     generation += 1;
     setHits([]);
     setSearched(false);
@@ -90,6 +90,40 @@ export function DefinitionReferencePanel(props: {
     setBlock(undefined);
     setError(undefined);
     setBusy(false);
+    setConnected(false);
+    if (!module?.definitionReference) return;
+    if (!activeCore.reference) {
+      setError('Справочник недоступен в этом варианте хранилища.');
+      return;
+    }
+    const token = generation;
+    const descriptor = module.definitionReference;
+    // Registry completion precedes swapping the active MedicalCore. Do not enable lookup on
+    // the old owner or clear a user's just-submitted query when the new core becomes ready.
+    void activeCore
+      .reference({ op: 'status', moduleId: module.id, editionId: descriptor.editionId })
+      .then(
+        (result) => {
+          if (token !== generation) return;
+          if (!result.ok) {
+            setError(result.error.message);
+            return;
+          }
+          if (result.value.op === 'unavailable') return;
+          if (
+            result.value.op !== 'status' ||
+            result.value.editionId !== descriptor.editionId ||
+            result.value.entries !== descriptor.entries
+          ) {
+            setError('Установленная редакция справочника не совпадает с ожидаемой.');
+            return;
+          }
+          setConnected(true);
+        },
+        () => {
+          if (token === generation) setError('Не удалось подключить установленный справочник.');
+        },
+      );
   });
   const request = async (input: DefinitionReferenceRequest): Promise<DefinitionReferenceReply> => {
     if (!props.core.reference) throw new Error('Справочник недоступен в этом варианте хранилища.');
@@ -103,7 +137,7 @@ export function DefinitionReferencePanel(props: {
     work: (token: number, scope: { moduleId: string; editionId: string }) => Promise<void>,
   ) => {
     const module = selected();
-    if (!module?.definitionReference || busy()) return;
+    if (!module?.definitionReference || !connected() || busy()) return;
     const token = ++generation;
     setBusy(true);
     setError(undefined);
@@ -221,7 +255,11 @@ export function DefinitionReferencePanel(props: {
               placeholder="Например: гиперестезия"
             />
           </label>
-          <button class="package-row__button" type="submit" disabled={busy() || !query().trim()}>
+          <button
+            class="package-row__button"
+            type="submit"
+            disabled={busy() || !connected() || !query().trim()}
+          >
             Найти
           </button>
         </form>
@@ -338,6 +376,11 @@ export function DefinitionReferencePanel(props: {
             </article>
           )}
         </Show>
+      </Show>
+      <Show when={available().length > 0 && !connected() && !error()}>
+        <p class="reference-panel__description" role="status">
+          Подключаем установленный справочник к поиску…
+        </p>
       </Show>
       <Show when={busy()}>
         <p class="reference-panel__description" role="status">

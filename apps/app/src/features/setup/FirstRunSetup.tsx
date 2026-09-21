@@ -5,6 +5,7 @@ import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { subscribeAppPreferences } from '@/state/app-preferences';
+import { DownloadProgress } from './DownloadProgress';
 import { PackageDownloadRow } from './PackageDownloadRow';
 import { downloadPercent, setupPackageGroups } from './setup-state';
 import './setup.css';
@@ -97,16 +98,14 @@ export function FirstRunSetup(props: {
                   (props.coreDownloading || (!props.coreRequired && !props.coreError))
                 }
               >
-                <progress
-                  class="package-row__progress"
-                  max={100}
+                <DownloadProgress
                   value={
                     props.coreProgress?.phase === 'downloading' ||
                     props.coreProgress?.phase === undefined
                       ? downloadPercent(props.coreProgress?.loaded ?? 0, props.coreProgress?.total)
                       : undefined
                   }
-                  aria-label="Загрузка ядра знаний"
+                  label="Загрузка ядра знаний"
                 />
               </Show>
               <Show

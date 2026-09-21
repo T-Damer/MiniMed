@@ -14,7 +14,9 @@ export function DownloadProgress(props: {
   });
   return (
     <progress
-      ref={(element) => { progress = element; }}
+      ref={(element) => {
+        progress = element;
+      }}
       class="package-row__progress"
       max={100}
       aria-label={props.label}

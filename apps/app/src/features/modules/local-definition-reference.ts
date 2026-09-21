@@ -39,15 +39,22 @@ export function withLocalDefinitionReference(
       throw new Error('Invalid local reference descriptor. Rebuild the local edition.');
     }
     const module = ContentModuleCatalogEntrySchema.parse(raw.module);
-    if (!module.definitionReference || module.releaseState !== 'preview' || module.artifacts.length !== 1) {
+    if (
+      !module.definitionReference ||
+      module.releaseState !== 'preview' ||
+      module.artifacts.length !== 1
+    ) {
       throw new Error('Conflicting local reference descriptor.');
     }
     const base = new URL(import.meta.env.BASE_URL, globalThis.location.href);
     const url = new URL(`content/definition-reference/${raw.fileName}`, base).href;
-    result = mergeLocalReferenceDescriptor(result, ContentModuleCatalogEntrySchema.parse({
-      ...module,
-      artifacts: module.artifacts.map((artifact) => ({ ...artifact, url })),
-    }));
+    result = mergeLocalReferenceDescriptor(
+      result,
+      ContentModuleCatalogEntrySchema.parse({
+        ...module,
+        artifacts: module.artifacts.map((artifact) => ({ ...artifact, url })),
+      }),
+    );
   }
   return result;
 }

@@ -1,6 +1,6 @@
 # Definition reference: execution plan
 
-Updated: 2026-09-21. Owner: draft PR #180, `experiment/system-one-search-benchmark`, stacked on #174. This plan refines `TECHNICAL_PLAN.md`; it does not authorize a merge, release, model download or architecture replacement.
+Updated: 2026-09-22. Owner: draft PR #180, `experiment/system-one-search-benchmark`, stacked on #174. This plan refines `TECHNICAL_PLAN.md`; it does not authorize a merge, release, model download or architecture replacement.
 
 ## Product outcome
 
@@ -11,7 +11,7 @@ An optional offline reference inside MiniMed: find a term by name or remembered 
 Starting code: `4ec354452750bda59b2cab6cce3447ffabe6e1bb`.
 The development catalog has 18,133 source/editorial records, not 18,133 reviewed canonical concepts. The separately returned owner-only psychiatry module has 450 records and is not public repository content. The previous full JSON-index audit took 5,597.5 ms to construct; current process RSS was 1,033,625,600 bytes. This includes the runtime and audit, not incremental Android memory. See `research/mass-definitions-delivery-2026-09-21.md`.
 
-The app's `definition-draft-lookup.ts` still imports every JSON collection and rebuilds the combined index for an owner overlay. The reviewed `knowledge_discovery_pack.py` gate must NOT be bypassed by promoting unreviewed extractions. Existing content/knowledge tables, installer, MedicalCore and native/WASM storage ownership remain the integration target.
+The original `definition-draft-lookup.ts` imported every JSON collection; R2 removes that preview from the mounted application. The reviewed `knowledge_discovery_pack.py` gate must NOT be bypassed by promoting unreviewed extractions. Existing content/knowledge tables, installer, MedicalCore and native/WASM storage ownership remain the integration target.
 
 ## Execution order and acceptance
 
@@ -47,18 +47,18 @@ The subsequent verbatim metadata pass is **opt-in, not the default**. On the sam
 
 Numeric evidence: [R1b verification](research/definition-reference-r1b-verification-2026-09-21.md), implementation `df1c402377bfe1db276aeb588dd87925c5ba85fa`, run https://github.com/T-Damer/MiniMed/actions/runs/35641414351. Metadata evidence: [verbatim metadata verification](research/definition-reference-metadata-verification-2026-09-21.md), implementation `81f81f72731ba7af931b8f15d845cec2bf8df0c2`, run https://github.com/T-Damer/MiniMed/actions/runs/35651708320. All source rows and logical links were compared; decoded raw metadata matched exactly. The explicit layout-aware reader does not redirect generic clinical consumers. Completed temporary workflows were removed.
 
-**Next implementation priority: R2's public-reference vertical slice**, not another speculative compression pass. This uses the already permitted R1/R1b baseline and does not waive phone, source-rights or lifecycle qualification. The unresolved annotation-mapping task must be completed before enabling owner-source annotations, while public-reference lifecycle work may proceed without loading an owner overlay. The current DEV UI has not yet switched from JSON.
+**Current priority: qualify the implemented R2 public-reference slice on target devices and remaining lifecycle failures**, not another speculative compression pass. This uses the already permitted R1/R1b baseline and does not waive phone, source-rights or lifecycle qualification. The unresolved annotation-mapping task must be completed before enabling owner-source annotations, while public-reference lifecycle work may proceed without loading an owner overlay. The current DEV UI uses the bounded reference capability.
 
-### R2 — Existing installer, app composition and lifecycle (pending; next implementation)
+### R2 — Existing installer, app composition and lifecycle (public browser slice implemented; device/lifecycle gates open)
 
 - [ ] Route install/open/update/removal through the existing content-module installer and database owner. Validate schema, manifest, edition and hash before activation; retain the working edition if an update fails.
-- [ ] Expose bounded reference operations through the existing MedicalStore/MedicalCore/worker ports. Reuse the active store's executor and handle lifetime; do not reopen its OPFS pool or create a parallel registry. A backend lacking the capability must report unavailable, not silently load the JSON corpus.
-- [ ] Replace the default all-JSON definition preview with the bounded SQLite path. UI receives headers and loads full definition/context only when a card opens; UI imports no SQL/native libraries.
+- [x] Expose bounded reference operations through the existing MedicalStore/MedicalCore/worker ports. Reuse the active store's executor and handle lifetime; do not reopen its OPFS pool or create a parallel registry. A backend lacking the capability must report unavailable, not silently load the JSON corpus.
+- [x] Replace the default all-JSON definition preview with the bounded SQLite path. UI receives headers and loads full definition/context only when a card opens; UI imports no SQL/native libraries.
 - [ ] Keep owner-only imports local and separate. Do not upload the supplied PDF, its text/profile or owner-derived fixtures to public CI/GitHub. Validate optional source-annotation mappings rather than assuming structural conversion proves them usable.
 - [ ] Test interrupted/corrupt updates, offline restart, disable/remove, search after each transition, cancellation and stale-response races. Prove that whole-corpus text does not cross into UI memory.
 - [ ] Exercise actual browser/app composition and Android. Measure native and WASM fallback separately where both are supported: cold/warm latency, baseline/incremental memory, install/open peak and actual installed/transport bytes. Include temporary binary-buffer copies during installation, not only warm SQL lookup.
 
-R2 exit: install the reference, restart offline, search and open a complete sourced card in the normal application. No APK publication or merge without authorization. The current DEV UI is still the older JSON preview; R1/R1b alone did not fix its memory consumption. The public-reference slice must not implicitly enable unqualified owner annotations or the optional metadata layout on unsupported backends.
+R2 exit: install the reference, restart offline, search and open a complete sourced card in the normal application. No APK publication or merge without authorization. The full public DEV reference installs and opens through the actual App; Android/install-peak measurements and full update-failure matrix remain open. The public-reference slice must not implicitly enable unqualified owner annotations or the optional metadata layout on unsupported backends.
 
 ### R3 — Useful cards, extraction QA and conservative grouping (pending)
 
@@ -97,3 +97,5 @@ No arbitrary final device budget is advertised before measurement. The invariant
 - 2026-09-21: SemIf registered as an R4 candidate; no model was downloaded or run. Read-only baseline profiling saved in `research/definition-reference-r1b-baseline-profile-2026-09-21.json` before selecting the physical optimization.
 - 2026-09-21: R1b numeric navigation and empty-FTS cleanup verified in `df1c402377bfe1db276aeb588dd87925c5ba85fa`. Installed bytes 159154176 -> 110387200; gzip comparison 27393160 bytes. Complete logical source/link equality and post-VACUUM FTS checks passed. 34 Python and 91 selected Vitest cases, strict type/schema checks and 21 file-backed reader assertions per synthetic layout passed. Full-corpus name availability remained 13146/13146, not independent relevance or reverse-search quality. Details and compatibility/measurement boundaries are in the R1b verification note.
 - 2026-09-21: optional verbatim metadata pass verified in `81f81f72731ba7af931b8f15d845cec2bf8df0c2`: 48 Python / 22 selected Vitest cases, strict type/schema checks, full logical/source comparison, 13146/13146 name availability and 128 decoded source-block comparisons. Installed bytes 110395392 -> 105783296, gzip 27393572 -> 28112736. The transport regression is retained; the option stays disabled by default. R2 public-reference integration is now the next implementation priority; owner-annotation bindings remain required before enabling that optional path. No full-app, Android, clinical or SemIf qualification is implied.
+
+- 2026-09-22: R2 public browser slice and explicit full-screen core/optional package setup verified. See `research/definition-reference-app-browser-2026-09-22.json` for exact input/run, bounded-card checks, full 18133-record install and restricted-network restart. Not Android or complete lifecycle/clinical qualification. Owner overlays and schema-8/9 application capabilities remain disabled.

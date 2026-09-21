@@ -37,9 +37,9 @@ import sqlite3InitModule, {
 
 import { createDefinitionReferenceDispatch } from './definition-reference-dispatch';
 import { SCHEMA_SQL } from './generated/schema';
+import { resolveOpfsCacheFile } from './opfs-cache-identity';
 import {
   createStreamChunkImporter,
-  opfsVfsFileName,
   parseContentSchemaVersion,
   sahPoolContextName,
 } from './opfs-pack';
@@ -492,7 +492,7 @@ export class SqliteMedicalStore implements MedicalStore {
     const pool = await getSahPool(sqlite, poolName);
     const fetchTimeoutMs = options.fetchTimeoutMs ?? 180_000;
     const byteLength = await fetchPackByteLength(url, fetchTimeoutMs);
-    const vfsName = opfsVfsFileName(databaseName, byteLength);
+    const vfsName = resolveOpfsCacheFile(databaseName, byteLength, pool.getFileNames());
     const legacyVfsName =
       byteLength === null ? databaseName : `${databaseName}.${String(byteLength)}`;
     const alreadyImported = pool.getFileNames().includes(vfsName);

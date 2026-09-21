@@ -6,6 +6,7 @@ import {
   isModuleReleased,
 } from '@/features/modules/local-packaged-modules';
 import { formatModuleBytes } from '@/features/modules/module-display';
+import { DownloadProgress } from './DownloadProgress';
 import { downloadPercent } from './setup-state';
 
 export function PackageDownloadRow(props: {
@@ -105,15 +106,13 @@ export function PackageDownloadRow(props: {
           {label()}
         </span>
         <Show when={active() && !ready()}>
-          <progress
-            class="package-row__progress"
-            max={100}
+          <DownloadProgress
             value={
               task()?.state === 'downloading'
                 ? downloadPercent(task()?.downloadedBytes ?? 0, task()?.totalBytes)
                 : undefined
             }
-            aria-label={`Загрузка: ${props.module.title}`}
+            label={`Загрузка: ${props.module.title}`}
           />
           <Show when={task()}>
             {(current) => (

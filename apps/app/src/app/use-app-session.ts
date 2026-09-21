@@ -343,10 +343,31 @@ export function useAppSession() {
     );
   };
 
+  const createSessionCore = () =>
+    createBrowserCore({
+      requestDownload: (resuming) =>
+        new Promise<void>((resolve, reject) => {
+          if (ready()) {
+            reject(
+              new Error(
+                'Установленное ядро больше не доступно. Перезапустите приложение для повторной загрузки.',
+              ),
+            );
+            return;
+          }
+          setCoreDownloadRequired(true);
+          if (resuming) {
+            setCoreDownloading(true);
+            resolve();
+          } else beginCoreDownload = resolve;
+        }),
+      onProgress: setCoreProgress,
+    });
+
   const reconnectInstalledModules = async (): Promise<void> => {
     const current = ready();
     if (!current) throw new Error('Локальный поиск ещё не готов.');
-    const next = await swapMedicalCore(current, createBrowserCore, (core) => {
+    const next = await swapMedicalCore(current, createSessionCore, (core) => {
       const previousSearchCore = searchCore();
       const nextSearchCore = new WorkerSearchMedicalCore(core);
       setSearchCore(nextSearchCore);
@@ -414,21 +435,7 @@ export function useAppSession() {
       unsubscribeInstalledModules = runtime.subscribe(syncInstalledCount);
     };
     bootTimer = setTimeout(() => setBootSlow(true), SLOW_BOOT_DELAY_MS);
-    const initializedPromise = initializeMedicalCore(() =>
-      createBrowserCore({
-        requestDownload: (resuming) =>
-          new Promise<void>((resolve) => {
-            setCoreDownloadRequired(true);
-            if (resuming) {
-              setCoreDownloading(true);
-              resolve();
-            } else {
-              beginCoreDownload = resolve;
-            }
-          }),
-        onProgress: setCoreProgress,
-      }),
-    );
+    const initializedPromise = initializeMedicalCore(createSessionCore);
     try {
       const initialized = await initializedPromise;
       if (disposed) {
