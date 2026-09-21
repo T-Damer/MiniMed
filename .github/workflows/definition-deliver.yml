@@ -1,0 +1,43 @@
+name: Deliver extracted definition corpus
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/definition-deliver.yml]
+permissions:
+  contents: write
+jobs:
+  deliver:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Run preceding finalizer with explicit checked-out commit
+        env:
+          HEAD_SHA: ${{ github.sha }}
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os, subprocess, textwrap
+          from pathlib import Path
+          source=Path('.github/workflows/definition-finalize.yml').read_text()
+          for block in source.split('      - name: ')[1:]:
+              name=block.splitlines()[0]
+              if name=='Storage-free summary': continue
+              command=textwrap.dedent(block.split('        run: |\n',1)[1]) if '        run: |\n' in block else block.split('        run: ',1)[1].strip()
+              command=command.replace('$'+'{{ github.sha }}',os.environ['HEAD_SHA'])
+              env={key:os.environ[key] for key in ('PATH','HOME','RUNNER_TEMP','HEAD_SHA')}
+              if name=='Commit scoped artifacts and regular fast-forward push to existing PR':
+                  env['PUSH_TOKEN']=os.environ['PUSH_TOKEN']
+              print('Executing checked-out step: '+name,flush=True)
+              subprocess.run(['bash','-e','-o','pipefail','-c',command],env=env,check=True)
+          PY
+      - name: Storage-free summary
+        if: always()
+        run: echo 'No source PDF, model weights, Actions artifacts, new releases or APKs uploaded.' >> "$GITHUB_STEP_SUMMARY"
