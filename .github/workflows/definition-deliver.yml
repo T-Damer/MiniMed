@@ -24,10 +24,10 @@ jobs:
           PUSH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
-          import os, subprocess, textwrap
+          import os, re, subprocess, textwrap
           from pathlib import Path
           source=Path('.github/workflows/definition-finalize.yml').read_text()
-          for block in source.split('      - name: ')[1:]:
+          for block in re.split(r'(?m)^      - name: ',source)[1:]:
               name=block.splitlines()[0]
               if name=='Storage-free summary': continue
               command=textwrap.dedent(block.split('        run: |\n',1)[1]) if '        run: |\n' in block else block.split('        run: ',1)[1].strip()
