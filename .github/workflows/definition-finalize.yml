@@ -25,7 +25,7 @@ jobs:
       - name: Reuse exact verification steps from the preceding one-time workflow
         run: |
           cat > "$RUNNER_TEMP/definition-step.py" <<'PY'
-          import os, re, subprocess, sys, textwrap
+          import os, subprocess, sys, textwrap
           from pathlib import Path
           source=Path('.github/workflows/definition-mass-extraction-followup.yml').read_text()
           name=sys.argv[1]
@@ -36,13 +36,19 @@ jobs:
           token='$'+'{{ github.sha }}'
           command=textwrap.dedent(block.split('        run: |\n',1)[1]).replace(token,os.environ['HEAD_SHA'])
           if '$'+'{{' in command: raise ValueError('Unresolved workflow expression')
+          if name=='Locked formatting, definition tests and real core typecheck':
+              command='python3 scripts/definition_recovery_preflight.py\n'+command
+              command=command.replace('bunx biome check --write ', 'bunx biome check --write packages/core/src/query-document-index.test.ts ')
+              command=command.replace('bunx vitest run ', 'bunx vitest run packages/core/src/query-document-index.test.ts ')
           if name=='Audit every new source identity in combined lookup':
               command=command.replace("const clinical=load('content/definition-drafts/clinical-source-excerpts-2026.09.21.json');", "const manifest=load('content/definition-drafts/clinical-source-excerpts-2026.09.21.json') as {parts:{path:string}[]};\nconst clinical=manifest.parts.map(p=>load('content/definition-drafts/'+p.path));")
               command=command.replace('...parseDefinitionCatalog(clinical).terms', '...clinical.flatMap(p=>parseDefinitionCatalog(p).terms)').replace('prepared,clinical);','prepared,...clinical);')
           if name=='Record actual scope':
-              start=command.index('          The owner-supplied Semenov/Bersenev') if '          The owner-supplied Semenov/Bersenev' in command else command.index('The owner-supplied Semenov/Bersenev')
+              start=command.index('The owner-supplied Semenov/Bersenev')
               end=command.index('The actual Solid definition component',start)
               command=command[:start]+'Owner PDF extraction is separate; this workflow does not measure or upload that source.\n\n'+command[end:]
+          if name=='Push only scoped successful results to the same PR':
+              command='git add packages/core/src/query-document-index.test.ts\n'+command
           subprocess.run(['bash','-e','-o','pipefail','-c',command],check=True)
           PY
           env -i PATH="$PATH" HOME="$HOME" RUNNER_TEMP="$RUNNER_TEMP" HEAD_SHA='${{ github.sha }}' python3 "$RUNNER_TEMP/definition-step.py" 'Prepare integration from the reviewed previous bootstrap and tighten boundaries'
