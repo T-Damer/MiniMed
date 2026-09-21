@@ -93,9 +93,11 @@ def test_unreconstructible_links_are_not_silently_normalized(
 def test_repeated_compaction_fails_without_changing_data(tmp_path: Path) -> None:
     compact, _ = compact_build(tmp_path)
     before = file_receipt(compact)
-    with closing(sqlite3.connect(compact)) as db:
-        with pytest.raises(ValueError, match="start empty"):
-            compact_reference_links(db)
+    with (
+        closing(sqlite3.connect(compact)) as db,
+        pytest.raises(ValueError, match="start empty"),
+    ):
+        compact_reference_links(db)
     assert file_receipt(compact) == before
 
 
