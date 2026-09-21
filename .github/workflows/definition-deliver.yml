@@ -18,7 +18,7 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
-      - name: Run preceding finalizer with resolved workspace browser CLI
+      - name: Run preceding finalizer with corrected browser config
         env:
           HEAD_SHA: ${{ github.sha }}
           PUSH_TOKEN: ${{ github.token }}
