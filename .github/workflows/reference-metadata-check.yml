@@ -2,7 +2,10 @@ name: Reference metadata fidelity
 on:
   push:
     branches: [experiment/system-one-search-benchmark]
-    paths: [.github/workflows/reference-metadata-check.yml]
+    paths:
+      - .github/workflows/reference-metadata-check.yml
+      - schema/sql/008_definition_reference_metadata.sql
+      - tools/ingest/src/localmed_ingest/definition_reference_metadata.py
 permissions:
   contents: write
 concurrency:
