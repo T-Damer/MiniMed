@@ -1,0 +1,50 @@
+{
+  "contract": 1,
+  "editionId": "minimed.definition.reference.2026-09-21",
+  "version": "r1",
+  "reviewStatus": "requires-review",
+  "publicationState": "local-dev",
+  "identityStatus": "source-local-proposed",
+  "receipts": [
+    {
+      "sha256": "9d44b411624efe7d48f8b3366c9d4030ffdea1965e70c903d76a51a4909c94ba",
+      "bytes": 20878
+    },
+    {
+      "sha256": "6ac2ea09506ce09a7a80eccf6f2bea9516e78c73c415454db56fcce7f62278eb",
+      "bytes": 4302994
+    },
+    {
+      "sha256": "e7c6187b1b997335d50f109a409fb9f3e9803651843c8a132d9dbdfafa6124e3",
+      "bytes": 198215
+    },
+    {
+      "sha256": "cf31c7d6389af7c720d44ce4199600d6419d7cfa641bd71d4d3cf7b81e62c3f8",
+      "bytes": 8369868
+    },
+    {
+      "sha256": "cf8ba554d2b3f7fa2343749a5184b165f4f37b1490d96c3cd024cce89ecc2590",
+      "bytes": 8371513
+    },
+    {
+      "sha256": "c6680629595d20d0cc0993681fbd4b73dedae9e43fa09d708f2c33c3b6fb11d4",
+      "bytes": 8369102
+    },
+    {
+      "sha256": "c69ed952aa16c7426d9f36fe412875ba22f89423fcce6a156e29458e4db86a6d",
+      "bytes": 8371393
+    },
+    {
+      "sha256": "75b0bee1d9ef75c4fe1e64e3dd409dea028fe84a6cb83478f16fbba6b886b110",
+      "bytes": 909686
+    }
+  ],
+  "entries": 18133,
+  "sources": 9,
+  "blocks": 23809,
+  "sqliteBytes": 159125504,
+  "sqliteSha256": "82462d98f64d52e509ec16784036428fb9e72ce1867370cf29e3e46847520c43",
+  "integrity": "ok",
+  "foreignKeyViolations": 0,
+  "boundaries": "Source-local draft navigation only. No approved facts/relations, app lifecycle or Android qualification."
+}

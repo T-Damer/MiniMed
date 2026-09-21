@@ -6,7 +6,10 @@ import type {
 
 /** Supplied by the current database owner. This adapter does not open/close connections or workers. */
 export interface DefinitionReferenceSql {
-  read(sql: string, parameters: readonly (string | number)[]): Promise<readonly Readonly<Record<string, unknown>>[]>;
+  read(
+    sql: string,
+    parameters: readonly (string | number)[],
+  ): Promise<readonly Readonly<Record<string, unknown>>[]>;
 }
 
 type Row = Readonly<Record<string, unknown>>;
@@ -57,24 +60,41 @@ function identity(value: string): string {
 
 function hit(row: Row, match: 'name' | 'text'): DefinitionReferenceHit {
   const textKind = row['text_kind'];
-  if (textKind !== 'editorial-paraphrase' && textKind !== 'source-gloss' && textKind !== 'source-excerpt') {
+  if (
+    textKind !== 'editorial-paraphrase' &&
+    textKind !== 'source-gloss' &&
+    textKind !== 'source-excerpt'
+  ) {
     throw new Error('Invalid reference text kind.');
   }
   return {
-    id: string(row['id'], 256), title: string(row['title']), kind: string(row['kind'], 40),
-    coverage: string(row['coverage'], 80), textKind, blockCount: integer(row['block_count']),
-    reviewStatus: 'requires-review', identityStatus: 'source-local-proposed', match,
+    id: string(row['id'], 256),
+    title: string(row['title']),
+    kind: string(row['kind'], 40),
+    coverage: string(row['coverage'], 80),
+    textKind,
+    blockCount: integer(row['block_count']),
+    reviewStatus: 'requires-review',
+    identityStatus: 'source-local-proposed',
+    match,
   };
 }
 
 /** Create a read-only capability for one already-installed, immutable content-pack handle. */
-export async function createSqliteDefinitionReference(sql: DefinitionReferenceSql): Promise<DefinitionReferenceReader> {
+export async function createSqliteDefinitionReference(
+  sql: DefinitionReferenceSql,
+): Promise<DefinitionReferenceReader> {
   const rows = await sql.read(
-    "SELECT substr(value, 1, 65537) AS value FROM app_metadata WHERE key = 'definition_reference' LIMIT 1", [],
+    "SELECT substr(value, 1, 65537) AS value FROM app_metadata WHERE key = 'definition_reference' LIMIT 1",
+    [],
   );
   const manifest = jsonObject(rows[0]?.['value']);
-  if (manifest['contract'] !== 1 || manifest['reviewStatus'] !== 'requires-review' ||
-      manifest['publicationState'] !== 'local-dev' || manifest['identityStatus'] !== 'source-local-proposed') {
+  if (
+    manifest['contract'] !== 1 ||
+    manifest['reviewStatus'] !== 'requires-review' ||
+    manifest['publicationState'] !== 'local-dev' ||
+    manifest['identityStatus'] !== 'source-local-proposed'
+  ) {
     throw new Error('Unsupported definition reference contract.');
   }
   const editionId = string(manifest['editionId'], 256);
@@ -82,27 +102,40 @@ export async function createSqliteDefinitionReference(sql: DefinitionReferenceSq
 
   return {
     async search(query, requested = 20) {
-      if (!Number.isFinite(requested) || requested < 1 || query.length > MAX_QUERY_CHARACTERS || query.includes('\0')) return [];
+      if (
+        !Number.isFinite(requested) ||
+        requested < 1 ||
+        query.length > MAX_QUERY_CHARACTERS ||
+        query.includes('\0')
+      )
+        return [];
       const limit = Math.min(Math.floor(requested), 20);
       const normalized = normalizeDefinitionReferenceName(query);
       if (!normalized || normalized.length > MAX_QUERY_CHARACTERS) return [];
-      const exact = await sql.read(`SELECT ${HEADER}, MIN(CASE WHEN n.name_type = 'primary' THEN 0 ELSE 1 END) AS tier
+      const exact = await sql.read(
+        `SELECT ${HEADER}, MIN(CASE WHEN n.name_type = 'primary' THEN 0 ELSE 1 END) AS tier
         FROM knowledge_names n JOIN knowledge_entities e ON e.id = n.entity_id
         WHERE n.normalized_name = ? AND ${SCOPE}
-        GROUP BY e.id ORDER BY tier, e.id LIMIT ?`, [normalized, ...scope, limit]);
+        GROUP BY e.id ORDER BY tier, e.id LIMIT ?`,
+        [normalized, ...scope, limit],
+      );
       // Abbreviations/stop words are never discarded before the identity lookup.
       if (exact.length) return exact.map((row) => hit(row, 'name'));
       const tokens = [...new Set(normalized.match(/[\p{L}\p{N}]+/gu) ?? [])];
       if (!tokens.length || tokens.length > 24) return [];
       const fts = tokens.map((token) => `"${token}"${token.length >= 4 ? '*' : ''}`).join(' AND ');
-      const names = await sql.read(`SELECT ${HEADER}
+      const names = await sql.read(
+        `SELECT ${HEADER}
         FROM knowledge_fts f JOIN knowledge_entities e ON e.id = f.entity_id
         WHERE knowledge_fts MATCH ? AND ${SCOPE}
-        ORDER BY rank, e.id LIMIT ?`, [fts, ...scope, limit]);
+        ORDER BY rank, e.id LIMIT ?`,
+        [fts, ...scope, limit],
+      );
       const results = names.map((row) => hit(row, 'name'));
       if (results.length >= limit) return results;
       // An explicit small candidate set, not a whole-corpus JS index. The SQL engine owns FTS work.
-      const body = await sql.read(`WITH matches AS MATERIALIZED (
+      const body = await sql.read(
+        `WITH matches AS MATERIALIZED (
           SELECT rowid, rank AS score FROM definition_reference_fts
           WHERE definition_reference_fts MATCH ? ORDER BY rank LIMIT 80
         ) SELECT ${HEADER}, MIN(m.score) AS score
@@ -111,17 +144,25 @@ export async function createSqliteDefinitionReference(sql: DefinitionReferenceSq
         JOIN knowledge_entities e ON e.id = l.entity_id
         WHERE l.review_status = 'proposed' AND l.link_type IN ('reference:definition','reference:item')
           AND ${SCOPE}
-        GROUP BY e.id ORDER BY score, e.id LIMIT ?`, [fts, ...scope, limit]);
+        GROUP BY e.id ORDER BY score, e.id LIMIT ?`,
+        [fts, ...scope, limit],
+      );
       const ids = new Set(results.map((item) => item.id));
       for (const row of body) {
         const item = hit(row, 'text');
-        if (!ids.has(item.id) && results.length < limit) { ids.add(item.id); results.push(item); }
+        if (!ids.has(item.id) && results.length < limit) {
+          ids.add(item.id);
+          results.push(item);
+        }
       }
       return results;
     },
     async getCard(id) {
       identity(id);
-      const rows = await sql.read(`SELECT ${HEADER} FROM knowledge_entities e WHERE e.id = ? AND ${SCOPE} LIMIT 1`, [id, ...scope]);
+      const rows = await sql.read(
+        `SELECT ${HEADER} FROM knowledge_entities e WHERE e.id = ? AND ${SCOPE} LIMIT 1`,
+        [id, ...scope],
+      );
       return rows[0] ? hit(rows[0], 'name') : null;
     },
     async listBlocks(id, after = '') {
@@ -129,43 +170,67 @@ export async function createSqliteDefinitionReference(sql: DefinitionReferenceSq
       if (after && (!after.startsWith(`${id}.reference.`) || !/\.reference\.\d{6}$/u.test(after))) {
         throw new Error('Invalid reference block cursor.');
       }
-      const rows = await sql.read(`SELECT l.id, l.chunk_id, l.document_id,
+      const rows = await sql.read(
+        `SELECT l.id, l.chunk_id, l.document_id,
           json_extract(l.metadata_json, '$.role') AS role, length(c.original_text) AS characters
         FROM knowledge_document_links l JOIN knowledge_entities e ON e.id = l.entity_id
         JOIN chunks c ON c.id = l.chunk_id
         WHERE e.id = ? AND l.id > ? AND l.review_status = 'proposed' AND ${SCOPE}
-        ORDER BY l.id LIMIT ?`, [id, after, ...scope, PAGE_BLOCKS + 1]);
+        ORDER BY l.id LIMIT ?`,
+        [id, after, ...scope, PAGE_BLOCKS + 1],
+      );
       const blocks = rows.slice(0, PAGE_BLOCKS).map((row): DefinitionReferenceBlock => {
         const role = row['role'];
-        if (role !== 'definition' && role !== 'item' && role !== 'context' && role !== 'annotation') throw new Error('Invalid reference block role.');
-        return { linkId: string(row['id'], 300), chunkId: string(row['chunk_id'], 256),
-          sourceId: string(row['document_id'], 256), role, characters: integer(row['characters']) };
+        if (role !== 'definition' && role !== 'item' && role !== 'context' && role !== 'annotation')
+          throw new Error('Invalid reference block role.');
+        return {
+          linkId: string(row['id'], 300),
+          chunkId: string(row['chunk_id'], 256),
+          sourceId: string(row['document_id'], 256),
+          role,
+          characters: integer(row['characters']),
+        };
       });
-      return { blocks, next: rows.length > PAGE_BLOCKS ? blocks[blocks.length - 1]?.linkId ?? null : null };
+      return {
+        blocks,
+        next: rows.length > PAGE_BLOCKS ? (blocks[blocks.length - 1]?.linkId ?? null) : null,
+      };
     },
     async readBlock(id, chunkId, offset = 0) {
-      identity(id); identity(chunkId);
-      if (!Number.isSafeInteger(offset) || offset < 0 || offset > 262144) throw new Error('Invalid reference text offset.');
-      const rows = await sql.read(`SELECT substr(c.original_text, ?, ?) AS body,
+      identity(id);
+      identity(chunkId);
+      if (!Number.isSafeInteger(offset) || offset < 0 || offset > 262144)
+        throw new Error('Invalid reference text offset.');
+      const rows = await sql.read(
+        `SELECT substr(c.original_text, ?, ?) AS body,
           length(c.original_text) AS characters, substr(c.metadata_json, 1, 65537) AS metadata,
           l.document_id
         FROM chunks c JOIN knowledge_document_links l ON l.chunk_id = c.id
         JOIN knowledge_entities e ON e.id = l.entity_id
         WHERE e.id = ? AND c.id = ? AND l.review_status = 'proposed' AND ${SCOPE} LIMIT 1`,
-        [offset + 1, BLOCK_CHARACTERS, id, chunkId, ...scope]);
+        [offset + 1, BLOCK_CHARACTERS, id, chunkId, ...scope],
+      );
       const row = rows[0];
       if (!row) return null;
       const total = integer(row['characters']);
       const body = string(row['body'], BLOCK_CHARACTERS * 2);
-      return { text: body, totalCharacters: total, nextOffset: offset + BLOCK_CHARACTERS < total ? offset + BLOCK_CHARACTERS : null,
-        sourceId: string(row['document_id'], 256), provenance: jsonObject(row['metadata']) };
+      return {
+        text: body,
+        totalCharacters: total,
+        nextOffset: offset + BLOCK_CHARACTERS < total ? offset + BLOCK_CHARACTERS : null,
+        sourceId: string(row['document_id'], 256),
+        provenance: jsonObject(row['metadata']),
+      };
     },
     async getSource(id) {
       identity(id);
-      const rows = await sql.read(`SELECT substr(d.metadata_json, 1, 65537) AS metadata
+      const rows = await sql.read(
+        `SELECT substr(d.metadata_json, 1, 65537) AS metadata
         FROM documents d JOIN content_packs p ON p.id = d.content_pack_id
         WHERE d.id = ? AND p.id = ? AND p.enabled = 1
-          AND json_extract(d.metadata_json, '$.definitionReference') = 1 LIMIT 1`, [id, editionId]);
+          AND json_extract(d.metadata_json, '$.definitionReference') = 1 LIMIT 1`,
+        [id, editionId],
+      );
       return rows[0] ? jsonObject(rows[0]['metadata']) : null;
     },
   };

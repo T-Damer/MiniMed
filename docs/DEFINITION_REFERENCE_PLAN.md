@@ -15,14 +15,14 @@ The development catalog has 18,133 source/editorial records, not 18,133 reviewed
 
 ## Execution order and acceptance
 
-### R1 — Reproducible SQLite projection and bounded storage access (active)
+### R1 — Reproducible SQLite projection and bounded storage access (implemented; host storage checks passed)
 
-- [ ] Implement an offline builder/adapter for existing V1/V2/V3 definition inputs. Use the repository's ordinary content-pack schema and builder; retain proposed/source-local identities until explicit canonical mapping exists.
-- [ ] Preserve source edition/hash, original name, exact block text/order, definition-versus-context roles, all source locators, review/rights state and mention-only status. Namespace module-local numeric references; reject collisions and broken references.
-- [ ] Share source metadata and source blocks, not a repeated publisher or full context object per result. Do not invent approved knowledge facts, synonym relations, scale scoring or eponym authorship.
-- [ ] Add a storage-layer bounded lookup/detail adapter that receives an already-owned database executor, never opens a second native connection or OPFS worker. Search returns at most 20 compact hits. Context is paginated/read only on demand, with bounded per-call text size.
-- [ ] Exact identity precedes broad text search; short names/abbreviations must not disappear solely because of stop-word removal. Parameterize values, constrain result counts and do not log queries or source text.
-- [ ] Validate builder output with integrity/foreign-key checks, round-trip text/locator/ID checks, source collisions, damaged input, mention-only and ambiguous-name regressions. Measure complete corpus bytes and fresh-process lookup resource use; compare against the recorded baseline without equating RSS with incremental index memory.
+- [x] Implement an offline builder/adapter for existing V1/V2/V3 definition inputs. Use the repository's ordinary content-pack schema and builder; retain proposed/source-local identities until explicit canonical mapping exists.
+- [x] Preserve source edition/hash, original name, exact block text/order, definition-versus-context roles, all source locators, review/rights state and mention-only status. Namespace module-local numeric references; reject collisions and broken references.
+- [x] Share source metadata and source blocks, not a repeated publisher or full context object per result. Do not invent approved knowledge facts, synonym relations, scale scoring or eponym authorship.
+- [x] Add a storage-layer bounded lookup/detail adapter that receives an already-owned database executor, never opens a second native connection or OPFS worker. Search returns at most 20 compact hits. Context is paginated/read only on demand, with bounded per-call text size.
+- [x] Exact identity precedes broad text search; short names/abbreviations must not disappear solely because of stop-word removal. Parameterize values, constrain result counts and do not log queries or source text.
+- [x] Validate builder output with integrity/foreign-key checks, round-trip text/locator/ID checks, source collisions, damaged input, mention-only and ambiguous-name regressions. Measure complete corpus bytes and fresh-process lookup resource use; compare against the recorded baseline without equating RSS with incremental index memory.
 
 A schema change requires a numbered migration and regenerated schema. Reusing existing tables without schema changes does not require a fictitious migration. Whether FTS external-content optimization is necessary is a measured decision; do not redesign storage just to reach a gzip target.
 
@@ -70,3 +70,5 @@ No arbitrary final mobile budget is advertised before measurement. The acceptanc
 ## Progress log
 
 - 2026-09-21: plan established from the measured mass-extraction state. R1 started; R2–R5 remain pending. Implementation commits and executed verification will be appended here and in `CURRENT_STATE.md`. A checked box requires code plus the relevant evidence, not a proposed command.
+
+- 2026-09-21: R1 implemented and verified on the full 18,133-record public corpus. See the three `research/definition-reference-sqlite-*-2026-09-21.json` reports. Numbered migration 006 adds only the reference projection index/view; ordinary clinical ranking is unchanged. R2–R5 are not completed. The old DEV JSON UI remains in place until the existing-owner application integration is qualified.

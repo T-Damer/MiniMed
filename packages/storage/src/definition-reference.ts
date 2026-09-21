@@ -24,12 +24,19 @@ export interface DefinitionReferenceReader {
   search(query: string, limit?: number): Promise<readonly DefinitionReferenceHit[]>;
   getCard(id: string): Promise<DefinitionReferenceHit | null>;
   /** At most 8 descriptors. Ordering is the source's block ordering, never relevance order. */
-  listBlocks(id: string, after?: string): Promise<{
+  listBlocks(
+    id: string,
+    after?: string,
+  ): Promise<{
     readonly blocks: readonly DefinitionReferenceBlock[];
     readonly next: string | null;
   }>;
   /** Offset and returned character counts are Unicode code points (SQLite substr), not UTF-16. */
-  readBlock(id: string, chunkId: string, offset?: number): Promise<{
+  readBlock(
+    id: string,
+    chunkId: string,
+    offset?: number,
+  ): Promise<{
     readonly text: string;
     readonly nextOffset: number | null;
     readonly totalCharacters: number;

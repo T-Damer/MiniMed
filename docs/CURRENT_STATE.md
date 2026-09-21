@@ -1,5 +1,29 @@
 # Current state
 
+## Definition reference execution — R1 (2026-09-21)
+
+Active plan: [DEFINITION_REFERENCE_PLAN.md](DEFINITION_REFERENCE_PLAN.md). R1 now projects
+all 18133 public draft records into the existing content/knowledge tables, with
+proposed source-local identities, shared source blocks, no approved facts/relations and an
+external-content reference FTS index (numbered migration 006). It keeps the ordinary clinical
+FTS/ranking untouched. The new storage adapter receives an already-owned executor; it does
+not open another worker/connection. Searches return at most 20 headers; source text is read
+only on request in 4,096-code-point pieces; block descriptors are paged in groups of eight.
+
+Actual file-backed host measurements: SQLite 159125504 bytes; reader creation
+0.634 ms; source names returning a result 13146/13146.
+Fresh process RSS before open / after open / after audit:
+57942016 / 60227584 / 115838976 bytes.
+These are NOT Android PSS, a peak, or independent reverse-search quality. The audit reads
+bounded batches of source names outside the reader. Reports: research/definition-reference-sqlite-*-2026-09-21.json.
+
+R2 is next: wire this through the existing installer, database owner and MedicalCore/app,
+then qualify offline restart/update/removal and actual mobile memory. The current DEV UI
+still uses the older JSON preview until that integration is implemented; no silent switch,
+no claim that the app memory issue is already fixed. No private PDF/text, SQLite binaries,
+APK, model weights, release artifacts or merge are published by R1.
+
+
 ## Mass source definitions and owner-only overlays (2026-09-21)
 
 The lightweight core contains mostly pointers, so its exhaustive scan added only 76
