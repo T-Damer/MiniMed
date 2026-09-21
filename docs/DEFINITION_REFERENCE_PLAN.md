@@ -66,6 +66,8 @@ R3 exit: understandable cards for confirmed concepts, explicit ambiguous alterna
 
 ### R4 — Coverage and reverse-search work boundary (pending)
 
+- [x] Register **SemIf** as a user-approved research candidate, not an installed dependency. Follow [the pinned candidate/evaluation note](research/semif-candidate-2026-09-21.md); no download, inference, adoption or diagnostic confidence is implied. R1b/R2 remain ahead of the experiment.
+
 - [ ] Create approximately 200–300 varied development probes across terms, symptoms, syndromes, criteria and scales, with multi-target and corpus-absent/out-of-scope queries. This is a target, not completed independent clinician gold.
 - [ ] Separate name availability, exact identity, candidate recall, concept ranking, source-variant visibility, no-answer behavior and latency. Source-text quotations are not independent paraphrases.
 - [ ] Keep an independent clinician-authored holdout when available. Visible authored probes remain development tests, not clinical qualification.
@@ -88,3 +90,5 @@ No arbitrary final device budget is advertised before measurement. The invariant
 - 2026-09-21: executable subplan established from the mass-extraction baseline.
 - 2026-09-21: R1 implemented and verified on all 18,133 public records; 20 Python tests, 83 selected Vitest checks, strict Python/storage TypeScript checks and real file-backed reader assertions passed. The temporary verification workflow was removed after delivery; normal builder, migration, reader, verifier and reports remain.
 - 2026-09-21: added R1b because the measured 159 MB installed projection is not yet the requested small phone package. R1b and R2 are the next work; R3–R5 remain open. No new APK, released database or merge was performed.
+
+- 2026-09-21: SemIf registered as an R4 candidate; no model was downloaded or run. R1b read-only table/index/column profiling is recorded in `research/definition-reference-r1b-baseline-profile-2026-09-21.json`. This is the measured baseline before optimization; R1b size reduction and R2 app integration remain open.

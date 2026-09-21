@@ -16,14 +16,27 @@ TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
     "document_versions": ("id", "document_id", "source_checksum"),
     "sections": ("id", "document_version_id", "title", "anchor", "path_json"),
     "chunks": (
-        "id", "document_version_id", "section_id", "original_text", "normalized_text",
-        "previous_chunk_id", "next_chunk_id", "anchor", "metadata_json",
+        "id",
+        "document_version_id",
+        "section_id",
+        "original_text",
+        "normalized_text",
+        "previous_chunk_id",
+        "next_chunk_id",
+        "anchor",
+        "metadata_json",
     ),
     "knowledge_entities": ("id", "canonical_name", "normalized_name", "metadata_json"),
     "knowledge_names": ("id", "entity_id", "name", "normalized_name"),
     "knowledge_document_links": (
-        "id", "entity_id", "document_id", "document_version_id", "section_id", "chunk_id",
-        "link_type", "metadata_json",
+        "id",
+        "entity_id",
+        "document_id",
+        "document_version_id",
+        "section_id",
+        "chunk_id",
+        "link_type",
+        "metadata_json",
     ),
 }
 
@@ -78,8 +91,10 @@ def profile_reference(path: Path) -> dict[str, object]:
                 "name": str(row[0]),
                 "type": schema.get(str(row[0]), ("internal", ""))[0],
                 "owner": schema.get(str(row[0]), ("", str(row[0])))[1],
-                "pages": int(row[1]), "bytes": int(row[2]),
-                "payloadBytes": int(row[3]), "unusedBytes": int(row[4]),
+                "pages": int(row[1]),
+                "bytes": int(row[2]),
+                "payloadBytes": int(row[3]),
+                "unusedBytes": int(row[4]),
             }
             for row in rows
         ]
@@ -117,15 +132,21 @@ def profile_reference(path: Path) -> dict[str, object]:
     return {
         "schemaVersion": 1,
         "sqliteVersion": sqlite3.sqlite_version,
-        "sqliteSha256": before[0], "sqliteBytes": before[1], "gzipBytes": before[2],
-        "pageSize": page_size, "pageCount": page_count,
+        "sqliteSha256": before[0],
+        "sqliteBytes": before[1],
+        "gzipBytes": before[2],
+        "pageSize": page_size,
+        "pageCount": page_count,
         "freePageBytes": free_pages * page_size,
         "accountedBtreeBytes": sum(int(item["bytes"]) for item in allocation),
-        "allocation": allocation, "tables": columns,
+        "allocation": allocation,
+        "tables": columns,
         "identicalOriginalNormalized": {
-            "rows": int(duplicated_text[0]), "duplicatedTextBytes": int(duplicated_text[1]),
+            "rows": int(duplicated_text[0]),
+            "duplicatedTextBytes": int(duplicated_text[1]),
         },
-        "integrity": integrity, "foreignKeyViolations": foreign_key_violations,
+        "integrity": integrity,
+        "foreignKeyViolations": foreign_key_violations,
         "readOnlyReceiptUnchanged": True,
         "boundaries": (
             "Closed-file host storage accounting. Logical column bytes exclude row/index overhead; "
@@ -147,9 +168,12 @@ def main() -> None:
     with args.report.open("x", encoding="utf-8") as stream:
         json.dump(report, stream, ensure_ascii=False, indent=2)
         stream.write("\n")
-    print(json.dumps(
-        {key: report[key] for key in ("sqliteBytes", "gzipBytes", "integrity")}, indent=2,
-    ))
+    print(
+        json.dumps(
+            {key: report[key] for key in ("sqliteBytes", "gzipBytes", "integrity")},
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":
