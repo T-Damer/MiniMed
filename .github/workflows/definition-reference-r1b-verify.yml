@@ -2,7 +2,10 @@ name: Verify compact definition reference R1b
 on:
   push:
     branches: [experiment/system-one-search-benchmark]
-    paths: [.github/workflows/definition-reference-r1b-verify.yml]
+    paths:
+      - .github/workflows/definition-reference-r1b-verify.yml
+      - tools/ingest/src/localmed_ingest/definition_reference_layout.py
+      - tools/ingest/tests/test_definition_reference_compact.py
 permissions:
   contents: write
 concurrency:
