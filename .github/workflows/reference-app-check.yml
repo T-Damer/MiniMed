@@ -1,0 +1,79 @@
+name: Reference application integration
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/reference-app-check.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-reference-app
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Integrate inspected existing owners
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 scripts/apply-reference-r2-integration.py
+          env -i PATH="$PATH" HOME="$HOME" python3 scripts/apply-browser-core-approval.py
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - name: Locked dependencies and scoped formatting
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          python3 - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          paths=json.loads(Path('data/build/reference-r2-changed.json').read_text())
+          paths += ['packages/contracts/src/definition-reference-api.ts','packages/storage-sqlite/src/definition-reference-dispatch.ts','packages/storage/tests/reference-mount.test.ts','apps/app/src/features/modules/local-definition-reference.ts']
+          for folder in ['apps/app/src/features/setup','apps/app/src/features/reference']:
+              paths += [str(p) for p in Path(folder).glob('*') if p.suffix in ['.ts','.tsx','.css']]
+          paths=list(dict.fromkeys(p for p in paths if Path(p).suffix in ['.ts','.tsx','.css']))
+          Path('data/build/reference-r2-code-paths.json').write_text(json.dumps(paths))
+          subprocess.run(['env','-i','PATH='+__import__('os').environ['PATH'],'HOME='+str(Path.home()),'bunx','biome','check','--write',*paths],check=True)
+          PY
+      - name: Strict type and schema checks
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun run schema:check
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p packages/storage-sqlite/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p packages/core/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p apps/app/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" python3 -m py_compile scripts/prepare-definition-reference.py
+      - name: Scoped unit regression checks
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/storage/tests/reference-mount.test.ts packages/storage-sqlite/tests/definition-reference-layout.test.ts packages/storage-sqlite/tests/definition-reference-metadata.test.ts apps/app/src/features/setup/setup-state.test.ts apps/app/src/composition/worker-opfs-medical-store.test.ts apps/app/src/composition/create-browser-core.test.ts
+      - name: Persist verified code only
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          paths=json.loads(Path('data/build/reference-r2-changed.json').read_text())+json.loads(Path('data/build/reference-r2-code-paths.json').read_text())
+          subprocess.run(['git','add','--',*dict.fromkeys(paths)],check=True)
+          PY
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(reference): wire bounded dictionary and package onboarding through existing owners [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: Integration diagnostics
+        if: always()
+        run: |
+          git diff --stat
+          grep -n 'connectInstalledModules\|refreshDueReminders\|search-ready\|disposed' apps/app/src/app/use-app-session.ts || true
+          grep -R -n 'definition-draft-lookup\|DefinitionDraft' apps/app/src --include='*.tsx' --include='*.ts' | head -35 || true
+          echo 'No database binaries, source PDF, model, release or Actions artifacts uploaded.' >> "$GITHUB_STEP_SUMMARY"
