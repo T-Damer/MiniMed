@@ -7,7 +7,7 @@ permissions:
   contents: write
 concurrency:
   group: minimed-reference-browser
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -53,9 +53,9 @@ jobs:
           s=s.replace("length > 0, { timeout:","length > 0, undefined, { timeout:")
           old="  await expect(referenceRow.getByText('Установлен', { exact: true })).toBeVisible({ timeout: 180000 });"
           new="""  await page.waitForFunction(async () => {
-            const { getContentModuleRuntime } = await import('/src/features/modules/module-runtime-service.ts');
-            const runtime = getContentModuleRuntime();
-            const task = runtime.listTasks().toReversed().find((entry) => entry.moduleId === 'minimed.definition.reference.ru');
+            const { peekContentModuleRuntime } = await import('/src/features/modules/module-runtime-service.ts');
+            const runtime = peekContentModuleRuntime();
+            const task = runtime?.listTasks().toReversed().find((entry) => entry.moduleId === 'minimed.definition.reference.ru');
             if (task?.state === 'failed') throw new Error(task.errorMessage ?? 'Reference installation failed.');
             return task?.state === 'completed';
           }, undefined, { timeout: 180000 });"""
