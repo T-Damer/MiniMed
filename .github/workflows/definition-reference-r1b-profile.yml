@@ -2,7 +2,9 @@ name: Profile definition reference R1b
 on:
   push:
     branches: [experiment/system-one-search-benchmark]
-    paths: [.github/workflows/definition-reference-r1b-profile.yml]
+    paths:
+      - .github/workflows/definition-reference-r1b-profile.yml
+      - tools/ingest/src/localmed_ingest/definition_reference_profile.py
 permissions:
   contents: write
 concurrency:
