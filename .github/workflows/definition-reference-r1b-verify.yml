@@ -1,0 +1,129 @@
+name: Verify compact definition reference R1b
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/definition-reference-r1b-verify.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-definition-reference-r1b
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'T-Damer/MiniMed'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: '0.10.0'
+          enable-cache: false
+      - name: Dispatch only explicitly declared numeric reference layouts
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          from pathlib import Path
+          p=Path('packages/storage-sqlite/src/definition-reference-reader.ts');s=p.read_text()
+          if s.count('knowledge_document_links')!=3: raise ValueError('Reader source changed; review integration')
+          s=s.replace('knowledge_document_links','${links}')
+          anchor='  const scope = [editionId, editionId];'
+          if s.count(anchor)!=1: raise ValueError('Reader scope changed')
+          replacement="""  const layout = manifest['linkLayout'];
+            if (layout !== undefined && layout !== 'numeric-v1') {
+              throw new Error('Unsupported definition reference link layout.');
+            }
+            const links = layout === 'numeric-v1' ? 'definition_reference_links' : 'knowledge_document_links';
+          """.rstrip()+'\n'+anchor
+          p.write_text(s.replace(anchor,replacement))
+          PY
+      - name: Locked formatting and schema generation
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format tools/ingest/src/localmed_ingest/definition_reference_layout.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py tools/ingest/tests/test_definition_reference_compact.py
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix tools/ingest/src/localmed_ingest/definition_reference_layout.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py tools/ingest/tests/test_definition_reference_compact.py
+          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write packages/storage-sqlite/src/definition-reference-reader.ts packages/storage-sqlite/tests/definition-reference-layout.test.ts
+          env -i PATH="$PATH" HOME="$HOME" bun run schema:generate
+          env -i PATH="$PATH" HOME="$HOME" bun run schema:check
+      - name: Strict types and existing plus new regression tests
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright tools/ingest/src/localmed_ingest/definition_reference_layout.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py tools/ingest/tests/test_definition_reference_compact.py
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_definition_reference_pack.py tools/ingest/tests/test_definition_reference_compact.py
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p packages/storage/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p packages/storage-sqlite/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/core/src/definition-catalog.test.ts packages/core/src/extracted-definition-catalog.test.ts packages/storage-sqlite/tests/opfs-pack.test.ts packages/storage-sqlite/tests/definition-reference-layout.test.ts
+          env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/storage-sqlite/tests/sqlite-medical-store.test.ts -t 'projects identities and ranking fields'
+      - name: Build and prove full logical source fidelity before and after compaction
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" PYTHONPATH=tools/ingest/src:tools/ingest/tests uv run --project tools/ingest python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import build_definition_reference,digest,seq
+          from localmed_ingest.definition_reference_compact_pack import build_compact_definition_reference
+          from test_definition_reference_pack import fixture,write_input
+          out=Path('data/build/reference-r1b');out.mkdir(parents=True,exist_ok=True)
+          payload=fixture();body='😀аб'*5000
+          seq(payload['blocks'],100).append({'id':99,'source':1,'text':body,'path':'chapter','locator':'Synthetic Unicode pagination block','textSha256':digest(body)})
+          seq(payload['terms'],100).append({'id':'fixture.long','title':'Длинный проверочный термин','kind':'term','aliases':[],'blockIds':[99],'itemBlocks':[2,3]*6,'coverage':'definition','note':''})
+          write_input(out,payload,'fixture.json')
+          kwargs=dict(input_root=out,edition_id='fixture.reference',version='1',built_at='2026-09-21')
+          build_definition_reference((Path('fixture.json'),),out/'legacy-fixture.db',**kwargs)
+          build_compact_definition_reference((Path('fixture.json'),),out/'compact-fixture.db',**kwargs)
+          root=Path('content/definition-drafts')
+          manifest=json.loads((root/'clinical-source-excerpts-2026.09.21.json').read_text());parts=[]
+          for part in manifest['parts']:
+              path=root/part['path']
+              if not path.resolve().is_relative_to(root.resolve()): raise ValueError('Unsafe shard')
+              if hashlib.sha256(path.read_bytes()).hexdigest()!=part['sha256']: raise ValueError('Shard checksum')
+              parts.append(path)
+          if len(parts)!=5: raise ValueError('Incomplete clinical input')
+          inputs=(root/'catalog.json',root/'ruwiktionary-2026.9.16.json',root/'prepared-source-excerpts-2026.09.21.json',*parts)
+          report=build_compact_definition_reference(inputs,out/'compact.db',input_root=Path('.'),edition_id='minimed.definition.reference.2026-09-21',version='r1',built_at='2026-09-21',profile=True)
+          if report['entries']!=18133 or not report['logicalRoundTripEqual']: raise ValueError('Source round trip')
+          if report['sqliteBytes']>=report['baselineSqliteBytes']: raise ValueError('No installed-size improvement')
+          Path('docs/research/definition-reference-r1b-compact-build-2026-09-21.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps({k:report[k] for k in ('entries','baselineSqliteBytes','sqliteBytes','gzipBytes','linkCompaction','postVacuumFtsIntegrity')},ensure_ascii=False,indent=2))
+          PY
+      - name: Exercise real file-backed bounded reader for both layouts and full corpus
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun scripts/verify-definition-reference.ts data/build/reference-r1b/legacy-fixture.db docs/research/definition-reference-r1b-legacy-fixture-2026-09-21.json 3 fixture
+          env -i PATH="$PATH" HOME="$HOME" bun scripts/verify-definition-reference.ts data/build/reference-r1b/compact-fixture.db docs/research/definition-reference-r1b-compact-fixture-2026-09-21.json 3 fixture
+          env -i PATH="$PATH" HOME="$HOME" bun scripts/verify-definition-reference.ts data/build/reference-r1b/compact.db docs/research/definition-reference-r1b-runtime-2026-09-21.json 18133 corpus
+      - name: Record completed link pass without claiming app or mobile qualification
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import json
+          from pathlib import Path
+          b=json.loads(Path('docs/research/definition-reference-r1b-compact-build-2026-09-21.json').read_text())
+          r=json.loads(Path('docs/research/definition-reference-r1b-runtime-2026-09-21.json').read_text())
+          p=Path('docs/DEFINITION_REFERENCE_PLAN.md');s=p.read_text()
+          anchor='### R1b — Installed-size qualification (next; blocks general phone delivery)'
+          if s.count(anchor)!=1: raise ValueError('Plan moved; review status before editing')
+          s=s.replace(anchor,'### R1b — Installed-size qualification (numeric-link pass verified; remaining gates open)')
+          s=s.replace('- [ ] Profile actual table, index, repeated identifier/provenance and annotation allocation','- [x] Profile actual table, index, repeated identifier/provenance and annotation allocation')
+          s+='\n- 2026-09-21: R1b numeric navigation links and empty-FTS cleanup verified. SQLite '+str(b['baselineSqliteBytes'])+' -> '+str(b['sqliteBytes'])+' bytes in the same builder environment; gzip comparison '+str(b['gzipBytes'])+' bytes. Complete logical table/link/text/provenance equality and post-VACUUM FTS integrity passed. Normal R1 reader compatibility and compact file-backed reader were tested. Raw optional annotation mapping and further metadata/size work remain open; R2 has not been implemented.\n'
+          p.write_text(s)
+          p=Path('docs/CURRENT_STATE.md');s=p.read_text();head,_,tail=s.partition('\n')
+          note=f'''\n\n## Definition reference R1b — numeric link pass (2026-09-21)\n\nActive plan: [DEFINITION_REFERENCE_PLAN.md](DEFINITION_REFERENCE_PLAN.md). SemIf is registered\nas an optional R4 research candidate, not downloaded or integrated. R1b/R2 remain the priority.\n\nRead-only DBSTAT profiling established the baseline. A new compact builder keeps ordinary\ncontent/knowledge identities and source text, but projects source-local navigation through\nnumeric entity/chunk keys (migration 007). The storage reader recognizes the explicit layout\nand preserves schema-6 legacy behavior. It still uses the existing owner's executor.\n\nMeasured SQLite: {b['baselineSqliteBytes']} -> {b['sqliteBytes']} bytes; gzip comparison\n{b['gzipBytes']} bytes. Every logical source table and all navigation links matched before/after,\nincluding text, locators, order and annotations; FTS integrity was checked after VACUUM.\nSource-name availability: {r['namesWithAResult']}/{r['sourceNameSurfaces']}. These are host\nfile-backed checks, not independent reverse-query quality or Android memory measurements.\n\nThe DEV UI is still the old JSON path. R2 installation/owner/core/UI integration is pending.\nR1b still needs optional annotation-map qualification and further compact metadata work.\nNo model, private PDF, database binary, APK, release or merge was published. Numeric reports\nare in research/definition-reference-r1b-*-2026-09-21.json.\n\n'''
+          p.write_text(head+note+tail)
+          PY
+      - name: Persist only scoped verified source, schema and reports
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/ingest/src/localmed_ingest/definition_reference_layout.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py tools/ingest/tests/test_definition_reference_compact.py packages/storage-sqlite/src/definition-reference-reader.ts packages/storage-sqlite/tests/definition-reference-layout.test.ts packages/storage-sqlite/src/generated/schema.ts docs/DEFINITION_REFERENCE_PLAN.md docs/CURRENT_STATE.md docs/research/definition-reference-r1b-compact-build-2026-09-21.json docs/research/definition-reference-r1b-legacy-fixture-2026-09-21.json docs/research/definition-reference-r1b-compact-fixture-2026-09-21.json docs/research/definition-reference-r1b-runtime-2026-09-21.json
+          git commit -m 'feat(definitions): verify smaller SQLite reference with lossless numeric links [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: Storage-free summary
+        if: always()
+        run: echo 'No Actions artifacts, database binaries, private source material, models or releases uploaded.' >> "$GITHUB_STEP_SUMMARY"
