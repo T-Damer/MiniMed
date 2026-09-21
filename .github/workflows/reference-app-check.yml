@@ -19,8 +19,47 @@ jobs:
           persist-credentials: false
       - name: Integrate inspected existing owners
         run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('scripts/apply-reference-r2-integration.py'); tree=ast.parse(p.read_text())
+          for node in ast.walk(tree):
+              if not isinstance(node,ast.Call) or not isinstance(node.func,ast.Name) or node.func.id!='edit': continue
+              if node.args[0].value=='apps/app/src/features/search/WorkerSearchMedicalCore.ts':
+                  pair=node.args[1].elts[0]
+                  pair.elts[0].value='import type {\n  AnalyzeQueryRequest,'
+                  pair.elts[1].value+='\n  AnalyzeQueryRequest,'
+              if node.args[0].value=='apps/app/src/features/modules/browser-module-runtime.ts':
+                  pair=node.args[1].elts[-1]
+                  pair.elts[1].value=pair.elts[1].value.replace('if (stored.definitionReference) {','if (stored.definitionReference) {\n          await store.initialize();',1)
+          text=ast.unparse(tree)
+          text=text.replace('changed: list[str] = []', 'changed: list[str] = []\nerrors = []')
+          text=text.replace('raise ValueError(f\'Integration anchor changed: {name}: {before[:90]}\')', 'errors.append(f\'Integration anchor changed: {name}: {before[:90]}\'); continue')
+          p.write_text(text+'\nif errors: raise ValueError("\\n".join(errors))\n')
+          PY
           env -i PATH="$PATH" HOME="$HOME" python3 scripts/apply-reference-r2-integration.py
           env -i PATH="$PATH" HOME="$HOME" python3 scripts/apply-browser-core-approval.py
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          paths=json.loads(Path('data/build/reference-r2-changed.json').read_text())
+          p=Path('apps/app/src/features/search/UnifiedSearchCatalog.tsx'); s=p.read_text()
+          s=s.replace("import { DefinitionDraftMatches } from '@/features/search/DefinitionDraftMatches';\n",'')
+          pattern=r'      <Show\n        when=\{\n          import.meta.env.DEV.*?<DefinitionDraftMatches query=\{props.query\} />\n      </Show>\n'
+          s,n=re.subn(pattern,'',s,count=1,flags=re.S)
+          assert n==1,'Legacy reference preview anchor changed'
+          p.write_text(s); paths.append(str(p))
+          p=Path('apps/app/src/features/modules/browser-module-runtime.ts'); s=p.read_text()
+          if 'public getCatalog(' not in s:
+              anchor='  public listInstalled()'
+              assert s.count(anchor)==1
+              s=s.replace(anchor,'  public getCatalog(): ContentModuleCatalog { return this.catalog; }\n\n'+anchor)
+          p.write_text(s)
+          p=Path('apps/app/src/features/setup/FirstRunSetup.tsx');s=p.read_text()
+          s=s.replace('createMemo(() => { revision(); return setupPackageGroups(runtime.getCatalog().modules); })','createMemo(() => setupPackageGroups(runtime.getCatalog().modules))')
+          p.write_text(s)
+          Path('data/build/reference-r2-changed.json').write_text(json.dumps(paths))
+          PY
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
           bun-version: 1.2.3
