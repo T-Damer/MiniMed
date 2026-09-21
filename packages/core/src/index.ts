@@ -1,6 +1,7 @@
 export * from './content-module-catalog-client';
 export * from './content-module-installer';
 export * from './create-medical-core';
+export * from './definition-catalog';
 export * from './document-siblings';
 export * from './in-memory';
 export * from './l-note-adapter';
