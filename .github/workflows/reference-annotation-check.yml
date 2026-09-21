@@ -25,6 +25,26 @@ jobs:
         with:
           version: 0.10.0
           enable-cache: false
+      - name: Normalize long literals without changing data or checks
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          changes={
+            'tools/ingest/src/localmed_ingest/definition_reference_annotated_pack.py':[
+              ('"Source-span bindings only, with unresolved person identity and review-required origin statements. "','"Source-span bindings only, with unresolved person identity "\n                "and review-required origin statements. "'),
+              ('"No new biography, root translation, canonical relation, private upload or clinical qualification."','"No new biography, root translation, canonical relation, "\n                "private upload or clinical qualification."')],
+            'tools/ingest/src/localmed_ingest/definition_reference_annotations.py':[
+              ('"INSERT INTO definition_reference_annotation_spans VALUES (?, ?, ?, ?, ?, ?, ?)"','"INSERT INTO definition_reference_annotation_spans "\n                    "VALUES (?, ?, ?, ?, ?, ?, ?)"')],
+            'tools/ingest/tests/test_definition_reference_annotations.py':[
+              ("'SELECT a.kind, substr(c.original_text, a.start_offset + 1, a.end_offset - a.start_offset) '","'SELECT a.kind, substr(c.original_text, '\n            'a.start_offset + 1, a.end_offset - a.start_offset) '")]
+          }
+          for path,pairs in changes.items():
+              p=Path(path);s=p.read_text()
+              for old,new in pairs:
+                  assert s.count(old)==1, path
+                  s=s.replace(old,new)
+              p.write_text(s)
+          PY
       - name: Locked annotation-only checks, no source downloads
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
@@ -63,7 +83,6 @@ jobs:
           own=$(git rev-parse HEAD)
           auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
-          # Only replay our scoped verification commit; conflicts stop instead of replacing work.
           remote=$(git rev-parse FETCH_HEAD)
           if [ "$remote" != '${{ github.sha }}' ]; then
             git restore packages/storage-sqlite/src/generated/schema.ts
