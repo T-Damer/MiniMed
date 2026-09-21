@@ -1,0 +1,73 @@
+name: Reference browser integration
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths:
+      - .github/workflows/reference-browser-check.yml
+permissions:
+  contents: write
+concurrency:
+  group: minimed-reference-browser
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - name: Locked dependencies and browser runtime
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" bunx playwright install --with-deps chromium
+      - name: Prepare safe browser diagnostics
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/verify-reference-app.mjs');s=p.read_text()
+          s=s.replace("length > 0, { timeout:","length > 0, undefined, { timeout:")
+          s=s.replace("console.error('Visible app diagnostics:', (await page.locator('body').innerText()).slice(0, 16000));", "console.error('UI counters:', JSON.stringify({ dialogs: await page.getByRole('dialog').count(), alerts: await page.getByRole('alert').count(), coreGets, referenceGets }));\n  console.error('UI error messages:', await page.getByRole('alert').allTextContents());")
+          p.write_text(s)
+          PY
+          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write --diagnostic-level=error scripts/verify-reference-app.mjs
+      - name: Build full public numeric edition and verify transport
+        run: env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/prepare-definition-reference.py --version 2026.09.22-r2 --built-at 2026-09-22
+      - name: Actual application and installed dictionary
+        run: env -i PATH="$PATH" HOME="$HOME" bun scripts/verify-reference-app.mjs
+      - name: Persist only checked harness and numeric evidence
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+          CHECKED_SHA: ${{ github.sha }}
+        run: |
+          python3 - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path('data/build/reference-app-check/browser-report.json')
+          report=json.loads(p.read_text());report['checkedInputCommit']=os.environ['CHECKED_SHA']
+          Path('docs/research/definition-reference-app-browser-2026-09-22.json').write_text(json.dumps(report,indent=2)+'\n')
+          PY
+          git add scripts/verify-reference-app.mjs docs/research/definition-reference-app-browser-2026-09-22.json
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test(reference): verify full public dictionary through real app and installer [skip ci]'
+          git fetch --depth=1 origin refs/heads/experiment/system-one-search-benchmark
+          if [ "$(git rev-parse FETCH_HEAD)" != "$CHECKED_SHA" ]; then
+            git rebase --onto FETCH_HEAD "$CHECKED_SHA"
+          fi
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: Storage-free boundary
+        if: always()
+        run: echo 'No SQLite binaries, private PDF/text, models, release assets or Actions artifacts uploaded. Browser result is not Android qualification.' >> "$GITHUB_STEP_SUMMARY"
