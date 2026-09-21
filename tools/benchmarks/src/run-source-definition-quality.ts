@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { createDefinitionLookup, parseDefinitionCatalog } from '../../../packages/core/src/definition-catalog';
+import {
+  createDefinitionLookup,
+  parseDefinitionCatalog,
+} from '../../../packages/core/src/definition-catalog';
 import { normalizeSurfaceText } from '../../../packages/search-lexical/src/normalize';
 
 const root = new URL('../../../', import.meta.url);
@@ -88,10 +91,21 @@ const probes: readonly (readonly [string, string])[] = [
 const allTerms = [...parseDefinitionCatalog(starterInput).terms, ...corpus.terms];
 const probeResults = probes.map(([query, expected], index) => {
   const target = normalizeSurfaceText(expected);
-  const ids = new Set(allTerms.filter((term) => [term.title, ...term.aliases].some((name) => normalizeSurfaceText(name) === target)).map((term) => term.id));
+  const ids = new Set(
+    allTerms
+      .filter((term) =>
+        [term.title, ...term.aliases].some((name) => normalizeSurfaceText(name) === target),
+      )
+      .map((term) => term.id),
+  );
   const hits = lookup.search(query, 20);
   const rank = hits.findIndex((hit) => ids.has(hit.term.id)) + 1;
-  return { id: `bulk-reverse-${index + 1}`, expected, corpusPresent: ids.size > 0, rank: rank || null };
+  return {
+    id: `bulk-reverse-${index + 1}`,
+    expected,
+    corpusPresent: ids.size > 0,
+    rank: rank || null,
+  };
 });
 durations.sort((a, b) => a - b);
 const present = probeResults.filter((probe) => probe.corpusPresent);
@@ -104,10 +118,24 @@ const report = {
   allSameNameSensesVisibleAt20: allVisible,
   nameMisses: misses,
   buildMs,
-  lookupMs: { p50: durations[Math.floor(durations.length * 0.5)], p95: durations[Math.floor(durations.length * 0.95)] },
-  peakProcessRssKiB: process.resourceUsage().maxRSS,
-  reverse: { total: probes.length, corpusPresent: present.length, top1: present.filter((p) => p.rank === 1).length, top5: present.filter((p) => p.rank !== null && p.rank <= 5).length, top20: present.filter((p) => p.rank !== null).length, probes: probeResults },
-  boundaries: 'Whole-source name audit plus new authored reverse probes. Not an independent clinician benchmark, MedicalCore/SQLite integration test, browser timing, or Android measurement. Missing corpus and retrieval failures are counted separately; reverse metrics are informational and not tuned in this export.',
+  lookupMs: {
+    p50: durations[Math.floor(durations.length * 0.5)],
+    p95: durations[Math.floor(durations.length * 0.95)],
+  },
+  currentProcessRssBytes: process.memoryUsage().rss,
+  reverse: {
+    total: probes.length,
+    corpusPresent: present.length,
+    top1: present.filter((p) => p.rank === 1).length,
+    top5: present.filter((p) => p.rank !== null && p.rank <= 5).length,
+    top20: present.filter((p) => p.rank !== null).length,
+    probes: probeResults,
+  },
+  boundaries:
+    'Whole-source name audit plus new authored reverse probes. Not an independent clinician benchmark, MedicalCore/SQLite integration test, browser timing, or Android measurement. Missing corpus and retrieval failures are counted separately; reverse metrics are informational and not tuned in this export.',
 };
-writeFileSync(new URL('docs/research/bulk-definition-quality-2026-09-21.json', root), `${JSON.stringify(report, null, 2)}\n`);
+writeFileSync(
+  new URL('docs/research/bulk-definition-quality-2026-09-21.json', root),
+  `${JSON.stringify(report, null, 2)}\n`,
+);
 console.log(JSON.stringify(report, null, 2));

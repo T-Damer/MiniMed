@@ -1,0 +1,278 @@
+{
+  "schemaVersion": 1,
+  "corpusSenses": 6939,
+  "mergedEntries": 6975,
+  "normalizedSourceNames": 6657,
+  "sourceNameTop1": 6637,
+  "allSameNameSensesVisibleAt20": 6654,
+  "nameMisses": [
+    {
+      "title": "об",
+      "missingCount": 2
+    },
+    {
+      "title": "в/в",
+      "missingCount": 1
+    },
+    {
+      "title": "при",
+      "missingCount": 1
+    }
+  ],
+  "buildMs": 630.194418,
+  "lookupMs": {
+    "p50": 0.02971500000001015,
+    "p95": 0.343988999999965
+  },
+  "currentProcessRssBytes": 270512128,
+  "reverse": {
+    "total": 40,
+    "corpusPresent": 36,
+    "top1": 11,
+    "top5": 16,
+    "top20": 16,
+    "probes": [
+      {
+        "id": "bulk-reverse-1",
+        "expected": "дисфагия",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-2",
+        "expected": "афазия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-3",
+        "expected": "апраксия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-4",
+        "expected": "агнозия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-5",
+        "expected": "аносмия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-6",
+        "expected": "анурия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-7",
+        "expected": "олигурия",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-8",
+        "expected": "полиурия",
+        "corpusPresent": true,
+        "rank": 2
+      },
+      {
+        "id": "bulk-reverse-9",
+        "expected": "полидипсия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-10",
+        "expected": "гематурия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-11",
+        "expected": "гиперестезия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-12",
+        "expected": "гипестезия",
+        "corpusPresent": true,
+        "rank": 3
+      },
+      {
+        "id": "bulk-reverse-13",
+        "expected": "атаксия",
+        "corpusPresent": false,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-14",
+        "expected": "дисметрия",
+        "corpusPresent": false,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-15",
+        "expected": "дизартрия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-16",
+        "expected": "эхолалия",
+        "corpusPresent": true,
+        "rank": 2
+      },
+      {
+        "id": "bulk-reverse-17",
+        "expected": "эхопраксия",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-18",
+        "expected": "мутизм",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-19",
+        "expected": "ангедония",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-20",
+        "expected": "абулия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-21",
+        "expected": "конфабуляция",
+        "corpusPresent": true,
+        "rank": 2
+      },
+      {
+        "id": "bulk-reverse-22",
+        "expected": "парейдолия",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-23",
+        "expected": "деперсонализация",
+        "corpusPresent": true,
+        "rank": 2
+      },
+      {
+        "id": "bulk-reverse-24",
+        "expected": "дереализация",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-25",
+        "expected": "птоз",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-26",
+        "expected": "диплопия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-27",
+        "expected": "миоз",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-28",
+        "expected": "мидриаз",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-29",
+        "expected": "анизокория",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-30",
+        "expected": "нистагм",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-31",
+        "expected": "ортопноэ",
+        "corpusPresent": false,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-32",
+        "expected": "брадипноэ",
+        "corpusPresent": false,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-33",
+        "expected": "тахипноэ",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-34",
+        "expected": "брадикардия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-35",
+        "expected": "тахикардия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-36",
+        "expected": "гипоксия",
+        "corpusPresent": true,
+        "rank": null
+      },
+      {
+        "id": "bulk-reverse-37",
+        "expected": "цианоз",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-38",
+        "expected": "асцит",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-39",
+        "expected": "вертиго",
+        "corpusPresent": true,
+        "rank": 1
+      },
+      {
+        "id": "bulk-reverse-40",
+        "expected": "тиннитус",
+        "corpusPresent": true,
+        "rank": 1
+      }
+    ]
+  },
+  "boundaries": "Whole-source name audit plus new authored reverse probes. Not an independent clinician benchmark, MedicalCore/SQLite integration test, browser timing, or Android measurement. Missing corpus and retrieval failures are counted separately; reverse metrics are informational and not tuned in this export."
+}

@@ -8,8 +8,11 @@ export function loadDefinitionDraftLookup(): Promise<DefinitionLookup> {
     return Promise.reject(new Error('Definition drafts are not a published content edition.'));
   }
   if (!pending) {
-    pending = import('../../../../content/definition-drafts/catalog.json')
-      .then((asset) => createDefinitionLookup(asset.default))
+    pending = Promise.all([
+      import('../../../../content/definition-drafts/catalog.json'),
+      import('../../../../content/definition-drafts/ruwiktionary-2026.9.16.json'),
+    ])
+      .then(([editorial, source]) => createDefinitionLookup(editorial.default, source.default))
       .catch((error: unknown) => {
         pending = undefined;
         throw error;

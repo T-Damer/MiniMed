@@ -4,6 +4,7 @@ import {
   normalizeSurfaceText,
   tokenize,
 } from '@localmed/search-lexical';
+import { parseSourceDefinitionCatalog } from './source-definition-catalog';
 
 /** A read-only draft projection, never an approved knowledge graph or diagnostic model. */
 export interface DefinitionSource {
@@ -12,12 +13,20 @@ export interface DefinitionSource {
   readonly baseUrl: string;
   readonly authority: 'professional-reference' | 'institutional-reference' | 'third-party';
   readonly accessed: string;
+  readonly license?: string;
+  readonly licenseUrl?: string;
+  readonly attribution?: string;
+  readonly sourceSha256?: string;
+  readonly preparedSha256?: string;
+  readonly sourceUrl?: string;
+  readonly changes?: string;
 }
 
 export interface DefinitionReference {
   readonly source: number;
   readonly path: string;
   readonly locator: string;
+  readonly recordSha256?: string;
 }
 
 export interface DraftDefinition {
@@ -33,16 +42,17 @@ export interface DraftDefinition {
 }
 
 export interface DefinitionCatalog {
-  readonly version: 1;
+  readonly version: 1 | 2;
   readonly reviewStatus: 'requires-review';
   readonly publicationState: 'local-dev';
-  readonly textKind: 'editorial-paraphrase';
+  readonly textKind: 'editorial-paraphrase' | 'source-gloss';
   readonly sources: readonly DefinitionSource[];
   readonly terms: readonly DraftDefinition[];
 }
 
 export interface DefinitionMatch {
   readonly term: DraftDefinition;
+  readonly textKind: 'editorial-paraphrase' | 'source-gloss';
   readonly matchKind: 'name' | 'definition';
   readonly reviewStatus: 'requires-review';
   readonly citations: readonly {
@@ -64,7 +74,13 @@ const MAX_QUERY_LENGTH = 512;
 const MAX_TOKENS = 24;
 const NEGATIONS = new Set(['не', 'без', 'нет']);
 const QUERY_FILLER = new Set([
-  'называется', 'называют', 'вспомнить', 'помню', 'какой', 'какое', 'такое',
+  'называется',
+  'называют',
+  'вспомнить',
+  'помню',
+  'какой',
+  'какое',
+  'такое',
 ]);
 
 function object(value: unknown): Readonly<Record<string, unknown>> {
@@ -103,11 +119,19 @@ export function definitionSourceUrl(source: DefinitionSource, path: string): str
   const base = new URL(source.baseUrl);
   const resolved = new URL(path, base);
   if (
-    base.protocol !== 'https:' || base.username || base.password || base.search || base.hash ||
+    base.protocol !== 'https:' ||
+    base.username ||
+    base.password ||
+    base.search ||
+    base.hash ||
     !base.pathname.endsWith('/') ||
-    resolved.origin !== base.origin || !resolved.pathname.startsWith(base.pathname) ||
-    path.startsWith('/') || /(^|\/)\.\.(\/|$)/u.test(path) || path.includes('\\') ||
-    resolved.username || resolved.password
+    resolved.origin !== base.origin ||
+    !resolved.pathname.startsWith(base.pathname) ||
+    path.startsWith('/') ||
+    /(^|\/)\.\.(\/|$)/u.test(path) ||
+    path.includes('\\') ||
+    resolved.username ||
+    resolved.password
   ) {
     throw new Error('Invalid definition source URL.');
   }
@@ -116,14 +140,17 @@ export function definitionSourceUrl(source: DefinitionSource, path: string): str
 
 /** Validate at the asset boundary; authoring cannot silently promote a draft to reviewed. */
 export function parseDefinitionCatalog(input: unknown): DefinitionCatalog {
+  if (object(input)['version'] === 2) return parseSourceDefinitionCatalog(input);
   const serialized = JSON.stringify(input);
   if (!serialized || new TextEncoder().encode(serialized).length > DEFINITION_CATALOG_MAX_BYTES) {
     throw new Error('Definition catalog exceeds its mobile size budget.');
   }
   const root = object(input);
   if (
-    root['version'] !== 1 || root['reviewStatus'] !== 'requires-review' ||
-    root['publicationState'] !== 'local-dev' || root['textKind'] !== 'editorial-paraphrase'
+    root['version'] !== 1 ||
+    root['reviewStatus'] !== 'requires-review' ||
+    root['publicationState'] !== 'local-dev' ||
+    root['textKind'] !== 'editorial-paraphrase'
   ) {
     throw new Error('Unsupported definition catalog version or review state.');
   }
@@ -135,7 +162,8 @@ export function parseDefinitionCatalog(input: unknown): DefinitionCatalog {
     sourceIds.add(id);
     const authority = row['authority'];
     if (
-      authority !== 'professional-reference' && authority !== 'institutional-reference' &&
+      authority !== 'professional-reference' &&
+      authority !== 'institutional-reference' &&
       authority !== 'third-party'
     ) {
       throw new Error('Invalid definition source authority.');
@@ -198,22 +226,32 @@ export function parseDefinitionCatalog(input: unknown): DefinitionCatalog {
 }
 
 function surface(value: string): string {
-  return normalizeSurfaceText(value).replace(/[-.,:]+/gu, ' ').replace(/\s+/gu, ' ').trim();
+  return normalizeSurfaceText(value)
+    .replace(/[-.,:]+/gu, ' ')
+    .replace(/\s+/gu, ' ')
+    .trim();
 }
 
 function words(value: string): readonly string[] {
   const normalized = surface(value);
   // The shared lexical tokenizer drops negation for document lookup. Keep it in definitions.
-  const negations = (normalized.match(/[а-яa-z0-9]+/gu) ?? []).filter((word) => NEGATIONS.has(word));
+  const negations = (normalized.match(/[а-яa-z0-9]+/gu) ?? []).filter((word) =>
+    NEGATIONS.has(word),
+  );
   return [...new Set([...tokenize(normalized), ...negations])];
 }
 
 /** Extra inflections are local to the glossary; clinical/drug lookup normalization is unchanged. */
 function wordForms(word: string): readonly string[] {
   const inflection = /^[а-я]+$/u.test(word)
-    ? word.replace(/(?:иями|ыми|ими|ого|ему|ому|иях|ями|ами|ией|иям|ием|ию|ия|ии|ие|ий|ью|ья|ье|ьи|ях|ам|ям|ах|ом|ем|ую|юю|ей|ой|ая|яя|ое|ые|ее|ы|и|а|я|у|ю|е|о)$/u, '')
+    ? word.replace(
+        /(?:иями|ыми|ими|ого|ему|ому|иях|ями|ами|ией|иям|ием|ию|ия|ии|ие|ий|ью|ья|ье|ьи|ях|ам|ям|ах|ом|ем|ую|юю|ей|ой|ая|яя|ое|ые|ее|ы|и|а|я|у|ю|е|о)$/u,
+        '',
+      )
     : word;
-  return [...new Set([word, lightStemRussian(word), ...(inflection.length >= 3 ? [inflection] : [])])];
+  return [
+    ...new Set([word, lightStemRussian(word), ...(inflection.length >= 3 ? [inflection] : [])]),
+  ];
 }
 
 function lowerBound(values: readonly string[], target: string): number {
@@ -228,15 +266,39 @@ function lowerBound(values: readonly string[], target: string): number {
 }
 
 /** Read-only, bounded inverted index over definitions and criterion items, not source titles. */
-export function createDefinitionLookup(input: unknown): DefinitionLookup {
-  const catalog = parseDefinitionCatalog(input);
+export function createDefinitionLookup(
+  input: unknown,
+  ...additional: readonly unknown[]
+): DefinitionLookup {
+  if (additional.length > 7) throw new Error('Too many glossary modules.');
+  const inputs = [input, ...additional].map(parseDefinitionCatalog);
+  const sourceMap = new Map<number, DefinitionSource>();
+  const termKinds = new Map<string, DefinitionCatalog['textKind']>();
+  const terms: DraftDefinition[] = [];
+  for (const input of inputs) {
+    for (const source of input.sources) {
+      const previous = sourceMap.get(source.id);
+      if (previous && JSON.stringify(previous) !== JSON.stringify(source))
+        throw new Error('Conflicting glossary source IDs.');
+      sourceMap.set(source.id, source);
+    }
+    for (const term of input.terms) {
+      if (termKinds.has(term.id)) throw new Error('Duplicate glossary term identity.');
+      termKinds.set(term.id, input.textKind);
+      terms.push(term);
+    }
+  }
+  if (terms.length > 50000) throw new Error('Glossary collection exceeds the runtime budget.');
+  const catalog = { sources: [...sourceMap.values()], terms };
   const sources = new Map(catalog.sources.map((source) => [source.id, source]));
   const postings = new Map<string, Set<number>>();
   const names = catalog.terms.map((term) => [term.title, ...term.aliases].map(surface));
   const bodies = catalog.terms.map((term) => surface([term.definition, ...term.items].join(' ')));
   const nameWords = names.map((entries) => new Set(entries.flatMap(words).flatMap(wordForms)));
   for (const [index, term] of catalog.terms.entries()) {
-    for (const word of words([term.title, ...term.aliases, term.definition, ...term.items].join(' '))) {
+    for (const word of words(
+      [term.title, ...term.aliases, term.definition, ...term.items].join(' '),
+    )) {
       for (const form of wordForms(word)) {
         let ids = postings.get(form);
         if (!ids) {
@@ -253,16 +315,24 @@ export function createDefinitionLookup(input: unknown): DefinitionLookup {
     sourceCount: catalog.sources.length,
     search(query, limit = 5) {
       if (!Number.isFinite(limit) || limit <= 0 || query.length > MAX_QUERY_LENGTH) return [];
-      const normalized = surface(query).replace(/^(?:что такое|как называется|определение)\s+/u, '');
+      const normalized = surface(query).replace(
+        /^(?:что такое|как называется|определение)\s+/u,
+        '',
+      );
       const tokens = words(normalized).filter((word) => !QUERY_FILLER.has(word));
       if (
-        !normalized || tokens.length === 0 || tokens.length > MAX_TOKENS ||
+        !normalized ||
+        tokens.length === 0 ||
+        tokens.length > MAX_TOKENS ||
         tokens.every((word) => NEGATIONS.has(word))
-      ) return [];
-      const documentFrequency = new Map(tokens.map((word) => [
-        word,
-        new Set(wordForms(word).flatMap((form) => [...(postings.get(form) ?? [])])).size,
-      ]));
+      )
+        return [];
+      const documentFrequency = new Map(
+        tokens.map((word) => [
+          word,
+          new Set(wordForms(word).flatMap((form) => [...(postings.get(form) ?? [])])).size,
+        ]),
+      );
       const candidates = new Map<number, Map<string, number>>();
       const add = (key: string, token: string, quality: number) => {
         for (const id of postings.get(key) ?? []) {
@@ -295,19 +365,30 @@ export function createDefinitionLookup(input: unknown): DefinitionLookup {
         const termNames = names[index] ?? [];
         const titleExact = termNames[0] === normalized;
         const aliasExact = termNames.includes(normalized);
-        const coverage = [...hits.values()].reduce((sum, weight) => sum + weight, 0) / tokens.length;
-        const named = titleExact || aliasExact || tokens.every((word) =>
-          wordForms(word).some((form) => nameWords[index]?.has(form)));
+        const coverage =
+          [...hits.values()].reduce((sum, weight) => sum + weight, 0) / tokens.length;
+        const named =
+          titleExact ||
+          aliasExact ||
+          tokens.every((word) => wordForms(word).some((form) => nameWords[index]?.has(form)));
         const meaningfulHits = [...hits.keys()].filter((word) => !NEGATIONS.has(word));
-        const rarePartial = tokens.length <= 4 && meaningfulHits.length === 1 &&
-          meaningfulHits.every((word) => documentFrequency.get(word) === 1) && coverage >= 0.25;
+        const rarePartial =
+          tokens.length <= 4 &&
+          meaningfulHits.length === 1 &&
+          meaningfulHits.every((word) => documentFrequency.get(word) === 1) &&
+          coverage >= 0.25;
         if (
-          !named && !rarePartial &&
+          !named &&
+          !rarePartial &&
           (coverage < 0.35 || (tokens.length >= 3 && meaningfulHits.length < 2))
-        ) continue;
+        )
+          continue;
         const phrase = bodies[index]?.includes(normalized) ? 1 : 0;
-        const informativeness = [...hits].reduce((sum, [word, weight]) =>
-          sum + weight * Math.log(1 + catalog.terms.length / (documentFrequency.get(word) || 1)), 0);
+        const informativeness = [...hits].reduce(
+          (sum, [word, weight]) =>
+            sum + weight * Math.log(1 + catalog.terms.length / (documentFrequency.get(word) || 1)),
+          0,
+        );
         ranked.push({
           index,
           tier: titleExact ? 3 : aliasExact ? 2 : named ? 1 : 0,
@@ -315,21 +396,28 @@ export function createDefinitionLookup(input: unknown): DefinitionLookup {
           named,
         });
       }
-      ranked.sort((a, b) => b.tier - a.tier || b.score - a.score ||
-        (catalog.terms[a.index]?.id ?? '').localeCompare(catalog.terms[b.index]?.id ?? ''));
+      ranked.sort(
+        (a, b) =>
+          b.tier - a.tier ||
+          b.score - a.score ||
+          (catalog.terms[a.index]?.id ?? '').localeCompare(catalog.terms[b.index]?.id ?? ''),
+      );
       return ranked.slice(0, Math.min(Math.floor(limit), 20)).flatMap(({ index, named }) => {
         const term = catalog.terms[index];
         if (!term) return [];
-        return [{
-          term,
-          matchKind: named ? 'name' as const : 'definition' as const,
-          reviewStatus: 'requires-review' as const,
-          citations: term.references.map((ref) => {
-            const source = sources.get(ref.source);
-            if (!source) throw new Error('Dangling definition source reference.');
-            return { source, locator: ref.locator, url: definitionSourceUrl(source, ref.path) };
-          }),
-        }];
+        return [
+          {
+            term,
+            textKind: termKinds.get(term.id) ?? 'editorial-paraphrase',
+            matchKind: named ? ('name' as const) : ('definition' as const),
+            reviewStatus: 'requires-review' as const,
+            citations: term.references.map((ref) => {
+              const source = sources.get(ref.source);
+              if (!source) throw new Error('Dangling definition source reference.');
+              return { source, locator: ref.locator, url: definitionSourceUrl(source, ref.path) };
+            }),
+          },
+        ];
       });
     },
   };

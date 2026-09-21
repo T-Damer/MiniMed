@@ -45,9 +45,9 @@ export function DefinitionDraftMatches(props: { readonly query: string }): JSX.E
       </label>
       <Show when={enabled()}>
         <p class="definition-drafts__notice">
-          Редакторские пересказы, не оригинальные цитаты. Не проверено врачом; не диагностические
-          рекомендации. Названия, части определений и пункты критериев ищутся локально. Полные
-          источники не скачиваются.
+          Словарные тексты и отдельные редакторские черновики. Требуют проверки; не диагностические
+          рекомендации. Поиск по названиям, определениям и пунктам критериев работает локально.
+          Полные книги и исходные дампы не скачиваются.
         </p>
         <Show when={state.loading}>
           <p class="definition-drafts__status" role="status">
@@ -76,7 +76,11 @@ export function DefinitionDraftMatches(props: { readonly query: string }): JSX.E
         <For each={matches()}>
           {(hit) => (
             <article class="definition-drafts__card" data-testid="definition-draft-card">
-              <span class="definition-drafts__badge">Требует проверки</span>
+              <span class="definition-drafts__badge">
+                {hit.textKind === 'source-gloss'
+                  ? 'Словарный текст · требует проверки'
+                  : 'Редакторский черновик · требует проверки'}
+              </span>
               <h3 class="definition-drafts__title">{hit.term.title}</h3>
               <p class="definition-drafts__match">
                 {hit.matchKind === 'name' ? 'Совпадение по названию' : 'Совпадение по описанию'}
@@ -94,14 +98,38 @@ export function DefinitionDraftMatches(props: { readonly query: string }): JSX.E
               </Show>
               <For each={hit.citations}>
                 {(citation) => (
-                  <a
-                    class="definition-drafts__source"
-                    href={citation.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {citation.source.title} — {citation.locator} (внешний сайт)
-                  </a>
+                  <>
+                    <a
+                      class="definition-drafts__source"
+                      href={citation.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {citation.source.title} — {citation.locator} (внешний сайт)
+                    </a>
+                    <Show when={citation.source.licenseUrl}>
+                      <p class="definition-drafts__note">
+                        {citation.source.attribution}. Выборка и нормализация; без перевода и
+                        медицинской переработки.
+                      </p>
+                      <a
+                        class="definition-drafts__source"
+                        href={citation.source.licenseUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {citation.source.license}
+                      </a>
+                      <a
+                        class="definition-drafts__source"
+                        href={`${citation.url}?action=history`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        История страницы и авторы
+                      </a>
+                    </Show>
+                  </>
                 )}
               </For>
             </article>

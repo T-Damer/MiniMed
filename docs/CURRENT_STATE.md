@@ -1,5 +1,34 @@
 # Current state
 
+## Full Russian definition corpus — development preview (2026-09-21)
+
+The optional definition preview now loads the complete released Russian Wiktionary medical
+selection: **6939 senses / 6661 original names /
+6940 supplied Russian glosses**, plus the 36 editorial starter
+cards. These are source records, not a claim of that many disjoint canonical medical concepts.
+Original `ruwikt.*` identities, source language, archive and record checksums, source line/sense
+locators, attribution and CC-BY-SA-4.0 are retained. Source text is not labelled an editorial
+paraphrase and neither source reputation nor corpus size promotes it to clinician-reviewed.
+
+`scripts/build-definition-corpus.py` reuses the existing licensed prepared release; it does
+not download the full multi-gigabyte dictionary onto a device. One source registry row with
+numeric references replaces repeated source descriptions. Compact JSON: 4302994
+bytes; deterministic gzip comparison: 999668 bytes. These figures exclude JS,
+in-memory postings, SQLite and device overhead. The 16 MiB cap applies to an optional source
+module, not a forced increase of the lightweight core.
+
+Actual CI measurements: source-name Top-1 6637/6657;
+reverse probes present in the combined corpus 36/40,
+Top-5 16 of those present. Keep all misses in the JSON report; no
+reverse-probe sentences were inserted into aliases. These are public authored development
+probes, not independent clinician qualification. Original starter tests also ran separately.
+
+The interface remains opt-in DEV-only. Browser rendering, production-bundle exclusion,
+physical-device memory and a released optional-module delivery are not established by this
+data/engine run. Existing APK and published SQLite packs are unchanged. Etymology remains
+separately planned. See `bulk-definition-size-2026-09-21.json` and
+`bulk-definition-quality-2026-09-21.json` in `docs/research` for actual evidence.
+
 ## Definition pilot and offline CPU demo (2026-09-20)
 
 PR #180 adds an optional source-linked definition-draft pack and a research-only local CPU classifier demo. See `docs/research/local-definition-model-demo-2026-09-20.md` for the source/review boundary, commands and separate measurements. Definitions remain local-dev/proposed; no reviewed facts, same-as edges, released core or APK are replaced. The neural test was worse than deterministic ranking (19/33 versus 27/33); it is not enabled in the application. The new integration workflow uses the existing file-backed Bun SQLite adapter for the full corpus and checks CPU inference with networking blocked in the model process. Consult commit checks for execution status; authored tests are not automatically validated.
