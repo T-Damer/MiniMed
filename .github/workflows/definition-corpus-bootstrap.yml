@@ -26,6 +26,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.3
+          no-cache: true
       - name: Download existing licensed prepared data, no raw full dictionary
         env:
           GH_TOKEN: ${{ github.token }}
@@ -58,6 +59,11 @@ jobs:
         run: |
           env -i PATH="$PATH" HOME="$RUNNER_TEMP" python3 - <<'PY'
           from pathlib import Path
+          p=Path('tools/benchmarks/src/run-source-definition-quality.ts')
+          s=p.read_text()
+          old='peakProcessRssKiB: process.resourceUsage().maxRSS'
+          assert old in s
+          p.write_text(s.replace(old, 'currentProcessRssBytes: process.memoryUsage().rss'))
           p=Path('packages/core/src/definition-catalog.ts')
           s=p.read_text()
           def replace(old,new):
