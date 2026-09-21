@@ -1,0 +1,78 @@
+name: Profile definition reference R1b
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/definition-reference-r1b-profile.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-definition-reference-r1b
+  cancel-in-progress: false
+jobs:
+  profile:
+    if: github.repository == 'T-Damer/MiniMed'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: '0.10.0'
+          enable-cache: false
+      - name: Locked Python checks
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format tools/ingest/src/localmed_ingest/definition_reference_profile.py
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check tools/ingest/src/localmed_ingest/definition_reference_profile.py
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright tools/ingest/src/localmed_ingest/definition_reference_profile.py
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_definition_reference_pack.py
+      - name: Build all public inputs and measure actual allocation
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import build_definition_reference
+          from localmed_ingest.definition_reference_profile import profile_reference
+          root=Path('content/definition-drafts')
+          manifest=json.loads((root/'clinical-source-excerpts-2026.09.21.json').read_text())
+          parts=[]
+          for part in manifest['parts']:
+              path=root/part['path']
+              if not path.resolve().is_relative_to(root.resolve()): raise ValueError('Unsafe shard path')
+              if hashlib.sha256(path.read_bytes()).hexdigest()!=part['sha256']: raise ValueError('Shard receipt mismatch')
+              parts.append(path)
+          if len(parts)!=5: raise ValueError('Expected complete shard set')
+          output=Path('data/build/reference-r1b/baseline.db')
+          report=build_definition_reference((root/'catalog.json',root/'ruwiktionary-2026.9.16.json',root/'prepared-source-excerpts-2026.09.21.json',*parts),output,input_root=Path('.'),edition_id='minimed.definition.reference.2026-09-21',version='r1',built_at='2026-09-21')
+          if report['entries']!=18133: raise ValueError('Incomplete corpus')
+          measured=profile_reference(output)
+          Path('docs/research/definition-reference-r1b-baseline-profile-2026-09-21.json').write_text(json.dumps(measured,ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps(measured,ensure_ascii=False,indent=2))
+          PY
+      - name: Register candidate and measured next step in the active plan
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          from pathlib import Path
+          p=Path('docs/DEFINITION_REFERENCE_PLAN.md');s=p.read_text()
+          anchor='### R4 — Coverage and reverse-search work boundary (pending)'
+          if s.count(anchor)!=1: raise ValueError('Plan anchor changed')
+          s=s.replace(anchor,anchor+'\n\n- [x] Register **SemIf** as a user-approved research candidate, not an installed dependency. Follow [the pinned candidate/evaluation note](research/semif-candidate-2026-09-21.md); no download, inference, adoption or diagnostic confidence is implied. R1b/R2 remain ahead of the experiment.')
+          s+='\n- 2026-09-21: SemIf registered as an R4 candidate; no model was downloaded or run. R1b read-only table/index/column profiling is recorded in `research/definition-reference-r1b-baseline-profile-2026-09-21.json`. This is the measured baseline before optimization; R1b size reduction and R2 app integration remain open.\n'
+          p.write_text(s)
+          PY
+      - name: Save only source, plan and numeric profile
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tools/ingest/src/localmed_ingest/definition_reference_profile.py docs/DEFINITION_REFERENCE_PLAN.md docs/research/definition-reference-r1b-baseline-profile-2026-09-21.json
+          git commit -m 'docs(definitions): record measured R1b allocation and SemIf candidate [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: Storage-free summary
+        if: always()
+        run: echo 'No Actions artifacts, database binaries, private inputs, model weights or releases uploaded.' >> "$GITHUB_STEP_SUMMARY"
