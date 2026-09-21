@@ -23,7 +23,7 @@ TABLE_COLUMNS: dict[str, tuple[str, ...]] = {
     "knowledge_names": ("id", "entity_id", "name", "normalized_name"),
     "knowledge_document_links": (
         "id", "entity_id", "document_id", "document_version_id", "section_id", "chunk_id",
-        "role", "metadata_json",
+        "link_type", "metadata_json",
     ),
 }
 
@@ -88,11 +88,14 @@ def profile_reference(path: Path) -> dict[str, object]:
             if table not in schema:
                 continue
             present = {
-                str(row[1]) for row in database.execute("SELECT * FROM pragma_table_info(?)", (table,))
+                str(row[1])
+                for row in database.execute("SELECT * FROM pragma_table_info(?)", (table,))
             }
             # Identifiers are exclusively the source-code allowlist above, not caller strings.
             available = [name for name in selected if name in present]
-            expressions = [f'coalesce(sum(length(CAST("{name}" AS BLOB))), 0)' for name in available]
+            expressions = [
+                f'coalesce(sum(length(CAST("{name}" AS BLOB))), 0)' for name in available
+            ]
             result = database.execute(
                 f'SELECT count(*), {", ".join(expressions)} FROM "{table}"'
             ).fetchone()
@@ -126,7 +129,7 @@ def profile_reference(path: Path) -> dict[str, object]:
         "readOnlyReceiptUnchanged": True,
         "boundaries": (
             "Closed-file host storage accounting. Logical column bytes exclude row/index overhead; "
-            "DBSTAT bytes exclude freelist/pointer-map pages. Gzip is transport-size comparison only. "
+            "DBSTAT excludes freelist/pointer-map pages. Gzip is a transport comparison. "
             "No device memory, clinical quality, or app qualification is implied."
         ),
     }
@@ -144,7 +147,9 @@ def main() -> None:
     with args.report.open("x", encoding="utf-8") as stream:
         json.dump(report, stream, ensure_ascii=False, indent=2)
         stream.write("\n")
-    print(json.dumps({key: report[key] for key in ("sqliteBytes", "gzipBytes", "integrity")}, indent=2))
+    print(json.dumps(
+        {key: report[key] for key in ("sqliteBytes", "gzipBytes", "integrity")}, indent=2,
+    ))
 
 
 if __name__ == "__main__":
