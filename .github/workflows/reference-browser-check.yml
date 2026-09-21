@@ -2,8 +2,7 @@ name: Reference browser integration
 on:
   push:
     branches: [experiment/system-one-search-benchmark]
-    paths:
-      - .github/workflows/reference-browser-check.yml
+    paths: [.github/workflows/reference-browser-check.yml]
 permissions:
   contents: write
 concurrency:
@@ -31,7 +30,8 @@ jobs:
           env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
           env -i PATH="$PATH" HOME="$HOME" bunx playwright install --with-deps chromium
-      - name: Prepare safe browser diagnostics
+          node --version
+      - name: Safe browser diagnostics and new regression checks
         run: |
           env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
           from pathlib import Path
@@ -40,12 +40,14 @@ jobs:
           s=s.replace("console.error('Visible app diagnostics:', (await page.locator('body').innerText()).slice(0, 16000));", "console.error('UI counters:', JSON.stringify({ dialogs: await page.getByRole('dialog').count(), alerts: await page.getByRole('alert').count(), coreGets, referenceGets }));\n  console.error('UI error messages:', await page.getByRole('alert').allTextContents());")
           p.write_text(s)
           PY
-          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write --diagnostic-level=error scripts/verify-reference-app.mjs
+          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write --diagnostic-level=error scripts/verify-reference-app.mjs apps/app/src/features/modules/local-definition-reference.ts apps/app/src/composition/worker-core-consent.test.ts
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p apps/app/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" bunx vitest run apps/app/src/composition/worker-core-consent.test.ts apps/app/src/composition/worker-opfs-medical-store.test.ts apps/app/src/features/setup/setup-state.test.ts packages/storage/tests/reference-mount.test.ts
       - name: Build full public numeric edition and verify transport
         run: env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/prepare-definition-reference.py --version 2026.09.22-r2 --built-at 2026-09-22
       - name: Actual application and installed dictionary
-        run: env -i PATH="$PATH" HOME="$HOME" bun scripts/verify-reference-app.mjs
-      - name: Persist only checked harness and numeric evidence
+        run: env -i PATH="$PATH" HOME="$HOME" node scripts/verify-reference-app.mjs
+      - name: Persist only checked code and numeric evidence
         env:
           PUSH_TOKEN: ${{ github.token }}
           CHECKED_SHA: ${{ github.sha }}
@@ -57,7 +59,7 @@ jobs:
           report=json.loads(p.read_text());report['checkedInputCommit']=os.environ['CHECKED_SHA']
           Path('docs/research/definition-reference-app-browser-2026-09-22.json').write_text(json.dumps(report,indent=2)+'\n')
           PY
-          git add scripts/verify-reference-app.mjs docs/research/definition-reference-app-browser-2026-09-22.json
+          git add scripts/verify-reference-app.mjs apps/app/src/features/modules/local-definition-reference.ts apps/app/src/composition/worker-core-consent.test.ts docs/research/definition-reference-app-browser-2026-09-22.json
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
