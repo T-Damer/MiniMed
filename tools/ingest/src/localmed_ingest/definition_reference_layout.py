@@ -6,9 +6,9 @@ import hashlib
 import json
 import sqlite3
 from collections.abc import Iterable
-from typing import TypeAlias, cast
+from typing import cast
 
-Cell: TypeAlias = str | int | float | None
+type Cell = str | int | float | None
 LINK_COLUMNS = (
     "id, entity_id, document_id, document_version_id, section_id, chunk_id, "
     "link_type, weight, review_status, metadata_json"
@@ -48,8 +48,8 @@ def reference_content_digest(database: sqlite3.Connection, *, compact: bool) -> 
     count, checksum = link_digest(database, compact=compact)
     result["links"] = {"rows": count, "sha256": checksum}
     count, checksum = row_digest(cast(Iterable[tuple[Cell, ...]], database.execute(
-        "SELECT key, value FROM app_metadata WHERE key LIKE 'definition_reference_annotations:%' "
-        "ORDER BY key"
+        "SELECT key, value FROM app_metadata "
+        "WHERE key LIKE 'definition_reference_annotations:%' ORDER BY key"
     )))
     result["annotations"] = {"rows": count, "sha256": checksum}
     return result
