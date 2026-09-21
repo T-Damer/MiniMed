@@ -34,9 +34,9 @@ jobs:
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
       - name: Integrate and run every scoped gate
         run: env -i PATH="$PATH" HOME="$HOME" python3 scripts/verify-reference-r2.py
-      - name: Persist verified code only
+      - name: Commit verified code and reconcile without overwriting other work
         env:
-          PUSH_TOKEN: ${{ github.token }}
+          INPUT_SHA: ${{ github.sha }}
         run: |
           python3 - <<'PY'
           import json,subprocess
@@ -49,6 +49,33 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'feat(reference): wire bounded dictionary and package onboarding through existing owners [skip ci]'
+          git restore -- scripts/apply-reference-r2-integration.py
+          git diff --exit-code
+          git fetch --depth=1 origin refs/heads/experiment/system-one-search-benchmark
+          if [ "$(git rev-parse FETCH_HEAD)" != "$INPUT_SHA" ]; then
+            git rebase --onto FETCH_HEAD "$INPUT_SHA"
+          fi
+      - name: Recheck the reconciled source tree
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import json,subprocess
+          from pathlib import Path
+          paths=json.loads(Path('data/build/reference-r2-code-paths.json').read_text())
+          paths=[p for p in paths if Path(p).suffix in ['.ts','.tsx','.css'] and '/generated/' not in p]
+          subprocess.run(['bunx','biome','check','--diagnostic-level=error','--max-diagnostics=100',*paths],check=True)
+          PY
+          env -i PATH="$PATH" HOME="$HOME" bun run schema:check
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p packages/storage-sqlite/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p packages/core/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p apps/app/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_definition_reference_pack.py tools/ingest/tests/test_definition_reference_compact.py tools/ingest/tests/test_definition_reference_metadata.py
+          env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/storage/tests/reference-mount.test.ts packages/storage-sqlite/tests/definition-reference-layout.test.ts packages/storage-sqlite/tests/definition-reference-metadata.test.ts apps/app/src/features/setup/setup-state.test.ts apps/app/src/composition/worker-opfs-medical-store.test.ts apps/app/src/composition/create-browser-core.test.ts apps/app/src/features/modules/local-packaged-modules.test.ts packages/core/tests/content-module-installer.test.ts
+      - name: Fast-forward delivery only
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
           auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
       - name: Storage-free summary
