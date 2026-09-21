@@ -4,6 +4,7 @@ import {
   type DefinitionReferenceRequest,
   DefinitionReferenceRequestSchema,
 } from '@localmed/contracts';
+import { readDefinitionReferenceAnnotations } from './definition-reference-annotations';
 import {
   createSqliteDefinitionReference,
   type DefinitionReferenceSql,
@@ -12,74 +13,67 @@ import {
 /** One capability per immutable handle. No new handle, worker, corpus cache or generic SQL RPC. */
 export function createDefinitionReferenceDispatch(sql: DefinitionReferenceSql) {
   let capability:
-    | Promise<{ reader: DefinitionReferenceReader; editionId: string; entries: number } | null>
+    | Promise<{ reader: DefinitionReferenceReader; editionId: string; entries: number; annotations: boolean } | null>
     | undefined;
   const load = async () => {
     const rows = await sql.read(
       `SELECT p.id, p.schema_version, substr(m.value, 1, 65537) AS manifest
        FROM app_metadata m JOIN content_packs p
          ON p.id = json_extract(m.value, '$.editionId') AND p.enabled = 1
-       WHERE m.key = 'definition_reference' LIMIT 2`,
-      [],
+       WHERE m.key = 'definition_reference' LIMIT 2`, [],
     );
     if (!rows.length) return null;
     const row = rows[0];
-    if (
-      rows.length !== 1 ||
-      !row ||
-      row['schema_version'] !== 7 ||
-      typeof row['id'] !== 'string' ||
-      typeof row['manifest'] !== 'string' ||
-      row['manifest'].length > 65536
-    ) {
+    if (rows.length !== 1 || !row ||
+      (row['schema_version'] !== 7 && row['schema_version'] !== 9) ||
+      typeof row['id'] !== 'string' || typeof row['manifest'] !== 'string' || row['manifest'].length > 65536) {
       throw new Error('Unsupported installed reference edition.');
     }
     const manifest: unknown = JSON.parse(row['manifest']);
-    if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest))
-      throw new Error('Invalid reference manifest.');
+    if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) throw new Error('Invalid reference manifest.');
     const fields = manifest as Record<string, unknown>;
-    // R2 uses the qualified numeric layout. The optional metadata experiment is not enabled here.
-    if (fields['linkLayout'] !== 'numeric-v1' || fields['metadataLayout'] !== undefined)
-      throw new Error('Unsupported application reference layout.');
+    if (fields['linkLayout'] !== 'numeric-v1' || fields['metadataLayout'] !== undefined) throw new Error('Unsupported application reference layout.');
+    const annotations = row['schema_version'] === 9;
+    if ((annotations && fields['annotationLayout'] !== 'source-spans-v1') ||
+      (!annotations && fields['annotationLayout'] !== undefined)) {
+      throw new Error('Unsupported reference annotation layout.');
+    }
     const reader = await createSqliteDefinitionReference(sql);
     const count = await sql.read(
       `SELECT count(*) AS entries FROM knowledge_entities
        WHERE json_extract(metadata_json, '$.definitionReference') = 1
-         AND json_extract(metadata_json, '$.editionId') = ?`,
-      [row['id']],
+         AND json_extract(metadata_json, '$.editionId') = ?`, [row['id']],
     );
     const entries = count[0]?.['entries'];
-    if (
-      typeof entries !== 'number' ||
-      !Number.isSafeInteger(entries) ||
-      entries < 1 ||
-      entries > 100000
-    )
-      throw new Error('Invalid reference entry count.');
-    return { reader, editionId: row['id'], entries };
+    if (typeof entries !== 'number' || !Number.isSafeInteger(entries) || entries < 1 || entries > 100000) throw new Error('Invalid reference entry count.');
+    if (annotations) {
+      const tables = await sql.read(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name IN (?, ?) LIMIT 2",
+        ['definition_reference_annotation_spans', 'definition_reference_annotation_links'],
+      );
+      if (tables.length !== 2) throw new Error('Reference annotation tables are missing.');
+    }
+    return { reader, editionId: row['id'], entries, annotations };
   };
   return async (untrusted: DefinitionReferenceRequest): Promise<DefinitionReferenceReply> => {
     const request = DefinitionReferenceRequestSchema.parse(untrusted);
-    capability ??= load();
+    capability ??= load().catch((error: unknown) => { capability = undefined; throw error; });
     const loaded = await capability;
     if (!loaded || request.editionId !== loaded.editionId) return { op: 'unavailable' };
     const { reader } = loaded;
     switch (request.op) {
-      case 'status':
-        return { op: 'status', editionId: loaded.editionId, entries: loaded.entries };
-      case 'search':
-        return { op: 'search', hits: await reader.search(request.query, request.limit) };
-      case 'card':
-        return { op: 'card', card: await reader.getCard(request.id) };
-      case 'blocks':
-        return { op: 'blocks', page: await reader.listBlocks(request.id, request.after) };
-      case 'text':
-        return {
-          op: 'text',
-          block: await reader.readBlock(request.id, request.chunkId, request.offset),
-        };
-      case 'source':
-        return { op: 'source', source: await reader.getSource(request.id) };
+      case 'status': return { op: 'status', editionId: loaded.editionId, entries: loaded.entries };
+      case 'search': return { op: 'search', hits: await reader.search(request.query, request.limit) };
+      case 'card': return { op: 'card', card: await reader.getCard(request.id) };
+      case 'blocks': return { op: 'blocks', page: await reader.listBlocks(request.id, request.after) };
+      case 'text': return { op: 'text', block: await reader.readBlock(request.id, request.chunkId, request.offset) };
+      case 'source': return { op: 'source', source: await reader.getSource(request.id) };
+      case 'annotations': return {
+        op: 'annotations',
+        page: loaded.annotations
+          ? await readDefinitionReferenceAnnotations(sql, loaded.editionId, request.id, request.after)
+          : { items: [], next: null },
+      };
     }
   };
 }
