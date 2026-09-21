@@ -10,7 +10,10 @@ import tempfile
 from contextlib import closing
 from pathlib import Path
 
-from .definition_reference_annotations import load_annotation_projection, write_reference_annotations
+from .definition_reference_annotations import (
+    load_annotation_projection,
+    write_reference_annotations,
+)
 from .definition_reference_compact_pack import build_compact_definition_reference
 from .definition_reference_layout import reference_content_digest
 from .definition_reference_pack import digest, encoded, obj
@@ -30,11 +33,17 @@ def build_annotated_definition_reference(
     if output.exists():
         raise ValueError("Annotated edition needs a new immutable output path")
     output.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="reference-annotations-", dir=output.parent) as directory:
+    with tempfile.TemporaryDirectory(
+        prefix="reference-annotations-", dir=output.parent
+    ) as directory:
         staged = Path(directory) / "reference.db"
         baseline = build_compact_definition_reference(
-            inputs, staged, input_root=input_root, edition_id=edition_id,
-            version=version, built_at=built_at,
+            inputs,
+            staged,
+            input_root=input_root,
+            edition_id=edition_id,
+            version=version,
+            built_at=built_at,
         )
         projection, block_maps = load_annotation_projection(inputs, input_root)
         if baseline["receipts"] != projection.receipts:
@@ -57,7 +66,8 @@ def build_annotated_definition_reference(
             )
             database.execute("UPDATE app_metadata SET value = '9' WHERE key = 'schema_version'")
             database.execute(
-                "INSERT INTO schema_migrations(version, applied_at) VALUES (9, ?)", (built_at,),
+                "INSERT INTO schema_migrations(version, applied_at) VALUES (9, ?)",
+                (built_at,),
             )
             database.execute(
                 "UPDATE content_packs SET schema_version = 9, checksum = ? WHERE id = ?",
@@ -77,7 +87,9 @@ def build_annotated_definition_reference(
             database.execute("VACUUM")
         with closing(sqlite3.connect(staged)) as database, database:
             for table in ("definition_reference_fts", "knowledge_fts", "chunks_fts"):
-                database.execute(f"INSERT INTO {table}({table}, rank) VALUES ('integrity-check', 1)")
+                database.execute(
+                    f"INSERT INTO {table}({table}, rank) VALUES ('integrity-check', 1)"
+                )
             if reference_content_digest(database, compact=True) != before:
                 raise ValueError("Final annotated edition no longer matches its source rows")
         integrity, foreign_keys, *_ = inspect_integrity(staged)
@@ -104,8 +116,10 @@ def build_annotated_definition_reference(
             "integrity": integrity,
             "foreignKeyViolations": foreign_keys,
             "boundaries": (
-                "Source-span bindings only, with unresolved person identity and review-required origin statements. "
-                "No new biography, root translation, canonical relation, private upload or clinical qualification."
+                "Source-span bindings only, with unresolved person identity "
+                "and review-required origin statements. "
+                "No new biography, root translation, canonical relation, "
+                "private upload or clinical qualification."
             ),
         }
         os.link(staged, output)
@@ -125,8 +139,12 @@ def main() -> None:
     if args.report.exists() or args.report.resolve() == args.output.resolve():
         parser.error("Use distinct new database/report paths")
     report = build_annotated_definition_reference(
-        tuple(args.input), args.output, input_root=args.input_root, edition_id=args.edition_id,
-        version=args.version, built_at=args.built_at,
+        tuple(args.input),
+        args.output,
+        input_root=args.input_root,
+        edition_id=args.edition_id,
+        version=args.version,
+        built_at=args.built_at,
     )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     with args.report.open("x", encoding="utf-8") as handle:

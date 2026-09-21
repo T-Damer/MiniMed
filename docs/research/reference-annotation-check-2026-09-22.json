@@ -1,0 +1,12 @@
+{
+  "checkedCommit": "028d407bf147a521735c36b78b6e39630a6684fb",
+  "testResults": {
+    "tests": 57,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "strictPythonTypecheck": "passed",
+  "schemaSynchronization": "passed",
+  "scope": "Real ordinary projection, numeric compactor and annotated builder, using synthetic fixture text only. Owner PDF/derived private text not used in CI. No app, native, clinical or whole-workspace qualification implied."
+}

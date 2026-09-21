@@ -49,8 +49,7 @@ def load_annotation_projection(
         if payload.get("version") != 3:
             continue
         sources = {
-            number(obj(row).get("id")): obj(row)
-            for row in seq(payload.get("sources"), 1000)
+            number(obj(row).get("id")): obj(row) for row in seq(payload.get("sources"), 1000)
         }
         for value in seq(payload.get("blocks"), 100000):
             row = obj(value)
@@ -130,7 +129,10 @@ def write_reference_annotations(
     link_count = 0
     database.execute("SAVEPOINT reference_annotation_binding")
     try:
-        for table in ("definition_reference_annotation_spans", "definition_reference_annotation_links"):
+        for table in (
+            "definition_reference_annotation_spans",
+            "definition_reference_annotation_links",
+        ):
             if database.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone():
                 raise ValueError("Annotation target is not an empty staged edition")
         for receipt, raw in projection.annotations.items():
@@ -162,13 +164,15 @@ def write_reference_annotations(
                 if stored is None or stored[0] != chunk.original_text:
                     raise ValueError("Annotation source no longer matches the SQLite block")
                 database.execute(
-                    "INSERT INTO definition_reference_annotation_spans VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO definition_reference_annotation_spans "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
                     (identity, receipt, chunk_id, kind, label, start, end),
                 )
                 for entity_id in sorted(associated):
                     owner = database.execute(
                         "SELECT json_extract(metadata_json, '$.inputSha256') "
-                        "FROM knowledge_entities WHERE id = ?", (entity_id,),
+                        "FROM knowledge_entities WHERE id = ?",
+                        (entity_id,),
                     ).fetchone()
                     if owner is None or owner[0] != receipt:
                         raise ValueError("Annotation owner belongs to another input receipt")
