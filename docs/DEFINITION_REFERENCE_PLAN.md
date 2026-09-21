@@ -1,6 +1,6 @@
 # Definition reference: execution plan
 
-Updated: 2026-09-21. Owner: draft PR #180, `experiment/system-one-search-benchmark`, stacked on #174. This plan refines the existing `TECHNICAL_PLAN.md`; it does not authorize a merge, release, model download or architecture replacement.
+Updated: 2026-09-21. Owner: draft PR #180, `experiment/system-one-search-benchmark`, stacked on #174. This plan refines `TECHNICAL_PLAN.md`; it does not authorize a merge, release, model download or architecture replacement.
 
 ## Product outcome
 
@@ -8,67 +8,83 @@ An optional offline reference inside MiniMed: find a term by name or remembered 
 
 ## Starting evidence
 
-Pinned starting code: `4ec354452750bda59b2cab6cce3447ffabe6e1bb`.
-The development catalog has 18,133 source/editorial records, not 18,133 reviewed canonical concepts. The separately returned owner-only psychiatry module has 450 records and is not public repository content. The last full JSON-index audit took 5,597.5 ms to construct; current process RSS was 1,033,625,600 bytes. That includes the runtime and audit, not incremental Android memory. See `research/mass-definitions-delivery-2026-09-21.md` and its linked measurements.
+Starting code: `4ec354452750bda59b2cab6cce3447ffabe6e1bb`.
+The development catalog has 18,133 source/editorial records, not 18,133 reviewed canonical concepts. The separately returned owner-only psychiatry module has 450 records and is not public repository content. The previous full JSON-index audit took 5,597.5 ms to construct; current process RSS was 1,033,625,600 bytes. This includes the runtime and audit, not incremental Android memory. See `research/mass-definitions-delivery-2026-09-21.md`.
 
-`definition-draft-lookup.ts` currently imports every JSON collection, retains parsed assets, and creates a second full index when an owner overlay is supplied. The public `knowledge_discovery_pack.py` admits reviewed facts/links; unreviewed extractions must NOT be promoted merely to pass that gate. Existing content tables, `knowledge_*` structures, installer, MedicalCore and native/WASM storage ownership remain the integration target.
+The app's `definition-draft-lookup.ts` still imports every JSON collection and rebuilds the combined index for an owner overlay. The reviewed `knowledge_discovery_pack.py` gate must NOT be bypassed by promoting unreviewed extractions. Existing content/knowledge tables, installer, MedicalCore and native/WASM storage ownership remain the integration target.
 
 ## Execution order and acceptance
 
-### R1 — Reproducible SQLite projection and bounded storage access (implemented; host storage checks passed)
+### R1 — SQLite projection and bounded storage access (implemented; host checks passed)
 
-- [x] Implement an offline builder/adapter for existing V1/V2/V3 definition inputs. Use the repository's ordinary content-pack schema and builder; retain proposed/source-local identities until explicit canonical mapping exists.
-- [x] Preserve source edition/hash, original name, exact block text/order, definition-versus-context roles, all source locators, review/rights state and mention-only status. Namespace module-local numeric references; reject collisions and broken references.
-- [x] Share source metadata and source blocks, not a repeated publisher or full context object per result. Do not invent approved knowledge facts, synonym relations, scale scoring or eponym authorship.
-- [x] Add a storage-layer bounded lookup/detail adapter that receives an already-owned database executor, never opens a second native connection or OPFS worker. Search returns at most 20 compact hits. Context is paginated/read only on demand, with bounded per-call text size.
-- [x] Exact identity precedes broad text search; short names/abbreviations must not disappear solely because of stop-word removal. Parameterize values, constrain result counts and do not log queries or source text.
-- [x] Validate builder output with integrity/foreign-key checks, round-trip text/locator/ID checks, source collisions, damaged input, mention-only and ambiguous-name regressions. Measure complete corpus bytes and fresh-process lookup resource use; compare against the recorded baseline without equating RSS with incremental index memory.
+- [x] Implement an offline adapter for V1/V2/V3 definition inputs using the ordinary content-pack builder and schema. Retain original source-local identities until explicit canonical mapping exists.
+- [x] Preserve source descriptors, input receipts, original names, exact block text/order, definition-versus-context roles, source locators, review/rights state and mention-only status. Namespace module-local numeric references and reject collisions/broken references.
+- [x] Share source metadata and blocks. Create no approved knowledge facts, synonym relations, scale scoring or eponym authorship.
+- [x] Provide a typed asynchronous storage port and a reader using an already-owned executor, not another native connection or OPFS worker. Search returns at most 20 headers. Detail is paged and read on demand.
+- [x] Perform exact-name lookup before broader FTS, including short names/abbreviations. Parameterize values, enforce limits and avoid logging queries or source text.
+- [x] Run integrity/foreign-key checks, source fidelity and malformed-input tests, ambiguity/mention regressions, complete-corpus conversion and fresh-process host measurements.
 
-A schema change requires a numbered migration and regenerated schema. Reusing existing tables without schema changes does not require a fictitious migration. Whether FTS external-content optimization is necessary is a measured decision; do not redesign storage just to reach a gzip target.
+Implementation: `9f9a05f54f335be4de506b696b3c024a0dde7141`; successful run: https://github.com/T-Damer/MiniMed/actions/runs/35634470423. Migration `006_definition_reference.sql` adds the reference external-content FTS view/index; generated schema is synchronized. Ordinary clinical ranking and source texts are unchanged. The underlying storage fixture now compares every projected title by ID, because its existing query sorts by title rather than seed order; no ranking expectation was relaxed.
 
-R1 exit: real complete input converted, bounded SQLite lookup and lazy detail exercised, no changes to general clinical ranking. This alone does not qualify the full app or Android installation.
+Measured full build: 18,133 entries, nine shared source records and 23,809 shared blocks. Reader replies contain at most 20 rows; block descriptors are paged in groups of eight and text in 4,096 Unicode-code-point slices. The synthetic real-SQLite run includes 21 assertions for lazy reads, context exclusion, membership checks, cursor bounds and supplementary-Unicode reconstruction.
 
-### R2 — Existing installer, app composition and lifecycle
+The name audit found a nonempty result for all 13,146 indexed name surfaces. It checks source-name availability, not independent relevance, correct clinical interpretation, every homonym's position or reverse-search quality. Adapter creation was 0.634 ms **after the file was already opened**; exact-name lookup p50/p95 were 0.068/0.109 ms. Whole-process current RSS before open / after open / after audit was 57,942,016 / 60,227,584 / 115,838,976 bytes. These are host measurements with a 2 MiB SQLite page-cache setting, not Android PSS or a measured peak; the old JSON and new audits are not an identical end-to-end device comparison.
 
-- [ ] Route installation/open/update/removal through the existing content-module installer and storage owner. Validate the module manifest and schema/edition/hash before activation; retain the working edition on a failed update.
-- [ ] Replace the default all-JSON definition preview path with the SQLite-backed path. Do not silently fall back to the unbounded JSON index on error.
-- [ ] Expose a typed asynchronous reference operation through the existing core/ports direction. UI receives compact hits and loads full definition/context when the card is opened; it does not import SQL/native libraries.
-- [ ] Owner-only imports stay local and separate from downloadable editions. Do not upload the supplied PDF, source text/profile or owner-derived test fixtures to public CI/GitHub.
-- [ ] Test install, interrupted/corrupt update, restart offline, disable/remove, search after each transition, and race/cancellation/stale response handling. Prove no whole-corpus text is transferred to the UI.
-- [ ] Exercise the actual app composition in browser and existing Android path. Measure native and WASM fallback separately when both are supported. Report cold/warm p50/p95, baseline/incremental PSS or RSS, peak memory during install/open, and installed/transport bytes.
+Evidence: `research/definition-reference-sqlite-build-2026-09-21.json`, `research/definition-reference-sqlite-runtime-2026-09-21.json`, `research/definition-reference-sqlite-fixture-2026-09-21.json`.
 
-R2 exit: a user can install the reference, restart without network, search and open a complete source card using the normal application. No APK publication or merge without authorization.
+### R1b — Installed-size qualification (next; blocks general phone delivery)
 
-### R3 — Useful cards, extraction QA and conservative grouping
+The first correct SQLite projection is **159,125,504 bytes (151.75 MiB)**. This is not yet the small installable reference requested by the user, and an external-content FTS index does not make all existing schema/index overhead disappear. Keep this measured baseline rather than advertising the earlier gzip JSON figure as installed size.
 
-- [ ] Audit broken headings, sentence fragments, missing list items, contextual subtypes and tables needing review. Preserve originals and record issues rather than silently rewriting them.
-- [ ] Group only source variants with an established shared concept identity. Identical titles alone are not proof of equivalence; retain separate senses and different eponym meanings. Display alternate sources instead of filling the first page with duplicates.
-- [ ] Keep separate states: source-fidelity review, clinical review, source authority and redistribution eligibility. A requires-review source can be browsable without becoming an approved clinical fact.
-- [ ] Distinguish instrument mention, description, complete questionnaire and executable scoring. No “calculate” or “take test” action is inferred from a scale name.
+- [ ] Profile actual table, index, repeated identifier/provenance and annotation allocation using read-only storage diagnostics; do not guess which structure dominates.
+- [ ] Reduce unnecessary duplication within the existing pack/storage architecture. Evaluate compact internal reference mappings while retaining stable external source identities, edition binding and every locator. No new parallel canonical graph or storage owner.
+- [ ] Preserve module-local mappings needed by optional etymology/history annotations and qualify them with synthetic cross-reference fixtures before owner-module integration.
+- [ ] Recheck FTS integrity after final physical database compaction, and run complete source-text/identity round-trip comparison on the resulting edition.
+- [ ] Rebuild and report installed bytes, transport bytes, per-table costs and reader measurements. Do not remove substantive definitions, context, provenance or alternative meanings solely to lower a size metric.
 
-R3 exit: one understandable card per confirmed concept, explicit ambiguous alternatives, and traceable alternate definitions/editions. No automatic harmonization of the 2006 textbook with modern guidance.
+R2 development may use the R1 baseline, but it must not be presented as a compact general phone download until this gate and actual app/device measurements pass.
 
-### R4 — Independent coverage and reverse-search work boundary
+### R2 — Existing installer, app composition and lifecycle (pending)
 
-- [ ] Create approximately 200–300 varied development probes across terms, symptoms, syndromes, criteria and scales, with acceptable multi-target cases and corpus-absent/out-of-scope queries. This is a target, not a completed or independent clinician set.
-- [ ] Keep name identity, candidate recall, concept ranking, source variant visibility, no-answer behavior and latency as separate metrics. Do not reuse exact source text as supposed independent paraphrase gold.
-- [ ] Maintain a held-out clinician-authored set separately when available. Visible authored probes remain development tests, not clinical validation.
-- [ ] Coordinate with the parallel general-search work: deliver fixed corpus/IDs/probes and reproducible misses. Do not simultaneously tune its ranking in this PR iteration or inject every failing probe as a synonym.
-- [ ] Evaluate a local classifier only after candidate recall is measured. The current neural experiment has no demonstrated shipped quality gain; exact-name lookup must not need a model.
+- [ ] Route install/open/update/removal through the existing content-module installer and database owner. Validate schema, manifest, edition and hash before activation; retain the working edition if an update fails.
+- [ ] Replace the default all-JSON definition preview with the bounded SQLite path. Never silently fall back to the unbounded index on error.
+- [ ] Expose reference operations through the existing core/ports direction. UI receives headers and loads full definition/context when a card opens; UI imports no SQL/native libraries.
+- [ ] Keep owner-only imports local and separate. Do not upload the supplied PDF, its text/profile or owner-derived fixtures to public CI/GitHub. Validate optional source-annotation mappings rather than assuming structural conversion proves them usable.
+- [ ] Test interrupted/corrupt updates, offline restart, disable/remove, search after each transition, cancellation and stale-response races. Prove that whole-corpus text does not cross into UI memory.
+- [ ] Exercise actual browser/app composition and Android. Measure native and WASM fallback separately where both are supported: cold/warm latency, baseline/incremental memory, install/open peak and actual installed/transport bytes.
 
-### R5 — Continued source expansion, etymology and history
+R2 exit: install the reference, restart offline, search and open a complete sourced card in the normal application. No APK publication or merge without authorization. The current DEV UI is still the older JSON preview; R1 alone did not fix its memory consumption.
 
-- [ ] Expand into verified and explicitly review-required source families by measured gaps; 20,000+ Russian source records is an authoring target, not a ceiling or unique-concept claim. Do not count empty cards, synonyms or English MeSH text as Russian definitions.
-- [ ] Report new concepts, fuller definitions, additional source variants and unresolved mentions separately for every ingestion batch.
-- [ ] Implement the sourced root/origin dictionary from `research/definition-catalog-and-etymology-2026-09-21.md`: original language/spelling, literal component meanings, independent review and shared numeric source/root references. Missing origin stays missing, not generated from word shape.
-- [ ] Add the historical-reference module through the same card/module architecture. Person biography, naming history and discovery priority are separate sourced claims. Never infer discoverer identity from a surname alone.
+### R3 — Useful cards, extraction QA and conservative grouping (pending)
+
+- [ ] Audit broken headings, sentence fragments, missing list items, contextual subtypes and tables needing review. Preserve originals and record issues instead of silently rewriting them.
+- [ ] Group only source variants with an established shared concept identity. Identical titles do not prove equivalence; retain distinct senses and eponyms. Present alternate sources without filling the first page with duplicates.
+- [ ] Separate source-fidelity review, clinical review, source authority and redistribution eligibility. A browsable review-required entry is not an approved clinical fact.
+- [ ] Distinguish instrument mention, description, complete questionnaire and executable scoring. Never infer a “calculate” or “take test” action from a scale name.
+
+R3 exit: understandable cards for confirmed concepts, explicit ambiguous alternatives and traceable source editions. No automatic harmonization of the 2006 textbook with modern guidance.
+
+### R4 — Coverage and reverse-search work boundary (pending)
+
+- [ ] Create approximately 200–300 varied development probes across terms, symptoms, syndromes, criteria and scales, with multi-target and corpus-absent/out-of-scope queries. This is a target, not completed independent clinician gold.
+- [ ] Separate name availability, exact identity, candidate recall, concept ranking, source-variant visibility, no-answer behavior and latency. Source-text quotations are not independent paraphrases.
+- [ ] Keep an independent clinician-authored holdout when available. Visible authored probes remain development tests, not clinical qualification.
+- [ ] Coordinate with parallel general-search work: supply frozen corpus/IDs/probes and reproducible misses. Do not tune that ranking concurrently in this iteration or add every failing probe as an alias.
+- [ ] Consider a local classifier only after candidate recall is measured. No current neural quality gain is established as shipped; exact names must not require a model.
+
+### R5 — Continued expansion, etymology and history (pending)
+
+- [ ] Expand by measured coverage gaps across verified and explicitly review-required source families. 20,000+ Russian source records is a target, not a ceiling or unique-concept count. Do not count empty cards, aliases or English MeSH text as Russian definitions.
+- [ ] Report new concepts, fuller definitions, additional variants and unresolved mentions separately for each batch.
+- [ ] Implement the sourced origin/root dictionary from `research/definition-catalog-and-etymology-2026-09-21.md`: original language/spelling, literal components, independent review and shared source/root references. Missing origins remain missing, not generated from word shape.
+- [ ] Add historical reference through the same module/card architecture. Biography, naming history and discovery priority are separately sourced claims; a surname alone cannot establish authorship.
 
 ## Resource and safety gates
 
-No arbitrary final mobile budget is advertised before measurement. The acceptance invariant is bounded query results and on-demand context, with no whole-corpus JS hydration. Record actual package sizes and device measurements; “5 MB gzip” is not installed SQLite or memory. Stage a focused DEV module until source rights and integration are qualified. Production pack text, diagnoses, general ranking gold, user data, provider tokens and existing download ownership are out of scope for opportunistic changes.
+No arbitrary final device budget is advertised before measurement. The invariant is bounded query replies and on-demand context, not whole-corpus JS hydration. Source rights and integration remain explicit release gates. Production pack text, diagnoses, general ranking gold, user data, credentials and existing download ownership are not opportunistic refactoring scope.
 
 ## Progress log
 
-- 2026-09-21: plan established from the measured mass-extraction state. R1 started; R2–R5 remain pending. Implementation commits and executed verification will be appended here and in `CURRENT_STATE.md`. A checked box requires code plus the relevant evidence, not a proposed command.
-
-- 2026-09-21: R1 implemented and verified on the full 18,133-record public corpus. See the three `research/definition-reference-sqlite-*-2026-09-21.json` reports. Numbered migration 006 adds only the reference projection index/view; ordinary clinical ranking is unchanged. R2–R5 are not completed. The old DEV JSON UI remains in place until the existing-owner application integration is qualified.
+- 2026-09-21: executable subplan established from the mass-extraction baseline.
+- 2026-09-21: R1 implemented and verified on all 18,133 public records; 20 Python tests, 83 selected Vitest checks, strict Python/storage TypeScript checks and real file-backed reader assertions passed. The temporary verification workflow was removed after delivery; normal builder, migration, reader, verifier and reports remain.
+- 2026-09-21: added R1b because the measured 159 MB installed projection is not yet the requested small phone package. R1b and R2 are the next work; R3–R5 remain open. No new APK, released database or merge was performed.
