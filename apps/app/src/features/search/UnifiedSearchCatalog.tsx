@@ -4,6 +4,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { ClinicalTags } from '@/components/ClinicalTags';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
+import { DefinitionDraftMatches } from '@/features/search/DefinitionDraftMatches';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import type { SearchCatalogTool } from '@/features/search/searchCatalog';
 
@@ -23,6 +24,16 @@ export function UnifiedSearchCatalog(props: {
     props.catalogOnly || props.scope === 'calculators' || props.scope === 'assessments';
   return (
     <section class="unified-catalog" aria-label="Каталог выбранного раздела">
+      <Show
+        when={
+          import.meta.env.DEV &&
+          !props.catalogOnly &&
+          (props.scope === 'all' || props.scope === 'conditions') &&
+          props.query.trim().length > 1
+        }
+      >
+        <DefinitionDraftMatches query={props.query} />
+      </Show>
       <Show when={tools() || (props.scope === 'all' && props.tools.length > 0)}>
         <div class="unified-catalog__tools">
           <LayoutVirtualizedGrid data={props.tools}>
