@@ -1,5 +1,5 @@
 -- Optional verbatim metadata fragments for immutable reference editions only.
--- No source text or external identity is changed; readers opt in via the manifest.
+-- No source text or external identity is changed. Readers opt in via the manifest.
 CREATE TABLE IF NOT EXISTS definition_reference_metadata_fragments (
   local_id INTEGER PRIMARY KEY CHECK (local_id > 0),
   fragment TEXT NOT NULL CHECK (length(fragment) BETWEEN 1 AND 65536)
