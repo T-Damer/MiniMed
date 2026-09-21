@@ -14,8 +14,14 @@ LINK_COLUMNS = (
     "link_type, weight, review_status, metadata_json"
 )
 LOGICAL_TABLES = (
-    "documents", "document_versions", "sections", "chunks", "knowledge_entities",
-    "knowledge_names", "knowledge_facts", "knowledge_relations",
+    "documents",
+    "document_versions",
+    "sections",
+    "chunks",
+    "knowledge_entities",
+    "knowledge_names",
+    "knowledge_facts",
+    "knowledge_relations",
 )
 
 
@@ -32,25 +38,35 @@ def row_digest(rows: Iterable[tuple[Cell, ...]]) -> tuple[int, str]:
 
 def link_digest(database: sqlite3.Connection, *, compact: bool) -> tuple[int, str]:
     table = "definition_reference_links" if compact else "knowledge_document_links"
-    return row_digest(cast(Iterable[tuple[Cell, ...]], database.execute(
-        f"SELECT {LINK_COLUMNS} FROM {table} ORDER BY id"
-    )))
+    return row_digest(
+        cast(
+            Iterable[tuple[Cell, ...]],
+            database.execute(f"SELECT {LINK_COLUMNS} FROM {table} ORDER BY id"),
+        )
+    )
 
 
 def reference_content_digest(database: sqlite3.Connection, *, compact: bool) -> dict[str, object]:
     """Full logical source/text/identity comparison, not a sample or only row counts."""
     result: dict[str, object] = {}
     for table in LOGICAL_TABLES:
-        count, checksum = row_digest(cast(Iterable[tuple[Cell, ...]], database.execute(
-            f'SELECT * FROM "{table}" ORDER BY id'
-        )))
+        count, checksum = row_digest(
+            cast(
+                Iterable[tuple[Cell, ...]], database.execute(f'SELECT * FROM "{table}" ORDER BY id')
+            )
+        )
         result[table] = {"rows": count, "sha256": checksum}
     count, checksum = link_digest(database, compact=compact)
     result["links"] = {"rows": count, "sha256": checksum}
-    count, checksum = row_digest(cast(Iterable[tuple[Cell, ...]], database.execute(
-        "SELECT key, value FROM app_metadata "
-        "WHERE key LIKE 'definition_reference_annotations:%' ORDER BY key"
-    )))
+    count, checksum = row_digest(
+        cast(
+            Iterable[tuple[Cell, ...]],
+            database.execute(
+                "SELECT key, value FROM app_metadata "
+                "WHERE key LIKE 'definition_reference_annotations:%' ORDER BY key"
+            ),
+        )
+    )
     result["annotations"] = {"rows": count, "sha256": checksum}
     return result
 
@@ -64,7 +80,8 @@ def compact_reference_links(database: sqlite3.Connection) -> dict[str, object]:
     database.execute("SAVEPOINT compact_reference_links")
     try:
         for table in (
-            "definition_reference_entity_keys", "definition_reference_chunk_keys",
+            "definition_reference_entity_keys",
+            "definition_reference_chunk_keys",
             "definition_reference_compact_links",
         ):
             if database.execute(f'SELECT 1 FROM "{table}" LIMIT 1').fetchone():
@@ -79,12 +96,14 @@ def compact_reference_links(database: sqlite3.Connection) -> dict[str, object]:
             raise ValueError("Invalid draft reference manifest")
         manifest = cast(dict[str, object], manifest)
         if (
-            manifest.get("contract") != 1 or manifest.get("publicationState") != "local-dev"
+            manifest.get("contract") != 1
+            or manifest.get("publicationState") != "local-dev"
             or manifest.get("reviewStatus") != "requires-review"
             or manifest.get("identityStatus") != "source-local-proposed"
         ):
             raise ValueError("Only unreviewed local reference editions may be compacted")
-        invalid = database.execute("""
+        invalid = database.execute(
+            """
             SELECT 1 FROM knowledge_document_links l
             LEFT JOIN chunks c ON c.id=l.chunk_id
             LEFT JOIN document_versions v ON v.id=c.document_version_id
@@ -106,16 +125,21 @@ def compact_reference_links(database: sqlite3.Connection) -> dict[str, object]:
                     'ordinal',json_extract(l.metadata_json,'$.ordinal'),
                     'role',substr(l.link_type,11))
             LIMIT 1
-        """, (str(manifest.get("editionId")),)).fetchone()
+        """,
+            (str(manifest.get("editionId")),),
+        ).fetchone()
         if invalid:
             raise ValueError("Navigation link has non-reconstructible source data")
         before = link_digest(database, compact=False)
-        database.execute("""
+        database.execute(
+            """
             INSERT INTO definition_reference_entity_keys(local_id, entity_id)
             SELECT row_number() OVER (ORDER BY id), id FROM knowledge_entities
             WHERE json_extract(metadata_json,'$.definitionReference') = 1
               AND json_extract(metadata_json,'$.editionId') = ?
-        """, (str(manifest.get("editionId")),))
+        """,
+            (str(manifest.get("editionId")),),
+        )
         database.execute("""
             INSERT INTO definition_reference_chunk_keys(local_id, chunk_id)
             SELECT row_number() OVER (ORDER BY id), id FROM chunks

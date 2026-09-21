@@ -20,8 +20,12 @@ def compact_build(root: Path, name: str = "compact.db") -> tuple[Path, dict[str,
     write_input(root, fixture())
     output = root / name
     report = build_compact_definition_reference(
-        (Path("input.json"),), output, input_root=root,
-        edition_id="fixture.reference", version="1", built_at="2026-09-21",
+        (Path("input.json"),),
+        output,
+        input_root=root,
+        edition_id="fixture.reference",
+        version="1",
+        built_at="2026-09-21",
     )
     return output, report
 
@@ -36,9 +40,9 @@ def test_full_source_identity_and_provenance_roundtrip(tmp_path: Path) -> None:
         assert new.execute("SELECT count(*) FROM knowledge_document_links").fetchone() == (0,)
         assert new.execute("SELECT count(*) FROM definition_reference_links").fetchone() == (7,)
         assert new.execute("PRAGMA foreign_key_check").fetchall() == []
-        assert new.execute("SELECT value FROM app_metadata WHERE key='schema_version'").fetchone() == (
-            "7",
-        )
+        assert new.execute(
+            "SELECT value FROM app_metadata WHERE key='schema_version'"
+        ).fetchone() == ("7",)
         assert new.execute("SELECT count(*) FROM knowledge_facts").fetchone() == (0,)
         assert new.execute("SELECT count(*) FROM knowledge_relations").fetchone() == (0,)
     assert report["logicalRoundTripEqual"] is True
@@ -53,40 +57,52 @@ def test_repeated_roles_and_context_exclusion_survive_compaction(tmp_path: Path)
             "WHERE entity_id='fixture.first' ORDER BY id"
         ).fetchall()
         assert [row[0] for row in rows] == [
-            "reference:definition", "reference:item", "reference:item",
-            "reference:context", "reference:annotation",
+            "reference:definition",
+            "reference:item",
+            "reference:item",
+            "reference:context",
+            "reference:annotation",
         ]
         for query, count in (("определение", 1), ("контекстмаркер", 0), ("аннотациямаркер", 0)):
             assert db.execute(
                 "SELECT count(*) FROM definition_reference_fts "
-                "WHERE definition_reference_fts MATCH ?", (query,)
+                "WHERE definition_reference_fts MATCH ?",
+                (query,),
             ).fetchone() == (count,)
         assert db.execute("SELECT count(*) FROM chunks_fts").fetchone() == (0,)
 
 
-@pytest.mark.parametrize("assignment", [
-    "weight=0.5",
-    "review_status='reviewed'",
-    "link_type='reference:unknown'",
-    "id='unreconstructible.id'",
-    "document_id='different.source'",
-    "metadata_json=json_set(metadata_json,'$.extra','must not be discarded')",
-    "metadata_json=json_set(metadata_json,'$.ordinal',0.5)",
-    "metadata_json=json_set(metadata_json,'$.role','context')",
-])
+@pytest.mark.parametrize(
+    "assignment",
+    [
+        "weight=0.5",
+        "review_status='reviewed'",
+        "link_type='reference:unknown'",
+        "id='unreconstructible.id'",
+        "document_id='different.source'",
+        "metadata_json=json_set(metadata_json,'$.extra','must not be discarded')",
+        "metadata_json=json_set(metadata_json,'$.ordinal',0.5)",
+        "metadata_json=json_set(metadata_json,'$.role','context')",
+    ],
+)
 def test_unreconstructible_links_are_not_silently_normalized(
-    tmp_path: Path, assignment: str,
+    tmp_path: Path,
+    assignment: str,
 ) -> None:
     baseline = build(tmp_path, fixture())
     with closing(sqlite3.connect(baseline)) as db, db:
         # Fixed test cases, not caller-provided SQL. Wrong references are intentional fixtures.
-        db.execute(f"UPDATE knowledge_document_links SET {assignment} "
-                   "WHERE id='fixture.first.reference.000000'")
+        db.execute(
+            f"UPDATE knowledge_document_links SET {assignment} "
+            "WHERE id='fixture.first.reference.000000'"
+        )
         before = link_digest(db, compact=False)
         with pytest.raises(ValueError, match="non-reconstructible"):
             compact_reference_links(db)
         assert link_digest(db, compact=False) == before
-        assert db.execute("SELECT count(*) FROM definition_reference_compact_links").fetchone() == (0,)
+        assert db.execute("SELECT count(*) FROM definition_reference_compact_links").fetchone() == (
+            0,
+        )
         assert db.execute("SELECT count(*) FROM definition_reference_chunk_keys").fetchone() == (0,)
 
 

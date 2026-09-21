@@ -17,8 +17,14 @@ from .sqlite_builder import inspect_integrity
 
 
 def build_compact_definition_reference(
-    inputs: tuple[Path, ...], output: Path, *, input_root: Path,
-    edition_id: str, version: str, built_at: str, profile: bool = False,
+    inputs: tuple[Path, ...],
+    output: Path,
+    *,
+    input_root: Path,
+    edition_id: str,
+    version: str,
+    built_at: str,
+    profile: bool = False,
 ) -> dict[str, object]:
     if output.exists():
         raise ValueError("Compact edition output must be a new immutable path")
@@ -26,8 +32,12 @@ def build_compact_definition_reference(
     with tempfile.TemporaryDirectory(prefix="reference-compact-", dir=output.parent) as directory:
         staged = Path(directory) / "reference.db"
         baseline = build_definition_reference(
-            inputs, staged, input_root=input_root, edition_id=edition_id,
-            version=version, built_at=built_at,
+            inputs,
+            staged,
+            input_root=input_root,
+            edition_id=edition_id,
+            version=version,
+            built_at=built_at,
         )
         allocation_before = profile_reference(staged) if profile else None
         with closing(sqlite3.connect(staged)) as database, database:
@@ -77,16 +87,27 @@ def build_compact_definition_reference(
         # Hard-link publication is atomic and refuses an output created during the build.
         os.link(staged, output)
     return {
-        "contract": 1, "editionId": edition_id, "version": version,
-        "schemaVersion": 7, "linkLayout": "numeric-v1",
-        "entries": baseline["entries"], "sources": baseline["sources"],
-        "blocks": baseline["blocks"], "receipts": baseline["receipts"],
+        "contract": 1,
+        "editionId": edition_id,
+        "version": version,
+        "schemaVersion": 7,
+        "linkLayout": "numeric-v1",
+        "entries": baseline["entries"],
+        "sources": baseline["sources"],
+        "blocks": baseline["blocks"],
+        "receipts": baseline["receipts"],
         "baselineSqliteBytes": baseline["sqliteBytes"],
-        "sqliteBytes": size, "gzipBytes": transport, "sqliteSha256": checksum,
-        "logicalRoundTripEqual": True, "logicalTables": after, "linkCompaction": links,
-        "postVacuumFtsIntegrity": "ok", "integrity": integrity,
+        "sqliteBytes": size,
+        "gzipBytes": transport,
+        "sqliteSha256": checksum,
+        "logicalRoundTripEqual": True,
+        "logicalTables": after,
+        "linkCompaction": links,
+        "postVacuumFtsIntegrity": "ok",
+        "integrity": integrity,
         "foreignKeyViolations": foreign_keys,
-        "allocationBefore": allocation_before, "allocationAfter": allocation_after,
+        "allocationBefore": allocation_before,
+        "allocationAfter": allocation_after,
         "boundaries": (
             "New local-dev source reference only; original IDs/text/provenance are unchanged. "
             "No released database mutation, canonical merge, app/Android qualification or model."
@@ -108,17 +129,33 @@ def main() -> None:
     if args.report.exists() or args.output.resolve() == args.report.resolve():
         parser.error("Choose distinct new output/report paths")
     report = build_compact_definition_reference(
-        tuple(args.input), args.output, input_root=args.input_root,
-        edition_id=args.edition_id, version=args.version, built_at=args.built_at,
+        tuple(args.input),
+        args.output,
+        input_root=args.input_root,
+        edition_id=args.edition_id,
+        version=args.version,
+        built_at=args.built_at,
         profile=args.profile,
     )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     with args.report.open("x", encoding="utf-8") as stream:
         json.dump(report, stream, ensure_ascii=False, indent=2)
         stream.write("\n")
-    print(json.dumps({key: report[key] for key in (
-        "entries", "baselineSqliteBytes", "sqliteBytes", "gzipBytes", "logicalRoundTripEqual",
-    )}, indent=2))
+    print(
+        json.dumps(
+            {
+                key: report[key]
+                for key in (
+                    "entries",
+                    "baselineSqliteBytes",
+                    "sqliteBytes",
+                    "gzipBytes",
+                    "logicalRoundTripEqual",
+                )
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

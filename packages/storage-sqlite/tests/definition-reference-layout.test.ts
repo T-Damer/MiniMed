@@ -30,8 +30,9 @@ describe('definition reference layout dispatch', () => {
     const reader = await createSqliteDefinitionReference(fixture.sql);
     await reader.listBlocks('fixture.term');
     await reader.readBlock('fixture.term', 'fixture.block');
-    expect(fixture.statements.slice(1).every((sql) => sql.includes('knowledge_document_links')))
-      .toBe(true);
+    expect(
+      fixture.statements.slice(1).every((sql) => sql.includes('knowledge_document_links')),
+    ).toBe(true);
     expect(fixture.statements.join('\n')).not.toContain('definition_reference_links');
   });
 
@@ -40,13 +41,15 @@ describe('definition reference layout dispatch', () => {
     const reader = await createSqliteDefinitionReference(fixture.sql);
     await reader.listBlocks('fixture.term');
     await reader.readBlock('fixture.term', 'fixture.block');
-    expect(fixture.statements.slice(1).every((sql) => sql.includes('definition_reference_links')))
-      .toBe(true);
+    expect(
+      fixture.statements.slice(1).every((sql) => sql.includes('definition_reference_links')),
+    ).toBe(true);
     expect(fixture.statements).toHaveLength(3);
   });
 
-  it.each(['unknown-v2', '', null, 1, {}, 'knowledge_document_links; DROP TABLE chunks']) (
-    'rejects undeclared storage layout %j before executing a source query', async (layout) => {
+  it.each(['unknown-v2', '', null, 1, {}, 'knowledge_document_links; DROP TABLE chunks'])(
+    'rejects undeclared storage layout %j before executing a source query',
+    async (layout) => {
       const fixture = executor(layout);
       await expect(createSqliteDefinitionReference(fixture.sql)).rejects.toThrow('layout');
       expect(fixture.statements).toHaveLength(1);

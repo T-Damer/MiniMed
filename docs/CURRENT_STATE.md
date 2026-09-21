@@ -1,5 +1,27 @@
 # Current state
 
+## Definition reference R1b — numeric link pass (2026-09-21)
+
+Active plan: [DEFINITION_REFERENCE_PLAN.md](DEFINITION_REFERENCE_PLAN.md). SemIf is registered
+as an optional R4 research candidate, not downloaded or integrated. R1b/R2 remain the priority.
+
+Read-only DBSTAT profiling established the baseline. A new compact builder keeps ordinary
+content/knowledge identities and source text, but projects source-local navigation through
+numeric entity/chunk keys (migration 007). The storage reader recognizes the explicit layout
+and preserves schema-6 legacy behavior. It still uses the existing owner's executor.
+
+Measured SQLite: 159154176 -> 110387200 bytes; gzip comparison
+27393160 bytes. Every logical source table and all navigation links matched before/after,
+including text, locators, order and annotations; FTS integrity was checked after VACUUM.
+Source-name availability: 13146/13146. These are host
+file-backed checks, not independent reverse-query quality or Android memory measurements.
+
+The DEV UI is still the old JSON path. R2 installation/owner/core/UI integration is pending.
+R1b still needs optional annotation-map qualification and further compact metadata work.
+No model, private PDF, database binary, APK, release or merge was published. Numeric reports
+are in research/definition-reference-r1b-*-2026-09-21.json.
+
+
 ## Definition reference execution — R1 (2026-09-21)
 
 Active plan: [DEFINITION_REFERENCE_PLAN.md](DEFINITION_REFERENCE_PLAN.md). R1 now projects

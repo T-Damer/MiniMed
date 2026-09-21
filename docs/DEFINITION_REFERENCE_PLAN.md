@@ -32,11 +32,11 @@ The name audit found a nonempty result for all 13,146 indexed name surfaces. It 
 
 Evidence: `research/definition-reference-sqlite-build-2026-09-21.json`, `research/definition-reference-sqlite-runtime-2026-09-21.json`, `research/definition-reference-sqlite-fixture-2026-09-21.json`.
 
-### R1b — Installed-size qualification (next; blocks general phone delivery)
+### R1b — Installed-size qualification (numeric-link pass verified; remaining gates open)
 
 The first correct SQLite projection is **159,125,504 bytes (151.75 MiB)**. This is not yet the small installable reference requested by the user, and an external-content FTS index does not make all existing schema/index overhead disappear. Keep this measured baseline rather than advertising the earlier gzip JSON figure as installed size.
 
-- [ ] Profile actual table, index, repeated identifier/provenance and annotation allocation using read-only storage diagnostics; do not guess which structure dominates.
+- [x] Profile actual table, index, repeated identifier/provenance and annotation allocation using read-only storage diagnostics; do not guess which structure dominates.
 - [ ] Reduce unnecessary duplication within the existing pack/storage architecture. Evaluate compact internal reference mappings while retaining stable external source identities, edition binding and every locator. No new parallel canonical graph or storage owner.
 - [ ] Preserve module-local mappings needed by optional etymology/history annotations and qualify them with synthetic cross-reference fixtures before owner-module integration.
 - [ ] Recheck FTS integrity after final physical database compaction, and run complete source-text/identity round-trip comparison on the resulting edition.
@@ -92,3 +92,5 @@ No arbitrary final device budget is advertised before measurement. The invariant
 - 2026-09-21: added R1b because the measured 159 MB installed projection is not yet the requested small phone package. R1b and R2 are the next work; R3–R5 remain open. No new APK, released database or merge was performed.
 
 - 2026-09-21: SemIf registered as an R4 candidate; no model was downloaded or run. R1b read-only table/index/column profiling is recorded in `research/definition-reference-r1b-baseline-profile-2026-09-21.json`. This is the measured baseline before optimization; R1b size reduction and R2 app integration remain open.
+
+- 2026-09-21: R1b numeric navigation links and empty-FTS cleanup verified. SQLite 159154176 -> 110387200 bytes in the same builder environment; gzip comparison 27393160 bytes. Complete logical table/link/text/provenance equality and post-VACUUM FTS integrity passed. Normal R1 reader compatibility and compact file-backed reader were tested. Raw optional annotation mapping and further metadata/size work remain open; R2 has not been implemented.

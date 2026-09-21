@@ -98,6 +98,11 @@ export async function createSqliteDefinitionReference(
     throw new Error('Unsupported definition reference contract.');
   }
   const editionId = string(manifest['editionId'], 256);
+  const layout = manifest['linkLayout'];
+  if (layout !== undefined && layout !== 'numeric-v1') {
+    throw new Error('Unsupported definition reference link layout.');
+  }
+  const links = layout === 'numeric-v1' ? 'definition_reference_links' : 'knowledge_document_links';
   const scope = [editionId, editionId];
 
   return {
@@ -140,7 +145,7 @@ export async function createSqliteDefinitionReference(
           WHERE definition_reference_fts MATCH ? ORDER BY rank LIMIT 80
         ) SELECT ${HEADER}, MIN(m.score) AS score
         FROM matches m JOIN chunks c ON c.rowid = m.rowid
-        JOIN knowledge_document_links l ON l.chunk_id = c.id
+        JOIN ${links} l ON l.chunk_id = c.id
         JOIN knowledge_entities e ON e.id = l.entity_id
         WHERE l.review_status = 'proposed' AND l.link_type IN ('reference:definition','reference:item')
           AND ${SCOPE}
@@ -173,7 +178,7 @@ export async function createSqliteDefinitionReference(
       const rows = await sql.read(
         `SELECT l.id, l.chunk_id, l.document_id,
           json_extract(l.metadata_json, '$.role') AS role, length(c.original_text) AS characters
-        FROM knowledge_document_links l JOIN knowledge_entities e ON e.id = l.entity_id
+        FROM ${links} l JOIN knowledge_entities e ON e.id = l.entity_id
         JOIN chunks c ON c.id = l.chunk_id
         WHERE e.id = ? AND l.id > ? AND l.review_status = 'proposed' AND ${SCOPE}
         ORDER BY l.id LIMIT ?`,
@@ -205,7 +210,7 @@ export async function createSqliteDefinitionReference(
         `SELECT substr(c.original_text, ?, ?) AS body,
           length(c.original_text) AS characters, substr(c.metadata_json, 1, 65537) AS metadata,
           l.document_id
-        FROM chunks c JOIN knowledge_document_links l ON l.chunk_id = c.id
+        FROM chunks c JOIN ${links} l ON l.chunk_id = c.id
         JOIN knowledge_entities e ON e.id = l.entity_id
         WHERE e.id = ? AND c.id = ? AND l.review_status = 'proposed' AND ${SCOPE} LIMIT 1`,
         [offset + 1, BLOCK_CHARACTERS, id, chunkId, ...scope],
