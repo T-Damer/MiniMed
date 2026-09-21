@@ -1,0 +1,82 @@
+.definition-drafts {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 1rem;
+  min-width: 0;
+}
+
+.definition-drafts__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.definition-drafts__checkbox {
+  flex: none;
+  margin-top: 0.2rem;
+}
+
+.definition-drafts__card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  min-width: 0;
+  border: 1px solid currentColor;
+  border-radius: 0.75rem;
+}
+
+.definition-drafts__title {
+  margin: 0;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.definition-drafts__notice,
+.definition-drafts__status,
+.definition-drafts__match,
+.definition-drafts__definition,
+.definition-drafts__note {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.definition-drafts__notice,
+.definition-drafts__match,
+.definition-drafts__note,
+.definition-drafts__source {
+  font-size: 0.875rem;
+}
+
+.definition-drafts__badge {
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  border: 1px dashed currentColor;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.definition-drafts__items {
+  margin: 0;
+  padding-inline-start: 1.5rem;
+}
+
+.definition-drafts__item {
+  line-height: 1.5;
+}
+
+.definition-drafts__source {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.definition-drafts__error {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.definition-drafts__retry {
+  width: fit-content;
+  min-height: 2.75rem;
+  cursor: pointer;
+}
