@@ -30,8 +30,9 @@ jobs:
           env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
           env -i PATH="$PATH" HOME="$HOME" bunx playwright install --with-deps chromium
-      - name: Correct native progress and keep the existing dark header contract
+      - name: Correct observed progress and active-core readiness failures
         run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 scripts/repair-reference-activation.py
           env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
           import re
           from pathlib import Path
@@ -52,13 +53,11 @@ jobs:
           p=Path('scripts/verify-reference-app.mjs');s=p.read_text()
           s=s.replace("length > 0, { timeout:","length > 0, undefined, { timeout:")
           old="  await expect(referenceRow.getByText('Установлен', { exact: true })).toBeVisible({ timeout: 180000 });"
-          new="""  await page.waitForFunction(async () => {
+          new="""  await expect.poll(() => page.evaluate(async () => {
             const { peekContentModuleRuntime } = await import('/src/features/modules/module-runtime-service.ts');
-            const runtime = peekContentModuleRuntime();
-            const task = runtime?.listTasks().toReversed().find((entry) => entry.moduleId === 'minimed.definition.reference.ru');
-            if (task?.state === 'failed') throw new Error(task.errorMessage ?? 'Reference installation failed.');
-            return task?.state === 'completed';
-          }, undefined, { timeout: 180000 });"""
+            const task = peekContentModuleRuntime()?.listTasks().toReversed().find((entry) => entry.moduleId === 'minimed.definition.reference.ru');
+            return task ? { state: task.state, error: task.errorMessage ?? null } : null;
+          }), { timeout: 180000, message: 'Reference installer must finish verification and activation' }).toEqual({ state: 'completed', error: null });"""
           assert s.count(old)==1
           s=s.replace(old,new)
           s=s.replace('  assert.equal(referenceGets, 1);', "  await expect.poll(() => referenceGets, { message: 'Observe exactly one reference archive GET', timeout: 10000 }).toBe(1);")
@@ -68,9 +67,9 @@ jobs:
           s=s.replace("console.error('Visible app diagnostics:', (await page.locator('body').innerText()).slice(0, 16000));", "console.error('Completed checks:', JSON.stringify(report.assertions));\n  console.error('UI counters:', JSON.stringify({ dialogs: await page.getByRole('dialog').count(), alerts: await page.getByRole('alert').count(), coreGets, referenceGets }));\n  console.error('UI error messages:', await page.getByRole('alert').allTextContents());")
           p.write_text(s)
           PY
-          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write --diagnostic-level=error scripts/verify-reference-app.mjs apps/app/src/features/modules/local-definition-reference.ts apps/app/src/composition/worker-core-consent.test.ts apps/app/src/features/setup
+          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write --diagnostic-level=error scripts/verify-reference-app.mjs apps/app/src/features/modules/local-definition-reference.ts apps/app/src/composition/worker-core-consent.test.ts apps/app/src/features/setup apps/app/src/app/use-app-session.ts apps/app/src/features/reference/DefinitionReferencePanel.tsx
           env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p apps/app/tsconfig.json
-          env -i PATH="$PATH" HOME="$HOME" bunx vitest run apps/app/src/composition/worker-core-consent.test.ts apps/app/src/composition/worker-opfs-medical-store.test.ts apps/app/src/features/setup/setup-state.test.ts packages/storage/tests/reference-mount.test.ts
+          env -i PATH="$PATH" HOME="$HOME" bunx vitest run apps/app/src/composition/worker-core-consent.test.ts apps/app/src/composition/worker-opfs-medical-store.test.ts apps/app/src/composition/create-browser-core.test.ts apps/app/src/composition/medical-core-lifecycle.test.ts apps/app/src/features/setup/setup-state.test.ts packages/storage/tests/reference-mount.test.ts
       - name: Build full public numeric edition and verify transport
         run: env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/prepare-definition-reference.py --version 2026.09.22-r2 --built-at 2026-09-22
       - name: Actual application and installed dictionary
@@ -87,7 +86,7 @@ jobs:
           report['checkedInputCommit']=os.environ['CHECKED_SHA'];report['runId']=os.environ['CHECKED_RUN']
           Path('docs/research/definition-reference-app-browser-2026-09-22.json').write_text(json.dumps(report,indent=2)+'\n')
           summary=('## Definition reference R2 and package setup — 2026-09-22\n\n'
-            'The actual App now offers a full-screen first-run package list. The required core is bold and starred; other real catalog packages remain optional with per-package status/progress. Closing the screen preserves downloads and persists dismissal. Core consent uses the existing OPFS owner and pauses its open timeout while the user decides.\n\n'
+            'The actual App now offers a full-screen first-run package list. The required core is bold and starred; other real catalog packages remain optional with per-package status/progress. Closing the screen preserves downloads and persists dismissal. Core consent uses the existing OPFS owner and pauses its open timeout while the user decides. Core reconnect uses the same session factory; dictionary lookup waits for the active core capability, not only registry completion.\n\n'
             'The normal search screen has a dictionary entry. Numeric schema-7 reference requests use the existing installer, registry, MedicalStore/MedicalCore and OPFS owner; ordinary clinical projections exclude this reference-only mount. The unbounded JSON preview is no longer mounted. The local public draft has 18133 source records, not reviewed canonical concepts. Its full transport/installed sizes are 27399431/110960640 bytes. It is still local-dev and not a public download or released APK.\n\n'
             'Headless Chromium exercised real App/core consent, closure, the complete reference installer and sourced bounded card, followed by a reload with database network reads blocked. Development JS/core-report remained served. A metadata-only catalog refresh was blocked, not removed. Evidence: research/definition-reference-app-browser-2026-09-22.json, checked input '+os.environ['CHECKED_SHA']+', run '+os.environ['CHECKED_RUN']+'.\n\n'
             'Android/native behavior, whole-app production/offline bundle, install/process peak memory, the complete corrupt/interrupted update matrix and owner-PDF annotation integration remain unqualified. No private PDF, model, binary, Actions artifact, release or merge was published.\n\n')
@@ -110,11 +109,11 @@ jobs:
           PUSH_TOKEN: ${{ github.token }}
           CHECKED_SHA: ${{ github.sha }}
         run: |
-          git add scripts/verify-reference-app.mjs apps/app/src/features/modules/local-definition-reference.ts apps/app/src/composition/worker-core-consent.test.ts apps/app/src/features/setup docs/research/definition-reference-app-browser-2026-09-22.json docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md
+          git add scripts/verify-reference-app.mjs apps/app/src/features/modules/local-definition-reference.ts apps/app/src/composition/worker-core-consent.test.ts apps/app/src/features/setup apps/app/src/app/use-app-session.ts apps/app/src/features/reference/DefinitionReferencePanel.tsx docs/research/definition-reference-app-browser-2026-09-22.json docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'fix(setup): verify real progress rendering and full dictionary application path [skip ci]'
+          git commit -m 'fix(setup): verify real progress, active reference readiness and full dictionary app path [skip ci]'
           git fetch --depth=1 origin refs/heads/experiment/system-one-search-benchmark
           if [ "$(git rev-parse FETCH_HEAD)" != "$CHECKED_SHA" ]; then
             git rebase --onto FETCH_HEAD "$CHECKED_SHA"
