@@ -26,7 +26,7 @@ jobs:
         with:
           version: '0.10.0'
           enable-cache: false
-      - name: Complete reference-only index construction and owned connection cleanup
+      - name: Complete reference-only construction and identity-based fixture assertions
         run: |
           env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
           from pathlib import Path
@@ -60,6 +60,17 @@ jobs:
               assert s.count(old)==1
               s=s.replace(old,new)
           p.write_text(s)
+          p=Path('packages/storage-sqlite/tests/sqlite-medical-store.test.ts')
+          s=p.read_text()
+          old='    expect(projected[0]?.title).toBe(seed.documents[0]?.title);\n    expect(projected[0]?.shortTitle).toBe(seed.documents[0]?.shortTitle);'
+          assert s.count(old)==1
+          s=s.replace(old,'''    for (const document of projected) {
+                const original = seed.documents.find((entry) => entry.id === document.id);
+                expect(original).toBeDefined();
+                expect(document.title).toBe(original?.title);
+                expect(document.shortTitle).toBe(original?.shortTitle);
+              }''')
+          p.write_text(s)
           PY
       - name: Install locked tools and format only touched files
         run: |
@@ -67,7 +78,7 @@ jobs:
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/tests/test_definition_reference_pack.py
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/tests/test_definition_reference_pack.py
-          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write packages/storage/src/definition-reference.ts packages/storage/src/index.ts packages/storage-sqlite/src/definition-reference-reader.ts packages/storage-sqlite/src/index.ts scripts/verify-definition-reference.ts
+          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write packages/storage/src/definition-reference.ts packages/storage/src/index.ts packages/storage-sqlite/src/definition-reference-reader.ts packages/storage-sqlite/src/index.ts packages/storage-sqlite/tests/sqlite-medical-store.test.ts scripts/verify-definition-reference.ts
           env -i PATH="$PATH" HOME="$HOME" bun run schema:generate
           env -i PATH="$PATH" HOME="$HOME" bun run schema:check
       - name: Validate source projection and strict storage types
@@ -157,7 +168,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/tests/test_definition_reference_pack.py packages/storage/src/definition-reference.ts packages/storage/src/index.ts packages/storage-sqlite/src/definition-reference-reader.ts packages/storage-sqlite/src/index.ts packages/storage-sqlite/src/generated/schema.ts scripts/verify-definition-reference.ts docs/DEFINITION_REFERENCE_PLAN.md docs/TECHNICAL_PLAN.md docs/CURRENT_STATE.md docs/research/definition-reference-sqlite-build-2026-09-21.json docs/research/definition-reference-sqlite-fixture-2026-09-21.json docs/research/definition-reference-sqlite-runtime-2026-09-21.json
+          git add tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/tests/test_definition_reference_pack.py packages/storage/src/definition-reference.ts packages/storage/src/index.ts packages/storage-sqlite/src/definition-reference-reader.ts packages/storage-sqlite/src/index.ts packages/storage-sqlite/tests/sqlite-medical-store.test.ts packages/storage-sqlite/src/generated/schema.ts scripts/verify-definition-reference.ts docs/DEFINITION_REFERENCE_PLAN.md docs/TECHNICAL_PLAN.md docs/CURRENT_STATE.md docs/research/definition-reference-sqlite-build-2026-09-21.json docs/research/definition-reference-sqlite-fixture-2026-09-21.json docs/research/definition-reference-sqlite-runtime-2026-09-21.json
           git commit -m 'feat(definitions): verify R1 SQLite reference and advance execution plan [skip ci]'
           auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
