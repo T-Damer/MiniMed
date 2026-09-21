@@ -32,4 +32,7 @@ text = text.replace(old, 'node .definition-vite-launcher.cjs --config apps/app/.
 old = "trap 'kill \"$server\" 2>/dev/null || true' EXIT"
 assert text.count(old) == 1
 text = text.replace(old, "trap 'cat \"$RUNNER_TEMP/definition-vite.log\"; kill \"$server\" 2>/dev/null || true' EXIT")
+old = "]))},server:{host:"
+assert text.count(old) == 1
+text = text.replace(old, "]))}},server:{host:")
 path.write_text(text)
