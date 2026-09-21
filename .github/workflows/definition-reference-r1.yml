@@ -35,7 +35,9 @@ jobs:
           old='                    for index, (role, chunk_id) in enumerate(entry.links):'
           assert s.count(old)==1
           new='''                    database.execute(
-                                  "INSERT INTO knowledge_fts(entity_id, canonical_name, aliases, facts, relations) VALUES (?, ?, ?, ?, ?)",
+                                  "INSERT INTO knowledge_fts("
+                                  "entity_id, canonical_name, aliases, facts, relations) "
+                                  "VALUES (?, ?, ?, ?, ?)",
                                   (entry.id, entry.title, " ".join(entry.names[1:]), "", ""),
                               )
           '''.rstrip()+'\n'+old
@@ -48,6 +50,15 @@ jobs:
           old='    if not isinstance(value, dict) or any(not isinstance(key, str) for key in value):'
           assert s.count(old)==1
           s=s.replace(old,'    if not isinstance(value, dict):\n        raise ValueError("Expected a JSON object")\n    if any(not isinstance(key, str) for key in cast(dict[object, object], value)):')
+          s=s.replace('# Module-local numbers are not global identity. Exact descriptors can be shared across shards.', '# Module-local numbers are not global identity.\n            # Exact source descriptors can be shared across shards.')
+          for old,new in [
+            ('"INSERT INTO knowledge_document_links VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"', '"INSERT INTO knowledge_document_links "\n                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"'),
+            ('"INSERT INTO definition_reference_fts(definition_reference_fts) VALUES (\'rebuild\')"', '"INSERT INTO definition_reference_fts(definition_reference_fts) "\n                    "VALUES (\'rebuild\')"'),
+            ('"INSERT INTO definition_reference_fts(definition_reference_fts, rank) VALUES (\'integrity-check\', 1)"', '"INSERT INTO definition_reference_fts(definition_reference_fts, rank) "\n                    "VALUES (\'integrity-check\', 1)"'),
+            ('"Source-local draft navigation only. No approved knowledge facts/relations, app lifecycle or Android qualification."', '("Source-local draft navigation only. "\n                "No approved facts/relations, app lifecycle or Android qualification.")'),
+          ]:
+              assert s.count(old)==1
+              s=s.replace(old,new)
           p.write_text(s)
           PY
       - name: Install locked tools and format only touched files
@@ -119,7 +130,7 @@ jobs:
           only on request in 4,096-code-point pieces; block descriptors are paged in groups of eight.
 
           Actual file-backed host measurements: SQLite {b['sqliteBytes']} bytes; reader creation
-          {r['creationMs']:.3f} ms; exact source-name coverage {r['namesWithAResult']}/{r['sourceNameSurfaces']}.
+          {r['creationMs']:.3f} ms; source names returning a result {r['namesWithAResult']}/{r['sourceNameSurfaces']}.
           Fresh process RSS before open / after open / after audit:
           {r['rssBytes']['beforeOpen']} / {r['rssBytes']['afterOpen']} / {r['rssBytes']['afterAudit']} bytes.
           These are NOT Android PSS, a peak, or independent reverse-search quality. The audit reads
