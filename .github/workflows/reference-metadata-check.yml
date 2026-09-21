@@ -61,7 +61,7 @@ jobs:
                       database.execute(
                           "UPDATE app_metadata SET value=? WHERE key='schema_version'",
                           (str(schema_version),),
-                      )'''.replace('\n          ', '\n')),
+                      )'''),
             ('"UPDATE content_packs SET schema_version=7, checksum=? WHERE id=?",\n                ("sha256:" + digest(encoded(manifest)), edition_id),',
              '"UPDATE content_packs SET schema_version=?, checksum=? WHERE id=?",\n                (schema_version, "sha256:" + digest(encoded(manifest)), edition_id),'),
             ('after = reference_content_digest(database, compact=True)',
