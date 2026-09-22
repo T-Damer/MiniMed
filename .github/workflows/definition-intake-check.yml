@@ -1,0 +1,186 @@
+name: Medical terminology intake
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/definition-intake-check.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-definition-intake
+  cancel-in-progress: false
+jobs:
+  intake:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - name: Fix source-scope boundaries without changing source descriptions
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import ast
+          from pathlib import Path
+          p=Path('tools/ingest/src/localmed_ingest/wikipedia_definitions.py')
+          s=p.read_text(); tree=ast.parse(s)
+          tests=[node for node in ast.walk(tree) if isinstance(node,ast.If) and len(node.body)==1 and isinstance(node.body[0],ast.Return) and isinstance(node.body[0].value,ast.Constant) and node.body[0].value.value=='possible-person-separate-history-queue']
+          assert len(tests)==1
+          condition=tests[0].test
+          assert isinstance(condition,ast.BoolOp) and isinstance(condition.op,ast.Or) and len(condition.values)==2
+          raw=s.encode();lines=raw.splitlines(keepends=True)
+          def offset(line,column): return sum(map(len,lines[:line-1]))+column
+          a=offset(condition.lineno,condition.col_offset);b=offset(condition.end_lineno,condition.end_col_offset)
+          replacement=ast.get_source_segment(s,condition.values[-1]);assert replacement
+          p.write_bytes(raw[:a]+replacement.encode()+raw[b:])
+          # Names of researchers may occur inside a syndrome description. Their birth dates do
+          # not turn that article into a biography; title-based person queue remains intact.
+          p=Path('scripts/refresh-definition-inputs.py');s=p.read_text()
+          anchor='    new_paths = checked_parts(collection, collection_manifest)'
+          assert s.count(anchor)==1
+          s=s.replace(anchor,'    if not isinstance(collection_manifest.get("intakePolicySha256"), str):\n        raise ValueError("A collected source must pass explicit medical scope intake first")\n'+anchor)
+          p.write_text(s)
+          PY
+      - name: Strict authoring checks and synthetic source-fidelity cases
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          files='tools/ingest/src/localmed_ingest/wikipedia_scope.py tools/ingest/tests/test_wikipedia_scope.py tools/ingest/src/localmed_ingest/wikipedia_definitions.py scripts/refresh-definition-inputs.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          mkdir -p data/build/definition-intake
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q \
+            tools/ingest/tests/test_wikipedia_scope.py tools/ingest/tests/test_wikipedia_definitions.py \
+            tools/ingest/tests/test_definition_reference_pack.py tools/ingest/tests/test_definition_reference_compact.py \
+            --junitxml=data/build/definition-intake/tests.xml
+      - name: Replay acquired category evidence offline, then refresh input manifest
+        run: |
+          cp docs/research/definition-expansion-2026-09-22.json docs/research/definition-acquisition-2026-09-22.json
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import runpy,sys
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}:
+                  raise RuntimeError('Intake must use archived source evidence only')
+          sys.addaudithook(guard)
+          sys.argv=['wikipedia_scope','--collection','content/definition-drafts/ruwiki-medical-2026.09.22','--selection','content/definition-drafts/ruwiki-selection-2026.09.22.json','--policy','content/definition-drafts/ruwiki-scope-2026.09.22.json']
+          runpy.run_module('localmed_ingest.wikipedia_scope',run_name='__main__')
+          PY
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/refresh-definition-inputs.py --collection content/definition-drafts/ruwiki-medical-2026.09.22
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/prepare-definition-reference.py --version 2026.09.22-terms-intake --built-at 2026-09-22
+      - name: Verify admitted records, rejected IDs and original source fidelity in SQLite
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import hashlib,json,sqlite3,xml.etree.ElementTree as ET
+          from pathlib import Path
+          collection=Path('content/definition-drafts/ruwiki-medical-2026.09.22')
+          manifest=json.loads((collection/'manifest.json').read_bytes())
+          source_manifest=json.loads(Path('content/definition-drafts/source-inputs.json').read_bytes())
+          intake=json.loads((collection/'intake-report.json').read_bytes())
+          acquisition=json.loads((collection/'acquisition-manifest.json').read_bytes())
+          delta=json.loads(Path('docs/research/definition-expansion-2026-09-22.json').read_bytes())
+          dbpath=Path('apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-terms-intake.db')
+          report=json.loads(Path(str(dbpath)+'.report.json').read_bytes())
+          assert report['entries']==source_manifest['entries']==delta['combinedRecords']
+          assert report['logicalRoundTripEqual'] is True
+          assert all('/admitted-' in row['path'] for row in source_manifest['inputs'] if '/ruwiki-medical-' in row['path'])
+          raw_ids=set();kept_ids=set();count=0
+          for part in acquisition['parts']:
+              raw=(collection/part['path']).read_bytes()
+              assert len(raw)==part['bytes'] and hashlib.sha256(raw).hexdigest()==part['sha256']
+              raw_ids.update(term['id'] for term in json.loads(raw)['terms'])
+          with sqlite3.connect(f'file:{dbpath}?mode=ro',uri=True) as db:
+              assert db.execute('PRAGMA integrity_check').fetchone()==('ok',)
+              assert db.execute('PRAGMA foreign_key_check').fetchall()==[]
+              for part in manifest['parts']:
+                  payload=json.loads((collection/part['path']).read_bytes())
+                  blocks={block['id']:block for block in payload['blocks']}
+                  for term in payload['terms']:
+                      linked=db.execute('SELECT c.original_text,c.metadata_json FROM definition_reference_links l JOIN chunks c ON c.id=l.chunk_id WHERE l.entity_id=? AND l.link_type=?',(term['id'],'reference:definition')).fetchall()
+                      assert len(linked)==1,term['id']
+                      block=blocks[term['blockIds'][0]]
+                      assert linked[0][0]==block['text'],term['id']
+                      metadata=json.loads(linked[0][1])
+                      for key in ('pageId','path','apiResponseSha256','sourcePageRecordSha256','retrievedAt','revisionBinding','intakePolicySha256'):
+                          assert metadata[key]==block[key],(term['id'],key)
+                      kept_ids.add(term['id']);count+=1
+              for identity in raw_ids-kept_ids:
+                  assert db.execute('SELECT 1 FROM knowledge_entities WHERE id=?',(identity,)).fetchone() is None
+              assert 'ruwiki.definition.8543697' in kept_ids, 'The syndrome must not be excluded by its researcher birthday'
+          assert count==manifest['entries']==intake['admittedDescriptions']
+          suites=ET.parse('data/build/definition-intake/tests.xml').getroot()
+          stats={key:sum(int(s.get(key,'0')) for s in suites.findall('testsuite')) for key in ('tests','failures','errors','skipped')}
+          assert stats['failures']==stats['errors']==0
+          result={'inputCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':stats,'acquiredDescriptions':intake['acquiredDescriptions'],'admittedDescriptions':count,'quarantinedAcquiredDescriptions':len(raw_ids-kept_ids),'restoredFromRawQueue':len(kept_ids-raw_ids),'combinedRecords':report['entries'],'newNameSurfaces':delta['newNameSurfaces'],'existingNamesWithAnotherSource':delta['existingNameSurfacesWithAdditionalSource'],'sourceTextAndLocatorsExact':True,'originalAcquisitionFilesUnchanged':True,'quarantinedIdsAbsentFromRuntime':True,'intakeNetworkRequests':0,'integrity':'ok','foreignKeyViolations':0,'sqliteBytes':dbpath.stat().st_size,'downloadBytes':Path(str(dbpath)+'.gz').stat().st_size,'sqliteSha256':hashlib.sha256(dbpath.read_bytes()).hexdigest(),'sourceManifestSha256':report['sourceManifestSha256'],'boundaries':'Offline source-domain intake and actual full SQLite rebuild. Complete per-new-record text/location comparison, not clinical review or independent reverse-search/browser/Android qualification. Original acquired text and API evidence remain outside runtime inputs.'}
+          Path('docs/research/definition-intake-build-2026-09-22.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps(result,ensure_ascii=False,indent=2))
+          PY
+      - name: Update the active plan and content counts, not the raw acquisition total
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import json
+          from pathlib import Path
+          result=json.loads(Path('docs/research/definition-intake-build-2026-09-22.json').read_text())
+          intake=json.loads(Path('content/definition-drafts/ruwiki-medical-2026.09.22/intake-report.json').read_text())
+          section=f'''## Content-first dictionary expansion — 2026-09-22
+
+          The user permits breaking DEV code/prepared formats. Current priority is R3/R5 source
+          collection, content QA and database refreshes, not more compatibility or installer work.
+          Private/user data, source wording and provenance remain protected.
+
+          Acquisition collected {result['acquiredDescriptions']} descriptions before scope QA. Offline
+          replay of the archived category graph quarantined {result['quarantinedAcquiredDescriptions']}
+          acquired records outside the admitted medical paths and restored
+          {result['restoredFromRawQueue']} previously over-filtered records. Cultural, heraldic,
+          clothing and dance descendants are not counted as medical terminology. Original acquisition
+          shards and raw API receipts remain unchanged for audit and are excluded from runtime inputs.
+
+          The active new source contains **{result['admittedDescriptions']}** Russian introductions;
+          **{result['newNameSurfaces']}** normalized name surfaces were absent from the old source set,
+          and **{result['existingNamesWithAnotherSource']}** names gained another source. Combined:
+          **{result['combinedRecords']} source/editorial records**, not proven distinct clinical concepts.
+          Source wording and any supplied origin notes remain exact. Scales are source descriptions,
+          not automatically executable instruments. The private textbook's 450 records are separate.
+
+          The actual final SQLite is **{result['sqliteBytes']} bytes**, gzip **{result['downloadBytes']}
+          bytes**. {result['tests']['tests']} selected Python cases, strict authoring checks and database
+          integrity passed. Every new record matched its text/locator; excluded acquisition IDs are
+          absent from the runtime DB. No new browser, Android or clinical quality result is claimed.
+          `source-inputs.json` pins the admitted files/checksums/counts. Prepare version
+          `2026.09.22-terms-intake` with the ordinary script; generated binaries remain local.
+
+          Evidence: `research/definition-intake-build-2026-09-22.json`, the updated
+          `research/definition-expansion-2026-09-22.json`, and the source collection's
+          `intake-report.json`. The previous expansion/build reports describe acquisition before QA.
+          No model, private PDF/text, SQLite binary, release, APK or merge was published.
+
+          '''
+          section='\n'.join(line[10:] if line.startswith('          ') else line for line in section.splitlines())
+          p=Path('docs/CURRENT_STATE.md');s=p.read_text();anchor='## Content-first dictionary expansion — 2026-09-22';a=s.index(anchor);b=s.find('\n## ',a+len(anchor));assert b>a
+          p.write_text(s[:a]+section+s[b:])
+          p=Path('docs/DEFINITION_REFERENCE_PLAN.md');s=p.read_text()
+          s=s.replace('- 2026-09-22: content-first batch added 5187 Russian Wikipedia introduction records,', '- 2026-09-22 acquisition (superseded for runtime by the scope QA below): collected 5187 Russian Wikipedia introduction records,')
+          s+=f"\n- 2026-09-22 source-scope QA: active source subset {result['admittedDescriptions']} records; {result['quarantinedAcquiredDescriptions']} acquired nonmedical-path records quarantined and {result['restoredFromRawQueue']} over-filtered records restored. Active total {result['combinedRecords']}; final SQLite {result['sqliteBytes']} bytes, gzip {result['downloadBytes']} bytes. Original text is never rewritten; raw acquisition remains audit evidence, not runtime inputs. See `research/definition-intake-build-2026-09-22.json`. Continue content collection and source-gap work; runtime compatibility/device work stays deferred by user instruction.\n"
+          p.write_text(s)
+          PY
+      - name: Persist only source intake, code and actual reports to the same PR
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add tools/ingest/src/localmed_ingest/wikipedia_scope.py tools/ingest/src/localmed_ingest/wikipedia_definitions.py \
+            tools/ingest/tests/test_wikipedia_scope.py scripts/refresh-definition-inputs.py \
+            content/definition-drafts/source-inputs.json content/definition-drafts/ruwiki-medical-2026.09.22 \
+            docs/research/definition-acquisition-2026-09-22.json docs/research/definition-expansion-2026-09-22.json \
+            docs/research/definition-intake-build-2026-09-22.json docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): retain medically scoped source records and rebuild the current dictionary [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: No binary or private source publication
+        if: always()
+        run: echo 'Offline source intake. No new source requests, private PDF/text, model, SQLite binary, release, APK or Actions artifact uploaded.' >> "$GITHUB_STEP_SUMMARY"
