@@ -25,7 +25,7 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
-      - name: Execute the existing full verification on this checked-out revision
+      - name: Execute the existing full verification with actual reference suites
         env:
           HEAD_SHA: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
@@ -45,6 +45,10 @@ jobs:
               command=command.replace('$'+'{{ github.sha }}',os.environ['HEAD_SHA'])
               command=command.replace('$'+'{{ github.run_id }}',os.environ['RUN_ID'])
               if '$'+'{{' in command: raise ValueError('Unresolved workflow expression')
+              if name=='Locked code checks and source-contract tests':
+                  old='bunx vitest run packages/storage-sqlite/src/definition-reference-reader.test.ts'
+                  assert command.count(old)==1
+                  command=command.replace(old,'bunx vitest run packages/storage-sqlite/tests/definition-reference-layout.test.ts packages/storage-sqlite/tests/definition-reference-metadata.test.ts')
               env={key:os.environ[key] for key in ('PATH','HOME','RUNNER_TEMP')}
               if name=='Persist only verified content and scoped integration files':
                   env['PUSH_TOKEN']=os.environ['PUSH_TOKEN']
