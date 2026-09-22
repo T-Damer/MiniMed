@@ -36,12 +36,14 @@ jobs:
           p=Path('scripts/verify-specialist-journal-reference.py');s=p.read_text()
           old='        if replay != before:'
           assert s.count(old)==1
-          s=s.replace(old,'''        for result in (replay, before):
-                      for value in seq(result['articles'], 96):
-                          row = obj(value)
-                          row['collection'] = (root / text(row['collection'])).resolve().as_posix()
-                  if replay != before:'''.replace('\n                  ', '\n        ').replace('\n                      ', '\n            ').replace('\n                          ', '\n                '))
-          p.write_text(s)
+          new='\n'.join([
+              '        for result in (replay, before):',
+              "            for value in seq(result['articles'], 96):",
+              '                row = obj(value)',
+              "                row['collection'] = (root / text(row['collection'])).resolve().as_posix()",
+              '        if replay != before:',
+          ])
+          p.write_text(s.replace(old,new))
           PY
       - name: Locked scoped lint typecheck and extraction regressions
         run: |
@@ -57,6 +59,8 @@ jobs:
             tools/ingest/tests/test_specialist_journal_admission.py \
             tools/ingest/tests/test_definition_reference_pack.py \
             --junitxml=data/build/specialist-reference-tests.xml
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write tools/benchmarks/src/verify-specialist-journal-cards.ts
       - name: Compose original article evidence and update the selected source manifest offline
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
@@ -88,10 +92,8 @@ jobs:
             --selected content/definition-drafts/specialist-journal-active-2026.09.22 \
             --database apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-specialist-journals.db \
             --report data/build/specialist-source-fidelity.json --cards data/build/specialist-reader-cards.json
-      - name: Read complete sourced cards through the actual bounded application adapter
+      - name: Reconstruct complete sourced cards through bounded reader pages
         run: |
-          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
-          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write tools/benchmarks/src/verify-specialist-journal-cards.ts
           env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/src/verify-specialist-journal-cards.ts \
             apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-specialist-journals.db \
             data/build/specialist-reader-cards.json data/build/specialist-reader-report.json
