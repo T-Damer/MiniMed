@@ -1,110 +1,137 @@
-# Reference sources: specialist medicine first
+# Reference sources: preserve concepts, qualify medical content
 
-## Definition unit override — 2026-09-22
+Latest user clarification: 2026-09-23. This document supersedes the earlier blanket
+Wikipedia-exclusion wording in AGENTS.md, DEFINITION_REFERENCE_PLAN.md and historical
+CURRENT_STATE.md sections. Work remains in draft PR #180, stacked on #174. Research notes
+do not authorize a framework migration, automatic model download, merge or release.
 
-The user requests definitions rather than growth in article/header counts. A dictionary entry
-needs a source-supported definition. Scales, criteria, algorithms and source overviews remain
-separate reference material unless the record itself defines a named concept. Their presence
-does not imply an executable calculator or a treatment rule. Clinical recommendations,
-professional medical dictionaries, named textbooks and inspected specialist sites are eligible
-source families; no source family is automatically clinically reviewed or cleared for reuse.
-The default new DEV dictionary view excludes source-gloss lexical entries without deleting
-their authoring sources; `--scope reference` keeps the full reference selection available.
-Original text/context is retained, not silently rewritten into a synthetic consensus.
+## Names are not definitions
 
+Do not remove a medical concept or useful search name merely because it was first discovered
+in Wikipedia, Wiktionary or another general reference. Preserve its source-local identity,
+name, explicitly evidenced variants and discovery provenance. These are vocabulary/discovery
+records, not automatically reviewed canonical concepts, synonyms or diagnostic facts.
 
-User decision: 2026-09-22. This supersedes earlier Wikipedia acquisition priorities in
-DEFINITION_REFERENCE_PLAN.md and CURRENT_STATE.md. Work remains in draft PR #180, stacked on
-#174, with no automatic merge, release, private-source upload or model download.
+The user prefers medical definitions, criteria, classifications and scale content from clinical
+recommendations, medical dictionaries, textbooks, specialist sites, Russian clinics/polyclinics
+and sources such as Krasota i Meditsina. A definition source and a name-discovery source can
+therefore be different. Rejecting a definition must not delete the name or its coverage task.
 
-## Active selection
+Maintain separate, accurately counted states:
 
-Do not use Wikipedia as a source for new MiniMed definition, classification, scale, history or
-etymology batches. Existing Wikipedia-derived records and raw response archives are retained as
-historical authoring evidence, outside the active reference manifest. Do not continue expanding
-that corpus, repackage it under a specialist label, or use mirrors to evade this source decision.
-The ordinary preparer must reject direct Wikipedia inputs rather than silently reinstall them.
+- A discovered name, with no adequate medical definition yet: retained, marked as needing a
+  definition/source review, and never presented as a completed clinical card.
+- A source-backed definition or instrument description, with author/date/version and exact
+  location: available as an attributed draft, not automatically clinically reviewed.
+- A reviewed canonical relationship or executable scale: requires its own evidence and checks.
 
-The user's explicit exclusion names Wikipedia. The previously admitted Russian Wiktionary senses
-are a different source and are not removed by this narrowly scoped change. They remain unreviewed
-lexical glosses, not professional medical definitions or a clinical classification authority.
-Do not expand this lexical collection instead of obtaining specialist sources. A subsequent
-lexical-only split or further source removal must be explicit and reported with accurate counts.
-The remaining source families are not automatically approved just because Wikipedia is excluded.
+A dictionary view can filter to completed definitions; it is not the entire knowledge base.
+Do not repeat the earlier mistake of treating a narrower dictionary counter as the full concept
+inventory. Short aliases, names of scales and source-specific senses must not disappear merely
+because their records are not labelled `definition` or `explicit-definition`.
 
-## Acquisition order and intended use
+## Current implementation versus this policy
 
-1. Professional teaching/reference chapters from named authors, medical universities, research
-   institutes and specialty societies: definitions, clinical semiotics, syndrome variants,
-   differential distinctions, contextual examples and source-supported etymology.
-2. Current official clinical recommendations and specialty consensus/guideline documents:
-   clinical criteria, applicability, populations, classification versions and validated tools.
-   Use original document/version identifiers rather than an undated secondary summary.
-3. Specialist journals: prioritize educational lectures, substantive reviews, terminology and
-   classification papers, original instrument publications and validation studies. Extract the
-   relevant complete section, not merely an abstract. An isolated study endpoint, case report or
-   author's proposed classification is not silently made a universal clinical definition.
-4. Secondary medical sites, including the user's suggested Krasota i Meditsina: useful review-
-   required material when it actually provides needed definitions and detail. This category is
-   not equated with a peer-reviewed journal, official guideline or validated test publisher.
+As of reviewed MiniMed head `e9966a3af8ac249217ae4917af528b8005e9037f`:
 
-A domain, journal title or advertised peer-review process is not sufficient admission. Assess
-individual documents: author/editor, date, specialty, article type, intended audience, exact
-classification/scale edition, cited basis, applicable patient group and any stated funding or
-conflict information. Missing details stay missing; do not fabricate them. Keep source-fidelity
-review, clinical review, publication rights and author conflicts in distinct fields/statuses.
+- The ordinary preparer defaults to a definitions-only projection: 8,410 candidates out of
+  18,357 selected non-Wikipedia source/reference records, according to the dated build report.
+- Earlier Wikipedia inputs (7,637 records) are preserved in authoring files and the archived
+  `source-inputs.with-wikipedia-2026.09.22.json` manifest, but are absent from the active manifest.
+- The code-level source policy still rejects Wikipedia content inputs. This prevents accidental
+  reinstatement of those clinical texts; it does not implement the required name-discovery path.
 
-## Concrete candidate families checked on 2026-09-22
+This documentation correction is not a claim that those names are already restored to the app.
+Next content work must recover the names with provenance, without copying old wiki medical
+bodies into the preferred-definition layer or padding the definition counter with empty cards.
+Keep input snapshots and old measurements intact. Report restored names and acquired medical
+definitions separately, and test both missing-definition and ambiguous-name cases.
 
-These are acquisition candidates, not newly imported, fully licensed or clinically validated data:
+## Medical source selection
 
-- NCPZ library and the journal Psychiatry: https://www.psychiatry.ru/lib/1/book/10/chapter/5
-  and https://www.psychiatry.ru/stat/74 . Separate historical teaching editions from current practice.
-- S.S. Korsakov Journal of Neurology and Psychiatry, Media Sphera:
-  https://www.mediasphera.ru/issues/zhurnal-nevrologii-i-psikhiatrii-im-s-s-korsakova .
-- Psychiatry and Psychopharmacotherapy / Consilium Medicum source articles:
-  https://con-med.ru/magazines/psychiatry/ .
-- RMJ specialist articles and reviews; published review-process description:
-  https://www.rmj.ru/about/review_process/ .
-- Lechaschi Vrach professional journal: https://www.lvrach.ru/journal .
-- Original clinical recommendations: https://cr.minzdrav.gov.ru/ .
-- Krasota i Meditsina: user-specified secondary candidate. Individual pages, authorship, exact
-  text access and reuse terms still need inspection; no site-wide quality/reuse approval is implied.
+Select the actual passage needed, not the prestige of a domain or the length of an article.
+A clear attributed definition on a Russian clinic site may be more useful for a term card than
+a journal research article that only mentions it. Clinical recommendations, named teaching
+works, medical dictionaries, specialty societies, journals and suitable secondary medical sites
+are all eligible acquisition candidates. No entire domain is automatically medically approved.
 
-## Fidelity and structure
+For each source retain available author/editor, date/edition, specialty, intended audience,
+patient group, classification/scale version and references. Record missing fields as missing.
+Keep source-fidelity review, medical review and redistribution status separate. A `requires-review`
+badge is not a substitute for any of these checks.
 
-Preserve the terminology, organization, framing and level of detail of the actual source.
-Definitions, manifestations, subtypes, complete lists, differential distinctions, applicability,
-examples and source citations can share the original blocks but must keep their distinct roles.
-A missing classification is a coverage gap, not permission to substitute a different school,
-DSM/ICD edition, a Wikipedia section or a model's general knowledge.
+Use recommendations and original instrument publications for rules and scoring where available.
+A clinic's explanation may support a definition without establishing a validated scoring cutoff.
+Original research findings, one author's classification and historical teaching language remain
+explicitly attributed rather than becoming universal current clinical rules.
 
-For the owner's Semenov/Bersenev manual, preserve the source's 2006 organization and wording:
-symptoms by mental function, syndromes and subtypes, age-specific details and disease context.
-Use it as a structural example, not evidence that every historical claim is current guidance.
-Owner files and derived private text stay outside public GitHub/CI.
+Previously checked candidate families include the NCPZ library, named medical university
+materials, the journal Psychiatry, S. S. Korsakov Journal of Neurology and Psychiatry,
+Psychiatry and Psychopharmacotherapy/Consilium Medicum, RMJ, Lechaschi Vrach, official clinical
+recommendations and Krasota i Meditsina. These are candidates, not a claim of complete collection,
+current endorsement or blanket redistribution clearance. Clinic/polyclinic sites are now
+explicit candidates too. New acquisition should close named definition gaps, not grow article counts.
 
-If sources disagree, retain separately attributed definitions/versions; do not merge them into a
-new unsourced consensus. For scales, distinguish a mention, description, complete instrument,
-scoring instructions and reviewed executable implementation. Eponym attribution, biography and
-discovery priority are separate sourced claims. Etymology needs explicit original-language
-spelling and source-supported meanings; no inferred roots from superficial word similarity.
+## Uploaded sources belong to the same knowledge-base pipeline
 
-## Practical intake and delivery
+The user does not want a separate personal ZIP/viewer workflow as the endpoint. Prepared material
+from supplied textbooks and pediatric scales must feed the same source registry, concept/term
+identities, definition blocks, instrument records, citations and normal search/reader used by the
+rest of MiniMed. Do not build a second personal dictionary, storage owner or disconnected corpus.
 
-First inventory candidate documents and their substantive sections. Respect the site's access
-rules; unavailable full text remains a pending item, never an invented extraction. Record reuse
-terms at the document level before including protected text in a distributed package; do not
-infer rights from free browser access or a review-required badge. Use permitted full text,
-owner-local source imports, metadata-only references or a genuinely separate attributed editorial
-artifact as appropriate. Do not bypass paywalls or authentication.
+Intended flow:
 
-Retain the existing shared source registry, numeric block references, source checksums, exact
-locators and bounded SQLite reader. This is a content-policy change, not a new storage owner or a
-compatibility project. Removing a source from the next build does not remotely alter an already
-installed edition; old binaries and their metrics must be labelled as the previous selection.
+```text
+supplied or acquired source
+  -> checksum-bound preparation and source/rights record
+  -> candidate definitions / instrument structure / source annotations
+  -> existing knowledge-base build and review queue
+  -> normal MiniMed lookup and source reader
+```
 
-Report substantive gains by source family: new named concepts, fuller existing descriptions,
-complete criteria/classifications, confirmed variants, etymology statements and unresolved items.
-Do not advertise a blanket record target instead of clinically useful coverage. All newly
-extracted material remains requires-review until its separate review is actually performed.
+A source-specific acquisition adapter is fine; a separate source-specific product is not.
+Definition, terminology, scale, history and etymology views may share the same base without
+being conflated. Downloadable content modules may still follow the existing installer, but
+users should not have to assemble ad hoc personal archives to use contributed knowledge.
+
+Integration into the knowledge base and public redistribution are different decisions. Preserve
+original files and extraction fidelity; do not automatically publish a supplied book, derived
+full text, patient data or restricted instrument in a public repository/CI. Source rights and
+export eligibility remain metadata/gates of the unified pipeline, not a reason to strand content
+in a separate viewer. An integrated local build can use the same schema and search without
+claiming the source is cleared for a public release.
+
+This policy does not claim that previous private packages were imported into the active build.
+That integration, its source receipt validation and a real normal-reader test remain work to do.
+Do not report delivery of another ZIP as completion of that work.
+
+## Preserve source meaning and structure
+
+Keep exact definition text, source-specific senses, complete criterion lists and necessary
+qualifications. Preserve table cells, ordering, units, age groups, notes and version boundaries.
+Do not silently replace a source classification with another school's scheme or a model's
+preferred wording. Conflicting sources stay separately attributed; no synthetic consensus.
+
+For the supplied Semenov/Bersenev textbook, retain its 2006 organization and terminology, not an
+unlabelled modernization. For the pediatric slides, distinguish the named NICE table, the Yale
+Observation Scale presentation and the separate biomarker algorithm. The latter does not acquire
+NICE authority simply because it appears in the same PDF. Source interpretations are not
+validated executable decisions merely because extraction is accurate.
+
+For instruments distinguish name/mention, description, complete form, scoring instructions and
+reviewed executable implementation. Historical person identity, eponym attribution and priority
+of discovery are separate claims. Etymology needs source-supported language, spelling and sense;
+never infer a root from superficial letter similarity. Missing information remains a gap.
+
+## Storage, evaluation and reporting boundaries
+
+Use existing numeric source/block references and immutable source receipts. Do not duplicate
+bibliography on every term, require whole books to display short definitions, or load the whole
+corpus into UI memory. Respect access rules and do not evade authentication/paywalls or invent
+unavailable full text. This is a content-policy correction, not a storage framework replacement.
+
+Measure restored names, previously missing definitions, fuller source variants, complete
+instrument sections and unresolved items separately. Same title is not proof of equivalence.
+Content coverage, exact-name lookup, reverse-description retrieval and clinical evidence support
+are distinct evaluations. Models may assist selection experimentally; their scores do not change
+source authenticity, clinical review, quotation fidelity or publication eligibility.
