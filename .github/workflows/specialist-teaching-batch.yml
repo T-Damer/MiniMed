@@ -79,7 +79,8 @@ jobs:
               report=json.loads((output / "collection-report.json").read_text())
               assert report["articles"][0]["status"] == "pending-source-review"
               assert not list((output / "records").iterdir())
-              assert not list((output / "evidence").iterdir())
+              assert [p.name for p in (output / "evidence").iterdir()] == ["robots.txt"]
+              assert (output / "evidence/robots.txt").read_bytes() == read("robots.txt")
 
 
           def test_issue_offset_is_bounded_before_any_network_request(tmp_path: Path) -> None:
