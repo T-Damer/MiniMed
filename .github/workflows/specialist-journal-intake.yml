@@ -37,6 +37,12 @@ jobs:
           p=Path('tools/ingest/tests/test_specialist_journal_inline.py')
           s=p.read_text().replace("    html = '<div>Синдром <b>примера</b> — синтетическое описание с оговоркой [<a>3</a>, <a>4</a>].</div>'", "    html = ('<div>Синдром <b>примера</b> — синтетическое описание '\n            'с оговоркой [<a>3</a>, <a>4</a>].</div>')")
           p.write_text(s)
+          p=Path('tools/ingest/src/localmed_ingest/specialist_journal_collect.py')
+          s=p.read_text().replace('"Original full article sections, not abstracts. Author-specific dates and frames retained. "', '"Original full article sections, not abstracts. "\n"Author-specific dates and frames retained. "')
+          p.write_text(s)
+          p=Path('tools/ingest/src/localmed_ingest/specialist_journal_intake.py')
+          s=p.read_text().replace("'Article overviews and section cards are counted separately from definition clauses. '", "'Article overviews and section cards are counted separately '\n                'from definition clauses. '")
+          p.write_text(s)
           PY
       - name: Strict locked code and source-extraction tests
         run: |
