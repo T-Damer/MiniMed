@@ -1,0 +1,158 @@
+name: Specialist journal reference build
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/specialist-journal-reference-build.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-specialist-reference-build
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Align source markers and path comparison with the current contracts
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tools/ingest/src/localmed_ingest/specialist_journal_admission.py');s=p.read_text()
+          old='"article-overview-not-term"'
+          assert s.count(old)==1
+          p.write_text(s.replace(old,'"article-overview-not-independent-term"'))
+          p=Path('scripts/verify-specialist-journal-reference.py');s=p.read_text()
+          old='        if replay != before:'
+          assert s.count(old)==1
+          s=s.replace(old,'''        for result in (replay, before):
+                      for value in seq(result['articles'], 96):
+                          row = obj(value)
+                          row['collection'] = (root / text(row['collection'])).resolve().as_posix()
+                  if replay != before:'''.replace('\n                  ', '\n        ').replace('\n                      ', '\n            ').replace('\n                          ', '\n                '))
+          p.write_text(s)
+          PY
+      - name: Locked scoped lint typecheck and extraction regressions
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          files='tools/ingest/src/localmed_ingest/specialist_journal_admission.py tools/ingest/src/localmed_ingest/specialist_journal_refresh.py tools/ingest/tests/test_specialist_journal_admission.py scripts/verify-specialist-journal-reference.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          mkdir -p data/build
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q \
+            tools/ingest/tests/test_specialist_journal_reference.py \
+            tools/ingest/tests/test_specialist_journal_inline.py \
+            tools/ingest/tests/test_specialist_journal_admission.py \
+            tools/ingest/tests/test_definition_reference_pack.py \
+            --junitxml=data/build/specialist-reference-tests.xml
+      - name: Compose original article evidence and update the selected source manifest offline
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import sys
+          from pathlib import Path
+          from localmed_ingest.specialist_journal_refresh import compose_selected, activate
+          def guard(event,args):
+              if event in {'socket.connect','socket.__new__','socket.getaddrinfo'}: raise RuntimeError('Offline source replay forbids networking')
+          sys.addaudithook(guard)
+          destination=Path('content/definition-drafts/specialist-journal-active-2026.09.22')
+          report=compose_selected((Path('content/definition-drafts/specialist-journals-2026.09.22'),Path('content/definition-drafts/specialist-teaching-acquisition-2026.09.22')),destination)
+          activate(Path.cwd(),destination.resolve(),report)
+          print(report['counts'])
+          print({key:value for key,value in report['refresh'].items() if key not in ('previousInputs','newInputs')})
+          PY
+      - name: Build the real reference through the normal preparer without networking
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import runpy,sys
+          def guard(event,args):
+              if event in {'socket.connect','socket.__new__','socket.getaddrinfo'}: raise RuntimeError('Offline database build forbids networking')
+          sys.addaudithook(guard)
+          sys.argv=['scripts/prepare-definition-reference.py','--version','2026.09.22-specialist-journals','--built-at','2026-09-22']
+          runpy.run_path(sys.argv[0],run_name='__main__')
+          PY
+      - name: Verify source replay and every selected SQLite text and identity
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/verify-specialist-journal-reference.py \
+            --selected content/definition-drafts/specialist-journal-active-2026.09.22 \
+            --database apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-specialist-journals.db \
+            --report data/build/specialist-source-fidelity.json --cards data/build/specialist-reader-cards.json
+      - name: Read complete sourced cards through the actual bounded application adapter
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write tools/benchmarks/src/verify-specialist-journal-cards.ts
+          env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/src/verify-specialist-journal-cards.ts \
+            apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-specialist-journals.db \
+            data/build/specialist-reader-cards.json data/build/specialist-reader-report.json
+      - name: Record actual content refresh and remaining boundaries
+        run: |
+          python3 - <<'PY'
+          import json,xml.etree.ElementTree as ET
+          from pathlib import Path
+          selection=json.loads(Path('content/definition-drafts/specialist-journal-active-2026.09.22/selection-report.json').read_text())
+          stem=Path('apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-specialist-journals.db')
+          build=json.loads(Path(str(stem)+'.report.json').read_text())
+          suites=ET.parse('data/build/specialist-reference-tests.xml').getroot()
+          tests={key:sum(int(s.get(key,'0')) for s in suites.findall('testsuite')) for key in ('tests','failures','errors','skipped')}
+          assert tests['failures']==0 and tests['errors']==0
+          report={'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':tests,'strictPythonChecks':'passed','counts':selection['counts'],'refresh':selection['refresh'],'articles':[{k:row.get(k) for k in ('title','journal','doi','publicationDate','articleType','license','nonCommercialOnly','status','reason','records','blocks')} for row in selection['articles']],'fidelity':json.loads(Path('data/build/specialist-source-fidelity.json').read_text()),'reader':json.loads(Path('data/build/specialist-reader-report.json').read_text()),'installedBytes':stem.stat().st_size,'downloadBytes':Path(str(stem)+'.gz').stat().st_size,'logicalRoundTripEqual':build['logicalRoundTripEqual'],'boundary':'Specialist source collection, structural screening, offline rebuild and file-backed reader checks. Not clinical/current-guideline validation, browser/Android, a new reverse-search qualification or an APK/public release.'}
+          Path('docs/research/specialist-reference-delivery-2026-09-22.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          count=selection['counts'];refresh=selection['refresh']
+          section=f'''## Original specialist journal reference refresh — 2026-09-22
+
+          Active source/editorial records: **{refresh['combinedRecords']}**, including
+          **{refresh['addedRecords']}** newly selected records from **{count['articles']}**
+          original journal publications. Article overviews, definitions, section cards and
+          criterion lists are counted separately in `research/specialist-reference-delivery-2026-09-22.json`.
+          {count.get('excludedCandidateLabels',0)} sentence/context labels are not indexed as standalone
+          terms; all original article blocks remain readable. {count.get('pendingArticles',0)} selected
+          articles are pending instead of bypassing unavailable full text or uncertain reuse rights.
+          Author dates, classifications, caveats and CC licensing including non-commercial restrictions
+          remain explicit. Source clinical review and public release eligibility are not promoted.
+
+          Real SQLite: {stem.stat().st_size} bytes; gzip transport: {Path(str(stem)+'.gz').stat().st_size} bytes.
+          {tests['tests']} scoped tests passed. All selected source blocks/metadata were compared,
+          archived journal fragments replayed without networking, and complete new source cards were
+          reconstructed using the actual bounded reader. No private PDF, Wikipedia, model, APK or
+          published core was changed. Prepare DEV version `2026.09.22-specialist-journals`.
+          More substantive specialist sources remain ahead of compatibility/installer work.
+
+          '''
+          section='\n'.join(line[10:] if line.startswith('          ') else line for line in section.splitlines())
+          for name in ('docs/CURRENT_STATE.md','docs/DEFINITION_REFERENCE_PLAN.md'):
+              p=Path(name);s=p.read_text();a,b=s.split('\n',1);p.write_text(a+'\n\n'+section+b)
+          print(json.dumps({k:v for k,v in report.items() if k not in ('articles','refresh')},ensure_ascii=False,indent=2))
+          PY
+      - name: Save scoped verified source data and reports to the same PR
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add tools/ingest/src/localmed_ingest/specialist_journal_admission.py tools/ingest/src/localmed_ingest/specialist_journal_refresh.py tools/ingest/tests/test_specialist_journal_admission.py scripts/verify-specialist-journal-reference.py tools/benchmarks/src/verify-specialist-journal-cards.ts content/definition-drafts/specialist-journal-active-2026.09.22 content/definition-drafts/source-inputs.json docs/research/specialist-reference-delivery-2026-09-22.json docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): deliver source-faithful specialist journal definitions and full context [skip ci]'
+          own=$(git rev-parse HEAD)
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
+          remote=$(git rev-parse FETCH_HEAD)
+          if [ "$remote" != '${{ github.sha }}' ]; then
+            git restore apps/app/src/features/modules/catalog.definition-reference.local.json
+            git switch --detach "$remote"
+            git cherry-pick "$own"
+          fi
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: No release or artifact upload
+        if: always()
+        run: echo 'No binary database, private source, model, APK, release or Actions artifact uploaded.' >> "$GITHUB_STEP_SUMMARY"
