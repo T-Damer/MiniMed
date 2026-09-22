@@ -1,0 +1,20 @@
+{
+  "collections": [],
+  "failures": [
+    {
+      "selection": "selection-01.json",
+      "status": "batch-pending",
+      "reason": "No selected full-text article could be prepared"
+    },
+    {
+      "selection": "selection-02.json",
+      "status": "batch-pending",
+      "reason": "No selected full-text article could be prepared"
+    },
+    {
+      "selection": "selection-03.json",
+      "status": "batch-pending",
+      "reason": "No selected full-text article could be prepared"
+    }
+  ]
+}
