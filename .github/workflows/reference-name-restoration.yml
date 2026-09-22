@@ -1,0 +1,225 @@
+name: Restore knowledge name coverage
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/reference-name-restoration.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-reference-name-restoration
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Connect explicit name inventories to existing projection and reader
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          def change(path, old, new):
+              p=Path(path);s=p.read_text()
+              assert s.count(old)==1,(path,old)
+              p.write_text(s.replace(old,new))
+          p='tools/ingest/src/localmed_ingest/definition_reference_pack.py'
+          change(p,'    definitions_only: bool = False,','    definitions_only: bool = False,\n    discovery_inputs: tuple[Path, ...] = (),')
+          change(p,'    report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)', '''    from .definition_name_inventory import add_name_inventory
+              if len(discovery_inputs) > 8:
+                  raise ValueError("Too many discovery inputs")
+              restored = 0
+              for path in discovery_inputs:
+                  actual = contained(input_root, path)
+                  if actual.stat().st_size > MAX_INPUT_BYTES:
+                      raise ValueError("Discovery input exceeds budget")
+                  payload = actual.read_bytes()
+                  receipt = hashlib.sha256(payload).hexdigest()
+                  if receipt in seen:
+                      raise ValueError("Duplicate discovery input snapshot")
+                  seen.add(receipt)
+                  restored += add_name_inventory(projection, json.loads(payload), receipt)
+                  projection.receipts.append({"sha256": receipt, "bytes": len(payload)})
+              report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)
+              report["discoveredNames"] = restored'''.replace('\n    ', '\n    '))
+          # Dedent the string above from YAML/Python literal formatting to function indentation.
+          f=Path(p);s=f.read_text();start=s.index('    from .definition_name_inventory import add_name_inventory',s.index('def build_definition_reference'))
+          end=s.index('    report["selection"] = selection',start)
+          block=s[start:end].splitlines();block=[line[10:] if line.startswith('              ') else line for line in block]
+          f.write_text(s[:start]+'\n'.join(block)+'\n'+s[end:])
+          p='tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py'
+          change(p,'    definitions_only: bool = False,','    definitions_only: bool = False,\n    discovery_inputs: tuple[Path, ...] = (),')
+          change(p,'            definitions_only=definitions_only,','            definitions_only=definitions_only,\n            discovery_inputs=discovery_inputs,')
+          change(p,'        "entries": baseline["entries"],','        "entries": baseline["entries"],\n        "discoveredNames": baseline.get("discoveredNames", 0),')
+          p='scripts/prepare-definition-reference.py'
+          change(p,'from localmed_ingest.definition_reference_pack import number, obj','from localmed_ingest.definition_reference_pack import number, obj\nfrom localmed_ingest.definition_name_inventory import read_name_manifest')
+          change(p,'        definitions_only=args.scope == "definitions",','        definitions_only=args.scope == "definitions",\n        discovery_inputs=read_name_manifest(root),')
+          change(p,'    if (\n        report["schemaVersion"] != 7','    definition_entries = expected_entries\n    discovered_names = int(report.get("discoveredNames", 0))\n    expected_entries += discovered_names\n    if (\n        report["schemaVersion"] != 7')
+          change(p,'expected_entries, definitions_only=args.scope == "definitions"','definition_entries, definitions_only=args.scope == "definitions"')
+          change(p,'        "required": False,','        "required": False,')
+          # Visible copy must separate actual definitions from known names still needing content.
+          change(p,'        "dependencies": [],','        "dependencies": [],')
+          change(p,'    descriptor = (','    if discovered_names:\n        module["description"] += f" Названий для дополнения: {discovered_names:,}.".replace(",", " ")\n    descriptor = (')
+          p='packages/storage-sqlite/src/definition-reference-reader.ts'
+          change(p,'GROUP BY e.id ORDER BY tier, e.id LIMIT ?',"GROUP BY e.id ORDER BY tier, CASE WHEN json_extract(e.metadata_json, '$.coverage') = 'needs-definition' THEN 1 ELSE 0 END, e.id LIMIT ?")
+          p='apps/app/src/features/reference/DefinitionReferencePanel.tsx'
+          change(p,"<Show when={hit.coverage === 'mention-only'}>","<Show when={hit.coverage === 'needs-definition'}>\n                    <span class=\"reference-panel__hit-note\">Нужно определение</span>\n                  </Show>\n                  <Show when={hit.coverage === 'mention-only'}>")
+          change(p,'              <div class="reference-card__blocks">','              <Show when={current().coverage === \'needs-definition\'}>\n                <p class="reference-panel__notice">Название сохранено. Медицинское определение ещё подбирается; энциклопедический текст не используется.</p>\n              </Show>\n              <div class="reference-card__blocks">')
+          p='AGENTS.md';f=Path(p);s=f.read_text()
+          old='Read `docs/REFERENCE_SOURCE_POLICY.md` before reference acquisition. Do not collect new Wikipedia\ncontent or put archived Wikipedia records back into the active app manifest.'
+          assert old in s
+          s=s.replace(old,'Read `docs/REFERENCE_SOURCE_POLICY.md` before reference acquisition. Preserve discovered names\nindependently of definition quality: audited name-only inventories may restore archived Wikipedia\nidentities with `needs-definition`, but not Wikipedia medical prose or automatic same-as links.')
+          f.write_text(s)
+          PY
+      - name: Locked code checks and source-contract tests
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          files='tools/ingest/src/localmed_ingest/definition_name_inventory.py tools/ingest/tests/test_definition_name_inventory.py tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py scripts/prepare-definition-reference.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          env -i PATH="$PATH" HOME="$HOME" bunx biome check --write packages/storage-sqlite/src/definition-reference-reader.ts apps/app/src/features/reference/DefinitionReferencePanel.tsx
+          env -i PATH="$PATH" HOME="$HOME" bun run --cwd apps/app typecheck
+          mkdir -p data/build
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_definition_name_inventory.py tools/ingest/tests/test_definition_reference_scope.py tools/ingest/tests/test_definition_reference_pack.py --junitxml=data/build/name-restore-tests.xml
+          env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/storage-sqlite/src/definition-reference-reader.test.ts
+      - name: Recover original names without new source requests
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import hashlib,json,sys
+          from pathlib import Path
+          from localmed_ingest.definition_name_inventory import FORMAT,recover_names
+          from localmed_ingest.definition_reference_pack import encoded
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}: raise RuntimeError('Content recovery must be offline')
+          sys.addaudithook(guard)
+          root=Path.cwd();archive=root/'content/definition-drafts/archived-manifests/source-inputs.with-wikipedia-2026.09.22.json'
+          inventory,report=recover_names(root,archive)
+          assert report['sourceLocalNames']==7637
+          destination=root/'content/definition-drafts/discovered-names-2026.09.23.json'
+          raw=encoded(inventory).encode();destination.write_bytes(raw)
+          (root/'content/definition-drafts/name-inputs.json').write_text(encoded({'format':FORMAT,'path':destination.relative_to(root).as_posix(),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()})+'\n')
+          (root/'data/build/name-recovery.json').write_text(encoded(report))
+          PY
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/prepare-definition-reference.py --version 2026.09.23-names-v1 --built-at 2026-09-23
+      - name: Verify complete restored identities and no definition links
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import json,sqlite3,hashlib,xml.etree.ElementTree as ET
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import Projection,encoded
+          from localmed_ingest.definition_source_manifest import read_source_manifest
+          root=Path.cwd();namepath=root/'content/definition-drafts/discovered-names-2026.09.23.json'
+          inventory=json.loads(namepath.read_bytes());names={r['id']:r for r in inventory['names']}
+          dbpath=root/'apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-names-v1.db'
+          build=json.loads(Path(str(dbpath)+'.report.json').read_bytes())
+          projection=Projection()
+          inputs,raw_count=read_source_manifest(root,root/'content/definition-drafts/source-inputs.json')
+          for path in inputs:
+              raw=path.read_bytes();projection.add(json.loads(raw),hashlib.sha256(raw).hexdigest())
+          with sqlite3.connect(f'{dbpath.as_uri()}?mode=ro',uri=True) as db:
+              assert db.execute('PRAGMA integrity_check').fetchone()==('ok',)
+              assert not db.execute('PRAGMA foreign_key_check').fetchall()
+              for identifier,row in names.items():
+                  actual=db.execute('SELECT canonical_name,metadata_json FROM knowledge_entities WHERE id=?',(identifier,)).fetchone()
+                  assert actual and actual[0]==row['title'] and json.loads(actual[1])['coverage']=='needs-definition'
+                  assert db.execute("SELECT DISTINCT link_type FROM definition_reference_links WHERE entity_id=?",(identifier,)).fetchall()==[('reference:annotation',)]
+              for identifier,(_,chunk) in projection.chunks.items():
+                  actual=db.execute('SELECT original_text,metadata_json FROM chunks WHERE id=?',(identifier,)).fetchone()
+                  assert actual and actual[0]==chunk.original_text and json.loads(actual[1])==chunk.metadata
+              assert db.execute('SELECT count(*) FROM knowledge_facts').fetchone()==(0,)
+              assert db.execute('SELECT count(*) FROM knowledge_relations').fetchone()==(0,)
+          suites=ET.parse('data/build/name-restore-tests.xml').getroot()
+          tests={key:sum(int(s.get(key,'0')) for s in suites.findall('testsuite')) for key in ('tests','failures','errors','skipped')}
+          assert tests['errors']==tests['failures']==0
+          recovery=json.loads((root/'data/build/name-recovery.json').read_text())
+          report={'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','recovery':recovery,'definitions':build['selection']['definitionRecordsAfter'],'searchableEntries':build['entries'],'restoredNameRowsVerified':len(names),'existingBlocksCompared':len(projection.chunks),'installedBytes':dbpath.stat().st_size,'downloadBytes':Path(str(dbpath)+'.gz').stat().st_size,'tests':tests,'logicalRoundTripEqual':build['logicalRoundTripEqual'],'boundary':'Name recovery is not new definition acquisition. Existing definition variants remain distinct; no canonical merging, clinical review, UI lifecycle or Android qualification.'}
+          (root/'docs/research/reference-name-restoration-2026-09-23.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Read every recovered name using the real application SQLite reader
+        run: |
+          cat > tools/benchmarks/.name-restore-audit.ts <<'TS'
+          import { Database } from 'bun:sqlite';
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { createSqliteDefinitionReference, normalizeDefinitionReferenceName } from '../../packages/storage-sqlite/src/definition-reference-reader';
+          const db = new Database('apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-names-v1.db', { readonly: true });
+          const reader = await createSqliteDefinitionReference({ read: async (sql, args) => db.query(sql).all(...args) as Record<string,unknown>[] });
+          const names = JSON.parse(readFileSync('content/definition-drafts/discovered-names-2026.09.23.json','utf8')).names as {id:string,title:string}[];
+          let readable=0, visible=0; const misses:string[]=[];
+          for (const item of names) {
+            const card=await reader.getCard(item.id);
+            if (!card || card.coverage!=='needs-definition') throw new Error('Missing restored name card');
+            const blocks=await reader.listBlocks(item.id);
+            if (blocks.blocks.length!==1 || blocks.blocks[0]?.role!=='annotation') throw new Error('Name promoted to medical text');
+            const block=await reader.readBlock(item.id, blocks.blocks[0].chunkId);
+            if (!block || !await reader.getSource(block.sourceId)) throw new Error('Name origin missing');
+            readable++;
+            const hits=await reader.search(item.title,20);
+            if(hits.some(hit=>normalizeDefinitionReferenceName(hit.title)===normalizeDefinitionReferenceName(item.title))) visible++;
+            else misses.push(item.id);
+          }
+          db.close();
+          const path='docs/research/reference-name-restoration-2026-09-23.json';
+          const report=JSON.parse(readFileSync(path,'utf8'));
+          report.actualReader={readableById:readable,titleVisibleAt20:visible,total:names.length,missingNameIds:misses};
+          writeFileSync(path,JSON.stringify(report,null,2)+'\n');
+          console.log(JSON.stringify(report.actualReader));
+          TS
+          env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/.name-restore-audit.ts
+      - name: Update the plan with measured scope, not a new model dependency
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('docs/research/reference-name-restoration-2026-09-23.json').read_text())
+          section=f'''## Name coverage restored — 2026-09-23
+
+          The ordinary knowledge edition now contains **{r['definitions']} definition candidates** plus
+          **{r['recovery']['sourceLocalNames']} source-local discovered names** ({r['searchableEntries']} searchable records).
+          This restores vocabulary, not Wikipedia medical prose. Name-only entries have `needs-definition`,
+          only a source annotation link, and no definition-body FTS contribution. Existing source IDs,
+          texts and clinical review state remain unchanged. Names with the same title are not auto-merged.
+          Actual reader: {r['actualReader']['readableById']} recovered identities readable; {r['actualReader']['titleVisibleAt20']}
+          name queries have a matching title in Top-20. Source-name variants are not unique concepts.
+          Verified {r['tests']['tests']} Python tests, reader unit tests, strict checks, app typecheck,
+          ordinary SQLite build and {r['existingBlocksCompared']} unchanged source blocks.
+          Installed file: {r['installedBytes']} bytes; gzip: {r['downloadBytes']} bytes.
+          No new clinical definitions were acquired by this recovery, and no APK/model was integrated.
+          Base-definition + compact differences policy and located `Med/` inventory:
+          `research/reference-base-differences-and-library-2026-09-23.md`.
+          Research model output is separate; its success must not be inferred from this content run.
+
+          '''
+          section='\n'.join(line[10:] if line.startswith('          ') else line for line in section.splitlines())
+          for name in ('docs/CURRENT_STATE.md','docs/DEFINITION_REFERENCE_PLAN.md'):
+              p=Path(name);head,body=p.read_text().split('\n',1);p.write_text(head+'\n\n'+section+body)
+          PY
+      - name: Persist only verified content and scoped integration files
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add tools/ingest/src/localmed_ingest/definition_name_inventory.py tools/ingest/tests/test_definition_name_inventory.py tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py scripts/prepare-definition-reference.py packages/storage-sqlite/src/definition-reference-reader.ts apps/app/src/features/reference/DefinitionReferencePanel.tsx content/definition-drafts/discovered-names-2026.09.23.json content/definition-drafts/name-inputs.json docs/research/reference-name-restoration-2026-09-23.json docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md AGENTS.md
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): restore discovered names without wiki clinical definitions [skip ci]'
+          own=$(git rev-parse HEAD)
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
+          remote=$(git rev-parse FETCH_HEAD)
+          if [ "$remote" != '${{ github.sha }}' ]; then git switch --detach "$remote"; git cherry-pick "$own"; fi
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: No artifact uploads
+        if: always()
+        run: echo 'Source names only; no private books, binary database, model weights/cache, APK or Actions artifacts uploaded.' >> "$GITHUB_STEP_SUMMARY"
