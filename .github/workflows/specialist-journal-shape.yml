@@ -1,0 +1,55 @@
+name: Inspect original article containers
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/specialist-journal-shape.yml]
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - name: Inspect metadata and reusable renderer only
+        run: |
+          uv sync --project tools/ingest --all-groups --locked
+          cat > "$RUNNER_TEMP/shape.py" <<'PY'
+          import json,urllib.request
+          from pathlib import Path
+          from bs4 import BeautifulSoup,Tag
+          out=[]
+          for pair in ('1027-4898/90541','RFD/7752'):
+              journal,aid=pair.split('/')
+              url=f'https://journals.eco-vector.com/{journal}/article/view/{aid}/ru_RU'
+              req=urllib.request.Request(url,headers={'User-Agent':'MiniMed-Reference-Research/0.1 (+https://github.com/T-Damer/MiniMed/issues/180)'})
+              with urllib.request.urlopen(req,timeout=35) as r: soup=BeautifulSoup(r.read(6000000),'html.parser')
+              headings=[]
+              for h in soup.find_all(['h2','h3']):
+                  name=h.get_text(' ',strip=True)
+                  if name.lower() not in ('полный текст','full text'): continue
+                  ancestors=[]
+                  for p in [h,*list(h.parents)[:3]]:
+                      ancestors.append({'tag':p.name,'attrs':p.attrs,'length':len(p.get_text()),'children': [{'tag':c.name,'attrs':c.attrs,'length':len(c.get_text()),'prefix':c.get_text(' ',strip=True)[:80]} for c in p.children if isinstance(c,Tag)][:15]})
+                  headings.append(ancestors)
+              out.append({'page':pair,'headings':headings})
+          candidates=[p.as_posix() for p in Path('tools/ingest/src/localmed_ingest').glob('*.py') if any(k in p.name for k in ('wiki','html','section'))]
+          Path('docs/research/specialist-journal-containers-2026-09-22.json').write_text(json.dumps({'pages':out,'existingRenderers':candidates},ensure_ascii=False,indent=2)+'\n')
+          PY
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python "$RUNNER_TEMP/shape.py"
+      - name: Save structure report
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add docs/research/specialist-journal-containers-2026-09-22.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs(content): identify original full-text selectors and reusable parser [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
