@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "sourcePolicy": "specialist-medical-sources-2026-09-22",
+  "purpose": "Full authored sections and source-local definition candidates; not a current clinical consensus or a set of executable scales.",
+  "articles": [
+    {"journal":"1027-4898","articleId":"90541","focus":"Catatonia terminology, symptom list and historical taxonomy; author editorial, not guideline."},
+    {"journal":"1027-4898","articleId":"14094","focus":"Negative hallucination: definition, history and author's clinical framing."},
+    {"journal":"1027-4898","articleId":"14095","focus":"Delusion narrative terminology; preserve the authors' proposed distinctions."},
+    {"journal":"1027-4898","articleId":"14043","focus":"History and framing of the autism concept; keep source edition and terminology."},
+    {"journal":"1027-4898","articleId":"105915","focus":"Historical 1993 autonomic dystonia terminology; the title's contemporary wording is relative to publication year."},
+    {"journal":"RFD","articleId":"7752","focus":"Vestibular semiotics, differential distinctions, classification and source-defined subtypes."},
+    {"journal":"RFD","articleId":"6178","focus":"Acute coronary syndrome definitions and classification; preserve 2017 source date."},
+    {"journal":"RFD","articleId":"1431","focus":"Headache types and clinical criteria in a 2015 teaching/recommendation article; not advertised as current guideline."},
+    {"journal":"RFD","articleId":"3577","focus":"Ambulatory neurology diagnostic distinctions and terminology."},
+    {"journal":"pediatr","articleId":"11910","focus":"Preschool speech-disorder definitions, criteria and author-specific discussion."},
+    {"journal":"RFD","articleId":"10468","focus":"Herpesvirus clinical terminology and differential source descriptions."},
+    {"journal":"1606-8181","articleId":"696660","focus":"HiTOP taxonomy research review; a proposed framework is not converted to official clinical classification."}
+  ]
+}
