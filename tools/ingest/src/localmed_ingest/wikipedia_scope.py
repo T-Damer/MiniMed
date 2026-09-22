@@ -73,7 +73,9 @@ def select_paths(
     selection: dict[str, object],
     policy: dict[str, object],
 ) -> tuple[dict[int, dict[str, object]], dict[str, object]]:
-    patterns = [re.compile(text(value), re.I) for value in items(policy["excludedCategoryPatterns"])]
+    patterns = [
+        re.compile(text(value), re.I) for value in items(policy["excludedCategoryPatterns"])
+    ]
     queue: deque[tuple[str, int, int, str]] = deque()
     for raw in items(selection["seeds"]):
         seed = obj(raw)
@@ -118,7 +120,7 @@ def select_paths(
         "excludedCategories": sorted(rejected),
         "unfetchedCategories": sorted(missing),
         "networkRequests": 0,
-        "boundary": "Replay is limited to collected category responses; missing branches stay open.",
+        "boundary": "Only archived categories are replayed; missing branches remain open.",
     }
 
 
@@ -177,24 +179,30 @@ def intake(collection: Path, selection_path: Path, policy_path: Path) -> dict[st
     date = text(manifest["date"])
     for start in range(0, len(terms), 500):
         name = f"admitted-{start // 500 + 1:03d}.json"
-        raw = encoded({
-            "version": 3,
-            "id": "ruwiki.medical.introductions",
-            "reviewStatus": "requires-review",
-            "publicationState": "local-dev",
-            "textKind": "source-excerpt",
-            "sources": [source_descriptor(date)],
-            "blocks": blocks[start:start + 500],
-            "terms": terms[start:start + 500],
-        })
+        raw = encoded(
+            {
+                "version": 3,
+                "id": "ruwiki.medical.introductions",
+                "reviewStatus": "requires-review",
+                "publicationState": "local-dev",
+                "textKind": "source-excerpt",
+                "sources": [source_descriptor(date)],
+                "blocks": blocks[start : start + 500],
+                "terms": terms[start : start + 500],
+            }
+        )
         if len(raw) > 16 * 1024 * 1024:
             raise ValueError("Admitted source shard exceeds its byte budget")
         with (collection / name).open("xb") as stream:
             stream.write(raw)
-        parts.append({
-            "path": name, "sha256": sha(raw), "bytes": len(raw),
-            "entries": len(terms[start:start + 500]),
-        })
+        parts.append(
+            {
+                "path": name,
+                "sha256": sha(raw),
+                "bytes": len(raw),
+                "entries": len(terms[start : start + 500]),
+            }
+        )
     accepted = {integer(block["pageId"]) for block in blocks}
     report = {
         "version": 1,

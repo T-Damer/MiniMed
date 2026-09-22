@@ -72,7 +72,9 @@ def test_category_cycles_stay_bounded() -> None:
 
 def test_author_birth_date_does_not_turn_a_syndrome_into_a_person() -> None:
     page = {
-        "pageid": 3, "ns": 0, "title": "Синдром Example",
+        "pageid": 3,
+        "ns": 0,
+        "title": "Синдром Example",
         "extract": (
             "Синдром Example — условный учебный пример. Назван по фамилии автора "
             "(1 января 1900 — 2 февраля 1980); это не биографическая статья."
@@ -93,45 +95,83 @@ def prepared(root: Path) -> tuple[Path, Path, Path]:
     records: list[dict[str, object]] = []
     for title, members in categories().items():
         response = encoded({"query": {"categorymembers": members}})
-        records.append({
-            "parameters": {"list": "categorymembers", "cmtitle": title},
-            "response": response.decode(), "responseSha256": sha(response),
-            "retrievedAt": "2026-09-22T00:00:00Z",
-        })
+        records.append(
+            {
+                "parameters": {"list": "categorymembers", "cmtitle": title},
+                "response": response.decode(),
+                "responseSha256": sha(response),
+                "retrievedAt": "2026-09-22T00:00:00Z",
+            }
+        )
     pages = [
-        {**member(1, "Медицинский термин"), "extract": "Точное исходное медицинское описание.\nВторой абзац."},
-        {**member(2, "Герб Example"), "extract": "Исходное описание герба, не медицинское определение."},
+        {
+            **member(1, "Медицинский термин"),
+            "extract": "Точное исходное медицинское описание.\nВторой абзац.",
+        },
+        {
+            **member(2, "Герб Example"),
+            "extract": "Исходное описание герба, не медицинское определение.",
+        },
     ]
     response = encoded({"query": {"pages": pages}})
     snapshot = Snapshot({}, sha(response), "2026-09-22T00:00:00Z")
-    records.append({
-        "parameters": {"prop": "extracts"}, "response": response.decode(),
-        "responseSha256": sha(response), "retrievedAt": snapshot.retrieved_at,
-    })
+    records.append(
+        {
+            "parameters": {"prop": "extracts"},
+            "response": response.decode(),
+            "responseSha256": sha(response),
+            "retrievedAt": snapshot.retrieved_at,
+        }
+    )
     blocks: list[dict[str, object]] = []
     terms: list[dict[str, object]] = []
     for page in pages:
         candidate = {
-            "pageid": page["pageid"], "families": ["medicine"],
+            "pageid": page["pageid"],
+            "families": ["medicine"],
             "categories": ["Категория:Медицина"],
         }
         block, term = project_page(page, candidate, snapshot)
         blocks.append(block)
         terms.append(term)
-    payload = encoded({
-        "version": 3, "reviewStatus": "requires-review", "publicationState": "local-dev",
-        "textKind": "source-excerpt", "sources": [source_descriptor("2026-09-22")],
-        "terms": terms, "blocks": blocks,
-    })
+    payload = encoded(
+        {
+            "version": 3,
+            "reviewStatus": "requires-review",
+            "publicationState": "local-dev",
+            "textKind": "source-excerpt",
+            "sources": [source_descriptor("2026-09-22")],
+            "terms": terms,
+            "blocks": blocks,
+        }
+    )
     (collection / "part-001.json").write_bytes(payload)
     archive = gzip.compress(b"".join(encoded(row) + b"\n" for row in records), mtime=0)
     (collection / "api-snapshots.jsonl.gz").write_bytes(archive)
-    (collection / "manifest.json").write_bytes(encoded({
-        "version": 1, "sourceFamily": "ruwiki-medical-introductions", "date": "2026-09-22",
-        "entries": 2, "configSha256": sha(select.read_bytes()),
-        "parts": [{"path": "part-001.json", "bytes": len(payload), "sha256": sha(payload), "entries": 2}],
-        "snapshotArchive": {"path": "api-snapshots.jsonl.gz", "bytes": len(archive), "sha256": sha(archive)},
-    }))
+    (collection / "manifest.json").write_bytes(
+        encoded(
+            {
+                "version": 1,
+                "sourceFamily": "ruwiki-medical-introductions",
+                "date": "2026-09-22",
+                "entries": 2,
+                "configSha256": sha(select.read_bytes()),
+                "parts": [
+                    {
+                        "path": "part-001.json",
+                        "bytes": len(payload),
+                        "sha256": sha(payload),
+                        "entries": 2,
+                    }
+                ],
+                "snapshotArchive": {
+                    "path": "api-snapshots.jsonl.gz",
+                    "bytes": len(archive),
+                    "sha256": sha(archive),
+                },
+            }
+        )
+    )
     return collection, select, scope
 
 
@@ -144,8 +184,8 @@ def test_intake_keeps_exact_text_and_quarantines_without_erasing_raw_input(tmp_p
     assert report["sourceTextExact"] is True
     assert (collection / "part-001.json").read_bytes() == original
     admitted = obj(json.loads((collection / "admitted-001.json").read_bytes()))
-    assert 'Точное исходное медицинское описание.' in encoded(admitted).decode()
-    assert 'Герб Example' not in encoded(admitted).decode()
+    assert "Точное исходное медицинское описание." in encoded(admitted).decode()
+    assert "Герб Example" not in encoded(admitted).decode()
     before = (collection / "manifest.json").read_bytes()
     with pytest.raises(ValueError, match="already"):
         intake(collection, selection_path, policy_path)
@@ -157,6 +197,6 @@ def test_changed_source_receipts_are_rejected(tmp_path: Path, target: str) -> No
     collection, selection_path, policy_path = prepared(tmp_path)
     path = collection / target
     path.write_bytes(path.read_bytes() + b" ")
-    with pytest.raises(ValueError, match="changed|mismatch"):
+    with pytest.raises(ValueError, match=r"changed|mismatch"):
         intake(collection, selection_path, policy_path)
     assert not (collection / "admitted-001.json").exists()

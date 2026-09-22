@@ -2,31 +2,35 @@
 
 ## Content-first dictionary expansion — 2026-09-22
 
-Per the user's explicit request, collecting terminology and rebuilding data now precedes
-additional compatibility/streaming/lifecycle work. Breaking DEV formats are permitted;
-user/private source data is not disposable and publication boundaries still apply.
+The user permits breaking DEV code/prepared formats. Current priority is R3/R5 source
+collection, content QA and database refreshes, not more compatibility or installer work.
+Private/user data, source wording and provenance remain protected.
 
-Added **5187** original Russian encyclopedic introductions from the
-declared bounded medical category traversal. **4208** normalized names
-were absent from the earlier source set; **979**
-names gained another source-specific description. Combined source/editorial records:
-**23320**, not that many proven canonical concepts. The collector records
-skipped candidates, category depth/budget limits and exact API response snapshots. It does
-not invent full scales, root translations or biographies from names.
+Acquisition collected 5187 descriptions before scope QA. Offline
+replay of the archived category graph quarantined 763
+acquired records outside the admitted medical paths and restored
+1 previously over-filtered records. Cultural, heraldic,
+clothing and dance descendants are not counted as medical terminology. Original acquisition
+shards and raw API receipts remain unchanged for audit and are excluded from runtime inputs.
 
-The actual local SQLite was rebuilt: **146087936 bytes installed /
-36888523 gzip bytes**. Every new source record's text and locators matched
-the final file. 56 selected Python cases, strict authoring type/lint
-checks and SQLite integrity/foreign-key checks passed. No new UI/Android/clinical evaluation
-is implied. The app preparer now uses `content/definition-drafts/source-inputs.json` rather
-than a hard-coded 18,133-record assumption. Raw API snapshots are authoring evidence only,
-never device download dependencies. The owner textbook's 450 private records remain separate.
+The active new source contains **4425** Russian introductions;
+**3491** normalized name surfaces were absent from the old source set,
+and **934** names gained another source. Combined:
+**22558 source/editorial records**, not proven distinct clinical concepts.
+Source wording and any supplied origin notes remain exact. Scales are source descriptions,
+not automatically executable instruments. The private textbook's 450 records are separate.
 
-Evidence: `research/definition-expansion-2026-09-22.json`,
-`research/definition-expansion-build-2026-09-22.json`, and
-`../content/definition-drafts/ruwiki-medical-2026.09.22/collection-report.json`.
-No model, private PDF/text, database binary, APK, release or merge was published.
+The actual final SQLite is **142057472 bytes**, gzip **35404721
+bytes**. 64 selected Python cases, strict authoring checks and database
+integrity passed. Every new record matched its text/locator; excluded acquisition IDs are
+absent from the runtime DB. No new browser, Android or clinical quality result is claimed.
+`source-inputs.json` pins the admitted files/checksums/counts. Prepare version
+`2026.09.22-terms-intake` with the ordinary script; generated binaries remain local.
 
+Evidence: `research/definition-intake-build-2026-09-22.json`, the updated
+`research/definition-expansion-2026-09-22.json`, and the source collection's
+`intake-report.json`. The previous expansion/build reports describe acquisition before QA.
+No model, private PDF/text, SQLite binary, release, APK or merge was published.
 
 ## Module payload lifetime and late cancellation — 2026-09-22
 

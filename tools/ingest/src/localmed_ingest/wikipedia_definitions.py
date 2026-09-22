@@ -267,9 +267,7 @@ def exclusion(page: dict[str, object]) -> str | None:
         return "no-russian-source-text"
     if re.search(r"\{\||\{\{|\[\[", extract):
         return "unrendered-source-markup"
-    if re.search(r"\(\s*\d{1,2}\s+\w+\s+\d{4}[^)]*[—–-]", extract[:350]) or re.match(
-        r"^[А-ЯЁ][^,]{1,60},\s*[А-ЯЁ]", title
-    ):
+    if re.match(r"^[А-ЯЁ][^,]{1,60},\s*[А-ЯЁ]", title):
         return "possible-person-separate-history-queue"
     return None
 

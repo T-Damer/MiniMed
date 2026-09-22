@@ -70,6 +70,10 @@ def refresh(root: Path, collection: Path) -> dict[str, object]:
     collection_manifest = obj(json.loads((collection / "manifest.json").read_bytes()))
     if collection_manifest.get("sourceFamily") != "ruwiki-medical-introductions":
         raise ValueError("Unexpected source family; admit each family explicitly")
+    if not isinstance(collection_manifest.get("intakePolicySha256"), str):
+        raise TypeError(
+            "A collected source must pass explicit medical scope intake first"
+        )
     new_paths = checked_parts(collection, collection_manifest)
     old_names, old_count = names(old_paths)
     new_names, new_count = names(new_paths)
