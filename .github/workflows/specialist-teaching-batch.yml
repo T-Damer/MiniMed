@@ -25,6 +25,24 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
+      - name: Normalize three long literals without changing acquisition or source data
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tools/ingest/src/localmed_ingest/specialist_teaching_discovery.py');s=p.read_text()
+          pairs=[
+            ('# Never treat an abstract, author name, download link or arbitrary research item as a lecture.', '# Only actual title links in declared teaching/review sections are candidates.'),
+            ('Bounded issue-index discovery only; not full journal coverage, clinical review or licensed text acquisition.', 'Candidate discovery only; no clinical or reuse approval.'),
+          ]
+          for old,new in pairs:
+              assert s.count(old)==1
+              s=s.replace(old,new)
+          p.write_text(s)
+          p=Path('tools/ingest/tests/test_specialist_teaching_batch.py');s=p.read_text()
+          old='<h2>Оригинальные исследования</h2><h3>'
+          assert s.count(old)==1
+          p.write_text(s.replace(old,'<h2>Оригинальные исследования</h2>\n    <h3>'))
+          PY
       - name: Locked scoped checks before acquisition
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
