@@ -25,7 +25,7 @@ jobs:
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
           env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
-          import ast, io, tokenize
+          import ast
           from pathlib import Path
           p=Path('tools/ingest/src/localmed_ingest/wikipedia_definitions.py');s=p.read_text()
           s=s.replace('for k in value):','for k in cast(dict[object, object], value)):')
@@ -42,24 +42,23 @@ jobs:
             'tools/ingest/src/localmed_ingest/definition_source_manifest.py',
             'tools/ingest/tests/test_wikipedia_definitions.py',
             'scripts/refresh-definition-inputs.py','scripts/prepare-definition-reference.py']]
-          # Mechanical wrapping preserves the parsed Python AST, including exact source literals.
+          # Rewrite whole constant spans, not individual tokens in implicit concatenations.
           for p in paths:
-            s=p.read_text();original=ast.dump(ast.parse(s));lines=s.splitlines(keepends=True)
+            tree=ast.parse(p.read_text());original=ast.dump(tree);raw=p.read_bytes();lines=raw.splitlines(keepends=True)
             offsets=[];n=0
             for line in lines: offsets.append(n);n+=len(line)
+            forbidden={id(x) for node in ast.walk(tree) if isinstance(node,ast.JoinedStr) for x in ast.walk(node)}
             edits=[]
-            for t in tokenize.generate_tokens(io.StringIO(s).readline):
-              if t.type != tokenize.STRING or t.start[0]!=t.end[0] or len(t.string)<90: continue
-              try: value=ast.literal_eval(t.string)
-              except (ValueError,SyntaxError): continue
-              if not isinstance(value,str): continue
-              indent=' '*(len(lines[t.start[0]-1])-len(lines[t.start[0]-1].lstrip())+4)
-              parts=[value[i:i+65] for i in range(0,len(value),65)]
-              replacement='(\n'+''.join(indent+repr(x)+'\n' for x in parts)+indent[:-4]+')'
-              edits.append((offsets[t.start[0]-1]+t.start[1],offsets[t.end[0]-1]+t.end[1],replacement))
-            for start,end,replacement in reversed(edits): s=s[:start]+replacement+s[end:]
-            assert ast.dump(ast.parse(s))==original,p
-            p.write_text(s)
+            for node in ast.walk(tree):
+              if not isinstance(node,ast.Constant) or not isinstance(node.value,str) or id(node) in forbidden or len(node.value)<80: continue
+              a=offsets[node.lineno-1]+node.col_offset;b=offsets[node.end_lineno-1]+node.end_col_offset
+              indent=b' '*(len(lines[node.lineno-1])-len(lines[node.lineno-1].lstrip())+4)
+              parts=[node.value[i:i+60] for i in range(0,len(node.value),60)]
+              replacement=b'(\n'+b''.join(indent+repr(x).encode()+b'\n' for x in parts)+indent[:-4]+b')'
+              edits.append((a,b,replacement))
+            for a,b,replacement in sorted(edits,reverse=True): raw=raw[:a]+replacement+raw[b:]
+            assert ast.dump(ast.parse(raw.decode()))==original,p
+            p.write_bytes(raw)
           PY
           files='tools/ingest/src/localmed_ingest/wikipedia_definitions.py tools/ingest/src/localmed_ingest/definition_source_manifest.py tools/ingest/tests/test_wikipedia_definitions.py scripts/refresh-definition-inputs.py scripts/prepare-definition-reference.py'
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
@@ -120,7 +119,6 @@ jobs:
           from pathlib import Path
           delta=json.loads(Path('docs/research/definition-expansion-2026-09-22.json').read_text())
           build=json.loads(Path('docs/research/definition-expansion-build-2026-09-22.json').read_text())
-          collection=json.loads(Path('content/definition-drafts/ruwiki-medical-2026.09.22/collection-report.json').read_text())
           p=Path('docs/DEFINITION_REFERENCE_PLAN.md');s=p.read_text();anchor='## Execution order and acceptance\n';assert s.count(anchor)==1
           section='''## Current user priority — content first (2026-09-22)
 
