@@ -25,9 +25,10 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
-      - name: Add explicit archive-window selection and preserve empty-batch diagnostics
+      - name: Source archive window and empty-batch diagnostics
         run: |
           python3 - <<'PY'
+          import ast
           from pathlib import Path
           p=Path('tools/ingest/src/localmed_ingest/specialist_teaching_discovery.py');s=p.read_text()
           pairs=[
@@ -38,18 +39,18 @@ jobs:
               ('    args = parser.parse_args()\n', '    parser.add_argument("--issue-offset", type=int, default=0)\n    args = parser.parse_args()\n'),
               ('result = discover(args.root, args.output)', 'result = discover(args.root, args.output, issue_offset=args.issue_offset)'),
           ]
-          for old,new in pairs:
-              if new in s: continue
-              assert s.count(old)==1,old
-              s=s.replace(old,new)
-          p.write_text(s)
+          if 'issue_offset: int' not in s:
+              for old,new in pairs:
+                  assert s.count(old)==1,old
+                  s=s.replace(old,new)
+          ast.parse(s);p.write_text(s)
           p=Path('tools/ingest/src/localmed_ingest/specialist_journal_collect.py');s=p.read_text()
           old='        if not counts["articles"]:\n            raise ValueError("No selected full-text article could be prepared")\n        os.rename(staged, output)'
-          new='        os.rename(staged, output)\n        if not counts["articles"]:\n            raise ValueError("No selected full-text article could be prepared; diagnostics preserved")'
-          if new not in s:
+          new='        os.rename(staged, output)\n        if not counts["articles"]:\n            raise ValueError("No full-text article prepared; diagnostics preserved")'
+          if 'diagnostics preserved' not in s:
               assert s.count(old)==1
               s=s.replace(old,new)
-          p.write_text(s)
+          ast.parse(s);p.write_text(s)
           p=Path('tools/ingest/tests/test_specialist_teaching_batch.py');s=p.read_text()
           if 'test_empty_acquisition_preserves_reasons_without_publishing_text' not in s:
               s=s.replace('import copy\n','import copy\nimport json\nfrom pathlib import Path\n')
@@ -86,10 +87,10 @@ jobs:
               for value in (-1, 201):
                   with pytest.raises(ValueError, match="offset"):
                       discover(tmp_path, tmp_path / "output", issue_offset=value)
-          '''.replace('\n          ','\n')
-          p.write_text(s)
+          '''
+          ast.parse(s);p.write_text(s)
           PY
-      - name: Locked scoped checks before acquisition
+      - name: Locked scoped checks
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
           files='tools/ingest/src/localmed_ingest/specialist_teaching_discovery.py tools/ingest/src/localmed_ingest/specialist_journal_bundles.py tools/ingest/src/localmed_ingest/specialist_journal_collect.py tools/ingest/tests/test_specialist_teaching_batch.py'
@@ -104,13 +105,13 @@ jobs:
             tools/ingest/tests/test_specialist_journal_admission.py \
             tools/ingest/tests/test_definition_reference_pack.py \
             --junitxml=data/build/specialist-teaching-tests.xml
-      - name: Discover a declared older archive window, not subscription workarounds
+      - name: Discover a declared archival window
         run: |
           if [ ! -f content/definition-drafts/specialist-teaching-discovery-2026.09.22-c/discovery-report.json ]; then
             env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.specialist_teaching_discovery \
               --issue-offset 20 --output content/definition-drafts/specialist-teaching-discovery-2026.09.22-c
           fi
-      - name: Collect full licensed article text with unchanged rights and language gates
+      - name: Collect full text without weakening language or rights gates
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
           import json
@@ -133,9 +134,9 @@ jobs:
               except ValueError as error:
                   failures.append({'selection':name,'status':'batch-pending','reason':str(error)[:300]})
           (root/'batch-results.json').write_text(json.dumps({'collections':collections,'failures':failures},indent=2)+'\n')
-          if not collections: raise RuntimeError('No eligible full source text; keep all candidates pending')
+          if not collections: raise RuntimeError('No eligible full source text; keep candidates pending')
           PY
-      - name: Offline source replay, numerical source bundling and manifest refresh
+      - name: Replay source text and activate bounded numeric bundles offline
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
           import json,sys
@@ -143,26 +144,26 @@ jobs:
           from localmed_ingest.specialist_journal_refresh import compose_selected
           from localmed_ingest.specialist_journal_bundles import activate_bundles,verify_bundles
           def guard(event,args):
-              if event in {'socket.connect','socket.__new__','socket.getaddrinfo'}: raise RuntimeError('Offline source replay forbids networking')
+              if event in {'socket.connect','socket.__new__','socket.getaddrinfo'}: raise RuntimeError('Offline replay forbids networking')
           sys.addaudithook(guard)
           batches=json.loads(Path('content/definition-drafts/specialist-teaching-discovery-2026.09.22-c/batch-results.json').read_text())
           destination=Path('content/definition-drafts/specialist-teaching-active-2026.09.22-c')
           compose_selected(tuple(Path(p) for p in batches['collections']),destination)
           report=activate_bundles(Path.cwd(),destination,'journal.reference.teaching.2026.09.22-c')
           verify_bundles(destination)
-          print(json.dumps({'counts':report['counts'],'records':report['refresh']['combinedRecords'],'bundles':report['refresh']['bundleCount']},indent=2))
+          print(json.dumps({'counts':report['counts'],'records':report['refresh']['combinedRecords']},indent=2))
           PY
-      - name: Build full real SQLite through the ordinary preparer offline
+      - name: Build complete real SQLite offline
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
           import runpy,sys
           def guard(event,args):
-              if event in {'socket.connect','socket.__new__','socket.getaddrinfo'}: raise RuntimeError('Offline database build forbids networking')
+              if event in {'socket.connect','socket.__new__','socket.getaddrinfo'}: raise RuntimeError('Offline build forbids networking')
           sys.addaudithook(guard)
           sys.argv=['scripts/prepare-definition-reference.py','--version','2026.09.22-specialist-teaching-c','--built-at','2026-09-22']
           runpy.run_path(sys.argv[0],run_name='__main__')
           PY
-      - name: Verify archived source and complete card text in actual SQLite
+      - name: Verify source replay, complete SQLite projection and application reader
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/verify-specialist-journal-reference.py \
             --selected content/definition-drafts/specialist-teaching-active-2026.09.22-c \
@@ -172,7 +173,7 @@ jobs:
           env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/src/verify-specialist-journal-cards.ts \
             apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-specialist-teaching-c.db \
             data/build/specialist-teaching-cards.json data/build/specialist-teaching-reader.json
-      - name: Record measured author-specific content coverage
+      - name: Record measured content coverage and source boundaries
         run: |
           python3 - <<'PY'
           import json,xml.etree.ElementTree as ET
@@ -182,36 +183,28 @@ jobs:
           discovery=json.loads((root/'specialist-teaching-discovery-2026.09.22-c/discovery-report.json').read_text())
           stem=Path('apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-specialist-teaching-c.db')
           tests={key:sum(int(s.get(key,'0')) for s in ET.parse('data/build/specialist-teaching-tests.xml').getroot().findall('testsuite')) for key in ('tests','failures','errors','skipped')}
-          report={'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':tests,'strictPythonChecks':'passed','discovery':discovery,'counts':selection['counts'],'refresh':selection['refresh'],'articles':[{k:row.get(k) for k in ('title','journal','doi','publicationDate','articleType','license','nonCommercialOnly','status','reason','records','blocks','names')} for row in selection['articles']],'fidelity':json.loads(Path('data/build/specialist-teaching-fidelity.json').read_text()),'reader':json.loads(Path('data/build/specialist-teaching-reader.json').read_text()),'installedBytes':stem.stat().st_size,'downloadBytes':Path(str(stem)+'.gz').stat().st_size,'boundary':'Original dated teaching/review sources, not current guideline approval or clinical adjudication. Recent non-eligible candidates remain pending; rights/language gates were not relaxed. No browser/device/model qualification.'}
+          report={'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':tests,'strictPythonChecks':'passed','discovery':discovery,'counts':selection['counts'],'refresh':selection['refresh'],'articles':[{k:row.get(k) for k in ('title','journal','doi','publicationDate','articleType','license','nonCommercialOnly','status','reason','records','blocks','names')} for row in selection['articles']],'fidelity':json.loads(Path('data/build/specialist-teaching-fidelity.json').read_text()),'reader':json.loads(Path('data/build/specialist-teaching-reader.json').read_text()),'installedBytes':stem.stat().st_size,'downloadBytes':Path(str(stem)+'.gz').stat().st_size,'boundary':'Dated specialist sources, not current guideline approval or clinical review. Rights/language gates unchanged. No new browser/device/model qualification.'}
           Path('docs/research/specialist-teaching-batch-2026-09-22.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
-          c=selection['counts']; r=selection['refresh']
-          section=f'''## Specialist lecture/review batch — 2026-09-22
-
-          The declared archival window selected {discovery['selectedCandidates']} candidate articles.
-          {c['articles']} full source articles passed source/rights/structure checks, contributing
-          {r['addedRecords']} source-local records. Active total: **{r['combinedRecords']}**.
-          {c.get('excludedCandidateLabels',0)} sentence/context labels were not indexed as terms;
-          original text remains in article context. {c.get('pendingArticles',0)} articles remain pending.
-          Preserve author/classification/publication dates: these are NOT current guideline approval.
-          The earlier recent-issue batch did not pass acquisition; no rights gates were relaxed.
-          No Wikipedia or private textbook input was added.
-
-          Numeric bundles preserve per-article source metadata, text and local references exactly.
-          Discovery and unselected authoring evidence are not phone download dependencies.
-          Real SQLite: {stem.stat().st_size} bytes; gzip: {Path(str(stem)+'.gz').stat().st_size} bytes.
-          {tests['tests']} selected tests, offline source replay, all-block SQLite fidelity and
-          actual reader reconstruction passed. No reverse-search/device gain is inferred.
-          Evidence: `research/specialist-teaching-batch-2026-09-22.json`.
-          Prepare DEV version `2026.09.22-specialist-teaching-c` with the existing preparer.
-          Content collection remains ahead of compatibility/installer/model work.
-
-          '''
-          section='\n'.join(line[10:] if line.startswith('          ') else line for line in section.splitlines())
+          c=selection['counts'];r=selection['refresh']
+          lines=['## Specialist lecture/review batch — 2026-09-22','',
+            f"Admitted {c['articles']} source articles; added {r['addedRecords']} source-local records.",
+            f"Active corpus: **{r['combinedRecords']}**. Candidate window: offset {discovery['issueOffset']}, up to 12 issues per journal.",
+            f"Excluded sentence/context labels: {c.get('excludedCandidateLabels',0)}; pending articles: {c.get('pendingArticles',0)}.",
+            'Exact author wording, publication dates, classification variants and source context are retained.',
+            'The recent-issue batch did not pass acquisition. Rights/language gates were not relaxed.',
+            'These archival sources are not current guideline or clinical approval. No Wikipedia/private inputs added.',
+            f"Actual SQLite: {stem.stat().st_size} bytes; gzip: {Path(str(stem)+'.gz').stat().st_size} bytes.",
+            f"Passed {tests['tests']} scoped tests, strict Python checks, source replay and complete SQLite fidelity.",
+            'Numeric bundles preserve all declared source/block/label-span references reversibly.',
+            'Actual reader reconstructs complete source cards. No Android/reverse-search gain inferred.',
+            'Evidence: `research/specialist-teaching-batch-2026-09-22.json`.',
+            'Prepare DEV version `2026.09.22-specialist-teaching-c`; no binary release or APK.',
+            'Content collection remains ahead of compatibility/installer/model work.','']
           for name in ('docs/CURRENT_STATE.md','docs/DEFINITION_REFERENCE_PLAN.md'):
-              p=Path(name); first,rest=p.read_text().split('\n',1);p.write_text(first+'\n\n'+section+rest)
+              p=Path(name); first,rest=p.read_text().split('\n',1);p.write_text(first+'\n\n'+'\n'.join(lines)+'\n'+rest)
           print(json.dumps({k:report[k] for k in ('tests','counts','fidelity','reader','installedBytes','downloadBytes')},ensure_ascii=False,indent=2))
           PY
-      - name: Save only verified source changes to the same PR
+      - name: Commit scoped verified data to the same PR
         env:
           PUSH_TOKEN: ${{ github.token }}
         run: |
@@ -222,7 +215,7 @@ jobs:
           git commit -m 'feat(content): add licensed teaching articles with full source context [skip ci]'
           auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
-      - name: Preserve acquisition checkpoint on a later failure without activating it
+      - name: Preserve acquisition checkpoint on failure without activating it
         if: failure()
         env:
           PUSH_TOKEN: ${{ github.token }}
@@ -241,4 +234,4 @@ jobs:
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
       - name: Storage-free summary
         if: always()
-        run: echo 'No private PDF, models, database binary, APK, release or Actions artifacts uploaded by this source workflow.' >> "$GITHUB_STEP_SUMMARY"
+        run: echo 'No private PDF, database binary, model, APK or Actions artifacts uploaded by this source workflow.' >> "$GITHUB_STEP_SUMMARY"
