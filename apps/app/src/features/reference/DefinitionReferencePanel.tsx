@@ -279,6 +279,9 @@ export function DefinitionReferencePanel(props: {
                   onClick={() => void open(hit)}
                 >
                   {hit.title}
+                  <Show when={hit.coverage === 'needs-definition'}>
+                    <span class="reference-panel__hit-note">Нужно определение</span>
+                  </Show>
                   <Show when={hit.coverage === 'mention-only'}>
                     <span class="reference-panel__hit-note">Только упоминание</span>
                   </Show>
@@ -297,6 +300,12 @@ export function DefinitionReferencePanel(props: {
                   ? 'Редакционное изложение'
                   : 'Текст источника'}
               </p>
+              <Show when={current().coverage === 'needs-definition'}>
+                <p class="reference-panel__notice">
+                  Название сохранено. Медицинское определение ещё подбирается; энциклопедический
+                  текст не используется.
+                </p>
+              </Show>
               <div class="reference-card__blocks">
                 <For each={page().blocks}>
                   {(item, index) => (

@@ -68,8 +68,7 @@ def test_name_is_searchable_but_is_not_a_definition(tmp_path: Path) -> None:
         assert db.execute("SELECT count(*) FROM knowledge_facts").fetchone() == (0,)
         assert db.execute("SELECT count(*) FROM knowledge_relations").fetchone() == (0,)
         assert db.execute(
-            "SELECT count(*) FROM definition_reference_fts "
-            "WHERE definition_reference_fts MATCH ?",
+            "SELECT count(*) FROM definition_reference_fts WHERE definition_reference_fts MATCH ?",
             ("Archived",),
         ).fetchone() == (0,)
 
@@ -124,7 +123,9 @@ def test_manifest_checksum_is_required(tmp_path: Path) -> None:
         read_name_manifest(tmp_path)
 
 
-def test_real_compacted_combined_build_keeps_definition_denominator_separate(tmp_path: Path) -> None:
+def test_real_compacted_combined_build_keeps_definition_denominator_separate(
+    tmp_path: Path,
+) -> None:
     from localmed_ingest.definition_reference_compact_pack import build_compact_definition_reference
 
     original = tmp_path / "source.json"

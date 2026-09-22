@@ -9,6 +9,7 @@ import json
 import re
 from pathlib import Path
 
+from localmed_ingest.definition_name_inventory import read_name_manifest
 from localmed_ingest.definition_reference_compact_pack import (
     build_compact_definition_reference,
 )
@@ -68,6 +69,7 @@ def main() -> None:
         built_at=args.built_at,
         compact_metadata=False,
         definitions_only=args.scope == "definitions",
+        discovery_inputs=read_name_manifest(root),
     )
     if args.scope == "definitions":
         selection = obj(report["selection"])
@@ -76,6 +78,10 @@ def main() -> None:
                 "Definition scope differs from the complete source manifest"
             )
         expected_entries = number(selection["definitionRecordsAfter"])
+    definition_entries = expected_entries
+    raw_names = report.get("discoveredNames", 0)
+    discovered_names = 0 if raw_names == 0 else number(raw_names)
+    expected_entries += discovered_names
     if (
         report["schemaVersion"] != 7
         or report["entries"] != expected_entries
@@ -105,7 +111,7 @@ def main() -> None:
         "collection": "definition-reference",
         "title": "Словарь терминов, симптомов и синдромов",
         "description": record_label(
-            expected_entries, definitions_only=args.scope == "definitions"
+            definition_entries, definitions_only=args.scope == "definitions"
         )
         + (
             ": определения с исходными формулировками и ссылками. "
@@ -163,6 +169,10 @@ def main() -> None:
             "entries": expected_entries,
         },
     }
+    if discovered_names:
+        module["description"] = str(
+            module["description"]
+        ) + f" Названий для дополнения: {discovered_names:,}.".replace(",", " ")
     descriptor = (
         root / "apps/app/src/features/modules/catalog.definition-reference.local.json"
     )

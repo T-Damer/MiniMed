@@ -556,6 +556,7 @@ def build_definition_reference(
     version: str,
     built_at: str,
     definitions_only: bool = False,
+    discovery_inputs: tuple[Path, ...] = (),
 ) -> dict[str, object]:
     projection = Projection()
     if not inputs or len(inputs) > 32:
@@ -578,7 +579,24 @@ def build_definition_reference(
         projection.entries = {
             key: entry for key, entry in projection.entries.items() if key in selected_ids
         }
+    from .definition_name_inventory import add_name_inventory
+
+    if len(discovery_inputs) > 8:
+        raise ValueError("Too many discovery inputs")
+    restored = 0
+    for path in discovery_inputs:
+        actual = contained(input_root, path)
+        if actual.stat().st_size > MAX_INPUT_BYTES:
+            raise ValueError("Discovery input exceeds budget")
+        payload = actual.read_bytes()
+        receipt = hashlib.sha256(payload).hexdigest()
+        if receipt in seen:
+            raise ValueError("Duplicate discovery input snapshot")
+        seen.add(receipt)
+        restored += add_name_inventory(projection, json.loads(payload), receipt)
+        projection.receipts.append({"sha256": receipt, "bytes": len(payload)})
     report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)
+    report["discoveredNames"] = restored
     report["selection"] = selection
     return report
 

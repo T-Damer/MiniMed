@@ -129,7 +129,7 @@ export async function createSqliteDefinitionReference(
         `SELECT ${HEADER}, MIN(CASE WHEN n.name_type = 'primary' THEN 0 ELSE 1 END) AS tier
         FROM knowledge_names n JOIN knowledge_entities e ON e.id = n.entity_id
         WHERE n.normalized_name = ? AND ${SCOPE}
-        GROUP BY e.id ORDER BY tier, e.id LIMIT ?`,
+        GROUP BY e.id ORDER BY tier, CASE WHEN json_extract(e.metadata_json, '$.coverage') = 'needs-definition' THEN 1 ELSE 0 END, e.id LIMIT ?`,
         [normalized, ...scope, limit],
       );
       // Abbreviations/stop words are never discarded before the identity lookup.

@@ -1,5 +1,22 @@
 # Current state
 
+## Name coverage restored — 2026-09-23
+
+The ordinary knowledge edition now contains **8410 definition candidates** plus
+**7637 source-local discovered names** (16047 searchable records).
+This restores vocabulary, not Wikipedia medical prose. Name-only entries have `needs-definition`,
+only a source annotation link, and no definition-body FTS contribution. Existing source IDs,
+texts and clinical review state remain unchanged. Names with the same title are not auto-merged.
+Actual reader: 7637 recovered identities readable; 7637
+name queries have a matching title in Top-20. Source-name variants are not unique concepts.
+Verified 58 Python tests, reader unit tests, strict checks, app typecheck,
+ordinary SQLite build and 26685 unchanged source blocks.
+Installed file: 128147456 bytes; gzip: 26877059 bytes.
+No new clinical definitions were acquired by this recovery, and no APK/model was integrated.
+Base-definition + compact differences policy and located `Med/` inventory:
+`research/reference-base-differences-and-library-2026-09-23.md`.
+Research model output is separate; its success must not be inferred from this content run.
+
 ## Definitions-only dictionary scope — 2026-09-22
 
 Default DEV preparation now selects **8410 source-local definition candidates**

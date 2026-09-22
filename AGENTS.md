@@ -40,8 +40,9 @@ refreshes; preserve private/user data and exact provenance even when rebuilding 
 
 ## Medical source policy (user decision, 2026-09-22)
 
-Read `docs/REFERENCE_SOURCE_POLICY.md` before reference acquisition. Do not collect new Wikipedia
-content or put archived Wikipedia records back into the active app manifest. Prioritize specialist
+Read `docs/REFERENCE_SOURCE_POLICY.md` before reference acquisition. Preserve discovered names
+independently of definition quality: audited name-only inventories may restore archived Wikipedia
+identities with `needs-definition`, but not Wikipedia medical prose or automatic same-as links. Prioritize specialist
 medical teaching/reference works, source guidelines and substantive journal articles; assess each
 document, not merely the domain. Retain source classifications, versions and detail; no silent
 substitution, clinical promotion or rights assumptions. Historical source files remain unchanged.
