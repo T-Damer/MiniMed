@@ -1,5 +1,19 @@
 # Definition reference: execution plan
 
+## Specialist teaching source intake — final label selection, 2026-09-22
+
+Same 37 complete specialist articles; **126** selected source records.
+Active corpus **18357**; the earlier 18384/153 intermediate intake is superseded.
+Includes 37 article cards, 83 definition candidates and 6 source-section cards.
+All 1651 original blocks and 30 source tables are unchanged; 27 additional clause/subtype labels are context-only.
+Incomplete stage names are not rewritten into diagnoses or counted as independent terms.
+Author dates, classifications and licensing remain explicit; all records require review.
+Actual SQLite: 122699776 bytes / 29944653 gzip bytes.
+Passed 163 selected tests, strict checks, source replay, complete SQLite fidelity and actual-reader reconstruction.
+Evidence: `research/specialist-teaching-quality-2026-09-22.json`.
+Prepare DEV version `2026.09.22-specialist-teaching-d`. No Wikipedia, private source, model, release or APK added.
+
+
 ## Specialist lecture/review batch — 2026-09-22
 
 Admitted 37 source articles; added 153 source-local records.
