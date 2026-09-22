@@ -19,7 +19,7 @@ jobs:
           enable-cache: false
       - name: Inspect metadata and reusable renderer only
         run: |
-          uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
           cat > "$RUNNER_TEMP/shape.py" <<'PY'
           import json,urllib.request
           from pathlib import Path
@@ -28,7 +28,7 @@ jobs:
           for pair in ('1027-4898/90541','RFD/7752'):
               journal,aid=pair.split('/')
               url=f'https://journals.eco-vector.com/{journal}/article/view/{aid}/ru_RU'
-              req=urllib.request.Request(url,headers={'User-Agent':'MiniMed-Reference-Research/0.1 (+https://github.com/T-Damer/MiniMed/issues/180)'})
+              req=urllib.request.Request(url,headers={'User-Agent':'MiniMed-Reference-Research/0.1 (+https://github.com/T-Damer/MiniMed/issues/180)','Accept-Language':'ru'})
               with urllib.request.urlopen(req,timeout=35) as r: soup=BeautifulSoup(r.read(6000000),'html.parser')
               headings=[]
               for h in soup.find_all(['h2','h3']):
