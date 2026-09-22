@@ -49,7 +49,7 @@ try {
     const received: { chunkId: string; role: string; sourceId: string }[] = [];
     const cursors = new Set<string>();
     let cursor: string | undefined;
-    do {
+    for (;;) {
       const page = await reader.listBlocks(card.id, cursor);
       assert.ok(page.blocks.length <= 8);
       for (const block of page.blocks) {
@@ -89,7 +89,7 @@ try {
       assert.ok(!cursors.has(page.next), 'Block cursor repeated');
       cursors.add(page.next);
       cursor = page.next;
-    } while (true);
+    }
     assert.equal(received.length, card.blocks.length);
   }
   const report = {
