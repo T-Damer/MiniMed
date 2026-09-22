@@ -1,5 +1,22 @@
 # Current state
 
+## Specialist lecture/review batch — 2026-09-22
+
+Admitted 37 source articles; added 153 source-local records.
+Active corpus: **18384**. Candidate window: offset 20, up to 12 issues per journal.
+Excluded sentence/context labels: 49; pending articles: 35.
+Exact author wording, publication dates, classification variants and source context are retained.
+The recent-issue batch did not pass acquisition. Rights/language gates were not relaxed.
+These archival sources are not current guideline or clinical approval. No Wikipedia/private inputs added.
+Actual SQLite: 122834944 bytes; gzip: 29979245 bytes.
+Passed 120 scoped tests, strict Python checks, source replay and complete SQLite fidelity.
+Numeric bundles preserve all declared source/block/label-span references reversibly.
+Actual reader reconstructs complete source cards. No Android/reverse-search gain inferred.
+Evidence: `research/specialist-teaching-batch-2026-09-22.json`.
+Prepare DEV version `2026.09.22-specialist-teaching-c`; no binary release or APK.
+Content collection remains ahead of compatibility/installer/model work.
+
+
 ## Original specialist journal reference refresh — 2026-09-22
 
 Active source/editorial records: **18231**, including

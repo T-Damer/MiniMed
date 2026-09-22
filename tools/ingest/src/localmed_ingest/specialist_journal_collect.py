@@ -207,9 +207,9 @@ def collect(selection: Path, output: Path) -> dict[str, object]:
             "Evidence files are authoring/replay material and are never phone-download inputs.\n",
             encoding="utf-8",
         )
-        if not counts["articles"]:
-            raise ValueError("No selected full-text article could be prepared")
         os.rename(staged, output)
+        if not counts["articles"]:
+            raise ValueError("No full-text article prepared; diagnostics preserved")
     return report
 
 

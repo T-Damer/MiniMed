@@ -116,8 +116,15 @@ def teaching_articles(raw: bytes, journal: str, issue: str) -> list[dict[str, ob
 
 
 def discover(
-    root: Path, output: Path, issues_per_journal: int = 12, articles_per_journal: int = 18
+    root: Path,
+    output: Path,
+    issues_per_journal: int = 12,
+    articles_per_journal: int = 18,
+    *,
+    issue_offset: int = 0,
 ) -> dict[str, object]:
+    if not 0 <= issue_offset <= 200:
+        raise ValueError("Invalid bounded issue offset")
     if output.exists() or not 1 <= issues_per_journal <= 16 or not 1 <= articles_per_journal <= 24:
         raise ValueError("Use a new bounded discovery directory")
     inputs, _ = read_source_manifest(root, root / "content/definition-drafts/source-inputs.json")
@@ -165,7 +172,7 @@ def discover(
             continue
         issues = issue_links(archive, journal)
         pool: dict[str, dict[str, object]] = {}
-        for issue in issues[:issues_per_journal]:
+        for issue in issues[issue_offset : issue_offset + issues_per_journal]:
             try:
                 raw = fetch(f"{HOST}/{journal}/issue/view/{issue}/ru_RU")
                 found = teaching_articles(raw, journal, issue)
@@ -220,6 +227,7 @@ def discover(
         "version": 1,
         "journals": list(JOURNALS),
         "issuesPerJournalLimit": issues_per_journal,
+        "issueOffset": issue_offset,
         "articlesPerJournalLimit": articles_per_journal,
         "selectedCandidates": len(candidates),
         "alreadyActiveObservationsSkipped": excluded_existing,
@@ -238,8 +246,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--issue-offset", type=int, default=0)
     args = parser.parse_args()
-    result = discover(args.root, args.output)
+    result = discover(args.root, args.output, issue_offset=args.issue_offset)
     print(encoded({key: value for key, value in result.items() if key != "issues"}))
 
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import json
+from pathlib import Path
 
 import pytest
 
@@ -185,3 +187,48 @@ def test_declared_source_type_cannot_be_relabelled_as_a_journal() -> None:
 def test_empty_batch_cannot_enter_runtime() -> None:
     with pytest.raises(ValueError):
         bundle_articles([], "journal.fixture.batch")
+
+
+def test_empty_acquisition_preserves_reasons_without_publishing_text(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from localmed_ingest import specialist_journal_collect as collector
+
+    def read(url: str) -> bytes:
+        return b"User-agent: *\nAllow: /\n" if url.endswith("robots.txt") else b"<html></html>"
+
+    def unavailable(*_args: object, **_kwargs: object) -> dict[str, object]:
+        raise ValueError("Synthetic unavailable rights")
+
+    def pause(_seconds: float) -> None:
+        return None
+
+    monkeypatch.setattr(collector, "read_original", read)
+    monkeypatch.setattr(collector, "capture_page", unavailable)
+    monkeypatch.setattr(collector.time, "sleep", pause)
+    selection = tmp_path / "selection.json"
+    selection.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "sourcePolicy": "specialist-medical-sources-2026-09-22",
+                "articles": [{"journal": "RFD", "articleId": "1001", "focus": "fixture"}],
+            }
+        )
+    )
+    output = tmp_path / "pending"
+    with pytest.raises(ValueError, match="diagnostics preserved"):
+        collector.collect(selection, output)
+    report = json.loads((output / "collection-report.json").read_text())
+    assert report["articles"][0]["status"] == "pending-source-review"
+    assert not list((output / "records").iterdir())
+    assert [p.name for p in (output / "evidence").iterdir()] == ["robots.txt"]
+    assert (output / "evidence/robots.txt").read_bytes() == read("robots.txt")
+
+
+def test_issue_offset_is_bounded_before_any_network_request(tmp_path: Path) -> None:
+    from localmed_ingest.specialist_teaching_discovery import discover
+
+    for value in (-1, 201):
+        with pytest.raises(ValueError, match="offset"):
+            discover(tmp_path, tmp_path / "output", issue_offset=value)
