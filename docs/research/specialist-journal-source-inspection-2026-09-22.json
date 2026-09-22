@@ -1,0 +1,3522 @@
+{
+  "robotsSha256": "b575a8c3566f6595d28168b6effe228a3cced4f33ba89651ba52e54437a03f83",
+  "articles": [
+    {
+      "journal": "1027-4898",
+      "id": "90541",
+      "url": "https://journals.eco-vector.com/1027-4898/article/view/90541/ru_RU",
+      "status": "received",
+      "sha256": "b0a096b69a4a1617d968e097def7ef03fa29c08a74e5fede8b3ffa1b22e0ebec",
+      "metadata": {
+        "DC.Contributor.Sponsor": [
+          "",
+          ""
+        ],
+        "DC.Creator.PersonalName": [
+          "Yury P. Sivolap",
+          "Сиволап Юрий Павлович",
+          "Anna A. Portnova",
+          "Портнова Анна Анатольевна"
+        ],
+        "DC.Date.created": [
+          "2021-12-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2021-12-15"
+        ],
+        "DC.Date.issued": [
+          "2021-12-15"
+        ],
+        "DC.Date.modified": [
+          "2022-01-28"
+        ],
+        "DC.Description": [
+          " Numerous clinical observations and studies of recent decades allow us to question the existence of a catatonic form of schizophrenia or, in any case, the legitimacy of the unconditional attribution of all cases of catatonia to schizophrenia. Antipsychotics used in the treatment of schizophrenia are often ineffective in patients with catatonia, can worsen its manifestations and increase the risk of malignant neuroleptic syndrome. The first-line drugs in the treatment of catatonia are lorazepam and other benzodiazepines, and electroconvulsive therapy is used in case of their ineffectiveness. The concept of the independence of catatonia as a separate neuropsychiatric disease requiring the special therapeutic approaches that do not coincide with traditional treatment of schizophrenia deserves attention. ",
+          " Многочисленные клинические наблюдения и исследования последних десятилетий позволяют подвергать сомнению существование кататонической формы шизофрении или, во всяком случае, правомерность безоговорочного отнесения всех случаев кататонии к шизофрении. Антипсихотики, применяемые в лечении шизофрении, часто оказываются неэффективными у пациентов с кататонией, способны ухудшать её проявления и повышают риск злокачественного нейролептического синдрома. Препаратами первой линии в лечении кататонии служат лоразепам и другие бензодиазепины, и в случае их неэффективности используется электросудорожная терапия. Заслуживает внимания концепция самостоятельности кататонии как отдельного нейропсихиатрического заболевания, требующего применения особых терапевтических подходов, не совпадающих с традиционными подходами к лечению шизофрении. "
+        ],
+        "DC.Abstract": [
+          " Numerous clinical observations and studies of recent decades allow us to question the existence of a catatonic form of schizophrenia or, in any case, the legitimacy of the unconditional attribution of all cases of catatonia to schizophrenia. Antipsychotics used in the treatment of schizophrenia are often ineffective in patients with catatonia, can worsen its manifestations and increase the risk of malignant neuroleptic syndrome. The first-line drugs in the treatment of catatonia are lorazepam and other benzodiazepines, and electroconvulsive therapy is used in case of their ineffectiveness. The concept of the independence of catatonia as a separate neuropsychiatric disease requiring the special therapeutic approaches that do not coincide with traditional treatment of schizophrenia deserves attention. ",
+          " Многочисленные клинические наблюдения и исследования последних десятилетий позволяют подвергать сомнению существование кататонической формы шизофрении или, во всяком случае, правомерность безоговорочного отнесения всех случаев кататонии к шизофрении. Антипсихотики, применяемые в лечении шизофрении, часто оказываются неэффективными у пациентов с кататонией, способны ухудшать её проявления и повышают риск злокачественного нейролептического синдрома. Препаратами первой линии в лечении кататонии служат лоразепам и другие бензодиазепины, и в случае их неэффективности используется электросудорожная терапия. Заслуживает внимания концепция самостоятельности кататонии как отдельного нейропсихиатрического заболевания, требующего применения особых терапевтических подходов, не совпадающих с традиционными подходами к лечению шизофрении. "
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "90541"
+        ],
+        "DC.Identifier.pageNumber": [
+          "5-10"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/nb90541"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/1027-4898/article/view/90541"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Sivolap Y.P., Portnova A.A., 2021",
+          "Сиволап Ю.П., Портнова А.А., 2021",
+          "http://creativecommons.org/licenses/by-nc-sa/4.0"
+        ],
+        "DC.Source": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "DC.Source.ISSN": [
+          "2304-3067"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/1027-4898"
+        ],
+        "DC.Source.Issue": [
+          "4"
+        ],
+        "DC.Source.Volume": [
+          "LIII"
+        ],
+        "DC.Subject": [
+          "catatonia",
+          "schizophrenia",
+          "benzodiazepines",
+          "electroconvulsive therapy",
+          "first-generation antipsychotics",
+          "second-generation antipsychotics",
+          "кататония",
+          "шизофрения",
+          "бензодиазепины",
+          "электросудорожная терапия",
+          "антипсихотики первого поколения",
+          "антипсихотики второго поколения"
+        ],
+        "DC.Title": [
+          "Catatonic schizophrenia: historical error of psychiatric taxonomy?",
+          "Кататоническая шизофрения: историческая ошибка психиатрической систематики?"
+        ],
+        "DC.Title.Alternative": [
+          "Catatonic schizophrenia: historical error of psychiatric taxonomy?",
+          "Кататоническая шизофрения: историческая ошибка психиатрической систематики?"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Передовые статьи"
+        ],
+        "citation_journal_title": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "citation_issn": [
+          "2304-3067"
+        ],
+        "citation_author": [
+          "Yury P. Sivolap",
+          "Сиволап Юрий Павлович",
+          "Anna A. Portnova",
+          "Портнова Анна Анатольевна"
+        ],
+        "citation_author_institution": [
+          "I.M. Sechenov First Moscow State Medical University (Sechenov University)",
+          "Первый Московский государственный медицинский университет им. И.М. Сеченова (Сеченовский университет)",
+          "The Serbsky State Scientific Center for Social and Forensic Psychiatry",
+          "Национальный медицинский исследовательский центр психиатрии и наркологии им. В.П. Сербского"
+        ],
+        "citation_title": [
+          "Catatonic schizophrenia: historical error of psychiatric taxonomy?",
+          "Кататоническая шизофрения: историческая ошибка психиатрической систематики?"
+        ],
+        "citation_date": [
+          "2021/12/15"
+        ],
+        "citation_volume": [
+          "LIII"
+        ],
+        "citation_issue": [
+          "4"
+        ],
+        "citation_firstpage": [
+          "5"
+        ],
+        "citation_lastpage": [
+          "10"
+        ],
+        "citation_doi": [
+          "10.17816/nb90541"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/90541"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/90541",
+          "https://journals.eco-vector.com/1027-4898/article/view/90541/71189"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "catatonia",
+          "schizophrenia",
+          "benzodiazepines",
+          "electroconvulsive therapy",
+          "first-generation antipsychotics",
+          "second-generation antipsychotics",
+          "кататония",
+          "шизофрения",
+          "бензодиазепины",
+          "электросудорожная терапия",
+          "антипсихотики первого поколения",
+          "антипсихотики второго поколения"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/1027-4898/article/download/90541/71793"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 17368,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 16,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 847,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 219,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 2551,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "1027-4898",
+      "id": "14094",
+      "url": "https://journals.eco-vector.com/1027-4898/article/view/14094/ru_RU",
+      "status": "received",
+      "sha256": "eb5b8a308657b770867d7ad737877ca8e8c6b677b416164369995e293140db41",
+      "metadata": {
+        "DC.Creator.PersonalName": [
+          "Denis A Avtonomov",
+          "Автономов Денис Александрович"
+        ],
+        "DC.Date.created": [
+          "2017-09-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2019-06-20"
+        ],
+        "DC.Date.issued": [
+          "2017-09-15"
+        ],
+        "DC.Date.modified": [
+          "2019-06-20"
+        ],
+        "DC.Description": [
+          "The study describes the phenomenon of negative hallucination and gives a brief overview of the origin of its concept. It shows the connection between negative hallucination and other psychopathological disorders and protective mechanisms of the personality, as well as the position of negative hallucinations in classical literature, narcology and the clinical practice of treating schizophrenia.",
+          "Представлено описание феномена негативной галлюцинации, кратко рассмотрена история зарождения этого концепта. Показана связь негативной галлюцинации с другими психопатологическими расстройствами и защитными механизмами личности. Продемонстрировано место негативной галлюцинации в классической литературе, клинике шизофрении и наркологии."
+        ],
+        "DC.Abstract": [
+          "The study describes the phenomenon of negative hallucination and gives a brief overview of the origin of its concept. It shows the connection between negative hallucination and other psychopathological disorders and protective mechanisms of the personality, as well as the position of negative hallucinations in classical literature, narcology and the clinical practice of treating schizophrenia.",
+          "Представлено описание феномена негативной галлюцинации, кратко рассмотрена история зарождения этого концепта. Показана связь негативной галлюцинации с другими психопатологическими расстройствами и защитными механизмами личности. Продемонстрировано место негативной галлюцинации в классической литературе, клинике шизофрении и наркологии."
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "14094"
+        ],
+        "DC.Identifier.pageNumber": [
+          "78-84"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/nb14094"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/1027-4898/article/view/14094"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Avtonomov D.A., 2017",
+          "Автономов Д.А., 2017",
+          "http://creativecommons.org/licenses/by-nc-sa/4.0"
+        ],
+        "DC.Source": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "DC.Source.ISSN": [
+          "2304-3067"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/1027-4898"
+        ],
+        "DC.Source.Issue": [
+          "3"
+        ],
+        "DC.Source.Volume": [
+          "XLIX"
+        ],
+        "DC.Subject": [
+          "negative hallucination",
+          "psychopathology",
+          "psychoanalysis",
+          "Freud",
+          "defense mechanisms",
+          "art",
+          "schizophrenia",
+          "dependence",
+          "негативная галлюцинация",
+          "психопатология",
+          "психоанализ",
+          "Фрейд",
+          "защитные механизмы",
+          "искусство",
+          "шизофрения",
+          "зависимость"
+        ],
+        "DC.Title": [
+          "NEGATIVE HALLUCINATION. THE HISTORY OF THE CONCEPT, PSYCHOPATHOLOGY AND ITS POTENTIAL POSITION IN THE CLINICAL PRACTICE",
+          "НЕГАТИВНАЯ ГАЛЛЮЦИНАЦИЯ. ИСТОРИЯ КОНЦЕПТА, ПСИХОПАТОЛОГИЯ И ВОЗМОЖНОЕ МЕСТО В КЛИНИКЕ"
+        ],
+        "DC.Title.Alternative": [
+          "NEGATIVE HALLUCINATION. THE HISTORY OF THE CONCEPT, PSYCHOPATHOLOGY AND ITS POTENTIAL POSITION IN THE CLINICAL PRACTICE",
+          "НЕГАТИВНАЯ ГАЛЛЮЦИНАЦИЯ. ИСТОРИЯ КОНЦЕПТА, ПСИХОПАТОЛОГИЯ И ВОЗМОЖНОЕ МЕСТО В КЛИНИКЕ"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Статьи"
+        ],
+        "citation_journal_title": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "citation_issn": [
+          "2304-3067"
+        ],
+        "citation_author": [
+          "Denis A Avtonomov",
+          "Автономов Денис Александрович"
+        ],
+        "citation_author_institution": [
+          "Moscow Research and Practical Center on Addiction",
+          "Московский научно-практический центр наркологии"
+        ],
+        "citation_title": [
+          "NEGATIVE HALLUCINATION. THE HISTORY OF THE CONCEPT, PSYCHOPATHOLOGY AND ITS POTENTIAL POSITION IN THE CLINICAL PRACTICE",
+          "НЕГАТИВНАЯ ГАЛЛЮЦИНАЦИЯ. ИСТОРИЯ КОНЦЕПТА, ПСИХОПАТОЛОГИЯ И ВОЗМОЖНОЕ МЕСТО В КЛИНИКЕ"
+        ],
+        "citation_date": [
+          "2017/09/15"
+        ],
+        "citation_volume": [
+          "XLIX"
+        ],
+        "citation_issue": [
+          "3"
+        ],
+        "citation_firstpage": [
+          "78"
+        ],
+        "citation_lastpage": [
+          "84"
+        ],
+        "citation_doi": [
+          "10.17816/nb14094"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/14094"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/14094"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "negative hallucination",
+          "psychopathology",
+          "psychoanalysis",
+          "Freud",
+          "defense mechanisms",
+          "art",
+          "schizophrenia",
+          "dependence",
+          "негативная галлюцинация",
+          "психопатология",
+          "психоанализ",
+          "Фрейд",
+          "защитные механизмы",
+          "искусство",
+          "шизофрения",
+          "зависимость"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/1027-4898/article/download/14094/12031"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 32089,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 349,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 232,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 3931,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "1027-4898",
+      "id": "14095",
+      "url": "https://journals.eco-vector.com/1027-4898/article/view/14095/ru_RU",
+      "status": "received",
+      "sha256": "d82c518c98fade4156bc2813bdf7d8092f746001ea6916ac2885ae642b261296",
+      "metadata": {
+        "DC.Creator.PersonalName": [
+          "Iosif Zislin",
+          "Зислин Иосиф",
+          "Evgeny Reznikov",
+          "Резников Евгений"
+        ],
+        "DC.Date.created": [
+          "2017-09-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2019-06-20"
+        ],
+        "DC.Date.issued": [
+          "2017-09-15"
+        ],
+        "DC.Date.modified": [
+          "2019-06-20"
+        ],
+        "DC.Description": [
+          "The basic terms used for the describing of the delusional content are investigated. The main conclusion is that using of such terms: motive, content, plot, content should be used upon the philological context.",
+          "В статье проанализировано использование в клинической психиатрии основных терминов, используемых при описании содержательной стороны бреда. Показано, что использование таких терминов как «фабула», «сюжет», «мотив», «тема» должно опираться на использование подобной терминологии в филологии."
+        ],
+        "DC.Abstract": [
+          "The basic terms used for the describing of the delusional content are investigated. The main conclusion is that using of such terms: motive, content, plot, content should be used upon the philological context.",
+          "В статье проанализировано использование в клинической психиатрии основных терминов, используемых при описании содержательной стороны бреда. Показано, что использование таких терминов как «фабула», «сюжет», «мотив», «тема» должно опираться на использование подобной терминологии в филологии."
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "14095"
+        ],
+        "DC.Identifier.pageNumber": [
+          "85-91"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/nb14095"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/1027-4898/article/view/14095"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Zislin I., Reznikov E., 2017",
+          "Зислин И., Резников Е., 2017",
+          "http://creativecommons.org/licenses/by-nc-sa/4.0"
+        ],
+        "DC.Source": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "DC.Source.ISSN": [
+          "2304-3067"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/1027-4898"
+        ],
+        "DC.Source.Issue": [
+          "3"
+        ],
+        "DC.Source.Volume": [
+          "XLIX"
+        ],
+        "DC.Subject": [
+          "delusions",
+          "delusion content",
+          "motive",
+          "plot",
+          "бред",
+          "фабула",
+          "мотив",
+          "сюжет",
+          "тема"
+        ],
+        "DC.Title": [
+          "TO THE QUESTION OF MOTIVE, CONTENT ANF PLOT OF DELUSION. PART 1",
+          "К ВОПРОСУ О ФАБУЛЕ, СЮЖЕТЕ И ТЕМАТИКЕ БРЕДА. ЧАСТЬ 1"
+        ],
+        "DC.Title.Alternative": [
+          "TO THE QUESTION OF MOTIVE, CONTENT ANF PLOT OF DELUSION. PART 1",
+          "К ВОПРОСУ О ФАБУЛЕ, СЮЖЕТЕ И ТЕМАТИКЕ БРЕДА. ЧАСТЬ 1"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Статьи"
+        ],
+        "citation_journal_title": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "citation_issn": [
+          "2304-3067"
+        ],
+        "citation_author": [
+          "Iosif Zislin",
+          "Зислин Иосиф",
+          "Evgeny Reznikov",
+          "Резников Евгений"
+        ],
+        "citation_author_institution": [
+          "Psychiatry clinic",
+          "Клиника психиатрии",
+          "Psychiatry clinic",
+          "Клиника психиатрии"
+        ],
+        "citation_title": [
+          "TO THE QUESTION OF MOTIVE, CONTENT ANF PLOT OF DELUSION. PART 1",
+          "К ВОПРОСУ О ФАБУЛЕ, СЮЖЕТЕ И ТЕМАТИКЕ БРЕДА. ЧАСТЬ 1"
+        ],
+        "citation_date": [
+          "2017/09/15"
+        ],
+        "citation_volume": [
+          "XLIX"
+        ],
+        "citation_issue": [
+          "3"
+        ],
+        "citation_firstpage": [
+          "85"
+        ],
+        "citation_lastpage": [
+          "91"
+        ],
+        "citation_doi": [
+          "10.17816/nb14095"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/14095"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/14095"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "delusions",
+          "delusion content",
+          "motive",
+          "plot",
+          "бред",
+          "фабула",
+          "мотив",
+          "сюжет",
+          "тема"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/1027-4898/article/download/14095/12032"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 36790,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 302,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 107,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 7175,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "1027-4898",
+      "id": "14043",
+      "url": "https://journals.eco-vector.com/1027-4898/article/view/14043/ru_RU",
+      "status": "received",
+      "sha256": "fe36fb48f947c371961641e7ac5781ac8430ab4f460274c7f5c5ac7c4874bb6f",
+      "metadata": {
+        "DC.Creator.PersonalName": [
+          "Vladimir E Pashkovskiy",
+          "Пашковский Владимир Эдуардович"
+        ],
+        "DC.Date.created": [
+          "2017-03-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2019-06-20"
+        ],
+        "DC.Date.issued": [
+          "2017-03-15"
+        ],
+        "DC.Date.modified": [
+          "2019-06-20"
+        ],
+        "DC.Description": [
+          "In this lecture some milestones of the conceptual history of autism are considered. Autism today is a widely used term, yet what is understood by autism has changed considerably since first being introduced in scientific discourse almost 100 years ago. Autism is analyzed in a level continuum: norm - personality disorder - schizophrenic psychoses. The lack of a clear definition and hence of the reliability blurs the original meaning of the term, that has no place in modern diagnostic systems. Exclusion of the “Bleuler autism” concept from the list of diagnostic criteria blurs the essential basis of schizophrenia as a single nosological unit with a return to pre-Bleyler diagnostic period. The crisis in the understanding of autism can be overcome by the interaction between traditional and existential psychiatry.",
+          "В лекции рассматриваются некоторые этапы концептуальной истории аутизма. Аутизм сегодня является широко используемым термином, однако, его толкование значительно изменилось с момента первого введения в научный оборот почти 100 лет назад. Он анализируется в широком континууме: норма - пограничные состояния - шизофренические психозы. Отсутствие четкого определения и, следовательно, надежности размывает первоначальное значение этого термина, который не находит места в современных диагностических системах. Исключение понятия «аутизм Блейлера» из списка диагностических критериев размывает сущностную основу шизофрении как единой нозологической единицы с возвращением к доблейлерскому этапу ее диагностики. Кризис в понимании аутизма может быть преодолен путем интерфейса между традиционной и экзистенциональной психиатрией."
+        ],
+        "DC.Abstract": [
+          "In this lecture some milestones of the conceptual history of autism are considered. Autism today is a widely used term, yet what is understood by autism has changed considerably since first being introduced in scientific discourse almost 100 years ago. Autism is analyzed in a level continuum: norm - personality disorder - schizophrenic psychoses. The lack of a clear definition and hence of the reliability blurs the original meaning of the term, that has no place in modern diagnostic systems. Exclusion of the “Bleuler autism” concept from the list of diagnostic criteria blurs the essential basis of schizophrenia as a single nosological unit with a return to pre-Bleyler diagnostic period. The crisis in the understanding of autism can be overcome by the interaction between traditional and existential psychiatry.",
+          "В лекции рассматриваются некоторые этапы концептуальной истории аутизма. Аутизм сегодня является широко используемым термином, однако, его толкование значительно изменилось с момента первого введения в научный оборот почти 100 лет назад. Он анализируется в широком континууме: норма - пограничные состояния - шизофренические психозы. Отсутствие четкого определения и, следовательно, надежности размывает первоначальное значение этого термина, который не находит места в современных диагностических системах. Исключение понятия «аутизм Блейлера» из списка диагностических критериев размывает сущностную основу шизофрении как единой нозологической единицы с возвращением к доблейлерскому этапу ее диагностики. Кризис в понимании аутизма может быть преодолен путем интерфейса между традиционной и экзистенциональной психиатрией."
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "14043"
+        ],
+        "DC.Identifier.pageNumber": [
+          "40-48"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/nb14043"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/1027-4898/article/view/14043"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Pashkovskiy V.E., 2017",
+          "Пашковский В.Э., 2017",
+          "http://creativecommons.org/licenses/by-nc-sa/4.0"
+        ],
+        "DC.Source": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "DC.Source.ISSN": [
+          "2304-3067"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/1027-4898"
+        ],
+        "DC.Source.Issue": [
+          "1"
+        ],
+        "DC.Source.Volume": [
+          "XLIX"
+        ],
+        "DC.Subject": [
+          "autism",
+          "conceptualhistory",
+          "schizophrenia",
+          "аутизм",
+          "концептуальная история",
+          "шизофрения"
+        ],
+        "DC.Title": [
+          "SEARCHING FOR AUTISM",
+          "В ПОИСКАХ АУТИЗМА"
+        ],
+        "DC.Title.Alternative": [
+          "SEARCHING FOR AUTISM",
+          "В ПОИСКАХ АУТИЗМА"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Статьи"
+        ],
+        "citation_journal_title": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "citation_issn": [
+          "2304-3067"
+        ],
+        "citation_author": [
+          "Vladimir E Pashkovskiy",
+          "Пашковский Владимир Эдуардович"
+        ],
+        "citation_author_institution": [
+          "I.I. Mechnikov Northwest State Medical University",
+          "Северо-Западный государственный медицинский университет им. И.И. Мечникова"
+        ],
+        "citation_title": [
+          "SEARCHING FOR AUTISM",
+          "В ПОИСКАХ АУТИЗМА"
+        ],
+        "citation_date": [
+          "2017/03/15"
+        ],
+        "citation_volume": [
+          "XLIX"
+        ],
+        "citation_issue": [
+          "1"
+        ],
+        "citation_firstpage": [
+          "40"
+        ],
+        "citation_lastpage": [
+          "48"
+        ],
+        "citation_doi": [
+          "10.17816/nb14043"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/14043"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/14043"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "autism",
+          "conceptualhistory",
+          "schizophrenia",
+          "аутизм",
+          "концептуальная история",
+          "шизофрения"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/1027-4898/article/download/14043/11982"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 37805,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 837,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 89,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 4561,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "1027-4898",
+      "id": "105915",
+      "url": "https://journals.eco-vector.com/1027-4898/article/view/105915/ru_RU",
+      "status": "received",
+      "sha256": "3519ccfdff35996b2d301b9be4cb1129937dfcb656eb8e80686e872762390803",
+      "metadata": {
+        "DC.Contributor.Sponsor": [
+          "",
+          ""
+        ],
+        "DC.Creator.PersonalName": [
+          "A. M. Vein",
+          "Вейн А. М.",
+          "G. M. Dyukova",
+          "Дюкова Г. М.",
+          "А. B. Danilov",
+          "Данилов А. Б.",
+          "O. V. Vorobyova",
+          "Воробьева О. В.",
+          "I. P. Shepeleva",
+          "Шепелева И. П."
+        ],
+        "DC.Date.created": [
+          "1993-09-20"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2022-04-04"
+        ],
+        "DC.Date.issued": [
+          "1993-09-20"
+        ],
+        "DC.Date.modified": [
+          "2022-04-20"
+        ],
+        "DC.Description": [
+          " The typical and untypical vegetative crises are described. The crises presented by various vegetative manifestations belong to typical, the same vegetative manifestations and functional - neurologic symptoms (the disorder of vision, audition, lump in the throat and etc.) belong to untypical ones. For every vegetative crisis there are the definite psychogenetic and biological factors. The high activity of cerebral isoenzyme of glutamatehydrogenase in patients with vegetative crises correlates with heavier clinical course of the disease and is efficiently less susceptible to every type of therapy. ",
+          " Описаны типичные и нетипичные вегетативные кризы. К типичным относятся кризы, представленные различного рода вегетативными проявлениями, к нетипичным - те же вегетативные проявления и функционально-неврологические симптомы (нарушения зрения, слуха, &laquo;ком в горле&raquo; и пр.). Каждому из вегетативных кризов соответствуют определенные психогенные и биологические факторы. Высокая активность мозгового изофермента глутаматгидрогеназы у больных с вегетативными кризами коррелирует с более тяжелым клиническим течением болезни и соответственно менее эффективно поддается любому виду терапии. "
+        ],
+        "DC.Abstract": [
+          " The typical and untypical vegetative crises are described. The crises presented by various vegetative manifestations belong to typical, the same vegetative manifestations and functional - neurologic symptoms (the disorder of vision, audition, lump in the throat and etc.) belong to untypical ones. For every vegetative crisis there are the definite psychogenetic and biological factors. The high activity of cerebral isoenzyme of glutamatehydrogenase in patients with vegetative crises correlates with heavier clinical course of the disease and is efficiently less susceptible to every type of therapy. ",
+          " Описаны типичные и нетипичные вегетативные кризы. К типичным относятся кризы, представленные различного рода вегетативными проявлениями, к нетипичным - те же вегетативные проявления и функционально-неврологические симптомы (нарушения зрения, слуха, &laquo;ком в горле&raquo; и пр.). Каждому из вегетативных кризов соответствуют определенные психогенные и биологические факторы. Высокая активность мозгового изофермента глутаматгидрогеназы у больных с вегетативными кризами коррелирует с более тяжелым клиническим течением болезни и соответственно менее эффективно поддается любому виду терапии. "
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "105915"
+        ],
+        "DC.Identifier.pageNumber": [
+          "15-18"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/nb105915"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/1027-4898/article/view/105915"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Vein A.M., Dyukova G.M., Danilov А.B., Vorobyova O.V., Shepeleva I.P., 1993",
+          "Вейн А.М., Дюкова Г.М., Данилов А.Б., Воробьева О.В., Шепелева И.П., 1993",
+          "http://creativecommons.org/licenses/by-nc-sa/4.0"
+        ],
+        "DC.Source": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "DC.Source.ISSN": [
+          "2304-3067"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/1027-4898"
+        ],
+        "DC.Source.Issue": [
+          "1-2"
+        ],
+        "DC.Source.Volume": [
+          "XXV"
+        ],
+        "DC.Subject": [
+          "Bekhterev neurology archive",
+          "Неврологический архив Бехтерева"
+        ],
+        "DC.Title": [
+          "Current views of the vegetative dystonia syndrome",
+          "Современные представления о синдроме вегетативной дистонии"
+        ],
+        "DC.Title.Alternative": [
+          "Current views of the vegetative dystonia syndrome",
+          "Современные представления о синдроме вегетативной дистонии"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Оригинальные исследования"
+        ],
+        "citation_journal_title": [
+          "Neurology Bulletin",
+          "Неврологический вестник"
+        ],
+        "citation_issn": [
+          "2304-3067"
+        ],
+        "citation_author": [
+          "A. M. Vein",
+          "Вейн А. М.",
+          "G. M. Dyukova",
+          "Дюкова Г. М.",
+          "А. B. Danilov",
+          "Данилов А. Б.",
+          "O. V. Vorobyova",
+          "Воробьева О. В.",
+          "I. P. Shepeleva",
+          "Шепелева И. П."
+        ],
+        "citation_author_institution": [
+          "Moscow Medical Academy named after I.M. Sechenov",
+          "Московская медицинская академия имени И.М.Сеченова",
+          "Moscow Medical Academy named after I.M. Sechenov",
+          "Московская медицинская академия имени И.М.Сеченова",
+          "Moscow Medical Academy named after I.M. Sechenov",
+          "Московская медицинская академия имени И.М.Сеченова",
+          "Moscow Medical Academy named after I.M. Sechenov",
+          "Московская медицинская академия имени И.М.Сеченова",
+          "Moscow Medical Academy named after I.M. Sechenov",
+          "Московская медицинская академия имени И.М.Сеченова"
+        ],
+        "citation_title": [
+          "Current views of the vegetative dystonia syndrome",
+          "Современные представления о синдроме вегетативной дистонии"
+        ],
+        "citation_date": [
+          "1993/09/20"
+        ],
+        "citation_volume": [
+          "XXV"
+        ],
+        "citation_issue": [
+          "1-2"
+        ],
+        "citation_firstpage": [
+          "15"
+        ],
+        "citation_lastpage": [
+          "18"
+        ],
+        "citation_doi": [
+          "10.17816/nb105915"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/105915"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/1027-4898/article/view/105915"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "Bekhterev neurology archive",
+          "Неврологический архив Бехтерева"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/1027-4898/article/download/105915/80368"
+        ]
+      },
+      "links": [
+        {
+          "label": "Скачать",
+          "url": "https://journals.eco-vector.com/1027-4898/article/downloadSuppFile/105915/61067"
+        },
+        {
+          "label": "Метаданные",
+          "url": "javascript:openRTWindow('https://journals.eco-vector.com/1027-4898/rt/suppFileMetadata/105915/0/61067');"
+        },
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 19077,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 594,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 50,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 5,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "RFD",
+      "id": "7752",
+      "url": "https://journals.eco-vector.com/RFD/article/view/7752/ru_RU",
+      "status": "received",
+      "sha256": "05850abcc39077778ec574a52e2ff0d1d480faf9f732ba5bda07af639fdda2f6",
+      "metadata": {
+        "DC.Creator.PersonalName": [
+          "Dmitriy V. Kandyba",
+          "Кандыба Дмитрий Викторович"
+        ],
+        "DC.Date.created": [
+          "2017-12-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2018-01-24"
+        ],
+        "DC.Date.issued": [
+          "2017-12-15"
+        ],
+        "DC.Date.modified": [
+          "2018-01-24"
+        ],
+        "DC.Description": [
+          " The lecture devoted to general practitioners presents modern ideas about clinical diagnostic, treatment and prevention of vestibular disorders from the point of view of neurologists and specialists in the field of otorhinolaryngology. ",
+          " В лекции для врачей общей практики отражены современные представления о клинической диагностике, лечении и профилактике вестибулярных расстройств с точки зрения неврологов и специалистов в области оториноларингологии. "
+        ],
+        "DC.Abstract": [
+          " The lecture devoted to general practitioners presents modern ideas about clinical diagnostic, treatment and prevention of vestibular disorders from the point of view of neurologists and specialists in the field of otorhinolaryngology. ",
+          " В лекции для врачей общей практики отражены современные представления о клинической диагностике, лечении и профилактике вестибулярных расстройств с точки зрения неврологов и специалистов в области оториноларингологии. "
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "7752"
+        ],
+        "DC.Identifier.pageNumber": [
+          "6-14"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/RFD201746-14"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/RFD/article/view/7752"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Kandyba D.V., 2017",
+          "Кандыба Д.В., 2017",
+          "http://creativecommons.org/licenses/by/4.0"
+        ],
+        "DC.Source": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "DC.Source.ISSN": [
+          "2713-2331"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/RFD"
+        ],
+        "DC.Source.Issue": [
+          "4"
+        ],
+        "DC.Source.Volume": [
+          "21"
+        ],
+        "DC.Subject": [
+          "vestibulopathy",
+          "dizziness/vertigo",
+          "general medical practice",
+          "вестибулопатия",
+          "головокружение",
+          "общая врачебная практика"
+        ],
+        "DC.Title": [
+          "Diagnosis and treatment of vestibulapathy in ambulatory practice",
+          "Диагностика и лечение вестибулопатии в амбулаторной практике"
+        ],
+        "DC.Title.Alternative": [
+          "Diagnosis and treatment of vestibulapathy in ambulatory practice",
+          "Диагностика и лечение вестибулопатии в амбулаторной практике"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Статьи"
+        ],
+        "citation_journal_title": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "citation_issn": [
+          "2713-2331"
+        ],
+        "citation_author": [
+          "Dmitriy V. Kandyba",
+          "Кандыба Дмитрий Викторович"
+        ],
+        "citation_author_institution": [
+          " North-Western State Medical University named after I.I. Mechnikov ",
+          " ФГБОУ ВО &laquo;Северо-Западный государственный медицинский университет имени И.И. Мечникова&raquo; Минздрава России "
+        ],
+        "citation_title": [
+          "Diagnosis and treatment of vestibulapathy in ambulatory practice",
+          "Диагностика и лечение вестибулопатии в амбулаторной практике"
+        ],
+        "citation_date": [
+          "2017/12/15"
+        ],
+        "citation_volume": [
+          "21"
+        ],
+        "citation_issue": [
+          "4"
+        ],
+        "citation_firstpage": [
+          "6"
+        ],
+        "citation_lastpage": [
+          "14"
+        ],
+        "citation_doi": [
+          "10.17816/RFD201746-14"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/7752"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/7752"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "vestibulopathy",
+          "dizziness/vertigo",
+          "general medical practice",
+          "вестибулопатия",
+          "головокружение",
+          "общая врачебная практика"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/RFD/article/download/7752/6241"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 39157,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 229,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 103,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 5073,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "RFD",
+      "id": "6178",
+      "url": "https://journals.eco-vector.com/RFD/article/view/6178/ru_RU",
+      "status": "received",
+      "sha256": "81efbb898f131603b36cb525ca8423ec7b3fc571a1c4188840ebbcece184f706",
+      "metadata": {
+        "DC.Creator.PersonalName": [
+          "Tatiana A Dubikaitis",
+          "Дубикайтис Татьяна Александровна"
+        ],
+        "DC.Date.created": [
+          "2017-02-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2017-04-20"
+        ],
+        "DC.Date.issued": [
+          "2017-02-15"
+        ],
+        "DC.Date.modified": [
+          "2017-04-20"
+        ],
+        "DC.Description": [
+          " Current approaches for outpatient diagnosis of acute coronary syndrome are presented in the article with detailed consideration for atypical presentation of special groups of patients. The first steps management of acute coronary syndrome in outpatient settings is described. ",
+          " В лекции представлены современные подходы к диагностике острого коронарного синдрома в амбулаторной практике; изложены особенности течения заболевания у пациентов, принадлежащих к особым группам; представлена тактика ведения пациентов с острым коронарным синдромом на этапе оказания первой помощи в условиях общей врачебной практики. "
+        ],
+        "DC.Abstract": [
+          " Current approaches for outpatient diagnosis of acute coronary syndrome are presented in the article with detailed consideration for atypical presentation of special groups of patients. The first steps management of acute coronary syndrome in outpatient settings is described. ",
+          " В лекции представлены современные подходы к диагностике острого коронарного синдрома в амбулаторной практике; изложены особенности течения заболевания у пациентов, принадлежащих к особым группам; представлена тактика ведения пациентов с острым коронарным синдромом на этапе оказания первой помощи в условиях общей врачебной практики. "
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "6178"
+        ],
+        "DC.Identifier.pageNumber": [
+          "5-14"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/RFD201715-14"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/RFD/article/view/6178"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Dubikaitis T.A., 2017",
+          "Дубикайтис Т.А., 2017",
+          "http://creativecommons.org/licenses/by/4.0"
+        ],
+        "DC.Source": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "DC.Source.ISSN": [
+          "2713-2331"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/RFD"
+        ],
+        "DC.Source.Issue": [
+          "1"
+        ],
+        "DC.Source.Volume": [
+          "21"
+        ],
+        "DC.Subject": [
+          "acute coronary syndrome",
+          "acute myocardial infarction",
+          "diagnosis",
+          "treatment",
+          "general practice",
+          "острый коронарный синдром",
+          "острый инфаркт миокарда",
+          "диагностика",
+          "лечение",
+          "общая врачебная практика"
+        ],
+        "DC.Title": [
+          "Acute coronary syndrome",
+          "Острый коронарный синдром"
+        ],
+        "DC.Title.Alternative": [
+          "Acute coronary syndrome",
+          "Острый коронарный синдром"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Articles"
+        ],
+        "citation_journal_title": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "citation_issn": [
+          "2713-2331"
+        ],
+        "citation_author": [
+          "Tatiana A Dubikaitis",
+          "Дубикайтис Татьяна Александровна"
+        ],
+        "citation_author_institution": [
+          " North-Western State Medical University named after I.I. Mechnikov ",
+          " ФГБОУ ВО &laquo;СЗГМУ им. И.И. Мечникова&raquo; Минздрава России "
+        ],
+        "citation_title": [
+          "Acute coronary syndrome",
+          "Острый коронарный синдром"
+        ],
+        "citation_date": [
+          "2017/02/15"
+        ],
+        "citation_volume": [
+          "21"
+        ],
+        "citation_issue": [
+          "1"
+        ],
+        "citation_firstpage": [
+          "5"
+        ],
+        "citation_lastpage": [
+          "14"
+        ],
+        "citation_doi": [
+          "10.17816/RFD201715-14"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/6178"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/6178"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "acute coronary syndrome",
+          "acute myocardial infarction",
+          "diagnosis",
+          "treatment",
+          "general practice",
+          "острый коронарный синдром",
+          "острый инфаркт миокарда",
+          "диагностика",
+          "лечение",
+          "общая врачебная практика"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/RFD/article/download/6178/4857"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 38260,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 345,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 173,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 5106,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "RFD",
+      "id": "1431",
+      "url": "https://journals.eco-vector.com/RFD/article/view/1431/ru_RU",
+      "status": "received",
+      "sha256": "d3766e6979a6aa4825c0bd15dbd8cc8ca7a1ed0eb9348c918d66d0150f292218",
+      "metadata": {
+        "DC.Creator.PersonalName": [
+          "D V Kandyba",
+          "Кандыба Дмитрий Викторович"
+        ],
+        "DC.Date.created": [
+          "2015-06-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2016-03-16"
+        ],
+        "DC.Date.issued": [
+          "2015-06-15"
+        ],
+        "DC.Date.modified": [
+          "2016-03-16"
+        ],
+        "DC.Description": [
+          "The guidelines present the classification and epidemiology of headache, characteristics of different types of headache and principles of clinical management of patients with headache in general practice",
+          "В клинических рекомендациях представлены классификация и эпидемиология головной боли, даны характеристики различных видов головной боли и описаны принципы ведения пациентов с головной болью в условиях общей врачебной практики."
+        ],
+        "DC.Abstract": [
+          "The guidelines present the classification and epidemiology of headache, characteristics of different types of headache and principles of clinical management of patients with headache in general practice",
+          "В клинических рекомендациях представлены классификация и эпидемиология головной боли, даны характеристики различных видов головной боли и описаны принципы ведения пациентов с головной болью в условиях общей врачебной практики."
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "1431"
+        ],
+        "DC.Identifier.pageNumber": [
+          "4-17"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/RFD201524-17"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/RFD/article/view/1431"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Kandyba D.V., 2015",
+          "Кандыба Д.В., 2015",
+          "http://creativecommons.org/licenses/by/4.0"
+        ],
+        "DC.Source": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "DC.Source.ISSN": [
+          "2713-2331"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/RFD"
+        ],
+        "DC.Source.Issue": [
+          "2"
+        ],
+        "DC.Source.Volume": [
+          "19"
+        ],
+        "DC.Subject": [
+          "headache",
+          "migraine",
+          "tension headache",
+          "cluster headache",
+          "general practice",
+          "головная боль",
+          "мигрень",
+          "головная боль напряжения",
+          "кластерная головная боль",
+          "общая врачебная практика"
+        ],
+        "DC.Title": [
+          "CLINICAL GUIDELINES ON DIAGNOSTIC, TREATMENT AND PROPHYLACTIC OF HEADACHE IN GENERAL PRACTICE",
+          "КЛИНИЧЕСКИЕ РЕКОМЕНДАЦИИ ПО ДИАГНОСТИКЕ, ЛЕЧЕНИЮ И ПРОФИЛАКТИКЕ ГОЛОВНОЙ БОЛИ В ПРАКТИКЕ СЕМЕЙНОГО ВРАЧА"
+        ],
+        "DC.Title.Alternative": [
+          "CLINICAL GUIDELINES ON DIAGNOSTIC, TREATMENT AND PROPHYLACTIC OF HEADACHE IN GENERAL PRACTICE",
+          "КЛИНИЧЕСКИЕ РЕКОМЕНДАЦИИ ПО ДИАГНОСТИКЕ, ЛЕЧЕНИЮ И ПРОФИЛАКТИКЕ ГОЛОВНОЙ БОЛИ В ПРАКТИКЕ СЕМЕЙНОГО ВРАЧА"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Статьи"
+        ],
+        "citation_journal_title": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "citation_issn": [
+          "2713-2331"
+        ],
+        "citation_author": [
+          "D V Kandyba",
+          "Кандыба Дмитрий Викторович"
+        ],
+        "citation_author_institution": [
+          "North-Western State Medical University named after I. I. Mechnikov",
+          "ГБОУ ВПО «Северо-Западный государственный медицинский университет им. И. И. Мечникова» Минздрава России"
+        ],
+        "citation_title": [
+          "CLINICAL GUIDELINES ON DIAGNOSTIC, TREATMENT AND PROPHYLACTIC OF HEADACHE IN GENERAL PRACTICE",
+          "КЛИНИЧЕСКИЕ РЕКОМЕНДАЦИИ ПО ДИАГНОСТИКЕ, ЛЕЧЕНИЮ И ПРОФИЛАКТИКЕ ГОЛОВНОЙ БОЛИ В ПРАКТИКЕ СЕМЕЙНОГО ВРАЧА"
+        ],
+        "citation_date": [
+          "2015/06/15"
+        ],
+        "citation_volume": [
+          "19"
+        ],
+        "citation_issue": [
+          "2"
+        ],
+        "citation_firstpage": [
+          "4"
+        ],
+        "citation_lastpage": [
+          "17"
+        ],
+        "citation_doi": [
+          "10.17816/RFD201524-17"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/1431"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/1431"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "headache",
+          "migraine",
+          "tension headache",
+          "cluster headache",
+          "general practice",
+          "головная боль",
+          "мигрень",
+          "головная боль напряжения",
+          "кластерная головная боль",
+          "общая врачебная практика"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/RFD/article/download/1431/1051"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 43589,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 238,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 175,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 4434,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "RFD",
+      "id": "3577",
+      "url": "https://journals.eco-vector.com/RFD/article/view/3577/ru_RU",
+      "status": "received",
+      "sha256": "90c409ac735f50fe1e834785f9dd6a3bba32cfcc59238f7fa3c5dca77b7ce238",
+      "metadata": {
+        "DC.Creator.PersonalName": [
+          "D V Kandyba",
+          "Кандыба Д В"
+        ],
+        "DC.Date.created": [
+          "2015-03-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2016-07-20"
+        ],
+        "DC.Date.issued": [
+          "2015-03-15"
+        ],
+        "DC.Date.modified": [
+          "2016-07-20"
+        ],
+        "DC.Description": [
+          "The use of outdated medical information and lack of awareness of family physicians and neurologists on the results of modern scientific and clinical research has led to a rise in the cost of unjustified inspections and wrong therapeutic tactics. The absence of new and regularly updated national clinical guidelines and standards for the diagnosis and treatment of neurological diseases and syndromes, leads to a wide variability of the actions of the physician in outpatient practice. In circumstances where there is no clear and unified standardization in the management of neurological patients, and the application of the principles of evidence-based medicine is not the rule, in the environment of outpatient physicians practice formed the basis for delusions and the gap between domestic and international clinical approaches.",
+          "Использование устаревшей медицинской информации и недостаточная осведомленность семейных врачей и неврологов о результатах современных научных и клинических исследований приводят к росту затрат на необоснованные обследования и к ошибочной терапевтической тактике. Отсутствие новых и регулярно обновляющихся отечественных национальных клинических рекомендаций, а также стандар­тов диагностики и лечения неврологических заболеваний и синдромов, ведет к широкой вариабельности действий врача в амбулаторной практике. В условиях, когда нет четкой единой стандартизации в ведении неврологических больных, а применение принципов доказательной медицины не является правилом, в среде врачей амбулаторной практики формируется почва для заблуждений и сохраняются противоречия между отечественными и международными клиническими подходами."
+        ],
+        "DC.Abstract": [
+          "The use of outdated medical information and lack of awareness of family physicians and neurologists on the results of modern scientific and clinical research has led to a rise in the cost of unjustified inspections and wrong therapeutic tactics. The absence of new and regularly updated national clinical guidelines and standards for the diagnosis and treatment of neurological diseases and syndromes, leads to a wide variability of the actions of the physician in outpatient practice. In circumstances where there is no clear and unified standardization in the management of neurological patients, and the application of the principles of evidence-based medicine is not the rule, in the environment of outpatient physicians practice formed the basis for delusions and the gap between domestic and international clinical approaches.",
+          "Использование устаревшей медицинской информации и недостаточная осведомленность семейных врачей и неврологов о результатах современных научных и клинических исследований приводят к росту затрат на необоснованные обследования и к ошибочной терапевтической тактике. Отсутствие новых и регулярно обновляющихся отечественных национальных клинических рекомендаций, а также стандар­тов диагностики и лечения неврологических заболеваний и синдромов, ведет к широкой вариабельности действий врача в амбулаторной практике. В условиях, когда нет четкой единой стандартизации в ведении неврологических больных, а применение принципов доказательной медицины не является правилом, в среде врачей амбулаторной практики формируется почва для заблуждений и сохраняются противоречия между отечественными и международными клиническими подходами."
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "3577"
+        ],
+        "DC.Identifier.pageNumber": [
+          "4-12"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/RFD201514-12"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/RFD/article/view/3577"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Kandyba D.V., 2015",
+          "Кандыба Д.В., 2015",
+          "http://creativecommons.org/licenses/by/4.0"
+        ],
+        "DC.Source": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "DC.Source.ISSN": [
+          "2713-2331"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/RFD"
+        ],
+        "DC.Source.Issue": [
+          "1"
+        ],
+        "DC.Source.Volume": [
+          "19"
+        ],
+        "DC.Subject": [
+          "neurological mistakes",
+          "headache",
+          "dizziness/vertigo",
+          "back pain",
+          "carpal tunnel syndrome",
+          "неврологические ошибки",
+          "головная боль",
+          "головокружение",
+          "боль в спине",
+          "синдром запястного канала"
+        ],
+        "DC.Title": [
+          "MISTAKES IN OUTPATIENT NEUROLOGICAL PRACTICE. PART I",
+          "ОШИБКИ В АМБУЛАТОРНОЙ НЕВРОЛОГИЧЕСКОЙ ПРАКТИКЕ. ЧАСТЬ 1"
+        ],
+        "DC.Title.Alternative": [
+          "MISTAKES IN OUTPATIENT NEUROLOGICAL PRACTICE. PART I",
+          "ОШИБКИ В АМБУЛАТОРНОЙ НЕВРОЛОГИЧЕСКОЙ ПРАКТИКЕ. ЧАСТЬ 1"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Articles"
+        ],
+        "citation_journal_title": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "citation_issn": [
+          "2713-2331"
+        ],
+        "citation_author": [
+          "D V Kandyba",
+          "Кандыба Д В"
+        ],
+        "citation_author_institution": [
+          "North-Western State Medical University named after I. I. Mechnikov",
+          "ГБОУ ВПО «Северо-Западный государственный медицинский университет им. И. И. Мечникова» Минздрава России"
+        ],
+        "citation_title": [
+          "MISTAKES IN OUTPATIENT NEUROLOGICAL PRACTICE. PART I",
+          "ОШИБКИ В АМБУЛАТОРНОЙ НЕВРОЛОГИЧЕСКОЙ ПРАКТИКЕ. ЧАСТЬ 1"
+        ],
+        "citation_date": [
+          "2015/03/15"
+        ],
+        "citation_volume": [
+          "19"
+        ],
+        "citation_issue": [
+          "1"
+        ],
+        "citation_firstpage": [
+          "4"
+        ],
+        "citation_lastpage": [
+          "12"
+        ],
+        "citation_doi": [
+          "10.17816/RFD201514-12"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/3577"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/3577"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "neurological mistakes",
+          "headache",
+          "dizziness/vertigo",
+          "back pain",
+          "carpal tunnel syndrome",
+          "неврологические ошибки",
+          "головная боль",
+          "головокружение",
+          "боль в спине",
+          "синдром запястного канала"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/RFD/article/download/3577/3197"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 43062,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 839,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 169,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 8710,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "pediatr",
+      "id": "11910",
+      "url": "https://journals.eco-vector.com/pediatr/article/view/11910/ru_RU",
+      "status": "received",
+      "sha256": "182b4670ac07b269c6067b0be3cf93707b2fc40bbbbc5c78b8380108d893aa77",
+      "metadata": {
+        "DC.Creator.PersonalName": [
+          "Elena E. Malkova",
+          "Малкова Елена Евгеньевна",
+          "Elena M. Mashnina",
+          "Машнина Елена Михайловна"
+        ],
+        "DC.Date.created": [
+          "2019-12-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2019-04-19"
+        ],
+        "DC.Date.issued": [
+          "2019-04-15"
+        ],
+        "DC.Date.modified": [
+          "2019-04-19"
+        ],
+        "DC.Description": [
+          " Based on Russian and foreign sources in the field of medicine, psychology and speech therapy, an overview of the main approaches to the systematization of speech disorders in childhood is conducted. It is shown that despite the long and winding path of research, there are numerous descriptions of phenomenology, but there is no consensus about the nature and mechanisms of speech disorders in children. Currently, there are two main directions in the study of speech pathology in children: clinical and psycholinguistic. In a clinical approach, impaired speech is considered as a pathological condition with certain symptoms, etiology and pathogenesis. Psycholinguistic approach to speech pathology involves the correlation of the observed violation with the normal functioning of the processes of generation and perception of speech, as well as an assessment of the degree of formation of language ability. As a result, the analysis of clinical, psychological and psycholinguistic studies shows a lot of contradictions, pushing for an active search for more accurate nominations and differential diagnostic criteria for distinguishing between different states of a child&rsquo;s speech deficiency. Thus, a tendency is shown to move to a new level of professional reflection from a narrowly focused (clinical, speech therapy, psychological) to a systemic one, in which the focus of scientists will be not only the problem of determining the disadaptive development, but also the prospects for the mental and speech development of the child. ",
+          " На основе российских и зарубежных источников в области медицины, психологии и логопедии проводится обзор основных подходов к систематизации нарушений речи в детском возрасте. Показано, что, несмотря на долгий и извилистый путь исследований, существуют многочисленные описания феноменологии, но нет единого мнения о сущности и механизмах нарушения речи у детей. В настоящее время можно выделить два магистральных направления в изучении патологии речи у детей: клиническое и психолингвистическое. При клиническом подходе нарушение речи рассматривается как патологическое состояние, имеющее определенные симптоматику, этиологию и патогенез. Психолингвистический подход к речевой патологии предполагает соотнесение наблюдаемого нарушения с нормальным функционированием процессов порождения и восприятия речи, а также оценку степени сформированности языковой способности. В итоге анализ клинико-психологических и психолингвистических исследований показывает множество противоречий, подталкивающих к активному поиску более точных номинаций и дифференциально-диагностических критериев разграничения разных состояний неполноценной речевой деятельности ребенка. Таким образом, показана тенденция к переходу на новый уровень профессиональной рефлексии от узконаправленного (клинического, логопедического, психологического) к системному, при котором в центре внимания ученых будет не только проблема определения варианта дизадаптивного развития, но и связанные с ней перспективы психоречевого развития ребенка. "
+        ],
+        "DC.Abstract": [
+          " Based on Russian and foreign sources in the field of medicine, psychology and speech therapy, an overview of the main approaches to the systematization of speech disorders in childhood is conducted. It is shown that despite the long and winding path of research, there are numerous descriptions of phenomenology, but there is no consensus about the nature and mechanisms of speech disorders in children. Currently, there are two main directions in the study of speech pathology in children: clinical and psycholinguistic. In a clinical approach, impaired speech is considered as a pathological condition with certain symptoms, etiology and pathogenesis. Psycholinguistic approach to speech pathology involves the correlation of the observed violation with the normal functioning of the processes of generation and perception of speech, as well as an assessment of the degree of formation of language ability. As a result, the analysis of clinical, psychological and psycholinguistic studies shows a lot of contradictions, pushing for an active search for more accurate nominations and differential diagnostic criteria for distinguishing between different states of a child&rsquo;s speech deficiency. Thus, a tendency is shown to move to a new level of professional reflection from a narrowly focused (clinical, speech therapy, psychological) to a systemic one, in which the focus of scientists will be not only the problem of determining the disadaptive development, but also the prospects for the mental and speech development of the child. ",
+          " На основе российских и зарубежных источников в области медицины, психологии и логопедии проводится обзор основных подходов к систематизации нарушений речи в детском возрасте. Показано, что, несмотря на долгий и извилистый путь исследований, существуют многочисленные описания феноменологии, но нет единого мнения о сущности и механизмах нарушения речи у детей. В настоящее время можно выделить два магистральных направления в изучении патологии речи у детей: клиническое и психолингвистическое. При клиническом подходе нарушение речи рассматривается как патологическое состояние, имеющее определенные симптоматику, этиологию и патогенез. Психолингвистический подход к речевой патологии предполагает соотнесение наблюдаемого нарушения с нормальным функционированием процессов порождения и восприятия речи, а также оценку степени сформированности языковой способности. В итоге анализ клинико-психологических и психолингвистических исследований показывает множество противоречий, подталкивающих к активному поиску более точных номинаций и дифференциально-диагностических критериев разграничения разных состояний неполноценной речевой деятельности ребенка. Таким образом, показана тенденция к переходу на новый уровень профессиональной рефлексии от узконаправленного (клинического, логопедического, психологического) к системному, при котором в центре внимания ученых будет не только проблема определения варианта дизадаптивного развития, но и связанные с ней перспективы психоречевого развития ребенка. "
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "11910"
+        ],
+        "DC.Identifier.pageNumber": [
+          "117-126"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/PED101117-126"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/pediatr/article/view/11910"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Malkova E.E., Mashnina E.M., 2019",
+          "Малкова Е.Е., Машнина Е.М., 2019",
+          "http://creativecommons.org/licenses/by/4.0"
+        ],
+        "DC.Source": [
+          "Pediatrician (St. Petersburg)",
+          "Педиатр"
+        ],
+        "DC.Source.ISSN": [
+          "2587-6252"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/pediatr"
+        ],
+        "DC.Source.Issue": [
+          "1"
+        ],
+        "DC.Source.Volume": [
+          "10"
+        ],
+        "DC.Subject": [
+          "speech disorders",
+          "classification",
+          "preschool children",
+          "diagnostic criteria",
+          "нарушение речи",
+          "классификация",
+          "дошкольники",
+          "критерии диагностики"
+        ],
+        "DC.Title": [
+          "The problem of determining the criteria for speech disorders in modern preschoolers in the aspect of interdisciplinary interaction of specialists",
+          "Проблема определения критериев нарушения речи у современных дошкольников в аспекте междисциплинарного взаимодействия специалистов"
+        ],
+        "DC.Title.Alternative": [
+          "The problem of determining the criteria for speech disorders in modern preschoolers in the aspect of interdisciplinary interaction of specialists",
+          "Проблема определения критериев нарушения речи у современных дошкольников в аспекте междисциплинарного взаимодействия специалистов"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Статьи"
+        ],
+        "citation_journal_title": [
+          "Pediatrician (St. Petersburg)",
+          "Педиатр"
+        ],
+        "citation_issn": [
+          "2587-6252"
+        ],
+        "citation_author": [
+          "Elena E. Malkova",
+          "Малкова Елена Евгеньевна",
+          "Elena M. Mashnina",
+          "Машнина Елена Михайловна"
+        ],
+        "citation_author_institution": [
+          " Bechterev National Medical Research Center for Psychiatry and Neuroscience ",
+          " ФГБУ &laquo;Национальный медицинский исследовательский центр психиатрии и неврологи им. В.М. Бехтерева&raquo; Минздрава России ",
+          " Herzen State Pedagogical University of Russia ",
+          " ФГБОУ ВО &laquo;Российский государственный педагогический университет им. А.И. Герцена&raquo; "
+        ],
+        "citation_title": [
+          "The problem of determining the criteria for speech disorders in modern preschoolers in the aspect of interdisciplinary interaction of specialists",
+          "Проблема определения критериев нарушения речи у современных дошкольников в аспекте междисциплинарного взаимодействия специалистов"
+        ],
+        "citation_date": [
+          "2019/12/15"
+        ],
+        "citation_volume": [
+          "10"
+        ],
+        "citation_issue": [
+          "1"
+        ],
+        "citation_firstpage": [
+          "117"
+        ],
+        "citation_lastpage": [
+          "126"
+        ],
+        "citation_doi": [
+          "10.17816/PED101117-126"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/pediatr/article/view/11910"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/pediatr/article/view/11910"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "speech disorders",
+          "classification",
+          "preschool children",
+          "diagnostic criteria",
+          "нарушение речи",
+          "классификация",
+          "дошкольники",
+          "критерии диагностики"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/pediatr/article/download/11910/9337"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 43363,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 1511,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 125,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 10485,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "RFD",
+      "id": "10468",
+      "url": "https://journals.eco-vector.com/RFD/article/view/10468/ru_RU",
+      "status": "received",
+      "sha256": "268cbe4f3597d29e3a75edcffcf60c6c1d9f44bab710c09e8bb7794e0622758a",
+      "metadata": {
+        "DC.Contributor.Sponsor": [
+          "",
+          "",
+          ""
+        ],
+        "DC.Creator.PersonalName": [
+          "Vladimir A. Neverov",
+          "Неверов Владимир Александрович",
+          "Tamara P. Demidenko",
+          "Демиденко Тамара Павловна",
+          "Valery V. Vasiliev",
+          "Васильев Валерий Викторович"
+        ],
+        "DC.Date.created": [
+          "2018-11-15"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2018-11-13"
+        ],
+        "DC.Date.issued": [
+          "2018-11-15"
+        ],
+        "DC.Date.modified": [
+          "2018-11-15"
+        ],
+        "DC.Description": [
+          " The lecture addresses the issues of provision of medical care and treatment to patients affected with herpes diseases caused by lymphotropic viruses (Epstein-Barr virus, cytomegalovirus, human&nbsp;herpesvirus-6, human&nbsp;herpesvirus-7, human&nbsp;herpesvirus-8) ",
+          " Лекция посвящена вопросам ведения и&nbsp;лечения пациентов с&nbsp;герпесвирусными заболеваниями, вызванными лимфотропными вирусами (вирус Эпштейна&nbsp;&ndash;&nbsp;Барр, цитомегаловирус, вирус герпеса человека 6-го типа, вирус герпеса человека 7-го типа, вирус герпеса человека 8-го типа). ",
+          ""
+        ],
+        "DC.Abstract": [
+          " The lecture addresses the issues of provision of medical care and treatment to patients affected with herpes diseases caused by lymphotropic viruses (Epstein-Barr virus, cytomegalovirus, human&nbsp;herpesvirus-6, human&nbsp;herpesvirus-7, human&nbsp;herpesvirus-8) ",
+          " Лекция посвящена вопросам ведения и&nbsp;лечения пациентов с&nbsp;герпесвирусными заболеваниями, вызванными лимфотропными вирусами (вирус Эпштейна&nbsp;&ndash;&nbsp;Барр, цитомегаловирус, вирус герпеса человека 6-го типа, вирус герпеса человека 7-го типа, вирус герпеса человека 8-го типа). ",
+          ""
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "10468"
+        ],
+        "DC.Identifier.pageNumber": [
+          "5-13"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/RFD201835-13"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/RFD/article/view/10468"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Neverov V.A., Demidenko T.P., Vasiliev V.V., 2018",
+          "Неверов В.А., Демиденко Т.П., Васильев В.В., 2018",
+          ", 2018",
+          "http://creativecommons.org/licenses/by/4.0"
+        ],
+        "DC.Source": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "DC.Source.ISSN": [
+          "2713-2331"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/RFD"
+        ],
+        "DC.Source.Issue": [
+          "3"
+        ],
+        "DC.Source.Volume": [
+          "22"
+        ],
+        "DC.Subject": [
+          "Herpes virus infections",
+          "diagnostic",
+          "treatment",
+          "герпесвирусные инфекции",
+          "диагностика",
+          "лечение"
+        ],
+        "DC.Title": [
+          "Herpes virus infections caused by lymphotropic viruses. Part V",
+          "Герпесвирусные инфекции, вызываемые лимфотропными ­вирусами. Часть V",
+          ""
+        ],
+        "DC.Title.Alternative": [
+          "Herpes virus infections caused by lymphotropic viruses. Part V",
+          "Герпесвирусные инфекции, вызываемые лимфотропными ­вирусами. Часть V",
+          ""
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Лекции"
+        ],
+        "citation_journal_title": [
+          "Russian Family Doctor",
+          "Российский семейный врач"
+        ],
+        "citation_issn": [
+          "2713-2331"
+        ],
+        "citation_author": [
+          "Vladimir A. Neverov",
+          "Неверов Владимир Александрович",
+          "Tamara P. Demidenko",
+          "Демиденко Тамара Павловна",
+          "Valery V. Vasiliev",
+          "Васильев Валерий Викторович"
+        ],
+        "citation_author_institution": [
+          " North-Western State Medical University named after I.I. Mechnikov ",
+          " ФГБОУ ВО &laquo;Северо-Западный государственный медицинский университет им. И.И. Мечникова&raquo; Минздрава России ",
+          " North-Western State Medical University named after I.I. Mechnikov ",
+          " ФГБОУ ВО &laquo;Северо-Западный государственный медицинский университет им. И.И. Мечникова&raquo; Минздрава России ",
+          " North-Western State Medical University named after I.I. Mechnikov ",
+          " ФГБОУ ВО &laquo;Северо-Западный государственный медицинский университет им. И.И. Мечникова&raquo; Минздрава России "
+        ],
+        "citation_title": [
+          "Herpes virus infections caused by lymphotropic viruses. Part V",
+          "Герпесвирусные инфекции, вызываемые лимфотропными ­вирусами. Часть V",
+          ""
+        ],
+        "citation_date": [
+          "2018/11/15"
+        ],
+        "citation_volume": [
+          "22"
+        ],
+        "citation_issue": [
+          "3"
+        ],
+        "citation_firstpage": [
+          "5"
+        ],
+        "citation_lastpage": [
+          "13"
+        ],
+        "citation_doi": [
+          "10.17816/RFD201835-13"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/10468"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/RFD/article/view/10468"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "Herpes virus infections",
+          "diagnostic",
+          "treatment",
+          "герпесвирусные инфекции",
+          "диагностика",
+          "лечение"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/RFD/article/download/10468/8283"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "sidebarRTArticleTools",
+          "class": [
+            "block"
+          ],
+          "characters": 215,
+          "childTags": [
+            "span",
+            "div",
+            "div",
+            "div",
+            "div",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 36877,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 15,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 276,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 92,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 1579,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    },
+    {
+      "journal": "1606-8181",
+      "id": "696660",
+      "url": "https://journals.eco-vector.com/1606-8181/article/view/696660/ru_RU",
+      "status": "received",
+      "sha256": "2e1153bfffd032ff146457d88224d8c520bf9d7a63de3df1bc8a72c1535f4012",
+      "metadata": {
+        "DC.Creator.PersonalName": [
+          "Margarita A. Morozova",
+          "Морозова Маргарита Алексеевна"
+        ],
+        "DC.Date.created": [
+          "2026-01-27"
+        ],
+        "DC.Date.dateSubmitted": [
+          "2025-11-20"
+        ],
+        "DC.Date.issued": [
+          "2026-05-03"
+        ],
+        "DC.Date.modified": [
+          "2026-05-03"
+        ],
+        "DC.Description": [
+          " This brief scientific-analytical review examines the limitations of traditional categorical diagnostic systems—the International Classification of Diseases (ICD) and the Diagnostic and Statistical Manual of Mental Disorders (DSM)—in forming homogeneous groups for biological research and applying the obtained results to address clinical challenges. As alternatives, we considered new psychopathological frameworks: the Research Domain Criteria (RDoC) and the Hierarchical Taxonomy of Psychopathology (HiTOP). The review primarily focuses on the HiTOP framework, which is structured hierarchically. Within this system, clinical presentation is viewed as a multi-level structure where the top level is occupied by a general psychopathology factor termed the P factor. The middle level consists of psychopathological domains or spectra encompassing more specific phenotypic manifestations: depression, cognitive impairments, impulsivity, and psychosis. The bottom level comprises individual symptoms (e.g., insomnia or suicidality) characteristic of a particular case but not defining the overall clinical picture. Additionally, the framework accounts for the degree of patient maladaptation associated with a specific symptom, as well as the influence of external factors on symptom severity and the extent of maladaptation. As an illustration of the rationality of this approach, the review presents knockout models of two domains—cognitive and anxiety-related. Using the example of the knockout of several genes ( Kmo ,  Gabrb2 ,  Grm2/3 ,  Grm1 ,  Plcb1 ,  Taar1 ,  Disc1 ,  Slc6a4 ,  Htr1a ,  Htr2c ,  Slitrk5 ), we showed that specific genetic disruptions lead to the manifestation of diverse behavioral phenotypes, particularly various combinations of cognitive and emotional impairments, which often occur as transdiagnostic symptoms across different conditions. The review discusses the potential applications of the HiTOP approach and data obtained from knockout animal studies for the personalization of therapy and the development of more precise biological models of mental disorders. ",
+          " В представленном кратком научно-аналитическом обзоре рассмотрены ограничения традиционных категориальных диагностических систем — Международной классификации болезней (МКБ) и Диагностического и статистического руководства по психическим расстройствам (DSM) — при формировании гомогенных групп для биологических исследований и применении полученных результатов для решения клинических задач. В качестве альтернативы рассматриваются новые психопатологические систематики RDoC (Research Domain Criteria) и HiTOP (Hierarchical Taxonome of Psychopatology). В обзоре основное внимание уделено систематике HiTOP, построенной по иерархическому принципу. В рамках этой систематики клиническая картина рассматривается как многоуровневая система, где на верхнем уровне помещается некий общий фактор психопатологии, названный фактором Р, на среднем — психопатологические домены или спектры, включающие более конкретные виды фенотипических проявлений: депрессивность, когнитивные нарушения, импульсивность, психотичность. Нижний уровень представлен отдельными признаками (например, бессонницей или суицидальностью), характерными для конкретного случая, но не определяющими клиническую картину в целом. Кроме того, систематика учитывает степень дезадаптации пациента в связи с конкретным симптомом, а также влияние внешних факторов на выраженность симптомов и степень дезадаптации. В качестве иллюстрации рациональности такого подхода в обзоре представлены нокаутные модели двух доменов — когнитивного и тревожного. На примере нокаута нескольких генов ( Kmo ,  Gabrb2 ,  Grm2 / 3 ,  Grm1 ,  Plcb1 ,  Taar1 ,  Disc1 ,  Slc6a4 ,  Htr1a ,  Htr2c ,  Slitrk5 ) показано, что специфические генетические нарушения приводят к реализации разнообразных поведенческих фенотипов, в частности различных комбинаций когнитивных и эмоциональных нарушений, часто встречающихся в качестве трансдиагностических симптомов при различных нозологиях. В обзоре обсуждаются возможности применения подхода HiTOP и данных, полученных в исследованиях нокаутных животных, для индивидуализации терапии и разработки более точных биологических моделей психических расстройств. "
+        ],
+        "DC.Abstract": [
+          " This brief scientific-analytical review examines the limitations of traditional categorical diagnostic systems—the International Classification of Diseases (ICD) and the Diagnostic and Statistical Manual of Mental Disorders (DSM)—in forming homogeneous groups for biological research and applying the obtained results to address clinical challenges. As alternatives, we considered new psychopathological frameworks: the Research Domain Criteria (RDoC) and the Hierarchical Taxonomy of Psychopathology (HiTOP). The review primarily focuses on the HiTOP framework, which is structured hierarchically. Within this system, clinical presentation is viewed as a multi-level structure where the top level is occupied by a general psychopathology factor termed the P factor. The middle level consists of psychopathological domains or spectra encompassing more specific phenotypic manifestations: depression, cognitive impairments, impulsivity, and psychosis. The bottom level comprises individual symptoms (e.g., insomnia or suicidality) characteristic of a particular case but not defining the overall clinical picture. Additionally, the framework accounts for the degree of patient maladaptation associated with a specific symptom, as well as the influence of external factors on symptom severity and the extent of maladaptation. As an illustration of the rationality of this approach, the review presents knockout models of two domains—cognitive and anxiety-related. Using the example of the knockout of several genes ( Kmo ,  Gabrb2 ,  Grm2/3 ,  Grm1 ,  Plcb1 ,  Taar1 ,  Disc1 ,  Slc6a4 ,  Htr1a ,  Htr2c ,  Slitrk5 ), we showed that specific genetic disruptions lead to the manifestation of diverse behavioral phenotypes, particularly various combinations of cognitive and emotional impairments, which often occur as transdiagnostic symptoms across different conditions. The review discusses the potential applications of the HiTOP approach and data obtained from knockout animal studies for the personalization of therapy and the development of more precise biological models of mental disorders. ",
+          " В представленном кратком научно-аналитическом обзоре рассмотрены ограничения традиционных категориальных диагностических систем — Международной классификации болезней (МКБ) и Диагностического и статистического руководства по психическим расстройствам (DSM) — при формировании гомогенных групп для биологических исследований и применении полученных результатов для решения клинических задач. В качестве альтернативы рассматриваются новые психопатологические систематики RDoC (Research Domain Criteria) и HiTOP (Hierarchical Taxonome of Psychopatology). В обзоре основное внимание уделено систематике HiTOP, построенной по иерархическому принципу. В рамках этой систематики клиническая картина рассматривается как многоуровневая система, где на верхнем уровне помещается некий общий фактор психопатологии, названный фактором Р, на среднем — психопатологические домены или спектры, включающие более конкретные виды фенотипических проявлений: депрессивность, когнитивные нарушения, импульсивность, психотичность. Нижний уровень представлен отдельными признаками (например, бессонницей или суицидальностью), характерными для конкретного случая, но не определяющими клиническую картину в целом. Кроме того, систематика учитывает степень дезадаптации пациента в связи с конкретным симптомом, а также влияние внешних факторов на выраженность симптомов и степень дезадаптации. В качестве иллюстрации рациональности такого подхода в обзоре представлены нокаутные модели двух доменов — когнитивного и тревожного. На примере нокаута нескольких генов ( Kmo ,  Gabrb2 ,  Grm2 / 3 ,  Grm1 ,  Plcb1 ,  Taar1 ,  Disc1 ,  Slc6a4 ,  Htr1a ,  Htr2c ,  Slitrk5 ) показано, что специфические генетические нарушения приводят к реализации разнообразных поведенческих фенотипов, в частности различных комбинаций когнитивных и эмоциональных нарушений, часто встречающихся в качестве трансдиагностических симптомов при различных нозологиях. В обзоре обсуждаются возможности применения подхода HiTOP и данных, полученных в исследованиях нокаутных животных, для индивидуализации терапии и разработки более точных биологических моделей психических расстройств. "
+        ],
+        "DC.Format": [
+          "application/pdf"
+        ],
+        "DC.Identifier": [
+          "696660"
+        ],
+        "DC.Identifier.pageNumber": [
+          "5-12"
+        ],
+        "DC.Identifier.DOI": [
+          "10.17816/phbn696660"
+        ],
+        "DC.Identifier.EDN": [
+          "DKNNUC"
+        ],
+        "DC.Identifier.URI": [
+          "https://journals.eco-vector.com/1606-8181/article/view/696660"
+        ],
+        "DC.Language": [
+          "ru"
+        ],
+        "DC.Rights": [
+          "Eco-Vector, 2026",
+          "Эко-Вектор, 2026",
+          "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+        ],
+        "DC.Source": [
+          "Psychopharmacology and Addiction Biology",
+          "Психофармакология и биологическая наркология"
+        ],
+        "DC.Source.ISSN": [
+          "2070-5670"
+        ],
+        "DC.Source.URI": [
+          "https://journals.eco-vector.com/1606-8181"
+        ],
+        "DC.Source.Issue": [
+          "1"
+        ],
+        "DC.Source.Volume": [
+          "17"
+        ],
+        "DC.Subject": [
+          "genetic knockouts",
+          "knockout models",
+          "cognitive impairments",
+          "anxiety disorders",
+          "HiTOP",
+          "personalized psychiatry",
+          "review",
+          "генетические нокауты",
+          "нокаутные модели",
+          "когнитивные нарушения",
+          "тревожные расстройства",
+          "HiTOP",
+          "персонализированная психиатрия",
+          "обзор"
+        ],
+        "DC.Title": [
+          "Genetic knockouts and the Hierarchical Taxonomy of Psychopathology (HiTOP): a path toward individualized psychiatry (a brief narrative review)",
+          "Генетические нокауты и иерархическая таксономия HiTOP: путь развития индивидуализированной психиатрии (краткий нарративный обзор)"
+        ],
+        "DC.Title.Alternative": [
+          "Genetic knockouts and the Hierarchical Taxonomy of Psychopathology (HiTOP): a path toward individualized psychiatry (a brief narrative review)",
+          "Генетические нокауты и иерархическая таксономия HiTOP: путь развития индивидуализированной психиатрии (краткий нарративный обзор)"
+        ],
+        "DC.Type": [
+          "Text.Serial.Journal"
+        ],
+        "DC.Type.articleType": [
+          "Научные обзоры"
+        ],
+        "citation_journal_title": [
+          "Psychopharmacology and Addiction Biology",
+          "Психофармакология и биологическая наркология"
+        ],
+        "citation_issn": [
+          "2070-5670"
+        ],
+        "citation_author": [
+          "Margarita A. Morozova",
+          "Морозова Маргарита Алексеевна"
+        ],
+        "citation_author_institution": [
+          "Scientific Center for Mental Health",
+          "Научный центр психического здоровья"
+        ],
+        "citation_title": [
+          "Genetic knockouts and the Hierarchical Taxonomy of Psychopathology (HiTOP): a path toward individualized psychiatry (a brief narrative review)",
+          "Генетические нокауты и иерархическая таксономия HiTOP: путь развития индивидуализированной психиатрии (краткий нарративный обзор)"
+        ],
+        "citation_date": [
+          "2026/01/27"
+        ],
+        "citation_volume": [
+          "17"
+        ],
+        "citation_issue": [
+          "1"
+        ],
+        "citation_firstpage": [
+          "5"
+        ],
+        "citation_lastpage": [
+          "12"
+        ],
+        "citation_doi": [
+          "10.17816/phbn696660"
+        ],
+        "citation_edn": [
+          "DKNNUC"
+        ],
+        "citation_abstract_html_url": [
+          "https://journals.eco-vector.com/1606-8181/article/view/696660"
+        ],
+        "citation_fulltext_html_url": [
+          "https://journals.eco-vector.com/1606-8181/article/view/696660",
+          "https://journals.eco-vector.com/1606-8181/article/view/696660/218301",
+          "https://journals.eco-vector.com/1606-8181/article/view/696660/218356"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_keywords": [
+          "genetic knockouts",
+          "knockout models",
+          "cognitive impairments",
+          "anxiety disorders",
+          "HiTOP",
+          "personalized psychiatry",
+          "review",
+          "генетические нокауты",
+          "нокаутные модели",
+          "когнитивные нарушения",
+          "тревожные расстройства",
+          "HiTOP",
+          "персонализированная психиатрия",
+          "обзор"
+        ],
+        "citation_pdf_url": [
+          "https://journals.eco-vector.com/1606-8181/article/download/696660/223290"
+        ]
+      },
+      "links": [
+        {
+          "label": "",
+          "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+        },
+        {
+          "label": "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License",
+          "url": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+        }
+      ],
+      "nodes": [
+        {
+          "tag": "li",
+          "id": "navItem-content",
+          "class": [
+            "navItem"
+          ],
+          "characters": 77,
+          "childTags": [
+            "a",
+            "ul"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "content",
+          "class": null,
+          "characters": 32337,
+          "childTags": [
+            "article",
+            "br",
+            "br",
+            "br",
+            "a",
+            "br",
+            "a",
+            "span",
+            "br",
+            "hr",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleFullText",
+          "class": null,
+          "characters": 16,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "li",
+          "id": "fullTextLabel",
+          "class": null,
+          "characters": 12,
+          "childTags": [
+            "a"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleAbstract",
+          "class": null,
+          "characters": 2118,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "articleSubject",
+          "class": null,
+          "characters": 234,
+          "childTags": [
+            "h2",
+            "div"
+          ]
+        },
+        {
+          "tag": "div",
+          "id": "modalCitationsDataContent",
+          "class": null,
+          "characters": 0,
+          "childTags": []
+        },
+        {
+          "tag": "div",
+          "id": "articleCitations",
+          "class": [
+            "articleCitationsHeader"
+          ],
+          "characters": 5793,
+          "childTags": [
+            "div"
+          ]
+        }
+      ]
+    }
+  ],
+  "scope": "Metadata, explicit licenses and structure only. No acquired article body in this inspection report."
+}
