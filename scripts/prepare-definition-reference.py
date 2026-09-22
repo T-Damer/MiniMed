@@ -54,10 +54,13 @@ def main() -> None:
     if (report['schemaVersion'] != 7 or report['entries'] != expected_entries
             or report['logicalRoundTripEqual'] is not True):
         raise ValueError('Reference build differs from its verified input manifest.')
-    with database.open('rb') as source_bytes, archive.open('xb') as out:
-        with gzip.GzipFile(filename='', mode='wb', fileobj=out, mtime=0) as compressed:
-            while block := source_bytes.read(1024 * 1024):
-                compressed.write(block)
+    with (
+        database.open('rb') as source_bytes,
+        archive.open('xb') as out,
+        gzip.GzipFile(filename='', mode='wb', fileobj=out, mtime=0) as compressed,
+    ):
+        while block := source_bytes.read(1024 * 1024):
+            compressed.write(block)
     with gzip.open(archive, 'rb') as decoded:
         decoded_hash = 'sha256:' + hashlib.file_digest(decoded, 'sha256').hexdigest()
     checksum = sha256(database)
