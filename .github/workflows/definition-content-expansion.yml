@@ -1,0 +1,197 @@
+name: Definition content expansion
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/definition-content-expansion.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-definition-content-expansion
+  cancel-in-progress: false
+jobs:
+  expand:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - name: Normalize scoped authoring code and keep strict checks
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import ast, io, tokenize
+          from pathlib import Path
+          p=Path('tools/ingest/src/localmed_ingest/wikipedia_definitions.py');s=p.read_text()
+          s=s.replace('for k in value):','for k in cast(dict[object, object], value)):')
+          s=s.replace(r'r"\b(шкал|опросник|тест)\w*"',r'r"\b(?:шкал[а-я]*|опросник[а-я]*|тест(?:ы|а|ов|ирование)?)(?=\s|$)"')
+          p.write_text(s)
+          p=Path('tools/ingest/tests/test_wikipedia_definitions.py');s=p.read_text()
+          s=s.replace('project_page, sha, source_descriptor,','project_page, sha, source_descriptor, items,')
+          s=s.replace("written['inputs'][0]", "items(written['inputs'])[0]")
+          s=s.replace("list(written['inputs'])", "items(written['inputs'])")
+          s=s.replace("value['sources'][0]", "items(value['sources'])[0]")
+          p.write_text(s)
+          paths=[Path(p) for p in [
+            'tools/ingest/src/localmed_ingest/wikipedia_definitions.py',
+            'tools/ingest/src/localmed_ingest/definition_source_manifest.py',
+            'tools/ingest/tests/test_wikipedia_definitions.py',
+            'scripts/refresh-definition-inputs.py','scripts/prepare-definition-reference.py']]
+          # Mechanical wrapping preserves the parsed Python AST, including exact source literals.
+          for p in paths:
+            s=p.read_text();original=ast.dump(ast.parse(s));lines=s.splitlines(keepends=True)
+            offsets=[];n=0
+            for line in lines: offsets.append(n);n+=len(line)
+            edits=[]
+            for t in tokenize.generate_tokens(io.StringIO(s).readline):
+              if t.type != tokenize.STRING or t.start[0]!=t.end[0] or len(t.string)<90: continue
+              try: value=ast.literal_eval(t.string)
+              except (ValueError,SyntaxError): continue
+              if not isinstance(value,str): continue
+              indent=' '*(len(lines[t.start[0]-1])-len(lines[t.start[0]-1].lstrip())+4)
+              parts=[value[i:i+65] for i in range(0,len(value),65)]
+              replacement='(\n'+''.join(indent+repr(x)+'\n' for x in parts)+indent[:-4]+')'
+              edits.append((offsets[t.start[0]-1]+t.start[1],offsets[t.end[0]-1]+t.end[1],replacement))
+            for start,end,replacement in reversed(edits): s=s[:start]+replacement+s[end:]
+            assert ast.dump(ast.parse(s))==original,p
+            p.write_text(s)
+          PY
+          files='tools/ingest/src/localmed_ingest/wikipedia_definitions.py tools/ingest/src/localmed_ingest/definition_source_manifest.py tools/ingest/tests/test_wikipedia_definitions.py scripts/refresh-definition-inputs.py scripts/prepare-definition-reference.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          mkdir -p data/build/definition-expansion
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_wikipedia_definitions.py tools/ingest/tests/test_definition_reference_pack.py tools/ingest/tests/test_definition_reference_compact.py --junitxml=data/build/definition-expansion/tests.xml
+      - name: Collect bounded new source descriptions, not previous clinical packs
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.wikipedia_definitions \
+            --config content/definition-drafts/ruwiki-selection-2026.09.22.json \
+            --output content/definition-drafts/ruwiki-medical-2026.09.22 \
+            --cache data/build/definition-expansion/wiki-api-cache
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/refresh-definition-inputs.py --collection content/definition-drafts/ruwiki-medical-2026.09.22
+      - name: Rebuild current SQLite and source-linked runtime metadata
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/prepare-definition-reference.py --version 2026.09.22-terms --built-at 2026-09-22
+      - name: Verify every new source record against the actual SQLite edition
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import hashlib,json,sqlite3,xml.etree.ElementTree as ET
+          from pathlib import Path
+          collection=Path('content/definition-drafts/ruwiki-medical-2026.09.22')
+          manifest=json.loads((collection/'manifest.json').read_bytes())
+          source_manifest=json.loads(Path('content/definition-drafts/source-inputs.json').read_bytes())
+          dbpath=Path('apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-terms.db')
+          report=json.loads(Path(str(dbpath)+'.report.json').read_bytes())
+          assert report['entries']==source_manifest['entries']
+          assert report['logicalRoundTripEqual'] is True
+          count=0
+          with sqlite3.connect(f'file:{dbpath}?mode=ro',uri=True) as db:
+            assert db.execute('PRAGMA integrity_check').fetchone()==('ok',)
+            assert db.execute('PRAGMA foreign_key_check').fetchall()==[]
+            for part in manifest['parts']:
+              payload=json.loads((collection/part['path']).read_bytes())
+              blocks={b['id']:b for b in payload['blocks']}
+              for term in payload['terms']:
+                linked=db.execute('SELECT c.original_text,c.metadata_json FROM definition_reference_links l JOIN chunks c ON c.id=l.chunk_id WHERE l.entity_id=? AND l.link_type=?',(term['id'],'reference:definition')).fetchall()
+                assert len(linked)==1,term['id']
+                block=blocks[term['blockIds'][0]]
+                assert linked[0][0]==block['text'],term['id']
+                metadata=json.loads(linked[0][1])
+                for key in ('pageId','path','apiResponseSha256','sourcePageRecordSha256','retrievedAt','revisionBinding'):
+                  assert metadata[key]==block[key],(term['id'],key)
+                count+=1
+            assert count==manifest['entries']
+          suites=ET.parse('data/build/definition-expansion/tests.xml').getroot()
+          stats={key:sum(int(s.get(key,'0')) for s in suites.findall('testsuite')) for key in ('tests','failures','errors','skipped')}
+          assert stats['failures']==stats['errors']==0
+          result={'inputCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':stats,'newSourceRecordsVerified':count,'combinedRecords':report['entries'],'sourceTextAndLocatorsExact':True,'integrity':'ok','foreignKeyViolations':0,'sqliteBytes':dbpath.stat().st_size,'downloadBytes':Path(str(dbpath)+'.gz').stat().st_size,'sqliteSha256':hashlib.sha256(dbpath.read_bytes()).hexdigest(),'sourceManifestSha256':report['sourceManifestSha256'],'boundaries':'Actual full SQLite rebuild and exact fidelity of every new API-source record. No browser/Android or independent reverse-search/clinical qualification. TextExtracts snapshots are not falsely attributed to observed revision IDs. Raw authoring snapshots are excluded from the app input manifest.'}
+          Path('docs/research/definition-expansion-build-2026-09-22.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps(result,ensure_ascii=False,indent=2))
+          PY
+      - name: Record active priorities and actual collection evidence
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import json
+          from pathlib import Path
+          delta=json.loads(Path('docs/research/definition-expansion-2026-09-22.json').read_text())
+          build=json.loads(Path('docs/research/definition-expansion-build-2026-09-22.json').read_text())
+          collection=json.loads(Path('content/definition-drafts/ruwiki-medical-2026.09.22/collection-report.json').read_text())
+          p=Path('docs/DEFINITION_REFERENCE_PLAN.md');s=p.read_text();anchor='## Execution order and acceptance\n';assert s.count(anchor)==1
+          section='''## Current user priority — content first (2026-09-22)
+
+          The user explicitly permits breaking DEV code/file formats; backward-compatibility engineering
+          is not a requirement for this development stage. Current execution order is **R3/R5 content
+          collection, source-fidelity QA and database rebuilds**, then content-driven search improvements.
+          R2 streaming/device/lifecycle work is deferred, not falsely marked complete. Personal data,
+          source traceability, clinical-review and publication-rights boundaries remain unchanged.
+          See [the dated scope override](research/definition-content-priority-2026-09-22.md).
+
+          '''
+          section='\n'.join(line[10:] if line.startswith('          ') else line for line in section.splitlines())
+          s=s.replace(anchor,section+'\n'+anchor)
+          s+=f"\n- 2026-09-22: content-first batch added {delta['newSourceRecords']} Russian Wikipedia introduction records, with {delta['newNameSurfaces']} previously absent normalized name surfaces and {delta['existingNameSurfacesWithAdditionalSource']} existing names receiving another source. Current combined corpus: {delta['combinedRecords']}. Exact source-text/location comparison passed for every new record in a real SQLite rebuild. These are unreviewed source descriptions, not completed/executable scales. DEV source manifest replaces the fixed-count preparer. Source and build evidence are in `research/definition-expansion-2026-09-22.json` and `research/definition-expansion-build-2026-09-22.json`.\n"
+          p.write_text(s)
+          p=Path('docs/CURRENT_STATE.md');s=p.read_text();anchor='# Current state\n';assert s.count(anchor)==1
+          block=f'''\n## Content-first dictionary expansion — 2026-09-22
+
+          Per the user's explicit request, collecting terminology and rebuilding data now precedes
+          additional compatibility/streaming/lifecycle work. Breaking DEV formats are permitted;
+          user/private source data is not disposable and publication boundaries still apply.
+
+          Added **{delta['newSourceRecords']}** original Russian encyclopedic introductions from the
+          declared bounded medical category traversal. **{delta['newNameSurfaces']}** normalized names
+          were absent from the earlier source set; **{delta['existingNameSurfacesWithAdditionalSource']}**
+          names gained another source-specific description. Combined source/editorial records:
+          **{delta['combinedRecords']}**, not that many proven canonical concepts. The collector records
+          skipped candidates, category depth/budget limits and exact API response snapshots. It does
+          not invent full scales, root translations or biographies from names.
+
+          The actual local SQLite was rebuilt: **{build['sqliteBytes']} bytes installed /
+          {build['downloadBytes']} gzip bytes**. Every new source record's text and locators matched
+          the final file. {build['tests']['tests']} selected Python cases, strict authoring type/lint
+          checks and SQLite integrity/foreign-key checks passed. No new UI/Android/clinical evaluation
+          is implied. The app preparer now uses `content/definition-drafts/source-inputs.json` rather
+          than a hard-coded 18,133-record assumption. Raw API snapshots are authoring evidence only,
+          never device download dependencies. The owner textbook's 450 private records remain separate.
+
+          Evidence: `research/definition-expansion-2026-09-22.json`,
+          `research/definition-expansion-build-2026-09-22.json`, and
+          `../content/definition-drafts/ruwiki-medical-2026.09.22/collection-report.json`.
+          No model, private PDF/text, database binary, APK, release or merge was published.
+
+          '''
+          block='\n'.join(line[10:] if line.startswith('          ') else line for line in block.splitlines())
+          p.write_text(s.replace(anchor,anchor+block+'\n',1))
+          p=Path('AGENTS.md');s=p.read_text();anchor='## Before editing\n';assert s.count(anchor)==1
+          s=s.replace(anchor,'## DEV format policy (user decision, 2026-09-22)\n\nBreaking changes to DEV code and prepared file formats are allowed. Do not add legacy-format\nadapters merely for compatibility. Current reference priority is source collection and database\nrefreshes; preserve private/user data and exact provenance even when rebuilding generated packs.\n\n'+anchor)
+          p.write_text(s)
+          p=Path('scripts/verify-reference-app.mjs');s=p.read_text()
+          s=s.replace('assert.equal(descriptor.module.definitionReference.entries, 18133);',"const sourceManifest = JSON.parse(await readFile(resolve(root, 'content/definition-drafts/source-inputs.json'), 'utf8'));\nassert.equal(descriptor.module.definitionReference.entries, sourceManifest.entries);")
+          s=s.replace('Full 18,133-entry optional edition installed', 'Full manifest-counted optional edition installed')
+          p.write_text(s)
+          PY
+      - name: Commit only source data, preparers and measured reports to the existing PR
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add AGENTS.md docs/DEFINITION_REFERENCE_PLAN.md docs/CURRENT_STATE.md \
+            tools/ingest/src/localmed_ingest/wikipedia_definitions.py \
+            tools/ingest/src/localmed_ingest/definition_source_manifest.py \
+            tools/ingest/tests/test_wikipedia_definitions.py \
+            scripts/refresh-definition-inputs.py scripts/prepare-definition-reference.py scripts/verify-reference-app.mjs \
+            content/definition-drafts/source-inputs.json content/definition-drafts/ruwiki-medical-2026.09.22 \
+            docs/research/definition-expansion-2026-09-22.json docs/research/definition-expansion-build-2026-09-22.json
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): expand Russian medical dictionary and rebuild verified source edition [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: Publication boundary
+        if: always()
+        run: echo 'Source text and compact receipts only. No SQLite binary, private document, model, release, APK or Actions artifact is uploaded.' >> "$GITHUB_STEP_SUMMARY"
