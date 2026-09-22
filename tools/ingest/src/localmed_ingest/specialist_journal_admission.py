@@ -68,8 +68,7 @@ def admit_article(payload: object) -> tuple[dict[str, object], dict[str, object]
     projection.add(original, digest(encoded(original)))
     terms = [obj(value) for value in seq(original.get("terms"), 5000)]
     blocks = {
-        number(obj(value).get("id")): obj(value)
-        for value in seq(original.get("blocks"), 10000)
+        number(obj(value).get("id")): obj(value) for value in seq(original.get("blocks"), 10000)
     }
     selected: list[dict[str, object]] = []
     excluded: list[dict[str, object]] = []
@@ -77,7 +76,7 @@ def admit_article(payload: object) -> tuple[dict[str, object], dict[str, object]
     overviews = 0
     for term in terms:
         title = text(term.get("title"), 500)
-        if term.get("recordRole") == "article-overview-not-term":
+        if term.get("recordRole") == "article-overview-not-independent-term":
             overviews += 1
             selected.append(term)
             counts["articleOverviews"] += 1
@@ -91,7 +90,9 @@ def admit_article(payload: object) -> tuple[dict[str, object], dict[str, object]
             raise ValueError("Journal label differs from its exact source span")
         issue = candidate_issue(title)
         if issue is not None:
-            excluded.append({"id": term["id"], "title": title, "reason": issue, "labelEvidence": evidence})
+            excluded.append(
+                {"id": term["id"], "title": title, "reason": issue, "labelEvidence": evidence}
+            )
             continue
         selected.append(term)
         coverage = term.get("coverage")

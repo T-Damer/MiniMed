@@ -1,5 +1,24 @@
 # Definition reference: execution plan
 
+## Original specialist journal reference refresh — 2026-09-22
+
+Active source/editorial records: **18231**, including
+**98** newly selected records from **20**
+original journal publications. Article overviews, definitions, section cards and
+criterion lists are counted separately in `research/specialist-reference-delivery-2026-09-22.json`.
+37 sentence/context labels are not indexed as standalone
+terms; all original article blocks remain readable. 10 selected
+articles are pending instead of bypassing unavailable full text or uncertain reuse rights.
+Author dates, classifications, caveats and CC licensing including non-commercial restrictions
+remain explicit. Source clinical review and public release eligibility are not promoted.
+
+Real SQLite: 116154368 bytes; gzip transport: 28400266 bytes.
+98 scoped tests passed. All selected source blocks/metadata were compared,
+archived journal fragments replayed without networking, and complete new source cards were
+reconstructed using the actual bounded reader. No private PDF, Wikipedia, model, APK or
+published core was changed. Prepare DEV version `2026.09.22-specialist-journals`.
+More substantive specialist sources remain ahead of compatibility/installer work.
+
 ## Source-policy override: specialist medicine, no Wikipedia — 2026-09-22
 
 The user rejects Wikipedia as a medical reference source. Stop new Wikipedia collection;

@@ -1,22 +1,34 @@
+import { Database } from 'bun:sqlite';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { Database } from 'bun:sqlite';
 import { z } from 'zod';
 import { createSqliteDefinitionReference } from '../../../packages/storage-sqlite/src/definition-reference-reader';
 
 const ExpectedBlock = z.object({
-  chunkId: z.string(), role: z.string(), sourceId: z.string(),
-  characters: z.number().int().nonnegative(), sha256: z.string().regex(/^[a-f0-9]{64}$/u),
+  chunkId: z.string(),
+  role: z.string(),
+  sourceId: z.string(),
+  characters: z.number().int().nonnegative(),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/u),
 });
 const ExpectedCard = z.object({
-  id: z.string(), title: z.string(), coverage: z.string(), blocks: z.array(ExpectedBlock),
+  id: z.string(),
+  title: z.string(),
+  coverage: z.string(),
+  blocks: z.array(ExpectedBlock),
 });
 const [databasePath, expectedPath, reportPath] = process.argv.slice(2);
 if (!databasePath || !expectedPath || !reportPath) {
-  throw new Error('Usage: verify-specialist-journal-cards.ts database expected-cards.json report.json');
+  throw new Error(
+    'Usage: verify-specialist-journal-cards.ts database expected-cards.json report.json',
+  );
 }
-const expected = z.array(ExpectedCard).min(1).max(5000).parse(JSON.parse(readFileSync(expectedPath, 'utf8')));
+const expected = z
+  .array(ExpectedCard)
+  .min(1)
+  .max(5000)
+  .parse(JSON.parse(readFileSync(expectedPath, 'utf8')));
 const database = new Database(databasePath, { readonly: true });
 let adapterCalls = 0;
 let maximumRows = 0;
@@ -93,12 +105,18 @@ try {
     assert.equal(received.length, card.blocks.length);
   }
   const report = {
-    cardsReconstructed: expected.length, blockReads, textSlices,
+    cardsReconstructed: expected.length,
+    blockReads,
+    textSlices,
     maximumTextSliceCodePoints: largestTextSlice,
     sourceReferencesResolved: resolvedSources.size,
     namesWithExactSourceIdAt20: expected.length - nameMisses.length,
-    nameMisses, adapterCalls, maximumRows, maximumReplyBytes,
-    boundary: 'Actual file-backed SQLite reader and complete journal card/context reconstruction. Not browser, Android, clinical review or independent reverse-search evaluation.',
+    nameMisses,
+    adapterCalls,
+    maximumRows,
+    maximumReplyBytes,
+    boundary:
+      'Actual file-backed SQLite reader and complete journal card/context reconstruction. Not browser, Android, clinical review or independent reverse-search evaluation.',
   };
   writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`);
   console.log(JSON.stringify(report, null, 2));

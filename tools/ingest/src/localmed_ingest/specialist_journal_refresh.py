@@ -67,17 +67,21 @@ def compose_selected(collections: tuple[Path, ...], output: Path) -> dict[str, o
                     if isinstance(count, bool) or not isinstance(count, int) or count < 0:
                         raise ValueError("Invalid admission count")
                     counts[key] += count
-                outcomes.append({
-                    **row,
-                    "collection": collection.as_posix(),
-                    "prepared": filename,
-                    "preparedSha256": hashlib.sha256(data).hexdigest(),
-                    "replayedCandidateSha256": hashlib.sha256(candidate).hexdigest(),
-                    "records": len(terms),
-                    "names": [term["title"] for term in terms],
-                    "distinctNormalizedNames": len({normalized_name(text(t["title"])) for t in terms}),
-                    "admission": admission,
-                })
+                outcomes.append(
+                    {
+                        **row,
+                        "collection": collection.as_posix(),
+                        "prepared": filename,
+                        "preparedSha256": hashlib.sha256(data).hexdigest(),
+                        "replayedCandidateSha256": hashlib.sha256(candidate).hexdigest(),
+                        "records": len(terms),
+                        "names": [term["title"] for term in terms],
+                        "distinctNormalizedNames": len(
+                            {normalized_name(text(t["title"])) for t in terms}
+                        ),
+                        "admission": admission,
+                    }
+                )
         if not counts["articles"]:
             raise ValueError("No eligible source article was selected")
         report = {
