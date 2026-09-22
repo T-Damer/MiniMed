@@ -1,0 +1,101 @@
+{
+  "policy": "specialist-medical-sources-2026-09-22",
+  "previousRecords": 25770,
+  "excludedWikipediaRecords": 7637,
+  "selectedRecords": 18133,
+  "retainedWiktionaryLexicalSenses": 6939,
+  "selectedOtherSourceRecords": 11194,
+  "excludedInputs": [
+    {
+      "bytes": 2229827,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-001.json",
+      "sha256": "289681e6c2bfca0e36e54968e45ac8c5fc9af8d828bc18c7a8aaf2d6779661cc"
+    },
+    {
+      "bytes": 2056081,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-002.json",
+      "sha256": "c0c3d240336f83077a809a67705bfd9078fbf3f6fc782a37714c270ae28a6bdf"
+    },
+    {
+      "bytes": 1885316,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-003.json",
+      "sha256": "2ef930b83b110cc3b493b5e1b624575cd66f1caa4bc44cfc1f24c92e6b506eac"
+    },
+    {
+      "bytes": 2161649,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-004.json",
+      "sha256": "e4e497a33e817b243fe45618ed0574be0a969fcdf35155825ab99512e05c502d"
+    },
+    {
+      "bytes": 2007186,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-005.json",
+      "sha256": "77d5241517265689f285762a14ddc27931bca376fa9914c25344330822adeedb"
+    },
+    {
+      "bytes": 2017236,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-006.json",
+      "sha256": "3cf67bb67c672774704c7641cdf6bea95e425cd8009278bd7b1294c56f28ea51"
+    },
+    {
+      "bytes": 2066880,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-007.json",
+      "sha256": "2e53c98dc863a8ae9c5f69b8dc498578606e1ba5ff308d0d9bafde492fc1e903"
+    },
+    {
+      "bytes": 2191464,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-008.json",
+      "sha256": "fb0d90d2c93c01a6880b0a1a8248fdd20e7a161ff3b0a3b632d9ab4c18439403"
+    },
+    {
+      "bytes": 2152686,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-009.json",
+      "sha256": "c76084b6c1c5227583827ab2e01b0455724b6f9a79c49bcb3c144d88b0922ade"
+    },
+    {
+      "bytes": 1994450,
+      "entries": 750,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-010.json",
+      "sha256": "77526d6698665819f5e2bf87c8d539567d34cb7d1ac9cad01c1ba22a6351f798"
+    },
+    {
+      "bytes": 429333,
+      "entries": 137,
+      "path": "content/definition-drafts/ruwiki-reference-2026.09.22-v2/records-011.json",
+      "sha256": "4cc4976f7e251e1d56904401ee78239589ff47764e3cab145a3ee1e7f72e8c69"
+    }
+  ],
+  "priorManifestSha256": "cbc6bf6a3cf2e30acb20436cbb98204fbf8b1c4c3b38e870965001c11f648f44",
+  "activeManifestSha256": "8408f31d0d59152fa77c4f1c63ca1593ffa7d80107dae4dc9aea0cb288ff5b0b",
+  "archivedManifest": "content/definition-drafts/archived-manifests/source-inputs.with-wikipedia-2026.09.22.json",
+  "sourceFilesDeleted": 0,
+  "boundary": "Wikipedia only is excluded. Retained sources including Wiktionary are not automatically medically approved. No new specialist articles imported in this policy pass.",
+  "sqliteWikipediaRecords": 0,
+  "checkedCommit": "4de733d51f6bba7452701f0249002e8c998cf185",
+  "runId": "35750990363",
+  "tests": {
+    "tests": 60,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "installedBytes": 112111616,
+  "downloadBytes": 27408604,
+  "sqliteSha256": "e159f39c45b59aa7d78bb723f34446701d02b90b7036a497e5ba1de60d9d037f",
+  "sourceInputsUnchanged": true,
+  "exactSelectedIdentitySet": true,
+  "logicalRoundTripEqual": true,
+  "integrity": "ok",
+  "foreignKeyViolations": 0,
+  "strictTypecheck": "passed",
+  "newSourceArticles": 0,
+  "publishedBinary": false
+}

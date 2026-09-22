@@ -12,7 +12,9 @@ from pathlib import Path
 from localmed_ingest.definition_reference_compact_pack import (
     build_compact_definition_reference,
 )
+from localmed_ingest.definition_reference_pack import obj
 from localmed_ingest.definition_source_manifest import read_source_manifest
+from localmed_ingest.definition_source_policy import require_active_definition_source
 
 
 def sha256(path: Path) -> str:
@@ -42,6 +44,8 @@ def main() -> None:
     root = Path(__file__).resolve().parent.parent
     source_manifest = root / "content/definition-drafts/source-inputs.json"
     inputs, expected_entries = read_source_manifest(root, source_manifest)
+    for source_input in inputs:
+        require_active_definition_source(obj(json.loads(source_input.read_bytes())))
     destination = root / "apps/app/public/content/definition-reference"
     file_name = f"minimed.definition.reference.{args.version}.db"
     database = destination / file_name

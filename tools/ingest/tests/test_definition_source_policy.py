@@ -8,18 +8,21 @@ from localmed_ingest.definition_source_policy import (
 )
 
 
-@pytest.mark.parametrize("source", [
-    {"baseUrl": "https://ru.wikipedia.org/wiki/"},
-    {"url": "https://en.wikipedia.org/wiki/Example"},
-    {"sourceUrl": "https://ru.m.wikipedia.org/wiki/Example"},
-    {"baseUrl": "https://RU.WIKIPEDIA.ORG./wiki/"},
-    {"baseUrl": "//wikipedia.org/wiki/Example"},
-    {"sourceProject": "ru.wikipedia.org"},
-    {"sourceProject": "Wikipedia"},
-    {"sourceType": "wikipedia-api-parsed-sections"},
-    {"sourceType": "wikipedia_api_extracts"},
-    {"baseUrl": "https://mirror.example/", "sourceProject": "ru.wikipedia.org"},
-])
+@pytest.mark.parametrize(
+    "source",
+    [
+        {"baseUrl": "https://ru.wikipedia.org/wiki/"},
+        {"url": "https://en.wikipedia.org/wiki/Example"},
+        {"sourceUrl": "https://ru.m.wikipedia.org/wiki/Example"},
+        {"baseUrl": "https://RU.WIKIPEDIA.ORG./wiki/"},
+        {"baseUrl": "//wikipedia.org/wiki/Example"},
+        {"sourceProject": "ru.wikipedia.org"},
+        {"sourceProject": "Wikipedia"},
+        {"sourceType": "wikipedia-api-parsed-sections"},
+        {"sourceType": "wikipedia_api_extracts"},
+        {"baseUrl": "https://mirror.example/", "sourceProject": "ru.wikipedia.org"},
+    ],
+)
 def test_direct_and_declared_wikipedia_sources_are_excluded(source: dict[str, str]) -> None:
     payload: dict[str, object] = {"sources": [source], "terms": []}
     assert is_wikipedia_input(payload)
@@ -27,16 +30,19 @@ def test_direct_and_declared_wikipedia_sources_are_excluded(source: dict[str, st
         require_active_definition_source(payload)
 
 
-@pytest.mark.parametrize("source", [
-    {"baseUrl": "https://www.psychiatry.ru/lib/"},
-    {"baseUrl": "https://www.mediasphera.ru/"},
-    {"baseUrl": "https://www.rmj.ru/"},
-    {"baseUrl": "https://ru.wiktionary.org/wiki/"},
-    {"sourceProject": "ru.wiktionary.org"},
-    {"baseUrl": "https://wikipedia.org.example.org/"},
-    {"baseUrl": "https://example.org/?reference=https://ru.wikipedia.org"},
-    {"url": "https://ru.wikipedia.org@example.org/path"},
-])
+@pytest.mark.parametrize(
+    "source",
+    [
+        {"baseUrl": "https://www.psychiatry.ru/lib/"},
+        {"baseUrl": "https://www.mediasphera.ru/"},
+        {"baseUrl": "https://www.rmj.ru/"},
+        {"baseUrl": "https://ru.wiktionary.org/wiki/"},
+        {"sourceProject": "ru.wiktionary.org"},
+        {"baseUrl": "https://wikipedia.org.example.org/"},
+        {"baseUrl": "https://example.org/?reference=https://ru.wikipedia.org"},
+        {"url": "https://ru.wikipedia.org@example.org/path"},
+    ],
+)
 def test_not_excluded_does_not_mean_medically_approved(source: dict[str, str]) -> None:
     payload: dict[str, object] = {"sources": [source], "terms": []}
     assert not is_wikipedia_input(payload)
@@ -78,10 +84,15 @@ def test_mixed_source_input_requires_an_explicit_split_not_silent_partial_text_d
         require_active_definition_source(payload)
 
 
-@pytest.mark.parametrize("payload", [
-    {"sources": "invalid"}, {"sources": ["invalid"]},
-    {"terms": "invalid"}, {"terms": ["invalid"]},
-])
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"sources": "invalid"},
+        {"sources": ["invalid"]},
+        {"terms": "invalid"},
+        {"terms": ["invalid"]},
+    ],
+)
 def test_malformed_source_collections_are_not_silently_accepted(payload: dict[str, object]) -> None:
     with pytest.raises(ValueError):
         require_active_definition_source(payload)

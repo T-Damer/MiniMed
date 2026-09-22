@@ -1,8 +1,27 @@
 # Definition reference: execution plan
 
+## Source-policy override: specialist medicine, no Wikipedia — 2026-09-22
+
+The user rejects Wikipedia as a medical reference source. Stop new Wikipedia collection;
+the normal preparer now rejects direct Wikipedia inputs. Active selection contains
+**18133 records** after excluding **7637 Wikipedia records**.
+Original files and the preceding manifest are retained as audit evidence, not runtime inputs.
+The retained **6939 Wiktionary senses** are a separate pre-existing
+lexical collection, not professional clinical authority. No new specialist articles were
+imported in this policy pass; other retained sources remain review-required.
+
+Actual offline rebuild: 112111616 SQLite bytes / 27408604 gzip bytes.
+Selected identities match exactly, excluded Wikipedia identities are absent, all input files
+retain their preceding hashes, and numeric-projection round-trip/integrity checks pass.
+This changes future DEV builds, not already installed editions or published APKs.
+Source policy and candidate families: `REFERENCE_SOURCE_POLICY.md`; measured evidence:
+`research/definition-specialist-policy-2026-09-22.json`. New build version:
+`2026.09.22-specialist-policy`. Subsequent work is specialist textbook/reference chapters,
+journals and original guideline/instrument documents, not wiki growth, models or installers.
+
 Updated: 2026-09-22. Owner: draft PR #180, `experiment/system-one-search-benchmark`, stacked on #174. This plan refines `TECHNICAL_PLAN.md`; it does not authorize a merge, release, model download or architecture replacement.
 
-## Specialty terms and fuller reference sections — 2026-09-22
+## Earlier Wikipedia-inclusive selection (superseded) — 2026-09-22
 
 Active corpus: **25770 source/editorial records**, including
 **2957 additional page identities** from the new specialty batch.
