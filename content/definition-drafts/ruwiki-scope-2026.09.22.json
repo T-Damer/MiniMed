@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "description": "Content-scope intake over archived category edges. A page remains eligible when it has a separate allowed path; rejected raw sources remain in the authoring archive.",
+  "excludedCategoryPatterns": [
+    "герб|геральдик|флаги|в культуре|изобразительном искусстве|фольклор|литератур|кинематограф|песни|музык|танц|танец|хореограф|сюрреализ",
+    "головные уборы|одежда|кровати|постельные|бюстгальтер|трусы|изделия из человеческой кожи",
+    "умные очки|стереоочки|очки виртуальной|очки дополненной|шагающие машины|игры на развитие",
+    "гистологи|гастроэнтерологи|носители стигматов",
+    "ткани растений|аллюры|полёт живых существ",
+    "спортивные элементы|беговые виды|прыжки в спорте|прыжки в хореографии|спортивная ходьба|пешеходный туризм|элементы гимнастики|элементы фигурного катания"
+  ],
+  "excludedPageTitles": [
+    "Танец", "Кровать", "Подушка", "Матрас", "Одеяло", "Пижама", "Ночная рубашка",
+    "Умные очки", "Стереоочки", "Бейсболка", "Колыбельная", "Сюрреализм",
+    "Сонник", "Толкование сновидений", "Антроподермический переплёт"
+  ],
+  "boundary": "This is source-domain selection, not a clinical fact checker. No filtering by symptoms, person characteristics, treatment agreement or inferred canonical identity. Source descriptions and exact spans are never rewritten."
+}
