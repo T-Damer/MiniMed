@@ -1,5 +1,21 @@
 # Definition reference: execution plan
 
+## Definitions-only dictionary scope — 2026-09-22
+
+Default DEV preparation now selects **8410 source-local definition candidates**
+from **18357 authoring/reference records**. This is selection, not new acquisition.
+Article titles, section excerpts, instrument-only descriptions, history and lexical glosses
+do not inflate the medical-definition count. Full original inputs and every source block,
+context, source descriptor and review/rights marker are retained unchanged.
+The explicit `--scope reference` option builds the full authoring/reference view.
+No automatic clinical approval, synonym merging, executable scale or treatment decision.
+Verified 49 scoped tests, strict Python checks, a complete ordinary SQLite build,
+exact selected identities, all 26685 source blocks and 20316 retained links.
+Evidence: `research/definition-only-scope-2026-09-22.json`.
+DEV version: `2026.09.22-definitions-only`. No APK, release, model or private-source upload.
+Next acquisition targets actual definitions in guidelines, medical dictionaries and named
+teaching sources, not article-count growth. User-provided scales remain a separate local intake.
+
 ## Specialist teaching source intake — final label selection, 2026-09-22
 
 Same 37 complete specialist articles; **126** selected source records.

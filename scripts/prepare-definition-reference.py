@@ -12,7 +12,7 @@ from pathlib import Path
 from localmed_ingest.definition_reference_compact_pack import (
     build_compact_definition_reference,
 )
-from localmed_ingest.definition_reference_pack import obj
+from localmed_ingest.definition_reference_pack import number, obj
 from localmed_ingest.definition_source_manifest import read_source_manifest
 from localmed_ingest.definition_source_policy import require_active_definition_source
 
@@ -22,15 +22,15 @@ def sha256(path: Path) -> str:
         return "sha256:" + hashlib.file_digest(stream, "sha256").hexdigest()
 
 
-def record_label(count: int) -> str:
+def record_label(count: int, *, definitions_only: bool = False) -> str:
     if 11 <= count % 100 <= 14:
-        noun = "исходных записей"
+        noun = "исходных определений" if definitions_only else "исходных записей"
     elif count % 10 == 1:
-        noun = "исходная запись"
+        noun = "исходное определение" if definitions_only else "исходная запись"
     elif 2 <= count % 10 <= 4:
-        noun = "исходные записи"
+        noun = "исходных определения" if definitions_only else "исходные записи"
     else:
-        noun = "исходных записей"
+        noun = "исходных определений" if definitions_only else "исходных записей"
     return f"{count:,}".replace(",", " ") + " " + noun
 
 
@@ -38,6 +38,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", required=True)
     parser.add_argument("--built-at", required=True)
+    parser.add_argument(
+        "--scope", choices=("definitions", "reference"), default="definitions"
+    )
     args = parser.parse_args()
     if not re.fullmatch(r"[a-z0-9]+(?:[.-][a-z0-9]+)*", args.version):
         parser.error("Use a lowercase version separated by dots or hyphens.")
@@ -64,7 +67,15 @@ def main() -> None:
         version=args.version,
         built_at=args.built_at,
         compact_metadata=False,
+        definitions_only=args.scope == "definitions",
     )
+    if args.scope == "definitions":
+        selection = obj(report["selection"])
+        if number(selection["sourceRecordsBefore"]) != expected_entries:
+            raise ValueError(
+                "Definition scope differs from the complete source manifest"
+            )
+        expected_entries = number(selection["definitionRecordsAfter"])
     if (
         report["schemaVersion"] != 7
         or report["entries"] != expected_entries
@@ -93,10 +104,14 @@ def main() -> None:
         "kind": "reference",
         "collection": "definition-reference",
         "title": "Словарь терминов, симптомов и синдромов",
-        "description": record_label(expected_entries)
+        "description": record_label(
+            expected_entries, definitions_only=args.scope == "definitions"
+        )
         + (
-            ": русские определения, описания, шкалы и контекст с точными "
-            "ссылками. Предварительная редакция, требующая проверки."
+            ": определения с исходными формулировками и ссылками. "
+            "Предварительная редакция, требующая проверки."
+            if args.scope == "definitions"
+            else ": справочные записи и контекст. Предварительная редакция, требующая проверки."
         ),
         "required": False,
         "releaseState": "preview",
@@ -157,6 +172,7 @@ def main() -> None:
         )
         + "\n"
     )
+    report["scope"] = args.scope
     report["sourceManifestSha256"] = sha256(source_manifest)
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     print(

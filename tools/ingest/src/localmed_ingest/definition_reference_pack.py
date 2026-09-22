@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import cast
 from urllib.parse import unquote, urljoin, urlsplit
 
+from .definition_reference_scope import definition_scope
 from .models import ContentPack, PackChunk, PackDocument, PackManifest, PackSection, PackVersion
 from .sqlite_builder import inspect_integrity, write_sqlite_pack
 
@@ -554,6 +555,7 @@ def build_definition_reference(
     edition_id: str,
     version: str,
     built_at: str,
+    definitions_only: bool = False,
 ) -> dict[str, object]:
     projection = Projection()
     if not inputs or len(inputs) > 32:
@@ -570,7 +572,15 @@ def build_definition_reference(
         seen.add(receipt)
         projection.add(json.loads(payload), receipt)
         projection.receipts.append({"sha256": receipt, "bytes": len(payload)})
-    return projection.build(output, edition_id=edition_id, version=version, built_at=built_at)
+    selection = None
+    if definitions_only:
+        selected_ids, selection = definition_scope(projection.entries)
+        projection.entries = {
+            key: entry for key, entry in projection.entries.items() if key in selected_ids
+        }
+    report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)
+    report["selection"] = selection
+    return report
 
 
 def main() -> None:

@@ -1,5 +1,18 @@
 # Reference sources: specialist medicine first
 
+## Definition unit override — 2026-09-22
+
+The user requests definitions rather than growth in article/header counts. A dictionary entry
+needs a source-supported definition. Scales, criteria, algorithms and source overviews remain
+separate reference material unless the record itself defines a named concept. Their presence
+does not imply an executable calculator or a treatment rule. Clinical recommendations,
+professional medical dictionaries, named textbooks and inspected specialist sites are eligible
+source families; no source family is automatically clinically reviewed or cleared for reuse.
+The default new DEV dictionary view excludes source-gloss lexical entries without deleting
+their authoring sources; `--scope reference` keeps the full reference selection available.
+Original text/context is retained, not silently rewritten into a synthetic consensus.
+
+
 User decision: 2026-09-22. This supersedes earlier Wikipedia acquisition priorities in
 DEFINITION_REFERENCE_PLAN.md and CURRENT_STATE.md. Work remains in draft PR #180, stacked on
 #174, with no automatic merge, release, private-source upload or model download.

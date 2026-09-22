@@ -54,9 +54,7 @@ def definition_scope(
             kinds[entry.kind] += 1
         else:
             reasons[reason] += 1
-            excluded.append(
-                {"id": identifier, "coverage": entry.coverage, "reason": reason}
-            )
+            excluded.append({"id": identifier, "coverage": entry.coverage, "reason": reason})
     serialized = json.dumps(sorted(selected), separators=(",", ":")).encode("utf-8")
     return selected, {
         "scope": "definitions",
