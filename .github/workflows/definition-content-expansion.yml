@@ -42,12 +42,14 @@ jobs:
             'tools/ingest/src/localmed_ingest/definition_source_manifest.py',
             'tools/ingest/tests/test_wikipedia_definitions.py',
             'scripts/refresh-definition-inputs.py','scripts/prepare-definition-reference.py']]
-          # Rewrite whole constant spans, not individual tokens in implicit concatenations.
           for p in paths:
             tree=ast.parse(p.read_text());original=ast.dump(tree);raw=p.read_bytes();lines=raw.splitlines(keepends=True)
             offsets=[];n=0
             for line in lines: offsets.append(n);n+=len(line)
             forbidden={id(x) for node in ast.walk(tree) if isinstance(node,ast.JoinedStr) for x in ast.walk(node)}
+            for owner in ast.walk(tree):
+              if isinstance(owner,(ast.Module,ast.FunctionDef,ast.AsyncFunctionDef,ast.ClassDef)) and owner.body and isinstance(owner.body[0],ast.Expr):
+                forbidden.add(id(owner.body[0].value))
             edits=[]
             for node in ast.walk(tree):
               if not isinstance(node,ast.Constant) or not isinstance(node.value,str) or id(node) in forbidden or len(node.value)<80: continue
