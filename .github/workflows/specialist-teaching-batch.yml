@@ -25,23 +25,29 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
-      - name: Normalize three long literals without changing acquisition or source data
+      - name: Apply checked-in source fixes before strict validation
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('tools/ingest/src/localmed_ingest/specialist_teaching_discovery.py');s=p.read_text()
-          pairs=[
+          changes={
+          'tools/ingest/src/localmed_ingest/specialist_teaching_discovery.py':[
             ('# Never treat an abstract, author name, download link or arbitrary research item as a lecture.', '# Only actual title links in declared teaching/review sections are candidates.'),
             ('Bounded issue-index discovery only; not full journal coverage, clinical review or licensed text acquisition.', 'Candidate discovery only; no clinical or reuse approval.'),
-          ]
-          for old,new in pairs:
-              assert s.count(old)==1
-              s=s.replace(old,new)
-          p.write_text(s)
-          p=Path('tools/ingest/tests/test_specialist_teaching_batch.py');s=p.read_text()
-          old='<h2>Оригинальные исследования</h2><h3>'
-          assert s.count(old)==1
-          p.write_text(s.replace(old,'<h2>Оригинальные исследования</h2>\n    <h3>'))
+            ('delay = robots.crawl_delay(USER_AGENT) or 0', 'delay = int(robots.crawl_delay(USER_AGENT) or 0)'),
+          ],
+          'tools/ingest/tests/test_specialist_teaching_batch.py':[
+            ('<h2>Оригинальные исследования</h2><h3>', '<h2>Оригинальные исследования</h2>\n    <h3>'),
+          ],
+          'tools/ingest/src/localmed_ingest/specialist_journal_bundles.py':[
+            ('    root = root.resolve()\n', '    root = root.resolve()\n    selected = selected.resolve(strict=True)\n'),
+          ]}
+          for path,pairs in changes.items():
+              p=Path(path);s=p.read_text()
+              for old,new in pairs:
+                  if new in s: continue
+                  assert s.count(old)==1, path+': '+old[:80]
+                  s=s.replace(old,new)
+              p.write_text(s)
           PY
       - name: Locked scoped checks before acquisition
         run: |
@@ -60,21 +66,27 @@ jobs:
             --junitxml=data/build/specialist-teaching-tests.xml
       - name: Discover original lecture and review contents with bounded publisher requests
         run: |
-          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.specialist_teaching_discovery \
-            --output content/definition-drafts/specialist-teaching-discovery-2026.09.22-b
+          if [ ! -f content/definition-drafts/specialist-teaching-discovery-2026.09.22-b/discovery-report.json ]; then
+            env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.specialist_teaching_discovery \
+              --output content/definition-drafts/specialist-teaching-discovery-2026.09.22-b
+          fi
       - name: Collect full licensed article text without following subscription or mirror links
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
           import json
           from pathlib import Path
-          from localmed_ingest.specialist_journal_collect import collect
+          from localmed_ingest.specialist_journal_collect import collect,replay
           root=Path('content/definition-drafts/specialist-teaching-discovery-2026.09.22-b')
           report=json.loads((root/'discovery-report.json').read_text())
           collections=[]; failures=[]
           for i,name in enumerate(report['selections'],1):
               output=Path(f'content/definition-drafts/specialist-teaching-acquired-2026.09.22-b{i}')
               try:
-                  result=collect(root/name,output)
+                  if output.exists():
+                      replay(output)
+                      result=json.loads((output/'collection-report.json').read_text())
+                  else:
+                      result=collect(root/name,output)
                   collections.append(output.as_posix())
                   print(json.dumps({'batch':i,'counts':result['counts']}))
               except ValueError as error:
@@ -166,6 +178,23 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'feat(content): add verified specialist teaching batches with full source context [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: Preserve licensed acquisition checkpoint on a later failure without activating it
+        if: failure()
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -f content/definition-drafts/specialist-teaching-discovery-2026.09.22-b/discovery-report.json ]; then exit 0; fi
+          git add tools/ingest/src/localmed_ingest/specialist_teaching_discovery.py tools/ingest/src/localmed_ingest/specialist_journal_bundles.py tools/ingest/tests/test_specialist_teaching_batch.py content/definition-drafts/specialist-teaching-discovery-2026.09.22-b
+          for path in content/definition-drafts/specialist-teaching-acquired-2026.09.22-b*; do
+            if [ -d "$path" ]; then git add "$path"; fi
+          done
+          if git diff --cached --quiet; then exit 0; fi
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(content): preserve source acquisition checkpoint; integration not qualified [skip ci]'
           auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
       - name: Storage-free summary
