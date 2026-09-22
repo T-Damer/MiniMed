@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "sourcePolicy": "specialist-medical-sources-2026-09-22",
+  "purpose": "Explicitly researched teaching/review papers from their original publisher. Full source wording and contextual limits are retained. Availability and article-specific reuse rights are independently checked during intake; unavailable pages remain pending.",
+  "articles": [
+    {"journal":"1027-4898","articleId":"20398","focus":"General psychopathology terminology and contrasting symptom/syndrome models. Preserve the author's discussion, not an invented consensus."},
+    {"journal":"1027-4898","articleId":"34129","focus":"Psychopathological taxonomy and alternative classification models; proposed research frameworks remain proposals."},
+    {"journal":"1027-4898","articleId":"52656","focus":"Clinical neuroscience terminology, endophenotypes and cognitive constructs. Review, not validated diagnostic criteria."},
+    {"journal":"1027-4898","articleId":"13954","focus":"Critical-illness polyneuromyopathy: explicit definitions, differential and rehabilitation context at source date."},
+    {"journal":"RFD","articleId":"19004","focus":"Red-eye teaching article with multiple independently named ocular conditions, classification and differential distinctions. Keep original source-year guidance."},
+    {"journal":"RFD","articleId":"71284","focus":"Geriatric syndrome, comprehensive geriatric assessment, orthogeriatrics and historical framing of the discipline."},
+    {"journal":"RFD","articleId":"19013","focus":"Review of etiological categories and risk factors for cognitive impairment; retain differentiated author discussion."},
+    {"journal":"RFD","articleId":"18986","focus":"Cognitive-impairment diagnostics, named screening tools and applicability. No executable proprietary questionnaire is inferred."},
+    {"journal":"RFD","articleId":"8759","focus":"Lymphotropic herpesvirus lecture part III: explicit definitions and clinical variants, not abstract-only ingestion."},
+    {"journal":"RFD","articleId":"6856","focus":"Neurotegumentotropic herpesvirus lecture part II: source classification, definitions and complete explanatory context."},
+    {"journal":"RFD","articleId":"6180","focus":"Neurotegumentotropic herpesvirus lecture part I: source definitions and classification with 2017 publication framing."},
+    {"journal":"RFD","articleId":"12972","focus":"Undernutrition in older adults: terminology, assessment instruments and clinical context from the 2019 lecture."},
+    {"journal":"RFD","articleId":"6179","focus":"Atrial-fibrillation teaching article, disease forms and assessment descriptions. Preserve 2017 interpretation, no current-treatment endorsement."},
+    {"journal":"RFD","articleId":"5928","focus":"Medical psychology lecture: personality/development concepts and clinician-patient interaction; author-specific framing remains explicit."},
+    {"journal":"pediatr","articleId":"1382","focus":"Teaching review on pediatric EBV mononucleosis, clinical syndromes and severity criteria. Acquire only readable licensed full text."},
+    {"journal":"RFD","articleId":"18611","focus":"Hepatitis E lecture: acute/chronic source descriptions, classifications and extrahepatic manifestations."},
+    {"journal":"2658-4433","articleId":"702473","focus":"Pediatric short-bowel and intestinal-failure lecture published in 2026; retain age and residual-bowel applicability qualifiers."},
+    {"journal":"2658-4433","articleId":"638129","focus":"Short-bowel syndrome lecture, terminology and nutrition-support context. Preserve publisher dates as supplied, flag chronology rather than silently correcting."}
+  ]
+}
