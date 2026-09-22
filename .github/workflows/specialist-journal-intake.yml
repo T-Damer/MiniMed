@@ -1,0 +1,79 @@
+name: Qualify specialist journal intake
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/specialist-journal-intake.yml]
+permissions:
+  contents: write
+jobs:
+  intake:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - name: Apply only observed article-layout and strict diagnostic repairs
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 scripts/finalize-specialist-journal-code.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tools/ingest/src/localmed_ingest/specialist_journal_reference.py')
+          s=p.read_text()
+          old='    walk(tree, container)\n    if not units'
+          assert old in s
+          s=s.replace(old,'''    walk(tree, container)
+              observed = re.sub(r"\\s+", "", "".join(unit.body for unit in units))
+              expected = re.sub(r"\\s+", "", render(tree))
+              if observed != expected:
+                  raise ValueError("Source structural walk lost or reordered rendered text")
+              if not units'''.replace('\n              ', '\n    ').replace('\n                  ', '\n        '))
+          p.write_text(s)
+          p=Path('tools/ingest/tests/test_specialist_journal_inline.py')
+          s=p.read_text().replace("    html = '<div>Синдром <b>примера</b> — синтетическое описание с оговоркой [<a>3</a>, <a>4</a>].</div>'", "    html = ('<div>Синдром <b>примера</b> — синтетическое описание '\n            'с оговоркой [<a>3</a>, <a>4</a>].</div>')")
+          p.write_text(s)
+          PY
+      - name: Strict locked code and source-extraction tests
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          files='tools/ingest/src/localmed_ingest/specialist_journal_reference.py tools/ingest/src/localmed_ingest/specialist_journal_collect.py tools/ingest/src/localmed_ingest/specialist_journal_intake.py tools/ingest/tests/test_specialist_journal_reference.py tools/ingest/tests/test_specialist_journal_inline.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          mkdir -p data/build
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q \
+            tools/ingest/tests/test_specialist_journal_reference.py \
+            tools/ingest/tests/test_specialist_journal_inline.py \
+            tools/ingest/tests/test_definition_reference_pack.py \
+            --junitxml=data/build/specialist-journal-intake-tests.xml
+      - name: Reproject only archived sources with all network creation prohibited
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import json,sys,xml.etree.ElementTree as ET
+          from pathlib import Path
+          from localmed_ingest.specialist_journal_intake import compose
+          def guard(event,args):
+              if event in {'socket.connect','socket.__new__','socket.getaddrinfo'}: raise RuntimeError('Offline source replay forbids networking')
+          sys.addaudithook(guard)
+          report=compose(Path('content/definition-drafts/specialist-journals-2026.09.22'),Path('content/definition-drafts/specialist-journal-reference-2026.09.22'))
+          suites=ET.parse('data/build/specialist-journal-intake-tests.xml').getroot()
+          stats={key:sum(int(s.get(key,'0')) for s in suites.findall('testsuite')) for key in ('tests','failures','errors','skipped')}
+          Path('docs/research/specialist-journal-intake-2026-09-22.json').write_text(json.dumps({'checkedCommit':'${{ github.sha }}','tests':stats,'strictRuff':'passed','strictPyright':'passed','counts':report['counts'],'networkRequests':0,'boundary':'Source structure and candidate intake only; no full database build yet.'},indent=2)+'\n')
+          print(json.dumps(report['counts']))
+          PY
+      - name: Preserve verified authoring code and candidate selection, not a release
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add tools/ingest/src/localmed_ingest/specialist_journal_reference.py tools/ingest/src/localmed_ingest/specialist_journal_collect.py tools/ingest/src/localmed_ingest/specialist_journal_intake.py tools/ingest/tests/test_specialist_journal_reference.py tools/ingest/tests/test_specialist_journal_inline.py content/definition-drafts/specialist-journal-reference-2026.09.22 docs/research/specialist-journal-intake-2026-09-22.json
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): qualify source-faithful specialist definitions and complete context [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
