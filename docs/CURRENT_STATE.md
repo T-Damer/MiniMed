@@ -2,35 +2,37 @@
 
 ## Content-first dictionary expansion — 2026-09-22
 
-The user permits breaking DEV code/prepared formats. Current priority is R3/R5 source
-collection, content QA and database refreshes, not more compatibility or installer work.
-Private/user data, source wording and provenance remain protected.
+Breaking DEV code/file formats are permitted by the user. R3/R5 source collection,
+source-fidelity QA and database refreshes now precede more compatibility/installer work.
+Existing personal data, source wording and provenance remain protected.
 
-Acquisition collected 5187 descriptions before scope QA. Offline
-replay of the archived category graph quarantined 763
-acquired records outside the admitted medical paths and restored
-1 previously over-filtered records. Cultural, heraldic,
-clothing and dance descendants are not counted as medical terminology. Original acquisition
-shards and raw API receipts remain unchanged for audit and are excluded from runtime inputs.
+Acquired introductions before medical scope intake: 5187.
+Active admitted new source records: **4680**.
+Quarantined acquired descriptions: 508; restored
+over-filtered source records: 1. The scope pass excludes
+irrelevant cultural/consumer branches, while preserving medical alternate paths.
+A first-pass person-category prefix mistake was corrected: medical histology and
+gastroenterology branches are retained. All raw snapshots/shards remain audit evidence,
+excluded from runtime inputs. Earlier acquisition/first-pass reports are not current totals.
 
-The active new source contains **4425** Russian introductions;
-**3491** normalized name surfaces were absent from the old source set,
-and **934** names gained another source. Combined:
-**22558 source/editorial records**, not proven distinct clinical concepts.
-Source wording and any supplied origin notes remain exact. Scales are source descriptions,
-not automatically executable instruments. The private textbook's 450 records are separate.
+Combined source/editorial corpus: **22813 records**. The new source
+adds **3703** previously absent normalized name surfaces and
+**977** additional source descriptions for known names.
+These are not proven disjoint canonical concepts or reviewed clinical recommendations.
+Supplied origin notes are unchanged; scale descriptions do not become executable scoring.
+The owner textbook's 450 private records are separate and were not publicly uploaded.
 
-The actual final SQLite is **142057472 bytes**, gzip **35404721
-bytes**. 64 selected Python cases, strict authoring checks and database
-integrity passed. Every new record matched its text/locator; excluded acquisition IDs are
-absent from the runtime DB. No new browser, Android or clinical quality result is claimed.
-`source-inputs.json` pins the admitted files/checksums/counts. Prepare version
-`2026.09.22-terms-intake` with the ordinary script; generated binaries remain local.
+Final SQLite: **143761408 bytes installed / 35894554 bytes
+gzip**. All 4680 new records matched exact text and source
+locators. 65 selected Python cases passed, including actual policy
+regressions, plus strict authoring checks and SQLite integrity/foreign keys.
+No new app/browser/Android or independent reverse-search qualification is claimed.
 
-Evidence: `research/definition-intake-build-2026-09-22.json`, the updated
-`research/definition-expansion-2026-09-22.json`, and the source collection's
-`intake-report.json`. The previous expansion/build reports describe acquisition before QA.
-No model, private PDF/text, SQLite binary, release, APK or merge was published.
+Runtime inputs are pinned in `content/definition-drafts/source-inputs.json`. Prepare
+version `2026.09.22-terms-final` with the existing script. Generated database/descriptor
+files stay local; no release or APK was published. Evidence:
+`research/definition-intake-build-2026-09-22.json`,
+`research/definition-expansion-2026-09-22.json`, and the collection's `intake-report.json`.
 
 ## Module payload lifetime and late cancellation — 2026-09-22
 
