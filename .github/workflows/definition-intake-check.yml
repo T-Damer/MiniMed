@@ -37,12 +37,16 @@ jobs:
           a=offset(condition.lineno,condition.col_offset);b=offset(condition.end_lineno,condition.end_col_offset)
           replacement=ast.get_source_segment(s,condition.values[-1]);assert replacement
           p.write_bytes(raw[:a]+replacement.encode()+raw[b:])
-          # Names of researchers may occur inside a syndrome description. Their birth dates do
-          # not turn that article into a biography; title-based person queue remains intact.
           p=Path('scripts/refresh-definition-inputs.py');s=p.read_text()
           anchor='    new_paths = checked_parts(collection, collection_manifest)'
           assert s.count(anchor)==1
-          s=s.replace(anchor,'    if not isinstance(collection_manifest.get("intakePolicySha256"), str):\n        raise ValueError("A collected source must pass explicit medical scope intake first")\n'+anchor)
+          s=s.replace(anchor,'    if not isinstance(collection_manifest.get("intakePolicySha256"), str):\n        raise TypeError("A collected source must pass explicit medical scope intake first")\n'+anchor)
+          p.write_text(s)
+          p=Path('tools/ingest/src/localmed_ingest/wikipedia_scope.py');s=p.read_text()
+          s=s.replace('Replay is limited to collected category responses; missing branches stay open.', 'Only archived categories are replayed; missing branches remain open.')
+          p.write_text(s)
+          p=Path('tools/ingest/tests/test_wikipedia_scope.py');s=p.read_text()
+          s=s.replace('match="changed|mismatch"', 'match=r"changed|mismatch"')
           p.write_text(s)
           PY
       - name: Strict authoring checks and synthetic source-fidelity cases
@@ -124,7 +128,6 @@ jobs:
           import json
           from pathlib import Path
           result=json.loads(Path('docs/research/definition-intake-build-2026-09-22.json').read_text())
-          intake=json.loads(Path('content/definition-drafts/ruwiki-medical-2026.09.22/intake-report.json').read_text())
           section=f'''## Content-first dictionary expansion — 2026-09-22
 
           The user permits breaking DEV code/prepared formats. Current priority is R3/R5 source
