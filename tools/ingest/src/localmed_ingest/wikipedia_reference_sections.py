@@ -37,8 +37,20 @@ class SourceHtml(HTMLParser):
         node = Element(tag, {key: value or "" for key, value in attrs})
         self.stack[-1].children.append(node)
         if tag not in {
-            "area", "base", "br", "col", "embed", "hr", "img", "input",
-            "link", "meta", "param", "source", "track", "wbr",
+            "area",
+            "base",
+            "br",
+            "col",
+            "embed",
+            "hr",
+            "img",
+            "input",
+            "link",
+            "meta",
+            "param",
+            "source",
+            "track",
+            "wbr",
         }:
             self.stack.append(node)
 
@@ -70,16 +82,23 @@ def descendants(node: Element, tag: str) -> list[Element]:
 def omitted(node: Element) -> bool:
     classes = set(node.attrs.get("class", "").split())
     return node.tag in {
-        "script", "style", "link", "meta", "img", "svg", "figure", "audio", "video"
-    } or bool(classes & {
-        "navbox", "vertical-navbox", "metadata", "ambox", "mw-editsection", "toc", "noprint"
-    })
+        "script",
+        "style",
+        "link",
+        "meta",
+        "img",
+        "svg",
+        "figure",
+        "audio",
+        "video",
+    } or bool(
+        classes
+        & {"navbox", "vertical-navbox", "metadata", "ambox", "mw-editsection", "toc", "noprint"}
+    )
 
 
 def compact(value: str) -> str:
-    return "\n".join(
-        re.sub(r"[^\S\n]+", " ", line).strip() for line in value.splitlines()
-    ).strip()
+    return "\n".join(re.sub(r"[^\S\n]+", " ", line).strip() for line in value.splitlines()).strip()
 
 
 def cell_span(node: Element, key: str) -> int:
@@ -97,11 +116,14 @@ def table_grid(node: Element) -> list[list[dict[str, object]]]:
         cells: list[dict[str, object]] = []
         for cell in row.children:
             if isinstance(cell, Element) and cell.tag in {"th", "td"}:
-                cells.append({
-                    "text": compact(render(cell)), "header": cell.tag == "th",
-                    "rowspan": cell_span(cell, "rowspan"),
-                    "colspan": cell_span(cell, "colspan"),
-                })
+                cells.append(
+                    {
+                        "text": compact(render(cell)),
+                        "header": cell.tag == "th",
+                        "rowspan": cell_span(cell, "rowspan"),
+                        "colspan": cell_span(cell, "colspan"),
+                    }
+                )
         if cells:
             grid.append(cells)
     if len(grid) > 1000 or any(len(row) > 100 for row in grid):
@@ -139,7 +161,8 @@ def render(node: Element | str) -> str:
         return "\n" + "\n".join(lines) + "\n"
     if node.tag == "table":
         lines = [
-            compact(render(c)) for c in node.children
+            compact(render(c))
+            for c in node.children
             if isinstance(c, Element) and c.tag == "caption"
         ]
         for row in table_grid(node):
@@ -183,17 +206,13 @@ def extract_sections(html: str) -> tuple[list[Section], dict[str, int]]:
                 sections[-1].parts.append(node.strip())
             return
         if omitted(node):
-            key = (
-                "media" if node.tag in {"img", "svg", "figure", "audio", "video"} else "layout"
-            )
+            key = "media" if node.tag in {"img", "svg", "figure", "audio", "video"} else "layout"
             omissions[key] = omissions.get(key, 0) + 1
             return
         if re.fullmatch(r"h[2-6]", node.tag):
             anchor = node.attrs.get("id", "")
             if not anchor:
-                anchors = [
-                    n.attrs["id"] for n in descendants(node, "span") if "id" in n.attrs
-                ]
+                anchors = [n.attrs["id"] for n in descendants(node, "span") if "id" in n.attrs]
                 anchor = anchors[0] if anchors else ""
             title = compact(render(node))
             if title:

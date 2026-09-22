@@ -2,6 +2,24 @@
 
 Updated: 2026-09-22. Owner: draft PR #180, `experiment/system-one-search-benchmark`, stacked on #174. This plan refines `TECHNICAL_PLAN.md`; it does not authorize a merge, release, model download or architecture replacement.
 
+## Specialty terms and fuller reference sections — 2026-09-22
+
+Active corpus: **25770 source/editorial records**, including
+**2957 additional page identities** from the new specialty batch.
+Existing page IDs were not counted twice. 61 scale/classification
+cards now contain 371 source sections and
+49 reference tables. Unsupported layouts retain their old whole cards
+and are listed for review. These are not clinically approved or executable instruments.
+
+Actual SQLite: 165785600 installed bytes; 41734815 gzip bytes.
+82 selected tests passed. Every projected source block was compared with SQLite,
+revision-render records were replayed offline, and full enriched cards were reconstructed
+through the bounded reader. Raw HTML/API evidence is excluded from runtime downloads.
+No private source, released core, APK or model was changed. More collection and substantive
+source sections remain ahead of compatibility/installer work. Evidence:
+`research/definition-specialties-2026-09-22.json`. Prepare DEV version
+`2026.09.22-specialties-2` through the existing preparer.
+
 ## Product outcome
 
 An optional offline reference inside MiniMed: find a term by name or remembered description, open the source definition and complete criterion/context blocks, compare source variants, and inspect origin/history where supported. The phone must not load the entire JSON corpus into JavaScript to perform a lookup. Continue broad source collection, but count meaningful coverage and preserve unresolved records instead of padding the count.

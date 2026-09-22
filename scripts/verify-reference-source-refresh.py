@@ -11,9 +11,20 @@ from pathlib import Path
 
 from localmed_ingest.definition_reference_pack import Projection
 from localmed_ingest.definition_source_manifest import read_source_manifest
-from localmed_ingest.wikipedia_definitions import Snapshot, encoded, integer, items, obj, sha, text
+from localmed_ingest.wikipedia_definitions import (
+    Snapshot,
+    integer,
+    items,
+    obj,
+    sha,
+    text,
+)
 from localmed_ingest.wikipedia_reference_refresh import (
-    SourceRecord, deepen_record, load_collection, read_records, repack,
+    SourceRecord,
+    deepen_record,
+    load_collection,
+    read_records,
+    repack,
 )
 
 
@@ -30,13 +41,21 @@ def wiki_records(paths: tuple[Path, ...]) -> dict[str, SourceRecord]:
     return result
 
 
-def verify(root: Path, edition: Path, incoming: Path, database: Path) -> dict[str, object]:
+def verify(
+    root: Path, edition: Path, incoming: Path, database: Path
+) -> dict[str, object]:
     report = obj(json.loads((edition / "refresh-report.json").read_bytes()))
-    active_paths, count = read_source_manifest(root, root / "content/definition-drafts/source-inputs.json")
-    old_paths, previous_count = read_source_manifest(root, edition / "previous-inputs.json")
+    active_paths, count = read_source_manifest(
+        root, root / "content/definition-drafts/source-inputs.json"
+    )
+    old_paths, previous_count = read_source_manifest(
+        root, edition / "previous-inputs.json"
+    )
     previous = wiki_records(old_paths)
     active = wiki_records(active_paths)
-    collected = load_collection(incoming, root / "content/definition-drafts/ruwiki-scope-2026.09.22.json")
+    collected = load_collection(
+        incoming, root / "content/definition-drafts/ruwiki-scope-2026.09.22.json"
+    )
     assert active.keys() == previous.keys() | collected.keys()
     assert previous_count == report["previousRecords"]
     assert count == previous_count + len(collected.keys() - previous.keys())
@@ -55,7 +74,9 @@ def verify(root: Path, edition: Path, incoming: Path, database: Path) -> dict[st
             saved = obj(json.loads(line))
             raw = text(saved["response"], 16 * 1024 * 1024).encode()
             assert sha(raw) == saved["responseSha256"]
-            snapshots[sha(raw)] = Snapshot(obj(json.loads(raw)), sha(raw), text(saved["retrievedAt"]))
+            snapshots[sha(raw)] = Snapshot(
+                obj(json.loads(raw)), sha(raw), text(saved["retrievedAt"])
+            )
     enriched: set[str] = set()
     for value in items(report["sectionResults"]):
         row = obj(value)
@@ -65,8 +86,10 @@ def verify(root: Path, edition: Path, incoming: Path, database: Path) -> dict[st
         original = previous.get(key, collected.get(key))
         assert original is not None
         expected, _ = deepen_record(
-            original, snapshots[text(row["apiResponseSha256"])],
-            integer(row["revisionId"], 1), "2026-09-22",
+            original,
+            snapshots[text(row["apiResponseSha256"])],
+            integer(row["revisionId"], 1),
+            "2026-09-22",
         )
         assert repack([expected]) == repack([active[key]])
         enriched.add(key)
@@ -83,7 +106,9 @@ def verify(root: Path, edition: Path, incoming: Path, database: Path) -> dict[st
     with closing(sqlite3.connect(f"file:{database}?mode=ro", uri=True)) as db:
         assert db.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert db.execute("PRAGMA foreign_key_check").fetchall() == []
-        assert db.execute("SELECT count(*) FROM knowledge_entities").fetchone() == (count,)
+        assert db.execute("SELECT count(*) FROM knowledge_entities").fetchone() == (
+            count,
+        )
         for table in ("knowledge_facts", "knowledge_relations"):
             assert db.execute(f"SELECT count(*) FROM {table}").fetchone() == (0,)
         for key, record in active.items():
@@ -92,7 +117,8 @@ def verify(root: Path, edition: Path, incoming: Path, database: Path) -> dict[st
             ).fetchone() == (record.term["title"],)
         for chunk_id, (_, chunk) in projection.chunks.items():
             stored = db.execute(
-                "SELECT original_text, metadata_json FROM chunks WHERE id=?", (chunk_id,)
+                "SELECT original_text, metadata_json FROM chunks WHERE id=?",
+                (chunk_id,),
             ).fetchone()
             assert stored is not None and stored[0] == chunk.original_text
             assert json.loads(stored[1]) == chunk.metadata
@@ -106,7 +132,8 @@ def verify(root: Path, edition: Path, incoming: Path, database: Path) -> dict[st
         "revisionRenderReplayExact": True,
         "otherSourceInputsUnchanged": True,
         "duplicatePageIdentities": 0,
-        "integrity": "ok", "foreignKeyViolations": 0,
+        "integrity": "ok",
+        "foreignKeyViolations": 0,
         "networkRequests": 0,
         "sqliteBytes": database.stat().st_size,
         "boundary": "Source fidelity and real SQLite, not clinical review or search relevance.",

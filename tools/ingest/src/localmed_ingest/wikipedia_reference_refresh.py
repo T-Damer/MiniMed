@@ -18,7 +18,16 @@ from urllib.parse import quote
 
 from .definition_source_manifest import read_source_manifest, write_source_manifest
 from .wikipedia_definitions import (
-    Snapshot, WikiApi, encoded, integer, items, normalized, obj, sha, source_descriptor, text,
+    Snapshot,
+    WikiApi,
+    encoded,
+    integer,
+    items,
+    normalized,
+    obj,
+    sha,
+    source_descriptor,
+    text,
 )
 from .wikipedia_reference_sections import extract_sections
 from .wikipedia_scope import child
@@ -41,7 +50,14 @@ def read_records(payload: dict[str, object]) -> dict[str, SourceRecord]:
     if payload.get("publicationState") != "local-dev":
         raise ValueError("Source refresh only prepares local DEV records")
     if set(payload) - {
-        "version", "id", "textKind", "reviewStatus", "publicationState", "sources", "blocks", "terms"
+        "version",
+        "id",
+        "textKind",
+        "reviewStatus",
+        "publicationState",
+        "sources",
+        "blocks",
+        "terms",
     }:
         raise ValueError("Root source annotations require an explicit refresh adapter")
     sources: dict[int, dict[str, object]] = {}
@@ -83,10 +99,9 @@ def read_records(payload: dict[str, object]) -> dict[str, SourceRecord]:
 
 def load_collection(collection: Path, policy: Path) -> dict[str, SourceRecord]:
     manifest = obj(json.loads((collection / "manifest.json").read_bytes()))
-    if (
-        manifest.get("sourceFamily") != "ruwiki-medical-introductions"
-        or manifest.get("intakePolicySha256") != sha(policy.read_bytes())
-    ):
+    if manifest.get("sourceFamily") != "ruwiki-medical-introductions" or manifest.get(
+        "intakePolicySha256"
+    ) != sha(policy.read_bytes()):
         raise ValueError("New source batch must pass the selected medical-scope intake")
     result: dict[str, SourceRecord] = {}
     for value in items(manifest["parts"]):
@@ -112,25 +127,34 @@ def merge_new_records(
     added = incoming.keys() - previous.keys()
     for key in sorted(added):
         result[key] = incoming[key]
-    return result, {"newPageIdentities": len(added), "overlapPageIdentities": len(incoming) - len(added)}
+    return result, {
+        "newPageIdentities": len(added),
+        "overlapPageIdentities": len(incoming) - len(added),
+    }
 
 
 def section_source(date: str) -> dict[str, object]:
     source = source_descriptor(date)
-    source.update({
-        "sourceType": "wikipedia-api-parsed-sections",
-        "title": "Русская Википедия — разделы справочных статей",
-        "changes": (
-            "Pinned article revisions rendered to plain text. Paragraph/list order retained; "
-            "tables preserve physical cells and declared spans. Layout, scripts and media omitted. "
-            "No rewriting, clinical review, inferred roots, executable instruments or scoring."
-        ),
-        "sourceLimitations": (
-            "Article revision is pinned; transcluded templates may reflect render-time versions. "
-            "Exact API response is archived. Table geometry requires review. Media are not copied. "
-            "An encyclopedia description is not proof of complete or licensed clinical scoring."
-        ),
-    })
+    source.update(
+        {
+            "sourceType": "wikipedia-api-parsed-sections",
+            "tableGeometryEncoding": "header/rowspan/colspan; split rows by tableRowCounts",
+            "title": "Русская Википедия — разделы справочных статей",
+            "changes": (
+                "Pinned article revisions rendered to plain text. Paragraph/list order retained; "
+                "tables preserve physical cells and declared spans. "
+                "Layout, scripts and media omitted. "
+                "No rewriting, clinical review, inferred roots, executable instruments or scoring."
+            ),
+            "sourceLimitations": (
+                "Article revision is pinned; "
+                "transcluded templates may reflect render-time versions. "
+                "Exact API response is archived. Table geometry requires review. "
+                "Media are not copied. "
+                "An encyclopedia description is not proof of complete or licensed clinical scoring."
+            ),
+        }
+    )
     return source
 
 
@@ -138,9 +162,8 @@ def deepen_record(
     record: SourceRecord, snapshot: Snapshot, revision: int, date: str
 ) -> tuple[SourceRecord, dict[str, object]]:
     parsed = obj(snapshot.data["parse"])
-    page_id = integer(text(record.term["id"]).rsplit(".", 1)[1].isdigit() and
-                      int(text(record.term["id"]).rsplit(".", 1)[1]), 1)
-    if parsed.get("pageid") != page_id or parsed.get("revid") != revision:
+    page_id = integer(int(text(record.term["id"]).rsplit(".", 1)[1]), 1)
+    if integer(parsed["pageid"], 1) != page_id or integer(parsed["revid"], 1) != revision:
         raise ValueError("Parsed source belongs to another page or revision")
     html = text(parsed["text"], 4 * 1024 * 1024)
     sections, omissions = extract_sections(html)
@@ -149,36 +172,62 @@ def deepen_record(
     blocks: dict[int, dict[str, object]] = {}
     for index, section in enumerate(sections, 1):
         blocks[index] = {
-            "id": index, "source": 1, "text": section.text,
-            "textSha256": sha(section.text.encode()), "path": path,
+            "id": index,
+            "source": 1,
+            "text": section.text,
+            "textSha256": sha(section.text.encode()),
+            "path": path,
             "locator": f"pageid={page_id}; oldid={revision}; section={section.anchor or 'lead'}",
-            "pageId": page_id, "revisionId": revision, "sectionOrdinal": index,
-            "sectionTitle": section.title, "sectionAnchor": section.anchor,
+            "pageId": page_id,
+            "revisionId": revision,
+            "sectionOrdinal": index,
+            "sectionTitle": section.title,
+            "sectionAnchor": section.anchor,
             "retrievedAt": snapshot.retrieved_at,
             "apiResponseSha256": snapshot.response_sha256,
             "renderedHtmlSha256": sha(html.encode()),
             "permalink": f"https://ru.wikipedia.org/w/index.php?oldid={revision}",
             "historyUrl": "https://ru.wikipedia.org/w/index.php?title=" + path + "&action=history",
             "renderer": "reference-html-v1",
-            "tableGeometry": section.tables,
+            "tableGeometry": [
+                [
+                    [
+                        int(bool(cell["header"])),
+                        integer(cell["rowspan"], 1),
+                        integer(cell["colspan"], 1),
+                    ]
+                    for cell in row
+                ]
+                for table in section.tables
+                for row in table
+            ],
+            "tableRowCounts": [len(table) for table in section.tables],
             "tableReviewStatus": "requires-review" if section.tables else "not-applicable",
             "mediaPolicy": "not-copied",
         }
     term = copy.deepcopy(record.term)
     if term["title"] != title:
-        term["aliases"] = list(dict.fromkeys([
-            text(term["title"]), *[text(v) for v in items(term.get("aliases", []))]
-        ]))
-    term.update({
-        "title": title, "coverage": "source-description", "blockIds": [1],
-        "detailBlocks": list(range(2, len(blocks) + 1)),
-    })
+        term["aliases"] = list(
+            dict.fromkeys([text(term["title"]), *[text(v) for v in items(term.get("aliases", []))]])
+        )
+    term.update(
+        {
+            "title": title,
+            "coverage": "source-description",
+            "blockIds": [1],
+            "detailBlocks": list(range(2, len(blocks) + 1)),
+        }
+    )
     term.pop("itemBlocks", None)
     result = SourceRecord(term, blocks, {1: section_source(date)})
     return result, {
-        "id": term["id"], "title": title, "revisionId": revision,
-        "sections": len(sections), "tables": sum(len(s.tables) for s in sections),
-        "omissions": omissions, "apiResponseSha256": snapshot.response_sha256,
+        "id": term["id"],
+        "title": title,
+        "revisionId": revision,
+        "sections": len(sections),
+        "tables": sum(len(s.tables) for s in sections),
+        "omissions": omissions,
+        "apiResponseSha256": snapshot.response_sha256,
         "oldBlockTextSha256": [b["textSha256"] for b in record.blocks.values()],
         "newBlockTextSha256": [b["textSha256"] for b in blocks.values()],
         "status": "source-sections-rendered-not-clinically-reviewed",
@@ -213,9 +262,14 @@ def repack(records: list[SourceRecord]) -> dict[str, object]:
                 term[field] = [local_map[integer(v, 1)] for v in items(term[field])]
         terms.append(term)
     return {
-        "version": 3, "id": "ruwiki.reference.refreshed",
-        "reviewStatus": "requires-review", "publicationState": "local-dev",
-        "textKind": "source-excerpt", "sources": sources, "blocks": blocks, "terms": terms,
+        "version": 3,
+        "id": "ruwiki.reference.refreshed",
+        "reviewStatus": "requires-review",
+        "publicationState": "local-dev",
+        "textKind": "source-excerpt",
+        "sources": sources,
+        "blocks": blocks,
+        "terms": terms,
     }
 
 
@@ -237,13 +291,18 @@ def write_shards(records: list[SourceRecord], destination: Path) -> list[Path]:
         paths.append(path)
 
     for start in range(0, len(records), 750):
-        write(records[start:start + 750])
+        write(records[start : start + 750])
     return paths
 
 
 def refresh(
-    root: Path, collection: Path, destination: Path, cache: Path,
-    *, date: str, offline: bool = False,
+    root: Path,
+    collection: Path,
+    destination: Path,
+    cache: Path,
+    *,
+    date: str,
+    offline: bool = False,
 ) -> dict[str, object]:
     root = root.resolve(strict=True)
     source_root = root / "content/definition-drafts"
@@ -261,7 +320,9 @@ def refresh(
         payload = obj(json.loads(path.read_bytes()))
         terms = [obj(v) for v in items(payload["terms"])]
         for term in terms:
-            previous_names.update(normalized(text(v)) for v in [term["title"], *items(term.get("aliases", []))])
+            previous_names.update(
+                normalized(text(v)) for v in [term["title"], *items(term.get("aliases", []))]
+            )
         owns = [text(term["id"]).startswith("ruwiki.definition.") for term in terms]
         if any(owns):
             if not all(owns):
@@ -275,8 +336,9 @@ def refresh(
     incoming = load_collection(collection, source_root / "ruwiki-scope-2026.09.22.json")
     combined, merge_stats = merge_new_records(previous, incoming)
     api = WikiApi(cache, offline=offline)
-    targets = sorted(key for key, value in combined.items()
-                     if value.term["kind"] in {"scale", "classification"})
+    targets = sorted(
+        key for key, value in combined.items() if value.term["kind"] in {"scale", "classification"}
+    )
     if len(targets) > 200:
         raise ValueError("Section collection exceeds the explicit 200-page work budget")
     section_reports: list[dict[str, object]] = []
@@ -284,25 +346,37 @@ def refresh(
         record = combined[key]
         first = record.blocks[integer(items(record.term["blockIds"])[0], 1)]
         revision = integer(first.get("revisionId", first.get("observedRevisionId")), 1)
-        snapshot = api.get({
-            "action": "parse", "oldid": str(revision), "prop": "text|revid",
-            "disableeditsection": "1", "disablelimitreport": "1",
-        })
+        snapshot = api.get(
+            {
+                "action": "parse",
+                "oldid": str(revision),
+                "prop": "text|revid",
+                "disableeditsection": "1",
+                "disablelimitreport": "1",
+            }
+        )
         try:
             updated, report = deepen_record(record, snapshot, revision, date)
         except ValueError as error:
             # Retain the old whole card; report unsupported layout rather than drop table cells.
-            section_reports.append({
-                "id": key, "status": "retained-previous-source-needs-review",
-                "reason": str(error), "apiResponseSha256": snapshot.response_sha256,
-            })
+            section_reports.append(
+                {
+                    "id": key,
+                    "status": "retained-previous-source-needs-review",
+                    "reason": str(error),
+                    "apiResponseSha256": snapshot.response_sha256,
+                }
+            )
         else:
             combined[key] = updated
             section_reports.append(report)
     destination.mkdir()
     new_paths = write_shards([combined[key] for key in sorted(combined)], destination)
     archive = destination / "section-api-snapshots.jsonl.gz"
-    with archive.open("xb") as out, gzip.GzipFile(fileobj=out, mode="wb", filename="", mtime=0) as gz:
+    with (
+        archive.open("xb") as out,
+        gzip.GzipFile(fileobj=out, mode="wb", filename="", mtime=0) as gz,
+    ):
         for path in sorted(cache.glob("*.json")):
             gz.write(path.read_bytes() + b"\n")
     (destination / "previous-inputs.json").write_bytes(previous_manifest)
@@ -310,8 +384,11 @@ def refresh(
     added = incoming.keys() - previous.keys()
     new_names = {normalized(text(incoming[key].term["title"])) for key in added}
     report = {
-        "version": 1, "previousRecords": previous_count,
-        "newSourceRecords": len(added), "combinedRecords": source_manifest["entries"],
+        "version": 1,
+        "previousRecords": previous_count,
+        "newSourceRecords": len(added),
+        "newRecordIds": sorted(added),
+        "combinedRecords": source_manifest["entries"],
         "newNormalizedNames": len(new_names - previous_names),
         "additionalSourcesForExistingNames": len(new_names & previous_names),
         "pageIdentityMerge": merge_stats,
@@ -331,7 +408,8 @@ def refresh(
         "boundaries": (
             "New page IDs and source descriptions, not distinct clinically reviewed concepts. "
             "Pinned article revisions plus exact render responses; templates may be render-time. "
-            "Table/list content is reference-only, not approved scoring. Raw archives stay off-device."
+            "Table/list content is reference-only, not approved scoring. "
+            "Raw archives stay off-device."
         ),
     }
     (destination / "refresh-report.json").write_text(
@@ -346,7 +424,8 @@ def refresh(
         "physical table cells retained, merged cells explicitly annotated. No translation, "
         "medical harmonization or executable scoring. Raw revision-render responses remain "
         "in the authoring archive, not the runtime inputs. The article revision is pinned; "
-        "transcluded templates can reflect render-time versions.\n", encoding="utf-8",
+        "transcluded templates can reflect render-time versions.\n",
+        encoding="utf-8",
     )
     return report
 
@@ -360,11 +439,24 @@ def main() -> None:
     parser.add_argument("--date", required=True)
     parser.add_argument("--offline", action="store_true")
     args = parser.parse_args()
-    report = refresh(args.root, args.collection, args.output, args.cache,
-                     date=args.date, offline=args.offline)
-    print(json.dumps({k: report[k] for k in (
-        "newSourceRecords", "combinedRecords", "enrichedCards", "renderedSections", "renderedTables"
-    )}, ensure_ascii=False))
+    report = refresh(
+        args.root, args.collection, args.output, args.cache, date=args.date, offline=args.offline
+    )
+    print(
+        json.dumps(
+            {
+                k: report[k]
+                for k in (
+                    "newSourceRecords",
+                    "combinedRecords",
+                    "enrichedCards",
+                    "renderedSections",
+                    "renderedTables",
+                )
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 if __name__ == "__main__":

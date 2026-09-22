@@ -1,0 +1,132 @@
+{
+  "inputCommit": "bcd70ba6a500822f2a7aa848736d63e8f4693ecb",
+  "runId": "35733136461",
+  "tests": {
+    "tests": 82,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "refresh": {
+    "version": 1,
+    "previousRecords": 22813,
+    "newSourceRecords": 2957,
+    "combinedRecords": 25770,
+    "newNormalizedNames": 2629,
+    "additionalSourcesForExistingNames": 328,
+    "pageIdentityMerge": {
+      "newPageIdentities": 2957,
+      "overlapPageIdentities": 1386
+    },
+    "newKinds": {
+      "term": 2904,
+      "syndrome": 42,
+      "law": 5,
+      "scale": 2,
+      "classification": 3,
+      "tool": 1
+    },
+    "sectionTargets": 61,
+    "enrichedCards": 61,
+    "renderedSections": 371,
+    "renderedTables": 49,
+    "newSectionRequests": 61,
+    "sourceInputManifestSha256": "cbc6bf6a3cf2e30acb20436cbb98204fbf8b1c4c3b38e870965001c11f648f44",
+    "sectionArchiveSha256": "1162e1312312bf371e778da2fad30d60b7fcfe5800091710172e5eba78c84053",
+    "unchangedOtherInputs": [
+      {
+        "path": "content/definition-drafts/catalog.json",
+        "sha256": "9d44b411624efe7d48f8b3366c9d4030ffdea1965e70c903d76a51a4909c94ba"
+      },
+      {
+        "path": "content/definition-drafts/ruwiktionary-2026.9.16.json",
+        "sha256": "6ac2ea09506ce09a7a80eccf6f2bea9516e78c73c415454db56fcce7f62278eb"
+      },
+      {
+        "path": "content/definition-drafts/prepared-source-excerpts-2026.09.21.json",
+        "sha256": "e7c6187b1b997335d50f109a409fb9f3e9803651843c8a132d9dbdfafa6124e3"
+      },
+      {
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-01.json",
+        "sha256": "cf31c7d6389af7c720d44ce4199600d6419d7cfa641bd71d4d3cf7b81e62c3f8"
+      },
+      {
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-02.json",
+        "sha256": "cf8ba554d2b3f7fa2343749a5184b165f4f37b1490d96c3cd024cce89ecc2590"
+      },
+      {
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-03.json",
+        "sha256": "c6680629595d20d0cc0993681fbd4b73dedae9e43fa09d708f2c33c3b6fb11d4"
+      },
+      {
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-04.json",
+        "sha256": "c69ed952aa16c7426d9f36fe412875ba22f89423fcce6a156e29458e4db86a6d"
+      },
+      {
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-05.json",
+        "sha256": "75b0bee1d9ef75c4fe1e64e3dd409dea028fe84a6cb83478f16fbba6b886b110"
+      }
+    ],
+    "boundaries": "New page IDs and source descriptions, not distinct clinically reviewed concepts. Pinned article revisions plus exact render responses; templates may be render-time. Table/list content is reference-only, not approved scoring. Raw archives stay off-device."
+  },
+  "fidelity": {
+    "combinedRecords": 25770,
+    "activeWikipediaRecords": 7637,
+    "newPageIds": 2957,
+    "enrichedCardsReplayed": 61,
+    "allProjectedSourceBlocksCompared": 31756,
+    "unmodifiedSourceRecordsExact": true,
+    "revisionRenderReplayExact": true,
+    "otherSourceInputsUnchanged": true,
+    "duplicatePageIdentities": 0,
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "networkRequests": 0,
+    "sqliteBytes": 165785600,
+    "boundary": "Source fidelity and real SQLite, not clinical review or search relevance."
+  },
+  "reader": {
+    "contract": 1,
+    "mode": "corpus",
+    "entries": 25770,
+    "sourceNameSurfaces": 19478,
+    "namesWithAResult": 19478,
+    "missingNameSha256": [],
+    "fixtureAssertions": 0,
+    "creationMs": 0.5025560000000056,
+    "lookupMs": {
+      "p50": 0.04350499999998192,
+      "p95": 0.06122400000003836
+    },
+    "rssBytes": {
+      "beforeOpen": 58351616,
+      "afterOpen": 60506112,
+      "afterAudit": 120504320
+    },
+    "adapterCalls": 19479,
+    "maxRowsPerAdapterCall": 20,
+    "maxReplyBytes": 6501,
+    "boundaries": "File-backed Bun SQLite in a fresh process, 2 MiB page-cache setting; not app/browser/native/WASM/device qualification. Name coverage is not independent reverse-definition quality. The corpus-name audit is outside the reader and runs in bounded batches. RSS is whole-process current memory, not a peak or Android PSS."
+  },
+  "cards": {
+    "newRecordNamesChecked": 2957,
+    "newRecordNamesInTop20": 2955,
+    "missingNames": [
+      {
+        "id": "ruwiki.definition.249485",
+        "title": "Хирургическое лечение"
+      },
+      {
+        "id": "ruwiki.definition.50457",
+        "title": "Клиническое исследование"
+      }
+    ],
+    "enrichedCardsRead": 61,
+    "blocksRead": 371,
+    "textSlices": 380,
+    "maxTextSliceCodePoints": 4096,
+    "boundary": "Real SQLite reader, not browser/native or independent reverse-search quality."
+  },
+  "downloadBytes": 41734815,
+  "boundary": "Source collection, real rebuild and bounded reader checks only. No new UI/native/clinical/model qualification."
+}

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 from pathlib import Path
 
 import pytest
@@ -8,17 +9,22 @@ import pytest
 from localmed_ingest.definition_reference_pack import Projection
 from localmed_ingest.wikipedia_definitions import Snapshot, encoded, sha, source_descriptor
 from localmed_ingest.wikipedia_reference_refresh import (
-    SourceRecord, deepen_record, merge_new_records, read_records, repack, write_shards,
+    SourceRecord,
+    deepen_record,
+    merge_new_records,
+    read_records,
+    repack,
+    write_shards,
 )
 from localmed_ingest.wikipedia_reference_sections import extract_sections
 
 INTRO = "Исходное учебное описание условного инструмента, не клиническая рекомендация."
 HTML = (
-    '<div class="mw-parser-output"><p>' + INTRO + '</p>'
+    '<div class="mw-parser-output"><p>' + INTRO + "</p>"
     '<div class="mw-heading"><h2 id="Items">Пункты</h2></div>'
     '<ol start="3"><li>Первый пункт</li><li value="9">Второй пункт</li></ol>'
     '<h2><span id="Table">Таблица</span></h2>'
-    '<table><caption>Исходные значения</caption><tr><th>Группа</th><th>Значение</th></tr>'
+    "<table><caption>Исходные значения</caption><tr><th>Группа</th><th>Значение</th></tr>"
     '<tr><td rowspan="2">А</td><td>1</td></tr><tr><td>2</td></tr></table>'
     '<h2 id="Limitations">Ограничения</h2><p>Содержательное ограничение источника.</p>'
     '<div class="navbox"><p>Навигация, не определение</p></div></div>'
@@ -28,19 +34,30 @@ HTML = (
 def record(page_id: int = 72, body: str = INTRO) -> SourceRecord:
     source = source_descriptor("2026-09-22")
     block = {
-        "id": 1, "source": 1, "text": body, "textSha256": sha(body.encode()),
-        "path": "Fixture", "locator": "Synthetic introduction", "pageId": page_id,
+        "id": 1,
+        "source": 1,
+        "text": body,
+        "textSha256": sha(body.encode()),
+        "path": "Fixture",
+        "locator": "Synthetic introduction",
+        "pageId": page_id,
         "observedRevisionId": 12345,
     }
     term = {
-        "id": f"ruwiki.definition.{page_id}", "title": "Условная шкала",
-        "kind": "scale", "aliases": [], "coverage": "source-description", "blockIds": [1],
+        "id": f"ruwiki.definition.{page_id}",
+        "title": "Условная шкала",
+        "kind": "scale",
+        "aliases": [],
+        "coverage": "source-description",
+        "blockIds": [1],
     }
     return SourceRecord(term, {1: block}, {1: source})
 
 
 def snapshot(html: str = HTML, page_id: int = 72, revision: int = 12345) -> Snapshot:
-    data = {"parse": {"pageid": page_id, "revid": revision, "title": "Условная шкала", "text": html}}
+    data: dict[str, object] = {
+        "parse": {"pageid": page_id, "revid": revision, "title": "Условная шкала", "text": html}
+    }
     return Snapshot(data, sha(encoded(data)), "2026-09-22T00:00:00+00:00")
 
 
@@ -69,8 +86,8 @@ def test_table_preserves_physical_rows_headers_and_merged_cell_geometry() -> Non
 
 def test_unicode_inline_punctuation_and_entities_are_not_word_soup() -> None:
     sections, _ = extract_sections(
-        '<p>Условный <b>термин</b> — исходное определение с α, 🔬 и &lt;3; '
-        'дополнительный текст.</p>'
+        "<p>Условный <b>термин</b> — исходное определение с α, 🔬 и &lt;3; "
+        "дополнительный текст.</p>"
     )
     assert sections[0].text == (
         "Условный термин — исходное определение с α, 🔬 и <3; дополнительный текст."
@@ -79,7 +96,7 @@ def test_unicode_inline_punctuation_and_entities_are_not_word_soup() -> None:
 
 def test_assets_are_not_text_or_fetched() -> None:
     sections, omitted = extract_sections(
-        '<script>steal()</script><p>' + INTRO + '<img src="https://example.org/private" /></p>'
+        "<script>steal()</script><p>" + INTRO + '<img src="https://example.org/private" /></p>'
     )
     assert sections[0].text == INTRO
     assert omitted["media"] == 1
@@ -88,19 +105,22 @@ def test_assets_are_not_text_or_fetched() -> None:
 
 def test_nested_lists_keep_each_item_once() -> None:
     sections, _ = extract_sections(
-        '<p>' + INTRO + '</p><h2 id="x">Группа</h2>'
-        '<ol><li>Главный<ul><li>Деталь А</li><li>Деталь Б</li></ul></li><li>Последний</li></ol>'
+        "<p>" + INTRO + '</p><h2 id="x">Группа</h2>'
+        "<ol><li>Главный<ul><li>Деталь А</li><li>Деталь Б</li></ul></li><li>Последний</li></ol>"
     )
     assert sections[1].text == "1. Главный\n• Деталь А\n• Деталь Б\n2. Последний"
 
 
-@pytest.mark.parametrize("html", [
-    "<p>Коротко</p>",
-    '<p>' + INTRO + '</p><table><tr><td rowspan="0">A</td></tr></table>',
-    '<p>' + INTRO + '</p><table><tr><td><table><tr><td>A</td></tr></table></td></tr></table>',
-    '<p>' + INTRO + '</p><ol start="NaN"><li>A</li></ol>',
-    '<p>' + INTRO + '\0</p>',
-])
+@pytest.mark.parametrize(
+    "html",
+    [
+        "<p>Коротко</p>",
+        "<p>" + INTRO + '</p><table><tr><td rowspan="0">A</td></tr></table>',
+        "<p>" + INTRO + "</p><table><tr><td><table><tr><td>A</td></tr></table></td></tr></table>",
+        "<p>" + INTRO + '</p><ol start="NaN"><li>A</li></ol>',
+        "<p>" + INTRO + "\0</p>",
+    ],
+)
 def test_unsupported_layout_is_explicit_rejection_not_silent_cell_loss(html: str) -> None:
     with pytest.raises(ValueError):
         extract_sections(html)
@@ -154,7 +174,10 @@ def test_identical_titles_do_not_merge_distinct_page_identities() -> None:
 def test_numeric_namespaces_cannot_cross_link_source_text() -> None:
     a, b = record(), record(73, INTRO + " Второе значение.")
     result = read_records(repack([a, b]))
-    for key, expected in (("ruwiki.definition.72", INTRO), ("ruwiki.definition.73", INTRO + " Второе значение.")):
+    for key, expected in (
+        ("ruwiki.definition.72", INTRO),
+        ("ruwiki.definition.73", INTRO + " Второе значение."),
+    ):
         item = result[key]
         assert [v["text"] for v in item.blocks.values()] == [expected]
     assert len(result["ruwiki.definition.72"].sources) == 1
@@ -171,7 +194,6 @@ def test_generated_shards_roundtrip_and_cannot_overwrite_previous_outputs(tmp_pa
     values = [record(), record(73, INTRO + " Другая запись.")]
     paths = write_shards(values, tmp_path)
     assert len(paths) == 1
-    import json
     loaded = read_records(json.loads(paths[0].read_bytes()))
     assert set(loaded) == {"ruwiki.definition.72", "ruwiki.definition.73"}
     before = paths[0].read_bytes()
