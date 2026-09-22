@@ -162,8 +162,12 @@ function assertDependencies(
 }
 
 async function sha256(bytes: Uint8Array): Promise<string> {
-  const buffer = Uint8Array.from(bytes).buffer;
-  const digest = await crypto.subtle.digest('SHA-256', buffer);
+  // Web Crypto snapshots the selected BufferSource; avoid a second full ordinary-buffer copy.
+  const view =
+    bytes.buffer instanceof ArrayBuffer
+      ? new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+      : Uint8Array.from(bytes);
+  const digest = await crypto.subtle.digest('SHA-256', view);
   const hex = [...new Uint8Array(digest)]
     .map((value) => value.toString(16).padStart(2, '0'))
     .join('');
@@ -287,12 +291,17 @@ export class ForegroundContentModuleInstaller {
     if (!indexArtifact) throw new Error(`Module ${module.id} has no index artifact.`);
 
     const existingTask = [...this.tasks.values()].find(
-      (task) =>
-        task.moduleId === module.id &&
-        task.version === module.version &&
-        !['completed', 'failed', 'cancelled'].includes(task.state),
+      (task) => task.moduleId === module.id && this.controllers.has(task.id),
     );
-    if (existingTask) return existingTask;
+    if (existingTask) {
+      if (existingTask.state === 'cancelled') {
+        throw new Error(`Module ${module.id} cancellation is still settling.`);
+      }
+      if (existingTask.version !== module.version) {
+        throw new Error(`Another edition of module ${module.id} is already in progress.`);
+      }
+      return existingTask;
+    }
 
     const id = taskId(module.id, module.version);
     const task: ContentModuleDownloadTask = {
@@ -342,7 +351,8 @@ export class ForegroundContentModuleInstaller {
     const sourceSetDigest = module.sourceSetDigest;
     if (!sourceSetDigest) throw new Error(`Module ${module.id} has no source-set digest.`);
     const staged: StagedContentModuleArtifact[] = [];
-    const bytesByArtifact = new Map<string, Uint8Array>();
+    let indexBytes: Uint8Array | undefined;
+    let recoveryFailed = false;
     const completedBytes = new Map<string, number>();
     let releaseInstallSlot: ReleaseInstallSlot | null = null;
     try {
@@ -351,7 +361,9 @@ export class ForegroundContentModuleInstaller {
         return this.setTask(task.id, { state: 'cancelled', errorMessage: null });
       }
       this.setTask(task.id, { state: 'downloading' });
+      signal.throwIfAborted();
       for (const artifact of artifacts) {
+        signal.throwIfAborted();
         if (!artifact.url || !artifact.sha256) {
           throw new Error(`Artifact ${artifact.id} has no immutable URL/checksum.`);
         }
@@ -359,6 +371,7 @@ export class ForegroundContentModuleInstaller {
           artifact,
           signal,
           (progress) => {
+            if (signal.aborted) return;
             const previousArtifacts = [...completedBytes.values()].reduce(
               (total, value) => total + value,
               0,
@@ -376,6 +389,7 @@ export class ForegroundContentModuleInstaller {
           );
         }
         const checksum = await sha256(bytes);
+        signal.throwIfAborted();
         if (checksum !== artifact.sha256) {
           throw new Error(`Artifact ${artifact.id} checksum mismatch.`);
         }
@@ -386,6 +400,7 @@ export class ForegroundContentModuleInstaller {
             throw new Error(`Compressed index ${artifact.id} lacks a decoder or decoded identity.`);
           }
           this.setTask(task.id, { state: 'verifying' });
+          signal.throwIfAborted();
           installedBytes = await this.decodeIndex(artifact, bytes, signal);
           if (signal.aborted) throw new DOMException('Installation cancelled.', 'AbortError');
           if (
@@ -395,17 +410,21 @@ export class ForegroundContentModuleInstaller {
             throw new Error(`Decoded index ${artifact.id} size/checksum mismatch.`);
           }
         }
-        bytesByArtifact.set(artifact.id, installedBytes);
+        signal.throwIfAborted();
+        if (artifact.id === indexArtifact.id) indexBytes = installedBytes;
         staged.push(await this.backend.stage(module, artifact, installedBytes));
+        signal.throwIfAborted();
         this.setTask(task.id, {
           downloadedBytes: [...completedBytes.values()].reduce((total, value) => total + value, 0),
         });
       }
 
       this.setTask(task.id, { state: 'verifying' });
-      const indexBytes = bytesByArtifact.get(indexArtifact.id);
+      signal.throwIfAborted();
       if (!indexBytes) throw new Error(`Index artifact ${indexArtifact.id} was not downloaded.`);
       const validation = await this.validator.validate(module, indexBytes);
+      indexBytes = undefined;
+      signal.throwIfAborted();
       if (
         !validation.valid ||
         !validation.checksumValid ||
@@ -416,8 +435,10 @@ export class ForegroundContentModuleInstaller {
       }
 
       this.setTask(task.id, { state: 'installing' });
+      signal.throwIfAborted();
       const receipt = await this.backend.activate(module, staged);
       try {
+        signal.throwIfAborted();
         const installation: ModuleVersionInstallation = {
           moduleId: module.id,
           version: module.version,
@@ -429,7 +450,14 @@ export class ForegroundContentModuleInstaller {
         };
         this.registry.activate(installation);
       } catch (cause) {
-        await this.backend.restore(receipt);
+        try {
+          await this.backend.restore(receipt);
+        } catch (restoreError) {
+          recoveryFailed = true;
+          throw new Error('Unable to restore the previous module activation.', {
+            cause: restoreError,
+          });
+        }
         throw cause;
       }
 
@@ -439,8 +467,20 @@ export class ForegroundContentModuleInstaller {
         errorMessage: null,
       });
     } catch (cause) {
-      await this.backend.discardStaging(module.id, module.version);
-      if (signal.aborted || (cause instanceof DOMException && cause.name === 'AbortError')) {
+      try {
+        await this.backend.discardStaging(module.id, module.version);
+      } catch {
+        return this.setTask(task.id, {
+          state: 'failed',
+          errorMessage: recoveryFailed
+            ? 'Module restore and staging cleanup failed.'
+            : 'Module staging cleanup failed.',
+        });
+      }
+      if (
+        !recoveryFailed &&
+        (signal.aborted || (cause instanceof DOMException && cause.name === 'AbortError'))
+      ) {
         return this.setTask(task.id, { state: 'cancelled', errorMessage: null });
       }
       return this.setTask(task.id, {
@@ -448,6 +488,8 @@ export class ForegroundContentModuleInstaller {
         errorMessage: cause instanceof Error ? cause.message : 'Module installation failed.',
       });
     } finally {
+      indexBytes = undefined;
+      staged.length = 0;
       releaseInstallSlot?.();
       this.controllers.delete(task.id);
       this.completions.delete(task.id);

@@ -136,6 +136,14 @@ const context = await browser.newContext({
 });
 const failures = [];
 const page = await context.newPage();
+await page.addInitScript(() => {
+  const original = Blob.prototype.arrayBuffer;
+  globalThis.__largeModuleBlobReads = 0;
+  Blob.prototype.arrayBuffer = function () {
+    if (this.size >= 64 * 1024 * 1024) globalThis.__largeModuleBlobReads += 1;
+    return original.call(this);
+  };
+});
 page.on('pageerror', (error) => failures.push(error.message));
 const external = [];
 let blockedCatalogRefreshes = 0;
@@ -272,6 +280,40 @@ try {
     'Normal dictionary UI finds source records and reads bounded text, block descriptors and source citation.',
   );
   await measure('reference-card-open');
+  report.storedIndex = await page.evaluate(async () => {
+    const database = await new Promise((resolve, reject) => {
+      const request = indexedDB.open('minimed-content-modules-v1', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    try {
+      const rows = await new Promise((resolve, reject) => {
+        const request = database
+          .transaction('versions', 'readonly')
+          .objectStore('versions')
+          .getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const stored = rows.find((row) => row.moduleId === 'minimed.definition.reference.ru');
+      return {
+        kind: stored?.bytes instanceof Blob ? 'Blob' : 'ArrayBuffer',
+        bytes: stored?.bytes instanceof Blob ? stored.bytes.size : stored?.bytes.byteLength,
+        checksum: stored?.indexSha256 ?? null,
+      };
+    } finally {
+      database.close();
+    }
+  });
+  if (process.argv.includes('--expect-blob')) {
+    assert.equal(report.storedIndex.kind, 'Blob');
+    assert.equal(report.storedIndex.bytes, descriptor.module.sizes.installedBytes);
+    assert.equal(
+      report.storedIndex.checksum,
+      descriptor.module.artifacts.find((a) => a.kind === 'index').decodedSha256,
+    );
+    record('Real IndexedDB stores the complete immutable index as Blob with its decoded checksum.');
+  }
   blockDatabaseReads = true;
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
   await page.waitForFunction(
@@ -297,6 +339,16 @@ try {
   record(
     'No uncaught page errors or unexpected external requests. Existing metadata-only catalog refreshes were blocked and used bundled fallback.',
   );
+  await measure('reference-reopened');
+  report.largeBlobReadsOnReopen = await page.evaluate(() => globalThis.__largeModuleBlobReads);
+  if (process.argv.includes('--expect-blob')) {
+    assert.equal(
+      report.largeBlobReadsOnReopen,
+      0,
+      'Reopen must not materialize the large Blob on the main thread.',
+    );
+    record('Installed Blob reopens and searches without a main-thread Blob.arrayBuffer read.');
+  }
   report.blockedCatalogRefreshes = blockedCatalogRefreshes;
   report.coreBytes = core.length;
   report.referenceInstalledBytes = descriptor.module.sizes.installedBytes;

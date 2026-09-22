@@ -129,7 +129,7 @@ function moduleEntry(id = 'minimed.test.module', version = '1.0.0'): ContentModu
 
 function installModuleDatabase(
   pointers: readonly { readonly moduleId: string; readonly version: string }[],
-  bytes: ArrayBuffer,
+  bytes: ArrayBuffer | Blob,
 ): void {
   const versions = new Map(
     pointers.map((pointer) => [
@@ -492,5 +492,96 @@ describe('browser module runtime storage', () => {
     expect(createFromBytes).toHaveBeenCalledWith(smallBytes);
     expect(workers).toHaveLength(1);
     expect(URL.createObjectURL).toHaveBeenCalledOnce();
+  });
+});
+
+describe('module Blob payload compatibility', () => {
+  it('mounts a large stored Blob without materializing it on the main thread', async () => {
+    installObjectUrlDouble();
+    installWorkerDouble();
+    const bytes = new Blob([new ArrayBuffer(SQLITE_WASM_DESERIALIZE_MAX_BYTES + 1)]);
+    installModuleDatabase([{ moduleId: 'minimed.blob', version: '1.0.0' }], bytes);
+    const materialize = vi
+      .spyOn(bytes, 'arrayBuffer')
+      .mockRejectedValue(new Error('unbounded read'));
+    const mounts = await loadInstalledModuleMounts();
+    try {
+      expect(mounts).toHaveLength(1);
+      expect(materialize).not.toHaveBeenCalled();
+      expect(URL.createObjectURL).toHaveBeenCalledWith(bytes);
+    } finally {
+      await Promise.all(mounts.map((mount) => mount.store.close()));
+    }
+  });
+
+  it('keeps exact subarray bytes immutable and restores the old active version', async () => {
+    installWritableModuleDatabase();
+    const backend = new BrowserModuleBackend();
+    const first = moduleEntry('minimed.blob.small');
+    const artifact = {
+      id: 'index',
+      kind: 'index' as const,
+      required: true,
+      url: 'https://example.test/index.db',
+      sha256: CHECKSUM,
+      sizeBytes: 3,
+      compression: 'none' as const,
+      sourceSetDigest: CHECKSUM,
+    };
+    const backing = new Uint8Array([99, 1, 2, 3, 88]);
+    const token = await backend.stage(first, artifact, backing.subarray(1, 4));
+    await backend.activate(first, [token]);
+    backing.fill(0);
+    expect(await backend.readIndexBytes(first.id, first.version)).toEqual(
+      new Uint8Array([1, 2, 3]),
+    );
+    const next = { ...first, version: '1.1.0' };
+    const second = await backend.stage(next, artifact, new Uint8Array([4, 5, 6]));
+    const receipt = await backend.activate(next, [second]);
+    await backend.restore(receipt);
+    const memoryStore = { close: vi.fn(async () => undefined) } as unknown as SqliteMedicalStore;
+    const open = vi.spyOn(SqliteMedicalStore, 'createFromBytes').mockResolvedValue(memoryStore);
+    const mounts = await loadInstalledModuleMounts();
+    expect(mounts).toHaveLength(1);
+    expect(open).toHaveBeenCalledWith(new Uint8Array([1, 2, 3]));
+    await Promise.all(mounts.map((mount) => mount.store.close()));
+    await backend.remove(first.id);
+    expect(await backend.readIndexBytes(first.id, first.version)).toBeNull();
+    expect(await backend.readIndexBytes(next.id, next.version)).toBeNull();
+  });
+
+  it('isolates equal-size OPFS validation caches by decoded artifact checksum', async () => {
+    installObjectUrlDouble();
+    const workers = installWorkerDouble();
+    const validator = new BrowserModuleValidator();
+    const bytes = new Uint8Array(SQLITE_WASM_DESERIALIZE_MAX_BYTES + 1);
+    const module = moduleEntry('minimed.blob.receipt');
+    for (const hash of ['a', 'b']) {
+      const result = await validator.validate(
+        {
+          ...module,
+          artifacts: [
+            {
+              id: 'index',
+              kind: 'index',
+              required: true,
+              url: 'https://example.test/test.db',
+              sha256: `sha256:${hash.repeat(64)}`,
+              sizeBytes: bytes.byteLength,
+              compression: 'none',
+              sourceSetDigest: CHECKSUM,
+            },
+          ],
+        },
+        bytes,
+      );
+      expect(result.valid).toBe(true);
+    }
+    const opens = workers.map(
+      (worker) => worker.postMessage.mock.calls[0]?.[0] as OpenWorkerRequest,
+    );
+    expect(opens).toHaveLength(2);
+    expect(opens[0]?.poolName).not.toBe(opens[1]?.poolName);
+    expect(opens[0]?.databaseName).not.toBe(opens[1]?.databaseName);
   });
 });

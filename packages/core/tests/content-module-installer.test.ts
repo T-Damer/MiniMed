@@ -658,3 +658,204 @@ describe('ForegroundContentModuleInstaller', () => {
     expect((await installer.wait(first.id)).state).toBe('completed');
   });
 });
+
+function lifecycleGate() {
+  let release: () => void = () => {
+    throw new Error('gate not initialized');
+  };
+  const promise = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  return { promise, release };
+}
+
+async function lifecycleFixture() {
+  const bytes = new Uint8Array([11, 12, 13]);
+  const original = await moduleFixture({ indexBytes: bytes });
+  const module = { ...original.module, version: '1.1.0' };
+  const core = original.catalog.modules.find((entry) => entry.kind === 'core');
+  if (!core) throw new Error('Fixture core is missing.');
+  const catalog = { ...original.catalog, modules: [core, module] };
+  const registry = new InMemoryInstalledModuleRegistry();
+  registry.activate(validatedInstallation());
+  registry.activate(validatedInstallation(module.id));
+  const before = registry.snapshot();
+  const backend = new TestBackend();
+  const indexValidator = validator();
+  const installer = new ForegroundContentModuleInstaller(
+    catalog,
+    runtime,
+    new TestDownloader({ index: bytes }),
+    backend,
+    indexValidator,
+    registry,
+    1,
+  );
+  const start = () =>
+    installer.install({ moduleId: module.id, version: module.version, includeSourceAssets: false });
+  return { bytes, module, catalog, registry, before, backend, indexValidator, installer, start };
+}
+
+describe('module payload lifecycle regressions', () => {
+  it('late cancellation after SQLite validation cannot activate or replace the working edition', async () => {
+    const f = await lifecycleFixture();
+    const entered = lifecycleGate();
+    const resume = lifecycleGate();
+    const validate = f.indexValidator.validate.bind(f.indexValidator);
+    vi.spyOn(f.indexValidator, 'validate').mockImplementation(async (...args) => {
+      entered.release();
+      await resume.promise;
+      return validate(...args);
+    });
+    const task = f.start();
+    await entered.promise;
+    f.installer.cancel(task.id);
+    resume.release();
+    expect((await f.installer.wait(task.id)).state).toBe('cancelled');
+    expect(f.backend.activated).toBe(false);
+    expect(f.backend.discarded).toBe(true);
+    expect(f.registry.snapshot()).toEqual(f.before);
+  });
+
+  it('late cancellation during activation restores the previous pointer before completing', async () => {
+    const f = await lifecycleFixture();
+    const entered = lifecycleGate();
+    const resume = lifecycleGate();
+    const activate = f.backend.activate.bind(f.backend);
+    vi.spyOn(f.backend, 'activate').mockImplementation(async (...args) => {
+      const receipt = await activate(...args);
+      entered.release();
+      await resume.promise;
+      return receipt;
+    });
+    const task = f.start();
+    await entered.promise;
+    f.installer.cancel(task.id);
+    resume.release();
+    expect((await f.installer.wait(task.id)).state).toBe('cancelled');
+    expect(f.backend.restored).toBe(true);
+    expect(f.registry.snapshot()).toEqual(f.before);
+  });
+
+  it('a cancelled staging operation must finish draining before the same module retries', async () => {
+    const f = await lifecycleFixture();
+    const entered = lifecycleGate();
+    const resume = lifecycleGate();
+    const stage = f.backend.stage.bind(f.backend);
+    vi.spyOn(f.backend, 'stage').mockImplementationOnce(async (...args) => {
+      entered.release();
+      await resume.promise;
+      return stage(...args);
+    });
+    const task = f.start();
+    await entered.promise;
+    f.installer.cancel(task.id);
+    expect(() => f.start()).toThrow(/settling/u);
+    resume.release();
+    expect((await f.installer.wait(task.id)).state).toBe('cancelled');
+    expect(f.backend.activated).toBe(false);
+    const retry = f.start();
+    expect((await f.installer.wait(retry.id)).state).toBe('completed');
+    expect(f.registry.get(f.module.id)?.version).toBe('1.1.0');
+  });
+
+  it('different editions of one module cannot race their activation receipts', async () => {
+    const f = await lifecycleFixture();
+    const entered = lifecycleGate();
+    const resume = lifecycleGate();
+    const validate = f.indexValidator.validate.bind(f.indexValidator);
+    vi.spyOn(f.indexValidator, 'validate').mockImplementation(async (...args) => {
+      entered.release();
+      await resume.promise;
+      return validate(...args);
+    });
+    const task = f.start();
+    await entered.promise;
+    const newer = { ...f.module, version: '1.2.0' };
+    f.installer.updateCatalog({
+      ...f.catalog,
+      modules: f.catalog.modules.map((entry) => (entry.id === newer.id ? newer : entry)),
+    });
+    expect(() =>
+      f.installer.install({
+        moduleId: newer.id,
+        version: newer.version,
+        includeSourceAssets: false,
+      }),
+    ).toThrow(/in progress/u);
+    resume.release();
+    await f.installer.wait(task.id);
+  });
+
+  it('cancellation recovery errors are failures, not successful cancellation', async () => {
+    const f = await lifecycleFixture();
+    const entered = lifecycleGate();
+    const resume = lifecycleGate();
+    const activate = f.backend.activate.bind(f.backend);
+    vi.spyOn(f.backend, 'activate').mockImplementation(async (...args) => {
+      const receipt = await activate(...args);
+      entered.release();
+      await resume.promise;
+      return receipt;
+    });
+    vi.spyOn(f.backend, 'restore').mockRejectedValue(new Error('storage unavailable'));
+    const task = f.start();
+    await entered.promise;
+    f.installer.cancel(task.id);
+    resume.release();
+    const result = await f.installer.wait(task.id);
+    expect(result.state).toBe('failed');
+    expect(result.errorMessage).toContain('restore');
+    expect(f.registry.snapshot()).toEqual(f.before);
+  });
+
+  it('staging cleanup failure remains observable even when cancellation was requested', async () => {
+    const f = await lifecycleFixture();
+    vi.spyOn(f.backend, 'discardStaging').mockRejectedValue(new Error('cleanup unavailable'));
+    const entered = lifecycleGate();
+    const resume = lifecycleGate();
+    const validate = f.indexValidator.validate.bind(f.indexValidator);
+    vi.spyOn(f.indexValidator, 'validate').mockImplementation(async (...args) => {
+      entered.release();
+      await resume.promise;
+      return validate(...args);
+    });
+    const task = f.start();
+    await entered.promise;
+    f.installer.cancel(task.id);
+    resume.release();
+    const result = await f.installer.wait(task.id);
+    expect(result.state).toBe('failed');
+    expect(result.errorMessage).toContain('cleanup');
+    expect(f.backend.activated).toBe(false);
+  });
+
+  it('a corrupted archive leaves the previous installed edition unchanged', async () => {
+    const f = await lifecycleFixture();
+    const corrupted = new ForegroundContentModuleInstaller(
+      f.catalog,
+      runtime,
+      new TestDownloader({ index: new Uint8Array([0, 0, 0]) }),
+      f.backend,
+      f.indexValidator,
+      f.registry,
+      1,
+    );
+    const task = corrupted.install({
+      moduleId: f.module.id,
+      version: f.module.version,
+      includeSourceAssets: false,
+    });
+    expect((await corrupted.wait(task.id)).state).toBe('failed');
+    expect(f.backend.staged).toHaveLength(0);
+    expect(f.registry.snapshot()).toEqual(f.before);
+  });
+
+  it('an invalid SQLite edition leaves the previous installed edition unchanged', async () => {
+    const f = await lifecycleFixture();
+    vi.spyOn(f.indexValidator, 'validate').mockImplementation(validator(false).validate);
+    expect((await f.installer.wait(f.start().id)).state).toBe('failed');
+    expect(f.backend.activated).toBe(false);
+    expect(f.registry.snapshot()).toEqual(f.before);
+  });
+});

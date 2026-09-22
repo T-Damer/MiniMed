@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { moduleIndexBlob, moduleIndexBytes, moduleIndexSize, moduleIndexView } from './module-index-payload';
+import {
+  moduleIndexBlob,
+  moduleIndexBytes,
+  moduleIndexSize,
+  moduleIndexView,
+} from './module-index-payload';
 
 describe('module index payload', () => {
   it('reuses an ordinary byte view without copying its backing store', () => {

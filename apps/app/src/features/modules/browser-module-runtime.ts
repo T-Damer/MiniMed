@@ -39,6 +39,12 @@ import {
 } from '@/features/modules/local-packaged-modules';
 import { BUNDLED_CORE_MODULE } from '@/features/modules/module-catalog';
 import { decodeModuleIndex } from '@/features/modules/module-index-compression';
+import {
+  type ModuleIndexPayload,
+  moduleIndexBlob,
+  moduleIndexBytes,
+  moduleIndexSize,
+} from '@/features/modules/module-index-payload';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
   dequeuePendingModuleInstall,
@@ -66,7 +72,8 @@ interface StoredModuleVersion {
   readonly key: string;
   readonly moduleId: string;
   readonly version: string;
-  readonly bytes: ArrayBuffer;
+  readonly bytes: ArrayBuffer | Blob;
+  readonly indexSha256?: string;
   readonly sourceAssets?: readonly StoredModuleArtifact[];
   readonly sourceSetDigest: string;
   readonly installedAt: string;
@@ -136,18 +143,20 @@ function moduleOpfsKey(moduleId: string, version: string): string {
 async function openModuleStore(
   moduleId: string,
   version: string,
-  bytes: Uint8Array,
+  payload: ModuleIndexPayload,
+  indexSha256?: string,
 ): Promise<SqliteMedicalStore | WorkerOpfsMedicalStore> {
-  if (bytes.byteLength <= SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
-    return SqliteMedicalStore.createFromBytes(bytes);
+  if (moduleIndexSize(payload) <= SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
+    return SqliteMedicalStore.createFromBytes(await moduleIndexBytes(payload));
   }
 
-  const key = moduleOpfsKey(moduleId, version);
+  if (indexSha256 !== undefined && !/^sha256:[a-f0-9]{64}$/u.test(indexSha256)) {
+    throw new Error('Invalid module index checksum.');
+  }
+  const key = moduleOpfsKey(moduleId, indexSha256 ? `${version}:${indexSha256}` : version);
   // ponytail: OPFS copies survive remove/rollback; IndexedDB stays authoritative. Add per-version
   // OPFS deletion only with a cache lifecycle API.
-  const url = URL.createObjectURL(
-    new Blob([new Uint8Array(bytes)], { type: 'application/vnd.sqlite3' }),
-  );
+  const url = URL.createObjectURL(moduleIndexBlob(payload));
   try {
     return await WorkerOpfsMedicalStore.open({
       url,
@@ -296,13 +305,18 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
       await transactionDone(previousTransaction);
 
       const transaction = database.transaction([VERSIONS_STORE, ACTIVE_STORE], 'readwrite');
-      const storedBytes = staged.bytes.slice().buffer;
+      const storedBytes = moduleIndexBlob(staged.bytes);
+      const indexSha256 =
+        staged.artifact.compression === 'none'
+          ? staged.artifact.sha256
+          : staged.artifact.decodedSha256;
       const stored: StoredModuleVersion = {
         key: versionKey(module.id, module.version),
         ...(module.definitionReference ? { definitionReference: module.definitionReference } : {}),
         moduleId: module.id,
         version: module.version,
         bytes: storedBytes,
+        ...(indexSha256 ? { indexSha256 } : {}),
         ...(sourceAssets.length > 0 ? { sourceAssets } : {}),
         sourceSetDigest: module.sourceSetDigest ?? '',
         installedAt: new Date().toISOString(),
@@ -350,7 +364,7 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
     const database = await openDatabase();
     try {
       const stored = await readVersion(database, moduleId, version);
-      return stored ? new Uint8Array(stored.bytes.slice(0)) : null;
+      return stored ? await moduleIndexBytes(stored.bytes) : null;
     } finally {
       database.close();
     }
@@ -390,7 +404,13 @@ export class BrowserModuleValidator implements ContentModuleIndexValidator {
   public async validate(module: ContentModuleCatalogEntry, indexBytes: Uint8Array) {
     let store: SqliteMedicalStore | WorkerOpfsMedicalStore | null = null;
     try {
-      store = await openModuleStore(module.id, module.version, indexBytes);
+      const artifact = module.artifacts.find((entry) => entry.kind === 'index');
+      store = await openModuleStore(
+        module.id,
+        module.version,
+        indexBytes,
+        (artifact?.compression === 'none' ? artifact.sha256 : artifact?.decodedSha256) ?? undefined,
+      );
       const health = await store.initialize();
       const integrity = await store.inspectIntegrity();
       const schemaCompatible = health.schemaVersion === module.compatibility.schemaVersion;
@@ -1008,7 +1028,8 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
         const store = await openModuleStore(
           pointer.moduleId,
           pointer.version,
-          new Uint8Array(stored.bytes.slice(0)),
+          stored.bytes,
+          stored.indexSha256,
         );
         if (stored.definitionReference) {
           await store.initialize();

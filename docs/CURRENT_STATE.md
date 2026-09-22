@@ -1,5 +1,13 @@
 # Current state
 
+## Module payload lifetime and late cancellation — 2026-09-22
+
+New index records use immutable Blob values in the existing IndexedDB versions store; legacy ArrayBuffer records remain readable without forced migration/redownload. Large Blob mounts reuse the OPFS owner without main-thread arrayBuffer materialization. Artifact checksums qualify new OPFS cache identities; source/record identities are unchanged. Byte-view hashing and Blob construction avoid redundant full-buffer pre-copies. Decompression still requires the full output buffer; this is not a fully streaming installer. Backward reading of old records is tested, not downgrading to an old application that does not understand Blob records.
+
+Installer cancellation is checked after awaited verification/staging and before registry activation. Late activation cancellation restores its previous pointer. A cancelled operation must finish cleanup before a same-module retry; distinct versions cannot race each other's activation/restore. Restore/cleanup failures are visible failures, not successful cancellation. Source text and clinical ranking are unchanged.
+
+Same-run before/after actual App verification uses the full public local-dev dictionary and synthetic core; installation, sourced bounded cards and database-network-blocked restart passed. Numeric evidence and exact test counts: research/module-payload-lifecycle-2026-09-22.json. CDP main-page samples are not total RAM, Android PSS, worker memory or process/install peaks. Full update/crash/device matrices and owner-source annotations remain open. No binary, private source, model, release or merge was published.
+
 ## Definition reference R2 and package setup — 2026-09-22
 
 The actual App offers a full-screen first-run package list. Required core is bold and starred; other real catalog packages are optional with per-package status/progress. Closing preserves downloads and dismissal. Core consent uses the existing OPFS owner and pauses its deadline during human choice. Reconnect uses the same session factory; dictionary lookup waits for active-core capability, not just registry completion. Offline core recovery only accepts an unambiguous checksum-qualified cache name when HEAD cannot supply a size.

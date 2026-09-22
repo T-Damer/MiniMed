@@ -15,10 +15,9 @@ export function moduleIndexView(bytes: Uint8Array): Uint8Array<ArrayBuffer> {
 /** Blob construction snapshots the selected bytes; do not pre-copy the entire backing buffer. */
 export function moduleIndexBlob(payload: ModuleIndexPayload): Blob {
   if (payload instanceof Blob) return payload;
-  return new Blob(
-    [payload instanceof ArrayBuffer ? payload : moduleIndexView(payload)],
-    { type: 'application/vnd.sqlite3' },
-  );
+  return new Blob([payload instanceof ArrayBuffer ? payload : moduleIndexView(payload)], {
+    type: 'application/vnd.sqlite3',
+  });
 }
 
 /** Only consumers explicitly requesting bytes (or small in-memory SQLite) materialize a Blob. */

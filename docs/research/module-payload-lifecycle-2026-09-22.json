@@ -1,0 +1,127 @@
+{
+  "inputCommit": "fdf42b07e8aef6b4bf19929738c6607b94cf0e96",
+  "runId": "35690073788",
+  "tests": {
+    "regressionsFailedBeforeFix": 6,
+    "passedAfterFix": 80,
+    "failedAfterFix": 0
+  },
+  "checks": {
+    "appTypecheck": "passed",
+    "coreTypecheck": "passed",
+    "schemaCheck": "passed"
+  },
+  "before": {
+    "contract": 1,
+    "assertions": [
+      "Fullscreen phone geometry, mandatory bold core and optional package list; no core GET before consent.",
+      "Closing setup retains core download/owner and persists dismissal.",
+      "Full 18,133-entry optional edition installed through the normal download, gzip, checksum and index validator.",
+      "Normal dictionary UI finds source records and reads bounded text, block descriptors and source citation.",
+      "Persisted dismissal and both installed databases survive application reload with database network reads blocked.",
+      "No uncaught page errors or unexpected external requests. Existing metadata-only catalog refreshes were blocked and used bundled fallback."
+    ],
+    "measurements": [
+      {
+        "stage": "setup-before-core",
+        "usedSize": 83396264,
+        "totalSize": 114528256,
+        "embedderHeapUsedSize": 6553048,
+        "backingStorageSize": 57714830
+      },
+      {
+        "stage": "core-ready",
+        "usedSize": 105669476,
+        "totalSize": 130330624,
+        "embedderHeapUsedSize": 11623320,
+        "backingStorageSize": 70064682
+      },
+      {
+        "stage": "reference-card-open",
+        "usedSize": 100152456,
+        "totalSize": 108949504,
+        "embedderHeapUsedSize": 8023264,
+        "backingStorageSize": 405312932
+      },
+      {
+        "stage": "reference-reopened",
+        "usedSize": 121828012,
+        "totalSize": 170139648,
+        "embedderHeapUsedSize": 13257336,
+        "backingStorageSize": 405849738
+      }
+    ],
+    "boundaries": "Headless Chromium, actual App with synthetic demo core and complete public local-dev reference. No native Android/device, independent clinical gold, OCR/viewer assets, whole-process peak or production release qualification. Cached restart blocks database downloads but still serves development JS and the core report.",
+    "storedIndex": {
+      "kind": "ArrayBuffer",
+      "bytes": 111288320,
+      "checksum": null
+    },
+    "largeBlobReadsOnReopen": 0,
+    "blockedCatalogRefreshes": 2,
+    "coreBytes": 528384,
+    "referenceInstalledBytes": 111288320,
+    "referenceDownloadBytes": 27398230,
+    "entries": 18133,
+    "coreGets": 1,
+    "referenceGets": 1
+  },
+  "after": {
+    "contract": 1,
+    "assertions": [
+      "Fullscreen phone geometry, mandatory bold core and optional package list; no core GET before consent.",
+      "Closing setup retains core download/owner and persists dismissal.",
+      "Full 18,133-entry optional edition installed through the normal download, gzip, checksum and index validator.",
+      "Normal dictionary UI finds source records and reads bounded text, block descriptors and source citation.",
+      "Real IndexedDB stores the complete immutable index as Blob with its decoded checksum.",
+      "Persisted dismissal and both installed databases survive application reload with database network reads blocked.",
+      "No uncaught page errors or unexpected external requests. Existing metadata-only catalog refreshes were blocked and used bundled fallback.",
+      "Installed Blob reopens and searches without a main-thread Blob.arrayBuffer read."
+    ],
+    "measurements": [
+      {
+        "stage": "setup-before-core",
+        "usedSize": 84572108,
+        "totalSize": 113741824,
+        "embedderHeapUsedSize": 6704544,
+        "backingStorageSize": 57720659
+      },
+      {
+        "stage": "core-ready",
+        "usedSize": 106279924,
+        "totalSize": 130068480,
+        "embedderHeapUsedSize": 11644736,
+        "backingStorageSize": 70131600
+      },
+      {
+        "stage": "reference-card-open",
+        "usedSize": 100359772,
+        "totalSize": 105631744,
+        "embedderHeapUsedSize": 8521128,
+        "backingStorageSize": 210141932
+      },
+      {
+        "stage": "reference-reopened",
+        "usedSize": 118239624,
+        "totalSize": 164433920,
+        "embedderHeapUsedSize": 13164792,
+        "backingStorageSize": 71990607
+      }
+    ],
+    "boundaries": "Headless Chromium, actual App with synthetic demo core and complete public local-dev reference. No native Android/device, independent clinical gold, OCR/viewer assets, whole-process peak or production release qualification. Cached restart blocks database downloads but still serves development JS and the core report.",
+    "storedIndex": {
+      "kind": "Blob",
+      "bytes": 111288320,
+      "checksum": "sha256:0fecbcc498e45fa44d0706475a49c127425a815ea398431acb59f77c0b92a79f"
+    },
+    "largeBlobReadsOnReopen": 0,
+    "blockedCatalogRefreshes": 2,
+    "coreBytes": 528384,
+    "referenceInstalledBytes": 111288320,
+    "referenceDownloadBytes": 27398230,
+    "entries": 18133,
+    "coreGets": 1,
+    "referenceGets": 1
+  },
+  "boundaries": "Same runner and immutable full public dictionary; fresh Chromium contexts; synthetic small core. Main-page CDP snapshots are neither total RAM nor install/process peak, and exclude worker/native memory. Baseline includes the earlier archive-only pre-copy removal. Full output decompression still allocates the decoded index. No Android, whole-workspace, clinical, private-source or complete crash-consistency qualification."
+}
