@@ -25,10 +25,9 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
-      - name: Finalize numeric source identities and nonduplicated table provenance
+      - name: Finalize scoped authoring code
         run: |
           python3 - <<'PY'
-          import ast
           from pathlib import Path
           p=Path('tools/ingest/src/localmed_ingest/wikipedia_reference_refresh.py');s=p.read_text()
           start=s.index('    page_id = integer(text(record.term["id"])')
@@ -57,9 +56,11 @@ jobs:
           compile(s,str(p),'exec');p.write_text(s)
           p=Path('tools/ingest/tests/test_wikipedia_reference_refresh.py');s=p.read_text()
           s=s.replace('import copy\n','import copy\nimport json\n').replace('    import json\n','')
+          assert '    data = {"parse":' in s
+          s=s.replace('    data = {"parse":', '    data: dict[str, object] = {"parse":')
           p.write_text(s)
           PY
-      - name: Strict scoped authoring checks and synthetic tests
+      - name: Strict scoped checks and synthetic tests
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
           files='tools/ingest/src/localmed_ingest/wikipedia_reference_sections.py tools/ingest/src/localmed_ingest/wikipedia_reference_refresh.py tools/ingest/tests/test_wikipedia_reference_refresh.py scripts/verify-reference-source-refresh.py'
@@ -74,7 +75,7 @@ jobs:
             tools/ingest/tests/test_definition_reference_pack.py \
             tools/ingest/tests/test_definition_reference_compact.py \
             --junitxml=data/build/definition-specialties/tests.xml
-      - name: Compose unique new terms and pinned instrument reference sections
+      - name: Compose unique terms and pinned reference sections then build SQLite
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.wikipedia_reference_refresh \
             --collection content/definition-drafts/ruwiki-specialties-2026.09.22 \
@@ -82,7 +83,7 @@ jobs:
             --cache data/build/definition-section-api --date 2026-09-22
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/prepare-definition-reference.py \
             --version 2026.09.22-specialties-2 --built-at 2026-09-22
-      - name: Compare source replay and actual SQLite with network creation prohibited
+      - name: Verify original sources and SQLite offline
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
           import sys, runpy
@@ -101,7 +102,7 @@ jobs:
           env -i PATH="$PATH" HOME="$HOME" bun scripts/verify-definition-reference.ts \
             apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.22-specialties-2.db \
             data/build/definition-specialties/reader.json "$entries" corpus
-      - name: Read complete upgraded cards through the bounded application reader
+      - name: Reconstruct complete upgraded cards through the application reader
         run: |
           cat > scripts/.reference-refresh-read-check.ts <<'TS'
           import { Database } from 'bun:sqlite';
@@ -145,7 +146,7 @@ jobs:
           TS
           env -i PATH="$PATH" HOME="$HOME" bun scripts/.reference-refresh-read-check.ts
           rm scripts/.reference-refresh-read-check.ts
-      - name: Record measured corpus and content-first progress
+      - name: Record measured content-first progress
         run: |
           python3 - <<'PY'
           import json, xml.etree.ElementTree as ET
@@ -163,7 +164,7 @@ jobs:
           p=Path('docs/CURRENT_STATE.md');s=p.read_text();p.write_text(s.replace('# Current state\n\n','# Current state\n\n'+note,1))
           p=Path('docs/DEFINITION_REFERENCE_PLAN.md');s=p.read_text();p.write_text(s.replace('## Product outcome',note+'## Product outcome',1))
           PY
-      - name: Persist scoped verified sources and reports without replacing concurrent work
+      - name: Commit scoped verified source changes to the same PR
         env:
           PUSH_TOKEN: ${{ github.token }}
         run: |
