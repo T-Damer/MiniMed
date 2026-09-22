@@ -1,0 +1,62 @@
+name: Specialist teaching source acquisition
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/specialist-teaching-collect.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-specialist-teaching
+  cancel-in-progress: false
+jobs:
+  acquire:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - name: Locked authoring dependencies and source parser regressions
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_specialist_journal_reference.py tools/ingest/tests/test_specialist_journal_inline.py
+      - name: Read original publisher pages with explicit rights and robots checks
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.specialist_journal_collect \
+            --selection content/definition-drafts/specialist-journal-selection-teaching-2026.09.22.json \
+            --output content/definition-drafts/specialist-teaching-acquisition-2026.09.22
+      - name: Summarize actually acquired source records
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('content/definition-drafts/specialist-teaching-acquisition-2026.09.22/collection-report.json')
+          data=json.loads(p.read_text())
+          print(json.dumps({'counts':data['counts'],'articles':[{k:a.get(k) for k in ('journal','articleId','title','publicationDate','articleType','license','status','reason','records','blocks','proposedTitles')} for a in data['articles']]},ensure_ascii=False,indent=2))
+          PY
+      - name: Save raw article evidence and prepared candidates to the same PR only
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add content/definition-drafts/specialist-teaching-acquisition-2026.09.22
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): preserve original specialist teaching source snapshots and candidates [skip ci]'
+          own=$(git rev-parse HEAD)
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
+          remote=$(git rev-parse FETCH_HEAD)
+          if [ "$remote" != '${{ github.sha }}' ]; then
+            git switch --detach "$remote"
+            git cherry-pick "$own"
+          fi
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: No release or artifact upload
+        if: always()
+        run: echo 'Original publisher full text only. No Wikipedia, private files, models, APKs or Actions artifacts.' >> "$GITHUB_STEP_SUMMARY"
