@@ -25,21 +25,15 @@ jobs:
         with:
           version: 0.10.0
           enable-cache: false
-      - name: Locked dependencies with sanitized project environment
+      - name: Locked dependencies and regression setup
         run: |
           env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
-          env -i PATH="$PATH" HOME="$HOME" bunx playwright install --with-deps chromium
           mkdir -p data/build/module-payload-lifecycle
-      - name: Same-run baseline with full public reference and synthetic core
-        run: |
           env -i PATH="$PATH" HOME="$HOME" python3 scripts/apply-module-payload-lifecycle.py --harness
-          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/prepare-definition-reference.py --version 2026.09.22-payload --built-at 2026-09-22
-          env -i PATH="$PATH" HOME="$HOME" node scripts/verify-reference-app.mjs
-          cp data/build/reference-app-check/browser-report.json data/build/module-payload-lifecycle/before.json
-      - name: Prove cancellation regressions fail before applying the fix
-        run: |
           env -i PATH="$PATH" HOME="$HOME" python3 scripts/apply-module-payload-lifecycle.py --tests
+      - name: Prove late cancellation cases fail on the previous installer
+        run: |
           set +e
           env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/core/tests/content-module-installer.test.ts -t 'module payload lifecycle regressions' --reporter=json --outputFile=data/build/module-payload-lifecycle/red.json
           result=$?
@@ -51,9 +45,35 @@ jobs:
           assert data['numFailedTests'] > 0 and data['numTotalTests'] >= 8
           print('Observed failing regression cases:', data['numFailedTests'])
           PY
-      - name: Integrate code and run strict scoped checks
+      - name: Integrate fixes and keep strict fixture typing
         run: |
           env -i PATH="$PATH" HOME="$HOME" python3 scripts/apply-module-payload-lifecycle.py --code
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          from pathlib import Path
+          p=Path('packages/core/tests/content-module-installer.test.ts');s=p.read_text()
+          old="  const catalog = { ...original.catalog, modules: [original.catalog.modules[0]!, module] };"
+          assert s.count(old)==1
+          s=s.replace(old,"  const core = original.catalog.modules.find((entry) => entry.kind === 'core');\n  if (!core) throw new Error('Fixture core is missing.');\n  const catalog = { ...original.catalog, modules: [core, module] };")
+          old="f.installer.updateCatalog({ ...f.catalog, modules: [f.catalog.modules[0]!, newer] });"
+          assert s.count(old)==1
+          s=s.replace(old,"f.installer.updateCatalog({ ...f.catalog, modules: f.catalog.modules.map((entry) => entry.id === newer.id ? newer : entry) });")
+          p.write_text(s)
+          p=Path('apps/app/src/features/modules/browser-module-runtime.ts');s=p.read_text()
+          old='      const storedBytes = moduleIndexBlob(staged.bytes);'
+          assert s.count(old)==1
+          s=s.replace(old,old+"\n      const indexSha256 = staged.artifact.compression === 'none'\n        ? staged.artifact.sha256 : staged.artifact.decodedSha256;")
+          old='''        ...(staged.artifact.decodedSha256 || staged.artifact.sha256
+                    ? { indexSha256: staged.artifact.decodedSha256 ?? staged.artifact.sha256 ?? undefined }
+                    : {}),'''
+          # Match the exact generated indentation, not source formatting heuristics.
+          old=old.replace('                    ', '          ')
+          assert s.count(old)==1, 'Stored checksum anchor'
+          s=s.replace(old,'        ...(indexSha256 ? { indexSha256 } : {}),')
+          old='        artifact?.decodedSha256 ?? artifact?.sha256 ?? undefined);'
+          assert s.count(old)==1
+          s=s.replace(old,"        (artifact?.compression === 'none' ? artifact.sha256 : artifact?.decodedSha256) ?? undefined);")
+          p.write_text(s)
+          PY
           files='apps/app/src/features/modules/module-index-payload.ts apps/app/src/features/modules/module-index-payload.test.ts apps/app/src/features/modules/module-index-compression.ts apps/app/src/features/modules/browser-module-runtime.ts apps/app/src/features/modules/browser-module-runtime.test.ts packages/core/src/content-module-installer.ts packages/core/tests/content-module-installer.test.ts scripts/verify-reference-app.mjs'
           env -i PATH="$PATH" HOME="$HOME" bunx biome check --write --diagnostic-level=error $files
           env -i PATH="$PATH" HOME="$HOME" bunx tsc --noEmit -p apps/app/tsconfig.json
@@ -70,20 +90,30 @@ jobs:
             apps/app/src/composition/medical-core-lifecycle.test.ts \
             apps/app/src/composition/create-browser-core.test.ts \
             --reporter=json --outputFile=data/build/module-payload-lifecycle/green.json
-      - name: Real installed Blob, search and restricted-network restart
+      - name: Same-run full dictionary baseline using previous storage and installer
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bunx playwright install --with-deps chromium
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python scripts/prepare-definition-reference.py --version 2026.09.22-payload --built-at 2026-09-22
+          cp apps/app/src/features/modules/browser-module-runtime.ts data/build/module-payload-lifecycle/runtime.after.ts
+          cp packages/core/src/content-module-installer.ts data/build/module-payload-lifecycle/installer.after.ts
+          git show '${{ github.sha }}:apps/app/src/features/modules/browser-module-runtime.ts' > apps/app/src/features/modules/browser-module-runtime.ts
+          git show '${{ github.sha }}:packages/core/src/content-module-installer.ts' > packages/core/src/content-module-installer.ts
+          env -i PATH="$PATH" HOME="$HOME" node scripts/verify-reference-app.mjs
+          cp data/build/reference-app-check/browser-report.json data/build/module-payload-lifecycle/before.json
+          cp data/build/module-payload-lifecycle/runtime.after.ts apps/app/src/features/modules/browser-module-runtime.ts
+          cp data/build/module-payload-lifecycle/installer.after.ts packages/core/src/content-module-installer.ts
+      - name: Real installed Blob, sourced card and restricted-network restart
         run: |
           env -i PATH="$PATH" HOME="$HOME" node scripts/verify-reference-app.mjs --expect-blob
           cp data/build/reference-app-check/browser-report.json data/build/module-payload-lifecycle/after.json
-      - name: Record measured scope, not invented device claims
+      - name: Record measured scope without device or peak-memory claims
         run: |
           python3 - <<'PY'
-          import json
+          import json, textwrap
           from pathlib import Path
           root=Path('data/build/module-payload-lifecycle')
-          before=json.loads((root/'before.json').read_text())
-          after=json.loads((root/'after.json').read_text())
-          green=json.loads((root/'green.json').read_text())
-          red=json.loads((root/'red.json').read_text())
+          before=json.loads((root/'before.json').read_text()); after=json.loads((root/'after.json').read_text())
+          green=json.loads((root/'green.json').read_text()); red=json.loads((root/'red.json').read_text())
           assert green['numFailedTests']==0 and green['numPassedTests']>0
           assert before['storedIndex']['kind']=='ArrayBuffer' and after['storedIndex']['kind']=='Blob'
           assert before['referenceInstalledBytes']==after['referenceInstalledBytes']
@@ -93,21 +123,17 @@ jobs:
             'before':before,'after':after,
             'boundaries':'Same runner and immutable full public dictionary; fresh Chromium contexts; synthetic small core. Main-page CDP snapshots are neither total RAM nor install/process peak, and exclude worker/native memory. Baseline includes the earlier archive-only pre-copy removal. Full output decompression still allocates the decoded index. No Android, whole-workspace, clinical, private-source or complete crash-consistency qualification.'}
           Path('docs/research/module-payload-lifecycle-2026-09-22.json').write_text(json.dumps(report,indent=2)+'\n')
-          state=Path('docs/CURRENT_STATE.md')
-          original=state.read_text()
-          assert original.startswith('# Current state\n')
+          state=Path('docs/CURRENT_STATE.md'); original=state.read_text(); assert original.startswith('# Current state\n')
           note='''
           ## Module payload lifetime and late cancellation — 2026-09-22
 
-          New index records use immutable Blob values in the existing IndexedDB versions store; legacy ArrayBuffer records remain readable. Large Blob mounts reuse the OPFS owner without main-thread arrayBuffer materialization. Decoded checksums qualify new OPFS cache identities; module version and source/record identities are unchanged. Byte-view hashing, Blob construction and decoded input handling avoid redundant full-buffer pre-copies. Decompression still requires the full output buffer; this is not a fully streaming installer.
+          New index records use immutable Blob values in the existing IndexedDB versions store; legacy ArrayBuffer records remain readable without forced migration/redownload. Large Blob mounts reuse the OPFS owner without main-thread arrayBuffer materialization. Artifact checksums qualify new OPFS cache identities; source/record identities are unchanged. Byte-view hashing and Blob construction avoid redundant full-buffer pre-copies. Decompression still requires the full output buffer; this is not a fully streaming installer. Backward reading of old records is tested, not downgrading to an old application that does not understand Blob records.
 
           Installer cancellation is checked after awaited verification/staging and before registry activation. Late activation cancellation restores its previous pointer. A cancelled operation must finish cleanup before a same-module retry; distinct versions cannot race each other's activation/restore. Restore/cleanup failures are visible failures, not successful cancellation. Source text and clinical ranking are unchanged.
 
           Same-run before/after actual App verification uses the full public local-dev dictionary and synthetic core; installation, sourced bounded cards and database-network-blocked restart passed. Numeric evidence and exact test counts: research/module-payload-lifecycle-2026-09-22.json. CDP main-page samples are not total RAM, Android PSS, worker memory or process/install peaks. Full update/crash/device matrices and owner-source annotations remain open. No binary, private source, model, release or merge was published.
-
           '''
-          import textwrap
-          state.write_text('# Current state\n'+textwrap.dedent(note).strip()+'\n\n'+original[len('# Current state\n'):].lstrip())
+          state.write_text('# Current state\n\n'+textwrap.dedent(note).strip()+'\n\n'+original[len('# Current state\n'):].lstrip())
           print(json.dumps({'tests':report['tests'],'before':before['measurements'],'after':after['measurements']},indent=2))
           PY
       - name: Persist only scoped verified code and numeric evidence
