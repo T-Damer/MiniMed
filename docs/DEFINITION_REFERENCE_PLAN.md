@@ -13,6 +13,15 @@ The development catalog has 18,133 source/editorial records, not 18,133 reviewed
 
 The original `definition-draft-lookup.ts` imported every JSON collection; R2 removes that preview from the mounted application. The reviewed `knowledge_discovery_pack.py` gate must NOT be bypassed by promoting unreviewed extractions. Existing content/knowledge tables, installer, MedicalCore and native/WASM storage ownership remain the integration target.
 
+## Current user priority — content first (2026-09-22)
+
+The user explicitly permits breaking DEV code/file formats; backward-compatibility engineering
+is not a requirement for this development stage. Current execution order is **R3/R5 content
+collection, source-fidelity QA and database rebuilds**, then content-driven search improvements.
+R2 streaming/device/lifecycle work is deferred, not falsely marked complete. Personal data,
+source traceability, clinical-review and publication-rights boundaries remain unchanged.
+See [the dated scope override](research/definition-content-priority-2026-09-22.md).
+
 ## Execution order and acceptance
 
 ### R1 — SQLite projection and bounded storage access (implemented; host checks passed)
@@ -99,3 +108,5 @@ No arbitrary final device budget is advertised before measurement. The invariant
 - 2026-09-21: optional verbatim metadata pass verified in `81f81f72731ba7af931b8f15d845cec2bf8df0c2`: 48 Python / 22 selected Vitest cases, strict type/schema checks, full logical/source comparison, 13146/13146 name availability and 128 decoded source-block comparisons. Installed bytes 110395392 -> 105783296, gzip 27393572 -> 28112736. The transport regression is retained; the option stays disabled by default. R2 public-reference integration is now the next implementation priority; owner-annotation bindings remain required before enabling that optional path. No full-app, Android, clinical or SemIf qualification is implied.
 
 - 2026-09-22: R2 public browser slice and explicit full-screen core/optional package setup verified. See `research/definition-reference-app-browser-2026-09-22.json` for exact input/run, bounded-card checks, full 18133-record install and restricted-network restart. Not Android or complete lifecycle/clinical qualification. Owner overlays and schema-8/9 application capabilities remain disabled.
+
+- 2026-09-22: content-first batch added 5187 Russian Wikipedia introduction records, with 4208 previously absent normalized name surfaces and 979 existing names receiving another source. Current combined corpus: 23320. Exact source-text/location comparison passed for every new record in a real SQLite rebuild. These are unreviewed source descriptions, not completed/executable scales. DEV source manifest replaces the fixed-count preparer. Source and build evidence are in `research/definition-expansion-2026-09-22.json` and `research/definition-expansion-build-2026-09-22.json`.

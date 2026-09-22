@@ -32,6 +32,12 @@ Forbidden without a dedicated ADR:
 - adding Rust, Tauri, Postgres, Docker, telemetry, or a backend;
 - committing private source documents, patient data, API keys, or model weights.
 
+## DEV format policy (user decision, 2026-09-22)
+
+Breaking changes to DEV code and prepared file formats are allowed. Do not add legacy-format
+adapters merely for compatibility. Current reference priority is source collection and database
+refreshes; preserve private/user data and exact provenance even when rebuilding generated packs.
+
 ## Before editing
 
 1. Read `docs/CURRENT_STATE.md`, the relevant issue/milestone, and architecture/ADR files.

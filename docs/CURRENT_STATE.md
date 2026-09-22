@@ -1,5 +1,33 @@
 # Current state
 
+## Content-first dictionary expansion — 2026-09-22
+
+Per the user's explicit request, collecting terminology and rebuilding data now precedes
+additional compatibility/streaming/lifecycle work. Breaking DEV formats are permitted;
+user/private source data is not disposable and publication boundaries still apply.
+
+Added **5187** original Russian encyclopedic introductions from the
+declared bounded medical category traversal. **4208** normalized names
+were absent from the earlier source set; **979**
+names gained another source-specific description. Combined source/editorial records:
+**23320**, not that many proven canonical concepts. The collector records
+skipped candidates, category depth/budget limits and exact API response snapshots. It does
+not invent full scales, root translations or biographies from names.
+
+The actual local SQLite was rebuilt: **146087936 bytes installed /
+36888523 gzip bytes**. Every new source record's text and locators matched
+the final file. 56 selected Python cases, strict authoring type/lint
+checks and SQLite integrity/foreign-key checks passed. No new UI/Android/clinical evaluation
+is implied. The app preparer now uses `content/definition-drafts/source-inputs.json` rather
+than a hard-coded 18,133-record assumption. Raw API snapshots are authoring evidence only,
+never device download dependencies. The owner textbook's 450 private records remain separate.
+
+Evidence: `research/definition-expansion-2026-09-22.json`,
+`research/definition-expansion-build-2026-09-22.json`, and
+`../content/definition-drafts/ruwiki-medical-2026.09.22/collection-report.json`.
+No model, private PDF/text, database binary, APK, release or merge was published.
+
+
 ## Module payload lifetime and late cancellation — 2026-09-22
 
 New index records use immutable Blob values in the existing IndexedDB versions store; legacy ArrayBuffer records remain readable without forced migration/redownload. Large Blob mounts reuse the OPFS owner without main-thread arrayBuffer materialization. Artifact checksums qualify new OPFS cache identities; source/record identities are unchanged. Byte-view hashing and Blob construction avoid redundant full-buffer pre-copies. Decompression still requires the full output buffer; this is not a fully streaming installer. Backward reading of old records is tested, not downgrading to an old application that does not understand Blob records.

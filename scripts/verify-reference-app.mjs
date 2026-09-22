@@ -41,7 +41,8 @@ const descriptor = JSON.parse(
     'utf8',
   ),
 );
-assert.equal(descriptor.module.definitionReference.entries, 18133);
+const sourceManifest = JSON.parse(await readFile(resolve(root, 'content/definition-drafts/source-inputs.json'), 'utf8'));
+assert.equal(descriptor.module.definitionReference.entries, sourceManifest.entries);
 const archive = await readFile(
   resolve(appRoot, 'public/content/definition-reference', descriptor.fileName),
 );
@@ -251,7 +252,7 @@ try {
     )
     .toEqual({ state: 'completed', error: null });
   record(
-    'Full 18,133-entry optional edition installed through the normal download, gzip, checksum and index validator.',
+    'Full manifest-counted optional edition installed through the normal download, gzip, checksum and index validator.',
   );
   await expect
     .poll(() => referenceGets, {

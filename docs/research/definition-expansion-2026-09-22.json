@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "previousBaseRecords": 18133,
+  "newSourceRecords": 5187,
+  "combinedRecords": 23320,
+  "baseNormalizedNames": 13146,
+  "newSourceNormalizedNames": 5187,
+  "newNameSurfaces": 4208,
+  "existingNameSurfacesWithAdditionalSource": 979,
+  "combinedNormalizedNames": 17354,
+  "sourceFiles": [
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-001.json",
+      "sha256": "005566bedca30944ed6e67ccbdbe12be1aedda5b7ec5215820fee30b9d2ab7a0",
+      "bytes": 1390293,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-002.json",
+      "sha256": "60f1aacc924bab4a9085cc7253c85a955b6b7df6082044a183da9a93ccf9d6c5",
+      "bytes": 1280748,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-003.json",
+      "sha256": "a6735058b2f7a20ac27d13d3ff4e9ad6e3555695cacaff5498cae1adec299e4c",
+      "bytes": 1304949,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-004.json",
+      "sha256": "8b2fa2ac6b0d0aaec4e0ce660a6f2a1d6bb92a8f3375a84f0d7bad9fcd7b289a",
+      "bytes": 1228682,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-005.json",
+      "sha256": "82f8640d04a1c1a54ae139c2dd751cd01feeb3268d8220b36a638db04948cd3d",
+      "bytes": 1262901,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-006.json",
+      "sha256": "4884169fea4b731f417dbd0a04ed270cf18b4a8c012c3c5e1b651260669a8532",
+      "bytes": 1199288,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-007.json",
+      "sha256": "b3fc632f9b20e950a44c9e26b1fee7a395407fa6311eebb28d804d8337e096ad",
+      "bytes": 1214880,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-008.json",
+      "sha256": "56546001dcb17c79bf4f93499e2607f026c9e9d3a221d2e7374b556c4b39c65f",
+      "bytes": 1268806,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-009.json",
+      "sha256": "6ebb83698e7acbe207023bb21255d9285e9a22462dd27211d3b9ce52859e2ba2",
+      "bytes": 1295645,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-010.json",
+      "sha256": "7b59f1bb208daf5961890ed2c14fcf4e69caf49e8a9e852cbe8500c2c1e807a0",
+      "bytes": 1292804,
+      "entries": 500
+    },
+    {
+      "path": "content/definition-drafts/ruwiki-medical-2026.09.22/part-011.json",
+      "sha256": "2fd29d5fcc9a9bd4f734b7ff2b0c60cca417e23e38a10e051fbbccc24bf9e106",
+      "bytes": 567117,
+      "entries": 187
+    }
+  ],
+  "previousProbeCoverage": {
+    "Атаксия": {
+      "before": true,
+      "after": true
+    },
+    "Дисметрия": {
+      "before": false,
+      "after": false
+    },
+    "Ортопноэ": {
+      "before": false,
+      "after": false
+    },
+    "Брадипноэ": {
+      "before": false,
+      "after": true
+    }
+  },
+  "boundaries": "New normalized name surfaces are not proven disjoint canonical concepts. Source text is not rewritten or reviewed. Old source-specific meanings remain separate. The owner textbook is not included in public counts. This operation replaces the previous encyclopedic source snapshot in the DEV manifest rather than accumulating duplicate page IDs."
+}

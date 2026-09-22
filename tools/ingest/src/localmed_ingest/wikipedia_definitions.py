@@ -24,19 +24,28 @@ from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
 API = "https://ru.wikipedia.org/w/api.php"
-USER_AGENT = "MiniMedTermCollector/0.1 (https://github.com/T-Damer/MiniMed; source-linked reference research)"
+USER_AGENT = (
+    "MiniMedTermCollector/0.1 (https://github.com/T-Damer/MiniMed"
+    "; source-linked reference research)"
+)
 MAX_RESPONSE = 16 * 1024 * 1024
 MAX_EXTRACT = 65536
 OMIT_CATEGORY = re.compile(
-    r"персоналии|родившиеся|умершие|учёные|ученые|врачи|физиологи|анатомы|психиатры|"
-    r"организации|учреждения|университеты|институты|больницы|клиники|журналы|премии|"
-    r"история |истории |лауреаты|фильмы|романы|по странам|по городам", re.I,
+    (
+        "персоналии|родившиеся|умершие|учёные|ученые|врачи|физиологи|"
+        "анатомы|психиатры|организации|учреждения|университеты|инстит"
+        "уты|больницы|клиники|журналы|премии|история |истории |лауреа"
+        "ты|фильмы|романы|по странам|по городам"
+    ),
+    re.I,
 )
 ETYMOLOGY = re.compile(r"(?:др\.-греч\.|греч\.|лат\.|нем\.|англ\.)", re.I)
 
 
 def encoded(value: object) -> bytes:
-    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    return json.dumps(
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False
+    ).encode()
 
 
 def sha(value: bytes) -> str:
@@ -44,7 +53,9 @@ def sha(value: bytes) -> str:
 
 
 def obj(value: object) -> dict[str, object]:
-    if not isinstance(value, dict) or any(not isinstance(k, str) for k in value):
+    if not isinstance(value, dict) or any(
+        not isinstance(k, str) for k in cast(dict[object, object], value)
+    ):
         raise ValueError("Expected a JSON object")
     return cast(dict[str, object], value)
 
@@ -87,7 +98,13 @@ class WikiApi:
         self.requests = 0
 
     def get(self, values: dict[str, str]) -> Snapshot:
-        params = {"action": "query", "format": "json", "formatversion": "2", "maxlag": "5", **values}
+        params = {
+            "action": "query",
+            "format": "json",
+            "formatversion": "2",
+            "maxlag": "5",
+            **values,
+        }
         key = sha(encoded(params))
         path = self.cache / f"{key}.json"
         if path.exists():
@@ -102,7 +119,10 @@ class WikiApi:
             time.sleep(max(0.0, 1.0 - (time.monotonic() - self.last_request)))
             self.last_request = time.monotonic()
             self.requests += 1
-            request = Request(API + "?" + urlencode(params), headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+            request = Request(
+                API + "?" + urlencode(params),
+                headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+            )
             try:
                 with urlopen(request, timeout=40) as response:
                     raw = response.read(MAX_RESPONSE + 1)
@@ -116,7 +136,12 @@ class WikiApi:
                         continue
                     raise ValueError("Source API error: " + str(error.get("code")))
                 retrieved = datetime.now(UTC).isoformat()
-                saved = {"parameters": params, "response": raw.decode(), "responseSha256": sha(raw), "retrievedAt": retrieved}
+                saved = {
+                    "parameters": params,
+                    "response": raw.decode(),
+                    "responseSha256": sha(raw),
+                    "retrievedAt": retrieved,
+                }
                 path.write_bytes(encoded(saved))
                 return Snapshot(data, sha(raw), retrieved)
             except HTTPError as error:
@@ -127,7 +152,9 @@ class WikiApi:
         raise ValueError("Source API retry budget exhausted")
 
 
-def discover(api: WikiApi, config: dict[str, object]) -> tuple[dict[int, dict[str, object]], list[dict[str, object]]]:
+def discover(
+    api: WikiApi, config: dict[str, object]
+) -> tuple[dict[int, dict[str, object]], list[dict[str, object]]]:
     max_categories = integer(config["maxCategories"], 1)
     max_pages = integer(config["maxPages"], 1)
     if max_categories > 1000 or max_pages > 15000:
@@ -153,11 +180,26 @@ def discover(api: WikiApi, config: dict[str, object]) -> tuple[dict[int, dict[st
         visited.add(category)
         continuation: dict[str, str] = {}
         seen_cursors: set[str] = set()
-        record: dict[str, object] = {"category": category, "family": family, "depth": depth, "requests": [], "members": 0, "complete": True}
+        record: dict[str, object] = {
+            "category": category,
+            "family": family,
+            "depth": depth,
+            "requests": [],
+            "members": 0,
+            "complete": True,
+        }
         receipts = cast(list[object], record["requests"])
         members_seen = 0
         while True:
-            snapshot = api.get({"list": "categorymembers", "cmtitle": category, "cmtype": "page|subcat", "cmlimit": "500", **continuation})
+            snapshot = api.get(
+                {
+                    "list": "categorymembers",
+                    "cmtitle": category,
+                    "cmtype": "page|subcat",
+                    "cmlimit": "500",
+                    **continuation,
+                }
+            )
             receipts.append(snapshot.response_sha256)
             rows = items(obj(snapshot.data["query"])["categorymembers"])
             members_seen += len(rows)
@@ -173,7 +215,10 @@ def discover(api: WikiApi, config: dict[str, object]) -> tuple[dict[int, dict[st
                     if page_id not in candidates and len(candidates) >= max_pages:
                         record["complete"] = False
                         continue
-                    row = candidates.setdefault(page_id, {"pageid": page_id, "title": title, "families": [], "categories": []})
+                    row = candidates.setdefault(
+                        page_id,
+                        {"pageid": page_id, "title": title, "families": [], "categories": []},
+                    )
                     for key, value in (("families", family), ("categories", category)):
                         target = cast(list[str], row[key])
                         if value not in target:
@@ -193,7 +238,13 @@ def discover(api: WikiApi, config: dict[str, object]) -> tuple[dict[int, dict[st
         record["members"] = members_seen
         ledger.append(record)
     if queue:
-        ledger.append({"remainingQueuedCategories": len(queue), "reason": "configured-category-or-page-budget", "complete": False})
+        ledger.append(
+            {
+                "remainingQueuedCategories": len(queue),
+                "reason": "configured-category-or-page-budget",
+                "complete": False,
+            }
+        )
     return candidates, ledger
 
 
@@ -216,14 +267,16 @@ def exclusion(page: dict[str, object]) -> str | None:
         return "no-russian-source-text"
     if re.search(r"\{\||\{\{|\[\[", extract):
         return "unrendered-source-markup"
-    if re.search(r"\(\s*\d{1,2}\s+\w+\s+\d{4}[^)]*[—–-]", extract[:350]) or re.match(r"^[А-ЯЁ][^,]{1,60},\s*[А-ЯЁ]", title):
+    if re.search(r"\(\s*\d{1,2}\s+\w+\s+\d{4}[^)]*[—–-]", extract[:350]) or re.match(
+        r"^[А-ЯЁ][^,]{1,60},\s*[А-ЯЁ]", title
+    ):
         return "possible-person-separate-history-queue"
     return None
 
 
 def classify(title: str, families: list[str]) -> str:
     lowered = title.lower()
-    if re.search(r"\b(шкал|опросник|тест)\w*", lowered):
+    if re.search(r"\b(?:шкал[а-я]*|опросник[а-я]*|тест(?:ы|а|ов|ирование)?)(?=\s|$)", lowered):
         return "scale" if "шкал" in lowered or "опросник" in lowered else "tool"
     if "синдром" in lowered:
         return "syndrome"
@@ -236,7 +289,9 @@ def classify(title: str, families: list[str]) -> str:
     return "term"
 
 
-def project_page(page: dict[str, object], candidate: dict[str, object], snapshot: Snapshot) -> tuple[dict[str, object], dict[str, object]]:
+def project_page(
+    page: dict[str, object], candidate: dict[str, object], snapshot: Snapshot
+) -> tuple[dict[str, object], dict[str, object]]:
     reason = exclusion(page)
     if reason is not None:
         raise ValueError(reason)
@@ -250,38 +305,67 @@ def project_page(page: dict[str, object], candidate: dict[str, object], snapshot
     families = [text(value, 64) for value in items(candidate["families"])]
     path = quote(title.replace(" ", "_"), safe="")
     block: dict[str, object] = {
-        "id": page_id, "source": 1, "text": body, "textSha256": sha(body.encode()),
-        "path": path, "locator": f"TextExtracts intro; pageid={page_id}; snapshot={snapshot.response_sha256}",
-        "pageId": page_id, "observedRevisionId": revision.get("revid"),
+        "id": page_id,
+        "source": 1,
+        "text": body,
+        "textSha256": sha(body.encode()),
+        "path": path,
+        "locator": f"TextExtracts intro; pageid={page_id}; snapshot={snapshot.response_sha256}",
+        "pageId": page_id,
+        "observedRevisionId": revision.get("revid"),
         "observedRevisionTimestamp": revision.get("timestamp"),
-        "retrievedAt": snapshot.retrieved_at, "apiResponseSha256": snapshot.response_sha256,
+        "retrievedAt": snapshot.retrieved_at,
+        "apiResponseSha256": snapshot.response_sha256,
         "sourcePageRecordSha256": sha(encoded(page)),
         "revisionBinding": "retrieval-snapshot-not-pinned-revision",
         "historyUrl": "https://ru.wikipedia.org/w/index.php?title=" + path + "&action=history",
-        "discoveryCategories": candidate["categories"], "families": families,
+        "discoveryCategories": candidate["categories"],
+        "families": families,
     }
     term: dict[str, object] = {
-        "id": f"ruwiki.definition.{page_id}", "title": title,
-        "kind": classify(title, families), "aliases": [],
-        "coverage": "source-description", "blockIds": [page_id],
+        "id": f"ruwiki.definition.{page_id}",
+        "title": title,
+        "kind": classify(title, families),
+        "aliases": [],
+        "coverage": "source-description",
+        "blockIds": [page_id],
     }
     return block, term
 
 
 def source_descriptor(date: str) -> dict[str, object]:
     return {
-        "id": 1, "title": "Русская Википедия — медицинские и смежные определения",
-        "baseUrl": "https://ru.wikipedia.org/wiki/", "sourceType": "wikipedia-api-introductions",
-        "authority": "third-party", "accessed": date, "releaseEligible": False,
-        "license": "CC-BY-SA-4.0", "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
-        "attribution": "Авторы соответствующих статей русской Википедии; индивидуальные страницы и история авторства указаны в блоках.",
-        "changes": "Category selection and projection of complete API-provided plain-text introductions. No model rewriting, translation, invented aliases, scoring or harmonization.",
+        "id": 1,
+        "title": "Русская Википедия — медицинские и смежные определения",
+        "baseUrl": "https://ru.wikipedia.org/wiki/",
+        "sourceType": "wikipedia-api-introductions",
+        "authority": "third-party",
+        "accessed": date,
+        "releaseEligible": False,
+        "license": "CC-BY-SA-4.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+        "attribution": (
+            "Авторы соответствующих статей русской Википедии; индивидуаль"
+            "ные страницы и история авторства указаны в блоках."
+        ),
+        "changes": (
+            "Category selection and projection of complete API-provided p"
+            "lain-text introductions. No model rewriting, translation, in"
+            "vented aliases, scoring or harmonization."
+        ),
         "sourceUrl": API,
-        "sourceLimitations": "Community encyclopedia, not clinical guidance. Plain-text API introductions omit media/tables and may differ from current article revisions. Exact retrieval snapshots are retained separately.",
+        "sourceLimitations": (
+            "Community encyclopedia, not clinical guidance. Plain-text AP"
+            "I introductions omit media/tables and may differ from curren"
+            "t article revisions. Exact retrieval snapshots are retained "
+            "separately."
+        ),
     }
 
 
-def collect(config_path: Path, destination: Path, cache: Path, *, offline: bool = False) -> dict[str, object]:
+def collect(
+    config_path: Path, destination: Path, cache: Path, *, offline: bool = False
+) -> dict[str, object]:
     if destination.exists():
         raise ValueError("Choose a new collection destination; source snapshots are immutable")
     config_raw = config_path.read_bytes()
@@ -299,10 +383,22 @@ def collect(config_path: Path, destination: Path, cache: Path, *, offline: bool 
     rejected: list[dict[str, object]] = []
     request_warnings: list[object] = []
     for start in range(0, len(selected), 20):
-        batch = selected[start:start + 20]
-        snapshot = api.get({"pageids": "|".join(map(str, batch)), "prop": "extracts|revisions|pageprops", "exintro": "1", "explaintext": "1", "exlimit": "20", "rvprop": "ids|timestamp", "ppprop": "disambiguation"})
+        batch = selected[start : start + 20]
+        snapshot = api.get(
+            {
+                "pageids": "|".join(map(str, batch)),
+                "prop": "extracts|revisions|pageprops",
+                "exintro": "1",
+                "explaintext": "1",
+                "exlimit": "20",
+                "rvprop": "ids|timestamp",
+                "ppprop": "disambiguation",
+            }
+        )
         if "continue" in snapshot.data:
-            raise ValueError("Unexpected incomplete extract batch; do not silently drop source pages")
+            raise ValueError(
+                "Unexpected incomplete extract batch; do not silently drop source pages"
+            )
         if "warnings" in snapshot.data:
             request_warnings.append(snapshot.data["warnings"])
         returned: set[int] = set()
@@ -314,7 +410,14 @@ def collect(config_path: Path, destination: Path, cache: Path, *, offline: bool 
             returned.add(page_id)
             reason = exclusion(page)
             if reason is not None:
-                rejected.append({"pageid": page_id, "title": page.get("title"), "reason": reason, "snapshot": snapshot.response_sha256})
+                rejected.append(
+                    {
+                        "pageid": page_id,
+                        "title": page.get("title"),
+                        "reason": reason,
+                        "snapshot": snapshot.response_sha256,
+                    }
+                )
                 continue
             block, term = project_page(page, candidates[page_id], snapshot)
             blocks.append(block)
@@ -322,50 +425,114 @@ def collect(config_path: Path, destination: Path, cache: Path, *, offline: bool 
         for page_id in set(batch) - returned:
             rejected.append({"pageid": page_id, "reason": "not-returned-by-source"})
         if start % 200 == 0:
-            print(json.dumps({"requested": min(start + 20, len(selected)), "admitted": len(terms), "rejected": len(rejected)}), flush=True)
+            print(
+                json.dumps(
+                    {
+                        "requested": min(start + 20, len(selected)),
+                        "admitted": len(terms),
+                        "rejected": len(rejected),
+                    }
+                ),
+                flush=True,
+            )
     if not terms:
         raise ValueError("No source descriptions were admitted")
     destination.mkdir(parents=True)
     shard_receipts: list[dict[str, object]] = []
     for start in range(0, len(terms), 500):
         name = f"part-{start // 500 + 1:03d}.json"
-        payload = {"version": 3, "id": "ruwiki.medical.introductions", "reviewStatus": "requires-review", "publicationState": "local-dev", "textKind": "source-excerpt", "sources": [source_descriptor(date)], "blocks": blocks[start:start + 500], "terms": terms[start:start + 500]}
+        payload = {
+            "version": 3,
+            "id": "ruwiki.medical.introductions",
+            "reviewStatus": "requires-review",
+            "publicationState": "local-dev",
+            "textKind": "source-excerpt",
+            "sources": [source_descriptor(date)],
+            "blocks": blocks[start : start + 500],
+            "terms": terms[start : start + 500],
+        }
         raw = encoded(payload)
         if len(raw) > 16 * 1024 * 1024:
             raise ValueError("Source shard exceeds the application input budget")
         (destination / name).write_bytes(raw)
-        shard_receipts.append({"path": name, "sha256": sha(raw), "bytes": len(raw), "entries": len(terms[start:start + 500])})
+        shard_receipts.append(
+            {
+                "path": name,
+                "sha256": sha(raw),
+                "bytes": len(raw),
+                "entries": len(terms[start : start + 500]),
+            }
+        )
     # Raw snapshots are authoring evidence only; the runtime manifest never points to this archive.
     archive = destination / "api-snapshots.jsonl.gz"
-    with archive.open("xb") as output, gzip.GzipFile(fileobj=output, mode="wb", filename="", mtime=0) as compressed:
+    with (
+        archive.open("xb") as output,
+        gzip.GzipFile(fileobj=output, mode="wb", filename="", mtime=0) as compressed,
+    ):
         for path in sorted(cache.glob("*.json")):
             compressed.write(path.read_bytes() + b"\n")
-    manifest = {"version": 1, "sourceFamily": "ruwiki-medical-introductions", "date": date, "entries": len(terms), "parts": shard_receipts, "configSha256": sha(config_raw), "snapshotArchive": {"path": archive.name, "sha256": sha(archive.read_bytes()), "bytes": archive.stat().st_size}}
+    manifest = {
+        "version": 1,
+        "sourceFamily": "ruwiki-medical-introductions",
+        "date": date,
+        "entries": len(terms),
+        "parts": shard_receipts,
+        "configSha256": sha(config_raw),
+        "snapshotArchive": {
+            "path": archive.name,
+            "sha256": sha(archive.read_bytes()),
+            "bytes": archive.stat().st_size,
+        },
+    }
     (destination / "manifest.json").write_bytes(encoded(manifest))
     report = {
-        "schemaVersion": 1, "configSha256": sha(config_raw), "selectedPages": len(selected),
-        "records": len(terms), "distinctTitles": len({t["title"] for t in terms}),
-        "newNetworkRequests": api.requests, "sourceFamilies": dict(Counter(f for block in blocks for f in cast(list[str], block["families"]))),
+        "schemaVersion": 1,
+        "configSha256": sha(config_raw),
+        "selectedPages": len(selected),
+        "records": len(terms),
+        "distinctTitles": len({t["title"] for t in terms}),
+        "newNetworkRequests": api.requests,
+        "sourceFamilies": dict(
+            Counter(f for block in blocks for f in cast(list[str], block["families"]))
+        ),
         "kinds": dict(Counter(str(term["kind"]) for term in terms)),
-        "introductionsWithLanguageMarkers": sum(bool(ETYMOLOGY.search(str(b["text"]))) for b in blocks),
+        "introductionsWithLanguageMarkers": sum(
+            bool(ETYMOLOGY.search(str(b["text"]))) for b in blocks
+        ),
         "rejectedCounts": dict(Counter(str(row["reason"]) for row in rejected)),
-        "rejected": rejected, "categoryTraversal": category_ledger, "warnings": request_warnings,
+        "rejected": rejected,
+        "categoryTraversal": category_ledger,
+        "warnings": request_warnings,
         "jsonBytes": sum(integer(part["bytes"]) for part in shard_receipts),
-        "boundaries": "Complete returned plain-text introductions for this bounded category traversal, not all Wikipedia/medicine. Source-local records and proposed kinds, not disjoint reviewed concepts, verified etymologies or executable scales. No rewritten or truncated definitions. Revision metadata is observational; cached extracts are bound to archived response snapshots.",
+        "boundaries": (
+            "Complete returned plain-text introductions for this bounded "
+            "category traversal, not all Wikipedia/medicine. Source-local"
+            " records and proposed kinds, not disjoint reviewed concepts,"
+            " verified etymologies or executable scales. No rewritten or "
+            "truncated definitions. Revision metadata is observational; c"
+            "ached extracts are bound to archived response snapshots."
+        ),
     }
     (destination / "collection-report.json").write_bytes(encoded(report))
     (destination / "ATTRIBUTION.md").write_text(
-        "# Russian Wikipedia source introductions\n\n"
-        "Text: contributors to the individual Russian Wikipedia articles linked by each block. "
-        "Page histories credit the authors. Text is reused under CC BY-SA-4.0: "
-        "https://creativecommons.org/licenses/by-sa/4.0/ .\n\n"
-        "Changes: category selection, MediaWiki plain-text introduction extraction, and V3 projection only. "
-        "No translation, model rewriting, scoring or clinical review. Individual source wording and "
-        "language-origin notes are not harmonized with clinical guidelines or textbooks.\n\n"
-        "`api-snapshots.jsonl.gz` is reproducible authoring evidence, not an app download dependency. "
-        "The response SHA-256 and page-record SHA-256 identify retrieved text; an observed latest revision "
-        "does not prove the cached extract is from that revision. The full article, media and tables "
-        "are not represented by these introduction cards.\n", encoding="utf-8",
+        (
+            "# Russian Wikipedia source introductions\n\nText: contributors"
+            " to the individual Russian Wikipedia articles linked by each"
+            " block. Page histories credit the authors. Text is reused un"
+            "der CC BY-SA-4.0: https://creativecommons.org/licenses/by-sa"
+            "/4.0/ .\n\nChanges: category selection, MediaWiki plain-text i"
+            "ntroduction extraction, and V3 projection only. No translati"
+            "on, model rewriting, scoring or clinical review. Individual "
+            "source wording and language-origin notes are not harmonized "
+            "with clinical guidelines or textbooks.\n\n`api-snapshots.jsonl"
+            ".gz` is reproducible authoring evidence, not an app download"
+            " dependency. The response SHA-256 and page-record SHA-256 id"
+            "entify retrieved text; an observed latest revision does not "
+            "prove the cached extract is from that revision. The full art"
+            "icle, media and tables are not represented by these introduc"
+            "tion cards.\n"
+        ),
+        encoding="utf-8",
     )
     return report
 
@@ -378,7 +545,16 @@ def main() -> None:
     parser.add_argument("--offline", action="store_true")
     args = parser.parse_args()
     report = collect(args.config, args.output, args.cache, offline=args.offline)
-    print(json.dumps({key: report[key] for key in ("records", "distinctTitles", "kinds", "rejectedCounts", "jsonBytes")}, ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {
+                key: report[key]
+                for key in ("records", "distinctTitles", "kinds", "rejectedCounts", "jsonBytes")
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":
