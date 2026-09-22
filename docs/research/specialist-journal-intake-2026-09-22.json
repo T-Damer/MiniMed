@@ -1,0 +1,23 @@
+{
+  "checkedCommit": "664b2e299247911efad190d268e264f20f2c6e0c",
+  "tests": {
+    "tests": 64,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "strictRuff": "passed",
+  "strictPyright": "passed",
+  "counts": {
+    "articles": 11,
+    "records": 69,
+    "articleOverviews": 11,
+    "definitionCandidates": 47,
+    "sectionCards": 10,
+    "criterionLists": 1,
+    "blocks": 408,
+    "tables": 0
+  },
+  "networkRequests": 0,
+  "boundary": "Source structure and candidate intake only; no full database build yet."
+}

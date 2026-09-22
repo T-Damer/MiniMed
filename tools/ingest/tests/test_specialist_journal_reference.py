@@ -20,12 +20,14 @@ from localmed_ingest.specialist_journal_reference import (
 
 HTML = """<!doctype html><html><head>
 <meta name="DC.Identifier" content="1001"><meta name="citation_language" content="ru">
-<meta name="citation_title" content="Synthetic source"><meta name="citation_title" content="Учебная статья">
+<meta name="citation_title" content="Synthetic source">
+<meta name="citation_title" content="Учебная статья">
 <meta name="citation_journal_title" content="Synthetic Journal">
 <meta name="citation_journal_title" content="Синтетический медицинский журнал">
 <meta name="DC.Date.issued" content="2017-12-15"><meta name="DC.Date.modified" content="2026-09-22">
 <meta name="citation_doi" content="10.0000/synthetic1001">
-<meta name="citation_author" content="Автор примера"><meta name="DC.Type.articleType" content="Лекции">
+<meta name="citation_author" content="Автор примера">
+<meta name="DC.Type.articleType" content="Лекции">
 <meta name="DC.Rights" content="Автор примера, 2017">
 <meta name="DC.Rights" content="http://creativecommons.org/licenses/by-nc-sa/4.0">
 </head><body><nav>НЕ ДОЛЖНО ПОПАСТЬ В ОПРЕДЕЛЕНИЯ</nav><article class="article">

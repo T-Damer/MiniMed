@@ -14,7 +14,9 @@ import urllib.request
 import urllib.robotparser
 from collections import Counter
 from datetime import UTC, datetime
+from http.client import HTTPMessage
 from pathlib import Path
+from typing import IO
 from urllib.parse import urlsplit
 
 from .definition_reference_pack import Projection, encoded, obj, seq, text
@@ -33,10 +35,10 @@ class PublisherRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(
         self,
         req: urllib.request.Request,
-        fp: object,
+        fp: IO[bytes],
         code: int,
         msg: str,
-        headers: object,
+        headers: HTTPMessage,
         newurl: str,
     ) -> urllib.request.Request | None:
         target = urlsplit(newurl)
@@ -181,18 +183,27 @@ def collect(selection: Path, output: Path) -> dict[str, object]:
             "selectedArticles": len(candidates),
             "counts": dict(counts),
             "articles": outcomes,
-            "boundaries": "Original full article sections, not abstracts. Author-specific dates and frames retained. Proposed headings/definition clauses are not reviewed canonical concepts. No clinical scoring, Wikipedia, private input, model or release.",
+            "boundaries": (
+                "Original full article sections, not abstracts. "
+                "Author-specific dates and frames retained. "
+                "Proposed headings/definition clauses are not reviewed canonical concepts. "
+                "No clinical scoring, Wikipedia, private input, model or release."
+            ),
         }
         (staged / "collection-report.json").write_text(encoded(report) + "\n", encoding="utf-8")
         (staged / "ATTRIBUTION.md").write_text(
             "# Specialist article extracts\n\n"
-            "Each records file preserves the article authors, journal, original page, DOI, publication date, "
+            "Each records file preserves the article authors, journal, original page, "
+            "DOI, publication date, "
             "exact article-specific Creative Commons license and declared copyright. "
-            "CC BY-NC-SA sources are noncommercial and share-alike; this is a local development research collection, "
+            "CC BY-NC-SA sources are noncommercial and share-alike; "
+            "this is a local development research collection, "
             "not clearance for commercial distribution or third-party proprietary instruments.\n\n"
-            "Changes: extraction of article-only DOM fragments, HTML-to-text formatting, whitespace normalization, "
+            "Changes: extraction of article-only DOM fragments, HTML-to-text formatting, "
+            "whitespace normalization, "
             "list markers, physical table geometry and source-local indexing proposals. "
-            "No medical rewriting, translation, modernized consensus, approved scoring or endorsement by authors. "
+            "No medical rewriting, translation, modernized consensus, approved scoring "
+            "or endorsement by authors. "
             "Evidence files are authoring/replay material and are never phone-download inputs.\n",
             encoding="utf-8",
         )

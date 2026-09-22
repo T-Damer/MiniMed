@@ -152,7 +152,10 @@ def capture_page(raw: bytes, journal: str, article_id: str, accessed: str) -> di
         "fullTextHtmlSha256": digest(fragment),
         "bibliographyHtml": bibliography,
         "bibliographyHtmlSha256": digest(bibliography),
-        "archiveBoundary": "Publisher metadata and exact serialized article DOM fragments, not site chrome or cookies.",
+        "archiveBoundary": (
+            "Publisher metadata and exact serialized article DOM fragments, "
+            "not site chrome or cookies."
+        ),
     }
 
 
@@ -161,14 +164,47 @@ def definition_label(value: str) -> str | None:
     match = DEFINITION.match(cleaned)
     if not match:
         return None
-    label = match[1].strip()
-    if BAD_START.search(label) or len(label.split()) > 16 or any(c in label for c in ":;!?"):
+    label = match[1].strip().rstrip(".,")
+    if (
+        BAD_START.search(label)
+        or len(label.split()) > 16
+        or any(c in label for c in ".:;!?")
+        or re.search(r"\b(?:чаще|реже|обычно|часто|гистологически|преимущественно)$", label, re.I)
+        or re.search(r"\b(?:в возрасте|в большинстве|в \d|случаев)", label, re.I)
+    ):
         return None
-    if not re.match("[А-Яа-яЁёA-Za-z]", label) or not re.search("[а-яё]", label, re.I):
+    if re.match(
+        r"^(?:цель|наличие|настоящий этап|длительность|патофизиологическая основа|"
+        r"психолингвисты|ведущие клинические|заболевание$)",
+        label,
+        re.I,
+    ) or label.lower() in {"классификация", "острое течение", "патогенез", "диагностика"}:
+        return None
+    if not re.match("[А-Яа-яЁёA-Za-z«]", label) or not re.search("[а-яё]", label, re.I):
         return None
     if label.count("(") != label.count(")") or label.count("«") != label.count("»"):
         return None
     return label
+
+
+def definition_probes(body: str) -> list[tuple[str, str]]:
+    # Only explicit sentence boundaries inside source text. The original whole block
+    # remains context; a derived sentence is labelled as a source excerpt, not rewritten.
+    probes = [body]
+    probes.extend(part for part in body.splitlines() if part.strip())
+    if len(body) > 1000:
+        probes.extend(re.split(r"(?<=[.!?])\s+(?=[А-ЯЁ«])", body))
+    result: list[tuple[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for probe in probes:
+        label = definition_label(probe)
+        if label is None:
+            intro = re.match(r"^([А-ЯЁ][а-яёА-ЯЁ -]{2,99}) включает следующие симптомы:$", probe)
+            label = intro[1] if intro else None
+        if label and (label, probe) not in seen:
+            result.append((label, probe))
+            seen.add((label, probe))
+    return result
 
 
 def _geometry(node: Element) -> list[object]:
@@ -190,13 +226,49 @@ def source_units(fragment: str, container: str) -> tuple[list[Unit], dict[str, i
     omissions: dict[str, int] = {}
     headings: list[tuple[int, str]] = []
     atomic = {"p", "ol", "ul", "dl", "table", "blockquote", "pre"}
+    inline_tags = {
+        "a",
+        "b",
+        "strong",
+        "i",
+        "em",
+        "u",
+        "span",
+        "font",
+        "sup",
+        "sub",
+        "small",
+        "nobr",
+        "br",
+        "s",
+        "strike",
+        "code",
+        "mark",
+        "q",
+    }
+
+    def append(
+        body: str,
+        locator: str,
+        tag: str,
+        tables: list[object],
+        probes: list[tuple[str, str]] | None = None,
+    ) -> None:
+        if body:
+            units.append(
+                Unit(
+                    body,
+                    locator,
+                    tuple(v for _, v in headings),
+                    tag,
+                    tables,
+                    definition_probes(body) if probes is None else probes,
+                )
+            )
 
     def walk(node: Element | str, locator: str) -> None:
         if isinstance(node, str):
-            if node.strip():
-                units.append(
-                    Unit(node.strip(), locator, tuple(v for _, v in headings), "text", [], [])
-                )
+            append(node.strip(), locator, "text", [])
             return
         if omitted(node):
             key = "media" if node.tag in {"img", "svg", "figure", "audio", "video"} else "layout"
@@ -211,37 +283,58 @@ def source_units(fragment: str, container: str) -> tuple[list[Unit], dict[str, i
                 while headings and headings[-1][0] >= depth:
                     headings.pop()
                 headings.append((depth, label))
-                units.append(Unit(label, locator, tuple(v for _, v in headings), "heading", [], []))
+                append(label, locator, "heading", [], [])
             return
         if node.tag in atomic:
             body = compact(render(node))
-            if not body:
-                return
-            # Reject embedded tables/frames rather than flattening a partial or invented method.
             for tag in ("iframe", "object", "embed", "canvas"):
                 if descendants(node, tag):
                     raise ValueError("Embedded source material needs separate extraction review")
             for tag in ("img", "svg", "figure", "audio", "video"):
                 omissions["media"] = omissions.get("media", 0) + len(descendants(node, tag))
-            probes = [body] if node.tag not in {"ol", "ul", "table"} else []
+            probes = definition_probes(body) if node.tag != "table" else []
             if node.tag in {"ol", "ul"}:
-                probes = [compact(render(li)) for li in descendants(node, "li")]
-            proposals = [(label, probe) for probe in probes if (label := definition_label(probe))]
-            units.append(
-                Unit(
-                    body,
-                    locator,
-                    tuple(v for _, v in headings),
-                    node.tag,
-                    _geometry(node),
-                    proposals,
-                )
-            )
+                probes = [
+                    pair
+                    for li in descendants(node, "li")
+                    for pair in definition_probes(compact(render(li)))
+                ]
+            append(body, locator, node.tag, _geometry(node), probes)
             return
+        # Legacy journal pages have plain text interrupted by reference anchors. Never
+        # turn a citation number, comma, or emphasized word into a separate source block.
+        pending: list[Element | str] = []
+        first = 0
+
+        def flush() -> None:
+            if pending:
+                append(
+                    compact("".join(render(child) for child in pending)),
+                    f"{locator}/inline[{first}]",
+                    "inline-run",
+                    [],
+                )
+                pending.clear()
+
         for index, child in enumerate(node.children):
-            walk(child, f"{locator}/{node.tag}[{index}]")
+            is_inline = isinstance(child, str) or (
+                child.tag in inline_tags
+                and not any(descendants(child, tag) for tag in (*atomic, "div", "h2", "h3", "h4"))
+            )
+            if is_inline:
+                if not pending:
+                    first = index
+                pending.append(child)
+            else:
+                flush()
+                walk(child, f"{locator}/{node.tag}[{index}]")
+        flush()
 
     walk(tree, container)
+    observed = re.sub(r"\s+", "", "".join(unit.body for unit in units))
+    expected = re.sub(r"\s+", "", render(tree))
+    if observed != expected:
+        raise ValueError("Source structural walk lost or reordered rendered text")
     if not units or len(units) > 1000 or any(len(u.body) > 262144 for u in units):
         raise ValueError("Source unit budget exceeded or no readable full text")
     return units, omissions
@@ -328,9 +421,14 @@ def project_article(snapshot: object, source_number: int = 1) -> dict[str, objec
         "sourceUrl": url,
         "responseSha256": snap["responseSha256"],
         "articleFragmentSha256": digest(full),
-        "changes": "HTML to plain text, whitespace normalization, explicit list markers and physical table geometry. No medical rewriting, translation or scoring.",
+        "changes": (
+            "HTML to plain text, whitespace normalization, explicit list markers "
+            "and physical table geometry. No medical rewriting, translation or scoring."
+        ),
         "reviewStatus": "requires-review",
-        "applicability": "Author discussion at the publication date; not automatically a current guideline.",
+        "applicability": (
+            "Author discussion at the publication date; not automatically a current guideline."
+        ),
     }
     blocks: list[dict[str, object]] = []
     for number, unit in enumerate(all_units, 1):
@@ -372,6 +470,9 @@ def project_article(snapshot: object, source_number: int = 1) -> dict[str, objec
             unit.tag == "heading"
             and len(unit.body) <= 180
             and not GENERIC_HEADINGS.search(unit.body)
+            and not re.match(
+                r"^(?:классификация$|патогенез|тактика|лечение|терапия)", unit.body, re.I
+            )
             and CLINICAL_HEADING.search(unit.body)
         ):
             labels.append((unit.body, unit.body))
@@ -392,18 +493,49 @@ def project_article(snapshot: object, source_number: int = 1) -> dict[str, objec
             short = re.sub(r"\s*\([^()]+\)$", "", label)
             if short != label and len(short) >= 3:
                 aliases.append(short)
+            selected_number = number
+            if evidence != unit.body and evidence in unit.body:
+                offset = unit.body.index(evidence)
+                derived = {
+                    **blocks[number - 1],
+                    "id": len(blocks) + 1,
+                    "text": evidence,
+                    "textSha256": digest(evidence),
+                    "locator": unit.locator + f"; codepoints={offset}:{offset + len(evidence)}",
+                    "sourceSpan": {
+                        "parentBlock": number,
+                        "start": offset,
+                        "end": offset + len(evidence),
+                    },
+                }
+                blocks.append(derived)
+                selected_number = len(blocks)
+                if number not in related:
+                    related.insert(0, number)
+                start = evidence.index(label)
+            symptom_list = evidence.endswith(" включает следующие симптомы:")
+            if symptom_list and (index + 1 >= len(body) or body[index + 1].tag not in {"ol", "ul"}):
+                continue
             records.append(
                 {
                     "id": stem + ".entry." + digest(encoded([unit.locator, label]))[:24],
                     "title": label,
                     "kind": proposed_kind(label),
                     "aliases": aliases,
-                    "coverage": "section-excerpt"
-                    if unit.tag == "heading"
-                    else "explicit-definition",
-                    "blockIds": [number],
+                    "coverage": (
+                        "criterion-list"
+                        if symptom_list
+                        else "section-excerpt"
+                        if unit.tag == "heading"
+                        else "explicit-definition"
+                    ),
+                    "blockIds": [selected_number],
                     "detailBlocks": related,
-                    "labelEvidence": {"block": number, "start": start, "end": start + len(label)},
+                    "labelEvidence": {
+                        "block": selected_number,
+                        "start": start,
+                        "end": start + len(label),
+                    },
                     "proposalMethod": "source-heading"
                     if unit.tag == "heading"
                     else "source-definition-clause",
