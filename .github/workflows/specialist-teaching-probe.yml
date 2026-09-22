@@ -1,0 +1,76 @@
+name: Specialist publisher availability probe
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/specialist-teaching-probe.yml]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - name: Inspect original article metadata only
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import json,time,urllib.robotparser,hashlib
+          from pathlib import Path
+          from bs4 import BeautifulSoup
+          from localmed_ingest.specialist_journal_collect import read_original,USER_AGENT
+          from localmed_ingest.specialist_journal_reference import HOST,article_url,capture_page,metadata
+          root=Path('content/definition-drafts/specialist-teaching-discovery-2026.09.22-b')
+          candidates={}
+          for selection in root.glob('selection-*.json'):
+              for row in json.loads(selection.read_text())['articles']:
+                  candidates.setdefault(row['journal'],row['articleId'])
+          candidates['RFD']='624422'
+          checks=list(candidates.items())+[('1027-4898','20398')]
+          parser=urllib.robotparser.RobotFileParser()
+          parser.parse(read_original(HOST+'/robots.txt').decode().splitlines())
+          result=[]
+          for journal,aid in checks:
+              for suffix in ('/ru_RU',''):
+                  url=article_url(journal,aid).removesuffix('/ru_RU')+suffix
+                  if not parser.can_fetch(USER_AGENT,url):
+                      result.append({'url':url,'status':'robots-disallowed'});continue
+                  time.sleep(1.5)
+                  record={'url':url}
+                  try:
+                      raw=read_original(url);soup=BeautifulSoup(raw.decode(),'html.parser');meta=metadata(soup)
+                      record.update({'bytes':len(raw),'responseSha256':hashlib.sha256(raw).hexdigest(),
+                          'metadata':{k:meta.get(k) for k in ('DC.Identifier','citation_language','citation_title','DC.Rights','DC.Date.issued')},
+                          'articleHeadings':[n.get_text(' ',strip=True) for n in soup.select('article h1')],
+                          'fulltextContainers':len(soup.select('article.article #tabs-2')),
+                          'fulltextCharacters':[len(n.get_text(' ',strip=True)) for n in soup.select('#tabs-2')],
+                          'fulltextLabels':[n.get_text(' ',strip=True) for n in soup.select('#tabs-2 > h2,#tabs-2 > h3')]})
+                      try:
+                          capture_page(raw,journal,aid,'2026-09-22T00:00:00Z')
+                          record['status']='capture-succeeded'
+                      except Exception as error:
+                          record['status']='capture-pending';record['reason']=type(error).__name__+': '+str(error)[:300]
+                  except Exception as error:
+                      record['status']='request-pending';record['reason']=type(error).__name__+': '+str(error)[:300]
+                  result.append(record)
+          report={'checkedCommit':'${{ github.sha }}','probe':result,'boundary':'Bibliographic metadata and lengths only. No protected article text, abstract, private input or credentials saved.'}
+          Path('docs/research/specialist-publisher-probe-2026-09-22.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps(report,ensure_ascii=False,indent=2))
+          PY
+      - name: Save only the source-availability report
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add docs/research/specialist-publisher-probe-2026-09-22.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs(content): preserve publisher availability and strict capture diagnostics [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
