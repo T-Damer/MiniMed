@@ -28,23 +28,33 @@ jobs:
       - name: Finalize numeric source identities and nonduplicated table provenance
         run: |
           python3 - <<'PY'
+          import ast
           from pathlib import Path
           p=Path('tools/ingest/src/localmed_ingest/wikipedia_reference_refresh.py');s=p.read_text()
           start=s.index('    page_id = integer(text(record.term["id"])')
           end=s.index('    html = text(parsed["text"]',start)
-          s=s[:start]+'''    page_id = integer(int(text(record.term["id"]).rsplit(".", 1)[1]), 1)
-              if integer(parsed["pageid"], 1) != page_id or integer(parsed["revid"], 1) != revision:
-                  raise ValueError("Parsed source belongs to another page or revision")
-          '''.replace('\n    ', '\n')+s[end:]
-          s=s.replace('"tableGeometry": section.tables,','''"tableGeometry": [
-                      [[int(bool(cell["header"])), integer(cell["rowspan"], 1),
-                        integer(cell["colspan"], 1)] for cell in row]
-                      for table in section.tables for row in table
-                  ],
-                  "tableRowCounts": [len(table) for table in section.tables],''')
+          replacement=('    page_id = integer(int(text(record.term["id"]).rsplit(".", 1)[1]), 1)\n'
+              '    if integer(parsed["pageid"], 1) != page_id or integer(parsed["revid"], 1) != revision:\n'
+              '        raise ValueError("Parsed source belongs to another page or revision")\n')
+          s=s[:start]+replacement+s[end:]
+          s=s.replace('"tableGeometry": section.tables,','"tableGeometry": [\n'
+              '                [[int(bool(cell["header"])), integer(cell["rowspan"], 1),\n'
+              '                  integer(cell["colspan"], 1)] for cell in row]\n'
+              '                for table in section.tables for row in table\n'
+              '            ],\n'
+              '            "tableRowCounts": [len(table) for table in section.tables],')
           s=s.replace('"newSourceRecords": len(added), "combinedRecords":', '"newSourceRecords": len(added), "newRecordIds": sorted(added), "combinedRecords":')
-          s=s.replace('"sourceType": "wikipedia-api-parsed-sections",','"sourceType": "wikipedia-api-parsed-sections",\n        "tableGeometryEncoding": "physical-row cells: [headerFlag,rowspan,colspan]; tableRowCounts partitions rows",')
-          p.write_text(s)
+          s=s.replace('"sourceType": "wikipedia-api-parsed-sections",','"sourceType": "wikipedia-api-parsed-sections",\n        "tableGeometryEncoding": "header/rowspan/colspan; split rows by tableRowCounts",')
+          pairs=[
+              ('"tables preserve physical cells and declared spans. Layout, scripts and media omitted. "', '"tables preserve physical cells and declared spans. "\n            "Layout, scripts and media omitted. "'),
+              ('"Article revision is pinned; transcluded templates may reflect render-time versions. "', '"Article revision is pinned; "\n            "transcluded templates may reflect render-time versions. "'),
+              ('"Exact API response is archived. Table geometry requires review. Media are not copied. "', '"Exact API response is archived. Table geometry requires review. "\n            "Media are not copied. "'),
+              ('"Table/list content is reference-only, not approved scoring. Raw archives stay off-device."', '"Table/list content is reference-only, not approved scoring. "\n            "Raw archives stay off-device."'),
+          ]
+          for old,new in pairs:
+              assert old in s
+              s=s.replace(old,new)
+          compile(s,str(p),'exec');p.write_text(s)
           p=Path('tools/ingest/tests/test_wikipedia_reference_refresh.py');s=p.read_text()
           s=s.replace('import copy\n','import copy\nimport json\n').replace('    import json\n','')
           p.write_text(s)
