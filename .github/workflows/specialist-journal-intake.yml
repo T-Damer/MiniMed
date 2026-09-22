@@ -33,6 +33,9 @@ jobs:
               if observed != expected:
                   raise ValueError("Source structural walk lost or reordered rendered text")
               if not units'''.replace('\n              ', '\n    ').replace('\n                  ', '\n        '))
+          old='"labelEvidence": {"block": number, "start": start, "end": start + len(label)}'
+          assert old in s
+          s=s.replace(old,'"labelEvidence": {"block": selected_number, "start": start, "end": start + len(label)}')
           p.write_text(s)
           p=Path('tools/ingest/tests/test_specialist_journal_inline.py')
           s=p.read_text().replace("    html = '<div>Синдром <b>примера</b> — синтетическое описание с оговоркой [<a>3</a>, <a>4</a>].</div>'", "    html = ('<div>Синдром <b>примера</b> — синтетическое описание '\n            'с оговоркой [<a>3</a>, <a>4</a>].</div>')")
