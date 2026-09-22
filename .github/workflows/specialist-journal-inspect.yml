@@ -1,0 +1,76 @@
+name: Inspect specialist journal sources
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/specialist-journal-inspect.yml]
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - name: Inspect public original pages without uploading article bodies
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          cat > "$RUNNER_TEMP/inspect-specialist.py" <<'PY'
+          import hashlib,json,re,time,urllib.request,urllib.robotparser
+          from pathlib import Path
+          from bs4 import BeautifulSoup
+          base='https://journals.eco-vector.com'
+          ua='MiniMed-Reference-Research/0.1 (+https://github.com/T-Damer/MiniMed/issues/180)'
+          def read(url):
+              request=urllib.request.Request(url,headers={'User-Agent':ua,'Accept-Language':'ru'})
+              with urllib.request.urlopen(request,timeout=35) as response:
+                  if not response.url.startswith(base+'/'): raise ValueError('Unexpected redirect host')
+                  body=response.read(6*1024*1024+1)
+                  if len(body)>6*1024*1024: raise ValueError('Response budget exceeded')
+                  return body,response.url
+          robot_bytes,_=read(base+'/robots.txt')
+          robots=urllib.robotparser.RobotFileParser();robots.parse(robot_bytes.decode().splitlines())
+          selections=[('1027-4898','90541'),('1027-4898','14094'),('1027-4898','14095'),('1027-4898','14043'),('1027-4898','105915'),('RFD','7752'),('RFD','6178'),('RFD','1431'),('RFD','3577'),('pediatr','11910'),('RFD','10468'),('1606-8181','696660')]
+          results=[]
+          for journal,aid in selections:
+              url=f'{base}/{journal}/article/view/{aid}/ru_RU'
+              if not robots.can_fetch(ua,url):
+                  results.append({'journal':journal,'id':aid,'url':url,'status':'robots-disallowed'});continue
+              time.sleep(1.5)
+              try:
+                  raw,actual=read(url)
+                  doc=BeautifulSoup(raw,'html.parser')
+                  metadata={}
+                  for tag in doc.select('meta[name]'):
+                      name=tag.get('name','')
+                      if str(name).startswith(('citation_','DC.','dc.')):
+                          metadata.setdefault(name,[]).append(tag.get('content',''))
+                  links=[{'label':a.get_text(' ',strip=True),'url':a.get('href','')} for a in doc.select('a[href]') if any(k in str(a.get('href','')).lower() for k in ('jats','suppfile','creativecommons'))]
+                  nodes=[{'tag':n.name,'id':n.get('id'),'class':n.get('class'),'characters':len(n.get_text()),'childTags':[c.name for c in list(n.children) if getattr(c,'name',None)][:15]} for n in doc.find_all(id=True) if any(k in str(n.get('id','')).lower() for k in ('full','text','article','content'))]
+                  results.append({'journal':journal,'id':aid,'url':actual,'status':'received','sha256':hashlib.sha256(raw).hexdigest(),'metadata':metadata,'links':links,'nodes':nodes})
+              except Exception as error:
+                  results.append({'journal':journal,'id':aid,'url':url,'status':'unavailable','reason':type(error).__name__+': '+str(error)[:200]})
+          output=Path('docs/research/specialist-journal-source-inspection-2026-09-22.json')
+          output.write_text(json.dumps({'robotsSha256':hashlib.sha256(robot_bytes).hexdigest(),'articles':results,'scope':'Metadata, explicit licenses and structure only. No acquired article body in this inspection report.'},ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps([{k:r[k] for k in ('journal','id','status')} for r in results]))
+          PY
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python "$RUNNER_TEMP/inspect-specialist.py"
+      - name: Persist only metadata inspection
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add docs/research/specialist-journal-source-inspection-2026-09-22.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs(content): record specialist article access licenses and structure [skip ci]'
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: No publication
+        if: always()
+        run: echo 'No Wikipedia, owner-source text, Actions artifact, model, released database or APK.' >> "$GITHUB_STEP_SUMMARY"
