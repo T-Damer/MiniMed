@@ -56,6 +56,10 @@ SEEDS = [
     ("Гипергидроз", "library/simptomy/25958/", "Гипергидрозом называют"),
     ("Тахипноэ", "library/simptomy/24895/", "Учащенное неглубокое дыхание (тахипноэ)"),
     ("Гипостенурия", "library/simptomy/39132/", "Гипостенурия"),
+    ("Дисгевзия", "library/simptomy/25924/", "Третий тип – извращение вкусового ощущения"),
+    ("Уремия", "library/simptomy/36120/", "Уремия – это"),
+    ("Олигурия", "library/simptomy/35520/", "Олигурия – симптом"),
+    ("Почечная недостаточность", "library/bolezni/29344/", "Почечная недостаточность — состояние"),
 ]
 
 
@@ -85,19 +89,26 @@ def catalog_links(raw: bytes) -> dict[str, str]:
 
 
 def select_sentence(raw: bytes, title: str, prefix: str | None = None) -> str | None:
-    """A short complete, title-led definitional sentence; every heuristic result needs review."""
+    """Select literal sentences from bounded blocks, including legacy div/br article layouts."""
     soup = BeautifulSoup(raw, "html.parser")
     for node in soup.find_all(["script", "style", "noscript", "template"]):
         node.decompose()
     expected = normalized_name(prefix or title)
-    for paragraph in soup.find_all("p"):
+    for paragraph in soup.find_all(["p", "li", "div", "section", "article"]):
         if not isinstance(paragraph, Tag):
             continue
         visible = normalized_visible(paragraph.get_text(" ", strip=True))
+        if len(visible) > 8192:
+            continue
         normalized = normalized_name(visible)
         if prefix is not None:
-            if not normalized.startswith(expected):
+            if normalized.count(expected) != 1:
                 continue
+            # Use literal offsets, not offsets from a length-changing normalization.
+            literal = visible.casefold().find(prefix.casefold())
+            if literal < 0:
+                continue
+            visible = visible[literal:]
             start = len(prefix)
         else:
             match = re.match(
@@ -195,6 +206,12 @@ def run(root: Path, batch: str, limit: int) -> dict[str, object]:
         discovery.append(outcome)
         try:
             raw = reader.read(url)
+            outcome["responseBytes"] = len(raw)
+            page = BeautifulSoup(raw, "html.parser")
+            outcome["hasArticleHeading"] = page.find("h1") is not None
+            outcome["prefixPresent"] = normalized_name(prefix or title) in normalized_name(
+                page.get_text(" ", strip=True)
+            )
             excerpt = select_sentence(raw, title, prefix)
             if excerpt is None:
                 outcome["status"] = "no-short-explicit-definition"
@@ -206,7 +223,7 @@ def run(root: Path, batch: str, limit: int) -> dict[str, object]:
                     "source": source,
                     "path": path,
                     "excerpt": excerpt,
-                    "locator": "Title-led sentence; bounded catalog selection v1",
+                    "locator": "Complete source sentence; bounded catalog selection v2",
                     "author": None,
                     "modified": None,
                 }
