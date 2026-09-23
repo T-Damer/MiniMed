@@ -1,0 +1,101 @@
+{
+  "batch": "2026.09.23-reliability",
+  "catalogUrl": "https://www.smclinic.ru/simptomy/",
+  "catalogSha256": null,
+  "pageBudget": 40,
+  "discoveredEligiblePages": 5,
+  "selectedPages": 5,
+  "discovery": [
+    {
+      "url": "https://www.smclinic.ru/simptomy/",
+      "status": "catalog-pending",
+      "reason": "Unsupported source HTTP/content type: 401"
+    },
+    {
+      "title": "Гипергидроз",
+      "url": "https://www.invitro.ru/library/simptomy/25958/",
+      "responseBytes": 1334,
+      "hasArticleHeading": false,
+      "prefixPresent": false,
+      "status": "no-short-explicit-definition"
+    },
+    {
+      "title": "Тахипноэ",
+      "url": "https://www.invitro.ru/library/simptomy/24895/",
+      "responseBytes": 1334,
+      "hasArticleHeading": false,
+      "prefixPresent": false,
+      "status": "no-short-explicit-definition"
+    },
+    {
+      "title": "Дисгевзия",
+      "url": "https://www.invitro.ru/library/simptomy/25924/",
+      "responseBytes": 1334,
+      "hasArticleHeading": false,
+      "prefixPresent": false,
+      "status": "no-short-explicit-definition"
+    },
+    {
+      "title": "Уремия",
+      "url": "https://www.invitro.ru/library/simptomy/36120/",
+      "responseBytes": 1334,
+      "hasArticleHeading": false,
+      "prefixPresent": false,
+      "status": "no-short-explicit-definition"
+    },
+    {
+      "title": "Почечная недостаточность",
+      "url": "https://www.invitro.ru/library/bolezni/29344/",
+      "responseBytes": 1334,
+      "hasArticleHeading": false,
+      "prefixPresent": false,
+      "status": "no-short-explicit-definition"
+    }
+  ],
+  "discoveryStatus": {
+    "catalog-pending": 1,
+    "no-short-explicit-definition": 5
+  },
+  "acquisition": {
+    "candidateCount": 0,
+    "accepted": 0,
+    "byStatus": {},
+    "outcomes": [],
+    "sourcesUsed": 0,
+    "authoringSha256": "243016485bd22ceaaa00fcafa263d3668ef4b8ff99fe3cb8278a598f37b9b7b7",
+    "boundary": "Literal short definitions verified against visible source text; clinical review and public redistribution are not granted. Existing definitions and ambiguous names are not overwritten. No full articles, scales, treatments or Wikipedia prose imported."
+  },
+  "before": {
+    "format": "minimed-definition-gap-inventory-v1",
+    "sourceRecords": 16069,
+    "definitionRecords": 8437,
+    "pendingRecords": 7632,
+    "pendingNormalizedTitles": 7632,
+    "byStatusTitles": {
+      "ready-for-source-research": 7211,
+      "same-title-definition-needs-sense-review": 421
+    },
+    "byStatusRecords": {
+      "ready-for-source-research": 7211,
+      "same-title-definition-needs-sense-review": 421
+    },
+    "boundary": "Research queue only: a normalized title match is not a same-as relation, clinical approval or automatic completion. Source identities and names remain unchanged. Counts describe source-local records, not unique medical concepts. No page bodies, patient data, embeddings or model downloads are required."
+  },
+  "after": {
+    "format": "minimed-definition-gap-inventory-v1",
+    "sourceRecords": 16069,
+    "definitionRecords": 8437,
+    "pendingRecords": 7632,
+    "pendingNormalizedTitles": 7632,
+    "byStatusTitles": {
+      "ready-for-source-research": 7211,
+      "same-title-definition-needs-sense-review": 421
+    },
+    "byStatusRecords": {
+      "ready-for-source-research": 7211,
+      "same-title-definition-needs-sense-review": 421
+    },
+    "boundary": "Research queue only: a normalized title match is not a same-as relation, clinical approval or automatic completion. Source identities and names remain unchanged. Counts describe source-local records, not unique medical concepts. No page bodies, patient data, embeddings or model downloads are required."
+  },
+  "boundary": "Automatic syntactic selection is not clinical review. Source sentences are refetched and checked verbatim; no title-only sense merge, generated medical prose, treatment recommendation or redistribution approval. Whole source pages are not committed."
+}
