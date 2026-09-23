@@ -143,7 +143,7 @@ export function planDefinitionDescription(value: string): DefinitionDescriptionP
   );
   return {
     subject,
-    descriptive: subject !== normalized || terms.length >= 3,
+    descriptive: subject !== normalized || terms.length >= 3 || terms.some((term) => term.absent),
     terms,
     conjunction: expression.join(' AND '),
     disjunction: expression.join(' OR '),
