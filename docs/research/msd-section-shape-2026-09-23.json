@@ -1,0 +1,192 @@
+{
+  "checkedCommit": "415f2297fd635830fecaadffd9cf32f79a73c375",
+  "sectionSha256": "42d2061044ededfb8a98c0c92671550cc122910288602068659cbfcd9d844ca5",
+  "sectionShape": {
+    "results": {
+      "length": 23,
+      "firstShape": {
+        "id": "str",
+        "ChapterName": {
+          "value": "str"
+        },
+        "ChapterUrl": {
+          "path": "str"
+        },
+        "SortIndex": {
+          "value": "str"
+        },
+        "SubHeader": {
+          "value": "str"
+        },
+        "Description": {
+          "value": "str"
+        },
+        "ChapterChildren": {
+          "results": {
+            "length": 2,
+            "firstShape": {
+              "id": "str",
+              "TopicName": {
+                "value": "str"
+              },
+              "TopicUrl": {
+                "path": "str"
+              },
+              "InThisTopic": {
+                "value": "str"
+              },
+              "Summary": {
+                "value": "str"
+              },
+              "SortIndex": {
+                "value": "str"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "metadataExamples": [
+    {
+      "path": "/results/0",
+      "values": {
+        "id": "8D96B09812B6499BB127842CE2EAD86A",
+        "ChapterName": {
+          "value": "﻿Подходы к лечению пациентов с неврологическими заболеваниями"
+        },
+        "ChapterUrl": {
+          "path": "/professional/неврологические-расстройства/﻿подходы-к-лечению-пациентов-с-неврологическими-заболеваниями"
+        }
+      }
+    },
+    {
+      "path": "/results/0/ChapterUrl",
+      "values": {
+        "path": "/professional/неврологические-расстройства/﻿подходы-к-лечению-пациентов-с-неврологическими-заболеваниями"
+      }
+    },
+    {
+      "path": "/results/0/ChapterChildren/results/0",
+      "values": {
+        "id": "57D7F9E16F434160835EA1C5ADF3AD71",
+        "TopicName": {
+          "value": "﻿Подходы к лечению пациентов с неврологическими заболеваниями"
+        },
+        "TopicUrl": {
+          "path": "/professional/неврологические-расстройства/﻿подходы-к-лечению-пациентов-с-неврологическими-заболеваниями/﻿подходы-к-лечению-пациентов-с-неврологическими-заболеваниями"
+        }
+      }
+    },
+    {
+      "path": "/results/0/ChapterChildren/results/0/TopicUrl",
+      "values": {
+        "path": "/professional/неврологические-расстройства/﻿подходы-к-лечению-пациентов-с-неврологическими-заболеваниями/﻿подходы-к-лечению-пациентов-с-неврологическими-заболеваниями"
+      }
+    },
+    {
+      "path": "/results/0/ChapterChildren/results/1",
+      "values": {
+        "id": "59C0CDCD67C2419A91BA328AFE312336",
+        "TopicName": {
+          "value": "Нейротрансмиссия"
+        },
+        "TopicUrl": {
+          "path": "/professional/неврологические-расстройства/﻿подходы-к-лечению-пациентов-с-неврологическими-заболеваниями/нейротрансмиссия"
+        }
+      }
+    },
+    {
+      "path": "/results/0/ChapterChildren/results/1/TopicUrl",
+      "values": {
+        "path": "/professional/неврологические-расстройства/﻿подходы-к-лечению-пациентов-с-неврологическими-заболеваниями/нейротрансмиссия"
+      }
+    },
+    {
+      "path": "/results/1",
+      "values": {
+        "id": "9FA506A7A9DF4A5DB87E3E991EFC9EB0",
+        "ChapterName": {
+          "value": "Вегетативная нервная система"
+        },
+        "ChapterUrl": {
+          "path": "/professional/неврологические-расстройства/вегетативная-нервная-система"
+        }
+      }
+    },
+    {
+      "path": "/results/1/ChapterUrl",
+      "values": {
+        "path": "/professional/неврологические-расстройства/вегетативная-нервная-система"
+      }
+    },
+    {
+      "path": "/results/1/ChapterChildren/results/0",
+      "values": {
+        "id": "F70E35AD230A45D4AB0B170FE69A4E02",
+        "TopicName": {
+          "value": "Обзор вегетативной нервной системы (Overview of the Autonomic Nervous System)"
+        },
+        "TopicUrl": {
+          "path": "/professional/неврологические-расстройства/вегетативная-нервная-система/обзор-вегетативной-нервной-системы-overview-of-the-autonomic-nervous-system"
+        }
+      }
+    },
+    {
+      "path": "/results/1/ChapterChildren/results/0/TopicUrl",
+      "values": {
+        "path": "/professional/неврологические-расстройства/вегетативная-нервная-система/обзор-вегетативной-нервной-системы-overview-of-the-autonomic-nervous-system"
+      }
+    },
+    {
+      "path": "/results/1/ChapterChildren/results/1",
+      "values": {
+        "id": "18E6BD82D0AA4DE8B04898B36ACE1A07",
+        "TopicName": {
+          "value": "Вегетативные полинейропатии"
+        },
+        "TopicUrl": {
+          "path": "/professional/неврологические-расстройства/вегетативная-нервная-система/вегетативные-полинейропатии"
+        }
+      }
+    },
+    {
+      "path": "/results/1/ChapterChildren/results/1/TopicUrl",
+      "values": {
+        "path": "/professional/неврологические-расстройства/вегетативная-нервная-система/вегетативные-полинейропатии"
+      }
+    }
+  ],
+  "sitemaps": [
+    "https://www.msdmanuals.com/ru/sitemaps/home-audio.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-author.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-biodigital.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-figure.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-generic-pages.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-image.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-infographic.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-labtest.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-quiz.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-table.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/home-topic.xml.gz",
+    "https://www.msdmanuals.com/ru/sitemaps/home-video.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-audio.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-author.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-biodigital.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-calculator.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-figure.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-generic-pages.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-image.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-news.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-quiz.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-table.xml",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-topic.xml.gz",
+    "https://www.msdmanuals.com/ru/sitemaps/professional-video.xml"
+  ],
+  "topicSitemap": {
+    "path": "/ru/sitemaps/professional-topic.xml.gz",
+    "root": "{http://www.sitemaps.org/schemas/sitemap/0.9}urlset",
+    "count": 2831,
+    "firstUrl": "<ns0:url xmlns:html=\"http://www.w3.org/1999/xhtml\" xmlns:ns0=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n    <ns0:loc>https://www.msdmanuals.com/ru/professional/болезни-нарушения-питания/витаминная-недостаточность-нарушение-метаболизма-и-передозировка/биотин-и-пантотеновая-кислота</ns0:loc>\n    <ns0:lastmod>2024-08-09T00:00:00Z</ns0:lastmod>\n    <html:link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.msdmanuals.com/professional/nutritional-disorders/vitamin-deficiency-dependency-and-toxicity/biotin-and-pantothenic-acid\" />\n    <html:link rel=\"alternate\" hreflang=\"de\" href=\"https://www.msdmanuals.com/de/profi/ernährungsbedingte-störungen/vitaminmangel-abhängigkeit-und-intoxikation/biotin-und-pantothensäure\" />\n    <html:link rel=\"alternate\" hreflang=\"en\" href=\"https://www.msdmanuals.com/professional/nutritional-disorders/vitamin-deficiency-dependency-and-toxicity/biotin-and-pantothenic-acid\" />\n    <html:link rel=\"alternate\" hreflang=\"en-CA\" href=\"https://www.merckmanuals.com/en-ca/professional/nutritional-disorders/vitamin-deficiency-dependency-and-toxicity/biotin-and-pantothenic-acid\" />\n    <html:link rel=\"alternate\" hreflang=\"en-US\" href=\"https://www.merckmanuals.com/professional/nutritional-disorders/vitamin-deficiency-dependency-and-toxicity/biotin-and-pantothenic-acid\" />\n    <html:link rel=\"alternate\" hreflang=\"en-PR\" href=\"https://www.merckmanuals.com/professional/nutritional-disorders/vitamin-deficiency-dependency-and-toxicity/biotin-and-pantothenic-acid\" />\n    <html:link rel=\"alternate\" hreflang=\"es\" href=\"https://www.msdmanuals.com/es/professional/trastornos-nutricionales/deficiencia-dependencia-e-intoxicación-vitamínica/biotina-y-ácido-pantoténico\" />\n    <html:link rel=\"alternate\" hreflang=\"es-US\" href=\"https://www.merckmanuals.com/es-us/professional/trastornos-nutricionales/deficiencia-dependencia-e-intoxicación-vitamínica/biotina-y-ácido-pantoténico\" />\n    <html:link rel=\"alternate\" hreflang=\"es-PR\" href=\"https://www.merckmanuals.com/es"
+  }
+}
