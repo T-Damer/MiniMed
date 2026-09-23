@@ -16,18 +16,35 @@ def fixture() -> dict[str, object]:
         "format": FORMAT,
         "id": "fixture.selected-definitions",
         "inspectedAt": "2026-09-23",
-        "sources": [{
-            "id": 1, "title": "Synthetic teaching source",
-            "baseUrl": "https://example.org/medical/", "sourceType": "fixture",
-            "authority": "third-party", "releaseEligible": False,
-            "rightsStatus": "requires-review", "language": "ru",
-        }],
-        "entries": [{
-            "id": "medical.definition.example", "title": "Учебный пример", "kind": "term",
-            "aliases": [], "source": 1, "path": "example", "definition": "Учебный пример — это вымышленное объяснение для проверки программы.",
-            "locator": "First sentence, synthetic text", "authors": [], "reviewers": [],
-            "sourceUpdated": None, "classification": None, "population": None,
-        }],
+        "sources": [
+            {
+                "id": 1,
+                "title": "Synthetic teaching source",
+                "baseUrl": "https://example.org/medical/",
+                "sourceType": "fixture",
+                "authority": "third-party",
+                "releaseEligible": False,
+                "rightsStatus": "requires-review",
+                "language": "ru",
+            }
+        ],
+        "entries": [
+            {
+                "id": "medical.definition.example",
+                "title": "Учебный пример",
+                "kind": "term",
+                "aliases": [],
+                "source": 1,
+                "path": "example",
+                "definition": "Учебный пример — это вымышленное объяснение для проверки программы.",
+                "locator": "First sentence, synthetic text",
+                "authors": [],
+                "reviewers": [],
+                "sourceUpdated": None,
+                "classification": None,
+                "population": None,
+            }
+        ],
     }
 
 
@@ -80,7 +97,9 @@ def test_different_title_is_not_an_inferred_synonym() -> None:
 
 def test_only_source_evidenced_alias_is_admitted() -> None:
     payload = fixture()
-    entry(payload)["definition"] = "Учебный пример (тест) — это вымышленное объяснение для проверки программы."
+    entry(payload)["definition"] = (
+        "Учебный пример (тест) — это вымышленное объяснение для проверки программы."
+    )
     entry(payload)["aliases"] = ["Тест"]
     catalog, _ = compile_selected_definitions(payload)
     assert obj(seq(catalog["terms"], 100)[0])["aliases"] == ["Тест"]
@@ -89,16 +108,26 @@ def test_only_source_evidenced_alias_is_admitted() -> None:
         compile_selected_definitions(payload)
 
 
-@pytest.mark.parametrize("field,value", [
-    ("source", 99), ("path", "../private"), ("path", "https://other.example/test"),
-    ("path", "example#unknown"), ("definition", "Incomplete source"),
-    ("definition", "Обрезанная часть…"), ("definition", " ".join(["слово"] * 26) + "."),
-    ("kind", "scale"), ("sourceUpdated", "2026-19"),
-    ("id", "broken id"), ("aliases", ["unsupported name"]),
-    ("score", "arbitrary scoring instructions"),
-])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("source", 99),
+        ("path", "../private"),
+        ("path", "https://other.example/test"),
+        ("path", "example#unknown"),
+        ("definition", "Incomplete source"),
+        ("definition", "Обрезанная часть…"),
+        ("definition", " ".join(["слово"] * 26) + "."),
+        ("kind", "scale"),
+        ("sourceUpdated", "2026-19"),
+        ("id", "broken id"),
+        ("aliases", ["unsupported name"]),
+        ("score", "arbitrary scoring instructions"),
+    ],
+)
 def test_invalid_or_unwanted_content_is_rejected_even_when_title_would_defer(
-    field: str, value: object,
+    field: str,
+    value: object,
 ) -> None:
     payload = fixture()
     entry(payload)[field] = value
@@ -106,12 +135,19 @@ def test_invalid_or_unwanted_content_is_rejected_even_when_title_would_defer(
         compile_selected_definitions(payload, ["Учебный пример"])
 
 
-@pytest.mark.parametrize("field,value", [
-    ("releaseEligible", True), ("rightsStatus", "cleared"), ("language", "en"),
-    ("authority", "clinically-approved"), ("baseUrl", "http://example.org/"),
-])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("releaseEligible", True),
+        ("rightsStatus", "cleared"),
+        ("language", "en"),
+        ("authority", "clinically-approved"),
+        ("baseUrl", "http://example.org/"),
+    ],
+)
 def test_source_family_never_automatically_promotes_medical_or_release_state(
-    field: str, value: object,
+    field: str,
+    value: object,
 ) -> None:
     payload = fixture()
     source(payload)[field] = value
@@ -156,8 +192,13 @@ def test_real_numeric_pack_preserves_source_text_and_provenance(tmp_path: Path) 
     projection.add(catalog, digest(raw))
     database = tmp_path / "selected.db"
     report = build_compact_definition_reference(
-        (prepared,), database, input_root=tmp_path, edition_id="fixture.reference",
-        version="1", built_at="2026-09-23", definitions_only=True,
+        (prepared,),
+        database,
+        input_root=tmp_path,
+        edition_id="fixture.reference",
+        version="1",
+        built_at="2026-09-23",
+        definitions_only=True,
     )
     assert report["entries"] == 1
     assert report["logicalRoundTripEqual"] is True
@@ -171,7 +212,8 @@ def test_real_numeric_pack_preserves_source_text_and_provenance(tmp_path: Path) 
             assert db.execute(f"SELECT count(*) FROM {table}").fetchone() == (0,)
         for identifier, (_, chunk) in projection.chunks.items():
             row = db.execute(
-                "SELECT original_text, metadata_json FROM chunks WHERE id = ?", (identifier,),
+                "SELECT original_text, metadata_json FROM chunks WHERE id = ?",
+                (identifier,),
             ).fetchone()
             assert row is not None
             assert row[0] == chunk.original_text
@@ -186,7 +228,9 @@ def test_inspected_authoring_batch_obeys_the_same_contract() -> None:
     catalog, report = compile_selected_definitions(payload)
     assert report["candidates"] == 25
     assert report["selectedDefinitions"] == 25
-    assert report["maximumWordsPerPage"] <= 25
+    maximum = report["maximumWordsPerPage"]
+    assert isinstance(maximum, int) and not isinstance(maximum, bool)
+    assert maximum <= 25
     projection = Projection()
     projection.add(catalog, digest(encoded(catalog)))
     assert len(projection.entries) == 25
