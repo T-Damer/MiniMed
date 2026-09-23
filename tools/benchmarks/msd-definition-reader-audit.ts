@@ -47,7 +47,9 @@ function hash(value: string | Uint8Array): string {
 
 const [databasePath, inputPath, reportPath] = process.argv.slice(2);
 if (!databasePath || !inputPath || !reportPath) {
-  throw new Error('Usage: bun tools/benchmarks/msd-definition-reader-audit.ts DB COMPLETIONS REPORT');
+  throw new Error(
+    'Usage: bun tools/benchmarks/msd-definition-reader-audit.ts DB COMPLETIONS REPORT',
+  );
 }
 const inputBytes = readFileSync(inputPath);
 // This diagnostic consumes the prepared file already validated by the ordinary Python ingester.
@@ -58,7 +60,8 @@ if (input.format !== 'minimed-name-completions-v1' || !input.targets.length) {
 const blocks = new Map(input.catalog.blocks.map((block) => [block.id, block]));
 const sources = new Map(input.catalog.sources.map((source) => [source.id, source]));
 const targets = new Map(input.targets.map((target) => [target.id, target.expectedTitle]));
-if (targets.size !== input.catalog.terms.length) throw new Error('Completion identity count differs');
+if (targets.size !== input.catalog.terms.length)
+  throw new Error('Completion identity count differs');
 // Same explicit native-module boundary used by the existing file-backed benchmark adapter.
 const sqlite = (await import('bun:sqlite' as string)) as {
   Database: new (path: string, options: { readonly: boolean }) => NativeDatabase;
@@ -93,14 +96,27 @@ try {
     const page = await reader.listBlocks(term.id);
     const definition = page.blocks[0];
     const origin = page.blocks[1];
-    if (page.next !== null || page.blocks.length !== 2 || definition?.role !== 'definition' || origin?.role !== 'annotation') {
+    if (
+      page.next !== null ||
+      page.blocks.length !== 2 ||
+      definition?.role !== 'definition' ||
+      origin?.role !== 'annotation'
+    ) {
       throw new Error('Definition or original discovery link is missing');
     }
     const text = await reader.readBlock(term.id, definition.chunkId);
-    if (!text || text.nextOffset !== null || text.text !== expected.text || [...text.text].length > 4096) {
+    if (
+      !text ||
+      text.nextOffset !== null ||
+      text.text !== expected.text ||
+      [...text.text].length > 4096
+    ) {
       throw new Error('Bounded reader altered the source definition');
     }
-    if (text.provenance['path'] !== expected.path || text.provenance['locator'] !== expected.locator) {
+    if (
+      text.provenance['path'] !== expected.path ||
+      text.provenance['locator'] !== expected.locator
+    ) {
       throw new Error('Source locator changed');
     }
     const proof = text.provenance['sourceVerification'];
@@ -108,16 +124,32 @@ try {
       throw new Error('Source paragraph verification missing');
     }
     const stored = proof as Record<string, unknown>;
-    for (const key of ['method', 'responseSha256', 'paragraphSha256', 'excerptSha256', 'start', 'end'] as const) {
-      if (stored[key] !== expected.sourceVerification[key]) throw new Error('Source receipt changed');
+    for (const key of [
+      'method',
+      'responseSha256',
+      'paragraphSha256',
+      'excerptSha256',
+      'start',
+      'end',
+    ] as const) {
+      if (stored[key] !== expected.sourceVerification[key])
+        throw new Error('Source receipt changed');
     }
     const source = await reader.getSource(text.sourceId);
     const expectedSource = sources.get(expected.source);
-    if (!source || !expectedSource || source['title'] !== expectedSource.title || source['releaseEligible'] !== false) {
+    const descriptor = source?.['source'];
+    if (
+      !descriptor ||
+      typeof descriptor !== 'object' ||
+      Array.isArray(descriptor) ||
+      !expectedSource ||
+      (descriptor as Record<string, unknown>)['title'] !== expectedSource.title ||
+      (descriptor as Record<string, unknown>)['releaseEligible'] !== false
+    ) {
       throw new Error('Unresolved source or silently promoted distribution state');
     }
     const discovery = await reader.readBlock(term.id, origin.chunkId);
-    if (!discovery || !await reader.getSource(discovery.sourceId)) {
+    if (!discovery || !(await reader.getSource(discovery.sourceId))) {
       throw new Error('Original name-discovery provenance is unreadable');
     }
     const names = await reader.search(term.title, 20);
@@ -126,7 +158,8 @@ try {
     const rank = names.findIndex((hit) => hit.id === term.id);
     const framedRank = framed.findIndex((hit) => hit.id === term.id);
     outcomes.push({
-      id: term.id, title: term.title,
+      id: term.id,
+      title: term.title,
       rank: rank < 0 ? null : rank + 1,
       framedRank: framedRank < 0 ? null : framedRank + 1,
       characters: [...text.text].length,
@@ -137,14 +170,25 @@ try {
   database.close();
 }
 const report = {
-  inputSha256: hash(inputBytes), databaseSha256: hash(readFileSync(databasePath)),
+  inputSha256: hash(inputBytes),
+  databaseSha256: hash(readFileSync(databasePath)),
   definitionsRead: outcomes.length,
   namedTop1: outcomes.filter((item) => item.rank === 1).length,
   namedTop20: outcomes.filter((item) => item.rank !== null).length,
   framedTop1: outcomes.filter((item) => item.framedRank === 1).length,
   framedTop20: outcomes.filter((item) => item.framedRank !== null).length,
-  calls, maximumRows, maximumResponseBytes, outcomes,
-  boundary: 'Prepared source fidelity, bounded read and title/navigation lookup. Not medical approval, full HTML replay, independent reverse-search quality, device memory or clinical decisions.',
+  calls,
+  maximumRows,
+  maximumResponseBytes,
+  outcomes,
+  boundary:
+    'Prepared source fidelity, bounded read and title/navigation lookup. Not medical approval, full HTML replay, independent reverse-search quality, device memory or clinical decisions.',
 };
 writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
-console.log(JSON.stringify({ definitionsRead: report.definitionsRead, namedTop20: report.namedTop20, framedTop20: report.framedTop20 }));
+console.log(
+  JSON.stringify({
+    definitionsRead: report.definitionsRead,
+    namedTop20: report.namedTop20,
+    framedTop20: report.framedTop20,
+  }),
+);

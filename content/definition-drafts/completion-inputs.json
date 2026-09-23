@@ -5,6 +5,11 @@
       "path": "content/definition-drafts/clinic-completions-2026.09.23.json",
       "bytes": 9086,
       "sha256": "22048d65f19272ee970f116159646cffab2f82e98e371ec9e38026abd61cbbdb"
+    },
+    {
+      "path": "content/definition-drafts/msd-topic-completions-2026.09.23.json",
+      "bytes": 48115,
+      "sha256": "10957a554638868a387638724d2c55f8d54ccacf620141ad1e8c00b967a8364c"
     }
   ]
 }

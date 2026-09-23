@@ -1,0 +1,255 @@
+{
+  "inputSha256": "10957a554638868a387638724d2c55f8d54ccacf620141ad1e8c00b967a8364c",
+  "databaseSha256": "f88f944863c87515d8955e284c5ebf23531d969ea0edb34ac1d5159323e54675",
+  "definitionsRead": 30,
+  "namedTop1": 30,
+  "namedTop20": 30,
+  "framedTop1": 30,
+  "framedTop20": 30,
+  "calls": 271,
+  "maximumRows": 2,
+  "maximumResponseBytes": 3702,
+  "outcomes": [
+    {
+      "id": "ruwiki.definition.633769",
+      "title": "Истинная полицитемия",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 216,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.172100",
+      "title": "Витилиго",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 129,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.163522",
+      "title": "Кератомаляция",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 70,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.14552",
+      "title": "Аппендицит",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 149,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.1903221",
+      "title": "Ателектаз",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 68,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.1727004",
+      "title": "Псориатический артрит",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 167,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.1819870",
+      "title": "Рак шейки матки",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 95,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.6501572",
+      "title": "Некротический энтероколит",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 204,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.192438",
+      "title": "Бруксизм",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 36,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.1415609",
+      "title": "Злокачественный нейролептический синдром",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 213,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.3371380",
+      "title": "Подострый тиреоидит",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 130,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.1401574",
+      "title": "Эозинофилия",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 95,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.2305422",
+      "title": "Многоплодная беременность",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 54,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.202373",
+      "title": "Кератоконус",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 82,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.4185129",
+      "title": "Мастоидит",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 123,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.761725",
+      "title": "Ангионевротический отёк",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 75,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.1370258",
+      "title": "Мягкий шанкр",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 189,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.2125106",
+      "title": "Трихотилломания",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 113,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.2774116",
+      "title": "Инфекционный эндокардит",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 130,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.82163",
+      "title": "Болезнь Альцгеймера",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 216,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.2675316",
+      "title": "Глюкагонома",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 153,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.3909486",
+      "title": "Нейрогенный мочевой пузырь",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 123,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.445050",
+      "title": "Несовершенный остеогенез",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 151,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.1426077",
+      "title": "Лангергансоклеточный гистиоцитоз",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 152,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.2908769",
+      "title": "Цервицит",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 70,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.4835092",
+      "title": "Неврит зрительного нерва",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 60,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.1827893",
+      "title": "Болезнь Уиппла",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 94,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.3496116",
+      "title": "Пищевая аллергия",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 91,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.805703",
+      "title": "Коклюш",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 150,
+      "sourceAndDiscoveryLinksPreserved": true
+    },
+    {
+      "id": "ruwiki.definition.8336361",
+      "title": "Синдром слабости синусового узла",
+      "rank": 1,
+      "framedRank": 1,
+      "characters": 148,
+      "sourceAndDiscoveryLinksPreserved": true
+    }
+  ],
+  "boundary": "Prepared source fidelity, bounded read and title/navigation lookup. Not medical approval, full HTML replay, independent reverse-search quality, device memory or clinical decisions."
+}
