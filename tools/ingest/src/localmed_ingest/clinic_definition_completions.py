@@ -10,7 +10,7 @@ import time
 from collections import Counter
 from datetime import UTC, date, datetime
 from pathlib import Path
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import quote, urljoin, urlsplit
 from urllib.robotparser import RobotFileParser
 
 from bs4 import BeautifulSoup, Tag
@@ -44,6 +44,8 @@ HOSTS = {
     "www.k31.ru",
     "clinic-complex.ru",
     "www.krasotaimedicina.ru",
+    # Inspected professional manual; excerpt/review/rights limits remain unchanged.
+    "www.msdmanuals.com",
 }
 USER_AGENT = "MiniMedReferenceBot/1.0 (+https://github.com/T-Damer/MiniMed)"
 MAX_PAGE_BYTES = 2 * 1024 * 1024
@@ -112,7 +114,9 @@ def fetch_public(url: str) -> tuple[int, bytes, str]:
             raise ValueError("Missing source host")
         connection = http.client.HTTPSConnection(host, timeout=20)
         try:
-            connection.request("GET", parsed.path or "/", headers={"User-Agent": USER_AGENT})
+            # Encode a source's Unicode path for HTTP without changing the authority or query.
+            path = quote(parsed.path or "/", safe="/%:@!$&'()*+,;=-._~")
+            connection.request("GET", path, headers={"User-Agent": USER_AGENT})
             response = connection.getresponse()
             raw = response.read(MAX_PAGE_BYTES + 1)
             if len(raw) > MAX_PAGE_BYTES:
