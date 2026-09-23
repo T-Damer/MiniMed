@@ -101,10 +101,12 @@ function stem(value: string): string {
 function features(value: string): readonly Feature[] {
   const result: Feature[] = [];
   let position = 0;
-  // A conservative clause-local absence cue; not a clinical assertion or patient-state parser.
-  for (const clause of normalizeSurfaceText(value.replace(/[;!?]/gu, '.')).split(
-    /[.,:;!?]|\sно\s/gu,
-  )) {
+  // Additive "not only" is not absence. Other negation remains clause-local, not semantic parsing.
+  const normalized = normalizeSurfaceText(value.replace(/[;!?]/gu, '.')).replace(
+    /(^|\s)не\s+только(?=\s|$)/gu,
+    '$1',
+  );
+  for (const clause of normalized.split(/[.,:;!?]|\s(?:но|однако|зато)\s/gu)) {
     const words = clause.match(/[\p{L}\p{N}]+/gu) ?? [];
     const absent = words.some((word) => ABSENCE.test(word));
     for (const word of words) {
@@ -114,6 +116,12 @@ function features(value: string): readonly Feature[] {
     }
   }
   return result;
+}
+
+/** Suppress navigation-only text after, never before, exact identity lookup. */
+export function isDefinitionNavigationOnly(value: string): boolean {
+  const normalized = normalizeSurfaceText(value.replace(/[;!?]/gu, '.'));
+  return normalized.length > 0 && normalized.replace(FRAMING, '').replace(/[.\s]+$/gu, '') === '';
 }
 
 export function planDefinitionDescription(value: string): DefinitionDescriptionPlan | null {
@@ -142,6 +150,19 @@ export function planDefinitionDescription(value: string): DefinitionDescriptionP
   };
 }
 
+/** One adjacent-letter swap only; no fuzzy numbers, short tokens or synonym inference. */
+function transposed(left: string, right: string): boolean {
+  if (left.length !== right.length || !/^[а-яa-z]{6,}$/u.test(left)) return false;
+  let at = 0;
+  while (at < left.length && left[at] === right[at]) at += 1;
+  return (
+    at + 1 < left.length &&
+    left[at] === right[at + 1] &&
+    left[at + 1] === right[at] &&
+    left.slice(at + 2) === right.slice(at + 2)
+  );
+}
+
 function strength(query: Feature, candidate: Feature): number {
   if (query.surface === candidate.surface) return 1;
   if (query.stem === candidate.stem) return 0.96;
@@ -153,10 +174,11 @@ function strength(query: Feature, candidate: Feature): number {
     (query.stem.startsWith(candidate.stem) || candidate.stem.startsWith(query.stem))
   )
     return 0.8;
+  if (transposed(query.stem, candidate.stem)) return 0.85;
   return 0;
 }
 
-/** Inverse lookup: assess whether a bounded definition covers the described features, not just a shared word. */
+/** Evaluate each source passage independently; repeated or disjoint rows are not extra evidence. */
 export function rankDefinitionDescriptions(
   plan: DefinitionDescriptionPlan,
   candidates: readonly DefinitionDescriptionCandidate[],
@@ -174,44 +196,43 @@ export function rankDefinitionDescriptions(
     }
     const words = features(candidate.text);
     const matches = plan.terms.map((term) => {
-      let best = 0;
+      let compatible = 0;
+      let opposite = 0;
       let at = -1;
-      let compatible = false;
       for (const word of words) {
         const quality = strength(term, word);
-        if (!quality) continue;
-        if (term.absent === word.absent) compatible = true;
-        if (quality > best || (quality === best && term.absent === word.absent)) {
-          best = quality;
+        if (term.absent !== word.absent) {
+          opposite = Math.max(opposite, quality);
+        } else if (quality > compatible) {
+          compatible = quality;
           at = word.position;
         }
       }
-      return { best, at, conflict: best > 0 && !compatible };
+      return { best: compatible, at, conflict: opposite > 0 && compatible === 0 };
     });
     return { candidate, words, matches };
   });
+  const identities = new Set(analyzed.map((row) => row.candidate.id)).size;
   const weights = plan.terms.map((_, index) => {
     const owners = new Set(
       analyzed.filter((row) => (row.matches[index]?.best ?? 0) > 0).map((row) => row.candidate.id),
     );
-    return 1 + Math.log((analyzed.length + 1) / (owners.size + 1));
+    return 1 + Math.log((identities + 1) / (owners.size + 1));
   });
   const totalWeight = weights.reduce((total, value) => total + value, 0);
   const bestById = new Map<string, RankedDefinitionDescription>();
   for (const row of analyzed) {
     const matched = row.matches.filter((match) => match.best > 0).length;
-    const conflicts = row.matches.filter((match) => match.conflict).length;
     if (matched < Math.max(2, Math.ceil(plan.terms.length * 0.6))) continue;
-    // Explicit absence may not be discarded merely to find a lexically similar positive definition.
-    if (conflicts > 0 && plan.terms.some((term) => term.absent)) continue;
+    // Both directions matter: a positive query must not silently match a negated definition either.
+    if (row.matches.some((match) => match.conflict)) continue;
     const coverage =
       row.matches.reduce((sum, match, i) => sum + match.best * (weights[i] ?? 0), 0) / totalWeight;
     if (coverage < 0.6) continue;
     const positions = row.matches.filter((match) => match.at >= 0).map((match) => match.at);
     const span = Math.max(...positions) - Math.min(...positions) + 1;
     const proximity = matched / Math.max(matched, span);
-    const score =
-      coverage * 8 + proximity + matched / Math.max(matched, row.words.length) - conflicts * 2;
+    const score = coverage * 8 + proximity + matched / Math.max(matched, row.words.length);
     const outcome = { id: row.candidate.id, score, matched, total: plan.terms.length };
     const previous = bestById.get(outcome.id);
     if (!previous || previous.score < score) bestById.set(outcome.id, outcome);
