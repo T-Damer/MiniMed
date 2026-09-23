@@ -45,20 +45,30 @@ jobs:
           env -i PATH="$PATH" HOME="$HOME" node node_modules/vitest/vitest.mjs run packages/search-lexical packages/storage-sqlite --reporter=default --reporter=json --outputFile=data/build/definition-reliability-tests.json
           env -i PATH="$PATH" HOME="$HOME" node node_modules/typescript/bin/tsc -p packages/search-lexical/tsconfig.json
           env -i PATH="$PATH" HOME="$HOME" node node_modules/typescript/bin/tsc -p packages/storage-sqlite/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" bun x biome check packages/search-lexical/src/definition-description.ts packages/search-lexical/src/definition-description-reliability.test.ts packages/search-lexical/src/definition-short-absence.test.ts packages/search-lexical/src/index.ts packages/storage-sqlite/src/definition-reference-reader.ts packages/storage-sqlite/tests/definition-reliability.test.ts tools/benchmarks/definition-reliability-audit.mjs
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check tools/ingest/src/localmed_ingest/catalog_definition_completions.py tools/ingest/tests/test_catalog_definition_completions.py
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format --check tools/ingest/src/localmed_ingest/catalog_definition_completions.py tools/ingest/tests/test_catalog_definition_completions.py
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright tools/ingest/src/localmed_ingest/catalog_definition_completions.py tools/ingest/tests/test_catalog_definition_completions.py
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_catalog_definition_completions.py tools/ingest/tests/test_definition_gap_inventory.py tools/ingest/tests/test_definition_name_completions.py tools/ingest/tests/test_definition_name_inventory.py tools/ingest/tests/test_definition_reference_scope.py tools/ingest/tests/test_definition_reference_pack.py --junitxml=data/build/catalog-regressions.xml
       - name: Acquire one bounded source batch
+        id: acquisition
+        continue-on-error: true
         run: |
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.catalog_definition_completions --root "$PWD" --batch 2026.09.23-reliability --limit 40
       - name: Build ordinary dictionary offline and verify source identities
         env:
           CHECKED_SHA: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
+          ACQUISITION_OUTCOME: ${{ steps.acquisition.outcome }}
         run: |
-          env -i PATH="$PATH" HOME="$HOME" CHECKED_SHA="$CHECKED_SHA" RUN_ID="$RUN_ID" uv run --project tools/ingest python - <<'PY'
+          env -i PATH="$PATH" HOME="$HOME" CHECKED_SHA="$CHECKED_SHA" RUN_ID="$RUN_ID" ACQUISITION_OUTCOME="$ACQUISITION_OUTCOME" uv run --project tools/ingest python - <<'PY'
           import hashlib,json,os,runpy,sqlite3,sys,xml.etree.ElementTree as ET
           from pathlib import Path
+          acquisition=json.loads(Path('docs/research/catalog-completions-2026.09.23-reliability.json').read_text())
+          accepted=acquisition['acquisition']['accepted']
+          assert type(accepted) is int and accepted>=0
+          assert acquisition['after']['definitionRecords']-acquisition['before']['definitionRecords']==accepted
+          assert (os.environ['ACQUISITION_OUTCOME']=='success')==(accepted>0)
           def guard(event,args):
               if event in {'socket.connect','socket.getaddrinfo'}:
                   raise RuntimeError('Dictionary verification must stay offline')
@@ -87,7 +97,7 @@ jobs:
           assert tests['failures']==tests['errors']==tests['skipped']==0
           assert js['numFailedTests']==0 and js['numFailedTestSuites']==0
           report={k:v for k,v in inventory.items() if k!='rows'}
-          report.update({'checkedCommit':os.environ['CHECKED_SHA'],'runId':os.environ['RUN_ID'],'pythonTests':tests,'javascriptTests':js['numPassedTests'],'installedBytes':dbpath.stat().st_size,'downloadBytes':Path(str(dbpath)+'.gz').stat().st_size,'databaseSha256':hashlib.sha256(dbpath.read_bytes()).hexdigest(),'sqliteIdentityAndCoverageMatch':True,'logicalRoundTripEqual':True,'networkAllowedDuringBuild':False})
+          report.update({'checkedCommit':os.environ['CHECKED_SHA'],'runId':os.environ['RUN_ID'],'pythonTests':tests,'javascriptTests':js['numPassedTests'],'installedBytes':dbpath.stat().st_size,'downloadBytes':Path(str(dbpath)+'.gz').stat().st_size,'databaseSha256':hashlib.sha256(dbpath.read_bytes()).hexdigest(),'sqliteIdentityAndCoverageMatch':True,'logicalRoundTripEqual':True,'networkAllowedDuringBuild':False,'acquisitionOutcome':os.environ['ACQUISITION_OUTCOME'],'acceptedDefinitions':accepted})
           Path('docs/research/definition-reliability-build-2026-09-23.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
           print(json.dumps(report,ensure_ascii=False,indent=2))
           PY
@@ -99,7 +109,7 @@ jobs:
           env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/definition-reliability-audit.mjs sample "$db" baseline-source/packages/storage-sqlite/src/definition-reference-reader.ts data/build/search-before.json 2a6f1a098d407c05317d5879c2c412054e035c48
           env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/definition-reliability-audit.mjs sample "$db" packages/storage-sqlite/src/definition-reference-reader.ts data/build/search-after.json "$CHECKED_SHA"
           env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/definition-reliability-audit.mjs compare data/build/search-before.json data/build/search-after.json docs/research/definition-reliability-search-2026-09-23.json
-      - name: Commit only validated short excerpts and receipts to the existing PR branch
+      - name: Commit validated data and explicit source-deferral receipts to the existing PR
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -107,13 +117,16 @@ jobs:
           git diff --exit-code -- packages tools scripts .github
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add content/definition-drafts/catalog-completions-2026.09.23-reliability.json content/definition-drafts/completion-inputs.json docs/research/catalog-completions-2026.09.23-reliability.json docs/research/definition-reliability-build-2026-09-23.json docs/research/definition-reliability-search-2026-09-23.json
-          git commit -m 'data(definitions): add verified catalog batch and reliability receipts'
+          if test -f content/definition-drafts/catalog-completions-2026.09.23-reliability.json; then
+            git add content/definition-drafts/catalog-completions-2026.09.23-reliability.json content/definition-drafts/completion-inputs.json
+          fi
+          git add docs/research/catalog-completions-2026.09.23-reliability.json docs/research/definition-reliability-build-2026-09-23.json docs/research/definition-reliability-search-2026-09-23.json
+          git commit -m 'data(definitions): record source batch and verified search reliability'
           git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:experiment/system-one-search-benchmark
       - name: Report without artifact storage
         if: always()
         run: |
-          echo 'One bounded acquisition; no schedule, cache uploads, artifacts, database binaries, models, APK, merge or release.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'One bounded acquisition; no schedule, cache uploads, artifacts, database binaries, models, APK, merge or release. Source deferrals are not acquisition success.' >> "$GITHUB_STEP_SUMMARY"
           for file in docs/research/catalog-completions-2026.09.23-reliability.json docs/research/definition-reliability-build-2026-09-23.json docs/research/definition-reliability-search-2026-09-23.json; do
             if test -f "$file"; then echo "REPORT $file"; cat "$file"; fi
           done
