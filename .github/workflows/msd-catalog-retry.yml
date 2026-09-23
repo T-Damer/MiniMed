@@ -1,0 +1,63 @@
+name: Complete MSD catalog qualification
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/msd-catalog-retry.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-msd-catalog
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Execute the full pinned check without relaxing its gates
+        env:
+          HEAD_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,re,subprocess,textwrap
+          from pathlib import Path
+          def replace(path,old,new):
+              p=Path(path);s=p.read_text();assert s.count(old)==1,(path,old);p.write_text(s.replace(old,new))
+          p='tools/ingest/src/localmed_ingest/msd_topic_inventory.py'
+          replace(p,'    raw = text(value, 4096)\n    parsed = urlsplit(raw)', '    raw = text(value, 4096)\n    if any(ord(char) < 32 for char in raw):\n        raise ValueError("Control character in source URL")\n    parsed = urlsplit(raw)')
+          replace(p,'    if parsed.scheme or parsed.netloc:\n        if parsed.scheme != "https" or parsed.netloc != "www.msdmanuals.com":\n            raise ValueError("MSD metadata points outside the inspected origin")', '    if (parsed.scheme or parsed.netloc) and (parsed.scheme != "https" or parsed.netloc != "www.msdmanuals.com"):\n        raise ValueError("MSD metadata points outside the inspected origin")')
+          replace(p,'"boundary": "Topic/title index only; not all in-article terms, medical definitions, clinical review or content reuse permission.",', '"boundary": ("Topic/title index only; not all in-article terms, medical definitions, "\n                     "clinical review or content reuse permission."),')
+          p='tools/ingest/tests/test_msd_topic_inventory.py'
+          old='    raw = b\'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.msdmanuals.com/ru/professional/test/chapter/topic</loc><lastmod>2026-01-01</lastmod><link href="https://other.example/" /></url></urlset>\''
+          new='    raw = (b\'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\'\n           b\'<url><loc>https://www.msdmanuals.com/ru/professional/test/chapter/topic</loc>\'\n           b\'<lastmod>2026-01-01</lastmod><link href="https://other.example/" /></url></urlset>\')'
+          replace(p,old,new)
+          source=Path('.github/workflows/msd-catalog-check.yml').read_text()
+          for block in re.split(r'(?m)^      - name: ',source)[1:]:
+              name=block.splitlines()[0]
+              marker='        run: |\n'
+              assert marker in block,name
+              command=textwrap.dedent(block.split(marker,1)[1])
+              command=command.replace('$'+'{{ github.sha }}',os.environ['HEAD_SHA']).replace('$'+'{{ github.run_id }}',os.environ['RUN_ID'])
+              assert '$'+'{{' not in command
+              if name=='Real reader and frozen reverse-query qualification on the expanded database':
+                  command='env -i PATH="$PATH" HOME="$HOME" git fetch --no-tags --depth=1 origin 7ae77243ef26a6633031fd2dfdbb981d4dea0fc9\n'+command
+              if name=='Record actual scope and remove this temporary verification workflow':
+                  command += '\ngit rm .github/workflows/msd-catalog-retry.yml\n'
+              env={key:os.environ[key] for key in ('PATH','HOME','RUNNER_TEMP')}
+              if name=='Save only verified metadata, sources and tests':env['PUSH_TOKEN']=os.environ['PUSH_TOKEN']
+              print('Executing: '+name,flush=True)
+              subprocess.run(['bash','-e','-o','pipefail','-c',command],env=env,check=True)
+          PY
