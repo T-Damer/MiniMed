@@ -32,6 +32,7 @@ jobs:
           from pathlib import Path
           def replace(path,old,new):
               p=Path(path);s=p.read_text();assert s.count(old)==1,(path,old);p.write_text(s.replace(old,new))
+          replace('tools/ingest/tests/test_definition_supplied_inputs.py','match="repeats|conflicting"','match=r"repeats|conflicting"')
           pack='tools/ingest/src/localmed_ingest/definition_reference_pack.py'
           compact='tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py'
           for path in (pack,compact):
