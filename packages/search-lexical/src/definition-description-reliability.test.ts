@@ -27,12 +27,13 @@ describe('definition evidence reliability', () => {
   });
   it('does not increase rarity weights when a source repeats the same evidence', () => {
     const query = plan('короткое движение мышцы');
+    const repeated = candidate('a', 'Короткое движение мышцы.');
     const rows = [
-      candidate('a', 'Короткое движение мышцы.'),
+      repeated,
       candidate('b', 'Короткое движение.'),
       candidate('c', 'Изменение длины мышцы.'),
     ];
-    expect(rankDefinitionDescriptions(query, [...rows, rows[0]!, rows[0]!])).toEqual(
+    expect(rankDefinitionDescriptions(query, [...rows, repeated, repeated])).toEqual(
       rankDefinitionDescriptions(query, rows),
     );
   });
@@ -44,10 +45,12 @@ describe('definition evidence reliability', () => {
     expect(result[0]).toMatchObject({ id: 'a', matched: 3, total: 3 });
   });
   it('does not fabricate complete coverage by joining unrelated evidence rows', () => {
-    expect(rankDefinitionDescriptions(plan('красный длинный круглый объект'), [
-      candidate('a', 'Красный объект.'),
-      candidate('a', 'Длинный круглый.'),
-    ])).toEqual([]);
+    expect(
+      rankDefinitionDescriptions(plan('красный длинный круглый объект'), [
+        candidate('a', 'Красный объект.'),
+        candidate('a', 'Длинный круглый.'),
+      ]),
+    ).toEqual([]);
   });
   it('repairs a single adjacent transposition in a long word inside retrieved evidence', () => {
     const result = rankDefinitionDescriptions(plan('кратковременные сокращнеия мышцы'), [
@@ -62,8 +65,8 @@ describe('definition evidence reliability', () => {
     expect(result).toEqual([]);
   });
   it('never repairs a short clinically meaningful token by fuzzy matching', () => {
-    expect(rankDefinitionDescriptions(plan('боль тела'), [
-      candidate('a', 'Моль тела.'),
-    ])).toEqual([]);
+    expect(rankDefinitionDescriptions(plan('боль тела'), [candidate('a', 'Моль тела.')])).toEqual(
+      [],
+    );
   });
 });
