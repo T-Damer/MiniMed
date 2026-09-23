@@ -1,4 +1,3 @@
-import { Database } from 'bun:sqlite';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createSqliteDefinitionReference } from '../../packages/storage-sqlite/src/definition-reference-reader';
@@ -37,6 +36,10 @@ interface CompletionInput {
   };
   readonly targets: readonly { readonly id: string; readonly expectedTitle: string }[];
 }
+interface NativeDatabase {
+  query(sql: string): { all(...parameters: (string | number)[]): unknown[] };
+  close(): void;
+}
 
 function hash(value: string | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex');
@@ -56,7 +59,11 @@ const blocks = new Map(input.catalog.blocks.map((block) => [block.id, block]));
 const sources = new Map(input.catalog.sources.map((source) => [source.id, source]));
 const targets = new Map(input.targets.map((target) => [target.id, target.expectedTitle]));
 if (targets.size !== input.catalog.terms.length) throw new Error('Completion identity count differs');
-const database = new Database(databasePath, { readonly: true });
+// Same explicit native-module boundary used by the existing file-backed benchmark adapter.
+const sqlite = (await import('bun:sqlite' as string)) as {
+  Database: new (path: string, options: { readonly: boolean }) => NativeDatabase;
+};
+const database = new sqlite.Database(databasePath, { readonly: true });
 let calls = 0;
 let maximumRows = 0;
 let maximumResponseBytes = 0;
