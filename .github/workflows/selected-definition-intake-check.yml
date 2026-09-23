@@ -2,7 +2,7 @@ name: Selected medical definition intake
 on:
   push:
     branches: [experiment/system-one-search-benchmark]
-    paths: [.github/workflows/selected-definition-intake-check.yml]
+    paths: [.github/workflows/selected-definition-intake-check.yml, tools/ingest/tests/test_selected_definition_excerpts.py, tools/ingest/src/localmed_ingest/selected_definition_excerpts.py]
 permissions:
   contents: write
 concurrency:
@@ -27,6 +27,16 @@ jobs:
           no-cache: true
       - name: Locked Python validation and source-fidelity regression suites
         run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tools/ingest/tests/test_selected_definition_excerpts.py');s=p.read_text()
+          old='    assert report["maximumWordsPerPage"] <= 25'
+          new='    maximum = report["maximumWordsPerPage"]\n    assert isinstance(maximum, int) and not isinstance(maximum, bool)\n    assert maximum <= 25'
+          if old in s:
+              assert s.count(old)==1
+              p.write_text(s.replace(old,new))
+          elif new not in s: raise ValueError('Changed numeric-budget fixture')
+          PY
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
           files='tools/ingest/src/localmed_ingest/selected_definition_excerpts.py tools/ingest/tests/test_selected_definition_excerpts.py'
           env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
@@ -112,8 +122,7 @@ jobs:
           expected,again=compile_selected_definitions(json.loads((root/'content/reference-authoring/medical-definitions-2026.09.23.json').read_bytes()),
             {name for key in old_ids for name in old.entries[key].names})
           actual=json.loads((root/'content/definition-drafts/selected-medical-definitions-2026.09.23.json').read_bytes())
-          assert expected==actual
-          assert again['selectedIds']==intake['selectedIds']
+          assert expected==actual and again['selectedIds']==intake['selectedIds']
           dbpath=root/'apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-medical-definitions-1.db'
           build=json.loads(Path(str(dbpath)+'.report.json').read_bytes())
           assert build['logicalRoundTripEqual'] is True
@@ -182,7 +191,7 @@ jobs:
             const hits=await reader.search(term.title,20);
             outcomes.push({id:term.id,title:term.title,rank:hits.findIndex(hit=>hit.id===term.id)+1||null,characters:[...value.text].length});
           }
-          // Frozen authored phrase probes; diagnostic only, never copied into aliases or used to tune ranking.
+          // Source-derived diagnostic only; never copied into aliases or used to tune ranking.
           const phrases=[
             ['medical.definition.diplopia','удвоенное изображение одного объекта'],
             ['medical.definition.anisocoria','разный размер зрачков'],
@@ -218,52 +227,44 @@ jobs:
           titles=', '.join(row['title'] for row in r['actualReader']['outcomes'])
           note=f'''# Targeted medical definition intake — 2026-09-23
 
-          The inspected authoring batch contains {r['candidates']} short definition candidates from
-          MSD medical references (professional/patient versions), an ENT clinic and LabQuest.
-          Source author/reviewer/updated date are retained when observed; absent fields remain null.
-          A source reviewer's identity does not mean MiniMed has clinically approved the record.
+          Inspected {r['candidates']} short definition candidates from MSD professional/patient references,
+          an ENT clinic and LabQuest. Added **{r['selectedDefinitions']}** definitions whose names were
+          absent from the indexed definition names/aliases; **{len(r['deferred'])}** were deferred for
+          source/sense review, not deleted or merged. Added titles: {titles}.
+          {r['newDefinitionTitlesMatchingDiscoveredNames']} titles also match preserved discovery names.
+          These matches do not automatically establish same-as or baseDefinitionRef relationships.
 
-          Added **{r['selectedDefinitions']} definitions** not matching an already-indexed definition name.
-          Deferred **{len(r['deferred'])}** existing-name candidates without deleting their authoring text.
-          Deferral is name coverage triage, not proof of semantic equivalence or automatic merging.
-          New titles: {titles}.
-          {r['newDefinitionTitlesMatchingDiscoveredNames']} added titles also match the restored discovery
-          inventory. Discovery identities remain unchanged, with no invented same-as or base links.
+          The ordinary edition now has **{r['currentDefinitions']} definition candidates** plus
+          **{r['preservedDiscoveredNames']} discovered-name records**, **{r['searchableEntries']} records** total.
+          One source sentence per newly selected title, not a full article, new scale or calculator.
+          Full base-definition/differences reconciliation remains a separate content task.
 
-          The normal knowledge edition contains **{r['currentDefinitions']} definition candidates** and
-          **{r['preservedDiscoveredNames']} discovery-name records**: **{r['searchableEntries']} searchable source records**.
-          These are not unique medically reviewed concepts. One source definition per new batch title
-          was nominated; full cross-source baseDefinitionRef/differences reconciliation remains open.
-          No scales, classifications, calculator rules, article cards or source summaries were invented.
+          ## Source and review boundary
 
-          ## Source boundary
+          Exact inspected web excerpts are stored with source URLs/locators and available source
+          author/reviewer/date metadata. Missing fields stay null. Source editorial review does not
+          mean MiniMed clinical review. All material remains review-required and release-ineligible.
+          Full HTML was not archived: hashes bind selected excerpts and prepared files, NOT the
+          original pages. No whole-web-page replay, clinical approval or blanket reuse permission.
+          Original corpus files, blocks and classifications remain unchanged; no model rewrites.
 
-          These are manually inspected web excerpts, not full HTML snapshots. Each exact selected
-          sentence is retained with its URL/locator and excerpt checksum. The checksum binds the
-          authoring/selected text; it is NOT an original page checksum. No claim of full-web-page
-          replay, blanket copyright permission or clinical approval is made. Each source remains
-          release-ineligible/review-required. Source page links are in the authoring input; no whole
-          page, image or treatment recommendation is copied into this short-definition batch.
-          All original corpus files, text blocks and classifications remain unchanged.
+          ## Actual validation
 
-          ## Actual checks
-
-          **{r['tests']['tests']} Python tests passed**, strict Python checks passed. The ordinary
-          preparer built the whole source set with no networking after dependency installation.
-          All **{r['allSourceBlocksCompared']} blocks** and **{r['allSourceDescriptorsCompared']} source
-          descriptors were compared to their prepared projection; original input receipts match.
-          The actual app SQLite reader reconstructed all {r['actualReader']['definitionsRead']} new
-          definitions and source locators. Named retrieval: {r['actualReader']['namedTop1']} Top-1,
-          {r['actualReader']['namedTop20']} Top-20; misses, if any, remain in the JSON report.
-          Source-derived phrase diagnostics: {r['authoredPhraseDiagnostic']['top20']}/{r['authoredPhraseDiagnostic']['total']} Top-20;
-          these are not independent reverse-search or clinical results and ranking was not tuned.
-          SQLite **{r['installedBytes']} bytes**, gzip **{r['downloadBytes']} bytes**; these are file sizes,
-          not mobile memory measurements. No whole-app/browser/device qualification in this run.
+          **{r['tests']['tests']} Python tests passed**, strict Python checks passed; normal SQLite build
+          ran offline after dependencies were installed. Exact source checks covered
+          **{r['allSourceBlocksCompared']} blocks / {r['allSourceDescriptorsCompared']} source descriptors**.
+          Actual reader reconstructed all {r['actualReader']['definitionsRead']} new definitions and
+          source locators. Named retrieval: {r['actualReader']['namedTop1']} Top-1,
+          {r['actualReader']['namedTop20']} Top-20; all outcomes/misses retained in JSON.
+          Phrase diagnostic: {r['authoredPhraseDiagnostic']['top20']}/{r['authoredPhraseDiagnostic']['total']} Top-20.
+          These source-derived probes are not independent reverse-search/clinical evaluation;
+          ranking/aliases were not tuned. SQLite **{r['installedBytes']} bytes**, gzip
+          **{r['downloadBytes']} bytes**. No mobile memory or whole-app validation implied.
 
           Evidence: `selected-medical-definitions-2026-09-23.json`.
-          Compile input: `content/reference-authoring/medical-definitions-2026.09.23.json`.
-          Prepare ordinary DEV version `2026.09.23-medical-definitions-1`.
-          No private book/clinical input, model, new dependency, binary release, APK or merge.
+          Authoring: `content/reference-authoring/medical-definitions-2026.09.23.json`.
+          Rebuild DEV version `2026.09.23-medical-definitions-1` using the ordinary preparer.
+          No private books/clinical inputs, models, new dependencies, release, APK or merge.
           '''
           note='\n'.join(line[10:] if line.startswith('          ') else line for line in note.splitlines())
           Path('docs/research/selected-medical-definitions-delivery-2026-09-23.md').write_text(note+'\n')
