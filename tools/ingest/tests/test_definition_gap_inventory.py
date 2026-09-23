@@ -114,4 +114,25 @@ def test_inventory_is_deterministic_and_does_not_mutate_projection() -> None:
     report = build_gap_inventory(original)
     assert report == build_gap_inventory(projection(second, first))
     assert original.entries == before
-    assert report["pendingRecords"] == sum(obj(report["byStatusRecords"]).values())
+    assert report["pendingRecords"] == report["pendingNormalizedTitles"] == 2
+
+
+def test_all_pending_records_belong_to_exactly_one_review_bucket() -> None:
+    report = build_gap_inventory(
+        projection(
+            entry("unique", "Первое"),
+            entry("overlap", "Второе"),
+            entry("existing", "Второе", "definition"),
+            entry("ambiguous-a", "Третье"),
+            entry("ambiguous-b", "Третье"),
+        )
+    )
+    assert report["sourceRecords"] == 5
+    assert report["definitionRecords"] == 1
+    assert report["pendingRecords"] == 4
+    assert report["pendingNormalizedTitles"] == 3
+    assert report["byStatusRecords"] == {
+        "ambiguous-discovered-title": 2,
+        "ready-for-source-research": 1,
+        "same-title-definition-needs-sense-review": 1,
+    }
