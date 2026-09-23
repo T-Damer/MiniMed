@@ -29,6 +29,7 @@ def build_compact_definition_reference(
     compact_metadata: bool = False,
     definitions_only: bool = False,
     discovery_inputs: tuple[Path, ...] = (),
+    completion_inputs: tuple[Path, ...] = (),
     supplied_root: Path | None = None,
     supplied_manifest: Path | None = None,
 ) -> dict[str, object]:
@@ -46,6 +47,7 @@ def build_compact_definition_reference(
             built_at=built_at,
             definitions_only=definitions_only,
             discovery_inputs=discovery_inputs,
+            completion_inputs=completion_inputs,
             supplied_root=supplied_root,
             supplied_manifest=supplied_manifest,
         )
@@ -123,6 +125,7 @@ def build_compact_definition_reference(
         "entries": baseline["entries"],
         "suppliedSources": baseline.get("suppliedSources"),
         "discoveredNames": baseline.get("discoveredNames", 0),
+        "completedNames": baseline.get("completedNames", 0),
         "selection": baseline.get("selection"),
         "sources": baseline["sources"],
         "blocks": baseline["blocks"],

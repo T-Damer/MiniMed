@@ -33,7 +33,18 @@ from .definition_reference_scope import definition_scope
 from .definition_source_manifest import read_source_manifest
 from .definition_source_policy import require_active_definition_source
 
-HOSTS = {"www.invitro.ru", "www.smclinic.ru", "ivanovo.smclinic.ru", "www.dermatology.ru"}
+HOSTS = {
+    "www.invitro.ru",
+    "www.smclinic.ru",
+    "ivanovo.smclinic.ru",
+    "www.dermatology.ru",
+    "medvestnik.by",
+    "wbdent.ru",
+    "stom-dental.ru",
+    "www.k31.ru",
+    "clinic-complex.ru",
+    "www.krasotaimedicina.ru",
+}
 USER_AGENT = "MiniMedReferenceBot/1.0 (+https://github.com/T-Damer/MiniMed)"
 MAX_PAGE_BYTES = 2 * 1024 * 1024
 
@@ -87,11 +98,19 @@ def fetch_public(url: str) -> tuple[int, bytes, str]:
     for _ in range(4):
         parsed = urlsplit(url)
         if (
-            parsed.scheme != "https" or parsed.hostname not in HOSTS
-            or parsed.username or parsed.password or parsed.port or parsed.query or parsed.fragment
+            parsed.scheme != "https"
+            or parsed.hostname not in HOSTS
+            or parsed.username
+            or parsed.password
+            or parsed.port
+            or parsed.query
+            or parsed.fragment
         ):
             raise ValueError("URL is outside the inspected source allowlist")
-        connection = http.client.HTTPSConnection(parsed.hostname, timeout=20)
+        host = parsed.hostname
+        if host is None:
+            raise ValueError("Missing source host")
+        connection = http.client.HTTPSConnection(host, timeout=20)
         try:
             connection.request("GET", parsed.path or "/", headers={"User-Agent": USER_AGENT})
             response = connection.getresponse()
@@ -99,12 +118,16 @@ def fetch_public(url: str) -> tuple[int, bytes, str]:
             if len(raw) > MAX_PAGE_BYTES:
                 raise ValueError("Source response exceeds byte budget")
             if response.status in {301, 302, 303, 307, 308}:
-                destination = urljoin(url, response.getheader("Location", ""))
-                if urlsplit(destination).netloc != parsed.netloc or destination == url:
+                destination = urljoin(url, response.getheader("Location") or "")
+                if (
+                    urlsplit(destination).netloc != parsed.netloc
+                    or destination == url
+                    or urlsplit(destination).path.rstrip("/") != parsed.path.rstrip("/")
+                ):
                     raise ValueError("Source redirects outside its exact authority")
                 url = destination
                 continue
-            return response.status, raw, response.getheader("Content-Type", "")
+            return response.status, raw, response.getheader("Content-Type") or ""
         finally:
             connection.close()
     raise ValueError("Source redirect budget exceeded")
@@ -138,7 +161,8 @@ def collect(root: Path, authoring: Path) -> tuple[dict[str, object], dict[str, o
     raw_authoring = authoring.read_bytes()
     authored = obj(json.loads(raw_authoring))
     if (
-        authored.get("version") != 1 or authored.get("textKind") != "source-excerpt"
+        authored.get("version") != 1
+        or authored.get("textKind") != "source-excerpt"
         or authored.get("reviewStatus") != "requires-review"
         or authored.get("publicationState") != "local-dev"
     ):
@@ -230,36 +254,57 @@ def collect(root: Path, authoring: Path) -> tuple[dict[str, object], dict[str, o
         quoted_per_url[url] += len(excerpt.split())
         used_sources.add(source_id)
         block_id = len(blocks) + 1
-        blocks.append({
-            "id": block_id, "source": source_id, "text": excerpt,
-            "textSha256": digest(excerpt), "path": relative,
-            "locator": text(candidate["locator"], 512),
-            "sourceVerification": proof,
-            "definitionSelection": "explicit source-local gap fill; not clinician reviewed",
-        })
-        terms.append({
-            "id": target.id, "title": target.title, "kind": target.kind,
-            "aliases": [], "coverage": "definition", "blockIds": [block_id],
-        })
-        targets.append({
-            "id": target.id, "expectedTitle": target.title, "discoveryReceipt": target.receipt,
-        })
+        blocks.append(
+            {
+                "id": block_id,
+                "source": source_id,
+                "text": excerpt,
+                "textSha256": digest(excerpt),
+                "path": relative,
+                "locator": text(candidate["locator"], 512),
+                "sourceVerification": proof,
+                "definitionSelection": "explicit source-local gap fill; not clinician reviewed",
+            }
+        )
+        terms.append(
+            {
+                "id": target.id,
+                "title": target.title,
+                "kind": target.kind,
+                "aliases": [],
+                "coverage": "definition",
+                "blockIds": [block_id],
+            }
+        )
+        targets.append(
+            {
+                "id": target.id,
+                "expectedTitle": target.title,
+                "discoveryReceipt": target.receipt,
+            }
+        )
         outcome.update({"status": "accepted", "targetId": target.id, "block": block_id})
         defined.add(key)
     catalog = {
-        "version": 3, "id": "clinic-gap-completions-2026.09.23",
-        "publicationState": "local-dev", "reviewStatus": "requires-review",
-        "textKind": "source-excerpt", "sources": [sources[n] for n in sorted(used_sources)],
-        "blocks": blocks, "terms": terms,
+        "version": 3,
+        "id": "clinic-gap-completions-2026.09.23",
+        "publicationState": "local-dev",
+        "reviewStatus": "requires-review",
+        "textKind": "source-excerpt",
+        "sources": [sources[n] for n in sorted(used_sources)],
+        "blocks": blocks,
+        "terms": terms,
         "acquisition": {"authoringSha256": hashlib.sha256(raw_authoring).hexdigest()},
     }
     bundle = {"format": FORMAT, "catalog": catalog, "targets": targets}
     if targets:
         apply_name_completions(projection, bundle, digest(encoded(bundle)))
     report = {
-        "candidateCount": len(outcomes), "accepted": len(targets),
+        "candidateCount": len(outcomes),
+        "accepted": len(targets),
         "byStatus": dict(Counter(str(row["status"]) for row in outcomes)),
-        "outcomes": outcomes, "sourcesUsed": len(used_sources),
+        "outcomes": outcomes,
+        "sourcesUsed": len(used_sources),
         "authoringSha256": hashlib.sha256(raw_authoring).hexdigest(),
         "boundary": (
             "Literal short definitions verified against visible source text; clinical review and "
@@ -277,7 +322,11 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
-    if args.output.exists() or args.report.exists() or args.output.resolve() == args.report.resolve():
+    if (
+        args.output.exists()
+        or args.report.exists()
+        or args.output.resolve() == args.report.resolve()
+    ):
         parser.error("Use distinct new output and report paths")
     bundle, report = collect(args.root.resolve(), args.authoring)
     args.report.parent.mkdir(parents=True, exist_ok=True)

@@ -32,25 +32,49 @@ def completion() -> dict[str, object]:
     raw = f"<h1>Test source</h1><p>🔬 Начало. {BODY} Конец.</p>".encode()
     return {
         "format": FORMAT,
-        "targets": [{
-            "id": TARGET, "expectedTitle": "Тестовый термин", "discoveryReceipt": RECEIPT,
-        }],
+        "targets": [
+            {
+                "id": TARGET,
+                "expectedTitle": "Тестовый термин",
+                "discoveryReceipt": RECEIPT,
+            }
+        ],
         "catalog": {
-            "version": 3, "id": "synthetic.completion", "publicationState": "local-dev",
-            "reviewStatus": "requires-review", "textKind": "source-excerpt",
-            "sources": [{
-                "id": 1, "title": "Synthetic medical source", "baseUrl": "https://example.org/",
-                "sourceType": "fixture", "releaseEligible": False,
-            }],
-            "blocks": [{
-                "id": 1, "source": 1, "text": BODY, "textSha256": digest(BODY),
-                "path": "test", "locator": "Synthetic paragraph",
-                "sourceVerification": verify_excerpt(raw, BODY),
-            }],
-            "terms": [{
-                "id": TARGET, "title": "Тестовый термин", "kind": "term", "aliases": [],
-                "coverage": "definition", "blockIds": [1],
-            }],
+            "version": 3,
+            "id": "synthetic.completion",
+            "publicationState": "local-dev",
+            "reviewStatus": "requires-review",
+            "textKind": "source-excerpt",
+            "sources": [
+                {
+                    "id": 1,
+                    "title": "Synthetic medical source",
+                    "baseUrl": "https://example.org/",
+                    "sourceType": "fixture",
+                    "releaseEligible": False,
+                }
+            ],
+            "blocks": [
+                {
+                    "id": 1,
+                    "source": 1,
+                    "text": BODY,
+                    "textSha256": digest(BODY),
+                    "path": "test",
+                    "locator": "Synthetic paragraph",
+                    "sourceVerification": verify_excerpt(raw, BODY),
+                }
+            ],
+            "terms": [
+                {
+                    "id": TARGET,
+                    "title": "Тестовый термин",
+                    "kind": "term",
+                    "aliases": [],
+                    "coverage": "definition",
+                    "blockIds": [1],
+                }
+            ],
         },
     }
 
@@ -87,10 +111,15 @@ def test_updates_one_base_and_preserves_all_discovery_data(tmp_path: Path) -> No
         ).fetchone() == (0,)
 
 
-@pytest.mark.parametrize("field,value", [
-    ("discoveryReceipt", "d" * 64), ("expectedTitle", "Another meaning"),
-    ("id", "unknown.target"), ("discoveryReceipt", "invalid"),
-])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("discoveryReceipt", "d" * 64),
+        ("expectedTitle", "Another meaning"),
+        ("id", "unknown.target"),
+        ("discoveryReceipt", "invalid"),
+    ],
+)
 def test_stale_targets_fail_before_mutation(field: str, value: object) -> None:
     projection = base()
     before = copy.deepcopy(projection)
@@ -103,10 +132,16 @@ def test_stale_targets_fail_before_mutation(field: str, value: object) -> None:
     assert projection.sources == before.sources
 
 
-@pytest.mark.parametrize("field,value", [
-    ("start", True), ("end", 1), ("excerptSha256", "a" * 64),
-    ("responseSha256", "invalid"), ("method", "model-guessed"),
-])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("start", True),
+        ("end", 1),
+        ("excerptSha256", "a" * 64),
+        ("responseSha256", "invalid"),
+        ("method", "model-guessed"),
+    ],
+)
 def test_incorrect_source_receipts_are_rejected(field: str, value: object) -> None:
     projection = base()
     before = copy.deepcopy(projection)
@@ -157,18 +192,24 @@ def test_unrelated_blocks_are_not_imported() -> None:
 
 
 def test_whitespace_only_normalization_and_unicode_offsets() -> None:
-    raw = "<h1>Article</h1><p>🔬 Начало. Тестовый\n термин — описание\u00a0синтетического явления.</p>".encode()
+    raw = (
+        "<h1>Article</h1><p>🔬 Начало. "
+        "Тестовый\n термин — описание\u00a0синтетического явления.</p>"
+    ).encode()
     proof = verify_excerpt(raw, BODY)
     assert proof["start"] == len("🔬 Начало. ")
     assert proof["end"] == len("🔬 Начало. " + BODY)
     assert proof["excerptSha256"] == digest(BODY)
 
 
-@pytest.mark.parametrize("raw", [
-    f"<h1>Article</h1><script>{BODY}</script><p>Other.</p>",
-    f"<p>{BODY}</p>",
-    "<h1>Article</h1><p>No matching definition.</p>",
-])
+@pytest.mark.parametrize(
+    "raw",
+    [
+        f"<h1>Article</h1><script>{BODY}</script><p>Other.</p>",
+        f"<p>{BODY}</p>",
+        "<h1>Article</h1><p>No matching definition.</p>",
+    ],
+)
 def test_unavailable_visible_text_is_not_reconstructed(raw: str) -> None:
     with pytest.raises(ValueError):
         verify_excerpt(raw.encode(), BODY)
@@ -190,10 +231,16 @@ def test_manifest_rejects_changed_receipts_and_paths(tmp_path: Path) -> None:
     root.mkdir(parents=True)
     payload = encoded(completion())
     (root / "fills.json").write_text(payload, encoding="utf-8")
-    manifest = {"format": FORMAT, "inputs": [{
-        "path": "content/definition-drafts/fills.json", "bytes": len(payload.encode()),
-        "sha256": digest(payload),
-    }]}
+    manifest = {
+        "format": FORMAT,
+        "inputs": [
+            {
+                "path": "content/definition-drafts/fills.json",
+                "bytes": len(payload.encode()),
+                "sha256": digest(payload),
+            }
+        ],
+    }
     manifest_path = root / "completion-inputs.json"
     manifest_path.write_text(json.dumps(manifest))
     assert read_completion_manifest(tmp_path) == (root / "fills.json",)
@@ -207,7 +254,10 @@ def test_ordinary_compactor_keeps_total_and_definition_counts_separate(tmp_path:
     from test_definition_reference_pack import fixture
 
     source = tmp_path / "source.json"
-    source.write_text(encoded(fixture()), encoding="utf-8")
+    original = fixture()
+    for term in seq(original["terms"], 10):
+        obj(term)["title"] = "Другое исходное понятие"
+    source.write_text(encoded(original), encoding="utf-8")
     names = tmp_path / "names.json"
     raw_names = encoded(inventory())
     names.write_text(raw_names, encoding="utf-8")
@@ -216,9 +266,15 @@ def test_ordinary_compactor_keeps_total_and_definition_counts_separate(tmp_path:
     fills = tmp_path / "fills.json"
     fills.write_text(encoded(payload), encoding="utf-8")
     report = build_compact_definition_reference(
-        (source,), tmp_path / "dictionary.db", input_root=tmp_path,
-        edition_id="fixture.completed", version="1", built_at="2026-09-23",
-        definitions_only=True, discovery_inputs=(names,), completion_inputs=(fills,),
+        (source,),
+        tmp_path / "dictionary.db",
+        input_root=tmp_path,
+        edition_id="fixture.completed",
+        version="1",
+        built_at="2026-09-23",
+        definitions_only=True,
+        discovery_inputs=(names,),
+        completion_inputs=(fills,),
     )
     assert report["entries"] == 2
     assert report["discoveredNames"] == 1

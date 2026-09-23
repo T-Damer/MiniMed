@@ -9,6 +9,7 @@ import json
 import re
 from pathlib import Path
 
+from localmed_ingest.definition_name_completions import read_completion_manifest
 from localmed_ingest.definition_name_inventory import read_name_manifest
 from localmed_ingest.definition_reference_compact_pack import (
     build_compact_definition_reference,
@@ -74,6 +75,7 @@ def main() -> None:
         compact_metadata=False,
         definitions_only=args.scope == "definitions",
         discovery_inputs=read_name_manifest(root),
+        completion_inputs=read_completion_manifest(root),
         supplied_root=args.supplied_root,
         supplied_manifest=args.supplied_manifest,
     )
@@ -103,6 +105,13 @@ def main() -> None:
     expected_entries += supplied_counts["entries"]
     raw_names = report.get("discoveredNames", 0)
     discovered_names = 0 if raw_names == 0 else number(raw_names)
+    raw_completed = report.get("completedNames", 0)
+    completed_names = 0 if raw_completed == 0 else number(raw_completed)
+    if completed_names > discovered_names:
+        raise ValueError("Completion count exceeds discovered names")
+    if args.scope == "definitions":
+        definition_entries += completed_names
+    pending_names = discovered_names - completed_names
     expected_entries += discovered_names
     if (
         report["schemaVersion"] != 7
@@ -191,10 +200,10 @@ def main() -> None:
             "entries": expected_entries,
         },
     }
-    if discovered_names:
+    if pending_names:
         module["description"] = str(
             module["description"]
-        ) + f" Названий для дополнения: {discovered_names:,}.".replace(",", " ")
+        ) + f" Названий для дополнения: {pending_names:,}.".replace(",", " ")
     if supplied_counts["entries"]:
         module["description"] = str(module["description"]) + (
             f" Дополнительных справочных записей: {supplied_counts['otherReferences']};"

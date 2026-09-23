@@ -39,10 +39,7 @@ def apply_name_completions(projection: Projection, payload: object, receipt: str
     """Validate the whole transaction before modifying the shared projection."""
     _sha(receipt)
     root = obj(payload)
-    if (
-        set(root) != {"format", "catalog", "targets"}
-        or root["format"] != FORMAT
-    ):
+    if set(root) != {"format", "catalog", "targets"} or root["format"] != FORMAT:
         raise ValueError("Unsupported name completion contract")
     catalog = obj(root["catalog"])
     if catalog.get("version") != 3:

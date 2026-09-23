@@ -557,6 +557,7 @@ def build_definition_reference(
     built_at: str,
     definitions_only: bool = False,
     discovery_inputs: tuple[Path, ...] = (),
+    completion_inputs: tuple[Path, ...] = (),
     supplied_root: Path | None = None,
     supplied_manifest: Path | None = None,
 ) -> dict[str, object]:
@@ -612,7 +613,24 @@ def build_definition_reference(
             supplied_entries += snapshot.entries
             supplied_definitions += snapshot.definitions
             supplied_abbreviations += snapshot.abbreviations
+    from .definition_name_completions import apply_name_completions
+
+    if len(completion_inputs) > 16:
+        raise ValueError("Too many name completion inputs")
+    completed = 0
+    for path in completion_inputs:
+        actual = contained(input_root, path)
+        if actual.stat().st_size > MAX_INPUT_BYTES:
+            raise ValueError("Completion input exceeds budget")
+        payload = actual.read_bytes()
+        receipt = hashlib.sha256(payload).hexdigest()
+        if receipt in seen:
+            raise ValueError("Duplicate completion input snapshot")
+        seen.add(receipt)
+        completed += apply_name_completions(projection, json.loads(payload), receipt)
+        projection.receipts.append({"sha256": receipt, "bytes": len(payload)})
     report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)
+    report["completedNames"] = completed
     report["suppliedSources"] = {
         "entries": supplied_entries,
         "definitions": supplied_definitions,

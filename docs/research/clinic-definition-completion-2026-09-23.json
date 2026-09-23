@@ -1,0 +1,51 @@
+{
+  "checkedCommit": "f05cca6cca5a2191980abc45af76bcbdfe61749d",
+  "runId": "35847400492",
+  "acquisition": {
+    "candidateCount": 6,
+    "accepted": 5,
+    "byStatus": {
+      "accepted": 5,
+      "source-pending": 1
+    },
+    "sourcesUsed": 5,
+    "authoringSha256": "f3fce30860dc002cea31530c01c7a54879a4cce5b7ca60250a2a452e4228ce3d",
+    "boundary": "Literal short definitions verified against visible source text; clinical review and public redistribution are not granted. Existing definitions and ambiguous names are not overwritten. No full articles, scales, treatments or Wikipedia prose imported."
+  },
+  "completedNames": 5,
+  "definitionsBefore": 8410,
+  "definitionsAfter": 8415,
+  "searchableRecords": 16047,
+  "pendingDiscoveredNames": 7632,
+  "existingBlocksCompared": 34322,
+  "existingIdentitiesAndAliasesUnchanged": true,
+  "installedBytes": 128507904,
+  "downloadBytes": 26888604,
+  "tests": {
+    "tests": 79,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "sourceSpansAndDiscoveryLinksPreserved": true,
+  "boundary": "Explicit missing-name completion only. Clinical review, consensus classifications, independently validated reverse search and device behavior remain unqualified.",
+  "actualReader": {
+    "readable": 5,
+    "top1": 5,
+    "top20": 5,
+    "missingIds": [],
+    "descriptions": [
+      {
+        "id": "ruwiki.definition.194815",
+        "query": "потерял голос и говорит только шёпотом",
+        "rank": null
+      },
+      {
+        "id": "ruwiki.definition.7885823",
+        "query": "постоянно пересыхает во рту",
+        "rank": null
+      }
+    ],
+    "boundary": "Authored descriptive probes, not an independent clinical validation set. Failures retained; aliases and ranking not tuned to these queries."
+  }
+}
