@@ -1,0 +1,195 @@
+name: Combined definition content verification
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/combined-definition-content-check.yml]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Verify the integrated source contracts
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q \
+            tools/ingest/tests/test_selected_definition_excerpts.py \
+            tools/ingest/tests/test_definition_reference_pack.py \
+            tools/ingest/tests/test_definition_reference_scope.py \
+            tools/ingest/tests/test_definition_name_inventory.py \
+            tools/ingest/tests/test_definition_name_completions.py \
+            --junitxml=data/build/combined-definition-content-tests.xml
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import runpy,sys
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}: raise RuntimeError('Content build is offline')
+          sys.addaudithook(guard)
+          sys.argv=['scripts/prepare-definition-reference.py','--version','2026.09.23-combined-definitions-1','--built-at','2026-09-23']
+          runpy.run_path(sys.argv[0],run_name='__main__')
+          PY
+      - name: Reconstruct the complete expected projection and verify the ordinary database
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import hashlib,json,sqlite3,sys,xml.etree.ElementTree as ET
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import Projection
+          from localmed_ingest.definition_reference_scope import definition_scope
+          from localmed_ingest.definition_source_manifest import read_source_manifest
+          from localmed_ingest.definition_name_inventory import read_name_manifest,add_name_inventory
+          from localmed_ingest.definition_name_completions import read_completion_manifest,apply_name_completions
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}: raise RuntimeError('Projection audit is offline')
+          sys.addaudithook(guard)
+          root=Path.cwd();manifest=root/'content/definition-drafts/source-inputs.json'
+          p=Projection();receipts=[]
+          def load(path):
+              raw=path.read_bytes();sha=hashlib.sha256(raw).hexdigest()
+              receipts.append({'path':path.relative_to(root).as_posix(),'sha256':sha})
+              return json.loads(raw),sha
+          inputs,authoring_count=read_source_manifest(root,manifest)
+          for path in inputs: p.add(*load(path))
+          selected,_=definition_scope(p.entries)
+          p.entries={key:value for key,value in p.entries.items() if key in selected}
+          discovered=0
+          for path in read_name_manifest(root): discovered+=add_name_inventory(p,*load(path))
+          completed=0;completion_ids=[]
+          for path in read_completion_manifest(root):
+              data,sha=load(path);completed+=apply_name_completions(p,data,sha)
+              completion_ids.extend(row['id'] for row in data['targets'])
+          expected_definitions=sum(entry.coverage in {'definition','explicit-definition'} for entry in p.entries.values())
+          pending=sum(entry.coverage=='needs-definition' for entry in p.entries.values())
+          assert expected_definitions+pending==len(p.entries)
+          dbpath=root/'apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-combined-definitions-1.db'
+          build=json.loads(Path(str(dbpath)+'.report.json').read_bytes())
+          assert build['entries']==len(p.entries) and build['completedNames']==completed and build['discoveredNames']==discovered
+          assert build['logicalRoundTripEqual'] is True
+          selected_data=json.loads((root/'content/definition-drafts/selected-medical-definitions-2026.09.23.json').read_bytes())
+          new_ids=[row['id'] for row in selected_data['terms']]
+          assert not set(new_ids)&set(completion_ids)
+          links_compared=0
+          with sqlite3.connect(f'{dbpath.as_uri()}?mode=ro',uri=True) as db:
+              assert db.execute('PRAGMA integrity_check').fetchone()==('ok',)
+              assert not db.execute('PRAGMA foreign_key_check').fetchall()
+              assert {row[0] for row in db.execute('SELECT id FROM knowledge_entities')}==set(p.entries)
+              for identifier,(_,chunk) in p.chunks.items():
+                  row=db.execute('SELECT original_text,metadata_json FROM chunks WHERE id=?',(identifier,)).fetchone()
+                  assert row and row[0]==chunk.original_text and json.loads(row[1])==chunk.metadata
+              for identifier,entry in p.entries.items():
+                  row=db.execute('SELECT canonical_name,metadata_json FROM knowledge_entities WHERE id=?',(identifier,)).fetchone()
+                  assert row and row[0]==entry.title and json.loads(row[1])['coverage']==entry.coverage
+                  links=db.execute('SELECT substr(link_type,11),chunk_id FROM definition_reference_links WHERE entity_id=? ORDER BY id',(identifier,)).fetchall()
+                  assert links==entry.links
+                  links_compared+=len(links)
+              for table in ('knowledge_facts','knowledge_relations'):
+                  assert db.execute(f'SELECT count(*) FROM {table}').fetchone()==(0,)
+          testsuites=ET.parse('data/build/combined-definition-content-tests.xml').getroot()
+          tests={key:sum(int(s.get(key,'0')) for s in testsuites.findall('testsuite')) for key in ('tests','failures','errors','skipped')}
+          assert tests['failures']==tests['errors']==0
+          cases=[]
+          for identifier in new_ids+completion_ids:
+              entry=p.entries[identifier]
+              cases.append({'id':identifier,'title':entry.title,
+                'blocks':[{'role':role,'id':chunk,'text':p.chunks[chunk][1].original_text} for role,chunk in entry.links]})
+          Path('data/build/combined-definition-reader-cases.json').write_text(json.dumps(cases,ensure_ascii=False))
+          report={'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':tests,
+            'sourceReceipts':receipts,'authoringRecords':authoring_count,'ordinaryDefinitionRecords':len(selected),
+            'preservedDiscoveryNames':discovered,'completedNameRecords':completed,'pendingNameRecords':pending,
+            'definitionRecords':expected_definitions,'searchableRecords':len(p.entries),'newSelectedDefinitions':len(new_ids),
+            'allBlocksCompared':len(p.chunks),'allLinksCompared':links_compared,'identitySetExact':True,
+            'logicalRoundTripEqual':True,'installedBytes':dbpath.stat().st_size,'downloadBytes':Path(str(dbpath)+'.gz').stat().st_size,
+            'sqliteSha256':hashlib.sha256(dbpath.read_bytes()).hexdigest(),
+            'boundary':'Combined content integration and exact source projection; not medical review, independent reverse-search quality, Android or model validation.'}
+          Path('docs/research/combined-definition-content-2026-09-23.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Read both kinds of new definition through the actual app reader
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          cat > tools/benchmarks/.combined-definition-reader.ts <<'TS'
+          import { Database } from 'bun:sqlite';
+          import { readFileSync,writeFileSync } from 'node:fs';
+          import { createSqliteDefinitionReference } from '../../packages/storage-sqlite/src/definition-reference-reader';
+          const db=new Database('apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-combined-definitions-1.db',{readonly:true});
+          const reader=await createSqliteDefinitionReference({read:async(sql,args)=>db.query(sql).all(...args) as Record<string,unknown>[]});
+          const cases=JSON.parse(readFileSync('data/build/combined-definition-reader-cases.json','utf8'));
+          const outcomes=[];
+          for(const item of cases){
+            const card=await reader.getCard(item.id);
+            if(!card||card.title!==item.title||card.coverage!=='definition')throw new Error('Missing combined definition');
+            const page=await reader.listBlocks(item.id);
+            if(page.next!==null||page.blocks.length!==item.blocks.length)throw new Error('Combined block set differs');
+            for(let i=0;i<page.blocks.length;i++){
+              const block=page.blocks[i],expected=item.blocks[i];
+              if(!block||block.role!==expected.role||block.chunkId!==expected.id)throw new Error('Source/discovery role changed');
+              const text=await reader.readBlock(item.id,block.chunkId);
+              if(!text||text.text!==expected.text||text.nextOffset!==null||!await reader.getSource(text.sourceId))throw new Error('Source text/locator unavailable');
+            }
+            const hits=await reader.search(item.title,20);
+            outcomes.push({id:item.id,title:item.title,rank:hits.findIndex(hit=>hit.id===item.id)+1||null});
+          }
+          db.close();
+          const path='docs/research/combined-definition-content-2026-09-23.json';
+          const report=JSON.parse(readFileSync(path,'utf8'));
+          report.actualReader={readable:outcomes.length,namedTop1:outcomes.filter(row=>row.rank===1).length,namedTop20:outcomes.filter(row=>row.rank!==null).length,outcomes};
+          writeFileSync(path,JSON.stringify(report,null,2)+'\n');
+          TS
+          env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/.combined-definition-reader.ts
+      - name: Reconcile current documentation and remove this one-time check
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('docs/research/combined-definition-content-2026-09-23.json').read_text())
+          marker='## Combined medical definitions and name completions — 2026-09-23'
+          note=f'''{marker}
+
+          This combined measurement supersedes the separate selected-excerpt and clinic-completion
+          totals below. Ordinary preparer: **{r['definitionRecords']} definition records** and
+          **{r['pendingNameRecords']} still-empty discovered names**, **{r['searchableRecords']} searchable records**.
+          All {r['preservedDiscoveryNames']} discovery identities are preserved; {r['completedNameRecords']}
+          now contain sourced definitions. The separate medical-reference batch added
+          {r['newSelectedDefinitions']} new source-definition records, without overwriting those completions.
+          No canonical same-as/base relationships or executable medical rules were inferred.
+          Passed {r['tests']['tests']} scoped Python tests. Compared all {r['allBlocksCompared']} blocks,
+          {r['allLinksCompared']} links and the exact identity/coverage set in ordinary SQLite.
+          Actual reader: {r['actualReader']['readable']} new/completed definitions readable with
+          intact source/discovery links; {r['actualReader']['namedTop1']} Top-1 title results.
+          Files: {r['installedBytes']} SQLite bytes / {r['downloadBytes']} gzip bytes.
+          Medical review, full concept reconciliation and independent reverse-search remain open.
+          Evidence: `research/combined-definition-content-2026-09-23.json`.
+          DEV version: `2026.09.23-combined-definitions-1`. No model, APK, release or merge.
+
+          '''
+          note='\n'.join(line[10:] if line.startswith('          ') else line for line in note.splitlines())
+          for path in ('docs/CURRENT_STATE.md','docs/DEFINITION_REFERENCE_PLAN.md'):
+              p=Path(path);s=p.read_text();assert marker not in s
+              heading,body=s.split('\n',1);p.write_text(heading+'\n\n'+note+body)
+          PY
+          git rm .github/workflows/combined-definition-content-check.yml
+      - name: Save measured integration without overwriting parallel edits
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add docs/research/combined-definition-content-2026-09-23.json docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test(content): qualify combined sourced definitions and preserved identities [skip ci]'
+          own=$(git rev-parse HEAD)
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
+          remote=$(git rev-parse FETCH_HEAD)
+          if [ "$remote" != '${{ github.sha }}' ]; then git switch --detach "$remote"; git cherry-pick "$own"; fi
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
