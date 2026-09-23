@@ -1,6 +1,5 @@
 name: Supplied-source local verification checkout
 on:
-  workflow_dispatch:
   push:
     branches: [experiment/system-one-search-benchmark]
     paths: [.github/workflows/source-intake-checkout.yml]
@@ -14,17 +13,38 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Archive tracked source for verification without private uploads
+      - name: Archive code and selected public inputs without crawled archives
         run: |
-          mkdir -p /tmp/minimed-intake-source
-          git archive --format=tar HEAD tools/ingest packages/contracts packages/storage-sqlite scripts content/definition-drafts docs/TECHNICAL_PLAN.md docs/REFERENCE_SOURCE_POLICY.md docs/DEFINITION_REFERENCE_PLAN.md docs/CURRENT_STATE.md AGENTS.md | gzip -n -1 > /tmp/minimed-intake-source/source.tar.gz
-          test "$(stat -c %s /tmp/minimed-intake-source/source.tar.gz)" -lt 40000000
-          git rev-parse HEAD > /tmp/minimed-intake-source/commit.txt
-          sha256sum /tmp/minimed-intake-source/source.tar.gz > /tmp/minimed-intake-source/SHA256SUMS
+          python3 - <<'PY'
+          import hashlib,json,subprocess,tarfile
+          from pathlib import Path
+          files=set()
+          tracked=subprocess.check_output(['git','ls-files','-z','tools/ingest','packages/contracts','packages/storage-sqlite','scripts']).decode().split('\0')
+          for name in tracked:
+              p=Path(name)
+              if name and p.is_file() and not p.is_symlink() and p.suffix in {'.py','.ts','.sql','.toml','.json','.md','.lock'} and p.stat().st_size<1000000:
+                  files.add(name)
+          manifests=['content/definition-drafts/source-inputs.json','content/definition-drafts/name-inputs.json']
+          for name in manifests:
+              files.add(name);m=json.loads(Path(name).read_text())
+              for item in m.get('inputs',[m]): files.add(item['path'])
+          files.update(['docs/TECHNICAL_PLAN.md','docs/REFERENCE_SOURCE_POLICY.md','docs/DEFINITION_REFERENCE_PLAN.md','docs/CURRENT_STATE.md','AGENTS.md'])
+          out=Path('/tmp/minimed-intake-source');out.mkdir()
+          with tarfile.open(out/'source.tar.gz','w:gz',compresslevel=6) as tar:
+              for name in sorted(files):
+                  p=Path(name)
+                  assert p.is_file() and not p.is_symlink()
+                  tar.add(p,arcname=name,recursive=False)
+          size=(out/'source.tar.gz').stat().st_size
+          print('Source files:',len(files),'compressed bytes:',size)
+          assert size<40000000
+          (out/'commit.txt').write_bytes(subprocess.check_output(['git','rev-parse','HEAD']))
+          (out/'SHA256SUMS').write_text(hashlib.sha256((out/'source.tar.gz').read_bytes()).hexdigest()+'  source.tar.gz\n')
+          PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: source-intake-checkout
           path: /tmp/minimed-intake-source/
           retention-days: 1
           compression-level: 0
-      - run: echo 'Temporary source-code/public-input transfer only. No supplied PDFs, user text, model weights, APK or built database. Delete after materialization.' >> "$GITHUB_STEP_SUMMARY"
+      - run: echo 'Temporary public source transfer only. No supplied source text, model or built database. Delete after materialization.' >> "$GITHUB_STEP_SUMMARY"
