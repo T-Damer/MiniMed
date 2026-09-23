@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Archive only tracked preparer code and public authoring inputs
+      - name: Archive tracked source for verification without private uploads
         run: |
           mkdir -p /tmp/minimed-intake-source
           git archive --format=tar HEAD tools/ingest packages/contracts packages/storage-sqlite scripts content/definition-drafts docs/TECHNICAL_PLAN.md docs/REFERENCE_SOURCE_POLICY.md docs/DEFINITION_REFERENCE_PLAN.md docs/CURRENT_STATE.md AGENTS.md | gzip -n -1 > /tmp/minimed-intake-source/source.tar.gz
