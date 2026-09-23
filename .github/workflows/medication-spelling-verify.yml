@@ -1,0 +1,100 @@
+name: Verify medication spelling lookup
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths:
+      - .github/workflows/medication-spelling-verify.yml
+      - packages/search-lexical/src/medication-*.ts
+      - packages/core/src/create-medical-core.ts
+      - tools/benchmarks/medication-spelling-audit.mjs
+permissions:
+  contents: write
+concurrency:
+  group: minimed-medication-spelling-verification
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 06b3c68de2725f124d15140daf317dc5400d199b
+          path: baseline-source
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Install locked dependencies without execution credentials
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile --ignore-scripts
+          (cd baseline-source && env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile --ignore-scripts)
+      - name: Verify committed source without runtime patches
+        run: |
+          mkdir -p data/build
+          env -i PATH="$PATH" HOME="$HOME" bun scripts/restore-core.mjs
+          env -i PATH="$PATH" HOME="$HOME" node node_modules/vitest/vitest.mjs run packages/search-lexical packages/core packages/storage-sqlite --reporter=default --reporter=json --outputFile=data/build/medication-spelling-tests.json
+          for package in search-lexical core storage-sqlite; do
+            env -i PATH="$PATH" HOME="$HOME" node node_modules/typescript/bin/tsc -p "packages/$package/tsconfig.json"
+          done
+          env -i PATH="$PATH" HOME="$HOME" node node_modules/typescript/bin/tsc -p apps/app/tsconfig.json
+          env -i PATH="$PATH" HOME="$HOME" bun x biome check packages/search-lexical/src/medication-spelling.ts packages/search-lexical/src/medication-lookup.ts packages/search-lexical/src/medication-spelling.test.ts packages/search-lexical/src/index.ts packages/core/src/create-medical-core.ts tools/benchmarks/medication-spelling-audit.mjs
+      - name: Compare real medication corpus using isolated baseline and current core
+        env:
+          CHECKED_SHA: ${{ github.sha }}
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/medication-spelling-audit.mjs "$PWD/apps/app/public/content/core.db" baseline-source/packages/core/src/create-medical-core.ts packages/core/src/create-medical-core.ts data/build/medication-spelling-results.json "$CHECKED_SHA"
+          git diff --exit-code -- packages tools scripts .github content
+      - name: Save inspectable machine receipt and current-state note
+        env:
+          CHECKED_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" CHECKED_SHA="$CHECKED_SHA" RUN_ID="$RUN_ID" python3 - <<'PY'
+          import json,os,sqlite3
+          from pathlib import Path
+          report=json.loads(Path('data/build/medication-spelling-results.json').read_text())
+          tests=json.loads(Path('data/build/medication-spelling-tests.json').read_text())
+          assert tests['numFailedTests']==tests['numFailedTestSuites']==0
+          assert report['checkedCommit']==os.environ['CHECKED_SHA']
+          assert report['sameDatabaseForBoth'] and not report['exactChanges']
+          dbpath=Path('apps/app/public/content/core.db').resolve()
+          with sqlite3.connect(f'{dbpath.as_uri()}?mode=ro',uri=True) as db:
+              assert db.execute('PRAGMA integrity_check').fetchone()==('ok',)
+              assert not db.execute('PRAGMA foreign_key_check').fetchall()
+          report.update({'runId':os.environ['RUN_ID'],'javascriptTests':tests['numPassedTests'],'typechecks':['search-lexical','core','storage-sqlite','app'],'sqliteIntegrity':'ok','foreignKeyErrors':0,'newModelDependencies':False,'newDatabaseSchema':False})
+          output=Path('docs/research/medication-spelling-2026-09-23.json')
+          output.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          before=sum(row['before']['top1'] for row in report['byFamily'].values())
+          after=sum(row['after']['top1'] for row in report['byFamily'].values())
+          total=sum(row['after']['total'] for row in report['byFamily'].values())
+          state=Path('docs/CURRENT_STATE.md')
+          heading='## Medication spelling lookup — 2026-09-23'
+          text=state.read_text(encoding='utf-8')
+          if heading not in text:
+              section=f"{heading}\n\nMain ordinary lookup now adds bounded, labelled medication spelling candidates from the installed alias vocabulary: adjacent swaps, missing/extra letters and weighted Russian letter confusions. Exact known names remain unchanged; no dosage correction, medication substitution, clinical parser expansion or model dependency. Full corpus developer Top-1: {before} → {after}/{total}; {report['exactChecked']} exact-name result arrays unchanged. Passed {tests['numPassedTests']} scoped JS tests, package/app typechecks, changed-file Biome, source-context and SQLite checks. These are mechanical and authored tests, not independent clinician error logs or device latency qualification. Corpus, timing and remaining boundaries: `research/medication-spelling-2026-09-23.json`. No content acquisition, APK, merge or release in this pass.\n\n"
+              state.write_text(text.replace('# Current state\n\n','# Current state\n\n'+section,1),encoding='utf-8')
+          print(json.dumps({key:value for key,value in report.items() if key not in {'cases','controls'}},ensure_ascii=False,indent=2))
+          PY
+      - name: Commit only verification evidence to the existing branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/experiment/system-one-search-benchmark
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/research/medication-spelling-2026-09-23.json docs/CURRENT_STATE.md
+          git commit -m 'test(search): record same-corpus medication spelling verification'
+          git -c credential.helper='!f() { echo username=x-access-token; echo "password=$GH_TOKEN"; }; f' push origin HEAD:experiment/system-one-search-benchmark
+      - name: No artifact or cache uploads
+        if: always()
+        run: |
+          echo 'Medication lookup verification only: no model, source-data changes, database uploads, Actions artifacts, cache uploads, APK, merge or release.' >> "$GITHUB_STEP_SUMMARY"
