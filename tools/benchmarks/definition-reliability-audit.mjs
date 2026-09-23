@@ -24,7 +24,9 @@ if (mode === 'sample') {
       return rows;
     },
   });
-  const fixtures = readFileSync('tools/benchmarks/fixtures/definition-descriptions-2026-09-23.json');
+  const fixtures = readFileSync(
+    'tools/benchmarks/fixtures/definition-descriptions-2026-09-23.json',
+  );
   const dataset = JSON.parse(fixtures);
   const additions = [
     ['original-voice', 'потерял голос и говорит только шёпотом', 'ruwiki.definition.194815'],
@@ -42,61 +44,106 @@ if (mode === 'sample') {
     const elapsedMs = performance.now() - start;
     const index = hits.findIndex((hit) => hit.id === item.expected);
     if (hits.length > 20) throw new Error('Result budget exceeded');
-    cases.push({ ...item, rank: index < 0 ? null : index + 1, elapsedMs, rowsRead, bytesRead,
-      top: hits.slice(0, 5).map(({ id, title }) => ({ id, title })) });
+    cases.push({
+      ...item,
+      rank: index < 0 ? null : index + 1,
+      elapsedMs,
+      rowsRead,
+      bytesRead,
+      top: hits.slice(0, 5).map(({ id, title }) => ({ id, title })),
+    });
   }
   const controls = [];
   for (const query of [...dataset.negativeControls, 'как называется?', 'не помню название']) {
     controls.push({ query, ids: (await reader.search(query)).map((hit) => hit.id) });
   }
   const exact = {};
-  const names = db.query('SELECT DISTINCT normalized_name FROM knowledge_names ORDER BY normalized_name').all();
+  const names = db
+    .query('SELECT DISTINCT normalized_name FROM knowledge_names ORDER BY normalized_name')
+    .all();
   for (const { normalized_name: name } of names) {
     exact[name] = await reader.search(name, 20);
   }
-  write(output, { commit, databaseSha256: digest(readFileSync(dbPath)), fixtureSha256: digest(fixtures),
-    cases, controls, exact, integrity: db.query('PRAGMA integrity_check').all(),
-    foreignKeys: db.query('PRAGMA foreign_key_check').all() });
+  write(output, {
+    commit,
+    databaseSha256: digest(readFileSync(dbPath)),
+    fixtureSha256: digest(fixtures),
+    cases,
+    controls,
+    exact,
+    integrity: db.query('PRAGMA integrity_check').all(),
+    foreignKeys: db.query('PRAGMA foreign_key_check').all(),
+  });
   db.close();
 } else if (mode === 'compare') {
   const [beforePath, afterPath, output] = args;
   if (!beforePath || !afterPath || !output) throw new Error('compare BEFORE AFTER OUTPUT');
   const before = JSON.parse(readFileSync(beforePath, 'utf8'));
   const after = JSON.parse(readFileSync(afterPath, 'utf8'));
-  if (before.databaseSha256 !== after.databaseSha256 || before.fixtureSha256 !== after.fixtureSha256) {
+  if (
+    before.databaseSha256 !== after.databaseSha256 ||
+    before.fixtureSha256 !== after.fixtureSha256
+  ) {
     throw new Error('Comparison must use the identical database and frozen source fixture');
   }
   const names = Object.keys(before.exact);
-  const exactChanges = names.filter((name) => JSON.stringify(before.exact[name]) !== JSON.stringify(after.exact[name]));
+  const exactChanges = names.filter(
+    (name) => JSON.stringify(before.exact[name]) !== JSON.stringify(after.exact[name]),
+  );
   if (names.length !== Object.keys(after.exact).length) throw new Error('Name sets differ');
   const summarize = (sample, additional) => {
-    const rows = sample.cases.filter((row) => (row.family === 'additional-regression') === additional);
+    const rows = sample.cases.filter(
+      (row) => (row.family === 'additional-regression') === additional,
+    );
     const times = rows.map((row) => row.elapsedMs).sort((a, b) => a - b);
-    return { total: rows.length, top1: rows.filter((row) => row.rank === 1).length,
+    return {
+      total: rows.length,
+      top1: rows.filter((row) => row.rank === 1).length,
       top5: rows.filter((row) => row.rank !== null && row.rank <= 5).length,
       top20: rows.filter((row) => row.rank !== null).length,
       p50Ms: times[Math.floor(times.length * 0.5)] ?? null,
       p95Ms: times[Math.min(times.length - 1, Math.floor(times.length * 0.95))] ?? null,
-      maximumReturnedBytes: Math.max(0, ...rows.map((row) => row.bytesRead)) };
+      maximumReturnedBytes: Math.max(0, ...rows.map((row) => row.bytesRead)),
+    };
   };
   const beforeById = new Map(before.cases.map((row) => [row.id, row]));
   const cases = after.cases.map((row) => {
     const old = beforeById.get(row.id);
-    if (!old || old.query !== row.query || old.expected !== row.expected) throw new Error('Case identity changed');
-    return { id: row.id, query: row.query, expected: row.expected, family: row.family,
-      beforeRank: old.rank, afterRank: row.rank, top: row.top };
+    if (!old || old.query !== row.query || old.expected !== row.expected)
+      throw new Error('Case identity changed');
+    return {
+      id: row.id,
+      query: row.query,
+      expected: row.expected,
+      family: row.family,
+      beforeRank: old.rank,
+      afterRank: row.rank,
+      top: row.top,
+    };
   });
-  const regressions = cases.filter((row) => row.beforeRank !== null && (row.afterRank === null || row.afterRank > row.beforeRank));
-  const report = { baselineCommit: before.commit, checkedCommit: after.commit,
-    databaseSha256: after.databaseSha256, fixtureSha256: after.fixtureSha256, sameDatabaseForBoth: true,
+  const regressions = cases.filter(
+    (row) => row.beforeRank !== null && (row.afterRank === null || row.afterRank > row.beforeRank),
+  );
+  const report = {
+    baselineCommit: before.commit,
+    checkedCommit: after.commit,
+    databaseSha256: after.databaseSha256,
+    fixtureSha256: after.fixtureSha256,
+    sameDatabaseForBoth: true,
     sourceDerived: { before: summarize(before, false), after: summarize(after, false) },
     additionalRegressions: { before: summarize(before, true), after: summarize(after, true) },
-    exactChecked: names.length, exactChanges, regressions, cases,
+    exactChecked: names.length,
+    exactChanges,
+    regressions,
+    cases,
     controls: { before: before.controls, after: after.controls },
-    limitations: 'Authored regression cases, not a blinded clinical evaluation. One host run, not device latency. Exact-name and scoped evidence tests do not prove semantic understanding or diagnostic validity.' };
+    limitations:
+      'Authored regression cases, not a blinded clinical evaluation. One host run, not device latency. Exact-name and scoped evidence tests do not prove semantic understanding or diagnostic validity.',
+  };
   write(output, report);
   console.log(JSON.stringify(report, null, 2));
-  if (exactChanges.length || regressions.length) throw new Error('Search regression gate failed; inspect report');
+  if (exactChanges.length || regressions.length)
+    throw new Error('Search regression gate failed; inspect report');
 } else {
   throw new Error('Use sample or compare');
 }
