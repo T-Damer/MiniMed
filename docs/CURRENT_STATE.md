@@ -1,5 +1,9 @@
 # Current state
 
+## Medication spelling lookup — 2026-09-23
+
+Main ordinary lookup now adds bounded, labelled medication spelling candidates from the installed alias vocabulary: adjacent swaps, missing/extra letters and weighted Russian letter confusions. Exact known names remain unchanged; no dosage correction, medication substitution, clinical parser expansion or model dependency. Full corpus developer Top-1: 117 → 162/162; 113 exact-name result arrays unchanged. Passed 669 scoped JS tests, package/app typechecks, changed-file Biome, source-context and SQLite checks. These are mechanical and authored tests, not independent clinician error logs or device latency qualification. Corpus, timing and remaining boundaries: `research/medication-spelling-2026-09-23.json`. No content acquisition, APK, merge or release in this pass.
+
 ## Reverse definition handler — 2026-09-23
 
 Added 4 selected MSD definitions and a bounded description-to-term path. Exact identity lookup remains first. Same-corpus developer Top-20: 10 → 30 / 32. All 12644 exact-name outputs are unchanged. This is not independent clinical search qualification. Full bounds, source limits and remaining misses: `research/definition-description-delivery-2026-09-23.md` and its JSON. No model, APK or release.
