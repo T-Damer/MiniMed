@@ -1,4 +1,9 @@
-import { planDefinitionDescription, rankDefinitionDescriptions } from '@localmed/search-lexical';
+import {
+  definitionQuestionSubject,
+  isDefinitionNavigationOnly,
+  planDefinitionDescription,
+  rankDefinitionDescriptions,
+} from '@localmed/search-lexical';
 import type {
   DefinitionReferenceBlock,
   DefinitionReferenceHit,
@@ -126,15 +131,27 @@ export async function createSqliteDefinitionReference(
       const limit = Math.min(Math.floor(requested), 20);
       const normalized = normalizeDefinitionReferenceName(query);
       if (!normalized || normalized.length > MAX_QUERY_CHARACTERS) return [];
-      const exact = await sql.read(
-        `SELECT ${HEADER}, MIN(CASE WHEN n.name_type = 'primary' THEN 0 ELSE 1 END) AS tier
+      const exactNames = (name: string) =>
+        sql.read(
+          `SELECT ${HEADER}, MIN(CASE WHEN n.name_type = 'primary' THEN 0 ELSE 1 END) AS tier
         FROM knowledge_names n JOIN knowledge_entities e ON e.id = n.entity_id
         WHERE n.normalized_name = ? AND ${SCOPE}
         GROUP BY e.id ORDER BY tier, CASE WHEN json_extract(e.metadata_json, '$.coverage') = 'needs-definition' THEN 1 ELSE 0 END, e.id LIMIT ?`,
-        [normalized, ...scope, limit],
-      );
+          [name, ...scope, limit],
+        );
+      const exact = await exactNames(normalized);
       // Abbreviations/stop words are never discarded before the identity lookup.
       if (exact.length) return exact.map((row) => hit(row, 'name'));
+      const subject = definitionQuestionSubject(query);
+      if (subject) {
+        const subjectName = normalizeDefinitionReferenceName(subject);
+        if (subjectName !== normalized) {
+          const framed = await exactNames(subjectName);
+          if (framed.length) return framed.map((row) => hit(row, 'name'));
+        }
+      }
+      // Unknown framed subjects retain the original query; only proved full names bypass retrieval.
+      if (isDefinitionNavigationOnly(query)) return [];
       const description = planDefinitionDescription(query);
       const tokens = [...new Set(normalized.match(/[\p{L}\p{N}]+/gu) ?? [])];
       if (!tokens.length || tokens.length > 24) return [];
@@ -172,43 +189,33 @@ export async function createSqliteDefinitionReference(
           for (const row of candidates)
             evidence.set(`${string(row['id'], 256)}:${string(row['chunk_id'], 256)}`, row);
         }
-        const grouped = new Map<string, { row: Row; text: string; retrievalRank: number }>();
-        for (const row of evidence.values()) {
+        const headers = new Map<string, Row>();
+        const candidates = [...evidence.values()].map((row, retrievalRank) => {
           const id = string(row['id'], 256);
-          const text = string(row['evidence'], 8192);
-          const previous = grouped.get(id);
-          grouped.set(id, {
-            row,
-            text: [...(previous ? `${previous.text}; ${text}` : text)].slice(0, 4096).join(''),
-            retrievalRank: previous?.retrievalRank ?? grouped.size,
-          });
-        }
-        const ranked = rankDefinitionDescriptions(
-          description,
-          [...grouped].map(([id, value]) => ({
-            id,
-            text: value.text,
-            retrievalRank: value.retrievalRank,
-          })),
-        );
-        const descriptions = ranked.map((item) => {
-          const value = grouped.get(item.id);
-          if (!value) throw new Error('Unresolved reverse definition identity.');
-          return hit(value.row, 'text');
+          headers.set(id, row);
+          return { id, text: string(row['evidence'], 8192), retrievalRank };
         });
-        if (descriptions.length) {
-          const ordered = description.descriptive
-            ? [...descriptions, ...results]
-            : [...results, ...descriptions];
-          const seen = new Set<string>();
-          return ordered
-            .filter((item) => {
-              if (seen.has(item.id)) return false;
-              seen.add(item.id);
-              return true;
-            })
-            .slice(0, limit);
-        }
+        // Never concatenate separate passages or discard a later passage after a 4096-char prefix.
+        const ranked = rankDefinitionDescriptions(description, candidates);
+        const descriptions = ranked.map((item) => {
+          const row = headers.get(item.id);
+          if (!row) throw new Error('Unresolved reverse definition identity.');
+          return hit(row, 'text');
+        });
+        // A title-only match cannot validate explicit absence in a descriptive query.
+        const nameResults = description.terms.some((term) => term.absent) ? [] : results;
+        const ordered = description.descriptive
+          ? [...descriptions, ...nameResults]
+          : [...nameResults, ...descriptions];
+        const seen = new Set<string>();
+        // Rejected evidence must not reappear through the unqualified legacy body fallback.
+        return ordered
+          .filter((item) => {
+            if (seen.has(item.id)) return false;
+            seen.add(item.id);
+            return true;
+          })
+          .slice(0, limit);
       }
       // An explicit small candidate set, not a whole-corpus JS index. The SQL engine owns FTS work.
       const body = await sql.read(
