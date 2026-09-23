@@ -1,0 +1,266 @@
+name: Clinic definition gap completion
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/clinic-definition-completions.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-clinic-definition-completions
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Wire completion inputs through existing builders
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          def edit(path, old, new):
+              p=Path(path);s=p.read_text()
+              assert s.count(old)==1,(path,old)
+              p.write_text(s.replace(old,new))
+          p='tools/ingest/src/localmed_ingest/definition_reference_pack.py'
+          edit(p,'    discovery_inputs: tuple[Path, ...] = (),','    discovery_inputs: tuple[Path, ...] = (),\n    completion_inputs: tuple[Path, ...] = (),')
+          edit(p,'    report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)', '''    from .definition_name_completions import apply_name_completions
+              if len(completion_inputs) > 16:
+                  raise ValueError("Too many name completion inputs")
+              completed = 0
+              for path in completion_inputs:
+                  actual = contained(input_root, path)
+                  if actual.stat().st_size > MAX_INPUT_BYTES:
+                      raise ValueError("Completion input exceeds budget")
+                  payload = actual.read_bytes()
+                  receipt = hashlib.sha256(payload).hexdigest()
+                  if receipt in seen:
+                      raise ValueError("Duplicate completion input snapshot")
+                  seen.add(receipt)
+                  completed += apply_name_completions(projection, json.loads(payload), receipt)
+                  projection.receipts.append({"sha256": receipt, "bytes": len(payload)})
+              report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)
+              report["completedNames"] = completed''')
+          f=Path(p);s=f.read_text();start=s.index('    from .definition_name_completions import apply_name_completions',s.index('def build_definition_reference'))
+          end=s.index('    report["suppliedSources"]',start)
+          lines=s[start:end].splitlines();lines=[line[10:] if line.startswith('              ') else line for line in lines]
+          f.write_text(s[:start]+'\n'.join(lines)+'\n'+s[end:])
+          p='tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py'
+          edit(p,'    discovery_inputs: tuple[Path, ...] = (),','    discovery_inputs: tuple[Path, ...] = (),\n    completion_inputs: tuple[Path, ...] = (),')
+          edit(p,'            discovery_inputs=discovery_inputs,','            discovery_inputs=discovery_inputs,\n            completion_inputs=completion_inputs,')
+          edit(p,'        "discoveredNames": baseline.get("discoveredNames", 0),','        "discoveredNames": baseline.get("discoveredNames", 0),\n        "completedNames": baseline.get("completedNames", 0),')
+          p='scripts/prepare-definition-reference.py'
+          edit(p,'from localmed_ingest.definition_name_inventory import read_name_manifest','from localmed_ingest.definition_name_inventory import read_name_manifest\nfrom localmed_ingest.definition_name_completions import read_completion_manifest')
+          edit(p,'        discovery_inputs=read_name_manifest(root),','        discovery_inputs=read_name_manifest(root),\n        completion_inputs=read_completion_manifest(root),')
+          edit(p,'    expected_entries += discovered_names','    raw_completed = report.get("completedNames", 0)\n    completed_names = 0 if raw_completed == 0 else number(raw_completed)\n    if completed_names > discovered_names:\n        raise ValueError("Completion count exceeds discovered names")\n    if args.scope == "definitions":\n        definition_entries += completed_names\n    pending_names = discovered_names - completed_names\n    expected_entries += discovered_names')
+          edit(p,'    if discovered_names:\n        module["description"]', '    if pending_names:\n        module["description"]')
+          edit(p,'{discovered_names:,}', '{pending_names:,}')
+          p='tools/ingest/src/localmed_ingest/clinic_definition_completions.py'
+          edit(p,'        connection = http.client.HTTPSConnection(parsed.hostname, timeout=20)','        host = parsed.hostname\n        if host is None:\n            raise ValueError("Missing source host")\n        connection = http.client.HTTPSConnection(host, timeout=20)')
+          edit(p,'destination = urljoin(url, response.getheader("Location", ""))','destination = urljoin(url, response.getheader("Location") or "")')
+          edit(p,'if urlsplit(destination).netloc != parsed.netloc or destination == url:', 'if (urlsplit(destination).netloc != parsed.netloc or destination == url\n                    or urlsplit(destination).path.rstrip("/") != parsed.path.rstrip("/")):')
+          edit(p,'return response.status, raw, response.getheader("Content-Type", "")','return response.status, raw, response.getheader("Content-Type") or ""')
+          PY
+      - name: Locked code and regression checks before acquisition
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          files='tools/ingest/src/localmed_ingest/definition_name_completions.py tools/ingest/src/localmed_ingest/clinic_definition_completions.py tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py tools/ingest/tests/test_definition_name_completions.py scripts/prepare-definition-reference.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          mkdir -p data/build
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_definition_name_completions.py tools/ingest/tests/test_definition_name_inventory.py tools/ingest/tests/test_definition_reference_scope.py tools/ingest/tests/test_definition_reference_pack.py --junitxml=data/build/clinic-completion-tests.xml
+      - name: Acquire only matching missing definitions from inspected public pages
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.clinic_definition_completions \
+            --root . --authoring content/definition-gap-fills/clinic-semiology-2026.09.23.json \
+            --output content/definition-drafts/clinic-completions-2026.09.23.json \
+            --report docs/research/clinic-definition-acquisition-2026-09-23.json
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          source=Path('content/definition-drafts/clinic-completions-2026.09.23.json');raw=source.read_bytes()
+          path=Path('content/definition-drafts/completion-inputs.json')
+          assert not path.exists(), 'Keep previous completion manifests; append explicitly rather than overwrite'
+          path.write_text(json.dumps({'format':'minimed-name-completions-v1','inputs':[{'path':str(source),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}]},ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Prepare the normal dictionary offline
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import runpy,sys
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}: raise RuntimeError('Dictionary preparation must remain offline')
+          sys.addaudithook(guard)
+          sys.argv=['scripts/prepare-definition-reference.py','--version','2026.09.23-clinic-gaps','--built-at','2026-09-23']
+          runpy.run_path(sys.argv[0],run_name='__main__')
+          PY
+      - name: Compare all old identities blocks names and source links in final SQLite
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import hashlib,json,sqlite3,xml.etree.ElementTree as ET
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import Projection
+          from localmed_ingest.definition_reference_scope import definition_scope
+          from localmed_ingest.definition_name_inventory import add_name_inventory,read_name_manifest
+          from localmed_ingest.definition_source_manifest import read_source_manifest
+          root=Path.cwd();before=Projection()
+          inputs,_=read_source_manifest(root,root/'content/definition-drafts/source-inputs.json')
+          for path in inputs:
+              raw=path.read_bytes();before.add(json.loads(raw),hashlib.sha256(raw).hexdigest())
+          ids,selection=definition_scope(before.entries)
+          before.entries={key:val for key,val in before.entries.items() if key in ids}
+          for path in read_name_manifest(root):
+              raw=path.read_bytes();add_name_inventory(before,json.loads(raw),hashlib.sha256(raw).hexdigest())
+          bundle=json.loads(Path('content/definition-drafts/clinic-completions-2026.09.23.json').read_bytes())
+          acquired=json.loads(Path('docs/research/clinic-definition-acquisition-2026-09-23.json').read_bytes())
+          targeted={row['id'] for row in bundle['targets']}
+          dbpath=Path('apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-clinic-gaps.db')
+          build=json.loads(Path(str(dbpath)+'.report.json').read_text())
+          assert build['completedNames']==len(targeted)==acquired['accepted']
+          assert build['entries']==len(before.entries)
+          assert build['logicalRoundTripEqual'] is True
+          with sqlite3.connect(f'{dbpath.resolve().as_uri()}?mode=ro',uri=True) as db:
+              assert db.execute('PRAGMA integrity_check').fetchone()==('ok',)
+              assert not db.execute('PRAGMA foreign_key_check').fetchall()
+              assert {row[0] for row in db.execute('SELECT id FROM knowledge_entities')}==set(before.entries)
+              for identifier,(_,chunk) in before.chunks.items():
+                  row=db.execute('SELECT original_text,metadata_json FROM chunks WHERE id=?',(identifier,)).fetchone()
+                  assert row and row[0]==chunk.original_text and json.loads(row[1])==chunk.metadata
+              for identifier,entry in before.entries.items():
+                  row=db.execute('SELECT canonical_name,metadata_json FROM knowledge_entities WHERE id=?',(identifier,)).fetchone()
+                  assert row and row[0]==entry.title
+                  actual=json.loads(row[1])
+                  assert actual['reviewStatus']=='requires-review'
+                  names=[r[0] for r in db.execute('SELECT name FROM knowledge_names WHERE entity_id=? ORDER BY CAST(substr(id,instr(id,".name.")+6) AS INTEGER)',(identifier,))]
+                  assert names==entry.names
+                  links=db.execute('SELECT substr(link_type,11),chunk_id FROM definition_reference_links WHERE entity_id=? ORDER BY id',(identifier,)).fetchall()
+                  if identifier in targeted:
+                      assert actual['coverage']=='definition' and links[0][0]=='definition'
+                      assert links[1:]==entry.links
+                  else:
+                      assert actual['coverage']==entry.coverage and links==entry.links
+              for table in ('knowledge_facts','knowledge_relations'):
+                  assert db.execute(f'SELECT count(*) FROM {table}').fetchone()==(0,)
+          suites=ET.parse('data/build/clinic-completion-tests.xml').getroot()
+          tests={k:sum(int(s.get(k,'0')) for s in suites.findall('testsuite')) for k in ('tests','failures','errors','skipped')}
+          assert tests['failures']==tests['errors']==0
+          report={'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','acquisition':{k:v for k,v in acquired.items() if k!='outcomes'},'completedNames':len(targeted),'definitionsBefore':selection['definitionRecordsAfter'],'definitionsAfter':selection['definitionRecordsAfter']+len(targeted),'searchableRecords':len(before.entries),'pendingDiscoveredNames':build['discoveredNames']-len(targeted),'existingBlocksCompared':len(before.chunks),'existingIdentitiesAndAliasesUnchanged':True,'installedBytes':dbpath.stat().st_size,'downloadBytes':Path(str(dbpath)+'.gz').stat().st_size,'tests':tests,'sourceSpansAndDiscoveryLinksPreserved':True,'boundary':'Explicit missing-name completion only. Clinical review, consensus classifications, independently validated reverse search and device behavior remain unqualified.'}
+          Path('docs/research/clinic-definition-completion-2026-09-23.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Read completed cards and report descriptive-query outcomes without tuning
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          cat > tools/benchmarks/.clinic-completion-audit.ts <<'TS'
+          import { Database } from 'bun:sqlite';
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { createSqliteDefinitionReference } from '../../packages/storage-sqlite/src/definition-reference-reader';
+          const path='apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-clinic-gaps.db';
+          const db=new Database(path,{readonly:true});
+          const reader=await createSqliteDefinitionReference({read:async (sql,args)=>db.query(sql).all(...args) as Record<string,unknown>[]});
+          const bundle=JSON.parse(readFileSync('content/definition-drafts/clinic-completions-2026.09.23.json','utf8'));
+          let readable=0, top1=0, top20=0;
+          const misses:string[]=[];
+          for(const term of bundle.catalog.terms){
+            const card=await reader.getCard(term.id);
+            if(!card || card.coverage!=='definition') throw new Error('Completion missing in actual reader');
+            const page=await reader.listBlocks(term.id);
+            if(page.blocks[0]?.role!=='definition') throw new Error('Expected a single base definition first');
+            const body=await reader.readBlock(term.id,page.blocks[0].chunkId);
+            const expected=bundle.catalog.blocks.find((b:any)=>b.id===term.blockIds[0]);
+            if(!body || body.text!==expected.text || body.nextOffset!==null || !await reader.getSource(body.sourceId)) throw new Error('Source definition/locator mismatch');
+            if(JSON.stringify(body.provenance.sourceVerification)!==JSON.stringify(expected.sourceVerification)) {
+              for(const [key,value] of Object.entries(expected.sourceVerification)) if(JSON.stringify((body.provenance.sourceVerification as any)[key])!==JSON.stringify(value)) throw new Error('Source verification changed');
+            }
+            readable++;
+            const hits=await reader.search(term.title,20);
+            if(hits[0]?.id===term.id)top1++;
+            if(hits.some(h=>h.id===term.id))top20++; else misses.push(term.id);
+          }
+          const probes:Record<string,string>={
+            'Аллодиния':'боль от лёгкого прикосновения',
+            'Афония':'потерял голос и говорит только шёпотом',
+            'Ксеростомия':'постоянно пересыхает во рту',
+            'Гиперсаливация':'обильное выделение слюны',
+            'Энофтальм':'глаз западает в глазницу',
+            'Экзофтальм':'глаз выступает из глазницы',
+            'Анизокория':'разные размеры зрачков',
+            'Стеаторея':'лишний жир в кале'
+          };
+          const descriptions=[];
+          for(const term of bundle.catalog.terms){
+            const query=probes[term.title];if(!query)continue;
+            const hits=await reader.search(query,20);
+            descriptions.push({id:term.id,query,rank:hits.findIndex(h=>h.id===term.id)+1 || null});
+          }
+          db.close();
+          const reportPath='docs/research/clinic-definition-completion-2026-09-23.json';
+          const report=JSON.parse(readFileSync(reportPath,'utf8'));
+          report.actualReader={readable,top1,top20,missingIds:misses,descriptions,boundary:'Authored descriptive probes, not an independent clinical validation set. Failures retained; aliases and ranking not tuned to these queries.'};
+          writeFileSync(reportPath,JSON.stringify(report,null,2)+'\n');
+          console.log(JSON.stringify(report.actualReader));
+          TS
+          env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/.clinic-completion-audit.ts
+      - name: Record actual content scope and next gaps
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('docs/research/clinic-definition-completion-2026-09-23.json').read_text())
+          note=f'''## Clinical-site definition completions — 2026-09-23
+
+          Filled **{r['completedNames']}** existing empty source-local name records with one exact,
+          concise medical definition each. No duplicate term cards or encyclopedia prose were added.
+          Original identities, names, aliases and discovery-source annotation links remain unchanged.
+          Actual definitions: **{r['definitionsAfter']}**; searchable records: **{r['searchableRecords']}**;
+          discovered names still needing content: **{r['pendingDiscoveredNames']}**.
+          Existing definitions and ambiguous/missing titles were left untouched. Source acquisition
+          inspected actual visible paragraphs under source robots policies; short excerpts only,
+          with author where available, dates, page/paragraph/quote hashes and Unicode offsets.
+          No medical approval, merged classification, executable scale or treatment rule.
+          Passed {r['tests']['tests']} scoped Python tests and strict checks, ordinary offline SQLite
+          build, exact identity/alias preservation and {r['existingBlocksCompared']} unchanged blocks.
+          Actual reader: {r['actualReader']['readable']} completed cards with matching source text;
+          named ID Top-20: {r['actualReader']['top20']}/{r['completedNames']}.
+          Descriptive-query failures remain in the report; no independent search-quality gain claimed.
+          Evidence: `research/clinic-definition-completion-2026-09-23.json` and
+          `research/clinic-definition-acquisition-2026-09-23.json`.
+          DEV build: `2026.09.23-clinic-gaps`. No source book, model, APK or binary release uploaded.
+          Next: fill remaining actual definition gaps and source-backed classification differences;
+          resolve inverse-search coverage without discarding source names or padding aliases.
+
+          '''
+          note='\n'.join(line[10:] if line.startswith('          ') else line for line in note.splitlines())
+          for name in ('docs/CURRENT_STATE.md','docs/DEFINITION_REFERENCE_PLAN.md'):
+              p=Path(name);head,body=p.read_text().split('\n',1);p.write_text(head+'\n\n'+note+body)
+          Path('docs/research/clinic-definition-delivery-2026-09-23.md').write_text('# Clinic definition gap delivery\n\n'+note)
+          print(json.dumps(r,ensure_ascii=False,indent=2))
+          PY
+      - name: Persist only verified source candidates code and measured reports
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add tools/ingest/src/localmed_ingest/definition_name_completions.py tools/ingest/src/localmed_ingest/clinic_definition_completions.py tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py tools/ingest/tests/test_definition_name_completions.py scripts/prepare-definition-reference.py content/definition-drafts/clinic-completions-2026.09.23.json content/definition-drafts/completion-inputs.json docs/research/clinic-definition-acquisition-2026-09-23.json docs/research/clinic-definition-completion-2026-09-23.json docs/research/clinic-definition-delivery-2026-09-23.md docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): fill verified medical definitions without duplicating concepts [skip ci]'
+          own=$(git rev-parse HEAD)
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
+          remote=$(git rev-parse FETCH_HEAD)
+          if [ "$remote" != '${{ github.sha }}' ]; then git switch --detach "$remote"; git cherry-pick "$own"; fi
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: No artifact uploads
+        if: always()
+        run: echo 'No private PDFs, whole web articles, database binaries, models, caches, APKs or Actions artifacts uploaded.' >> "$GITHUB_STEP_SUMMARY"
