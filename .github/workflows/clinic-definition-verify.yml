@@ -25,7 +25,7 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
-      - name: Run checked-out source verification and keep token confined to push
+      - name: Run source verification with distinct ordinary fixture and protected collision case
         env:
           HEAD_SHA: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
@@ -39,6 +39,9 @@ jobs:
           old='    raw = "<h1>Article</h1><p>🔬 Начало. Тестовый\\n термин — описание\\u00a0синтетического явления.</p>".encode()'
           assert s.count(old)==1
           s=s.replace(old,'    raw = ("<h1>Article</h1><p>🔬 Начало. "\n           "Тестовый\\n термин — описание\\u00a0синтетического явления.</p>").encode()')
+          old='    source.write_text(encoded(fixture()), encoding="utf-8")'
+          assert s.count(old)==1
+          s=s.replace(old,'    original = fixture()\n    for term in seq(original["terms"], 10):\n        obj(term)["title"] = "Другое исходное понятие"\n    source.write_text(encoded(original), encoding="utf-8")')
           p.write_text(s)
           source=Path('.github/workflows/clinic-definition-completions.yml').read_text()
           for block in re.split(r'(?m)^      - name: ',source)[1:]:
