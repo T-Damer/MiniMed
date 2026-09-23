@@ -43,6 +43,13 @@ jobs:
           assert s.count(old)==1
           s=s.replace(old,'    original = fixture()\n    for term in seq(original["terms"], 10):\n        obj(term)["title"] = "Другое исходное понятие"\n    source.write_text(encoded(original), encoding="utf-8")')
           p.write_text(s)
+          # Explicitly inspected independent sources; keep HTTP, robots, excerpt and redirect gates.
+          p=Path('tools/ingest/src/localmed_ingest/clinic_definition_completions.py')
+          s=p.read_text()
+          old='HOSTS = {"www.invitro.ru", "www.smclinic.ru", "ivanovo.smclinic.ru", "www.dermatology.ru"}'
+          assert s.count(old)==1
+          s=s.replace(old, 'HOSTS = {"www.invitro.ru", "www.smclinic.ru", "ivanovo.smclinic.ru", "www.dermatology.ru", "medvestnik.by", "wbdent.ru", "stom-dental.ru", "www.k31.ru", "clinic-complex.ru", "www.krasotaimedicina.ru"}')
+          p.write_text(s)
           source=Path('.github/workflows/clinic-definition-completions.yml').read_text()
           for block in re.split(r'(?m)^      - name: ',source)[1:]:
               name=block.splitlines()[0]
@@ -50,6 +57,7 @@ jobs:
               marker='        run: |\n'
               if marker not in block: raise ValueError('Unknown shell block')
               command=textwrap.dedent(block.split(marker,1)[1])
+              command=command.replace('content/definition-gap-fills/clinic-semiology-2026.09.23.json', 'content/definition-gap-fills/accessible-semiology-2026.09.23.json')
               command=command.replace('$'+'{{ github.sha }}',os.environ['HEAD_SHA']).replace('$'+'{{ github.run_id }}',os.environ['RUN_ID'])
               if '$'+'{{' in command: raise ValueError('Unresolved workflow expression')
               env={key:os.environ[key] for key in ('PATH','HOME','RUNNER_TEMP')}
