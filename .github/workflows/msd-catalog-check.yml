@@ -5,83 +5,264 @@ on:
     paths: [.github/workflows/msd-catalog-check.yml]
 permissions:
   contents: write
+concurrency:
+  group: minimed-msd-catalog
+  cancel-in-progress: false
 jobs:
-  inspect:
+  verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Inspect public section structure, never topic prose
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Allow explicit checked multiple discovery inventories on the existing pipeline
         run: |
-          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
-          import json,hashlib,time,re,urllib.request,urllib.parse,xml.etree.ElementTree as ET
-          from html.parser import HTMLParser
+          python3 - <<'PY'
           from pathlib import Path
-          host='https://www.msdmanuals.com'
-          def get(path,limit=16000000):
-              time.sleep(5.1)
-              request=urllib.request.Request(host+urllib.parse.quote(path,safe='/-._~'),headers={'User-Agent':'MiniMedCatalogResearch/0.1 (+https://github.com/T-Damer/MiniMed)','Accept-Encoding':'identity'})
-              with urllib.request.urlopen(request,timeout=45) as response:
-                  body=response.read(limit+1)
-                  if len(body)>limit:raise ValueError('Metadata budget exceeded')
-                  return body
-          robots=get('/robots.txt').decode()
-          rules=[re.compile(re.escape(line.partition(':')[2].strip()).replace(r'\*','.*')) for line in robots.splitlines() if line.lower().startswith('disallow:') and line.partition(':')[2].strip()]
-          def checked(path):
-              if any(rule.search(path) for rule in rules):raise ValueError('Robots excluded')
-              return get(path)
-          class Next(HTMLParser):
-              def __init__(self):super().__init__();self.active=False;self.parts=[]
-              def handle_starttag(self,tag,attrs):
-                  if tag=='script' and dict(attrs).get('id')=='__NEXT_DATA__':self.active=True
-              def handle_endtag(self,tag):
-                  if tag=='script':self.active=False
-              def handle_data(self,data):
-                  if self.active:self.parts.append(data)
-          raw=checked('/ru/professional/неврологические-расстройства')
-          p=Next();p.feed(raw.decode());pp=json.loads(''.join(p.parts))['props']['pageProps']
-          def shape(v,depth=0):
-              if depth>9:return type(v).__name__
-              if isinstance(v,dict):return {key:shape(value,depth+1) for key,value in v.items()}
-              if isinstance(v,list):return {'length':len(v),'firstShape':shape(v[0],depth+1) if v else None}
-              return type(v).__name__
-          result={'checkedCommit':'${{ github.sha }}','sectionSha256':hashlib.sha256(raw).hexdigest(),'sectionShape':None,'metadataExamples':[]}
-          for comp in pp['componentProps'].values():
-              item=comp.get('fields',{}).get('data',{}).get('item',{})
-              if 'SectionChildrens' not in item:continue
-              result['sectionShape']=shape(item['SectionChildrens'])
-              def examples(v,path=''):
-                  if isinstance(v,dict):
-                      small={}
-                      for k,x in v.items():
-                          if isinstance(x,str) and any(t in k.lower() for t in ('name','title','path','url','id')) and len(x)<500 and '<' not in x:small[k]=x
-                          elif isinstance(x,dict) and k.lower().endswith(('name','title','url')):
-                              small[k]={a:b for a,b in x.items() if a in ('value','path') and isinstance(b,str) and len(b)<500 and '<' not in b}
-                      if small and len(result['metadataExamples'])<15:result['metadataExamples'].append({'path':path,'values':small})
-                      for k,x in v.items():examples(x,path+'/'+k)
-                  elif isinstance(v,list):
-                      for i,x in enumerate(v[:2]):examples(x,path+'/'+str(i))
-              examples(item['SectionChildrens'])
-          raw=checked('/ru/sitemap.xml');xml=ET.fromstring(raw)
-          result['sitemaps']=[node.text for node in xml.findall('.//{*}loc')]
-          matches=[v for v in result['sitemaps'] if '/professional-topic' in v]
-          if matches:
-              path=urllib.parse.urlsplit(matches[0]).path;raw=checked(path);xml=ET.fromstring(raw)
-              result['topicSitemap']={'path':path,'root':xml.tag,'count':len(xml.findall('.//{*}loc')),'firstUrl':ET.tostring(list(xml)[0],encoding='unicode')[:2000]}
-          Path('docs/research/msd-section-shape-2026-09-23.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
-          print(json.dumps(result,ensure_ascii=False,indent=2))
+          p=Path('tools/ingest/src/localmed_ingest/definition_name_inventory.py');s=p.read_text()
+          assert s.rstrip().endswith('return (actual,)')
+          start=s.index('def read_name_manifest(root: Path)')
+          s=s[:start]+'''def read_name_manifest(root: Path) -> tuple[Path, ...]:
+              from .definition_reference_pack import MAX_INPUT_BYTES, contained, number, obj, seq, text
+              path = root / "content/definition-drafts/name-inputs.json"
+              if not path.exists():
+                  return ()
+              if path.stat().st_size > 65536:
+                  raise ValueError("Discovery manifest exceeds budget")
+              root_value = obj(json.loads(path.read_bytes()))
+              if root_value.get("format") == "minimed-name-inputs-v2":
+                  if set(root_value) != {"format", "inputs"}:
+                      raise ValueError("Invalid name manifest fields")
+                  rows = [obj(row) for row in seq(root_value["inputs"], 8)]
+                  if not rows:
+                      raise ValueError("Empty discovery manifest")
+              else:
+                  rows = [root_value]
+              results: list[Path] = []
+              seen: set[str] = set()
+              allowed = (root / "content/definition-drafts").resolve(strict=True)
+              for row in rows:
+                  if set(row) != {"path", "bytes", "sha256", "format"} or row["format"] != FORMAT:
+                      raise ValueError("Invalid name manifest")
+                  candidate = Path(text(row["path"]))
+                  if candidate.is_absolute():
+                      raise ValueError("Absolute discovery path is not allowed")
+                  actual = contained(root, candidate)
+                  if not actual.is_relative_to(allowed) or actual.suffix != ".json":
+                      raise ValueError("Discovery input is outside the knowledge authoring directory")
+                  size = number(row["bytes"])
+                  if size > MAX_INPUT_BYTES or actual.stat().st_size != size:
+                      raise ValueError("Discovery input receipt mismatch")
+                  receipt = text(row["sha256"], 64)
+                  if actual in results or receipt in seen:
+                      raise ValueError("Duplicate discovery input")
+                  raw = actual.read_bytes()
+                  if not re.fullmatch(r"[a-f0-9]{64}", receipt) or hashlib.sha256(raw).hexdigest() != receipt:
+                      raise ValueError("Discovery input receipt mismatch")
+                  seen.add(receipt)
+                  results.append(actual)
+              return tuple(results)
+          '''
+          # Remove only the common literal indentation, retaining function nesting.
+          block=s[start:].splitlines()
+          s=s[:start]+'\n'.join(line[10:] if line.startswith('              ') else line for line in block)+'\n'
+          p.write_text(s)
           PY
-      - name: Save metadata contract only
+      - name: Locked code and source-scope checks
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          files='tools/ingest/src/localmed_ingest/msd_topic_inventory.py tools/ingest/src/localmed_ingest/msd_topic_names.py tools/ingest/src/localmed_ingest/definition_name_inventory.py tools/ingest/tests/test_msd_topic_inventory.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          mkdir -p data/build
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_msd_topic_inventory.py tools/ingest/tests/test_definition_name_inventory.py tools/ingest/tests/test_definition_name_completions.py tools/ingest/tests/test_definition_reference_scope.py --junitxml=data/build/msd-catalog-tests.xml
+      - name: Acquire only public topic indexes with source crawl delay
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.msd_topic_inventory --output content/reference-authoring/msd-professional-topic-index-2026.09.23.json
+      - name: Select absent topic names without importing or replacing medical definitions
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import json,hashlib
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import Projection,encoded
+          from localmed_ingest.definition_source_manifest import read_source_manifest
+          from localmed_ingest.definition_reference_scope import definition_scope
+          from localmed_ingest.definition_name_inventory import FORMAT,read_name_manifest,add_name_inventory
+          from localmed_ingest.definition_name_completions import read_completion_manifest,apply_name_completions
+          from localmed_ingest.msd_topic_names import compile_msd_names
+          root=Path.cwd();p=Projection();receipts=[]
+          def load(path):
+              raw=path.read_bytes();sha=hashlib.sha256(raw).hexdigest();receipts.append({'path':path.relative_to(root).as_posix(),'sha256':sha});return json.loads(raw),sha
+          for path in read_source_manifest(root,root/'content/definition-drafts/source-inputs.json')[0]:p.add(*load(path))
+          ids,_=definition_scope(p.entries);p.entries={key:row for key,row in p.entries.items() if key in ids}
+          for path in read_name_manifest(root):add_name_inventory(p,*load(path))
+          for path in read_completion_manifest(root):apply_name_completions(p,*load(path))
+          catalog_path=root/'content/reference-authoring/msd-professional-topic-index-2026.09.23.json'
+          catalog=json.loads(catalog_path.read_bytes())
+          inventory,report=compile_msd_names(catalog,{name for row in p.entries.values() for name in row.names})
+          if not inventory['names']:raise ValueError('No missing names found; do not pretend definitions were acquired')
+          prepared=root/'content/definition-drafts/msd-discovered-names-2026.09.23.json'
+          prepared.write_text(encoded(inventory)+'\n')
+          manifest=root/'content/definition-drafts/name-inputs.json';old=json.loads(manifest.read_bytes())
+          old_rows=old['inputs'] if old.get('format')=='minimed-name-inputs-v2' else [old]
+          raw=prepared.read_bytes();item={'format':FORMAT,'path':prepared.relative_to(root).as_posix(),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+          manifest.write_text(encoded({'format':'minimed-name-inputs-v2','inputs':[*old_rows,item]})+'\n')
+          report.update({'existingSourceReceipts':receipts,'previousSearchableEntries':len(p.entries),
+            'previousDefinitions':sum(row.coverage in {'definition','explicit-definition'} for row in p.entries.values()),
+            'catalogSha256':hashlib.sha256(catalog_path.read_bytes()).hexdigest(),
+            'sectionsCollected':len(catalog['sections']),'topicReferences':catalog['topicReferences'],
+            'sitemapTopics':len(catalog['sitemapTopicPaths']),'sitemapOnlyPaths':catalog['sitemapOnlyPaths'],
+            'navigationOnlyPaths':catalog['navigationOnlyPaths'],'publicRequests':len(catalog['receipts']),
+            'articleBodiesFetched':0})
+          Path('data/build/msd-name-selection.json').write_text(encoded(report))
+          print(json.dumps({key:value for key,value in report.items() if key not in {'deferred','existingSourceReceipts','sitemapOnlyPaths','navigationOnlyPaths'}},ensure_ascii=False,indent=2))
+          PY
+      - name: Build the full ordinary knowledge edition offline
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import runpy,sys
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}:raise RuntimeError('Knowledge build must be offline')
+          sys.addaudithook(guard)
+          sys.argv=['scripts/prepare-definition-reference.py','--version','2026.09.23-msd-catalog-1','--built-at','2026-09-23']
+          runpy.run_path(sys.argv[0],run_name='__main__')
+          PY
+      - name: Validate every original and newly added knowledge row
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import json,hashlib,sqlite3,xml.etree.ElementTree as ET
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import Projection
+          from localmed_ingest.definition_source_manifest import read_source_manifest
+          from localmed_ingest.definition_reference_scope import definition_scope
+          from localmed_ingest.definition_name_inventory import read_name_manifest,add_name_inventory
+          from localmed_ingest.definition_name_completions import read_completion_manifest,apply_name_completions
+          root=Path.cwd();p=Projection()
+          def load(path):
+              raw=path.read_bytes();return json.loads(raw),hashlib.sha256(raw).hexdigest()
+          for path in read_source_manifest(root,root/'content/definition-drafts/source-inputs.json')[0]:p.add(*load(path))
+          ids,_=definition_scope(p.entries);p.entries={key:row for key,row in p.entries.items() if key in ids}
+          for path in read_name_manifest(root):add_name_inventory(p,*load(path))
+          for path in read_completion_manifest(root):apply_name_completions(p,*load(path))
+          selection=json.loads(Path('data/build/msd-name-selection.json').read_bytes())
+          for row in selection['existingSourceReceipts']:assert hashlib.sha256((root/row['path']).read_bytes()).hexdigest()==row['sha256']
+          dbpath=root/'apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-msd-catalog-1.db'
+          build=json.loads(Path(str(dbpath)+'.report.json').read_bytes())
+          definitions=sum(row.coverage in {'definition','explicit-definition'} for row in p.entries.values())
+          assert definitions==selection['previousDefinitions']
+          assert len(p.entries)==selection['previousSearchableEntries']+selection['newSearchableNames']
+          assert build['entries']==len(p.entries) and build['logicalRoundTripEqual']
+          with sqlite3.connect(f'{dbpath.as_uri()}?mode=ro',uri=True) as db:
+              assert db.execute('PRAGMA integrity_check').fetchone()==('ok',)
+              assert not db.execute('PRAGMA foreign_key_check').fetchall()
+              assert {row[0] for row in db.execute('SELECT id FROM knowledge_entities')}==set(p.entries)
+              for identifier,entry in p.entries.items():
+                  row=db.execute('SELECT canonical_name,metadata_json FROM knowledge_entities WHERE id=?',(identifier,)).fetchone()
+                  assert row and row[0]==entry.title and json.loads(row[1])['coverage']==entry.coverage
+                  assert db.execute('SELECT substr(link_type,11),chunk_id FROM definition_reference_links WHERE entity_id=? ORDER BY id',(identifier,)).fetchall()==entry.links
+              for identifier,(_,chunk) in p.chunks.items():
+                  row=db.execute('SELECT original_text,metadata_json FROM chunks WHERE id=?',(identifier,)).fetchone()
+                  assert row and row[0]==chunk.original_text and json.loads(row[1])==chunk.metadata
+              for table in ('knowledge_facts','knowledge_relations'):assert db.execute(f'SELECT count(*) FROM {table}').fetchone()==(0,)
+          suites=ET.parse('data/build/msd-catalog-tests.xml').getroot()
+          tests={key:sum(int(s.get(key,'0')) for s in suites.findall('testsuite')) for key in ('tests','failures','errors','skipped')}
+          report={**selection,'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':tests,
+            'definitions':definitions,'searchableEntries':len(p.entries),'blocksCompared':len(p.chunks),
+            'installedBytes':dbpath.stat().st_size,'downloadBytes':Path(str(dbpath)+'.gz').stat().st_size,
+            'normalBuilderSourceReplay':True,'newMedicalDefinitions':0}
+          Path('docs/research/msd-catalog-delivery-2026-09-23.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Real reader and frozen reverse-query qualification on the expanded database
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          git show 7ae77243ef26a6633031fd2dfdbb981d4dea0fc9:packages/storage-sqlite/src/definition-reference-reader.ts > packages/storage-sqlite/src/.msd-baseline-reader.ts
+          env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/definition-description-audit.ts apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-msd-catalog-1.db packages/storage-sqlite/src/.msd-baseline-reader.ts docs/research/msd-description-regression-2026-09-23.json
+          cat > tools/benchmarks/.msd-names-reader.ts <<'TS'
+          import { Database } from 'bun:sqlite';
+          import { readFileSync,writeFileSync } from 'node:fs';
+          import { createSqliteDefinitionReference } from '../../packages/storage-sqlite/src/definition-reference-reader';
+          const db=new Database('apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-msd-catalog-1.db',{readonly:true});
+          const reader=await createSqliteDefinitionReference({read:async(sql,args)=>db.query(sql).all(...args) as Record<string,unknown>[]});
+          const names=JSON.parse(readFileSync('content/definition-drafts/msd-discovered-names-2026.09.23.json','utf8')).names as {id:string,title:string}[];
+          let readable=0,top1=0,top20=0;const misses:string[]=[];
+          for(const row of names){
+            const card=await reader.getCard(row.id),page=await reader.listBlocks(row.id);
+            if(!card||card.coverage!=='needs-definition'||card.title!==row.title||page.blocks.length!==1||page.blocks[0]?.role!=='annotation')throw new Error('Missing or promoted MSD discovery name');
+            const block=await reader.readBlock(row.id,page.blocks[0].chunkId);
+            if(!block||!await reader.getSource(block.sourceId))throw new Error('Missing MSD source provenance');
+            readable++;const hits=await reader.search(row.title,20);const rank=hits.findIndex(item=>item.id===row.id);
+            top1+=Number(rank===0);top20+=Number(rank>=0);if(rank<0)misses.push(row.id);
+          }
+          db.close();
+          const path='docs/research/msd-catalog-delivery-2026-09-23.json';const report=JSON.parse(readFileSync(path,'utf8'));
+          report.actualReader={readable,top1,top20,missingIds:misses};
+          const benchmark=JSON.parse(readFileSync('docs/research/msd-description-regression-2026-09-23.json','utf8'));
+          benchmark.baselineCommit='7ae77243ef26a6633031fd2dfdbb981d4dea0fc9';
+          benchmark.boundary+=' This pass audits the existing reverse handler; no new neural or ranking improvement is claimed.';
+          writeFileSync('docs/research/msd-description-regression-2026-09-23.json',JSON.stringify(benchmark,null,2)+'\n');
+          report.reverseProbe={cases:benchmark.cases,top1:benchmark.after.top1,top20:benchmark.after.top20,exactNameQueriesChecked:benchmark.exactIdentityGuard.checked,exactChanges:benchmark.exactIdentityGuard.changes,rankChanges:benchmark.regressions};
+          writeFileSync(path,JSON.stringify(report,null,2)+'\n');
+          TS
+          env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/.msd-names-reader.ts
+      - name: Record actual scope and remove this temporary verification workflow
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('docs/research/msd-catalog-delivery-2026-09-23.json').read_text())
+          marker='## MSD public topic inventory — 2026-09-23'
+          note=f'''{marker}
+
+          Collected {r['sectionsCollected']} public Russian professional specialty indexes;
+          {r['sourceTopics']} distinct topic identities / {r['topicReferences']} navigation references.
+          Topic sitemap: {r['sitemapTopics']} URLs; {len(r['sitemapOnlyPaths'])} sitemap-only and
+          {len(r['navigationOnlyPaths'])} navigation-only URLs are explicitly retained for review.
+          Added {r['newSearchableNames']} previously unindexed names through the normal knowledge build.
+          Overviews and existing-name overlaps remain in the source inventory, not falsely counted
+          as new definitions. No Wikipedia names/text were removed and no clinical text was replaced.
+          The edition has {r['definitions']} definition records / {r['searchableEntries']} searchable records.
+          New medical definitions in this index pass: 0. Full topic coverage is NOT all terms inside
+          articles, tables/calculators or the consumer edition. Full MSD text reuse needs permission.
+          Only topic titles, URLs, hierarchy and receipts are persisted, not summaries/article bodies.
+          Public requests: {r['publicRequests']}, source delay at least 5 seconds, no private API/bypass.
+          {r['tests']['tests']} Python tests passed; all {r['blocksCompared']} knowledge blocks compared.
+          Real reader: {r['actualReader']['readable']} new names readable, {r['actualReader']['top20']} Top-20.
+          Existing inverse handler: {r['reverseProbe']['top20']}/{r['reverseProbe']['cases']} developer Top-20;
+          {r['reverseProbe']['exactNameQueriesChecked']} exact-name outputs unchanged between readers.
+          This is regression qualification, not a new model/ranking or independent clinical gain.
+          Files: {r['installedBytes']} SQLite bytes / {r['downloadBytes']} gzip bytes.
+          Evidence: `research/msd-catalog-delivery-2026-09-23.json` and
+          `research/msd-description-regression-2026-09-23.json`.
+          DEV version: `2026.09.23-msd-catalog-1`. No APK, database binary or model publication/merge.
+
+          '''
+          note='\n'.join(line[10:] if line.startswith('          ') else line for line in note.splitlines())
+          Path('docs/research/msd-catalog-delivery-2026-09-23.md').write_text('# MSD catalog and reverse-search regression\n\n'+note)
+          for name in ('docs/CURRENT_STATE.md','docs/DEFINITION_REFERENCE_PLAN.md'):
+              p=Path(name);s=p.read_text();assert marker not in s
+              first,body=s.split('\n',1);p.write_text(first+'\n\n'+note+body)
+          PY
+          git rm .github/workflows/msd-catalog-check.yml
+      - name: Save only verified metadata, sources and tests
         env:
           PUSH_TOKEN: ${{ github.token }}
         run: |
-          git add docs/research/msd-section-shape-2026-09-23.json
+          git add tools/ingest/src/localmed_ingest/msd_topic_inventory.py tools/ingest/src/localmed_ingest/msd_topic_names.py tools/ingest/src/localmed_ingest/definition_name_inventory.py tools/ingest/tests/test_msd_topic_inventory.py content/reference-authoring/msd-professional-topic-index-2026.09.23.json content/definition-drafts/msd-discovered-names-2026.09.23.json content/definition-drafts/name-inputs.json docs/research/msd-catalog-delivery-2026-09-23.json docs/research/msd-description-regression-2026-09-23.json docs/research/msd-catalog-delivery-2026-09-23.md docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md
+          git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'docs(content): record inspected section and topic-sitemap contracts [skip ci]'
+          git commit -m 'feat(content): deliver qualified MSD topic names through common knowledge pipeline [skip ci]'
           own=$(git rev-parse HEAD)
           auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
           git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
