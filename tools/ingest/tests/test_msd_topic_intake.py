@@ -12,6 +12,7 @@ from localmed_ingest.msd_topic_intake import (
     first_definition,
     parse_topic,
     sitemap_locations,
+    topic_sitemap_children,
     topic_url,
 )
 
@@ -64,7 +65,10 @@ def test_robots_wildcards_delay_and_agent_groups() -> None:
 
 def test_sitemap_scopes_duplicates_and_gzip() -> None:
     encoded = checked_url(URL)
-    xml = f'<urlset xmlns="{NS[1:-1]}"><url><loc>{encoded}</loc></url><url><loc>{encoded}</loc></url></urlset>'.encode()
+    xml = (
+        f'<urlset xmlns="{NS[1:-1]}"><url><loc>{encoded}</loc></url>'
+        f'<url><loc>{encoded}</loc></url></urlset>'
+    ).encode()
     assert sitemap_locations(xml, index=False) == [encoded]
     assert sitemap_locations(gzip.compress(xml), index=False) == [encoded]
     with pytest.raises(ValueError, match="root"):
@@ -72,7 +76,31 @@ def test_sitemap_scopes_duplicates_and_gzip() -> None:
     with pytest.raises(ValueError):
         sitemap_locations(b'<!DOCTYPE x [<!ENTITY y "bad">]><x/>', index=False)
     with pytest.raises(ValueError):
-        sitemap_locations(f'<urlset xmlns="{NS[1:-1]}"><url><loc>https://other.test/a</loc></url></urlset>'.encode(), index=False)
+        sitemap_locations(
+            f'<urlset xmlns="{NS[1:-1]}">'
+            '<url><loc>https://other.test/a</loc></url></urlset>'.encode(), index=False,
+        )
+
+
+def index_fixture(locale: str, names: tuple[str, ...]) -> bytes:
+    children = ''.join(
+        f'<sitemap><loc>{ORIGIN}/{locale}/sitemaps/{name}-topic.xml.gz</loc></sitemap>'
+        for name in names
+    )
+    return f'<sitemapindex xmlns="{NS[1:-1]}">{children}</sitemapindex>'.encode()
+
+
+def test_advertised_russian_root_indexes_have_different_edition_sets() -> None:
+    ordinary = index_fixture('ru', ('home', 'professional'))
+    local = index_fixture('ru-ru', ('professional',))
+    assert len(topic_sitemap_children(ordinary, ORIGIN + '/ru/sitemap.xml')) == 2
+    assert len(topic_sitemap_children(local, ORIGIN + '/ru-ru/sitemap.xml')) == 1
+    with pytest.raises(ValueError, match='changed'):
+        topic_sitemap_children(local, ORIGIN + '/ru/sitemap.xml')
+    with pytest.raises(ValueError, match='changed'):
+        topic_sitemap_children(index_fixture('ru', ('home',)), ORIGIN + '/ru/sitemap.xml')
+    with pytest.raises(ValueError, match='Unknown'):
+        topic_sitemap_children(ordinary, ORIGIN + '/en/sitemap.xml')
 
 
 def test_visible_short_source_sentence_and_receipts() -> None:
@@ -90,8 +118,14 @@ def test_visible_short_source_sentence_and_receipts() -> None:
 
 
 def test_hidden_content_and_markup_do_not_change_definition() -> None:
-    prefix = '<div style="display: none"><h1 id="topicHeaderTitle">Ложное имя</h1><p data-testid="topicDefinition">Ложный текст.</p></div>'
-    body = 'Пример <b>— это</b> вымышленное явление <span hidden>скрыто</span>для проверки программы.'
+    prefix = (
+        '<div style="display: none"><h1 id="topicHeaderTitle">Ложное имя</h1>'
+        '<p data-testid="topicDefinition">Ложный текст.</p></div>'
+    )
+    body = (
+        'Пример <b>— это</b> вымышленное явление '
+        '<span hidden>скрыто</span>для проверки программы.'
+    )
     assert parse_topic(page(body, prefix=prefix), URL, "2026-09-23")["definition"] == TEXT
     with pytest.raises(ValueError, match="ambiguous"):
         parse_topic(page(prefix='<p data-testid="topicDefinition">Другое.</p>'), URL, "2026-09-23")
