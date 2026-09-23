@@ -71,6 +71,8 @@ export interface MedicationSpellingMatch {
   readonly matchedText: string;
   readonly replacementQuery: string;
   readonly cost: number;
+  /** Missing source-labelled marker is a navigation ambiguity, not a synonym. */
+  readonly omittedSuffix: string | null;
 }
 
 // A safe lower bound: at most three edits can change at most six distinct letters.
@@ -92,6 +94,8 @@ function bitCount(value: number): number {
 interface Name {
   readonly name: string;
   readonly normalized: string;
+  readonly fullNormalized: string;
+  readonly omittedSuffix: string | null;
   readonly parts: readonly string[];
   readonly canonicals: Set<string>;
   readonly masks: readonly number[];
@@ -105,22 +109,36 @@ interface Name {
 export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[]) {
   const known = new Set<string>();
   const names = new Map<string, Name>();
+  const add = (value: string, canonical: string, lookup: string, suffix: string | null) => {
+    const fullNormalized = normalizeSurfaceText(value);
+    const key = `${fullNormalized}\0${lookup}`;
+    const existing = names.get(key);
+    if (existing) existing.canonicals.add(canonical);
+    else
+      names.set(key, {
+        name: value,
+        normalized: lookup,
+        fullNormalized,
+        omittedSuffix: suffix,
+        parts: lookup.split(/([ -])/u),
+        masks: lookup.split(/([ -])/u).map(letterMask),
+        canonicals: new Set([canonical]),
+      });
+  };
   for (const alias of aliases) {
     for (const value of [alias.alias, alias.canonicalTerm]) {
       const normalized = normalizeSurfaceText(value);
       known.add(normalized);
       if (alias.category !== 'medication' || normalized.length > MAX_NAME || !NAME.test(normalized))
         continue;
-      const existing = names.get(normalized);
-      if (existing) existing.canonicals.add(alias.canonicalTerm);
-      else
-        names.set(normalized, {
-          name: value,
-          normalized,
-          parts: normalized.split(/([ -])/u),
-          masks: normalized.split(/([ -])/u).map(letterMask),
-          canonicals: new Set([alias.canonicalTerm]),
-        });
+      add(value, alias.canonicalTerm, normalized, null);
+      // Project only a substantial one-word name with one *existing* letter marker.
+      // Do not erase Forte/Retard, numbers, manufacturers or an explicitly entered marker.
+      // Both Foo Н and Foo П remain distinct alternatives with their full source names.
+      const marked = /^(?:([а-я]{7,48})[ -]([а-я])|([a-z]{7,48})[ -]([a-z]))$/u.exec(normalized);
+      const stem = marked?.[1] ?? marked?.[3];
+      const marker = marked?.[2] ?? marked?.[4];
+      if (stem && marker) add(value, alias.canonicalTerm, stem, marker);
     }
   }
   const lengths = new Map<number, Name[]>();
@@ -171,13 +189,14 @@ export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[])
             break;
           }
         }
-        if (valid && cost > 0)
+        if (valid && (cost > 0 || name.omittedSuffix !== null))
           matches.push({
             name: name.name,
             canonicalTerms: [...name.canonicals].sort().slice(0, 8),
             matchedText: subject,
-            replacementQuery: prefix + name.normalized + remainder.slice(suffixIndex),
-            cost,
+            replacementQuery: prefix + name.fullNormalized + remainder.slice(suffixIndex),
+            cost: cost + Number(name.omittedSuffix !== null),
+            omittedSuffix: name.omittedSuffix,
           });
       }
     }

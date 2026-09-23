@@ -45,7 +45,7 @@ export function buildLookupQueryPlan(
       ...branch,
       id: `medication-spelling-${seen.size}`,
       kind: 'medication',
-      label: `Возможная опечатка: ${candidate.name}`,
+      label: `Возможная опечатка: ${candidate.name}${candidate.omittedSuffix ? ' (название с уточняющим суффиксом)' : ''}`,
       weight: 0.95 - candidate.cost * 0.02,
     });
   }
