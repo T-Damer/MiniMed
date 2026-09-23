@@ -25,7 +25,7 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
-      - name: Preserve original receipts and normalize scoped source formatting
+      - name: Preserve input receipts and run strict source checks
         run: |
           python3 - <<'PY'
           import hashlib,json
@@ -33,28 +33,6 @@ jobs:
           paths=['tools/ingest/src/localmed_ingest/msd_topic_intake.py','tools/ingest/tests/test_msd_topic_intake.py','content/definition-drafts/completion-inputs.json']
           Path('data/build').mkdir(parents=True,exist_ok=True)
           Path('data/build/msd-before.json').write_text(json.dumps({p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in paths}))
-          p=Path(paths[0]);s=p.read_text()
-          pairs=[
-            ('    fold = lambda s: re.sub(r"\\s+", " ", s.casefold().replace("ё", "е")).strip()',
-             '    def fold(s: str) -> str:\n        return re.sub(r"\\s+", " ", s.casefold().replace("ё", "е")).strip()'),
-            ('    route = lambda s: unquote(urlsplit(s).path).replace("/ru-ru/", "/ru/", 1).rstrip("/")',
-             '    def route(s: str) -> str:\n        return unquote(urlsplit(s).path).replace("/ru-ru/", "/ru/", 1).rstrip("/")'),
-            ('"Complete advertised topic URL inventory, not a complete term/definition dictionary. Only bounded missing-name completions; URL slugs never become concept titles. Source sentences require medical/rights review. No article bodies stored, clinical promotion or automatic same-as links."',
-             '("Complete advertised topic URL inventory, not a complete term/definition dictionary. "\n        "Only bounded missing-name completions; URL slugs never become concept titles. "\n        "Source sentences require medical/rights review. No article bodies stored, "\n        "clinical promotion or automatic same-as links.")')]
-          for old,new in pairs:
-              assert s.count(old)==1,old[:90]
-              s=s.replace(old,new)
-          p.write_text(s)
-          p=Path(paths[1]);s=p.read_text()
-          pairs=[
-            ('f\'<urlset xmlns="{NS[1:-1]}"><url><loc>{encoded}</loc></url><url><loc>{encoded}</loc></url></urlset>\'.encode()',
-             '(f\'<urlset xmlns="{NS[1:-1]}"><url><loc>{encoded}</loc></url>\'\n        f\'<url><loc>{encoded}</loc></url></urlset>\').encode()'),
-            ('\'<div style="display: none"><h1 id="topicHeaderTitle">Ложное имя</h1><p data-testid="topicDefinition">Ложный текст.</p></div>\'',
-             '(\'<div style="display: none"><h1 id="topicHeaderTitle">Ложное имя</h1>\'\n        \'<p data-testid="topicDefinition">Ложный текст.</p></div>\')')]
-          for old,new in pairs:
-              assert s.count(old)==1,old[:90]
-              s=s.replace(old,new)
-          p.write_text(s)
           PY
           env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
           files='tools/ingest/src/localmed_ingest/msd_topic_intake.py tools/ingest/tests/test_msd_topic_intake.py'
