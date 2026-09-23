@@ -100,7 +100,9 @@ def main() -> None:
     parser.add_argument("--batch", required=True)
     args = parser.parse_args()
     print(
-        json.dumps(run(args.root.resolve(), args.authoring.resolve(), args.batch), ensure_ascii=False)
+        json.dumps(
+            run(args.root.resolve(), args.authoring.resolve(), args.batch), ensure_ascii=False
+        )
     )
 
 

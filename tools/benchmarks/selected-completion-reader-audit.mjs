@@ -8,7 +8,11 @@ const [dbPath, bundlePath, reportPath] = process.argv.slice(2);
 if (!dbPath || !bundlePath || !reportPath) throw new Error('Expected DB BUNDLE REPORT');
 const bundle = JSON.parse(readFileSync(bundlePath, 'utf8'));
 const db = new Database(dbPath, { readonly: true });
-const reader = await createSqliteDefinitionReference({ async read(sql, args) { return db.query(sql).all(...args); } });
+const reader = await createSqliteDefinitionReference({
+  async read(sql, args) {
+    return db.query(sql).all(...args);
+  },
+});
 const outcomes = [];
 try {
   for (const term of bundle.catalog.terms) {
@@ -34,10 +38,22 @@ try {
     assert(index >= 0, `Completed title not retrieved: ${term.id}`);
     outcomes.push({ id: term.id, title: term.title, rank: index + 1, sourceTextExact: true });
   }
-  writeFileSync(reportPath, `${JSON.stringify({
-    databaseSha256: createHash('sha256').update(readFileSync(dbPath)).digest('hex'),
-    checked: outcomes.length, top1: outcomes.filter((row) => row.rank === 1).length,
-    outcomes, boundary: 'Actual SQLite reader and title checks, not reverse clinical search or medical review.',
-  }, null, 2)}\n`);
+  writeFileSync(
+    reportPath,
+    `${JSON.stringify(
+      {
+        databaseSha256: createHash('sha256').update(readFileSync(dbPath)).digest('hex'),
+        checked: outcomes.length,
+        top1: outcomes.filter((row) => row.rank === 1).length,
+        outcomes,
+        boundary:
+          'Actual SQLite reader and title checks, not reverse clinical search or medical review.',
+      },
+      null,
+      2,
+    )}\n`,
+  );
   console.log(JSON.stringify(outcomes));
-} finally { db.close(); }
+} finally {
+  db.close();
+}
