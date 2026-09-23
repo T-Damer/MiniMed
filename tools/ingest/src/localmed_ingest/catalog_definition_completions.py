@@ -50,16 +50,48 @@ SOURCES = [
         "authority": "secondary-medical",
         "releaseEligible": False,
     },
+    {
+        "id": 3,
+        "title": "К+31 — медицинские статьи",
+        "baseUrl": "https://www.k31.ru/",
+        "sourceType": "medical-clinic",
+        "authority": "secondary-medical",
+        "releaseEligible": False,
+    },
 ]
 # Inspected pages; prefixes identify source text, never replace it with generated prose.
 SEEDS = [
-    ("Гипергидроз", "library/simptomy/25958/", "Гипергидрозом называют"),
-    ("Тахипноэ", "library/simptomy/24895/", "Учащенное неглубокое дыхание (тахипноэ)"),
-    ("Гипостенурия", "library/simptomy/39132/", "Гипостенурия"),
-    ("Дисгевзия", "library/simptomy/25924/", "Третий тип – извращение вкусового ощущения"),
-    ("Уремия", "library/simptomy/36120/", "Уремия – это"),
-    ("Олигурия", "library/simptomy/35520/", "Олигурия – симптом"),
-    ("Почечная недостаточность", "library/bolezni/29344/", "Почечная недостаточность — состояние"),
+    (
+        "Гипергидроз",
+        3,
+        "service/kosmetologiya/treatment-of-hyperhidrosis.html",
+        "Гипергидроз (повышенная потливость)",
+    ),
+    ("Эпидидимит", 3, "service/urologiya/epididymitis.html", "Эпидидимит – это"),
+    (
+        "Эзофагогастродуоденоскопия",
+        3,
+        "service/endoskopiya/ezofagogastroduodenoskopiya-gastroskopiya-ili-egds.html",
+        "ЭГДС является эндоскопическим методом",
+    ),
+    (
+        "Желчекаменная болезнь",
+        3,
+        "service/hirurgiya/zhelchekamennaya-bolezn-holelitiaz.html",
+        "Желчекаменная болезнь (холелитиаз)",
+    ),
+    (
+        "Энтропион",
+        3,
+        "service/plasticheskaya-hirurgiya/elimination-of-entropion-or-ectropion-of-the-eyelids.html",
+        "Заворот века или энтропион представляет",
+    ),
+    (
+        "Роговица",
+        3,
+        "service/oftalmologiya-i-mikrohirurgiya-glaza/keratoplastika.html",
+        "Роговица – наружный прозрачный",
+    ),
 ]
 
 
@@ -187,9 +219,9 @@ def run(root: Path, batch: str, limit: int) -> dict[str, object]:
     discovery: list[dict[str, object]] = []
     selections: list[tuple[str, int, str, str | None]] = []
     catalog_receipt: str | None = None
-    for title, path, prefix in SEEDS:
+    for title, source, path, prefix in SEEDS:
         if normalized_name(title) in ready:
-            selections.append((ready[normalized_name(title)], 2, path, prefix))
+            selections.append((ready[normalized_name(title)], source, path, prefix))
     try:
         raw_catalog = reader.read(CATALOG)
         catalog_receipt = hashlib.sha256(raw_catalog).hexdigest()
