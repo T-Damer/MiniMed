@@ -1,0 +1,72 @@
+name: Finalize selected definition intake
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/selected-definition-intake-finalize.yml]
+permissions:
+  contents: write
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Record only the already-verified edition
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          report_path=Path('docs/research/selected-medical-definitions-2026-09-23.json')
+          r=json.loads(report_path.read_text())
+          assert r['tests']['failures']==r['tests']['errors']==0
+          assert r['preparedReplayExact'] and r['selectedIdentitySetExact'] and r['originalSourceFilesUnchanged']
+          assert r['sourceManifestSha256']==hashlib.sha256(Path('content/definition-drafts/source-inputs.json').read_bytes()).hexdigest()
+          assert r['preparedFileSha256']==hashlib.sha256(Path('content/definition-drafts/selected-medical-definitions-2026.09.23.json').read_bytes()).hexdigest()
+          marker='## Targeted medical definitions — 2026-09-23'
+          section=f'''{marker}
+
+          Added **{r['selectedDefinitions']}** short source definitions after inspecting {r['candidates']}
+          candidates; {len(r['deferred'])} already-indexed names were deferred, not merged or erased.
+          The ordinary edition now includes **{r['currentDefinitions']} definition candidates** plus
+          **{r['preservedDiscoveredNames']} preserved discovery-name records** ({r['searchableEntries']} total).
+          Source sentences, available authors/reviewers/dates and locators are retained. These are
+          inspected excerpts, not archived full HTML; source medical review/release review remain open.
+          All {r['allSourceBlocksCompared']} source blocks and {r['allSourceDescriptorsCompared']} source
+          descriptors match the prepared projection. {r['tests']['tests']} scoped Python tests and strict
+          Python checks passed. Actual reader: {r['actualReader']['namedTop1']}/{r['actualReader']['definitionsRead']}
+          new title queries rank first. The source-derived phrase diagnostic is only
+          {r['authoredPhraseDiagnostic']['top20']}/{r['authoredPhraseDiagnostic']['total']} Top-20, with misses retained.
+          This is not independent clinical/reverse-search quality or Android qualification.
+          Actual files: {r['installedBytes']} SQLite bytes / {r['downloadBytes']} gzip bytes.
+          Evidence: `research/selected-medical-definitions-delivery-2026-09-23.md` and its JSON.
+          DEV version: `2026.09.23-medical-definitions-1`. No model/UI/native changes, APK or release.
+          Next: continue named medical definition gaps and explicit base/differences authoring;
+          do not inflate the definition count with article headings or restored names.
+
+          '''
+          section='\n'.join(line[10:] if line.startswith('          ') else line for line in section.splitlines())
+          for name in ('docs/CURRENT_STATE.md','docs/DEFINITION_REFERENCE_PLAN.md'):
+              p=Path(name);s=p.read_text()
+              assert marker not in s
+              heading,body=s.split('\n',1)
+              p.write_text(heading+'\n\n'+section+body)
+          PY
+          git rm .github/workflows/selected-definition-intake-check.yml .github/workflows/selected-definition-intake-finalize.yml
+      - name: Save documentation without overwriting concurrent content
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'docs(content): record measured definition intake and clean temporary CI [skip ci]'
+          own=$(git rev-parse HEAD)
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
+          remote=$(git rev-parse FETCH_HEAD)
+          if [ "$remote" != '${{ github.sha }}' ]; then git switch --detach "$remote"; git cherry-pick "$own"; fi
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
