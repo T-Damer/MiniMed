@@ -1,0 +1,437 @@
+{
+  "checkedCommit": "fdb4497ec58895ecdb701cf8b14f074dd5f8bf27",
+  "robotsSha256": "fc788bec68e5deb3c8d3a2024672c1ba60395d13ca49c2f3f6c55862f671d9f6",
+  "pages": [
+    {
+      "path": "/ru/professional/health-topics",
+      "sha256": "5e565b509ad6726a3e20bb3f5eae401c570da5e0429c9a748828b5845ed0ce2a",
+      "bytes": 164144,
+      "componentShapes": [
+        {
+          "id": "eb0a0361-9136-45d7-bbbe-9cb7b70abf2b",
+          "shape": {
+            "alternate": "NoneType"
+          }
+        },
+        {
+          "id": "7e476694-df84-4517-a568-752dc2b9241d",
+          "shape": {
+            "languageSwitcherData": {
+              "uid": "str",
+              "componentName": "str",
+              "dataSource": "str",
+              "fields": {
+                "data": {
+                  "item": "dict",
+                  "datasource": "dict"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "5ffcdf16-8c19-4aed-b309-c7ff6e118414",
+          "shape": {
+            "languageSwitcherData": {
+              "uid": "str",
+              "componentName": "str",
+              "dataSource": "str",
+              "fields": {
+                "data": {
+                  "item": "dict",
+                  "datasource": "dict"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "2c4d460c-8235-45e1-be15-8219466de984",
+          "shape": {
+            "langswitcher": {
+              "uid": "str",
+              "componentName": "str",
+              "dataSource": "str",
+              "fields": {
+                "data": {
+                  "item": "dict",
+                  "datasource": "dict"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "903ce423-d427-4892-9c49-34edfe5af927",
+          "shape": {
+            "redirectUrl": "str",
+            "standalonepage": "str",
+            "enabledData": {
+              "length": 2,
+              "firstShape": {
+                "ContentType": {
+                  "value": "str"
+                }
+              }
+            },
+            "addtoanyData": {
+              "AdditionalSocialChannelsPrioritizeServices": {
+                "targetItems": {
+                  "length": 7,
+                  "firstShape": "dict"
+                }
+              },
+              "AdditionalIcons": {
+                "targetItems": {
+                  "length": 8,
+                  "firstShape": "dict"
+                }
+              }
+            },
+            "searchResultAI": "NoneType",
+            "clientData": {
+              "length": 5,
+              "firstShape": {
+                "name": "str",
+                "CSS": {
+                  "value": "str"
+                },
+                "IsQrCode": {
+                  "boolValue": "bool"
+                },
+                "IsLogo": {
+                  "boolValue": "bool"
+                },
+                "IsCopyRight": {
+                  "boolValue": "bool"
+                },
+                "ConsumerLogoUrl": {
+                  "url": "str"
+                },
+                "ProfessionalLogoUrl": {
+                  "url": "str"
+                },
+                "VeterinaryLogoUrl": {
+                  "url": "str"
+                }
+              }
+            },
+            "stickyRightToolbarIcons": {
+              "StickyIcons": {
+                "targetItems": {
+                  "length": 10,
+                  "firstShape": "dict"
+                }
+              }
+            },
+            "stickyFooter": {
+              "StickyIcons": {
+                "targetItems": {
+                  "length": 5,
+                  "firstShape": "dict"
+                }
+              },
+              "MoreIcons": {
+                "targetItems": {
+                  "length": 7,
+                  "firstShape": "dict"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "94d783e0-8321-401b-bdae-8d9f6abf8f70",
+          "shape": {
+            "items": {
+              "length": 1,
+              "firstShape": {
+                "title": "str",
+                "url": "str"
+              }
+            },
+            "schema": {
+              "itemListElement": {
+                "length": 2,
+                "firstShape": {
+                  "@type": "str",
+                  "item": "dict",
+                  "position": "int"
+                }
+              }
+            },
+            "IsBreadcrumbSchema": {
+              "value": "str"
+            }
+          }
+        },
+        {
+          "id": "bf2427fa-b5e6-4e18-ae2a-b17eb9e72d74",
+          "shape": {
+            "layoutData": {
+              "htmltotextpageTitle": "str",
+              "htmltotextpageName": "str"
+            },
+            "firstUnrestrictedImageUrl": "str",
+            "firstImageAlt": "str",
+            "robotsTagCheck": "bool",
+            "domainUrl": "str"
+          }
+        },
+        {
+          "id": "cd6ccea5-d8ab-41c6-996c-bd9ceaa6c209",
+          "shape": {
+            "data": {
+              "length": 26,
+              "firstShape": {
+                "uniqueid_t": "str",
+                "thumbnailurlcomputed_s": "str",
+                "_uniqueid": "str",
+                "relativeurlcomputed_s": "str",
+                "titlecomputed_t": "str"
+              }
+            }
+          }
+        }
+      ],
+      "topicMetadataRows": 26,
+      "firstTitles": [
+        {
+          "uniqueid_t": "v878840_ru",
+          "titlecomputed_t": "Аллергология и иммунология",
+          "relativeurlcomputed_s": "/professional/иммунология-аллергические-расстройства"
+        },
+        {
+          "uniqueid_t": "v878829_ru",
+          "titlecomputed_t": "Гастроэнтерология",
+          "relativeurlcomputed_s": "/professional/заболевания-желудочно-кишечного-тракта"
+        },
+        {
+          "uniqueid_t": "v878838_ru",
+          "titlecomputed_t": "Гематология",
+          "relativeurlcomputed_s": "/professional/гематология"
+        },
+        {
+          "uniqueid_t": "v878830_ru",
+          "titlecomputed_t": "Гепатология",
+          "relativeurlcomputed_s": "/professional/болезни-печени-и-желчевыводящих-путей"
+        }
+      ]
+    },
+    {
+      "path": "/ru/professional/неврологические-расстройства",
+      "sha256": "42d2061044ededfb8a98c0c92671550cc122910288602068659cbfcd9d844ca5",
+      "bytes": 2710878,
+      "componentShapes": [
+        {
+          "id": "7e476694-df84-4517-a568-752dc2b9241d",
+          "shape": {
+            "languageSwitcherData": {
+              "uid": "str",
+              "componentName": "str",
+              "dataSource": "str",
+              "fields": {
+                "data": {
+                  "item": "dict",
+                  "datasource": "dict"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "185d4191-88a8-4e17-b350-9548320248b9",
+          "shape": {
+            "languageSwitcherData": {
+              "uid": "str",
+              "componentName": "str",
+              "dataSource": "str",
+              "fields": {
+                "data": {
+                  "item": "dict",
+                  "datasource": "dict"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "2c4d460c-8235-45e1-be15-8219466de984",
+          "shape": {
+            "langswitcher": {
+              "uid": "str",
+              "componentName": "str",
+              "dataSource": "str",
+              "fields": {
+                "data": {
+                  "item": "dict",
+                  "datasource": "dict"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "903ce423-d427-4892-9c49-34edfe5af927",
+          "shape": {
+            "redirectUrl": "str",
+            "standalonepage": "str",
+            "enabledData": {
+              "length": 2,
+              "firstShape": {
+                "ContentType": {
+                  "value": "str"
+                }
+              }
+            },
+            "addtoanyData": {
+              "AdditionalSocialChannelsPrioritizeServices": {
+                "targetItems": {
+                  "length": 7,
+                  "firstShape": "dict"
+                }
+              },
+              "AdditionalIcons": {
+                "targetItems": {
+                  "length": 8,
+                  "firstShape": "dict"
+                }
+              }
+            },
+            "searchResultAI": "NoneType",
+            "clientData": {
+              "length": 5,
+              "firstShape": {
+                "name": "str",
+                "CSS": {
+                  "value": "str"
+                },
+                "IsQrCode": {
+                  "boolValue": "bool"
+                },
+                "IsLogo": {
+                  "boolValue": "bool"
+                },
+                "IsCopyRight": {
+                  "boolValue": "bool"
+                },
+                "ConsumerLogoUrl": {
+                  "url": "str"
+                },
+                "ProfessionalLogoUrl": {
+                  "url": "str"
+                },
+                "VeterinaryLogoUrl": {
+                  "url": "str"
+                }
+              }
+            },
+            "stickyRightToolbarIcons": {
+              "StickyIcons": {
+                "targetItems": {
+                  "length": 10,
+                  "firstShape": "dict"
+                }
+              }
+            },
+            "stickyFooter": {
+              "StickyIcons": {
+                "targetItems": {
+                  "length": 5,
+                  "firstShape": "dict"
+                }
+              },
+              "MoreIcons": {
+                "targetItems": {
+                  "length": 7,
+                  "firstShape": "dict"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "94d783e0-8321-401b-bdae-8d9f6abf8f70",
+          "shape": {
+            "items": {
+              "length": 1,
+              "firstShape": {
+                "title": "str",
+                "url": "str"
+              }
+            },
+            "schema": {
+              "itemListElement": {
+                "length": 2,
+                "firstShape": {
+                  "@type": "str",
+                  "item": "dict",
+                  "position": "int"
+                }
+              }
+            },
+            "IsBreadcrumbSchema": {
+              "value": "str"
+            }
+          }
+        },
+        {
+          "id": "77da01c3-4cbc-4b0f-beef-51fa2d8c6c90",
+          "shape": {
+            "layoutData": {
+              "htmltotextpageTitle": "str",
+              "htmltotextpageName": "str"
+            },
+            "firstUnrestrictedImageUrl": "str",
+            "firstImageAlt": "str",
+            "robotsTagCheck": "bool",
+            "domainUrl": "str"
+          }
+        },
+        {
+          "id": "29d953c3-ae1e-436d-bc73-9a65abb23ea1",
+          "shape": {
+            "itemId": "str",
+            "fields": {
+              "data": {
+                "item": {
+                  "SectionName": "dict",
+                  "ChaptersCollapsible": "dict",
+                  "SectionImage": "dict",
+                  "SectionChildrens": "dict"
+                }
+              }
+            },
+            "FinalResultforStandalone": {
+              "finalResult": {
+                "urls": {
+                  "length": 2,
+                  "firstShape": "dict"
+                },
+                "canonicalUrl": "str",
+                "xdefault": "str"
+              },
+              "XDefault": "str"
+            }
+          }
+        }
+      ],
+      "topicMetadataRows": 0,
+      "firstTitles": []
+    },
+    {
+      "path": "/ru/sitemap.xml",
+      "sha256": "be3597923c54ed83ec69b0ba90c592d51a1722a2b34ffb138d5c2f9c2cda57e6",
+      "bytes": 3436,
+      "root": "{http://www.sitemaps.org/schemas/sitemap/0.9}sitemapindex",
+      "locations": 24,
+      "firstLocations": [
+        "https://www.msdmanuals.com/ru/sitemaps/home-audio.xml",
+        "https://www.msdmanuals.com/ru/sitemaps/home-author.xml",
+        "https://www.msdmanuals.com/ru/sitemaps/home-biodigital.xml",
+        "https://www.msdmanuals.com/ru/sitemaps/home-figure.xml",
+        "https://www.msdmanuals.com/ru/sitemaps/home-generic-pages.xml"
+      ]
+    }
+  ]
+}
