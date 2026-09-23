@@ -35,9 +35,11 @@ def test_inspected_manual_uses_ascii_http_path_without_changing_source_authority
     ],
 )
 def test_manual_does_not_relax_authority_boundary(url: str) -> None:
-    with patch("http.client.HTTPSConnection") as factory:
-        with pytest.raises(ValueError, match="allowlist"):
-            fetch_public(url)
+    with (
+        patch("http.client.HTTPSConnection") as factory,
+        pytest.raises(ValueError, match="allowlist"),
+    ):
+        fetch_public(url)
     factory.assert_not_called()
 
 

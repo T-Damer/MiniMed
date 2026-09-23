@@ -41,7 +41,9 @@ def run(root: Path, authoring: Path, batch: str) -> dict[str, object]:
         "batch": batch,
         "before": before_census,
         "acquisition": acquisition,
-        "boundary": "Source-local short excerpts; not clinician reviewed, public release or clinical rules.",
+        "boundary": (
+            "Source-local short excerpts; not clinician reviewed, public release or clinical rules."
+        ),
     }
     receipt.parent.mkdir(parents=True, exist_ok=True)
     if acquisition["accepted"] == 0:
@@ -97,7 +99,9 @@ def main() -> None:
     parser.add_argument("--authoring", type=Path, required=True)
     parser.add_argument("--batch", required=True)
     args = parser.parse_args()
-    print(json.dumps(run(args.root.resolve(), args.authoring.resolve(), args.batch), ensure_ascii=False))
+    print(
+        json.dumps(run(args.root.resolve(), args.authoring.resolve(), args.batch), ensure_ascii=False)
+    )
 
 
 if __name__ == "__main__":
