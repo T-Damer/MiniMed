@@ -97,11 +97,13 @@ const report = {
   checkedCommit: commit,
   databaseSha256: hash(readFileSync(dbPath)),
   caseSha256: hash(JSON.stringify(cases)),
-  sampling: '100 unique mechanically transposed queries from actual unambiguous source names; SHA-256 order, fixed seed, no production-generator reuse. Existing valid names are never corrupted into another existing valid name.',
+  sampling:
+    '100 unique mechanically transposed queries from actual unambiguous source names; SHA-256 order, fixed seed, no production-generator reuse. Existing valid names are never corrupted into another existing valid name.',
   before: summarize(before),
   after: summarize(after),
   cases: after.map((row, index) => ({ ...row, beforeRank: before[index].rank })),
-  limitations: 'One adjacent-letter transposition in a single long alphabetic name, not arbitrary spelling, semantic search or clinical validation. Latency is one host run, not Android qualification.',
+  limitations:
+    'One adjacent-letter transposition in a single long alphabetic name, not arbitrary spelling, semantic search or clinical validation. Latency is one host run, not Android qualification.',
 };
 writeFileSync(output, `${JSON.stringify(report, null, 2)}\n`);
 console.log(JSON.stringify({ ...report, cases: undefined }, null, 2));
