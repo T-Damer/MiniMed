@@ -42,7 +42,11 @@ def main() -> None:
     parser.add_argument(
         "--scope", choices=("definitions", "reference"), default="definitions"
     )
+    parser.add_argument("--supplied-root", type=Path)
+    parser.add_argument("--supplied-manifest", type=Path)
     args = parser.parse_args()
+    if (args.supplied_root is None) != (args.supplied_manifest is None):
+        parser.error("Supply both --supplied-root and --supplied-manifest")
     if not re.fullmatch(r"[a-z0-9]+(?:[.-][a-z0-9]+)*", args.version):
         parser.error("Use a lowercase version separated by dots or hyphens.")
     root = Path(__file__).resolve().parent.parent
@@ -70,6 +74,8 @@ def main() -> None:
         compact_metadata=False,
         definitions_only=args.scope == "definitions",
         discovery_inputs=read_name_manifest(root),
+        supplied_root=args.supplied_root,
+        supplied_manifest=args.supplied_manifest,
     )
     if args.scope == "definitions":
         selection = obj(report["selection"])
@@ -78,7 +84,23 @@ def main() -> None:
                 "Definition scope differs from the complete source manifest"
             )
         expected_entries = number(selection["definitionRecordsAfter"])
-    definition_entries = expected_entries
+    supplied = obj(report["suppliedSources"])
+    supplied_counts: dict[str, int] = {}
+    for key in ("entries", "definitions", "abbreviations", "otherReferences"):
+        value = supplied[key]
+        if type(value) is not int or value < 0:
+            raise ValueError("Invalid supplied-source count")
+        supplied_counts[key] = value
+    if supplied_counts["entries"] != sum(
+        supplied_counts[key]
+        for key in ("definitions", "abbreviations", "otherReferences")
+    ):
+        raise ValueError("Supplied source counters disagree")
+    definition_entries = (
+        expected_entries
+        + supplied_counts["definitions" if args.scope == "definitions" else "entries"]
+    )
+    expected_entries += supplied_counts["entries"]
     raw_names = report.get("discoveredNames", 0)
     discovered_names = 0 if raw_names == 0 else number(raw_names)
     expected_entries += discovered_names
@@ -173,9 +195,15 @@ def main() -> None:
         module["description"] = str(
             module["description"]
         ) + f" Названий для дополнения: {discovered_names:,}.".replace(",", " ")
+    if supplied_counts["entries"]:
+        module["description"] = str(module["description"]) + (
+            f" Дополнительных справочных записей: {supplied_counts['otherReferences']};"
+            f" расшифровок сокращений: {supplied_counts['abbreviations']}."
+        )
     descriptor = (
         root / "apps/app/src/features/modules/catalog.definition-reference.local.json"
     )
+    descriptor.parent.mkdir(parents=True, exist_ok=True)
     descriptor.write_text(
         json.dumps(
             {"module": module, "fileName": archive.name}, ensure_ascii=False, indent=2

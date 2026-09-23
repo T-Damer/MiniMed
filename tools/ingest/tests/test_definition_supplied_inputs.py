@@ -23,8 +23,14 @@ def supplied(root: Path) -> tuple[Path, Path]:
     original.write_bytes(b"%PDF-1.7\nsynthetic source-receipt fixture\n")
     data = fixture()
     descriptor = obj(seq(data["sources"], 10)[0])
-    descriptor.update({"sourceType": "owner-pdf", "baseUrl": "", "fileName": original.name,
-                       "sourceSha256": hashlib.sha256(original.read_bytes()).hexdigest()})
+    descriptor.update(
+        {
+            "sourceType": "owner-pdf",
+            "baseUrl": "",
+            "fileName": original.name,
+            "sourceSha256": hashlib.sha256(original.read_bytes()).hexdigest(),
+        }
+    )
     for value in seq(data["blocks"], 10):
         obj(value)["path"] = ""
     for value in seq(data["terms"], 10):
@@ -102,37 +108,54 @@ def test_invalid_prepared_material_cannot_be_registered(tmp_path: Path, mutation
         data["terms"][1]["id"] = data["terms"][0]["id"]
     prepared.write_text(encoded(data))
     with pytest.raises(ValueError):
-        register_supplied_inputs(tmp_path, Path("must-not-exist.json"),
-                                 (Path(prepared.name),), (Path(original.name),))
+        register_supplied_inputs(
+            tmp_path, Path("must-not-exist.json"), (Path(prepared.name),), (Path(original.name),)
+        )
     assert not (tmp_path / "must-not-exist.json").exists()
 
 
 def test_overwrite_and_unused_original_are_rejected(tmp_path: Path) -> None:
     original, prepared, manifest = registered(tmp_path)
     with pytest.raises(ValueError, match="new manifest"):
-        register_supplied_inputs(tmp_path, Path(manifest.name),
-                                 (Path(prepared.name),), (Path(original.name),))
+        register_supplied_inputs(
+            tmp_path, Path(manifest.name), (Path(prepared.name),), (Path(original.name),)
+        )
     extra = tmp_path / "extra.pdf"
     extra.write_bytes(b"%PDF-1.7\nunused original\n")
     with pytest.raises(ValueError, match="unused"):
-        register_supplied_inputs(tmp_path, Path("new.json"),
-                                 (Path(prepared.name),), (Path(original.name), Path(extra.name)))
+        register_supplied_inputs(
+            tmp_path,
+            Path("new.json"),
+            (Path(prepared.name),),
+            (Path(original.name), Path(extra.name)),
+        )
     assert not (tmp_path / "new.json").exists()
 
 
-def test_definitions_and_instruments_share_normal_database_without_new_facts(tmp_path: Path) -> None:
+def test_definitions_and_instruments_share_normal_database_without_new_facts(
+    tmp_path: Path,
+) -> None:
     _, prepared, manifest = registered(tmp_path)
     ordinary = tmp_path / "ordinary.json"
     ordinary.write_text(encoded(fixture()), encoding="utf-8")
     db_path = tmp_path / "combined.db"
     report = build_compact_definition_reference(
-        (ordinary,), db_path, input_root=tmp_path, edition_id="fixture.unified", version="1",
-        built_at="2026-09-23", definitions_only=True,
-        supplied_root=tmp_path, supplied_manifest=Path(manifest.name),
+        (ordinary,),
+        db_path,
+        input_root=tmp_path,
+        edition_id="fixture.unified",
+        version="1",
+        built_at="2026-09-23",
+        definitions_only=True,
+        supplied_root=tmp_path,
+        supplied_manifest=Path(manifest.name),
     )
     assert report["entries"] == 3
     assert report["suppliedSources"] == {
-        "entries": 2, "definitions": 1, "abbreviations": 0, "otherReferences": 1,
+        "entries": 2,
+        "definitions": 1,
+        "abbreviations": 0,
+        "otherReferences": 1,
     }
     assert report["logicalRoundTripEqual"] is True
     assert len(seq(report["receipts"], 10)) == 2
@@ -140,14 +163,20 @@ def test_definitions_and_instruments_share_normal_database_without_new_facts(tmp
         assert db.execute("PRAGMA integrity_check").fetchone() == ("ok",)
         assert not db.execute("PRAGMA foreign_key_check").fetchall()
         assert {r[0] for r in db.execute("SELECT id FROM knowledge_entities")} == {
-            "fixture.second", "supplied.fixture.first", "supplied.fixture.second",
+            "fixture.second",
+            "supplied.fixture.first",
+            "supplied.fixture.second",
         }
         for table in ("knowledge_facts", "knowledge_relations", "tool_definitions"):
             assert db.execute(f"SELECT count(*) FROM {table}").fetchone() == (0,)
         data = json.loads(prepared.read_text())
         for block in data["blocks"]:
-            assert db.execute("SELECT count(*) FROM chunks WHERE original_text=?",
-                              (block["text"],)).fetchone()[0] >= 1
+            assert (
+                db.execute(
+                    "SELECT count(*) FROM chunks WHERE original_text=?", (block["text"],)
+                ).fetchone()[0]
+                >= 1
+            )
         assert db.execute(
             "SELECT DISTINCT review_status FROM definition_reference_links"
         ).fetchall() == [("proposed",)]
@@ -158,8 +187,9 @@ def test_abbreviation_is_not_counted_as_a_clinical_definition(tmp_path: Path) ->
     data = json.loads(prepared.read_text())
     data["terms"][1]["extractionRole"] = "abbreviation-expansion"
     prepared.write_text(encoded(data))
-    register_supplied_inputs(tmp_path, Path("registered.json"),
-                             (Path(prepared.name),), (Path(original.name),))
+    register_supplied_inputs(
+        tmp_path, Path("registered.json"), (Path(prepared.name),), (Path(original.name),)
+    )
     snapshot = load_supplied_inputs(tmp_path, Path("registered.json"))[0]
     assert (snapshot.definitions, snapshot.abbreviations) == (0, 1)
 
@@ -170,9 +200,15 @@ def test_conflicting_global_identity_fails_without_database(tmp_path: Path) -> N
     ordinary = tmp_path / "ordinary.json"
     ordinary.write_text(encoded(original))
     output = tmp_path / "not-created.db"
-    with pytest.raises(ValueError, match="repeats|conflicting"):
+    with pytest.raises(ValueError, match=r"repeats|conflicting"):
         build_compact_definition_reference(
-            (ordinary,), output, input_root=tmp_path, edition_id="fixture.unified", version="1",
-            built_at="2026-09-23", supplied_root=tmp_path, supplied_manifest=Path(manifest.name),
+            (ordinary,),
+            output,
+            input_root=tmp_path,
+            edition_id="fixture.unified",
+            version="1",
+            built_at="2026-09-23",
+            supplied_root=tmp_path,
+            supplied_manifest=Path(manifest.name),
         )
     assert not output.exists()

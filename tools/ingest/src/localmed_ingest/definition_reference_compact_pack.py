@@ -29,6 +29,8 @@ def build_compact_definition_reference(
     compact_metadata: bool = False,
     definitions_only: bool = False,
     discovery_inputs: tuple[Path, ...] = (),
+    supplied_root: Path | None = None,
+    supplied_manifest: Path | None = None,
 ) -> dict[str, object]:
     if output.exists():
         raise ValueError("Compact edition output must be a new immutable path")
@@ -44,6 +46,8 @@ def build_compact_definition_reference(
             built_at=built_at,
             definitions_only=definitions_only,
             discovery_inputs=discovery_inputs,
+            supplied_root=supplied_root,
+            supplied_manifest=supplied_manifest,
         )
         allocation_before = profile_reference(staged) if profile else None
         with closing(sqlite3.connect(staged)) as database, database:
@@ -117,6 +121,7 @@ def build_compact_definition_reference(
         "metadataCompaction": metadata,
         "linkLayout": "numeric-v1",
         "entries": baseline["entries"],
+        "suppliedSources": baseline.get("suppliedSources"),
         "discoveredNames": baseline.get("discoveredNames", 0),
         "selection": baseline.get("selection"),
         "sources": baseline["sources"],

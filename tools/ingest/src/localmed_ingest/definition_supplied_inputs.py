@@ -3,6 +3,7 @@
 A matching PDF hash identifies the input; it does not establish clinical correctness or
 prove that arbitrary prepared prose is faithful. Replay/review remains a separate gate.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -184,8 +185,14 @@ def main() -> None:
     parser.add_argument("--input", type=Path, action="append", required=True)
     parser.add_argument("--source", type=Path, action="append", required=True)
     args = parser.parse_args()
-    register_supplied_inputs(args.root.resolve(), args.manifest, tuple(args.input), tuple(args.source))
-    print(json.dumps({"status": "registered", "inputs": len(args.input), "originals": len(args.source)}))
+    register_supplied_inputs(
+        args.root.resolve(), args.manifest, tuple(args.input), tuple(args.source)
+    )
+    print(
+        json.dumps(
+            {"status": "registered", "inputs": len(args.input), "originals": len(args.source)}
+        )
+    )
 
 
 if __name__ == "__main__":

@@ -1,5 +1,19 @@
 # Current state
 
+## Shared supplied-reference build — 2026-09-23
+
+The ordinary reference preparer accepts an explicit `--supplied-root` and relative
+`--supplied-manifest`. The registered PDF and prepared-excerpt receipts are validated before
+the existing SQLite projection/compaction. Supplied definitions, abbreviation expansions and
+other source reference records are counted separately; all share the normal source registry,
+dictionary reader and module ID. Source hashes identify inputs, not clinical or textual approval.
+No separate personal viewer or storage owner was introduced. No supplied text is committed.
+CI used only synthetic receipts with the actual builders; evidence:
+`research/supplied-reference-ci-2026-09-23.json`. Real supplied-source replay and the full combined
+local edition are a separate companion measurement, not a claim about this CI runner.
+Search and medical definition gaps remain primary; base-definition/differences reconciliation
+and genuine reverse-search evaluation remain open. No model/UI migration, APK or release.
+
 ## Name coverage restored — 2026-09-23
 
 The ordinary knowledge edition now contains **8410 definition candidates** plus

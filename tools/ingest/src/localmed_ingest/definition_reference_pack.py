@@ -557,6 +557,8 @@ def build_definition_reference(
     built_at: str,
     definitions_only: bool = False,
     discovery_inputs: tuple[Path, ...] = (),
+    supplied_root: Path | None = None,
+    supplied_manifest: Path | None = None,
 ) -> dict[str, object]:
     projection = Projection()
     if not inputs or len(inputs) > 32:
@@ -595,7 +597,28 @@ def build_definition_reference(
         seen.add(receipt)
         restored += add_name_inventory(projection, json.loads(payload), receipt)
         projection.receipts.append({"sha256": receipt, "bytes": len(payload)})
+    from .definition_supplied_inputs import load_supplied_inputs
+
+    if (supplied_root is None) != (supplied_manifest is None):
+        raise ValueError("Supply both the source root and the source manifest")
+    supplied_entries = supplied_definitions = supplied_abbreviations = 0
+    if supplied_root is not None and supplied_manifest is not None:
+        for snapshot in load_supplied_inputs(supplied_root, supplied_manifest):
+            if snapshot.sha256 in seen:
+                raise ValueError("Supplied input repeats an already selected snapshot")
+            seen.add(snapshot.sha256)
+            projection.add(json.loads(snapshot.payload), snapshot.sha256)
+            projection.receipts.append({"sha256": snapshot.sha256, "bytes": len(snapshot.payload)})
+            supplied_entries += snapshot.entries
+            supplied_definitions += snapshot.definitions
+            supplied_abbreviations += snapshot.abbreviations
     report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)
+    report["suppliedSources"] = {
+        "entries": supplied_entries,
+        "definitions": supplied_definitions,
+        "abbreviations": supplied_abbreviations,
+        "otherReferences": supplied_entries - supplied_definitions - supplied_abbreviations,
+    }
     report["discoveredNames"] = restored
     report["selection"] = selection
     return report
