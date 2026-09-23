@@ -1,0 +1,30 @@
+name: Supplied-source local verification checkout
+on:
+  workflow_dispatch:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/source-intake-checkout.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Archive only tracked preparer code and public authoring inputs
+        run: |
+          mkdir -p /tmp/minimed-intake-source
+          git archive --format=tar HEAD tools/ingest packages/contracts packages/storage-sqlite scripts content/definition-drafts docs/TECHNICAL_PLAN.md docs/REFERENCE_SOURCE_POLICY.md docs/DEFINITION_REFERENCE_PLAN.md docs/CURRENT_STATE.md AGENTS.md | gzip -n -1 > /tmp/minimed-intake-source/source.tar.gz
+          test "$(stat -c %s /tmp/minimed-intake-source/source.tar.gz)" -lt 40000000
+          git rev-parse HEAD > /tmp/minimed-intake-source/commit.txt
+          sha256sum /tmp/minimed-intake-source/source.tar.gz > /tmp/minimed-intake-source/SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: source-intake-checkout
+          path: /tmp/minimed-intake-source/
+          retention-days: 1
+          compression-level: 0
+      - run: echo 'Temporary source-code/public-input transfer only. No supplied PDFs, user text, model weights, APK or built database. Delete after materialization.' >> "$GITHUB_STEP_SUMMARY"
