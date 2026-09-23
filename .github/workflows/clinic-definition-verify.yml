@@ -57,6 +57,23 @@ jobs:
               print('Executing: '+name,flush=True)
               subprocess.run(['bash','-e','-o','pipefail','-c',command],env=env,check=True)
           PY
+      - name: Report public acquisition outcomes even when verification fails
+        if: always()
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" python3 - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('docs/research/clinic-definition-acquisition-2026-09-23.json')
+          if path.is_file():
+              report = json.loads(path.read_text(encoding='utf-8'))
+              # Only public authoring identifiers and failure reasons; no source bodies or credentials.
+              summary = {key: report[key] for key in ('candidateCount', 'accepted', 'byStatus')}
+              print(json.dumps(summary, ensure_ascii=False, indent=2))
+              for outcome in report['outcomes']:
+                  print(json.dumps({key: outcome[key] for key in ('id', 'status', 'reason') if key in outcome}, ensure_ascii=False))
+          else:
+              print('Acquisition report was not produced; inspect the preceding failed step.')
+          PY
       - name: No uploaded artifacts
         if: always()
         run: echo 'No private source, full article, database binary, model, cache, APK or Actions artifact uploaded.' >> "$GITHUB_STEP_SUMMARY"
