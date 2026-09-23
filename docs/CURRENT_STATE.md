@@ -1,5 +1,23 @@
 # Current state
 
+## Combined medical definitions and name completions — 2026-09-23
+
+This combined measurement supersedes the separate selected-excerpt and clinic-completion
+totals below. Ordinary preparer: **8433 definition records** and
+**7632 still-empty discovered names**, **16065 searchable records**.
+All 7637 discovery identities are preserved; 5
+now contain sourced definitions. The separate medical-reference batch added
+18 new source-definition records, without overwriting those completions.
+No canonical same-as/base relationships or executable medical rules were inferred.
+Passed 106 scoped Python tests. Compared all 34345 blocks,
+27976 links and the exact identity/coverage set in ordinary SQLite.
+Actual reader: 23 new/completed definitions readable with
+intact source/discovery links; 23 Top-1 title results.
+Files: 129769472 SQLite bytes / 26914582 gzip bytes.
+Medical review, full concept reconciliation and independent reverse-search remain open.
+Evidence: `research/combined-definition-content-2026-09-23.json`.
+DEV version: `2026.09.23-combined-definitions-1`. No model, APK, release or merge.
+
 ## Targeted medical definitions — 2026-09-23
 
 Added **18** short source definitions after inspecting 25
