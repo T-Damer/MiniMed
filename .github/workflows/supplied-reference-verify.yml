@@ -1,0 +1,124 @@
+name: Unified supplied-reference integration
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/supplied-reference-verify.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-supplied-reference-integration
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Connect receipt-bound inputs to the ordinary builders
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          def replace(path,old,new):
+              p=Path(path);s=p.read_text();assert s.count(old)==1,(path,old);p.write_text(s.replace(old,new))
+          pack='tools/ingest/src/localmed_ingest/definition_reference_pack.py'
+          compact='tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py'
+          for path in (pack,compact):
+              replace(path,'    discovery_inputs: tuple[Path, ...] = (),','    discovery_inputs: tuple[Path, ...] = (),\n    supplied_root: Path | None = None,\n    supplied_manifest: Path | None = None,')
+          block='''    from .definition_supplied_inputs import load_supplied_inputs
+
+              if (supplied_root is None) != (supplied_manifest is None):
+                  raise ValueError("Supply both the source root and the source manifest")
+              supplied_entries = supplied_definitions = supplied_abbreviations = 0
+              if supplied_root is not None and supplied_manifest is not None:
+                  for snapshot in load_supplied_inputs(supplied_root, supplied_manifest):
+                      if snapshot.sha256 in seen:
+                          raise ValueError("Supplied input repeats an already selected snapshot")
+                      seen.add(snapshot.sha256)
+                      projection.add(json.loads(snapshot.payload), snapshot.sha256)
+                      projection.receipts.append({"sha256": snapshot.sha256, "bytes": len(snapshot.payload)})
+                      supplied_entries += snapshot.entries
+                      supplied_definitions += snapshot.definitions
+                      supplied_abbreviations += snapshot.abbreviations
+              report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)
+              report["suppliedSources"] = {
+                  "entries": supplied_entries,
+                  "definitions": supplied_definitions,
+                  "abbreviations": supplied_abbreviations,
+                  "otherReferences": supplied_entries - supplied_definitions - supplied_abbreviations,
+              }'''
+          block='\n'.join(line[10:] if line.startswith('              ') else line for line in block.splitlines())
+          replace(pack,'    report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)',block)
+          replace(compact,'            discovery_inputs=discovery_inputs,','            discovery_inputs=discovery_inputs,\n            supplied_root=supplied_root,\n            supplied_manifest=supplied_manifest,')
+          replace(compact,'        "entries": baseline["entries"],','        "entries": baseline["entries"],\n        "suppliedSources": baseline.get("suppliedSources"),')
+          prep='scripts/prepare-definition-reference.py'
+          replace(prep,'    args = parser.parse_args()','    parser.add_argument("--supplied-root", type=Path)\n    parser.add_argument("--supplied-manifest", type=Path)\n    args = parser.parse_args()\n    if (args.supplied_root is None) != (args.supplied_manifest is None):\n        parser.error("Supply both --supplied-root and --supplied-manifest")')
+          replace(prep,'        discovery_inputs=read_name_manifest(root),','        discovery_inputs=read_name_manifest(root),\n        supplied_root=args.supplied_root,\n        supplied_manifest=args.supplied_manifest,')
+          block='''    supplied = obj(report["suppliedSources"])
+              supplied_counts: dict[str, int] = {}
+              for key in ("entries", "definitions", "abbreviations", "otherReferences"):
+                  value = supplied[key]
+                  if type(value) is not int or value < 0:
+                      raise ValueError("Invalid supplied-source count")
+                  supplied_counts[key] = value
+              if supplied_counts["entries"] != sum(supplied_counts[key] for key in ("definitions", "abbreviations", "otherReferences")):
+                  raise ValueError("Supplied source counters disagree")
+              definition_entries = expected_entries + supplied_counts[
+                  "definitions" if args.scope == "definitions" else "entries"
+              ]
+              expected_entries += supplied_counts["entries"]'''
+          block='\n'.join(line[10:] if line.startswith('              ') else line for line in block.splitlines())
+          replace(prep,'    definition_entries = expected_entries',block)
+          replace(prep,'    descriptor = (','    if supplied_counts["entries"]:\n        module["description"] = str(module["description"]) + (\n            f" Дополнительных справочных записей: {supplied_counts[\'otherReferences\']};"\n            f" расшифровок сокращений: {supplied_counts[\'abbreviations\']}."\n        )\n    descriptor = (')
+          replace(prep,'    descriptor.write_text(','    descriptor.parent.mkdir(parents=True, exist_ok=True)\n    descriptor.write_text(')
+          PY
+      - name: Strict checks and synthetic-source shared database regressions
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          files='tools/ingest/src/localmed_ingest/definition_supplied_inputs.py tools/ingest/tests/test_definition_supplied_inputs.py tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py scripts/prepare-definition-reference.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          mkdir -p data/build
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_definition_supplied_inputs.py tools/ingest/tests/test_definition_reference_pack.py tools/ingest/tests/test_definition_reference_scope.py tools/ingest/tests/test_definition_name_inventory.py tools/ingest/tests/test_definition_reference_compact.py --junitxml=data/build/supplied-reference-tests.xml
+          env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/storage-sqlite/tests/definition-reference-layout.test.ts packages/storage-sqlite/tests/definition-reference-metadata.test.ts
+      - name: Persist verified integration code and numeric evidence only
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import ast,hashlib,json,xml.etree.ElementTree as ET
+          from pathlib import Path
+          files=['tools/ingest/src/localmed_ingest/definition_supplied_inputs.py','tools/ingest/src/localmed_ingest/definition_reference_pack.py','tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py','scripts/prepare-definition-reference.py']
+          suites=ET.parse('data/build/supplied-reference-tests.xml').getroot()
+          tests={k:sum(int(s.get(k,'0')) for s in suites.findall('testsuite')) for k in ('tests','errors','failures','skipped')}
+          assert tests['errors']==tests['failures']==0
+          report={'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':tests,'strictPythonChecks':'passed','existingReferenceReaderSuites':'passed','codeAstSha256':{f:hashlib.sha256(ast.dump(ast.parse(Path(f).read_text()),include_attributes=False).encode()).hexdigest() for f in files},'privateSourcesInCI':False,'boundary':'Synthetic source-receipt fixtures with actual ordinary SQLite projection and compaction. No supplied PDFs/text, clinical validation, complete real-corpus build, mobile or UI qualification in this CI run.'}
+          Path('docs/research/supplied-reference-ci-2026-09-23.json').write_text(json.dumps(report,indent=2)+'\n')
+          print(json.dumps(report,indent=2))
+          PY
+          git add tools/ingest/src/localmed_ingest/definition_supplied_inputs.py tools/ingest/tests/test_definition_supplied_inputs.py tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py scripts/prepare-definition-reference.py docs/research/supplied-reference-ci-2026-09-23.json
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): connect supplied sources to the shared knowledge build [skip ci]'
+          own=$(git rev-parse HEAD)
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
+          remote=$(git rev-parse FETCH_HEAD)
+          if [ "$remote" != '${{ github.sha }}' ]; then git switch --detach "$remote"; git cherry-pick "$own"; fi
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: Storage boundary
+        if: always()
+        run: echo 'No supplied sources, database binaries, model, APK, cache or Actions artifacts uploaded by this verification.' >> "$GITHUB_STEP_SUMMARY"
