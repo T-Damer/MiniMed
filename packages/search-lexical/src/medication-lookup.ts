@@ -1,18 +1,25 @@
 import type { AliasRecord } from '@localmed/domain';
 import type { AliasExpansion } from './aliases';
-import { buildLookupQueryPlan as originalLookup, type ClinicalQueryPlan } from './analysis';
+import { type ClinicalQueryPlan, buildLookupQueryPlan as originalLookup } from './analysis';
 import { createMedicationSpellingMatcher } from './medication-spelling';
 
 // The key is the immutable vocabulary supplied by the current core, not a query or a global edition.
 // Reinitialization replaces that array; old indexes are collectible with their vocabulary.
-const matchers = new WeakMap<readonly AliasRecord[], ReturnType<typeof createMedicationSpellingMatcher>>();
+const matchers = new WeakMap<
+  readonly AliasRecord[],
+  ReturnType<typeof createMedicationSpellingMatcher>
+>();
+
+export interface MedicationLookupPlan extends ClinicalQueryPlan {
+  readonly medicationSpellingNames?: readonly string[];
+}
 
 /** Source lookup adds labelled alternatives; clinical facts/calculators keep the original parser. */
 export function buildLookupQueryPlan(
   query: string,
   aliases: readonly AliasRecord[],
   preparedExpansion?: AliasExpansion,
-): ClinicalQueryPlan {
+): MedicationLookupPlan {
   const original = originalLookup(query, aliases, preparedExpansion);
   let match = matchers.get(aliases);
   if (!match) {
@@ -45,12 +52,17 @@ export function buildLookupQueryPlan(
   const terms = [...new Set(branches.flatMap((branch) => branch.terms))];
   return {
     ...original,
+    medicationSpellingNames: [
+      ...new Set(candidates.flatMap((candidate) => [candidate.name, ...candidate.canonicalTerms])),
+    ],
     branches,
     terms,
     ftsQuery: branches.map((branch) => branch.ftsQuery).join(' || '),
     aliasMatches: [
       ...original.aliasMatches,
-      ...candidates.map((candidate) => `${candidate.matchedText} → ${candidate.name} (возможная опечатка)`),
+      ...candidates.map(
+        (candidate) => `${candidate.matchedText} → ${candidate.name} (возможная опечатка)`,
+      ),
     ],
     analysis: {
       ...original.analysis,

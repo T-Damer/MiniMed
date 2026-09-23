@@ -574,6 +574,7 @@ async function buildExactIdentityResults(
   documentIds: ReadonlySet<string>,
   filters: SearchFilters,
   terms: readonly string[],
+  spelling = false,
 ): Promise<readonly SearchResult[]> {
   if (documentIds.size === 0) return [];
   const results = await Promise.all(
@@ -599,8 +600,10 @@ async function buildExactIdentityResults(
         const hit: LexicalHit = { chunk, section, document, rank: 1 };
         return toSearchResult({
           hit,
-          branchIds: new Set(['exact-identity']),
-          branchLabels: new Set(['Точное название']),
+          branchIds: new Set([spelling ? 'medication-spelling-identity' : 'exact-identity']),
+          branchLabels: new Set([
+            spelling ? 'Возможная опечатка в названии препарата' : 'Точное название',
+          ]),
           terms: new Set(terms),
           branchScores: [1],
           sectionBoost: 0,
@@ -1086,7 +1089,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             expand: createAliasExpander(aliasesResult.value),
           };
         }
-        const plan =
+        const plan: ReturnType<typeof buildLookupQueryPlan> =
           parsed.data.analysisMode === 'lookup'
             ? buildLookupQueryPlan(
                 parsed.data.query,
@@ -1161,6 +1164,12 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           ...exactTitleDocumentIds,
           ...exactSecondaryIdentityDocumentIds,
         ]);
+        // Spelling alternatives are navigation candidates, never exact matches or medication facts.
+        const spellingDocumentIds = new Set(
+          ('medicationSpellingNames' in plan ? (plan.medicationSpellingNames ?? []) : [])
+            .flatMap((name) => [...documentIndex.exactIdentityIds(name)])
+            .slice(0, 40),
+        );
         // Keep exact names and every declared meaning through the chunk cutoff for document ranking.
         const lexicalResults = fuseBranchHits(
           branchHits,
@@ -1252,15 +1261,23 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           parsed.data.filters,
           plan.terms,
         );
+        const spellingResults = await buildExactIdentityResults(
+          options.store,
+          new Set([...spellingDocumentIds].filter((id) => !retainedDocumentIds.has(id))),
+          parsed.data.filters,
+          plan.terms,
+          true,
+        );
         const availableDocumentIds = documentIndex.availableIds;
         const results = filterSupersededSummaryResults(
-          mergeExactIdentityResults(retainedResults, exactIdentityResults),
+          mergeExactIdentityResults(retainedResults, [...exactIdentityResults, ...spellingResults]),
           availableDocumentIds,
         );
         const candidateIds = new Set([
           ...branchHits.flatMap((item) => item.hits.map((hit) => hit.chunk.id)),
           ...vectorHits.map((hit) => hit.chunk.id),
           ...exactIdentityResults.map((result) => result.chunkId),
+          ...spellingResults.map((result) => result.chunkId),
         ]);
         const groupedResults = filterSuffixFallbackGroups(
           groupResults(
@@ -1278,7 +1295,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           ),
           plan.analysis.normalizedQuery,
           aliasesResult.value,
-          exactIdentityDocumentIds,
+          new Set([...exactIdentityDocumentIds, ...spellingDocumentIds]),
         );
         return ok({
           requestId: requestId(),
@@ -1294,7 +1311,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 Number(exactTitleDocumentIds.has(right.documentId)) -
                   Number(exactTitleDocumentIds.has(left.documentId)) ||
                 Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
-                  Number(exactSecondaryIdentityDocumentIds.has(left.documentId)),
+                  Number(exactSecondaryIdentityDocumentIds.has(left.documentId)) ||
+                Number(spellingDocumentIds.has(right.documentId)) -
+                  Number(spellingDocumentIds.has(left.documentId)),
             )
             .slice(0, parsed.data.limit),
           diagnostics: {

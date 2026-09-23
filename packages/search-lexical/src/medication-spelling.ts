@@ -10,7 +10,8 @@ export const MAX_MEDICATION_SPELLING_MATCHES = 8;
 const NAME = /^(?:[а-я]+(?:[ -][а-я]+){0,3}|[a-z]+(?:[ -][a-z]+){0,3})$/u;
 const NEGATION = /(?:^|\s)(?:не|нет|без|отрицает|аллергия|аллергии)(?:\s|$)/u;
 const PREFIX = /^(?:(?:инструкция(?:\s+(?:к|по))?|препарат|лекарство|описание)\s+)/u;
-const SUFFIX = /\s+(?=\d|(?:мг|мл|mg|ml|таблетки|капсулы|раствор|инструкция|дозировка|противопоказания|побочные\s+эффекты)(?:\s|$))/u;
+const SUFFIX =
+  /\s+(?=\d|(?:мг|мл|mg|ml|таблетки|капсулы|раствор|инструкция|дозировка|противопоказания|побочные\s+эффекты)(?:\s|$))/u;
 
 interface Distance {
   readonly cost: number;
@@ -71,11 +72,29 @@ export interface MedicationSpellingMatch {
   readonly replacementQuery: string;
   readonly cost: number;
 }
+
+// A safe lower bound: at most three edits can change at most six distinct letters.
+function letterMask(value: string): number {
+  let bits = 0;
+  for (const character of value) bits |= 1 << (character.charCodeAt(0) % 32);
+  return bits;
+}
+function bitCount(value: number): number {
+  let bits = value >>> 0;
+  let count = 0;
+  while (bits) {
+    bits &= bits - 1;
+    count += 1;
+  }
+  return count;
+}
+
 interface Name {
   readonly name: string;
   readonly normalized: string;
   readonly parts: readonly string[];
   readonly canonicals: Set<string>;
+  readonly masks: readonly number[];
 }
 
 /**
@@ -99,6 +118,7 @@ export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[])
           name: value,
           normalized,
           parts: normalized.split(/([ -])/u),
+          masks: normalized.split(/([ -])/u).map(letterMask),
           canonicals: new Set([alias.canonicalTerm]),
         });
     }
@@ -120,6 +140,7 @@ export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[])
     if (!subject || subject.length > MAX_NAME || !NAME.test(subject) || known.has(subject))
       return [];
     const parts = subject.split(/([ -])/u);
+    const masks = parts.map(letterMask);
     const matches: MedicationSpellingMatch[] = [];
     for (let length = Math.max(5, subject.length - 3); length <= subject.length + 3; length += 1) {
       for (const name of lengths.get(length) ?? []) {
@@ -133,6 +154,10 @@ export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[])
           if (i % 2 === 1) {
             if (left !== right) valid = false;
             continue;
+          }
+          if (bitCount((masks[i] ?? 0) ^ (name.masks[i] ?? 0)) > 6) {
+            valid = false;
+            break;
           }
           const distance = tokenDistance(left, right);
           if (!distance) {
