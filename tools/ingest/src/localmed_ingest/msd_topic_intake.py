@@ -1,8 +1,8 @@
-"""Discover MSD topic URLs and fill explicitly matched empty names with short source definitions.
+"""Discover MSD topic URLs and fill explicitly matched empty names with source definitions.
 
-Sitemaps inventory pages, not medical concepts. URL slugs are never promoted into clinical
-names. Full articles are neither committed nor included in a knowledge package. The live pass
-is explicit, sequential, robots-aware and bounded; preparation after it is offline.
+Sitemaps inventory pages, not medical concepts. URL slugs are never clinical names.
+The live pass is explicit, sequential, robots-aware and bounded; preparation is offline.
+Full articles are neither committed nor included in a knowledge package.
 """
 from __future__ import annotations
 
@@ -50,7 +50,8 @@ def topic_url(value: str) -> bool:
     parts = unquote(urlsplit(checked_url(value)).path).strip("/").split("/")
     return (len(parts) >= 5 and parts[0] in {"ru", "ru-ru"}
             and parts[1] in {"professional", "home"}
-            and parts[2] not in {"multimedia", "news", "authors", "resourcespages", "pages-with-widgets", "monograph"})
+            and parts[2] not in {"multimedia", "news", "authors", "resourcespages",
+                                "pages-with-widgets", "monograph"})
 
 
 class Robots:
@@ -81,7 +82,7 @@ class Robots:
                 elif key in {"allow", "disallow"} and value:
                     self.rules.append((key == "allow", value))
         if self.delay > 60:
-            raise ValueError("Source requests a crawl delay outside this bounded pass")
+            raise ValueError("Source crawl delay is outside this bounded pass")
 
     def allowed(self, value: str) -> bool:
         parsed = urlsplit(checked_url(value))
@@ -114,11 +115,13 @@ class Fetcher:
         for _ in range(6):
             if self.policy is not None and not self.policy.allowed(url):
                 raise ValueError("Robots policy disallows this source path")
-            time.sleep(max(0.0, (self.policy.delay if self.policy else 5.0) - (time.monotonic() - self.previous)))
+            delay = self.policy.delay if self.policy else 5.0
+            time.sleep(max(0.0, delay - (time.monotonic() - self.previous)))
             self.previous = time.monotonic()
             self.requests += 1
             try:
-                with self.opener.open(Request(url, headers={"User-Agent": AGENT, "Accept-Encoding": "identity"}), timeout=35) as response:
+                request = Request(url, headers={"User-Agent": AGENT, "Accept-Encoding": "identity"})
+                with self.opener.open(request, timeout=35) as response:
                     body = response.read(MAX_BYTES + 1)
                     if len(body) > MAX_BYTES:
                         raise ValueError("Source response exceeds byte budget")
@@ -141,13 +144,30 @@ def sitemap_locations(raw: bytes, *, index: bool) -> list[str]:
     if len(raw) > MAX_BYTES or re.search(br"<!\s*(?:DOCTYPE|ENTITY)", raw, re.I):
         raise ValueError("Unsafe or oversized sitemap")
     root = ET.fromstring(raw.decode("utf-8-sig"))
-    expected = NS + ("sitemapindex" if index else "urlset")
-    if root.tag != expected:
+    if root.tag != NS + ("sitemapindex" if index else "urlset"):
         raise ValueError("Unexpected sitemap root")
-    locations = [checked_url(node.text or "") for node in root.findall((NS + "sitemap" if index else NS + "url") + "/" + NS + "loc")]
+    selector = (NS + "sitemap" if index else NS + "url") + "/" + NS + "loc"
+    locations = [checked_url(node.text or "") for node in root.findall(selector)]
     if not locations or len(locations) > 50000:
         raise ValueError("Unexpected sitemap location count")
     return sorted(set(locations))
+
+
+def topic_sitemap_children(raw: bytes, root_url: str) -> list[str]:
+    """Inspected index roots differ: ru has home+professional; ru-ru professional only."""
+    route = urlsplit(checked_url(root_url)).path
+    if route == "/ru/sitemap.xml":
+        expected = {ORIGIN + "/ru/sitemaps/" + name + "-topic.xml.gz"
+                    for name in ("home", "professional")}
+    elif route == "/ru-ru/sitemap.xml":
+        expected = {ORIGIN + "/ru-ru/sitemaps/professional-topic.xml.gz"}
+    else:
+        raise ValueError("Unknown Russian source index")
+    children = [url for url in sitemap_locations(raw, index=True)
+                if re.search(r"/(?:professional|home)-topic\.xml(?:\.gz)?$", url)]
+    if set(children) != expected:
+        raise ValueError("Topic sitemap set changed; inspect before continuing")
+    return children
 
 
 class TopicParser(HTMLParser):
@@ -181,7 +201,8 @@ class TopicParser(HTMLParser):
                 key = "revision"
             if key:
                 self.counts[key] += 1
-        if tag not in {"meta", "link", "img", "input", "br", "hr", "source", "wbr", "area", "base", "embed", "param", "track"}:
+        if tag not in {"meta", "link", "img", "input", "br", "hr", "source", "wbr",
+                       "area", "base", "embed", "param", "track"}:
             self.stack.append((tag, hidden, key))
 
     def handle_endtag(self, tag: str) -> None:
@@ -193,8 +214,7 @@ class TopicParser(HTMLParser):
     def handle_data(self, data: str) -> None:
         if any(row[1] for row in self.stack):
             return
-        keys = {row[2] for row in self.stack if row[2]}
-        for key in keys:
+        for key in {row[2] for row in self.stack if row[2]}:
             if key is not None:
                 self.parts[key].append(data)
 
@@ -205,9 +225,13 @@ class TopicParser(HTMLParser):
 def first_definition(paragraph: str, title: str) -> str | None:
     if not paragraph or len(paragraph) > 20000 or len(title) > 256:
         return None
-    # No inferred nominative rewrite or extraction of a diagnosis from a long article heading.
-    fold = lambda s: re.sub(r"\s+", " ", s.casefold().replace("ё", "е")).strip()
-    if not fold(paragraph).startswith(fold(title)) or re.match(r"^(?:обзор|как|введение|подход|оценка)\b", fold(title)):
+
+    def fold(value: str) -> str:
+        return re.sub(r"\s+", " ", value.casefold().replace("ё", "е")).strip()
+
+    if not fold(paragraph).startswith(fold(title)) or re.match(
+        r"^(?:обзор|как|введение|подход|оценка)\b", fold(title)
+    ):
         return None
     level = 0
     for index, character in enumerate(paragraph):
@@ -215,15 +239,22 @@ def first_definition(paragraph: str, title: str) -> str | None:
         level -= character == ")"
         if level < 0:
             return None
-        if character != "." or level or (index + 1 < len(paragraph) and not paragraph[index + 1].isspace()):
+        if character != "." or level or (
+            index + 1 < len(paragraph) and not paragraph[index + 1].isspace()
+        ):
             continue
         token = re.search(r"[\w]+$", paragraph[:index])
         if token and (len(token[0]) <= 2 or token[0].isdigit()):
             continue
         sentence = paragraph[:index + 1]
-        if not re.search(r"\s[–—-]\s|\s(?:это|является|представляет|характеризуется|характеризуются|означает)\s", sentence):
+        if not re.search(
+            r"\s[–—-]\s|\s(?:это|является|представляет|характеризуется|характеризуются|означает)\s",
+            sentence,
+        ):
             return None
-        return sentence if len(sentence.split()) <= 25 and "…" not in sentence and "..." not in sentence else None
+        if len(sentence.split()) <= 25 and "…" not in sentence and "..." not in sentence:
+            return sentence
+        return None
     return None
 
 
@@ -238,7 +269,10 @@ def parse_topic(raw: bytes, requested: str, retrieved_at: str) -> dict[str, obje
     canonical = checked_url(parser.canonical or parser.metadata.get("og:url", ""))
     if not topic_url(canonical):
         raise ValueError("Canonical source is not a medical topic")
-    route = lambda s: unquote(urlsplit(s).path).replace("/ru-ru/", "/ru/", 1).rstrip("/")
+
+    def route(value: str) -> str:
+        return unquote(urlsplit(value).path).replace("/ru-ru/", "/ru/", 1).rstrip("/")
+
     if route(canonical) != route(requested):
         raise ValueError("Source canonical identity differs from the requested topic")
     topic_id = parser.metadata.get("vasontid", "")
@@ -266,8 +300,8 @@ def collect(root: Path, output: Path, maximum_pages: int) -> dict[str, object]:
         raise ValueError("Use a fresh output directory and a 1..80 page budget")
     output.mkdir(parents=True)
     p = Projection()
-    source_inputs, _ = read_source_manifest(root, root / "content/definition-drafts/source-inputs.json")
-    for path in source_inputs:
+    inputs, _ = read_source_manifest(root, root / "content/definition-drafts/source-inputs.json")
+    for path in inputs:
         raw = path.read_bytes()
         p.add(json.loads(raw), checksum(raw))
     selected, _ = definition_scope(p.entries)
@@ -279,31 +313,31 @@ def collect(root: Path, output: Path, maximum_pages: int) -> dict[str, object]:
         raw = path.read_bytes()
         apply_name_completions(p, json.loads(raw), checksum(raw))
     pending: dict[str, list[str]] = defaultdict(list)
-    defined = {normalized_name(name) for row in p.entries.values() if row.coverage != "needs-definition" for name in row.names}
+    defined = {normalized_name(name) for row in p.entries.values()
+               if row.coverage != "needs-definition" for name in row.names}
     for identifier, row in p.entries.items():
         if row.coverage == "needs-definition" and normalized_name(row.title) not in defined:
             pending[normalized_name(row.title)].append(identifier)
     fetcher = Fetcher()
     robots, _ = fetcher.get(ORIGIN + "/robots.txt")
     fetcher.policy = Robots(robots.decode("utf-8-sig"))
-    roots = [url for url in fetcher.policy.sitemaps if unquote(urlsplit(url).path) in {"/ru/sitemap.xml", "/ru-ru/sitemap.xml"}]
+    roots = [url for url in fetcher.policy.sitemaps
+             if unquote(urlsplit(url).path) in {"/ru/sitemap.xml", "/ru-ru/sitemap.xml"}]
     if len(roots) != 2:
         raise ValueError("Expected both advertised Russian sitemap roots")
     inventories: dict[str, list[str]] = {}
     for sitemap_root in sorted(roots):
         body, _ = fetcher.get(sitemap_root)
-        children = [url for url in sitemap_locations(body, index=True) if re.search(r"/(?:professional|home)-topic\.xml(?:\.gz)?$", url)]
-        if len(children) != 2:
-            raise ValueError("Topic sitemap set changed; inspect before continuing")
-        for child in children:
+        for child in topic_sitemap_children(body, sitemap_root):
             body, _ = fetcher.get(child)
             inventories[child] = sitemap_locations(body, index=False)
     urls = sorted({url for values in inventories.values() for url in values if topic_url(url)})
-    (output / "topics.json").write_text(encoded({"format": "minimed-msd-topic-inventory-v1",
-        "retrievedAt": datetime.now(UTC).isoformat(), "sitemaps": inventories,
-        "topicUrls": urls, "completeForAdvertisedTopicSitemaps": True,
-        "medicalConceptCompleteness": False, "titleSource": "not-inferred-from-slugs"}) + "\n")
-    # Prefer already-discovered, unambiguous gaps. A slug only schedules a page inspection.
+    (output / "topics.json").write_text(encoded({
+        "format": "minimed-msd-topic-inventory-v1", "retrievedAt": datetime.now(UTC).isoformat(),
+        "sitemaps": inventories, "topicUrls": urls, "completeForAdvertisedTopicSitemaps": True,
+        "medicalConceptCompleteness": False, "titleSource": "not-inferred-from-slugs",
+    }) + "\n")
+    # A slug schedules inspection only. Identity must be confirmed by the visible page title.
     buckets: dict[str, deque[str]] = {}
     route_seen: set[str] = set()
     for url in sorted(urls, key=checksum):
@@ -331,23 +365,29 @@ def collect(root: Path, output: Path, maximum_pages: int) -> dict[str, object]:
             page = parse_topic(raw, final_url, datetime.now(UTC).isoformat())
             normalized = normalized_name(str(page["title"]))
             choices = pending.get(normalized, [])
-            if not page["definition"] or len(choices) != 1 or choices[0] in completed or str(page["topicId"]) in quoted_pages:
-                decisions.append({"url": url, "title": page["title"], "status": "requires-excerpt-or-identity-review"})
+            if (not page["definition"] or len(choices) != 1 or choices[0] in completed
+                    or str(page["topicId"]) in quoted_pages):
+                decisions.append({"url": url, "title": page["title"],
+                                  "status": "requires-excerpt-or-identity-review"})
                 continue
             identifier = choices[0]
             old = p.entries[identifier]
             block_id = len(blocks) + 1
             text = str(page["definition"])
-            blocks.append({"id": block_id, "source": 1, "text": text, "textSha256": checksum(text),
+            blocks.append({
+                "id": block_id, "source": 1, "text": text, "textSha256": checksum(text),
                 "path": unquote(urlsplit(str(page["url"])).path).lstrip("/"),
                 "locator": f"{page['topicId']}; topicDefinition; first complete sentence",
                 "sourceVerification": page["sourceVerification"], "sourceTopicId": page["topicId"],
                 "sourceRevisionLabel": page["revisionLabel"], "sourceAuthorIds": page["authorIds"],
-                "reviewStatus": "requires-review", "fullPageSnapshotStored": False})
+                "reviewStatus": "requires-review", "fullPageSnapshotStored": False,
+            })
             terms.append({"id": identifier, "title": old.title, "kind": old.kind,
-                "aliases": [], "coverage": "definition", "blockIds": [block_id]})
-            targets.append({"id": identifier, "expectedTitle": old.title, "discoveryReceipt": old.receipt})
-            decisions.append({"url": url, "id": identifier, "title": old.title, "status": "source-definition-candidate"})
+                          "aliases": [], "coverage": "definition", "blockIds": [block_id]})
+            targets.append({"id": identifier, "expectedTitle": old.title,
+                            "discoveryReceipt": old.receipt})
+            decisions.append({"url": url, "id": identifier, "title": old.title,
+                              "status": "source-definition-candidate"})
             completed.add(identifier)
             quoted_pages.add(str(page["topicId"]))
         except HTTPError as exc:
@@ -356,23 +396,33 @@ def collect(root: Path, output: Path, maximum_pages: int) -> dict[str, object]:
             decisions.append({"url": url, "status": "http-error", "code": exc.code})
         except (ValueError, UnicodeError) as exc:
             decisions.append({"url": url, "status": "source-shape-requires-review", "reason": str(exc)})
-    catalog = {"version": 3, "id": "msd-gap-definitions-2026.09.23", "textKind": "source-excerpt",
+    catalog = {
+        "version": 3, "id": "msd-gap-definitions-2026.09.23", "textKind": "source-excerpt",
         "publicationState": "local-dev", "reviewStatus": "requires-review",
         "sources": [{"id": 1, "title": "Справочник MSD — профессиональная версия",
             "baseUrl": ORIGIN + "/", "sourceType": "professional-medical-reference",
-            "authority": "third-party", "releaseEligible": False, "rightsStatus": "requires-review", "language": "ru"}],
-        "blocks": blocks, "terms": terms}
+            "authority": "third-party", "releaseEligible": False,
+            "rightsStatus": "requires-review", "language": "ru"}],
+        "blocks": blocks, "terms": terms,
+    }
     payload = {"format": "minimed-name-completions-v1", "catalog": catalog, "targets": targets}
     if targets:
         apply_name_completions(p, payload, checksum(encoded(payload)))
         (output / "completions.json").write_text(encoded(payload) + "\n")
-    report = {"topicSitemaps": len(inventories), "uniqueTopicUrls": len(urls),
+    report = {
+        "topicSitemaps": len(inventories), "uniqueTopicUrls": len(urls),
         "professionalUrls": sum("/professional/" in url for url in urls),
         "homeUrls": sum("/home/" in url for url in urls), "pagesScheduled": len(schedule),
         "definitionsPrepared": len(terms), "requests": fetcher.requests,
         "crawlDelaySeconds": fetcher.policy.delay, "robotsSha256": checksum(robots),
         "httpReceipts": fetcher.receipts, "decisions": decisions,
-        "boundaries": "Complete advertised topic URL inventory, not a complete term/definition dictionary. Only bounded missing-name completions; URL slugs never become concept titles. Source sentences require medical/rights review. No article bodies stored, clinical promotion or automatic same-as links."}
+        "boundaries": (
+            "Complete advertised topic URL inventory, not a complete term/definition dictionary. "
+            "Only bounded missing-name completions; URL slugs never become concept titles. "
+            "Source sentences require medical/rights review. No article bodies stored, "
+            "clinical promotion or automatic same-as links."
+        ),
+    }
     (output / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
     return report
 
@@ -384,7 +434,8 @@ def main() -> None:
     parser.add_argument("--max-pages", type=int, default=60)
     args = parser.parse_args()
     result = collect(args.root.resolve(), args.output, args.max_pages)
-    print(json.dumps({key: result[key] for key in ("topicSitemaps", "uniqueTopicUrls", "pagesScheduled", "definitionsPrepared", "requests")}))
+    fields = ("topicSitemaps", "uniqueTopicUrls", "pagesScheduled", "definitionsPrepared", "requests")
+    print(json.dumps({key: result[key] for key in fields}))
 
 
 if __name__ == "__main__":
