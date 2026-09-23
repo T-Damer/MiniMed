@@ -1,5 +1,25 @@
 # Current state
 
+## Targeted medical definitions — 2026-09-23
+
+Added **18** short source definitions after inspecting 25
+candidates; 7 already-indexed names were deferred, not merged or erased.
+The ordinary edition now includes **8428 definition candidates** plus
+**7637 preserved discovery-name records** (16065 total).
+Source sentences, available authors/reviewers/dates and locators are retained. These are
+inspected excerpts, not archived full HTML; source medical review/release review remain open.
+All 26703 source blocks and 70 source
+descriptors match the prepared projection. 85 scoped Python tests and strict
+Python checks passed. Actual reader: 18/18
+new title queries rank first. The source-derived phrase diagnostic is only
+3/4 Top-20, with misses retained.
+This is not independent clinical/reverse-search quality or Android qualification.
+Actual files: 129712128 SQLite bytes / 26913162 gzip bytes.
+Evidence: `research/selected-medical-definitions-delivery-2026-09-23.md` and its JSON.
+DEV version: `2026.09.23-medical-definitions-1`. No model/UI/native changes, APK or release.
+Next: continue named medical definition gaps and explicit base/differences authoring;
+do not inflate the definition count with article headings or restored names.
+
 ## Clinical-site definition completions — 2026-09-23
 
 Filled **5** existing empty source-local name records with one exact,
