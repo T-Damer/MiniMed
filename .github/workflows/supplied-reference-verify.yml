@@ -28,6 +28,7 @@ jobs:
       - name: Connect receipt-bound inputs to the ordinary builders
         run: |
           python3 - <<'PY'
+          import ast
           from pathlib import Path
           def replace(path,old,new):
               p=Path(path);s=p.read_text();assert s.count(old)==1,(path,old);p.write_text(s.replace(old,new))
@@ -57,7 +58,6 @@ jobs:
                   "abbreviations": supplied_abbreviations,
                   "otherReferences": supplied_entries - supplied_definitions - supplied_abbreviations,
               }'''
-          block='\n'.join(line[10:] if line.startswith('              ') else line for line in block.splitlines())
           replace(pack,'    report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)',block)
           replace(compact,'            discovery_inputs=discovery_inputs,','            discovery_inputs=discovery_inputs,\n            supplied_root=supplied_root,\n            supplied_manifest=supplied_manifest,')
           replace(compact,'        "entries": baseline["entries"],','        "entries": baseline["entries"],\n        "suppliedSources": baseline.get("suppliedSources"),')
@@ -77,10 +77,10 @@ jobs:
                   "definitions" if args.scope == "definitions" else "entries"
               ]
               expected_entries += supplied_counts["entries"]'''
-          block='\n'.join(line[10:] if line.startswith('              ') else line for line in block.splitlines())
           replace(prep,'    definition_entries = expected_entries',block)
           replace(prep,'    descriptor = (','    if supplied_counts["entries"]:\n        module["description"] = str(module["description"]) + (\n            f" Дополнительных справочных записей: {supplied_counts[\'otherReferences\']};"\n            f" расшифровок сокращений: {supplied_counts[\'abbreviations\']}."\n        )\n    descriptor = (')
           replace(prep,'    descriptor.write_text(','    descriptor.parent.mkdir(parents=True, exist_ok=True)\n    descriptor.write_text(')
+          for path in (pack,compact,prep): ast.parse(Path(path).read_text())
           PY
       - name: Strict checks and synthetic-source shared database regressions
         run: |
@@ -106,9 +106,27 @@ jobs:
           assert tests['errors']==tests['failures']==0
           report={'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':tests,'strictPythonChecks':'passed','existingReferenceReaderSuites':'passed','codeAstSha256':{f:hashlib.sha256(ast.dump(ast.parse(Path(f).read_text()),include_attributes=False).encode()).hexdigest() for f in files},'privateSourcesInCI':False,'boundary':'Synthetic source-receipt fixtures with actual ordinary SQLite projection and compaction. No supplied PDFs/text, clinical validation, complete real-corpus build, mobile or UI qualification in this CI run.'}
           Path('docs/research/supplied-reference-ci-2026-09-23.json').write_text(json.dumps(report,indent=2)+'\n')
+          section='''## Shared supplied-reference build — 2026-09-23
+
+          The ordinary reference preparer accepts an explicit `--supplied-root` and relative
+          `--supplied-manifest`. The registered PDF and prepared-excerpt receipts are validated before
+          the existing SQLite projection/compaction. Supplied definitions, abbreviation expansions and
+          other source reference records are counted separately; all share the normal source registry,
+          dictionary reader and module ID. Source hashes identify inputs, not clinical or textual approval.
+          No separate personal viewer or storage owner was introduced. No supplied text is committed.
+          CI used only synthetic receipts with the actual builders; evidence:
+          `research/supplied-reference-ci-2026-09-23.json`. Real supplied-source replay and the full combined
+          local edition are a separate companion measurement, not a claim about this CI runner.
+          Search and medical definition gaps remain primary; base-definition/differences reconciliation
+          and genuine reverse-search evaluation remain open. No model/UI migration, APK or release.
+
+          '''
+          section='\n'.join(line[10:] if line.startswith('          ') else line for line in section.splitlines())
+          for path in ('docs/CURRENT_STATE.md','docs/DEFINITION_REFERENCE_PLAN.md'):
+              p=Path(path);head,body=p.read_text().split('\n',1);p.write_text(head+'\n\n'+section+body)
           print(json.dumps(report,indent=2))
           PY
-          git add tools/ingest/src/localmed_ingest/definition_supplied_inputs.py tools/ingest/tests/test_definition_supplied_inputs.py tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py scripts/prepare-definition-reference.py docs/research/supplied-reference-ci-2026-09-23.json
+          git add tools/ingest/src/localmed_ingest/definition_supplied_inputs.py tools/ingest/tests/test_definition_supplied_inputs.py tools/ingest/src/localmed_ingest/definition_reference_pack.py tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py scripts/prepare-definition-reference.py docs/research/supplied-reference-ci-2026-09-23.json docs/CURRENT_STATE.md docs/DEFINITION_REFERENCE_PLAN.md
           git diff --cached --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
