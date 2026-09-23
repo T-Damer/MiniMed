@@ -1,0 +1,59 @@
+name: Verify clinic definition completions
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/clinic-definition-verify.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-clinic-definition-completions
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Run checked-out source verification and keep token confined to push
+        env:
+          HEAD_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,re,subprocess,textwrap
+          from pathlib import Path
+          p=Path('tools/ingest/tests/test_definition_name_completions.py')
+          s=p.read_text()
+          old='    raw = "<h1>Article</h1><p>🔬 Начало. Тестовый\\n термин — описание\\u00a0синтетического явления.</p>".encode()'
+          assert s.count(old)==1
+          s=s.replace(old,'    raw = ("<h1>Article</h1><p>🔬 Начало. "\n           "Тестовый\\n термин — описание\\u00a0синтетического явления.</p>").encode()')
+          p.write_text(s)
+          source=Path('.github/workflows/clinic-definition-completions.yml').read_text()
+          for block in re.split(r'(?m)^      - name: ',source)[1:]:
+              name=block.splitlines()[0]
+              if name=='No artifact uploads': continue
+              marker='        run: |\n'
+              if marker not in block: raise ValueError('Unknown shell block')
+              command=textwrap.dedent(block.split(marker,1)[1])
+              command=command.replace('$'+'{{ github.sha }}',os.environ['HEAD_SHA']).replace('$'+'{{ github.run_id }}',os.environ['RUN_ID'])
+              if '$'+'{{' in command: raise ValueError('Unresolved workflow expression')
+              env={key:os.environ[key] for key in ('PATH','HOME','RUNNER_TEMP')}
+              if name=='Persist only verified source candidates code and measured reports': env['PUSH_TOKEN']=os.environ['PUSH_TOKEN']
+              print('Executing: '+name,flush=True)
+              subprocess.run(['bash','-e','-o','pipefail','-c',command],env=env,check=True)
+          PY
+      - name: No uploaded artifacts
+        if: always()
+        run: echo 'No private source, full article, database binary, model, cache, APK or Actions artifact uploaded.' >> "$GITHUB_STEP_SUMMARY"
