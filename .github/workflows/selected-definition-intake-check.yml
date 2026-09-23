@@ -1,0 +1,288 @@
+name: Selected medical definition intake
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/selected-definition-intake-check.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-selected-medical-definitions
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Locked Python validation and source-fidelity regression suites
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          files='tools/ingest/src/localmed_ingest/selected_definition_excerpts.py tools/ingest/tests/test_selected_definition_excerpts.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          mkdir -p data/build
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q \
+            tools/ingest/tests/test_selected_definition_excerpts.py \
+            tools/ingest/tests/test_definition_reference_pack.py \
+            tools/ingest/tests/test_definition_reference_scope.py \
+            tools/ingest/tests/test_definition_name_inventory.py \
+            --junitxml=data/build/selected-medical-definition-tests.xml
+      - name: Select actual definition gaps and register the compiled source
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import hashlib,json,sys
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import Projection,encoded
+          from localmed_ingest.definition_reference_scope import definition_scope
+          from localmed_ingest.definition_source_manifest import read_source_manifest,write_source_manifest
+          from localmed_ingest.selected_definition_excerpts import compile_selected_definitions
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}: raise RuntimeError('Source compilation must be offline')
+          sys.addaudithook(guard)
+          root=Path.cwd(); manifest=root/'content/definition-drafts/source-inputs.json'
+          original=manifest.read_bytes()
+          inputs,previous_records=read_source_manifest(root,manifest)
+          projection=Projection()
+          for path in inputs:
+              raw=path.read_bytes();projection.add(json.loads(raw),hashlib.sha256(raw).hexdigest())
+          selected,_=definition_scope(projection.entries)
+          names={name for key in selected for name in projection.entries[key].names}
+          authoring=root/'content/reference-authoring/medical-definitions-2026.09.23.json'
+          catalog,report=compile_selected_definitions(json.loads(authoring.read_bytes()),names)
+          if not catalog['terms']: raise ValueError('No new definition names; do not pretend acquisition was delivered')
+          prepared=root/'content/definition-drafts/selected-medical-definitions-2026.09.23.json'
+          if prepared.exists(): raise ValueError('Selected source output already exists')
+          prepared.write_text(encoded(catalog)+'\n',encoding='utf-8')
+          updated=write_source_manifest(root,(*inputs,prepared),manifest)
+          assert updated['entries']==previous_records+len(catalog['terms'])
+          report.update({'originalManifest':json.loads(original),'originalManifestSha256':hashlib.sha256(original).hexdigest(),
+            'previousAuthoringRecords':previous_records,'previousDefinitions':len(selected),
+            'authoringFileSha256':hashlib.sha256(authoring.read_bytes()).hexdigest(),
+            'preparedFileSha256':hashlib.sha256(prepared.read_bytes()).hexdigest()})
+          Path('data/build/selected-medical-definitions-intake.json').write_text(encoded(report))
+          print(json.dumps({key:report[key] for key in ['candidates','selectedDefinitions','selectedIds','deferred']},ensure_ascii=False,indent=2))
+          PY
+      - name: Build through the ordinary preparer without networking
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import runpy,sys
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}: raise RuntimeError('Build must be offline')
+          sys.addaudithook(guard)
+          sys.argv=['scripts/prepare-definition-reference.py','--version','2026.09.23-medical-definitions-1','--built-at','2026-09-23']
+          runpy.run_path(sys.argv[0],run_name='__main__')
+          PY
+      - name: Compare all original and new source blocks in the final SQLite file
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import hashlib,json,sqlite3,sys,xml.etree.ElementTree as ET
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import Projection,normalized_name
+          from localmed_ingest.definition_reference_scope import definition_scope
+          from localmed_ingest.definition_source_manifest import read_source_manifest
+          from localmed_ingest.selected_definition_excerpts import compile_selected_definitions
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}: raise RuntimeError('Source audit must be offline')
+          sys.addaudithook(guard)
+          root=Path.cwd();manifest=root/'content/definition-drafts/source-inputs.json'
+          intake=json.loads(Path('data/build/selected-medical-definitions-intake.json').read_bytes())
+          inputs,records=read_source_manifest(root,manifest)
+          old=Projection();new=Projection();all_sources=Projection()
+          for path in inputs:
+              raw=path.read_bytes();payload=json.loads(raw);receipt=hashlib.sha256(raw).hexdigest()
+              all_sources.add(payload,receipt)
+              if path.name=='selected-medical-definitions-2026.09.23.json': new.add(payload,receipt)
+              else: old.add(payload,receipt)
+          for item in intake['originalManifest']['inputs']:
+              raw=(root/item['path']).read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==item['sha256'] and len(raw)==item['bytes']
+          old_ids,_=definition_scope(old.entries)
+          expected,again=compile_selected_definitions(json.loads((root/'content/reference-authoring/medical-definitions-2026.09.23.json').read_bytes()),
+            {name for key in old_ids for name in old.entries[key].names})
+          actual=json.loads((root/'content/definition-drafts/selected-medical-definitions-2026.09.23.json').read_bytes())
+          assert expected==actual
+          assert again['selectedIds']==intake['selectedIds']
+          dbpath=root/'apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-medical-definitions-1.db'
+          build=json.loads(Path(str(dbpath)+'.report.json').read_bytes())
+          assert build['logicalRoundTripEqual'] is True
+          selected,_=definition_scope(all_sources.entries)
+          name_inventory=json.loads((root/'content/definition-drafts/discovered-names-2026.09.23.json').read_bytes())
+          discovered_ids={item['id'] for item in name_inventory['names']}
+          corresponding_names={normalized_name(item['title']) for item in name_inventory['names']}
+          source_matched=0
+          with sqlite3.connect(f'{dbpath.as_uri()}?mode=ro',uri=True) as db:
+              assert db.execute('PRAGMA integrity_check').fetchone()==('ok',)
+              assert not db.execute('PRAGMA foreign_key_check').fetchall()
+              assert {row[0] for row in db.execute('SELECT id FROM knowledge_entities')}==selected|discovered_ids
+              for identifier,(_,chunk) in all_sources.chunks.items():
+                  row=db.execute('SELECT original_text,metadata_json FROM chunks WHERE id=?',(identifier,)).fetchone()
+                  assert row and row[0]==chunk.original_text and json.loads(row[1])==chunk.metadata
+              for source in all_sources.sources.values():
+                  row=db.execute('SELECT metadata_json FROM documents WHERE id=?',(source.id,)).fetchone()
+                  assert row and json.loads(row[0])['source']==source.descriptor
+              for identifier,entry in new.entries.items():
+                  row=db.execute('SELECT canonical_name,metadata_json FROM knowledge_entities WHERE id=?',(identifier,)).fetchone()
+                  assert row and row[0]==entry.title and json.loads(row[1])['coverage']=='definition'
+                  links=db.execute('SELECT substr(link_type,11),chunk_id FROM definition_reference_links WHERE entity_id=? ORDER BY id',(identifier,)).fetchall()
+                  assert links==entry.links and len(links)==1
+                  source_matched+=normalized_name(entry.title) in corresponding_names
+              for table in ('knowledge_facts','knowledge_relations'):
+                  assert db.execute(f'SELECT count(*) FROM {table}').fetchone()==(0,)
+          suites=ET.parse('data/build/selected-medical-definition-tests.xml').getroot()
+          tests={key:sum(int(s.get(key,'0')) for s in suites.findall('testsuite')) for key in ('tests','failures','errors','skipped')}
+          assert tests['failures']==tests['errors']==0
+          report={key:value for key,value in intake.items() if key!='originalManifest'}
+          report.update({'checkedCommit':'${{ github.sha }}','runId':'${{ github.run_id }}','tests':tests,
+            'currentAuthoringRecords':records,'currentDefinitions':len(selected),'preservedDiscoveredNames':len(discovered_ids),
+            'searchableEntries':build['entries'],'newDefinitionTitlesMatchingDiscoveredNames':source_matched,
+            'allSourceBlocksCompared':len(all_sources.chunks),'allSourceDescriptorsCompared':len(all_sources.sources),
+            'originalSourceFilesUnchanged':True,'selectedIdentitySetExact':True,'preparedReplayExact':True,
+            'installedBytes':dbpath.stat().st_size,'downloadBytes':Path(str(dbpath)+'.gz').stat().st_size,
+            'sqliteSha256':hashlib.sha256(dbpath.read_bytes()).hexdigest(),
+            'sourceManifestSha256':hashlib.sha256(manifest.read_bytes()).hexdigest(),
+            'networkAttemptsDuringBuild':0,'fullWebPageReplayPerformed':False,
+            'validationBoundary':'Exact replay of inspected authoring excerpts and SQLite projection, not full HTML snapshot validation, medical approval, automatic equivalence, Android or independent search quality.'})
+          Path('docs/research/selected-medical-definitions-2026-09-23.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Read new definitions with the real application reader
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile
+          cat > tools/benchmarks/.selected-definitions-audit.ts <<'TS'
+          import { Database } from 'bun:sqlite';
+          import { readFileSync, writeFileSync } from 'node:fs';
+          import { createSqliteDefinitionReference } from '../../packages/storage-sqlite/src/definition-reference-reader';
+          const db=new Database('apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-medical-definitions-1.db',{readonly:true});
+          const reader=await createSqliteDefinitionReference({read:async(sql,args)=>db.query(sql).all(...args) as Record<string,unknown>[]});
+          const source=JSON.parse(readFileSync('content/definition-drafts/selected-medical-definitions-2026.09.23.json','utf8'));
+          const blocks=new Map(source.blocks.map((row:any)=>[row.id,row]));
+          const outcomes=[];
+          for(const term of source.terms){
+            const card=await reader.getCard(term.id);
+            if(!card||card.title!==term.title||card.coverage!=='definition')throw new Error('Missing source definition');
+            const page=await reader.listBlocks(term.id);
+            if(page.blocks.length!==1||page.next!==null||page.blocks[0]?.role!=='definition')throw new Error('Unexpected source context');
+            const value=await reader.readBlock(term.id,page.blocks[0].chunkId);
+            const expected:any=blocks.get(term.blockIds[0]);
+            if(!value||value.text!==expected.text||value.nextOffset!==null)throw new Error('Definition text differs');
+            const provenance=value.provenance;
+            if(provenance['path']!==expected.path||provenance['locator']!==expected.locator)throw new Error('Source locator differs');
+            if(!await reader.getSource(value.sourceId))throw new Error('Source unavailable');
+            const hits=await reader.search(term.title,20);
+            outcomes.push({id:term.id,title:term.title,rank:hits.findIndex(hit=>hit.id===term.id)+1||null,characters:[...value.text].length});
+          }
+          // Frozen authored phrase probes; diagnostic only, never copied into aliases or used to tune ranking.
+          const phrases=[
+            ['medical.definition.diplopia','удвоенное изображение одного объекта'],
+            ['medical.definition.anisocoria','разный размер зрачков'],
+            ['medical.definition.proptosis','выпячивание глазного яблока'],
+            ['medical.definition.agnosia','неспособность идентифицировать объект'],
+            ['medical.definition.myoclonus','быстрое сокращение группы мышц'],
+            ['medical.definition.ascites','свободная жидкость в брюшной полости'],
+            ['medical.definition.parosmia','извращенное восприятие запахов'],
+            ['medical.definition.anisocytosis','эритроциты неравных размеров'],
+          ];
+          const diagnostic=[];
+          const ids=new Set(source.terms.map((term:any)=>term.id));
+          for(const [id,query] of phrases){
+            if(!ids.has(id))continue;
+            const hits=await reader.search(query,20);
+            diagnostic.push({id,query,rank:hits.findIndex(hit=>hit.id===id)+1||null});
+          }
+          db.close();
+          const path='docs/research/selected-medical-definitions-2026-09-23.json';
+          const report=JSON.parse(readFileSync(path,'utf8'));
+          report.actualReader={definitionsRead:outcomes.length,namedTop1:outcomes.filter(row=>row.rank===1).length,namedTop20:outcomes.filter(row=>row.rank!==null).length,outcomes};
+          report.authoredPhraseDiagnostic={total:diagnostic.length,top20:diagnostic.filter(row=>row.rank!==null).length,outcomes:diagnostic,boundary:'Small source-derived developer probes, not independent paraphrase/clinical evaluation or measured before-after retrieval gain.'};
+          writeFileSync(path,JSON.stringify(report,null,2)+'\n');
+          console.log(JSON.stringify({definitions:report.currentDefinitions,added:outcomes.length,reader:report.actualReader,phrases:report.authoredPhraseDiagnostic},null,2));
+          TS
+          env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/.selected-definitions-audit.ts
+      - name: Record measured content scope
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('docs/research/selected-medical-definitions-2026-09-23.json').read_text())
+          titles=', '.join(row['title'] for row in r['actualReader']['outcomes'])
+          note=f'''# Targeted medical definition intake — 2026-09-23
+
+          The inspected authoring batch contains {r['candidates']} short definition candidates from
+          MSD medical references (professional/patient versions), an ENT clinic and LabQuest.
+          Source author/reviewer/updated date are retained when observed; absent fields remain null.
+          A source reviewer's identity does not mean MiniMed has clinically approved the record.
+
+          Added **{r['selectedDefinitions']} definitions** not matching an already-indexed definition name.
+          Deferred **{len(r['deferred'])}** existing-name candidates without deleting their authoring text.
+          Deferral is name coverage triage, not proof of semantic equivalence or automatic merging.
+          New titles: {titles}.
+          {r['newDefinitionTitlesMatchingDiscoveredNames']} added titles also match the restored discovery
+          inventory. Discovery identities remain unchanged, with no invented same-as or base links.
+
+          The normal knowledge edition contains **{r['currentDefinitions']} definition candidates** and
+          **{r['preservedDiscoveredNames']} discovery-name records**: **{r['searchableEntries']} searchable source records**.
+          These are not unique medically reviewed concepts. One source definition per new batch title
+          was nominated; full cross-source baseDefinitionRef/differences reconciliation remains open.
+          No scales, classifications, calculator rules, article cards or source summaries were invented.
+
+          ## Source boundary
+
+          These are manually inspected web excerpts, not full HTML snapshots. Each exact selected
+          sentence is retained with its URL/locator and excerpt checksum. The checksum binds the
+          authoring/selected text; it is NOT an original page checksum. No claim of full-web-page
+          replay, blanket copyright permission or clinical approval is made. Each source remains
+          release-ineligible/review-required. Source page links are in the authoring input; no whole
+          page, image or treatment recommendation is copied into this short-definition batch.
+          All original corpus files, text blocks and classifications remain unchanged.
+
+          ## Actual checks
+
+          **{r['tests']['tests']} Python tests passed**, strict Python checks passed. The ordinary
+          preparer built the whole source set with no networking after dependency installation.
+          All **{r['allSourceBlocksCompared']} blocks** and **{r['allSourceDescriptorsCompared']} source
+          descriptors were compared to their prepared projection; original input receipts match.
+          The actual app SQLite reader reconstructed all {r['actualReader']['definitionsRead']} new
+          definitions and source locators. Named retrieval: {r['actualReader']['namedTop1']} Top-1,
+          {r['actualReader']['namedTop20']} Top-20; misses, if any, remain in the JSON report.
+          Source-derived phrase diagnostics: {r['authoredPhraseDiagnostic']['top20']}/{r['authoredPhraseDiagnostic']['total']} Top-20;
+          these are not independent reverse-search or clinical results and ranking was not tuned.
+          SQLite **{r['installedBytes']} bytes**, gzip **{r['downloadBytes']} bytes**; these are file sizes,
+          not mobile memory measurements. No whole-app/browser/device qualification in this run.
+
+          Evidence: `selected-medical-definitions-2026-09-23.json`.
+          Compile input: `content/reference-authoring/medical-definitions-2026.09.23.json`.
+          Prepare ordinary DEV version `2026.09.23-medical-definitions-1`.
+          No private book/clinical input, model, new dependency, binary release, APK or merge.
+          '''
+          note='\n'.join(line[10:] if line.startswith('          ') else line for line in note.splitlines())
+          Path('docs/research/selected-medical-definitions-delivery-2026-09-23.md').write_text(note+'\n')
+          PY
+      - name: Commit only successful scoped data and checks
+        env:
+          PUSH_TOKEN: ${{ github.token }}
+        run: |
+          git add tools/ingest/src/localmed_ingest/selected_definition_excerpts.py tools/ingest/tests/test_selected_definition_excerpts.py content/definition-drafts/selected-medical-definitions-2026.09.23.json content/definition-drafts/source-inputs.json docs/research/selected-medical-definitions-2026-09-23.json docs/research/selected-medical-definitions-delivery-2026-09-23.md
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): deliver inspected missing medical definitions with source fidelity [skip ci]'
+          own=$(git rev-parse HEAD)
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin experiment/system-one-search-benchmark
+          remote=$(git rev-parse FETCH_HEAD)
+          if [ "$remote" != '${{ github.sha }}' ]; then git switch --detach "$remote"; git cherry-pick "$own"; fi
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark
+      - name: No artifact upload or release
+        if: always()
+        run: echo 'No private PDF/text, model, Actions artifact/cache, binary database, APK or release uploaded.' >> "$GITHUB_STEP_SUMMARY"
