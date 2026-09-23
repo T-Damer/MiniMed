@@ -46,9 +46,7 @@ def test_no_unrelated_hidden_truncated_or_over_budget_text(body: str) -> None:
 
 def test_parenthetical_initial_does_not_end_a_sentence() -> None:
     raw = html('<p>Термин (лат. test) — определение в источнике.</p>')
-    assert batch.select_sentence(raw, "Термин") == (
-        "Термин (лат. test) — определение в источнике."
-    )
+    assert batch.select_sentence(raw, "Термин") == "Термин (лат. test) — определение в источнике."
 
 
 def test_seed_prefix_selects_text_but_never_generates_it() -> None:
@@ -59,6 +57,6 @@ def test_seed_prefix_selects_text_but_never_generates_it() -> None:
 
 
 @pytest.mark.parametrize("name,limit", [("../escape", 1), ("valid", 0), ("valid", 61)])
-def test_rejects_invalid_batch_before_reading_sources(tmp_path: Path, name: str, limit: int) -> None:
+def test_rejects_invalid_batch(tmp_path: Path, name: str, limit: int) -> None:
     with pytest.raises(ValueError, match="Invalid batch"):
         batch.run(tmp_path, name, limit)
