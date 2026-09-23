@@ -1,0 +1,139 @@
+name: MSD topic inventory and definition gaps
+on:
+  push:
+    branches: [experiment/system-one-search-benchmark]
+    paths: [.github/workflows/msd-topic-intake-check.yml]
+permissions:
+  contents: write
+concurrency:
+  group: minimed-msd-topic-intake
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78
+        with:
+          version: 0.10.0
+          enable-cache: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - name: Preserve original file receipts and check source parser
+        run: |
+          python3 - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          paths=['tools/ingest/src/localmed_ingest/msd_topic_intake.py','tools/ingest/tests/test_msd_topic_intake.py','content/definition-drafts/completion-inputs.json']
+          Path('data/build').mkdir(parents=True,exist_ok=True)
+          Path('data/build/msd-before.json').write_text(json.dumps({p:hashlib.sha256(Path(p).read_bytes()).hexdigest() for p in paths}))
+          p=Path(paths[0]);s=p.read_text()
+          old='    fold = lambda s: re.sub(r"\\s+", " ", s.casefold().replace("ё", "е")).strip()'
+          new='    def fold(s: str) -> str:\n        return re.sub(r"\\s+", " ", s.casefold().replace("ё", "е")).strip()'
+          assert s.count(old)==1;s=s.replace(old,new)
+          old='    route = lambda s: unquote(urlsplit(s).path).replace("/ru-ru/", "/ru/", 1).rstrip("/")'
+          new='    def route(s: str) -> str:\n        return unquote(urlsplit(s).path).replace("/ru-ru/", "/ru/", 1).rstrip("/")'
+          assert s.count(old)==1;p.write_text(s.replace(old,new))
+          PY
+          env -i PATH="$PATH" HOME="$HOME" uv sync --project tools/ingest --all-groups --locked
+          files='tools/ingest/src/localmed_ingest/msd_topic_intake.py tools/ingest/tests/test_msd_topic_intake.py'
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff format $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest ruff check --fix $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pyright $files
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest pytest -q tools/ingest/tests/test_msd_topic_intake.py tools/ingest/tests/test_definition_name_completions.py tools/ingest/tests/test_definition_reference_pack.py --junitxml=data/build/msd-topic-tests.xml
+      - name: Collect advertised topic maps and at most sixty missing-definition pages
+        run: env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python -m localmed_ingest.msd_topic_intake --output data/build/msd-topic-pass --max-pages 60
+      - name: Register source-validated completions
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,shutil
+          from pathlib import Path
+          root=Path.cwd();out=root/'data/build/msd-topic-pass'
+          report=json.loads((out/'report.json').read_bytes())
+          assert report['definitionsPrepared']>0,'No definitions acquired'
+          inventory=root/'content/reference-authoring/msd-topic-inventory-2026.09.23.json'
+          completions=root/'content/definition-drafts/msd-topic-completions-2026.09.23.json'
+          assert not inventory.exists() and not completions.exists()
+          shutil.copyfile(out/'topics.json',inventory);shutil.copyfile(out/'completions.json',completions)
+          manifest=root/'content/definition-drafts/completion-inputs.json'
+          value=json.loads(manifest.read_bytes());data=completions.read_bytes()
+          value['inputs'].append({'path':completions.relative_to(root).as_posix(),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+          manifest.write_text(json.dumps(value,ensure_ascii=False,indent=2)+'\n')
+          report['completionFileSha256']=hashlib.sha256(data).hexdigest()
+          report['inventorySha256']=hashlib.sha256(inventory.read_bytes()).hexdigest()
+          report['checkedCommit']='${{ github.sha }}';report['runId']='${{ github.run_id }}'
+          Path('docs/research/msd-topic-intake-2026-09-23.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Build the ordinary knowledge edition without networking
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import runpy,sys
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}:raise RuntimeError('Preparation is offline')
+          sys.addaudithook(guard)
+          sys.argv=['scripts/prepare-definition-reference.py','--version','2026.09.23-msd-topics-1','--built-at','2026-09-23']
+          runpy.run_path(sys.argv[0],run_name='__main__')
+          PY
+      - name: Verify final source text and original discovery links
+        run: |
+          env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'PY'
+          import json,sqlite3,xml.etree.ElementTree as ET
+          from pathlib import Path
+          from localmed_ingest.definition_reference_pack import Projection
+          root=Path.cwd();db=root/'apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-msd-topics-1.db'
+          path=root/'docs/research/msd-topic-intake-2026-09-23.json';report=json.loads(path.read_bytes())
+          payload=json.loads((root/'content/definition-drafts/msd-topic-completions-2026.09.23.json').read_bytes())
+          projection=Projection();projection.add(payload['catalog'],report['completionFileSha256'])
+          build=json.loads(Path(str(db)+'.report.json').read_bytes());assert build['logicalRoundTripEqual']
+          with sqlite3.connect(f'{db.as_uri()}?mode=ro',uri=True) as conn:
+              assert conn.execute('PRAGMA integrity_check').fetchone()==('ok',)
+              assert not conn.execute('PRAGMA foreign_key_check').fetchall()
+              definitions=conn.execute("SELECT count(*) FROM knowledge_entities WHERE json_extract(metadata_json,'$.coverage') IN ('definition','explicit-definition')").fetchone()[0]
+              pending=conn.execute("SELECT count(*) FROM knowledge_entities WHERE json_extract(metadata_json,'$.coverage')='needs-definition'").fetchone()[0]
+              for target in payload['targets']:
+                  row=conn.execute("SELECT canonical_name,json_extract(metadata_json,'$.coverage') FROM knowledge_entities WHERE id=?",(target['id'],)).fetchone()
+                  assert row==(target['expectedTitle'],'definition')
+                  roles=conn.execute('SELECT link_type FROM definition_reference_links WHERE entity_id=? ORDER BY id',(target['id'],)).fetchall()
+                  assert roles==[('reference:definition',),('reference:annotation',)]
+              for identifier,(_,chunk) in projection.chunks.items():
+                  row=conn.execute('SELECT original_text,metadata_json FROM chunks WHERE id=?',(identifier,)).fetchone()
+                  assert row and row[0]==chunk.original_text and json.loads(row[1])==chunk.metadata
+          suites=ET.parse('data/build/msd-topic-tests.xml').getroot()
+          report['tests']={k:sum(int(s.get(k,'0')) for s in suites.findall('testsuite')) for k in ('tests','failures','errors','skipped')}
+          report.update({'definitionsInEdition':definitions,'namesNeedingDefinition':pending,'searchableRecords':build['entries'],'installedBytes':db.stat().st_size,'downloadBytes':Path(str(db)+'.gz').stat().st_size,'logicalRoundTripEqual':True,'newSourceBlocksCompared':len(projection.chunks)})
+          path.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Prepare a separate delivery checkout only after all source execution
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: experiment/system-one-search-benchmark
+          path: .verified-delivery
+      - name: Copy only verified files after checking concurrent-change receipts
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,shutil
+          from pathlib import Path
+          destination=Path('.verified-delivery');before=json.loads(Path('data/build/msd-before.json').read_text())
+          for name,receipt in before.items():
+              assert hashlib.sha256((destination/name).read_bytes()).hexdigest()==receipt,'Concurrent change: '+name
+          new=['content/reference-authoring/msd-topic-inventory-2026.09.23.json','content/definition-drafts/msd-topic-completions-2026.09.23.json','docs/research/msd-topic-intake-2026-09-23.json']
+          for name in new:assert not (destination/name).exists(),'Concurrent output: '+name
+          for name in [*before,*new]:
+              target=destination/name;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(name,target)
+          PY
+          cd .verified-delivery
+          git add tools/ingest/src/localmed_ingest/msd_topic_intake.py tools/ingest/tests/test_msd_topic_intake.py content/reference-authoring/msd-topic-inventory-2026.09.23.json content/definition-drafts/msd-topic-completions-2026.09.23.json content/definition-drafts/completion-inputs.json docs/research/msd-topic-intake-2026-09-23.json
+          git diff --cached --check
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'feat(content): preserve MSD topic coverage and fill sourced definition gaps [skip ci]'
+          git push origin HEAD:experiment/system-one-search-benchmark
+      - name: Scope summary
+        if: always()
+        run: echo 'No full articles, private documents, models, artifacts, binary database, APK or release uploaded. Topic URL coverage is not terminology completeness.' >> "$GITHUB_STEP_SUMMARY"
