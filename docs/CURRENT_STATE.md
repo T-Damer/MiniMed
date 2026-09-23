@@ -1,5 +1,9 @@
 # Current state
 
+## Medication suffixes and selected definitions — 2026.09.23-suffix-1
+
+Ordinary medication lookup now handles omitted one-letter source suffixes without deleting full source identities or editing explicit product markers. User Kanephron variants Top-1: 4 → 10/10; prior 162 regressions retained; 203 exact queries unchanged. Broader marked-name misses remain in `research/medication-suffix-2026.09.23-suffix-1.json`; these are developer tests, not independent clinician logs or device timing. Independently refetched 4 source definitions; ordinary offline reference has 8474 definition records and 7595 pending across 16069 retained identities. Source outcomes and SQLite/reader evidence: `research/selected-completions-2026.09.23-suffix-1.json`, `research/selected-completion-build-2026.09.23-suffix-1.json`. All new content stays local-dev/requires-review. No model, APK, public release, merge or automatic medical rules.
+
 ## Medication spelling lookup — 2026-09-23
 
 Main ordinary lookup now adds bounded, labelled medication spelling candidates from the installed alias vocabulary: adjacent swaps, missing/extra letters and weighted Russian letter confusions. Exact known names remain unchanged; no dosage correction, medication substitution, clinical parser expansion or model dependency. Full corpus developer Top-1: 117 → 162/162; 113 exact-name result arrays unchanged. Passed 669 scoped JS tests, package/app typechecks, changed-file Biome, source-context and SQLite checks. These are mechanical and authored tests, not independent clinician error logs or device latency qualification. Corpus, timing and remaining boundaries: `research/medication-spelling-2026-09-23.json`. No content acquisition, APK, merge or release in this pass.
