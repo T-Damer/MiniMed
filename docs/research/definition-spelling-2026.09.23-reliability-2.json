@@ -1,0 +1,1730 @@
+{
+  "baselineCommit": "2a6f1a098d407c05317d5879c2c412054e035c48",
+  "checkedCommit": "789c4b8584b23b2fa9bb005240b3531d4f537968",
+  "databaseSha256": "3132166453fdda5285d1dd229562f67a901bec94bdd4cd358ba0ce11741ea5d9",
+  "caseSha256": "d0a2c254c118e13955986f044e41959872b340b1b5b8ba900131d9c112afad0f",
+  "sampling": "100 unique mechanically transposed queries from actual unambiguous source names; SHA-256 order, fixed seed, no production-generator reuse. Existing valid names are never corrupted into another existing valid name.",
+  "before": {
+    "total": 100,
+    "top1": 0,
+    "top20": 0,
+    "p50Ms": 0.5440310000000039,
+    "p95Ms": 0.8226120000000066,
+    "maximumStatements": 3,
+    "maximumReturnedBytes": 6,
+    "queriesUsingFts": 100
+  },
+  "after": {
+    "total": 100,
+    "top1": 100,
+    "top20": 100,
+    "p50Ms": 0.2880350000000078,
+    "p95Ms": 0.38819599999999355,
+    "maximumStatements": 2,
+    "maximumReturnedBytes": 213,
+    "queriesUsingFts": 0
+  },
+  "cases": [
+    {
+      "query": "ортокеартология",
+      "expected": "ruwiki.definition.3035587",
+      "sourceName": "ортокератология",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 177,
+      "elapsedMs": 1.567526000000015,
+      "top": [
+        {
+          "id": "ruwiki.definition.3035587",
+          "title": "Ортокератология"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "хондрболаст",
+      "expected": "ruwiki.definition.2577238",
+      "sourceName": "хондробласт",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 169,
+      "elapsedMs": 0.49525800000000686,
+      "top": [
+        {
+          "id": "ruwiki.definition.2577238",
+          "title": "Хондробласт"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "яйцеклда",
+      "expected": "ruwiki.definition.872666",
+      "sourceName": "яйцеклад",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 162,
+      "elapsedMs": 0.3619460000000174,
+      "top": [
+        {
+          "id": "ruwiki.definition.872666",
+          "title": "Яйцеклад"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "енйропсихология",
+      "expected": "ruwiki.definition.1042945",
+      "sourceName": "нейропсихология",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 177,
+      "elapsedMs": 0.31894099999999526,
+      "top": [
+        {
+          "id": "ruwiki.definition.1042945",
+          "title": "Нейропсихология"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "acctitve",
+      "expected": "prepared.lead.be176fbdbf9f22b6af5613aa",
+      "sourceName": "accttive",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 171,
+      "elapsedMs": 0.45125199999998244,
+      "top": [
+        {
+          "id": "prepared.lead.be176fbdbf9f22b6af5613aa",
+          "title": "ACCTTIVE"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "зоолтуха",
+      "expected": "ruwiki.definition.155763",
+      "sourceName": "золотуха",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 162,
+      "elapsedMs": 0.30684299999998643,
+      "top": [
+        {
+          "id": "ruwiki.definition.155763",
+          "title": "Золотуха"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "пострадавшйи",
+      "expected": "prepared.definition.363cda5632819968a285b4ae",
+      "sourceName": "пострадавший",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 193,
+      "elapsedMs": 0.3593229999999892,
+      "top": [
+        {
+          "id": "prepared.definition.363cda5632819968a285b4ae",
+          "title": "Пострадавший"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "коселадин",
+      "expected": "ruwiki.definition.18130",
+      "sourceName": "окселадин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.3553459999999973,
+      "top": [
+        {
+          "id": "ruwiki.definition.18130",
+          "title": "Окселадин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "астнеия",
+      "expected": "ruwiki.definition.364198",
+      "sourceName": "астения",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.28361799999998993,
+      "top": [
+        {
+          "id": "ruwiki.definition.364198",
+          "title": "Астения"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "тмасулозин",
+      "expected": "ruwiki.definition.3231951",
+      "sourceName": "тамсулозин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.38655400000001805,
+      "top": [
+        {
+          "id": "ruwiki.definition.3231951",
+          "title": "Тамсулозин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "аграифя",
+      "expected": "ruwiki.definition.3003484",
+      "sourceName": "аграфия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 164,
+      "elapsedMs": 0.27043800000001283,
+      "top": [
+        {
+          "id": "ruwiki.definition.3003484",
+          "title": "Аграфия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "эвинакумба",
+      "expected": "ruwiki.definition.9228782",
+      "sourceName": "эвинакумаб",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.3088070000000016,
+      "top": [
+        {
+          "id": "ruwiki.definition.9228782",
+          "title": "Эвинакумаб"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "эелктропорация",
+      "expected": "ruwiki.definition.404312",
+      "sourceName": "электропорация",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 174,
+      "elapsedMs": 0.41596800000002077,
+      "top": [
+        {
+          "id": "ruwiki.definition.404312",
+          "title": "Электропорация"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "силааденит",
+      "expected": "ruwiki.definition.1582594",
+      "sourceName": "сиаладенит",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.321485000000024,
+      "top": [
+        {
+          "id": "ruwiki.definition.1582594",
+          "title": "Сиаладенит"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "каатлепсия",
+      "expected": "ruwiki.definition.206621",
+      "sourceName": "каталепсия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 169,
+      "elapsedMs": 0.26808499999998503,
+      "top": [
+        {
+          "id": "ruwiki.definition.206621",
+          "title": "Каталепсия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "слюноотдлеение",
+      "expected": "ruwiki.definition.1540910",
+      "sourceName": "слюноотделение",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 175,
+      "elapsedMs": 0.2862230000000068,
+      "top": [
+        {
+          "id": "ruwiki.definition.1540910",
+          "title": "Слюноотделение"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "акромоин",
+      "expected": "ruwiki.definition.269610",
+      "sourceName": "акромион",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 162,
+      "elapsedMs": 0.2935239999999908,
+      "top": [
+        {
+          "id": "ruwiki.definition.269610",
+          "title": "Акромион"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "остоетом",
+      "expected": "ruwiki.definition.1846665",
+      "sourceName": "остеотом",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.28790499999999497,
+      "top": [
+        {
+          "id": "ruwiki.definition.1846665",
+          "title": "Остеотом"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "митоомия",
+      "expected": "ruwiki.definition.3000766",
+      "sourceName": "миотомия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.2662719999999865,
+      "top": [
+        {
+          "id": "ruwiki.definition.3000766",
+          "title": "Миотомия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ткывеол",
+      "expected": "ruwiki.definition.733668",
+      "sourceName": "тыквеол",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 160,
+      "elapsedMs": 0.2931429999999864,
+      "top": [
+        {
+          "id": "ruwiki.definition.733668",
+          "title": "Тыквеол"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "аудиолоигя",
+      "expected": "ruwiki.definition.4975454",
+      "sourceName": "аудиология",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.3215449999999862,
+      "top": [
+        {
+          "id": "ruwiki.definition.4975454",
+          "title": "Аудиология"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "алоепция",
+      "expected": "ruwiki.definition.406096",
+      "sourceName": "алопеция",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 162,
+      "elapsedMs": 0.3286559999999952,
+      "top": [
+        {
+          "id": "ruwiki.definition.406096",
+          "title": "Алопеция"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "сперматоеря",
+      "expected": "ruwiki.definition.1533242",
+      "sourceName": "сперматорея",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 169,
+      "elapsedMs": 0.29526599999999803,
+      "top": [
+        {
+          "id": "ruwiki.definition.1533242",
+          "title": "Сперматорея"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "алаозн",
+      "expected": "ruwiki.definition.10470562",
+      "sourceName": "алазон",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 160,
+      "elapsedMs": 0.31177999999999884,
+      "top": [
+        {
+          "id": "ruwiki.definition.10470562",
+          "title": "Алазон"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "моксоиндин",
+      "expected": "ruwiki.definition.1510713",
+      "sourceName": "моксонидин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.28927699999999845,
+      "top": [
+        {
+          "id": "ruwiki.definition.1510713",
+          "title": "Моксонидин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "коритзол",
+      "expected": "ruwiki.definition.74412",
+      "sourceName": "кортизол",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 161,
+      "elapsedMs": 0.2970679999999959,
+      "top": [
+        {
+          "id": "ruwiki.definition.74412",
+          "title": "Кортизол"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "мурексни",
+      "expected": "ruwiki.definition.6568603",
+      "sourceName": "мурексин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.3003530000000012,
+      "top": [
+        {
+          "id": "ruwiki.definition.6568603",
+          "title": "Мурексин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "актгорафия",
+      "expected": "ruwiki.definition.1976984",
+      "sourceName": "актография",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.27323200000000725,
+      "top": [
+        {
+          "id": "ruwiki.definition.1976984",
+          "title": "Актография"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "псевдамфисотмоз",
+      "expected": "ruwiki.definition.3448464",
+      "sourceName": "псевдамфистомоз",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 177,
+      "elapsedMs": 0.2903880000000072,
+      "top": [
+        {
+          "id": "ruwiki.definition.3448464",
+          "title": "Псевдамфистомоз"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "емфенорекс",
+      "expected": "ruwiki.definition.2130083",
+      "sourceName": "мефенорекс",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.30152499999999804,
+      "top": [
+        {
+          "id": "ruwiki.definition.2130083",
+          "title": "Мефенорекс"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "фармакоэкноомика",
+      "expected": "ruwiki.definition.1940386",
+      "sourceName": "фармакоэкономика",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 179,
+      "elapsedMs": 0.2940540000000169,
+      "top": [
+        {
+          "id": "ruwiki.definition.1940386",
+          "title": "Фармакоэкономика"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "макисллы",
+      "expected": "ruwiki.definition.1506372",
+      "sourceName": "максиллы",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.298279999999977,
+      "top": [
+        {
+          "id": "ruwiki.definition.1506372",
+          "title": "Максиллы"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "таркция",
+      "expected": "ruwiki.definition.757770",
+      "sourceName": "тракция",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 160,
+      "elapsedMs": 0.3081049999999834,
+      "top": [
+        {
+          "id": "ruwiki.definition.757770",
+          "title": "Тракция"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "лиотлиз",
+      "expected": "ruwiki.definition.3925028",
+      "sourceName": "литолиз",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 161,
+      "elapsedMs": 0.3207249999999817,
+      "top": [
+        {
+          "id": "ruwiki.definition.3925028",
+          "title": "Литолиз"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "птеригйи",
+      "expected": "ruwiki.definition.1994159",
+      "sourceName": "птеригий",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.32156499999999255,
+      "top": [
+        {
+          "id": "ruwiki.definition.1994159",
+          "title": "Птеригий"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "опрелотсь",
+      "expected": "ruwiki.definition.4035141",
+      "sourceName": "опрелость",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 165,
+      "elapsedMs": 0.3314499999999896,
+      "top": [
+        {
+          "id": "ruwiki.definition.4035141",
+          "title": "Опрелость"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "гиповтиаминоз",
+      "expected": "ruwiki.definition.761174",
+      "sourceName": "гиповитаминоз",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 172,
+      "elapsedMs": 0.33026900000001547,
+      "top": [
+        {
+          "id": "ruwiki.definition.761174",
+          "title": "Гиповитаминоз"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ообстрение",
+      "expected": "prepared.definition.4fd03c03e4dad72cc90d297b",
+      "sourceName": "обострение",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 189,
+      "elapsedMs": 0.27512500000000273,
+      "top": [
+        {
+          "id": "prepared.definition.4fd03c03e4dad72cc90d297b",
+          "title": "Обострение"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "вименитн",
+      "expected": "ruwiki.definition.870889",
+      "sourceName": "виментин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 162,
+      "elapsedMs": 0.30176600000001486,
+      "top": [
+        {
+          "id": "ruwiki.definition.870889",
+          "title": "Виментин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "вулвьа",
+      "expected": "ruwiki.definition.93321",
+      "sourceName": "вульва",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 157,
+      "elapsedMs": 0.2803729999999973,
+      "top": [
+        {
+          "id": "ruwiki.definition.93321",
+          "title": "Вульва"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "отоимаз",
+      "expected": "ruwiki.definition.3218965",
+      "sourceName": "отомиаз",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 161,
+      "elapsedMs": 0.25115900000000124,
+      "top": [
+        {
+          "id": "ruwiki.definition.3218965",
+          "title": "Отомиаз"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "мизофоняи",
+      "expected": "ruwiki.definition.4380849",
+      "sourceName": "мизофония",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 165,
+      "elapsedMs": 0.25137900000001423,
+      "top": [
+        {
+          "id": "ruwiki.definition.4380849",
+          "title": "Мизофония"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ахнодроплазия",
+      "expected": "ruwiki.definition.741408",
+      "sourceName": "ахондроплазия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 172,
+      "elapsedMs": 0.2959859999999992,
+      "top": [
+        {
+          "id": "ruwiki.definition.741408",
+          "title": "Ахондроплазия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "натитоксины",
+      "expected": "ruwiki.definition.1511752",
+      "sourceName": "антитоксины",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 169,
+      "elapsedMs": 0.2867730000000108,
+      "top": [
+        {
+          "id": "ruwiki.definition.1511752",
+          "title": "Антитоксины"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "лхорфторуглероды",
+      "expected": "prepared.definition.aaeb5ae42176001e75a74c5d",
+      "sourceName": "хлорфторуглероды",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 201,
+      "elapsedMs": 0.3301789999999869,
+      "top": [
+        {
+          "id": "prepared.definition.aaeb5ae42176001e75a74c5d",
+          "title": "Хлорфторуглероды"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "игперцементоз",
+      "expected": "ruwiki.definition.8281591",
+      "sourceName": "гиперцементоз",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 173,
+      "elapsedMs": 0.2880350000000078,
+      "top": [
+        {
+          "id": "ruwiki.definition.8281591",
+          "title": "Гиперцементоз"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "миокардиодистрофяи",
+      "expected": "ruwiki.definition.2149833",
+      "sourceName": "миокардиодистрофия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 183,
+      "elapsedMs": 0.36915699999997287,
+      "top": [
+        {
+          "id": "ruwiki.definition.2149833",
+          "title": "Миокардиодистрофия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "полицитеимя",
+      "expected": "ruwiki.definition.8023504",
+      "sourceName": "полицитемия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 169,
+      "elapsedMs": 0.28494000000000597,
+      "top": [
+        {
+          "id": "ruwiki.definition.8023504",
+          "title": "Полицитемия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "плагоицефалия",
+      "expected": "ruwiki.definition.6339943",
+      "sourceName": "плагиоцефалия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 173,
+      "elapsedMs": 0.28123500000000945,
+      "top": [
+        {
+          "id": "ruwiki.definition.6339943",
+          "title": "Плагиоцефалия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "медикализаиця",
+      "expected": "ruwiki.definition.8758207",
+      "sourceName": "медикализация",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 173,
+      "elapsedMs": 0.2632069999999942,
+      "top": [
+        {
+          "id": "ruwiki.definition.8758207",
+          "title": "Медикализация"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "плцаента",
+      "expected": "ruwiki.definition.484455",
+      "sourceName": "плацента",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 162,
+      "elapsedMs": 0.290898999999996,
+      "top": [
+        {
+          "id": "ruwiki.definition.484455",
+          "title": "Плацента"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "латеск",
+      "expected": "ruwiki.definition.77169",
+      "sourceName": "латекс",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 157,
+      "elapsedMs": 0.2770580000000109,
+      "top": [
+        {
+          "id": "ruwiki.definition.77169",
+          "title": "Латекс"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "соматостатиноам",
+      "expected": "ruwiki.definition.2677202",
+      "sourceName": "соматостатинома",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 177,
+      "elapsedMs": 0.3732830000000149,
+      "top": [
+        {
+          "id": "ruwiki.definition.2677202",
+          "title": "Соматостатинома"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "кнотагиозность",
+      "expected": "ruwiki.definition.949268",
+      "sourceName": "контагиозность",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 174,
+      "elapsedMs": 0.30487099999999145,
+      "top": [
+        {
+          "id": "ruwiki.definition.949268",
+          "title": "Контагиозность"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "абртолинит",
+      "expected": "ruwiki.definition.2025419",
+      "sourceName": "бартолинит",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.26385799999999904,
+      "top": [
+        {
+          "id": "ruwiki.definition.2025419",
+          "title": "Бартолинит"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "пщиеварение",
+      "expected": "ruwiki.definition.61768",
+      "sourceName": "пищеварение",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.2998320000000092,
+      "top": [
+        {
+          "id": "ruwiki.definition.61768",
+          "title": "Пищеварение"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "лконидин",
+      "expected": "ruwiki.definition.20981",
+      "sourceName": "клонидин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 161,
+      "elapsedMs": 0.26059399999999755,
+      "top": [
+        {
+          "id": "ruwiki.definition.20981",
+          "title": "Клонидин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ксатрация",
+      "expected": "ruwiki.definition.5256111",
+      "sourceName": "кастрация",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 165,
+      "elapsedMs": 0.24501999999998247,
+      "top": [
+        {
+          "id": "ruwiki.definition.5256111",
+          "title": "Кастрация"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "переодзировка",
+      "expected": "ruwiki.definition.1262492",
+      "sourceName": "передозировка",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 173,
+      "elapsedMs": 0.2665619999999933,
+      "top": [
+        {
+          "id": "ruwiki.definition.1262492",
+          "title": "Передозировка"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "метастза",
+      "expected": "ruwiki.definition.40075",
+      "sourceName": "метастаз",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 161,
+      "elapsedMs": 0.2746539999999982,
+      "top": [
+        {
+          "id": "ruwiki.definition.40075",
+          "title": "Метастаз"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "краиносиностоз",
+      "expected": "ruwiki.definition.2638861",
+      "sourceName": "краниосиностоз",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 175,
+      "elapsedMs": 0.26788400000000934,
+      "top": [
+        {
+          "id": "ruwiki.definition.2638861",
+          "title": "Краниосиностоз"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ензидиобластоз",
+      "expected": "ruwiki.definition.2683442",
+      "sourceName": "незидиобластоз",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 175,
+      "elapsedMs": 0.2554659999999842,
+      "top": [
+        {
+          "id": "ruwiki.definition.2683442",
+          "title": "Незидиобластоз"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ингиибн",
+      "expected": "journal.reference.uroved.12924.entry.23b4d84e5214fde3413f4a76",
+      "sourceName": "ингибин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 200,
+      "elapsedMs": 0.28357800000000566,
+      "top": [
+        {
+          "id": "journal.reference.uroved.12924.entry.23b4d84e5214fde3413f4a76",
+          "title": "Ингибин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "нарколеспия",
+      "expected": "ruwiki.definition.957465",
+      "sourceName": "нарколепсия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 168,
+      "elapsedMs": 0.27200999999999453,
+      "top": [
+        {
+          "id": "ruwiki.definition.957465",
+          "title": "Нарколепсия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "аохлия",
+      "expected": "ruwiki.definition.4788551",
+      "sourceName": "ахолия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 159,
+      "elapsedMs": 0.2614549999999838,
+      "top": [
+        {
+          "id": "ruwiki.definition.4788551",
+          "title": "Ахолия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "акромеаглия",
+      "expected": "ruwiki.definition.721252",
+      "sourceName": "акромегалия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 168,
+      "elapsedMs": 0.2560660000000041,
+      "top": [
+        {
+          "id": "ruwiki.definition.721252",
+          "title": "Акромегалия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ростомре",
+      "expected": "ruwiki.definition.10053551",
+      "sourceName": "ростомер",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 164,
+      "elapsedMs": 0.2965979999999888,
+      "top": [
+        {
+          "id": "ruwiki.definition.10053551",
+          "title": "Ростомер"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "неатрсудил",
+      "expected": "ruwiki.definition.8301574",
+      "sourceName": "нетарсудил",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.2814249999999845,
+      "top": [
+        {
+          "id": "ruwiki.definition.8301574",
+          "title": "Нетарсудил"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "воспаленеи",
+      "expected": "ruwiki.definition.14487",
+      "sourceName": "воспаление",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 165,
+      "elapsedMs": 0.2588399999999922,
+      "top": [
+        {
+          "id": "ruwiki.definition.14487",
+          "title": "Воспаление"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "некорбациллез",
+      "expected": "ruwiki.definition.10262356",
+      "sourceName": "некробациллез",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 174,
+      "elapsedMs": 0.2641279999999995,
+      "top": [
+        {
+          "id": "ruwiki.definition.10262356",
+          "title": "Некробациллёз"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "оглень",
+      "expected": "ruwiki.definition.1215652",
+      "sourceName": "голень",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 159,
+      "elapsedMs": 0.2740229999999997,
+      "top": [
+        {
+          "id": "ruwiki.definition.1215652",
+          "title": "Голень"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ксоорукость",
+      "expected": "ruwiki.definition.4223268",
+      "sourceName": "косорукость",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 169,
+      "elapsedMs": 0.2566580000000158,
+      "top": [
+        {
+          "id": "ruwiki.definition.4223268",
+          "title": "Косорукость"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "рентгеонлогия",
+      "expected": "ruwiki.definition.66773",
+      "sourceName": "рентгенология",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 171,
+      "elapsedMs": 0.2772679999999923,
+      "top": [
+        {
+          "id": "ruwiki.definition.66773",
+          "title": "Рентгенология"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "иплюля",
+      "expected": "ruwiki.definition.680770",
+      "sourceName": "пилюля",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 158,
+      "elapsedMs": 0.285160999999988,
+      "top": [
+        {
+          "id": "ruwiki.definition.680770",
+          "title": "Пилюля"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "пнадас",
+      "expected": "ruwiki.definition.4564543",
+      "sourceName": "пандас",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 159,
+      "elapsedMs": 0.2660419999999988,
+      "top": [
+        {
+          "id": "ruwiki.definition.4564543",
+          "title": "ПАНДАС"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "омзжечок",
+      "expected": "ruwiki.definition.13876",
+      "sourceName": "мозжечок",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 161,
+      "elapsedMs": 0.27188999999998487,
+      "top": [
+        {
+          "id": "ruwiki.definition.13876",
+          "title": "Мозжечок"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "эпкосибензантрацен",
+      "expected": "ruwiki.definition.4354955",
+      "sourceName": "эпоксибензантрацен",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 183,
+      "elapsedMs": 0.29358300000001236,
+      "top": [
+        {
+          "id": "ruwiki.definition.4354955",
+          "title": "Эпоксибензантрацен"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "филаггрни",
+      "expected": "ruwiki.definition.4383254",
+      "sourceName": "филаггрин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 165,
+      "elapsedMs": 0.31121000000001686,
+      "top": [
+        {
+          "id": "ruwiki.definition.4383254",
+          "title": "Филаггрин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "стреоиды",
+      "expected": "ruwiki.definition.268597",
+      "sourceName": "стероиды",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 162,
+      "elapsedMs": 0.28957799999997746,
+      "top": [
+        {
+          "id": "ruwiki.definition.268597",
+          "title": "Стероиды"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "вагиноплатсика",
+      "expected": "ruwiki.definition.295119",
+      "sourceName": "вагинопластика",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 174,
+      "elapsedMs": 0.25300199999998085,
+      "top": [
+        {
+          "id": "ruwiki.definition.295119",
+          "title": "Вагинопластика"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "тосрия",
+      "expected": "prepared.definition.3db9568e683f9a231dd1fe50",
+      "sourceName": "торсия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 181,
+      "elapsedMs": 0.2976290000000006,
+      "top": [
+        {
+          "id": "prepared.definition.3db9568e683f9a231dd1fe50",
+          "title": "Торсия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "невролгоия",
+      "expected": "ruwiki.definition.58841",
+      "sourceName": "неврология",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 165,
+      "elapsedMs": 0.2991710000000012,
+      "top": [
+        {
+          "id": "ruwiki.definition.58841",
+          "title": "Неврология"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "остеоинтегарция",
+      "expected": "ruwiki.definition.3290885",
+      "sourceName": "остеоинтеграция",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 177,
+      "elapsedMs": 0.2774789999999996,
+      "top": [
+        {
+          "id": "ruwiki.definition.3290885",
+          "title": "Остеоинтеграция"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "стероидроезистентность",
+      "expected": "prepared.definition.5eb861c0c61f04c0a6323706",
+      "sourceName": "стероидорезистентность",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 213,
+      "elapsedMs": 0.38819599999999355,
+      "top": [
+        {
+          "id": "prepared.definition.5eb861c0c61f04c0a6323706",
+          "title": "Стероидорезистентность"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ирригосокпия",
+      "expected": "ruwiki.definition.1575655",
+      "sourceName": "ирригоскопия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 171,
+      "elapsedMs": 0.30889700000000175,
+      "top": [
+        {
+          "id": "ruwiki.definition.1575655",
+          "title": "Ирригоскопия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ебрберин",
+      "expected": "ruwiki.definition.4839428",
+      "sourceName": "берберин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.2523610000000076,
+      "top": [
+        {
+          "id": "ruwiki.definition.4839428",
+          "title": "Берберин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "телеангиоэктзаии",
+      "expected": "prepared.definition.4f5c4c75a6208bd71b5bfdcf",
+      "sourceName": "телеангиоэктазии",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 201,
+      "elapsedMs": 0.26952700000001073,
+      "top": [
+        {
+          "id": "prepared.definition.4f5c4c75a6208bd71b5bfdcf",
+          "title": "Телеангиоэктазии"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ефрритин",
+      "expected": "ruwiki.definition.1984017",
+      "sourceName": "ферритин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.2655809999999974,
+      "top": [
+        {
+          "id": "ruwiki.definition.1984017",
+          "title": "Ферритин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "спиромертия",
+      "expected": "ruwiki.definition.168335",
+      "sourceName": "спирометрия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 168,
+      "elapsedMs": 0.2669130000000166,
+      "top": [
+        {
+          "id": "ruwiki.definition.168335",
+          "title": "Спирометрия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "пэендимомы",
+      "expected": "prepared.definition.e6547fb4ad7e1047ab42826c",
+      "sourceName": "эпендимомы",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 189,
+      "elapsedMs": 0.2790520000000072,
+      "top": [
+        {
+          "id": "prepared.definition.e6547fb4ad7e1047ab42826c",
+          "title": "Эпендимомы"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "пентокисл",
+      "expected": "ruwiki.definition.8459917",
+      "sourceName": "пентоксил",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 165,
+      "elapsedMs": 0.2522610000000043,
+      "top": [
+        {
+          "id": "ruwiki.definition.8459917",
+          "title": "Пентоксил"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "пиоптиазин",
+      "expected": "ruwiki.definition.17923",
+      "sourceName": "пипотиазин",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 165,
+      "elapsedMs": 0.31506500000000415,
+      "top": [
+        {
+          "id": "ruwiki.definition.17923",
+          "title": "Пипотиазин"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "пенфлуриодл",
+      "expected": "ruwiki.definition.17965",
+      "sourceName": "пенфлуридол",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.2832479999999862,
+      "top": [
+        {
+          "id": "ruwiki.definition.17965",
+          "title": "Пенфлуридол"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "токсиклоогия",
+      "expected": "ruwiki.definition.66464",
+      "sourceName": "токсикология",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 169,
+      "elapsedMs": 0.25455400000001305,
+      "top": [
+        {
+          "id": "ruwiki.definition.66464",
+          "title": "Токсикология"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "гипермнезяи",
+      "expected": "ruwiki.definition.2510027",
+      "sourceName": "гипермнезия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 169,
+      "elapsedMs": 0.32268700000000194,
+      "top": [
+        {
+          "id": "ruwiki.definition.2510027",
+          "title": "Гипермнезия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "фтионциды",
+      "expected": "ruwiki.definition.78505",
+      "sourceName": "фитонциды",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 163,
+      "elapsedMs": 0.27462399999998865,
+      "top": [
+        {
+          "id": "ruwiki.definition.78505",
+          "title": "Фитонциды"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "наолксегол",
+      "expected": "ruwiki.definition.8285283",
+      "sourceName": "налоксегол",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 167,
+      "elapsedMs": 0.24045300000000225,
+      "top": [
+        {
+          "id": "ruwiki.definition.8285283",
+          "title": "Налоксегол"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "хориодеремия",
+      "expected": "ruwiki.definition.5322002",
+      "sourceName": "хороидеремия",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 171,
+      "elapsedMs": 0.28270599999999035,
+      "top": [
+        {
+          "id": "ruwiki.definition.5322002",
+          "title": "Хороидеремия"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "ангиокератоам",
+      "expected": "ruwiki.definition.2446973",
+      "sourceName": "ангиокератома",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 173,
+      "elapsedMs": 0.3865440000000149,
+      "top": [
+        {
+          "id": "ruwiki.definition.2446973",
+          "title": "Ангиокератома"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "query": "палцьехождение",
+      "expected": "ruwiki.definition.10013142",
+      "sourceName": "пальцехождение",
+      "rank": 1,
+      "statements": 2,
+      "fts": 0,
+      "returnedBytes": 176,
+      "elapsedMs": 0.26444899999998484,
+      "top": [
+        {
+          "id": "ruwiki.definition.10013142",
+          "title": "Пальцехождение"
+        }
+      ],
+      "beforeRank": null
+    }
+  ],
+  "limitations": "One adjacent-letter transposition in a single long alphabetic name, not arbitrary spelling, semantic search or clinical validation. Latency is one host run, not Android qualification."
+}

@@ -10,6 +10,11 @@
       "path": "content/definition-drafts/msd-topic-completions-2026.09.23.json",
       "bytes": 48115,
       "sha256": "10957a554638868a387638724d2c55f8d54ccacf620141ad1e8c00b967a8364c"
+    },
+    {
+      "path": "content/definition-drafts/catalog-completions-2026.09.23-reliability-2.json",
+      "bytes": 4889,
+      "sha256": "8ef91c56feabc0139eaaee6bf93c77ec4e846f411b2c7a163b189850b0b3a4c7"
     }
   ]
 }
