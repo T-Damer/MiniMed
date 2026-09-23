@@ -1,4 +1,5 @@
 import {
+  definitionNameTranspositions,
   definitionQuestionSubject,
   isDefinitionNavigationOnly,
   planDefinitionDescription,
@@ -131,14 +132,17 @@ export async function createSqliteDefinitionReference(
       const limit = Math.min(Math.floor(requested), 20);
       const normalized = normalizeDefinitionReferenceName(query);
       if (!normalized || normalized.length > MAX_QUERY_CHARACTERS) return [];
-      const exactNames = (name: string) =>
-        sql.read(
+      const exactNames = (name: string | readonly string[]) => {
+        const keys = typeof name === 'string' ? [name] : name;
+        const predicate = keys.length === 1 ? '= ?' : `IN (${keys.map(() => '?').join(', ')})`;
+        return sql.read(
           `SELECT ${HEADER}, MIN(CASE WHEN n.name_type = 'primary' THEN 0 ELSE 1 END) AS tier
         FROM knowledge_names n JOIN knowledge_entities e ON e.id = n.entity_id
-        WHERE n.normalized_name = ? AND ${SCOPE}
+        WHERE n.normalized_name ${predicate} AND ${SCOPE}
         GROUP BY e.id ORDER BY tier, CASE WHEN json_extract(e.metadata_json, '$.coverage') = 'needs-definition' THEN 1 ELSE 0 END, e.id LIMIT ?`,
-          [name, ...scope, limit],
+          [...keys, ...scope, limit],
         );
+      };
       const exact = await exactNames(normalized);
       // Abbreviations/stop words are never discarded before the identity lookup.
       if (exact.length) return exact.map((row) => hit(row, 'name'));
@@ -149,6 +153,15 @@ export async function createSqliteDefinitionReference(
           const framed = await exactNames(subjectName);
           if (framed.length) return framed.map((row) => hit(row, 'name'));
         }
+      }
+      // At most 47 indexed name candidates, only after exact identity misses. No corpus scan,
+      // short abbreviations, numeric codes, clinical aliases or inferred source relationships.
+      const variants = definitionNameTranspositions(
+        normalizeDefinitionReferenceName(subject ?? query),
+      );
+      if (variants.length) {
+        const spelling = await exactNames(variants);
+        if (spelling.length) return spelling.map((row) => hit(row, 'name'));
       }
       // Unknown framed subjects retain the original query; only proved full names bypass retrieval.
       if (isDefinitionNavigationOnly(query)) return [];
