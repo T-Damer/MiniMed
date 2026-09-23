@@ -11,7 +11,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -25,7 +25,7 @@ jobs:
         with:
           bun-version: 1.2.3
           no-cache: true
-      - name: Execute the full pinned check without relaxing its gates
+      - name: Qualify the collected scope and bounded question handler
         env:
           HEAD_SHA: ${{ github.sha }}
           RUN_ID: ${{ github.run_id }}
@@ -44,18 +44,97 @@ jobs:
           old='    raw = b\'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.msdmanuals.com/ru/professional/test/chapter/topic</loc><lastmod>2026-01-01</lastmod><link href="https://other.example/" /></url></urlset>\''
           new='    raw = (b\'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\'\n           b\'<url><loc>https://www.msdmanuals.com/ru/professional/test/chapter/topic</loc>\'\n           b\'<lastmod>2026-01-01</lastmod><link href="https://other.example/" /></url></urlset>\')'
           replace(p,old,new)
+          p='packages/search-lexical/src/index.ts'
+          replace(p,"export * from './definition-description';", "export * from './definition-description';\nexport * from './definition-question';")
+          p='packages/storage-sqlite/src/definition-reference-reader.ts'
+          replace(p,"import { planDefinitionDescription, rankDefinitionDescriptions } from '@localmed/search-lexical';", "import { definitionQuestionSubject, planDefinitionDescription, rankDefinitionDescriptions } from '@localmed/search-lexical';")
+          replace(p,'      const exact = await sql.read(', '      const exactByName = (name: string) => sql.read(')
+          replace(p,'        [normalized, ...scope, limit],\n      );\n      // Abbreviations', '        [name, ...scope, limit],\n      );\n      const exact = await exactByName(normalized);\n      // Abbreviations')
+          replace(p,"      if (exact.length) return exact.map((row) => hit(row, 'name'));", "      if (exact.length) return exact.map((row) => hit(row, 'name'));\n      const questionSubject = definitionQuestionSubject(query);\n      if (questionSubject) {\n        const subjectHits = await exactByName(normalizeDefinitionReferenceName(questionSubject));\n        if (subjectHits.length) return subjectHits.map((row) => hit(row, 'name'));\n      }")
           source=Path('.github/workflows/msd-catalog-check.yml').read_text()
+          tsfiles='packages/search-lexical/src/definition-question.ts packages/search-lexical/tests/definition-question.test.ts packages/search-lexical/src/index.ts packages/storage-sqlite/src/definition-reference-reader.ts tools/benchmarks/definition-catalog-growth-audit.ts tools/benchmarks/definition-question-audit.ts'
           for block in re.split(r'(?m)^      - name: ',source)[1:]:
               name=block.splitlines()[0]
-              marker='        run: |\n'
-              assert marker in block,name
+              marker='        run: |\n';assert marker in block,name
               command=textwrap.dedent(block.split(marker,1)[1])
               command=command.replace('$'+'{{ github.sha }}',os.environ['HEAD_SHA']).replace('$'+'{{ github.run_id }}',os.environ['RUN_ID'])
               assert '$'+'{{' not in command
+              if name=='Locked code and source-scope checks':
+                  command+='\nenv -i PATH="$PATH" HOME="$HOME" bun install --frozen-lockfile\n'
+                  command+='env -i PATH="$PATH" HOME="$HOME" bunx biome check --write '+tsfiles+'\n'
+                  command+='env -i PATH="$PATH" HOME="$HOME" bun run --cwd apps/app typecheck\n'
+                  command+='env -i PATH="$PATH" HOME="$HOME" bunx vitest run packages/search-lexical/tests/definition-question.test.ts packages/storage-sqlite/tests/definition-reference-layout.test.ts packages/storage-sqlite/tests/definition-reference-metadata.test.ts --reporter=json --outputFile=data/build/msd-search-tests.json\n'
+              if name=='Select absent topic names without importing or replacing medical definitions':
+                  baseline="""env -i PATH="$PATH" HOME="$HOME" uv run --project tools/ingest python - <<'BASELINE'
+          import runpy,sys
+          def guard(event,args):
+              if event in {'socket.connect','socket.getaddrinfo'}:raise RuntimeError('Baseline build must be offline')
+          sys.addaudithook(guard)
+          sys.argv=['scripts/prepare-definition-reference.py','--version','2026.09.23-msd-baseline-1','--built-at','2026-09-23']
+          runpy.run_path(sys.argv[0],run_name='__main__')
+          BASELINE
+          """
+                  command=baseline+command
               if name=='Real reader and frozen reverse-query qualification on the expanded database':
                   command='env -i PATH="$PATH" HOME="$HOME" git fetch --no-tags --depth=1 origin 7ae77243ef26a6633031fd2dfdbb981d4dea0fc9\n'+command
+                  command+='\nenv -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/definition-catalog-growth-audit.ts apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-msd-baseline-1.db apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-msd-catalog-1.db docs/research/msd-catalog-growth-2026-09-23.json\n'
+                  command+='env -i PATH="$PATH" HOME="$HOME" bun tools/benchmarks/definition-question-audit.ts apps/app/public/content/definition-reference/minimed.definition.reference.2026.09.23-msd-catalog-1.db packages/storage-sqlite/src/.msd-baseline-reader.ts docs/research/definition-question-search-2026-09-23.json\n'
+                  command+="""python3 - <<'REPORT'
+          import json
+          from pathlib import Path
+          path=Path('docs/research/msd-catalog-delivery-2026-09-23.json');r=json.loads(path.read_text())
+          growth=json.loads(Path('docs/research/msd-catalog-growth-2026-09-23.json').read_text())
+          questions=json.loads(Path('docs/research/definition-question-search-2026-09-23.json').read_text())
+          tests=json.loads(Path('data/build/msd-search-tests.json').read_text())
+          assert tests['numFailedTests']==0 and tests['success']
+          r['searchTests']={key:tests[key] for key in ('numTotalTests','numPassedTests','numFailedTests')}
+          r['catalogGrowth']={key:growth[key] for key in ('cases','beforeTop20','afterTop20','exactNameQueriesChecked','exactChanges','regressions')}
+          r['definitionQuestions']={key:questions[key] for key in ('totalNames','eligibleNames','excludedNames','exactChanges','wrapperChanges','wrappedFtsCalls')}
+          r['definitionQuestions']['sample']={key:questions['sample'][key] for key in ('count','beforeExact','afterExact')}
+          path.write_text(json.dumps(r,ensure_ascii=False,indent=2)+'\n')
+          REPORT
+          """
               if name=='Record actual scope and remove this temporary verification workflow':
-                  command += '\ngit rm .github/workflows/msd-catalog-retry.yml\n'
+                  command += """
+          python3 - <<'NOTES'
+          import json
+          from pathlib import Path
+          r=json.loads(Path('docs/research/msd-catalog-delivery-2026-09-23.json').read_text());q=r['definitionQuestions'];g=r['catalogGrowth']
+          note=(f"\n### Named questions and catalog-growth checks\n\n"
+                f"Added exact whole-subject handling for named definition questions after literal identity lookup. "
+                f"It does not infer medical synonyms, discard a compound tail or create definitions for pending names. "
+                f"{q['eligibleNames']}/{q['totalNames']} names qualified for exhaustive quoted-question equivalence; "
+                f"{q['excludedNames']} too-long/ambiguous wrappers were excluded explicitly. "
+                f"No changed exact identities, wrapper differences or FTS calls on these resolved questions. "
+                f"Fixed 96-name sampling: {q['sample']['beforeExact']}/{q['sample']['count']} "
+                f"exact-source outputs before, {q['sample']['afterExact']}/{q['sample']['count']} after.\n\n"
+                f"Separate pre/post content databases with the same reader retained {g['beforeTop20']} → "
+                f"{g['afterTop20']} of {g['cases']} frozen description targets. "
+                f"All {g['exactNameQueriesChecked']} pre-existing exact-name outputs were unchanged. "
+                f"{r['searchTests']['numPassedTests']} scoped TypeScript tests, app typecheck and formatting passed. "
+                f"These are deterministic source/developer checks, not independent clinical or semantic quality. "
+                f"Reports: `research/msd-catalog-growth-2026-09-23.json`, "
+                f"`research/definition-question-search-2026-09-23.json`.\n")
+          for path in ('docs/research/msd-catalog-delivery-2026-09-23.md','docs/CURRENT_STATE.md','docs/DEFINITION_REFERENCE_PLAN.md'):
+              p=Path(path);s=p.read_text();first,rest=s.split('\n',1);p.write_text(first+'\n'+note+'\n'+rest)
+          NOTES
+          git rm .github/workflows/msd-catalog-retry.yml
+          """
+              if name=='Save only verified metadata, sources and tests':
+                  command='git add '+tsfiles+' docs/research/msd-catalog-growth-2026-09-23.json docs/research/definition-question-search-2026-09-23.json\n'+command
+                  start=command.index('own=$(git rev-parse HEAD)')
+                  command=command[:start]+"""own=$(git rev-parse HEAD)
+          auth=$(printf 'x-access-token:%s' "$PUSH_TOKEN" | base64 -w0)
+          sent=0
+          for attempt in 1 2 3; do
+            git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --depth=1 --no-tags origin experiment/system-one-search-benchmark
+            remote=$(git rev-parse FETCH_HEAD)
+            git switch --detach "$remote"
+            git cherry-pick "$own"
+            if git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin HEAD:refs/heads/experiment/system-one-search-benchmark; then sent=1; break; fi
+          done
+          test "$sent" = 1
+          """
               env={key:os.environ[key] for key in ('PATH','HOME','RUNNER_TEMP')}
               if name=='Save only verified metadata, sources and tests':env['PUSH_TOKEN']=os.environ['PUSH_TOKEN']
               print('Executing: '+name,flush=True)
