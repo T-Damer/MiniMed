@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import http.client
 import json
 import re
 import tempfile
@@ -29,7 +30,7 @@ from .clinic_definition_completions import (
 )
 from .definition_gap_inventory import build_gap_inventory
 from .definition_name_completions import apply_name_completions
-from .definition_reference_pack import digest, encoded, normalized_name
+from .definition_reference_pack import encoded, normalized_name, obj, seq, text
 
 CATALOG = "https://www.smclinic.ru/simptomy/"
 SOURCES = [
@@ -139,7 +140,7 @@ class PublicSourceReader:
                 parser.parse(raw.decode("utf-8", errors="replace").splitlines())
             else:
                 raise ValueError(f"robots.txt returned HTTP {status}")
-            delay = parser.crawl_delay(USER_AGENT) or parser.crawl_delay("*") or 1
+            delay = float(parser.crawl_delay(USER_AGENT) or parser.crawl_delay("*") or 1)
             if delay > 30:
                 raise ValueError("Source crawl delay exceeds this bounded batch budget")
             self.robots[host] = parser
@@ -167,9 +168,10 @@ def run(root: Path, batch: str, limit: int) -> dict[str, object]:
         for entry in projection.entries.values()
         if entry.coverage == "needs-definition"
     }
-    for row in before["rows"]:
+    for value in seq(before["rows"], 100000):
+        row = obj(value)
         if row["status"] != "ready-for-source-research":
-            ready.pop(row["normalizedTitle"], None)
+            ready.pop(text(row["normalizedTitle"]), None)
     reader = PublicSourceReader()
     discovery: list[dict[str, object]] = []
     selections: list[tuple[str, int, str, str | None]] = []
@@ -184,7 +186,7 @@ def run(root: Path, batch: str, limit: int) -> dict[str, object]:
         for name, path in sorted(catalog_links(raw_catalog).items()):
             if name in ready and name not in seeded:
                 selections.append((ready[name], 1, path, None))
-    except (OSError, ValueError) as exc:
+    except (OSError, ValueError, http.client.HTTPException) as exc:
         discovery.append({"url": CATALOG, "status": "catalog-pending", "reason": str(exc)[:240]})
     fills: list[dict[str, object]] = []
     for title, source, path, prefix in selections[:limit]:
@@ -197,18 +199,20 @@ def run(root: Path, batch: str, limit: int) -> dict[str, object]:
             if excerpt is None:
                 outcome["status"] = "no-short-explicit-definition"
                 continue
-            fills.append({
-                "id": f"catalog.candidate.{len(fills) + 1}",
-                "targetTitle": title,
-                "source": source,
-                "path": path,
-                "excerpt": excerpt,
-                "locator": "Title-led complete paragraph sentence; bounded catalog selection v1",
-                "author": None,
-                "modified": None,
-            })
+            fills.append(
+                {
+                    "id": f"catalog.candidate.{len(fills) + 1}",
+                    "targetTitle": title,
+                    "source": source,
+                    "path": path,
+                    "excerpt": excerpt,
+                    "locator": "Title-led sentence; bounded catalog selection v1",
+                    "author": None,
+                    "modified": None,
+                }
+            )
             outcome["status"] = "selected-for-independent-refetch"
-        except (OSError, ValueError) as exc:
+        except (OSError, ValueError, http.client.HTTPException) as exc:
             outcome.update({"status": "source-pending", "reason": str(exc)[:240]})
     authoring = {
         "version": 1,
@@ -222,20 +226,24 @@ def run(root: Path, batch: str, limit: int) -> dict[str, object]:
         path = Path(temporary) / "selected.json"
         path.write_text(encoded(authoring), encoding="utf-8")
         bundle, acquisition = collect(root, path)
-    accepted = int(acquisition["accepted"])
+    accepted = acquisition["accepted"]
+    if type(accepted) is not int or accepted < 0:
+        raise ValueError("Invalid acquisition counter")
     if accepted:
-        bundle["catalog"]["id"] = f"catalog-completions-{batch}"
+        obj(bundle["catalog"])["id"] = f"catalog-completions-{batch}"
         raw = (encoded(bundle) + "\n").encode("utf-8")
         apply_name_completions(projection, bundle, hashlib.sha256(raw).hexdigest())
         manifest_path = root / "content/definition-drafts/completion-inputs.json"
         manifest = json.loads(manifest_path.read_bytes())
         if len(manifest["inputs"]) >= 16:
             raise ValueError("Completion manifest input budget exhausted")
-        manifest["inputs"].append({
-            "path": output.relative_to(root).as_posix(),
-            "bytes": len(raw),
-            "sha256": hashlib.sha256(raw).hexdigest(),
-        })
+        manifest["inputs"].append(
+            {
+                "path": output.relative_to(root).as_posix(),
+                "bytes": len(raw),
+                "sha256": hashlib.sha256(raw).hexdigest(),
+            }
+        )
         output.write_bytes(raw)
         manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
         reloaded = load_projection(root)
@@ -274,7 +282,7 @@ def main() -> None:
     args = parser.parse_args()
     report = run(args.root.resolve(strict=True), args.batch, args.limit)
     print(json.dumps(report, ensure_ascii=False))
-    if not report["acquisition"]["accepted"]:
+    if obj(report["acquisition"])["accepted"] == 0:
         raise SystemExit("No definitions accepted; source deferrals were recorded")
 
 
