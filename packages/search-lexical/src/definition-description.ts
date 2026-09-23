@@ -2,14 +2,64 @@ import { lightStemRussian, normalizeSurfaceText } from './normalize';
 
 /** These are language operators, not clinical aliases or a phrase-to-diagnosis dictionary. */
 const STOP = new Set([
-  'а', 'бы', 'в', 'во', 'для', 'до', 'же', 'и', 'из', 'или', 'к', 'как', 'ко', 'ли',
-  'на', 'но', 'о', 'об', 'от', 'по', 'под', 'при', 'с', 'со', 'у', 'что', 'это',
-  'этот', 'эта', 'эти', 'такой', 'такая', 'такое', 'когда', 'который', 'которая',
-  'которые', 'которое', 'его', 'ее', 'их', 'он', 'она', 'они', 'оно', 'себя', 'собой',
-  'есть', 'является', 'представляет', 'помощью', 'одного', 'одной', 'один',
+  'а',
+  'бы',
+  'в',
+  'во',
+  'для',
+  'до',
+  'же',
+  'и',
+  'из',
+  'или',
+  'к',
+  'как',
+  'ко',
+  'ли',
+  'на',
+  'но',
+  'о',
+  'об',
+  'от',
+  'по',
+  'под',
+  'при',
+  'с',
+  'со',
+  'у',
+  'что',
+  'это',
+  'этот',
+  'эта',
+  'эти',
+  'такой',
+  'такая',
+  'такое',
+  'когда',
+  'который',
+  'которая',
+  'которые',
+  'которое',
+  'его',
+  'ее',
+  'их',
+  'он',
+  'она',
+  'они',
+  'оно',
+  'себя',
+  'собой',
+  'есть',
+  'является',
+  'представляет',
+  'помощью',
+  'одного',
+  'одной',
+  'один',
 ]);
-const FRAMING = /^(?:(?:как\s+(?:это\s+)?называется|что\s+(?:это\s+)?за\s+термин|не\s+(?:помню|знаю)\s+(?:название|термин)|найди\s+(?:термин|определение)|найти\s+(?:термин|определение))\s*[,.:—-]?\s*(?:когда\s+)*)/u;
-const ABSENCE = /^(?:не|нет|без|отсутств\p{L}*|утрат\p{L}*|потер[яию]\p{L}*|отрица\p{L}*)$/u;
+const FRAMING =
+  /^(?:(?:как\s+(?:это\s+)?называется|что\s+(?:это\s+)?за\s+термин|не\s+(?:помню|знаю)\s+(?:название|термин)|найди\s+(?:термин|определение)|найти\s+(?:термин|определение))\s*[,.:—-]?\s*(?:когда\s+)*)/u;
+const ABSENCE = /^(?:не|нет|без|отсутств\p{L}*|отрица\p{L}*)$/u;
 const MAX_TERMS = 16;
 export const DEFINITION_DESCRIPTION_CANDIDATES = 192;
 export const DEFINITION_DESCRIPTION_CHARACTERS = 4096;
@@ -52,7 +102,9 @@ function features(value: string): readonly Feature[] {
   const result: Feature[] = [];
   let position = 0;
   // A conservative clause-local absence cue; not a clinical assertion or patient-state parser.
-  for (const clause of normalizeSurfaceText(value).split(/[.,:;!?]|\sно\s/gu)) {
+  for (const clause of normalizeSurfaceText(value.replace(/[;!?]/gu, '.')).split(
+    /[.,:;!?]|\sно\s/gu,
+  )) {
     const words = clause.match(/[\p{L}\p{N}]+/gu) ?? [];
     const absent = words.some((word) => ABSENCE.test(word));
     for (const word of words) {
@@ -66,7 +118,7 @@ function features(value: string): readonly Feature[] {
 
 export function planDefinitionDescription(value: string): DefinitionDescriptionPlan | null {
   if (!value || value.length > 2048 || value.includes('\0')) return null;
-  const normalized = normalizeSurfaceText(value);
+  const normalized = normalizeSurfaceText(value.replace(/[;!?]/gu, '.'));
   const subject = normalized.replace(FRAMING, '').trim();
   if (!subject) return null;
   const unique = new Map<string, Feature>();
@@ -78,8 +130,8 @@ export function planDefinitionDescription(value: string): DefinitionDescriptionP
   }
   const terms = [...unique.values()];
   if (terms.length < 2 || terms.length > MAX_TERMS) return null;
-  const expression = terms.map((term) =>
-    `"${term.stem}"${/^[а-яa-z]{3,}$/u.test(term.stem) ? '*' : ''}`,
+  const expression = terms.map(
+    (term) => `"${term.stem}"${/^[а-яa-z]{3,}$/u.test(term.stem) ? '*' : ''}`,
   );
   return {
     subject,
@@ -94,9 +146,13 @@ function strength(query: Feature, candidate: Feature): number {
   if (query.surface === candidate.surface) return 1;
   if (query.stem === candidate.stem) return 0.96;
   // Prefixes here repair inflection only; short abbreviations/numbers must be exact.
-  if (/^[а-яa-z]{4,}$/u.test(query.stem) && /^[а-яa-z]{4,}$/u.test(candidate.stem) &&
+  if (
+    /^[а-яa-z]{4,}$/u.test(query.stem) &&
+    /^[а-яa-z]{4,}$/u.test(candidate.stem) &&
     Math.abs(query.stem.length - candidate.stem.length) <= 2 &&
-    (query.stem.startsWith(candidate.stem) || candidate.stem.startsWith(query.stem))) return 0.8;
+    (query.stem.startsWith(candidate.stem) || candidate.stem.startsWith(query.stem))
+  )
+    return 0.8;
   return 0;
 }
 
@@ -105,10 +161,15 @@ export function rankDefinitionDescriptions(
   plan: DefinitionDescriptionPlan,
   candidates: readonly DefinitionDescriptionCandidate[],
 ): readonly RankedDefinitionDescription[] {
-  if (candidates.length > DEFINITION_DESCRIPTION_CANDIDATES) throw new Error('Description candidate budget exceeded.');
+  if (candidates.length > DEFINITION_DESCRIPTION_CANDIDATES)
+    throw new Error('Description candidate budget exceeded.');
   const analyzed = candidates.map((candidate) => {
-    if (!candidate.id || candidate.text.length > DEFINITION_DESCRIPTION_CHARACTERS * 2 ||
-      [...candidate.text].length > DEFINITION_DESCRIPTION_CHARACTERS || !Number.isFinite(candidate.retrievalRank)) {
+    if (
+      !candidate.id ||
+      candidate.text.length > DEFINITION_DESCRIPTION_CHARACTERS * 2 ||
+      [...candidate.text].length > DEFINITION_DESCRIPTION_CHARACTERS ||
+      !Number.isFinite(candidate.retrievalRank)
+    ) {
       throw new Error('Invalid bounded definition candidate.');
     }
     const words = features(candidate.text);
@@ -130,7 +191,9 @@ export function rankDefinitionDescriptions(
     return { candidate, words, matches };
   });
   const weights = plan.terms.map((_, index) => {
-    const owners = new Set(analyzed.filter((row) => (row.matches[index]?.best ?? 0) > 0).map((row) => row.candidate.id));
+    const owners = new Set(
+      analyzed.filter((row) => (row.matches[index]?.best ?? 0) > 0).map((row) => row.candidate.id),
+    );
     return 1 + Math.log((analyzed.length + 1) / (owners.size + 1));
   });
   const totalWeight = weights.reduce((total, value) => total + value, 0);
@@ -141,15 +204,19 @@ export function rankDefinitionDescriptions(
     if (matched < Math.max(2, Math.ceil(plan.terms.length * 0.6))) continue;
     // Explicit absence may not be discarded merely to find a lexically similar positive definition.
     if (conflicts > 0 && plan.terms.some((term) => term.absent)) continue;
-    const coverage = row.matches.reduce((sum, match, i) => sum + match.best * (weights[i] ?? 0), 0) / totalWeight;
+    const coverage =
+      row.matches.reduce((sum, match, i) => sum + match.best * (weights[i] ?? 0), 0) / totalWeight;
     if (coverage < 0.6) continue;
     const positions = row.matches.filter((match) => match.at >= 0).map((match) => match.at);
     const span = Math.max(...positions) - Math.min(...positions) + 1;
     const proximity = matched / Math.max(matched, span);
-    const score = coverage * 8 + proximity + matched / Math.max(matched, row.words.length) - conflicts * 2;
+    const score =
+      coverage * 8 + proximity + matched / Math.max(matched, row.words.length) - conflicts * 2;
     const outcome = { id: row.candidate.id, score, matched, total: plan.terms.length };
     const previous = bestById.get(outcome.id);
     if (!previous || previous.score < score) bestById.set(outcome.id, outcome);
   }
-  return [...bestById.values()].sort((left, right) => right.score - left.score || left.id.localeCompare(right.id));
+  return [...bestById.values()].sort(
+    (left, right) => right.score - left.score || left.id.localeCompare(right.id),
+  );
 }

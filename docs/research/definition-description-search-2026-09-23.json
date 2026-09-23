@@ -1,0 +1,1008 @@
+{
+  "baselineCommit": "ed4c84a1ab6b461a7d345df06d880a35ae66f6a0",
+  "queryFixtureSha256": "fab0041ce768b792ac7c96a68261dd8fd92c791c451fb4d2f4e8f091e8e38ffd",
+  "databaseSha256": "29c7d9a5e0bcba413a78b6e450af94751ff8791aaf885b0ad50dda6801a977ff",
+  "sameDatabaseForBoth": true,
+  "cases": 32,
+  "corpusEligible": 32,
+  "corpusMissing": [],
+  "before": {
+    "top1": 10,
+    "top5": 10,
+    "top20": 10,
+    "p50Ms": 0.908715999999913,
+    "p95Ms": 40.040545000000066,
+    "maximumReturnedBytes": 238
+  },
+  "after": {
+    "top1": 30,
+    "top5": 30,
+    "top20": 30,
+    "p50Ms": 86.80859799999996,
+    "p95Ms": 98.252137,
+    "maximumReturnedBytes": 92062
+  },
+  "byFamily": {
+    "inflection": {
+      "total": 7,
+      "beforeTop1": 1,
+      "afterTop1": 7,
+      "beforeTop20": 1,
+      "afterTop20": 7
+    },
+    "framing": {
+      "total": 13,
+      "beforeTop1": 0,
+      "afterTop1": 13,
+      "beforeTop20": 0,
+      "afterTop20": 13
+    },
+    "source-phrase": {
+      "total": 9,
+      "beforeTop1": 8,
+      "afterTop1": 9,
+      "beforeTop20": 8,
+      "afterTop20": 9
+    },
+    "absence": {
+      "total": 1,
+      "beforeTop1": 1,
+      "afterTop1": 1,
+      "beforeTop20": 1,
+      "afterTop20": 1
+    },
+    "loose-paraphrase": {
+      "total": 2,
+      "beforeTop1": 0,
+      "afterTop1": 0,
+      "beforeTop20": 0,
+      "afterTop20": 0
+    }
+  },
+  "outcomes": [
+    {
+      "id": "anisocytosis-inflection",
+      "query": "эритроциты неравных размеров",
+      "expected": "medical.definition.anisocytosis",
+      "family": "inflection",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 2.551410000000004,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.anisocytosis"
+        ],
+        "latencyMs": 98.252137,
+        "rowsReturned": 97,
+        "bytesReturned": 76294,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "anisocytosis-question",
+      "query": "Как называется присутствие эритроцитов неравных размеров?",
+      "expected": "medical.definition.anisocytosis",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.8513080000000173,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.anisocytosis"
+        ],
+        "latencyMs": 89.93171999999998,
+        "rowsReturned": 97,
+        "bytesReturned": 78922,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "anisocytosis-reorder",
+      "query": "неравные размеры эритроцитов в кровотоке",
+      "expected": "medical.definition.anisocytosis",
+      "family": "inflection",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7397789999999986,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.anisocytosis"
+        ],
+        "latencyMs": 87.32720100000003,
+        "rowsReturned": 97,
+        "bytesReturned": 71786,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "myoclonus-inflection",
+      "query": "быстрые кратковременные сокращения мышцы",
+      "expected": "medical.definition.myoclonus",
+      "family": "inflection",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7327860000000328,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.myoclonus",
+          "prepared.definition.6472b46d69c84a54d74c7ec1",
+          "prepared.definition.9013f92aa7463f6286b1449d",
+          "prepared.definition.cc3a0124bdc39592d308e48c"
+        ],
+        "latencyMs": 86.80859799999996,
+        "rowsReturned": 97,
+        "bytesReturned": 69306,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "myoclonus-question",
+      "query": "Как называется кратковременное быстрое сокращение группы мышц?",
+      "expected": "medical.definition.myoclonus",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.8631909999999721,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.myoclonus"
+        ],
+        "latencyMs": 89.96537600000005,
+        "rowsReturned": 97,
+        "bytesReturned": 74192,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "agnosia-inflection",
+      "query": "неспособность идентифицировать объекты органами чувств",
+      "expected": "medical.definition.agnosia",
+      "family": "inflection",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7518110000000888,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.agnosia"
+        ],
+        "latencyMs": 107.49102200000004,
+        "rowsReturned": 97,
+        "bytesReturned": 69889,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "agnosia-question",
+      "query": "Как называется неспособность идентифицировать объект с помощью органов чувств?",
+      "expected": "medical.definition.agnosia",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 1.0110580000000482,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.agnosia"
+        ],
+        "latencyMs": 90.67232000000001,
+        "rowsReturned": 97,
+        "bytesReturned": 69889,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "dysarthria-description",
+      "query": "утрата способности правильно артикулировать слова",
+      "expected": "medical.definition.dysarthria",
+      "family": "source-phrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.dysarthria"
+        ],
+        "latencyMs": 40.040545000000066,
+        "rowsReturned": 1,
+        "bytesReturned": 186,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.dysarthria"
+        ],
+        "latencyMs": 89.89609299999995,
+        "rowsReturned": 97,
+        "bytesReturned": 68720,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "dysarthria-question",
+      "query": "Как называется утрата способности артикулировать слова?",
+      "expected": "medical.definition.dysarthria",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 1.0357839999999214,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.dysarthria"
+        ],
+        "latencyMs": 89.09587099999999,
+        "rowsReturned": 97,
+        "bytesReturned": 70882,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "stridor-description",
+      "query": "высокочастотный преимущественно инспираторный звук",
+      "expected": "medical.definition.stridor",
+      "family": "source-phrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.stridor"
+        ],
+        "latencyMs": 40.01684900000009,
+        "rowsReturned": 1,
+        "bytesReturned": 179,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.stridor"
+        ],
+        "latencyMs": 86.31043199999999,
+        "rowsReturned": 97,
+        "bytesReturned": 72702,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "stridor-question",
+      "query": "Как называется высокочастотный инспираторный звук?",
+      "expected": "medical.definition.stridor",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7695549999998548,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.stridor"
+        ],
+        "latencyMs": 88.46369400000003,
+        "rowsReturned": 65,
+        "bytesReturned": 70363,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "hyperosmia-description",
+      "query": "повышенная чувствительность к запахам",
+      "expected": "medical.definition.hyperosmia",
+      "family": "source-phrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.hyperosmia"
+        ],
+        "latencyMs": 39.68547699999999,
+        "rowsReturned": 1,
+        "bytesReturned": 188,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.hyperosmia",
+          "prepared.definition.d4f6e4f653126d0234b7ba79"
+        ],
+        "latencyMs": 85.30355199999985,
+        "rowsReturned": 97,
+        "bytesReturned": 69164,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "hyperosmia-question",
+      "query": "Как называется повышенная чувствительность к запахам?",
+      "expected": "medical.definition.hyperosmia",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.9790479999999206,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.hyperosmia",
+          "prepared.definition.d4f6e4f653126d0234b7ba79"
+        ],
+        "latencyMs": 86.81603100000007,
+        "rowsReturned": 97,
+        "bytesReturned": 69164,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "tinnitus-description",
+      "query": "восприятие звука в отсутствие акустического стимула",
+      "expected": "medical.definition.subjective-tinnitus",
+      "family": "source-phrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.subjective-tinnitus"
+        ],
+        "latencyMs": 39.76901500000008,
+        "rowsReturned": 1,
+        "bytesReturned": 218,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.subjective-tinnitus"
+        ],
+        "latencyMs": 84.65849099999991,
+        "rowsReturned": 97,
+        "bytesReturned": 65878,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "tinnitus-question",
+      "query": "Как называется восприятие звука в отсутствие акустического стимула?",
+      "expected": "medical.definition.subjective-tinnitus",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.8659560000000965,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "medical.definition.subjective-tinnitus"
+        ],
+        "latencyMs": 85.58151399999997,
+        "rowsReturned": 97,
+        "bytesReturned": 65878,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "anosmia-negation",
+      "query": "запахи не ощущаются",
+      "expected": "draft.definition.anosmia",
+      "family": "absence",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.anosmia"
+        ],
+        "latencyMs": 39.428145000000086,
+        "rowsReturned": 1,
+        "bytesReturned": 184,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.anosmia"
+        ],
+        "latencyMs": 78.42261499999995,
+        "rowsReturned": 17,
+        "bytesReturned": 15150,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "anosmia-question",
+      "query": "Как называется утрата обоняния?",
+      "expected": "draft.definition.anosmia",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7116260000000239,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.anosmia"
+        ],
+        "latencyMs": 82.47947099999988,
+        "rowsReturned": 50,
+        "bytesReturned": 49268,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "hyposmia-description",
+      "query": "запахи ощущаются слабее",
+      "expected": "draft.definition.hyposmia",
+      "family": "source-phrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.hyposmia"
+        ],
+        "latencyMs": 39.409850000000006,
+        "rowsReturned": 1,
+        "bytesReturned": 186,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.hyposmia",
+          "draft.definition.psychic-hyperesthesia",
+          "draft.definition.anosmia"
+        ],
+        "latencyMs": 84.53721299999984,
+        "rowsReturned": 65,
+        "bytesReturned": 67739,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "hyposmia-question",
+      "query": "Как называется снижение обоняния?",
+      "expected": "draft.definition.hyposmia",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.6992629999999735,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.hyposmia",
+          "prepared.definition.202aefcf2423f1f4c2cb85b6",
+          "prepared.definition.c647cc97a7d2994ff1faee91"
+        ],
+        "latencyMs": 83.00488799999994,
+        "rowsReturned": 99,
+        "bytesReturned": 59984,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "fixation-inflection",
+      "query": "утрата способности запоминать текущие события",
+      "expected": "draft.definition.fixation-amnesia",
+      "family": "source-phrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.fixation-amnesia"
+        ],
+        "latencyMs": 39.484721000000036,
+        "rowsReturned": 1,
+        "bytesReturned": 218,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.fixation-amnesia",
+          "prepared.definition.f573890ce4515c753b4f9320"
+        ],
+        "latencyMs": 85.13460499999997,
+        "rowsReturned": 97,
+        "bytesReturned": 67242,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "fixation-question",
+      "query": "Как называется утрата способности запоминать текущие события?",
+      "expected": "draft.definition.fixation-amnesia",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.9479799999999159,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.fixation-amnesia",
+          "prepared.definition.f573890ce4515c753b4f9320"
+        ],
+        "latencyMs": 86.82753300000013,
+        "rowsReturned": 97,
+        "bytesReturned": 67242,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "apraxia-inflection",
+      "query": "утрачена способность выполнять освоенные движения и жесты",
+      "expected": "draft.definition.apraxia",
+      "family": "inflection",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7945409999997537,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.apraxia"
+        ],
+        "latencyMs": 46.57875800000011,
+        "rowsReturned": 96,
+        "bytesReturned": 62968,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "apraxia-question",
+      "query": "Как называется утрата способности выполнять освоенные движения?",
+      "expected": "draft.definition.apraxia",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7731520000002092,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.apraxia"
+        ],
+        "latencyMs": 85.3940520000001,
+        "rowsReturned": 97,
+        "bytesReturned": 62014,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "derealization-description",
+      "query": "знакомые предметы кажутся призрачными и ненастоящими",
+      "expected": "draft.definition.derealization",
+      "family": "source-phrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.804620000000341,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.derealization"
+        ],
+        "latencyMs": 80.80476700000008,
+        "rowsReturned": 27,
+        "bytesReturned": 27844,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "derealization-question",
+      "query": "Как называется утрата переживания реальности окружающего мира?",
+      "expected": "draft.definition.derealization",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7798350000002756,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.derealization"
+        ],
+        "latencyMs": 84.66902100000016,
+        "rowsReturned": 97,
+        "bytesReturned": 66777,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "aphasia-inflection",
+      "query": "нарушено понимание речи чтение и письмо",
+      "expected": "draft.definition.aphasia",
+      "family": "inflection",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7721990000000005,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.aphasia"
+        ],
+        "latencyMs": 90.73656100000017,
+        "rowsReturned": 97,
+        "bytesReturned": 92062,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "aphasia-question",
+      "query": "Как называется нарушение выражения и понимания речи?",
+      "expected": "draft.definition.aphasia",
+      "family": "framing",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.908715999999913,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.aphasia"
+        ],
+        "latencyMs": 90.75156900000002,
+        "rowsReturned": 97,
+        "bytesReturned": 84947,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "atrophy-inflection",
+      "query": "уменьшение и деградация тканей и органов",
+      "expected": "draft.definition.atrophy",
+      "family": "inflection",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.atrophy"
+        ],
+        "latencyMs": 40.57264299999997,
+        "rowsReturned": 1,
+        "bytesReturned": 180,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.atrophy"
+        ],
+        "latencyMs": 89.53948300000002,
+        "rowsReturned": 97,
+        "bytesReturned": 68980,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "cryptomnesia-description",
+      "query": "чужая услышанная идея кажется собственной мыслью",
+      "expected": "draft.definition.cryptomnesia",
+      "family": "source-phrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.cryptomnesia"
+        ],
+        "latencyMs": 39.64919000000009,
+        "rowsReturned": 1,
+        "bytesReturned": 198,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.cryptomnesia"
+        ],
+        "latencyMs": 87.07966699999997,
+        "rowsReturned": 97,
+        "bytesReturned": 82566,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "functional-hallucination-description",
+      "query": "голоса возникают одновременно с реальным звуком и прекращаются вместе с ним",
+      "expected": "draft.definition.functional-hallucination",
+      "family": "source-phrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.functional-hallucination"
+        ],
+        "latencyMs": 39.948521000000255,
+        "rowsReturned": 1,
+        "bytesReturned": 238,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": 1,
+        "ids": [
+          "draft.definition.functional-hallucination"
+        ],
+        "latencyMs": 85.30449399999998,
+        "rowsReturned": 97,
+        "bytesReturned": 61914,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "lay-smell-description",
+      "query": "не чувствует запах духов или кофе",
+      "expected": "draft.definition.anosmia",
+      "family": "loose-paraphrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.7203620000000228,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 44.8337019999999,
+        "rowsReturned": 25,
+        "bytesReturned": 39236,
+        "reverseQueries": 2
+      }
+    },
+    {
+      "id": "lay-memory-description",
+      "query": "не помнит то что случилось только что",
+      "expected": "draft.definition.fixation-amnesia",
+      "family": "loose-paraphrase",
+      "corpusMissing": false,
+      "before": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 0.6701679999996486,
+        "rowsReturned": 0,
+        "bytesReturned": 6,
+        "reverseQueries": 0
+      },
+      "after": {
+        "rank": null,
+        "ids": [],
+        "latencyMs": 54.71698500000002,
+        "rowsReturned": 96,
+        "bytesReturned": 88589,
+        "reverseQueries": 2
+      }
+    }
+  ],
+  "negativeControls": [
+    {
+      "query": "как это называется",
+      "before": [],
+      "after": []
+    },
+    {
+      "query": "что за термин",
+      "before": [
+        "prepared.definition.fb0b5c44c9bfd26adec07028"
+      ],
+      "after": [
+        "prepared.definition.fb0b5c44c9bfd26adec07028"
+      ]
+    },
+    {
+      "query": "космические корабли фиолетового мармелада",
+      "before": [],
+      "after": []
+    },
+    {
+      "query": "не знаю название",
+      "before": [],
+      "after": []
+    }
+  ],
+  "exactIdentityGuard": {
+    "checked": 12644,
+    "changes": [],
+    "reverseHandlerBypassed": true
+  },
+  "regressions": [],
+  "coverageCounts": [
+    {
+      "coverage": "definition",
+      "records": 63
+    },
+    {
+      "coverage": "explicit-definition",
+      "records": 8374
+    },
+    {
+      "coverage": "needs-definition",
+      "records": 7632
+    }
+  ],
+  "boundary": "Authored source-derived developer cases, not an independent clinical or open-ended semantic-search benchmark. Both readers use the same complete corpus; content growth is not credited as a ranking gain. Bounds are at the SQL adapter, not total process/device memory. Lexical absence cues do not establish patient state, diagnosis or calibrated confidence. No query-specific aliases or gold changes.",
+  "checkedCommit": "873d48250f3b5fb73dd2d03a58ea2620ab429462",
+  "runId": "35874800179",
+  "pythonTests": {
+    "tests": 106,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "vitest": {
+    "passed": 46,
+    "failed": 0,
+    "total": 46
+  },
+  "typechecks": [
+    "search-lexical",
+    "storage-sqlite",
+    "app"
+  ],
+  "msdIntake": {
+    "authoringSha256": "1de686111fccefb133dae4e435d54656256828bac5f51a754f113b0b7b8d24dc",
+    "candidates": 10,
+    "selectedDefinitions": 4,
+    "selectedIds": [
+      "medical.definition.laryngeal-dystonia",
+      "medical.definition.hemifacial-spasm",
+      "medical.definition.hypersplenism",
+      "medical.definition.prolactinoma"
+    ],
+    "deferred": [
+      {
+        "id": "medical.definition.nystagmus",
+        "title": "Нистагм",
+        "reason": "existing-definition-name-needs-sense-review"
+      },
+      {
+        "id": "medical.definition.blepharospasm",
+        "title": "Блефароспазм",
+        "reason": "existing-definition-name-needs-sense-review"
+      },
+      {
+        "id": "medical.definition.splenomegaly",
+        "title": "Спленомегалия",
+        "reason": "existing-definition-name-needs-sense-review"
+      },
+      {
+        "id": "medical.definition.hematuria",
+        "title": "Гематурия",
+        "reason": "existing-definition-name-needs-sense-review"
+      },
+      {
+        "id": "medical.definition.portal-hypertension",
+        "title": "Портальная гипертензия",
+        "reason": "existing-definition-name-needs-sense-review"
+      },
+      {
+        "id": "medical.definition.dystonia",
+        "title": "Дистония",
+        "reason": "existing-definition-name-needs-sense-review"
+      }
+    ],
+    "sourcePagesInspected": 10,
+    "maximumWordsPerPage": 22,
+    "newInstruments": 0,
+    "boundary": "One source sentence per selected title; no article cards, whole-page imports, medical rewriting, same-as relations, popularity claim or clinical approval. Name-based deferral is a coverage heuristic, not semantic reconciliation.",
+    "authoringFileSha256": "4a7be343d0f5cfc117a1d7258454efc86366197050a79fada95981812cbe8955"
+  },
+  "unchangedExistingSourceFiles": true,
+  "sourceBlocksCompared": 26707,
+  "installedBytes": 129740800,
+  "downloadBytes": 26919433
+}

@@ -1,3 +1,4 @@
+import { planDefinitionDescription, rankDefinitionDescriptions } from '@localmed/search-lexical';
 import type {
   DefinitionReferenceBlock,
   DefinitionReferenceHit,
@@ -134,6 +135,7 @@ export async function createSqliteDefinitionReference(
       );
       // Abbreviations/stop words are never discarded before the identity lookup.
       if (exact.length) return exact.map((row) => hit(row, 'name'));
+      const description = planDefinitionDescription(query);
       const tokens = [...new Set(normalized.match(/[\p{L}\p{N}]+/gu) ?? [])];
       if (!tokens.length || tokens.length > 24) return [];
       const fts = tokens.map((token) => `"${token}"${token.length >= 4 ? '*' : ''}`).join(' AND ');
@@ -145,7 +147,69 @@ export async function createSqliteDefinitionReference(
         [fts, ...scope, limit],
       );
       const results = names.map((row) => hit(row, 'name'));
-      if (results.length >= limit) return results;
+      if (results.length >= limit && !description?.descriptive) return results;
+      if (description) {
+        const evidence = new Map<string, Row>();
+        // Two bounded indexed branches. No source-body table scan or corpus JS index.
+        for (const expression of [description.conjunction, description.disjunction]) {
+          const candidates = await sql.read(
+            `/* definition-description */ WITH matches AS MATERIALIZED (
+              SELECT rowid, rank AS score FROM definition_reference_fts
+              WHERE definition_reference_fts MATCH ? ORDER BY rank LIMIT 96
+            ) SELECT ${HEADER}, c.id AS chunk_id,
+              substr(c.original_text, 1, 4096) AS evidence, MIN(m.score) AS score
+            FROM matches m JOIN chunks c ON c.rowid = m.rowid
+            JOIN ${links} l ON l.chunk_id = c.id
+            JOIN knowledge_entities e ON e.id = l.entity_id
+            WHERE l.review_status = 'proposed'
+              AND l.link_type IN ('reference:definition','reference:item')
+              AND json_extract(e.metadata_json, '$.coverage') IN ('definition','explicit-definition')
+              AND ${SCOPE}
+            GROUP BY e.id, c.id ORDER BY score, e.id, c.id LIMIT 96`,
+            [expression, ...scope],
+          );
+          if (candidates.length > 96) throw new Error('Reverse definition SQL budget exceeded.');
+          for (const row of candidates)
+            evidence.set(`${string(row['id'], 256)}:${string(row['chunk_id'], 256)}`, row);
+        }
+        const grouped = new Map<string, { row: Row; text: string; retrievalRank: number }>();
+        for (const row of evidence.values()) {
+          const id = string(row['id'], 256);
+          const text = string(row['evidence'], 8192);
+          const previous = grouped.get(id);
+          grouped.set(id, {
+            row,
+            text: [...(previous ? `${previous.text}; ${text}` : text)].slice(0, 4096).join(''),
+            retrievalRank: previous?.retrievalRank ?? grouped.size,
+          });
+        }
+        const ranked = rankDefinitionDescriptions(
+          description,
+          [...grouped].map(([id, value]) => ({
+            id,
+            text: value.text,
+            retrievalRank: value.retrievalRank,
+          })),
+        );
+        const descriptions = ranked.map((item) => {
+          const value = grouped.get(item.id);
+          if (!value) throw new Error('Unresolved reverse definition identity.');
+          return hit(value.row, 'text');
+        });
+        if (descriptions.length) {
+          const ordered = description.descriptive
+            ? [...descriptions, ...results]
+            : [...results, ...descriptions];
+          const seen = new Set<string>();
+          return ordered
+            .filter((item) => {
+              if (seen.has(item.id)) return false;
+              seen.add(item.id);
+              return true;
+            })
+            .slice(0, limit);
+        }
+      }
       // An explicit small candidate set, not a whole-corpus JS index. The SQL engine owns FTS work.
       const body = await sql.read(
         `WITH matches AS MATERIALIZED (

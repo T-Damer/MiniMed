@@ -1,5 +1,10 @@
 # Current state
 
+## Reverse definition handler — 2026-09-23
+
+Added 4 selected MSD definitions and a bounded description-to-term path. Exact identity lookup remains first. Same-corpus developer Top-20: 10 → 30 / 32. All 12644 exact-name outputs are unchanged. This is not independent clinical search qualification. Full bounds, source limits and remaining misses: `research/definition-description-delivery-2026-09-23.md` and its JSON. No model, APK or release.
+
+
 ## Combined medical definitions and name completions — 2026-09-23
 
 This combined measurement supersedes the separate selected-excerpt and clinic-completion

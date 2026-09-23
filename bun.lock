@@ -169,6 +169,7 @@
       "dependencies": {
         "@localmed/contracts": "workspace:*",
         "@localmed/domain": "workspace:*",
+        "@localmed/search-lexical": "workspace:*",
         "@localmed/storage": "workspace:*",
         "@sqlite.org/sqlite-wasm": "3.53.0-build1",
       },

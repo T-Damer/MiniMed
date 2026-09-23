@@ -1,11 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { createSqliteDefinitionReference } from '../src/definition-reference-reader';
 
-const manifest = JSON.stringify({ contract: 1, editionId: 'fixture.reference',
-  publicationState: 'local-dev', reviewStatus: 'requires-review',
-  identityStatus: 'source-local-proposed', linkLayout: 'numeric-v1' });
-const header = { id: 'fixture.correct', title: 'Тестовый термин', kind: 'symptom',
-  coverage: 'definition', text_kind: 'source-excerpt', block_count: 1 };
+const manifest = JSON.stringify({
+  contract: 1,
+  editionId: 'fixture.reference',
+  publicationState: 'local-dev',
+  reviewStatus: 'requires-review',
+  identityStatus: 'source-local-proposed',
+  linkLayout: 'numeric-v1',
+});
+const header = {
+  id: 'fixture.correct',
+  title: 'Тестовый термин',
+  kind: 'symptom',
+  coverage: 'definition',
+  text_kind: 'source-excerpt',
+  block_count: 1,
+};
 function fixture(exact = false) {
   const statements: { sql: string; args: readonly (string | number)[] }[] = [];
   return {
@@ -15,10 +26,22 @@ function fixture(exact = false) {
         statements.push({ sql, args });
         if (sql.includes("key = 'definition_reference'")) return [{ value: manifest }];
         if (exact && sql.includes('WHERE n.normalized_name')) return [header];
-        if (sql.includes('definition-description')) return [
-          { ...header, chunk_id: 'fixture.body', evidence: 'Объекты неравного размера.', score: -1 },
-          { ...header, id: 'fixture.other', chunk_id: 'fixture.other-body', evidence: 'Объекты могут быть полезны.', score: -2 },
-        ];
+        if (sql.includes('definition-description'))
+          return [
+            {
+              ...header,
+              chunk_id: 'fixture.body',
+              evidence: 'Объекты неравного размера.',
+              score: -1,
+            },
+            {
+              ...header,
+              id: 'fixture.other',
+              chunk_id: 'fixture.other-body',
+              evidence: 'Объекты могут быть полезны.',
+              score: -2,
+            },
+          ];
         return [];
       },
     },
@@ -44,7 +67,7 @@ describe('bounded reverse definition reader', () => {
     expect(branch).toHaveLength(2);
     for (const call of branch) {
       expect(call.sql).toContain('LIMIT 96');
-      expect(call.sql).toContain("l.link_type = 'reference:definition'");
+      expect(call.sql).toContain("l.link_type IN ('reference:definition','reference:item')");
       expect(call.sql).toContain('p.enabled = 1');
       expect(call.sql).toContain('substr(c.original_text, 1, 4096)');
       expect(call.args).toContain('fixture.reference');
@@ -54,7 +77,10 @@ describe('bounded reverse definition reader', () => {
     const test = fixture();
     const reader = await createSqliteDefinitionReference(test.executor);
     await reader.search('объекты неравного размера');
-    const sql = test.statements.filter((row) => row.sql.includes('definition-description')).map((row) => row.sql).join('\n');
+    const sql = test.statements
+      .filter((row) => row.sql.includes('definition-description'))
+      .map((row) => row.sql)
+      .join('\n');
     expect(sql).toContain("IN ('definition','explicit-definition')");
     expect(sql).not.toContain("'reference:annotation'");
   });
