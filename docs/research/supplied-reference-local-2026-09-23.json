@@ -1,0 +1,121 @@
+{
+  "date": "2026-09-23",
+  "execution": "local working environment; real supplied PDFs, not GitHub CI",
+  "publicSourceSnapshot": "d8b1f2c878599423489a9777dc4bf31987d66b35",
+  "edition": "2026.09.23-supplied-integrated",
+  "moduleId": "minimed.definition.reference.ru",
+  "supplied": {
+    "sourceDocuments": 2,
+    "preparedInputs": 3,
+    "entries": 458,
+    "definitions": 374,
+    "abbreviations": 2,
+    "otherReferences": 82,
+    "psychiatryRecords": 450,
+    "pediatricRecords": 8,
+    "newExternalSourcesAcquired": 0
+  },
+  "combinedEdition": {
+    "searchableSourceLocalEntries": 16505,
+    "definitionCandidates": 8784,
+    "discoveredNames": 7637,
+    "previousPublicAuthoringRecords": 18357,
+    "previousSearchableIdentitiesRetained": 16047,
+    "definitionVariantsReconciled": false
+  },
+  "sourceFidelity": {
+    "previousSourceBlocks": 26685,
+    "totalSourceBlocksCompared": 35475,
+    "sourceDescriptorsCompared": 70,
+    "entryLinksCompared": 29513,
+    "exactIdentitySet": true,
+    "exactStoredTextAndMetadata": true,
+    "integrityCheck": "ok",
+    "foreignKeyErrors": 0,
+    "knowledgeFacts": 0,
+    "knowledgeRelations": 0,
+    "executableToolDefinitions": 0,
+    "contentPacks": 1
+  },
+  "originals": [
+    {
+      "source": "Semenov/Bersenev, Psychopathological Symptoms and Syndromes, Vladimir State University, 2006",
+      "bytes": 771161,
+      "sha256": "f176f3e07025930387d83a3f9baa260ae48c5db89b15c4e812b4957840a1b651",
+      "sourcePageRange": [6, 86],
+      "paragraphsReplayed": 621,
+      "sourceRecords": 450,
+      "explicitDefinitions": 371,
+      "replayAssertions": 3556,
+      "byteBoundCatalogReproduced": true,
+      "nativeTextExtraction": true,
+      "ocrUsed": false,
+      "normalization": "Existing declared line-break dehyphenation and whitespace normalization; original native text and coordinates retained locally. No medical modernization."
+    },
+    {
+      "source": "Sergey Butriy, Pediatric Fever: Syndromal Approach and Decision Algorithms, supplied slides dated 2026-09-09",
+      "bytes": 74905,
+      "sha256": "ab137bcd0cf4039ecb550d878f1e7e30c2add94be4daf73d24ecbd17c128da86",
+      "explanations": 3,
+      "abbreviationExpansions": 2,
+      "instrumentReferences": 3,
+      "tableCellsIncludingHeaders": 64,
+      "preparedDefinitionsByteIdenticalOnReplay": true,
+      "preparedInstrumentsByteIdenticalOnReplay": true,
+      "nativeTextExtraction": true,
+      "ocrUsed": false,
+      "boundary": "Named NICE table, Yale scale presentation and separate biomarker algorithm remain source-specific draft references. No scoring or treatment engine enabled."
+    }
+  ],
+  "preparedInputReceipts": [
+    {"bytes": 642973, "sha256": "654af41e193b7f4143d2ba9681e9f9745cc11fa921134f8caaa3451bddb1ec24"},
+    {"bytes": 10347, "sha256": "aea19cfc05e10c2e6a7b6858143b7cb025ca356086012933035ec0cc3b4fbbfc"},
+    {"bytes": 56803, "sha256": "ce7d4d3ea8f70ccf66534ee1c0caa6970b6c85e73983798067bcf1d77ee5c828"}
+  ],
+  "actualApplicationReader": {
+    "implementation": "unchanged createSqliteDefinitionReference",
+    "host": "Node 22.16.0 node:sqlite, read-only; explicit host-only fallback, not Bun/mobile qualification",
+    "suppliedCardsRead": 458,
+    "sourceIdentityVisibleAt20ByTitle": 458,
+    "missingSourceIdentities": [],
+    "linkedBlocksReconstructed": 1560,
+    "suppliedSourceDescriptorsResolved": 2,
+    "textAndMetadataExact": true,
+    "databaseUnchangedAfterReading": true
+  },
+  "authoredReverseSearchProbes": {
+    "count": 12,
+    "top1": 8,
+    "top5": 8,
+    "top20": 8,
+    "queryDatasetSha256": "32d49feebfc3281181e937226fbe6c80a72a068567bcf6e00004e8bc8388697b",
+    "ranks": [1, 1, 1, 1, null, 1, null, 1, null, null, 1, 1],
+    "unresolvedTargets": ["Каталепсия", "Конфабуляции", "Дереализация", "Персеверация"],
+    "boundary": "Twelve small authored descriptions over the complete combined database, not independent clinician evaluation or measured before/after gain. Queries, gold targets and source text were not tuned to turn misses into passes. Search implementation unchanged."
+  },
+  "files": {
+    "installedBytes": 132771840,
+    "gzipBytes": 27757651,
+    "installedIncrementBytes": 4624384,
+    "gzipIncrementBytes": 880592,
+    "databaseSha256": "ebf59c3fb628e62ffb953aa44756a3c017f637c2eded9a35b30a0bff829bbcb5",
+    "gzipRoundTripEqual": true,
+    "boundary": "File sizes, not process or Android memory. Original PDFs not included as database payloads."
+  },
+  "localCodeAstSha256": {
+    "tools/ingest/src/localmed_ingest/definition_supplied_inputs.py": "c7b1b8d974471a88da9eb033ffd0de2954a8ee4377e29b82a188d37c73d3e9e1",
+    "tools/ingest/src/localmed_ingest/definition_reference_pack.py": "78b4b05ba06e5e53025720eb04a6575a41b0479ca1e73d7664c5762cd9a6013c",
+    "tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py": "4d73c360a4b18284dbbb9cb0b7bbd8ea43532736475d74cc77c9f0135c84e3a8",
+    "scripts/prepare-definition-reference.py": "ffecd39924467e166c7bcf3bd384a2eb80b1b12620c7a69dc4875bdd16e5029d"
+  },
+  "localDependencyVersions": {"pytest": "9.0.2", "pydantic": "2.13.4", "PyMuPDF": "1.26.7"},
+  "localRegressionTests": {"passed": 74, "failed": 0, "lockedCISeparate": true},
+  "publication": {
+    "suppliedPdfOrTextUploadedToGitOrCI": false,
+    "combinedBinaryPublishedAsRelease": false,
+    "publicDefaultSelectionChanged": false,
+    "sameOrdinaryKnowledgePipeline": true,
+    "requiresExplicitAvailableSuppliedInputs": true
+  },
+  "boundary": "Source-local drafts, not unique clinically reviewed concepts. Actual real-source integration was local; CI tests are separately reported. No automatic treatment decisions, source reconciliation, UI/native migration, model integration, APK, public release or merge."
+}
