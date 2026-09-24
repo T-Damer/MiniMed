@@ -84,7 +84,8 @@
         "docs/research/data/*.json",
         "content/definition-drafts/**/*.json",
         "content/definition-gap-fills/*.json",
-        "content/reference-authoring/*.json"
+        "content/reference-authoring/*.json",
+        "tools/benchmarks/fixtures/definition-descriptions-*.json"
       ],
       "formatter": {
         "enabled": false
