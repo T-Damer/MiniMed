@@ -221,6 +221,30 @@ describe('exact identity retention through MedicalCore', () => {
     },
   );
 
+  it('restores a missing identity through one filtered search before reading sections', async () => {
+    const { store, core } = await retentionFixture();
+    const search = store.search.bind(store);
+    // Simulate the ordinary cutoff: unfiltered branches lose the identity document.
+    const spy = vi
+      .spyOn(store, 'search')
+      .mockImplementation(async (request) =>
+        request.filters.documentIds?.length ? search(request) : [],
+      );
+    const sections = vi.spyOn(store, 'getSectionsByDocument');
+    const response = await core.search({
+      ...SearchRequestSchema.parse({ query: 'fixture' }),
+      query: IDENTITY_TITLE,
+      analysisMode: 'lookup',
+      mode: 'lexical',
+    });
+    expect(response.ok).toBe(true);
+    if (!response.ok) throw response.error;
+    expect(response.value.groups[0]?.documentId).toBe('identity');
+    expect(response.value.groups[0]?.results[0]?.documentId).toBe('identity');
+    expect(spy.mock.calls.filter(([request]) => request.filters.documentIds?.length)).toHaveLength(1);
+    expect(sections).not.toHaveBeenCalled();
+  });
+
   it('continues past empty eligible sections without crossing section filters', async () => {
     const { store, core } = await retentionFixture();
     vi.spyOn(store, 'search').mockResolvedValue([]);

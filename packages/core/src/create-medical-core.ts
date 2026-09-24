@@ -569,16 +569,54 @@ function exactIdentityDocumentMatchesFilters(
   return true;
 }
 
+function exactIdentityResult(hit: LexicalHit, terms: readonly string[], spelling: boolean) {
+  return toSearchResult({
+    hit,
+    branchIds: new Set([spelling ? 'medication-spelling-identity' : 'exact-identity']),
+    branchLabels: new Set([spelling ? 'Возможная опечатка в названии препарата' : 'Точное название']),
+    terms: new Set(terms),
+    branchScores: [1],
+    sectionBoost: 0,
+    score: 1,
+    bestLexicalScore: 1,
+  });
+}
+
 async function buildExactIdentityResults(
   store: MedicalStore,
   documentIds: ReadonlySet<string>,
   filters: SearchFilters,
   terms: readonly string[],
+  ftsQueries: readonly string[],
   spelling = false,
 ): Promise<readonly SearchResult[]> {
-  if (documentIds.size === 0) return [];
+  const eligible = [...documentIds].filter(
+    (id) => !filters.documentIds?.length || filters.documentIds.includes(id),
+  );
+  if (eligible.length === 0) return [];
+  // A lookup's own FTS expression restricted to the missing identities usually returns a passage
+  // for each of them in one storage round trip (through the OPFS worker, one message).
+  const found = new Map<string, SearchResult>();
+  for (const ftsQuery of ftsQueries) {
+    const remaining = eligible.filter((id) => !found.has(id));
+    if (remaining.length === 0) break;
+    const hits = await store.search({
+      ftsQuery,
+      terms,
+      filters: { ...filters, documentIds: remaining },
+      limit: Math.min(500, remaining.length * 8),
+    });
+    for (const hit of hits) {
+      if (!found.has(hit.document.id)) {
+        found.set(hit.document.id, exactIdentityResult(hit, terms, spelling));
+      }
+    }
+  }
   const results = await Promise.all(
-    [...documentIds].map(async (documentId): Promise<SearchResult | null> => {
+    eligible.map(async (documentId): Promise<SearchResult | null> => {
+      const direct = found.get(documentId);
+      if (direct) return direct;
+      // Aliases and short titles need not occur in the indexed text: read the first passage.
       const document = await store.getDocument(documentId);
       if (!document || !exactIdentityDocumentMatchesFilters(document, filters)) return null;
 
@@ -597,19 +635,7 @@ async function buildExactIdentityResults(
         );
         if (!chunk) continue;
 
-        const hit: LexicalHit = { chunk, section, document, rank: 1 };
-        return toSearchResult({
-          hit,
-          branchIds: new Set([spelling ? 'medication-spelling-identity' : 'exact-identity']),
-          branchLabels: new Set([
-            spelling ? 'Возможная опечатка в названии препарата' : 'Точное название',
-          ]),
-          terms: new Set(terms),
-          branchScores: [1],
-          sectionBoost: 0,
-          score: 1,
-          bestLexicalScore: 1,
-        });
+        return exactIdentityResult({ chunk, section, document, rank: 1 }, terms, spelling);
       }
       return null;
     }),
@@ -1311,12 +1337,14 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           missingExactIdentityDocumentIds,
           parsed.data.filters,
           plan.terms,
+          baseBranches.slice(0, 1).map((branch) => branch.ftsQuery),
         );
         const spellingResults = await buildExactIdentityResults(
           options.store,
           new Set([...spellingDocumentIds].filter((id) => !retainedDocumentIds.has(id))),
           parsed.data.filters,
           plan.terms,
+          spellingSearches.map(({ branch }) => branch.ftsQuery),
           true,
         );
         const availableDocumentIds = documentIndex.availableIds;

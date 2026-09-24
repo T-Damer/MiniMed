@@ -495,3 +495,23 @@ The order of work is therefore:
 3. freeze candidate sets and compare deterministic ranking, embeddings, a trivial discriminative
    baseline and the proposed local decision model;
 4. only then measure mobile/web model cost and consider production integration.
+
+## Frozen-candidate cross-encoder PoC — 2026-09-24
+
+GitHub Actions run
+[`35963583898`](https://github.com/T-Damer/MiniMed/actions/runs/35963583898) on `dd329ef4`
+reranked the frozen candidates of the 33-case clinical challenge with
+`ARGA100/ru-reranker-modernbert-small` (revision `8d4ea05d7c793bc812879ca18e7e310ac4cb228f`,
+max length 512). The run log expires, so the numbers are recorded here.
+
+| Measure | Deterministic ranking | Cross-encoder |
+| --- | ---: | ---: |
+| maximum-grade Top-1 | 81.8% | 57.6% |
+| NDCG@5 | 0.914 | 0.759 |
+| Top-1 cases changed | — | 12 regressed, 1 improved |
+
+A zero-regression gate that only accepts the model's order when it cannot lose a correct Top-1
+kept the deterministic result unchanged (one changed case, no gain). Zero-shot reranking therefore
+lowers quality on this set. Together with the Laya multilingual probe
+(`laya-source-smoke-results-2026-09-23.md`), this supports keeping ordinary search model-free and
+collecting a held-out clinician set before training anything domain-specific.
