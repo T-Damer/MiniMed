@@ -79,7 +79,13 @@
       }
     },
     {
-      "includes": ["docs/research/data/*.json"],
+      "includes": [
+        "docs/research/*.json",
+        "docs/research/data/*.json",
+        "content/definition-drafts/**/*.json",
+        "content/definition-gap-fills/*.json",
+        "content/reference-authoring/*.json"
+      ],
       "formatter": {
         "enabled": false
       }

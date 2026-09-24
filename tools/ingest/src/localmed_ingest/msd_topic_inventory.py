@@ -3,6 +3,7 @@
 Only page-embedded navigation metadata and the declared topic sitemap are inspected.
 A complete URL/name inventory is not a complete definition corpus or reuse permission.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -12,7 +13,7 @@ import io
 import json
 import re
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.error import HTTPError
@@ -34,18 +35,22 @@ def public_path(value: object) -> str:
     if any(ord(char) < 32 or ord(char) == 127 for char in raw):
         raise ValueError("Unsafe or non-Russian catalog path")
     parsed = urlsplit(raw)
-    if parsed.scheme or parsed.netloc:
-        if parsed.scheme != "https" or parsed.netloc != "www.msdmanuals.com":
-            raise ValueError("MSD metadata points outside the inspected origin")
+    if (parsed.scheme or parsed.netloc) and (
+        parsed.scheme != "https" or parsed.netloc != "www.msdmanuals.com"
+    ):
+        raise ValueError("MSD metadata points outside the inspected origin")
     if parsed.query or parsed.fragment:
         raise ValueError("Unexpected query/fragment in topic identity")
     path = unquote(parsed.path)
     if path.startswith("/professional/"):
         path = "/ru" + path
     if (
-        not path.startswith("/ru/") or "\\" in path or "//" in path
+        not path.startswith("/ru/")
+        or "\\" in path
+        or "//" in path
         or any(part in {".", ".."} for part in path.split("/"))
-        or any(ord(char) < 32 for char in path) or "%" in path
+        or any(ord(char) < 32 for char in path)
+        or "%" in path
     ):
         raise ValueError("Unsafe or non-Russian catalog path")
     return path
@@ -167,11 +172,17 @@ def section_topics(raw: bytes, section: dict[str, str]) -> list[dict[str, object
                 if not path.startswith("/ru/professional/") or len(path.split("/")) < 6:
                     raise ValueError("Not a professional topic location")
                 # Explicit allowlist: Summary/InThisTopic/Description are never persisted.
-                result.append({
-                    "id": "msd.topic." + identifier, "title": title, "sourceTitle": original,
-                    "path": path, "sectionPath": section["path"],
-                    "chapterTitle": chapter_title, "chapterPath": chapter_path,
-                })
+                result.append(
+                    {
+                        "id": "msd.topic." + identifier,
+                        "title": title,
+                        "sourceTitle": original,
+                        "path": path,
+                        "sectionPath": section["path"],
+                        "chapterTitle": chapter_title,
+                        "chapterPath": chapter_path,
+                    }
+                )
     if found != 1 or not result:
         raise ValueError("Missing/ambiguous topic navigation")
     return result
@@ -198,8 +209,9 @@ def sitemap_locations(raw: bytes, kind: str) -> list[str]:
 
 
 class NoRedirect(HTTPRedirectHandler):
-    def redirect_request(self, req: Request, fp: object, code: int, msg: str,
-                         headers: object, newurl: str) -> None:
+    def redirect_request(
+        self, req: Request, fp: object, code: int, msg: str, headers: object, newurl: str
+    ) -> None:
         raise ValueError("MSD catalog redirect requires explicit inspection")
 
 
@@ -246,10 +258,13 @@ class PublicCatalogClient:
             raise ValueError("Catalog acquisition budget exceeded")
         time.sleep(max(0.0, self.delay - (time.monotonic() - self.last_request)))
         self.last_request = time.monotonic()
-        request = Request(HOST + quote(path, safe="/-._~"), headers={
-            "User-Agent": "MiniMedCatalogResearch/0.1 (+https://github.com/T-Damer/MiniMed)",
-            "Accept-Encoding": "identity",
-        })
+        request = Request(
+            HOST + quote(path, safe="/-._~"),
+            headers={
+                "User-Agent": "MiniMedCatalogResearch/0.1 (+https://github.com/T-Damer/MiniMed)",
+                "Accept-Encoding": "identity",
+            },
+        )
         try:
             with self.opener.open(request, timeout=60) as response:
                 raw = response.read(MAX_BYTES + 1)
@@ -258,7 +273,9 @@ class PublicCatalogClient:
         if len(raw) > MAX_BYTES:
             raise ValueError("Source metadata response too large")
         self.bytes += len(raw)
-        self.receipts.append({"path": path, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()})
+        self.receipts.append(
+            {"path": path, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+        )
         return raw
 
 
@@ -291,15 +308,25 @@ def collect_catalog() -> dict[str, object]:
         titles[identifier] = title
     locations = {str(row["path"]) for row in references}
     return {
-        "format": FORMAT, "collectedAt": datetime.now(timezone.utc).isoformat(),
-        "scope": "ru/professional public topic navigation", "sections": sections_report,
-        "references": references, "receipts": client.receipts,
-        "sitemapTopicPaths": sorted(sitemap), "sitemapOnlyPaths": sorted(sitemap - locations),
+        "format": FORMAT,
+        "collectedAt": datetime.now(UTC).isoformat(),
+        "scope": "ru/professional public topic navigation",
+        "sections": sections_report,
+        "references": references,
+        "receipts": client.receipts,
+        "sitemapTopicPaths": sorted(sitemap),
+        "sitemapOnlyPaths": sorted(sitemap - locations),
         "navigationOnlyPaths": sorted(locations - sitemap),
-        "uniqueSourceTopics": len(titles), "uniqueTopicPaths": len(locations),
+        "uniqueSourceTopics": len(titles),
+        "uniqueTopicPaths": len(locations),
         "normalizedTitles": len({normalized_name(title) for title in titles.values()}),
-        "topicReferences": len(references), "articleBodiesFetched": 0, "definitionsAcquired": 0,
-        "boundary": "Topic/title index only; not all in-article terms, medical definitions, clinical review or content reuse permission.",
+        "topicReferences": len(references),
+        "articleBodiesFetched": 0,
+        "definitionsAcquired": 0,
+        "boundary": (
+            "Topic/title index only; not all in-article terms, medical definitions, "
+            "clinical review or content reuse permission."
+        ),
     }
 
 
@@ -313,9 +340,23 @@ def main() -> None:
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("x", encoding="utf-8") as handle:
         handle.write(encoded(result) + "\n")
-    print(json.dumps({key: value for key, value in result.items() if key not in {
-        "references", "receipts", "sitemapTopicPaths", "sections",
-    }}, ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {
+                key: value
+                for key, value in result.items()
+                if key
+                not in {
+                    "references",
+                    "receipts",
+                    "sitemapTopicPaths",
+                    "sections",
+                }
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

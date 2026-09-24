@@ -892,9 +892,7 @@ def test_pews_exact_source_metadata_stays_non_computable() -> None:
     assert data["rightsStatus"] == "restricted-no-redistribution-without-permission"
     assert data["runtimeComputable"] is False
     assert data["scoringMatrix"] is None
-    assert data["scoringMatrixStatus"] == (
-        "not_redistributed_rights_and_exact_cutoffs_required"
-    )
+    assert data["scoringMatrixStatus"] == ("not_redistributed_rights_and_exact_cutoffs_required")
 
     assert data["ageSpecificForms"] == [
         "1-12_months",
@@ -1051,9 +1049,7 @@ def test_neonatal_screening_current_order_274n_revision_tracks_2026_additions() 
 
     groups = cast(list[dict[str, object]], data["expandedScreeningGroups"])
     concepts = {
-        str(concept)
-        for group in groups
-        for concept in cast(list[object], group["concepts"])
+        str(concept) for group in groups for concept in cast(list[object], group["concepts"])
     }
     assert "aromatic_l_amino_acid_decarboxylase_deficiency_aadc" in concepts
     assert "x_linked_adrenoleukodystrophy" in concepts

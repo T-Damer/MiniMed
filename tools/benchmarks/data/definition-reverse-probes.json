@@ -2,25 +2,125 @@
   "version": 1,
   "provenance": "public-authored-regression-not-independent-clinician-evaluation",
   "cases": [
-    {"id":"r01","query":"не удерживает в памяти текущие события","expectedId":"draft.definition.fixation-amnesia","maxRank":3},
-    {"id":"r02","query":"выпадение воспоминаний перед травмой","expectedId":"draft.definition.retrograde-amnesia","maxRank":3},
-    {"id":"r03","query":"прошлое переживается как настоящее","expectedId":"draft.definition.ecmnesia","maxRank":1},
-    {"id":"r04","query":"чужая идея кажется собственной","expectedId":"draft.definition.cryptomnesia","maxRank":1},
-    {"id":"r05","query":"мир словно декорации","expectedId":"draft.definition.derealization","maxRank":1},
-    {"id":"r06","query":"мысли и чувства стали чужими","expectedId":"draft.definition.depersonalization","maxRank":3},
-    {"id":"r07","query":"лица в узорах на стене","expectedId":"draft.definition.pareidolia","maxRank":3},
-    {"id":"r08","query":"голоса вместе с шумом воды","expectedId":"draft.definition.functional-hallucination","maxRank":3},
-    {"id":"r09","query":"свет кажется слишком ярким звуки непереносимы","expectedId":"draft.definition.psychic-hyperesthesia","maxRank":3},
-    {"id":"r10","query":"свет тусклый звуки приглушены","expectedId":"draft.definition.psychic-hypesthesia","maxRank":3},
-    {"id":"r11","query":"дезориентировка бессвязное мышление амнезия","expectedId":"draft.definition.jaspers-consciousness","maxRank":1},
-    {"id":"r12","query":"психическая травма отражается в симптомах","expectedId":"draft.definition.jaspers-reactive","maxRank":1},
-    {"id":"r13","query":"пища с трудом проходит при глотании","expectedId":"draft.definition.dysphagia","maxRank":3},
-    {"id":"r14","query":"запахи не ощущаются","expectedId":"draft.definition.anosmia","maxRank":1},
-    {"id":"r15","query":"запах которого нет","expectedId":"draft.definition.phantosmia","maxRank":1},
-    {"id":"r16","query":"запахи ощущаются слабее","expectedId":"draft.definition.hyposmia","maxRank":1},
-    {"id":"r17","query":"звон в ушах без внешнего источника","expectedId":"draft.definition.tinnitus","maxRank":1},
-    {"id":"r18","query":"ощущение вращения окружающих предметов","expectedId":"draft.definition.vertigo","maxRank":1},
-    {"id":"r19","query":"трудно выполнять освоенные движения и жесты","expectedId":"draft.definition.apraxia","maxRank":3},
-    {"id":"r20","query":"нарушено понимание речи после повреждения мозга","expectedId":"draft.definition.aphasia","maxRank":3}
+    {
+      "id": "r01",
+      "query": "не удерживает в памяти текущие события",
+      "expectedId": "draft.definition.fixation-amnesia",
+      "maxRank": 3
+    },
+    {
+      "id": "r02",
+      "query": "выпадение воспоминаний перед травмой",
+      "expectedId": "draft.definition.retrograde-amnesia",
+      "maxRank": 3
+    },
+    {
+      "id": "r03",
+      "query": "прошлое переживается как настоящее",
+      "expectedId": "draft.definition.ecmnesia",
+      "maxRank": 1
+    },
+    {
+      "id": "r04",
+      "query": "чужая идея кажется собственной",
+      "expectedId": "draft.definition.cryptomnesia",
+      "maxRank": 1
+    },
+    {
+      "id": "r05",
+      "query": "мир словно декорации",
+      "expectedId": "draft.definition.derealization",
+      "maxRank": 1
+    },
+    {
+      "id": "r06",
+      "query": "мысли и чувства стали чужими",
+      "expectedId": "draft.definition.depersonalization",
+      "maxRank": 3
+    },
+    {
+      "id": "r07",
+      "query": "лица в узорах на стене",
+      "expectedId": "draft.definition.pareidolia",
+      "maxRank": 3
+    },
+    {
+      "id": "r08",
+      "query": "голоса вместе с шумом воды",
+      "expectedId": "draft.definition.functional-hallucination",
+      "maxRank": 3
+    },
+    {
+      "id": "r09",
+      "query": "свет кажется слишком ярким звуки непереносимы",
+      "expectedId": "draft.definition.psychic-hyperesthesia",
+      "maxRank": 3
+    },
+    {
+      "id": "r10",
+      "query": "свет тусклый звуки приглушены",
+      "expectedId": "draft.definition.psychic-hypesthesia",
+      "maxRank": 3
+    },
+    {
+      "id": "r11",
+      "query": "дезориентировка бессвязное мышление амнезия",
+      "expectedId": "draft.definition.jaspers-consciousness",
+      "maxRank": 1
+    },
+    {
+      "id": "r12",
+      "query": "психическая травма отражается в симптомах",
+      "expectedId": "draft.definition.jaspers-reactive",
+      "maxRank": 1
+    },
+    {
+      "id": "r13",
+      "query": "пища с трудом проходит при глотании",
+      "expectedId": "draft.definition.dysphagia",
+      "maxRank": 3
+    },
+    {
+      "id": "r14",
+      "query": "запахи не ощущаются",
+      "expectedId": "draft.definition.anosmia",
+      "maxRank": 1
+    },
+    {
+      "id": "r15",
+      "query": "запах которого нет",
+      "expectedId": "draft.definition.phantosmia",
+      "maxRank": 1
+    },
+    {
+      "id": "r16",
+      "query": "запахи ощущаются слабее",
+      "expectedId": "draft.definition.hyposmia",
+      "maxRank": 1
+    },
+    {
+      "id": "r17",
+      "query": "звон в ушах без внешнего источника",
+      "expectedId": "draft.definition.tinnitus",
+      "maxRank": 1
+    },
+    {
+      "id": "r18",
+      "query": "ощущение вращения окружающих предметов",
+      "expectedId": "draft.definition.vertigo",
+      "maxRank": 1
+    },
+    {
+      "id": "r19",
+      "query": "трудно выполнять освоенные движения и жесты",
+      "expectedId": "draft.definition.apraxia",
+      "maxRank": 3
+    },
+    {
+      "id": "r20",
+      "query": "нарушено понимание речи после повреждения мозга",
+      "expectedId": "draft.definition.aphasia",
+      "maxRank": 3
+    }
   ]
 }

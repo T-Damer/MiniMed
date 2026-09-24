@@ -185,3 +185,5 @@ Branch-specific next steps (PR #180):
    spelled words), not ten.
 4. Further size work: catalog-pointer `classificationPath` (9.3 MiB) as parent pointers, and a
    decision on `normalized_text` (16.9 MiB) versus a custom tokenizer.
+5. Regenerate `tools/benchmarks/fixtures/hard-medical-queries-1500.parts`: the committed base64
+   parts fail gzip CRC, so `hard-query-dataset.test.ts` is excluded from Vitest until then.

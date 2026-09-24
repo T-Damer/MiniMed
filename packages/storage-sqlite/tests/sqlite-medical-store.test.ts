@@ -147,7 +147,12 @@ describe('SqliteMedicalStore', () => {
     // Rank 1 compares the index with its source rows; it throws if rowids drifted.
     database.exec("INSERT INTO chunks_fts(chunks_fts, rank) VALUES ('integrity-check', 1)");
     expect(Number(database.selectValue('SELECT count(*) FROM chunks_fts_docsize'))).toBe(15);
-    const hits = await store.search({ ftsQuery: 'кашель*', terms: ['кашель'], filters: {}, limit: 5 });
+    const hits = await store.search({
+      ftsQuery: 'кашель*',
+      terms: ['кашель'],
+      filters: {},
+      limit: 5,
+    });
     expect(hits.length).toBeGreaterThan(0);
     // chunk_id comes from the source view, so every hit must hydrate as a real chunk.
     for (const hit of hits) expect((await store.getChunk(hit.chunk.id))?.id).toBe(hit.chunk.id);

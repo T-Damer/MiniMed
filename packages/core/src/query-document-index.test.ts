@@ -241,7 +241,9 @@ describe('exact identity retention through MedicalCore', () => {
     if (!response.ok) throw response.error;
     expect(response.value.groups[0]?.documentId).toBe('identity');
     expect(response.value.groups[0]?.results[0]?.documentId).toBe('identity');
-    expect(spy.mock.calls.filter(([request]) => request.filters.documentIds?.length)).toHaveLength(1);
+    expect(spy.mock.calls.filter(([request]) => request.filters.documentIds?.length)).toHaveLength(
+      1,
+    );
     expect(sections).not.toHaveBeenCalled();
   });
 

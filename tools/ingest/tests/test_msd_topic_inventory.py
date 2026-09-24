@@ -10,8 +10,13 @@ import pytest
 from localmed_ingest.definition_name_inventory import add_name_inventory, read_name_manifest
 from localmed_ingest.definition_reference_pack import Projection, digest, encoded, obj, seq
 from localmed_ingest.msd_topic_inventory import (
-    FORMAT, component_props, index_sections, public_path, section_topics,
-    sitemap_locations, title_text,
+    FORMAT,
+    component_props,
+    index_sections,
+    public_path,
+    section_topics,
+    sitemap_locations,
+    title_text,
 )
 from localmed_ingest.msd_topic_names import compile_msd_names
 
@@ -20,22 +25,55 @@ SECTION = {"id": "v1_ru", "title": "Учебный раздел", "path": "/ru/p
 
 def page(components: object, locale: str = "ru") -> bytes:
     payload = {"props": {"pageProps": {"locale": locale, "componentProps": components}}}
-    return ('<script id="__NEXT_DATA__" type="application/json">' +
-            json.dumps(payload, ensure_ascii=False) + "</script>").encode()
+    return (
+        '<script id="__NEXT_DATA__" type="application/json">'
+        + json.dumps(payload, ensure_ascii=False)
+        + "</script>"
+    ).encode()
 
 
 def section_page() -> bytes:
-    return page({"component": {"fields": {"data": {"item": {"SectionChildrens": {
-        "results": [{"id": "c", "ChapterName": {"value": "Учебная глава"},
-                     "ChapterUrl": {"path": "/professional/test/chapter"},
-                     "Description": {"value": "DO NOT COPY CHAPTER CONTENT"},
-                     "ChapterChildren": {"results": [{
-                         "id": "A" * 32, "TopicName": {"value": "\ufeffУчебный <i>термин</i>"},
-                         "TopicUrl": {"path": "/professional/test/chapter/topic"},
-                         "Summary": {"value": "DO NOT COPY MEDICAL PROSE"},
-                         "InThisTopic": {"value": "DO NOT COPY HEADINGS"},
-                     }]}}],
-    }}}}}})
+    return page(
+        {
+            "component": {
+                "fields": {
+                    "data": {
+                        "item": {
+                            "SectionChildrens": {
+                                "results": [
+                                    {
+                                        "id": "c",
+                                        "ChapterName": {"value": "Учебная глава"},
+                                        "ChapterUrl": {"path": "/professional/test/chapter"},
+                                        "Description": {"value": "DO NOT COPY CHAPTER CONTENT"},
+                                        "ChapterChildren": {
+                                            "results": [
+                                                {
+                                                    "id": "A" * 32,
+                                                    "TopicName": {
+                                                        "value": "\ufeffУчебный <i>термин</i>"
+                                                    },
+                                                    "TopicUrl": {
+                                                        "path": "/professional/test/chapter/topic"
+                                                    },
+                                                    "Summary": {
+                                                        "value": "DO NOT COPY MEDICAL PROSE"
+                                                    },
+                                                    "InThisTopic": {
+                                                        "value": "DO NOT COPY HEADINGS"
+                                                    },
+                                                }
+                                            ]
+                                        },
+                                    }
+                                ],
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
 
 
 def catalog() -> dict[str, object]:
@@ -44,8 +82,10 @@ def catalog() -> dict[str, object]:
     for row in rows:
         row["indexSha256"] = digest(raw.decode())
     return {
-        "format": FORMAT, "scope": "ru/professional public topic navigation",
-        "references": rows, "uniqueSourceTopics": 1,
+        "format": FORMAT,
+        "scope": "ru/professional public topic navigation",
+        "references": rows,
+        "uniqueSourceTopics": 1,
         "receipts": [{"path": SECTION["path"], "sha256": digest(raw.decode()), "bytes": len(raw)}],
     }
 
@@ -62,8 +102,11 @@ def test_public_navigation_metadata_without_summary_fields() -> None:
 
 
 def test_one_specialty_index_must_be_unambiguous() -> None:
-    row = {"uniqueid_t": "v1_ru", "titlecomputed_t": "Учебный раздел",
-           "relativeurlcomputed_s": "/professional/test"}
+    row = {
+        "uniqueid_t": "v1_ru",
+        "titlecomputed_t": "Учебный раздел",
+        "relativeurlcomputed_s": "/professional/test",
+    }
     assert index_sections(page({"c": {"data": [row]}})) == [SECTION]
     with pytest.raises(ValueError, match="Duplicate"):
         index_sections(page({"c": {"data": [row, row]}}))
@@ -71,20 +114,36 @@ def test_one_specialty_index_must_be_unambiguous() -> None:
         index_sections(page({"a": {"data": [row]}, "b": {"data": [row]}}))
 
 
-@pytest.mark.parametrize("value", [
-    "https://other.example/ru/professional/test", "http://www.msdmanuals.com/ru/test",
-    "//other.example/ru/test", "/ru/professional/test/../secret", "/ru/%2e%2e/private",
-    "/ru/%252e%252e/private", "/en/professional/test", "/ru/test?key=secret",
-    "/ru/test#anchor", "/ru/test\\private", "/ru/test\nprivate",
-])
+@pytest.mark.parametrize(
+    "value",
+    [
+        "https://other.example/ru/professional/test",
+        "http://www.msdmanuals.com/ru/test",
+        "//other.example/ru/test",
+        "/ru/professional/test/../secret",
+        "/ru/%2e%2e/private",
+        "/ru/%252e%252e/private",
+        "/en/professional/test",
+        "/ru/test?key=secret",
+        "/ru/test#anchor",
+        "/ru/test\\private",
+        "/ru/test\nprivate",
+    ],
+)
 def test_unsafe_paths_rejected(value: str) -> None:
     with pytest.raises(ValueError):
         public_path(value)
 
 
 def test_safe_path_preserves_actual_unicode_url() -> None:
-    assert public_path("https://www.msdmanuals.com/ru/professional/%D1%82%D0%B5%D1%81%D1%82") == "/ru/professional/тест"
-    assert public_path("/professional/\ufefftest/chapter/topic") == "/ru/professional/\ufefftest/chapter/topic"
+    assert (
+        public_path("https://www.msdmanuals.com/ru/professional/%D1%82%D0%B5%D1%81%D1%82")
+        == "/ru/professional/тест"
+    )
+    assert (
+        public_path("/professional/\ufefftest/chapter/topic")
+        == "/ru/professional/\ufefftest/chapter/topic"
+    )
 
 
 @pytest.mark.parametrize("value", ["<script>bad</script>", "<a href='/'>bad</a>", " "])
@@ -111,14 +170,18 @@ def test_pagination_is_not_reported_as_complete() -> None:
 
 
 def test_sitemap_reads_only_locations_not_alternate_language_urls() -> None:
-    raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.msdmanuals.com/ru/professional/test/chapter/topic</loc><lastmod>2026-01-01</lastmod><link href="https://other.example/" /></url></urlset>'
+    raw = (
+        b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url>'
+        b"<loc>https://www.msdmanuals.com/ru/professional/test/chapter/topic</loc>"
+        b'<lastmod>2026-01-01</lastmod><link href="https://other.example/" /></url></urlset>'
+    )
     expected = ["/ru/professional/test/chapter/topic"]
     assert sitemap_locations(raw, "urlset") == expected
     assert sitemap_locations(gzip.compress(raw), "urlset") == expected
     with pytest.raises(ValueError, match="Unexpected"):
         sitemap_locations(raw, "sitemapindex")
     with pytest.raises(ValueError, match="Unsafe"):
-        sitemap_locations(b'<!DOCTYPE x><urlset/>', "urlset")
+        sitemap_locations(b"<!DOCTYPE x><urlset/>", "urlset")
 
 
 def test_compile_uses_existing_name_inventory_and_does_not_promote_prose() -> None:
@@ -141,7 +204,10 @@ def test_existing_titles_remain_in_source_inventory_without_inferred_equivalence
     inventory, report = compile_msd_names(payload, ["УЧЕБНЫЙ ТЕРМИН"])
     assert inventory["names"] == []
     assert len(seq(payload["references"], 100)) == 1
-    assert obj(seq(report["deferred"], 100)[0])["reason"] == "already-searchable-name-needs-sense-review"
+    assert (
+        obj(seq(report["deferred"], 100)[0])["reason"]
+        == "already-searchable-name-needs-sense-review"
+    )
 
 
 def test_overviews_are_not_counted_as_medical_definitions_or_terms() -> None:
@@ -168,14 +234,24 @@ def test_multiple_manifest_inputs_are_all_checked(tmp_path: Path) -> None:
     rows = []
     for name in ("first.json", "second.json"):
         (directory / name).write_bytes(raw)
-        rows.append({"format": inventory["format"], "path": "content/definition-drafts/" + name,
-                     "bytes": len(raw), "sha256": digest(raw.decode())})
-    (directory / "name-inputs.json").write_text(encoded({"format": "minimed-name-inputs-v2", "inputs": rows}))
+        rows.append(
+            {
+                "format": inventory["format"],
+                "path": "content/definition-drafts/" + name,
+                "bytes": len(raw),
+                "sha256": digest(raw.decode()),
+            }
+        )
+    (directory / "name-inputs.json").write_text(
+        encoded({"format": "minimed-name-inputs-v2", "inputs": rows})
+    )
     # Duplicate bytes are not accepted as two knowledge inputs.
     with pytest.raises(ValueError, match="Duplicate"):
         read_name_manifest(tmp_path)
     rows.pop()
-    (directory / "name-inputs.json").write_text(encoded({"format": "minimed-name-inputs-v2", "inputs": rows}))
+    (directory / "name-inputs.json").write_text(
+        encoded({"format": "minimed-name-inputs-v2", "inputs": rows})
+    )
     assert read_name_manifest(tmp_path) == (directory / "first.json",)
     (directory / "first.json").write_bytes(raw + b" ")
     with pytest.raises(ValueError, match="receipt"):

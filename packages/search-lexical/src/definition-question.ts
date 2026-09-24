@@ -1,5 +1,6 @@
 /** Language-only framing; the caller must still prove the whole subject is an exact indexed name. */
-const QUESTION = /^(?:что\s+(?:такое|означает|значит)|(?:дай(?:те)?|покажи(?:те)?)\s+определение(?:\s+термина)?|определение(?:\s+(?:слова|термина))?|найди\s+(?:термин|определение)|как\s+(?:это\s+)?называется|не\s+помню\s+(?:название|термин))[\s:—-]+/iu;
+const QUESTION =
+  /^(?:что\s+(?:такое|означает|значит)|(?:дай(?:те)?|покажи(?:те)?)\s+определение(?:\s+термина)?|определение(?:\s+(?:слова|термина))?|найди\s+(?:термин|определение)|как\s+(?:это\s+)?называется|не\s+помню\s+(?:название|термин))[\s:—-]+/iu;
 
 /**
  * Do not make the user choose a search mode for "Что такое X?".
@@ -11,8 +12,16 @@ export function definitionQuestionSubject(query: string): string | null {
   const original = query.trim();
   const prefix = QUESTION.exec(original);
   if (!prefix) return null;
-  let subject = original.slice(prefix[0].length).trim().replace(/[?？]+$/u, '').trim();
-  for (const [open, close] of [['«', '»'], ['“', '”'], ['"', '"']] as const) {
+  let subject = original
+    .slice(prefix[0].length)
+    .trim()
+    .replace(/[?？]+$/u, '')
+    .trim();
+  for (const [open, close] of [
+    ['«', '»'],
+    ['“', '”'],
+    ['"', '"'],
+  ] as const) {
     if (subject.startsWith(open) && subject.endsWith(close) && subject.length > 2) {
       subject = subject.slice(1, -1).trim();
       break;

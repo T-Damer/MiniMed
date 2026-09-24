@@ -1,9 +1,21 @@
-import { Database } from 'bun:sqlite';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { z } from 'zod';
 import { createSqliteDefinitionReference } from '../../../packages/storage-sqlite/src/definition-reference-reader';
+
+// Loaded dynamically, as in bun-sqlite-medical-store.ts: the workspace has no bun type package.
+interface BunSqliteDatabase {
+  exec(sql: string): void;
+  query(sql: string): { all(...parameters: readonly (string | number)[]): unknown[] };
+  close(): void;
+}
+const { Database } = (await import('bun:sqlite' as string)) as {
+  readonly Database: new (
+    path: string,
+    options: { readonly readonly: boolean },
+  ) => BunSqliteDatabase;
+};
 
 const ExpectedBlock = z.object({
   chunkId: z.string(),

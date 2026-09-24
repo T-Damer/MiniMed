@@ -573,7 +573,9 @@ function exactIdentityResult(hit: LexicalHit, terms: readonly string[], spelling
   return toSearchResult({
     hit,
     branchIds: new Set([spelling ? 'medication-spelling-identity' : 'exact-identity']),
-    branchLabels: new Set([spelling ? 'Возможная опечатка в названии препарата' : 'Точное название']),
+    branchLabels: new Set([
+      spelling ? 'Возможная опечатка в названии препарата' : 'Точное название',
+    ]),
     terms: new Set(terms),
     branchScores: [1],
     sectionBoost: 0,

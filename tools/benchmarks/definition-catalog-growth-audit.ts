@@ -90,14 +90,16 @@ try {
       'Metadata-only vocabulary must not displace previous exact identities or change source content.',
   };
   writeFileSync(outputPath, JSON.stringify(report, null, 2) + '\n');
-  console.log(JSON.stringify({
-    cases: report.cases,
-    beforeTop20: report.beforeTop20,
-    afterTop20: report.afterTop20,
-    exactChecked: names.length,
-    exactChanges: exactChanges.length,
-    regressions: regressions.length,
-  }));
+  console.log(
+    JSON.stringify({
+      cases: report.cases,
+      beforeTop20: report.beforeTop20,
+      afterTop20: report.afterTop20,
+      exactChecked: names.length,
+      exactChanges: exactChanges.length,
+      regressions: regressions.length,
+    }),
+  );
   if (regressions.length || exactChanges.length) {
     throw new Error('Catalog-growth regression; full observations retained in the report');
   }

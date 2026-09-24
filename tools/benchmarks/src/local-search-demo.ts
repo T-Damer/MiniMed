@@ -9,7 +9,11 @@ import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
 import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 
-import { type LocalCandidate, validateLocalRankingResponse } from './local-reranker-contract';
+import {
+  type LocalCandidate,
+  type LocalRankingResponse,
+  validateLocalRankingResponse,
+} from './local-reranker-contract';
 
 const root = resolve(import.meta.dirname, '../../..');
 const args = process.argv.slice(2);
@@ -143,7 +147,9 @@ try {
       };
     });
     const baselineIds = groups.map((group) => group.documentId);
-    let ranking;
+    let ranking: Omit<LocalRankingResponse, 'inferenceMs'> & {
+      readonly inferenceMs: number | null;
+    };
     try {
       ranking = await classify(query, candidates);
     } catch {

@@ -590,7 +590,8 @@ export function rankSearchGroupsByQuery(
         coverageTier(right.positiveFindingCoverage) - coverageTier(left.positiveFindingCoverage) ||
         coverageTier(right.failedTreatmentContextCoverage) -
           coverageTier(left.failedTreatmentContextCoverage) ||
-        coverageTier(right.clinicalEvidenceCoverage) - coverageTier(left.clinicalEvidenceCoverage) ||
+        coverageTier(right.clinicalEvidenceCoverage) -
+          coverageTier(left.clinicalEvidenceCoverage) ||
         right.score - left.score ||
         left.index - right.index,
     )

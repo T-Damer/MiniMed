@@ -41,7 +41,9 @@ const descriptor = JSON.parse(
     'utf8',
   ),
 );
-const sourceManifest = JSON.parse(await readFile(resolve(root, 'content/definition-drafts/source-inputs.json'), 'utf8'));
+const sourceManifest = JSON.parse(
+  await readFile(resolve(root, 'content/definition-drafts/source-inputs.json'), 'utf8'),
+);
 assert.equal(descriptor.module.definitionReference.entries, sourceManifest.entries);
 const archive = await readFile(
   resolve(appRoot, 'public/content/definition-reference', descriptor.fileName),

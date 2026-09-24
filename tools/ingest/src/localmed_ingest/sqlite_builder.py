@@ -31,9 +31,7 @@ def _render_schema(statements: list[tuple[str, str]]) -> str:
 
 
 def _is_create_index(statement: str) -> bool:
-    code = "\n".join(
-        line for line in statement.splitlines() if not line.lstrip().startswith("--")
-    )
+    code = "\n".join(line for line in statement.splitlines() if not line.lstrip().startswith("--"))
     return code.lstrip().upper().startswith("CREATE INDEX")
 
 
@@ -87,7 +85,9 @@ def rebuild_chunks_fts_index(connection: sqlite3.Connection) -> None:
         (_ESCAPED_SEARCH_JSON, _ESCAPED_SEARCH_JSON),
     ).fetchone()
     if escaped is not None:
-        raise ValueError("Section paths and terminology search names must not contain JSON escapes.")
+        raise ValueError(
+            "Section paths and terminology search names must not contain JSON escapes."
+        )
     connection.execute("INSERT INTO chunks_fts(chunks_fts) VALUES ('rebuild')")
 
 

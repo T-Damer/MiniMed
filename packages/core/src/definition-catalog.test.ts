@@ -38,10 +38,12 @@ describe('compact draft definition lookup', () => {
 
   it('preserves both Jaspers meanings and complete criterion lists', () => {
     const hits = lookup.search('Ясперс');
-    expect(hits.slice(0, 2).map((hit) => hit.term.id).toSorted()).toEqual([
-      'draft.definition.jaspers-consciousness',
-      'draft.definition.jaspers-reactive',
-    ]);
+    expect(
+      hits
+        .slice(0, 2)
+        .map((hit) => hit.term.id)
+        .toSorted(),
+    ).toEqual(['draft.definition.jaspers-consciousness', 'draft.definition.jaspers-reactive']);
     expect(hits.find((hit) => hit.term.id.endsWith('consciousness'))?.term.items).toHaveLength(4);
     expect(hits.find((hit) => hit.term.id.endsWith('reactive'))?.term.items).toHaveLength(3);
   });
@@ -99,9 +101,13 @@ describe('compact draft definition lookup', () => {
 
   it('does not silently publish or promote drafts, even from institutional sources', () => {
     expect(() => createDefinitionLookup({ ...rawCatalog, reviewStatus: 'reviewed' })).toThrow();
-    expect(() => createDefinitionLookup({ ...rawCatalog, publicationState: 'published' })).toThrow();
+    expect(() =>
+      createDefinitionLookup({ ...rawCatalog, publicationState: 'published' }),
+    ).toThrow();
     expect(() => createDefinitionLookup({ ...rawCatalog, textKind: 'source-quote' })).toThrow();
-    expect(() => createDefinitionLookup({ ...rawCatalog, oversized: 'x'.repeat(300_000) })).toThrow();
+    expect(() =>
+      createDefinitionLookup({ ...rawCatalog, oversized: 'x'.repeat(300_000) }),
+    ).toThrow();
   });
 
   it('rejects unsafe external URLs and accepts only the referenced source subtree', () => {

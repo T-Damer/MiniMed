@@ -201,7 +201,9 @@ def test_bulk_write_preserves_schema_data_fts_and_builds_indexes_last(tmp_path: 
         and "integrity-check" not in statement.casefold()
     ]
     load_positions = [index for index, _ in loads]
-    fts_loads = [statement for _, statement in loads if statement.startswith("insert into chunks_fts")]
+    fts_loads = [
+        statement for _, statement in loads if statement.startswith("insert into chunks_fts")
+    ]
     assert secondary_names
     assert index_positions
     # Migration 010: one bulk rebuild from the chunks_fts_source view, not a copied row set.

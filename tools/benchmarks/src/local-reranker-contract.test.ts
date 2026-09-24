@@ -52,10 +52,12 @@ describe('local classifier boundary', () => {
   });
 
   it('preserves strict identities even with explicit experimental permission', () => {
+    const [first, second] = candidates;
+    if (!first || !second) throw new Error('Fixture needs two candidates.');
     expect(() =>
       validateLocalRankingResponse(
         { ...response, applied: true, status: 'experimental', orderedIds: ['b', 'a'] },
-        [{ ...candidates[0]!, strictIdentity: true }, candidates[1]!],
+        [{ ...first, strictIdentity: true }, second],
         true,
       ),
     ).toThrow('protection');

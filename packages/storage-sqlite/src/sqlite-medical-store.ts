@@ -714,15 +714,15 @@ export class SqliteMedicalStore implements MedicalStore {
               ]);
               if (ftsStatement)
                 executeStatement(ftsStatement, [
-                chunk.id,
-                document.id,
-                document.version.id,
-                section.id,
-                chunk.anchor,
-                document.title,
-                section.sectionPath.join(' '),
-                chunk.normalizedText,
-              ]);
+                  chunk.id,
+                  document.id,
+                  document.version.id,
+                  section.id,
+                  chunk.anchor,
+                  document.title,
+                  section.sectionPath.join(' '),
+                  chunk.normalizedText,
+                ]);
             }
           }
         }
@@ -744,7 +744,8 @@ export class SqliteMedicalStore implements MedicalStore {
             embedding.norm,
           ]);
         }
-        if (externalFts) this.database.exec("INSERT INTO chunks_fts(chunks_fts) VALUES ('rebuild')");
+        if (externalFts)
+          this.database.exec("INSERT INTO chunks_fts(chunks_fts) VALUES ('rebuild')");
       } finally {
         documentStatement.finalize();
         versionStatement.finalize();

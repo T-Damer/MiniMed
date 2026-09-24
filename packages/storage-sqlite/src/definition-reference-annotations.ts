@@ -5,7 +5,11 @@ import type {
 import type { DefinitionReferenceSql } from './definition-reference-reader';
 
 function identity(value: unknown): string {
-  if (typeof value !== 'string' || value.length > 256 || !/^[a-z0-9]+(?:[.-][a-z0-9]+)*$/u.test(value)) {
+  if (
+    typeof value !== 'string' ||
+    value.length > 256 ||
+    !/^[a-z0-9]+(?:[.-][a-z0-9]+)*$/u.test(value)
+  ) {
     throw new Error('Invalid source annotation identity.');
   }
   return value;
@@ -53,16 +57,36 @@ export async function readDefinitionReferenceAnnotations(
     const label = row['label'];
     if (
       (kind !== 'etymology' && kind !== 'historical-mention') ||
-      typeof start !== 'number' || !Number.isSafeInteger(start) || start < 0 ||
-      typeof end !== 'number' || !Number.isSafeInteger(end) || end <= start || end - start > 4096 ||
-      typeof characters !== 'number' || !Number.isSafeInteger(characters) || end > characters ||
-      typeof statement !== 'string' || statement.includes('\0') || [...statement].length !== end - start ||
-      typeof label !== 'string' || !label.trim() || label.length > 256 || label.includes('\0')
-    ) throw new Error('Invalid source annotation span.');
+      typeof start !== 'number' ||
+      !Number.isSafeInteger(start) ||
+      start < 0 ||
+      typeof end !== 'number' ||
+      !Number.isSafeInteger(end) ||
+      end <= start ||
+      end - start > 4096 ||
+      typeof characters !== 'number' ||
+      !Number.isSafeInteger(characters) ||
+      end > characters ||
+      typeof statement !== 'string' ||
+      statement.includes('\0') ||
+      [...statement].length !== end - start ||
+      typeof label !== 'string' ||
+      !label.trim() ||
+      label.length > 256 ||
+      label.includes('\0')
+    )
+      throw new Error('Invalid source annotation span.');
     return {
-      id: identity(row['id']), kind, label, statement,
-      chunkId: identity(row['chunk_id']), sourceId: identity(row['source_id']), start, end,
-      reviewStatus: 'requires-review', identityStatus: 'unresolved',
+      id: identity(row['id']),
+      kind,
+      label,
+      statement,
+      chunkId: identity(row['chunk_id']),
+      sourceId: identity(row['source_id']),
+      start,
+      end,
+      reviewStatus: 'requires-review',
+      identityStatus: 'unresolved',
     };
   });
   return { items, next: rows.length > 8 ? (items.at(-1)?.id ?? null) : null };
