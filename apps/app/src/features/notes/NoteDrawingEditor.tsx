@@ -8,7 +8,9 @@ import type {
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
+import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { SearchField } from '@/components/SearchField';
 import {
   createEmptyDrawing,
   type DrawingDocument,
@@ -606,14 +608,14 @@ export function NoteDrawingEditor(props: {
           />
           <Show when={linkPickerOpen()}>
             <div class="note-drawing-links">
-              <input
+              <SearchField
                 class="note-drawing-links__search"
-                type="search"
+                label="Найти объект для карточки"
+                hideLabel
                 placeholder="Документ, калькулятор, тест или заметка"
-                aria-label="Найти объект для карточки"
                 value={linkQuery()}
-                onInput={(event) => setLinkQuery(event.currentTarget.value)}
-                ref={(element) => queueMicrotask(() => element.focus())}
+                onInput={setLinkQuery}
+                inputRef={(element) => queueMicrotask(() => element.focus())}
               />
               <ul class="note-drawing-links__list">
                 <For
@@ -648,43 +650,40 @@ export function NoteDrawingEditor(props: {
         </p>
         <div class="note-drawing-editor__actions">
           <Show when={props.findLinkTargets}>
-            <button
+            <Button
               type="button"
-              class="note-drawing-editor__action"
               aria-expanded={linkPickerOpen()}
               disabled={!api()}
               onClick={() => setLinkPickerOpen((open) => !open)}
             >
               Прикрепить объект
-            </button>
+            </Button>
           </Show>
-          <button
+          <Button
             type="button"
-            class="note-drawing-editor__action"
             aria-pressed={fullscreen()}
             onClick={() => setFullscreen((value) => !value)}
           >
             {fullscreen() ? 'Обычный размер' : 'Во весь экран'}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            class="note-drawing-editor__action"
             disabled={!runtime() || exporting()}
             onClick={() => void exportSvg()}
           >
             {exporting() ? 'Экспорт…' : 'Экспорт SVG'}
-          </button>
-          <button type="button" class="note-drawing-editor__action" onClick={props.onCancel}>
+          </Button>
+          <Button type="button" onClick={props.onCancel}>
             Отмена
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            class="note-drawing-editor__action note-drawing-editor__action--primary"
+            variant="primary"
             disabled={!runtime() || saving()}
             onClick={() => void save()}
           >
             {saving() ? 'Сохранение…' : 'Сохранить схему'}
-          </button>
+          </Button>
         </div>
       </div>
     </OverlayDialog>
