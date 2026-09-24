@@ -56,7 +56,9 @@ export function ChoiceGroup(props: ChoiceGroupProps): JSX.Element {
           {(option) => (
             <label
               class="ui-choice-group__option"
-              classList={{ 'ui-choice-group__option--disabled': Boolean(props.disabled || option.disabled) }}
+              classList={{
+                'ui-choice-group__option--disabled': Boolean(props.disabled || option.disabled),
+              }}
             >
               <input
                 class="ui-choice-group__input"
