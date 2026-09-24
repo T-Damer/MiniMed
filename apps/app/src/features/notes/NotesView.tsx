@@ -45,6 +45,7 @@ import {
   NoteMarkdownEditor,
 } from '@/features/notes/NoteMarkdownEditor';
 import { NoteTemplatesCatalog } from '@/features/notes/NoteTemplatesCatalog';
+import { NoteDrawingPreview } from '@/features/notes/NoteDrawingEditor';
 import { isNoteDrawingFile, isNoteDrawingMime } from '@/features/notes/note-drawing';
 import {
   notesNewPatientPath,
@@ -237,6 +238,7 @@ function NoteInlineFile(props: {
   readonly onOpen: () => void;
 }): JSX.Element {
   const kind = (): string => attachmentViewerKind(props.file.mimeType);
+  const drawing = (): boolean => isNoteDrawingMime(props.file.mimeType);
   const preview = (): string | undefined =>
     props.file.thumbnailDataUrl ?? (kind() === 'image' ? noteFileSrc(props.file) : undefined);
 
@@ -248,23 +250,32 @@ function NoteInlineFile(props: {
       aria-label={`Открыть файл «${props.file.name}»`}
     >
       <Show
-        when={preview()}
+        when={drawing()}
         fallback={
-          <span class="patient-note-record-inline-file__icon" aria-hidden="true">
-            <AppGlyph
-              name={inlineFileGlyph(props.file.mimeType)}
-              class="patient-note-record-inline-file__glyph"
+          <Show
+            when={preview()}
+            fallback={
+              <span class="patient-note-record-inline-file__icon" aria-hidden="true">
+                <AppGlyph
+                  name={inlineFileGlyph(props.file.mimeType)}
+                  class="patient-note-record-inline-file__glyph"
+                />
+              </span>
+            }
+          >
+            <img
+              class="patient-note-record-inline-file__preview"
+              src={preview()}
+              alt=""
+              loading="lazy"
+              decoding="async"
             />
-          </span>
+          </Show>
         }
       >
-        <img
-          class="patient-note-record-inline-file__preview"
-          src={preview()}
-          alt=""
-          loading="lazy"
-          decoding="async"
-        />
+        <span class="patient-note-record-inline-file__drawing">
+          <NoteDrawingPreview blob={props.file.blob} label={`Схема «${props.file.name}»`} />
+        </span>
       </Show>
       <span class="patient-note-record-inline-file__meta">
         <strong class="patient-note-record-inline-file__name">{props.file.name}</strong>
