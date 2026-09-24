@@ -180,6 +180,25 @@ gates live in [TECHNICAL_PLAN.md](TECHNICAL_PLAN.md).
 
 ## Implemented
 
+### Patient self-monitoring diary by QR — 25 September 2026 (local build)
+
+- The patient card has «Дневник самоконтроля»: the doctor issues a blood-pressure, glucose or
+  medication diary as a QR link. The patient page `app/diary/` is a separate light entry with its
+  own diary-scoped service worker; it never loads the medical core or registers the app worker.
+- The invitation travels in the URL fragment (not sent to a server) and carries no patient
+  identity. Entries stay in the patient's browser (`localStorage`). «Показать врачу» shows one or
+  more QR codes (deflate + base64url, SHA-256 prefix across parts); the doctor scans them with the
+  camera (`jsQR`) or picks photos, previews the entries and saves them into the patient vault.
+- Imported readings are ordinary patient events marked «Дневник пациента» (manual-measurement
+  observations; taken doses as medication `take`; missed doses as notes), optionally attached to
+  the open visit. Event ids derive from diary and entry ids, so re-scanning adds nothing.
+- The patient can export the diary as an HL7 FHIR R4 Bundle (LOINC 85354-9/8480-6/8462-4/8867-4,
+  14743-9; MedicationStatement) tagged as patient-reported. No СЭМД/ЕГИСЗ exchange exists.
+- Android declares CAMERA (not required) and iOS NSCameraUsageDescription. Camera scanning on a
+  physical device, the native Capacitor permission prompt and the published diary URL
+  (`https://t-damer.github.io/MiniMed/app/diary/`, overridable by `VITE_DIARY_PAGE_URL`) are not
+  yet verified; a private repository needs another host for the patient page.
+
 ### Unified search UI — 8 September 2026 (local build)
 
 - The section dropdown uses the shared search field with Phosphor search/clear icons, styled hover

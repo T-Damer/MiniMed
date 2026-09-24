@@ -1,0 +1,160 @@
+.patient-diary {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.patient-diary-dialog {
+  width: min(34rem, calc(100vw - 1rem));
+}
+
+.patient-diary__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+}
+
+.patient-diary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.patient-diary__form,
+.patient-diary__issued,
+.patient-diary__scanner,
+.patient-diary__preview {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.patient-diary__kinds {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0.4rem;
+  border: 0;
+}
+
+.patient-diary__label {
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+}
+
+.patient-diary__kind {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.patient-diary__radio {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--theme-accent);
+}
+
+.patient-diary__field {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.patient-diary__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.4rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+}
+
+.patient-diary__input--multiline {
+  min-height: 4.5rem;
+  resize: vertical;
+}
+
+.patient-diary__medications {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.patient-diary__medication {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.4rem;
+}
+
+.patient-diary__code {
+  justify-self: center;
+  width: min(100%, 18rem);
+  aspect-ratio: 1;
+  background: #ffffff;
+  image-rendering: pixelated;
+}
+
+.patient-diary__link {
+  overflow-wrap: anywhere;
+  color: var(--theme-link);
+  font-size: 0.75rem;
+}
+
+.patient-diary__video {
+  width: 100%;
+  max-height: 50vh;
+  border-radius: var(--theme-radius-control);
+  background: #000000;
+  object-fit: cover;
+}
+
+.patient-diary__video--hidden {
+  display: none;
+}
+
+.patient-diary__progress {
+  margin: 0;
+  font-weight: 600;
+}
+
+.patient-diary__photo {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+}
+
+.patient-diary__photo-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.patient-diary__entries {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0.3rem;
+  list-style: none;
+}
+
+.patient-diary__entry {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.patient-diary__entry-time {
+  min-width: 7.5rem;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+}
+
+.patient-diary__error {
+  margin: 0;
+  color: var(--theme-danger);
+}

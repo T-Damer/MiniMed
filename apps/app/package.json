@@ -21,6 +21,7 @@
     "@capacitor/core": "8.5.0",
     "@capacitor/haptics": "^8.0.2",
     "@capacitor/local-notifications": "8.3.0",
+    "@capgo/capacitor-downloader": "8.3.0",
     "@cornerstonejs/core": "5.8.2",
     "@cornerstonejs/dicom-image-loader": "5.8.2",
     "@cornerstonejs/metadata": "5.8.2",
@@ -49,6 +50,7 @@
     "exceljs": "4.4.0",
     "filing": "0.1.2",
     "hast-util-to-html": "9.0.5",
+    "jsqr": "1.4.0",
     "jszip": "3.10.1",
     "katex": "0.16.22",
     "mdast-util-mark": "^1.0.0",
@@ -72,8 +74,7 @@
     "unified": "11.0.5",
     "unist-util-visit": "5.1.0",
     "virtua": "0.50.1",
-    "xlsx": "0.18.5",
-    "@capgo/capacitor-downloader": "8.3.0"
+    "xlsx": "0.18.5"
   },
   "devDependencies": {
     "@capacitor/android": "8.5.0",
