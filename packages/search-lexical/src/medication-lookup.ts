@@ -12,6 +12,15 @@ const matchers = new WeakMap<
 
 export interface MedicationLookupPlan extends ClinicalQueryPlan {
   readonly medicationSpellingNames?: readonly string[];
+  /**
+   * Present only when spelling alternatives were added. The caller must verify that the typed
+   * subject is absent from the searched corpus before using them: a correctly spelled symptom
+   * such as "дизурия" can be two edits away from an unrelated medicine name.
+   */
+  readonly medicationSpelling?: {
+    readonly subject: string;
+    readonly withoutSpelling: ClinicalQueryPlan;
+  };
 }
 
 /** Source lookup adds labelled alternatives; clinical facts/calculators keep the original parser. */
@@ -52,6 +61,7 @@ export function buildLookupQueryPlan(
   const terms = [...new Set(branches.flatMap((branch) => branch.terms))];
   return {
     ...original,
+    medicationSpelling: { subject: candidates[0]?.matchedText ?? '', withoutSpelling: original },
     medicationSpellingNames: [
       ...new Set(candidates.flatMap((candidate) => [candidate.name, ...candidate.canonicalTerms])),
     ],

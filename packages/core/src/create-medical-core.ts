@@ -629,6 +629,24 @@ function mergeExactIdentityResults(
   return [...byChunk.values()];
 }
 
+function exactWords(text: string): readonly string[] {
+  return normalizeSurfaceText(text).match(/[\p{L}\p{N}]+/gu) ?? [];
+}
+
+/** True when one retrieved source passage literally contains every word of the typed subject. */
+function hitsContainExactSubject(hits: readonly LexicalHit[], subject: string): boolean {
+  const wanted = exactWords(subject);
+  if (wanted.length === 0) return false;
+  return hits.some((hit) => {
+    const words = new Set([
+      ...exactWords(hit.document.title),
+      ...exactWords(hit.section.title),
+      ...exactWords(hit.chunk.originalText),
+    ]);
+    return wanted.every((word) => words.has(word));
+  });
+}
+
 function requestId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `search-${Date.now()}-${Math.random()}`;
 }
@@ -1089,7 +1107,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             expand: createAliasExpander(aliasesResult.value),
           };
         }
-        const plan: ReturnType<typeof buildLookupQueryPlan> =
+        let plan: ReturnType<typeof buildLookupQueryPlan> =
           parsed.data.analysisMode === 'lookup'
             ? buildLookupQueryPlan(
                 parsed.data.query,
@@ -1115,34 +1133,67 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         const termIndex = terminologyIndex;
         const terminologyMatch =
           parsed.data.analysisMode === 'lookup' ? termIndex.match(parsed.data.query) : undefined;
-        const searches = [
-          ...plan.branches.map((branch) => ({ branch, filters: parsed.data.filters })),
-          ...(terminologyMatch ? termIndex.searches(terminologyMatch, parsed.data.filters) : []),
-        ];
+        const terminologySearches = terminologyMatch
+          ? termIndex.searches(terminologyMatch, parsed.data.filters)
+          : [];
         const perBranchLimit = Math.max(parsed.data.limit * 5, 50);
-        const branchSearches = await Promise.all(
-          searches.map(async ({ branch, filters }) => {
-            const branchStartedAt = performance.now();
-            const hits = await options.store.search({
-              ftsQuery: branch.ftsQuery,
-              terms: branch.terms,
-              filters,
-              limit: perBranchLimit,
-            });
-            return {
-              branch,
-              hits,
-              diagnostics: {
-                id: branch.id,
-                label: branch.label,
+        const runBranchSearches = (
+          searches: readonly {
+            readonly branch: (typeof plan.branches)[number];
+            readonly filters: SearchFilters;
+          }[],
+        ) =>
+          Promise.all(
+            searches.map(async ({ branch, filters }) => {
+              const branchStartedAt = performance.now();
+              const hits = await options.store.search({
                 ftsQuery: branch.ftsQuery,
-                candidateCount: hits.length,
-                elapsedMs: performance.now() - branchStartedAt,
-                weight: branch.weight,
-              },
-            };
-          }),
-        );
+                terms: branch.terms,
+                filters,
+                limit: perBranchLimit,
+              });
+              return {
+                branch,
+                hits,
+                diagnostics: {
+                  id: branch.id,
+                  label: branch.label,
+                  ftsQuery: branch.ftsQuery,
+                  candidateCount: hits.length,
+                  elapsedMs: performance.now() - branchStartedAt,
+                  weight: branch.weight,
+                },
+              };
+            }),
+          );
+        const spelling = 'medicationSpelling' in plan ? plan.medicationSpelling : undefined;
+        const baseBranches = spelling ? spelling.withoutSpelling.branches : plan.branches;
+        const [baseSearches, terminologyBranchSearches] = await Promise.all([
+          runBranchSearches(
+            baseBranches.map((branch) => ({ branch, filters: parsed.data.filters })),
+          ),
+          runBranchSearches(terminologySearches),
+        ]);
+        let spellingSearches: Awaited<ReturnType<typeof runBranchSearches>> = [];
+        if (spelling) {
+          if (
+            hitsContainExactSubject(
+              [...baseSearches, ...terminologyBranchSearches].flatMap(({ hits }) => hits),
+              spelling.subject,
+            )
+          ) {
+            // The typed word exists in the searched source text, so it is not a misspelling here.
+            plan = spelling.withoutSpelling;
+          } else {
+            const baseIds = new Set(baseBranches.map((branch) => branch.id));
+            spellingSearches = await runBranchSearches(
+              plan.branches
+                .filter((branch) => !baseIds.has(branch.id))
+                .map((branch) => ({ branch, filters: parsed.data.filters })),
+            );
+          }
+        }
+        const branchSearches = [...baseSearches, ...spellingSearches, ...terminologyBranchSearches];
         const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
         const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
 

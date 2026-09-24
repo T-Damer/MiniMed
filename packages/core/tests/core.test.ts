@@ -465,6 +465,56 @@ afterEach(async () => {
 });
 
 describe('MedicalCore', () => {
+  it('offers medicine spelling alternatives only for words absent from the searched sources', async () => {
+    const core = createInMemoryMedicalCore(
+      ContentPackSeedSchema.parse({
+        manifest: {
+          id: 'test.spelling-evidence',
+          version: '1.0.0',
+          schemaVersion: 2,
+          title: 'Spelling evidence fixture',
+          checksum: 'test-spelling-evidence-checksum',
+          builtAt: '2026-09-24T00:00:00Z',
+        },
+        documents: [
+          medicationSearchDocument(
+            'symptom.dysuria',
+            'R30.0 Дизурия',
+            'Дизурия — болезненное или затруднённое мочеиспускание.',
+          ),
+          medicationSearchDocument(
+            'med.desogestrel',
+            'ДЕЗОГЕСТРЕЛ',
+            'ДЕЗОГЕСТРЕЛ. Торговое наименование: Дезерия. Лекарственная форма: таблетки.',
+          ),
+        ],
+        aliases: [
+          {
+            id: 'alias.deseria',
+            canonicalTerm: 'ДЕЗОГЕСТРЕЛ',
+            alias: 'Дезерия',
+            category: 'medication',
+            weight: 1,
+          },
+        ],
+      }),
+    );
+    cores.push(core);
+
+    const symptom = await core.search({ query: 'дизурия', analysisMode: 'lookup', limit: 5 });
+    expect(symptom.ok).toBe(true);
+    if (!symptom.ok) return;
+    expect(symptom.value.groups[0]?.documentId).toBe('symptom.dysuria');
+    expect(symptom.value.groups.map((group) => group.documentId)).not.toContain('med.desogestrel');
+    expect(symptom.value.analysis.warnings.join(' ')).not.toContain('опечатка');
+
+    const typo = await core.search({ query: 'дезерея', analysisMode: 'lookup', limit: 5 });
+    expect(typo.ok).toBe(true);
+    if (!typo.ok) return;
+    expect(typo.value.groups[0]?.documentId).toBe('med.desogestrel');
+    expect(typo.value.analysis.warnings.join(' ')).toContain('опечатка');
+  });
+
   it('does not treat an inflected component of a vaccine name as a medicine', async () => {
     const core = createInMemoryMedicalCore({
       ...DEMO_CONTENT_PACK,
