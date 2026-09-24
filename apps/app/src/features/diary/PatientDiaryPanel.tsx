@@ -386,7 +386,6 @@ function ImportDiaryDialog(props: {
                 <Button onClick={stopCamera}>Выключить камеру</Button>
               </Show>
               <FileButton
-                class="patient-diary__photo"
                 accept="image/*"
                 multiple
                 onChange={(event) => void readPhotos(event.currentTarget.files)}
