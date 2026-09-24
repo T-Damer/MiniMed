@@ -129,7 +129,6 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
       >
         <form class="patient-diary__form" onSubmit={(event) => void create(event)}>
           <ChoiceGroup
-            class="patient-diary__kinds"
             legend="Что записывает пациент"
             name="diary-kind"
             value={kind()}
@@ -427,7 +426,6 @@ function ImportDiaryDialog(props: {
             </p>
             <Show when={props.episodeId}>
               <Checkbox
-                class="patient-diary__kind"
                 label="Прикрепить к открытому осмотру"
                 checked={attach()}
                 onChange={(event) => setAttach(event.currentTarget.checked)}
