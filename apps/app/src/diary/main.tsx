@@ -2,6 +2,7 @@ import { render } from 'solid-js/web';
 
 import { DiaryApp } from '@/diary/DiaryApp';
 import '@/styles/theme.css';
+import '@/styles/theme-dark.css';
 import '@/diary/diary-page.css';
 
 const root = document.getElementById('diary-root');
