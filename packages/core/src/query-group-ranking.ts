@@ -390,6 +390,17 @@ function isClinicalRecommendationDocument(document: SearchDocumentDescriptor | u
   );
 }
 
+/**
+ * Coverage fractions are ordering keys that run before the relevance score. Compare coarse tiers
+ * (none / under half / at least half / all) so that 0.67 versus 0.6 falls through to the score
+ * instead of overriding it.
+ */
+export function coverageTier(coverage: number): number {
+  if (coverage <= 0) return 0;
+  if (coverage >= 1) return 3;
+  return coverage >= 0.5 ? 2 : 1;
+}
+
 function failedTreatmentContextCoverage(
   failedTreatmentTerms: ReadonlySet<string>,
   group: SearchResultGroup,
@@ -576,9 +587,10 @@ export function rankSearchGroupsByQuery(
         Number(right.exactTitle) - Number(left.exactTitle) ||
         Number(right.exactAlias) - Number(left.exactAlias) ||
         Number(right.sourcePhrase) - Number(left.sourcePhrase) ||
-        right.positiveFindingCoverage - left.positiveFindingCoverage ||
-        right.failedTreatmentContextCoverage - left.failedTreatmentContextCoverage ||
-        right.clinicalEvidenceCoverage - left.clinicalEvidenceCoverage ||
+        coverageTier(right.positiveFindingCoverage) - coverageTier(left.positiveFindingCoverage) ||
+        coverageTier(right.failedTreatmentContextCoverage) -
+          coverageTier(left.failedTreatmentContextCoverage) ||
+        coverageTier(right.clinicalEvidenceCoverage) - coverageTier(left.clinicalEvidenceCoverage) ||
         right.score - left.score ||
         left.index - right.index,
     )
