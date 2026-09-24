@@ -10,7 +10,7 @@ const aliases = db
   .query("SELECT rowid AS id, alias, canonical_term FROM aliases WHERE category = 'medication'")
   .all()
   .map((row) => ({
-    id: 'rapidfuzz-experiment.' + row.id,
+    id: `rapidfuzz-experiment.${row.id}`,
     alias: String(row.alias),
     canonicalTerm: String(row.canonical_term),
     category: 'medication',
@@ -42,20 +42,18 @@ const outcomes = payload.cases.map((row) => {
 });
 const elapsedMs = performance.now() - started;
 const byFamily = Object.fromEntries(
-  [...new Set(outcomes.map((row) => row.family))]
-    .sort()
-    .map((family) => {
-      const rows = outcomes.filter((row) => row.family === family);
-      return [
-        family,
-        {
-          total: rows.length,
-          top1: rows.filter((row) => row.rank === 1).length,
-          top5: rows.filter((row) => row.rank !== null && row.rank <= 5).length,
-          top8: rows.filter((row) => row.rank !== null).length,
-        },
-      ];
-    }),
+  [...new Set(outcomes.map((row) => row.family))].sort().map((family) => {
+    const rows = outcomes.filter((row) => row.family === family);
+    return [
+      family,
+      {
+        total: rows.length,
+        top1: rows.filter((row) => row.rank === 1).length,
+        top5: rows.filter((row) => row.rank !== null && row.rank <= 5).length,
+        top8: rows.filter((row) => row.rank !== null).length,
+      },
+    ];
+  }),
 );
 const exactGuardFailures = payload.exactControls.filter((query) => matcher(query).length > 0);
 const negativeControls = payload.negativeControls.map((query) => ({
