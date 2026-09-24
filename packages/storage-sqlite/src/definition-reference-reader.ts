@@ -191,7 +191,7 @@ export async function createSqliteDefinitionReference(
             FROM matches m JOIN chunks c ON c.rowid = m.rowid
             JOIN ${links} l ON l.chunk_id = c.id
             JOIN knowledge_entities e ON e.id = l.entity_id
-            WHERE l.review_status = 'proposed'
+            WHERE l.review_status <> 'rejected'
               AND l.link_type IN ('reference:definition','reference:item')
               AND json_extract(e.metadata_json, '$.coverage') IN ('definition','explicit-definition')
               AND ${SCOPE}
@@ -239,7 +239,7 @@ export async function createSqliteDefinitionReference(
         FROM matches m JOIN chunks c ON c.rowid = m.rowid
         JOIN ${links} l ON l.chunk_id = c.id
         JOIN knowledge_entities e ON e.id = l.entity_id
-        WHERE l.review_status = 'proposed' AND l.link_type IN ('reference:definition','reference:item')
+        WHERE l.review_status <> 'rejected' AND l.link_type IN ('reference:definition','reference:item')
           AND ${SCOPE}
         GROUP BY e.id ORDER BY score, e.id LIMIT ?`,
         [fts, ...scope, limit],
@@ -272,7 +272,7 @@ export async function createSqliteDefinitionReference(
           json_extract(l.metadata_json, '$.role') AS role, length(c.original_text) AS characters
         FROM ${links} l JOIN knowledge_entities e ON e.id = l.entity_id
         JOIN chunks c ON c.id = l.chunk_id
-        WHERE e.id = ? AND l.id > ? AND l.review_status = 'proposed' AND ${SCOPE}
+        WHERE e.id = ? AND l.id > ? AND l.review_status <> 'rejected' AND ${SCOPE}
         ORDER BY l.id LIMIT ?`,
         [id, after, ...scope, PAGE_BLOCKS + 1],
       );
@@ -304,7 +304,7 @@ export async function createSqliteDefinitionReference(
           l.document_id
         FROM ${blockTable} c JOIN ${links} l ON l.chunk_id = c.id
         JOIN knowledge_entities e ON e.id = l.entity_id
-        WHERE e.id = ? AND c.id = ? AND l.review_status = 'proposed' AND ${SCOPE} LIMIT 1`,
+        WHERE e.id = ? AND c.id = ? AND l.review_status <> 'rejected' AND ${SCOPE} LIMIT 1`,
         [offset + 1, BLOCK_CHARACTERS, id, chunkId, ...scope],
       );
       const row = rows[0];

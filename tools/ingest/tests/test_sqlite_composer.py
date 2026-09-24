@@ -448,9 +448,38 @@ def test_fts_validation_has_bounded_vm_work(tmp_path: Path, domain: str) -> None
         connection.close()
 
 
-@pytest.mark.parametrize("domain", ["chunks", "knowledge"])
+@pytest.mark.parametrize("damage", ["unindexed", "stale", "orphan"])
+def test_fts_validation_rejects_chunk_index_drift(tmp_path: Path, damage: str) -> None:
+    source = tmp_path / "source.db"
+    write_source(source, source_pack("pack.one", "document.one", "Текст"))
+    connection = sqlite3.connect(source)
+    try:
+        # Migration 010 reads chunk identities from chunks; drift is index versus source rows.
+        if damage == "unindexed":
+            connection.execute(
+                """INSERT INTO chunks_fts(
+                    chunks_fts, rowid, chunk_id, document_id, document_version_id, section_id,
+                    anchor, title, section_path, normalized_text)
+                SELECT 'delete', rowid, chunk_id, document_id, document_version_id, section_id,
+                    anchor, title, section_path, normalized_text
+                FROM chunks_fts_source"""
+            )
+        elif damage == "stale":
+            connection.execute("UPDATE chunks SET normalized_text = 'другой текст'")
+        else:
+            connection.execute("DELETE FROM chunk_embeddings")
+            connection.execute("DELETE FROM chunks")
+        validate = cast(
+            Callable[[sqlite3.Connection], None], sqlite_composer.__dict__["_validate_fts"]
+        )
+        with pytest.raises(ValueError, match="Composed chunks FTS"):
+            validate(connection)
+    finally:
+        connection.close()
+
+
 @pytest.mark.parametrize("damage", ["missing", "duplicate", "orphan", "null", "replacement"])
-def test_fts_validation_rejects_mismatched_ids(tmp_path: Path, domain: str, damage: str) -> None:
+def test_fts_validation_rejects_mismatched_knowledge_ids(tmp_path: Path, damage: str) -> None:
     source = tmp_path / "source.db"
     write_source(source, source_pack("pack.one", "document.one", "Текст"))
     add_knowledge_rows(source)
@@ -461,10 +490,8 @@ def test_fts_validation_rejects_mismatched_ids(tmp_path: Path, domain: str, dama
             sqlite_composer.__dict__["_rebuild_knowledge_fts"],
         )
         rebuild(connection)
-        table, key, identifier = {
-            "chunks": ("chunks_fts", "chunk_id", "chunk.document.one"),
-            "knowledge": ("knowledge_fts", "entity_id", "entity.one"),
-        }[domain]
+        table, key, identifier = "knowledge_fts", "entity_id", "entity.one"
+        domain = "knowledge"
         if damage == "missing":
             connection.execute(f"DELETE FROM {table} WHERE {key} = ?", (identifier,))
         elif damage == "replacement":
@@ -515,7 +542,7 @@ def test_resume_finalized_stage_does_not_rebuild_and_still_validates(
             if damage == "digest":
                 connection.execute("DELETE FROM app_metadata WHERE key = 'source_set_digest'")
             else:
-                connection.execute("UPDATE chunks_fts SET chunk_id = 'unexpected'")
+                connection.execute("UPDATE chunks SET normalized_text = 'другой текст'")
     stage_bytes = stage.read_bytes()
 
     def no_rebuild(*_: object) -> str:

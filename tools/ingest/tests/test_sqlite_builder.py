@@ -193,18 +193,17 @@ def test_bulk_write_preserves_schema_data_fts_and_builds_indexes_last(tmp_path: 
         for index, statement in enumerate(trace)
         if any(name in statement.casefold() for name in secondary_names)
     ]
-    load_positions = [
-        index
+    # The post-VACUUM integrity check verifies the index; it is not a data load.
+    loads = [
+        (index, statement.casefold())
         for index, statement in enumerate(trace)
         if statement.casefold().lstrip().startswith("insert into ")
+        and "integrity-check" not in statement.casefold()
     ]
-    fts_loads = [
-        statement.casefold()
-        for statement in trace
-        if statement.casefold().lstrip().startswith("insert into chunks_fts")
-    ]
+    load_positions = [index for index, _ in loads]
+    fts_loads = [statement for _, statement in loads if statement.startswith("insert into chunks_fts")]
     assert secondary_names
     assert index_positions
-    assert len(fts_loads) == 1
-    assert "select" in fts_loads[0]
+    # Migration 010: one bulk rebuild from the chunks_fts_source view, not a copied row set.
+    assert fts_loads == ["insert into chunks_fts(chunks_fts) values ('rebuild')"]
     assert max(load_positions) < min(index_positions)

@@ -679,14 +679,21 @@ export class CapacitorMedicalStore implements MedicalStore {
       appendMetadataFilterClauses(clauses, bind, request.filters);
     }
 
+    // Rank rowids first and read chunk_id only for the bounded window: an external-content
+    // index (migration 010) resolves UNINDEXED columns through its source view per row.
     const candidateRows = await this.query(
-      `SELECT chunks_fts.chunk_id AS chunk_id,
-        bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
-       FROM chunks_fts
-       ${joins.join('\n       ')}
-       WHERE ${clauses.join(' AND ')}
-       ORDER BY bm25_rank
-       LIMIT ?`,
+      `SELECT chunks_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank
+       FROM (
+         SELECT chunks_fts.rowid AS fts_rowid,
+           bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
+         FROM chunks_fts
+         ${joins.join('\n         ')}
+         WHERE ${clauses.join(' AND ')}
+         ORDER BY bm25_rank
+         LIMIT ?
+       ) ranked
+       JOIN chunks_fts ON chunks_fts.rowid = ranked.fts_rowid
+       ORDER BY ranked.bm25_rank`,
       [...bind, candidateLimit],
     );
     if (candidateRows.length === 0) return [];

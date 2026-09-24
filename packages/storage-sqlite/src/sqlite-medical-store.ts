@@ -559,10 +559,15 @@ export class SqliteMedicalStore implements MedicalStore {
     );
     if (existingChecksum === seed.manifest.checksum) return;
 
+    // Migration 010 indexes chunks through an external-content view; older databases still
+    // store their own FTS rows and must be written row by row.
+    const externalFts = String(
+      this.database.selectValue("SELECT sql FROM sqlite_master WHERE name = 'chunks_fts'") ?? '',
+    ).includes('chunks_fts_source');
     this.database.exec('BEGIN IMMEDIATE');
     try {
       this.database.exec(
-        'DELETE FROM chunks_fts; DELETE FROM aliases; DELETE FROM content_packs; DELETE FROM embedding_profiles;',
+        `${externalFts ? "INSERT INTO chunks_fts(chunks_fts) VALUES ('delete-all');" : 'DELETE FROM chunks_fts;'} DELETE FROM aliases; DELETE FROM content_packs; DELETE FROM embedding_profiles;`,
       );
       const profileStatement = this.database.prepare(`INSERT INTO embedding_profiles(
         id, dimensions, vector_format, normalization, generator, generator_version,
@@ -623,7 +628,9 @@ export class SqliteMedicalStore implements MedicalStore {
         page_start, page_end, char_start, char_end, previous_chunk_id, next_chunk_id,
         anchor, metadata_json
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-      const ftsStatement = this.database.prepare(`INSERT INTO chunks_fts(
+      const ftsStatement = externalFts
+        ? undefined
+        : this.database.prepare(`INSERT INTO chunks_fts(
         chunk_id, document_id, document_version_id, section_id, anchor,
         title, section_path, normalized_text
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
@@ -705,7 +712,8 @@ export class SqliteMedicalStore implements MedicalStore {
                 chunk.anchor,
                 JSON.stringify(chunk.metadata),
               ]);
-              executeStatement(ftsStatement, [
+              if (ftsStatement)
+                executeStatement(ftsStatement, [
                 chunk.id,
                 document.id,
                 document.version.id,
@@ -736,12 +744,13 @@ export class SqliteMedicalStore implements MedicalStore {
             embedding.norm,
           ]);
         }
+        if (externalFts) this.database.exec("INSERT INTO chunks_fts(chunks_fts) VALUES ('rebuild')");
       } finally {
         documentStatement.finalize();
         versionStatement.finalize();
         sectionStatement.finalize();
         chunkStatement.finalize();
-        ftsStatement.finalize();
+        ftsStatement?.finalize();
         aliasStatement.finalize();
         embeddingStatement.finalize();
       }
@@ -1118,15 +1127,22 @@ export class SqliteMedicalStore implements MedicalStore {
       appendMetadataFilterClauses(clauses, bind, request.filters);
     }
 
+    // Rank rowids first and read chunk_id only for the bounded window: an external-content
+    // index (migration 010) resolves UNINDEXED columns through its source view per row.
     const candidateRows = queryRows(
       this.database,
-      `SELECT chunks_fts.chunk_id AS chunk_id,
-        bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
-       FROM chunks_fts
-       ${joins.join('\n       ')}
-       WHERE ${clauses.join(' AND ')}
-       ORDER BY bm25_rank
-       LIMIT ?`,
+      `SELECT chunks_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank
+       FROM (
+         SELECT chunks_fts.rowid AS fts_rowid,
+           bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
+         FROM chunks_fts
+         ${joins.join('\n         ')}
+         WHERE ${clauses.join(' AND ')}
+         ORDER BY bm25_rank
+         LIMIT ?
+       ) ranked
+       JOIN chunks_fts ON chunks_fts.rowid = ranked.fts_rowid
+       ORDER BY ranked.bm25_rank`,
       [...bind, candidateLimit],
     );
     if (candidateRows.length === 0) return [];

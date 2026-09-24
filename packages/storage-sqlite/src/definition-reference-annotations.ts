@@ -38,7 +38,7 @@ export async function readDefinitionReferenceAnnotations(
        AND json_extract(e.metadata_json, '$.inputSha256') = a.input_sha256
        AND EXISTS (SELECT 1 FROM definition_reference_links l
           WHERE l.entity_id = e.id AND l.chunk_id = c.id AND l.document_id = d.id
-            AND l.review_status = 'proposed'
+            AND l.review_status <> 'rejected'
             AND l.link_type IN ('reference:definition','reference:item','reference:context'))
      ORDER BY a.id LIMIT 9`,
     [entryId, after, editionId],
