@@ -3,8 +3,13 @@ import { createSignal, For, Index, type JSX, onCleanup, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { Button } from '@/components/Button';
+import { Checkbox } from '@/components/Checkbox';
+import { ChoiceGroup } from '@/components/ChoiceGroup';
+import { FileButton } from '@/components/FileButton';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Heading } from '@/components/Text';
+import { TextArea } from '@/components/TextArea';
+import { TextField } from '@/components/TextField';
 import {
   DiaryPartCollector,
   diaryInvitationLink,
@@ -123,50 +128,44 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
         }
       >
         <form class="patient-diary__form" onSubmit={(event) => void create(event)}>
-          <fieldset class="patient-diary__kinds">
-            <legend class="patient-diary__label">Что записывает пациент</legend>
-            <For each={DIARY_KINDS}>
-              {(option) => (
-                <label class="patient-diary__kind">
-                  <input
-                    class="patient-diary__radio"
-                    type="radio"
-                    name="diary-kind"
-                    checked={kind() === option}
-                    onChange={() => setKind(option)}
-                  />
-                  {DIARY_KIND_TITLE[option]}
-                </label>
-              )}
-            </For>
-          </fieldset>
+          <ChoiceGroup
+            class="patient-diary__kinds"
+            legend="Что записывает пациент"
+            name="diary-kind"
+            value={kind()}
+            options={DIARY_KINDS.map((option) => ({
+              value: option,
+              label: DIARY_KIND_TITLE[option],
+            }))}
+            onChange={(value) => setKind(value as DiaryKind)}
+          />
           <Show when={kind() === 'medication'}>
             <div class="patient-diary__medications">
               <Index each={medications()}>
                 {(item, index) => (
                   <div class="patient-diary__medication">
-                    <input
-                      class="patient-diary__input"
+                    <TextField
+                      label="Препарат"
+                      hideLabel
                       placeholder="Препарат"
-                      aria-label="Препарат"
                       value={item().name}
                       onInput={(event) =>
                         updateMedication(index, { name: event.currentTarget.value })
                       }
                     />
-                    <input
-                      class="patient-diary__input"
+                    <TextField
+                      label="Доза"
+                      hideLabel
                       placeholder="Доза"
-                      aria-label="Доза"
                       value={item().dose}
                       onInput={(event) =>
                         updateMedication(index, { dose: event.currentTarget.value })
                       }
                     />
-                    <input
-                      class="patient-diary__input"
+                    <TextField
+                      label="Схема приёма"
+                      hideLabel
                       placeholder="Когда (например, 8:00 и 20:00)"
-                      aria-label="Схема приёма"
                       value={item().schedule}
                       onInput={(event) =>
                         updateMedication(index, { schedule: event.currentTarget.value })
@@ -186,24 +185,20 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
               </Button>
             </div>
           </Show>
-          <label class="patient-diary__field">
-            <span class="patient-diary__label">Врач (необязательно)</span>
-            <input
-              class="patient-diary__input"
-              value={doctor()}
-              onInput={(event) => setDoctor(event.currentTarget.value)}
-            />
-          </label>
-          <label class="patient-diary__field">
-            <span class="patient-diary__label">Инструкция пациенту</span>
-            <textarea
-              class="patient-diary__input patient-diary__input--multiline"
-              maxLength={200}
-              value={note()}
-              placeholder="Например: утром и вечером, сидя, после 5 минут отдыха"
-              onInput={(event) => setNote(event.currentTarget.value)}
-            />
-          </label>
+          <TextField
+            class="patient-diary__field"
+            label="Врач (необязательно)"
+            value={doctor()}
+            onInput={(event) => setDoctor(event.currentTarget.value)}
+          />
+          <TextArea
+            class="patient-diary__field"
+            label="Инструкция пациенту"
+            maxLength={200}
+            value={note()}
+            placeholder="Например: утром и вечером, сидя, после 5 минут отдыха"
+            onInput={(event) => setNote(event.currentTarget.value)}
+          />
           <Show when={error()}>
             <p class="patient-diary__error" role="alert">
               {error()}
@@ -391,16 +386,14 @@ function ImportDiaryDialog(props: {
               >
                 <Button onClick={stopCamera}>Выключить камеру</Button>
               </Show>
-              <label class="patient-diary__photo">
-                <input
-                  class="patient-diary__photo-input"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(event) => void readPhotos(event.currentTarget.files)}
-                />
+              <FileButton
+                class="patient-diary__photo"
+                accept="image/*"
+                multiple
+                onChange={(event) => void readPhotos(event.currentTarget.files)}
+              >
                 Выбрать фото кодов
-              </label>
+              </FileButton>
             </div>
           </div>
         }
@@ -433,15 +426,12 @@ function ImportDiaryDialog(props: {
               Записи сохранятся как данные самоконтроля пациента, отдельно от ваших измерений.
             </p>
             <Show when={props.episodeId}>
-              <label class="patient-diary__kind">
-                <input
-                  class="patient-diary__radio"
-                  type="checkbox"
-                  checked={attach()}
-                  onChange={(event) => setAttach(event.currentTarget.checked)}
-                />
-                Прикрепить к открытому осмотру
-              </label>
+              <Checkbox
+                class="patient-diary__kind"
+                label="Прикрепить к открытому осмотру"
+                checked={attach()}
+                onChange={(event) => setAttach(event.currentTarget.checked)}
+              />
             </Show>
             <Show when={status()}>
               <p class="patient-diary__error" role="alert">
