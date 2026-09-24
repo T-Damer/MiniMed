@@ -28,20 +28,6 @@
   padding: 0.25rem 0 0.5rem;
 }
 
-.patient-diary__kinds {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  gap: 0.4rem;
-  border: 0;
-}
-
-.patient-diary__kind {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
 .patient-diary__field {
   display: grid;
   gap: 0.25rem;
