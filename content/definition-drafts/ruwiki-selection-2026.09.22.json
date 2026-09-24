@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-22",
+  "maxCategories": 350,
+  "maxPages": 8000,
+  "seeds": [
+    {"category":"Категория:Медицинская терминология","family":"general-medicine","depth":2},
+    {"category":"Категория:Симптомы заболеваний человека","family":"symptoms","depth":2},
+    {"category":"Категория:Симптомы по алфавиту","family":"symptoms","depth":1},
+    {"category":"Категория:Синдромы по алфавиту","family":"syndromes","depth":1},
+    {"category":"Категория:Психопатологические синдромы","family":"psychiatry","depth":2},
+    {"category":"Категория:Симптомы психических расстройств","family":"psychiatry","depth":2},
+    {"category":"Категория:Медицинские шкалы","family":"scales","depth":1},
+    {"category":"Категория:Медицинские классификации","family":"classifications","depth":2},
+    {"category":"Категория:Медицинская диагностика","family":"diagnostics","depth":3},
+    {"category":"Категория:Лабораторная диагностика","family":"laboratory","depth":2},
+    {"category":"Категория:Анатомия человека","family":"anatomy","depth":3},
+    {"category":"Категория:Физиология человека","family":"physiology","depth":3},
+    {"category":"Категория:Патологическая анатомия","family":"pathology","depth":2},
+    {"category":"Категория:Патологическая физиология","family":"pathophysiology","depth":2},
+    {"category":"Категория:Психодиагностика","family":"psychological-assessment","depth":2},
+    {"category":"Категория:Медицинская статистика","family":"medical-statistics","depth":1},
+    {"category":"Категория:Медицинские процедуры","family":"procedures","depth":2},
+    {"category":"Категория:Заболевания по алфавиту","family":"conditions","depth":0},
+    {"category":"Категория:Гистология","family":"histology","depth":2},
+    {"category":"Категория:Неврологические симптомы","family":"symptoms","depth":2}
+  ]
+}

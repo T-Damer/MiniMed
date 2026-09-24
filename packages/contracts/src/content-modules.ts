@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DefinitionReferenceModuleSchema } from './definition-reference-api';
 import type { LocalMedError } from './errors';
 import type { Result } from './result';
 import { ToolCatalogEntrySchema } from './tool-modules';
@@ -140,11 +141,25 @@ export const ContentModuleCatalogEntrySchema = z
     artifacts: z.array(ContentModuleArtifactSchema).default([]),
     documents: z.array(ContentModuleDocumentVersionSchema).default([]),
     previewDocumentCount: z.number().int().nonnegative().default(0),
+    definitionReference: DefinitionReferenceModuleSchema.optional(),
     tools: z.array(ToolCatalogEntrySchema).optional(),
     toolKinds: z.array(z.enum(['calculator', 'assessment'])).optional(),
     toolCount: z.number().int().nonnegative().optional(),
   })
   .superRefine((module, context) => {
+    if (
+      module.definitionReference &&
+      (module.kind !== 'reference' ||
+        module.required ||
+        module.compatibility.schemaVersion !== 7 ||
+        module.releaseState !== 'preview')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['definitionReference'],
+        message: 'Reference capability requires an optional schema-7 preview edition.',
+      });
+    }
     if (module.kind === 'core' && !module.required) {
       context.addIssue({
         code: 'custom',

@@ -1,4 +1,10 @@
-import type { ContentPackSeed, EmbeddingProfile, SearchFilters } from '@localmed/contracts';
+import type {
+  ContentPackSeed,
+  DefinitionReferenceReply,
+  DefinitionReferenceRequest,
+  EmbeddingProfile,
+  SearchFilters,
+} from '@localmed/contracts';
 import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
 
 export type StorageBackend = 'in-memory' | 'sqlite-wasm' | 'sqlite-native' | 'multi-store';
@@ -45,7 +51,10 @@ export interface VectorHit {
   readonly score: number;
 }
 
-export type SearchDocumentDescriptor = Pick<DocumentRecord, 'id' | 'sourceType' | 'metadata'>;
+export type SearchDocumentDescriptor = Pick<
+  DocumentRecord,
+  'id' | 'title' | 'shortTitle' | 'sourceType' | 'metadata'
+>;
 
 export interface DocumentIdentity {
   readonly id: string;
@@ -53,6 +62,7 @@ export interface DocumentIdentity {
 }
 
 export interface MedicalStore {
+  reference?(request: DefinitionReferenceRequest): Promise<DefinitionReferenceReply>;
   initialize(seed?: ContentPackSeed): Promise<StorageHealth>;
   getHealth(): Promise<StorageHealth>;
   listDocuments(): Promise<readonly DocumentRecord[]>;

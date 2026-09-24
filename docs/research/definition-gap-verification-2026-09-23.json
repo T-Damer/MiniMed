@@ -1,0 +1,52 @@
+{
+  "format": "minimed-definition-gap-verification-v1",
+  "checkedCommit": "bdcffcc2722e252f082acc552d61cb0be62cfd31",
+  "runId": "35848313661",
+  "jobId": "107139811034",
+  "runUrl": "https://github.com/T-Damer/MiniMed/actions/runs/35848313661",
+  "conclusion": "success",
+  "evidence": "Summary and completed-step outcomes transcribed from the GitHub Actions job log; no database or queue artifact was uploaded.",
+  "sourceRecords": 16047,
+  "definitionRecords": 8415,
+  "pendingRecords": 7632,
+  "pendingNormalizedTitles": 7632,
+  "byStatusTitles": {
+    "ready-for-source-research": 7221,
+    "same-title-definition-needs-sense-review": 411
+  },
+  "byStatusRecords": {
+    "ready-for-source-research": 7221,
+    "same-title-definition-needs-sense-review": 411
+  },
+  "tests": {
+    "tests": 88,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "newGapInventoryTests": 9,
+  "strictChecks": {
+    "files": 8,
+    "ruffFormatCheck": "passed",
+    "ruffCheck": "passed",
+    "pyrightErrors": 0,
+    "pyrightWarnings": 0,
+    "runtimeCodePatches": false
+  },
+  "completedNames": 5,
+  "inventorySha256": "b108d3d0dcfdae7b39bf2194d4066e4a045c18010010e549766bf90da4d76482",
+  "sqliteSha256": "aa34f59683e197aa75c157ff636bdb9c7bcc987bfdc770e8abe05308f3298165",
+  "installedBytes": 128507904,
+  "downloadBytes": 26888604,
+  "networkAllowedDuringBuildAndAudit": false,
+  "sqliteInventoryIdentityMatch": true,
+  "logicalRoundTripEqual": true,
+  "gzipRoundTripEqual": true,
+  "integrity": "ok",
+  "foreignKeyViolations": 0,
+  "knowledgeFacts": 0,
+  "knowledgeRelations": 0,
+  "trackedFilesUnchangedByVerification": true,
+  "artifactUploads": 0,
+  "boundary": "Source-local research queue, not canonical concept counts or clinical approval. Each pending identity appears exactly once. Title overlap requires sense review, not automatic merging. This scoped verification does not qualify general reverse search, full repository CI, browser UI, Android or a public release."
+}

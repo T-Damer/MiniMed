@@ -20,7 +20,14 @@ from .edition_manifest import (
     write_edition_manifest,
 )
 from .models import CamelModel, SourceProvenance
-from .sqlite_builder import inspect_integrity, schema_sql, secondary_indexes_sql
+from .sqlite_builder import (
+    chunks_fts_uses_external_content,
+    inspect_integrity,
+    rebuild_chunks_fts_index,
+    schema_sql,
+    secondary_indexes_sql,
+    verify_chunks_fts,
+)
 from .terminology_mentions import project_terminology_mentions
 
 
@@ -676,6 +683,10 @@ def _rebuild_chunks_fts(connection: sqlite3.Connection) -> None:
     ).fetchone()
     if invalid_path is not None:
         raise ValueError(f"Section {invalid_path[0]} has invalid path_json.")
+    if chunks_fts_uses_external_content(connection):
+        rebuild_chunks_fts_index(connection)
+        return
+    # Packs built before migration 010 keep their contentful index layout.
     connection.execute("DELETE FROM chunks_fts")
     connection.execute(
         """INSERT INTO chunks_fts(
@@ -795,8 +806,15 @@ def _rebuild_knowledge_fts(connection: sqlite3.Connection) -> None:
 
 
 def _validate_fts(connection: sqlite3.Connection) -> None:
-    for table in ("chunks_fts", "knowledge_fts"):
-        connection.execute(f"INSERT INTO {table}({table}) VALUES ('integrity-check')")
+    connection.execute("INSERT INTO knowledge_fts(knowledge_fts) VALUES ('integrity-check')")
+    if chunks_fts_uses_external_content(connection):
+        # Also proves that rowids still match chunks after VACUUM.
+        try:
+            verify_chunks_fts(connection)
+        except sqlite3.DatabaseError as error:
+            raise ValueError("Composed chunks FTS index does not match chunks.") from error
+    else:
+        connection.execute("INSERT INTO chunks_fts(chunks_fts) VALUES ('integrity-check')")
 
     # FTS identity columns are UNINDEXED: equality joins rescan the entire virtual
     # table per expected row. Group both ID streams once, including duplicates/NULLs.
@@ -1005,8 +1023,9 @@ def _fingerprint_inputs(sources: list[Path]) -> list[_InputFingerprint]:
 def _open_staging_database(path: Path, *, initialize: bool) -> sqlite3.Connection:
     connection = sqlite3.connect(path)
     if initialize:
-        # Larger composed packs need fewer synchronous OPFS reads on browser startup/search.
-        connection.execute("PRAGMA page_size = 65536")
+        # 16 KiB keeps the file within ~2% of 64 KiB pages while a cold search plus hydration
+        # reads ~2.2x fewer bytes through OPFS (docs/research/core-db-size-2026-09-24.md).
+        connection.execute("PRAGMA page_size = 16384")
     connection.execute("PRAGMA journal_mode = DELETE")
     connection.execute("PRAGMA synchronous = FULL")
     # FTS is rebuilt once after bulk loading. SQLite's ~2 MiB default cache causes the

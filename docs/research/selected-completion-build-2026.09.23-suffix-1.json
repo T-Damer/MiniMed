@@ -1,0 +1,33 @@
+{
+  "format": "minimed-definition-gap-inventory-v1",
+  "sourceRecords": 16069,
+  "definitionRecords": 8474,
+  "pendingRecords": 7595,
+  "pendingNormalizedTitles": 7595,
+  "byStatusTitles": {
+    "ready-for-source-research": 7174,
+    "same-title-definition-needs-sense-review": 421
+  },
+  "byStatusRecords": {
+    "ready-for-source-research": 7174,
+    "same-title-definition-needs-sense-review": 421
+  },
+  "boundary": "Research queue only: a normalized title match is not a same-as relation, clinical approval or automatic completion. Source identities and names remain unchanged. Counts describe source-local records, not unique medical concepts. No page bodies, patient data, embeddings or model downloads are required.",
+  "checkedCommit": "272a2851adecd9b47f501820e4ee7d79ec8e01d9",
+  "runId": "35922212120",
+  "pythonTests": {
+    "tests": 114,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "javascriptTests": 732,
+  "installedBytes": 128393216,
+  "downloadBytes": 26947887,
+  "databaseSha256": "5beeb1951723d6127c5e566d8e3fd723f1f8a73cfc81a4a69e47862a0a19a978",
+  "sqliteIdentityAndCoverageMatch": true,
+  "logicalRoundTripEqual": true,
+  "networkAllowedDuringBuild": false,
+  "acquisitionOutcome": "success",
+  "acceptedDefinitions": 4
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "edition": "minimed.definition.prepared.2026-09-21",
+  "examined": {
+    "documents": 19987,
+    "sections": 54468,
+    "chunks": 54481,
+    "excluded_pointer_or_nonclinical_chunks": 54439,
+    "definition_chunks": 7,
+    "instrument_sections": 0,
+    "tool_modules": 8,
+    "tool_records_examined": 69
+  },
+  "sourceTypes": {
+    "core_catalog_pointer": 19972,
+    "official_registry_summary": 8,
+    "clinical_recommendation_summary": 7
+  },
+  "records": 76,
+  "distinctTitles": 76,
+  "byKind": {
+    "term": 7,
+    "tool": 51,
+    "scale": 18
+  },
+  "byCoverage": {
+    "definition-section": 4,
+    "explicit-definition": 3,
+    "tool-description": 69
+  },
+  "sources": 2,
+  "sharedBlocks": 76,
+  "jsonBytes": 198215,
+  "gzipBytes": 43337,
+  "sha256": "e7c6187b1b997335d50f109a409fb9f3e9803651843c8a132d9dbdfafa6124e3",
+  "instrumentMentionCandidates": 0,
+  "qualification": "source-extraction-only; no clinical approval, UI/device qualification, independent retrieval gold or new-release rights implied"
+}

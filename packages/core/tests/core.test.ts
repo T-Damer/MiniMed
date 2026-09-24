@@ -465,6 +465,56 @@ afterEach(async () => {
 });
 
 describe('MedicalCore', () => {
+  it('offers medicine spelling alternatives only for words absent from the searched sources', async () => {
+    const core = createInMemoryMedicalCore(
+      ContentPackSeedSchema.parse({
+        manifest: {
+          id: 'test.spelling-evidence',
+          version: '1.0.0',
+          schemaVersion: 2,
+          title: 'Spelling evidence fixture',
+          checksum: 'test-spelling-evidence-checksum',
+          builtAt: '2026-09-24T00:00:00Z',
+        },
+        documents: [
+          medicationSearchDocument(
+            'symptom.dysuria',
+            'R30.0 Дизурия',
+            'Дизурия — болезненное или затруднённое мочеиспускание.',
+          ),
+          medicationSearchDocument(
+            'med.desogestrel',
+            'ДЕЗОГЕСТРЕЛ',
+            'ДЕЗОГЕСТРЕЛ. Торговое наименование: Дезерия. Лекарственная форма: таблетки.',
+          ),
+        ],
+        aliases: [
+          {
+            id: 'alias.deseria',
+            canonicalTerm: 'ДЕЗОГЕСТРЕЛ',
+            alias: 'Дезерия',
+            category: 'medication',
+            weight: 1,
+          },
+        ],
+      }),
+    );
+    cores.push(core);
+
+    const symptom = await core.search({ query: 'дизурия', analysisMode: 'lookup', limit: 5 });
+    expect(symptom.ok).toBe(true);
+    if (!symptom.ok) return;
+    expect(symptom.value.groups[0]?.documentId).toBe('symptom.dysuria');
+    expect(symptom.value.groups.map((group) => group.documentId)).not.toContain('med.desogestrel');
+    expect(symptom.value.analysis.warnings.join(' ')).not.toContain('опечатка');
+
+    const typo = await core.search({ query: 'дезерея', analysisMode: 'lookup', limit: 5 });
+    expect(typo.ok).toBe(true);
+    if (!typo.ok) return;
+    expect(typo.value.groups[0]?.documentId).toBe('med.desogestrel');
+    expect(typo.value.analysis.warnings.join(' ')).toContain('опечатка');
+  });
+
   it('does not treat an inflected component of a vaccine name as a medicine', async () => {
     const core = createInMemoryMedicalCore({
       ...DEMO_CONTENT_PACK,
@@ -533,8 +583,10 @@ describe('MedicalCore', () => {
     const baseline = await core.search(request);
     const documents = await store.listDocuments();
     const listSearchDocuments = vi.fn(async () =>
-      documents.map(({ id, sourceType, metadata }) => ({
+      documents.map(({ id, title, shortTitle, sourceType, metadata }) => ({
         id,
+        title,
+        shortTitle,
         sourceType,
         metadata,
       })),
@@ -566,6 +618,327 @@ describe('MedicalCore', () => {
     expect((await core.listSearchDocuments?.())?.ok).toBe(false);
     expect((await core.listSearchDocuments?.())?.ok).toBe(true);
     expect(listSearchDocuments).toHaveBeenCalledTimes(4);
+  });
+
+  it.each(['lookup', 'clinical'] as const)(
+    'injects an exact-title candidate when %s retrieval drops it',
+    async (analysisMode) => {
+      const exactTitle = 'D32.0 Оболочек головного мозга, МКБ-10';
+      const seed = ContentPackSeedSchema.parse({
+        manifest: {
+          id: 'test.exact-identity-retention',
+          version: '1.0.0',
+          schemaVersion: 2,
+          title: 'Exact identity retention fixture',
+          checksum: 'test-exact-identity-retention',
+          builtAt: '2026-09-20T00:00:00Z',
+        },
+        documents: [
+          {
+            id: 'exact.d32',
+            title: exactTitle,
+            shortTitle: 'D32.0',
+            sourceType: 'medical_reference',
+            status: 'active',
+            specialties: ['neurology'],
+            metadata: { navigationAliases: ['D32.0 оболочек головного мозга'] },
+            version: {
+              id: 'exact.d32@1',
+              label: '1',
+              effectiveFrom: null,
+              effectiveTo: null,
+              sourceChecksum: 'sha256:exact-d32',
+              extractedAt: '2026-09-20T00:00:00Z',
+            },
+            sections: [
+              {
+                id: 'exact.d32.definition',
+                parentSectionId: null,
+                title: 'Определение',
+                normalizedTitle: 'определение',
+                sectionType: 'definition',
+                depth: 1,
+                orderIndex: 0,
+                pageStart: null,
+                pageEnd: null,
+                anchor: 'definition',
+                sectionPath: ['Определение'],
+                chunks: [
+                  {
+                    id: 'exact.d32.definition.chunk',
+                    orderIndex: 0,
+                    originalText: 'Справочная статья о доброкачественном новообразовании.',
+                    normalizedText: normalizeForIndex(
+                      'Справочная статья о доброкачественном новообразовании.',
+                    ),
+                    pageStart: null,
+                    pageEnd: null,
+                    charStart: null,
+                    charEnd: null,
+                    anchor: 'definition/chunk',
+                    metadata: {},
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            id: 'distractor.g96',
+            title: 'G96.1 Другие поражения оболочек головного мозга, МКБ-10',
+            shortTitle: 'G96.1',
+            sourceType: 'medical_reference',
+            status: 'active',
+            specialties: ['neurology'],
+            metadata: {},
+            version: {
+              id: 'distractor.g96@1',
+              label: '1',
+              effectiveFrom: null,
+              effectiveTo: null,
+              sourceChecksum: 'sha256:distractor-g96',
+              extractedAt: '2026-09-20T00:00:00Z',
+            },
+            sections: [
+              {
+                id: 'distractor.g96.definition',
+                parentSectionId: null,
+                title: 'Определение',
+                normalizedTitle: 'определение',
+                sectionType: 'definition',
+                depth: 1,
+                orderIndex: 0,
+                pageStart: null,
+                pageEnd: null,
+                anchor: 'definition',
+                sectionPath: ['Определение'],
+                chunks: [
+                  {
+                    id: 'distractor.g96.definition.chunk',
+                    orderIndex: 0,
+                    originalText: `Упоминается ${exactTitle} и оболочки головного мозга.`,
+                    normalizedText: normalizeForIndex(
+                      `Упоминается ${exactTitle} и оболочки головного мозга.`,
+                    ),
+                    pageStart: null,
+                    pageEnd: null,
+                    charStart: null,
+                    charEnd: null,
+                    anchor: 'definition/chunk',
+                    metadata: {},
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+        aliases: [],
+      });
+      const store = new InMemoryMedicalStore();
+      const originalSearch = store.search.bind(store);
+      const getChunksByDocument = vi.spyOn(store, 'getChunksByDocument');
+      const getChunksBySection = vi.spyOn(store, 'getChunksBySection');
+      vi.spyOn(store, 'search').mockImplementation(async (request) =>
+        (await originalSearch(request)).filter((hit) => hit.document.id !== 'exact.d32'),
+      );
+      const core = createMedicalCore({ store, seed, platform: 'test' });
+      cores.push(core);
+
+      const response = await core.search({
+        query: exactTitle,
+        mode: 'lexical',
+        analysisMode,
+        limit: 20,
+      });
+
+      expect(response.ok).toBe(true);
+      if (!response.ok) return;
+      expect(response.value.groups[0]?.documentId).toBe('exact.d32');
+      expect(response.value.groups.some((group) => group.documentId === 'distractor.g96')).toBe(
+        true,
+      );
+      expect(response.value.diagnostics.candidateCount).toBeGreaterThanOrEqual(2);
+      expect(getChunksByDocument).not.toHaveBeenCalled();
+      expect(getChunksBySection).toHaveBeenCalledWith('exact.d32.definition');
+    },
+  );
+
+  it('injects strict navigation aliases, keeps exact titles first, and does not inject broad aliases', async () => {
+    const makeDocument = (
+      id: string,
+      title: string,
+      metadata: Record<string, unknown> = {},
+      shortTitle: string | null = null,
+    ) => ({
+      id,
+      title,
+      shortTitle,
+      sourceType: 'medical_reference',
+      status: 'active',
+      specialties: ['psychiatry'],
+      metadata,
+      version: {
+        id: `${id}@1`,
+        label: '1',
+        effectiveFrom: null,
+        effectiveTo: null,
+        sourceChecksum: `sha256:${id}`,
+        extractedAt: '2026-09-20T00:00:00Z',
+      },
+      sections: [
+        {
+          id: `${id}.definition`,
+          parentSectionId: null,
+          title: 'Определение',
+          normalizedTitle: 'определение',
+          sectionType: 'definition',
+          depth: 1,
+          orderIndex: 0,
+          pageStart: null,
+          pageEnd: null,
+          anchor: 'definition',
+          sectionPath: ['Определение'],
+          chunks: [
+            {
+              id: `${id}.definition.chunk`,
+              orderIndex: 0,
+              originalText: 'Текст не содержит поисковую поверхность.',
+              normalizedText: normalizeForIndex('Текст не содержит поисковую поверхность.'),
+              pageStart: null,
+              pageEnd: null,
+              charStart: null,
+              charEnd: null,
+              anchor: 'definition/chunk',
+              metadata: {},
+            },
+          ],
+        },
+      ],
+    });
+    const seed = ContentPackSeedSchema.parse({
+      manifest: {
+        id: 'test.strict-identity-precedence',
+        version: '1.0.0',
+        schemaVersion: 2,
+        title: 'Strict identity precedence fixture',
+        checksum: 'test-strict-identity-precedence',
+        builtAt: '2026-09-20T00:00:00Z',
+      },
+      documents: [
+        makeDocument('identity.title', 'Ясперс'),
+        makeDocument('identity.navigation', 'Критерии помрачения сознания', {
+          navigationAliases: ['Ясперс'],
+        }),
+        makeDocument('identity.short', 'Краткая карточка критерия', {}, 'Ясперс'),
+        makeDocument('identity.declared', 'История психопатологии', {
+          declaredAliases: ['Ясперс'],
+        }),
+      ],
+      aliases: [],
+    });
+    const store = new InMemoryMedicalStore();
+    vi.spyOn(store, 'search').mockResolvedValue([]);
+    const core = createMedicalCore({ store, seed, platform: 'test' });
+    cores.push(core);
+
+    const response = await core.search({
+      query: 'Ясперс',
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      limit: 20,
+    });
+
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    expect(response.value.groups[0]?.documentId).toBe('identity.title');
+    expect(new Set(response.value.groups.map((group) => group.documentId))).toEqual(
+      new Set(['identity.title', 'identity.navigation', 'identity.short']),
+    );
+    expect(response.value.groups.some((group) => group.documentId === 'identity.declared')).toBe(
+      false,
+    );
+    expect(response.value.diagnostics.candidateCount).toBe(3);
+  });
+
+  it('does not inject a strict identity candidate through incompatible request filters', async () => {
+    const seed = ContentPackSeedSchema.parse({
+      manifest: {
+        id: 'test.exact-identity-filtering',
+        version: '1.0.0',
+        schemaVersion: 2,
+        title: 'Exact identity filtering fixture',
+        checksum: 'test-exact-identity-filtering',
+        builtAt: '2026-09-20T00:00:00Z',
+      },
+      documents: [
+        {
+          id: 'identity.filtered',
+          title: 'Ясперс',
+          shortTitle: null,
+          sourceType: 'medical_reference',
+          status: 'active',
+          specialties: ['psychiatry'],
+          metadata: { ageGroups: ['children'] },
+          version: {
+            id: 'identity.filtered@1',
+            label: '1',
+            effectiveFrom: null,
+            effectiveTo: null,
+            sourceChecksum: 'sha256:identity-filtered',
+            extractedAt: '2026-09-20T00:00:00Z',
+          },
+          sections: [
+            {
+              id: 'identity.filtered.definition',
+              parentSectionId: null,
+              title: 'Определение',
+              normalizedTitle: 'определение',
+              sectionType: 'definition',
+              depth: 1,
+              orderIndex: 0,
+              pageStart: null,
+              pageEnd: null,
+              anchor: 'definition',
+              sectionPath: ['Определение'],
+              chunks: [
+                {
+                  id: 'identity.filtered.definition.chunk',
+                  orderIndex: 0,
+                  originalText: 'Справочная статья.',
+                  normalizedText: normalizeForIndex('Справочная статья.'),
+                  pageStart: null,
+                  pageEnd: null,
+                  charStart: null,
+                  charEnd: null,
+                  anchor: 'definition/chunk',
+                  metadata: {},
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      aliases: [],
+    });
+    const store = new InMemoryMedicalStore();
+    vi.spyOn(store, 'search').mockResolvedValue([]);
+    const core = createMedicalCore({ store, seed, platform: 'test' });
+    cores.push(core);
+
+    for (const filters of [
+      { specialties: ['cardiology'] },
+      { documentIds: ['another.document'] },
+      { sectionTypes: ['treatment'] },
+    ]) {
+      const response = await core.search({
+        query: 'Ясперс',
+        mode: 'lexical',
+        analysisMode: 'lookup',
+        filters,
+        limit: 20,
+      });
+      expect(response.ok).toBe(true);
+      if (response.ok) expect(response.value.groups).toEqual([]);
+    }
   });
 
   it('shares concurrent document-list reads', async () => {

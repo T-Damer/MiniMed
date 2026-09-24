@@ -156,6 +156,8 @@ describe('CapacitorMedicalStore', () => {
     const documents = await store.listSearchDocuments();
     expect(documents[0]).toEqual({
       id: fixtureRow().id,
+      title: fixtureRow().title,
+      shortTitle: fixtureRow().short_title,
       sourceType: fixtureRow().source_type,
       metadata: JSON.parse(String(fixtureRow().metadata_json)),
     });

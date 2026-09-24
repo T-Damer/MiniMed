@@ -1,4 +1,10 @@
-import type { ContentPackSeed, EmbeddingProfile } from '@localmed/contracts';
+import {
+  type ContentPackSeed,
+  type DefinitionReferenceReply,
+  type DefinitionReferenceRequest,
+  DefinitionReferenceRequestSchema,
+  type EmbeddingProfile,
+} from '@localmed/contracts';
 import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
 
 import type {
@@ -20,9 +26,12 @@ export interface MedicalStoreMount {
   readonly enabled?: boolean;
   readonly searchWeight?: number;
   readonly acceptsSeed?: boolean;
+  /** Isolated source-reference capability; never exposed as a whole source document. */
+  readonly definitionReference?: { readonly editionId: string; readonly entries: number };
 }
 
 export interface MedicalStoreMountStatus {
+  readonly definitionReference?: { readonly editionId: string; readonly entries: number };
   readonly moduleId: string;
   readonly required: boolean;
   readonly enabled: boolean;
@@ -47,6 +56,7 @@ function toInternalMount(mount: MedicalStoreMount): InternalMount {
     enabled: mount.enabled ?? true,
     searchWeight,
     acceptsSeed: mount.acceptsSeed ?? false,
+    ...(mount.definitionReference ? { definitionReference: mount.definitionReference } : {}),
   };
 }
 
@@ -84,6 +94,20 @@ export class MultiMedicalStore implements MedicalStore {
       this.mounts.set(normalized.moduleId, normalized);
     }
     this.assertRequiredMountsEnabled();
+  }
+
+  public async reference(untrusted: DefinitionReferenceRequest): Promise<DefinitionReferenceReply> {
+    this.assertInitialized();
+    const request = DefinitionReferenceRequestSchema.parse(untrusted);
+    const mount = this.mounts.get(request.moduleId);
+    if (
+      !mount?.enabled ||
+      !mount.definitionReference ||
+      mount.definitionReference.editionId !== request.editionId
+    )
+      return { op: 'unavailable' };
+    if (!mount.store.reference) throw new Error('Installed reference backend is unavailable.');
+    return mount.store.reference(request);
   }
 
   public listMounts(): readonly MedicalStoreMountStatus[] {
@@ -339,7 +363,7 @@ export class MultiMedicalStore implements MedicalStore {
   private activeMounts(): readonly InternalMount[] {
     this.assertRequiredMountsEnabled();
     return [...this.mounts.values()]
-      .filter((mount) => mount.enabled)
+      .filter((mount) => mount.enabled && !mount.definitionReference)
       .toSorted(
         (left, right) =>
           right.searchWeight - left.searchWeight || left.moduleId.localeCompare(right.moduleId),
@@ -347,6 +371,22 @@ export class MultiMedicalStore implements MedicalStore {
   }
 
   private async validateComposition(): Promise<void> {
+    for (const mount of this.mounts.values()) {
+      if (!mount.enabled || !mount.definitionReference) continue;
+      if (mount.required || mount.acceptsSeed || !mount.store.reference)
+        throw new Error('Invalid reference mount.');
+      const reference = await mount.store.reference({
+        op: 'status',
+        moduleId: mount.moduleId,
+        editionId: mount.definitionReference.editionId,
+      });
+      if (
+        reference.op !== 'status' ||
+        reference.editionId !== mount.definitionReference.editionId ||
+        reference.entries !== mount.definitionReference.entries
+      )
+        throw new Error('Reference edition does not match the installed descriptor.');
+    }
     const active = this.activeMounts();
     if (active.length === 0) throw new Error('At least one medical-store module must be enabled.');
 

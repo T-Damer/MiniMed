@@ -1,4 +1,5 @@
 import type { ContentModuleCatalogEntry } from '@localmed/contracts';
+import { moduleIndexBlob } from './module-index-payload';
 
 /** The installer verifies the archive first and the decoded identity before activation. */
 export async function decodeModuleIndex(
@@ -12,7 +13,7 @@ export async function decodeModuleIndex(
   signal.throwIfAborted();
   const output = new Uint8Array(artifact.decodedSizeBytes);
   let offset = 0;
-  await new Blob([Uint8Array.from(bytes).buffer])
+  await moduleIndexBlob(bytes)
     .stream()
     .pipeThrough(new DecompressionStream('gzip'))
     .pipeTo(

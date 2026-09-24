@@ -1,0 +1,47 @@
+{
+  "checkedCommit": "2bb8f74b00c72119f16f1e801385e892a16048c8",
+  "runId": "35780310333",
+  "selection": {
+    "scope": "definitions",
+    "sourceRecordsBefore": 18357,
+    "definitionRecordsAfter": 8410,
+    "excludedRecords": 9947,
+    "selectedByCoverage": {
+      "definition": 36,
+      "explicit-definition": 8374
+    },
+    "selectedByKind": {
+      "symptom": 148,
+      "syndrome": 254,
+      "term": 7969,
+      "criterion_set": 6,
+      "scale": 27,
+      "classification": 5,
+      "law": 1
+    },
+    "excludedByReason": {
+      "not-a-standalone-definition": 3008,
+      "lexical-gloss-not-clinical-definition": 6939
+    },
+    "selectedIdsSha256": "7f1e2954a40b7c40e7a3636af4b7560f271e59bc10c8e0d21ebd8fe290a0a606",
+    "boundary": "Source-local definition candidates, not unique concepts or medical approval. Original inputs, source blocks and annotations remain unchanged. Lexical glosses and other reference cards remain in the authoring sources; a definition of a scale does not enable scoring or treatment decisions."
+  },
+  "tests": {
+    "tests": 49,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "strictPythonChecks": "passed",
+  "sourceManifestSha256": "586ea608d0a098688a85e4c3aadd61bca29605dd6de5db86bb72af2cc5e7a883",
+  "sourceBlocksCompared": 26685,
+  "sourceDescriptorsCompared": 66,
+  "retainedLinksCompared": 20316,
+  "exactSelectedIdentitySet": true,
+  "allSourceTextAndMetadataExact": true,
+  "installedBytes": 102301696,
+  "downloadBytes": 22184632,
+  "logicalRoundTripEqual": true,
+  "networkRequests": 0,
+  "boundary": "Scope selection and source fidelity, not new source acquisition, unique concepts, clinical review, independent search quality or device validation. All original blocks remain present; no payload-pruning gain is claimed."
+}

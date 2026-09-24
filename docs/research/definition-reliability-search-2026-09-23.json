@@ -1,0 +1,653 @@
+{
+  "baselineCommit": "2a6f1a098d407c05317d5879c2c412054e035c48",
+  "checkedCommit": "223ec25548786e09e41e4f7448519291230170a6",
+  "databaseSha256": "320d1ae09610da560f513153674bb300187ec7c716c6414b3808eeebf269ea53",
+  "fixtureSha256": "fab0041ce768b792ac7c96a68261dd8fd92c791c451fb4d2f4e8f091e8e38ffd",
+  "sameDatabaseForBoth": true,
+  "sourceDerived": {
+    "before": {
+      "total": 32,
+      "top1": 30,
+      "top5": 30,
+      "top20": 30,
+      "p50Ms": 85.48111900000004,
+      "p95Ms": 101.996419,
+      "maximumReturnedBytes": 92062
+    },
+    "after": {
+      "total": 32,
+      "top1": 30,
+      "top5": 30,
+      "top20": 30,
+      "p50Ms": 84.45923300000004,
+      "p95Ms": 91.895018,
+      "maximumReturnedBytes": 92062
+    }
+  },
+  "additionalRegressions": {
+    "before": {
+      "total": 5,
+      "top1": 0,
+      "top5": 0,
+      "top20": 0,
+      "p50Ms": 51.79825299999993,
+      "p95Ms": 60.38858100000016,
+      "maximumReturnedBytes": 136469
+    },
+    "after": {
+      "total": 5,
+      "top1": 3,
+      "top5": 3,
+      "top20": 3,
+      "p50Ms": 0.4266050000001087,
+      "p95Ms": 55.260801999999785,
+      "maximumReturnedBytes": 136467
+    }
+  },
+  "exactChecked": 12644,
+  "exactChanges": [],
+  "regressions": [],
+  "cases": [
+    {
+      "id": "anisocytosis-inflection",
+      "query": "эритроциты неравных размеров",
+      "expected": "medical.definition.anisocytosis",
+      "family": "inflection",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.anisocytosis",
+          "title": "Анизоцитоз эритроцитов"
+        }
+      ]
+    },
+    {
+      "id": "anisocytosis-question",
+      "query": "Как называется присутствие эритроцитов неравных размеров?",
+      "expected": "medical.definition.anisocytosis",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.anisocytosis",
+          "title": "Анизоцитоз эритроцитов"
+        }
+      ]
+    },
+    {
+      "id": "anisocytosis-reorder",
+      "query": "неравные размеры эритроцитов в кровотоке",
+      "expected": "medical.definition.anisocytosis",
+      "family": "inflection",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.anisocytosis",
+          "title": "Анизоцитоз эритроцитов"
+        }
+      ]
+    },
+    {
+      "id": "myoclonus-inflection",
+      "query": "быстрые кратковременные сокращения мышцы",
+      "expected": "medical.definition.myoclonus",
+      "family": "inflection",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.myoclonus",
+          "title": "Миоклония"
+        },
+        {
+          "id": "prepared.definition.6472b46d69c84a54d74c7ec1",
+          "title": "Тремор (лат. –tremor, «дрожание»)"
+        },
+        {
+          "id": "prepared.definition.9013f92aa7463f6286b1449d",
+          "title": "Тремор (лат."
+        },
+        {
+          "id": "prepared.definition.cc3a0124bdc39592d308e48c",
+          "title": "Тремор (лат."
+        }
+      ]
+    },
+    {
+      "id": "myoclonus-question",
+      "query": "Как называется кратковременное быстрое сокращение группы мышц?",
+      "expected": "medical.definition.myoclonus",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.myoclonus",
+          "title": "Миоклония"
+        },
+        {
+          "id": "journal.reference.rfd.7752.entry.63d5813ded8541682c5a2785",
+          "title": "Вестибулопатии"
+        }
+      ]
+    },
+    {
+      "id": "agnosia-inflection",
+      "query": "неспособность идентифицировать объекты органами чувств",
+      "expected": "medical.definition.agnosia",
+      "family": "inflection",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.agnosia",
+          "title": "Агнозия"
+        }
+      ]
+    },
+    {
+      "id": "agnosia-question",
+      "query": "Как называется неспособность идентифицировать объект с помощью органов чувств?",
+      "expected": "medical.definition.agnosia",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.agnosia",
+          "title": "Агнозия"
+        }
+      ]
+    },
+    {
+      "id": "dysarthria-description",
+      "query": "утрата способности правильно артикулировать слова",
+      "expected": "medical.definition.dysarthria",
+      "family": "source-phrase",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.dysarthria",
+          "title": "Дизартрия"
+        }
+      ]
+    },
+    {
+      "id": "dysarthria-question",
+      "query": "Как называется утрата способности артикулировать слова?",
+      "expected": "medical.definition.dysarthria",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.dysarthria",
+          "title": "Дизартрия"
+        }
+      ]
+    },
+    {
+      "id": "stridor-description",
+      "query": "высокочастотный преимущественно инспираторный звук",
+      "expected": "medical.definition.stridor",
+      "family": "source-phrase",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.stridor",
+          "title": "Стридор"
+        }
+      ]
+    },
+    {
+      "id": "stridor-question",
+      "query": "Как называется высокочастотный инспираторный звук?",
+      "expected": "medical.definition.stridor",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.stridor",
+          "title": "Стридор"
+        }
+      ]
+    },
+    {
+      "id": "hyperosmia-description",
+      "query": "повышенная чувствительность к запахам",
+      "expected": "medical.definition.hyperosmia",
+      "family": "source-phrase",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.hyperosmia",
+          "title": "Гиперосмия"
+        },
+        {
+          "id": "prepared.definition.d4f6e4f653126d0234b7ba79",
+          "title": "Дихлорэтан"
+        }
+      ]
+    },
+    {
+      "id": "hyperosmia-question",
+      "query": "Как называется повышенная чувствительность к запахам?",
+      "expected": "medical.definition.hyperosmia",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.hyperosmia",
+          "title": "Гиперосмия"
+        },
+        {
+          "id": "prepared.definition.d4f6e4f653126d0234b7ba79",
+          "title": "Дихлорэтан"
+        }
+      ]
+    },
+    {
+      "id": "tinnitus-description",
+      "query": "восприятие звука в отсутствие акустического стимула",
+      "expected": "medical.definition.subjective-tinnitus",
+      "family": "source-phrase",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.subjective-tinnitus",
+          "title": "Субъективный тиннитус"
+        }
+      ]
+    },
+    {
+      "id": "tinnitus-question",
+      "query": "Как называется восприятие звука в отсутствие акустического стимула?",
+      "expected": "medical.definition.subjective-tinnitus",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "medical.definition.subjective-tinnitus",
+          "title": "Субъективный тиннитус"
+        }
+      ]
+    },
+    {
+      "id": "anosmia-negation",
+      "query": "запахи не ощущаются",
+      "expected": "draft.definition.anosmia",
+      "family": "absence",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.anosmia",
+          "title": "Аносмия"
+        }
+      ]
+    },
+    {
+      "id": "anosmia-question",
+      "query": "Как называется утрата обоняния?",
+      "expected": "draft.definition.anosmia",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.anosmia",
+          "title": "Аносмия"
+        }
+      ]
+    },
+    {
+      "id": "hyposmia-description",
+      "query": "запахи ощущаются слабее",
+      "expected": "draft.definition.hyposmia",
+      "family": "source-phrase",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.hyposmia",
+          "title": "Гипосмия"
+        },
+        {
+          "id": "draft.definition.psychic-hyperesthesia",
+          "title": "Психическая гиперестезия"
+        }
+      ]
+    },
+    {
+      "id": "hyposmia-question",
+      "query": "Как называется снижение обоняния?",
+      "expected": "draft.definition.hyposmia",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.hyposmia",
+          "title": "Гипосмия"
+        },
+        {
+          "id": "prepared.definition.202aefcf2423f1f4c2cb85b6",
+          "title": "Хронический синусит (хронический риносинусит)"
+        },
+        {
+          "id": "prepared.definition.c647cc97a7d2994ff1faee91",
+          "title": "Хронический синусит (хронический риносинусит)"
+        }
+      ]
+    },
+    {
+      "id": "fixation-inflection",
+      "query": "утрата способности запоминать текущие события",
+      "expected": "draft.definition.fixation-amnesia",
+      "family": "source-phrase",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.fixation-amnesia",
+          "title": "Фиксационная амнезия"
+        },
+        {
+          "id": "prepared.definition.f573890ce4515c753b4f9320",
+          "title": "Амнезия фиксационная"
+        }
+      ]
+    },
+    {
+      "id": "fixation-question",
+      "query": "Как называется утрата способности запоминать текущие события?",
+      "expected": "draft.definition.fixation-amnesia",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.fixation-amnesia",
+          "title": "Фиксационная амнезия"
+        },
+        {
+          "id": "prepared.definition.f573890ce4515c753b4f9320",
+          "title": "Амнезия фиксационная"
+        }
+      ]
+    },
+    {
+      "id": "apraxia-inflection",
+      "query": "утрачена способность выполнять освоенные движения и жесты",
+      "expected": "draft.definition.apraxia",
+      "family": "inflection",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.apraxia",
+          "title": "Апраксия"
+        }
+      ]
+    },
+    {
+      "id": "apraxia-question",
+      "query": "Как называется утрата способности выполнять освоенные движения?",
+      "expected": "draft.definition.apraxia",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.apraxia",
+          "title": "Апраксия"
+        }
+      ]
+    },
+    {
+      "id": "derealization-description",
+      "query": "знакомые предметы кажутся призрачными и ненастоящими",
+      "expected": "draft.definition.derealization",
+      "family": "source-phrase",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.derealization",
+          "title": "Дереализация"
+        }
+      ]
+    },
+    {
+      "id": "derealization-question",
+      "query": "Как называется утрата переживания реальности окружающего мира?",
+      "expected": "draft.definition.derealization",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.derealization",
+          "title": "Дереализация"
+        }
+      ]
+    },
+    {
+      "id": "aphasia-inflection",
+      "query": "нарушено понимание речи чтение и письмо",
+      "expected": "draft.definition.aphasia",
+      "family": "inflection",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.aphasia",
+          "title": "Афазия"
+        }
+      ]
+    },
+    {
+      "id": "aphasia-question",
+      "query": "Как называется нарушение выражения и понимания речи?",
+      "expected": "draft.definition.aphasia",
+      "family": "framing",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.aphasia",
+          "title": "Афазия"
+        }
+      ]
+    },
+    {
+      "id": "atrophy-inflection",
+      "query": "уменьшение и деградация тканей и органов",
+      "expected": "draft.definition.atrophy",
+      "family": "inflection",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.atrophy",
+          "title": "Атрофия"
+        }
+      ]
+    },
+    {
+      "id": "cryptomnesia-description",
+      "query": "чужая услышанная идея кажется собственной мыслью",
+      "expected": "draft.definition.cryptomnesia",
+      "family": "source-phrase",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.cryptomnesia",
+          "title": "Криптомнезия"
+        }
+      ]
+    },
+    {
+      "id": "functional-hallucination-description",
+      "query": "голоса возникают одновременно с реальным звуком и прекращаются вместе с ним",
+      "expected": "draft.definition.functional-hallucination",
+      "family": "source-phrase",
+      "beforeRank": 1,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "draft.definition.functional-hallucination",
+          "title": "Функциональная галлюцинация"
+        }
+      ]
+    },
+    {
+      "id": "lay-smell-description",
+      "query": "не чувствует запах духов или кофе",
+      "expected": "draft.definition.anosmia",
+      "family": "loose-paraphrase",
+      "beforeRank": null,
+      "afterRank": null,
+      "top": []
+    },
+    {
+      "id": "lay-memory-description",
+      "query": "не помнит то что случилось только что",
+      "expected": "draft.definition.fixation-amnesia",
+      "family": "loose-paraphrase",
+      "beforeRank": null,
+      "afterRank": null,
+      "top": []
+    },
+    {
+      "id": "original-voice",
+      "query": "потерял голос и говорит только шёпотом",
+      "expected": "ruwiki.definition.194815",
+      "family": "additional-regression",
+      "beforeRank": null,
+      "afterRank": null,
+      "top": []
+    },
+    {
+      "id": "original-mouth",
+      "query": "постоянно пересыхает во рту",
+      "expected": "ruwiki.definition.7885823",
+      "family": "additional-regression",
+      "beforeRank": null,
+      "afterRank": null,
+      "top": []
+    },
+    {
+      "id": "framed-voice",
+      "query": "Что такое «Афония»?",
+      "expected": "ruwiki.definition.194815",
+      "family": "additional-regression",
+      "beforeRank": null,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "ruwiki.definition.194815",
+          "title": "Афония"
+        }
+      ]
+    },
+    {
+      "id": "framed-mouth",
+      "query": "Дай определение термина Ксеростомия",
+      "expected": "ruwiki.definition.7885823",
+      "family": "additional-regression",
+      "beforeRank": null,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "ruwiki.definition.7885823",
+          "title": "Ксеростомия"
+        }
+      ]
+    },
+    {
+      "id": "framed-method",
+      "query": "Что означает Электромиография?",
+      "expected": "ruwiki.definition.920279",
+      "family": "additional-regression",
+      "beforeRank": null,
+      "afterRank": 1,
+      "top": [
+        {
+          "id": "ruwiki.definition.920279",
+          "title": "Электромиография"
+        }
+      ]
+    }
+  ],
+  "controls": {
+    "before": [
+      {
+        "query": "как это называется",
+        "ids": []
+      },
+      {
+        "query": "что за термин",
+        "ids": [
+          "prepared.definition.fb0b5c44c9bfd26adec07028"
+        ]
+      },
+      {
+        "query": "космические корабли фиолетового мармелада",
+        "ids": []
+      },
+      {
+        "query": "не знаю название",
+        "ids": []
+      },
+      {
+        "query": "как называется?",
+        "ids": [
+          "prepared.definition.c5f51881d829b46a8ff37600"
+        ]
+      },
+      {
+        "query": "не помню название",
+        "ids": []
+      }
+    ],
+    "after": [
+      {
+        "query": "как это называется",
+        "ids": []
+      },
+      {
+        "query": "что за термин",
+        "ids": []
+      },
+      {
+        "query": "космические корабли фиолетового мармелада",
+        "ids": []
+      },
+      {
+        "query": "не знаю название",
+        "ids": []
+      },
+      {
+        "query": "как называется?",
+        "ids": []
+      },
+      {
+        "query": "не помню название",
+        "ids": []
+      }
+    ]
+  },
+  "limitations": "Authored regression cases, not a blinded clinical evaluation. One host run, not device latency. Exact-name and scoped evidence tests do not prove semantic understanding or diagnostic validity."
+}

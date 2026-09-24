@@ -1,0 +1,28 @@
+{
+  "inputCommit": "8794e56bbba62102ac296407002a4c1a2f927f11",
+  "runId": "35695175595",
+  "tests": {
+    "tests": 64,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "acquiredDescriptions": 5187,
+  "admittedDescriptions": 4425,
+  "quarantinedAcquiredDescriptions": 763,
+  "restoredFromRawQueue": 1,
+  "combinedRecords": 22558,
+  "newNameSurfaces": 3491,
+  "existingNamesWithAnotherSource": 934,
+  "sourceTextAndLocatorsExact": true,
+  "originalAcquisitionFilesUnchanged": true,
+  "quarantinedIdsAbsentFromRuntime": true,
+  "intakeNetworkRequests": 0,
+  "integrity": "ok",
+  "foreignKeyViolations": 0,
+  "sqliteBytes": 142057472,
+  "downloadBytes": 35404721,
+  "sqliteSha256": "16fa8086003707955719059d6c411a2be0b9b95522f3f80cc44fb430cbc6fd5c",
+  "sourceManifestSha256": "sha256:6d5ba00c83f9cd3e92a50f803b549027953341e00bb61e9bb6e480f14108c030",
+  "boundaries": "Offline source-domain intake and actual full SQLite rebuild. Complete per-new-record text/location comparison, not clinical review or independent reverse-search/browser/Android qualification. Original acquired text and API evidence remain outside runtime inputs."
+}

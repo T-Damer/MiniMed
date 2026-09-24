@@ -34,18 +34,16 @@ const REGISTRY_QUERY =
 
 type SearchDocumentDescriptor = Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>;
 
-export function matchesDocumentAlias(
+export function matchesNavigationAlias(
   query: string,
   document: Pick<MedicalDocumentSummary, 'metadata'> | undefined,
 ): boolean {
   const subject = searchSubjectText(query);
-  return ['declaredAliases', 'navigationAliases'].some((key) => {
-    const aliases = document?.metadata?.[key];
-    return (
-      Array.isArray(aliases) &&
-      aliases.some((alias) => typeof alias === 'string' && normalizeSurfaceText(alias) === subject)
-    );
-  });
+  const aliases = document?.metadata?.['navigationAliases'];
+  return (
+    Array.isArray(aliases) &&
+    aliases.some((alias) => typeof alias === 'string' && normalizeSurfaceText(alias) === subject)
+  );
 }
 
 function compactReference(value: string): string {
@@ -247,24 +245,97 @@ function isTitleQueryTerm(term: string): boolean {
   return term.length >= 3 && !TITLE_CONTEXT_STEMS.has(stemToken(term));
 }
 
-function isFailedQueryTerm(query: string, term: string): boolean {
+function hasImmediateFailureContext(query: string, term: string): boolean {
   const normalizedQuery = normalizeSurfaceText(query);
-  const termIndex = normalizedQuery.indexOf(term);
-  if (termIndex < 0) return false;
-  return /^(?:\s+)(?:не\s+)?(?:помог|сработ|эффект|подейств|перенос)/u.test(
-    normalizedQuery.slice(termIndex + term.length),
-  );
+  const normalizedTerm = normalizeSurfaceText(term);
+  if (!normalizedTerm) return false;
+
+  let searchFrom = 0;
+  while (searchFrom < normalizedQuery.length) {
+    const termIndex = normalizedQuery.indexOf(normalizedTerm, searchFrom);
+    if (termIndex < 0) return false;
+
+    const before = normalizedQuery.slice(Math.max(0, termIndex - 72), termIndex);
+    const after = normalizedQuery.slice(
+      termIndex + normalizedTerm.length,
+      termIndex + normalizedTerm.length + 72,
+    );
+    const directAfter =
+      /^\s*(?:не\s+(?:помог\p{L}*|сработ\p{L}*|подейств\p{L}*|перенос\p{L}*)|неэффектив\p{L}*)/u.test(
+        after,
+      );
+    const directBefore =
+      /(?:нет|без|отсутств\p{L}*)\s+(?:клиническ\p{L}*\s+)?(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:от|на|после)\s*$/u.test(
+        before,
+      ) ||
+      /(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*)\s+(?:от|на|после)\s*$/u.test(
+        before,
+      );
+
+    if (directAfter || directBefore) return true;
+    searchFrom = termIndex + normalizedTerm.length;
+  }
+  return false;
+}
+
+function hasDelayedMedicationFailureContext(query: string, medication: string): boolean {
+  if (hasImmediateFailureContext(query, medication)) return true;
+  const normalizedQuery = normalizeSurfaceText(query);
+  const normalizedMedication = normalizeSurfaceText(medication);
+  if (!normalizedMedication) return false;
+
+  let searchFrom = 0;
+  while (searchFrom < normalizedQuery.length) {
+    const termIndex = normalizedQuery.indexOf(normalizedMedication, searchFrom);
+    if (termIndex < 0) return false;
+    const after = normalizedQuery.slice(
+      termIndex + normalizedMedication.length,
+      termIndex + normalizedMedication.length + 112,
+    );
+    if (
+      /(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*|не\s+наблюда\p{L}*)/u.test(
+        after,
+      ) ||
+      /(?:ухудш\p{L}*|без\s+улучшен\p{L}*|неэффектив\p{L}*)/u.test(after)
+    ) {
+      return true;
+    }
+    searchFrom = termIndex + normalizedMedication.length;
+  }
+  return false;
+}
+
+function failedTreatmentStems(query: string, analysis?: QueryAnalysis): ReadonlySet<string> {
+  const failed = new Set<string>();
+  for (const fact of analysis?.clinicalContext?.currentMedicines ?? []) {
+    if (
+      !hasDelayedMedicationFailureContext(query, fact.value) &&
+      !hasDelayedMedicationFailureContext(query, fact.normalizedValue)
+    ) {
+      continue;
+    }
+    for (const term of tokenize(`${fact.value} ${fact.normalizedValue}`)) {
+      failed.add(stemToken(term));
+    }
+  }
+  return failed;
 }
 
 function titleTermBoost(
   query: string,
   title: string,
   candidateTerms: readonly ReadonlySet<string>[],
+  failedTreatmentTerms: ReadonlySet<string>,
 ): number {
   const queryTerms = [...new Set(tokenize(query).filter(isTitleQueryTerm))];
   const titleTerms = tokenize(title);
   return queryTerms.reduce((boost, queryTerm) => {
-    if (isFailedQueryTerm(query, queryTerm)) return boost;
+    if (
+      failedTreatmentTerms.has(stemToken(queryTerm)) ||
+      hasImmediateFailureContext(query, queryTerm)
+    ) {
+      return boost;
+    }
     const titleIndex = titleTerms.findIndex(
       (titleTerm) => !isFormOrStrengthToken(titleTerm) && tokensMatch(queryTerm, titleTerm),
     );
@@ -293,6 +364,15 @@ export function queryGroupRelevanceBoost(query: string, text: string): number {
   );
 }
 
+function matchesExactDocumentTitle(query: string, group: SearchResultGroup): boolean {
+  const subject = normalizeSurfaceText(searchSubjectText(query)).trim();
+  if (!subject) return false;
+  return (
+    normalizeSurfaceText(group.title).trim() === subject ||
+    group.results.some((result) => normalizeSurfaceText(result.title).trim() === subject)
+  );
+}
+
 function groupRankingText(group: SearchResultGroup): string {
   return [
     group.title,
@@ -301,6 +381,40 @@ function groupRankingText(group: SearchResultGroup): string {
       result.matchedTerms.join(' '),
     ]),
   ].join(' ');
+}
+
+function isClinicalRecommendationDocument(document: SearchDocumentDescriptor | undefined): boolean {
+  return (
+    document?.sourceType === 'clinical_recommendation' ||
+    document?.sourceType === 'clinical_recommendation_summary'
+  );
+}
+
+/**
+ * Coverage fractions are ordering keys that run before the relevance score. Compare coarse tiers
+ * (none / under half / at least half / all) so that 0.67 versus 0.6 falls through to the score
+ * instead of overriding it.
+ */
+export function coverageTier(coverage: number): number {
+  if (coverage <= 0) return 0;
+  if (coverage >= 1) return 3;
+  return coverage >= 0.5 ? 2 : 1;
+}
+
+function failedTreatmentContextCoverage(
+  failedTreatmentTerms: ReadonlySet<string>,
+  group: SearchResultGroup,
+  document: SearchDocumentDescriptor | undefined,
+): number {
+  if (failedTreatmentTerms.size === 0 || !isClinicalRecommendationDocument(document)) return 0;
+  const words = tokenize(
+    [group.title, ...group.results.map((result) => result.snippet)].join(' '),
+  ).map(stemToken);
+  if (words.length === 0) return 0;
+  const matched = [...failedTreatmentTerms].filter((term) =>
+    words.some((word) => tokensMatch(term, word)),
+  ).length;
+  return matched / failedTreatmentTerms.size;
 }
 
 function medicationDocumentBoost(
@@ -343,23 +457,38 @@ export function rankSearchGroupsByQuery(
   documents: readonly SearchDocumentDescriptor[] = [],
   analysis?: QueryAnalysis,
 ): readonly SearchResultGroup[] {
-  const subjectSearch = searchSubjectText(query) !== normalizeSurfaceText(query);
-  query = searchSubjectText(query);
+  const failedTreatmentTerms = failedTreatmentStems(query, analysis);
+  const originalQuery = query;
+  const extractedSubject = searchSubjectText(originalQuery);
+  const extractedSubjectStems = tokenize(extractedSubject).map(stemToken);
+  const failedTreatmentSubject =
+    extractedSubjectStems.length > 0 &&
+    extractedSubjectStems.every((stem) => failedTreatmentTerms.has(stem));
+  const subjectSearch =
+    !failedTreatmentSubject && extractedSubject !== normalizeSurfaceText(originalQuery);
+  query = failedTreatmentSubject ? normalizeSurfaceText(originalQuery) : extractedSubject;
   const namedMedication =
     !analysis ||
     analysis.facts.some((fact) => fact.kind === 'medication' && fact.polarity === 'positive');
+  const clinicalPositiveFacts =
+    analysis?.clinicalContext?.positiveFindings ??
+    analysis?.facts.filter((fact) => fact.kind === 'symptom' && fact.polarity === 'positive') ??
+    [];
   const clinicalNarrative =
-    analysis?.intent?.primary !== 'medication' &&
-    analysis?.facts.some((fact) => fact.kind === 'symptom' && fact.polarity === 'positive');
+    analysis?.intent?.primary !== 'medication' && clinicalPositiveFacts.length > 0;
   const negativeTerms = new Set(
     analysis?.facts
       .filter((fact) => fact.polarity === 'negative')
       .flatMap((fact) => tokenize(fact.normalizedValue).map(stemToken)),
   );
+  const rankingExcludedTerms = new Set([
+    ...negativeTerms,
+    ...(clinicalNarrative ? failedTreatmentTerms : []),
+  ]);
   const positiveQuery =
-    negativeTerms.size > 0
+    rankingExcludedTerms.size > 0
       ? tokenize(query)
-          .filter((term) => !negativeTerms.has(stemToken(term)))
+          .filter((term) => !rankingExcludedTerms.has(stemToken(term)))
           .join(' ')
       : query;
   const evidenceTerms = clinicalNarrative
@@ -369,18 +498,23 @@ export function rankSearchGroupsByQuery(
             (term) =>
               isTitleQueryTerm(term) &&
               !GENERIC_QUERY_TERMS.has(term) &&
-              !negativeTerms.has(stemToken(term)),
+              !negativeTerms.has(stemToken(term)) &&
+              !failedTreatmentTerms.has(stemToken(term)),
           ),
         ),
       ]
     : [];
-  const positiveFindings =
-    clinicalNarrative && analysis
-      ? analysis.facts
-          .filter((fact) => fact.kind === 'symptom' && fact.polarity === 'positive')
-          .flatMap((fact) => [tokenize(fact.value), tokenize(fact.normalizedValue)])
-          .filter((terms) => terms.length > 0)
-      : [];
+  const positiveFindings = clinicalNarrative
+    ? clinicalPositiveFacts
+        .map((fact) => {
+          const variants = [tokenize(fact.value), tokenize(fact.normalizedValue)];
+          if (fact.kind === 'measurement' || fact.kind === 'temperature') {
+            variants.push(tokenize(fact.label));
+          }
+          return variants.filter((terms) => terms.length > 0);
+        })
+        .filter((variants) => variants.length > 0)
+    : [];
   // ponytail: scan the bounded candidate window; use corpus-wide document frequencies if this grows hot.
   const phrase = normalizeSurfaceText(query);
   const hasSourcePhrase = tokenize(phrase).length >= (subjectSearch ? 2 : 3);
@@ -391,41 +525,58 @@ export function rankSearchGroupsByQuery(
           tokenize([group.title, ...group.results.map((result) => result.snippet)].join(' ')),
         )
       : [];
+  const clinicalEvidenceCoverages =
+    evidenceTerms.length >= 3
+      ? groups.map((group) =>
+          Math.max(
+            0,
+            ...group.results.map((result) => {
+              const words = tokenize(result.snippet);
+              return (
+                evidenceTerms.filter((term) => words.some((word) => tokensMatch(term, word)))
+                  .length / evidenceTerms.length
+              );
+            }),
+          ),
+        )
+      : [];
   const documentsById = new Map(documents.map((document) => [document.id, document]));
   return groups
     .map((group, index) => ({
       group,
       index,
-      exactAlias: matchesDocumentAlias(query, documentsById.get(group.documentId)),
-      hasPositiveFinding: positiveFindings.some((terms) =>
-        terms.every((term) => (findingWords[index] ?? []).some((word) => tokensMatch(term, word))),
-      ),
+      exactTitle: matchesExactDocumentTitle(query, group),
+      exactAlias: matchesNavigationAlias(query, documentsById.get(group.documentId)),
+      positiveFindingCoverage:
+        positiveFindings.length === 0
+          ? 0
+          : positiveFindings.filter((variants) =>
+              variants.some((terms) =>
+                terms.every((term) =>
+                  (findingWords[index] ?? []).some((word) => tokensMatch(term, word)),
+                ),
+              ),
+            ).length / positiveFindings.length,
       sourcePhrase:
         hasSourcePhrase &&
         ((subjectSearch &&
           findNormalizedPhraseIndex(normalizeSurfaceText(group.title), phrase) >= 0) ||
           group.results.some((result) => normalizeSurfaceText(result.snippet).includes(phrase))),
+      clinicalEvidenceCoverage: clinicalEvidenceCoverages[index] ?? 0,
+      failedTreatmentContextCoverage: failedTreatmentContextCoverage(
+        failedTreatmentTerms,
+        group,
+        documentsById.get(group.documentId),
+      ),
       score:
         group.bestScore +
-        (evidenceTerms.length >= 3
-          ? 8 *
-            Math.max(
-              0,
-              ...group.results.map((result) => {
-                const words = tokenize(result.snippet);
-                return (
-                  evidenceTerms.filter((term) => words.some((word) => tokensMatch(term, word)))
-                    .length / evidenceTerms.length
-                );
-              }),
-            )
-          : 0) +
+        8 * (clinicalEvidenceCoverages[index] ?? 0) +
         queryGroupRelevanceBoost(positiveQuery, groupRankingText(group)) +
         // Drug-name title boosts must not outweigh legal references and subject sections.
         (documentsById.get(group.documentId)?.sourceType === 'regulatory_act_summary' ||
         documentsById.get(group.documentId)?.metadata?.['notLegalAdvice'] === true
           ? 0
-          : titleTermBoost(positiveQuery, group.title, candidateTerms)) +
+          : titleTermBoost(positiveQuery, group.title, candidateTerms, failedTreatmentTerms)) +
         exactTitleMatchBoost(positiveQuery, group.title) +
         (clinicalNarrative || !namedMedication
           ? 0
@@ -433,9 +584,14 @@ export function rankSearchGroupsByQuery(
     }))
     .toSorted(
       (left, right) =>
+        Number(right.exactTitle) - Number(left.exactTitle) ||
         Number(right.exactAlias) - Number(left.exactAlias) ||
         Number(right.sourcePhrase) - Number(left.sourcePhrase) ||
-        Number(right.hasPositiveFinding) - Number(left.hasPositiveFinding) ||
+        coverageTier(right.positiveFindingCoverage) - coverageTier(left.positiveFindingCoverage) ||
+        coverageTier(right.failedTreatmentContextCoverage) -
+          coverageTier(left.failedTreatmentContextCoverage) ||
+        coverageTier(right.clinicalEvidenceCoverage) -
+          coverageTier(left.clinicalEvidenceCoverage) ||
         right.score - left.score ||
         left.index - right.index,
     )

@@ -1,0 +1,291 @@
+name: Search quality v2 benchmark
+
+on:
+  pull_request:
+    branches:
+      - agent/concept-first-knowledge-search
+    paths:
+      - .github/workflows/search-quality-v2-benchmark.yml
+      - tools/benchmarks/search-quality-v2.json
+      - tools/benchmarks/search-coverage-observations.json
+      - tools/benchmarks/src/run-lookup-quality.ts
+      - tools/benchmarks/src/run-search-quality-v2.ts
+      - tools/benchmarks/src/run-search-coverage-observations.ts
+      - tools/benchmarks/package.json
+      - tools/benchmarks/src/search-quality-dataset.ts
+      - tools/benchmarks/src/search-quality-dataset.test.ts
+      - tools/benchmarks/src/lookup-quality-cases.ts
+      - tools/benchmarks/src/lookup-quality-cases.test.ts
+      - packages/core/src/index.ts
+      - packages/core/src/query-group-ranking.ts
+      - packages/core/src/query-group-ranking.test.ts
+      - packages/core/src/query-document-index.ts
+      - packages/core/src/query-document-index.test.ts
+      - packages/core/src/create-medical-core.ts
+      - packages/core/tests/core.test.ts
+      - packages/contracts/src/documents.ts
+      - packages/storage/src/ports.ts
+      - packages/storage-sqlite/src/sqlite-medical-store.ts
+      - packages/storage-capacitor/src/capacitor-medical-store.ts
+      - apps/app/src/features/search/ScopedMedicalCore.ts
+      - apps/app/src/features/search/ScopedMedicalCore.test.ts
+      - tools/benchmarks/src/export-search-quality-frozen-candidates.ts
+      - tools/benchmarks/src/linear-reranker-baseline.ts
+      - tools/benchmarks/src/linear-reranker-baseline.test.ts
+      - tools/benchmarks/src/legacy-training-mask.ts
+      - tools/benchmarks/src/legacy-training-mask.test.ts
+      - tools/benchmarks/src/run-linear-reranker-baseline.ts
+      - tools/benchmarks/src/run-frozen-embedding-baseline.ts
+      - tools/benchmarks/src/summarize-reranker-ablation.ts
+      - tools/benchmarks/src/frozen-embedding-baseline.test.ts
+      - tools/benchmarks/src/frozen-embedding-baseline.ts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: search-quality-v2-benchmark
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.10.0"
+          enable-cache: false
+
+      - name: Install locked dependencies
+        run: |
+          bun install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+
+      - name: Restore bundled MiniMed core
+        run: bun run content:restore:core
+
+      - name: Build public clinical pilot
+        run: |
+          bun run content:lint:pilot
+          bun run content:build:pilot
+
+      - name: Run search-quality regression tests
+        run: >-
+          bunx vitest run
+          packages/core/src/query-group-ranking.test.ts
+          packages/core/src/query-document-index.test.ts
+          packages/core/tests/core.test.ts
+          apps/app/src/features/search/ScopedMedicalCore.test.ts
+          tools/benchmarks/src/linear-reranker-baseline.test.ts
+          tools/benchmarks/src/frozen-embedding-baseline.test.ts
+          tools/benchmarks/src/search-quality-dataset.test.ts
+          tools/benchmarks/src/lookup-quality-cases.test.ts
+          tools/benchmarks/src/search-coverage-observations.test.ts
+
+      - name: Benchmark corpus-derived exact lookup
+        shell: bash
+        run: |
+          set +e
+          mkdir -p data/build
+          bun run --filter @localmed/benchmarks benchmark:lookup-quality --             --max=500             --core=apps/app/public/content/core.db             --report=data/build/search-quality-v2-lookup.json             2>&1 | tee data/build/search-quality-v2-lookup.log
+          echo "${PIPESTATUS[0]}" > data/build/search-quality-v2-lookup.exit
+
+      # Uses the vector-capable SQLite adapter so requested hybrid mode cannot silently degrade.
+      - name: Benchmark diagnosis-free clinical retrieval
+        shell: bash
+        run: |
+          set +e
+          bun run --filter @localmed/benchmarks benchmark:clinical-quality --             --core=data/build/rf-public-pilot.db             --profiles=lexical,hybrid             --report=data/build/search-quality-v2-clinical.json             2>&1 | tee data/build/search-quality-v2-clinical.log
+          echo "${PIPESTATUS[0]}" > data/build/search-quality-v2-clinical.exit
+
+      - name: Benchmark observed coverage terms
+        shell: bash
+        run: |
+          set +e
+          bun run --filter @localmed/benchmarks benchmark:search-coverage-observations --             --core=apps/app/public/content/core.db             --report=data/build/search-quality-v2-coverage.json             2>&1 | tee data/build/search-quality-v2-coverage.log
+          echo "${PIPESTATUS[0]}" > data/build/search-quality-v2-coverage.exit
+
+      - name: Run frozen-candidate linear reranker ablation
+        shell: bash
+        run: |
+          set +e
+          bun run benchmark:freeze-training -- \
+            --core=data/build/rf-public-pilot.db \
+            --mode=hybrid \
+            --limit=40 \
+            2>&1 | tee data/build/search-quality-v2-freeze-training.log
+          train_exit="${PIPESTATUS[0]}"
+          bun run benchmark:freeze-candidates -- \
+            --core=data/build/rf-public-pilot.db \
+            --mode=hybrid \
+            --limit=40 \
+            2>&1 | tee data/build/search-quality-v2-freeze-test.log
+          test_exit="${PIPESTATUS[0]}"
+          if [[ "$train_exit" == "0" && "$test_exit" == "0" ]]; then
+            bun run benchmark:linear-reranker 2>&1 | tee data/build/search-quality-v2-linear.log
+            reranker_exit="${PIPESTATUS[0]}"
+            bun run benchmark:embedding-baseline 2>&1 | tee data/build/search-quality-v2-embedding.log
+            embedding_exit="${PIPESTATUS[0]}"
+            if [[ "$reranker_exit" == "0" && "$embedding_exit" == "0" ]]; then
+              bun run benchmark:reranker-summary 2>&1 | tee data/build/search-quality-v2-reranker-summary.log
+              summary_exit="${PIPESTATUS[0]}"
+            else
+              summary_exit=1
+            fi
+          else
+            reranker_exit=1
+            embedding_exit=1
+            summary_exit=1
+          fi
+          echo "$train_exit" > data/build/search-quality-v2-freeze-training.exit
+          echo "$test_exit" > data/build/search-quality-v2-freeze-test.exit
+          echo "$reranker_exit" > data/build/search-quality-v2-linear.exit
+          echo "$embedding_exit" > data/build/search-quality-v2-embedding.exit
+          echo "$summary_exit" > data/build/search-quality-v2-reranker-summary.exit
+
+      - name: Print compact benchmark summary
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          build = Path("data/build")
+          for name in ("lookup", "clinical", "coverage"):
+              path = build / f"search-quality-v2-{name}.json"
+              print(f"\n=== {name.upper()} ===")
+              if not path.exists():
+                  print("report missing")
+                  continue
+              data = json.loads(path.read_text())
+              if name == "lookup":
+                  print("identityAudit:", json.dumps(data.get("identityAudit", {}), ensure_ascii=False, indent=2))
+                  print(json.dumps(data.get("metrics", {}), ensure_ascii=False, indent=2))
+                  print("eligibleSurfaceCount:", data.get("eligibleSurfaceCount"))
+                  print("evaluatedSurfaceCount:", data.get("evaluatedSurfaceCount"))
+                  failures = data.get("failures", [])
+                  print("failureCount:", len(failures))
+                  print("failures:", json.dumps(failures[:10], ensure_ascii=False, indent=2))
+              elif name == "clinical":
+                  profiles = data.get("profiles", {})
+                  print(json.dumps(profiles, ensure_ascii=False, indent=2))
+                  print("deltas:", json.dumps(data.get("deltas"), ensure_ascii=False, indent=2))
+                  print("coverage:", json.dumps({
+                      k: data.get("coverage", {}).get(k)
+                      for k in ("fullyCovered", "partiallyCovered", "uncovered")
+                  }, ensure_ascii=False))
+                  rows = data.get("rows", [])
+                  for profile in ("lexical", "hybrid"):
+                      worst = sorted(
+                          [row for row in rows if row.get("profile") == profile],
+                          key=lambda row: (
+                              row.get("ndcgAt5", 0),
+                              row.get("relevantRecallAt20", 0),
+                              row.get("mrrAt20", 0),
+                          ),
+                      )[:10]
+                      print(f"worst {profile}:", json.dumps(worst, ensure_ascii=False, indent=2))
+              else:
+                  print("visibleAt20:", data.get("visibleAt20"))
+                  print(json.dumps(data.get("rows", []), ensure_ascii=False, indent=2))
+
+          linear_path = build / "search-quality-linear-reranker-report.json"
+          print("\n=== LINEAR RERANKER ===")
+          if linear_path.exists():
+              linear = json.loads(linear_path.read_text())
+              print("train sha256:", linear.get("train", {}).get("sha256"))
+              print("test sha256:", linear.get("test", {}).get("sha256"))
+              print("test original:", json.dumps(linear.get("test", {}).get("original", {}), ensure_ascii=False, indent=2))
+              print("test linear:", json.dumps(linear.get("test", {}).get("linear", {}), ensure_ascii=False, indent=2))
+              print("test gated:", json.dumps(linear.get("test", {}).get("gated", {}), ensure_ascii=False, indent=2))
+              print("deltas:", json.dumps(linear.get("test", {}).get("deltas", {}), ensure_ascii=False, indent=2))
+              print("gated deltas:", json.dumps(linear.get("test", {}).get("gatedDeltas", {}), ensure_ascii=False, indent=2))
+              print("abstention:", json.dumps(linear.get("abstention", {}), ensure_ascii=False, indent=2))
+              print("weights:", json.dumps(linear.get("model", {}).get("weightsByFeature", {}), ensure_ascii=False, indent=2))
+              print("runtime:", json.dumps(linear.get("runtime", {}), ensure_ascii=False, indent=2))
+          else:
+              print("report missing")
+
+          embedding_path = build / "search-quality-frozen-embedding-report.json"
+          print("\n=== FROZEN EMBEDDING ===")
+          if embedding_path.exists():
+              embedding = json.loads(embedding_path.read_text())
+              print("test sha256:", embedding.get("test", {}).get("sha256"))
+              print("profile:", json.dumps(embedding.get("embeddingProfile", {}), ensure_ascii=False, indent=2))
+              print("test original:", json.dumps(embedding.get("test", {}).get("original", {}), ensure_ascii=False, indent=2))
+              print("test embedding:", json.dumps(embedding.get("test", {}).get("embedding", {}), ensure_ascii=False, indent=2))
+              print("deltas:", json.dumps(embedding.get("test", {}).get("deltas", {}), ensure_ascii=False, indent=2))
+              print("runtime:", json.dumps(embedding.get("runtime", {}), ensure_ascii=False, indent=2))
+          else:
+              print("report missing")
+
+          ablation_path = build / "search-quality-reranker-ablation-summary.json"
+          print("\n=== RERANKER ABLATION CHANGES ===")
+          if ablation_path.exists():
+              ablation = json.loads(ablation_path.read_text())
+              print("frozen sha256:", ablation.get("frozenCandidateSha256"))
+              print("linear:", json.dumps({
+                  k: ablation.get("linear", {}).get(k)
+                  for k in ("fixed", "regressed", "improved", "worsened", "netBestGradeFixes")
+              }, ensure_ascii=False, indent=2))
+              print("gated:", json.dumps({
+                  k: ablation.get("gated", {}).get(k)
+                  for k in ("fixed", "regressed", "improved", "worsened", "netBestGradeFixes")
+              }, ensure_ascii=False, indent=2))
+              print("embedding:", json.dumps({
+                  k: ablation.get("embedding", {}).get(k)
+                  for k in ("fixed", "regressed", "improved", "worsened", "netBestGradeFixes")
+              }, ensure_ascii=False, indent=2))
+              print("linear changed:", json.dumps(
+                  ablation.get("linear", {}).get("changed", []), ensure_ascii=False, indent=2
+              ))
+              print("gated changed:", json.dumps(
+                  ablation.get("gated", {}).get("changed", []), ensure_ascii=False, indent=2
+              ))
+              print("embedding changed:", json.dumps(
+                  ablation.get("embedding", {}).get("changed", []), ensure_ascii=False, indent=2
+              ))
+          else:
+              print("report missing")
+          PY
+
+      - name: Preserve reports without Actions artifact storage
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### Search-quality v2 reports"
+            echo
+            echo "Reports stay in the ephemeral runner workspace and are not uploaded as artifacts."
+            echo "Key metrics and failures are printed in the previous step logs."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enforce benchmark exit codes
+        if: always()
+        shell: bash
+        run: |
+          failed=0
+          for name in             lookup             clinical             freeze-training             freeze-test             linear             embedding             reranker-summary
+          do
+            path="data/build/search-quality-v2-${name}.exit"
+            if [[ ! -f "$path" ]]; then
+              echo "::error::Missing benchmark exit file: $path"
+              failed=1
+              continue
+            fi
+            code="$(cat "$path")"
+            if [[ "$code" != "0" ]]; then
+              echo "::error::Benchmark stage $name failed with exit code $code"
+              failed=1
+            fi
+          done
+          exit "$failed"

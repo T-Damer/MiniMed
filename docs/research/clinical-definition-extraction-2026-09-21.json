@@ -1,0 +1,4549 @@
+{
+  "schemaVersion": 1,
+  "edition": "minimed.definition.clinical-detail.2026-09-21",
+  "examined": {
+    "documents": 744,
+    "sections": 33459,
+    "chunks": 92303,
+    "definition_chunks": 2551,
+    "instrument_sections": 2317,
+    "detail_packs": 744
+  },
+  "sourceTypes": {
+    "clinical_recommendation": 744
+  },
+  "records": 11082,
+  "distinctTitles": 6459,
+  "byKind": {
+    "term": 8784,
+    "classification": 976,
+    "scale": 818,
+    "criterion_set": 141,
+    "syndrome": 248,
+    "symptom": 114,
+    "law": 1
+  },
+  "byCoverage": {
+    "definition-section": 541,
+    "explicit-definition": 8224,
+    "section-excerpt": 2317
+  },
+  "sources": 1,
+  "sharedBlocks": 15414,
+  "jsonBytes": 34391562,
+  "gzipBytes": 5666456,
+  "shards": [
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-01.json",
+      "records": 2973,
+      "sharedBlocks": 3942,
+      "bytes": 8369868,
+      "gzipBytes": 1342905,
+      "sha256": "cf31c7d6389af7c720d44ce4199600d6419d7cfa641bd71d4d3cf7b81e62c3f8"
+    },
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-02.json",
+      "records": 2407,
+      "sharedBlocks": 3608,
+      "bytes": 8371513,
+      "gzipBytes": 1407045,
+      "sha256": "cf8ba554d2b3f7fa2343749a5184b165f4f37b1490d96c3cd024cce89ecc2590"
+    },
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-03.json",
+      "records": 2550,
+      "sharedBlocks": 3686,
+      "bytes": 8369102,
+      "gzipBytes": 1372358,
+      "sha256": "c6680629595d20d0cc0993681fbd4b73dedae9e43fa09d708f2c33c3b6fb11d4"
+    },
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-04.json",
+      "records": 2801,
+      "sharedBlocks": 3733,
+      "bytes": 8371393,
+      "gzipBytes": 1399152,
+      "sha256": "c69ed952aa16c7426d9f36fe412875ba22f89423fcce6a156e29458e4db86a6d"
+    },
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-05.json",
+      "records": 351,
+      "sharedBlocks": 445,
+      "bytes": 909686,
+      "gzipBytes": 144996,
+      "sha256": "75b0bee1d9ef75c4fe1e64e3dd409dea028fe84a6cb83478f16fbba6b886b110"
+    }
+  ],
+  "instrumentMentionCandidates": 987,
+  "datasetCommit": "77fe143a31608a925c608fff3a5de28163cc77a4",
+  "datasetTree": "5234e93faeeef01c364df182b84399536a4213ab",
+  "downloadedBytes": 2072457216,
+  "allPinnedPacksScanned": true,
+  "receipts": [
+    {
+      "path": "clinical-1000_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a9f65ad256794fd2af5a4c7616a4d07ae42165e156f30ea265bfe5ff143177c2",
+      "bytes": 12886016,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-1001_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "402d2c345f398d2867006b92185308ebd2970cccb8574d33b2c0a83bbdc684e3",
+      "bytes": 2830336,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-1002_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "57f94cebe38f707d6c394e4718585e0dc52c5d53bff0b52d6665d4660ad74e5a",
+      "bytes": 1658880,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-1003_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8af0105bb8f5698af7321dd02a66df091b13e64279ce29ccc3a883907d3ccf1c",
+      "bytes": 1060864,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-1004_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "194eb98c1005913dd18a3baa3ac6546853dd4f7dfef6998bab01485b417b162a",
+      "bytes": 2154496,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-1005_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b07004a35d0b9a95974ffa58d9a67bcd4c5720dc2f0d05c50d8c6bff31fce066",
+      "bytes": 6270976,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-1006_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2f4a302c832c69ba88f6b5c7022dd1341f7035fade6c528b2c45511ffaf266de",
+      "bytes": 4014080,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-1007_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "62e80d24bf7e75dd723c467f4706414c24e646450d733965c18e44bde5b23b82",
+      "bytes": 790528,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-1008_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c4320bcb2960f59bd568b113983eb5865eadd9d9cee34c8b45dbd8f725b827ae",
+      "bytes": 4534272,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-1009_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f8e6a9ccb995c1567b755614de79cd1ab6e920bd655fbc927a7661a7846f75a7",
+      "bytes": 2088960,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-100_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "acba71d4eed215071abb5cca00d1fd5724ba86615f930a1ab97902960428c232",
+      "bytes": 2789376,
+      "extractedRecords": 26
+    },
+    {
+      "path": "clinical-1010_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1525e6cd27741b8d429eb71a08c440be8f4ea6a408f7f2bbd7b87e1f742ea5f4",
+      "bytes": 1482752,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-1011_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2a6a5c95fc942c75ae9dd0af9ae1c75f0894698f7d88acda676ccacd894e3580",
+      "bytes": 991232,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-1012_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "02cceabddc673e9d257315c45d274ad7d25123700490ecb7541df7df9196f370",
+      "bytes": 1724416,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-1013_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a411f1af56d9144c44e783df531ebd9a3bea4835789d8f242f0a0e83ed435bc7",
+      "bytes": 1626112,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-1014_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0639e7ba839aa7d066b3a8ae11e6c6e790932fdf223ade52444a8482bb97b080",
+      "bytes": 1949696,
+      "extractedRecords": 42
+    },
+    {
+      "path": "clinical-1015_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "edd16db293cc02821fb169a9ef39abfb06f370fe06175404e31ea007d543a302",
+      "bytes": 1716224,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-1016_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a324d96f9b0fdba38aa8c98f3598c7710f431324a092ac0d4ce5776a4ab2cd72",
+      "bytes": 4698112,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-1017_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "785deb4bc43cfa5aceb81b01c06b323b3b49baed11772887d7f96fe55f82ec7c",
+      "bytes": 1867776,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-1018_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "88d0a6c79545a4a78c32eef8ac70549419354e955a5c0fb508be057e0d8e6faf",
+      "bytes": 4694016,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-1019_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "39231a806ed17a0ad536d9a8e8b26c73426097b94b151813206dc3a4cb5f86f2",
+      "bytes": 4030464,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-1020_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2eecfc0c30521b5c6bd951359406de6005fb6c279f15e387cac2a3171f06c566",
+      "bytes": 3792896,
+      "extractedRecords": 44
+    },
+    {
+      "path": "clinical-1021_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "511af0572266228766f18a35f3b7224532d98fc918d0a6cb9a563d1a50614690",
+      "bytes": 2514944,
+      "extractedRecords": 26
+    },
+    {
+      "path": "clinical-1022_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "cb40e356443c390050c571eab62264389c685c5d328483e2f2f728f39de397d5",
+      "bytes": 1196032,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-1023_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9553685faf699bd15faa879d43eb5b9948416c19bbde5b9a3f18eae2b6faffb5",
+      "bytes": 2482176,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-1024_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fde2b85883df88c6c2209da2aae2801acb01a2205e69ad94346623434c918b71",
+      "bytes": 9453568,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-1025_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e45c6f0fd8e03e58d9bd43e32329b387dc6ed38402c2c20317e2ad8c0e80e69a",
+      "bytes": 2883584,
+      "extractedRecords": 80
+    },
+    {
+      "path": "clinical-1026_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d4b861e3f16054419da2e9421df79951694958b3f29ed319e7b50630b8172985",
+      "bytes": 2670592,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-1027_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1300b0b15b0596bdd89d90d9ca7f562c46ca1fd992300501fa762ae498915e85",
+      "bytes": 1515520,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-1028_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f26bff6f3d400803ae49b1f3175998bf0079e199353617ed9ed0d2e6adc210b3",
+      "bytes": 7880704,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-1029_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "56e169de240627c673532840898cf74c56c03bdc91a19b3ff40ae0e114459cfb",
+      "bytes": 1216512,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-1030_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c02d681151174d3d018504b51cb58afa05dd322b9b69f2e88178312e18088906",
+      "bytes": 1290240,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-1031_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9d480f38a04885ce0360f06bd79d0d01e3eb0f199127da7848e11fbfb5a3fa8b",
+      "bytes": 2514944,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-1032_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bd581c38e4c75e67a4ae14d3f04858eaaf9a493b6325f3e9cd9265c53bb8626b",
+      "bytes": 1564672,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-1033_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f66241d31811318485ba730f5ea6d9ff05e3ddff049a590f86cf98b020403be8",
+      "bytes": 5369856,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-1034_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "81d997975ec83a7e96c9f43c357c532a1a6679bc389847f48ddd03ab4bdfb910",
+      "bytes": 1429504,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-1035_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "25f9de9696b558643931ec30db5333138979ccff3b6c483ad4a8b0679a2031fb",
+      "bytes": 1019904,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-1036_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fc81918c971330bc8899409c34dd94582853d45303134e7a09f6acc5c4d3a9ea",
+      "bytes": 1396736,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-1037_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d2972262a3497623bcd1345f9bd503ff6887a6d9b48b626fb4092b7f7fb8479f",
+      "bytes": 2260992,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-1038_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "78a10dccf922383b71d50b2bfcc699b6b8bcead52b7111f67ff1cfe07b79c19d",
+      "bytes": 1626112,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-1039_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "63736f388fd88facf7224ec269833598bbe2d5a9172f1ab0992394bc6386eb14",
+      "bytes": 5754880,
+      "extractedRecords": 35
+    },
+    {
+      "path": "clinical-103_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "33d6854d98433f21e1b2ce63a6b0a19f7f53d5cceb01d723debcb0036c97b0c9",
+      "bytes": 1351680,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-1040_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3629299f7896881e579bdce649526fcc7cc6bcbeeca086d4e9f055e3c65d15b4",
+      "bytes": 1941504,
+      "extractedRecords": 27
+    },
+    {
+      "path": "clinical-1041_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3320ea2cb8279c701d9347cde0da37cda85c7c3bfc1a9a05945f9eadc82618db",
+      "bytes": 6950912,
+      "extractedRecords": 73
+    },
+    {
+      "path": "clinical-1042_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "adf4a56bc364d6f61b58981d5bedf5fead346d817df42b003640f18aa749e986",
+      "bytes": 1433600,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-1043_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "843d0922742a2ec49365411358881c8cf7e787b648b63653fb4f415b3a2a6010",
+      "bytes": 1892352,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-1044_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0aa4e13dcf98aadb4c6e0065260888da71ca32c9e14fec51ac8e211e7ca79c29",
+      "bytes": 937984,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-1045_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b047df012e4a0ad7afff041b8b2dd6b9a923ddd05f61271d054df53ae4516c33",
+      "bytes": 2686976,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-1046_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "83f8a096ede834d0477ec05765fb9c33c800abfeba96593ef1e9e60ca99d3452",
+      "bytes": 2048000,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-1047_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b5602c5f265eee3074af0704a657c2c1069871541adcee77c19b0a99a3c38d20",
+      "bytes": 2146304,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-1048_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "71749ed8e258c92c5a9e20f0b3f99ed7da536e4fc463e4947a134f6b19db62eb",
+      "bytes": 4734976,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-1049_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "89d001d4030a49cdb1813e6f3839cd1f3875937066b53b5ce71c10b9f0e1d14e",
+      "bytes": 3772416,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-1050_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "04e1fa97295351588dd004ef22fbb02b25c78ea05f759e7e649b7ec7844c03b4",
+      "bytes": 2191360,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-1051_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "72ffa53ff6dcd2282e422ff7baf3d3b7a278bbd1024eb0ce51e1674a60c617bd",
+      "bytes": 1081344,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-1052_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "44eb01c69572d3dd239257d7b95bf356a4e2f4ca43738fa41a23253fb660970d",
+      "bytes": 1187840,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-1053_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2a36ed040ce08f7a34f3d2e3355f8d8cd0fb0537a5e811a2352964c386da5ff0",
+      "bytes": 6361088,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-1054_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7e331448d6e67b5f148b346267383a59e73efe9e8ccf56ce13776fa7363c3088",
+      "bytes": 962560,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-1055_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "83bc88d5894783632e6cd7f29e302d5ba6f910fba4f3fe33fd8da80ad1f9fb8a",
+      "bytes": 1769472,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-1056_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bc238b19e9ad3249956316154b30cbd6751b952696aa857d6ac318b0f0e02788",
+      "bytes": 2117632,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-1057_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dbbe18640c188bc7dcf944edf90100c54b6abab691e18336359949bfe3f12e8d",
+      "bytes": 7057408,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-1058_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b9c36237a466ba76b15e8c89d06b1cacb398d0c793c86f81188c427156e11613",
+      "bytes": 2908160,
+      "extractedRecords": 86
+    },
+    {
+      "path": "clinical-1059_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1c1d9d4ddee349f2a5d2683cfc020aaf10cbeda309cc22ed52647c79d075d777",
+      "bytes": 2416640,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-1060_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8066a10d82f47dee0155fb32f0b3a2af9d4ed83915f7736793e5ebf77b157b45",
+      "bytes": 4861952,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-1061_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "760a2531746da5f038ac5e3a79565c9b397c3d631d17fc1af78303bd5b288c34",
+      "bytes": 770048,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-106_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6378cf9fc01b705d9ed9f0cca646a6f043d44d25a0caeef9cf5999b2ccedafe4",
+      "bytes": 5668864,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-107_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3b49b1cdc0e8a09ad9acde86d356794be99cf09edcec310ffde4be48604581e7",
+      "bytes": 1376256,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-108_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "516761af7eba28a9dc8ce2ba938fb277ec5a11a3c85aa9964b80048150c55b6a",
+      "bytes": 1368064,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-109_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4745e00e18ca6ffbafc193ef5760dfe7110abb1b6b6be6c57045321e89e2c9eb",
+      "bytes": 2752512,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-10_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9d95ebb8f1e9ac41ea3cefa8ce19938dbfa73b25c4275158d0264c51c7d8750f",
+      "bytes": 3436544,
+      "extractedRecords": 36
+    },
+    {
+      "path": "clinical-112_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e9385bf65a415df0725ea8eebf5401fa565f5071071e973a54e54c80f26e6db7",
+      "bytes": 2019328,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-114_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "74b6f004ecfac8de6b73af9a34ef679ba77fb958fef11108649a92fa4dfb6733",
+      "bytes": 1642496,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-115_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2e88709d3bfc25a477ab8b622ddc9da88e0d6fbbddef94b837d7b4cd8997a8a4",
+      "bytes": 1859584,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-116_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "62d796a69f4173b3ba751bb60a5637b3b5404719c30c7e81ccc52757b4b4a490",
+      "bytes": 1798144,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-117_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6df1e2bed413749afd8ad49b858c8bb014e6c5a3c96ed92be9f2965392d1ee52",
+      "bytes": 5472256,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-119_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6ded81e638fd508fd0730647c72f95cf8c37205d250481d7c6bb21bf1646d5aa",
+      "bytes": 2273280,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-11_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9426fb087c63b52dc79dff64460b05e00b244ba20e0908331a5d2882bcf6035f",
+      "bytes": 3260416,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-120_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b7b2daea72ba7be950267b5e3b68480b635fbf9413d132986cc2e840aa1533a6",
+      "bytes": 3825664,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-121_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4ae67f4602241aa2aa16616291b85978522edc518f9025761b685366a91f42cb",
+      "bytes": 1634304,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-123_6-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "43d5d15f9c87e1edf38bf5e6de3a8f3f737cb4850c1ec62e6da37cac37a2ec67",
+      "bytes": 1413120,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-127_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "67dd562eed37a86e87791ae4b230dcb363b9479dcd668b23afd14482632e6cb1",
+      "bytes": 1818624,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-129_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "912e4aa2531efde02f3f685ed2e41d5eabfb3b9347b5e8cddea7e5954dd1896c",
+      "bytes": 5058560,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-12_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "90acd3456d02447dc65e1ae9d49e310ee4f8a176c55b9cbe7e70aa5ada9434fe",
+      "bytes": 3526656,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-130_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0ab18fe1b83806946f2c94bd5fbe31895e217d802d7c37f62af8de45fffea6a2",
+      "bytes": 2117632,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-131_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1f8d1853ff33d2c47f92ee3a6135c68f1cf27a9bf7c45003543f3fe985d56894",
+      "bytes": 3014656,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-132_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f575f38f47f900f55b29f9ca406e95d0e54726f8fd64b4636c1f2b737bca6a06",
+      "bytes": 3227648,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-134_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "37776c5d019600792b225c02492eeda553b993c66687e930996fb1009e876810",
+      "bytes": 2404352,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-136_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1d9c18b66a6720db4a28d2e4e4f295a4f14a0170e430b543c88ea9adbf1b52c6",
+      "bytes": 3137536,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-137_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dcaceb45532bd99f6ca7ca952da5de86a12d51b4ccd2775dbdba6e90dcfd8b09",
+      "bytes": 4714496,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-138_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c11c1d86b00d3882e08c555ba73e03261d1b02e42c1efd89395c2c679b6da937",
+      "bytes": 2502656,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-139_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aa62f4bc6601253a11bc48a845a429a8684a071d0e2cb3de25e102a1955d72b0",
+      "bytes": 6721536,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-141_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "12a1ba903b06058f7bff5b84ef91b3815074811ddb8762f6ec60cc03fe212689",
+      "bytes": 2994176,
+      "extractedRecords": 50
+    },
+    {
+      "path": "clinical-144_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2ef757f1277b60f60b26c2edd958b22055691a08e013f33991fbd66798a2a2cc",
+      "bytes": 2199552,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-145_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b7db38aaba810d1530bc49c10a616f964bbdab6974a9cf0dd3b1902b8b4c3f0c",
+      "bytes": 2621440,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-146_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a39c6e993755d8dad38a6ec940251f38bbdf83d24636e8c86b59755160b1a648",
+      "bytes": 2084864,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-149_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5770014e214ab3aeeb19c673f03f780d144702fcdf92bc48f9094b6cb3f5efe0",
+      "bytes": 1585152,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-14_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d08ebeaefc0fdf86362ba62c220473cb90bf9cb2bf1469ef80912e69bb2b072f",
+      "bytes": 3973120,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-150_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b57966513d4ebae301e17386454fdfd47b23f04cd0aebaa9e7cfaad7bf9ea474",
+      "bytes": 1765376,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-151_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a153e58172fcc4e764699a073bee47475001a738a91b0ab5ab884fc5a72bf9a1",
+      "bytes": 2740224,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-153_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0ed24075cf71ff1fd0636257eda1c66e1c93787583e9cf23e745f114fa6a1740",
+      "bytes": 3256320,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-154_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d6eac3ef96552e4b49ee0657be3bbbeb043014a42f1d443510e247754c7b9619",
+      "bytes": 5898240,
+      "extractedRecords": 63
+    },
+    {
+      "path": "clinical-155_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bcd7b5b3e24cb757f396f4b07ff22b4201e47cfb666e97c2ccbf597a6bf875c9",
+      "bytes": 4673536,
+      "extractedRecords": 26
+    },
+    {
+      "path": "clinical-156_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6259c108e715dc2df21a2256e4caf3136984c03cc401922d0a8a51747aceaa10",
+      "bytes": 6352896,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-157_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "870c3c6fad954ec255c7bf241e0951a09965af5abd825b4ae2dccea0f2d9e9a5",
+      "bytes": 5677056,
+      "extractedRecords": 40
+    },
+    {
+      "path": "clinical-159_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f8bcbc300eadba4324d512258ddada88cde23d4bcdbe9025760822ec14c19d69",
+      "bytes": 5783552,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-15_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "47fafe028e92aeb59e6858a70fe638c0ae27d438314e4881857a1cda62de36c9",
+      "bytes": 1155072,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-160_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "240461d0f91041af60215bb280d7472281f1320d8cbd97af8c40b8d2a3f3a8c8",
+      "bytes": 4517888,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-161_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "77f107eb94bfa6e68eede196c4845c8198955be523187108770f9755d17e249a",
+      "bytes": 2240512,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-162_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "782357aac7ac402910800b9b7a5fd4ce2a2cfa49ffb9d9efcc82fcd18fc022e3",
+      "bytes": 2240512,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-164_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a9f7100d1a25b033fea28df7076d03317b2bece59ee65e767446f17a206333c1",
+      "bytes": 2240512,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-165_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "da265902b9057e718280336fa161cb3db6a5900af10b0479dbcd19817e1d6f34",
+      "bytes": 4440064,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-169_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "640c43c5b5482fa3fa581dfc3c590165818260a43e0e3b3b20140a63e9aacbfe",
+      "bytes": 1662976,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-16_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "921d161bba9a23024a9f96e6bf86026719800e62c7e70122da0955736529a4a6",
+      "bytes": 5656576,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-170_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a629420cfecd25af847e81c6f3386b9bead4bcc48c7c08a3e1bbe514291dc41d",
+      "bytes": 3342336,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-172_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5b9ff4eebd5fe75f4d5129a519167ba5b063e60ae4b236c0dc9d7d25e9b152fa",
+      "bytes": 1560576,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-173_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1fadbcca00f5bc2a87c7a10c9d4cb5a7277dbe05d56a4cd2c89ef6b9b080e47a",
+      "bytes": 815104,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-174_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2d6bb3c79f3e1d7025b5401c7faf29444cdaf2a53c34c4d48af09187531d4e12",
+      "bytes": 1417216,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-175_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6423386e7bd89cfa5a2a69766c1c7ed3c88d33412a25c28177dbfdedf2d56e36",
+      "bytes": 1253376,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-176_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "97237d8fb6c5fd8265b490a51a0d65f7265cc2844561b5f0e76a003c7be4db5c",
+      "bytes": 2457600,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-177_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "704ff64a8407623c344b04ecc08d5f7ba4110cc9160fe5d6806b648b23fe7ec6",
+      "bytes": 1675264,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-178_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "983157e629bbcb6c48cc6c909bb05e2f33580e17d2ce65efaf7493e61a870ceb",
+      "bytes": 2031616,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-179_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "39f3cad4db59fc4d194225ebb4d5cae4e6f5c790fed27ed32d265b932508d690",
+      "bytes": 1794048,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-17_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6e73e216891d5a2ac195572b3e7603712d576e93fb071a4c239667cb4c780132",
+      "bytes": 1683456,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-182_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1cc916733ce0cbad61d560d87bbc43b14bf96d0042ec08e3e389793fd1b1f7c6",
+      "bytes": 1126400,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-183_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "912f87bcfeaa8f8eae1fb7d8e87d88092f96b3864cfcefd3bf6dfbf260ed5fe3",
+      "bytes": 1622016,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-185_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "609c98222c7cca3dcaa57dcac36134b274b99d8a0336c95e6cacb2f3f5dd3b05",
+      "bytes": 921600,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-187_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3429446276e735fa2c9cfd869e0e17558ed5f614b78eb40a14bb9e1d1ad7368d",
+      "bytes": 1310720,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-188_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a16d0c2b7965aa008259c0a441d66ed7960303eea49da5d438468525cb713520",
+      "bytes": 1429504,
+      "extractedRecords": 3
+    },
+    {
+      "path": "clinical-18_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dd8f5b364c1437b217ca9dae22e97a59743e912f87794e22debea79b057c152e",
+      "bytes": 892928,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-191_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2b4466e12e5fc8e07ef59c646021df787ec5f3d3f11287cc72e51751b049b9e8",
+      "bytes": 1282048,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-193_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1c69db6fd534dc6aafe9cbaff1a6e0f5d4335cf6973e0203c932d2736a31be02",
+      "bytes": 2326528,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-194_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "42810382e666ae60b5727904c21a5bc73e67c15f8dde737958f348a6c3d01f59",
+      "bytes": 1273856,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-196_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "45994bfc41c9ec628881f75133440ce95b9a3a63695c60fcbb40820596f76c9c",
+      "bytes": 1044480,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-197_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5bae2b8d65c392005c477953d3ec341223dd87e73e91dc69a5a4a546f93a3a1b",
+      "bytes": 4042752,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-1_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ea99e0a1b965fbaab6a7bddd3d8376d138955e3e7c6fe7257df2aef0de4ba336",
+      "bytes": 3063808,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-200_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e1d92915117db01bd21b2d54836b98325f69fe51e2ac18e318ebc7f1599a900a",
+      "bytes": 757760,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-204_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f22b3c4d87ceb70cd47f14d2e899003de0be4c1b8b557322a8a8b9e76cbd59c1",
+      "bytes": 1077248,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-205_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "379d4ba2a313363de3cbabde5a9a35ee6dea73014c2eab1fe3c5936b2b07c9d1",
+      "bytes": 782336,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-206_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6f4b09e246f4ff7eaf9fce6e1ca03b12f3f2e383ff532580ee1dde18dd620757",
+      "bytes": 880640,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-212_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "84c597dab45bcdc0097f8bf9dd826403d240c2540e95c286c7b132ea7a702f8c",
+      "bytes": 917504,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-213_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1e8b0a164134d35b4030053360aecf5c93355896363e22f5b360f206b6202ce1",
+      "bytes": 1155072,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-215_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "da707f21acc699f71f3aef6083409577c92c4e958179d6294d3edd1cd8560146",
+      "bytes": 958464,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-216_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ee577fde0553ec41116e6676be366c92bbd60014d27f5bd43ef30e66f9bbe415",
+      "bytes": 1224704,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-218_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2ed7e8e49fa1934887eeb5c002c295c5a9ea8e94c71b4ec6222661fec9ab0d84",
+      "bytes": 1351680,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-21_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d6a202c443d0ed0fb940b0e1d26e895dcf6c3db01ec113324ede747ea64a0439",
+      "bytes": 1122304,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-220_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a6bfd245dcf49be3d8e05e3510915bc75e9191800d73652ad09ee8464ec5b013",
+      "bytes": 655360,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-222_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c94ef315047460b01832782936f71e588d7f2247768b81df8e606fd26a61f0e8",
+      "bytes": 987136,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-223_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5d069c06a96d3814221a118085f933b79549e0c6cd62f83dd3f77d626485f9fe",
+      "bytes": 1458176,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-224_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5cc33174b8382f0c717c9b77b8cd25965fdcf69ba904fcdd9662bcde86d65bcf",
+      "bytes": 737280,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-229_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "10cc13fffae690f4499737d007f3a70985637e92f6706c5e39c5d316e80b2fa8",
+      "bytes": 5402624,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-22_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4dd1e38b39fc72a1de8ae4f8501ca3d47f6ae2ede8b3da6cd616a07f541e1c67",
+      "bytes": 3100672,
+      "extractedRecords": 37
+    },
+    {
+      "path": "clinical-231_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6974eb6392ce7e4eda18197995b3c7362a525073e266d544eeaf50b9a021e886",
+      "bytes": 815104,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-232_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "676e385a6b44783e5bfcf7bca2393d1cb2e8f98e6aaa38c49a1d0530551aa0d6",
+      "bytes": 1064960,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-234_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fa029bd7102086b6ee00e3d9c89f726f9dc8531daaa82f693beabe21a9211701",
+      "bytes": 1863680,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-237_6-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "49862e80c075dbccbd91919600b5680415fbdf6d16c0a731aee1ccc9da2fb846",
+      "bytes": 2355200,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-238_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aa9a0cbe89618ecd99c885afa7885c79fe3af15e6c8b5c5404991fc7db9538fa",
+      "bytes": 1421312,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-241_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2319fd58f00da926dbed837e7f1c1efdf5fbed54d5f8b04a176a6d9629bc824d",
+      "bytes": 1425408,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-246_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ac6d342da9f4a046b76a06d47a96bc84be23dba73130cfc8e78f807561ca3284",
+      "bytes": 1351680,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-249_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2e71e0d31704ef665c1c4392f577efe97af23b746346afe224caec82a1712f4d",
+      "bytes": 1703936,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-24_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "45d63ee25e256fc2de259a40ed712ab8df6927a1e747b709c5aba2300f744642",
+      "bytes": 1740800,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-250_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c7b42eab148d5ec955793c076c474acb5c5fbc9e431905f8ac89cff50c4617c6",
+      "bytes": 2801664,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-256_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "efa198f3bf4ea619c039488b46ade6076a44eca2abddd3d8926e044f5a9a4ac9",
+      "bytes": 6615040,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-257_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aab589dff4cb3a1da3ba4b3900d581f616ed0f2034a6b21a49a766d56b2b67f7",
+      "bytes": 1241088,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-259_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fb9aafbdc40037c7800e21260f2dc1045517fc3d6a357a4de32c86d54f430b24",
+      "bytes": 2580480,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-25_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3a3ed8ba64a51b35b098f57b1c247be47832abae52e100c6db86f35b2f6bd87e",
+      "bytes": 1224704,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-260_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d42ee54edc03d4c3df21925bc02590bfe8e359609096ed45c28f8981f009da51",
+      "bytes": 1847296,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-261_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c4a9db40b4b5edaaed39275ab77d63b1ad236b341a3f3a2f5bfeb06c1c737edf",
+      "bytes": 2469888,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-263_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1ee176a656bda00410aae0a56e8b406fb0ce75a5cf5787c94ac85909898d3319",
+      "bytes": 978944,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-264_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a696e4fcb4953e1931b4d351e0fc57ab648c088dd9fd60188ae86946cb8ae35c",
+      "bytes": 3727360,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-265_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2002e6c6bd6406bc58f314faa48d51eee78d8d1e506e5d58b8f2fc6bec263984",
+      "bytes": 2473984,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-266_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f77b893156a5fadea7def04d9b4a59f321ff5b503373078b04331268e84a9a9c",
+      "bytes": 1138688,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-267_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "50b7b6a2fdbeb65c5f245821186364968c4a84ef3a8681a5ef8efec0dee878a8",
+      "bytes": 2375680,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-26_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "689c3bc42c8336ee2e45cfe370b98e223dafd94b9df9bc63ec1716186829cb1c",
+      "bytes": 6012928,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-270_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4d66e0f59971e1b325f27f72660919f870e2f80f4e5387f5ee0152d083edd35b",
+      "bytes": 2056192,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-273_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7e185b379675dd3c0e2c637e4688f84eabd0fc5020eb6b0c928bb5e982a57267",
+      "bytes": 5840896,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-274_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "496ea3a4c1f59befcc5b71fbc965392a58290e11533d7e485e4334b6e266f3e4",
+      "bytes": 1257472,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-277_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dd36da3ec3ed898392d5b964f62207a3c93a35af2f3872cabd76b56a5b430bc3",
+      "bytes": 5177344,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-27_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e0f73b7cef6e30fd361a4ad36c66989f1c40afb50b1ae68cd2f800f4f759de5f",
+      "bytes": 1654784,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-281_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "459f5daac6f084afcdcd9e0ea1614523fd5e144e9e5637ec733c3f3b599ead48",
+      "bytes": 1380352,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-283_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b328c9c1bd932cdb7c8b1d093016e8e6fb9c55ccd46fc8836c5daf0af69e0097",
+      "bytes": 6504448,
+      "extractedRecords": 33
+    },
+    {
+      "path": "clinical-284_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0adad561eeb423a1ce2f5639304adad7ed91e92981d5c771604681dca0b03b75",
+      "bytes": 1957888,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-286_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "79fb6c0b1c80da55ea4bfa1764bffba63e1dfd41fc36cac7b888fdaed682c8b5",
+      "bytes": 6008832,
+      "extractedRecords": 40
+    },
+    {
+      "path": "clinical-287_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e17da36a220988d97d29341c2e0bb5cfc3aaedba33d1c575de711a7cbe986002",
+      "bytes": 2564096,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-288_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e929d4714607398433011223d3c2abd512c325d7344e758bc4fbb7bb7dfc23d8",
+      "bytes": 2531328,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-289_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7945766ddaeef4e7b2d1932305356acffb8c1fa14d9c57d199ab7ff01cf1bef4",
+      "bytes": 1196032,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-28_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d2cf52b5d4b68d25f7bc1a61cb95993e977c5238898a6af852476530ea3ab24c",
+      "bytes": 2584576,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-290_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6b9db2e8e2cda2c84238cc2dd7e0c77ceb11f85fdc167352ed30ab4ec75e1bd8",
+      "bytes": 6709248,
+      "extractedRecords": 46
+    },
+    {
+      "path": "clinical-291_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8804424e9f8524a139400d7e3c6649512f757e037d23160bf6958404cd821354",
+      "bytes": 3510272,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-292_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6982af4a87f0d0d9e5d4f93d2e42aa3a1c8faee604139722a2d9316fb5d6e2c7",
+      "bytes": 2318336,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-293_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "68ab5bf8925b377d36d38a84128aad84acbd18768e0a7a8432b11ccc30e7e213",
+      "bytes": 2289664,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-294_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "da0c11779bb0b26f1c3e6d3408af4c894a57e8284a4130454724b6e1f3a04b7e",
+      "bytes": 2945024,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-295_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "673422e4c8daa522161551d0d6f42797b70f825d72d616346bc64b1e02d55a14",
+      "bytes": 2809856,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-297_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "11342f217c7182d7baff426670efcc40bfc50cf497d92d53f5e3cdfe7679dd0b",
+      "bytes": 2441216,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-301_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5c2c63f6f868229b37073d2311ce364bb8289fa2b01f9debf33c97460c16c583",
+      "bytes": 4403200,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-304_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f0ec21b16944e34a9226245ae3f212d6c64405b2bcf430e00ad1311ac7728532",
+      "bytes": 1081344,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-306_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c836f89fb72614f373261cce6061d4b3222c9bd48d7101af92db02d1cc5ecbda",
+      "bytes": 1392640,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-309_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4eb348492e7fd5424a7c83426035b385634c49280d87d1144e38d0d2a869f639",
+      "bytes": 1081344,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-30_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0bdb70c10acf9c16733d58ac6fe31844446b34c65a6e8572c43071d969107fda",
+      "bytes": 5083136,
+      "extractedRecords": 27
+    },
+    {
+      "path": "clinical-313_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d7e0a79052703b4016940015ea07b5d1205975b1be35f6873cdfa100bdfb0c53",
+      "bytes": 1609728,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-314_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "624ac95649529066c503ffe33be79b94a3598c9630f14ab43ac6906932fd2f67",
+      "bytes": 2080768,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-315_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "632440f5b59a8c008edcb922fac3a25f6ef624c6cd52a3fa4e509c19401cdc62",
+      "bytes": 3706880,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-317_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bc4764e12e5f310e3f6377c61a7b45d6b03a4b04bf93f41acef7bf90bf9d94f3",
+      "bytes": 3719168,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-318_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f6400221367e671442e91e27f2c2ca315ea188caa3ecdf1bd3945aa37000b190",
+      "bytes": 3305472,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-325_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f8e5ac720e842985d301cfc019ab50e2ce3507065603a415b58e4ca0292a03b1",
+      "bytes": 1839104,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-327_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b33a396e6da6f5ac319d50ddca15ef2a0790979004c9a3bc27acd07e586681ec",
+      "bytes": 1658880,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-329_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "37a0a04b2b386277d4f0d5e840b39d230656443715f258e1657b40c5085860c0",
+      "bytes": 1753088,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-32_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e42a72825ab119ecaedd86ac3871223944b5f2261720d4f15e6c8360069c2465",
+      "bytes": 2224128,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-330_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e5180c28ece5ad6a0b80178f24b30923300fc6644e228b8338b4a93ece4a0295",
+      "bytes": 1519616,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-331_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6e19570b474fdc4be241c17e73e7279e6d23e3366c6d3ba53ca70cedb3d30fdb",
+      "bytes": 1523712,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-332_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a9d6bd5f3a25c9af70d269111e6da9411d1e1facc1e015ea4ea9455471c3ec70",
+      "bytes": 1413120,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-340_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "45ef5bfcaa06bb0e4a5a180061e8dc3d4c5c23ce429c21e6076fee58df1a18a8",
+      "bytes": 4313088,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-341_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "72fffa6d1874106d31aff3fdb11aea21398af7b997ca14d82c3e60e6c3d37b21",
+      "bytes": 3952640,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-344_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9eef1f52f107b7e2e1a6b9b3224c59289d75a759a81a424d59510af4ee74759d",
+      "bytes": 1589248,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-346_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "223bbe7492b4e2f715a69d81563236c3a5633d9c58f7cd266bfb682c7b1bb2c2",
+      "bytes": 1343488,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-347_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "06a97f9f8f8d5eb07b89f134272428f4376a71c371aab4c954ce1ef951fa603f",
+      "bytes": 1880064,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-34_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3127bd02faf5be98855136f2fac55a6bc801d0d2fdae10dc6f2fd37e418eae0f",
+      "bytes": 1036288,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-352_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "644b8d7b55946c1f8d717ebb16d9ceda603cef972aeed5b9cb410b91730459f5",
+      "bytes": 1523712,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-354_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b63e573f8c27f1b57ab5d7de9b80a7f075abc1eb48bb8483ebc5ce8e5f6b44bc",
+      "bytes": 2408448,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-355_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "02ce04490866bfb8a7517e3e17368ffff0c6df8773dd2849cc81420b894529d0",
+      "bytes": 2146304,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-358_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "854df103cee16b795090ab2e6fe1c2a7835a53808fc624b8d3f51326c0d9a06e",
+      "bytes": 2326528,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-359_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8ec0bb7ffc0b7afbab96a931123fcd8af075dfc5e4ec721851c741e5fdc0d25e",
+      "bytes": 8556544,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-35_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a5c18b1a185e33ab8c37deb48a433a469cc8b313a3ae310ad6f09f439b34c4f2",
+      "bytes": 1671168,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-360_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8bfcba201e4403fa023bf49ebe9642da0536a2e7770a8f7f80e5213eca6907b9",
+      "bytes": 1232896,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-369_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1c23889833bd49a4fd5736aec8d5a5efe0d14e4c93413208d382aa9c5af0a009",
+      "bytes": 1130496,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-372_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "746a07412a0a6b5f7b3cbcf8623ac3ffff79cae617f9ba33c0a19c3b98cbc619",
+      "bytes": 9756672,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-374_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6956df62a33a6c0b8eb34b691ffcf5431d8f51a318742db86b371d517d74a695",
+      "bytes": 1908736,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-375_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7964364941cb46b85fd4d145096b5c94989b0d48e8a579c0eeb4879557084f7f",
+      "bytes": 2310144,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-376_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3f8bef2468492532e65136e5990f938676c6c302d07494dac80fe442d3d2f358",
+      "bytes": 4972544,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-377_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c7d4cb1eb45d384f5f0f9cb940f28aa95acbe1480106ba464d27a9b28fc1e92b",
+      "bytes": 2912256,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-379_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3ffa010ef658963d2240e33b91104aadaaf4d96426ad1f281c8a9780f6010cf7",
+      "bytes": 3670016,
+      "extractedRecords": 39
+    },
+    {
+      "path": "clinical-37_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f2f295bbd84152c987db8ae2550ba483ba89e5760ee7e5ddcce101977b4aa90d",
+      "bytes": 4485120,
+      "extractedRecords": 32
+    },
+    {
+      "path": "clinical-380_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b8feff7081b2defd9d0d2011c0934d27d202de66ab639f4467ae32e7da4b4e9b",
+      "bytes": 3162112,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-381_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5e6650a81a8d2ac5aadbdc52e782bd7c06d22b6612e57a3bbefcf0d7bbac5bcb",
+      "bytes": 1445888,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-382_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7b67a081b6f8299718fbb926c5c26ab3699b2d63d13bdb5841f7b593905aa413",
+      "bytes": 7118848,
+      "extractedRecords": 33
+    },
+    {
+      "path": "clinical-385_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2e9e86cf5acf215766bcf0be52adaac9d8dce58238a403bdd9383b3690d66cbe",
+      "bytes": 2916352,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-387_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "90ef5052804366311a8c7208dbfff2cff23028024c3055ab6a9b979e3259f238",
+      "bytes": 2703360,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-388_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5b0252909bfd353263945189a29689a4e39d8076889716794fc72fb201a08d55",
+      "bytes": 1753088,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-391_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d2f59cd685c578ae753c97cc11958faf967d6aeaa16c1855e44ca9d934a2283f",
+      "bytes": 2945024,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-392_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f203637e92051709b564fc6a62fea831f3d3ed4a5ccaaa01efc9798082f7db9f",
+      "bytes": 2957312,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-395_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "60cb3c576ab33c3faea9f56d5a5e924d8d80943680f0ef1a606396f34cf069c6",
+      "bytes": 2764800,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-396_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "07a4259eb84caf9f98dd9a4e358d23303d3e88d25f7a969dd40ab7119fddc9fc",
+      "bytes": 2658304,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-397_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bb13dec6e56ba6d3c571356f264835ba944567aaee2a7129e8b21b37f39edb5f",
+      "bytes": 1400832,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-39_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "70f7ab8b71cc1e01c8207615d2498518dff960f65778e2cd167406d491661f70",
+      "bytes": 1634304,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-3_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fc1c8fdca4d7903adbfb3c5607ce5387a2c54532be9c15c9d4ee9e34360e1f06",
+      "bytes": 1699840,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-400_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7d0d9d24c30c607a734d42a0a6c55beda3a5036b3704c67858ac9378f16b66b2",
+      "bytes": 3809280,
+      "extractedRecords": 30
+    },
+    {
+      "path": "clinical-401_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "740a29b4f07f65289c358b8fb1fb4b2f4537a84e579fb0f7c14194ff32664e99",
+      "bytes": 1990656,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-402_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "cc5dd209047b1586c7f3334bf28e348148d9615d0def73e147324cc366133ef3",
+      "bytes": 1830912,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-404_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "30aff40cb038d40f9e3c1102ad982ac49fc5e935b81e3328fdcfd22380481882",
+      "bytes": 6234112,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-405_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "59379beb295f247cdcfb45356633952daa4c75abc93b07236bb4144409fda0ef",
+      "bytes": 1789952,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-406_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a40968e85476898b062bfd97635e002be96b2ca61b8fcdb08ad65842de032321",
+      "bytes": 5345280,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-408_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0cfeeeea9625f106f71918952cceffb29f178291de62583e76c88084fb1987fe",
+      "bytes": 3063808,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-409_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a897538cc8bbd715266647e0b378f4e12c2f26c39bdd14ff1f11f2c67552a9f9",
+      "bytes": 2072576,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-43_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2f0e9ab1f58b1b750c15d22f06e2c83ef01c6d7f53ace4f0e81508b22c48f6b2",
+      "bytes": 2138112,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-448_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5ed36c0d9ce4c24296ab5db602e2b95bb609311097eefde2ceb09c2120432ae9",
+      "bytes": 4296704,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-44_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d49d3db64c15327b0569e2be7a0d4e6283cdf88ed0cfaf73bbd1545c90181369",
+      "bytes": 2637824,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-450_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "56f731502f0ecf1563b17a0ea0bd405b45d15d89bd8ee1baf5ba297929c8c3cb",
+      "bytes": 1781760,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-451_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1396513df9dc7500ab00a507e888db5c9a7ab35a58f29ca705be170846958ca3",
+      "bytes": 6610944,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-452_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e31d631f46452b4bd74db9d0e0b0b7da9587711d32bf9adc84b1d70a96b468f9",
+      "bytes": 1064960,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-455_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "98a662900290d8eb95317c19b1f170f75d51babde87373033ff766cb07820149",
+      "bytes": 4358144,
+      "extractedRecords": 30
+    },
+    {
+      "path": "clinical-456_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fe208627370012699492d44a045a4a4248bd2eb8a44933301b6283e188a3caa2",
+      "bytes": 4456448,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-457_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0c3b5ce3ff56667e6724aff24ac3fc50803e1514994bb4458d71d0e7cf5d3b1b",
+      "bytes": 4030464,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-459_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "12183e82090c134e1a1d8c12f3b3a913303b28a5eeee3567df2b6fdfc86f97c4",
+      "bytes": 5255168,
+      "extractedRecords": 37
+    },
+    {
+      "path": "clinical-460_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f8cd1360dcd1c39208174215aa09c2872fdf33331539dc6a38eca215ab9a94aa",
+      "bytes": 1900544,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-462_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bab4d433a0f0a38fa61fb5e0c705edb51e260a390fb68dcf6ae27ed65153d0cf",
+      "bytes": 1560576,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-466_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4960d635bea27d4403e768f5e9652d4da9121ea088de863cf30e2a7535491f4f",
+      "bytes": 4636672,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-467_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "559b08ae3e8323cdd78195d62dc2a98ac6115f599af0b7bbf0326ec2366dfcf2",
+      "bytes": 3006464,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-469_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3170e8bd86b5637d5be3aaa38e5f74026b5f0ab5230d0706a9eafc95565667e5",
+      "bytes": 5656576,
+      "extractedRecords": 43
+    },
+    {
+      "path": "clinical-46_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5ae73c4489b829251a5d1df891262be9b4059b5d8f86f67926aa08d17a93098c",
+      "bytes": 1302528,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-474_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "66d4439a9b76cb000a7cb9463db5c5143815e7a5bccd3d085ae25a66c9356980",
+      "bytes": 1339392,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-475_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "38fd9febc36b8057c4cc588eadff0ac9ff1236e592019dda414ee90869a55244",
+      "bytes": 2330624,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-476_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "15ed2aa3fbc76a15eee0d9f3acc6f5e26332469e03c21610516644cc843d0f4e",
+      "bytes": 3108864,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-477_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e4d07326257d3b905eee0f937c3820958d52f6c01bf801ac9d04d1fcd4478977",
+      "bytes": 7688192,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-479_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a6ed838519f768a0bc220eba08cb819741e46fbcf14b7c1b5f77bee49ab85f91",
+      "bytes": 6598656,
+      "extractedRecords": 27
+    },
+    {
+      "path": "clinical-47_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "004e45de6cbecabf789619e68ea6de8b6424974bb3a35b78abd375df53aa88b4",
+      "bytes": 1368064,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-482_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fccf3381671590143879290039d259fc61605cbe942201fd33329a841311276d",
+      "bytes": 3985408,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-483_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "06bcfa1fd7b93a0e6490542bc98802b77fabd961adf5d5efab4b1384215e22fe",
+      "bytes": 3043328,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-484_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7567a13b5b907a00ce6c941a5028665cabc273c6985f459393f4f2cbe9f56bb1",
+      "bytes": 3063808,
+      "extractedRecords": 38
+    },
+    {
+      "path": "clinical-488_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ee9b2ca6dbb8835cdd39d839685e42820c33b211b29e64f889930ca8905a5245",
+      "bytes": 1748992,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-492_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "399048a33edb4763b3fa9e1baf7d669b89ca520fb04cf09a69e1bfafb6328473",
+      "bytes": 4071424,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-493_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "39521b1036cb3a2c9e19a455dad18e332e4bf57b1c5a3696c91d7d7956f19e03",
+      "bytes": 3026944,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-494_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "36000f1ef0be75c04d7230e69d17d0e9f01049a2bcc554f9bbb4a8585b5a03d0",
+      "bytes": 2138112,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-495_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ff436f2602dc7287dc09c22f81b367514406c15d6c2f02aea004f94cf1c870fb",
+      "bytes": 2093056,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-496_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d6fe07600c2ea04fcde47cbcd90f114da15737cc1afed1edbad39a07874719d1",
+      "bytes": 5230592,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-497_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f0bfac18704b328c826cb30baa82f03097d11a6be1eda2e604ee95d1c0cc78fd",
+      "bytes": 2592768,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-49_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "74eaf633121a13bdeb5429678a2ab2d8429c97594f6f1738646b75fc442c1867",
+      "bytes": 2510848,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-4_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "eec6f3fcf8a61c555a9d3bc410480e1381fffb0b63b65405886ea7fde0a96a0a",
+      "bytes": 3375104,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-501_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1e0fe4a58f811a2bda92dcbed0ace49ad3274e70f9b3e3e4036dde3caade4704",
+      "bytes": 1589248,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-502_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ad163420ed0290a5daf01fd32ef6d4ef87caa789ab1667a9de066f3898e9dde8",
+      "bytes": 3420160,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-507_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0089e365219d26bc179a7e8d9e060da4ae1c1f320747c6a251c8fa345175a309",
+      "bytes": 3211264,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-511_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8f4ea2e2d1802e3d59473349a46f24ec7f8ea3ccd20ba94acc217a2e31882567",
+      "bytes": 1912832,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-515_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1803c9797fec75851185481ce9d49915b729069694922d0a3b4f25dfbf0799d1",
+      "bytes": 2281472,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-516_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "baf97106d7c57da7257126bf066f0e892479574b5640a334602ff946361a18d5",
+      "bytes": 2015232,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-518_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6526c718afdd58448db643550b631505b4e2a8a4ffed2c3abbfce3b10be8d355",
+      "bytes": 2043904,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-51_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "11c25b11d471622a1c2bc7ad1a586ac4f932553d1db423469c245a4a351b63e4",
+      "bytes": 1900544,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-523_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dba8adc852c01f6ef33d0581215ae6b69d2dd71354b13a3d31ebb43ec02691cb",
+      "bytes": 4743168,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-524_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3b08c40fe8e29eb3335d66949adb519312a20534e47b2ebb89e17e43294b62ce",
+      "bytes": 2142208,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-526_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f956947f1be692517d6abd44ea67b9a8ad106498041930ba4d461c3819c611fc",
+      "bytes": 3051520,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-529_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c70cbf4acd95afeed30287f9d6389f3f4904ba74b1b4d7ba6fa46a9bf97ba3a3",
+      "bytes": 6762496,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-531_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dfe24a557d3067db623d854359dc6f89f737bd4adbe982527af865b8bf078c1b",
+      "bytes": 1273856,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-532_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2ae5e8491fa14b8273276d3876ae47a4b0f24692af8eb4104b345c161f100572",
+      "bytes": 2494464,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-534_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "132437ea3c007f76e914bf0bf59de6ae11da8761e853dbd2d9900791214e7331",
+      "bytes": 1683456,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-535_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0a94fd4880a25a966421c0c36c591a74a380df69cd79237e7f94ed8c5a93d88e",
+      "bytes": 1933312,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-536_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9bb7d32e15fcb32f513a9985e15b441e93ab22348823fdcdd08a46fd27db0996",
+      "bytes": 1150976,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-537_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f904b4e931ab8748b26781c8fa6a0bd72e210d7a3988b4e308fa3f83de7894d2",
+      "bytes": 1835008,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-539_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "59377773c979c7f772d7ee75f1c73a198b59e1cf98c139d53d2ecabdaf5c8cbd",
+      "bytes": 1253376,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-53_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0e85c97b8deb15f6e56279aa3454a9a2a6e8f3b91b688761a344b21791077005",
+      "bytes": 7368704,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-540_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "23909f324e3e8ff5c7206a48bf24608aa632e6558751cb60eda6f0172ff5eda9",
+      "bytes": 1261568,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-541_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f905d156de2b7a24c98599757a0c39fdc415b9d3f58b2674f32a6eef1692ca39",
+      "bytes": 2015232,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-543_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "16ce51b82d9f0926b3c1bd3728f511c3fa6991423c986000db6cd6079fec08ac",
+      "bytes": 2842624,
+      "extractedRecords": 47
+    },
+    {
+      "path": "clinical-547_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3e04029abab6baf36e45587dfcdefe3d2b14b7d73d74b17d39889830984fa231",
+      "bytes": 4046848,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-54_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7792202ee7574ff46df1dc1bff66290bf1b8858b66ebaca5487ac3446acd9219",
+      "bytes": 6983680,
+      "extractedRecords": 58
+    },
+    {
+      "path": "clinical-550_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4eb06ea9487e2152e4014a89ccd26243677288c5b7fb737cce3f627d34fb4668",
+      "bytes": 2457600,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-551_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "85148b3393cb754d7b07709b29c4134b2ddfc3d852febed8a922dcfc23a5f00c",
+      "bytes": 1921024,
+      "extractedRecords": 27
+    },
+    {
+      "path": "clinical-553_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "81143c370eea5f8cf195275af102fab39de8c8fb610526d07579c7c385260704",
+      "bytes": 2371584,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-554_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0820ba6e15b17a0512807d4900a52bdcb4080fe5504edd866be2dea4e15d7308",
+      "bytes": 3481600,
+      "extractedRecords": 35
+    },
+    {
+      "path": "clinical-555_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1b3f861becdf1a55f36a3aa22ee9b9fdb9d14a2ab0fbfbf4e51a72ef33d77948",
+      "bytes": 3297280,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-562_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "80848faa0b0690d466026d5aefb8d3b136eea7d2361f9872d5d289143f6975b5",
+      "bytes": 1933312,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-563_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2125ee4d7825f0a6903003a7034f441b4b5ad3c963ec5e8de441548a10059a04",
+      "bytes": 1245184,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-566_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c4deb6852d0536c0f39fbe848567a2227dd422d8e74907e1ea49a746e5fef34f",
+      "bytes": 2265088,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-567_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6eb6bc1d0408a02a9bd909e8b7962b3daa799ae3c7782ef4b45d6696e7fccbbc",
+      "bytes": 2097152,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-568_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "55360a3f5f26a17d7ff046b07f14e77151db8626f10f7820e3fa5e2d26519a57",
+      "bytes": 1339392,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-569_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "49247d02858dfbf49723fb0157d92bc770f6bc835329504bb0f19cd92c7616fd",
+      "bytes": 10448896,
+      "extractedRecords": 67
+    },
+    {
+      "path": "clinical-570_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0a9e3f16e1c426ac7c7b74539027de80cb223d173114c08ef0be0c4a919bccf3",
+      "bytes": 1892352,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-571_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a6c02d094a8976a902b4f4be3ad865e6bf58753208f09442502d6f65169c35d5",
+      "bytes": 3878912,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-574_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dce657b61af69b5befed0005e81adb4f53154bdd14311d27f8295a28500233f7",
+      "bytes": 3039232,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-575_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6543a4fd7e17846a14b5c34a9e62cfd9eb2e36ef12e0c00f3bd4444f065a085f",
+      "bytes": 2392064,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-57_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e7cd22163e001232386931128d61da4f56d86455f0138b918e76be1b1d9e6600",
+      "bytes": 1445888,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-580_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c18427420c9d33de173c7fe25eae9ed7b49220f020d09334bb577e43fc013a54",
+      "bytes": 1773568,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-581_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8e2a6611db29ce61d77d5d855d26a91ca96b59f1487831f3ffb469d269155ea0",
+      "bytes": 819200,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-584_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c7f523b08404a210ea2d39eacbcdac1bbf9b839200365eaf710b685e6b018e6d",
+      "bytes": 1929216,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-585_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a2042b0683f14ced5ecd0335a651023209fb01ef24ad2d7a5237af3bb9dc83d6",
+      "bytes": 3272704,
+      "extractedRecords": 37
+    },
+    {
+      "path": "clinical-586_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c694036627f17ff0b7bf1ef47aa22a946114205cc49054d7b6310941070c894e",
+      "bytes": 2465792,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-587_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7a96abd37e2a39c0c90aa8b28cd2c0b9807f446b5386ac8357716422fe3e24b3",
+      "bytes": 1208320,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-588_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d09dabd6fece8110c3a8805bb6efea5f6cec99529c9abda7348aeba044a8eaa1",
+      "bytes": 1576960,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-58_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "94eb9b9089340f3e10cbf657d8a9105362e2b2bf6095404824315f5d678c4103",
+      "bytes": 2469888,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-590_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "18544ebe4f4fa665b8886ad9c33f414634ea98e653881c8a0ece0b0d08a150f2",
+      "bytes": 1818624,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-592_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "244ee2419bb35e9c623c1b1a16f54b0f028d8050640d6d2154b6590144b7cd43",
+      "bytes": 3203072,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-593_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "273b0fd7e687bbb00c6658e6d86fbcb66d6105880a74c93bb7831cb034a7cd99",
+      "bytes": 6795264,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-594_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "497aab0407e88b4a7946d79edc1cc71d856665079feef48d2381aafd2c089554",
+      "bytes": 2727936,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-595_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8d5e8fa9ed789a2e0d2e8da36ee8b2535c352fe55b7ed5edaaaf86bf9dc729ea",
+      "bytes": 2318336,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-596_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "04a28c714610a39f1ca26e74eddda3ecfcde1115bcc9a953cb8b8aeba7b5fefb",
+      "bytes": 962560,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-597_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e5ca5b4333dd704f280f1791b07b79cf99720792af19bc6541ee2dff8cb1ed42",
+      "bytes": 3317760,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-598_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0340cef892204d2706778786ce74097aed31cda15cbcb29b12205415c7769926",
+      "bytes": 2875392,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-5_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "97616074af1abefb504c52ddf7fdf0c8cfd3eff89238b542c1eec29498c24700",
+      "bytes": 2326528,
+      "extractedRecords": 35
+    },
+    {
+      "path": "clinical-600_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "302b3d6390111c74a232270c334c11c94ddfa301f65c669ae6eaa8c564635583",
+      "bytes": 2768896,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-601_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3091f3bb844a1e965f6aec108b95f42e62137ad2c5923f3416282bc8ff272986",
+      "bytes": 1708032,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-602_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1801b35eb64965a6e44b1e5b082a7e8fe4bee55fc590ee7090783f8d5a9f40a8",
+      "bytes": 1798144,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-603_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3ae36fd62059e074b72d095c7ad5b392e10244809e75e153b74c087ea8f16f55",
+      "bytes": 6426624,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-606_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "96e6ea36c5444f3736faa0fcec57d39c232b1076270d1275855fd72a7a2153c2",
+      "bytes": 8159232,
+      "extractedRecords": 26
+    },
+    {
+      "path": "clinical-609_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bb2aaa1f25d677f9409e6f8bd7b29256311de20ea198ce63113f57b2e77ea592",
+      "bytes": 2838528,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-610_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "113a030bde9b6f1944cc990466ac13a45998c2316fdd55f1bc1bc9f1bda4b1d6",
+      "bytes": 3784704,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-613_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2b4f2a22818ef4c40b9083b8c2f9fff1e05b46ad8b3c767cae0f912be379fc3d",
+      "bytes": 5709824,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-614_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6d836b82edfead32ad956475b41f2acfa662d1d669f9ad31021c6a8c89136162",
+      "bytes": 5005312,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-615_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "69d76962c3252fe73c5cafb335a4b19f00da20372f8769a0188896d5c6cfa94f",
+      "bytes": 2330624,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-616_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2ecf980c0bd3efead16590b9a3d13718e9cd32b5c3038a209d2f03a13d725f46",
+      "bytes": 3334144,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-617_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "94fef16d7feefb99c22e322fb21f966e3f8279d9aa57fc3a58d50fed0756f3a6",
+      "bytes": 14262272,
+      "extractedRecords": 47
+    },
+    {
+      "path": "clinical-618_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aeb07f7a8743585e724ff880a9828960c5c70033adc6f3fe798589c9fb220764",
+      "bytes": 2138112,
+      "extractedRecords": 30
+    },
+    {
+      "path": "clinical-619_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "591c9758b856522fe4287a0c809ccd30522a61855638c4f456d5e835619c9c17",
+      "bytes": 7708672,
+      "extractedRecords": 26
+    },
+    {
+      "path": "clinical-620_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8e2ec5274fdb2a1d29f7877fb898e6da155ce80d464ab670af92067cc3a4015d",
+      "bytes": 1523712,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-621_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "777c61173c7f3cd77ad6983d41f9df790747c0f485a6b8d9c08fb88c0be15cd8",
+      "bytes": 1617920,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-622_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2d97e6025eb0cbd67f37f38168932a41e6ccfc07a835289c88c840a7ba4e632d",
+      "bytes": 1593344,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-623_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "66b036ade2a1023c507c5bfe7ddee598234e5cfe9122ef0af0d8c080b09ce838",
+      "bytes": 1015808,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-624_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "90ffbb404705a28e13df3e2b90f836cc379e821a8a77e45dfedad3939d424ef3",
+      "bytes": 2269184,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-625_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3d30a74fe836cb7b3cc6c1feab739a8113c838ede982a54ee1a802bbd244274d",
+      "bytes": 1241088,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-626_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dcd0ecaa836aec38bcd63d7a5085937fd23fa647b2d2ce761d6a5a02a9f123fa",
+      "bytes": 3928064,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-627_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e335e5bc7d25ce04e16fab1ee8a7fa6483e5b4fb0f536fea746ae10bb2e42a30",
+      "bytes": 2969600,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-628_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5dd0d50f97d375e07fe44ce1e6f46134d150548824bb487ac81849b84e647830",
+      "bytes": 1822720,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-629_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3c638b213847b031626dc3dca56305983dd7736476032ad689f78bd4ff5a8164",
+      "bytes": 921600,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-62_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ed8a2edf9a90b6387a604c138afd283c6424323aa1498506016b2eb5495bf4cb",
+      "bytes": 11624448,
+      "extractedRecords": 44
+    },
+    {
+      "path": "clinical-630_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fc35197806cb4a7650291abb85aa18ffb56078c2d0981c0a7e93fa333b8ebf31",
+      "bytes": 880640,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-631_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ba4bc70b3511387b4a7d663aca695ba4d53787078c85ec865ba13de19c7b2e1c",
+      "bytes": 2347008,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-632_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "329990f61ebb9b42f58631723ad9d728c70bcdacd6f5f5e668532189fb54513c",
+      "bytes": 1200128,
+      "extractedRecords": 43
+    },
+    {
+      "path": "clinical-633_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7d42b1ea783cde30d480dd291d7763c21988fe6d46f8ebb891d969e557e14811",
+      "bytes": 1015808,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-635_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d144c15f82f34cd395ab215e79b9d1b7ea83697ab943995f031087cd9b7008b1",
+      "bytes": 1155072,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-636_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c76c5080a17bf1f8b00d5228e270f904fb5330f3dbd3e92657efbb7290673045",
+      "bytes": 1835008,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-637_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4837143228bcd00f8755bd1dd9bd50ce3ac409aa112ccef4ec83510ff5039858",
+      "bytes": 1998848,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-638_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3a811fedf7ebc9ccd6083314848c0658029ff735f89e073720ba08aeb80ffe44",
+      "bytes": 2097152,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-639_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "75a2ec23c2606be0b2dc78408ebebf984f95d14619d020b1ab2440fe1764a2b4",
+      "bytes": 3514368,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-63_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "db40b49ac54ca582455e9417fea3fa18f3af1b8ec161eac83a0bcba5cf9fff56",
+      "bytes": 1372160,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-640_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "626cae6bc8533c6f61b7a4b4b3eca5135edf5b33292acb9e13bd330861dd51ce",
+      "bytes": 2072576,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-641_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d3152e1a08e1a4611d5ae277d9cdbeb5dec2e01d955d60bf57518e1045a85c8b",
+      "bytes": 1974272,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-642_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e6e70334c704cd2d31e8acac9eb3fdad80a40708146c55f2504ceab883035439",
+      "bytes": 2359296,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-643_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "414db177f06ec02e388ad6c17421d4af219897c7e13a4ff3a624757fa25cf5e3",
+      "bytes": 1118208,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-644_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d29da1d780d1e6ba3d63f6ef7368ab6cde3f53d7e97d6b90fbb9ce87a61d0ed1",
+      "bytes": 2375680,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-645_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "167229379b1e6bff10acf2ed33cdf7ff979730f9e29b487944647b7a7feae1e1",
+      "bytes": 2453504,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-647_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "99688aeedc87dfb2e83d9e9a642b99c65ee61ece03c97e22ba620f8e77a44ba2",
+      "bytes": 2621440,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-648_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "325f3b58e82e70da4ae3beb0fa00a0111ca6ccbd6a9dca149b1a6eda41da1793",
+      "bytes": 2596864,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-64_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4091491898925bc92d781c8895a89af80bf738d8774a009c2be9741a1cce001a",
+      "bytes": 1806336,
+      "extractedRecords": 35
+    },
+    {
+      "path": "clinical-650_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5b86d6f72fa89cadcf2f14f41e704e3db53251296294d631d079c4252ce5bde1",
+      "bytes": 4952064,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-651_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "27cf5381acae7d697bee02860daecec329147e4f15cdd2b2adb767d0da773ed1",
+      "bytes": 1519616,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-652_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "159a0a7312ca39fbecebbb73532eac46220fb27fa59d6989d8f0afb29c4807d6",
+      "bytes": 1024000,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-653_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1c2d9b7526487ae60b948c685a09947d4a7c93f7f071a1c5a3eee59227c8eedd",
+      "bytes": 1388544,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-654_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "819aa1707c6bdd68be549a3ec8deeea531edff250366f86cdd5b9d01e65b8713",
+      "bytes": 6062080,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-655_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5d08b322dd3a462b5ee83f1a9a76df428a3385db1febf20916308f0a1de438d5",
+      "bytes": 1974272,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-656_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2bb6a0503db472fcbab630ba8b622a7d9957b781e8427909a85a2ae2544b99e6",
+      "bytes": 1282048,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-657_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "767875fe7c8724a475fa0d78a8892b9c1a9dc06a68d385e9558a2f3ae0560da6",
+      "bytes": 2027520,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-660_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "09797acd1595a30595abc189d65e423d64f6debdd0f89bf4b9d10884e3669b8e",
+      "bytes": 2613248,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-661_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8d9ae7d847a8be3bcfce96de80b8fe44933121bef23db89b6f23f2554e21c0d9",
+      "bytes": 1200128,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-662_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "cdb3496f96602826105be512a8dd33a64598f66460c38f8bdb437577506dacda",
+      "bytes": 1282048,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-663_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0039aeb93da9f37c15d5b6e447927e002fc358311d745e7724d2d950c47bd596",
+      "bytes": 753664,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-664_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1abdda790380010ede49ee8e9a3e0eb3d5861fc96c26ab2218c9a87b77d48461",
+      "bytes": 1077248,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-665_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a22ad5543a5bb910d09d856c229c71a98f171dafaa3314b9360be7c2576503a9",
+      "bytes": 1626112,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-668_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "93a1308e7eb107616f7491bb86042e056a6a08cbfdcbc8afd6cb3a291d69955c",
+      "bytes": 2465792,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-669_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "efacfb4b15a83b0e08a3c6e42382bf0f042e96931a52aa69ba38e4b7a482525f",
+      "bytes": 1732608,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-66_4-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "04f1f1aa8d18219adc57877e7740cd3c6e128749363a87d155533e1f1f7cc3ba",
+      "bytes": 2297856,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-670_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8025f8bfccffb0c3175b6f02e1b5c4919847b1f44a128f6ddcdbcb2c736edb34",
+      "bytes": 1208320,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-671_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "397e50bdf4d72feb149a49d29645dbd9c1a3df85ef37d93b693f3c07035dd048",
+      "bytes": 1335296,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-672_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aee3b9f509fefe64176668596a3ac859fd9f8e91479c25e88bee48278dff22a5",
+      "bytes": 2482176,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-673_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9aaa264a5b98cc07da8a8a7c6b0bf9aa74def1071d5f10d9740d1cd10fb6facb",
+      "bytes": 1658880,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-674_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6ccdbe84355551e41aefbde70e127f4341682cc8569753d9d0302ca8e26f4cbb",
+      "bytes": 2535424,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-675_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "700c0e735196c25b4862c77415106f0007509802eef22fdbd5612e1c32272c54",
+      "bytes": 6074368,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-676_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8422fe8d0601c11e57b3dc0d65e4222055a98e69020ceaf7ec4c170f6cc873a9",
+      "bytes": 1212416,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-677_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5e134317826431e96bef62be306bce711cabed09dec7c5448e046aff20b4a1e4",
+      "bytes": 2449408,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-678_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "84fa3c4d1470190839f1b4e3a083fb60cf20feaa380fc93fdce3cd086354d798",
+      "bytes": 6193152,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-679_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "de57cbceb66a16994a21f4c8fed0d8066859e32be4389a7c91791e6843949dbf",
+      "bytes": 1511424,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-67_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "275bb1836523057ba2aba1d185cc754fd1736c6ad9a6fdb36ae656c94b232600",
+      "bytes": 11202560,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-680_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e09f4c94cbbd074b229113bdff65cbab27a47d811eed0ab5beb6d9a5bd258354",
+      "bytes": 4587520,
+      "extractedRecords": 35
+    },
+    {
+      "path": "clinical-681_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0fbc859e77fe8dafeda7d354264d9d972d18ef520a910b1c1f59973059b109cd",
+      "bytes": 2662400,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-682_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "216a65ab0498858c393e0bfeb1987bd26bd402c77f6efacb14a12a9974a25c7c",
+      "bytes": 4091904,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-683_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1e28d353e6a0159c0c46f6577580f67edcef94072e1b7bd2a32b02e29fbf476a",
+      "bytes": 2379776,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-684_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3213061f89e6336d06694f5fc5d19ebf659ab9897a4c4ea2645fd22ef924f6e7",
+      "bytes": 1773568,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-685_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a3cbced529c5767e372990b6247df4ff2d89e9a01ba113751c048483f1ada405",
+      "bytes": 2281472,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-686_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5be5024f64859a72fad441c4611681e3f249e0a21871d28850174ad7476461b4",
+      "bytes": 1347584,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-687_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5be157493c604f646a669f503aa3abb409609b2c1046d7676907a0a6bb85fe33",
+      "bytes": 6381568,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-688_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "383620cf089cd1befe8e83440b027d376197734bda208fef12d7e17772d70f7b",
+      "bytes": 1368064,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-68_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7c2edbbd5142d8f5d8ea0d78893ee165fb477b79478e50f781d67c76be495aa8",
+      "bytes": 8900608,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-691_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c24a4076967c5249fd45c97b786263b4492ff7934e1c482f360383ae83120d04",
+      "bytes": 1802240,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-694_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "133d45c5f7b355712f1211a4e6b5cb86be787fffb839ad7a657b8ccbe1b371ca",
+      "bytes": 7946240,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-695_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "137879c88ba48d44ccd3145699d60826837460e50ed05525979202041774cbb2",
+      "bytes": 3473408,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-696_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "08742822c17563be12acf907d62d561586c6b00a043a0e0700731ce00c7a0d15",
+      "bytes": 2416640,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-697_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2870897a922a835f2c39df2fea7f6e2f8af65f7da268269cd34cd8bc4374d4c2",
+      "bytes": 1146880,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-698_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8c2f379d59441a30dbe94130d512c417cf713c9159d4732606eaacefaf57fcbb",
+      "bytes": 1638400,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-699_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b098285bf2194c146a0680b11aa6793ee6bafd84cd4ccafadbd8cf7d3533ee8e",
+      "bytes": 2097152,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-69_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2adaaf7bc79d9eac412c8eab246550a7cf08e46d2e91a94e3a713146866e3455",
+      "bytes": 2637824,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-6_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c72ba726e61e9c295ca94ea13abc929483ac007dee1c48fcf6059d71d17c02ba",
+      "bytes": 4538368,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-700_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a2b22c6ac4ef490f0f07746d535a8c8c14e2314352c9264ba3e0eba9a6d8ca06",
+      "bytes": 1753088,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-702_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f240b0269e6db99663b9e784e767d43c94ac4ca39c2ab40ecfe1b9bc7ee01206",
+      "bytes": 1437696,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-703_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7eb9db5ed45ba81382b63c4df785849d4033e0550d38e5db57c4d2a0694baef6",
+      "bytes": 1196032,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-704_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bcf6dfee1272c0676c2a29e3186059fd6691f8bd68207dcde8a65314520d3c9e",
+      "bytes": 2330624,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-708_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "21da35c2c58abbc0edf0e131b9af3c1de9851e1996da30f32978acb856c6b319",
+      "bytes": 4136960,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-709_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d347525cd7c1f740bf62939753818460cd228452316b3212b77cd2558d544ce6",
+      "bytes": 1638400,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-70_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5c5cfe6a6c040655fb47e473c8b27d63aff97221ebe14585a3c5668002aef834",
+      "bytes": 6012928,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-710_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dd51cbcdbce593720aba07fe1901ea565eb769be78c5bd3685e58321468faacf",
+      "bytes": 3694592,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-711_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6325dda4f6cfc5c0c5cd93e9544400d97cc3328cd02c4f6d0ff4cdfcecc43c82",
+      "bytes": 3018752,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-712_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "babe6719190f6b34bbd06d0333aca87d8b623af052669aebe8eef805ff8bfd91",
+      "bytes": 1433600,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-713_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c12cb34ef99db60e1e3ec609cd47e4975810fc4c8e864303296f87bebdb47503",
+      "bytes": 9740288,
+      "extractedRecords": 32
+    },
+    {
+      "path": "clinical-714_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "eb829c71c8ee32bd125674200b050377b2f68a71c45ca53a83cd4e3f4ca02536",
+      "bytes": 2756608,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-715_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "23555afd71886c00da84b7693c5ee7c12accbd0ae33827337ba7b7bfb0a998ef",
+      "bytes": 6475776,
+      "extractedRecords": 49
+    },
+    {
+      "path": "clinical-716_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1d3ba1e71ff80e5e9c6c987985bc782ab58868542e491138e9bc16f8307877f1",
+      "bytes": 8146944,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-717_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "655744a285b9d61ce4bcf701e6efb4dd17df548ca165bca08fd95e5807df7413",
+      "bytes": 4849664,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-718_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e0d888bc05a48e0d62c6643a1793283230543fc59f6dd4cc75216f613bb499ad",
+      "bytes": 1691648,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-719_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "92ffd20a5a61d3c46c9b9db17db39734d8814c87683d373becd0065afd98f38f",
+      "bytes": 1273856,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-71_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "16772d08a5b1e3ae2eb0d43203a6184f9d7794852269dbfb29b2351996c84b88",
+      "bytes": 2134016,
+      "extractedRecords": 36
+    },
+    {
+      "path": "clinical-720_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8e68bd6cf99f3438a01cfbb51fb8c168b2b1f462d1b2a66dd03ca8d7423384d4",
+      "bytes": 2105344,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-721_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "87945f07168a9fecca3bb94ddb97f8896734985a42549263bfb5f0e717e42138",
+      "bytes": 1224704,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-722_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8871d3042323d87de058f62e79b785f369252820b6caba3af9cbdace3e491092",
+      "bytes": 5529600,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-723_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ccd21e543f4b486d11c28659313769823d70e55857e7f9ea88d1769d7939713d",
+      "bytes": 2609152,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-724_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2e32cf549d921dbe34a05b92feab80ce48a13bf32d7baee75001499e823ac29e",
+      "bytes": 2670592,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-726_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a13cccd2e44ed40e0b3521cf69ea2ee4741998f982a06dac7612f16aeb4e585e",
+      "bytes": 6184960,
+      "extractedRecords": 26
+    },
+    {
+      "path": "clinical-728_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a9abeaab3431c3315bc2dfe13345f5a2d156a169b064104d3cd858859e93e8c8",
+      "bytes": 3588096,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-730_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "505aa741db97378a2f794c47e961c83886552cc7d4fe67773bf02daa9c4c40ea",
+      "bytes": 2564096,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-731_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0b3357b79bc92ec6eef1331b93c1a3c7de062d80a478f39a50cadbe67ca81632",
+      "bytes": 2002944,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-732_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3542a5a88470d9b62a001ab86d2d6dabec98645e37bad09298748cd55b6b5366",
+      "bytes": 3555328,
+      "extractedRecords": 36
+    },
+    {
+      "path": "clinical-733_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fc4cfdaa8fa9a1a232be0d3b7687a9d44c2b26c6cadcda264e946f4574d77df1",
+      "bytes": 663552,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-734_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "de2bfadf5bb8e089872d7bdadffcb164c0910106f89f3541cd4c903e9d96dd41",
+      "bytes": 1482752,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-735_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7cf2202bb6ac1cc5e458cff108bb9ced86405f9a8e76d74d472d97ca707ed60d",
+      "bytes": 1744896,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-736_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2d908449ef3d6bd709214701ee94cd768f495690e6c58f011d63bdfd5e3710a6",
+      "bytes": 2424832,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-737_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "52da857e1ca0a46a8afb5013ddd7f920a1f79f0ba0d40f8bcd7e428510c2ee85",
+      "bytes": 2732032,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-738_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4b3d50ddd766cf3cae4be38da5a73e8978ee85a6976a39944b8c8e0a5d8d2f90",
+      "bytes": 1490944,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-739_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "41189d5b86f32c2db6584769b8a5c085a039cec6eed24fcfbf14bec48372af20",
+      "bytes": 12996608,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-740_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bea1d40851021d0a3566c5621043baf325d8ff5c5d7cfce8303957c07f32a26c",
+      "bytes": 2953216,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-741_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5dfd03a1e618581d3af7a64869230d2e777ffbd34fd7d25e730e6de1d4572095",
+      "bytes": 9621504,
+      "extractedRecords": 70
+    },
+    {
+      "path": "clinical-742_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0254eb0a745571389bf2f4ebe4a4cd1425b2e65a1406268cd8dd2f13bb9b79f3",
+      "bytes": 1368064,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-743_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "35f7d39ec029c640694a1acbc4a721ad9cc4997d07fb9d3138aa841525cf7a20",
+      "bytes": 2330624,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-744_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "55a107975eaecc93e699e5d432b26e8ac88f1af1bfda672a51cc35cfc386e1a6",
+      "bytes": 2899968,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-745_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f296d8b3535f1a5e9ed3a22c89092f16fc777d0b44725eb4002ed4365d7d4d7c",
+      "bytes": 2281472,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-746_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "718dcbb3600feaddb299c20b5ed1aa3abb2b33907729d9d77155ac414af8b2c8",
+      "bytes": 16068608,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-747_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4da8506acab942af40fe53d23a975cefa59e42378ea16580a2e89de44ebd834e",
+      "bytes": 4345856,
+      "extractedRecords": 39
+    },
+    {
+      "path": "clinical-748_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "145c4dbdfea797a7402eff49b8fdf3df737b6ccf4e4953812566cbf623f1bb46",
+      "bytes": 3784704,
+      "extractedRecords": 35
+    },
+    {
+      "path": "clinical-749_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5c2028be1110e8d287fc1886fb3a6c704f903d5a95ad1741ed4f5a47132ddbe9",
+      "bytes": 3211264,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-74_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1415aac71fea81ddcb03b8e75e82ccc5706082f39d1b52d4cd6e326a8affc692",
+      "bytes": 4485120,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-750_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "38b4a29b52c03c96d23833f89a218dea3a685ecc584339a8a2b153f53e6150a6",
+      "bytes": 5181440,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-751_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "568f68a44bff14f808895af259a17b0dd732e839000d5fc8ad36f27d9d30021e",
+      "bytes": 1085440,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-752_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ff1c1cd58706d4da8ee173b98b7a6c2c3a375ab7f09c977bc883c5061c465d34",
+      "bytes": 4378624,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-753_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "943d376ebce7ec6222cc5e1fe292ceb1c25865a37b077fa558e8a5758999c219",
+      "bytes": 4194304,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-754_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a85e9b4cbdacab5f233718e3b6aa22112563147155c5bcf074322a2512ceb478",
+      "bytes": 2240512,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-755_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2f09309e54cae2216181e6bb83ebd8bce2d033af1968ca67689729cebc810fa1",
+      "bytes": 1044480,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-756_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "452121479e88b287f57a1493865dc7a86eee5029465934b03d2a37708fec1134",
+      "bytes": 1933312,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-757_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "225f9fa9a9e2e451557782deeefc7fcb7e216f110d543563397c518e3e8a8723",
+      "bytes": 5689344,
+      "extractedRecords": 31
+    },
+    {
+      "path": "clinical-758_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a3d2725a3f4a7bc557013a77545fdb37f4929f9b8de08d4b70d50a52eb5de34a",
+      "bytes": 5074944,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-759_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aa95b289b7f444e5342cbadaa4ced713b7527d5536f72c611c80f550cb3c09dd",
+      "bytes": 5316608,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-75_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e29e6bd52bcc7c1c988fef8c6e8d09dc5d2ca8a980e3c68a27e94560e37a9f49",
+      "bytes": 1527808,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-760_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "12db255a9ba88682cb79cc188df4e638cef0fd776ce5fd06593b40ab7ce4aeec",
+      "bytes": 1568768,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-761_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f76b27692f20d4c53d8d05bd50859d9a636b09f629ac28c12a13af98897f9af0",
+      "bytes": 2048000,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-762_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2547b4c895bbc514d80b0a5b8146a674af72e49044f442af36e1ac6746d6469b",
+      "bytes": 4218880,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-763_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bb9798be89e408e4d01219f1ef2c2f08baad2b20092b25f64b26d14e4e11c5d8",
+      "bytes": 1974272,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-764_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b4d85d680426951d6df8db807153fd9de4bedcfabf119ba0e3d7644a158991cb",
+      "bytes": 835584,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-765_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "67f189f3a8f7152e4eb12ac58ca4060b53ff0a11a9bcf326d90ab1e736747f61",
+      "bytes": 806912,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-766_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "67a185ce789f56c67dcec0f66f854b3413166e834d0039957ab8bee1f17dd186",
+      "bytes": 2125824,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-767_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "324071204ccb76be1b1716636747e99e9810271ee5de9d1bc2480c34313336dd",
+      "bytes": 2011136,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-768_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1166059801b92075196148dc04eb4bab6367a816bcf470849a966336833282ba",
+      "bytes": 1302528,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-769_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a6d4583de64b7b48da7cd434204b9578d0f22fd70df4dea9fd69d1d8533ba367",
+      "bytes": 5111808,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-76_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "50d34fecb1712c7ecff9f0b101032beea8b439563e0b4a31b7092b562a3fd7af",
+      "bytes": 5341184,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-770_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a878bfa7627cf7b1f36b3bb96f3276c7299c927e71af62ac8f013a57d8023ac7",
+      "bytes": 1736704,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-771_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6e6ed8e01b51e0c4d7d1102fabbae8286a2338a98011c6d3944cd98dc7cbdc3d",
+      "bytes": 1372160,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-772_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a6e66bf37f03ffc9a2e9e02426e08ef5cb25461840442760871061e407486b8c",
+      "bytes": 1069056,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-773_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "970b57e0b1f1e4595280dd947aa26c1da7fdd549314e2864aa906014adf131c5",
+      "bytes": 5664768,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-774_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1d14d74cd3041fc541b295083b7f4151b9a0ebbfc3b95fd73b279b28387b14c9",
+      "bytes": 1409024,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-775_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "182718fbe333b3efcfb397a561521356408ea4d3ab9142841b6a0d29128aefb8",
+      "bytes": 1822720,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-776_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8493addc24095735edcf27cdef88a9c707817f4b614bfc5df83ed3bba71af52d",
+      "bytes": 1015808,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-777_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c33fe27f19d1345a1d619d1247b55dcd0d7b507a30ca8c45215e28cb830fee80",
+      "bytes": 1638400,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-778_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "349e9f1b5bda0aa71a1920c9768a4ceb6dee3a250605b3124b63be076152c148",
+      "bytes": 1490944,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-779_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6436b52d58a16874b6d07e8ae03e9818d5ac5979690881927bc3b2c9651216cf",
+      "bytes": 974848,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-780_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b5502c137e4c0bebed44be7526e0421f11374b5e022c7dd687214521575aba71",
+      "bytes": 6139904,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-781_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "32a78c74458ae87a2c8e57232650233d5cf6e08613c155c9b37637b67977aa0a",
+      "bytes": 712704,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-782_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ac7c6e4bba0cdeddfc4d3bc12df249469d59c467be5230b3f2619c8273bc4ddc",
+      "bytes": 7454720,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-783_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "acc1c48d28353470c07e4e0920166c6a7a13a1ff443f2621f0e1c9dab5581acf",
+      "bytes": 2080768,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-784_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b51e55b37f22c0cc4098c725dc63ea5f696845997abab91280b59b46f5136cf5",
+      "bytes": 1458176,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-785_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aad00e2d8800f5e138702fbf605d7832b5b214c60bdca0503f38de755ade4550",
+      "bytes": 1204224,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-786_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c9bdf28c8f90195a3b3b0c11adffa21aeb7ce5be3c768ddc5e7d94be8e2335d3",
+      "bytes": 946176,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-787_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7a03cb9d13bc7d1942c6ddc567381bf92eb80b89da80947e07cc15bb29f5388b",
+      "bytes": 1712128,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-788_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5f5eb266af997a1f74ab1ce1dbf19ed164b864239fc71c07ea5b0b4b70d678a8",
+      "bytes": 5320704,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-789_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "df167696294b258d4b8ecd1d4c5be3b5594cadcf2777cd0101bfbf6729b59650",
+      "bytes": 5218304,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-78_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1db1e9d93e9310b657b08f38fead135066057a534eb886d44f13bdb228adb603",
+      "bytes": 5378048,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-790_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "726793b2c6f646ea846c3b192d599f888431ba968c18a792737e67cd426e2fd6",
+      "bytes": 4308992,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-791_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "22ad16981d2b913a06bd41e0d020d26be8451f48bd4a0054bfb982024b3c0b3b",
+      "bytes": 2605056,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-792_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2b32d48d382a5245be1c55deb6d96a266d0cc43917a69818ff79f7d7c4d67071",
+      "bytes": 966656,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-793_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "63ebb1d10e78d04fc86079f7ae48573ba0eb5282ee2f2d20b2e26a9343c56479",
+      "bytes": 3973120,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-794_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "304afbd2218e2df6a068a4817fb755bf541f3ca885dcb6537310efb68c424278",
+      "bytes": 1363968,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-795_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8124c0088361da70e804c08bcd8922de5b6102ee4126f954b21931c31a1ddf19",
+      "bytes": 3645440,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-796_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "985ffc46bc64b5a49f6353f2242fc297903e98faf01a5c78770ed93a3a89b36d",
+      "bytes": 1245184,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-797_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "71301c4fcf3c6cc2b50acda62dbaa55a54876c89ef0201312c184ad56b0aa83c",
+      "bytes": 1507328,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-798_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8d8036f592ff7e92231aaff84d739d39a48b66808800440dd05599b5f9daf2fc",
+      "bytes": 1249280,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-799_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b404a8a3db7f8aae287bc43125e518579af166d2bfc690aac8a2acb8f2b49154",
+      "bytes": 1294336,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-79_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "95e3c01f1128d3193e09f8aa8b685378cdda214d0f8fd2f1d7b95108880d647d",
+      "bytes": 5754880,
+      "extractedRecords": 41
+    },
+    {
+      "path": "clinical-7_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "08a05266143642019c1ad866520592a05dc2d5b9e83d03387e600cc7bbf7fbe5",
+      "bytes": 3149824,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-800_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "43dff44b7cd561a8dc256bfd85d2c15ecf5955136b4275b9804e74929296c8ba",
+      "bytes": 1449984,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-801_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bfb523f6f37f0b525fbf05f54ab3a40cce88cff1328cd496186d1b0ef25239f8",
+      "bytes": 1851392,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-802_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aa89bfad78507e3f10e50944369803f03b6ed4ca43910acd5120f99e67dec30a",
+      "bytes": 1323008,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-803_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "264b3d7442e6e7e22c3aefac3ffca0bd54066c0034909bc010795108e5d6607e",
+      "bytes": 1011712,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-804_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a98d642532f493aedf78c132372b261e697a548efce720de07eff34974f263ec",
+      "bytes": 1355776,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-805_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4360a4bdf6faacf9ddbb4f2f55e269ddae4cf99b7d949d33fdde287dfc7bb870",
+      "bytes": 1368064,
+      "extractedRecords": 27
+    },
+    {
+      "path": "clinical-806_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "754f261177e3eab38f0900ee4ea7649e06f195af9d10f160c5ff878b7982313e",
+      "bytes": 1970176,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-807_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9d7127838d7a14bfa6f08a8e477d7bdc4aa884cae40b07a997b45aee1aeac17d",
+      "bytes": 2318336,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-808_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fa4311386efa939f706341e4543c8ca4613c9b9edd4fbecb1da9ba2afd6a4efd",
+      "bytes": 2023424,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-809_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b50c7c539bf13dd2afaa87b79c0ea02e1c459fefef455585c53895ed3474f08e",
+      "bytes": 3715072,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-80_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "07f91b01f9873057cbb9d77aeab073cd0195d51b39db2bd2f0dd3a97a33370f4",
+      "bytes": 1703936,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-810_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "81857d376993e73820f9f6081a483045558fea7614e79d97b7c448992d3db9c4",
+      "bytes": 1236992,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-811_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "22c9e9ef290250a44d015145e9cd92cd8fea7acc985b7f76e6920f0fb4b8b1d7",
+      "bytes": 1466368,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-812_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d54359a1315fc8a1798c920f9463aed01a5f1a46576a30a5448ddff004fe79e3",
+      "bytes": 1167360,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-813_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "371324bc917f09241bcd697ce1004abb756eda30b7cb0012a9a5c9eaa54f45a3",
+      "bytes": 1564672,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-814_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0cb1d294215638f4b19eee01880b15e13409ac2e91e97ec394a61720c9187f68",
+      "bytes": 11833344,
+      "extractedRecords": 39
+    },
+    {
+      "path": "clinical-815_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5b50d5ea516192b8bdb88382bdd0694fc45745d9f4ff1ec10a94c0e25c8020c2",
+      "bytes": 1163264,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-816_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "37f677218d4bd0ab99cefb8c2c7c57b43609d1dbca0bb86ffdcc3b803a6247d0",
+      "bytes": 1916928,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-817_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "617950dbf990fab39a9a4d944ffad32ff4c143f3f8081078937f049ed4943b8b",
+      "bytes": 1253376,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-818_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "86b9703466d645107c403bd87941999a261970fb0685610beb4c3a2309fe3dbd",
+      "bytes": 1499136,
+      "extractedRecords": 30
+    },
+    {
+      "path": "clinical-819_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "68e7d5e193b99965dc129106c7d7de93eefba7a9b1f0ce5acd67b3d9d0b0fd71",
+      "bytes": 2240512,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-820_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8317cc30ff42a5c508cdb4193670ad4257ef3016e5a96a6eb1e2cc5e5c1c4886",
+      "bytes": 8273920,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-821_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f547b77db14c3f042ae032279c485bcda4106d1d5aa1d4a4c3373a8b1b50ef7a",
+      "bytes": 3690496,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-822_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1828b7cce16ae39951b76b80f1032d86735edd74d7f04b7dfaa1311504b1b67e",
+      "bytes": 987136,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-823_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9d51435b1f7a5434e99e906c2bcd42af57e3be4d5cde3f5d389cf7707d221219",
+      "bytes": 2207744,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-824_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e7664854a965e7d9d1752957f8049a1ef67e645a6c33949bb29d61bbf02f2af0",
+      "bytes": 1740800,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-825_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8ec4066acdbc40d48d33a2f017385efe329beccbc98711b22aecf2c5761e89d1",
+      "bytes": 991232,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-826_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "74fa2a7227eb9ec3c602b7f88d7683a7bfeb844d42ad07ecd65652e7179ffbea",
+      "bytes": 4657152,
+      "extractedRecords": 44
+    },
+    {
+      "path": "clinical-827_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "565542685c504147ec115949b72b8e2678909d8543cfe900ecff438c50ee844c",
+      "bytes": 1658880,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-828_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c98c4499a2e3554c60dc3c235d489859973b0e81f7a6bfaf9cdc90d154d9e483",
+      "bytes": 1073152,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-829_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e95ed6a93485ce49999327b359cac777ce3c230a21babc7d489a2c02f350fdeb",
+      "bytes": 2523136,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-82_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c6cc7614d60bc140cfadc06ebd60411859ddd93047b1b7ac2a6d81f665b9852d",
+      "bytes": 4001792,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-830_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a6c757396023f10966d35eb012ae37da823da3aa8dac1b88b27ec688d2f927b1",
+      "bytes": 1703936,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-831_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "150019787194df1e31f2acd89dfa629a09462e9837e153db12132f53572fd4e3",
+      "bytes": 1736704,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-832_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6135b9a1f18d8848d7786d21f8176df4f4bb88e9e9d1720b2d2843630192f09d",
+      "bytes": 1646592,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-833_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "55da25a5b828f00fbd65f551b423f2edea260d2227434947f963669c9a0fb47c",
+      "bytes": 1085440,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-834_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1f119a09535900aac668e0832b33cfa5d9a87acf5d7022c1a0cb5ca81af0f6a5",
+      "bytes": 1175552,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-835_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b81651e616577e9b150ca0cacc08f3fed320433353a2c3d8433ad756ffc73a2e",
+      "bytes": 2166784,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-836_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1f86117c22d9b587e484f1abe916ea7d37699b8a848c3c6f1875bcfadcba4214",
+      "bytes": 1556480,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-837_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "75027992aa5062255c56946f56074c328beb78aa1f4496971b76e9a720e03d0b",
+      "bytes": 20082688,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-838_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3125146118b0f0bad324ef99c7e88fbf41b344876bd14c18cbd6c2ebe200ae85",
+      "bytes": 2809856,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-839_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "49b1f8c34782f32c5a8eacbc20e05eda0aba74f8a7499cb87edb8fc898fa12b2",
+      "bytes": 1695744,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-840_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4b2e71b2eae33705342d9b51ea8cabcb12006215570b57ce37cafc48d461cbf7",
+      "bytes": 1851392,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-841_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "879d1aa3cf66ac3e1460e33cd6f01505296bed45612900ab6c6ce97315cd55bd",
+      "bytes": 1695744,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-842_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "040e81ae971daecf8ca3c215a7edea9b635696952ee27b64898f49f7670704be",
+      "bytes": 1003520,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-843_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a34c33ec55c066f494daed5228aaf83017a32fce89a1d0a981029004771bdf07",
+      "bytes": 3850240,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-844_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e3f490565440ed2d95d1967899bea4939ca7c439187a88c2b85e4a8a3b677f6d",
+      "bytes": 3284992,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-845_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e3ad43110badb4914f314a737c1c67e3b3121450275a1b763440558c59aac813",
+      "bytes": 2789376,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-846_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0d3b0383ad402c2c91635d311ba5f08645d505f8f0eb8623fdf10592ec8e102a",
+      "bytes": 2719744,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-847_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5724c8965792d8e008022e2d109e4c8bf22fc8e361cef4cfda49b733d05f29d9",
+      "bytes": 2813952,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-848_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d09961597287e809341a18e6ccbd0aa8a96e89a340eba0c11c36b5d6bb8226e1",
+      "bytes": 1191936,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-849_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aa86b3a697572b5e05f14d98b79b6d12710134d9f9a66df6e07f269a1e00751f",
+      "bytes": 1331200,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-850_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f4acafe2ba0fc6bbfaedc46b2e906ebba48f7c38a7f358e075ef80e4ced8bcab",
+      "bytes": 5492736,
+      "extractedRecords": 52
+    },
+    {
+      "path": "clinical-851_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6afa8ddcbe3ff6bd0485b6d722c9099a61f09bad4f77375c754017f12a281bf5",
+      "bytes": 2760704,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-852_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a32320159de0c88f3b0ce4fe5731658ac35c9c6727beda2c17ca0fbdd5071939",
+      "bytes": 2396160,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-853_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f76d1228d6c616d9736c71d6952bafd443a12f698edde56eab96a2665ea0e8bb",
+      "bytes": 3698688,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-854_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8a3bfabb26d0a3bafb072ab13775f8fc4902d9e232a114dc1bcc27d3bd355b99",
+      "bytes": 2596864,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-855_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c701a2dc2b97a80105fa09aa7c6ba8fafa8348450546c5a6bc315c697cd24412",
+      "bytes": 2994176,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-856_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e5738171bfdca271a897a845103bad8a143c2a7676ce351e57936d937f0e1413",
+      "bytes": 3100672,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-857_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2410b9abbf57908a68eae6d0cba2490ed0cc58fd361c81cb29f1529778beb9e1",
+      "bytes": 2805760,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-858_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dea94361b71f157c4fb82fa5182c4f81764cb5e9d81157fa40a2bc413cfea26f",
+      "bytes": 1961984,
+      "extractedRecords": 30
+    },
+    {
+      "path": "clinical-859_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "38c7e2f1fd2e14c92cc5b7396abead3a402b2e7e0f88f9f489327c6602c8a173",
+      "bytes": 2633728,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-860_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6d2bc88f9df021ca65a404220e8d96495c2ac7a85266658e78b86641c6fc3ff2",
+      "bytes": 2838528,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-861_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "cca978b15c08848a42cf3abeed0e81a84b997f4f6de66d4879fb4715d735de9d",
+      "bytes": 1372160,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-862_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d4dfc80ae899219892e0c11035945df60a509276ac759338a5ed472e5bc8feb5",
+      "bytes": 1232896,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-863_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ac3beb8317e8063e32b8e85d00f86c4e5ac9d5139b936eb2b687865eafecff8b",
+      "bytes": 1462272,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-864_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7b8b77235850d04d6b65d0cee99edf362fe5256fb89eca91728783e6d5f135bd",
+      "bytes": 3158016,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-865_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3eb4e1947d7277224af4721a939bdb635beb44fe3efdb39132d3529eee2acf05",
+      "bytes": 1409024,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-866_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b80d544603619968393277846659cc99f5e2b5b3f01d2f8967fcca75fdc482ec",
+      "bytes": 1576960,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-867_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "482a7f028ea94e1410de00098c55f9a2baaff8a81592d00d45fff5b8a6e68baf",
+      "bytes": 2629632,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-868_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "51eaa82fd5ec512f347bfcb1e51fcfeb0a7aa577f5281cd24d1a4c4f264359b8",
+      "bytes": 2744320,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-869_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b937c1316e5b34273f50a797522b434f9a9cfc59369c0af8de08ae6f085290cb",
+      "bytes": 2269184,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-870_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1e63ac5ed3da2ff243b1d2d3e62fae91b44a09e19c8e8bd4955c9a335b706a2e",
+      "bytes": 2228224,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-871_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1e4f6b38e51632761b20c3990d3a6b931683e940faa6102837ea3532502d7466",
+      "bytes": 1843200,
+      "extractedRecords": 38
+    },
+    {
+      "path": "clinical-872_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d705e02d4ac28c528089425bdc0da149cd893d2cdfc1573c09e83abd88309a46",
+      "bytes": 1507328,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-873_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "be0f6312cc9c897c8e15071e84f179bf6d1ac426e3183da3e9472ee3b705a9e1",
+      "bytes": 1724416,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-874_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "220af40787acde9870c44360b40b5d7cd36ede4542686bb808c175360880473e",
+      "bytes": 1802240,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-875_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "39aaae93a6f20ecb9b08b7c6d8d7a046ef891e5c585142dbaa5efe2e1c22e535",
+      "bytes": 1597440,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-876_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e15cc76c3fe87c2f4d411bbe19c712d7fa005cde6b7b22b276ee630a50ebecc8",
+      "bytes": 3371008,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-877_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "704b5fb8508c6a6a1c2ccaf5640e8972bc978df287ff6c1e6a2cac263ac61b38",
+      "bytes": 2564096,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-878_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4fc16dca206380d1731d652b6253d0a46c717f17e883f673da222879a4b6d77d",
+      "bytes": 2469888,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-879_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d088ea8059286354824d22d5dd9a3ae5dce897587757d8e73ae016de22f1af8c",
+      "bytes": 1875968,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-87_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "91de0f484f44230fd072b68454e20830345aa532a31701bbb17f19f3e5e6b1b3",
+      "bytes": 5627904,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-880_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4ec88f5c7c44a62371c4fc2f2237e2b7ee7b19bf07cc874df39ebb8caa38a089",
+      "bytes": 2134016,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-881_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3b158485895c1de91bccc226c581514e227cb4dcb0b26d1e371af6be33f8ae1d",
+      "bytes": 3747840,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-882_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0d59cea9f9eeb961c244aa430216fc72476a75d4d9b69d72df3cbd12287aaa81",
+      "bytes": 2437120,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-883_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e5d8953688e94b60c671fdfc8b590f1582b7982c489f91f317d542286ad95afa",
+      "bytes": 2818048,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-884_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "45df5da322691f2e7ba5b9e08d917cb481f80e91d74098c97989c6f70008b3af",
+      "bytes": 1638400,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-885_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c765c17cca458a2d2aab2b31ba77245b0423900ba69cf4d06aa96902da10ed54",
+      "bytes": 1581056,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-886_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "bc430d7b3bb11f6f3dcf13d3685e726a1ac9679be522c79353735f67d06dcd1e",
+      "bytes": 1261568,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-887_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0df994e506ffb7c95a2b31bd74ba34e31c13b0a369d441d10879873cac29b980",
+      "bytes": 1597440,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-888_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d9ef788e733afd80db3122b6bfd592b3d1b4f4b6f68f764c4cb61c10a7de3ed8",
+      "bytes": 1994752,
+      "extractedRecords": 29
+    },
+    {
+      "path": "clinical-889_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "905f42297a5712ccc2359e17d025d3cc13ace0b51451b59a3a1ef71d204b0ca8",
+      "bytes": 2641920,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-88_5-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8dd06ae68aa9460ee713ef747b5e193f238af9e8744283077ff9e5e588d4bcfb",
+      "bytes": 3350528,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-890_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "78a09287ff23039052e633edb26a619bb79c88fe7d3af731633e4a8ce43ac9f0",
+      "bytes": 1073152,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-891_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "df87eb4237e579a7991705690d2426478dd64001c6d9fc1c8a94064cceaad6b0",
+      "bytes": 1343488,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-892_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fc851ed3fb837cc027a21bc968c6afcbe94231cb33c548b2fd7a5cf9934324d9",
+      "bytes": 1667072,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-893_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f05c8e235d52cb6324a16ecbd89a3d3ac49a512b9667180be26a7f7e00e091f2",
+      "bytes": 1474560,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-894_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b71add0c44d4792c76e8e7dedc995c3a5b9bbbb6d5443cd4f339d94ee1cec016",
+      "bytes": 2093056,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-895_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a6ae4dbbdd44ddb8a89fbeb07a7d845114ed569bf2ac335078fbc5d58e823722",
+      "bytes": 12607488,
+      "extractedRecords": 28
+    },
+    {
+      "path": "clinical-896_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "427976828191217b0d248651f584dbc20eb72b1bcaee7c9f8c27dac224684dd3",
+      "bytes": 2236416,
+      "extractedRecords": 48
+    },
+    {
+      "path": "clinical-897_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "52ec90a0d2558e4244faa53fd6a8a5c8ad428f08060b4698b4599b7fab246a99",
+      "bytes": 2383872,
+      "extractedRecords": 20
+    },
+    {
+      "path": "clinical-898_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "51f4971ecf90b6d1481ca027b44807e504e75a74a6e69e3c1a0a3233a64bde15",
+      "bytes": 4251648,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-899_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1d13a039a5630fcf0b707d742c08874ef8bd59156de46be34a0e4176ebbe2402",
+      "bytes": 2248704,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-8_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "aab0147901dc76cd8f7dc510e56607a187e6c62b623dcaa44417b2eebf87c0d3",
+      "bytes": 2162688,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-900_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2b02b3b76f671bdeab704a70646f61aee549fecb8aae2ad0af4eb5fb61f6191a",
+      "bytes": 3428352,
+      "extractedRecords": 17
+    },
+    {
+      "path": "clinical-901_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4751174de8b1174f3b58bbce31b3fee3fa2aa458da5900236f1827cd198b979e",
+      "bytes": 3743744,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-902_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0a2fec976d230cc910a7f1ab6bb6ec25f353a55b6a5b36106a0cdf29fbc0b6b6",
+      "bytes": 1507328,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-903_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3b5aa006c9a45b35157c8c0c90e61e480a21e8a5ae5b2f81cd0ef81da62ee42c",
+      "bytes": 1720320,
+      "extractedRecords": 18
+    },
+    {
+      "path": "clinical-904_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b8c57648e967ab892c1fc3371786e20e5757c876fe9345c868c05ab3f8aea041",
+      "bytes": 3895296,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-905_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5d08f1870426a58f0750dd7b4135c3b05fc07f4281ad8d8910a132c5d092e2d6",
+      "bytes": 1658880,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-906_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5cbddc085f7635c797f64252b91b79c93ddcfe7e9a7dccc508e430ee49cde65c",
+      "bytes": 1093632,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-907_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b66a9443d6b6557f8f9a7538d86120dac6c37f47dddc42d9d2bdb4e8445e5f23",
+      "bytes": 942080,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-908_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7c2fdf2b72b64a3bc9d1a7e5a100d1ecd68357bd04efbefa91af4acd48f5515d",
+      "bytes": 2482176,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-909_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5867b1b07bd92166a2f62fb76f4a17d5dfaf3e74421560317d3e19c422129d4b",
+      "bytes": 868352,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-910_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "77c2f9fd98f50fbbd3dc570972fd373ba5725ae8e4f5795c45d7de7808e1647c",
+      "bytes": 3522560,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-911_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f07bd342e76bb2e5a5f29ed5588c42c6391262dbf09e7c55179f394516bb543d",
+      "bytes": 2183168,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-912_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "eabbe3637c38dc817a01df7e5fb72db3b7dcbba6a654b4d1f64c4f4442d50df2",
+      "bytes": 2465792,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-913_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9e8ec1e04bd911ff4113420756f7871367bf4093778956f850526d6eefbc3884",
+      "bytes": 638976,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-914_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "abb2fe24bafe9b9d4e1bff8406b92bd3c2c2e916873760a183fdfb0494c8fe81",
+      "bytes": 3248128,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-915_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f4ab18f1cb8d41c219546c556c17d1bdc7b49514d4cf7d79684251d1b6b53156",
+      "bytes": 2052096,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-916_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0361d05d6fb201d0068b0c9e7781497e7e8d584f95f6008951e88b3bd69e32bb",
+      "bytes": 1187840,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-917_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "2e706ca670726e9192aeaed82775a771de8d39d5c4a3798ebd369366a47617ea",
+      "bytes": 1163264,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-918_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b5b0ce291cc11de4ac27b31bbb5287fee683c422ede64993e72b88e4696af95a",
+      "bytes": 970752,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-919_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "be24fc0b7bb3b5976030744200ee959d7f64dfadbd88e1b2005d0a72704858df",
+      "bytes": 7094272,
+      "extractedRecords": 33
+    },
+    {
+      "path": "clinical-920_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f4dbe09f5339d1106911b89484e5cbfb8734fc4151cede6f14b622e0630a5ee9",
+      "bytes": 2240512,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-921_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6b4a81105b08f148323541c7af089993e384d409a12cd201effcd9307ea8208d",
+      "bytes": 6057984,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-922_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fde7c725d18a2e4983c37a611cf50f985e1cf53d780c97ca8f0994d9020f63a3",
+      "bytes": 1175552,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-923_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "61de4b46191eb3e4286edcc31fbfea7ef90eca24987a47b0ca91de5beb091d9e",
+      "bytes": 1888256,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-924_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3f84eb63c088ea625a091e86b4ebce137faa8bbf04fc0347f34e1008a2b4b230",
+      "bytes": 4132864,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-925_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "08dae815d85d3f77573c4f3586f1b0373ce3a08811d40aeff2bc50843e34c324",
+      "bytes": 1286144,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-926_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dc4a8662c7fabc5195be922c9fccd1574fff8681d2585ea1e69aebae7ccb5665",
+      "bytes": 2334720,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-927_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a01a1788e51343bb126ad7b2e6d2383ae0238d3307d54cd356862c83bb3af4ad",
+      "bytes": 5509120,
+      "extractedRecords": 16
+    },
+    {
+      "path": "clinical-928_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "05b1437294bb6131003bcff7a94780e263043ef898136fe471765bf499619e52",
+      "bytes": 1138688,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-929_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ad52c771843e054a19fa7e906706e9ac3af6becaa5a559487d857c14edf5ed09",
+      "bytes": 1093632,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-92_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6752b81b6a983bba2e3aec23efc13fd937a1d3920b9abd89dcabf1a836f1ce04",
+      "bytes": 1441792,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-930_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4e7b5e8d9d46bbec9f4fe44811465ac81a942caf8236fc1e70085134081d8adb",
+      "bytes": 1740800,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-931_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "106d888ce248f1e59c2f007fbb3f2f633006415d89fc53144a39fd703e84e4be",
+      "bytes": 2330624,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-932_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1d60ce480ffc19902e451b3a000ba995eaf0bc3bc0d76827ebeb2c8086a46168",
+      "bytes": 2117632,
+      "extractedRecords": 21
+    },
+    {
+      "path": "clinical-933_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "ca1d0b115b00ec1767a5a327b81a6b97cd628f7e1c86fc26556a0ef57b83d9ad",
+      "bytes": 1581056,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-934_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "8c5cad6dade4e992402171e6d1fa6bfe24ff384ecb8eef6a4bb49274765ebd97",
+      "bytes": 6111232,
+      "extractedRecords": 22
+    },
+    {
+      "path": "clinical-935_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0118b30f57444242acb97a5df0074fc056f667b663f675fead5328ab6cfed85a",
+      "bytes": 950272,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-936_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dcdc78fcc2cbd247924631e28193cbb7119c5e3f707a070818978723814455ef",
+      "bytes": 2949120,
+      "extractedRecords": 41
+    },
+    {
+      "path": "clinical-937_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dd609c16398b2ebf13e98cc78fe4f3c1b782adfc22f6583eb5bba129771c4da8",
+      "bytes": 4616192,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-938_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "87a61a198ad066ae08dc493040178ac028a4770266425d8b10e741fe567f9cd5",
+      "bytes": 4886528,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-939_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e0c6f470bd44e7ec61804a441c7a763696e29fb7539e304c19f90fefbc1a3034",
+      "bytes": 5513216,
+      "extractedRecords": 40
+    },
+    {
+      "path": "clinical-940_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "da9e9510fb4826ccea3bc8c1d74bf49321e50082ab5605ccb0b05460868677d7",
+      "bytes": 3420160,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-941_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b3e3c22b403d7a8dae0a43fc6de561902e05cde6834a7e0cc78173e752d45af9",
+      "bytes": 1343488,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-942_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "becc7ae405dbc52074ea22b07b1fe25426abb639a3476e2c83216e4d3928238f",
+      "bytes": 2355200,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-943_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "77aca4dc6769626b2a583a0fae3006b447af1ecdc837627058fd7244523c4a86",
+      "bytes": 1384448,
+      "extractedRecords": 26
+    },
+    {
+      "path": "clinical-944_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0fce24460c7118e770568458253edab2acc9331f8f43e9ae413859a112a462db",
+      "bytes": 1736704,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-945_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b6916f253ecb6e222000707423f77a03921d6c64d534ea7c96f01ccfc15d41c5",
+      "bytes": 3653632,
+      "extractedRecords": 31
+    },
+    {
+      "path": "clinical-946_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3f01e717d7807a6dd71a0d5050eb631aab5691eddffa6e1353166371cbd9d32e",
+      "bytes": 3129344,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-947_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "f85a6820c34f7eadfad8ee3896b4a4a3af323ec069086600ec8ab8ceb0febf5e",
+      "bytes": 999424,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-948_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6aa9e2dbe2afdf1fc21d10464987cb83b8795ba887115f7606592bf18a669eaf",
+      "bytes": 1994752,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-949_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "de2f64612ad290c7c66cd24a4f30457e22cd5f5eb36c8f87b72257a8698c1704",
+      "bytes": 4116480,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-950_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d913b5814a941fb2a10af2b786621bc7a2bf0dec8a8dc277751ede2feae14293",
+      "bytes": 1093632,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-951_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "01c5936ea40b5ece456f783a7e2fae3e50132eccb0d0158f3aa91dfaa72cc555",
+      "bytes": 1298432,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-952_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "089e37ec823a0f38a4a0eabccdfdf9aac93de57d9fdead019588fa4ab7605e9e",
+      "bytes": 1843200,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-953_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "49f04f74bc500cf5f0da05d0769ae4dedbf8d75a26e9695c24b3dea39e965a1b",
+      "bytes": 2744320,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-954_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "502da0aef75f20a27e4c34a9ebdd1d2b9d903f660e120d1c25f3b81a5fe610c0",
+      "bytes": 2043904,
+      "extractedRecords": 36
+    },
+    {
+      "path": "clinical-955_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a680b354826adfb20bde2d934f1744578b491923ed64ee925bcb09e7b538541a",
+      "bytes": 1310720,
+      "extractedRecords": 12
+    },
+    {
+      "path": "clinical-956_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6655acda8b2c3e0778b9cd85c14a4d63211a7ccd0ee19b39447e1b1babf62b65",
+      "bytes": 974848,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-957_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b3e874308ce9267302eedc8417a1fb73e6f7a3d3d645a64fa71dda551e24a81b",
+      "bytes": 1781760,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-958_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "5e1b84dcb59943f600087e4364930606cd2b1101c47ef81e7db1446233887e22",
+      "bytes": 3481600,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-959_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "afa11d4c132ed01b6d6126870b3cbd3f2cd0e476d6148c611464bd29fd7daad4",
+      "bytes": 1871872,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-960_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3f1d8f944dc378183e186a1c90c62039e91ac93ca59def13632e1026431aaf79",
+      "bytes": 8617984,
+      "extractedRecords": 31
+    },
+    {
+      "path": "clinical-961_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d7a7779a17d204b03adf6d49963fb2440df5894b9c4a16aaf61e01f9dd9f7df4",
+      "bytes": 2658304,
+      "extractedRecords": 27
+    },
+    {
+      "path": "clinical-962_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0c9a263c78bcd8f1438550cc3af914767bfb6fb7ddcd2fd0d6adcc80929bbf78",
+      "bytes": 1118208,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-963_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "183ddcdec3b0377d7faa50bfd9a418257793d7ce32bc5a99101fd82ef99dd77b",
+      "bytes": 1716224,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-964_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0d50bdca9b79d65fb69a2861fe40c50c68497c4338e7024ed93af16f9937c5a3",
+      "bytes": 2125824,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-965_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dd180f48e50e0e5ac3628fa6729404e511f6319fe62d13a02303db3070c39f22",
+      "bytes": 2334720,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-966_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b29d4b0c0361f3fb85478781854034aed10b43f7ecb3fbbe16e7d0afa45b84b4",
+      "bytes": 1875968,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-967_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "4694a07a882e755099f35ff117c8ec17dd699c12dae7d02f390c2093fd2e8e8e",
+      "bytes": 1265664,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-968_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "698c36c99b435403a30c4e8adce8e2f505440d4a80bc30c6fb229fdc4f2857ec",
+      "bytes": 3530752,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-969_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d30689194e69b34fce02d1076b5b9b385528948ec9463093d1c0c8434e4c838c",
+      "bytes": 2228224,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-96_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "7d7b6870f223bbdb0b84efce20870e17bf8a35a61577be835e11b8cbe5c2fd99",
+      "bytes": 2961408,
+      "extractedRecords": 27
+    },
+    {
+      "path": "clinical-970_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a37d06ef2f2e4c12b7c99d94c09a7a426153e04041f7c53e812f857cddafc0ce",
+      "bytes": 3158016,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-971_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e2882d152ba11181a1b1d0872e963dbbddab6df9fbd2e88fcdb950932e7b0dab",
+      "bytes": 2064384,
+      "extractedRecords": 13
+    },
+    {
+      "path": "clinical-972_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9ad49124c8d963b00c4498494e9e3eff714ac699f14a6e1bed129495431e17bd",
+      "bytes": 958464,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-973_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "010452b88d2512c077344bba4f60024b3aa997a53369925314b687afa9a2c33c",
+      "bytes": 1486848,
+      "extractedRecords": 10
+    },
+    {
+      "path": "clinical-974_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "9f9d1ac45fd1aa644f6a6610efe08ce1289878f28fb49df3749d42c34505fb26",
+      "bytes": 950272,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-975_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "11c1de9f934782c1286c9d6035f0f6e2581994f9c2d0af54052896cfcf4fb546",
+      "bytes": 876544,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-976_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e25a9313e201913ec17fcc307e9053dda7084d2c18d69eae3e48f4ece59140f3",
+      "bytes": 806912,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-977_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "dca27df29a79b50ddadc7d450de05ea01a4077cf016173e8fa262a5c7fafe2d1",
+      "bytes": 1269760,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-978_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "b1a87322a576f794476e25664782b0372cfee0a313be714c98547707a71f415d",
+      "bytes": 2129920,
+      "extractedRecords": 9
+    },
+    {
+      "path": "clinical-979_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e8748b094102451132ce72c6c35583bf87a6d78f26b2f4d62ebf88d105b3bd60",
+      "bytes": 1486848,
+      "extractedRecords": 19
+    },
+    {
+      "path": "clinical-97_2-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "77915a71f6a4862f80b41c760bc15e89bf4573b208f7d9895893946c4ecd0d6e",
+      "bytes": 1585152,
+      "extractedRecords": 14
+    },
+    {
+      "path": "clinical-980_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "294328a4712da939738f60e1e6ea2aa5aad3fc3aa464e072e8ab95ac5e9fbb61",
+      "bytes": 7512064,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-981_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "042612d5184ce932e93d7defb9e559eb4c41b2ca9ce8ca1fdb766e88c4628ba7",
+      "bytes": 2248704,
+      "extractedRecords": 25
+    },
+    {
+      "path": "clinical-982_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3e9714384b105c4584012853ef1d1e6e4e14532812d29e411f1d1a88a0fd0f35",
+      "bytes": 2510848,
+      "extractedRecords": 70
+    },
+    {
+      "path": "clinical-983_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "fe13cbbfd83e43785d0fee6f5093f236af571bd09256545569c33a2f18f8420d",
+      "bytes": 5795840,
+      "extractedRecords": 32
+    },
+    {
+      "path": "clinical-984_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "154b11d42410402eaba2cbf519d9c171f1fd30adbafe205e069555a08234d875",
+      "bytes": 1073152,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-985_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "69c809203963d4cdb098693e3e3cb53bf70b73e010002b44acedf930d4b5ea0e",
+      "bytes": 614400,
+      "extractedRecords": 4
+    },
+    {
+      "path": "clinical-986_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "a7ecfa66e42f5bde146bd7d76c430fd623ce4a8bc2eaec4b4102caa785212239",
+      "bytes": 679936,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-987_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0628e9b967fe09de05767613fe1565e71ec0f97ae0993cf99630c33ca7332f53",
+      "bytes": 966656,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-988_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c6e1e6b07ad39679d1a57f08db9a12dc5f7eef695d27130779452869fd02b87a",
+      "bytes": 5103616,
+      "extractedRecords": 24
+    },
+    {
+      "path": "clinical-989_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0e421c5addbfd17aa6befb4deb8f9feee96aa69077eae296fd8cf367f7f02a07",
+      "bytes": 1126400,
+      "extractedRecords": 11
+    },
+    {
+      "path": "clinical-990_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "1cabf377e75b0776623984d72438aaa10b3845bced4db1a38877bf464aea5dc6",
+      "bytes": 630784,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-991_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "0331804daa0d366bc73bc6ca24165b95a5a4f09ca507ade1e86b1399556d0dbc",
+      "bytes": 929792,
+      "extractedRecords": 7
+    },
+    {
+      "path": "clinical-992_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c0267abf21998e4a7e4a30f647e6b6c40aeeea161d253239ee96e45afd2fab95",
+      "bytes": 1204224,
+      "extractedRecords": 3
+    },
+    {
+      "path": "clinical-993_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "e8043f51491ce20223175f02e07fe0a27176c8f1727fcb04291907c849652c42",
+      "bytes": 700416,
+      "extractedRecords": 6
+    },
+    {
+      "path": "clinical-994_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "c67d256a4886d31d268562b2cd23894dd2116154708f26ad047eefd1859fce4b",
+      "bytes": 4022272,
+      "extractedRecords": 8
+    },
+    {
+      "path": "clinical-995_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "d34885287ec233c6b06dee95feb2b1d96d785260ab0a35779943fa331fea032a",
+      "bytes": 2965504,
+      "extractedRecords": 23
+    },
+    {
+      "path": "clinical-996_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "76f3cddf763fda5b251b5b062d7a702da4a868fc173dad333315ebaae92aea10",
+      "bytes": 962560,
+      "extractedRecords": 5
+    },
+    {
+      "path": "clinical-997_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "3fc325a4db013c34a99c4e60e3e437b8c197f924bdffc479df06f17e80b49501",
+      "bytes": 2125824,
+      "extractedRecords": 15
+    },
+    {
+      "path": "clinical-998_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "16665aa2c1823b2e77fe22c187abf3edde4d5cb06e8aa69ceb4847abb7d049eb",
+      "bytes": 7184384,
+      "extractedRecords": 62
+    },
+    {
+      "path": "clinical-999_1-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "6f2576568eb24b8b8cff7d5693463bb537ccb8c8f4a139c2dd1636dfb4d05210",
+      "bytes": 2433024,
+      "extractedRecords": 27
+    },
+    {
+      "path": "clinical-9_3-clinical-json-2026.07.27-13991c1feee5.db",
+      "sha256": "32074ab1c8e80f417df74ef2a7448c7d0a7501ea1c96ab8425aca64db683d462",
+      "bytes": 1155072,
+      "extractedRecords": 9
+    }
+  ],
+  "qualification": "source-extraction-only; no clinical/independent reverse-search/device qualification or new-release rights implied. Shards bound payload size, not in-memory index size."
+}

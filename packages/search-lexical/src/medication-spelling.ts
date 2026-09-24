@@ -1,0 +1,207 @@
+import type { AliasRecord } from '@localmed/domain';
+import { normalizeSurfaceText } from './normalize';
+
+// Search costs, not equivalence classes or clinically interchangeable medicine names.
+// In particular и/о is not inferred transitively from и/е and е/о.
+const CONFUSIONS = ['ие', 'ео', 'ао', 'дт', 'зс', 'жш', 'бп', 'вф', 'гк', 'шщ', 'ий', 'еэ'];
+const PAIRS = new Set(CONFUSIONS.flatMap((pair) => [pair, [...pair].reverse().join('')]));
+const MAX_NAME = 96;
+export const MAX_MEDICATION_SPELLING_MATCHES = 8;
+const NAME = /^(?:[а-я]+(?:[ -][а-я]+){0,3}|[a-z]+(?:[ -][a-z]+){0,3})$/u;
+const NEGATION = /(?:^|\s)(?:не|нет|без|отрицает|аллергия|аллергии)(?:\s|$)/u;
+const PREFIX = /^(?:(?:инструкция(?:\s+(?:к|по))?|препарат|лекарство|описание)\s+)/u;
+const SUFFIX =
+  /\s+(?=\d|(?:мг|мл|mg|ml|таблетки|капсулы|раствор|инструкция|дозировка|противопоказания|побочные\s+эффекты)(?:\s|$))/u;
+
+interface Distance {
+  readonly cost: number;
+  readonly edits: number;
+}
+
+/** Weighted optimal-string-alignment distance with an independent edit-count ceiling. */
+function tokenDistance(left: string, right: string): Distance | null {
+  if (left === right) return { cost: 0, edits: 0 };
+  if (Math.min(left.length, right.length) < 5 || Math.max(left.length, right.length) > 48)
+    return null;
+  const maximum = Math.min(left.length, right.length) < 7 ? 1 : left.length >= 10 ? 3 : 2;
+  if (Math.abs(left.length - right.length) > maximum) return null;
+  const budget = maximum === 1 ? 3 : maximum === 2 ? 5 : 6;
+  let previous = Array.from({ length: right.length + 1 }, (_, i) => i * 3);
+  let previousEdits = Array.from({ length: right.length + 1 }, (_, i) => i);
+  let beforePrevious = previous;
+  let beforePreviousEdits = previousEdits;
+  for (let i = 1; i <= left.length; i += 1) {
+    const current = Array<number>(right.length + 1).fill(1000);
+    const currentEdits = Array<number>(right.length + 1).fill(1000);
+    current[0] = i * 3;
+    currentEdits[0] = i;
+    for (let j = Math.max(1, i - maximum); j <= Math.min(right.length, i + maximum); j += 1) {
+      const same = left[i - 1] === right[j - 1];
+      const substitution = same ? 0 : PAIRS.has(`${left[i - 1]}${right[j - 1]}`) ? 1 : 3;
+      let cost = Math.min(
+        (previous[j] ?? 1000) + 3,
+        (current[j - 1] ?? 1000) + 3,
+        (previous[j - 1] ?? 1000) + substitution,
+      );
+      let edits = Math.min(
+        (previousEdits[j] ?? 1000) + 1,
+        (currentEdits[j - 1] ?? 1000) + 1,
+        (previousEdits[j - 1] ?? 1000) + Number(!same),
+      );
+      if (i > 1 && j > 1 && left[i - 1] === right[j - 2] && left[i - 2] === right[j - 1]) {
+        cost = Math.min(cost, (beforePrevious[j - 2] ?? 1000) + 2);
+        edits = Math.min(edits, (beforePreviousEdits[j - 2] ?? 1000) + 1);
+      }
+      current[j] = cost;
+      currentEdits[j] = edits;
+    }
+    beforePrevious = previous;
+    beforePreviousEdits = previousEdits;
+    previous = current;
+    previousEdits = currentEdits;
+  }
+  const cost = previous[right.length] ?? 1000;
+  const edits = previousEdits[right.length] ?? 1000;
+  return cost <= budget && edits <= maximum ? { cost, edits } : null;
+}
+
+export interface MedicationSpellingMatch {
+  readonly name: string;
+  readonly canonicalTerms: readonly string[];
+  readonly matchedText: string;
+  readonly replacementQuery: string;
+  readonly cost: number;
+  /** Missing source-labelled marker is a navigation ambiguity, not a synonym. */
+  readonly omittedSuffix: string | null;
+}
+
+// A safe lower bound: at most three edits can change at most six distinct letters.
+function letterMask(value: string): number {
+  let bits = 0;
+  for (const character of value) bits |= 1 << (character.charCodeAt(0) % 32);
+  return bits;
+}
+function bitCount(value: number): number {
+  let bits = value >>> 0;
+  let count = 0;
+  while (bits) {
+    bits &= bits - 1;
+    count += 1;
+  }
+  return count;
+}
+
+interface Name {
+  readonly name: string;
+  readonly normalized: string;
+  readonly fullNormalized: string;
+  readonly omittedSuffix: string | null;
+  readonly parts: readonly string[];
+  readonly canonicals: Set<string>;
+  readonly masks: readonly number[];
+}
+
+/**
+ * A compact index of the already-loaded medication alias vocabulary, not document bodies.
+ * Exact known names are never repaired. No first-letter filter: the first letter can be wrong.
+ * Clinical analysis does not invoke this matcher; it belongs to ordinary source lookup only.
+ */
+export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[]) {
+  const known = new Set<string>();
+  const names = new Map<string, Name>();
+  const add = (value: string, canonical: string, lookup: string, suffix: string | null) => {
+    const fullNormalized = normalizeSurfaceText(value);
+    const key = `${fullNormalized}\0${lookup}`;
+    const existing = names.get(key);
+    if (existing) existing.canonicals.add(canonical);
+    else
+      names.set(key, {
+        name: value,
+        normalized: lookup,
+        fullNormalized,
+        omittedSuffix: suffix,
+        parts: lookup.split(/([ -])/u),
+        masks: lookup.split(/([ -])/u).map(letterMask),
+        canonicals: new Set([canonical]),
+      });
+  };
+  for (const alias of aliases) {
+    for (const value of [alias.alias, alias.canonicalTerm]) {
+      const normalized = normalizeSurfaceText(value);
+      known.add(normalized);
+      if (alias.category !== 'medication' || normalized.length > MAX_NAME || !NAME.test(normalized))
+        continue;
+      add(value, alias.canonicalTerm, normalized, null);
+      // Project only a substantial one-word name with one *existing* letter marker.
+      // Do not erase Forte/Retard, numbers, manufacturers or an explicitly entered marker.
+      // Both Foo Н and Foo П remain distinct alternatives with their full source names.
+      const marked = /^(?:([а-я]{7,48})[ -]([а-я])|([a-z]{7,48})[ -]([a-z]))$/u.exec(normalized);
+      const stem = marked?.[1] ?? marked?.[3];
+      const marker = marked?.[2] ?? marked?.[4];
+      if (stem && marker) add(value, alias.canonicalTerm, stem, marker);
+    }
+  }
+  const lengths = new Map<number, Name[]>();
+  for (const name of names.values()) {
+    const bucket = lengths.get(name.normalized.length) ?? [];
+    bucket.push(name);
+    lengths.set(name.normalized.length, bucket);
+  }
+  return (query: string): readonly MedicationSpellingMatch[] => {
+    if (!query || query.length > 160 || query.includes('\0')) return [];
+    const normalized = normalizeSurfaceText(query);
+    if (known.has(normalized) || NEGATION.test(normalized)) return [];
+    const prefix = PREFIX.exec(normalized)?.[0] ?? '';
+    const remainder = normalized.slice(prefix.length);
+    const suffixIndex = SUFFIX.exec(remainder)?.index ?? remainder.length;
+    const subject = remainder.slice(0, suffixIndex);
+    if (!subject || subject.length > MAX_NAME || !NAME.test(subject) || known.has(subject))
+      return [];
+    const parts = subject.split(/([ -])/u);
+    const masks = parts.map(letterMask);
+    const matches: MedicationSpellingMatch[] = [];
+    for (let length = Math.max(5, subject.length - 3); length <= subject.length + 3; length += 1) {
+      for (const name of lengths.get(length) ?? []) {
+        if (name.parts.length !== parts.length) continue;
+        let cost = 0;
+        let edits = 0;
+        let valid = true;
+        for (let i = 0; i < parts.length; i += 1) {
+          const left = parts[i] ?? '';
+          const right = name.parts[i] ?? '';
+          if (i % 2 === 1) {
+            if (left !== right) valid = false;
+            continue;
+          }
+          if (bitCount((masks[i] ?? 0) ^ (name.masks[i] ?? 0)) > 6) {
+            valid = false;
+            break;
+          }
+          const distance = tokenDistance(left, right);
+          if (!distance) {
+            valid = false;
+            break;
+          }
+          cost += distance.cost;
+          edits += distance.edits;
+          if (cost > 6 || edits > 3) {
+            valid = false;
+            break;
+          }
+        }
+        if (valid && (cost > 0 || name.omittedSuffix !== null))
+          matches.push({
+            name: name.name,
+            canonicalTerms: [...name.canonicals].sort().slice(0, 8),
+            matchedText: subject,
+            replacementQuery: prefix + name.fullNormalized + remainder.slice(suffixIndex),
+            cost: cost + Number(name.omittedSuffix !== null),
+            omittedSuffix: name.omittedSuffix,
+          });
+      }
+    }
+    return matches
+      .sort((left, right) => left.cost - right.cost || left.name.localeCompare(right.name, 'ru'))
+      .slice(0, MAX_MEDICATION_SPELLING_MATCHES);
+  };
+}

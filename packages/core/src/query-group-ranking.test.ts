@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { queryGroupRelevanceBoost, rankSearchGroupsByQuery } from './query-group-ranking';
 
-it('keeps all explicitly declared abbreviation meanings ahead of incidental mentions', () => {
+it('makes navigation aliases strict identities without promoting broad declared aliases', () => {
   const documents = [
     {
       id: 'classifier',
@@ -18,12 +18,12 @@ it('keeps all explicitly declared abbreviation meanings ahead of incidental ment
     group('disease', 'Мочекаменная болезнь', 0.1),
     group('classifier', 'Международная классификация болезней', 0.2),
   ];
-  expect(
-    rankSearchGroupsByQuery(groups, 'МКБ', documents)
-      .slice(0, 2)
-      .map((g) => g.documentId)
-      .toSorted(),
-  ).toEqual(['classifier', 'disease']);
+
+  const ranked = rankSearchGroupsByQuery(groups, 'МКБ', documents);
+  expect(ranked[0]?.documentId).toBe('classifier');
+  expect(ranked.findIndex((entry) => entry.documentId === 'incidental')).toBeLessThan(
+    ranked.findIndex((entry) => entry.documentId === 'disease'),
+  );
   expect(rankSearchGroupsByQuery(groups, 'МКБ-10', documents)[0]?.documentId).toBe('classifier');
 });
 
@@ -67,6 +67,60 @@ it('prefers several clinical clues in one passage over a single symptom in a tit
     analysis,
   );
   expect(ranked[0]?.documentId).toBe('source');
+});
+
+it('ranks broader positive-finding coverage above a high-score single-symptom match', () => {
+  const query = 'кашель высокая температура боль в груди у ребенка';
+  const { analysis } = analyzeClinicalQuery(query, []);
+  const ranked = rankSearchGroupsByQuery(
+    [
+      group('single', 'Кашель', 100, [
+        result('single', 'Кашель', 'Отмечается кашель.', ['кашель']),
+      ]),
+      group('multi', 'Клиническая картина', 0.1, [
+        result(
+          'multi',
+          'Клиническая картина',
+          'Боль в груди сочетается с высокой температурой и кашлем.',
+          ['кашель', 'температура', 'боль', 'груди'],
+        ),
+      ]),
+    ],
+    query,
+    [],
+    analysis,
+  );
+
+  expect(ranked[0]?.documentId).toBe('multi');
+});
+
+it('uses positive measurement context when ordering clinical candidates', () => {
+  const query = 'у ребенка сатурация 88 процентов — когда нужна госпитализация';
+  const { analysis } = analyzeClinicalQuery(query, []);
+  expect(analysis.clinicalContext?.positiveFindings).toEqual(
+    expect.arrayContaining([expect.objectContaining({ kind: 'measurement' })]),
+  );
+
+  const ranked = rankSearchGroupsByQuery(
+    [
+      group('generic', 'Госпитализация детей', 100, [
+        result('generic', 'Госпитализация детей', 'Общие организационные сведения.', []),
+      ]),
+      group('hypoxemia', 'Дыхательная недостаточность', 0.1, [
+        result(
+          'hypoxemia',
+          'Дыхательная недостаточность',
+          'Низкая сатурация требует оценки тяжести и маршрутизации.',
+          ['сатурация'],
+        ),
+      ]),
+    ],
+    query,
+    [],
+    analysis,
+  );
+
+  expect(ranked[0]?.documentId).toBe('hypoxemia');
 });
 
 it('does not promote plant medicines for a chest pain query', () => {
@@ -175,6 +229,39 @@ function document(
 }
 
 describe('query-aware group ranking', () => {
+  it('makes an exact title a hard invariant over stronger body-text evidence', () => {
+    const query = 'Шкала депрессии Бека';
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('body', 'Обзор психиатрических шкал', 100, [
+          result(
+            'body',
+            'Обзор психиатрических шкал',
+            'В тексте несколько раз упоминается шкала депрессии Бека.',
+          ),
+        ]),
+        group('exact', 'Шкала депрессии Бека', 0.01),
+      ],
+      query,
+    );
+
+    expect(ranked[0]?.documentId).toBe('exact');
+  });
+
+  it('prefers an exact title over another document that declares the same surface as an alias', () => {
+    const query = 'Ясперс';
+    const ranked = rankSearchGroupsByQuery(
+      [group('alias', 'Общая психопатология', 100), group('title', 'Ясперс', 0.01)],
+      query,
+      [
+        document('alias', 'medical_reference', { declaredAliases: ['Ясперс'] }),
+        document('title', 'medical_reference'),
+      ],
+    );
+
+    expect(ranked[0]?.documentId).toBe('title');
+  });
+
   it('does not promote generic legal titles above the requested health-group section', () => {
     const groups = [
       group('tuberculosis', 'Диспансерное наблюдение больных туберкулезом', 0.9),
@@ -368,16 +455,162 @@ describe('query-aware group ranking', () => {
     expect(ranked.map((item) => item.documentId)).toEqual(['drug', 'pneumonia']);
   });
 
-  it('does not promote a failed prior medication over the condition card', () => {
+  it.each([
+    'чем лечить пневмонию у ребенка если амоксициллин не помог',
+    'ребенок получает амоксициллин второй день, улучшения нет — что пересмотреть',
+    'нет эффекта от амоксициллина у ребенка с кашлем и высокой температурой',
+    'улучшения нет на амоксициллине, что пересмотреть',
+  ])('does not promote a failed prior medication over the condition card: %s', (query) => {
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
     const ranked = rankSearchGroupsByQuery(
       [
         group('drug', 'Амоксициллин — таблетки 500 мг', 0.37),
         group('pneumonia', 'Внебольничная пневмония у детей', 0.84),
       ],
-      'чем лечить пневмонию у ребенка если амоксициллин не помог',
+      query,
+      [],
+      analysis,
     );
 
     expect(ranked.map((item) => item.documentId)).toEqual(['pneumonia', 'drug']);
+  });
+
+  it('uses failed prior medication only as context inside a clinical recommendation', () => {
+    const query =
+      'ребенок с кашлем и высокой температурой получает амоксициллин второй день, улучшения нет — что пересмотреть';
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('bronchitis', 'Бронхит у детей', 1.4, [
+          result(
+            'bronchitis',
+            'Лечение',
+            'При бронхите антибактериальная терапия не назначается рутинно.',
+            ['кашель', 'температура'],
+          ),
+        ]),
+        group('pneumonia', 'Внебольничная пневмония у детей', 0.8, [
+          result(
+            'pneumonia',
+            'Лечение',
+            'Амоксициллин является препаратом выбора; при отсутствии ответа через 48–72 часа нужна повторная оценка.',
+            ['кашель', 'температура'],
+          ),
+        ]),
+        group('drug', 'Амоксициллин — таблетки 500 мг', 20, [
+          result('drug', 'Амоксициллин', 'Инструкция по медицинскому применению амоксициллина.'),
+        ]),
+      ],
+      query,
+      [
+        document('bronchitis', 'clinical_recommendation_summary'),
+        document('pneumonia', 'clinical_recommendation_summary'),
+        document('drug', 'official_drug_instruction'),
+      ],
+      analysis,
+    );
+
+    expect(ranked[0]?.documentId).toBe('pneumonia');
+    expect(ranked.findIndex((item) => item.documentId === 'drug')).toBeGreaterThan(
+      ranked.findIndex((item) => item.documentId === 'pneumonia'),
+    );
+  });
+
+  it('does not hard-rank failed prior medication as broader clinical evidence', () => {
+    const query =
+      'ребенок с кашлем получает амоксициллин второй день, улучшения нет — что пересмотреть';
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('drug', 'Амоксициллин', 0.1, [
+          result('drug', 'Амоксициллин', 'Амоксициллин. Кашель у ребенка.', [
+            'амоксициллин',
+            'кашель',
+          ]),
+        ]),
+        group('condition', 'Клиническая картина', 1, [
+          result('condition', 'Клиническая картина', 'Кашель у ребенка.', ['кашель']),
+        ]),
+      ],
+      query,
+      [],
+      analysis,
+    );
+
+    expect(ranked[0]?.documentId).toBe('condition');
+  });
+
+  it('binds delayed treatment failure to the medication instead of a preceding disease term', () => {
+    const query =
+      'пневмония у ребенка, получает амоксициллин второй день, улучшения нет — что пересмотреть';
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('drug', 'Амоксициллин — таблетки 500 мг', 0.37),
+        group('pneumonia', 'Пневмония у детей', 0.2),
+      ],
+      query,
+      [],
+      analysis,
+    );
+
+    expect(ranked[0]?.documentId).toBe('pneumonia');
+  });
+
+  it('does not classify a medication that helped as failed prior treatment', () => {
+    const query = 'амоксициллин помог ребенку, как продолжить лечение';
+    const { analysis } = analyzeClinicalQuery(query, [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+    ]);
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('drug', 'Амоксициллин — таблетки 500 мг', 0.37),
+        group('pneumonia', 'Внебольничная пневмония у детей', 0.84),
+      ],
+      query,
+      [],
+      analysis,
+    );
+
+    expect(ranked[0]?.documentId).toBe('drug');
   });
 
   it('recognizes compact and hyphenated document numbers as the same reference', () => {

@@ -15,6 +15,7 @@ export function contentModuleCatalogFingerprint(catalog: ContentModuleCatalog): 
       version: module.version,
       releaseState: module.releaseState,
       sourceSetDigest: module.sourceSetDigest,
+      definitionReference: module.definitionReference,
       artifacts: module.artifacts.map((artifact) => ({
         id: artifact.id,
         url: artifact.url,

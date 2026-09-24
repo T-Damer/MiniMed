@@ -30,6 +30,11 @@ def _render_schema(statements: list[tuple[str, str]]) -> str:
     return "\n".join(f"-- {name}\n{sql}\n" for name, sql in statements)
 
 
+def _is_create_index(statement: str) -> bool:
+    code = "\n".join(line for line in statement.splitlines() if not line.lstrip().startswith("--"))
+    return code.lstrip().upper().startswith("CREATE INDEX")
+
+
 def schema_sql(*, include_indexes: bool = True) -> str:
     statements = _schema_statements()
     if include_indexes:
@@ -40,7 +45,7 @@ def schema_sql(*, include_indexes: bool = True) -> str:
             ";\n".join(
                 statement.strip()
                 for statement in sql.split(";")
-                if statement.strip() and not statement.lstrip().upper().startswith("CREATE INDEX")
+                if statement.strip() and not _is_create_index(statement)
             )
             + ";",
         )
@@ -54,8 +59,41 @@ def secondary_indexes_sql() -> list[str]:
         statement.strip() + ";"
         for _, sql in _schema_statements()
         for statement in sql.split(";")
-        if statement.strip() and statement.lstrip().upper().startswith("CREATE INDEX")
+        if statement.strip() and _is_create_index(statement)
     ]
+
+
+_ESCAPED_SEARCH_JSON = r"*\[bfnrtu]*"
+
+
+def chunks_fts_uses_external_content(connection: sqlite3.Connection) -> bool:
+    row = connection.execute("SELECT sql FROM sqlite_master WHERE name = 'chunks_fts'").fetchone()
+    if row is None:
+        raise ValueError("chunks_fts is missing.")
+    return "chunks_fts_source" in str(row[0])
+
+
+def rebuild_chunks_fts_index(connection: sqlite3.Connection) -> None:
+    """Populate the external-content ordinary index from chunks (migration 010 layout)."""
+    # The view indexes raw JSON arrays; escapes would add tokens absent from the decoded names.
+    escaped = connection.execute(
+        """SELECT 1 FROM sections WHERE path_json GLOB ?
+        UNION ALL
+        SELECT 1 FROM chunks
+        WHERE json_extract(metadata_json, '$.terminologySearchNames') GLOB ?
+        LIMIT 1""",
+        (_ESCAPED_SEARCH_JSON, _ESCAPED_SEARCH_JSON),
+    ).fetchone()
+    if escaped is not None:
+        raise ValueError(
+            "Section paths and terminology search names must not contain JSON escapes."
+        )
+    connection.execute("INSERT INTO chunks_fts(chunks_fts) VALUES ('rebuild')")
+
+
+def verify_chunks_fts(connection: sqlite3.Connection) -> None:
+    """Rank 1 also compares an external-content index with its rows; run it after VACUUM."""
+    connection.execute("INSERT INTO chunks_fts(chunks_fts, rank) VALUES ('integrity-check', 1)")
 
 
 def int8_blob(values: list[int]) -> bytes:
@@ -249,29 +287,7 @@ def write_sqlite_pack(pack: ContentPack, output: Path, *, vacuum: bool = True) -
                 ) VALUES (?, ?, ?, ?)""",
                 embedding_rows,
             )
-            connection.execute(
-                """INSERT INTO chunks_fts(
-                    chunk_id, document_id, document_version_id, section_id, anchor,
-                    title, section_path, normalized_text
-                )
-                SELECT
-                    chunks.id,
-                    document_versions.document_id,
-                    chunks.document_version_id,
-                    chunks.section_id,
-                    chunks.anchor,
-                    documents.title,
-                    COALESCE(
-                        (SELECT group_concat(value, ' ') FROM json_each(sections.path_json)),
-                        ''
-                    ),
-                    chunks.normalized_text
-                FROM chunks
-                JOIN sections ON sections.id = chunks.section_id
-                JOIN document_versions ON document_versions.id = chunks.document_version_id
-                JOIN documents ON documents.id = document_versions.document_id
-                ORDER BY documents.id, sections.order_index, chunks.order_index, chunks.id"""
-            )
+            rebuild_chunks_fts_index(connection)
         connection.execute("BEGIN")
         try:
             for statement in secondary_indexes_sql():
@@ -283,6 +299,7 @@ def write_sqlite_pack(pack: ContentPack, output: Path, *, vacuum: bool = True) -
             connection.commit()
         if vacuum:
             connection.execute("VACUUM")
+        verify_chunks_fts(connection)
     finally:
         connection.close()
     temporary.replace(output)

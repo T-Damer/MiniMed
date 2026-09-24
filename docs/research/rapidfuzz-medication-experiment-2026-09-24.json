@@ -1,0 +1,3973 @@
+{
+  "format": "minimed-rapidfuzz-medication-experiment-v1",
+  "rapidfuzzVersion": "3.14.6",
+  "scorer": "rapidfuzz.distance.OSA.normalized_similarity",
+  "databaseSha256": "d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a",
+  "caseSha256": "6817653324fdd6d7ce906a9f5a000613fe35be381406437d2efed5b833bb9089",
+  "cases": 929,
+  "exactControls": 300,
+  "negativeControls": [
+    "АД",
+    "F20",
+    "500 мг",
+    "пневмония",
+    "гипертензия",
+    "шизофрения",
+    "головокружение",
+    "космический мармелад",
+    "анализ крови",
+    "рентгенография"
+  ],
+  "currentMatcher": {
+    "implementation": "MiniMed weighted banded OSA",
+    "cases": 929,
+    "elapsedMs": 6301.037813,
+    "microsecondsPerCase": 6782.602597416577,
+    "top1": 872,
+    "top5": 906,
+    "top8": 906,
+    "byFamily": {
+      "first-swap": {
+        "total": 20,
+        "top1": 13,
+        "top5": 20,
+        "top8": 20
+      },
+      "last-delete": {
+        "total": 20,
+        "top1": 13,
+        "top5": 20,
+        "top8": 20
+      },
+      "last-double": {
+        "total": 20,
+        "top1": 13,
+        "top5": 20,
+        "top8": 20
+      },
+      "last-swap": {
+        "total": 20,
+        "top1": 13,
+        "top5": 20,
+        "top8": 20
+      },
+      "prior-162": {
+        "total": 162,
+        "top1": 162,
+        "top5": 162,
+        "top8": 162
+      },
+      "rf-confusion": {
+        "total": 100,
+        "top1": 100,
+        "top5": 100,
+        "top8": 100
+      },
+      "rf-final-delete": {
+        "total": 100,
+        "top1": 100,
+        "top5": 100,
+        "top8": 100
+      },
+      "rf-final-double": {
+        "total": 100,
+        "top1": 100,
+        "top5": 100,
+        "top8": 100
+      },
+      "rf-first-swap": {
+        "total": 100,
+        "top1": 100,
+        "top5": 100,
+        "top8": 100
+      },
+      "rf-internal-swap": {
+        "total": 100,
+        "top1": 100,
+        "top5": 100,
+        "top8": 100
+      },
+      "rf-marker-omitted": {
+        "total": 77,
+        "top1": 71,
+        "top5": 77,
+        "top8": 77
+      },
+      "rf-two-edits": {
+        "total": 100,
+        "top1": 77,
+        "top5": 77,
+        "top8": 77
+      },
+      "user-kanephron": {
+        "total": 10,
+        "top1": 10,
+        "top5": 10,
+        "top8": 10
+      }
+    },
+    "exactControls": 300,
+    "exactGuardFailures": [],
+    "negativeControls": [
+      {
+        "query": "АД",
+        "candidates": []
+      },
+      {
+        "query": "F20",
+        "candidates": []
+      },
+      {
+        "query": "500 мг",
+        "candidates": []
+      },
+      {
+        "query": "пневмония",
+        "candidates": []
+      },
+      {
+        "query": "гипертензия",
+        "candidates": []
+      },
+      {
+        "query": "шизофрения",
+        "candidates": []
+      },
+      {
+        "query": "головокружение",
+        "candidates": []
+      },
+      {
+        "query": "космический мармелад",
+        "candidates": []
+      },
+      {
+        "query": "анализ крови",
+        "candidates": []
+      },
+      {
+        "query": "рентгенография",
+        "candidates": []
+      }
+    ],
+    "misses": [
+      {
+        "id": "rf-two-edits.3",
+        "family": "rf-two-edits",
+        "query": "виотбакт",
+        "target": "витабакт",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.7",
+        "family": "rf-two-edits",
+        "query": "лорносгеф",
+        "target": "лорноксеф",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.9",
+        "family": "rf-two-edits",
+        "query": "злеинза",
+        "target": "золинза",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.11",
+        "family": "rf-two-edits",
+        "query": "рибаемдил",
+        "target": "рибамидил",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.15",
+        "family": "rf-two-edits",
+        "query": "взоотенз",
+        "target": "вазотенз",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.16",
+        "family": "rf-two-edits",
+        "query": "метаитен",
+        "target": "метадиен",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.19",
+        "family": "rf-two-edits",
+        "query": "реагиол",
+        "target": "реагила",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.23",
+        "family": "rf-two-edits",
+        "query": "дентнеокс",
+        "target": "дентинокс",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.25",
+        "family": "rf-two-edits",
+        "query": "гэофуцин",
+        "target": "экофуцин",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.28",
+        "family": "rf-two-edits",
+        "query": "халавни",
+        "target": "халавен",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.29",
+        "family": "rf-two-edits",
+        "query": "бонифва",
+        "target": "бонвива",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.30",
+        "family": "rf-two-edits",
+        "query": "овлосемид",
+        "target": "валосемид",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.31",
+        "family": "rf-two-edits",
+        "query": "дигкесин",
+        "target": "дигоксин",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.33",
+        "family": "rf-two-edits",
+        "query": "моловас",
+        "target": "амловас",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.38",
+        "family": "rf-two-edits",
+        "query": "етрзетта",
+        "target": "тирзетта",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.44",
+        "family": "rf-two-edits",
+        "query": "эксмептия",
+        "target": "эксэмптия",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.48",
+        "family": "rf-two-edits",
+        "query": "двилазон",
+        "target": "дифлазон",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.51",
+        "family": "rf-two-edits",
+        "query": "гинаклин",
+        "target": "гиналгин",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.58",
+        "family": "rf-two-edits",
+        "query": "ниогрубин",
+        "target": "никорубин",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.70",
+        "family": "rf-two-edits",
+        "query": "сонсиин",
+        "target": "сонизин",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.72",
+        "family": "rf-two-edits",
+        "query": "эндиуврил",
+        "target": "эндифурил",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.94",
+        "family": "rf-two-edits",
+        "query": "рисетмин",
+        "target": "ристимин",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.99",
+        "family": "rf-two-edits",
+        "query": "бутамирда",
+        "target": "бутамират",
+        "rank": null,
+        "candidateCount": 0,
+        "candidates": []
+      }
+    ]
+  },
+  "rapidfuzz": {
+    "osa-full-names": {
+      "lookupSurfaces": 13402,
+      "sweep": {
+        "0.65": {
+          "total": 929,
+          "top1": 869,
+          "top5": 924,
+          "top8": 924,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 11,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 8,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 8,
+              "top5": 20,
+              "top8": 20
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 160,
+              "top5": 162,
+              "top8": 162
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 99,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 70,
+              "top5": 77,
+              "top8": 77
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 94,
+              "top5": 98,
+              "top8": 98
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 6,
+              "top5": 7,
+              "top8": 7
+            }
+          },
+          "cutoff": 0.65,
+          "elapsedMs": 1574.9785910000041,
+          "microsecondsPerCase": 1695.3483218514577,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 1.8493003229278795
+        },
+        "0.70": {
+          "total": 929,
+          "top1": 859,
+          "top5": 904,
+          "top8": 904,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 5,
+              "top5": 13,
+              "top8": 13
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 6,
+              "top5": 13,
+              "top8": 13
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 6,
+              "top5": 14,
+              "top8": 14
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 160,
+              "top5": 162,
+              "top8": 162
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 99,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 70,
+              "top5": 77,
+              "top8": 77
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 94,
+              "top5": 98,
+              "top8": 98
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 6,
+              "top5": 7,
+              "top8": 7
+            }
+          },
+          "cutoff": 0.7,
+          "elapsedMs": 1565.471685999995,
+          "microsecondsPerCase": 1685.1148396124813,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 1.4068891280947255
+        },
+        "0.75": {
+          "total": 929,
+          "top1": 815,
+          "top5": 836,
+          "top8": 836,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 1,
+              "top5": 2,
+              "top8": 2
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 1,
+              "top5": 2,
+              "top8": 2
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 2,
+              "top5": 4,
+              "top8": 4
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 147,
+              "top5": 148,
+              "top8": 148
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 98,
+              "top5": 98,
+              "top8": 98
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 99,
+              "top5": 99,
+              "top8": 99
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 99,
+              "top5": 99,
+              "top8": 99
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 98,
+              "top5": 98,
+              "top8": 98
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 70,
+              "top5": 77,
+              "top8": 77
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 85,
+              "top5": 87,
+              "top8": 87
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 2,
+              "top5": 2,
+              "top8": 2
+            }
+          },
+          "cutoff": 0.75,
+          "elapsedMs": 1569.8751710000067,
+          "microsecondsPerCase": 1689.8548665231506,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 1.0742734122712594
+        },
+        "0.80": {
+          "total": 929,
+          "top1": 673,
+          "top5": 676,
+          "top8": 676,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 2,
+              "top5": 3,
+              "top8": 3
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 129,
+              "top5": 129,
+              "top8": 129
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 98,
+              "top5": 98,
+              "top8": 98
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 99,
+              "top5": 99,
+              "top8": 99
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 99,
+              "top5": 99,
+              "top8": 99
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 98,
+              "top5": 98,
+              "top8": 98
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 27,
+              "top5": 29,
+              "top8": 29
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 19,
+              "top5": 19,
+              "top8": 19
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 2,
+              "top5": 2,
+              "top8": 2
+            }
+          },
+          "cutoff": 0.8,
+          "elapsedMs": 1561.268388000002,
+          "microsecondsPerCase": 1680.5902992465037,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 0.7728740581270183
+        },
+        "0.85": {
+          "total": 929,
+          "top1": 616,
+          "top5": 616,
+          "top8": 616,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 119,
+              "top5": 119,
+              "top8": 119
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 98,
+              "top5": 98,
+              "top8": 98
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 99,
+              "top5": 99,
+              "top8": 99
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 99,
+              "top5": 99,
+              "top8": 99
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 99,
+              "top5": 99,
+              "top8": 99
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 98,
+              "top5": 98,
+              "top8": 98
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 2,
+              "top5": 2,
+              "top8": 2
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 2,
+              "top5": 2,
+              "top8": 2
+            }
+          },
+          "cutoff": 0.85,
+          "elapsedMs": 1559.2768220000012,
+          "microsecondsPerCase": 1678.4465252960183,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 0.6942949407965554
+        },
+        "0.90": {
+          "total": 929,
+          "top1": 301,
+          "top5": 301,
+          "top8": 301,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 90,
+              "top5": 90,
+              "top8": 90
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 36,
+              "top5": 36,
+              "top8": 36
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 36,
+              "top5": 36,
+              "top8": 36
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 65,
+              "top5": 65,
+              "top8": 65
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 36,
+              "top5": 36,
+              "top8": 36
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 36,
+              "top5": 36,
+              "top8": 36
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 2,
+              "top5": 2,
+              "top8": 2
+            }
+          },
+          "cutoff": 0.9,
+          "elapsedMs": 1554.606829000008,
+          "microsecondsPerCase": 1673.4196221743898,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 0.32831001076426264
+        }
+      }
+    },
+    "osa-with-source-marker-projection": {
+      "lookupSurfaces": 13479,
+      "sweep": {
+        "0.65": {
+          "total": 929,
+          "top1": 889,
+          "top5": 929,
+          "top8": 929,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 160,
+              "top5": 162,
+              "top8": 162
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 71,
+              "top5": 77,
+              "top8": 77
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 96,
+              "top5": 100,
+              "top8": 100
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 10,
+              "top5": 10,
+              "top8": 10
+            }
+          },
+          "cutoff": 0.65,
+          "elapsedMs": 1575.7753939999902,
+          "microsecondsPerCase": 1696.2060215285148,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 1.8880516684607105
+        },
+        "0.70": {
+          "total": 929,
+          "top1": 889,
+          "top5": 929,
+          "top8": 929,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 160,
+              "top5": 162,
+              "top8": 162
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 71,
+              "top5": 77,
+              "top8": 77
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 96,
+              "top5": 100,
+              "top8": 100
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 10,
+              "top5": 10,
+              "top8": 10
+            }
+          },
+          "cutoff": 0.7,
+          "elapsedMs": 1570.0752359999938,
+          "microsecondsPerCase": 1690.0702217438038,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 1.4553283100107643
+        },
+        "0.75": {
+          "total": 929,
+          "top1": 867,
+          "top5": 904,
+          "top8": 904,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 147,
+              "top5": 148,
+              "top8": 148
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 71,
+              "top5": 77,
+              "top8": 77
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 87,
+              "top5": 89,
+              "top8": 89
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 10,
+              "top5": 10,
+              "top8": 10
+            }
+          },
+          "cutoff": 0.75,
+          "elapsedMs": 1570.1297500000067,
+          "microsecondsPerCase": 1690.1289020452173,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 1.1808396124865446
+        },
+        "0.80": {
+          "total": 929,
+          "top1": 778,
+          "top5": 812,
+          "top8": 812,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 129,
+              "top5": 129,
+              "top8": 129
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 71,
+              "top5": 77,
+              "top8": 77
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 19,
+              "top5": 19,
+              "top8": 19
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 7,
+              "top5": 7,
+              "top8": 7
+            }
+          },
+          "cutoff": 0.8,
+          "elapsedMs": 1580.7820389999988,
+          "microsecondsPerCase": 1701.5953057050579,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 0.9504843918191603
+        },
+        "0.85": {
+          "total": 929,
+          "top1": 749,
+          "top5": 783,
+          "top8": 783,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 13,
+              "top5": 20,
+              "top8": 20
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 119,
+              "top5": 119,
+              "top8": 119
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 100,
+              "top5": 100,
+              "top8": 100
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 71,
+              "top5": 77,
+              "top8": 77
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 7,
+              "top5": 7,
+              "top8": 7
+            }
+          },
+          "cutoff": 0.85,
+          "elapsedMs": 1575.9737409999984,
+          "microsecondsPerCase": 1696.4195274488682,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 0.9095801937567277
+        },
+        "0.90": {
+          "total": 929,
+          "top1": 378,
+          "top5": 388,
+          "top8": 388,
+          "byFamily": {
+            "first-swap": {
+              "total": 20,
+              "top1": 1,
+              "top5": 2,
+              "top8": 2
+            },
+            "last-delete": {
+              "total": 20,
+              "top1": 1,
+              "top5": 2,
+              "top8": 2
+            },
+            "last-double": {
+              "total": 20,
+              "top1": 2,
+              "top5": 3,
+              "top8": 3
+            },
+            "last-swap": {
+              "total": 20,
+              "top1": 1,
+              "top5": 2,
+              "top8": 2
+            },
+            "prior-162": {
+              "total": 162,
+              "top1": 90,
+              "top5": 90,
+              "top8": 90
+            },
+            "rf-confusion": {
+              "total": 100,
+              "top1": 36,
+              "top5": 36,
+              "top8": 36
+            },
+            "rf-final-delete": {
+              "total": 100,
+              "top1": 36,
+              "top5": 36,
+              "top8": 36
+            },
+            "rf-final-double": {
+              "total": 100,
+              "top1": 66,
+              "top5": 66,
+              "top8": 66
+            },
+            "rf-first-swap": {
+              "total": 100,
+              "top1": 36,
+              "top5": 36,
+              "top8": 36
+            },
+            "rf-internal-swap": {
+              "total": 100,
+              "top1": 36,
+              "top5": 36,
+              "top8": 36
+            },
+            "rf-marker-omitted": {
+              "total": 77,
+              "top1": 71,
+              "top5": 77,
+              "top8": 77
+            },
+            "rf-two-edits": {
+              "total": 100,
+              "top1": 0,
+              "top5": 0,
+              "top8": 0
+            },
+            "user-kanephron": {
+              "total": 10,
+              "top1": 2,
+              "top5": 2,
+              "top8": 2
+            }
+          },
+          "cutoff": 0.9,
+          "elapsedMs": 1570.3596790000063,
+          "microsecondsPerCase": 1690.3764036598561,
+          "negativeControlsWithCandidates": 0,
+          "meanCandidateCount": 0.4381054897739505
+        }
+      }
+    }
+  },
+  "missSamples": {
+    "osa-full-names@0.65": [
+      {
+        "id": "existing.164",
+        "query": "конифрон",
+        "target": "канефрон н",
+        "candidates": [
+          "экоцефрон"
+        ]
+      },
+      {
+        "id": "existing.165",
+        "query": "конефрно",
+        "target": "канефрон н",
+        "candidates": [
+          "экоцефрон"
+        ]
+      },
+      {
+        "id": "existing.170",
+        "query": "канифрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.18",
+        "query": "генофлро",
+        "target": "гинофлор э",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.56",
+        "query": "лнаотозид",
+        "target": "ланатозид ц",
+        "candidates": []
+      }
+    ],
+    "osa-full-names@0.70": [
+      {
+        "id": "existing.164",
+        "query": "конифрон",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.165",
+        "query": "конефрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.170",
+        "query": "канифрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.184",
+        "query": "хелепни",
+        "target": "хелепин-д",
+        "candidates": []
+      },
+      {
+        "id": "existing.185",
+        "query": "хелепи",
+        "target": "хелепин-д",
+        "candidates": []
+      },
+      {
+        "id": "existing.187",
+        "query": "ехлепин",
+        "target": "хелепин-д",
+        "candidates": []
+      },
+      {
+        "id": "existing.200",
+        "query": "глюкоаз",
+        "target": "глюкоза-э",
+        "candidates": [
+          "глюкоза",
+          "глюкофаж"
+        ]
+      },
+      {
+        "id": "existing.201",
+        "query": "глюкоз",
+        "target": "глюкоза-э",
+        "candidates": [
+          "глюкоза"
+        ]
+      },
+      {
+        "id": "existing.203",
+        "query": "лгюкоза",
+        "target": "глюкоза-э",
+        "candidates": [
+          "глюкоза"
+        ]
+      },
+      {
+        "id": "existing.209",
+        "query": "окупре",
+        "target": "окупрес-е",
+        "candidates": []
+      },
+      {
+        "id": "existing.211",
+        "query": "коупрес",
+        "target": "окупрес-е",
+        "candidates": []
+      },
+      {
+        "id": "existing.212",
+        "query": "риделта",
+        "target": "риделат-с",
+        "candidates": []
+      },
+      {
+        "id": "existing.213",
+        "query": "ридела",
+        "target": "риделат-с",
+        "candidates": []
+      },
+      {
+        "id": "existing.215",
+        "query": "ирделат",
+        "target": "риделат-с",
+        "candidates": []
+      },
+      {
+        "id": "existing.220",
+        "query": "золасна",
+        "target": "золасан т",
+        "candidates": [
+          "заласта"
+        ]
+      },
+      {
+        "id": "existing.221",
+        "query": "золаса",
+        "target": "золасан т",
+        "candidates": [
+          "заласта"
+        ]
+      },
+      {
+        "id": "existing.223",
+        "query": "озласан",
+        "target": "золасан т",
+        "candidates": []
+      },
+      {
+        "id": "existing.240",
+        "query": "беротке",
+        "target": "беротек н",
+        "candidates": []
+      },
+      {
+        "id": "existing.241",
+        "query": "бероте",
+        "target": "беротек н",
+        "candidates": [
+          "бериате"
+        ]
+      },
+      {
+        "id": "existing.243",
+        "query": "ебротек",
+        "target": "беротек н",
+        "candidates": []
+      },
+      {
+        "id": "existing.244",
+        "query": "резогма",
+        "target": "резогам н",
+        "candidates": [
+          "резорба"
+        ]
+      },
+      {
+        "id": "existing.245",
+        "query": "резога",
+        "target": "резогам н",
+        "candidates": [
+          "резорба"
+        ]
+      },
+      {
+        "id": "existing.247",
+        "query": "ерзогам",
+        "target": "резогам н",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.18",
+        "query": "генофлро",
+        "target": "гинофлор э",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.56",
+        "query": "лнаотозид",
+        "target": "ланатозид ц",
+        "candidates": []
+      }
+    ],
+    "osa-full-names@0.75": [
+      {
+        "id": "existing.121",
+        "query": "дрефоротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.124",
+        "query": "гвайфинисин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.125",
+        "query": "пемигодениб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.127",
+        "query": "ванкемецен",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.128",
+        "query": "темозелемед",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.129",
+        "query": "эпландорсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.130",
+        "query": "дропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.131",
+        "query": "глициредан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.132",
+        "query": "парекекзеб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.133",
+        "query": "монтелукозд",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.134",
+        "query": "кресетиниб",
+        "target": "кризотиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.136",
+        "query": "оттапулгед",
+        "target": "аттапулгит",
+        "candidates": []
+      },
+      {
+        "id": "existing.137",
+        "query": "везмодегеб",
+        "target": "висмодегиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.138",
+        "query": "раветосвир",
+        "target": "равидасвир",
+        "candidates": []
+      },
+      {
+        "id": "existing.162",
+        "query": "канефрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.163",
+        "query": "канифрон",
+        "target": "канефрон н",
+        "candidates": [
+          "гамифрон",
+          "канизон"
+        ]
+      },
+      {
+        "id": "existing.164",
+        "query": "конифрон",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.165",
+        "query": "конефрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.167",
+        "query": "канефро",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.168",
+        "query": "канефром",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.169",
+        "query": "канефрн",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.170",
+        "query": "канифрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.172",
+        "query": "уронормни",
+        "target": "уронормин-ф",
+        "candidates": []
+      },
+      {
+        "id": "existing.173",
+        "query": "уронорми",
+        "target": "уронормин-ф",
+        "candidates": []
+      },
+      {
+        "id": "existing.175",
+        "query": "руонормин",
+        "target": "уронормин-ф",
+        "candidates": [
+          "геонормин"
+        ]
+      },
+      {
+        "id": "existing.176",
+        "query": "аддамеьл",
+        "target": "аддамель н",
+        "candidates": []
+      },
+      {
+        "id": "existing.177",
+        "query": "аддамел",
+        "target": "аддамель н",
+        "candidates": []
+      },
+      {
+        "id": "existing.179",
+        "query": "дадамель",
+        "target": "аддамель н",
+        "candidates": [
+          "адасель"
+        ]
+      },
+      {
+        "id": "existing.180",
+        "query": "эберпрто",
+        "target": "эберпрот-п",
+        "candidates": []
+      },
+      {
+        "id": "existing.181",
+        "query": "эберпро",
+        "target": "эберпрот-п",
+        "candidates": []
+      },
+      {
+        "id": "existing.183",
+        "query": "бэерпрот",
+        "target": "эберпрот-п",
+        "candidates": []
+      },
+      {
+        "id": "existing.184",
+        "query": "хелепни",
+        "target": "хелепин-д",
+        "candidates": []
+      },
+      {
+        "id": "existing.185",
+        "query": "хелепи",
+        "target": "хелепин-д",
+        "candidates": []
+      },
+      {
+        "id": "existing.187",
+        "query": "ехлепин",
+        "target": "хелепин-д",
+        "candidates": []
+      },
+      {
+        "id": "existing.188",
+        "query": "эвкалитп",
+        "target": "эвкалипт-м",
+        "candidates": [
+          "эвкалипт"
+        ]
+      },
+      {
+        "id": "existing.189",
+        "query": "эвкалип",
+        "target": "эвкалипт-м",
+        "candidates": [
+          "эвкалипт"
+        ]
+      },
+      {
+        "id": "existing.191",
+        "query": "вэкалипт",
+        "target": "эвкалипт-м",
+        "candidates": [
+          "эвкалипт"
+        ]
+      },
+      {
+        "id": "existing.193",
+        "query": "астрама",
+        "target": "астрамаг а",
+        "candidates": [
+          "астрамаг"
+        ]
+      },
+      {
+        "id": "existing.195",
+        "query": "сатрамаг",
+        "target": "астрамаг а",
+        "candidates": [
+          "астрамаг"
+        ]
+      },
+      {
+        "id": "existing.196",
+        "query": "гинофлро",
+        "target": "гинофлор э",
+        "candidates": [
+          "гинофорт"
+        ]
+      },
+      {
+        "id": "existing.197",
+        "query": "гинофло",
+        "target": "гинофлор э",
+        "candidates": []
+      },
+      {
+        "id": "existing.199",
+        "query": "игнофлор",
+        "target": "гинофлор э",
+        "candidates": []
+      },
+      {
+        "id": "existing.200",
+        "query": "глюкоаз",
+        "target": "глюкоза-э",
+        "candidates": [
+          "глюкоза",
+          "глюкофаж"
+        ]
+      },
+      {
+        "id": "existing.201",
+        "query": "глюкоз",
+        "target": "глюкоза-э",
+        "candidates": [
+          "глюкоза"
+        ]
+      },
+      {
+        "id": "existing.203",
+        "query": "лгюкоза",
+        "target": "глюкоза-э",
+        "candidates": [
+          "глюкоза"
+        ]
+      },
+      {
+        "id": "existing.209",
+        "query": "окупре",
+        "target": "окупрес-е",
+        "candidates": []
+      },
+      {
+        "id": "existing.211",
+        "query": "коупрес",
+        "target": "окупрес-е",
+        "candidates": []
+      },
+      {
+        "id": "existing.212",
+        "query": "риделта",
+        "target": "риделат-с",
+        "candidates": []
+      },
+      {
+        "id": "existing.213",
+        "query": "ридела",
+        "target": "риделат-с",
+        "candidates": []
+      },
+      {
+        "id": "existing.215",
+        "query": "ирделат",
+        "target": "риделат-с",
+        "candidates": []
+      }
+    ],
+    "osa-full-names@0.80": [
+      {
+        "id": "existing.100",
+        "query": "имепромин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.101",
+        "query": "токозанал",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.103",
+        "query": "дрефаротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.109",
+        "query": "ванкемецин",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.112",
+        "query": "ланреадид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.113",
+        "query": "тропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.114",
+        "query": "пиребидил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.115",
+        "query": "глициретан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.116",
+        "query": "сипонимат",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.117",
+        "query": "парекекзиб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.119",
+        "query": "ниверапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.120",
+        "query": "римефентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.121",
+        "query": "дрефоротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.122",
+        "query": "норэпенифрен",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.123",
+        "query": "левезольбутамол",
+        "target": "левосальбутамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.124",
+        "query": "гвайфинисин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.125",
+        "query": "пемигодениб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.126",
+        "query": "сульдомециллин",
+        "target": "сультамициллин",
+        "candidates": []
+      },
+      {
+        "id": "existing.127",
+        "query": "ванкемецен",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.128",
+        "query": "темозелемед",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.129",
+        "query": "эпландорсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.130",
+        "query": "дропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.131",
+        "query": "глициредан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.132",
+        "query": "парекекзеб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.133",
+        "query": "монтелукозд",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.134",
+        "query": "кресетиниб",
+        "target": "кризотиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.135",
+        "query": "пэгцодокоплан",
+        "target": "пэгцетакоплан",
+        "candidates": []
+      },
+      {
+        "id": "existing.136",
+        "query": "оттапулгед",
+        "target": "аттапулгит",
+        "candidates": []
+      },
+      {
+        "id": "existing.137",
+        "query": "везмодегеб",
+        "target": "висмодегиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.138",
+        "query": "раветосвир",
+        "target": "равидасвир",
+        "candidates": []
+      },
+      {
+        "id": "existing.139",
+        "query": "дексамодозон",
+        "target": "дексаметазон",
+        "candidates": []
+      },
+      {
+        "id": "existing.155",
+        "query": "резперидон",
+        "target": "рисперидон",
+        "candidates": []
+      },
+      {
+        "id": "existing.156",
+        "query": "энолоприл",
+        "target": "эналаприл",
+        "candidates": []
+      },
+      {
+        "id": "existing.162",
+        "query": "канефрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.163",
+        "query": "канифрон",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.164",
+        "query": "конифрон",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.165",
+        "query": "конефрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.167",
+        "query": "канефро",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.168",
+        "query": "канефром",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.169",
+        "query": "канефрн",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.170",
+        "query": "канифрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.172",
+        "query": "уронормни",
+        "target": "уронормин-ф",
+        "candidates": []
+      },
+      {
+        "id": "existing.173",
+        "query": "уронорми",
+        "target": "уронормин-ф",
+        "candidates": []
+      },
+      {
+        "id": "existing.175",
+        "query": "руонормин",
+        "target": "уронормин-ф",
+        "candidates": []
+      },
+      {
+        "id": "existing.176",
+        "query": "аддамеьл",
+        "target": "аддамель н",
+        "candidates": []
+      },
+      {
+        "id": "existing.177",
+        "query": "аддамел",
+        "target": "аддамель н",
+        "candidates": []
+      },
+      {
+        "id": "existing.178",
+        "query": "аддамельь",
+        "target": "аддамель н",
+        "candidates": []
+      },
+      {
+        "id": "existing.179",
+        "query": "дадамель",
+        "target": "аддамель н",
+        "candidates": []
+      },
+      {
+        "id": "existing.180",
+        "query": "эберпрто",
+        "target": "эберпрот-п",
+        "candidates": []
+      },
+      {
+        "id": "existing.181",
+        "query": "эберпро",
+        "target": "эберпрот-п",
+        "candidates": []
+      }
+    ],
+    "osa-full-names@0.85": [
+      {
+        "id": "existing.100",
+        "query": "имепромин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.101",
+        "query": "токозанал",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.102",
+        "query": "римифентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.103",
+        "query": "дрефаротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.104",
+        "query": "норэпенифрин",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.106",
+        "query": "гвайфинизин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.107",
+        "query": "пемигодиниб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.109",
+        "query": "ванкемецин",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.110",
+        "query": "темозелемид",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.111",
+        "query": "эпландерсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.112",
+        "query": "ланреадид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.113",
+        "query": "тропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.114",
+        "query": "пиребидил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.115",
+        "query": "глициретан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.116",
+        "query": "сипонимат",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.117",
+        "query": "парекекзиб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.118",
+        "query": "монтелукозт",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.119",
+        "query": "ниверапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.120",
+        "query": "римефентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.121",
+        "query": "дрефоротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.122",
+        "query": "норэпенифрен",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.123",
+        "query": "левезольбутамол",
+        "target": "левосальбутамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.124",
+        "query": "гвайфинисин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.125",
+        "query": "пемигодениб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.126",
+        "query": "сульдомециллин",
+        "target": "сультамициллин",
+        "candidates": []
+      },
+      {
+        "id": "existing.127",
+        "query": "ванкемецен",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.128",
+        "query": "темозелемед",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.129",
+        "query": "эпландорсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.130",
+        "query": "дропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.131",
+        "query": "глициредан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.132",
+        "query": "парекекзеб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.133",
+        "query": "монтелукозд",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.134",
+        "query": "кресетиниб",
+        "target": "кризотиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.135",
+        "query": "пэгцодокоплан",
+        "target": "пэгцетакоплан",
+        "candidates": []
+      },
+      {
+        "id": "existing.136",
+        "query": "оттапулгед",
+        "target": "аттапулгит",
+        "candidates": []
+      },
+      {
+        "id": "existing.137",
+        "query": "везмодегеб",
+        "target": "висмодегиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.138",
+        "query": "раветосвир",
+        "target": "равидасвир",
+        "candidates": []
+      },
+      {
+        "id": "existing.139",
+        "query": "дексамодозон",
+        "target": "дексаметазон",
+        "candidates": []
+      },
+      {
+        "id": "existing.142",
+        "query": "парацитамолл",
+        "target": "парацетамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.147",
+        "query": "пароцитамол",
+        "target": "парацетамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.153",
+        "query": "азетромецин",
+        "target": "азитромицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.155",
+        "query": "резперидон",
+        "target": "рисперидон",
+        "candidates": []
+      },
+      {
+        "id": "existing.156",
+        "query": "энолоприл",
+        "target": "эналаприл",
+        "candidates": []
+      },
+      {
+        "id": "existing.162",
+        "query": "канефрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.163",
+        "query": "канифрон",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.164",
+        "query": "конифрон",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.165",
+        "query": "конефрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.167",
+        "query": "канефро",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.168",
+        "query": "канефром",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.169",
+        "query": "канефрн",
+        "target": "канефрон н",
+        "candidates": []
+      }
+    ],
+    "osa-full-names@0.90": [
+      {
+        "id": "existing.0",
+        "query": "иимпрамин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.1",
+        "query": "докозаонл",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.12",
+        "query": "ланретоид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.14",
+        "query": "пиирбедил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.16",
+        "query": "сипониомд",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.19",
+        "query": "енвирапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.20",
+        "query": "иипрамин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.21",
+        "query": "докозаол",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.32",
+        "query": "ланретид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.34",
+        "query": "пиибедил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.36",
+        "query": "сипониод",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.39",
+        "query": "евирапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.60",
+        "query": "ихипрамин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.61",
+        "query": "докозахол",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.72",
+        "query": "ланрехтид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.74",
+        "query": "пихибедил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.76",
+        "query": "сипониход",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.79",
+        "query": "хевирапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.80",
+        "query": "имепрамин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.81",
+        "query": "докозанал",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.92",
+        "query": "ланреатид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.94",
+        "query": "пиребедил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.96",
+        "query": "сипонимад",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.99",
+        "query": "нивирапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.100",
+        "query": "имепромин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.101",
+        "query": "токозанал",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.102",
+        "query": "римифентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.103",
+        "query": "дрефаротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.104",
+        "query": "норэпенифрин",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.105",
+        "query": "левезальбутамол",
+        "target": "левосальбутамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.106",
+        "query": "гвайфинизин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.107",
+        "query": "пемигодиниб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.108",
+        "query": "сульдомициллин",
+        "target": "сультамициллин",
+        "candidates": []
+      },
+      {
+        "id": "existing.109",
+        "query": "ванкемецин",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.110",
+        "query": "темозелемид",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.111",
+        "query": "эпландерсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.112",
+        "query": "ланреадид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.113",
+        "query": "тропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.114",
+        "query": "пиребидил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.115",
+        "query": "глициретан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.116",
+        "query": "сипонимат",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.117",
+        "query": "парекекзиб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.118",
+        "query": "монтелукозт",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.119",
+        "query": "ниверапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.120",
+        "query": "римефентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.121",
+        "query": "дрефоротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.122",
+        "query": "норэпенифрен",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.123",
+        "query": "левезольбутамол",
+        "target": "левосальбутамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.124",
+        "query": "гвайфинисин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.125",
+        "query": "пемигодениб",
+        "target": "пемигатиниб",
+        "candidates": []
+      }
+    ],
+    "osa-with-source-marker-projection@0.65": [],
+    "osa-with-source-marker-projection@0.70": [],
+    "osa-with-source-marker-projection@0.75": [
+      {
+        "id": "existing.121",
+        "query": "дрефоротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.124",
+        "query": "гвайфинисин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.125",
+        "query": "пемигодениб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.127",
+        "query": "ванкемецен",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.128",
+        "query": "темозелемед",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.129",
+        "query": "эпландорсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.130",
+        "query": "дропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.131",
+        "query": "глициредан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.132",
+        "query": "парекекзеб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.133",
+        "query": "монтелукозд",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.134",
+        "query": "кресетиниб",
+        "target": "кризотиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.136",
+        "query": "оттапулгед",
+        "target": "аттапулгит",
+        "candidates": []
+      },
+      {
+        "id": "existing.137",
+        "query": "везмодегеб",
+        "target": "висмодегиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.138",
+        "query": "раветосвир",
+        "target": "равидасвир",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.8",
+        "query": "гротокс",
+        "target": "гордокс",
+        "candidates": [
+          "лоротокс"
+        ]
+      },
+      {
+        "id": "rf-two-edits.9",
+        "query": "злеинза",
+        "target": "золинза",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.19",
+        "query": "реагиол",
+        "target": "реагила",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.28",
+        "query": "халавни",
+        "target": "халавен",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.29",
+        "query": "бонифва",
+        "target": "бонвива",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.33",
+        "query": "моловас",
+        "target": "амловас",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.52",
+        "query": "церпева",
+        "target": "цепрова",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.57",
+        "query": "эвернзе",
+        "target": "эврензо",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.70",
+        "query": "сонсиин",
+        "target": "сонизин",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.96",
+        "query": "опсикор",
+        "target": "аспикор",
+        "candidates": [
+          "оксикорт"
+        ]
+      },
+      {
+        "id": "rf-two-edits.98",
+        "query": "ригилнг",
+        "target": "риклинг",
+        "candidates": []
+      }
+    ],
+    "osa-with-source-marker-projection@0.80": [
+      {
+        "id": "existing.100",
+        "query": "имепромин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.101",
+        "query": "токозанал",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.103",
+        "query": "дрефаротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.109",
+        "query": "ванкемецин",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.112",
+        "query": "ланреадид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.113",
+        "query": "тропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.114",
+        "query": "пиребидил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.115",
+        "query": "глициретан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.116",
+        "query": "сипонимат",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.117",
+        "query": "парекекзиб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.119",
+        "query": "ниверапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.120",
+        "query": "римефентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.121",
+        "query": "дрефоротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.122",
+        "query": "норэпенифрен",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.123",
+        "query": "левезольбутамол",
+        "target": "левосальбутамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.124",
+        "query": "гвайфинисин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.125",
+        "query": "пемигодениб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.126",
+        "query": "сульдомециллин",
+        "target": "сультамициллин",
+        "candidates": []
+      },
+      {
+        "id": "existing.127",
+        "query": "ванкемецен",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.128",
+        "query": "темозелемед",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.129",
+        "query": "эпландорсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.130",
+        "query": "дропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.131",
+        "query": "глициредан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.132",
+        "query": "парекекзеб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.133",
+        "query": "монтелукозд",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.134",
+        "query": "кресетиниб",
+        "target": "кризотиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.135",
+        "query": "пэгцодокоплан",
+        "target": "пэгцетакоплан",
+        "candidates": []
+      },
+      {
+        "id": "existing.136",
+        "query": "оттапулгед",
+        "target": "аттапулгит",
+        "candidates": []
+      },
+      {
+        "id": "existing.137",
+        "query": "везмодегеб",
+        "target": "висмодегиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.138",
+        "query": "раветосвир",
+        "target": "равидасвир",
+        "candidates": []
+      },
+      {
+        "id": "existing.139",
+        "query": "дексамодозон",
+        "target": "дексаметазон",
+        "candidates": []
+      },
+      {
+        "id": "existing.155",
+        "query": "резперидон",
+        "target": "рисперидон",
+        "candidates": []
+      },
+      {
+        "id": "existing.156",
+        "query": "энолоприл",
+        "target": "эналаприл",
+        "candidates": []
+      },
+      {
+        "id": "existing.164",
+        "query": "конифрон",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.165",
+        "query": "конефрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.170",
+        "query": "канифрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.0",
+        "query": "нкаседжин",
+        "target": "наксоджин",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.1",
+        "query": "мидриамкз",
+        "target": "мидримакс",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.2",
+        "query": "имнуорекс",
+        "target": "имунорикс",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.3",
+        "query": "виотбакт",
+        "target": "витабакт",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.4",
+        "query": "йпорозкан",
+        "target": "йопроскан",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.6",
+        "query": "дологоск",
+        "target": "долококс",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.7",
+        "query": "лорносгеф",
+        "target": "лорноксеф",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.8",
+        "query": "гротокс",
+        "target": "гордокс",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.9",
+        "query": "злеинза",
+        "target": "золинза",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.11",
+        "query": "рибаемдил",
+        "target": "рибамидил",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.12",
+        "query": "клебедежйт",
+        "target": "клобеджейт",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.13",
+        "query": "кенуфмин",
+        "target": "конфумин",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.15",
+        "query": "взоотенз",
+        "target": "вазотенз",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.16",
+        "query": "метаитен",
+        "target": "метадиен",
+        "candidates": []
+      }
+    ],
+    "osa-with-source-marker-projection@0.85": [
+      {
+        "id": "existing.100",
+        "query": "имепромин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.101",
+        "query": "токозанал",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.102",
+        "query": "римифентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.103",
+        "query": "дрефаротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.104",
+        "query": "норэпенифрин",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.106",
+        "query": "гвайфинизин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.107",
+        "query": "пемигодиниб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.109",
+        "query": "ванкемецин",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.110",
+        "query": "темозелемид",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.111",
+        "query": "эпландерсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.112",
+        "query": "ланреадид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.113",
+        "query": "тропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.114",
+        "query": "пиребидил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.115",
+        "query": "глициретан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.116",
+        "query": "сипонимат",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.117",
+        "query": "парекекзиб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.118",
+        "query": "монтелукозт",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.119",
+        "query": "ниверапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.120",
+        "query": "римефентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.121",
+        "query": "дрефоротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.122",
+        "query": "норэпенифрен",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.123",
+        "query": "левезольбутамол",
+        "target": "левосальбутамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.124",
+        "query": "гвайфинисин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.125",
+        "query": "пемигодениб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.126",
+        "query": "сульдомециллин",
+        "target": "сультамициллин",
+        "candidates": []
+      },
+      {
+        "id": "existing.127",
+        "query": "ванкемецен",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.128",
+        "query": "темозелемед",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.129",
+        "query": "эпландорсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.130",
+        "query": "дропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.131",
+        "query": "глициредан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.132",
+        "query": "парекекзеб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.133",
+        "query": "монтелукозд",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.134",
+        "query": "кресетиниб",
+        "target": "кризотиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.135",
+        "query": "пэгцодокоплан",
+        "target": "пэгцетакоплан",
+        "candidates": []
+      },
+      {
+        "id": "existing.136",
+        "query": "оттапулгед",
+        "target": "аттапулгит",
+        "candidates": []
+      },
+      {
+        "id": "existing.137",
+        "query": "везмодегеб",
+        "target": "висмодегиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.138",
+        "query": "раветосвир",
+        "target": "равидасвир",
+        "candidates": []
+      },
+      {
+        "id": "existing.139",
+        "query": "дексамодозон",
+        "target": "дексаметазон",
+        "candidates": []
+      },
+      {
+        "id": "existing.142",
+        "query": "парацитамолл",
+        "target": "парацетамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.147",
+        "query": "пароцитамол",
+        "target": "парацетамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.153",
+        "query": "азетромецин",
+        "target": "азитромицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.155",
+        "query": "резперидон",
+        "target": "рисперидон",
+        "candidates": []
+      },
+      {
+        "id": "existing.156",
+        "query": "энолоприл",
+        "target": "эналаприл",
+        "candidates": []
+      },
+      {
+        "id": "existing.164",
+        "query": "конифрон",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.165",
+        "query": "конефрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "existing.170",
+        "query": "канифрно",
+        "target": "канефрон н",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.0",
+        "query": "нкаседжин",
+        "target": "наксоджин",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.1",
+        "query": "мидриамкз",
+        "target": "мидримакс",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.2",
+        "query": "имнуорекс",
+        "target": "имунорикс",
+        "candidates": []
+      },
+      {
+        "id": "rf-two-edits.3",
+        "query": "виотбакт",
+        "target": "витабакт",
+        "candidates": []
+      }
+    ],
+    "osa-with-source-marker-projection@0.90": [
+      {
+        "id": "existing.0",
+        "query": "иимпрамин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.1",
+        "query": "докозаонл",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.12",
+        "query": "ланретоид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.14",
+        "query": "пиирбедил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.16",
+        "query": "сипониомд",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.19",
+        "query": "енвирапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.20",
+        "query": "иипрамин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.21",
+        "query": "докозаол",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.32",
+        "query": "ланретид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.34",
+        "query": "пиибедил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.36",
+        "query": "сипониод",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.39",
+        "query": "евирапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.60",
+        "query": "ихипрамин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.61",
+        "query": "докозахол",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.72",
+        "query": "ланрехтид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.74",
+        "query": "пихибедил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.76",
+        "query": "сипониход",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.79",
+        "query": "хевирапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.80",
+        "query": "имепрамин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.81",
+        "query": "докозанал",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.92",
+        "query": "ланреатид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.94",
+        "query": "пиребедил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.96",
+        "query": "сипонимад",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.99",
+        "query": "нивирапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.100",
+        "query": "имепромин",
+        "target": "имипрамин",
+        "candidates": []
+      },
+      {
+        "id": "existing.101",
+        "query": "токозанал",
+        "target": "докозанол",
+        "candidates": []
+      },
+      {
+        "id": "existing.102",
+        "query": "римифентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.103",
+        "query": "дрефаротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.104",
+        "query": "норэпенифрин",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.105",
+        "query": "левезальбутамол",
+        "target": "левосальбутамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.106",
+        "query": "гвайфинизин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.107",
+        "query": "пемигодиниб",
+        "target": "пемигатиниб",
+        "candidates": []
+      },
+      {
+        "id": "existing.108",
+        "query": "сульдомициллин",
+        "target": "сультамициллин",
+        "candidates": []
+      },
+      {
+        "id": "existing.109",
+        "query": "ванкемецин",
+        "target": "ванкомицин",
+        "candidates": []
+      },
+      {
+        "id": "existing.110",
+        "query": "темозелемид",
+        "target": "темозоломид",
+        "candidates": []
+      },
+      {
+        "id": "existing.111",
+        "query": "эпландерсен",
+        "target": "эплонтерсен",
+        "candidates": []
+      },
+      {
+        "id": "existing.112",
+        "query": "ланреадид",
+        "target": "ланреотид",
+        "candidates": []
+      },
+      {
+        "id": "existing.113",
+        "query": "тропикамет",
+        "target": "тропикамид",
+        "candidates": []
+      },
+      {
+        "id": "existing.114",
+        "query": "пиребидил",
+        "target": "пирибедил",
+        "candidates": []
+      },
+      {
+        "id": "existing.115",
+        "query": "глициретан",
+        "target": "глицеритан",
+        "candidates": []
+      },
+      {
+        "id": "existing.116",
+        "query": "сипонимат",
+        "target": "сипонимод",
+        "candidates": []
+      },
+      {
+        "id": "existing.117",
+        "query": "парекекзиб",
+        "target": "парекоксиб",
+        "candidates": []
+      },
+      {
+        "id": "existing.118",
+        "query": "монтелукозт",
+        "target": "монтелукаст",
+        "candidates": []
+      },
+      {
+        "id": "existing.119",
+        "query": "ниверапин",
+        "target": "невирапин",
+        "candidates": []
+      },
+      {
+        "id": "existing.120",
+        "query": "римефентанел",
+        "target": "ремифентанил",
+        "candidates": []
+      },
+      {
+        "id": "existing.121",
+        "query": "дрефоротен",
+        "target": "трифаротен",
+        "candidates": []
+      },
+      {
+        "id": "existing.122",
+        "query": "норэпенифрен",
+        "target": "норэпинефрин",
+        "candidates": []
+      },
+      {
+        "id": "existing.123",
+        "query": "левезольбутамол",
+        "target": "левосальбутамол",
+        "candidates": []
+      },
+      {
+        "id": "existing.124",
+        "query": "гвайфинисин",
+        "target": "гвайфенезин",
+        "candidates": []
+      },
+      {
+        "id": "existing.125",
+        "query": "пемигодениб",
+        "target": "пемигатиниб",
+        "candidates": []
+      }
+    ]
+  },
+  "boundary": "Experimental candidate-generation benchmark only. RapidFuzz is not an application dependency and does not alter MedicalCore, medication identity, dosing, clinical parsing or released content. Mechanical cases are not independent clinician typo logs."
+}

@@ -90,7 +90,15 @@ describe('WorkerOpfsMedicalStore', () => {
       { method: 'listDocumentIdentities', rows: [{ id: 'doc-1', versionId: 'version-1' }] },
       {
         method: 'listSearchDocuments',
-        rows: [{ id: 'doc-1', sourceType: 'medical_reference', metadata: {} }],
+        rows: [
+          {
+            id: 'doc-1',
+            title: 'Document one',
+            shortTitle: null,
+            sourceType: 'medical_reference',
+            metadata: {},
+          },
+        ],
       },
     ] as const;
     for (const [index, projection] of projections.entries()) {

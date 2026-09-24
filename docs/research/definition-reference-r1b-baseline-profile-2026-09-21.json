@@ -1,0 +1,904 @@
+{
+  "schemaVersion": 1,
+  "sqliteVersion": "3.45.1",
+  "sqliteSha256": "82462d98f64d52e509ec16784036428fb9e72ce1867370cf29e3e46847520c43",
+  "sqliteBytes": 159125504,
+  "gzipBytes": 30474273,
+  "pageSize": 4096,
+  "pageCount": 38849,
+  "freePageBytes": 0,
+  "accountedBtreeBytes": 159125504,
+  "allocation": [
+    {
+      "name": "chunks",
+      "type": "table",
+      "owner": "chunks",
+      "pages": 14210,
+      "bytes": 58204160,
+      "payloadBytes": 46169645,
+      "unusedBytes": 11670461
+    },
+    {
+      "name": "knowledge_document_links",
+      "type": "table",
+      "owner": "knowledge_document_links",
+      "pages": 5545,
+      "bytes": 22712320,
+      "payloadBytes": 20528090,
+      "unusedBytes": 1824534
+    },
+    {
+      "name": "knowledge_entities",
+      "type": "table",
+      "owner": "knowledge_entities",
+      "pages": 2432,
+      "bytes": 9961472,
+      "payloadBytes": 9203705,
+      "unusedBytes": 608292
+    },
+    {
+      "name": "definition_reference_fts_data",
+      "type": "table",
+      "owner": "definition_reference_fts_data",
+      "pages": 2207,
+      "bytes": 9039872,
+      "payloadBytes": 8861182,
+      "unusedBytes": 112583
+    },
+    {
+      "name": "idx_knowledge_document_links_chunk_review",
+      "type": "index",
+      "owner": "knowledge_document_links",
+      "pages": 1633,
+      "bytes": 6688768,
+      "payloadBytes": 6358780,
+      "unusedBytes": 147896
+    },
+    {
+      "name": "chunks_fts_data",
+      "type": "table",
+      "owner": "chunks_fts_data",
+      "pages": 1513,
+      "bytes": 6197248,
+      "payloadBytes": 6090196,
+      "unusedBytes": 60839
+    },
+    {
+      "name": "idx_knowledge_document_links_section",
+      "type": "index",
+      "owner": "knowledge_document_links",
+      "pages": 975,
+      "bytes": 3993600,
+      "payloadBytes": 3826480,
+      "unusedBytes": 33549
+    },
+    {
+      "name": "idx_knowledge_document_links_version",
+      "type": "index",
+      "owner": "knowledge_document_links",
+      "pages": 947,
+      "bytes": 3878912,
+      "payloadBytes": 3663980,
+      "unusedBytes": 81697
+    },
+    {
+      "name": "knowledge_names",
+      "type": "table",
+      "owner": "knowledge_names",
+      "pages": 937,
+      "bytes": 3837952,
+      "payloadBytes": 3594752,
+      "unusedBytes": 119698
+    },
+    {
+      "name": "idx_knowledge_document_links_document",
+      "type": "index",
+      "owner": "knowledge_document_links",
+      "pages": 909,
+      "bytes": 3723264,
+      "payloadBytes": 3542105,
+      "unusedBytes": 48380
+    },
+    {
+      "name": "idx_knowledge_document_links_chunk",
+      "type": "index",
+      "owner": "knowledge_document_links",
+      "pages": 906,
+      "bytes": 3710976,
+      "payloadBytes": 3501480,
+      "unusedBytes": 76753
+    },
+    {
+      "name": "sqlite_autoindex_knowledge_document_links_1",
+      "type": "index",
+      "owner": "knowledge_document_links",
+      "pages": 654,
+      "bytes": 2678784,
+      "payloadBytes": 2524781,
+      "unusedBytes": 24284
+    },
+    {
+      "name": "idx_chunks_section_order",
+      "type": "index",
+      "owner": "chunks",
+      "pages": 597,
+      "bytes": 2445312,
+      "payloadBytes": 2308882,
+      "unusedBytes": 57843
+    },
+    {
+      "name": "idx_chunks_version_order",
+      "type": "index",
+      "owner": "chunks",
+      "pages": 569,
+      "bytes": 2330624,
+      "payloadBytes": 2213646,
+      "unusedBytes": 38727
+    },
+    {
+      "name": "idx_knowledge_document_links_entity",
+      "type": "index",
+      "owner": "knowledge_document_links",
+      "pages": 565,
+      "bytes": 2314240,
+      "payloadBytes": 2174447,
+      "unusedBytes": 11142
+    },
+    {
+      "name": "idx_chunks_next",
+      "type": "index",
+      "owner": "chunks",
+      "pages": 531,
+      "bytes": 2174976,
+      "payloadBytes": 2046717,
+      "unusedBytes": 50464
+    },
+    {
+      "name": "idx_chunks_previous",
+      "type": "index",
+      "owner": "chunks",
+      "pages": 531,
+      "bytes": 2174976,
+      "payloadBytes": 2046717,
+      "unusedBytes": 50464
+    },
+    {
+      "name": "sqlite_autoindex_chunks_1",
+      "type": "index",
+      "owner": "chunks",
+      "pages": 531,
+      "bytes": 2174976,
+      "payloadBytes": 2047446,
+      "unusedBytes": 49735
+    },
+    {
+      "name": "sqlite_autoindex_chunks_2",
+      "type": "index",
+      "owner": "chunks",
+      "pages": 489,
+      "bytes": 2002944,
+      "payloadBytes": 1904592,
+      "unusedBytes": 21061
+    },
+    {
+      "name": "knowledge_fts_content",
+      "type": "table",
+      "owner": "knowledge_fts_content",
+      "pages": 443,
+      "bytes": 1814528,
+      "payloadBytes": 1681595,
+      "unusedBytes": 30608
+    },
+    {
+      "name": "knowledge_fts_data",
+      "type": "table",
+      "owner": "knowledge_fts_data",
+      "pages": 334,
+      "bytes": 1368064,
+      "payloadBytes": 1339810,
+      "unusedBytes": 18271
+    },
+    {
+      "name": "idx_knowledge_entities_type_name",
+      "type": "index",
+      "owner": "knowledge_entities",
+      "pages": 273,
+      "bytes": 1118208,
+      "payloadBytes": 1037285,
+      "unusedBytes": 22158
+    },
+    {
+      "name": "idx_knowledge_names_normalized",
+      "type": "index",
+      "owner": "knowledge_names",
+      "pages": 250,
+      "bytes": 1024000,
+      "payloadBytes": 943352,
+      "unusedBytes": 21340
+    },
+    {
+      "name": "sqlite_autoindex_knowledge_names_1",
+      "type": "index",
+      "owner": "knowledge_names",
+      "pages": 246,
+      "bytes": 1007616,
+      "payloadBytes": 936138,
+      "unusedBytes": 13177
+    },
+    {
+      "name": "idx_knowledge_names_entity",
+      "type": "index",
+      "owner": "knowledge_names",
+      "pages": 215,
+      "bytes": 880640,
+      "payloadBytes": 806970,
+      "unusedBytes": 15741
+    },
+    {
+      "name": "sqlite_autoindex_knowledge_entities_1",
+      "type": "index",
+      "owner": "knowledge_entities",
+      "pages": 211,
+      "bytes": 864256,
+      "payloadBytes": 793651,
+      "unusedBytes": 13678
+    },
+    {
+      "name": "knowledge_fts_docsize",
+      "type": "table",
+      "owner": "knowledge_fts_docsize",
+      "pages": 60,
+      "bytes": 245760,
+      "payloadBytes": 145064,
+      "unusedBytes": 7454
+    },
+    {
+      "name": "definition_reference_fts_docsize",
+      "type": "table",
+      "owner": "definition_reference_fts_docsize",
+      "pages": 53,
+      "bytes": 217088,
+      "payloadBytes": 92504,
+      "unusedBytes": 4209
+    },
+    {
+      "name": "definition_reference_fts_idx",
+      "type": "table",
+      "owner": "definition_reference_fts_idx",
+      "pages": 14,
+      "bytes": 57344,
+      "payloadBytes": 43075,
+      "unusedBytes": 6659
+    },
+    {
+      "name": "sqlite_schema",
+      "type": "internal",
+      "owner": "sqlite_schema",
+      "pages": 6,
+      "bytes": 24576,
+      "payloadBytes": 17995,
+      "unusedBytes": 5982
+    },
+    {
+      "name": "documents",
+      "type": "table",
+      "owner": "documents",
+      "pages": 3,
+      "bytes": 12288,
+      "payloadBytes": 7449,
+      "unusedBytes": 4759
+    },
+    {
+      "name": "knowledge_fts_idx",
+      "type": "table",
+      "owner": "knowledge_fts_idx",
+      "pages": 3,
+      "bytes": 12288,
+      "payloadBytes": 4680,
+      "unusedBytes": 6589
+    },
+    {
+      "name": "aliases",
+      "type": "table",
+      "owner": "aliases",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "app_metadata",
+      "type": "table",
+      "owner": "app_metadata",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 1873,
+      "unusedBytes": 2174
+    },
+    {
+      "name": "chunk_embeddings",
+      "type": "table",
+      "owner": "chunk_embeddings",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "chunks_fts_config",
+      "type": "table",
+      "owner": "chunks_fts_config",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 11,
+      "unusedBytes": 4074
+    },
+    {
+      "name": "chunks_fts_content",
+      "type": "table",
+      "owner": "chunks_fts_content",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "chunks_fts_docsize",
+      "type": "table",
+      "owner": "chunks_fts_docsize",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "chunks_fts_idx",
+      "type": "table",
+      "owner": "chunks_fts_idx",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 1985,
+      "unusedBytes": 1503
+    },
+    {
+      "name": "content_packs",
+      "type": "table",
+      "owner": "content_packs",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 178,
+      "unusedBytes": 3905
+    },
+    {
+      "name": "definition_reference_fts_config",
+      "type": "table",
+      "owner": "definition_reference_fts_config",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 11,
+      "unusedBytes": 4074
+    },
+    {
+      "name": "document_versions",
+      "type": "table",
+      "owner": "document_versions",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 2331,
+      "unusedBytes": 1712
+    },
+    {
+      "name": "embedding_profiles",
+      "type": "table",
+      "owner": "embedding_profiles",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_aliases_alias",
+      "type": "index",
+      "owner": "aliases",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_chunk_embeddings_chunk",
+      "type": "index",
+      "owner": "chunk_embeddings",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_documents_content_pack",
+      "type": "index",
+      "owner": "documents",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 386,
+      "unusedBytes": 3675
+    },
+    {
+      "name": "idx_knowledge_evidence_chunk",
+      "type": "index",
+      "owner": "knowledge_evidence",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_knowledge_evidence_document",
+      "type": "index",
+      "owner": "knowledge_evidence",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_knowledge_evidence_fact",
+      "type": "index",
+      "owner": "knowledge_evidence",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_knowledge_evidence_relation",
+      "type": "index",
+      "owner": "knowledge_evidence",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_knowledge_evidence_section",
+      "type": "index",
+      "owner": "knowledge_evidence",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_knowledge_evidence_version",
+      "type": "index",
+      "owner": "knowledge_evidence",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_knowledge_facts_entity_type",
+      "type": "index",
+      "owner": "knowledge_facts",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_knowledge_relations_object",
+      "type": "index",
+      "owner": "knowledge_relations",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_knowledge_relations_subject",
+      "type": "index",
+      "owner": "knowledge_relations",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_knowledge_review_tasks_status_priority",
+      "type": "index",
+      "owner": "knowledge_review_tasks",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_sections_parent",
+      "type": "index",
+      "owner": "sections",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 35,
+      "unusedBytes": 4026
+    },
+    {
+      "name": "idx_sections_version_order",
+      "type": "index",
+      "owner": "sections",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 809,
+      "unusedBytes": 3252
+    },
+    {
+      "name": "idx_tool_definitions_kind_category",
+      "type": "index",
+      "owner": "tool_definitions",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_tool_sources_tool",
+      "type": "index",
+      "owner": "tool_sources",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "idx_versions_document",
+      "type": "index",
+      "owner": "document_versions",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 773,
+      "unusedBytes": 3288
+    },
+    {
+      "name": "knowledge_evidence",
+      "type": "table",
+      "owner": "knowledge_evidence",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "knowledge_facts",
+      "type": "table",
+      "owner": "knowledge_facts",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "knowledge_fts_config",
+      "type": "table",
+      "owner": "knowledge_fts_config",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 11,
+      "unusedBytes": 4074
+    },
+    {
+      "name": "knowledge_relations",
+      "type": "table",
+      "owner": "knowledge_relations",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "knowledge_review_tasks",
+      "type": "table",
+      "owner": "knowledge_review_tasks",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "medication_profiles",
+      "type": "table",
+      "owner": "medication_profiles",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "schema_migrations",
+      "type": "table",
+      "owner": "schema_migrations",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 13,
+      "unusedBytes": 4071
+    },
+    {
+      "name": "sections",
+      "type": "table",
+      "owner": "sections",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 3609,
+      "unusedBytes": 434
+    },
+    {
+      "name": "sqlite_autoindex_aliases_1",
+      "type": "index",
+      "owner": "aliases",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_app_metadata_1",
+      "type": "index",
+      "owner": "app_metadata",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 857,
+      "unusedBytes": 3201
+    },
+    {
+      "name": "sqlite_autoindex_chunk_embeddings_1",
+      "type": "index",
+      "owner": "chunk_embeddings",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_content_packs_1",
+      "type": "index",
+      "owner": "content_packs",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 42,
+      "unusedBytes": 4043
+    },
+    {
+      "name": "sqlite_autoindex_document_versions_1",
+      "type": "index",
+      "owner": "document_versions",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 800,
+      "unusedBytes": 3261
+    },
+    {
+      "name": "sqlite_autoindex_documents_1",
+      "type": "index",
+      "owner": "documents",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 773,
+      "unusedBytes": 3288
+    },
+    {
+      "name": "sqlite_autoindex_embedding_profiles_1",
+      "type": "index",
+      "owner": "embedding_profiles",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_embedding_profiles_2",
+      "type": "index",
+      "owner": "embedding_profiles",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_knowledge_evidence_1",
+      "type": "index",
+      "owner": "knowledge_evidence",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_knowledge_facts_1",
+      "type": "index",
+      "owner": "knowledge_facts",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_knowledge_relations_1",
+      "type": "index",
+      "owner": "knowledge_relations",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_knowledge_review_tasks_1",
+      "type": "index",
+      "owner": "knowledge_review_tasks",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_medication_profiles_1",
+      "type": "index",
+      "owner": "medication_profiles",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_sections_1",
+      "type": "index",
+      "owner": "sections",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 836,
+      "unusedBytes": 3225
+    },
+    {
+      "name": "sqlite_autoindex_sections_2",
+      "type": "index",
+      "owner": "sections",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 836,
+      "unusedBytes": 3225
+    },
+    {
+      "name": "sqlite_autoindex_tool_definitions_1",
+      "type": "index",
+      "owner": "tool_definitions",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_tool_definitions_2",
+      "type": "index",
+      "owner": "tool_definitions",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "sqlite_autoindex_tool_sources_1",
+      "type": "index",
+      "owner": "tool_sources",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "tool_definitions",
+      "type": "table",
+      "owner": "tool_definitions",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    },
+    {
+      "name": "tool_sources",
+      "type": "table",
+      "owner": "tool_sources",
+      "pages": 1,
+      "bytes": 4096,
+      "payloadBytes": 0,
+      "unusedBytes": 4088
+    }
+  ],
+  "tables": {
+    "app_metadata": {
+      "rows": 10,
+      "logicalColumnBytes": {
+        "key": 810,
+        "value": 1024
+      }
+    },
+    "documents": {
+      "rows": 9,
+      "logicalColumnBytes": {
+        "id": 729,
+        "content_pack_id": 351,
+        "title": 975,
+        "metadata_json": 4296,
+        "current_version_id": 756
+      }
+    },
+    "document_versions": {
+      "rows": 9,
+      "logicalColumnBytes": {
+        "id": 756,
+        "document_id": 729,
+        "source_checksum": 639
+      }
+    },
+    "sections": {
+      "rows": 9,
+      "logicalColumnBytes": {
+        "id": 792,
+        "document_version_id": 756,
+        "title": 315,
+        "anchor": 792,
+        "path_json": 351
+      }
+    },
+    "chunks": {
+      "rows": 23809,
+      "logicalColumnBytes": {
+        "id": 1904720,
+        "document_version_id": 1999956,
+        "section_id": 2095192,
+        "original_text": 15998268,
+        "normalized_text": 0,
+        "previous_chunk_id": 1904000,
+        "next_chunk_id": 1904000,
+        "anchor": 1761866,
+        "metadata_json": 18008329
+      }
+    },
+    "knowledge_entities": {
+      "rows": 18133,
+      "logicalColumnBytes": {
+        "id": 703114,
+        "canonical_name": 837889,
+        "normalized_name": 837831,
+        "metadata_json": 6547821
+      }
+    },
+    "knowledge_names": {
+      "rows": 18451,
+      "logicalColumnBytes": {
+        "id": 844011,
+        "entity_id": 714843,
+        "name": 846329,
+        "normalized_name": 846271
+      }
+    },
+    "knowledge_document_links": {
+      "rows": 40625,
+      "logicalColumnBytes": {
+        "id": 2288592,
+        "entity_id": 1597967,
+        "document_id": 3290625,
+        "document_version_id": 3412500,
+        "section_id": 3575000,
+        "chunk_id": 3250000,
+        "link_type": 812458,
+        "metadata_json": 1341239
+      }
+    }
+  },
+  "identicalOriginalNormalized": {
+    "rows": 0,
+    "duplicatedTextBytes": 0
+  },
+  "integrity": "ok",
+  "foreignKeyViolations": 0,
+  "readOnlyReceiptUnchanged": true,
+  "boundaries": "Closed-file host storage accounting. Logical column bytes exclude row/index overhead; DBSTAT excludes freelist/pointer-map pages. Gzip is a transport comparison. No device memory, clinical quality, or app qualification is implied."
+}

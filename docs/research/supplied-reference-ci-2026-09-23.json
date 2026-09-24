@@ -1,0 +1,20 @@
+{
+  "checkedCommit": "fa021e6a759a5802058699debcdb48a5a91d1f52",
+  "runId": "35833054756",
+  "tests": {
+    "tests": 88,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0
+  },
+  "strictPythonChecks": "passed",
+  "existingReferenceReaderSuites": "passed",
+  "codeAstSha256": {
+    "tools/ingest/src/localmed_ingest/definition_supplied_inputs.py": "538ed4045e514bab076ac7138bec321f09e91241abcdf87769bdf0a159deb412",
+    "tools/ingest/src/localmed_ingest/definition_reference_pack.py": "864a38e34d55871da3f6d8429e7e70306ef56a900e5cb04019a3bb4f9b19c213",
+    "tools/ingest/src/localmed_ingest/definition_reference_compact_pack.py": "4d3f7945d7a3655692c1220f4737d7759f48f4369a3cfe18da271f1d186032cd",
+    "scripts/prepare-definition-reference.py": "2492946388f5abf212a1b004c4607ef42257e66e6d251b21ff37077dc10b1382"
+  },
+  "privateSourcesInCI": false,
+  "boundary": "Synthetic source-receipt fixtures with actual ordinary SQLite projection and compaction. No supplied PDFs/text, clinical validation, complete real-corpus build, mobile or UI qualification in this CI run."
+}

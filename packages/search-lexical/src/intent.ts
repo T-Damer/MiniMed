@@ -119,6 +119,19 @@ const MEDICAL_SIGNALS: readonly IntentSignal<MedicalBaseIntent>[] = [
     label: 'местное лечение',
   },
   {
+    intent: 'treatment',
+    pattern:
+      /(?:нуж(?:ен|на|но|ны)\s+ли|стоит\s+ли|надо\s+ли|требуется\s+ли)(?:\s+(?:ему|ей|реб[её]нку))?\s+(?:антибиотик[а-я]*|антибактериальн[а-я]*(?:\s+препарат[а-я]*)?|противовирусн[а-я]*(?:\s+препарат[а-я]*)?|жаропонижающ[а-я]*)/u,
+    weight: 5.6,
+    label: 'решение о противомикробной или симптоматической терапии',
+  },
+  {
+    intent: 'treatment',
+    pattern: /(?:(?:чем|как)\s+(?:лучше\s+)?(?:отпаивать|поить)|оральн[а-я]*\s+регидратац[а-я]*)/u,
+    weight: 5.2,
+    label: 'практическая регидратация',
+  },
+  {
     intent: 'medication',
     pattern:
       /(?:препарат[а-я]*|лекарств[а-я]*|таблетк[а-я]*|маз[ьи]|крем|гель|капл[а-я]*|жаропонижающ[а-я]*)/u,
@@ -201,6 +214,13 @@ export function classifyMedicalQueryIntent(query: string): QueryIntent {
   if (/\b(?:и|плюс)\b.*(?:лечени|диагноз)|(?:диагноз).*\bи\b.*(?:лечени)/u.test(normalized)) {
     scores.diagnosis += 2;
     scores.treatment += 2;
+  }
+  if (
+    /(?:принимает|получает|назначен[а-я]*).{0,100}(?:улучшен[а-я]*\s+нет|эффект[а-я]*\s+нет|не\s+помог[а-я]*|неэффектив[а-я]*|что\s+пересмотреть)/u.test(
+      normalized,
+    )
+  ) {
+    scores.treatment += 4.8;
   }
 
   const ranked = MEDICAL_BASE_INTENTS.map((intent) => ({ intent, score: scores[intent] })).toSorted(

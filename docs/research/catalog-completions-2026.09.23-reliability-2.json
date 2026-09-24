@@ -1,0 +1,112 @@
+{
+  "batch": "2026.09.23-reliability-2",
+  "catalogUrl": "https://www.smclinic.ru/simptomy/",
+  "catalogSha256": null,
+  "pageBudget": 40,
+  "discoveredEligiblePages": 3,
+  "selectedPages": 3,
+  "discovery": [
+    {
+      "url": "https://www.smclinic.ru/simptomy/",
+      "status": "catalog-pending",
+      "reason": "Unsupported source HTTP/content type: 401"
+    },
+    {
+      "title": "Гипергидроз",
+      "url": "https://www.k31.ru/service/kosmetologiya/treatment-of-hyperhidrosis.html",
+      "responseBytes": 274576,
+      "hasArticleHeading": true,
+      "prefixPresent": true,
+      "status": "selected-for-independent-refetch"
+    },
+    {
+      "title": "Энтропион",
+      "url": "https://www.k31.ru/service/plasticheskaya-hirurgiya/elimination-of-entropion-or-ectropion-of-the-eyelids.html",
+      "responseBytes": 264314,
+      "hasArticleHeading": true,
+      "prefixPresent": true,
+      "status": "selected-for-independent-refetch"
+    },
+    {
+      "title": "Роговица",
+      "url": "https://www.k31.ru/service/oftalmologiya-i-mikrohirurgiya-glaza/keratoplastika.html",
+      "responseBytes": 208302,
+      "hasArticleHeading": true,
+      "prefixPresent": true,
+      "status": "selected-for-independent-refetch"
+    }
+  ],
+  "discoveryStatus": {
+    "catalog-pending": 1,
+    "selected-for-independent-refetch": 3
+  },
+  "acquisition": {
+    "candidateCount": 3,
+    "accepted": 3,
+    "byStatus": {
+      "accepted": 3
+    },
+    "outcomes": [
+      {
+        "id": "catalog.candidate.1",
+        "title": "Гипергидроз",
+        "url": "https://www.k31.ru/service/kosmetologiya/treatment-of-hyperhidrosis.html",
+        "status": "accepted",
+        "targetId": "ruwiki.definition.158538",
+        "block": 1
+      },
+      {
+        "id": "catalog.candidate.2",
+        "title": "Энтропион",
+        "url": "https://www.k31.ru/service/plasticheskaya-hirurgiya/elimination-of-entropion-or-ectropion-of-the-eyelids.html",
+        "status": "accepted",
+        "targetId": "ruwiki.definition.4974950",
+        "block": 2
+      },
+      {
+        "id": "catalog.candidate.3",
+        "title": "Роговица",
+        "url": "https://www.k31.ru/service/oftalmologiya-i-mikrohirurgiya-glaza/keratoplastika.html",
+        "status": "accepted",
+        "targetId": "ruwiki.definition.142300",
+        "block": 3
+      }
+    ],
+    "sourcesUsed": 1,
+    "authoringSha256": "f8fce576289c9e8971ed7d32dc8ff7106511c2cae1eb48c63b1648e63666b099",
+    "boundary": "Literal short definitions verified against visible source text; clinical review and public redistribution are not granted. Existing definitions and ambiguous names are not overwritten. No full articles, scales, treatments or Wikipedia prose imported."
+  },
+  "before": {
+    "format": "minimed-definition-gap-inventory-v1",
+    "sourceRecords": 16069,
+    "definitionRecords": 8467,
+    "pendingRecords": 7602,
+    "pendingNormalizedTitles": 7602,
+    "byStatusTitles": {
+      "ready-for-source-research": 7181,
+      "same-title-definition-needs-sense-review": 421
+    },
+    "byStatusRecords": {
+      "ready-for-source-research": 7181,
+      "same-title-definition-needs-sense-review": 421
+    },
+    "boundary": "Research queue only: a normalized title match is not a same-as relation, clinical approval or automatic completion. Source identities and names remain unchanged. Counts describe source-local records, not unique medical concepts. No page bodies, patient data, embeddings or model downloads are required."
+  },
+  "after": {
+    "format": "minimed-definition-gap-inventory-v1",
+    "sourceRecords": 16069,
+    "definitionRecords": 8470,
+    "pendingRecords": 7599,
+    "pendingNormalizedTitles": 7599,
+    "byStatusTitles": {
+      "ready-for-source-research": 7178,
+      "same-title-definition-needs-sense-review": 421
+    },
+    "byStatusRecords": {
+      "ready-for-source-research": 7178,
+      "same-title-definition-needs-sense-review": 421
+    },
+    "boundary": "Research queue only: a normalized title match is not a same-as relation, clinical approval or automatic completion. Source identities and names remain unchanged. Counts describe source-local records, not unique medical concepts. No page bodies, patient data, embeddings or model downloads are required."
+  },
+  "boundary": "Automatic syntactic selection is not clinical review. Source sentences are refetched and checked verbatim; no title-only sense merge, generated medical prose, treatment recommendation or redistribution approval. Whole source pages are not committed."
+}

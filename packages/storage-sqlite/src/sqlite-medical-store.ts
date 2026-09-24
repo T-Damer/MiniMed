@@ -1,6 +1,8 @@
 import {
   type ContentPackSeed,
   ContentPackSeedSchema,
+  type DefinitionReferenceReply,
+  type DefinitionReferenceRequest,
   type EmbeddingProfile,
   type SearchFilters,
   type ToolDefinitionRecord,
@@ -33,10 +35,11 @@ import sqlite3InitModule, {
   type SqlValue,
 } from '@sqlite.org/sqlite-wasm';
 
+import { createDefinitionReferenceDispatch } from './definition-reference-dispatch';
 import { SCHEMA_SQL } from './generated/schema';
+import { resolveOpfsCacheFile } from './opfs-cache-identity';
 import {
   createStreamChunkImporter,
-  opfsVfsFileName,
   parseContentSchemaVersion,
   sahPoolContextName,
 } from './opfs-pack';
@@ -148,10 +151,20 @@ async function importOpfsPack(
   databaseName: string,
   vfsName: string,
   fetchTimeoutMs: number,
+  onProgress?: (loaded: number) => void,
 ): Promise<void> {
   const response = await fetchPack(url, fetchTimeoutMs);
   if (!response.body) throw new Error(`Unable to stream ${databaseName}.`);
-  await pool.importDb(vfsName, createStreamChunkImporter(response.body));
+  const read = createStreamChunkImporter(response.body);
+  let loaded = 0;
+  await pool.importDb(vfsName, async () => {
+    const bytes = await read();
+    if (bytes) {
+      loaded += bytes.byteLength;
+      onProgress?.(loaded);
+    }
+    return bytes;
+  });
 }
 
 async function fetchPackByteLength(url: string, timeoutMs: number): Promise<number | null> {
@@ -409,6 +422,16 @@ export interface SqliteIntegrityReport {
 
 export class SqliteMedicalStore implements MedicalStore {
   private initialized = false;
+  private referenceDispatch: ReturnType<typeof createDefinitionReferenceDispatch> | undefined;
+
+  public async reference(request: DefinitionReferenceRequest): Promise<DefinitionReferenceReply> {
+    if (!this.initialized || !this.database.pointer)
+      throw new Error('Reference database is not open.');
+    this.referenceDispatch ??= createDefinitionReferenceDispatch({
+      read: async (sql, parameters) => queryRows(this.database, sql, [...parameters]),
+    });
+    return this.referenceDispatch(request);
+  }
 
   private constructor(
     private readonly database: Database,
@@ -457,14 +480,19 @@ export class SqliteMedicalStore implements MedicalStore {
   public static async createFromOpfsUrl(
     url: string,
     databaseName: string,
-    options: { readonly fetchTimeoutMs?: number; readonly poolName?: string } = {},
+    options: {
+      readonly fetchTimeoutMs?: number;
+      readonly poolName?: string;
+      readonly beforeImport?: () => Promise<void>;
+      readonly onImportProgress?: (loaded: number, total: number) => void;
+    } = {},
   ): Promise<SqliteMedicalStore> {
     const sqlite = await getSqliteModule();
     const poolName = options.poolName ?? sahPoolContextName();
     const pool = await getSahPool(sqlite, poolName);
     const fetchTimeoutMs = options.fetchTimeoutMs ?? 180_000;
     const byteLength = await fetchPackByteLength(url, fetchTimeoutMs);
-    const vfsName = opfsVfsFileName(databaseName, byteLength);
+    const vfsName = resolveOpfsCacheFile(databaseName, byteLength, pool.getFileNames());
     const legacyVfsName =
       byteLength === null ? databaseName : `${databaseName}.${String(byteLength)}`;
     const alreadyImported = pool.getFileNames().includes(vfsName);
@@ -491,7 +519,17 @@ export class SqliteMedicalStore implements MedicalStore {
         pool.unlink(vfsName);
       }
     }
-    await importOpfsPack(pool, url, databaseName, vfsName, fetchTimeoutMs);
+    await options.beforeImport?.();
+    await importOpfsPack(
+      pool,
+      url,
+      databaseName,
+      vfsName,
+      fetchTimeoutMs,
+      options.onImportProgress
+        ? (loaded) => options.onImportProgress?.(loaded, byteLength ?? 0)
+        : undefined,
+    );
     if (legacyVfsName !== vfsName) pool.unlink(legacyVfsName);
     return open('copied');
   }
@@ -521,10 +559,15 @@ export class SqliteMedicalStore implements MedicalStore {
     );
     if (existingChecksum === seed.manifest.checksum) return;
 
+    // Migration 010 indexes chunks through an external-content view; older databases still
+    // store their own FTS rows and must be written row by row.
+    const externalFts = String(
+      this.database.selectValue("SELECT sql FROM sqlite_master WHERE name = 'chunks_fts'") ?? '',
+    ).includes('chunks_fts_source');
     this.database.exec('BEGIN IMMEDIATE');
     try {
       this.database.exec(
-        'DELETE FROM chunks_fts; DELETE FROM aliases; DELETE FROM content_packs; DELETE FROM embedding_profiles;',
+        `${externalFts ? "INSERT INTO chunks_fts(chunks_fts) VALUES ('delete-all');" : 'DELETE FROM chunks_fts;'} DELETE FROM aliases; DELETE FROM content_packs; DELETE FROM embedding_profiles;`,
       );
       const profileStatement = this.database.prepare(`INSERT INTO embedding_profiles(
         id, dimensions, vector_format, normalization, generator, generator_version,
@@ -585,7 +628,9 @@ export class SqliteMedicalStore implements MedicalStore {
         page_start, page_end, char_start, char_end, previous_chunk_id, next_chunk_id,
         anchor, metadata_json
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-      const ftsStatement = this.database.prepare(`INSERT INTO chunks_fts(
+      const ftsStatement = externalFts
+        ? undefined
+        : this.database.prepare(`INSERT INTO chunks_fts(
         chunk_id, document_id, document_version_id, section_id, anchor,
         title, section_path, normalized_text
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
@@ -667,16 +712,17 @@ export class SqliteMedicalStore implements MedicalStore {
                 chunk.anchor,
                 JSON.stringify(chunk.metadata),
               ]);
-              executeStatement(ftsStatement, [
-                chunk.id,
-                document.id,
-                document.version.id,
-                section.id,
-                chunk.anchor,
-                document.title,
-                section.sectionPath.join(' '),
-                chunk.normalizedText,
-              ]);
+              if (ftsStatement)
+                executeStatement(ftsStatement, [
+                  chunk.id,
+                  document.id,
+                  document.version.id,
+                  section.id,
+                  chunk.anchor,
+                  document.title,
+                  section.sectionPath.join(' '),
+                  chunk.normalizedText,
+                ]);
             }
           }
         }
@@ -698,12 +744,14 @@ export class SqliteMedicalStore implements MedicalStore {
             embedding.norm,
           ]);
         }
+        if (externalFts)
+          this.database.exec("INSERT INTO chunks_fts(chunks_fts) VALUES ('rebuild')");
       } finally {
         documentStatement.finalize();
         versionStatement.finalize();
         sectionStatement.finalize();
         chunkStatement.finalize();
-        ftsStatement.finalize();
+        ftsStatement?.finalize();
         aliasStatement.finalize();
         embeddingStatement.finalize();
       }
@@ -753,11 +801,13 @@ export class SqliteMedicalStore implements MedicalStore {
     return queryRows(
       this.database,
       `
-      SELECT id, source_type,
+      SELECT id, title, short_title, source_type,
         json_extract(metadata_json, ${SEARCH_METADATA_FIELDS.map((key) => `'$.${key}'`).join(', ')}) AS metadata_fields FROM documents ORDER BY title COLLATE NOCASE, id
     `,
     ).map((row) => ({
       id: readString(row, 'id'),
+      title: readString(row, 'title'),
+      shortTitle: readNullableString(row, 'short_title'),
       sourceType: readString(row, 'source_type'),
       metadata: projectedMetadata(row, SEARCH_METADATA_FIELDS),
     }));
@@ -1078,15 +1128,22 @@ export class SqliteMedicalStore implements MedicalStore {
       appendMetadataFilterClauses(clauses, bind, request.filters);
     }
 
+    // Rank rowids first and read chunk_id only for the bounded window: an external-content
+    // index (migration 010) resolves UNINDEXED columns through its source view per row.
     const candidateRows = queryRows(
       this.database,
-      `SELECT chunks_fts.chunk_id AS chunk_id,
-        bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
-       FROM chunks_fts
-       ${joins.join('\n       ')}
-       WHERE ${clauses.join(' AND ')}
-       ORDER BY bm25_rank
-       LIMIT ?`,
+      `SELECT chunks_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank
+       FROM (
+         SELECT chunks_fts.rowid AS fts_rowid,
+           bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
+         FROM chunks_fts
+         ${joins.join('\n         ')}
+         WHERE ${clauses.join(' AND ')}
+         ORDER BY bm25_rank
+         LIMIT ?
+       ) ranked
+       JOIN chunks_fts ON chunks_fts.rowid = ranked.fts_rowid
+       ORDER BY ranked.bm25_rank`,
       [...bind, candidateLimit],
     );
     if (candidateRows.length === 0) return [];

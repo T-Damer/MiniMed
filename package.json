@@ -140,7 +140,17 @@
     "benchmark:runtime": "bun tools/benchmarks/src/run-runtime-retrieval.ts",
     "content:catalog:tools": "bun scripts/buildToolCatalog.ts",
     "content:core:knowledge": "uv run --project tools/ingest medbase compose --input apps/app/public/content/core.db --output data/build/core-knowledge.db --edition-manifest data/build/core-knowledge-manifest.json --edition-id minimed.core.ru --edition-version 1.0.0-preview.8 --title \"Ядро MiniMed\" --built-at 2026-09-05T00:00:00Z --compact",
-    "content:restore:core": "bun scripts/restore-core.mjs"
+    "content:restore:core": "bun scripts/restore-core.mjs",
+    "benchmark:lookup-quality": "bun run --filter @localmed/benchmarks benchmark:lookup-quality",
+    "benchmark:clinical-quality": "bun run --filter @localmed/benchmarks benchmark:clinical-quality",
+    "benchmark:search-quality-v2": "bun run benchmark:lookup-quality && bun run benchmark:clinical-quality",
+    "benchmark:search-coverage-observations": "bun run --filter @localmed/benchmarks benchmark:search-coverage-observations",
+    "benchmark:freeze-candidates": "bun run --filter @localmed/benchmarks benchmark:freeze-candidates",
+    "benchmark:freeze-training": "bun run --filter @localmed/benchmarks benchmark:freeze-training",
+    "benchmark:linear-reranker": "bun run --filter @localmed/benchmarks benchmark:linear-reranker",
+    "benchmark:embedding-baseline": "bun run --filter @localmed/benchmarks benchmark:embedding-baseline",
+    "benchmark:reranker-summary": "bun run --filter @localmed/benchmarks benchmark:reranker-summary",
+    "benchmark:reranker-ablation": "bun run content:build:pilot && bun run benchmark:freeze-training -- --core=data/build/rf-public-pilot.db --mode=hybrid --limit=40 && bun run benchmark:freeze-candidates -- --core=data/build/rf-public-pilot.db --mode=hybrid --limit=40 && bun run benchmark:linear-reranker && bun run benchmark:embedding-baseline && bun run benchmark:reranker-summary"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",

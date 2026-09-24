@@ -1,0 +1,20 @@
+{
+  "inputCommit": "6f0e414ce96d9414b57a67bd9973947a214fdc47",
+  "runId": "35692551675",
+  "tests": {
+    "tests": 56,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "newSourceRecordsVerified": 5187,
+  "combinedRecords": 23320,
+  "sourceTextAndLocatorsExact": true,
+  "integrity": "ok",
+  "foreignKeyViolations": 0,
+  "sqliteBytes": 146087936,
+  "downloadBytes": 36888523,
+  "sqliteSha256": "7b1aeefce924fbce2403b6867add065921e280ab3110267449dd0c287f695090",
+  "sourceManifestSha256": "sha256:cf7be139d41a646f4f4c04457d42b450bcff0f2c86539824d40d33ca80e960a0",
+  "boundaries": "Actual full SQLite rebuild and exact fidelity of every new API-source record. No browser/Android or independent reverse-search/clinical qualification. TextExtracts snapshots are not falsely attributed to observed revision IDs. Raw authoring snapshots are excluded from the app input manifest."
+}

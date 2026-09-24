@@ -17,6 +17,7 @@ import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
+import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
 import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
@@ -53,6 +54,7 @@ interface SearchHomeProps {
 
 export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [graphOpen, setGraphOpen] = createSignal(false);
+  const [referenceOpen, setReferenceOpen] = createSignal(false);
   const [scope, setScope] = createSignal<SearchScope>('all');
   const [catalogQuery, setCatalogQuery] = createSignal('');
   const [groups, setGroups] = createSignal<Partial<Record<SearchScope, string>>>({});
@@ -212,6 +214,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           </button>
         </Show>
         <button
+          class="search-reference-button"
+          type="button"
+          onClick={() => setReferenceOpen(true)}
+        >
+          Словарь
+        </button>
+        <button
           class="search-mode-help"
           type="button"
           aria-label="Как работает поиск"
@@ -286,6 +295,19 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         />
       </div>
 
+      <Show when={referenceOpen()}>
+        <OverlayDialog
+          open
+          title="Словарь терминов"
+          class="reference-dialog"
+          onClose={() => setReferenceOpen(false)}
+        >
+          <DefinitionReferencePanel
+            core={props.baseCore}
+            onContentChanged={props.onContentChanged}
+          />
+        </OverlayDialog>
+      </Show>
       <Show when={graphOpen()}>
         <OverlayDialog
           open

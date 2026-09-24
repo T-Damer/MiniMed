@@ -289,24 +289,81 @@ async function packagedContentLength(url: URL): Promise<number | undefined> {
   }
 }
 
-function openRequiredCoreFromOpfs(
+async function openRequiredCoreFromOpfs(
   url: string,
   databaseName = PACK_DATABASE_NAME,
+  downloadUi?: CoreDownloadUi,
 ): Promise<WorkerOpfsMedicalStore> {
-  return WorkerOpfsMedicalStore.open({
-    url,
-    databaseName,
-    fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
-    poolName: 'minimed-sah-core',
-  });
+  if (!downloadUi)
+    return WorkerOpfsMedicalStore.open({
+      url,
+      databaseName,
+      fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
+      poolName: 'minimed-sah-core',
+    });
+  const descriptor = {
+    id: `core:web:${databaseName}`,
+    kind: 'core' as const,
+    title: 'Ядро знаний MiniMed',
+  };
+  let downloading = false;
+  try {
+    const store = await WorkerOpfsMedicalStore.open(
+      {
+        url,
+        databaseName,
+        fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
+        poolName: 'minimed-sah-core',
+      },
+      downloadUi
+        ? {
+            requestDownload: async () => {
+              await downloadUi.requestDownload();
+              downloading = true;
+              getDownloadQueue().observe(
+                descriptor,
+                { state: 'downloading', downloadedBytes: 0, totalBytes: null, errorMessage: null },
+                {},
+              );
+            },
+            onProgress: ({ loaded, total }) => {
+              downloadUi.onProgress({ loaded, total, phase: 'downloading' });
+              getDownloadQueue().observe(
+                descriptor,
+                {
+                  state: 'downloading',
+                  downloadedBytes: loaded,
+                  totalBytes: total > 0 ? total : null,
+                  errorMessage: null,
+                },
+                {},
+              );
+            },
+          }
+        : undefined,
+    );
+    if (downloading)
+      getDownloadQueue().observe(descriptor, { state: 'completed', errorMessage: null }, {});
+    return store;
+  } catch (cause) {
+    if (downloading)
+      getDownloadQueue().observe(
+        descriptor,
+        { state: 'failed', errorMessage: 'Не удалось установить ядро.' },
+        {},
+      );
+    throw cause;
+  }
 }
 
 export async function createRequiredWebCoreStore(
   contentBaseUrl: string,
   databaseUrl?: string,
   cacheName = PACK_DATABASE_NAME,
+  downloadUi?: CoreDownloadUi,
 ): Promise<MedicalStore> {
   const url = new URL(databaseUrl ?? `content/${PACK_DATABASE_NAME}`, contentBaseUrl);
+  if (downloadUi) return openRequiredCoreFromOpfs(url.href, cacheName, downloadUi);
   const contentLength = await packagedContentLength(url);
   if (
     contentLength === undefined ||
@@ -519,7 +576,7 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
       nativeStore = await createNativeStore(downloadUi);
       const contentBaseUrl = getPackagedContentBaseUrl();
       const companions = await createPackagedCompanionStores(contentBaseUrl, {
-        includeMedications: platform !== 'android' && !isFloatingWindowRuntime(),
+        includeMedications: false,
       });
       const store = await withInstalledModules(nativeStore, companions);
       return createMedicalCore({
@@ -560,9 +617,10 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
       contentBaseUrl,
       fallbackCoreUrl,
       `core.${(fallbackCoreUrl ? ANDROID_CORE_DOWNLOAD.checksum : report.outputChecksum).slice(7)}.db`,
+      fallbackCoreUrl || isFloatingWindowRuntime() ? undefined : downloadUi,
     );
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
-      includeMedications: platform !== 'android' && !isFloatingWindowRuntime(),
+      includeMedications: false,
     });
     const store = await withInstalledModules(coreStore, companions);
     return createMedicalCore({

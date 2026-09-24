@@ -1,0 +1,17 @@
+{
+  "actualSolidComponent": true,
+  "viewport": {
+    "width": 430,
+    "height": 920
+  },
+  "checks": [
+    "opt-in public source load",
+    "owner JSON import",
+    "local source citation",
+    "invalid overlay preserves lookup",
+    "no remote requests",
+    "no browser exceptions"
+  ],
+  "passed": true,
+  "boundaries": "Isolated actual component and real loader/core; not full application, production bundle, Android or owner-PDF clinical validation."
+}
