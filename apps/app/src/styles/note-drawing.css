@@ -58,31 +58,6 @@
   padding: 0 0.75rem 0.75rem;
 }
 
-.note-drawing-editor__action {
-  display: inline-flex;
-  min-height: 2.25rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0.35rem 0.65rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-radius-control);
-  color: var(--theme-text-muted);
-  background: var(--theme-surface-raised);
-  cursor: pointer;
-}
-
-.note-drawing-editor__action--primary {
-  color: var(--theme-accent-contrast);
-  border-color: var(--theme-accent);
-  background: var(--theme-accent);
-}
-
-.note-drawing-editor__action:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.note-drawing-editor__action:focus-visible,
 .note-drawing-attachment:focus-visible {
   outline: 0.125rem solid var(--theme-accent);
   outline-offset: 0.15rem;
@@ -144,7 +119,6 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .note-drawing-editor__action:hover,
   .note-drawing-attachment:hover {
     color: var(--theme-accent-contrast);
     border-color: var(--theme-accent);
@@ -185,13 +159,7 @@
 }
 
 .note-drawing-links__search {
-  min-height: 2.25rem;
-  padding: 0.35rem 0.65rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-radius-control);
-  color: var(--theme-text);
-  background: var(--theme-surface-raised);
-  font: inherit;
+  width: 100%;
 }
 
 .note-drawing-links__list {
