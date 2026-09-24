@@ -30,6 +30,9 @@ FORMAT = "minimed-msd-topic-inventory-v1"
 
 def public_path(value: object) -> str:
     raw = text(value, 4096)
+    # urlsplit silently drops tab/newline characters, so reject control characters first.
+    if any(ord(char) < 32 or ord(char) == 127 for char in raw):
+        raise ValueError("Unsafe or non-Russian catalog path")
     parsed = urlsplit(raw)
     if parsed.scheme or parsed.netloc:
         if parsed.scheme != "https" or parsed.netloc != "www.msdmanuals.com":

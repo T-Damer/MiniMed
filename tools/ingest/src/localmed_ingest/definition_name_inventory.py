@@ -7,12 +7,13 @@ import json
 import re
 from collections import Counter
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from .definition_reference_pack import Projection
 
 FORMAT = "minimed-discovered-names-v1"
+MANIFEST_FORMAT = "minimed-name-inputs-v2"
 
 
 def recover_names(root: Path, archive: Path) -> tuple[dict[str, object], dict[str, object]]:
@@ -205,14 +206,32 @@ def add_name_inventory(projection: Projection, inventory: object, receipt: str) 
 
 
 def read_name_manifest(root: Path) -> tuple[Path, ...]:
-    from .definition_reference_pack import MAX_INPUT_BYTES, contained, obj
+    from .definition_reference_pack import obj
 
     path = root / "content/definition-drafts/name-inputs.json"
     if not path.exists():
         return ()
     if path.stat().st_size > 65536:
         raise ValueError("Discovery manifest exceeds budget")
-    row = obj(json.loads(path.read_bytes()))
+    manifest = obj(json.loads(path.read_bytes()))
+    if manifest.get("format") == MANIFEST_FORMAT:
+        if set(manifest) != {"format", "inputs"} or not isinstance(manifest["inputs"], list):
+            raise ValueError("Invalid name manifest")
+        rows = [obj(row) for row in cast(list[object], manifest["inputs"])]
+    else:
+        rows = [manifest]
+    if not rows:
+        raise ValueError("Invalid name manifest")
+    digests = [row.get("sha256") for row in rows]
+    if len(set(digests)) != len(digests):
+        # Identical bytes are one knowledge input, not two independent discoveries.
+        raise ValueError("Duplicate discovery input")
+    return tuple(_read_name_input(root, row) for row in rows)
+
+
+def _read_name_input(root: Path, row: dict[str, object]) -> Path:
+    from .definition_reference_pack import MAX_INPUT_BYTES, contained
+
     if set(row) != {"path", "bytes", "sha256", "format"} or row["format"] != FORMAT:
         raise ValueError("Invalid name manifest")
     candidate = Path(str(row["path"]))
@@ -229,4 +248,4 @@ def read_name_manifest(root: Path) -> tuple[Path, ...]:
         or hashlib.sha256(raw).hexdigest() != row["sha256"]
     ):
         raise ValueError("Discovery input receipt mismatch")
-    return (actual,)
+    return actual
