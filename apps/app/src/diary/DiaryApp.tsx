@@ -497,7 +497,7 @@ export function DiaryApp(): JSX.Element {
                     <For each={current.diaries}>
                       {(diary) => (
                         <li class="diary-list__item">
-                          <button
+                          <Button
                             class="diary-button diary-list__open"
                             type="button"
                             onClick={() => {
@@ -516,11 +516,13 @@ export function DiaryApp(): JSX.Element {
                               }
                             }}
                           >
-                            {DIARY_KIND_TITLE[diary.kind]}
-                            <span class="diary-list__meta">
-                              выдан {new Date(diary.issuedAt).toLocaleDateString('ru-RU')}
+                            <span class="diary-list__open-content">
+                              {DIARY_KIND_TITLE[diary.kind]}
+                              <span class="diary-list__meta">
+                                выдан {new Date(diary.issuedAt).toLocaleDateString('ru-RU')}
+                              </span>
                             </span>
-                          </button>
+                          </Button>
                         </li>
                       )}
                     </For>
