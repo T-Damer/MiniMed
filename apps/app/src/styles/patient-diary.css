@@ -36,43 +36,15 @@
   border: 0;
 }
 
-.patient-diary__label {
-  color: var(--theme-text-muted);
-  font-size: 0.8rem;
-}
-
 .patient-diary__kind {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.patient-diary__radio {
-  width: 1.1rem;
-  height: 1.1rem;
-  accent-color: var(--theme-accent);
-}
-
 .patient-diary__field {
   display: grid;
   gap: 0.25rem;
-}
-
-.patient-diary__input {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 2.4rem;
-  padding: 0.35rem 0.6rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-radius-control);
-  color: var(--theme-text);
-  background: var(--theme-surface-raised);
-  font: inherit;
-}
-
-.patient-diary__input--multiline {
-  min-height: 4.5rem;
-  resize: vertical;
 }
 
 .patient-diary__medications {
@@ -115,24 +87,6 @@
 .patient-diary__progress {
   margin: 0;
   font-weight: 600;
-}
-
-.patient-diary__photo {
-  display: inline-flex;
-  min-height: 2.25rem;
-  align-items: center;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-radius-control);
-  background: var(--theme-surface-raised);
-  cursor: pointer;
-}
-
-.patient-diary__photo-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
 }
 
 .patient-diary__entries {
