@@ -169,7 +169,9 @@ def generate(args: argparse.Namespace) -> None:
             if count == args.per_family:
                 break
         if count != args.per_family:
-            raise RuntimeError(f"only {count} eligible cases for {family}")
+            if family != "rf-marker-omitted" or count < 50:
+                raise RuntimeError(f"only {count} eligible cases for {family}")
+            # Keep every real eligible marker case; never duplicate it for a round sample size.
     exact = sorted(known, key=lambda value: sha("rapidfuzz-exact-v1\0" + value))[:300]
     payload = {
         "format": "minimed-rapidfuzz-medication-cases-v1",
