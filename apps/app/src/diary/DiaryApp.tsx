@@ -1,6 +1,8 @@
 import QRCode from 'qrcode';
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { Button } from '@/components/Button';
+import { TextField } from '@/components/TextField';
 import { encodeDiaryResults, readInvitationFragment } from '@/features/diary/diary-codec';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import {
@@ -88,17 +90,16 @@ function EntryForm(props: {
         when={props.invitation.kind === 'blood-pressure'}
         fallback={
           <div class="diary-form__row">
-            <label class="diary-form__field">
-              <span class="diary-form__label">Глюкоза, ммоль/л</span>
-              <input
-                class="diary-form__input"
-                inputmode="decimal"
-                required
-                value={mmol()}
-                pattern="[0-9]+([.,][0-9])?"
-                onInput={(event) => setMmol(event.currentTarget.value)}
-              />
-            </label>
+            <TextField
+              class="diary-form__field"
+              inputClass="diary-form__input"
+              label="Глюкоза, ммоль/л"
+              inputmode="decimal"
+              required
+              value={mmol()}
+              pattern="[0-9]+([.,][0-9])?"
+              onInput={(event) => setMmol(event.currentTarget.value)}
+            />
             <label class="diary-form__field">
               <span class="diary-form__label">Когда</span>
               <select
@@ -115,71 +116,66 @@ function EntryForm(props: {
         }
       >
         <div class="diary-form__row">
-          <label class="diary-form__field">
-            <span class="diary-form__label">Верхнее</span>
-            <input
-              class="diary-form__input"
-              type="number"
-              inputmode="numeric"
-              required
-              min={BLOOD_PRESSURE_LIMITS.systolic[0]}
-              max={BLOOD_PRESSURE_LIMITS.systolic[1]}
-              value={systolic()}
-              onInput={(event) => setSystolic(event.currentTarget.value)}
-            />
-          </label>
-          <label class="diary-form__field">
-            <span class="diary-form__label">Нижнее</span>
-            <input
-              class="diary-form__input"
-              type="number"
-              inputmode="numeric"
-              required
-              min={BLOOD_PRESSURE_LIMITS.diastolic[0]}
-              max={BLOOD_PRESSURE_LIMITS.diastolic[1]}
-              value={diastolic()}
-              onInput={(event) => setDiastolic(event.currentTarget.value)}
-            />
-          </label>
-          <label class="diary-form__field">
-            <span class="diary-form__label">Пульс</span>
-            <input
-              class="diary-form__input"
-              type="number"
-              inputmode="numeric"
-              min={BLOOD_PRESSURE_LIMITS.pulse[0]}
-              max={BLOOD_PRESSURE_LIMITS.pulse[1]}
-              value={pulse()}
-              onInput={(event) => setPulse(event.currentTarget.value)}
-            />
-          </label>
+          <TextField
+            class="diary-form__field"
+            inputClass="diary-form__input"
+            label="Верхнее"
+            type="number"
+            inputmode="numeric"
+            required
+            min={BLOOD_PRESSURE_LIMITS.systolic[0]}
+            max={BLOOD_PRESSURE_LIMITS.systolic[1]}
+            value={systolic()}
+            onInput={(event) => setSystolic(event.currentTarget.value)}
+          />
+          <TextField
+            class="diary-form__field"
+            inputClass="diary-form__input"
+            label="Нижнее"
+            type="number"
+            inputmode="numeric"
+            required
+            min={BLOOD_PRESSURE_LIMITS.diastolic[0]}
+            max={BLOOD_PRESSURE_LIMITS.diastolic[1]}
+            value={diastolic()}
+            onInput={(event) => setDiastolic(event.currentTarget.value)}
+          />
+          <TextField
+            class="diary-form__field"
+            inputClass="diary-form__input"
+            label="Пульс"
+            type="number"
+            inputmode="numeric"
+            min={BLOOD_PRESSURE_LIMITS.pulse[0]}
+            max={BLOOD_PRESSURE_LIMITS.pulse[1]}
+            value={pulse()}
+            onInput={(event) => setPulse(event.currentTarget.value)}
+          />
         </div>
       </Show>
       <div class="diary-form__row">
-        <label class="diary-form__field">
-          <span class="diary-form__label">Дата и время</span>
-          <input
-            class="diary-form__input"
-            type="datetime-local"
-            required
-            value={at()}
-            onInput={(event) => setAt(event.currentTarget.value)}
-          />
-        </label>
-      </div>
-      <label class="diary-form__field">
-        <span class="diary-form__label">Комментарий</span>
-        <input
-          class="diary-form__input"
-          maxLength={200}
-          value={note()}
-          placeholder="Например: болела голова"
-          onInput={(event) => setNote(event.currentTarget.value)}
+        <TextField
+          class="diary-form__field"
+          inputClass="diary-form__input"
+          label="Дата и время"
+          type="datetime-local"
+          required
+          value={at()}
+          onInput={(event) => setAt(event.currentTarget.value)}
         />
-      </label>
-      <button class="diary-button diary-button--primary" type="submit">
+      </div>
+      <TextField
+        class="diary-form__field"
+        inputClass="diary-form__input"
+        label="Комментарий"
+        maxLength={200}
+        value={note()}
+        placeholder="Например: болела голова"
+        onInput={(event) => setNote(event.currentTarget.value)}
+      />
+      <Button class="diary-button" type="submit" variant="primary">
         Записать
-      </button>
+      </Button>
     </form>
   );
 }
@@ -204,16 +200,17 @@ function MedicationButtons(props: {
               </Show>
             </div>
             <div class="diary-medications__actions">
-              <button
-                class="diary-button diary-button--primary"
+              <Button
+                class="diary-button"
                 type="button"
+                variant="primary"
                 onClick={() => mark(index(), true)}
               >
                 Принял сейчас
-              </button>
-              <button class="diary-button" type="button" onClick={() => mark(index(), false)}>
+              </Button>
+              <Button class="diary-button" type="button" onClick={() => mark(index(), false)}>
                 Пропустил
-              </button>
+              </Button>
             </div>
           </li>
         )}
@@ -273,7 +270,7 @@ function ShareCodes(props: {
         </p>
         <Show when={images().length > 1}>
           <div class="diary-share__controls">
-            <button
+            <Button
               class="diary-button"
               type="button"
               onClick={() =>
@@ -281,23 +278,23 @@ function ShareCodes(props: {
               }
             >
               Назад
-            </button>
-            <button class="diary-button" type="button" onClick={() => setPaused((value) => !value)}>
+            </Button>
+            <Button class="diary-button" type="button" onClick={() => setPaused((value) => !value)}>
               {paused() ? 'Продолжить' : 'Пауза'}
-            </button>
-            <button
+            </Button>
+            <Button
               class="diary-button"
               type="button"
               onClick={() => setIndex((current) => (current + 1) % images().length)}
             >
               Дальше
-            </button>
+            </Button>
           </div>
         </Show>
       </Show>
-      <button class="diary-button diary-button--primary" type="button" onClick={props.onClose}>
+      <Button class="diary-button" type="button" variant="primary" onClick={props.onClose}>
         Готово
-      </button>
+      </Button>
     </section>
   );
 }
@@ -378,22 +375,23 @@ function DiaryView(props: {
           <MedicationButtons invitation={props.invitation} onAdd={add} />
         </Show>
         <div class="diary-actions">
-          <button
-            class="diary-button diary-button--primary"
+          <Button
+            class="diary-button"
             type="button"
+            variant="primary"
             disabled={results().entries.length === 0}
             onClick={() => setSharing(true)}
           >
             Показать врачу
-          </button>
-          <button
+          </Button>
+          <Button
             class="diary-button"
             type="button"
             disabled={results().entries.length === 0}
             onClick={() => downloadFhir(results())}
           >
             Сохранить файл
-          </button>
+          </Button>
         </div>
         <section class="diary-entries" aria-label="Записи">
           <h2 class="diary-entries__title">Записи: {results().entries.length}</h2>
@@ -408,14 +406,15 @@ function DiaryView(props: {
                   <Show when={entry.note}>
                     <span class="diary-entries__note">{entry.note}</span>
                   </Show>
-                  <button
+                  <Button
                     class="diary-entries__remove"
                     type="button"
+                    variant="quiet"
                     aria-label="Удалить запись"
                     onClick={() => remove(entry)}
                   >
                     ×
-                  </button>
+                  </Button>
                 </li>
               )}
             </For>
@@ -498,7 +497,7 @@ export function DiaryApp(): JSX.Element {
                     <For each={current.diaries}>
                       {(diary) => (
                         <li class="diary-list__item">
-                          <button
+                          <Button
                             class="diary-button diary-list__open"
                             type="button"
                             onClick={() => {
@@ -521,7 +520,7 @@ export function DiaryApp(): JSX.Element {
                             <span class="diary-list__meta">
                               выдан {new Date(diary.issuedAt).toLocaleDateString('ru-RU')}
                             </span>
-                          </button>
+                          </Button>
                         </li>
                       )}
                     </For>
