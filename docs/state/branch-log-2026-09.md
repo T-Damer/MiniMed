@@ -445,3 +445,15 @@ PR #180 adds an optional source-linked definition-draft pack and a research-only
 - No Laya/Jev-like model is added by this PR. GitHub Actions remain intentionally undispatched while
   repository artifact/storage quota is exhausted; the new runners and regression tests still require
   execution in a normal checkout before the draft can be considered validated.
+
+## Retired one-shot workflows — 2026-09-24
+
+Twelve self-triggering acquisition/verification workflows were removed after their outputs had been
+committed: `clinic-definition-verify`, `definition-reliability-batch`, `msd-catalog-check`,
+`msd-catalog-retry`, `msd-topic-intake-check`, `reference-annotation-check`,
+`specialist-journal-{collect,inspect,intake,reference-build,shape}` and
+`specialist-teaching-collect`. They ran on pushes to this branch that edited the workflow file
+and wrote results back with `contents: write`. Research notes that cite them describe historical
+runs; the definitions are in git history (parent of the retiring commit) if a rerun is needed.
+The PR-triggered gates `search-quality-v2-benchmark`, `search-definition-local-model` and
+`search-reranker-cross-encoder-poc` remain.
