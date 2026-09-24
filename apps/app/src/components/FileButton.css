@@ -1,0 +1,61 @@
+.ui-file-button {
+  display: inline-flex;
+  min-height: 2.6rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 0.65rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0.05rem 0 0 rgb(255 255 255 / 10%),
+    0 0.14rem 0 0 color-mix(in srgb, currentColor 28%, transparent),
+    0 0.25rem 0.5rem rgb(0 0 0 / 22%);
+}
+
+.ui-file-button--primary {
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+}
+
+.ui-file-button--quiet {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.ui-file-button--disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ui-file-button:active {
+  box-shadow: inset 0 0.05rem 0.15rem 0 rgb(0 0 0 / 18%);
+  transform: translateY(0.1rem);
+}
+
+.ui-file-button:focus-within {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.ui-file-button__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}
+
+.ui-file-button__label {
+  pointer-events: none;
+}
