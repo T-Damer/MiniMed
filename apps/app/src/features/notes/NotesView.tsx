@@ -12,6 +12,7 @@ import {
   Show,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
+import { toast } from 'solid-sonner';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import {
@@ -1625,6 +1626,21 @@ export function NotesView(props: {
                         );
                       });
                       return;
+                    }}
+                    onOpenLink={(target) => {
+                      // Leaving commits the record, but a new record needs text to be created;
+                      // otherwise its pending drawing would be discarded with the draft.
+                      if (
+                        route().kind === 'new-record' &&
+                        !noteDraft().trim() &&
+                        pendingImages().length > 0
+                      ) {
+                        toast.info(
+                          'Добавьте текст записи: без него новая запись не сохранится вместе со схемой.',
+                        );
+                        return;
+                      }
+                      window.location.hash = target;
                     }}
                     onOpenImages={() =>
                       document

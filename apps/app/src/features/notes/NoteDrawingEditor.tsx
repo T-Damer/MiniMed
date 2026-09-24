@@ -1,5 +1,10 @@
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
-import type { AppState, BinaryFiles, ExcalidrawProps } from '@excalidraw/excalidraw/types';
+import type {
+  AppState,
+  BinaryFiles,
+  ExcalidrawImperativeAPI,
+  ExcalidrawProps,
+} from '@excalidraw/excalidraw/types';
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
@@ -7,9 +12,16 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import {
   createEmptyDrawing,
   type DrawingDocument,
+  drawingLinkCardSkeleton,
+  drawingViewportCenter,
   parseDrawingBlob,
   parseDrawingDocument,
 } from '@/features/notes/note-drawing';
+import {
+  isAppRoute,
+  NOTE_LINK_KIND_LABEL,
+  type NoteLinkTarget,
+} from '@/features/notes/note-link-targets';
 import '@/styles/note-drawing.css';
 
 declare global {
@@ -19,7 +31,10 @@ declare global {
 }
 
 type ExcalidrawModule = typeof import('@excalidraw/excalidraw');
-type ExcalidrawRuntime = Pick<ExcalidrawModule, 'serializeAsJSON' | 'exportToSvg'>;
+type ExcalidrawRuntime = Pick<
+  ExcalidrawModule,
+  'serializeAsJSON' | 'exportToSvg' | 'convertToExcalidrawElements' | 'FONT_FAMILY'
+>;
 type ReactRoot = import('react-dom/client').Root;
 
 interface DrawingScene {
@@ -36,6 +51,10 @@ interface LazyExcalidrawProps {
     files: BinaryFiles,
   ) => void;
   readonly onRuntime: (runtime: ExcalidrawRuntime) => void;
+  readonly onApi: (api: ExcalidrawImperativeAPI) => void;
+  /** Receives links to MiniMed routes; other links keep Excalidraw's default handling. */
+  readonly onOpenAppLink: (route: string) => void;
+  readonly fullscreen: boolean;
 }
 
 function LazyExcalidraw(props: LazyExcalidrawProps): JSX.Element {
@@ -46,6 +65,7 @@ function LazyExcalidraw(props: LazyExcalidrawProps): JSX.Element {
 
   onMount(() => {
     let disposed = false;
+    let detachOffsetRefresh: (() => void) | undefined;
 
     const load = async (): Promise<void> => {
       window.EXCALIDRAW_ASSET_PATH = new URL('./excalidraw/', document.baseURI).toString();
@@ -64,6 +84,8 @@ function LazyExcalidraw(props: LazyExcalidrawProps): JSX.Element {
       props.onRuntime({
         serializeAsJSON: excalidraw.serializeAsJSON,
         exportToSvg: excalidraw.exportToSvg,
+        convertToExcalidrawElements: excalidraw.convertToExcalidrawElements,
+        FONT_FAMILY: excalidraw.FONT_FAMILY,
       });
       const editorProps: ExcalidrawProps = {
         initialData: props.initial,
@@ -71,6 +93,28 @@ function LazyExcalidraw(props: LazyExcalidrawProps): JSX.Element {
         autoFocus: true,
         handleKeyboardGlobally: false,
         onChange: props.onSceneChange,
+        excalidrawAPI: (api) => {
+          // Excalidraw caches its container offset. The dialog animates in with a transform and
+          // can switch to fullscreen, so pointer coordinates drift unless offsets are refreshed.
+          const refresh = (): void => api.refresh();
+          const observer = new ResizeObserver(refresh);
+          observer.observe(host);
+          const dialog = host.closest('.overlay-dialog');
+          dialog?.addEventListener('animationend', refresh);
+          dialog?.addEventListener('transitionend', refresh);
+          detachOffsetRefresh = () => {
+            observer.disconnect();
+            dialog?.removeEventListener('animationend', refresh);
+            dialog?.removeEventListener('transitionend', refresh);
+          };
+          props.onApi(api);
+        },
+        onLinkOpen: (element, event) => {
+          const link = element.link;
+          if (!link || !isAppRoute(link)) return;
+          event.preventDefault();
+          props.onOpenAppLink(link);
+        },
         validateEmbeddable: () => false,
         UIOptions: {
           canvasActions: {
@@ -102,13 +146,18 @@ function LazyExcalidraw(props: LazyExcalidrawProps): JSX.Element {
 
     onCleanup(() => {
       disposed = true;
+      detachOffsetRefresh?.();
       root?.unmount();
       root = undefined;
     });
   });
 
   return (
-    <div class="note-drawing-editor__canvas-shell">
+    <div
+      class={`note-drawing-editor__canvas-shell${
+        props.fullscreen ? ' note-drawing-editor__canvas-shell--fullscreen' : ''
+      }`}
+    >
       <div class="note-drawing-editor__canvas" ref={host} />
       <Show when={status() === 'loading'}>
         <div class="note-drawing-editor__canvas-status" role="status">
@@ -427,6 +476,10 @@ export function NoteDrawingEditor(props: {
   readonly title?: string;
   readonly onSave: (document: DrawingDocument) => void | Promise<void>;
   readonly onCancel: () => void;
+  /** Objects that can be pinned to the canvas as link cards. */
+  readonly findLinkTargets?: (query: string) => readonly NoteLinkTarget[];
+  /** Called after the drawing has been saved, to open a pinned MiniMed route. */
+  readonly onOpenLink?: (route: string) => void;
 }): JSX.Element {
   const initial = props.initial ?? createEmptyDrawing();
   let scene: DrawingScene = {
@@ -437,6 +490,12 @@ export function NoteDrawingEditor(props: {
   const [runtime, setRuntime] = createSignal<ExcalidrawRuntime | null>(null);
   const [saving, setSaving] = createSignal(false);
   const [exporting, setExporting] = createSignal(false);
+  const [api, setApi] = createSignal<ExcalidrawImperativeAPI | null>(null);
+  const [fullscreen, setFullscreen] = createSignal(false);
+  const [linkPickerOpen, setLinkPickerOpen] = createSignal(false);
+  const [linkQuery, setLinkQuery] = createSignal('');
+  const linkTargets = (): readonly NoteLinkTarget[] =>
+    linkPickerOpen() && props.findLinkTargets ? props.findLinkTargets(linkQuery()) : [];
 
   const handleSceneChange = (
     elements: readonly ExcalidrawElement[],
@@ -446,9 +505,9 @@ export function NoteDrawingEditor(props: {
     scene = { elements, appState, files };
   };
 
-  const save = async (): Promise<void> => {
+  const save = async (): Promise<boolean> => {
     const currentRuntime = runtime();
-    if (!currentRuntime || saving()) return;
+    if (!currentRuntime || saving()) return false;
     setSaving(true);
     try {
       const serialized = currentRuntime.serializeAsJSON(
@@ -460,11 +519,39 @@ export function NoteDrawingEditor(props: {
       const document = parseDrawingDocument(serialized);
       if (!document) throw new Error('Редактор вернул неподдерживаемую схему.');
       await props.onSave(document);
+      return true;
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : 'Не удалось сохранить схему.');
+      return false;
     } finally {
       setSaving(false);
     }
+  };
+
+  const openAppLink = async (route: string): Promise<void> => {
+    if (!props.onOpenLink) return;
+    // Save first: opening the route leaves the note, and the canvas must not lose strokes.
+    if (await save()) props.onOpenLink(route);
+  };
+
+  const pinTarget = async (target: NoteLinkTarget): Promise<void> => {
+    const currentApi = api();
+    const currentRuntime = runtime();
+    if (!currentApi || !currentRuntime) return;
+    const skeleton = drawingLinkCardSkeleton(
+      { kindLabel: NOTE_LINK_KIND_LABEL[target.kind], title: target.title, route: target.route },
+      drawingViewportCenter(currentApi.getAppState()),
+      currentRuntime.FONT_FAMILY.Nunito,
+    );
+    // Excalidraw measures the label once. Its faces use unicode-range subsets, so load the
+    // subsets for these exact characters first or Cyrillic text is measured with a fallback.
+    await window.document.fonts.load('16px Nunito', skeleton.label.text);
+    const card = currentRuntime.convertToExcalidrawElements([skeleton]);
+    currentApi.updateScene({
+      elements: [...currentApi.getSceneElementsIncludingDeleted(), ...card],
+    });
+    setLinkPickerOpen(false);
+    setLinkQuery('');
   };
 
   const exportSvg = async (): Promise<void> => {
@@ -502,21 +589,83 @@ export function NoteDrawingEditor(props: {
       open
       title={props.title ?? 'Схема'}
       subtitle="Excalidraw сохраняется как редактируемое офлайн-вложение"
-      class="note-drawing-dialog"
+      class={`note-drawing-dialog${fullscreen() ? ' note-drawing-dialog--fullscreen' : ''}`}
       bodyClass="note-drawing-dialog__body"
       tracksHistory={false}
       onClose={props.onCancel}
     >
       <div class="note-drawing-editor">
-        <LazyExcalidraw
-          initial={initial}
-          onSceneChange={handleSceneChange}
-          onRuntime={setRuntime}
-        />
+        <div class="note-drawing-editor__stage">
+          <LazyExcalidraw
+            initial={initial}
+            onSceneChange={handleSceneChange}
+            onRuntime={setRuntime}
+            onApi={setApi}
+            onOpenAppLink={(route) => void openAppLink(route)}
+            fullscreen={fullscreen()}
+          />
+          <Show when={linkPickerOpen()}>
+            <div class="note-drawing-links">
+              <input
+                class="note-drawing-links__search"
+                type="search"
+                placeholder="Документ, калькулятор, тест или заметка"
+                aria-label="Найти объект для карточки"
+                value={linkQuery()}
+                onInput={(event) => setLinkQuery(event.currentTarget.value)}
+                ref={(element) => queueMicrotask(() => element.focus())}
+              />
+              <ul class="note-drawing-links__list">
+                <For
+                  each={linkTargets()}
+                  fallback={<li class="note-drawing-links__empty">Ничего не найдено</li>}
+                >
+                  {(target) => (
+                    <li class="note-drawing-links__entry">
+                      <button
+                        type="button"
+                        class="note-drawing-links__item"
+                        onClick={() => void pinTarget(target)}
+                      >
+                        <span class="note-drawing-links__kind">
+                          {NOTE_LINK_KIND_LABEL[target.kind]}
+                        </span>
+                        <span class="note-drawing-links__title">{target.title}</span>
+                        <Show when={target.detail}>
+                          {(detail) => <span class="note-drawing-links__detail">{detail()}</span>}
+                        </Show>
+                      </button>
+                    </li>
+                  )}
+                </For>
+              </ul>
+            </div>
+          </Show>
+        </div>
         <p class="note-drawing-editor__hint" aria-live="polite">
-          Все данные схемы сохраняются локально. Внешние встраивания отключены.
+          Все данные схемы сохраняются локально. Стилусом можно рисовать, пальцем — двигать холст.
+          Карточки открывают объект MiniMed по значку ссылки.
         </p>
         <div class="note-drawing-editor__actions">
+          <Show when={props.findLinkTargets}>
+            <button
+              type="button"
+              class="note-drawing-editor__action"
+              aria-expanded={linkPickerOpen()}
+              disabled={!api()}
+              onClick={() => setLinkPickerOpen((open) => !open)}
+            >
+              Прикрепить объект
+            </button>
+          </Show>
+          <button
+            type="button"
+            class="note-drawing-editor__action"
+            aria-pressed={fullscreen()}
+            onClick={() => setFullscreen((value) => !value)}
+          >
+            {fullscreen() ? 'Обычный размер' : 'Во весь экран'}
+          </button>
           <button
             type="button"
             class="note-drawing-editor__action"
