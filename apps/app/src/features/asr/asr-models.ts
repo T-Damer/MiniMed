@@ -1,3 +1,12 @@
+import {
+  type AsrAssetRequirement,
+  commitAsrModelCacheManifest,
+  hasCompleteCachedAsrModel,
+  inspectCachedAsrAsset,
+  readCachedAsrAsset,
+  storeAsrAssetBytes,
+  storeAsrAssetMetadata,
+} from '@/features/asr/asr-asset-cache';
 import { diarizeBrowserAudio } from '@/features/asr/browser-diarization';
 import { applyOptionalSpeakerRegions } from '@/features/asr/speaker-alignment';
 import type { DownloadContext } from '@/features/downloads/download-queue';
@@ -11,6 +20,7 @@ import {
   type AsrAssetResponse,
   asrDownloadId,
   assertAsrAssetRequest,
+  isSupportedAsrModelId,
 } from './asr-download-protocol';
 
 export interface AsrModelDescriptor {
@@ -111,6 +121,31 @@ const downloadContexts = new Map<string, DownloadContext>();
 const assetControllers = new Set<AbortController>();
 const assetWork = new Map<string, Set<Promise<void>>>();
 const assetProgress = new Map<string, Map<string, { loaded: number; total: number | null }>>();
+const assetRequirements = new Map<string, Map<string, boolean>>();
+const cachedOnlyActivations = new Set<string>();
+
+function recordAssetRequirement(request: AsrAssetRequest): void {
+  const requirements = assetRequirements.get(request.modelId) ?? new Map<string, boolean>();
+  requirements.set(
+    request.url,
+    Boolean(requirements.get(request.url) || !request.metadataOnly),
+  );
+  assetRequirements.set(request.modelId, requirements);
+}
+
+function assetRequirementsFor(modelId: string): readonly AsrAssetRequirement[] {
+  return [...(assetRequirements.get(modelId) ?? new Map<string, boolean>())].map(
+    ([url, needsBytes]) => ({ url, needsBytes }),
+  );
+}
+
+function warnCache(cause: unknown, action: string): void {
+  console.warn(
+    cause instanceof Error
+      ? `Не удалось ${action} кэш речевой модели: ${cause.message}`
+      : `Не удалось ${action} кэш речевой модели.`,
+  );
+}
 
 async function fetchAsset(instance: Worker, request: AsrAssetRequest): Promise<void> {
   let response: AsrAssetResponse;
@@ -121,9 +156,55 @@ async function fetchAsset(instance: Worker, request: AsrAssetRequest): Promise<v
   assetControllers.add(controller);
   try {
     assertAsrAssetRequest(request);
+    recordAssetRequirement(request);
     if (!context || context.signal.aborted)
       throw new DOMException('Download cancelled.', 'AbortError');
+
     if (request.metadataOnly) {
+      try {
+        const cached = await inspectCachedAsrAsset(request.modelId, request.url);
+        if (cached) {
+          response = {
+            type: 'asset-response',
+            requestId: request.requestId,
+            status: cached.status,
+            headers: cached.headers,
+            bytes: null,
+          };
+        }
+      } catch (cause) {
+        warnCache(cause, 'прочитать');
+      }
+      if (response === undefined && cachedOnlyActivations.has(request.modelId)) {
+        throw new Error('Локальный кэш речевой модели неполный.');
+      }
+    } else {
+      try {
+        const cached = await readCachedAsrAsset(request.modelId, request.url);
+        if (cached) {
+          const buffer = cached.bytes.buffer.slice(
+            cached.bytes.byteOffset,
+            cached.bytes.byteOffset + cached.bytes.byteLength,
+          ) as ArrayBuffer;
+          response = {
+            type: 'asset-response',
+            requestId: request.requestId,
+            status: cached.status,
+            headers: cached.headers,
+            bytes: buffer,
+          };
+        }
+      } catch (cause) {
+        warnCache(cause, 'прочитать');
+      }
+      if (response === undefined && cachedOnlyActivations.has(request.modelId)) {
+        throw new Error('Локальный кэш речевой модели неполный.');
+      }
+    }
+
+    if (response !== undefined) {
+      // Served from the verified persistent cache.
+    } else if (request.metadataOnly) {
       response = await getDownloadQueue().transfer(
         context.id,
         `speech-metadata:${request.url}`,
@@ -141,13 +222,24 @@ async function fetchAsset(instance: Worker, request: AsrAssetRequest): Promise<v
             if (['content-type', 'content-length', 'content-range'].includes(key))
               headers.push([key, value]);
           });
-          return {
+          const result: AsrAssetResponse = {
             type: 'asset-response',
             requestId: request.requestId,
             status: head.status,
             headers,
             bytes: null,
           };
+          try {
+            await storeAsrAssetMetadata({
+              modelId: request.modelId,
+              url: request.url,
+              status: result.status,
+              headers: result.headers,
+            });
+          } catch (cause) {
+            warnCache(cause, 'сохранить');
+          }
+          return result;
         },
       );
     } else {
@@ -172,6 +264,15 @@ async function fetchAsset(instance: Worker, request: AsrAssetRequest): Promise<v
           );
         },
       });
+      try {
+        await storeAsrAssetBytes({
+          modelId: request.modelId,
+          url: request.url,
+          bytes: data,
+        });
+      } catch (cause) {
+        warnCache(cause, 'сохранить');
+      }
       const buffer = data.buffer.slice(
         data.byteOffset,
         data.byteOffset + data.byteLength,
