@@ -58,6 +58,124 @@ export async function verifyBrowserDiarizationArtifact(
   }
 }
 
+const MODEL_CACHE_DATABASE = 'minimed-browser-diarization-models-v1';
+const MODEL_CACHE_VERSION = 1;
+const MODEL_CACHE_STORE = 'models';
+
+interface CachedBrowserDiarizationModel {
+  readonly id: BrowserDiarizationModelArtifact['id'];
+  readonly sha256: string;
+  readonly expectedBytes: number;
+  readonly data: Blob;
+  readonly updatedAt: string;
+}
+
+function hasIndexedDb(): boolean {
+  return typeof globalThis.indexedDB?.open === 'function';
+}
+
+function modelCacheRequest<T>(request: IDBRequest<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () =>
+      reject(request.error ?? new Error('Не удалось прочитать кэш моделей спикеров.'));
+  });
+}
+
+function modelCacheTransaction(transaction: IDBTransaction): Promise<void> {
+  return new Promise((resolve, reject) => {
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () =>
+      reject(transaction.error ?? new Error('Не удалось обновить кэш моделей спикеров.'));
+    transaction.onabort = () =>
+      reject(transaction.error ?? new Error('Обновление кэша моделей спикеров отменено.'));
+  });
+}
+
+async function openModelCache(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(MODEL_CACHE_DATABASE, MODEL_CACHE_VERSION);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(MODEL_CACHE_STORE)) {
+        request.result.createObjectStore(MODEL_CACHE_STORE, { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () =>
+      reject(request.error ?? new Error('Не удалось открыть кэш моделей спикеров.'));
+  });
+}
+
+async function deleteCachedModel(id: BrowserDiarizationModelArtifact['id']): Promise<void> {
+  if (!hasIndexedDb()) return;
+  const database = await openModelCache();
+  try {
+    const transaction = database.transaction(MODEL_CACHE_STORE, 'readwrite');
+    transaction.objectStore(MODEL_CACHE_STORE).delete(id);
+    await modelCacheTransaction(transaction);
+  } finally {
+    database.close();
+  }
+}
+
+async function loadCachedModel(
+  artifact: BrowserDiarizationModelArtifact,
+): Promise<Uint8Array | null> {
+  if (!hasIndexedDb()) return null;
+  const database = await openModelCache();
+  let record: CachedBrowserDiarizationModel | undefined;
+  try {
+    const transaction = database.transaction(MODEL_CACHE_STORE, 'readonly');
+    record = await modelCacheRequest(
+      transaction.objectStore(MODEL_CACHE_STORE).get(artifact.id) as IDBRequest<
+        CachedBrowserDiarizationModel | undefined
+      >,
+    );
+    await modelCacheTransaction(transaction);
+  } finally {
+    database.close();
+  }
+  if (!record) return null;
+  if (
+    record.sha256 !== artifact.expectedSha256 ||
+    record.expectedBytes !== artifact.expectedBytes ||
+    record.data.size !== artifact.expectedBytes
+  ) {
+    await deleteCachedModel(artifact.id);
+    return null;
+  }
+  const bytes = new Uint8Array(await record.data.arrayBuffer());
+  try {
+    await verifyBrowserDiarizationArtifact(bytes, artifact);
+    return bytes;
+  } catch {
+    await deleteCachedModel(artifact.id);
+    return null;
+  }
+}
+
+async function storeCachedModel(
+  artifact: BrowserDiarizationModelArtifact,
+  bytes: Uint8Array,
+): Promise<void> {
+  if (!hasIndexedDb()) return;
+  const database = await openModelCache();
+  try {
+    const transaction = database.transaction(MODEL_CACHE_STORE, 'readwrite');
+    const owned = Uint8Array.from(bytes);
+    transaction.objectStore(MODEL_CACHE_STORE).put({
+      id: artifact.id,
+      sha256: artifact.expectedSha256,
+      expectedBytes: artifact.expectedBytes,
+      data: new Blob([owned], { type: 'application/octet-stream' }),
+      updatedAt: new Date().toISOString(),
+    } satisfies CachedBrowserDiarizationModel);
+    await modelCacheTransaction(transaction);
+  } finally {
+    database.close();
+  }
+}
+
 export interface BrowserDiarizationModelBytes {
   readonly segmentation: Uint8Array;
   readonly embedding: Uint8Array;
@@ -68,6 +186,12 @@ export async function downloadBrowserDiarizationModels(
 ): Promise<BrowserDiarizationModelBytes> {
   const values = new Map<BrowserDiarizationModelArtifact['id'], Uint8Array>();
   for (const artifact of BROWSER_DIARIZATION_MODELS) {
+    if (signal?.aborted) throw new DOMException('Download aborted.', 'AbortError');
+    const cached = await loadCachedModel(artifact);
+    if (cached) {
+      values.set(artifact.id, cached);
+      continue;
+    }
     const bytes = await downloadWithRetry({
       url: artifact.url,
       cacheKey: `browser-diarization:${artifact.id}:${artifact.expectedSha256}`,
@@ -76,6 +200,7 @@ export async function downloadBrowserDiarizationModels(
       retryMissingAssets: false,
     });
     await verifyBrowserDiarizationArtifact(bytes, artifact);
+    await storeCachedModel(artifact, bytes);
     values.set(artifact.id, bytes);
   }
 
