@@ -128,7 +128,9 @@ export async function loadTranscript(fileId: string): Promise<NoteTranscript | n
 }
 
 export async function deleteTranscript(fileId: string): Promise<void> {
-  if (!('indexedDB' in globalThis) || !indexedDB || !fileId) return;
+  if (!fileId) return;
+  cancelTranscription(fileId);
+  if (!('indexedDB' in globalThis) || !indexedDB) return;
   const database = await openDatabase();
   try {
     await new Promise<void>((resolve, reject) => {
@@ -146,7 +148,9 @@ export async function deleteTranscript(fileId: string): Promise<void> {
 
 export async function deleteTranscriptsForNotes(noteIds: readonly string[]): Promise<void> {
   const wanted = new Set(noteIds.filter(Boolean));
-  if (!('indexedDB' in globalThis) || !indexedDB || wanted.size === 0) return;
+  if (wanted.size === 0) return;
+  cancelTranscriptionsForNotes(wanted);
+  if (!('indexedDB' in globalThis) || !indexedDB) return;
   const deletedFileIds: string[] = [];
   const database = await openDatabase();
   try {
@@ -206,10 +210,20 @@ export function setTranscriptionEngine(engine: TranscribeEngine | null): void {
   activeEngine = engine;
 }
 
-const running = new Map<string, { cancel: () => void }>();
+const running = new Map<string, { noteId: string; cancel: () => void }>();
 
 export function isTranscriptionQueued(fileId: string): boolean {
   return running.has(fileId);
+}
+
+export function cancelTranscription(fileId: string): void {
+  running.get(fileId)?.cancel();
+}
+
+function cancelTranscriptionsForNotes(noteIds: ReadonlySet<string>): void {
+  for (const active of running.values()) {
+    if (noteIds.has(active.noteId)) active.cancel();
+  }
 }
 
 function emitTranscriptChange(fileId: string): void {
@@ -297,6 +311,7 @@ export function queueTranscription(input: {
         });
       } catch (cause) {
         if (
+          ctx.signal.aborted ||
           cause instanceof PreemptedError ||
           (cause instanceof Error && cause.name === 'AbortError')
         ) {
@@ -320,6 +335,7 @@ export function queueTranscription(input: {
     },
   });
   running.set(input.fileId, {
+    noteId: input.noteId,
     cancel: () => ticket.cancel(),
   });
   emitTranscriptChange(input.fileId);
