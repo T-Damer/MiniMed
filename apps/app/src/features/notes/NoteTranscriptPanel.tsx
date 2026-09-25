@@ -10,6 +10,7 @@ import {
 import { toast } from 'solid-sonner';
 
 import { Button } from '@/components/Button';
+import { isAsrReady } from '@/features/asr/asr-models';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import type { NoteFile } from '@/state/note-files';
@@ -137,13 +138,25 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
       </Show>
 
       <Show when={transcript()?.status === 'unsupported'}>
-        <p class="note-transcript__hint">
-          Сначала активируйте Whisper Base или Whisper Small в настройках. После первой загрузки
-          модель работает офлайн.
-        </p>
-        <Button type="button" onClick={() => (window.location.hash = '#/settings')}>
-          Открыть настройки
-        </Button>
+        <Show
+          when={isAsrReady()}
+          fallback={
+            <>
+              <p class="note-transcript__hint">
+                Сначала активируйте Whisper Base или Whisper Small в настройках. После первой
+                загрузки модель работает офлайн.
+              </p>
+              <Button type="button" onClick={() => (window.location.hash = '#/settings')}>
+                Открыть настройки
+              </Button>
+            </>
+          }
+        >
+          <p class="note-transcript__hint">Модель уже активна — запись можно отправить повторно.</p>
+          <Button type="button" variant="primary" onClick={() => start(true)}>
+            Расшифровать
+          </Button>
+        </Show>
       </Show>
 
       <Show when={!loading() && transcript()?.status !== 'running' && !queued()}>
