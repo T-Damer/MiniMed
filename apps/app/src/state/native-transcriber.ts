@@ -6,18 +6,39 @@ import type {
 } from '@localmed/contracts';
 import {
   NativeRecordingResultSchema,
-  NativeTranscriptionModelStatusSchema,
   NativeTranscriptionProgressSchema,
   NativeTranscriptionResultSchema,
 } from '@localmed/contracts';
 import { Capacitor, type PluginListenerHandle, registerPlugin } from '@capacitor/core';
 
+import {
+  NATIVE_TRANSCRIPTION_MODEL_BYTES,
+  NATIVE_TRANSCRIPTION_MODELS,
+  type NativeTranscriptionModelArtifact,
+} from '@/features/asr/native-transcription-models';
+import { downloadFileWithRetry } from '@/features/network/download-retry';
+
 interface NativePermissionStatus {
   readonly microphone?: 'prompt' | 'prompt-with-rationale' | 'granted' | 'denied';
 }
 
+interface NativeModelInspection {
+  readonly valid: boolean;
+  readonly sizeBytes: number;
+}
+
 interface LocalMedTranscriberPlugin {
-  ensureModels(): Promise<unknown>;
+  inspectModel(options: {
+    readonly fileName: string;
+    readonly expectedBytes: number;
+    readonly expectedSha256: string;
+  }): Promise<NativeModelInspection>;
+  installModelFile(options: {
+    readonly fileName: string;
+    readonly sourcePath: string;
+    readonly expectedBytes: number;
+    readonly expectedSha256: string;
+  }): Promise<NativeModelInspection>;
   startRecording(): Promise<void>;
   stopRecording(): Promise<unknown>;
   transcribe(options: { readonly filePath: string }): Promise<unknown>;
@@ -34,18 +55,68 @@ interface LocalMedTranscriberPlugin {
 const localMedTranscriber = registerPlugin<LocalMedTranscriberPlugin>('LocalMedTranscriber');
 
 function assertNativeTranscriber(): void {
-  if (!Capacitor.isNativePlatform()) {
-    throw new Error('Запись с локальным распознаванием доступна в приложении MiniMed.');
+  if (Capacitor.getPlatform() !== 'android') {
+    throw new Error('Запись с локальным распознаванием пока доступна только в Android-приложении.');
   }
 }
 
+async function inspectArtifact(
+  artifact: NativeTranscriptionModelArtifact,
+): Promise<NativeModelInspection> {
+  return localMedTranscriber.inspectModel({
+    fileName: artifact.fileName,
+    expectedBytes: artifact.expectedBytes,
+    expectedSha256: artifact.expectedSha256,
+  });
+}
+
 export function isNativeTranscriberAvailable(): boolean {
-  return Capacitor.isNativePlatform();
+  return Capacitor.getPlatform() === 'android';
+}
+
+export async function getNativeTranscriptionModelStatus(): Promise<NativeTranscriptionModelStatus> {
+  assertNativeTranscriber();
+  const inspections = await Promise.all(NATIVE_TRANSCRIPTION_MODELS.map(inspectArtifact));
+  const missingFiles = NATIVE_TRANSCRIPTION_MODELS.flatMap((artifact, index) =>
+    inspections[index]?.valid ? [] : [artifact.fileName],
+  );
+  const bytesReady = inspections.reduce(
+    (total, inspection, index) =>
+      total + (inspection.valid ? (NATIVE_TRANSCRIPTION_MODELS[index]?.expectedBytes ?? 0) : 0),
+    0,
+  );
+  return {
+    ready: missingFiles.length === 0,
+    missingFiles,
+    bytesReady,
+    bytesTotal: NATIVE_TRANSCRIPTION_MODEL_BYTES,
+  };
 }
 
 export async function ensureNativeTranscriptionModels(): Promise<NativeTranscriptionModelStatus> {
   assertNativeTranscriber();
-  return NativeTranscriptionModelStatusSchema.parse(await localMedTranscriber.ensureModels());
+  for (const artifact of NATIVE_TRANSCRIPTION_MODELS) {
+    if ((await inspectArtifact(artifact)).valid) continue;
+    await downloadFileWithRetry(
+      {
+        url: artifact.url,
+        cacheKey: `native-transcription:${artifact.id}:${artifact.expectedSha256}`,
+        expectedBytes: artifact.expectedBytes,
+      },
+      async (file) => {
+        const installed = await localMedTranscriber.installModelFile({
+          fileName: artifact.fileName,
+          sourcePath: file.filePath,
+          expectedBytes: artifact.expectedBytes,
+          expectedSha256: artifact.expectedSha256,
+        });
+        if (!installed.valid) {
+          throw new Error(`Не удалось проверить модель распознавания «${artifact.fileName}».`);
+        }
+      },
+    );
+  }
+  return getNativeTranscriptionModelStatus();
 }
 
 export async function requestNativeMicrophonePermission(): Promise<boolean> {
