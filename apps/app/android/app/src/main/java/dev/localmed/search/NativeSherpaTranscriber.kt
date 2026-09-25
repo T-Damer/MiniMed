@@ -101,7 +101,7 @@ internal object NativeSherpaTranscriber {
             val diarized =
                 diarizer.processWithCallback(audio.samples) { completed, total, _ ->
                     onDiarizationProgress(max(0, completed), max(1, total))
-                    0
+                    if (Thread.currentThread().isInterrupted) 1 else 0
                 }
             if (diarized.isEmpty()) {
                 val text = recognizeWindowed(recognizer, audio.samples)
@@ -145,12 +145,8 @@ internal object NativeSherpaTranscriber {
                     results.add(
                         NativeSpeakerSegment(
                             speakerId = "speaker-" + (segment.speaker + 1),
-                            startMs = (segment.start * 1_000f).toLong().coerceAtLeast(0L),
-                            endMs =
-                                (segment.end * 1_000f)
-                                    .toLong()
-                                    .coerceAtMost(audio.durationMs)
-                                    .coerceAtLeast(1L),
+                            startMs = (startFrame.toLong() * 1_000L) / SAMPLE_RATE,
+                            endMs = (endFrame.toLong() * 1_000L) / SAMPLE_RATE,
                             text = text,
                         ),
                     )
