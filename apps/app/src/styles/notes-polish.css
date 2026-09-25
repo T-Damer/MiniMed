@@ -709,6 +709,95 @@
   margin: 1.25rem auto;
 }
 
+.note-attachment-viewer__audio-body {
+  display: grid;
+  min-width: min(38rem, 88vw);
+}
+
+.note-transcript {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem 1rem;
+  border-top: 1px solid var(--theme-border);
+}
+
+.note-transcript__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.note-transcript__title {
+  color: var(--theme-text);
+  font-size: 0.9rem;
+}
+
+.note-transcript__status,
+.note-transcript__hint {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.note-transcript__error {
+  margin: 0;
+  color: var(--theme-danger);
+  font-size: 0.78rem;
+}
+
+.note-transcript__hint {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.note-transcript__speakers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.6rem;
+}
+
+.note-transcript__segments {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 14rem;
+  overflow: auto;
+  padding: 0.2rem 0;
+}
+
+.note-transcript__segment {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent);
+}
+
+.note-transcript__time {
+  color: var(--theme-text-faint);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.note-transcript__speaker {
+  color: var(--theme-accent);
+  font-size: 0.75rem;
+}
+
+.note-transcript__segment-text {
+  min-width: 0;
+  color: var(--theme-text);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.note-transcript__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .note-attachment-viewer__text {
   max-height: 60dvh;
   margin: 0;
