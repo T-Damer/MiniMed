@@ -425,7 +425,19 @@ function workerInstance(): Worker {
   };
   instance.onerror = () => {
     for (const controller of assetControllers) controller.abort();
+    for (const modelId of assetRequirements.keys()) {
+      if (isSupportedAsrModelId(modelId) && !cachedOnlyActivations.has(modelId)) {
+        void discardUnadmittedAsrAssets(modelId).catch((cause) =>
+          warnCache(cause, 'очистить незавершённый'),
+        );
+      }
+    }
     worker = null;
+    readyModels.clear();
+    cachedOnlyActivations.clear();
+    assetRequirements.clear();
+    setTranscriptionEngine(null);
+    selectAsrModel(null);
     failAll(new Error('Речевой движок остановился с ошибкой.'));
   };
   worker = instance;
