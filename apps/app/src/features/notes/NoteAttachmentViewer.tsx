@@ -5,7 +5,6 @@ import { Button } from '@/components/Button';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { NoteTranscriptPanel } from '@/features/notes/NoteTranscriptPanel';
 import { downloadNoteFile, type NoteFile, noteFileSrc } from '@/state/note-files';
-import { queueTranscription } from '@/state/note-transcription';
 import { attachmentViewerKind } from '@/state/thumbnails';
 
 export type ViewerState =
@@ -154,8 +153,6 @@ export function AttachmentViewerDialog(props: {
     <Show when={props.state} keyed>
       {(current) => {
         const downloadable = 'record' in current ? current.record : undefined;
-        const transcribable =
-          downloadable && attachmentViewerKind(downloadable.mimeType) === 'audio';
         return (
           <div
             class="note-attachment-viewer"
@@ -172,24 +169,6 @@ export function AttachmentViewerDialog(props: {
             <div class="note-attachment-viewer__panel">
               <header class="note-attachment-viewer__header">
                 <span class="note-attachment-viewer__name">{current.name}</span>
-                <Show when={transcribable && downloadable}>
-                  <button
-                    type="button"
-                    class="note-attachment-viewer__transcribe"
-                    aria-label="Расшифровать аудио"
-                    title="Расшифровать речь"
-                    onClick={() => {
-                      if (!downloadable) return;
-                      queueTranscription({
-                        fileId: downloadable.id,
-                        noteId: downloadable.noteId,
-                        blob: downloadable.blob,
-                      });
-                    }}
-                  >
-                    <AppGlyph name="text-aa" class="note-image-preview__icon" />
-                  </button>
-                </Show>
                 <button
                   type="button"
                   class="note-attachment-viewer__close"
