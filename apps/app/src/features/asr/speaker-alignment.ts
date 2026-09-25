@@ -122,3 +122,28 @@ export function buildSpeakerTurns(
 ): readonly TranscriptSegment[] {
   return mergeSpeakerWords(alignWordsToSpeakers(words, regions), maxGapMs);
 }
+export interface OptionalSpeakerTurns {
+  readonly segments: readonly TranscriptSegment[];
+  readonly diarized: boolean;
+}
+
+/**
+ * Plain Whisper timestamps remain valid when diarization is unavailable or
+ * returns no regions. Only a non-empty set of real regions may set diarized=true.
+ */
+export function applyOptionalSpeakerRegions(
+  words: readonly TranscriptSegment[],
+  regions: readonly SpeakerRegion[] | null,
+  maxGapMs = DEFAULT_MERGE_GAP_MS,
+): OptionalSpeakerTurns {
+  if (!regions?.length) {
+    return {
+      segments: mergeSpeakerWords(words, maxGapMs),
+      diarized: false,
+    };
+  }
+  return {
+    segments: buildSpeakerTurns(words, regions, maxGapMs),
+    diarized: true,
+  };
+}
