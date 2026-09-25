@@ -1,4 +1,6 @@
 import type { DownloadContext } from '@/features/downloads/download-queue';
+import { diarizeBrowserAudio } from '@/features/asr/browser-diarization';
+import { buildSpeakerTurns, mergeSpeakerWords } from '@/features/asr/speaker-alignment';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { downloadWithRetry } from '@/features/network/download-retry';
 import { setTranscriptionEngine, type TranscriptionOutput } from '@/state/note-transcription';
@@ -318,6 +320,11 @@ function makeEngine(instance: Worker, modelId: string) {
   return async (audio: Blob): Promise<TranscriptionOutput> => {
     if (!readyModels.has(modelId)) throw new Error('Модель не активирована');
     const pcm = await decodeToPcm16k(audio);
+
+    // Diarization is optional and runs first so the ASR transfer can move the original PCM buffer
+    // without keeping a second full recording in WebView memory.
+    const speakerRegions = await diarizeBrowserAudio(pcm);
+
     requestCounter += 1;
     const requestId = `asr-${requestCounter}`;
     const promise = new Promise<TranscriptionOutput>((resolve, reject) => {
@@ -330,7 +337,14 @@ function makeEngine(instance: Worker, modelId: string) {
       modelId,
     };
     instance.postMessage(message satisfies AsrWorkerInMessage, [pcm.buffer]);
-    return promise;
+
+    const output = await promise;
+    if (!output.segments?.length) return output;
+    const segments =
+      speakerRegions && speakerRegions.length > 0
+        ? buildSpeakerTurns(output.segments, speakerRegions)
+        : mergeSpeakerWords(output.segments);
+    return { ...output, segments };
   };
 }
 
