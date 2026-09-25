@@ -585,9 +585,17 @@
 }
 
 .patient-note-record-inline-file__preview,
-.patient-note-record-inline-file__icon {
+.patient-note-record-inline-file__icon,
+.patient-note-record-inline-file__drawing {
   width: 100%;
   height: 5rem;
+}
+
+.patient-note-record-inline-file__drawing {
+  display: block;
+  overflow: hidden;
+  background: var(--theme-surface-muted);
+  pointer-events: none;
 }
 
 .patient-note-record-inline-file__preview {

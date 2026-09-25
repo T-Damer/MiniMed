@@ -17,10 +17,6 @@ import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { AudioWaveformPlayer } from '@/components/AudioWaveformPlayer';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { isAsrReady, transcribeBlob } from '@/features/asr/asr-models';
-import { getAssessmentCatalog } from '@/features/assessments/assessment-catalog';
-import { assessmentPath } from '@/features/assessments/assessment-routing';
-import { getCalculatorRegistry } from '@/features/calculators/calculator-registry';
-import type { AvailableCalculatorDefinition } from '@/features/calculators/calculator-types';
 import { documentSectionHeadingTag } from '@/features/library/document-display';
 import {
   DocumentReaderChromeShell,
@@ -36,6 +32,14 @@ import {
   type DrawingDocument,
   parseDrawingBlob,
 } from '@/features/notes/note-drawing';
+import {
+  findNoteLinkTargets,
+  loadNoteLinkSources,
+  NOTE_LINK_KIND_LABEL,
+  type NoteLinkTarget,
+  normalizeRu,
+  noteLinkMarkdown,
+} from '@/features/notes/note-link-targets';
 import { buildNotePrintHtml } from '@/features/notes/note-print';
 import type { NoteWysiwyg } from '@/features/notes/note-wysiwyg';
 import {
@@ -47,8 +51,7 @@ import { isNotesFullscreenRoute, withNotesFullscreen } from '@/features/notes/no
 import { VoiceRecordingButton } from '@/features/notes/VoiceRecordingButton';
 import { PrintManager } from '@/features/printing/print-manager';
 import { openDocumentOverlay } from '@/state/document-navigation';
-import { buildOfficialDocumentHash, parseDocumentReadRoute } from '@/state/document-route';
-import { loadPatientNotes } from '@/state/patient-notes';
+import { parseDocumentReadRoute } from '@/state/document-route';
 import '@/styles/note-markdown-editor.css';
 
 export interface EditorFileAttachment {
@@ -83,6 +86,8 @@ interface NoteMarkdownEditorProps {
   readonly onOpenFiles?: () => void;
   readonly fileAttachments?: readonly EditorFileAttachment[];
   readonly onSaveDrawing?: (file: File, previous?: EditorDrawingAttachment) => void | Promise<void>;
+  /** Opens a route pinned on a drawing after it was saved; defaults to plain navigation. */
+  readonly onOpenLink?: (route: string) => void;
   readonly recordingOwnerId?: string;
   readonly onRecordAudio?: (
     file: File,
@@ -96,23 +101,10 @@ interface NoteMarkdownEditorProps {
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const;
 
 const MAX_MENTIONS = 5;
+const MAX_DRAWING_LINK_TARGETS = 12;
 
-type MentionKind = 'document' | 'calculator' | 'assessment' | 'note';
-
-const MENTION_KIND_LABEL: Record<MentionKind, string> = {
-  document: 'Документ',
-  calculator: 'Калькулятор',
-  assessment: 'Тест',
-  note: 'Заметка',
-};
-
-interface MentionSuggestion {
-  readonly kind: MentionKind;
-  readonly key: string;
-  readonly title: string;
-  readonly detail?: string;
+interface MentionSuggestion extends NoteLinkTarget {
   readonly markdown: string;
-  readonly priority?: boolean;
 }
 
 type SlashCommandId = 'reminder' | 'voice' | 'attachment' | 'file' | 'drawing';
@@ -190,22 +182,6 @@ interface TocEntry {
   readonly anchor: string;
   readonly label: string;
   readonly depth: number;
-}
-
-function sanitizeLinkLabel(value: string): string {
-  return value.replaceAll('[', '').replaceAll(']', '').trim();
-}
-
-function normalizeRu(value: string): string {
-  return value.toLocaleLowerCase('ru-RU').replaceAll('ё', 'е');
-}
-
-function noteTitle(text: string): string {
-  const line = text
-    .split('\n')
-    .map((candidate) => candidate.replace(/^#+\s*|^[-*+]\s*|[*_`>]/gu, '').trim())
-    .find(Boolean);
-  return (line ?? '').slice(0, 60) || 'Заметка';
 }
 
 interface WysiwygFieldProps {
@@ -502,93 +478,13 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     }, 300);
   };
 
-  const priorityIds = createMemo(() => new Set(props.priorityDocumentIds ?? []));
   const suggestions = createMemo<readonly MentionSuggestion[]>(() => {
     if (!mentionOpen()) return [];
-    const needle = normalizeRu(mentionQuery().trim());
-    const matches = (...fields: readonly string[]): boolean =>
-      needle.length === 0 || fields.some((field) => normalizeRu(field).includes(needle));
-
-    const documents = [...props.documents]
-      .toSorted((left, right) => {
-        const leftPriority = priorityIds().has(left.id);
-        const rightPriority = priorityIds().has(right.id);
-        if (leftPriority !== rightPriority) return leftPriority ? -1 : 1;
-        return left.title.localeCompare(right.title, 'ru-RU');
-      })
-      .filter((document) => matches(document.title))
-      .map(
-        (document): MentionSuggestion => ({
-          kind: 'document',
-          key: `document:${document.id}`,
-          title: document.title,
-          priority: priorityIds().has(document.id),
-          markdown: `[${sanitizeLinkLabel(document.title) || 'Документ'}](${buildOfficialDocumentHash(document.id)})`,
-        }),
-      );
-
-    const calculators = getCalculatorRegistry()
-      .filter(
-        (calculator): calculator is AvailableCalculatorDefinition =>
-          calculator.state === 'available',
-      )
-      .filter((calculator) =>
-        matches(calculator.title, calculator.shortTitle, ...calculator.aliases),
-      )
-      .toSorted((left, right) => left.title.localeCompare(right.title, 'ru-RU'))
-      .map(
-        (calculator): MentionSuggestion => ({
-          kind: 'calculator',
-          key: `calculator:${calculator.id}`,
-          title: calculator.title,
-          markdown: `[${sanitizeLinkLabel(calculator.title)}](#/calculators/${encodeURIComponent(calculator.slug)})`,
-        }),
-      );
-
-    const assessments = getAssessmentCatalog()
-      .filter((entry) => matches(entry.title, entry.shortTitle, ...entry.aliases))
-      .toSorted((left, right) => left.title.localeCompare(right.title, 'ru-RU'))
-      .map(
-        (entry): MentionSuggestion => ({
-          kind: 'assessment',
-          key: `assessment:${entry.id}`,
-          title: entry.title,
-          markdown: `[${sanitizeLinkLabel(entry.title)}](${assessmentPath(entry.bankId, entry.slug)})`,
-        }),
-      );
-
-    const snapshot = loadPatientNotes();
-    const cardsById = new Map(snapshot.cards.map((card) => [card.id, card.title]));
-    const notes = snapshot.notes
-      .filter((note) => matches(note.title, noteTitle(note.text), note.text))
-      .toSorted((left, right) => right.updatedAt.localeCompare(left.updatedAt))
-      .slice(0, 20)
-      .map((note): MentionSuggestion => {
-        const title = note.title.trim() || noteTitle(note.text);
-        const cardTitle = cardsById.get(note.cardId);
-        return {
-          kind: 'note',
-          key: `note:${note.id}`,
-          title,
-          ...(cardTitle ? { detail: cardTitle } : {}),
-          markdown: `[${sanitizeLinkLabel(title)}](#/notes/${encodeURIComponent(note.cardId)}/records/${encodeURIComponent(note.id)})`,
-        };
-      });
-
-    const buckets = [documents, calculators, assessments, notes];
-    const mixed: MentionSuggestion[] = [];
-    for (let index = 0; mixed.length < MAX_MENTIONS; index += 1) {
-      let added = false;
-      for (const bucket of buckets) {
-        const candidate = bucket[index];
-        if (!candidate) continue;
-        mixed.push(candidate);
-        added = true;
-        if (mixed.length >= MAX_MENTIONS) break;
-      }
-      if (!added) break;
-    }
-    return mixed;
+    return findNoteLinkTargets(
+      loadNoteLinkSources(props.documents, props.priorityDocumentIds),
+      mentionQuery(),
+      MAX_MENTIONS,
+    ).map((target) => ({ ...target, markdown: noteLinkMarkdown(target) }));
   });
 
   const insertSuggestion = (suggestion: MentionSuggestion): void => {
@@ -1213,7 +1109,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
                 when={suggestion.priority}
                 fallback={
                   <small class="note-markdown-editor__mention-kind">
-                    {MENTION_KIND_LABEL[suggestion.kind]}
+                    {NOTE_LINK_KIND_LABEL[suggestion.kind]}
                   </small>
                 }
               >
@@ -1533,6 +1429,17 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
             title={current.attachment?.name ?? 'Новая схема'}
             onSave={(document) => saveDrawing(document, current.attachment)}
             onCancel={() => setDrawingEditor(null)}
+            findLinkTargets={(query) =>
+              findNoteLinkTargets(
+                loadNoteLinkSources(props.documents, props.priorityDocumentIds),
+                query,
+                MAX_DRAWING_LINK_TARGETS,
+              )
+            }
+            onOpenLink={(route) => {
+              if (props.onOpenLink) props.onOpenLink(route);
+              else window.location.hash = route;
+            }}
           />
         )}
       </Show>

@@ -1,6 +1,8 @@
 import type { ExcalidrawElement } from '@excalidraw/excalidraw/element/types';
 import type { AppState, BinaryFileData, BinaryFiles } from '@excalidraw/excalidraw/types';
 
+import { isAppRoute } from '@/features/notes/note-link-targets';
+
 export const NOTE_DRAWING_MIME = 'application/vnd.excalidraw+json';
 export const NOTE_DRAWING_VERSION = 2 as const;
 
@@ -10,6 +12,8 @@ const MAX_TEXT_LENGTH = 50_000;
 const MAX_FILE_DATA_URL_LENGTH = 32 * 1024 * 1024;
 const COLOR_PATTERN = /^(?:transparent|#[0-9a-f]{3,4}|#[0-9a-f]{6}(?:[0-9a-f]{2})?)$/iu;
 const IMAGE_DATA_URL_PATTERN = /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=\s]+$/iu;
+const WEB_LINK_PATTERN = /^https?:\/\/[^\s]+$/iu;
+const MAX_LINK_LENGTH = 2048;
 
 /** Native Excalidraw scene data kept as a note attachment. */
 export interface DrawingDocument {
@@ -78,7 +82,8 @@ function safeElement(value: unknown): value is ExcalidrawElement {
     !safeColor(value['backgroundColor']) ||
     !finiteNumber(value['strokeWidth']) ||
     value['strokeWidth'] < 0 ||
-    typeof value['isDeleted'] !== 'boolean'
+    typeof value['isDeleted'] !== 'boolean' ||
+    !isSafeDrawingLink(value['link'])
   ) {
     return false;
   }
@@ -113,6 +118,16 @@ function safeElement(value: unknown): value is ExcalidrawElement {
     default:
       return false;
   }
+}
+
+/**
+ * Element links may point inside MiniMed (`#/...`) or to an ordinary web page. Anything else,
+ * including `javascript:` and `data:` URLs from an imported scene, rejects the whole drawing.
+ */
+export function isSafeDrawingLink(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value !== 'string' || value.length > MAX_LINK_LENGTH) return false;
+  return isAppRoute(value) || WEB_LINK_PATTERN.test(value);
 }
 
 function safeBinaryFile(value: unknown): value is BinaryFileData {
@@ -210,4 +225,67 @@ export function isNoteDrawingFile(file: Pick<File, 'type' | 'name'>): boolean {
     name.endsWith('.excalidraw.json') ||
     name.endsWith('.excalidraw')
   );
+}
+
+export interface DrawingLinkCard {
+  readonly kindLabel: string;
+  readonly title: string;
+  readonly route: string;
+}
+
+export interface DrawingPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
+const LINK_CARD_WIDTH = 280;
+const LINK_CARD_HEIGHT = 96;
+const LINK_CARD_TITLE_LENGTH = 90;
+
+/** Scene coordinates of the centre of the visible canvas. */
+export function drawingViewportCenter(
+  appState: Pick<AppState, 'scrollX' | 'scrollY' | 'width' | 'height'> & {
+    readonly zoom: { readonly value: number };
+  },
+): DrawingPoint {
+  const zoom = appState.zoom.value > 0 ? appState.zoom.value : 1;
+  return {
+    x: appState.width / 2 / zoom - appState.scrollX,
+    y: appState.height / 2 / zoom - appState.scrollY,
+  };
+}
+
+/**
+ * A labelled rectangle whose element link opens a MiniMed route. The label is plain text; the
+ * route is the only navigation target, so the card survives catalog title changes.
+ */
+export function drawingLinkCardSkeleton(
+  card: DrawingLinkCard,
+  center: DrawingPoint,
+  fontFamily?: number,
+) {
+  if (!isAppRoute(card.route)) throw new Error('A drawing card can only link inside MiniMed.');
+  const title =
+    card.title.length > LINK_CARD_TITLE_LENGTH
+      ? `${card.title.slice(0, LINK_CARD_TITLE_LENGTH - 1)}…`
+      : card.title;
+  return {
+    type: 'rectangle' as const,
+    x: center.x - LINK_CARD_WIDTH / 2,
+    y: center.y - LINK_CARD_HEIGHT / 2,
+    width: LINK_CARD_WIDTH,
+    height: LINK_CARD_HEIGHT,
+    strokeColor: '#244b49',
+    backgroundColor: '#e8f3f1',
+    fillStyle: 'solid' as const,
+    roughness: 0,
+    roundness: { type: 3 as const },
+    link: card.route,
+    // The hand-drawn default font lacks full Cyrillic coverage; cards use a regular face.
+    label: {
+      text: `${card.kindLabel}\n${title}`,
+      fontSize: 16,
+      ...(fontFamily === undefined ? {} : { fontFamily }),
+    },
+  };
 }
