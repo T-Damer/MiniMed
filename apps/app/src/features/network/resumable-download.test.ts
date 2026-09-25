@@ -32,6 +32,48 @@ describe('downloadWithResume', () => {
     vi.resetModules();
   });
 
+  it('clears only resumable records matching an obsolete cache-key prefix', async () => {
+    const store = new Map<string, PartialRecord>();
+    const url = 'https://example.com/model.onnx';
+    seedPartialDownload(store, {
+      key: 'speech:transformers-whisper-q8-v1:base',
+      url,
+      bytes: [1],
+      totalBytes: 4,
+    });
+    seedPartialDownload(store, {
+      key: 'speech:transformers-whisper-q8-v1:small',
+      url,
+      bytes: [2],
+      totalBytes: 4,
+    });
+    seedPartialDownload(store, {
+      key: 'speech:transformers-whisper-q8-v2-pinned-cache:base',
+      url,
+      bytes: [3],
+      totalBytes: 4,
+    });
+    seedPartialDownload(store, {
+      key: 'document:unrelated',
+      url,
+      bytes: [4],
+      totalBytes: 4,
+    });
+    installIndexedDbDouble(store);
+
+    const { clearResumableDownloadsByPrefix } = await import(
+      '@/features/network/resumable-download'
+    );
+    await expect(
+      clearResumableDownloadsByPrefix('speech:transformers-whisper-q8-v1:'),
+    ).resolves.toBe(2);
+
+    expect([...store.keys()].toSorted()).toEqual([
+      'document:unrelated',
+      'speech:transformers-whisper-q8-v2-pinned-cache:base',
+    ]);
+  });
+
   it('downloads the full payload when no partial cache exists', async () => {
     const payload = new Uint8Array([1, 2, 3, 4]);
     const fetchMock = vi.fn(
