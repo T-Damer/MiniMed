@@ -1,4 +1,4 @@
-import { backgroundParity, PARITY_PRIORITIES } from '@/state/parity-controller';
+import { backgroundParity, PARITY_PRIORITIES, PreemptedError } from '@/state/parity-controller';
 
 export type TranscriptStatus = 'queued' | 'running' | 'done' | 'failed' | 'unsupported';
 
@@ -230,6 +230,9 @@ export function queueTranscription(input: {
           updatedAt: new Date().toISOString(),
         });
       } catch (cause) {
+        if (cause instanceof PreemptedError || (cause instanceof Error && cause.name === 'AbortError')) {
+          throw cause;
+        }
         const message = cause instanceof Error ? cause.message : 'Не удалось расшифровать запись.';
         await putTranscript({
           fileId: input.fileId,
