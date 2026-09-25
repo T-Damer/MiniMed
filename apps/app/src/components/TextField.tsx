@@ -46,7 +46,10 @@ export function TextField(props: TextFieldProps): JSX.Element {
       class={`ui-text-field${local.class ? ` ${local.class}` : ''}`}
       for={fieldId()}
     >
-      <span class="ui-text-field__label" classList={{ 'sr-only': local.hideLabel ?? false }}>
+      <span
+        class="ui-text-field__label"
+        classList={{ 'ui-text-field__label--hidden': local.hideLabel ?? false }}
+      >
         {local.label}
       </span>
       <input
