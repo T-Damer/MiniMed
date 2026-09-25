@@ -46,6 +46,10 @@ const checks = [
   ['Whisper word timestamps', files.worker.includes("return_timestamps: 'word'")],
   ['10-minute browser ASR guard', files.asr.includes('MAX_BROWSER_TRANSCRIPTION_SECONDS = 10 * 60')],
   [
+    'diarized state requires real regions',
+    files.asr.includes("...(speakerRegions?.length ? { diarized: true } : {})"),
+  ],
+  [
     'optional diarization seam only',
     files.diarization.includes('let activeEngine: BrowserDiarizationEngine | null = null'),
   ],
