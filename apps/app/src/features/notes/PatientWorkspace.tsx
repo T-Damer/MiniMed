@@ -94,6 +94,29 @@ function formatDateTime(value: string): string {
   return new Intl.DateTimeFormat('ru-RU', { dateStyle: 'short', timeStyle: 'short' }).format(date);
 }
 
+function safeExportFilePart(value: string): string {
+  const normalized = value
+    .normalize('NFKC')
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/gu, ' ')
+    .replace(/\s+/gu, ' ')
+    .trim();
+  return normalized.slice(0, 80) || 'пациент';
+}
+
+function downloadJsonFile(value: unknown, fileName: string): void {
+  const data = JSON.stringify(value, null, 2);
+  const blob = new Blob([data, '\n'], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.rel = 'noopener';
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
 function observationSourceLabel(source: PatientObservation['source']): string {
   if (source.kind === 'tool-result') return `${source.toolId} · версия ${source.toolVersion}`;
   if (source.kind === 'manual') return `Ручной показатель · ${source.label}`;
@@ -1518,6 +1541,7 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
   const [snapshot, setSnapshot] = createSignal<PatientVaultSnapshot>();
   const [error, setError] = createSignal('');
   let vaultReadRequest = 0;
+  let importBackupInput: HTMLInputElement | undefined;
   const routePatientId = () =>
     props.route.kind === 'patient' || props.route.kind === 'patient-dynamics'
       ? props.route.patientId
@@ -1562,27 +1586,36 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
   const onSnapshot = (next: PatientVaultSnapshot): void => {
     setSnapshot(next);
   };
-  const importBackup = async (): Promise<void> => {
-    const raw = window.prompt('Вставьте JSON резервной копии');
-    if (!raw) return;
+  const importBackupFile = async (file: File): Promise<void> => {
     try {
+      if (file.size > 128 * 1024 * 1024) {
+        throw new Error('Файл резервной копии больше 128 МБ.');
+      }
+      const raw = await file.text();
       await importPatientVaultBackup(JSON.parse(raw) as unknown);
       const request = ++vaultReadRequest;
       const next = await readPatientVault();
       if (request === vaultReadRequest && isPatientVaultUnlocked()) setSnapshot(next);
+      toast('Резервная копия импортирована.');
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Не удалось импортировать резервную копию.',
       );
     }
   };
+  const requestImportBackup = (): void => {
+    if (!importBackupInput) return;
+    importBackupInput.value = '';
+    importBackupInput.click();
+  };
   const exportBackup = async (): Promise<void> => {
     if (!window.confirm('Резервная копия содержит пациентские данные без шифрования. Продолжить?'))
       return;
     try {
       const backup = await exportPatientVaultBackup();
-      await navigator.clipboard.writeText(JSON.stringify(backup));
-      toast('Незашифрованная резервная копия скопирована.');
+      const date = new Date().toISOString().slice(0, 10);
+      downloadJsonFile(backup, `MiniMed — пациенты — ${date}.json`);
+      toast('Незашифрованная резервная копия сохранена в JSON.');
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Не удалось экспортировать резервную копию.',
@@ -1593,8 +1626,11 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
     if (!window.confirm('Экспорт содержит данные пациента без шифрования. Продолжить?')) return;
     try {
       const backup = await exportPatientVaultBackup(patientId);
-      await navigator.clipboard.writeText(JSON.stringify(backup));
-      toast('Незашифрованная копия карточки скопирована.');
+      const profile = snapshot()?.profiles.find((candidate) => candidate.id === patientId);
+      const date = new Date().toISOString().slice(0, 10);
+      const name = safeExportFilePart(profile?.displayName ?? patientId);
+      downloadJsonFile(backup, `MiniMed — ${name} — ${date}.json`);
+      toast('Незашифрованная копия карточки сохранена в JSON.');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось экспортировать карточку.');
     }
@@ -1627,6 +1663,17 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
   };
   return (
     <section class="patient-workspace" aria-label="Карточки пациентов">
+      <input
+        ref={importBackupInput}
+        class="patient-workspace__backup-input"
+        type="file"
+        accept="application/json,.json"
+        aria-label="Импорт резервной копии пациентов"
+        onChange={(event) => {
+          const file = event.currentTarget.files?.[0];
+          if (file) void importBackupFile(file);
+        }}
+      />
       <Show
         when={!unlocked()}
         fallback={
@@ -1637,7 +1684,7 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
                 snapshot={snapshot() ?? emptyPatientVaultSnapshot()}
                 onNavigate={props.onNavigate}
                 onExportBackup={() => void exportBackup()}
-                onImportBackup={() => void importBackup()}
+                onImportBackup={requestImportBackup}
                 onDeleteAll={() => void deleteAllPatients()}
               />
             </Show>
