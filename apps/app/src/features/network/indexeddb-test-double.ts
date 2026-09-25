@@ -45,9 +45,12 @@ interface FakeTransaction {
 
 interface FakeDatabase {
   objectStoreNames: { contains: (name: string) => boolean };
-  createObjectStore: () => void;
+  createObjectStore: (
+    name?: string,
+    config?: { readonly keyPath?: string },
+  ) => FakeObjectStore | void;
   close: () => void;
-  transaction: (name?: string, mode?: string) => FakeTransaction;
+  transaction: (name?: string | readonly string[], mode?: string) => FakeTransaction;
 }
 
 export interface IndexedDbDoubleOptions {
@@ -281,14 +284,15 @@ export function installMultiStoreIndexedDbDouble(
 
   const database: FakeDatabase = {
     objectStoreNames: { contains: (name) => stores.has(name) },
-    createObjectStore: ((name: string, config?: { readonly keyPath?: string }) => {
+    createObjectStore: (name = '', config) => {
+      if (!name) throw new Error('IndexedDB test store name is required.');
       if (!stores.has(name)) {
         stores.set(name, {
           keyPath: config?.keyPath ?? 'id',
           records: new Map(),
         });
       }
-    }) as FakeDatabase['createObjectStore'],
+    },
     close: () => undefined,
     transaction: createTransaction,
   };
