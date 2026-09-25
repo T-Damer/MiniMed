@@ -1,14 +1,19 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { asrDownloadId } from '@/features/asr/asr-download-protocol';
 import {
   ASR_MODELS,
   AsrCancelledError,
   type AsrModelDescriptor,
   activateAsrModel,
+  deactivateAsrModel,
+  isAsrModelCached,
   isModelReady,
   onAsrProgress,
   pauseAsrDownloads,
+  removeAsrModel,
   selectAsrModel,
   selectedAsrModelId,
   subscribeAsr,
@@ -22,9 +27,12 @@ import { getDownloadQueue } from '@/features/downloads/download-service';
  */
 export function AsrSettings(): JSX.Element {
   const [ready, setReady] = createSignal<ReadonlySet<string>>(new Set());
+  const [cached, setCached] = createSignal<ReadonlySet<string>>(new Set());
   const [selected, setSelected] = createSignal<string | null>(null);
   const [progress, setProgress] = createSignal<Record<string, number | null>>({});
   const [busy, setBusy] = createSignal<string | null>(null);
+  const [removing, setRemoving] = createSignal<string | null>(null);
+  const [removeTarget, setRemoveTarget] = createSignal<AsrModelDescriptor | null>(null);
   const [error, setError] = createSignal('');
 
   const sync = (): void => {
@@ -34,9 +42,23 @@ export function AsrSettings(): JSX.Element {
     setSelected(selectedAsrModelId());
   };
 
+  const refreshCached = async (): Promise<void> => {
+    const states = await Promise.all(
+      ASR_MODELS.filter((model) => model.runtimeReady).map(async (model) => ({
+        id: model.id,
+        cached: await isAsrModelCached(model.id),
+      })),
+    );
+    setCached(new Set(states.filter((state) => state.cached).map((state) => state.id)));
+  };
+
   onMount(() => {
     sync();
-    const unsubscribe = subscribeAsr(sync);
+    void refreshCached();
+    const unsubscribe = subscribeAsr(() => {
+      sync();
+      void refreshCached();
+    });
     const queue = getDownloadQueue();
     const updateQueue = (): void => {
       const active = ASR_MODELS.find((model) => {
@@ -62,8 +84,7 @@ export function AsrSettings(): JSX.Element {
   const toggleModel = async (model: AsrModelDescriptor, checked: boolean): Promise<void> => {
     setError('');
     if (!checked) {
-      selectAsrModel(null);
-      pauseAsrDownloads();
+      deactivateAsrModel();
       return;
     }
     setBusy(model.id);
@@ -77,6 +98,24 @@ export function AsrSettings(): JSX.Element {
     } finally {
       // keep the flag if another model already took over after a pause
       setBusy((current) => (current === model.id ? null : current));
+      await refreshCached();
+    }
+  };
+
+  const removeCachedModel = async (): Promise<void> => {
+    const model = removeTarget();
+    if (!model) return;
+    setError('');
+    setRemoving(model.id);
+    try {
+      await removeAsrModel(model.id);
+      await refreshCached();
+      sync();
+      setRemoveTarget(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Не удалось удалить модель.');
+    } finally {
+      setRemoving(null);
     }
   };
 
@@ -107,10 +146,13 @@ export function AsrSettings(): JSX.Element {
             <AsrModelRow
               model={model}
               ready={ready().has(model.id)}
+              cached={cached().has(model.id)}
               selected={selected() === model.id || busy() === model.id}
               progress={progress()[model.id]}
               busy={busy() === model.id}
+              removing={removing() === model.id}
               onToggle={(checked) => void toggleModel(model, checked)}
+              onRemove={() => setRemoveTarget(model)}
             />
           )}
         </For>
@@ -120,6 +162,24 @@ export function AsrSettings(): JSX.Element {
           {error()}
         </p>
       </Show>
+
+      <ConfirmationDialog
+        open={removeTarget() !== null}
+        title="Удалить речевую модель?"
+        description={
+          <>
+            Модель будет удалена из локального хранилища браузера и перестанет занимать место.
+            Готовые расшифровки останутся в заметках. При следующем включении модель потребуется
+            скачать заново.
+          </>
+        }
+        confirmLabel="Удалить модель"
+        danger
+        onConfirm={() => void removeCachedModel()}
+        onOpenChange={(open) => {
+          if (!open && !removing()) setRemoveTarget(null);
+        }}
+      />
     </section>
   );
 }
@@ -127,44 +187,61 @@ export function AsrSettings(): JSX.Element {
 function AsrModelRow(props: {
   readonly model: AsrModelDescriptor;
   readonly ready: boolean;
+  readonly cached: boolean;
   readonly selected: boolean;
   readonly progress: number | null | undefined;
   readonly busy: boolean;
+  readonly removing: boolean;
   readonly onToggle: (checked: boolean) => void;
+  readonly onRemove: () => void;
 }): JSX.Element {
   const percent = (): string =>
     typeof props.progress === 'number' ? `${Math.round(props.progress * 100)}%` : '';
   return (
-    <label class="asr-model-row" classList={{ 'asr-model-row--active': props.selected }}>
-      <input
-        type="checkbox"
-        class="asr-model-row__check"
-        checked={props.selected}
-        onChange={(event) => props.onToggle(event.currentTarget.checked)}
-      />
-      <span class="asr-model-row__info">
-        <strong>{props.model.name}</strong>
-        <small class="asr-model-row__description">{props.model.description}</small>
-        <small class="asr-model-row__meta">
-          {props.model.preferredForRussian ? 'рекомендуется для русского' : 'резервная'}
-          {props.ready ? ' · готова' : ''}
-        </small>
-      </span>
+    <div class="asr-model-row" classList={{ 'asr-model-row--active': props.selected }}>
+      <label class="asr-model-row__toggle">
+        <input
+          type="checkbox"
+          class="asr-model-row__check"
+          checked={props.selected}
+          disabled={props.removing}
+          onChange={(event) => props.onToggle(event.currentTarget.checked)}
+        />
+        <span class="asr-model-row__info">
+          <strong>{props.model.name}</strong>
+          <small class="asr-model-row__description">{props.model.description}</small>
+          <small class="asr-model-row__meta">
+            {props.model.preferredForRussian ? 'рекомендуется для русского' : 'резервная'}
+            {props.cached ? ' · скачана' : ''}
+          </small>
+        </span>
+      </label>
       <Show
         when={props.busy}
         fallback={
-          <Show when={props.ready}>
+          <Show when={props.selected || props.ready || props.cached}>
             <span
               class="asr-model-row__state"
               classList={{ 'asr-model-row__state--on': props.selected }}
             >
-              {props.selected ? 'Активна' : 'Готова'}
+              {props.selected ? 'Активна' : props.ready ? 'Загружена' : 'Скачана'}
             </span>
           </Show>
         }
       >
         <span class="asr-model-row__progress">{percent() || 'Загрузка…'}</span>
       </Show>
-    </label>
-  );
-}
+      <Show when={props.cached && !props.busy}>
+        <Button
+          type="button"
+          class="asr-model-row__remove"
+          variant="quiet"
+          disabled={props.removing}
+          aria-label={`Удалить модель ${props.model.name} из браузера`}
+          onClick={props.onRemove}
+        >
+          {props.removing ? 'Удаление…' : 'Удалить'}
+        </Button>
+      </Show>
+    </div>
+  );}
