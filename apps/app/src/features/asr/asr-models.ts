@@ -1,6 +1,7 @@
 import {
   type AsrAssetRequirement,
   commitAsrModelCacheManifest,
+  discardUnadmittedAsrAssets,
   hasCompleteCachedAsrModel,
   inspectCachedAsrAsset,
   readCachedAsrAsset,
@@ -162,7 +163,9 @@ async function fetchAsset(instance: Worker, request: AsrAssetRequest): Promise<v
 
     if (request.metadataOnly) {
       try {
-        const cached = await inspectCachedAsrAsset(request.modelId, request.url);
+        const cached = await inspectCachedAsrAsset(request.modelId, request.url, {
+          allowUnadmitted: !cachedOnlyActivations.has(request.modelId),
+        });
         if (cached) {
           response = {
             type: 'asset-response',
@@ -180,7 +183,9 @@ async function fetchAsset(instance: Worker, request: AsrAssetRequest): Promise<v
       }
     } else {
       try {
-        const cached = await readCachedAsrAsset(request.modelId, request.url);
+        const cached = await readCachedAsrAsset(request.modelId, request.url, {
+          allowUnadmitted: !cachedOnlyActivations.has(request.modelId),
+        });
         if (cached) {
           const buffer = cached.bytes.buffer.slice(
             cached.bytes.byteOffset,
@@ -388,8 +393,14 @@ function workerInstance(): Worker {
         break;
       }
       case 'load-error': {
+        const wasCachedOnly = cachedOnlyActivations.has(message.modelId);
         cachedOnlyActivations.delete(message.modelId);
         assetRequirements.delete(message.modelId);
+        if (!wasCachedOnly && isSupportedAsrModelId(message.modelId)) {
+          void discardUnadmittedAsrAssets(message.modelId).catch((cause) =>
+            warnCache(cause, 'очистить незавершённый'),
+          );
+        }
         reportProgress(message.modelId, null);
         const waiter = activationWaiters.get(message.modelId);
         waiter?.reject(new Error(message.message));
