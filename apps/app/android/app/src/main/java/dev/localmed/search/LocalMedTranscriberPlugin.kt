@@ -53,6 +53,11 @@ class LocalMedTranscriberPlugin : Plugin() {
                         "d5fea8df94263c285e54b21e5774b707c707192d3bdbeffd7b1eb07fb6743b35",
                     ),
                     ModelSpec(
+                        "gigaam-v3-punct.tokens.txt",
+                        2_007L,
+                        "142de7570b3de5b3035ce111a89c228e80e6085273731d944093ddf24fa539cd",
+                    ),
+                    ModelSpec(
                         "pyannote-segmentation-3.0.int8.onnx",
                         1_540_506L,
                         "d582f4b4c6b48205de7e0643c57df0df5615a3c176189be3fc461e9d18827b5d",
