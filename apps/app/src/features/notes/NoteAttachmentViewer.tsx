@@ -3,6 +3,7 @@ import { createEffect, createSignal, type JSX, Match, Show, Switch } from 'solid
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
+import { NoteTranscriptPanel } from '@/features/notes/NoteTranscriptPanel';
 import { downloadNoteFile, type NoteFile, noteFileSrc } from '@/state/note-files';
 import { queueTranscription } from '@/state/note-transcription';
 import { attachmentViewerKind } from '@/state/thumbnails';
@@ -15,7 +16,12 @@ export type ViewerState =
       readonly src: string;
       readonly poster?: string;
     }
-  | { readonly kind: 'audio'; readonly name: string; readonly src: string }
+  | {
+      readonly kind: 'audio';
+      readonly name: string;
+      readonly src: string;
+      readonly record: NoteFile;
+    }
   | {
       readonly kind: 'text';
       readonly name: string;
@@ -34,12 +40,20 @@ export function recordToViewerState(record: NoteFile): ViewerState {
       src: record.thumbnailDataUrl ?? noteFileSrc(record),
     };
   }
-  if (kind === 'video' || kind === 'audio') {
+  if (kind === 'video') {
     return {
       kind,
       name: record.name,
       src: noteFileSrc(record),
-      ...(kind === 'video' && record.thumbnailDataUrl ? { poster: record.thumbnailDataUrl } : {}),
+      ...(record.thumbnailDataUrl ? { poster: record.thumbnailDataUrl } : {}),
+    };
+  }
+  if (kind === 'audio') {
+    return {
+      kind,
+      name: record.name,
+      src: noteFileSrc(record),
+      record,
     };
   }
   if (kind === 'text') {
@@ -216,13 +230,18 @@ export function AttachmentViewerDialog(props: {
                   </video>
                 </Match>
                 <Match when={current.kind === 'audio'}>
-                  <audio
-                    class="note-attachment-viewer__audio"
-                    src={(current as { readonly src: string }).src}
-                    controls
-                  >
-                    <track kind="captions" label="Без субтитров" />
-                  </audio>
+                  <div class="note-attachment-viewer__audio-body">
+                    <audio
+                      class="note-attachment-viewer__audio"
+                      src={(current as { readonly src: string }).src}
+                      controls
+                    >
+                      <track kind="captions" label="Без субтитров" />
+                    </audio>
+                    <NoteTranscriptPanel
+                      file={(current as Extract<ViewerState, { readonly kind: 'audio' }>).record}
+                    />
+                  </div>
                 </Match>
                 <Match when={current.kind === 'text'}>
                   <TextPreviewBody
