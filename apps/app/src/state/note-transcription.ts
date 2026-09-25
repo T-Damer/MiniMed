@@ -324,12 +324,7 @@ export function queueTranscription(input: {
           updatedAt: new Date().toISOString(),
         }, canWrite);
       } catch (cause) {
-        if (
-          ctx.signal.aborted ||
-          !canWrite() ||
-          cause instanceof PreemptedError ||
-          (cause instanceof Error && cause.name === 'AbortError')
-        ) {
+        if (ctx.signal.aborted || !canWrite() || cause instanceof PreemptedError) {
           throw cause;
         }
         const message = cause instanceof Error ? cause.message : 'Не удалось расшифровать запись.';
