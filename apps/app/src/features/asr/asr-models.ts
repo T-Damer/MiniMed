@@ -364,16 +364,32 @@ function workerInstance(): Worker {
         }
         break;
       case 'ready': {
-        readyModels.add(message.modelId);
-        reportProgress(message.modelId, null);
-        activationWaiters.get(message.modelId)?.resolve();
-        activationWaiters.delete(message.modelId);
-        selectAsrModel(message.modelId);
-        setTranscriptionEngine(makeEngine(instance, message.modelId));
-        emit();
+        void (async () => {
+          if (isSupportedAsrModelId(message.modelId)) {
+            try {
+              await commitAsrModelCacheManifest(
+                message.modelId,
+                assetRequirementsFor(message.modelId),
+              );
+            } catch (cause) {
+              warnCache(cause, 'зафиксировать');
+            }
+          }
+          if (worker !== instance) return;
+          readyModels.add(message.modelId);
+          cachedOnlyActivations.delete(message.modelId);
+          reportProgress(message.modelId, null);
+          activationWaiters.get(message.modelId)?.resolve();
+          activationWaiters.delete(message.modelId);
+          selectAsrModel(message.modelId);
+          setTranscriptionEngine(makeEngine(instance, message.modelId));
+          emit();
+        })();
         break;
       }
       case 'load-error': {
+        cachedOnlyActivations.delete(message.modelId);
+        assetRequirements.delete(message.modelId);
         reportProgress(message.modelId, null);
         const waiter = activationWaiters.get(message.modelId);
         waiter?.reject(new Error(message.message));
@@ -494,11 +510,18 @@ function makeEngine(instance: Worker, modelId: string) {
   };
 }
 
+interface ActivateAsrModelOptions {
+  readonly cachedOnly?: boolean;
+}
+
 /** Loads the model into the worker and registers it as transcription engine. */
-export function activateAsrModel(id: string): Promise<void> {
+export function activateAsrModel(
+  id: string,
+  options: ActivateAsrModelOptions = {},
+): Promise<void> {
   const inFlight = activations.get(id);
   if (inFlight) return inFlight;
-  if (!ASR_MODELS.some((model) => model.id === id && model.runtimeReady)) {
+  if (!isSupportedAsrModelId(id)) {
     return Promise.reject(new Error('Модель недоступна в этом рантайме.'));
   }
   if (readyModels.has(id)) {
@@ -507,6 +530,9 @@ export function activateAsrModel(id: string): Promise<void> {
     return Promise.resolve();
   }
   const descriptor = ASR_MODELS.find((model) => model.id === id);
+  assetRequirements.delete(id);
+  if (options.cachedOnly) cachedOnlyActivations.add(id);
+  else cachedOnlyActivations.delete(id);
   const promise = getDownloadQueue().run(
     {
       id: asrDownloadId(id),
@@ -534,11 +560,13 @@ export function activateAsrModel(id: string): Promise<void> {
         assetProgress.delete(id);
       }
     },
-    { retry: () => activateAsrModel(id) },
+    { retry: () => activateAsrModel(id, options) },
   );
   activations.set(id, promise);
   const cleanup = (): void => {
     if (activations.get(id) === promise) activations.delete(id);
+    cachedOnlyActivations.delete(id);
+    assetRequirements.delete(id);
   };
   void promise.then(cleanup, cleanup);
   return promise;
@@ -546,14 +574,29 @@ export function activateAsrModel(id: string): Promise<void> {
 
 export async function activateSelectedAsrModel(): Promise<boolean> {
   const id = selectedAsrModelId();
-  if (!id || !ASR_MODELS.some((model) => model.id === id && model.runtimeReady)) {
+  if (!id || !isSupportedAsrModelId(id)) {
     setTranscriptionEngine(null);
     return false;
   }
+
+  let cached = false;
   try {
-    await activateAsrModel(id);
+    cached = await hasCompleteCachedAsrModel(id);
+  } catch (cause) {
+    warnCache(cause, 'проверить');
+  }
+  if (!cached) {
+    selectAsrModel(null);
+    setTranscriptionEngine(null);
+    return false;
+  }
+
+  try {
+    await activateAsrModel(id, { cachedOnly: true });
     return true;
   } catch {
+    readyModels.delete(id);
+    selectAsrModel(null);
     setTranscriptionEngine(null);
     return false;
   }
@@ -579,6 +622,8 @@ export function pauseAsrDownloads(): void {
   for (const controller of assetControllers) controller.abort();
   instance.terminate();
   readyModels.clear();
+  cachedOnlyActivations.clear();
+  assetRequirements.clear();
   setTranscriptionEngine(null);
   failAll(new AsrCancelledError());
 }
