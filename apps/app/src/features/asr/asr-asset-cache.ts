@@ -17,6 +17,7 @@ interface CachedAsrAsset {
   readonly status: number;
   readonly headers: readonly (readonly [string, string])[];
   readonly byteLength: number | null;
+  readonly admitted: boolean;
   readonly sha256?: string;
   readonly data?: Blob;
   readonly updatedAt: string;
@@ -162,7 +163,7 @@ export async function inspectCachedAsrAsset(
   url: string,
 ): Promise<CachedAsrAssetMetadata | null> {
   const record = await loadRecord(modelId, url);
-  if (!record) return null;
+  if (!record?.admitted) return null;
   return {
     status: record.status,
     headers: record.headers,
@@ -176,7 +177,7 @@ export async function readCachedAsrAsset(
   url: string,
 ): Promise<CachedAsrAssetBytes | null> {
   const record = await loadRecord(modelId, url);
-  if (!record?.data || !record.sha256) return null;
+  if (!record?.admitted || !record.data || !record.sha256) return null;
   if (record.byteLength !== record.data.size) {
     await deleteRecord(url);
     return null;
@@ -211,6 +212,7 @@ export async function storeAsrAssetMetadata(input: {
     status: input.status,
     headers: normalizedHeaders(input.headers),
     byteLength: previous?.byteLength ?? null,
+    admitted: previous?.admitted ?? false,
     ...(previous?.sha256 ? { sha256: previous.sha256 } : {}),
     ...(previous?.data ? { data: previous.data } : {}),
     updatedAt: new Date().toISOString(),
@@ -243,6 +245,7 @@ export async function storeAsrAssetBytes(input: {
       ['content-type', contentTypeForUrl(input.url)],
     ],
     byteLength: owned.byteLength,
+    admitted: false,
     sha256: await sha256(owned),
     data: new Blob([owned], { type: contentTypeForUrl(input.url) }),
     updatedAt: new Date().toISOString(),
@@ -269,6 +272,17 @@ export async function commitAsrModelCacheManifest(
       Boolean(deduplicated.get(requirement.url) || requirement.needsBytes),
     );
   }
+  if (deduplicated.size === 0) throw new Error('Речевая модель не запросила ни одного файла.');
+
+  const records: CachedAsrAsset[] = [];
+  for (const [url, needsBytes] of deduplicated) {
+    const record = await loadRecord(modelId, url);
+    if (!record || (needsBytes && (!record.data || !record.sha256 || record.data.size === 0))) {
+      throw new Error(`Кэш речевой модели неполный: ${url}`);
+    }
+    records.push(record);
+  }
+
   const manifest: CachedAsrModelManifest = {
     modelId,
     revision: ASR_MODEL_REVISIONS[modelId],
@@ -278,7 +292,9 @@ export async function commitAsrModelCacheManifest(
   };
   const database = await openDatabase();
   try {
-    const transaction = database.transaction(MANIFEST_STORE, 'readwrite');
+    const transaction = database.transaction([ASSET_STORE, MANIFEST_STORE], 'readwrite');
+    const assets = transaction.objectStore(ASSET_STORE);
+    for (const record of records) assets.put({ ...record, admitted: true });
     transaction.objectStore(MANIFEST_STORE).put(manifest);
     await transactionDone(transaction);
   } finally {
@@ -290,6 +306,27 @@ export async function commitAsrModelCacheManifest(
     } catch {
       // Persistence is a browser hint; the verified cache remains usable without it.
     }
+  }
+}
+
+export async function discardUnadmittedAsrAssets(
+  modelId: SupportedAsrModelId,
+): Promise<void> {
+  if (!hasIndexedDb()) return;
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(ASSET_STORE, 'readwrite');
+    const request = transaction.objectStore(ASSET_STORE).openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) return;
+      const record = cursor.value as CachedAsrAsset;
+      if (record.modelId === modelId && !record.admitted) cursor.delete();
+      cursor.continue();
+    };
+    await transactionDone(transaction);
+  } finally {
+    database.close();
   }
 }
 
@@ -321,7 +358,7 @@ export async function hasCompleteCachedAsrModel(
 
   for (const requirement of manifest.requirements) {
     const record = await loadRecord(modelId, requirement.url);
-    if (!record) return false;
+    if (!record?.admitted) return false;
     if (requirement.needsBytes && (!record.data || !record.sha256 || record.data.size === 0)) {
       return false;
     }
