@@ -824,6 +824,13 @@
   gap: 0.5rem;
 }
 
+.note-transcript__retention-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.25rem;
+  border-top: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent);
+}
+
 @media (max-width: 38rem) {
   .note-attachment-viewer__audio-body {
     min-width: 88vw;
