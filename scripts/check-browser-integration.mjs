@@ -11,6 +11,9 @@ const files = {
   viewerState: read('apps/app/src/features/notes/note-attachment-viewer-state.ts'),
   worker: read('apps/app/src/features/asr/asr.worker.ts'),
   asr: read('apps/app/src/features/asr/asr-models.ts'),
+  asrAssetCache: read('apps/app/src/features/asr/asr-asset-cache.ts'),
+  asrProtocol: read('apps/app/src/features/asr/asr-download-protocol.ts'),
+  restoreDownloads: read('apps/app/src/features/downloads/restore-downloads.ts'),
   diarization: read('apps/app/src/features/asr/browser-diarization.ts'),
   speakerAlignment: read('apps/app/src/features/asr/speaker-alignment.ts'),
   diarizationModels: read('apps/app/src/features/asr/browser-diarization-models.ts'),
@@ -74,6 +77,30 @@ const checks = [
   ],
   ['Whisper word timestamps', files.worker.includes("return_timestamps: 'word'")],
   ['10-minute browser ASR guard', files.asr.includes('MAX_BROWSER_TRANSCRIPTION_SECONDS = 10 * 60')],
+  [
+    'Whisper revisions are immutable',
+    files.asrProtocol.includes('1846881b6b3a3024392c1eea3ad983695bc23925') &&
+      files.asrProtocol.includes('36050c46d777d46dc4b5f43f6d90574fc38f8732') &&
+      !files.asrProtocol.includes('/resolve/(main|') &&
+      files.worker.includes("revision: ASR_MODEL_REVISIONS['onnx-community/whisper-base']") &&
+      files.worker.includes("revision: ASR_MODEL_REVISIONS['onnx-community/whisper-small']"),
+  ],
+  [
+    'Whisper cache is admitted only after ready',
+    files.asrAssetCache.includes("minimed-asr-asset-cache-v1") &&
+      files.asrAssetCache.includes('admitted: false') &&
+      files.asrAssetCache.includes('assets.put({ ...record, admitted: true })') &&
+      files.asrAssetCache.includes('requirements: readonly AsrAssetRequirement[]') &&
+      files.asr.includes('commitAsrModelCacheManifest('),
+  ],
+  [
+    'Whisper startup restore is cache-only',
+    files.asr.includes('hasCompleteCachedAsrModel(id)') &&
+      files.asr.includes("activateAsrModel(id, { cachedOnly: true })") &&
+      files.asr.includes("if (response === undefined && cachedOnlyActivations.has(request.modelId))") &&
+      files.restoreDownloads.includes('let resumingSpeech = false') &&
+      files.restoreDownloads.includes('await asr.activateSelectedAsrModel()'),
+  ],
   [
     'diarized state requires real regions',
     files.asr.includes('applyOptionalSpeakerRegions(output.segments, speakerRegions)') &&
