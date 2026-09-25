@@ -14,7 +14,6 @@ import {
   onAsrProgress,
   pauseAsrDownloads,
   removeAsrModel,
-  selectAsrModel,
   selectedAsrModelId,
   subscribeAsr,
 } from '@/features/asr/asr-models';
@@ -113,6 +112,7 @@ export function AsrSettings(): JSX.Element {
       sync();
       setRemoveTarget(null);
     } catch (cause) {
+      setRemoveTarget(null);
       setError(cause instanceof Error ? cause.message : 'Не удалось удалить модель.');
     } finally {
       setRemoving(null);
@@ -244,4 +244,5 @@ function AsrModelRow(props: {
         </Button>
       </Show>
     </div>
-  );}
+  );
+}
