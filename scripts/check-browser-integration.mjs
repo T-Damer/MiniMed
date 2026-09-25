@@ -27,6 +27,29 @@ const files = {
   drawing: read('apps/app/src/features/notes/NoteDrawingEditor.tsx'),
 };
 
+function sourceSection(source, startMarker, endMarker) {
+  const start = source.indexOf(startMarker);
+  if (start < 0) return '';
+  const end = source.indexOf(endMarker, start + startMarker.length);
+  return source.slice(start, end < 0 ? source.length : end);
+}
+
+const replaceFileSection = sourceSection(
+  files.noteFiles,
+  'export async function replaceNoteFile',
+  'async function loadByNoteIds',
+);
+const deleteFileSection = sourceSection(
+  files.noteFiles,
+  'export async function deleteNoteFile',
+  'export async function deleteNoteFilesForNotes',
+);
+const bulkDeleteSection = sourceSection(
+  files.noteFiles,
+  'export async function deleteNoteFilesForNotes',
+  '/** Save a stored attachment',
+);
+
 const checks = [
   [
     'canvas link targets in editor',
@@ -88,9 +111,16 @@ const checks = [
       files.voiceRecorder.includes('chunks = []'),
   ],
   [
-    'attachment deletion cascades transcript retention',
-    files.noteFiles.includes('await deleteTranscript(fileId)') &&
-      files.noteFiles.includes('await deleteTranscriptsForNotes(noteIds)') &&
+    'attachment deletion is privacy-first',
+    replaceFileSection.indexOf('await deleteTranscript(fileId)') >= 0 &&
+      replaceFileSection.indexOf('await deleteTranscript(fileId)') <
+        replaceFileSection.indexOf('const database = await openDatabase()') &&
+      deleteFileSection.indexOf('await deleteTranscript(fileId)') >= 0 &&
+      deleteFileSection.indexOf('await deleteTranscript(fileId)') <
+        deleteFileSection.indexOf('const database = await openDatabase()') &&
+      bulkDeleteSection.indexOf('await deleteTranscriptsForNotes(noteIds)') >= 0 &&
+      bulkDeleteSection.indexOf('await deleteTranscriptsForNotes(noteIds)') <
+        bulkDeleteSection.indexOf('const database = await openDatabase()') &&
       files.noteTranscription.includes('export async function deleteTranscript(') &&
       files.noteTranscription.includes('export async function deleteTranscriptsForNotes('),
   ],
