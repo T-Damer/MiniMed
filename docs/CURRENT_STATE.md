@@ -23,8 +23,9 @@
   present in the integration tree.
 - Draft PR #185 (`feature/browser-integration` → `main`) is the consolidated review surface.
   GitHub Actions are intentionally not used because the repository Actions quota is exhausted.
-  Dependency-free source validation currently passes 29/29 invariants across diary, canvas,
-  MediaRecorder, structured ASR, transcript retention, diarization admission and integration wiring.
+  Dependency-free source validation currently passes 37/37 invariants across diary, canvas,
+  MediaRecorder, structured ASR, persistent Whisper lifecycle, transcript retention, diarization
+  admission and integration wiring.
   A full browser
   `tsc/vitest/vite build` is still a pre-merge gate when a checkout/build environment is available.
 
@@ -36,7 +37,11 @@
 - Quantized Whisper Base/Small remains optional and local after its existing first model download.
   The worker requests word timestamps and returns millisecond transcript segments. Browser
   transcription rejects recordings over 10 minutes before the expensive decode when metadata is
-  available.
+  available. One worker owns one pipeline: switching Base↔Small unloads the previous runtime first,
+  so readiness cannot point at a model the worker no longer holds and the two pipelines do not
+  overlap in memory. Unchecking a model now truly deactivates the worker while keeping its admitted
+  cache; Settings can separately delete one cached model plus its resumable partials without touching
+  already-saved transcripts.
 - Persisted audio attachments now retain their NoteFile in the viewer, fixing the previous path where
   a saved recording could not actually start transcription. The viewer exposes queue/running/failure/
   unsupported states, retry, editable text, copy/insert actions, timestamped segments and plain-text
