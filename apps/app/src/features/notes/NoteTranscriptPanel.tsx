@@ -42,7 +42,10 @@ function defaultSpeakerLabels(transcript: NoteTranscript | null): ReadonlyMap<st
   return labels;
 }
 
-export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Element {
+export function NoteTranscriptPanel(props: {
+  readonly file: NoteFile;
+  readonly onInsertText?: (text: string) => void;
+}): JSX.Element {
   const [transcript, setTranscript] = createSignal<NoteTranscript | null>(null);
   const [draft, setDraft] = createSignal('');
   const [speakerNames, setSpeakerNames] = createSignal<Readonly<Record<string, string>>>({});
@@ -250,6 +253,17 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
           >
             {saving() ? 'Сохранение…' : 'Сохранить правки'}
           </Button>
+          <Show when={props.onInsertText && draft().trim()}>
+            <Button
+              type="button"
+              onClick={() => {
+                const value = draft().trim();
+                if (value) props.onInsertText?.(value);
+              }}
+            >
+              Вставить в заметку
+            </Button>
+          </Show>
           <Button type="button" onClick={() => void copy(draft())}>
             Копировать текст
           </Button>
