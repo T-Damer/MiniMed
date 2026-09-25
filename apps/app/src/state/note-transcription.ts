@@ -161,6 +161,10 @@ export function isTranscriptionQueued(fileId: string): boolean {
   return running.has(fileId);
 }
 
+function emitTranscriptChange(): void {
+  window.dispatchEvent(new Event(NOTE_TRANSCRIPTS_EVENT));
+}
+
 function normalizeOutput(output: string | TranscriptionOutput): TranscriptionOutput {
   if (typeof output === 'string') return { text: output };
   return {
@@ -242,9 +246,11 @@ export function queueTranscription(input: {
   running.set(input.fileId, {
     cancel: () => ticket.cancel(),
   });
+  emitTranscriptChange();
   void ticket.done
     .finally(() => {
       running.delete(input.fileId);
+      emitTranscriptChange();
     })
     .catch(() => undefined);
 }
