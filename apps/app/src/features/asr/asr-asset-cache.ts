@@ -161,9 +161,10 @@ async function deleteRecord(url: string): Promise<void> {
 export async function inspectCachedAsrAsset(
   modelId: SupportedAsrModelId,
   url: string,
+  options: { readonly allowUnadmitted?: boolean } = {},
 ): Promise<CachedAsrAssetMetadata | null> {
   const record = await loadRecord(modelId, url);
-  if (!record?.admitted) return null;
+  if (!record || (!record.admitted && !options.allowUnadmitted)) return null;
   return {
     status: record.status,
     headers: record.headers,
@@ -175,9 +176,17 @@ export async function inspectCachedAsrAsset(
 export async function readCachedAsrAsset(
   modelId: SupportedAsrModelId,
   url: string,
+  options: { readonly allowUnadmitted?: boolean } = {},
 ): Promise<CachedAsrAssetBytes | null> {
   const record = await loadRecord(modelId, url);
-  if (!record?.admitted || !record.data || !record.sha256) return null;
+  if (
+    !record ||
+    (!record.admitted && !options.allowUnadmitted) ||
+    !record.data ||
+    !record.sha256
+  ) {
+    return null;
+  }
   if (record.byteLength !== record.data.size) {
     await deleteRecord(url);
     return null;
