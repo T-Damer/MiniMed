@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { alignWordsToSpeakers, buildSpeakerTurns, mergeSpeakerWords } from './speaker-alignment';
+import {
+  alignWordsToSpeakers,
+  applyOptionalSpeakerRegions,
+  buildSpeakerTurns,
+  mergeSpeakerWords,
+} from './speaker-alignment';
 
 describe('speaker timestamp alignment', () => {
   it('assigns each word to the speaker region with the greatest overlap', () => {
@@ -68,6 +73,58 @@ describe('speaker timestamp alignment', () => {
         1_000,
       ),
     ).toHaveLength(2);
+  });
+
+  it('does not claim diarization for null or empty speaker regions', () => {
+    const words = [
+      { speakerId: 'speaker-1', startMs: 0, endMs: 300, text: 'Добрый' },
+      { speakerId: 'speaker-1', startMs: 320, endMs: 700, text: 'день' },
+    ];
+
+    expect(applyOptionalSpeakerRegions(words, null)).toEqual({
+      segments: [
+        {
+          speakerId: 'speaker-1',
+          startMs: 0,
+          endMs: 700,
+          text: 'Добрый день',
+        },
+      ],
+      diarized: false,
+    });
+    expect(applyOptionalSpeakerRegions(words, [])).toEqual({
+      segments: [
+        {
+          speakerId: 'speaker-1',
+          startMs: 0,
+          endMs: 700,
+          text: 'Добрый день',
+        },
+      ],
+      diarized: false,
+    });
+  });
+
+  it('marks transcript turns diarized only after real regions exist', () => {
+    const result = applyOptionalSpeakerRegions(
+      [
+        { speakerId: 'speaker-1', startMs: 0, endMs: 300, text: 'Добрый' },
+        { speakerId: 'speaker-1', startMs: 320, endMs: 700, text: 'день' },
+      ],
+      [{ speakerId: 'doctor', startMs: 0, endMs: 800 }],
+    );
+
+    expect(result).toEqual({
+      segments: [
+        {
+          speakerId: 'doctor',
+          startMs: 0,
+          endMs: 700,
+          text: 'Добрый день',
+        },
+      ],
+      diarized: true,
+    });
   });
 
   it('builds speaker turns in one pass for later WASM diarization integration', () => {
