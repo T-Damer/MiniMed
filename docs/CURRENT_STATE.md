@@ -1,5 +1,29 @@
 # Current state
 
+## Browser integration workspace — 2026-09-25
+
+- Integration branch: `feature/browser-integration`. It combines the browser transcription branch
+  with the patient self-monitoring diary and canvas/app-link work while deliberately making no new
+  Android or iOS qualification claim.
+- Shared browser form controls (`TextField`, `TextArea`, `ChoiceGroup`, `Checkbox`,
+  `FileButton`) are reused by the diary/transcript surfaces. Hidden labels are self-contained and
+  do not depend on the main app's global visually-hidden utility.
+- The patient card can issue a blood-pressure, glucose or medication diary. The lightweight
+  `app/diary/` entry stores patient-entered readings locally, exchanges invitation/result payloads
+  through QR codes and can export an HL7 FHIR R4 bundle. Doctor-side import remains idempotent by
+  diary/entry id and can attach imported events to an open visit.
+- Note drawings support links to MiniMed documents, calculators, assessments and notes through the
+  shared note-link target index. Drawing attachments render an actual Excalidraw preview in note
+  timelines instead of a generic file icon.
+- Voice notes use the browser MediaRecorder + optional local Whisper path documented below. Persisted
+  audio opens the editable transcript panel; a transcript can be copied or inserted at the current
+  note caret, including a timestamped form.
+- `NoteMarkdownEditor` and `notes-polish.css` were resolved manually rather than choosing one
+  feature branch wholesale: canvas link-target behavior and structured browser-ASR behavior are both
+  present in the integration tree.
+- GitHub Actions are intentionally not used for this workspace because the repository Actions quota
+  is exhausted. Validation is source/local-browser oriented until CI capacity returns.
+
 ## Browser voice transcription — 2026-09-25
 
 - Browser voice notes use MediaRecorder with a 64 kbit/s target, one-second chunks and a 10-minute
