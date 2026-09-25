@@ -15,7 +15,9 @@ function recorderMimeType(): string {
  * Toolbar microphone button: captures a voice note through MediaRecorder and
  * hands the resulting file to the caller (stored as a note attachment).
  */
-const MAX_RECORDING_SECONDS = 600;
+const MAX_RECORDING_SECONDS = 75 * 60;
+const RECORDING_BITRATE = 64_000;
+const RECORDING_TIMESLICE_MS = 1_000;
 
 export function VoiceRecordingButton(props: {
   readonly onComplete: (file: File) => void;
@@ -57,7 +59,14 @@ export function VoiceRecordingButton(props: {
   const start = async (): Promise<void> => {
     props.onStart?.();
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
     } catch {
       if (disposed) return;
       props.onError?.('Нет доступа к микрофону.');
@@ -69,7 +78,10 @@ export function VoiceRecordingButton(props: {
     }
     const mimeType = recorderMimeType();
     chunks = [];
-    recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    recorder = new MediaRecorder(stream, {
+      ...(mimeType ? { mimeType } : {}),
+      audioBitsPerSecond: RECORDING_BITRATE,
+    });
     recorder.ondataavailable = (event) => {
       if (event.data.size > 0) chunks.push(event.data);
     };
@@ -87,7 +99,7 @@ export function VoiceRecordingButton(props: {
       setSeconds(0);
       cleanupCapture();
     };
-    recorder.start();
+    recorder.start(RECORDING_TIMESLICE_MS);
 
     const context = new AudioContext();
     analyserContext = context;
@@ -120,9 +132,11 @@ export function VoiceRecordingButton(props: {
   };
 
   const durationLabel = (): string => {
-    const minutes = Math.floor(seconds() / 60);
+    const hours = Math.floor(seconds() / 3_600);
+    const minutes = Math.floor((seconds() % 3_600) / 60);
     const rest = seconds() % 60;
-    return `${minutes}:${String(rest).padStart(2, '0')}`;
+    const body = `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
+    return hours > 0 ? `${hours}:${body}` : body;
   };
 
   return (
