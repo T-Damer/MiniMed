@@ -148,7 +148,7 @@ function warnCache(cause: unknown, action: string): void {
 }
 
 async function fetchAsset(instance: Worker, request: AsrAssetRequest): Promise<void> {
-  let response: AsrAssetResponse;
+  let response: AsrAssetResponse | undefined;
   const controller = new AbortController();
   const context = downloadContexts.get(request.modelId);
   const abort = (): void => controller.abort();
@@ -311,6 +311,7 @@ async function fetchAsset(instance: Worker, request: AsrAssetRequest): Promise<v
     context?.signal.removeEventListener('abort', abort);
     assetControllers.delete(controller);
   }
+  if (!response) return;
   if (worker === instance) instance.postMessage(response, response.bytes ? [response.bytes] : []);
 }
 
