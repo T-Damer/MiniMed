@@ -44,11 +44,14 @@
   remain separate local personal data in IndexedDB.
 - Background OCR preemption re-queues speech work without marking it as a failed ASR job. Genuine ASR
   failures persist as failed with their error so retry is explicit.
-- Transcript retention follows its audio attachment: replacing/deleting an attachment or deleting
-  its owning notes removes the separate transcript record. Explicit transcript deletion keeps the
-  source audio. Active transcription jobs are cancelled and tombstoned before deletion; guarded
-  IndexedDB writes prevent a stale completion or concurrent manual save from recreating deleted
-  transcript data.
+- Transcript retention follows its audio attachment: replacing/deleting an attachment removes the
+  separate transcript record **before** mutating the file store, so a secondary file-store failure
+  cannot leave hidden derived text behind. Explicit transcript deletion keeps the source audio.
+  Active transcription jobs are cancelled and tombstoned before deletion; guarded IndexedDB writes
+  prevent a stale completion or concurrent manual save from recreating deleted transcript data.
+  Deleting a note/card first journals every doomed note id in localStorage and then runs idempotent
+  file/image cleanup; an interrupted cleanup is retried after the next browser start, closing the
+  previous fire-and-forget orphan-data gap.
 - Speaker-aware storage/alignment is implemented: an optional BrowserDiarizationEngine can supply
   source time regions, Whisper words are assigned by temporal overlap and adjacent words are merged
   into turns. Null/empty region sets are tested and never set `diarized=true`. The pyannote
