@@ -318,6 +318,29 @@ export async function commitAsrModelCacheManifest(
   }
 }
 
+export async function deleteCachedAsrModel(
+  modelId: SupportedAsrModelId,
+): Promise<void> {
+  if (!hasIndexedDb()) return;
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction([ASSET_STORE, MANIFEST_STORE], 'readwrite');
+    const assets = transaction.objectStore(ASSET_STORE);
+    const request = assets.openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) return;
+      const record = cursor.value as CachedAsrAsset;
+      if (record.modelId === modelId) cursor.delete();
+      cursor.continue();
+    };
+    transaction.objectStore(MANIFEST_STORE).delete(modelId);
+    await transactionDone(transaction);
+  } finally {
+    database.close();
+  }
+}
+
 export async function discardUnadmittedAsrAssets(
   modelId: SupportedAsrModelId,
 ): Promise<void> {
