@@ -1,6 +1,7 @@
 import {
   type AsrAssetRequirement,
   commitAsrModelCacheManifest,
+  deleteCachedAsrModel,
   discardUnadmittedAsrAssets,
   hasCompleteCachedAsrModel,
   inspectCachedAsrAsset,
@@ -13,6 +14,7 @@ import { applyOptionalSpeakerRegions } from '@/features/asr/speaker-alignment';
 import type { DownloadContext } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { downloadWithRetry } from '@/features/network/download-retry';
+import { clearResumableDownloadsByPrefix } from '@/features/network/resumable-download';
 import { setTranscriptionEngine, type TranscriptionOutput } from '@/state/note-transcription';
 import type { AsrTranscribeMessage, AsrWorkerInMessage, AsrWorkerOutMessage } from './asr.worker';
 import {
@@ -341,6 +343,19 @@ function failAll(error: Error): void {
   emit();
 }
 
+function stopAsrRuntime(error: Error): void {
+  const instance = worker;
+  worker = null;
+  for (const controller of assetControllers) controller.abort();
+  instance?.terminate();
+  readyModels.clear();
+  cachedOnlyActivations.clear();
+  assetRequirements.clear();
+  setTranscriptionEngine(null);
+  for (const model of ASR_MODELS) reportProgress(model.id, null);
+  failAll(error);
+}
+
 function workerInstance(): Worker {
   if (worker) return worker;
   const instance = new Worker(new URL('./asr.worker.ts', import.meta.url), { type: 'module' });
@@ -642,15 +657,48 @@ export class AsrCancelledError extends Error {
  */
 export function pauseAsrDownloads(): void {
   if (!worker || activations.size === 0) return;
-  const instance = worker;
-  worker = null;
-  for (const controller of assetControllers) controller.abort();
-  instance.terminate();
-  readyModels.clear();
-  cachedOnlyActivations.clear();
-  assetRequirements.clear();
-  setTranscriptionEngine(null);
-  failAll(new AsrCancelledError());
+  stopAsrRuntime(new AsrCancelledError());
+}
+
+export function deactivateAsrModel(): void {
+  selectAsrModel(null);
+  if (worker) stopAsrRuntime(new AsrCancelledError());
+  else {
+    readyModels.clear();
+    setTranscriptionEngine(null);
+    emit();
+  }
+}
+
+export async function isAsrModelCached(id: string): Promise<boolean> {
+  if (!isSupportedAsrModelId(id)) return false;
+  try {
+    return await hasCompleteCachedAsrModel(id);
+  } catch (cause) {
+    warnCache(cause, 'проверить');
+    return false;
+  }
+}
+
+export async function removeAsrModel(id: string): Promise<void> {
+  if (!isSupportedAsrModelId(id)) throw new Error('Модель недоступна в этом рантайме.');
+
+  const queue = getDownloadQueue();
+  const task = queue.get(asrDownloadId(id));
+  if (task?.canCancel) await queue.cancel(task.id);
+
+  const selected = selectedAsrModelId() === id;
+  const active = selected || readyModels.has(id) || activations.has(id);
+  if (active && worker) stopAsrRuntime(new AsrCancelledError());
+  readyModels.delete(id);
+  if (selected) selectAsrModel(null);
+
+  await deleteCachedAsrModel(id);
+  await clearResumableDownloadsByPrefix(
+    `speech:${ASR_DOWNLOAD_VERSION}:https://huggingface.co/${id}/resolve/`,
+  );
+  reportProgress(id, null);
+  emit();
 }
 
 export function isAsrReady(): boolean {
