@@ -4,6 +4,7 @@ import android.Manifest
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.SystemClock
+import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.PermissionState
 import com.getcapacitor.Plugin
@@ -19,6 +20,8 @@ import java.io.IOException
 import java.security.MessageDigest
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 @CapacitorPlugin(
     name = "LocalMedTranscriber",
@@ -72,6 +75,8 @@ class LocalMedTranscriberPlugin : Plugin() {
     }
 
     private val recordingLock = Any()
+    private val transcriptionExecutor = Executors.newSingleThreadExecutor()
+    private val transcribing = AtomicBoolean(false)
     private var recording: RecordingSession? = null
 
     @PluginMethod
@@ -259,14 +264,65 @@ class LocalMedTranscriberPlugin : Plugin() {
             call.reject("Путь к записи не указан.", "TRANSCRIPTION_FILE_REQUIRED")
             return
         }
-        try {
-            recordingFile(path)
-            call.reject(
-                "Нативный runtime распознавания ещё не подключён.",
-                "TRANSCRIPTION_RUNTIME_UNAVAILABLE",
-            )
-        } catch (error: Exception) {
-            call.reject("Запись недоступна.", "TRANSCRIPTION_FILE_INVALID", error)
+        val file =
+            try {
+                recordingFile(path)
+            } catch (error: Exception) {
+                call.reject("Запись недоступна.", "TRANSCRIPTION_FILE_INVALID", error)
+                return
+            }
+        if (!transcribing.compareAndSet(false, true)) {
+            call.reject("Распознавание уже выполняется.", "TRANSCRIPTION_ALREADY_ACTIVE")
+            return
+        }
+
+        transcriptionExecutor.execute {
+            try {
+                verifyInstalledModels()
+                notifyProgress("preparing", 0, 1_000, "Декодируем аудио")
+                val decoded =
+                    NativeAudioDecoder.decode(file) { completed, total ->
+                        notifyProgress("preparing", completed, total, null)
+                    }
+                notifyProgress("diarizing", 0, 1, "Разделяем спикеров")
+                val segments =
+                    NativeSherpaTranscriber.transcribe(
+                        audio = decoded,
+                        modelDirectory = modelDirectory(),
+                        onDiarizationProgress = { completed, total ->
+                            notifyProgress("diarizing", completed, total, null)
+                        },
+                        onTranscriptionProgress = { completed, total ->
+                            notifyProgress("transcribing", completed, total, null)
+                        },
+                    )
+                notifyProgress("finalizing", 0, 1, "Собираем расшифровку")
+                val array = JSArray()
+                for (segment in segments) {
+                    val value = JSObject()
+                    value.put("speakerId", segment.speakerId)
+                    value.put("startMs", segment.startMs)
+                    value.put("endMs", segment.endMs)
+                    value.put("text", segment.text)
+                    array.put(value)
+                }
+                val result = JSObject()
+                result.put("language", "ru")
+                result.put("durationMs", decoded.durationMs)
+                result.put("segments", array)
+                notifyProgress("finalizing", 1, 1, null)
+                call.resolve(result)
+            } catch (error: Exception) {
+                call.reject("Не удалось распознать запись.", "TRANSCRIPTION_FAILED", error)
+            } catch (error: LinkageError) {
+                call.reject(
+                    "Нативный runtime распознавания недоступен.",
+                    "TRANSCRIPTION_RUNTIME_UNAVAILABLE",
+                    error,
+                )
+            } finally {
+                transcribing.set(false)
+            }
         }
     }
 
@@ -285,8 +341,33 @@ class LocalMedTranscriberPlugin : Plugin() {
                 if (session.file.length() == 0L) session.file.delete()
             }
         }
+        transcriptionExecutor.shutdownNow()
         super.handleOnDestroy()
     }
+
+    private fun verifyInstalledModels() {
+        for (spec in MODEL_SPECS.values) {
+            if (!modelInspection(spec, modelFile(spec)).getBool("valid", false)) {
+                throw IOException("Required transcription model is missing or invalid: " + spec.fileName)
+            }
+        }
+    }
+
+    private fun notifyProgress(
+        stage: String,
+        completed: Int,
+        total: Int,
+        message: String?,
+    ) {
+        val value = JSObject()
+        value.put("stage", stage)
+        value.put("completed", completed.coerceAtLeast(0))
+        value.put("total", total.coerceAtLeast(1))
+        if (!message.isNullOrBlank()) value.put("message", message)
+        notifyListeners("transcriptionProgress", value)
+    }
+
+    private fun modelDirectory(): File = File(context.filesDir, "localmed/transcription-models")
 
     private fun requireModelSpec(call: PluginCall): ModelSpec {
         val fileName = call.getString("fileName") ?: throw IOException("Model file name is missing.")
@@ -302,10 +383,7 @@ class LocalMedTranscriberPlugin : Plugin() {
         return spec
     }
 
-    private fun modelFile(spec: ModelSpec): File {
-        val directory = File(context.filesDir, "localmed/transcription-models")
-        return File(directory, spec.fileName)
-    }
+    private fun modelFile(spec: ModelSpec): File = File(modelDirectory(), spec.fileName)
 
     private fun modelInspection(spec: ModelSpec, file: File): JSObject {
         val valid =
