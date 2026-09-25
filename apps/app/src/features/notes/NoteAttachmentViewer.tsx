@@ -100,6 +100,7 @@ function DownloadPromptBody(props: {
 export function AttachmentViewerDialog(props: {
   readonly state: ViewerState | null;
   readonly onClose: () => void;
+  readonly onInsertTranscript?: (text: string) => void;
 }): JSX.Element {
   return (
     <Show when={props.state} keyed>
@@ -171,6 +172,7 @@ export function AttachmentViewerDialog(props: {
                     </audio>
                     <NoteTranscriptPanel
                       file={(current as Extract<ViewerState, { readonly kind: 'audio' }>).record}
+                      onInsertText={props.onInsertTranscript}
                     />
                   </div>
                 </Match>
