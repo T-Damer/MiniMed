@@ -16,6 +16,8 @@ const files = {
   diarizationModels: read('apps/app/src/features/asr/browser-diarization-models.ts'),
   transcriptPanel: read('apps/app/src/features/notes/NoteTranscriptPanel.tsx'),
   voiceRecorder: read('apps/app/src/features/notes/VoiceRecordingButton.tsx'),
+  noteFiles: read('apps/app/src/state/note-files.ts'),
+  noteTranscription: read('apps/app/src/state/note-transcription.ts'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
   diary: read('apps/app/src/diary/DiaryApp.tsx'),
   diaryMain: read('apps/app/src/diary/main.tsx'),
@@ -84,6 +86,19 @@ const checks = [
       files.voiceRecorder.includes('captureFailed = true') &&
       files.voiceRecorder.includes('if (disposed || captureFailed)') &&
       files.voiceRecorder.includes('chunks = []'),
+  ],
+  [
+    'attachment deletion cascades transcript retention',
+    files.noteFiles.includes('await deleteTranscript(fileId)') &&
+      files.noteFiles.includes('await deleteTranscriptsForNotes(noteIds)') &&
+      files.noteTranscription.includes('export async function deleteTranscript(') &&
+      files.noteTranscription.includes('export async function deleteTranscriptsForNotes('),
+  ],
+  [
+    'transcript can be deleted without deleting audio',
+    files.transcriptPanel.includes('Удалить расшифровку') &&
+      files.transcriptPanel.includes('Исходная') &&
+      files.transcriptPanel.includes('аудиозапись останется в заметке'),
   ],
   [
     'diary shared controls',
