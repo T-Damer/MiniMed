@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  env: { allowLocalModels: true },
+  env: { allowLocalModels: true, fetch: vi.fn<typeof fetch>() },
   pipeline: vi.fn(),
 }));
 
@@ -12,6 +12,7 @@ import { ASR_MODEL_REVISIONS } from './asr-download-protocol';
 interface WorkerScopeMock {
   onmessage: ((event: MessageEvent) => void) | null;
   postMessage: ReturnType<typeof vi.fn>;
+  location: { readonly href: string };
 }
 
 describe('ASR worker model loading', () => {
@@ -20,7 +21,12 @@ describe('ASR worker model loading', () => {
   beforeEach(() => {
     vi.resetModules();
     mocks.pipeline.mockReset();
-    scope = { onmessage: null, postMessage: vi.fn() };
+    mocks.env.fetch = vi.fn<typeof fetch>().mockResolvedValue(new Response('fallback'));
+    scope = {
+      onmessage: null,
+      postMessage: vi.fn(),
+      location: { href: 'https://minimed.test/app/' },
+    };
     vi.stubGlobal('self', scope);
   });
 
@@ -140,6 +146,80 @@ describe('ASR worker model loading', () => {
         return_timestamps: 'word',
       }),
     );
+  });
+
+  it('accepts a pinned Hugging Face Request and preserves its Range metadata', async () => {
+    await import('./asr.worker');
+    const revision = ASR_MODEL_REVISIONS['onnx-community/whisper-base'];
+    const url =
+      `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/config.json`;
+    const pending = mocks.env.fetch(
+      new Request(url, {
+        headers: { Range: 'bytes=0-0' },
+      }),
+    );
+
+    await vi.waitFor(() => {
+      expect(scope.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'fetch-asset',
+          modelId: 'onnx-community/whisper-base',
+          url,
+          metadataOnly: true,
+        }),
+      );
+    });
+    const request = scope.postMessage.mock.calls
+      .map(([message]) => message)
+      .find((message) => message.type === 'fetch-asset');
+    expect(request).toBeTruthy();
+
+    scope.onmessage?.({
+      data: {
+        type: 'asset-response',
+        requestId: request.requestId,
+        status: 206,
+        headers: [['content-range', 'bytes 0-0/10']],
+        bytes: null,
+      },
+    } as MessageEvent);
+
+    const response = await pending;
+    expect(response.status).toBe(206);
+  });
+
+  it('rejects non-GET Request inputs before they can leave the worker', async () => {
+    await import('./asr.worker');
+    const revision = ASR_MODEL_REVISIONS['onnx-community/whisper-base'];
+    const url =
+      `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/config.json`;
+
+    await expect(
+      mocks.env.fetch(
+        new Request(url, {
+          method: 'POST',
+          body: 'unexpected',
+        }),
+      ),
+    ).rejects.toThrow('Unsupported speech download.');
+    expect(scope.postMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'fetch-asset' }),
+    );
+  });
+
+  it('rejects unsupported Request Range headers', async () => {
+    await import('./asr.worker');
+    const revision = ASR_MODEL_REVISIONS['onnx-community/whisper-base'];
+    const url =
+      `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/config.json`;
+
+    await expect(
+      mocks.env.fetch(
+        new Request(url, {
+          headers: { Range: 'bytes=1-2' },
+        }),
+      ),
+    ).rejects.toThrow('Unsupported speech metadata range.');
   });
 
   it('retries a temporary network error before failing the model load', async () => {
