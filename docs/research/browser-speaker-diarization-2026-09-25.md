@@ -98,6 +98,10 @@ Implemented:
 - Model transfer uses MiniMed's resumable/retry transport, but downloaded bytes are not admitted to a
   future WASM runtime until `crypto.subtle` reproduces the pinned SHA-256. Unit coverage includes
   exact admission, wrong-size rejection and wrong-hash rejection.
+- Successfully admitted model blobs are stored in a versioned IndexedDB cache keyed by model id plus
+  the pinned size/SHA metadata. Every cache read re-verifies size and SHA before returning bytes; a
+  stale/corrupt record is deleted and downloaded again. This preserves offline reuse after the first
+  successful download without treating the resumable partial store as a permanent model cache.
 - Empty diarization output never sets `diarized=true`; speaker labels are only exposed after real
   speaker regions exist. Plain Whisper timestamps are presented neutrally as «Речь».
 
