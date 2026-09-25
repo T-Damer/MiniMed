@@ -2,6 +2,8 @@
 
 interface ImportMetaEnv {
   readonly VITE_CONTENT_BASE_URL?: string;
+  /** Public patient diary page; defaults to this site's diary/ or the published page. */
+  readonly VITE_DIARY_PAGE_URL?: string;
   readonly VITE_LOCAL_MODEL_CATALOG_URL?: string;
   readonly VITE_LOCAL_MODEL_ASSET_BASE_URL?: string;
   readonly VITE_LOCAL_MODEL_ALLOW_UPSTREAM?: string;

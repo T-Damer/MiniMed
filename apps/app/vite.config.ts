@@ -184,6 +184,13 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: false,
+    rollupOptions: {
+      // The patient diary is a separate light page: no medical core, no app service worker.
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        diary: fileURLToPath(new URL('./diary/index.html', import.meta.url)),
+      },
+    },
   },
   server: {
     host: '127.0.0.1',

@@ -27,6 +27,7 @@ import { PatientVaultUnlock } from '@/components/PatientVaultUnlock';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
+import { PatientDiaryPanel } from '@/features/diary/PatientDiaryPanel';
 import type { NotesRoute } from '@/features/notes/notes-routing';
 import { notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -1099,6 +1100,11 @@ function PatientDetail(props: {
         patientId={props.profile.id}
         episodeId={activeEpisodeId()}
         snapshot={props.snapshot}
+        onSaved={props.onSnapshot}
+      />
+      <PatientDiaryPanel
+        patientId={props.profile.id}
+        episodeId={activeEpisodeId()}
         onSaved={props.onSnapshot}
       />
       <section class="patient-workspace__timeline">
