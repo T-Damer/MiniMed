@@ -60,7 +60,9 @@ async function putTranscript(record: NoteTranscript): Promise<void> {
   } finally {
     database.close();
   }
-  window.dispatchEvent(new Event(NOTE_TRANSCRIPTS_EVENT));
+  window.dispatchEvent(
+    new CustomEvent(NOTE_TRANSCRIPTS_EVENT, { detail: { fileId: record.fileId } }),
+  );
 }
 
 function normalizeStoredTranscript(value: NoteTranscript): NoteTranscript {
@@ -161,8 +163,8 @@ export function isTranscriptionQueued(fileId: string): boolean {
   return running.has(fileId);
 }
 
-function emitTranscriptChange(): void {
-  window.dispatchEvent(new Event(NOTE_TRANSCRIPTS_EVENT));
+function emitTranscriptChange(fileId: string): void {
+  window.dispatchEvent(new CustomEvent(NOTE_TRANSCRIPTS_EVENT, { detail: { fileId } }));
 }
 
 function normalizeOutput(output: string | TranscriptionOutput): TranscriptionOutput {
@@ -177,6 +179,7 @@ export function queueTranscription(input: {
   readonly fileId: string;
   readonly noteId: string;
   readonly blob: Blob;
+  readonly force?: boolean;
 }): void {
   if (running.has(input.fileId)) return;
   const ticket = backgroundParity.submit({
@@ -185,7 +188,7 @@ export function queueTranscription(input: {
     label: `transcribe:${input.fileId}`,
     run: async (ctx) => {
       const existing = await loadTranscript(input.fileId);
-      if (existing?.status === 'done') return;
+      if (existing?.status === 'done' && !input.force) return;
       const createdAt = existing?.createdAt ?? new Date().toISOString();
       if (!activeEngine) {
         await putTranscript({
@@ -246,11 +249,11 @@ export function queueTranscription(input: {
   running.set(input.fileId, {
     cancel: () => ticket.cancel(),
   });
-  emitTranscriptChange();
+  emitTranscriptChange(input.fileId);
   void ticket.done
     .finally(() => {
       running.delete(input.fileId);
-      emitTranscriptChange();
+      emitTranscriptChange(input.fileId);
     })
     .catch(() => undefined);
 }
