@@ -30,6 +30,7 @@ export function VoiceRecordingButton(props: {
   const [level, setLevel] = createSignal(0);
   let recorder: MediaRecorder | undefined;
   let chunks: Blob[] = [];
+  let captureFailed = false;
   let tickTimer: number | undefined;
   let analyserTimer: number | undefined;
   let analyserContext: AudioContext | undefined;
@@ -78,6 +79,7 @@ export function VoiceRecordingButton(props: {
     }
     const mimeType = recorderMimeType();
     chunks = [];
+    captureFailed = false;
     try {
       recorder = new MediaRecorder(stream, {
         ...(mimeType ? { mimeType } : {}),
@@ -87,6 +89,7 @@ export function VoiceRecordingButton(props: {
         if (event.data.size > 0) chunks.push(event.data);
       };
       recorder.onerror = () => {
+        captureFailed = true;
         if (disposed) return;
         setRecording(false);
         setSeconds(0);
@@ -94,8 +97,10 @@ export function VoiceRecordingButton(props: {
         props.onError?.('Запись с микрофона завершилась с ошибкой.');
       };
       recorder.onstop = () => {
-        if (disposed) {
+        if (disposed || captureFailed) {
+          chunks = [];
           setRecording(false);
+          setSeconds(0);
           cleanupCapture();
           return;
         }
