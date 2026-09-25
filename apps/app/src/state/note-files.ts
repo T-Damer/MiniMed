@@ -192,13 +192,13 @@ export async function replaceNoteFile(fileId: string, file: File): Promise<NoteF
     database.close();
   }
   if (!replacement) throw new Error('Не удалось обновить файл.');
+  window.dispatchEvent(new Event(NOTE_FILES_EVENT));
+  scheduleLibrarySync();
   try {
     await deleteTranscript(fileId);
   } catch (cause) {
     throw new Error('Файл обновлён, но старую расшифровку не удалось удалить.', { cause });
   }
-  window.dispatchEvent(new Event(NOTE_FILES_EVENT));
-  scheduleLibrarySync();
   return replacement;
 }
 
@@ -268,9 +268,9 @@ export async function deleteNoteFile(fileId: string): Promise<void> {
   } finally {
     database.close();
   }
-  await deleteTranscript(fileId);
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
+  await deleteTranscript(fileId);
 }
 
 export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promise<void> {
@@ -294,9 +294,9 @@ export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promi
   } finally {
     database.close();
   }
-  await deleteTranscriptsForNotes(noteIds);
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
+  await deleteTranscriptsForNotes(noteIds);
 }
 
 /** Save a stored attachment back to the user's machine (web download). */
