@@ -1,6 +1,6 @@
-import type { DownloadContext } from '@/features/downloads/download-queue';
 import { diarizeBrowserAudio } from '@/features/asr/browser-diarization';
 import { buildSpeakerTurns, mergeSpeakerWords } from '@/features/asr/speaker-alignment';
+import type { DownloadContext } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { downloadWithRetry } from '@/features/network/download-retry';
 import { setTranscriptionEngine, type TranscriptionOutput } from '@/state/note-transcription';
@@ -322,8 +322,17 @@ function makeEngine(instance: Worker, modelId: string) {
     const pcm = await decodeToPcm16k(audio);
 
     // Diarization is optional and runs first so the ASR transfer can move the original PCM buffer
-    // without keeping a second full recording in WebView memory.
-    const speakerRegions = await diarizeBrowserAudio(pcm);
+    // without keeping a second full recording in WebView memory. It must never make plain ASR fail.
+    let speakerRegions: Awaited<ReturnType<typeof diarizeBrowserAudio>> = null;
+    try {
+      speakerRegions = await diarizeBrowserAudio(pcm);
+    } catch (cause) {
+      console.warn(
+        cause instanceof Error
+          ? `Не удалось разделить спикеров: ${cause.message}`
+          : 'Не удалось разделить спикеров.',
+      );
+    }
 
     requestCounter += 1;
     const requestId = `asr-${requestCounter}`;
