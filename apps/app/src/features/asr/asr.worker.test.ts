@@ -7,6 +7,8 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('@huggingface/transformers', () => mocks);
 
+import { ASR_MODEL_REVISIONS } from './asr-download-protocol';
+
 interface WorkerScopeMock {
   onmessage: ((event: MessageEvent) => void) | null;
   postMessage: ReturnType<typeof vi.fn>;
@@ -33,6 +35,27 @@ describe('ASR worker model loading', () => {
       data: { type: 'load', modelId: 'onnx-community/whisper-base' },
     } as MessageEvent);
   }
+
+  it('pins the model revision passed to transformers.js', async () => {
+    mocks.pipeline.mockResolvedValue(vi.fn());
+
+    await loadModel();
+    await vi.waitFor(() => {
+      expect(scope.postMessage).toHaveBeenCalledWith({
+        type: 'ready',
+        modelId: 'onnx-community/whisper-base',
+      });
+    });
+
+    expect(mocks.pipeline).toHaveBeenCalledWith(
+      'automatic-speech-recognition',
+      'onnx-community/whisper-base',
+      expect.objectContaining({
+        dtype: 'q8',
+        revision: ASR_MODEL_REVISIONS['onnx-community/whisper-base'],
+      }),
+    );
+  });
 
   it('reports monotonic total progress instead of per-file percentages', async () => {
     mocks.pipeline.mockImplementation(async (_task, _modelId, options) => {
