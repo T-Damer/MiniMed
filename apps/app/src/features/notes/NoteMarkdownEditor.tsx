@@ -829,7 +829,8 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
     }
     setTranscribingKey(recording.url);
     try {
-      const text = (await transcribeBlob(recording.file)).trim();
+      const output = await transcribeBlob(recording.file);
+      const text = output.text.trim();
       if (!text) {
         toast.error('Речь не распознана.');
         return;
