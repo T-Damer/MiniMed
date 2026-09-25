@@ -6,6 +6,7 @@ export async function restoreDownloadIntents(): Promise<void> {
   const tasks = queue
     .list()
     .filter((task) => task.resume && ['interrupted', 'failed', 'cancelled'].includes(task.state));
+  let resumingSpeech = false;
   for (const task of tasks) {
     const recipe = task.resume;
     if (!recipe) continue;
@@ -50,10 +51,16 @@ export async function restoreDownloadIntents(): Promise<void> {
     }
     queue.setRestorer(task.id, restore);
     if (task.state === 'interrupted' && queue.get(task.id)?.state === 'interrupted') {
+      if (recipe.kind === 'speech') resumingSpeech = true;
       // Each job records its own error. One failed item must not prevent other owners restoring.
       void queue.retry(task.id).catch(() => {
         if (queue.get(task.id)?.state === 'interrupted') queue.rejectRestoration(task.id);
       });
     }
+  }
+
+  if (!resumingSpeech) {
+    const asr = await import('@/features/asr/asr-models');
+    await asr.activateSelectedAsrModel();
   }
 }
