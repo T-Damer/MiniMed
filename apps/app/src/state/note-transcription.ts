@@ -190,6 +190,8 @@ export async function updateTranscript(input: {
   readonly text?: string;
   readonly speakerNames?: Readonly<Record<string, string>>;
 }): Promise<NoteTranscript> {
+  const canWrite = (): boolean => !cancelledTranscriptions.has(input.fileId);
+  if (!canWrite()) throw new Error('Расшифровка удалена.');
   const current = await loadTranscript(input.fileId);
   if (!current) throw new Error('Расшифровка не найдена.');
   const next: NoteTranscript = {
@@ -198,7 +200,7 @@ export async function updateTranscript(input: {
     ...(input.speakerNames !== undefined ? { speakerNames: input.speakerNames } : {}),
     updatedAt: new Date().toISOString(),
   };
-  await putTranscript(next);
+  await putTranscript(next, canWrite);
   return next;
 }
 
