@@ -387,7 +387,11 @@ function makeEngine(instance: Worker, modelId: string) {
       speakerRegions && speakerRegions.length > 0
         ? buildSpeakerTurns(output.segments, speakerRegions)
         : mergeSpeakerWords(output.segments);
-    return { ...output, segments };
+    return {
+      ...output,
+      segments,
+      ...(speakerRegions !== null ? { diarized: true } : {}),
+    };
   };
 }
 
