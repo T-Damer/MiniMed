@@ -58,7 +58,14 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
 
   onMount(() => {
     void refresh();
-    const listener = (): void => {
+    const listener = (event: Event): void => {
+      if (
+        event instanceof CustomEvent &&
+        typeof event.detail?.fileId === 'string' &&
+        event.detail.fileId !== props.file.id
+      ) {
+        return;
+      }
       void refresh();
     };
     window.addEventListener(NOTE_TRANSCRIPTS_EVENT, listener);
@@ -71,11 +78,12 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
   const speakerLabel = (id: string): string =>
     speakerNames()[id]?.trim() || labels().get(id) || id;
 
-  const start = (): void => {
+  const start = (force = false): void => {
     queueTranscription({
       fileId: props.file.id,
       noteId: props.file.noteId,
       blob: props.file.blob,
+      ...(force ? { force: true } : {}),
     });
     void refresh();
   };
@@ -196,7 +204,7 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
           >
             {saving() ? 'Сохранение…' : 'Сохранить правки'}
           </Button>
-          <Button type="button" onClick={start}>
+          <Button type="button" onClick={() => start(true)}>
             Распознать заново
           </Button>
         </div>
