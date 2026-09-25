@@ -89,6 +89,25 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
     void refresh();
   };
 
+  const copy = async (value: string): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success('Скопировано.');
+    } catch {
+      toast.error('Не удалось скопировать расшифровку.');
+    }
+  };
+
+  const speakerTranscript = (): string =>
+    (transcript()?.segments ?? [])
+      .map(
+        (segment) =>
+          `[${timeLabel(segment.startMs)}–${timeLabel(segment.endMs)}] ${speakerLabel(
+            segment.speakerId,
+          )}: ${segment.text}`,
+      )
+      .join('\n\n');
+
   const save = async (): Promise<void> => {
     const current = transcript();
     if (!current) return;
@@ -225,6 +244,14 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
           >
             {saving() ? 'Сохранение…' : 'Сохранить правки'}
           </Button>
+          <Button type="button" onClick={() => void copy(draft())}>
+            Копировать текст
+          </Button>
+          <Show when={speakerIds().length > 1}>
+            <Button type="button" onClick={() => void copy(speakerTranscript())}>
+              Копировать с таймкодами
+            </Button>
+          </Show>
           <Button type="button" onClick={() => start(true)}>
             Распознать заново
           </Button>
