@@ -78,7 +78,7 @@ interface ModelSpec {
     readonly chunk_length_s: number;
     readonly language: string;
     readonly task: 'transcribe';
-    readonly return_timestamps: true;
+    readonly return_timestamps: 'word';
   };
 }
 
@@ -91,7 +91,7 @@ const MODEL_SPECS: Readonly<Record<string, ModelSpec>> = {
       chunk_length_s: 30,
       language: 'russian',
       task: 'transcribe',
-      return_timestamps: true,
+      return_timestamps: 'word',
     },
   },
   'onnx-community/whisper-small': {
@@ -100,7 +100,7 @@ const MODEL_SPECS: Readonly<Record<string, ModelSpec>> = {
       chunk_length_s: 30,
       language: 'russian',
       task: 'transcribe',
-      return_timestamps: true,
+      return_timestamps: 'word',
     },
   },
 };
