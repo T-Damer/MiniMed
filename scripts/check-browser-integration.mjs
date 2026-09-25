@@ -18,6 +18,8 @@ const files = {
   voiceRecorder: read('apps/app/src/features/notes/VoiceRecordingButton.tsx'),
   noteFiles: read('apps/app/src/state/note-files.ts'),
   noteTranscription: read('apps/app/src/state/note-transcription.ts'),
+  retentionCleanup: read('apps/app/src/state/note-retention-cleanup.ts'),
+  patientNotes: read('apps/app/src/state/patient-notes.ts'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
   diary: read('apps/app/src/diary/DiaryApp.tsx'),
   diaryMain: read('apps/app/src/diary/main.tsx'),
@@ -139,6 +141,21 @@ const checks = [
     files.transcriptPanel.includes('Удалить расшифровку') &&
       files.transcriptPanel.includes('Исходная') &&
       files.transcriptPanel.includes('аудиозапись останется в заметке'),
+  ],
+  [
+    'note/card deletion journals retention cleanup',
+    files.patientNotes.includes('scheduleNoteRetentionCleanup(doomedNoteIds)') &&
+      files.patientNotes.includes('scheduleNoteRetentionCleanup([...doomed])') &&
+      files.retentionCleanup.includes("minimed-note-retention-cleanup-v1") &&
+      files.retentionCleanup.includes('persistPending(pendingIds())'),
+  ],
+  [
+    'retention journal resumes after reload',
+    files.retentionCleanup.includes('runPendingNoteRetentionCleanup()') &&
+      files.retentionCleanup.includes('await deleteNoteFilesForNotes(ids)') &&
+      files.retentionCleanup.includes('await deleteNoteImagesForNotes(ids)') &&
+      files.retentionCleanup.includes("if (typeof window !== 'undefined')") &&
+      files.retentionCleanup.includes('queueMicrotask'),
   ],
   [
     'diary shared controls',
