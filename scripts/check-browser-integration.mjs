@@ -14,6 +14,7 @@ const files = {
   asrAssetCache: read('apps/app/src/features/asr/asr-asset-cache.ts'),
   asrProtocol: read('apps/app/src/features/asr/asr-download-protocol.ts'),
   restoreDownloads: read('apps/app/src/features/downloads/restore-downloads.ts'),
+  resumableDownload: read('apps/app/src/features/network/resumable-download.ts'),
   diarization: read('apps/app/src/features/asr/browser-diarization.ts'),
   speakerAlignment: read('apps/app/src/features/asr/speaker-alignment.ts'),
   diarizationModels: read('apps/app/src/features/asr/browser-diarization-models.ts'),
@@ -100,6 +101,29 @@ const checks = [
       files.asr.includes("if (response === undefined && cachedOnlyActivations.has(request.modelId))") &&
       files.restoreDownloads.includes('let resumingSpeech = false') &&
       files.restoreDownloads.includes('await asr.activateSelectedAsrModel()'),
+  ],
+  [
+    'manual Whisper resume may reuse staged verified bytes',
+    files.asr.includes('allowUnadmitted: !cachedOnlyActivations.has(request.modelId)') &&
+      files.asrAssetCache.includes('options: { readonly allowUnadmitted?: boolean } = {}') &&
+      files.asr.includes('discardUnadmittedAsrAssets(message.modelId)'),
+  ],
+  [
+    'Whisper worker crash clears stale ready state',
+    files.asr.includes('instance.onerror = () => {') &&
+      files.asr.includes('readyModels.clear()') &&
+      files.asr.includes('setTranscriptionEngine(null)') &&
+      files.asr.includes('selectAsrModel(null)') &&
+      files.asr.includes("warnCache(cause, 'очистить незавершённый')"),
+  ],
+  [
+    'obsolete unpinned Whisper partials are purged',
+    files.restoreDownloads.includes(
+      "clearResumableDownloadsByPrefix('speech:transformers-whisper-q8-v1:')",
+    ) &&
+      files.resumableDownload.includes(
+        'export async function clearResumableDownloadsByPrefix(prefix: string)',
+      ),
   ],
   [
     'diarized state requires real regions',
