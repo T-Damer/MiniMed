@@ -50,14 +50,23 @@ export function NoteTranscriptPanel(props: {
   const [draft, setDraft] = createSignal('');
   const [speakerNames, setSpeakerNames] = createSignal<Readonly<Record<string, string>>>({});
   const [loading, setLoading] = createSignal(true);
+  const [loadError, setLoadError] = createSignal<string | null>(null);
   const [saving, setSaving] = createSignal(false);
 
   const refresh = async (): Promise<void> => {
-    const current = await loadTranscript(props.file.id);
-    setTranscript(current);
-    setDraft(current?.text ?? '');
-    setSpeakerNames(current?.speakerNames ?? {});
-    setLoading(false);
+    try {
+      const current = await loadTranscript(props.file.id);
+      setTranscript(current);
+      setDraft(current?.text ?? '');
+      setSpeakerNames(current?.speakerNames ?? {});
+      setLoadError(null);
+    } catch (cause) {
+      setLoadError(
+        cause instanceof Error ? cause.message : 'Не удалось загрузить локальную расшифровку.',
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   onMount(() => {
@@ -156,6 +165,14 @@ export function NoteTranscriptPanel(props: {
           {statusText()}
         </span>
       </header>
+
+      <Show when={loadError()}>
+        {(message) => (
+          <p class="note-transcript__error" role="alert">
+            {message()}
+          </p>
+        )}
+      </Show>
 
       <Show when={transcript()?.status === 'failed'}>
         <p class="note-transcript__error">{transcript()?.error ?? 'Не удалось распознать запись.'}</p>
