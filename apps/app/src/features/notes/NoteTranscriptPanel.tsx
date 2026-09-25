@@ -10,11 +10,13 @@ import {
 import { toast } from 'solid-sonner';
 
 import { Button } from '@/components/Button';
+import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { isAsrReady } from '@/features/asr/asr-models';
 import type { NoteFile } from '@/state/note-files';
 import {
+  deleteTranscript,
   isTranscriptionQueued,
   loadTranscript,
   NOTE_TRANSCRIPTS_EVENT,
@@ -52,6 +54,8 @@ export function NoteTranscriptPanel(props: {
   const [loading, setLoading] = createSignal(true);
   const [loadError, setLoadError] = createSignal<string | null>(null);
   const [saving, setSaving] = createSignal(false);
+  const [deleting, setDeleting] = createSignal(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = createSignal(false);
 
   const refresh = async (): Promise<void> => {
     try {
@@ -165,6 +169,23 @@ export function NoteTranscriptPanel(props: {
       toast.error(cause instanceof Error ? cause.message : 'Не удалось сохранить расшифровку.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const removeTranscript = async (): Promise<void> => {
+    setDeleting(true);
+    try {
+      await deleteTranscript(props.file.id);
+      setTranscript(null);
+      setDraft('');
+      setSpeakerNames({});
+      setLoadError(null);
+      setDeleteConfirmOpen(false);
+      toast.success('Расшифровка удалена. Аудиозапись сохранена.');
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось удалить расшифровку.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -363,6 +384,34 @@ export function NoteTranscriptPanel(props: {
           </Button>
         </div>
       </Show>
+
+      <Show when={transcript() && transcript()?.status !== 'running'}>
+        <div class="note-transcript__retention-actions">
+          <Button
+            type="button"
+            variant="danger"
+            disabled={deleting()}
+            onClick={() => setDeleteConfirmOpen(true)}
+          >
+            {deleting() ? 'Удаление…' : 'Удалить расшифровку'}
+          </Button>
+        </div>
+      </Show>
+
+      <ConfirmationDialog
+        open={deleteConfirmOpen()}
+        title="Удалить расшифровку?"
+        description={
+          <>
+            Текст, таймкоды и имена спикеров будут удалены с этого устройства. Исходная
+            аудиозапись останется в заметке.
+          </>
+        }
+        confirmLabel="Удалить расшифровку"
+        danger
+        onConfirm={() => void removeTranscript()}
+        onOpenChange={setDeleteConfirmOpen}
+      />
     </section>
   );
 }
