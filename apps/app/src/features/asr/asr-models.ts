@@ -381,6 +381,8 @@ function workerInstance(): Worker {
             }
           }
           if (worker !== instance) return;
+          // One worker owns exactly one pipeline. Loading another model replaces the previous one.
+          readyModels.clear();
           readyModels.add(message.modelId);
           cachedOnlyActivations.delete(message.modelId);
           reportProgress(message.modelId, null);
