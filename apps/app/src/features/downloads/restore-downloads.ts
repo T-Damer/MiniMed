@@ -1,7 +1,19 @@
+import { clearResumableDownloadsByPrefix } from '@/features/network/resumable-download';
+
 import { getDownloadQueue } from './download-service';
 
 /** Revalidate durable logical intentions against compiled catalogs; never replay stored URLs. */
 export async function restoreDownloadIntents(): Promise<void> {
+  try {
+    await clearResumableDownloadsByPrefix('speech:transformers-whisper-q8-v1:');
+  } catch (cause) {
+    console.warn(
+      cause instanceof Error
+        ? `Не удалось очистить старые частичные файлы речевой модели: ${cause.message}`
+        : 'Не удалось очистить старые частичные файлы речевой модели.',
+    );
+  }
+
   const queue = getDownloadQueue();
   const tasks = queue
     .list()
