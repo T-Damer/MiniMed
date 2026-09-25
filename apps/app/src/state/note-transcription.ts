@@ -231,8 +231,8 @@ export function cancelTranscription(fileId: string): void {
 }
 
 function cancelTranscriptionsForNotes(noteIds: ReadonlySet<string>): void {
-  for (const active of running.values()) {
-    if (noteIds.has(active.noteId)) active.cancel();
+  for (const [fileId, active] of running) {
+    if (noteIds.has(active.noteId)) cancelTranscription(fileId);
   }
 }
 
