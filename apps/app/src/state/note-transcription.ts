@@ -170,6 +170,18 @@ function emitTranscriptChange(fileId: string): void {
   window.dispatchEvent(new CustomEvent(NOTE_TRANSCRIPTS_EVENT, { detail: { fileId } }));
 }
 
+function retainedSpeakerNames(
+  names: Readonly<Record<string, string>> | undefined,
+  output: TranscriptionOutput,
+): Readonly<Record<string, string>> | undefined {
+  if (output.diarized !== true || !names || !output.segments?.length) return undefined;
+  const speakerIds = new Set(output.segments.map((segment) => segment.speakerId));
+  const entries = Object.entries(names).filter(
+    ([speakerId, label]) => speakerIds.has(speakerId) && label.trim().length > 0,
+  );
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
 function normalizeOutput(output: string | TranscriptionOutput): TranscriptionOutput {
   if (typeof output === 'string') return { text: output };
   return {
@@ -225,19 +237,23 @@ export function queueTranscription(input: {
           await activeEngine(input.blob, input.blob.type || 'audio/webm'),
         );
         await ctx.checkpoint();
+        const speakerNames = retainedSpeakerNames(existing?.speakerNames, output);
         await putTranscript({
           fileId: input.fileId,
           noteId: input.noteId,
           text: output.text,
           ...(output.segments ? { segments: output.segments } : {}),
-          ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
+          ...(speakerNames ? { speakerNames } : {}),
           ...(output.diarized === true ? { diarized: true } : {}),
           status: 'done',
           createdAt,
           updatedAt: new Date().toISOString(),
         });
       } catch (cause) {
-        if (cause instanceof PreemptedError || (cause instanceof Error && cause.name === 'AbortError')) {
+        if (
+          cause instanceof PreemptedError ||
+          (cause instanceof Error && cause.name === 'AbortError')
+        ) {
           throw cause;
         }
         const message = cause instanceof Error ? cause.message : 'Не удалось расшифровать запись.';
