@@ -12,6 +12,7 @@ const files = {
   worker: read('apps/app/src/features/asr/asr.worker.ts'),
   workerTests: read('apps/app/src/features/asr/asr.worker.test.ts'),
   asr: read('apps/app/src/features/asr/asr-models.ts'),
+  asrSettings: read('apps/app/src/features/asr/AsrSettings.tsx'),
   asrAssetCache: read('apps/app/src/features/asr/asr-asset-cache.ts'),
   asrProtocol: read('apps/app/src/features/asr/asr-download-protocol.ts'),
   restoreDownloads: read('apps/app/src/features/downloads/restore-downloads.ts'),
@@ -108,6 +109,40 @@ const checks = [
     files.asr.includes('allowUnadmitted: !cachedOnlyActivations.has(request.modelId)') &&
       files.asrAssetCache.includes('options: { readonly allowUnadmitted?: boolean } = {}') &&
       files.asr.includes('discardUnadmittedAsrAssets(message.modelId)'),
+  ],
+  [
+    'single Whisper worker exposes only its current pipeline as ready',
+    files.asr.includes('readyModels.clear()') &&
+      files.asr.includes('readyModels.add(message.modelId)') &&
+      files.asr.includes('One worker owns exactly one pipeline'),
+  ],
+  [
+    'Whisper model switch unloads the previous runtime',
+    files.asr.includes('const switchingRuntime =') &&
+      files.asr.includes('stopAsrRuntime(new AsrCancelledError())') &&
+      files.asr.includes("if (selectedAsrModelId() !== id) selectAsrModel(null)"),
+  ],
+  [
+    'Whisper can be deactivated without deleting its cache',
+    files.asr.includes('export function deactivateAsrModel()') &&
+      files.asrSettings.includes('deactivateAsrModel()') &&
+      files.asr.includes('setTranscriptionEngine(null)'),
+  ],
+  [
+    'cached Whisper can be removed from browser storage',
+    files.asrAssetCache.includes('export async function deleteCachedAsrModel(') &&
+      files.asr.includes('export async function removeAsrModel(') &&
+      files.asr.includes('await deleteCachedAsrModel(id)') &&
+      files.asr.includes('clearResumableDownloadsByPrefix(') &&
+      files.asrSettings.includes('Удалить речевую модель?') &&
+      files.asrSettings.includes('Удалить модель'),
+  ],
+  [
+    'runtime stop becomes retryable transcript failure, not stale running state',
+    files.noteTranscription.includes(
+      'if (ctx.signal.aborted || !canWrite() || cause instanceof PreemptedError)',
+    ) &&
+      !files.noteTranscription.includes("cause.name === 'AbortError'"),
   ],
   [
     'Whisper fetch guard handles Request inputs',
