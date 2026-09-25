@@ -8,7 +8,7 @@ vi.mock('@/state/note-files', async () => {
   };
 });
 
-import { recordToViewerState } from './NoteAttachmentViewer';
+import { recordToViewerState } from './note-attachment-viewer-state';
 
 describe('note attachment viewer state', () => {
   it('keeps the persisted audio record available to transcription controls', () => {
