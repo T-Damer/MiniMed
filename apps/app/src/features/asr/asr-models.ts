@@ -1,7 +1,7 @@
 import type { DownloadContext } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { downloadWithRetry } from '@/features/network/download-retry';
-import { setTranscriptionEngine } from '@/state/note-transcription';
+import { setTranscriptionEngine, type TranscriptionOutput } from '@/state/note-transcription';
 import type { AsrTranscribeMessage, AsrWorkerInMessage, AsrWorkerOutMessage } from './asr.worker';
 import {
   ASR_DOWNLOAD_VERSION,
@@ -218,7 +218,7 @@ const activationWaiters = new Map<
 const activations = new Map<string, Promise<void>>();
 const pendingResults = new Map<
   string,
-  { resolve: (text: string) => void; reject: (error: Error) => void }
+  { resolve: (output: TranscriptionOutput) => void; reject: (error: Error) => void }
 >();
 let requestCounter = 0;
 
@@ -277,7 +277,10 @@ function workerInstance(): Worker {
         break;
       }
       case 'result': {
-        pendingResults.get(message.requestId)?.resolve(message.text);
+        pendingResults.get(message.requestId)?.resolve({
+          text: message.text,
+          ...(message.segments?.length ? { segments: message.segments } : {}),
+        });
         pendingResults.delete(message.requestId);
         break;
       }
@@ -312,12 +315,12 @@ async function decodeToPcm16k(audio: Blob): Promise<Float32Array> {
 }
 
 function makeEngine(instance: Worker, modelId: string) {
-  return async (audio: Blob): Promise<string> => {
+  return async (audio: Blob): Promise<TranscriptionOutput> => {
     if (!readyModels.has(modelId)) throw new Error('Модель не активирована');
     const pcm = await decodeToPcm16k(audio);
     requestCounter += 1;
     const requestId = `asr-${requestCounter}`;
-    const promise = new Promise<string>((resolve, reject) => {
+    const promise = new Promise<TranscriptionOutput>((resolve, reject) => {
       pendingResults.set(requestId, { resolve, reject });
     });
     const message: AsrTranscribeMessage = {
@@ -426,7 +429,7 @@ export function isAsrReady(): boolean {
 }
 
 /** Runs the selected ready model over an audio blob. Throws when no model is active. */
-export function transcribeBlob(audio: Blob): Promise<string> {
+export function transcribeBlob(audio: Blob): Promise<TranscriptionOutput> {
   const id = selectedAsrModelId();
   if (!id || !readyModels.has(id))
     return Promise.reject(new Error('Модель расшифровки не активна.'));
