@@ -12,6 +12,8 @@ const files = {
   worker: read('apps/app/src/features/asr/asr.worker.ts'),
   asr: read('apps/app/src/features/asr/asr-models.ts'),
   diarization: read('apps/app/src/features/asr/browser-diarization.ts'),
+  diarizationModels: read('apps/app/src/features/asr/browser-diarization-models.ts'),
+  transcriptPanel: read('apps/app/src/features/notes/NoteTranscriptPanel.tsx'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
   diary: read('apps/app/src/diary/DiaryApp.tsx'),
   diaryMain: read('apps/app/src/diary/main.tsx'),
@@ -46,6 +48,24 @@ const checks = [
   [
     'optional diarization seam only',
     files.diarization.includes('let activeEngine: BrowserDiarizationEngine | null = null'),
+  ],
+  [
+    'pinned diarization models',
+    files.diarizationModels.includes(
+      'd582f4b4c6b48205de7e0643c57df0df5615a3c176189be3fc461e9d18827b5d',
+    ) &&
+      files.diarizationModels.includes(
+        '357a834f702b80161e5b981182c038e18553c1f2ca752ed6cec2052365d4129b',
+      ) &&
+      files.diarizationModels.includes('expectedBytes: 1_540_506') &&
+      files.diarizationModels.includes('expectedBytes: 29_596_978') &&
+      files.diarizationModels.includes("crypto.subtle.digest('SHA-256'"),
+  ],
+  [
+    'transcript export and speaker roles',
+    files.transcriptPanel.includes('Скачать .txt') &&
+      files.transcriptPanel.includes("setSpeakerRole(speakerId, 'Врач')") &&
+      files.transcriptPanel.includes("setSpeakerRole(speakerId, 'Пациент')"),
   ],
   [
     'diary shared controls',
