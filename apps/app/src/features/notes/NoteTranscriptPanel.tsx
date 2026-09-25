@@ -267,9 +267,18 @@ export function NoteTranscriptPanel(props: {
           <Button type="button" onClick={() => void copy(draft())}>
             Копировать текст
           </Button>
-          <Show
-            when={transcript()?.diarized === true && (transcript()?.segments?.length ?? 0) > 0}
-          >
+          <Show when={(transcript()?.segments?.length ?? 0) > 0}>
+            <Show when={props.onInsertText}>
+              <Button
+                type="button"
+                onClick={() => {
+                  const value = speakerTranscript();
+                  if (value) props.onInsertText?.(value);
+                }}
+              >
+                Вставить с таймкодами
+              </Button>
+            </Show>
             <Button type="button" onClick={() => void copy(speakerTranscript())}>
               Копировать с таймкодами
             </Button>
