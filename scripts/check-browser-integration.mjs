@@ -15,6 +15,7 @@ const files = {
   speakerAlignment: read('apps/app/src/features/asr/speaker-alignment.ts'),
   diarizationModels: read('apps/app/src/features/asr/browser-diarization-models.ts'),
   transcriptPanel: read('apps/app/src/features/notes/NoteTranscriptPanel.tsx'),
+  voiceRecorder: read('apps/app/src/features/notes/VoiceRecordingButton.tsx'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
   diary: read('apps/app/src/diary/DiaryApp.tsx'),
   diaryMain: read('apps/app/src/diary/main.tsx'),
@@ -76,6 +77,13 @@ const checks = [
     files.transcriptPanel.includes('Скачать .txt') &&
       files.transcriptPanel.includes("setSpeakerRole(speakerId, 'Врач')") &&
       files.transcriptPanel.includes("setSpeakerRole(speakerId, 'Пациент')"),
+  ],
+  [
+    'failed MediaRecorder capture is discarded',
+    files.voiceRecorder.includes('let captureFailed = false') &&
+      files.voiceRecorder.includes('captureFailed = true') &&
+      files.voiceRecorder.includes('if (disposed || captureFailed)') &&
+      files.voiceRecorder.includes('chunks = []'),
   ],
   [
     'diary shared controls',
