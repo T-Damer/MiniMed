@@ -2,11 +2,26 @@ import { backgroundParity, PARITY_PRIORITIES } from '@/state/parity-controller';
 
 export type TranscriptStatus = 'queued' | 'running' | 'done' | 'failed' | 'unsupported';
 
+export interface TranscriptSegment {
+  readonly speakerId: string;
+  readonly startMs: number;
+  readonly endMs: number;
+  readonly text: string;
+}
+
+export interface TranscriptionOutput {
+  readonly text: string;
+  readonly segments?: readonly TranscriptSegment[];
+}
+
 export interface NoteTranscript {
   readonly fileId: string;
   readonly noteId: string;
   readonly text: string;
+  readonly segments?: readonly TranscriptSegment[];
+  readonly speakerNames?: Readonly<Record<string, string>>;
   readonly status: TranscriptStatus;
+  readonly error?: string;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -48,6 +63,16 @@ async function putTranscript(record: NoteTranscript): Promise<void> {
   window.dispatchEvent(new Event(NOTE_TRANSCRIPTS_EVENT));
 }
 
+function normalizeStoredTranscript(value: NoteTranscript): NoteTranscript {
+  return {
+    ...value,
+    ...(Array.isArray(value.segments) ? { segments: value.segments } : {}),
+    ...(value.speakerNames && typeof value.speakerNames === 'object'
+      ? { speakerNames: value.speakerNames }
+      : {}),
+  };
+}
+
 export async function loadTranscriptsForNotes(
   noteIds: readonly string[],
 ): Promise<ReadonlyMap<string, readonly NoteTranscript[]>> {
@@ -63,7 +88,7 @@ export async function loadTranscriptsForNotes(
       request.onsuccess = () => {
         const cursor = request.result;
         if (!cursor) return;
-        const record = cursor.value as NoteTranscript;
+        const record = normalizeStoredTranscript(cursor.value as NoteTranscript);
         const bucket = grouped.get(record.noteId);
         if (bucket) bucket.push(record);
         cursor.continue();
@@ -91,18 +116,38 @@ export async function loadTranscript(fileId: string): Promise<NoteTranscript | n
       request.onerror = () =>
         reject(transaction.error ?? new Error('Не удалось загрузить расшифровку.'));
     });
-    return result ?? null;
+    return result ? normalizeStoredTranscript(result) : null;
   } finally {
     database.close();
   }
 }
 
+export async function updateTranscript(input: {
+  readonly fileId: string;
+  readonly text?: string;
+  readonly speakerNames?: Readonly<Record<string, string>>;
+}): Promise<NoteTranscript> {
+  const current = await loadTranscript(input.fileId);
+  if (!current) throw new Error('Расшифровка не найдена.');
+  const next: NoteTranscript = {
+    ...current,
+    ...(input.text !== undefined ? { text: input.text } : {}),
+    ...(input.speakerNames !== undefined ? { speakerNames: input.speakerNames } : {}),
+    updatedAt: new Date().toISOString(),
+  };
+  await putTranscript(next);
+  return next;
+}
+
 /**
- * Engine seam: a loaded ASR model (GigaAM v3 / Parakeet v3 ONNX) provides
- * this; without it the queued job reports `unsupported` and keeps the lane
- * free for more important work such as OCR.
+ * Engine seam: a loaded browser ASR model provides this. Engines may return
+ * timestamped chunks; speaker diarization can later replace their speaker IDs
+ * without changing note storage or viewer UI.
  */
-export type TranscribeEngine = (audio: Blob, mimeType: string) => Promise<string>;
+export type TranscribeEngine = (
+  audio: Blob,
+  mimeType: string,
+) => Promise<string | TranscriptionOutput>;
 
 let activeEngine: TranscribeEngine | null = null;
 
@@ -114,6 +159,14 @@ const running = new Map<string, { cancel: () => void }>();
 
 export function isTranscriptionQueued(fileId: string): boolean {
   return running.has(fileId);
+}
+
+function normalizeOutput(output: string | TranscriptionOutput): TranscriptionOutput {
+  if (typeof output === 'string') return { text: output };
+  return {
+    text: output.text,
+    ...(output.segments?.length ? { segments: output.segments } : {}),
+  };
 }
 
 export function queueTranscription(input: {
@@ -129,13 +182,16 @@ export function queueTranscription(input: {
     run: async (ctx) => {
       const existing = await loadTranscript(input.fileId);
       if (existing?.status === 'done') return;
+      const createdAt = existing?.createdAt ?? new Date().toISOString();
       if (!activeEngine) {
         await putTranscript({
           fileId: input.fileId,
           noteId: input.noteId,
-          text: '',
+          text: existing?.text ?? '',
+          ...(existing?.segments ? { segments: existing.segments } : {}),
+          ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
           status: 'unsupported',
-          createdAt: existing?.createdAt ?? new Date().toISOString(),
+          createdAt,
           updatedAt: new Date().toISOString(),
         });
         return;
@@ -145,20 +201,42 @@ export function queueTranscription(input: {
         fileId: input.fileId,
         noteId: input.noteId,
         text: existing?.text ?? '',
+        ...(existing?.segments ? { segments: existing.segments } : {}),
+        ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
         status: 'running',
-        createdAt: existing?.createdAt ?? new Date().toISOString(),
+        createdAt,
         updatedAt: new Date().toISOString(),
       });
-      const text = await activeEngine(input.blob, input.blob.type || 'audio/webm');
-      await ctx.checkpoint();
-      await putTranscript({
-        fileId: input.fileId,
-        noteId: input.noteId,
-        text,
-        status: 'done',
-        createdAt: existing?.createdAt ?? new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      try {
+        const output = normalizeOutput(
+          await activeEngine(input.blob, input.blob.type || 'audio/webm'),
+        );
+        await ctx.checkpoint();
+        await putTranscript({
+          fileId: input.fileId,
+          noteId: input.noteId,
+          text: output.text,
+          ...(output.segments ? { segments: output.segments } : {}),
+          ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
+          status: 'done',
+          createdAt,
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : 'Не удалось расшифровать запись.';
+        await putTranscript({
+          fileId: input.fileId,
+          noteId: input.noteId,
+          text: existing?.text ?? '',
+          ...(existing?.segments ? { segments: existing.segments } : {}),
+          ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
+          status: 'failed',
+          error: message,
+          createdAt,
+          updatedAt: new Date().toISOString(),
+        });
+        throw cause;
+      }
     },
   });
   running.set(input.fileId, {
