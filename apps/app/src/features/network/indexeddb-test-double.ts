@@ -167,6 +167,152 @@ export function installIndexedDbDouble(
   vi.stubGlobal('indexedDB', { open });
 }
 
+export interface IndexedDbStoreDouble {
+  readonly keyPath: string;
+  readonly records: Map<string, Record<string, unknown>>;
+}
+
+/**
+ * Multi-store IndexedDB stand-in for cache tests. Unlike the resumable-download helper above,
+ * this variant honours the object-store name and keyPath so one transaction can update manifests
+ * and assets independently.
+ */
+export function installMultiStoreIndexedDbDouble(
+  stores: Map<string, IndexedDbStoreDouble>,
+  options: IndexedDbDoubleOptions = {},
+): void {
+  const writeDelayMs = options.writeDelayMs ?? 0;
+  let upgraded = false;
+
+  const createTransaction = (): FakeTransaction => {
+    let pending = 0;
+    const transaction: FakeTransaction = {
+      oncomplete: null,
+      onerror: null,
+      onabort: null,
+      objectStore: (name) => objectStore(name ?? ''),
+    };
+
+    const complete = (): void => {
+      if (pending === 0) setTimeout(() => transaction.oncomplete?.(), 0);
+    };
+    const track = (work: () => void, delayMs = 0): void => {
+      pending += 1;
+      setTimeout(() => {
+        work();
+        pending -= 1;
+        complete();
+      }, delayMs);
+    };
+
+    const objectStore = (name: string): FakeObjectStore => {
+      const definition = stores.get(name);
+      if (!definition) throw new Error(`Unknown IndexedDB test store: ${name}`);
+
+      return {
+        get: (key) => {
+          const request: FakeRequest<PartialDownloadRecordDouble | undefined> = {
+            result: undefined,
+            onsuccess: null,
+            onerror: null,
+            onupgradeneeded: null,
+          };
+          track(() => {
+            request.result = definition.records.get(key) as
+              | PartialDownloadRecordDouble
+              | undefined;
+            request.onsuccess?.();
+          });
+          return request;
+        },
+        put: (record) => {
+          const generic = record as unknown as Record<string, unknown>;
+          const key = generic[definition.keyPath];
+          if (typeof key !== 'string' || !key) {
+            throw new Error(`Missing IndexedDB test keyPath: ${definition.keyPath}`);
+          }
+          track(() => definition.records.set(key, generic), writeDelayMs);
+        },
+        delete: (key) => {
+          track(() => definition.records.delete(key));
+        },
+        openCursor: () => {
+          const keys = [...definition.records.keys()];
+          const request: FakeRequest<FakeCursor | null> = {
+            result: null,
+            onsuccess: null,
+            onerror: null,
+            onupgradeneeded: null,
+          };
+          let index = 0;
+          const advance = (): void => {
+            track(() => {
+              const key = keys[index];
+              if (key === undefined) {
+                request.result = null;
+                request.onsuccess?.();
+                return;
+              }
+              const value = definition.records.get(key);
+              index += 1;
+              if (!value) {
+                advance();
+                return;
+              }
+              request.result = {
+                value: value as unknown as PartialDownloadRecordDouble,
+                delete: () => {
+                  definition.records.delete(key);
+                },
+                continue: advance,
+              };
+              request.onsuccess?.();
+            });
+          };
+          advance();
+          return request;
+        },
+      };
+    };
+
+    setTimeout(complete, 0);
+    return transaction;
+  };
+
+  const database: FakeDatabase = {
+    objectStoreNames: { contains: (name) => stores.has(name) },
+    createObjectStore: ((name: string, config?: { readonly keyPath?: string }) => {
+      if (!stores.has(name)) {
+        stores.set(name, {
+          keyPath: config?.keyPath ?? 'id',
+          records: new Map(),
+        });
+      }
+    }) as FakeDatabase['createObjectStore'],
+    close: () => undefined,
+    transaction: createTransaction,
+  };
+
+  const open = (): FakeRequest<FakeDatabase> => {
+    const request: FakeRequest<FakeDatabase> = {
+      result: database,
+      onsuccess: null,
+      onerror: null,
+      onupgradeneeded: null,
+    };
+    setTimeout(() => {
+      if (!upgraded) {
+        upgraded = true;
+        request.onupgradeneeded?.();
+      }
+      request.onsuccess?.();
+    }, 0);
+    return request;
+  };
+
+  vi.stubGlobal('indexedDB', { open });
+}
+
 export function seedPartialDownload(
   store: Map<string, PartialDownloadRecordDouble>,
   options: {
