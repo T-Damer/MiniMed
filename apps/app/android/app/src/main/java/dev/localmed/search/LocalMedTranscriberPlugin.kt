@@ -369,6 +369,6 @@ class LocalMedTranscriberPlugin : Plugin() {
                 if (read > 0) digest.update(buffer, 0, read)
             }
         }
-        return digest.digest().joinToString("") { byte -> "%02x".format(byte) }
+        return digest.digest().joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
     }
 }
