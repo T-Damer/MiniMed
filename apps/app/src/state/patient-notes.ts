@@ -2,8 +2,7 @@ import type { CalculatorSchema, MedicalCore } from '@localmed/contracts';
 import { lightStemRussian, tokenize } from '@localmed/search-lexical';
 
 import type { CalculationRecord } from '@/state/calculation-history';
-import { deleteNoteFilesForNotes } from '@/state/note-files';
-import { deleteNoteImagesForNotes } from '@/state/note-images';
+import { scheduleNoteRetentionCleanup } from '@/state/note-retention-cleanup';
 import {
   personalMatchScore,
   personalQueryStems,
@@ -622,12 +621,7 @@ export function removePatientCard(cardId: string): PatientNotesSnapshot {
     removePatientNoteDraft(noteId);
     removePatientNoteRevision(noteId);
   }
-  void deleteNoteImagesForNotes(doomedNoteIds).catch(() =>
-    console.warn('Не удалось удалить изображения карточки.'),
-  );
-  void deleteNoteFilesForNotes(doomedNoteIds).catch(() =>
-    console.warn('Не удалось удалить файлы карточки.'),
-  );
+  scheduleNoteRetentionCleanup(doomedNoteIds);
   return persist({
     cards: current.cards.filter((card) => card.id !== cardId),
     notes: current.notes.filter((note) => note.cardId !== cardId),
@@ -785,12 +779,7 @@ export function removePatientNote(noteId: string): PatientNotesSnapshot {
     removePatientNoteDraft(doomedNoteId);
     removePatientNoteRevision(doomedNoteId);
   }
-  void deleteNoteImagesForNotes([...doomed]).catch(() =>
-    console.warn('Не удалось удалить изображения записи.'),
-  );
-  void deleteNoteFilesForNotes([...doomed]).catch(() =>
-    console.warn('Не удалось удалить файлы записи.'),
-  );
+  scheduleNoteRetentionCleanup([...doomed]);
   return persist({
     cards: current.cards,
     notes: current.notes.filter((note) => !doomed.has(note.id)),
