@@ -7,6 +7,7 @@ import {
 import {
   type AsrAssetRequest,
   type AsrAssetResponse,
+  ASR_MODEL_REVISIONS,
   assertAsrAssetRequest,
 } from './asr-download-protocol';
 
@@ -73,6 +74,7 @@ interface ModelSpec {
   readonly options: {
     readonly dtype: 'fp32' | 'q8';
     readonly device?: 'wasm';
+    readonly revision: string;
   };
   readonly callOptions?: {
     readonly chunk_length_s: number;
@@ -86,7 +88,10 @@ const MODEL_SPECS: Readonly<Record<string, ModelSpec>> = {
   // onnxruntime-web 1.27 contains microsoft/onnxruntime#28326, which fixes the
   // tied-weight crash that previously made quantized Whisper decoders unusable.
   'onnx-community/whisper-base': {
-    options: { dtype: 'q8' },
+    options: {
+      dtype: 'q8',
+      revision: ASR_MODEL_REVISIONS['onnx-community/whisper-base'],
+    },
     callOptions: {
       chunk_length_s: 30,
       language: 'russian',
@@ -95,7 +100,10 @@ const MODEL_SPECS: Readonly<Record<string, ModelSpec>> = {
     },
   },
   'onnx-community/whisper-small': {
-    options: { dtype: 'q8' },
+    options: {
+      dtype: 'q8',
+      revision: ASR_MODEL_REVISIONS['onnx-community/whisper-small'],
+    },
     callOptions: {
       chunk_length_s: 30,
       language: 'russian',
