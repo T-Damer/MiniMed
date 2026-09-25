@@ -23,8 +23,9 @@
   present in the integration tree.
 - Draft PR #185 (`feature/browser-integration` → `main`) is the consolidated review surface.
   GitHub Actions are intentionally not used because the repository Actions quota is exhausted.
-  Dependency-free source validation currently passes 24/24 invariants across diary, canvas,
-  MediaRecorder, structured ASR, diarization admission and integration wiring. A full browser
+  Dependency-free source validation currently passes 27/27 invariants across diary, canvas,
+  MediaRecorder, structured ASR, transcript retention, diarization admission and integration wiring.
+  A full browser
   `tsc/vitest/vite build` is still a pre-merge gate when a checkout/build environment is available.
 
 ## Browser voice transcription — 2026-09-25
@@ -43,6 +44,11 @@
   remain separate local personal data in IndexedDB.
 - Background OCR preemption re-queues speech work without marking it as a failed ASR job. Genuine ASR
   failures persist as failed with their error so retry is explicit.
+- Transcript retention follows its audio attachment: replacing/deleting an attachment or deleting
+  its owning notes removes the separate transcript record. Explicit transcript deletion keeps the
+  source audio. Active transcription jobs are cancelled and tombstoned before deletion; guarded
+  IndexedDB writes prevent a stale completion or concurrent manual save from recreating deleted
+  transcript data.
 - Speaker-aware storage/alignment is implemented: an optional BrowserDiarizationEngine can supply
   source time regions, Whisper words are assigned by temporal overlap and adjacent words are merged
   into turns. Null/empty region sets are tested and never set `diarized=true`. The pyannote
