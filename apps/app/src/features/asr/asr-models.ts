@@ -564,6 +564,14 @@ export function activateAsrModel(
   if (!isSupportedAsrModelId(id)) {
     return Promise.reject(new Error('Модель недоступна в этом рантайме.'));
   }
+  const switchingRuntime =
+    Boolean(worker) &&
+    !readyModels.has(id) &&
+    (readyModels.size > 0 || [...activations.keys()].some((activeId) => activeId !== id));
+  if (switchingRuntime) {
+    stopAsrRuntime(new AsrCancelledError());
+    if (selectedAsrModelId() !== id) selectAsrModel(null);
+  }
   if (readyModels.has(id)) {
     selectAsrModel(id);
     setTranscriptionEngine(makeEngine(workerInstance(), id));
