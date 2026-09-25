@@ -23,10 +23,17 @@ interface FakeRequest<T> {
   onupgradeneeded: Listener;
 }
 
+interface FakeCursor {
+  readonly value: PartialDownloadRecordDouble;
+  delete: () => void;
+  continue: () => void;
+}
+
 interface FakeObjectStore {
   get: (key: string) => FakeRequest<PartialDownloadRecordDouble | undefined>;
   put: (record: PartialDownloadRecordDouble) => void;
   delete: (key: string) => void;
+  openCursor: () => FakeRequest<FakeCursor | null>;
 }
 
 interface FakeTransaction {
@@ -98,6 +105,42 @@ export function installIndexedDbDouble(
       },
       delete: (key) => {
         track(() => store.delete(key));
+      },
+      openCursor: () => {
+        const keys = [...store.keys()];
+        const request: FakeRequest<FakeCursor | null> = {
+          result: null,
+          onsuccess: null,
+          onerror: null,
+          onupgradeneeded: null,
+        };
+        let index = 0;
+        const advance = (): void => {
+          track(() => {
+            const key = keys[index];
+            if (key === undefined) {
+              request.result = null;
+              request.onsuccess?.();
+              return;
+            }
+            const value = store.get(key);
+            index += 1;
+            if (!value) {
+              advance();
+              return;
+            }
+            request.result = {
+              value,
+              delete: () => {
+                store.delete(key);
+              },
+              continue: advance,
+            };
+            request.onsuccess?.();
+          });
+        };
+        advance();
+        return request;
       },
     };
 
