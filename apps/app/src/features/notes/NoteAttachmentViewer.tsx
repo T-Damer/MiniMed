@@ -4,8 +4,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { NoteTranscriptPanel } from '@/features/notes/NoteTranscriptPanel';
-import { downloadNoteFile, type NoteFile } from '@/state/note-files';
-import { attachmentViewerKind } from '@/state/thumbnails';
+import { downloadNoteFile } from '@/state/note-files';
 import {
   recordToViewerState,
   type ViewerState,
