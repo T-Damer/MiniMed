@@ -390,7 +390,7 @@ function makeEngine(instance: Worker, modelId: string) {
     return {
       ...output,
       segments,
-      ...(speakerRegions !== null ? { diarized: true } : {}),
+      ...(speakerRegions?.length ? { diarized: true } : {}),
     };
   };
 }
