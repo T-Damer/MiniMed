@@ -43,7 +43,10 @@ export function TextArea(props: TextAreaProps): JSX.Element {
 
   return (
     <label class={`ui-text-area${local.class ? ` ${local.class}` : ''}`} for={fieldId()}>
-      <span class="ui-text-area__label" classList={{ 'sr-only': local.hideLabel ?? false }}>
+      <span
+        class="ui-text-area__label"
+        classList={{ 'ui-text-area__label--hidden': local.hideLabel ?? false }}
+      >
         {local.label}
       </span>
       <textarea
