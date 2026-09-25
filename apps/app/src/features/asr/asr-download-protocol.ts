@@ -14,19 +14,38 @@ export interface AsrAssetResponse {
   readonly bytes: ArrayBuffer | null;
   readonly error?: string;
 }
-export const ASR_DOWNLOAD_VERSION = 'transformers-whisper-q8-v1';
-const SUPPORTED = new Set(['onnx-community/whisper-base', 'onnx-community/whisper-small']);
+
+export const ASR_DOWNLOAD_VERSION = 'transformers-whisper-q8-v2-pinned-cache';
+
+export const ASR_MODEL_REVISIONS = {
+  'onnx-community/whisper-base': '1846881b6b3a3024392c1eea3ad983695bc23925',
+  'onnx-community/whisper-small': '36050c46d777d46dc4b5f43f6d90574fc38f8732',
+} as const;
+
+export type SupportedAsrModelId = keyof typeof ASR_MODEL_REVISIONS;
+
+const SUPPORTED = new Set<string>(Object.keys(ASR_MODEL_REVISIONS));
+
 export const asrDownloadId = (modelId: string): string => `speech:${modelId}`;
 
-export function assertAsrAssetRequest(request: AsrAssetRequest): void {
+export function isSupportedAsrModelId(modelId: string): modelId is SupportedAsrModelId {
+  return SUPPORTED.has(modelId);
+}
+
+export function assertAsrAssetRequest(
+  request: AsrAssetRequest,
+): asserts request is AsrAssetRequest & { readonly modelId: SupportedAsrModelId } {
   if (
-    !SUPPORTED.has(request.modelId) ||
+    !isSupportedAsrModelId(request.modelId) ||
     !Number.isSafeInteger(request.requestId) ||
     request.requestId < 1 ||
     typeof request.metadataOnly !== 'boolean'
-  )
+  ) {
     throw new Error('Invalid speech asset request.');
+  }
   const url = new URL(request.url);
+  const revision = ASR_MODEL_REVISIONS[request.modelId];
+  const expectedPrefix = `/${request.modelId}/resolve/${revision}/`;
   // A worker cannot turn a model download into a request to an arbitrary host or send audio.
   if (
     url.origin !== 'https://huggingface.co' ||
@@ -34,11 +53,10 @@ export function assertAsrAssetRequest(request: AsrAssetRequest): void {
     url.password ||
     url.search ||
     url.hash ||
-    !url.pathname.startsWith(`/${request.modelId}/resolve/`) ||
-    !/^\/(onnx-community\/whisper-(base|small))\/resolve\/(main|[a-f0-9]{40})\/[A-Za-z0-9_./-]+$/u.test(
-      url.pathname,
-    ) ||
-    url.pathname.split('/').some((part) => part === '.' || part === '..')
-  )
+    !url.pathname.startsWith(expectedPrefix) ||
+    url.pathname.split('/').some((part) => part === '.' || part === '..') ||
+    !/^[A-Za-z0-9_./-]+$/u.test(url.pathname.slice(expectedPrefix.length))
+  ) {
     throw new Error('Unsupported speech asset URL.');
+  }
 }
