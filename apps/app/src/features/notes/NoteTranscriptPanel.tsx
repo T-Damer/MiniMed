@@ -93,6 +93,13 @@ export function NoteTranscriptPanel(props: {
       ? speakerNames()[id]?.trim() || labels().get(id) || id
       : 'Речь';
 
+  const setSpeakerRole = (speakerId: string, label: string): void => {
+    setSpeakerNames((current) => ({
+      ...current,
+      [speakerId]: label,
+    }));
+  };
+
   const start = (force = false): void => {
     queueTranscription({
       fileId: props.file.id,
@@ -121,6 +128,26 @@ export function NoteTranscriptPanel(props: {
           )}: ${segment.text}`,
       )
       .join('\n\n');
+
+  const exportTranscript = (): void => {
+    const value =
+      (transcript()?.segments?.length ?? 0) > 0 ? speakerTranscript().trim() : draft().trim();
+    if (!value) {
+      toast.error('Расшифровка пустая.');
+      return;
+    }
+    const baseName = props.file.name.replace(/\.[^.]+$/u, '').trim() || 'Расшифровка';
+    const blob = new Blob([value, '\n'], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${baseName} — расшифровка.txt`;
+    anchor.rel = 'noopener';
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const save = async (): Promise<void> => {
     const current = transcript();
@@ -223,17 +250,42 @@ export function NoteTranscriptPanel(props: {
           <div class="note-transcript__speakers">
             <For each={speakerIds()}>
               {(speakerId) => (
-                <TextField
-                  label={labels().get(speakerId) ?? speakerId}
-                  value={speakerNames()[speakerId] ?? ''}
-                  placeholder={labels().get(speakerId) ?? speakerId}
-                  onInput={(event) =>
-                    setSpeakerNames((current) => ({
-                      ...current,
-                      [speakerId]: event.currentTarget.value,
-                    }))
-                  }
-                />
+                <div class="note-transcript__speaker-editor">
+                  <TextField
+                    label={labels().get(speakerId) ?? speakerId}
+                    value={speakerNames()[speakerId] ?? ''}
+                    placeholder={labels().get(speakerId) ?? speakerId}
+                    onInput={(event) =>
+                      setSpeakerNames((current) => ({
+                        ...current,
+                        [speakerId]: event.currentTarget.value,
+                      }))
+                    }
+                  />
+                  <div class="note-transcript__speaker-actions">
+                    <Button
+                      type="button"
+                      variant="quiet"
+                      onClick={() => setSpeakerRole(speakerId, 'Врач')}
+                    >
+                      Врач
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="quiet"
+                      onClick={() => setSpeakerRole(speakerId, 'Пациент')}
+                    >
+                      Пациент
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="quiet"
+                      onClick={() => setSpeakerRole(speakerId, '')}
+                    >
+                      Сбросить
+                    </Button>
+                  </div>
+                </div>
               )}
             </For>
           </div>
@@ -300,6 +352,9 @@ export function NoteTranscriptPanel(props: {
               Копировать с таймкодами
             </Button>
           </Show>
+          <Button type="button" onClick={exportTranscript}>
+            Скачать .txt
+          </Button>
           <Button type="button" onClick={() => start(true)}>
             Распознать заново
           </Button>
