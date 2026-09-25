@@ -284,10 +284,12 @@ export async function commitAsrModelCacheManifest(
   } finally {
     database.close();
   }
-  try {
-    await navigator.storage?.persist?.();
-  } catch {
-    // Persistence is a browser hint; the verified cache remains usable without it.
+  if (typeof navigator !== 'undefined') {
+    try {
+      await navigator.storage?.persist?.();
+    } catch {
+      // Persistence is a browser hint; the verified cache remains usable without it.
+    }
   }
 }
 
