@@ -128,17 +128,44 @@ const pendingAssets = new Map<
 >();
 let assetCounter = 0;
 const originalFetch = env.fetch;
+
+function requestParts(
+  input: Parameters<typeof fetch>[0],
+  init?: Parameters<typeof fetch>[1],
+): {
+  readonly url: string;
+  readonly method: string;
+  readonly body: BodyInit | null;
+  readonly headers: Headers;
+} {
+  const request =
+    typeof Request !== 'undefined' && input instanceof Request ? input : null;
+  const url =
+    typeof input === 'string'
+      ? input
+      : input instanceof URL
+        ? input.href
+        : request?.url ?? String(input);
+  const method = (init?.method ?? request?.method ?? 'GET').toUpperCase();
+  const body =
+    init && Object.prototype.hasOwnProperty.call(init, 'body')
+      ? (init.body ?? null)
+      : (request?.body ?? null);
+  const headers = new Headers(init?.headers ?? request?.headers);
+  return { url, method, body, headers };
+}
+
 // Use the library's supported fetch hook, not a global fetch monkey-patch in the application.
 env.fetch = async (input, init) => {
-  const url = typeof input === 'string' ? input : input.href;
-  const parsed = new URL(url, self.location.href);
+  const request = requestParts(input, init);
+  const parsed = new URL(request.url, self.location.href);
   if (parsed.origin !== 'https://huggingface.co') return originalFetch(input, init);
   const modelId = parsed.pathname.match(
     /^\/(onnx-community\/whisper-(?:base|small))\/resolve\//u,
   )?.[1];
-  if (!modelId || (init?.method && init.method !== 'GET') || init?.body)
+  if (!modelId || request.method !== 'GET' || request.body !== null)
     throw new Error('Unsupported speech download.');
-  const range = new Headers(init?.headers).get('range');
+  const range = request.headers.get('range');
   if (range !== null && range !== 'bytes=0-0')
     throw new Error('Unsupported speech metadata range.');
   const request: AsrAssetRequest = {
