@@ -53,6 +53,7 @@ export const ASR_MODELS: readonly AsrModelDescriptor[] = [
 
 const SELECTED_KEY = 'minimed.asr.selected';
 const TARGET_SAMPLE_RATE = 16_000;
+const MAX_BROWSER_TRANSCRIPTION_SECONDS = 10 * 60;
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -302,6 +303,33 @@ function workerInstance(): Worker {
   return instance;
 }
 
+async function readAudioDurationSeconds(audio: Blob): Promise<number | null> {
+  if (typeof document === 'undefined' || typeof URL.createObjectURL !== 'function') return null;
+  const url = URL.createObjectURL(audio);
+  const element = document.createElement('audio');
+  element.preload = 'metadata';
+  try {
+    return await new Promise<number | null>((resolve) => {
+      let settled = false;
+      const finish = (value: number | null): void => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        element.removeAttribute('src');
+        element.load();
+        resolve(value);
+      };
+      const timeout = window.setTimeout(() => finish(null), 5_000);
+      element.onloadedmetadata = () =>
+        finish(Number.isFinite(element.duration) && element.duration > 0 ? element.duration : null);
+      element.onerror = () => finish(null);
+      element.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function decodeToPcm16k(audio: Blob): Promise<Float32Array> {
   const bytes = await audio.arrayBuffer();
   const decodeContext = new OfflineAudioContext(1, 1, TARGET_SAMPLE_RATE);
@@ -319,6 +347,12 @@ async function decodeToPcm16k(audio: Blob): Promise<Float32Array> {
 function makeEngine(instance: Worker, modelId: string) {
   return async (audio: Blob): Promise<TranscriptionOutput> => {
     if (!readyModels.has(modelId)) throw new Error('Модель не активирована');
+    const duration = await readAudioDurationSeconds(audio);
+    if (duration !== null && duration > MAX_BROWSER_TRANSCRIPTION_SECONDS) {
+      throw new Error(
+        'В браузере безопасная расшифровка ограничена 10 минутами на один аудиофайл. Разделите запись на части.',
+      );
+    }
     const pcm = await decodeToPcm16k(audio);
 
     // Diarization is optional and runs first so the ASR transfer can move the original PCM buffer
