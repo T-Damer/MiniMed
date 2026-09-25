@@ -1,0 +1,206 @@
+import {
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
+import { toast } from 'solid-sonner';
+
+import { Button } from '@/components/Button';
+import { TextArea } from '@/components/TextArea';
+import { TextField } from '@/components/TextField';
+import type { NoteFile } from '@/state/note-files';
+import {
+  isTranscriptionQueued,
+  loadTranscript,
+  NOTE_TRANSCRIPTS_EVENT,
+  type NoteTranscript,
+  queueTranscription,
+  updateTranscript,
+} from '@/state/note-transcription';
+
+function timeLabel(ms: number): string {
+  const seconds = Math.max(0, Math.floor(ms / 1_000));
+  const hours = Math.floor(seconds / 3_600);
+  const minutes = Math.floor((seconds % 3_600) / 60);
+  const rest = seconds % 60;
+  const body = `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
+  return hours > 0 ? `${String(hours).padStart(2, '0')}:${body}` : body;
+}
+
+function defaultSpeakerLabels(transcript: NoteTranscript | null): ReadonlyMap<string, string> {
+  const labels = new Map<string, string>();
+  for (const segment of transcript?.segments ?? []) {
+    if (!labels.has(segment.speakerId)) {
+      labels.set(segment.speakerId, `Спикер ${labels.size + 1}`);
+    }
+  }
+  return labels;
+}
+
+export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Element {
+  const [transcript, setTranscript] = createSignal<NoteTranscript | null>(null);
+  const [draft, setDraft] = createSignal('');
+  const [speakerNames, setSpeakerNames] = createSignal<Readonly<Record<string, string>>>({});
+  const [loading, setLoading] = createSignal(true);
+  const [saving, setSaving] = createSignal(false);
+
+  const refresh = async (): Promise<void> => {
+    const current = await loadTranscript(props.file.id);
+    setTranscript(current);
+    setDraft(current?.text ?? '');
+    setSpeakerNames(current?.speakerNames ?? {});
+    setLoading(false);
+  };
+
+  onMount(() => {
+    void refresh();
+    const listener = (): void => {
+      void refresh();
+    };
+    window.addEventListener(NOTE_TRANSCRIPTS_EVENT, listener);
+    onCleanup(() => window.removeEventListener(NOTE_TRANSCRIPTS_EVENT, listener));
+  });
+
+  const queued = (): boolean => isTranscriptionQueued(props.file.id);
+  const labels = createMemo(() => defaultSpeakerLabels(transcript()));
+  const speakerIds = createMemo(() => [...labels().keys()]);
+  const speakerLabel = (id: string): string =>
+    speakerNames()[id]?.trim() || labels().get(id) || id;
+
+  const start = (): void => {
+    queueTranscription({
+      fileId: props.file.id,
+      noteId: props.file.noteId,
+      blob: props.file.blob,
+    });
+    void refresh();
+  };
+
+  const save = async (): Promise<void> => {
+    const current = transcript();
+    if (!current) return;
+    setSaving(true);
+    try {
+      const saved = await updateTranscript({
+        fileId: current.fileId,
+        text: draft(),
+        speakerNames: speakerNames(),
+      });
+      setTranscript(saved);
+      toast.success('Расшифровка сохранена.');
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось сохранить расшифровку.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const statusText = (): string => {
+    if (queued() && transcript()?.status !== 'running') return 'В очереди';
+    switch (transcript()?.status) {
+      case 'running':
+        return 'Распознаём речь…';
+      case 'done':
+        return 'Готово';
+      case 'failed':
+        return 'Ошибка распознавания';
+      case 'unsupported':
+        return 'Модель не активирована';
+      default:
+        return loading() ? 'Загрузка…' : 'Расшифровки пока нет';
+    }
+  };
+
+  return (
+    <section class="note-transcript" aria-label="Расшифровка аудио">
+      <header class="note-transcript__header">
+        <strong class="note-transcript__title">Расшифровка</strong>
+        <span class="note-transcript__status">{statusText()}</span>
+      </header>
+
+      <Show when={transcript()?.status === 'failed'}>
+        <p class="note-transcript__error">{transcript()?.error ?? 'Не удалось распознать запись.'}</p>
+      </Show>
+
+      <Show when={transcript()?.status === 'unsupported'}>
+        <p class="note-transcript__hint">
+          Сначала активируйте Whisper Base или Whisper Small в настройках. После первой загрузки
+          модель работает офлайн.
+        </p>
+        <Button type="button" onClick={() => (window.location.hash = '#/settings')}>
+          Открыть настройки
+        </Button>
+      </Show>
+
+      <Show when={!loading() && transcript()?.status !== 'running' && !queued()}>
+        <Show when={transcript()?.status !== 'done' && transcript()?.status !== 'unsupported'}>
+          <Button type="button" variant="primary" onClick={start}>
+            {transcript()?.status === 'failed' ? 'Повторить' : 'Расшифровать'}
+          </Button>
+        </Show>
+      </Show>
+
+      <Show when={transcript()?.status === 'done'}>
+        <Show when={speakerIds().length > 0}>
+          <div class="note-transcript__speakers">
+            <For each={speakerIds()}>
+              {(speakerId) => (
+                <TextField
+                  label={labels().get(speakerId) ?? speakerId}
+                  value={speakerNames()[speakerId] ?? ''}
+                  placeholder={labels().get(speakerId) ?? speakerId}
+                  onInput={(event) =>
+                    setSpeakerNames((current) => ({
+                      ...current,
+                      [speakerId]: event.currentTarget.value,
+                    }))
+                  }
+                />
+              )}
+            </For>
+          </div>
+        </Show>
+
+        <Show when={(transcript()?.segments?.length ?? 0) > 0}>
+          <div class="note-transcript__segments">
+            <For each={transcript()?.segments ?? []}>
+              {(segment) => (
+                <div class="note-transcript__segment">
+                  <span class="note-transcript__time">
+                    {timeLabel(segment.startMs)}–{timeLabel(segment.endMs)}
+                  </span>
+                  <strong class="note-transcript__speaker">{speakerLabel(segment.speakerId)}</strong>
+                  <span class="note-transcript__segment-text">{segment.text}</span>
+                </div>
+              )}
+            </For>
+          </div>
+        </Show>
+
+        <TextArea
+          label="Текст расшифровки"
+          value={draft()}
+          rows={7}
+          onInput={(event) => setDraft(event.currentTarget.value)}
+        />
+        <div class="note-transcript__actions">
+          <Button
+            type="button"
+            variant="primary"
+            disabled={saving()}
+            onClick={() => void save()}
+          >
+            {saving() ? 'Сохранение…' : 'Сохранить правки'}
+          </Button>
+          <Button type="button" onClick={start}>
+            Распознать заново
+          </Button>
+        </div>
+      </Show>
+    </section>
+  );
+}
