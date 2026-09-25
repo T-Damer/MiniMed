@@ -64,9 +64,18 @@ Loading `main` or a partially pinned runtime would violate MiniMed's model/artif
 Therefore the current branch deliberately stops at the engine seam and deterministic alignment.
 No network diarization service is used and no speaker result is fabricated.
 
+A second implementation was reviewed: `@siteed/sherpa-onnx.rn@1.3.1` documents browser/WASM
+speaker diarization and its source contains a dedicated web loader, worker manager and diarization
+mixin. It is useful implementation evidence, but MiniMed does not add the package: its npm surface is
+a React-Native/native package with postinstall/native dependencies, while the browser assets are
+served separately from jsDelivr. A separate GitHub release asset with an immutable digest for the
+complete web runtime was not found during this pass. Vendoring or loading floating CDN assets would
+weaken the existing artifact-admission policy, so the package remains a reference rather than a
+runtime dependency.
+
 ## Current browser implementation
 
-Branch: `feature/browser-transcription`.
+Integration branch: `feature/browser-integration` (source work originated on `feature/browser-transcription`).
 
 Implemented:
 
@@ -83,18 +92,26 @@ Implemented:
   saved recordings could not actually start transcription.
 - The audio viewer has an editable transcript panel and clearly distinguishes Whisper timestamps
   from real speaker diarization.
+- The pyannote segmentation and CAMPPlus speaker-embedding artifacts are now pinned to immutable
+  Hugging Face commits and exact sizes/SHA-256 values in
+  `browser-diarization-models.ts`. Their combined declared size is 31,137,484 bytes.
+- Model transfer uses MiniMed's resumable/retry transport, but downloaded bytes are not admitted to a
+  future WASM runtime until `crypto.subtle` reproduces the pinned SHA-256. Unit coverage includes
+  exact admission, wrong-size rejection and wrong-hash rejection.
+- Empty diarization output never sets `diarized=true`; speaker labels are only exposed after real
+  speaker regions exist. Plain Whisper timestamps are presented neutrally as «Речь».
 
 ## Next safe integration step
 
 Before enabling sherpa WASM:
 
-1. Capture immutable URL, size and SHA-256 for the full JS/WASM/data runtime produced by one build.
-2. Pin the pyannote segmentation and speaker-embedding model identities.
-3. Route all artifacts through MiniMed's existing resumable/checksummed download queue.
-4. Load the Emscripten runtime inside a dedicated worker, not the main UI thread.
-5. Run diarization and Whisper sequentially inside the existing transcription parity job so two
+1. Capture immutable URL, size and SHA-256 for the **complete** JS/WASM runtime produced by one build.
+   The model artifacts themselves are already pinned and verified.
+2. Load the verified Emscripten runtime inside a dedicated worker, not the main UI thread, and copy
+   the already-admitted pyannote/CAMPPlus bytes into its virtual filesystem.
+3. Run diarization and Whisper sequentially inside the existing transcription parity job so two
    large inference engines do not compete for memory.
-6. Qualify two-speaker Russian conversations, overlapping speech, long pauses, noise and
+4. Qualify two-speaker Russian conversations, overlapping speech, long pauses, noise and
    one-speaker recordings before presenting diarization as ready.
 
 The browser transcript/storage/UI contract should not need another migration when that runtime is
