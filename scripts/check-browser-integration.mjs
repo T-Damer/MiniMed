@@ -10,6 +10,7 @@ const files = {
   viewer: read('apps/app/src/features/notes/NoteAttachmentViewer.tsx'),
   viewerState: read('apps/app/src/features/notes/note-attachment-viewer-state.ts'),
   worker: read('apps/app/src/features/asr/asr.worker.ts'),
+  workerTests: read('apps/app/src/features/asr/asr.worker.test.ts'),
   asr: read('apps/app/src/features/asr/asr-models.ts'),
   asrAssetCache: read('apps/app/src/features/asr/asr-asset-cache.ts'),
   asrProtocol: read('apps/app/src/features/asr/asr-download-protocol.ts'),
@@ -107,6 +108,16 @@ const checks = [
     files.asr.includes('allowUnadmitted: !cachedOnlyActivations.has(request.modelId)') &&
       files.asrAssetCache.includes('options: { readonly allowUnadmitted?: boolean } = {}') &&
       files.asr.includes('discardUnadmittedAsrAssets(message.modelId)'),
+  ],
+  [
+    'Whisper fetch guard handles Request inputs',
+    files.worker.includes('input instanceof Request') &&
+      files.worker.includes("request?.url ?? String(input)") &&
+      files.worker.includes("request.method !== 'GET'") &&
+      files.worker.includes("request.headers.get('range')") &&
+      files.workerTests.includes('accepts a pinned Hugging Face Request') &&
+      files.workerTests.includes('rejects non-GET Request inputs') &&
+      files.workerTests.includes('rejects unsupported Request Range headers'),
   ],
   [
     'Whisper worker crash clears stale ready state',
