@@ -187,13 +187,17 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
       </Show>
 
       <Show when={transcript()?.status === 'done'}>
-        <Show when={speakerIds().length === 1 && speakerIds()[0] === 'speaker-1'}>
+        <Show
+          when={
+            transcript()?.diarized !== true && (transcript()?.segments?.length ?? 0) > 0
+          }
+        >
           <p class="note-transcript__hint">
             Таймкоды получены из Whisper. Разделение спикеров в браузере ещё не включено.
           </p>
         </Show>
 
-        <Show when={speakerIds().length > 1 || speakerIds()[0] !== 'speaker-1'}>
+        <Show when={transcript()?.diarized === true && speakerIds().length > 0}>
           <div class="note-transcript__speakers">
             <For each={speakerIds()}>
               {(speakerId) => (
@@ -247,7 +251,9 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
           <Button type="button" onClick={() => void copy(draft())}>
             Копировать текст
           </Button>
-          <Show when={speakerIds().length > 1}>
+          <Show
+            when={transcript()?.diarized === true && (transcript()?.segments?.length ?? 0) > 0}
+          >
             <Button type="button" onClick={() => void copy(speakerTranscript())}>
               Копировать с таймкодами
             </Button>
