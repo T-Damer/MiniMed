@@ -764,6 +764,24 @@
   gap: 0.6rem;
 }
 
+.note-transcript__speaker-editor {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.note-transcript__speaker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.note-transcript__speaker-role.ui-button {
+  min-height: 1.9rem;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.68rem;
+}
+
 .note-transcript__segments {
   display: grid;
   gap: 0.35rem;
@@ -804,6 +822,26 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+@media (max-width: 38rem) {
+  .note-attachment-viewer__audio-body {
+    min-width: 88vw;
+  }
+
+  .note-transcript__header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .note-transcript__segment {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .note-transcript__segment-text {
+    grid-column: 1 / -1;
+  }
 }
 
 .note-attachment-viewer__text {
