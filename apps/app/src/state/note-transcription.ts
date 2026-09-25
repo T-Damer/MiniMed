@@ -49,9 +49,17 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-async function putTranscript(record: NoteTranscript): Promise<void> {
+async function putTranscript(
+  record: NoteTranscript,
+  canWrite: (() => boolean) | undefined = undefined,
+): Promise<void> {
   const database = await openDatabase();
   try {
+    if (canWrite && !canWrite()) {
+      const error = new Error('Операция отменена.');
+      error.name = 'AbortError';
+      throw error;
+    }
     await new Promise<void>((resolve, reject) => {
       const transaction = database.transaction(STORE_NAME, 'readwrite');
       transaction.objectStore(STORE_NAME).put(record);
@@ -211,12 +219,14 @@ export function setTranscriptionEngine(engine: TranscribeEngine | null): void {
 }
 
 const running = new Map<string, { noteId: string; cancel: () => void }>();
+const cancelledTranscriptions = new Set<string>();
 
 export function isTranscriptionQueued(fileId: string): boolean {
   return running.has(fileId);
 }
 
 export function cancelTranscription(fileId: string): void {
+  cancelledTranscriptions.add(fileId);
   running.get(fileId)?.cancel();
 }
 
@@ -258,6 +268,8 @@ export function queueTranscription(input: {
   readonly force?: boolean;
 }): void {
   if (running.has(input.fileId)) return;
+  cancelledTranscriptions.delete(input.fileId);
+  const canWrite = (): boolean => !cancelledTranscriptions.has(input.fileId);
   const ticket = backgroundParity.submit({
     kind: 'transcription',
     priority: PARITY_PRIORITIES.transcription,
@@ -277,7 +289,7 @@ export function queueTranscription(input: {
           status: 'unsupported',
           createdAt,
           updatedAt: new Date().toISOString(),
-        });
+        }, canWrite);
         return;
       }
       await ctx.checkpoint();
@@ -291,7 +303,7 @@ export function queueTranscription(input: {
         status: 'running',
         createdAt,
         updatedAt: new Date().toISOString(),
-      });
+      }, canWrite);
       try {
         const output = normalizeOutput(
           await activeEngine(input.blob, input.blob.type || 'audio/webm'),
@@ -308,10 +320,11 @@ export function queueTranscription(input: {
           status: 'done',
           createdAt,
           updatedAt: new Date().toISOString(),
-        });
+        }, canWrite);
       } catch (cause) {
         if (
           ctx.signal.aborted ||
+          !canWrite() ||
           cause instanceof PreemptedError ||
           (cause instanceof Error && cause.name === 'AbortError')
         ) {
@@ -329,7 +342,7 @@ export function queueTranscription(input: {
           error: message,
           createdAt,
           updatedAt: new Date().toISOString(),
-        });
+        }, canWrite);
         throw cause;
       }
     },
