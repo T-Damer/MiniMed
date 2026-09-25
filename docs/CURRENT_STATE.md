@@ -21,8 +21,11 @@
 - `NoteMarkdownEditor` and `notes-polish.css` were resolved manually rather than choosing one
   feature branch wholesale: canvas link-target behavior and structured browser-ASR behavior are both
   present in the integration tree.
-- GitHub Actions are intentionally not used for this workspace because the repository Actions quota
-  is exhausted. Validation is source/local-browser oriented until CI capacity returns.
+- Draft PR #185 (`feature/browser-integration` → `main`) is the consolidated review surface.
+  GitHub Actions are intentionally not used because the repository Actions quota is exhausted.
+  Dependency-free source validation currently passes 24/24 invariants across diary, canvas,
+  MediaRecorder, structured ASR, diarization admission and integration wiring. A full browser
+  `tsc/vitest/vite build` is still a pre-merge gate when a checkout/build environment is available.
 
 ## Browser voice transcription — 2026-09-25
 
@@ -35,14 +38,18 @@
   available.
 - Persisted audio attachments now retain their NoteFile in the viewer, fixing the previous path where
   a saved recording could not actually start transcription. The viewer exposes queue/running/failure/
-  unsupported states, retry, editable text, copy/insert actions and timestamped segments. Finished
-  transcripts remain separate local personal data in IndexedDB.
+  unsupported states, retry, editable text, copy/insert actions, timestamped segments and plain-text
+  export. Real diarized speakers can be quickly relabelled as «Врач»/«Пациент». Finished transcripts
+  remain separate local personal data in IndexedDB.
 - Background OCR preemption re-queues speech work without marking it as a failed ASR job. Genuine ASR
   failures persist as failed with their error so retry is explicit.
 - Speaker-aware storage/alignment is implemented: an optional BrowserDiarizationEngine can supply
   source time regions, Whisper words are assigned by temporal overlap and adjacent words are merged
-  into turns. No diarizer is enabled by default yet; without one the UI says «без разделения
-  спикеров» and labels timestamps neutrally as «Речь».
+  into turns. Null/empty region sets are tested and never set `diarized=true`. The pyannote
+  segmentation and CAMPPlus embedding files are pinned by immutable source revision, exact size and
+  SHA-256; admitted blobs persist in a versioned IndexedDB cache for offline reuse, while cache
+  failures do not block the current verified session. No diarizer runtime is enabled by default yet;
+  without one the UI says «без разделения спикеров» and labels timestamps neutrally as «Речь».
 - Upstream sherpa-onnx v1.13.8 has a first-party browser/WASM diarization target. MiniMed deliberately
   does not load a floating HF Space or the Node-specific npm WASM build. Runtime handoff and remaining
   artifact-pinning requirements are recorded in
