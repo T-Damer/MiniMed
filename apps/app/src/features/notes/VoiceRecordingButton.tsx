@@ -15,7 +15,7 @@ function recorderMimeType(): string {
  * Toolbar microphone button: captures a voice note through MediaRecorder and
  * hands the resulting file to the caller (stored as a note attachment).
  */
-const MAX_RECORDING_SECONDS = 75 * 60;
+const MAX_RECORDING_SECONDS = 10 * 60;
 const RECORDING_BITRATE = 64_000;
 const RECORDING_TIMESLICE_MS = 1_000;
 
