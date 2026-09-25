@@ -341,7 +341,7 @@ export function NoteTranscriptPanel(props: {
           <Button
             type="button"
             variant="primary"
-            disabled={saving()}
+            disabled={saving() || deleting()}
             onClick={() => void save()}
           >
             {saving() ? 'Сохранение…' : 'Сохранить правки'}
@@ -376,10 +376,10 @@ export function NoteTranscriptPanel(props: {
               Копировать с таймкодами
             </Button>
           </Show>
-          <Button type="button" onClick={exportTranscript}>
+          <Button type="button" disabled={deleting()} onClick={exportTranscript}>
             Скачать .txt
           </Button>
-          <Button type="button" onClick={() => start(true)}>
+          <Button type="button" disabled={deleting()} onClick={() => start(true)}>
             Распознать заново
           </Button>
         </div>
@@ -390,7 +390,7 @@ export function NoteTranscriptPanel(props: {
           <Button
             type="button"
             variant="danger"
-            disabled={deleting()}
+            disabled={deleting() || saving()}
             onClick={() => setDeleteConfirmOpen(true)}
           >
             {deleting() ? 'Удаление…' : 'Удалить расшифровку'}
