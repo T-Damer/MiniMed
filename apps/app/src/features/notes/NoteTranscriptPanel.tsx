@@ -265,6 +265,7 @@ export function NoteTranscriptPanel(props: {
                   <div class="note-transcript__speaker-actions">
                     <Button
                       type="button"
+                      class="note-transcript__speaker-role"
                       variant="quiet"
                       onClick={() => setSpeakerRole(speakerId, 'Врач')}
                     >
@@ -272,6 +273,7 @@ export function NoteTranscriptPanel(props: {
                     </Button>
                     <Button
                       type="button"
+                      class="note-transcript__speaker-role"
                       variant="quiet"
                       onClick={() => setSpeakerRole(speakerId, 'Пациент')}
                     >
@@ -279,6 +281,7 @@ export function NoteTranscriptPanel(props: {
                     </Button>
                     <Button
                       type="button"
+                      class="note-transcript__speaker-role"
                       variant="quiet"
                       onClick={() => setSpeakerRole(speakerId, '')}
                     >
