@@ -1,5 +1,5 @@
 export interface NativeTranscriptionModelArtifact {
-  readonly id: 'gigaam-asr' | 'pyannote-segmentation' | 'campplus-speaker';
+  readonly id: 'gigaam-asr' | 'gigaam-tokens' | 'pyannote-segmentation' | 'campplus-speaker';
   readonly fileName: string;
   readonly url: string;
   readonly expectedBytes: number;
@@ -15,6 +15,16 @@ export const NATIVE_TRANSCRIPTION_MODELS: readonly NativeTranscriptionModelArtif
     url: 'https://huggingface.co/csukuangfj/sherpa-onnx-nemo-ctc-punct-giga-am-v3-russian-2025-12-16/resolve/360529f65d9687a7b1c2177130262819e51557da/model.int8.onnx?download=true',
     expectedBytes: 224_893_661,
     expectedSha256: 'd5fea8df94263c285e54b21e5774b707c707192d3bdbeffd7b1eb07fb6743b35',
+    license: 'MIT',
+    source:
+      'https://huggingface.co/csukuangfj/sherpa-onnx-nemo-ctc-punct-giga-am-v3-russian-2025-12-16',
+  },
+  {
+    id: 'gigaam-tokens',
+    fileName: 'gigaam-v3-punct.tokens.txt',
+    url: 'https://huggingface.co/csukuangfj/sherpa-onnx-nemo-ctc-punct-giga-am-v3-russian-2025-12-16/resolve/360529f65d9687a7b1c2177130262819e51557da/tokens.txt?download=true',
+    expectedBytes: 2_007,
+    expectedSha256: '142de7570b3de5b3035ce111a89c228e80e6085273731d944093ddf24fa539cd',
     license: 'MIT',
     source:
       'https://huggingface.co/csukuangfj/sherpa-onnx-nemo-ctc-punct-giga-am-v3-russian-2025-12-16',
