@@ -291,3 +291,27 @@ async function readResponse(
 export async function clearResumableDownload(cacheKey: string): Promise<void> {
   await deletePartial(cacheKey);
 }
+
+export async function clearResumableDownloadsByPrefix(prefix: string): Promise<number> {
+  if (!prefix || !hasIndexedDb()) return 0;
+  const database = await openDatabase();
+  let deleted = 0;
+  try {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const request = transaction.objectStore(STORE_NAME).openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) return;
+      const record = cursor.value as PartialDownloadRecord;
+      if (record.key.startsWith(prefix)) {
+        cursor.delete();
+        deleted += 1;
+      }
+      cursor.continue();
+    };
+    await transactionDone(transaction);
+  } finally {
+    database.close();
+  }
+  return deleted;
+}
