@@ -95,6 +95,16 @@ const checks = [
       files.noteTranscription.includes('export async function deleteTranscriptsForNotes('),
   ],
   [
+    'cancelled transcription cannot recreate deleted data',
+    files.noteTranscription.includes('const cancelledTranscriptions = new Set<string>()') &&
+      files.noteTranscription.includes('cancelledTranscriptions.add(fileId)') &&
+      files.noteTranscription.includes('const canWrite = (): boolean => !cancelledTranscriptions.has(input.fileId)') &&
+      files.noteTranscription.includes('await putTranscript(next, canWrite)') &&
+      files.noteTranscription.includes('await putTranscript({') &&
+      files.noteTranscription.includes('}, canWrite)') &&
+      files.noteTranscription.includes('if (noteIds.has(active.noteId)) cancelTranscription(fileId)'),
+  ],
+  [
     'transcript can be deleted without deleting audio',
     files.transcriptPanel.includes('Удалить расшифровку') &&
       files.transcriptPanel.includes('Исходная') &&
