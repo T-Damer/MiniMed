@@ -51,7 +51,7 @@ describe('Whisper persistent asset cache', () => {
 
     await expect(hasCompleteCachedAsrModel(smallId)).resolves.toBe(true);
     const small = await readCachedAsrAsset(smallId, smallUrl);
-    expect([...small?.bytes ?? []]).toEqual([...smallBytes]);
+    expect([...(small?.bytes ?? [])]).toEqual([...smallBytes]);
 
     expect(stores.get('models')?.records.has(baseId)).toBe(false);
     expect(stores.get('models')?.records.has(smallId)).toBe(true);
