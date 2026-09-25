@@ -1335,7 +1335,14 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
           <For each={visibleFileAttachments()}>{(file) => renderFileAttachment(file)}</For>
         </div>
       </Show>
-      <AttachmentViewerDialog state={fileViewer()} onClose={() => setFileViewer(null)} />
+      <AttachmentViewerDialog
+        state={fileViewer()}
+        onClose={() => setFileViewer(null)}
+        onInsertTranscript={(value) => {
+          wysiwyg?.insert(`${value} `);
+          setFileViewer(null);
+        }}
+      />
       <ConfirmationDialog
         open={Boolean(deleteTarget())}
         title="Удалить запись?"
