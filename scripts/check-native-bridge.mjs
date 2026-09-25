@@ -34,6 +34,10 @@ const files = {
   typescriptSharePlugin: 'apps/app/src/state/native-share.ts',
   typescriptPatientVaultPlugin: 'apps/app/src/state/patient-vault-native.ts',
   iosPatientVaultPlugin: 'apps/app/ios/App/App/LocalMedPatientVaultPlugin.swift',
+  androidTranscriberPlugin:
+    'apps/app/android/app/src/main/java/dev/localmed/search/LocalMedTranscriberPlugin.kt',
+  typescriptTranscriberPlugin: 'apps/app/src/state/native-transcriber.ts',
+  transcriptionModelManifest: 'apps/app/src/features/asr/native-transcription-models.ts',
 };
 
 const entries = await Promise.all(
@@ -127,6 +131,31 @@ requireText('iosPatientVaultPlugin', 'kSecAttrAccessibleWhenUnlockedThisDeviceOn
 requireText('iosPatientVaultPlugin', 'SecItemCopyMatching');
 requireText('iosBridge', 'registerPluginInstance(LocalMedPatientVaultPlugin())');
 requireText('iosProject', 'LocalMedPatientVaultPlugin.swift in Sources');
+
+for (const method of ['inspectModel', 'installModelFile', 'startRecording', 'stopRecording', 'transcribe']) {
+  requireText('androidTranscriberPlugin', `fun ${method}(`);
+  requireText('typescriptTranscriberPlugin', `${method}(`);
+}
+requireText('androidTranscriberPlugin', '@CapacitorPlugin(');
+requireText('androidTranscriberPlugin', 'name = "LocalMedTranscriber"');
+requireText('androidActivity', 'registerPlugin(LocalMedTranscriberPlugin.class)');
+requireText('androidManifest', 'android.permission.RECORD_AUDIO');
+requireText('typescriptTranscriberPlugin', "registerPlugin<LocalMedTranscriberPlugin>('LocalMedTranscriber')");
+requireText('typescriptTranscriberPlugin', 'downloadFileWithRetry');
+for (const checksum of [
+  'd5fea8df94263c285e54b21e5774b707c707192d3bdbeffd7b1eb07fb6743b35',
+  'd582f4b4c6b48205de7e0643c57df0df5615a3c176189be3fc461e9d18827b5d',
+  '357a834f702b80161e5b981182c038e18553c1f2ca752ed6cec2052365d4129b',
+]) {
+  requireText('androidTranscriberPlugin', checksum);
+  requireText('transcriptionModelManifest', checksum);
+}
+requireText('androidTranscriberPlugin', 'MediaRecorder.OutputFormat.OGG');
+requireText('androidTranscriberPlugin', 'MediaRecorder.AudioEncoder.OPUS');
+requireText('androidTranscriberPlugin', 'MediaRecorder.OutputFormat.MPEG_4');
+requireText('androidTranscriberPlugin', 'MediaRecorder.AudioEncoder.AAC');
+requireText('androidTranscriberPlugin', 'minimed-downloads');
+requireText('androidTranscriberPlugin', 'localmed/transcription-models');
 
 for (const native of ['androidPlugin', 'iosPlugin']) {
   requireText(native, 'PRAGMA quick_check');
