@@ -127,7 +127,9 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
     <section class="note-transcript" aria-label="Расшифровка аудио">
       <header class="note-transcript__header">
         <strong class="note-transcript__title">Расшифровка</strong>
-        <span class="note-transcript__status">{statusText()}</span>
+        <span class="note-transcript__status" aria-live="polite">
+          {statusText()}
+        </span>
       </header>
 
       <Show when={transcript()?.status === 'failed'}>
@@ -153,7 +155,13 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
       </Show>
 
       <Show when={transcript()?.status === 'done'}>
-        <Show when={speakerIds().length > 0}>
+        <Show when={speakerIds().length === 1 && speakerIds()[0] === 'speaker-1'}>
+          <p class="note-transcript__hint">
+            Таймкоды получены из Whisper. Разделение спикеров в браузере ещё не включено.
+          </p>
+        </Show>
+
+        <Show when={speakerIds().length > 1 || speakerIds()[0] !== 'speaker-1'}>
           <div class="note-transcript__speakers">
             <For each={speakerIds()}>
               {(speakerId) => (
