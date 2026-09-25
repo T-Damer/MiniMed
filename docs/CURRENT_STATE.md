@@ -2781,8 +2781,10 @@ review-required intermediate draft. Neither pilot has been run with provider cre
 - Physical Android interruption, memory-pressure, and local-model inference qualification remain release
   follow-up checks even when the debug APK and browser automation are green.
 - Personal notes use unencrypted device-local browser storage and are a notebook rather than an
-  electronic medical record. Per-card export, a whole-notebook wipe, and local Russian transcription
-  are not implemented.
+  electronic medical record. Browser-local Russian transcription is implemented with optional
+  Whisper Base/Small, editable stored transcripts and word timestamps. Per-card export and a
+  whole-notebook wipe remain open; verified multi-speaker diarization still waits for a fully pinned
+  browser WASM runtime.
 
 ## Ordered next work toward 1.0
 
@@ -2813,8 +2815,9 @@ and built output remains ignored private data with `rightsStatus: unresolved` an
 5. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
    The 70-query medication regression after pack installation is fixed. Use `benchmark:runtime` to investigate
    symptom/phrase misses, and missing published document membership before claiming retrieval quality.
-6. Add explicit export and whole-notebook deletion, then evaluate an optional downloadable Russian
-   on-device transcriber.
+6. Add explicit export and whole-notebook deletion. For voice notes, qualify the existing browser
+   Whisper path on real Russian consultations and enable multi-speaker diarization only after the full
+   WASM runtime is immutable/pinned and the two speaker models pass the existing size+SHA admission.
 7. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
    presenting diagnostic assistance as a 1.0 capability. For ECG, qualify the digitizer and
    deterministic measurement/rule pipeline on licensed phone-photo fixtures, compare the integrated
