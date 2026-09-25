@@ -67,7 +67,9 @@ const checks = [
       ) &&
       files.diarizationModels.includes('expectedBytes: 1_540_506') &&
       files.diarizationModels.includes('expectedBytes: 29_596_978') &&
-      files.diarizationModels.includes("crypto.subtle.digest('SHA-256'"),
+      files.diarizationModels.includes("crypto.subtle.digest('SHA-256'") &&
+      files.diarizationModels.includes("minimed-browser-diarization-models-v1") &&
+      files.diarizationModels.includes('storeCachedModel(artifact, bytes)'),
   ],
   [
     'transcript export and speaker roles',
