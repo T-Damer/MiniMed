@@ -78,52 +78,73 @@ export function VoiceRecordingButton(props: {
     }
     const mimeType = recorderMimeType();
     chunks = [];
-    recorder = new MediaRecorder(stream, {
-      ...(mimeType ? { mimeType } : {}),
-      audioBitsPerSecond: RECORDING_BITRATE,
-    });
-    recorder.ondataavailable = (event) => {
-      if (event.data.size > 0) chunks.push(event.data);
-    };
-    recorder.onstop = () => {
-      if (disposed) {
+    try {
+      recorder = new MediaRecorder(stream, {
+        ...(mimeType ? { mimeType } : {}),
+        audioBitsPerSecond: RECORDING_BITRATE,
+      });
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunks.push(event.data);
+      };
+      recorder.onerror = () => {
+        if (disposed) return;
         setRecording(false);
+        setSeconds(0);
         cleanupCapture();
-        return;
-      }
-      const type = mimeType.split(';')[0] || 'audio/webm';
-      const extension = type === 'audio/mp4' ? 'm4a' : 'webm';
-      const stamp = new Date().toISOString().slice(11, 19).replaceAll(':', '-');
-      props.onComplete(new File(chunks, `Голос ${stamp}.${extension}`, { type }));
+        props.onError?.('Запись с микрофона завершилась с ошибкой.');
+      };
+      recorder.onstop = () => {
+        if (disposed) {
+          setRecording(false);
+          cleanupCapture();
+          return;
+        }
+        const type = mimeType.split(';')[0] || 'audio/webm';
+        const extension = type === 'audio/mp4' ? 'm4a' : 'webm';
+        const stamp = new Date().toISOString().slice(11, 19).replaceAll(':', '-');
+        const file = new File(chunks, `Голос ${stamp}.${extension}`, { type });
+        setRecording(false);
+        setSeconds(0);
+        cleanupCapture();
+        if (file.size === 0) {
+          props.onError?.('Запись получилась пустой. Попробуйте ещё раз.');
+          return;
+        }
+        props.onComplete(file);
+      };
+      recorder.start(RECORDING_TIMESLICE_MS);
+
+      const context = new AudioContext();
+      analyserContext = context;
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 256;
+      context.createMediaStreamSource(stream).connect(analyser);
+      const buffer = new Uint8Array(analyser.frequencyBinCount);
+      analyserTimer = window.setInterval(() => {
+        analyser.getByteTimeDomainData(buffer);
+        let peak = 0;
+        for (const value of buffer) peak = Math.max(peak, Math.abs(value - 128) / 128);
+        setLevel(Math.min(1, peak * 2.2));
+      }, 120);
+
+      setSeconds(0);
+      tickTimer = window.setInterval(() => {
+        const next = seconds() + 1;
+        if (next >= MAX_RECORDING_SECONDS) {
+          stop();
+          return;
+        }
+        setSeconds(next);
+      }, 1000);
+      setRecording(true);
+    } catch {
+      recorder = undefined;
+      chunks = [];
       setRecording(false);
       setSeconds(0);
       cleanupCapture();
-    };
-    recorder.start(RECORDING_TIMESLICE_MS);
-
-    const context = new AudioContext();
-    analyserContext = context;
-    const analyser = context.createAnalyser();
-    analyser.fftSize = 256;
-    context.createMediaStreamSource(stream).connect(analyser);
-    const buffer = new Uint8Array(analyser.frequencyBinCount);
-    analyserTimer = window.setInterval(() => {
-      analyser.getByteTimeDomainData(buffer);
-      let peak = 0;
-      for (const value of buffer) peak = Math.max(peak, Math.abs(value - 128) / 128);
-      setLevel(Math.min(1, peak * 2.2));
-    }, 120);
-
-    setSeconds(0);
-    tickTimer = window.setInterval(() => {
-      const next = seconds() + 1;
-      if (next >= MAX_RECORDING_SECONDS) {
-        stop();
-        return;
-      }
-      setSeconds(next);
-    }, 1000);
-    setRecording(true);
+      props.onError?.('Не удалось начать запись в этом браузере.');
+    }
   };
 
   const stop = (): void => {
