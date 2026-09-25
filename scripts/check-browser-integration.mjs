@@ -12,6 +12,7 @@ const files = {
   worker: read('apps/app/src/features/asr/asr.worker.ts'),
   asr: read('apps/app/src/features/asr/asr-models.ts'),
   diarization: read('apps/app/src/features/asr/browser-diarization.ts'),
+  speakerAlignment: read('apps/app/src/features/asr/speaker-alignment.ts'),
   diarizationModels: read('apps/app/src/features/asr/browser-diarization-models.ts'),
   transcriptPanel: read('apps/app/src/features/notes/NoteTranscriptPanel.tsx'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
@@ -47,7 +48,10 @@ const checks = [
   ['10-minute browser ASR guard', files.asr.includes('MAX_BROWSER_TRANSCRIPTION_SECONDS = 10 * 60')],
   [
     'diarized state requires real regions',
-    files.asr.includes("...(speakerRegions?.length ? { diarized: true } : {})"),
+    files.asr.includes('applyOptionalSpeakerRegions(output.segments, speakerRegions)') &&
+      files.speakerAlignment.includes('if (!regions?.length)') &&
+      files.speakerAlignment.includes('diarized: false') &&
+      files.speakerAlignment.includes('diarized: true'),
   ],
   [
     'optional diarization seam only',
