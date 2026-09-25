@@ -1,3 +1,7 @@
+import {
+  deleteTranscript,
+  deleteTranscriptsForNotes,
+} from '@/state/note-transcription';
 import { attachmentThumbnails } from '@/state/thumbnails';
 
 export interface NoteFile {
@@ -188,6 +192,11 @@ export async function replaceNoteFile(fileId: string, file: File): Promise<NoteF
     database.close();
   }
   if (!replacement) throw new Error('Не удалось обновить файл.');
+  try {
+    await deleteTranscript(fileId);
+  } catch (cause) {
+    throw new Error('Файл обновлён, но старую расшифровку не удалось удалить.', { cause });
+  }
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
   return replacement;
@@ -259,6 +268,7 @@ export async function deleteNoteFile(fileId: string): Promise<void> {
   } finally {
     database.close();
   }
+  await deleteTranscript(fileId);
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
 }
@@ -284,6 +294,7 @@ export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promi
   } finally {
     database.close();
   }
+  await deleteTranscriptsForNotes(noteIds);
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
 }
