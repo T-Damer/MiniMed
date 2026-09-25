@@ -41,10 +41,18 @@ export interface AsrLoadErrorMessage {
   readonly message: string;
 }
 
+export interface AsrTimestampSegment {
+  readonly speakerId: 'speaker-1';
+  readonly startMs: number;
+  readonly endMs: number;
+  readonly text: string;
+}
+
 export interface AsrResultMessage {
   readonly type: 'result';
   readonly requestId: string;
   readonly text: string;
+  readonly segments?: readonly AsrTimestampSegment[];
 }
 
 export interface AsrTranscribeErrorMessage {
@@ -70,6 +78,7 @@ interface ModelSpec {
     readonly chunk_length_s: number;
     readonly language: string;
     readonly task: 'transcribe';
+    readonly return_timestamps: 'word';
   };
 }
 
@@ -78,11 +87,21 @@ const MODEL_SPECS: Readonly<Record<string, ModelSpec>> = {
   // tied-weight crash that previously made quantized Whisper decoders unusable.
   'onnx-community/whisper-base': {
     options: { dtype: 'q8' },
-    callOptions: { chunk_length_s: 30, language: 'russian', task: 'transcribe' },
+    callOptions: {
+      chunk_length_s: 30,
+      language: 'russian',
+      task: 'transcribe',
+      return_timestamps: 'word',
+    },
   },
   'onnx-community/whisper-small': {
     options: { dtype: 'q8' },
-    callOptions: { chunk_length_s: 30, language: 'russian', task: 'transcribe' },
+    callOptions: {
+      chunk_length_s: 30,
+      language: 'russian',
+      task: 'transcribe',
+      return_timestamps: 'word',
+    },
   },
 };
 
@@ -224,12 +243,44 @@ scope.onmessage = (event) => {
       const spec = current?.id === message.modelId ? MODEL_SPECS[message.modelId] : undefined;
       if (!pipe || !spec) throw new Error(`Модель не загружена: ${message.modelId}`);
       const output: unknown = await pipe(message.audio, spec.callOptions ?? {});
-      const first = Array.isArray(output) ? (output[0] as { text?: unknown } | undefined) : output;
+      const first = Array.isArray(output)
+        ? (output[0] as { text?: unknown; chunks?: unknown } | undefined)
+        : (output as { text?: unknown; chunks?: unknown } | undefined);
       const text =
         typeof first === 'object' && first !== null && 'text' in first
-          ? String((first as { text: unknown }).text ?? '')
+          ? String(first.text ?? '')
           : '';
-      scope.postMessage({ type: 'result', requestId: message.requestId, text });
+      const chunks = Array.isArray(first?.chunks) ? first.chunks : [];
+      const segments = chunks.flatMap((chunk) => {
+        if (typeof chunk !== 'object' || chunk === null) return [];
+        const value = chunk as { readonly text?: unknown; readonly timestamp?: unknown };
+        if (!Array.isArray(value.timestamp) || value.timestamp.length < 2) return [];
+        const start = value.timestamp[0];
+        const end = value.timestamp[1];
+        if (
+          typeof start !== 'number' ||
+          !Number.isFinite(start) ||
+          typeof end !== 'number' ||
+          !Number.isFinite(end) ||
+          end <= start
+        ) {
+          return [];
+        }
+        return [
+          {
+            speakerId: 'speaker-1' as const,
+            startMs: Math.max(0, Math.round(start * 1_000)),
+            endMs: Math.max(1, Math.round(end * 1_000)),
+            text: String(value.text ?? '').trim(),
+          },
+        ];
+      });
+      scope.postMessage({
+        type: 'result',
+        requestId: message.requestId,
+        text,
+        ...(segments.length > 0 ? { segments } : {}),
+      });
     } catch (cause) {
       scope.postMessage({
         type: 'transcribe-error',

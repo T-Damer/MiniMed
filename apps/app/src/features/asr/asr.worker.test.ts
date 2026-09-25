@@ -59,6 +59,66 @@ describe('ASR worker model loading', () => {
     ).toEqual([0, 0.6, 0.65]);
   });
 
+  it('returns timestamp chunks as local transcript segments', async () => {
+    const transcribe = vi.fn().mockResolvedValue({
+      text: 'Первая фраза. Вторая фраза.',
+      chunks: [
+        { timestamp: [0, 1.25], text: ' Первая фраза. ' },
+        { timestamp: [1.25, 2.5], text: 'Вторая фраза.' },
+        { timestamp: [2.5, null], text: 'Незавершённый chunk' },
+      ],
+    });
+    mocks.pipeline.mockResolvedValue(transcribe);
+
+    await loadModel();
+    await vi.waitFor(() => {
+      expect(scope.postMessage).toHaveBeenCalledWith({
+        type: 'ready',
+        modelId: 'onnx-community/whisper-base',
+      });
+    });
+
+    scope.onmessage?.({
+      data: {
+        type: 'transcribe',
+        requestId: 'request-1',
+        modelId: 'onnx-community/whisper-base',
+        audio: new Float32Array([0, 0.1, -0.1]),
+      },
+    } as MessageEvent);
+
+    await vi.waitFor(() => {
+      expect(scope.postMessage).toHaveBeenCalledWith({
+        type: 'result',
+        requestId: 'request-1',
+        text: 'Первая фраза. Вторая фраза.',
+        segments: [
+          {
+            speakerId: 'speaker-1',
+            startMs: 0,
+            endMs: 1250,
+            text: 'Первая фраза.',
+          },
+          {
+            speakerId: 'speaker-1',
+            startMs: 1250,
+            endMs: 2500,
+            text: 'Вторая фраза.',
+          },
+        ],
+      });
+    });
+
+    expect(transcribe).toHaveBeenCalledWith(
+      expect.any(Float32Array),
+      expect.objectContaining({
+        language: 'russian',
+        task: 'transcribe',
+        return_timestamps: 'word',
+      }),
+    );
+  });
+
   it('retries a temporary network error before failing the model load', async () => {
     vi.useFakeTimers();
     mocks.pipeline

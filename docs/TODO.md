@@ -99,9 +99,10 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
 Cards, nested notes, search integration, and follow-up reminders have landed. Voice and data
 portability remain.
 
-- Optional local Russian speech-to-text for dictated notes. Not started: it needs a Russian-capable
-  transcription model in the browser/WebView runtime, sized like the existing model tiers, and it must
-  stay optional so notes remain fully usable by typing.
+- Browser speech-to-text now works locally with optional quantized Whisper Base/Small, word-derived
+  timestamps, persistent editable transcripts, retry/error states and insertion back into an open note.
+  Finish speaker diarization only after a complete browser WASM runtime is pinned and routed through
+  the verified download/cache path; do not fabricate speakers from pauses or one Whisper stream.
 - Consider exporting or wiping a single card for handover and retention, once real use shows whether
   that is needed.
 

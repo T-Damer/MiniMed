@@ -3,50 +3,15 @@ import { createEffect, createSignal, type JSX, Match, Show, Switch } from 'solid
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
-import { downloadNoteFile, type NoteFile, noteFileSrc } from '@/state/note-files';
-import { queueTranscription } from '@/state/note-transcription';
+import { NoteTranscriptPanel } from '@/features/notes/NoteTranscriptPanel';
+import { downloadNoteFile, type NoteFile } from '@/state/note-files';
 import { attachmentViewerKind } from '@/state/thumbnails';
+import {
+  recordToViewerState,
+  type ViewerState,
+} from '@/features/notes/note-attachment-viewer-state';
 
-export type ViewerState =
-  | { readonly kind: 'image'; readonly name: string; readonly src: string }
-  | {
-      readonly kind: 'video';
-      readonly name: string;
-      readonly src: string;
-      readonly poster?: string;
-    }
-  | { readonly kind: 'audio'; readonly name: string; readonly src: string }
-  | {
-      readonly kind: 'text';
-      readonly name: string;
-      readonly mimeType?: string;
-      readonly blob: Blob;
-    }
-  | { readonly kind: 'pdf'; readonly name: string; readonly record: NoteFile }
-  | { readonly kind: 'download'; readonly name: string; readonly record: NoteFile };
-
-export function recordToViewerState(record: NoteFile): ViewerState {
-  const kind = attachmentViewerKind(record.mimeType);
-  if (kind === 'image') {
-    return {
-      kind: 'image',
-      name: record.name,
-      src: record.thumbnailDataUrl ?? noteFileSrc(record),
-    };
-  }
-  if (kind === 'video' || kind === 'audio') {
-    return {
-      kind,
-      name: record.name,
-      src: noteFileSrc(record),
-      ...(kind === 'video' && record.thumbnailDataUrl ? { poster: record.thumbnailDataUrl } : {}),
-    };
-  }
-  if (kind === 'text') {
-    return { kind: 'text', name: record.name, mimeType: record.mimeType, blob: record.blob };
-  }
-  return { kind: 'pdf', name: record.name, record };
-}
+export { recordToViewerState, type ViewerState } from '@/features/notes/note-attachment-viewer-state';
 
 async function readTextBlob(blob: Blob): Promise<string> {
   try {
@@ -135,13 +100,12 @@ function DownloadPromptBody(props: {
 export function AttachmentViewerDialog(props: {
   readonly state: ViewerState | null;
   readonly onClose: () => void;
+  readonly onInsertTranscript?: (text: string) => void;
 }): JSX.Element {
   return (
     <Show when={props.state} keyed>
       {(current) => {
         const downloadable = 'record' in current ? current.record : undefined;
-        const transcribable =
-          downloadable && attachmentViewerKind(downloadable.mimeType) === 'audio';
         return (
           <div
             class="note-attachment-viewer"
@@ -158,24 +122,6 @@ export function AttachmentViewerDialog(props: {
             <div class="note-attachment-viewer__panel">
               <header class="note-attachment-viewer__header">
                 <span class="note-attachment-viewer__name">{current.name}</span>
-                <Show when={transcribable && downloadable}>
-                  <button
-                    type="button"
-                    class="note-attachment-viewer__transcribe"
-                    aria-label="Расшифровать аудио"
-                    title="Расшифровать речь"
-                    onClick={() => {
-                      if (!downloadable) return;
-                      queueTranscription({
-                        fileId: downloadable.id,
-                        noteId: downloadable.noteId,
-                        blob: downloadable.blob,
-                      });
-                    }}
-                  >
-                    <AppGlyph name="text-aa" class="note-image-preview__icon" />
-                  </button>
-                </Show>
                 <button
                   type="button"
                   class="note-attachment-viewer__close"
@@ -216,13 +162,19 @@ export function AttachmentViewerDialog(props: {
                   </video>
                 </Match>
                 <Match when={current.kind === 'audio'}>
-                  <audio
-                    class="note-attachment-viewer__audio"
-                    src={(current as { readonly src: string }).src}
-                    controls
-                  >
-                    <track kind="captions" label="Без субтитров" />
-                  </audio>
+                  <div class="note-attachment-viewer__audio-body">
+                    <audio
+                      class="note-attachment-viewer__audio"
+                      src={(current as { readonly src: string }).src}
+                      controls
+                    >
+                      <track kind="captions" label="Без субтитров" />
+                    </audio>
+                    <NoteTranscriptPanel
+                      file={(current as Extract<ViewerState, { readonly kind: 'audio' }>).record}
+                      onInsertText={props.onInsertTranscript}
+                    />
+                  </div>
                 </Match>
                 <Match when={current.kind === 'text'}>
                   <TextPreviewBody

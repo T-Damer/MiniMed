@@ -1,5 +1,30 @@
 # Current state
 
+## Browser voice transcription — 2026-09-25
+
+- Browser voice notes use MediaRecorder with a 64 kbit/s target, one-second chunks and a 10-minute
+  ceiling. Unsupported recorder startup, runtime recorder errors and empty captures release the
+  microphone and surface an error instead of saving a broken attachment.
+- Quantized Whisper Base/Small remains optional and local after its existing first model download.
+  The worker requests word timestamps and returns millisecond transcript segments. Browser
+  transcription rejects recordings over 10 minutes before the expensive decode when metadata is
+  available.
+- Persisted audio attachments now retain their NoteFile in the viewer, fixing the previous path where
+  a saved recording could not actually start transcription. The viewer exposes queue/running/failure/
+  unsupported states, retry, editable text, copy/insert actions and timestamped segments. Finished
+  transcripts remain separate local personal data in IndexedDB.
+- Background OCR preemption re-queues speech work without marking it as a failed ASR job. Genuine ASR
+  failures persist as failed with their error so retry is explicit.
+- Speaker-aware storage/alignment is implemented: an optional BrowserDiarizationEngine can supply
+  source time regions, Whisper words are assigned by temporal overlap and adjacent words are merged
+  into turns. No diarizer is enabled by default yet; without one the UI says «без разделения
+  спикеров» and labels timestamps neutrally as «Речь».
+- Upstream sherpa-onnx v1.13.8 has a first-party browser/WASM diarization target. MiniMed deliberately
+  does not load a floating HF Space or the Node-specific npm WASM build. Runtime handoff and remaining
+  artifact-pinning requirements are recorded in
+  `research/browser-speaker-diarization-2026-09-25.md`.
+- This branch is browser-only work; no Android qualification or APK claim is made here.
+
 - MiniMed `0.6.39` ships optional Russian Wiktionary/Kaikki lexical downloads: seven gzip packages
   (index with source definitions plus six owner sections). Local selection: 6,939 senses, 6,940
   Russian glosses; no MeSH equivalence or clinical approval is inferred. Current-core + Russian-index

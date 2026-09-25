@@ -1,7 +1,9 @@
+import { diarizeBrowserAudio } from '@/features/asr/browser-diarization';
+import { buildSpeakerTurns, mergeSpeakerWords } from '@/features/asr/speaker-alignment';
 import type { DownloadContext } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { downloadWithRetry } from '@/features/network/download-retry';
-import { setTranscriptionEngine } from '@/state/note-transcription';
+import { setTranscriptionEngine, type TranscriptionOutput } from '@/state/note-transcription';
 import type { AsrTranscribeMessage, AsrWorkerInMessage, AsrWorkerOutMessage } from './asr.worker';
 import {
   ASR_DOWNLOAD_VERSION,
@@ -51,6 +53,7 @@ export const ASR_MODELS: readonly AsrModelDescriptor[] = [
 
 const SELECTED_KEY = 'minimed.asr.selected';
 const TARGET_SAMPLE_RATE = 16_000;
+const MAX_BROWSER_TRANSCRIPTION_SECONDS = 10 * 60;
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -218,7 +221,7 @@ const activationWaiters = new Map<
 const activations = new Map<string, Promise<void>>();
 const pendingResults = new Map<
   string,
-  { resolve: (text: string) => void; reject: (error: Error) => void }
+  { resolve: (output: TranscriptionOutput) => void; reject: (error: Error) => void }
 >();
 let requestCounter = 0;
 
@@ -277,7 +280,10 @@ function workerInstance(): Worker {
         break;
       }
       case 'result': {
-        pendingResults.get(message.requestId)?.resolve(message.text);
+        pendingResults.get(message.requestId)?.resolve({
+          text: message.text,
+          ...(message.segments?.length ? { segments: message.segments } : {}),
+        });
         pendingResults.delete(message.requestId);
         break;
       }
@@ -297,6 +303,33 @@ function workerInstance(): Worker {
   return instance;
 }
 
+async function readAudioDurationSeconds(audio: Blob): Promise<number | null> {
+  if (typeof document === 'undefined' || typeof URL.createObjectURL !== 'function') return null;
+  const url = URL.createObjectURL(audio);
+  const element = document.createElement('audio');
+  element.preload = 'metadata';
+  try {
+    return await new Promise<number | null>((resolve) => {
+      let settled = false;
+      const finish = (value: number | null): void => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        element.removeAttribute('src');
+        element.load();
+        resolve(value);
+      };
+      const timeout = window.setTimeout(() => finish(null), 5_000);
+      element.onloadedmetadata = () =>
+        finish(Number.isFinite(element.duration) && element.duration > 0 ? element.duration : null);
+      element.onerror = () => finish(null);
+      element.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function decodeToPcm16k(audio: Blob): Promise<Float32Array> {
   const bytes = await audio.arrayBuffer();
   const decodeContext = new OfflineAudioContext(1, 1, TARGET_SAMPLE_RATE);
@@ -312,12 +345,32 @@ async function decodeToPcm16k(audio: Blob): Promise<Float32Array> {
 }
 
 function makeEngine(instance: Worker, modelId: string) {
-  return async (audio: Blob): Promise<string> => {
+  return async (audio: Blob): Promise<TranscriptionOutput> => {
     if (!readyModels.has(modelId)) throw new Error('Модель не активирована');
+    const duration = await readAudioDurationSeconds(audio);
+    if (duration !== null && duration > MAX_BROWSER_TRANSCRIPTION_SECONDS) {
+      throw new Error(
+        'В браузере безопасная расшифровка ограничена 10 минутами на один аудиофайл. Разделите запись на части.',
+      );
+    }
     const pcm = await decodeToPcm16k(audio);
+
+    // Diarization is optional and runs first so the ASR transfer can move the original PCM buffer
+    // without keeping a second full recording in WebView memory. It must never make plain ASR fail.
+    let speakerRegions: Awaited<ReturnType<typeof diarizeBrowserAudio>> = null;
+    try {
+      speakerRegions = await diarizeBrowserAudio(pcm);
+    } catch (cause) {
+      console.warn(
+        cause instanceof Error
+          ? `Не удалось разделить спикеров: ${cause.message}`
+          : 'Не удалось разделить спикеров.',
+      );
+    }
+
     requestCounter += 1;
     const requestId = `asr-${requestCounter}`;
-    const promise = new Promise<string>((resolve, reject) => {
+    const promise = new Promise<TranscriptionOutput>((resolve, reject) => {
       pendingResults.set(requestId, { resolve, reject });
     });
     const message: AsrTranscribeMessage = {
@@ -327,7 +380,18 @@ function makeEngine(instance: Worker, modelId: string) {
       modelId,
     };
     instance.postMessage(message satisfies AsrWorkerInMessage, [pcm.buffer]);
-    return promise;
+
+    const output = await promise;
+    if (!output.segments?.length) return output;
+    const segments =
+      speakerRegions && speakerRegions.length > 0
+        ? buildSpeakerTurns(output.segments, speakerRegions)
+        : mergeSpeakerWords(output.segments);
+    return {
+      ...output,
+      segments,
+      ...(speakerRegions !== null ? { diarized: true } : {}),
+    };
   };
 }
 
@@ -426,7 +490,7 @@ export function isAsrReady(): boolean {
 }
 
 /** Runs the selected ready model over an audio blob. Throws when no model is active. */
-export function transcribeBlob(audio: Blob): Promise<string> {
+export function transcribeBlob(audio: Blob): Promise<TranscriptionOutput> {
   const id = selectedAsrModelId();
   if (!id || !readyModels.has(id))
     return Promise.reject(new Error('Модель расшифровки не активна.'));
