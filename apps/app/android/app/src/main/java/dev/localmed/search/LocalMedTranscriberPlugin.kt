@@ -318,7 +318,7 @@ class LocalMedTranscriberPlugin : Plugin() {
                 call.reject(
                     "Нативный runtime распознавания недоступен.",
                     "TRANSCRIPTION_RUNTIME_UNAVAILABLE",
-                    error,
+                    Exception(error),
                 )
             } finally {
                 transcribing.set(false)
@@ -347,8 +347,15 @@ class LocalMedTranscriberPlugin : Plugin() {
 
     private fun verifyInstalledModels() {
         for (spec in MODEL_SPECS.values) {
-            if (!modelInspection(spec, modelFile(spec)).getBool("valid", false)) {
-                throw IOException("Required transcription model is missing or invalid: " + spec.fileName)
+            val file = modelFile(spec)
+            if (
+                !file.isFile ||
+                    file.length() != spec.expectedBytes ||
+                    !spec.expectedSha256.equals(sha256(file), ignoreCase = true)
+            ) {
+                throw IOException(
+                    "Required transcription model is missing or invalid: " + spec.fileName,
+                )
             }
         }
     }
