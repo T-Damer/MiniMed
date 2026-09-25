@@ -10,9 +10,9 @@ import {
 import { toast } from 'solid-sonner';
 
 import { Button } from '@/components/Button';
-import { isAsrReady } from '@/features/asr/asr-models';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
+import { isAsrReady } from '@/features/asr/asr-models';
 import type { NoteFile } from '@/state/note-files';
 import {
   isTranscriptionQueued,
@@ -161,7 +161,7 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
 
       <Show when={!loading() && transcript()?.status !== 'running' && !queued()}>
         <Show when={transcript()?.status !== 'done' && transcript()?.status !== 'unsupported'}>
-          <Button type="button" variant="primary" onClick={start}>
+          <Button type="button" variant="primary" onClick={() => start()}>
             {transcript()?.status === 'failed' ? 'Повторить' : 'Расшифровать'}
           </Button>
         </Show>
