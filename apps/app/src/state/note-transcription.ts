@@ -12,6 +12,7 @@ export interface TranscriptSegment {
 export interface TranscriptionOutput {
   readonly text: string;
   readonly segments?: readonly TranscriptSegment[];
+  readonly diarized?: boolean;
 }
 
 export interface NoteTranscript {
@@ -20,6 +21,7 @@ export interface NoteTranscript {
   readonly text: string;
   readonly segments?: readonly TranscriptSegment[];
   readonly speakerNames?: Readonly<Record<string, string>>;
+  readonly diarized?: boolean;
   readonly status: TranscriptStatus;
   readonly error?: string;
   readonly createdAt: string;
@@ -72,6 +74,7 @@ function normalizeStoredTranscript(value: NoteTranscript): NoteTranscript {
     ...(value.speakerNames && typeof value.speakerNames === 'object'
       ? { speakerNames: value.speakerNames }
       : {}),
+    ...(value.diarized === true ? { diarized: true } : {}),
   };
 }
 
@@ -172,6 +175,7 @@ function normalizeOutput(output: string | TranscriptionOutput): TranscriptionOut
   return {
     text: output.text,
     ...(output.segments?.length ? { segments: output.segments } : {}),
+    ...(output.diarized === true ? { diarized: true } : {}),
   };
 }
 
@@ -197,6 +201,7 @@ export function queueTranscription(input: {
           text: existing?.text ?? '',
           ...(existing?.segments ? { segments: existing.segments } : {}),
           ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
+          ...(existing?.diarized === true ? { diarized: true } : {}),
           status: 'unsupported',
           createdAt,
           updatedAt: new Date().toISOString(),
@@ -210,6 +215,7 @@ export function queueTranscription(input: {
         text: existing?.text ?? '',
         ...(existing?.segments ? { segments: existing.segments } : {}),
         ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
+        ...(existing?.diarized === true ? { diarized: true } : {}),
         status: 'running',
         createdAt,
         updatedAt: new Date().toISOString(),
@@ -225,6 +231,7 @@ export function queueTranscription(input: {
           text: output.text,
           ...(output.segments ? { segments: output.segments } : {}),
           ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
+          ...(output.diarized === true ? { diarized: true } : {}),
           status: 'done',
           createdAt,
           updatedAt: new Date().toISOString(),
@@ -240,6 +247,7 @@ export function queueTranscription(input: {
           text: existing?.text ?? '',
           ...(existing?.segments ? { segments: existing.segments } : {}),
           ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
+          ...(existing?.diarized === true ? { diarized: true } : {}),
           status: 'failed',
           error: message,
           createdAt,
