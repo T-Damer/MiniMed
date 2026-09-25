@@ -1,5 +1,5 @@
 import { diarizeBrowserAudio } from '@/features/asr/browser-diarization';
-import { buildSpeakerTurns, mergeSpeakerWords } from '@/features/asr/speaker-alignment';
+import { applyOptionalSpeakerRegions } from '@/features/asr/speaker-alignment';
 import type { DownloadContext } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { downloadWithRetry } from '@/features/network/download-retry';
@@ -383,14 +383,11 @@ function makeEngine(instance: Worker, modelId: string) {
 
     const output = await promise;
     if (!output.segments?.length) return output;
-    const segments =
-      speakerRegions && speakerRegions.length > 0
-        ? buildSpeakerTurns(output.segments, speakerRegions)
-        : mergeSpeakerWords(output.segments);
+    const speakerTurns = applyOptionalSpeakerRegions(output.segments, speakerRegions);
     return {
       ...output,
-      segments,
-      ...(speakerRegions?.length ? { diarized: true } : {}),
+      segments: speakerTurns.segments,
+      ...(speakerTurns.diarized ? { diarized: true } : {}),
     };
   };
 }
