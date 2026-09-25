@@ -1667,7 +1667,7 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
         ref={(element) => {
           importBackupInput = element;
         }}
-        class="patient-workspace__backup-input"
+        class="visually-hidden"
         type="file"
         accept="application/json,.json"
         aria-label="Импорт резервной копии пациентов"
