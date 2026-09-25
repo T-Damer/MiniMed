@@ -14,6 +14,7 @@ const files = {
   asr: read('apps/app/src/features/asr/asr-models.ts'),
   asrSettings: read('apps/app/src/features/asr/AsrSettings.tsx'),
   asrAssetCache: read('apps/app/src/features/asr/asr-asset-cache.ts'),
+  asrAssetCacheTests: read('apps/app/src/features/asr/asr-asset-cache.test.ts'),
   asrProtocol: read('apps/app/src/features/asr/asr-download-protocol.ts'),
   restoreDownloads: read('apps/app/src/features/downloads/restore-downloads.ts'),
   resumableDownload: read('apps/app/src/features/network/resumable-download.ts'),
@@ -136,6 +137,14 @@ const checks = [
       files.asr.includes('clearResumableDownloadsByPrefix(') &&
       files.asrSettings.includes('Удалить речевую модель?') &&
       files.asrSettings.includes('Удалить модель'),
+  ],
+  [
+    'Whisper cache deletion is isolated by model',
+    files.asrAssetCacheTests.includes('deletes only the requested admitted model') &&
+      files.asrAssetCacheTests.includes('hasCompleteCachedAsrModel(baseId)') &&
+      files.asrAssetCacheTests.includes('hasCompleteCachedAsrModel(smallId)') &&
+      files.asrAssetCacheTests.includes('deleteCachedAsrModel(baseId)') &&
+      files.asrAssetCacheTests.includes("stores.get('models')?.records.has(smallId)"),
   ],
   [
     'runtime stop becomes retryable transcript failure, not stale running state',
