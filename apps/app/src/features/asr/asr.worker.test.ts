@@ -114,7 +114,7 @@ describe('ASR worker model loading', () => {
       expect.objectContaining({
         language: 'russian',
         task: 'transcribe',
-        return_timestamps: true,
+        return_timestamps: 'word',
       }),
     );
   });
