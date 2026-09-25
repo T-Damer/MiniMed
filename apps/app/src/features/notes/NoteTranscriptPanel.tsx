@@ -75,9 +75,11 @@ export function NoteTranscriptPanel(props: { readonly file: NoteFile }): JSX.Ele
 
   const queued = (): boolean => isTranscriptionQueued(props.file.id);
   const labels = createMemo(() => defaultSpeakerLabels(transcript()));
-  const speakerIds = createMemo(() => [...labels().keys()]);
+  const speakerIds = createMemo(() => (transcript()?.diarized ? [...labels().keys()] : []));
   const speakerLabel = (id: string): string =>
-    speakerNames()[id]?.trim() || labels().get(id) || id;
+    transcript()?.diarized
+      ? speakerNames()[id]?.trim() || labels().get(id) || id
+      : 'Речь';
 
   const start = (force = false): void => {
     queueTranscription({
