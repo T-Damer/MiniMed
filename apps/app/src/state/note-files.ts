@@ -132,6 +132,21 @@ export async function addNoteFiles(
   return records;
 }
 
+async function loadNoteFileById(fileId: string): Promise<NoteFile | null> {
+  const database = await openDatabase();
+  try {
+    return await new Promise<NoteFile | null>((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readonly');
+      const request = transaction.objectStore(STORE_NAME).get(fileId);
+      request.onsuccess = () => resolve((request.result as NoteFile | undefined) ?? null);
+      request.onerror = () =>
+        reject(request.error ?? new Error('Не удалось прочитать вложение.'));
+    });
+  } finally {
+    database.close();
+  }
+}
+
 /** Replaces an attachment in one transaction; the new blob is written before the old one is removed. */
 export async function replaceNoteFile(fileId: string, file: File): Promise<NoteFile> {
   if (!fileId) throw new Error('Неизвестное вложение.');
@@ -139,6 +154,8 @@ export async function replaceNoteFile(fileId: string, file: File): Promise<NoteF
     throw new Error('Хранилище файлов недоступно.');
   }
   validateFile(file);
+  if (!(await loadNoteFileById(fileId))) throw new Error('Вложение уже удалено.');
+  await deleteTranscript(fileId);
   let thumbnailDataUrl: string | undefined;
   try {
     thumbnailDataUrl = await attachmentThumbnails.forFile(file, file.type || '', file.name);
@@ -194,11 +211,6 @@ export async function replaceNoteFile(fileId: string, file: File): Promise<NoteF
   if (!replacement) throw new Error('Не удалось обновить файл.');
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
-  try {
-    await deleteTranscript(fileId);
-  } catch (cause) {
-    throw new Error('Файл обновлён, но старую расшифровку не удалось удалить.', { cause });
-  }
   return replacement;
 }
 
@@ -256,6 +268,7 @@ export async function loadNoteFilesForNotes(
 }
 
 export async function deleteNoteFile(fileId: string): Promise<void> {
+  await deleteTranscript(fileId);
   const database = await openDatabase();
   try {
     await new Promise<void>((resolve, reject) => {
@@ -270,11 +283,11 @@ export async function deleteNoteFile(fileId: string): Promise<void> {
   }
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
-  await deleteTranscript(fileId);
 }
 
 export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promise<void> {
   if (noteIds.length === 0) return;
+  await deleteTranscriptsForNotes(noteIds);
   const database = await openDatabase();
   try {
     await new Promise<void>((resolve, reject) => {
@@ -296,7 +309,6 @@ export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promi
   }
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
-  await deleteTranscriptsForNotes(noteIds);
 }
 
 /** Save a stored attachment back to the user's machine (web download). */
