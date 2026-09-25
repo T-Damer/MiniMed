@@ -16,6 +16,7 @@
   },
   "scripts": {
     "dev": "bun run --filter @localmed/app dev",
+    "browser:source:check": "node scripts/check-browser-integration.mjs",
     "dev:landing": "bun run --filter @localmed/landing dev",
     "clean": "bun scripts/clean.mjs",
     "format": "biome format --write .",
