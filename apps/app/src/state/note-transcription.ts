@@ -127,6 +127,52 @@ export async function loadTranscript(fileId: string): Promise<NoteTranscript | n
   }
 }
 
+export async function deleteTranscript(fileId: string): Promise<void> {
+  if (!('indexedDB' in globalThis) || !indexedDB || !fileId) return;
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      transaction.objectStore(STORE_NAME).delete(fileId);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось удалить расшифровку.'));
+    });
+  } finally {
+    database.close();
+  }
+  emitTranscriptChange(fileId);
+}
+
+export async function deleteTranscriptsForNotes(noteIds: readonly string[]): Promise<void> {
+  const wanted = new Set(noteIds.filter(Boolean));
+  if (!('indexedDB' in globalThis) || !indexedDB || wanted.size === 0) return;
+  const deletedFileIds: string[] = [];
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const request = transaction.objectStore(STORE_NAME).openCursor();
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) return;
+        const record = cursor.value as NoteTranscript;
+        if (wanted.has(record.noteId)) {
+          deletedFileIds.push(record.fileId);
+          cursor.delete();
+        }
+        cursor.continue();
+      };
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось удалить расшифровки заметок.'));
+    });
+  } finally {
+    database.close();
+  }
+  for (const fileId of deletedFileIds) emitTranscriptChange(fileId);
+}
+
 export async function updateTranscript(input: {
   readonly fileId: string;
   readonly text?: string;
