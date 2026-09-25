@@ -82,16 +82,12 @@ function DownloadPromptBody(props: {
       <p>Этот тип файла нельзя показать в заметке.</p>
       <p>Сохранить «{props.name}» на устройство?</p>
       <div class="note-attachment-viewer__prompt-actions">
-        <button
-          type="button"
-          class="patient-note-action patient-note-action--primary"
-          onClick={props.onConfirm}
-        >
+        <Button type="button" variant="primary" onClick={props.onConfirm}>
           Да
-        </button>
-        <button type="button" onClick={props.onCancel}>
+        </Button>
+        <Button type="button" onClick={props.onCancel}>
           Нет
-        </button>
+        </Button>
       </div>
     </div>
   );
