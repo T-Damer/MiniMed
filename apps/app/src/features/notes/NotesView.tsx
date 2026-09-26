@@ -768,16 +768,24 @@ export function NotesView(props: {
     return id ? (recordFiles().get(id) ?? []) : [];
   };
 
-  const pendingFileUrlCache = new Map<string, string>();
+  const pendingFileUrlCache = new Map<File, string>();
+  createEffect(() => {
+    const activeFiles = new Set(pendingImages());
+    for (const [file, url] of pendingFileUrlCache) {
+      if (activeFiles.has(file)) continue;
+      URL.revokeObjectURL(url);
+      pendingFileUrlCache.delete(file);
+    }
+  });
   onCleanup(() => {
     for (const url of pendingFileUrlCache.values()) URL.revokeObjectURL(url);
+    pendingFileUrlCache.clear();
   });
   const pendingFileUrl = (file: File): string => {
-    const key = `${file.name}:${file.size}:${file.lastModified}`;
-    let url = pendingFileUrlCache.get(key);
+    let url = pendingFileUrlCache.get(file);
     if (!url) {
       url = URL.createObjectURL(file);
-      pendingFileUrlCache.set(key, url);
+      pendingFileUrlCache.set(file, url);
     }
     return url;
   };
