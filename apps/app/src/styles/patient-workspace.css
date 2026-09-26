@@ -129,7 +129,8 @@
   color: var(--theme-text-muted);
 }
 
-.patient-workspace__control {
+select.patient-workspace__control,
+output.patient-workspace__control {
   width: 100%;
   min-height: 2.25rem;
   border: 1px solid var(--theme-border);
@@ -138,10 +139,6 @@
   color: var(--theme-text);
   padding: 0.5rem 0.65rem;
   font: inherit;
-}
-
-.patient-workspace__control[rows] {
-  resize: vertical;
 }
 
 .patient-workspace__form-grid {
@@ -244,21 +241,7 @@
 }
 
 .patient-workspace__event-revision-label {
-  display: grid;
-  gap: 0.25rem;
-  color: var(--theme-text-muted);
-  font-size: 0.82rem;
-}
-
-.patient-workspace__event-revision-input {
   width: min(14rem, 100%);
-  min-height: 2.25rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.5rem;
-  background: var(--theme-surface-raised);
-  color: var(--theme-text);
-  padding: 0.5rem 0.65rem;
-  font: inherit;
 }
 
 .patient-workspace__event-revision-actions {
