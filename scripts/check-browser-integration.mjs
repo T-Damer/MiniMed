@@ -372,6 +372,17 @@ const checks = [
       files.notes.includes('exportPersonalNotesCardBackup(card.id)'),
   ],
   [
+    'backup self-heals orphan transcripts',
+    files.personalNotesBackup.includes('const orphanTranscripts: NoteTranscript[] = []') &&
+      files.personalNotesBackup.includes('deleteTranscript(transcript.fileId)') &&
+      files.personalNotesBackupTests.includes(
+        'excludes orphan transcripts from export and cleans them best-effort',
+      ) &&
+      files.personalNotesBackupTests.includes(
+        "expect(backup.transcripts.map((item) => item.fileId)).toEqual(['file-audio'])",
+      ),
+  ],
+  [
     'personal-notes backup round trip is covered',
     files.personalNotesBackupTests.includes('round-trips stable note, attachment, image and transcript ids') &&
       files.personalNotesBackupTests.includes("bytesBase64: 'AQID'") &&
