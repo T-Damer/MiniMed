@@ -1,7 +1,16 @@
 import { Popover } from '@kobalte/core/popover';
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-solid';
-import { createMemo, createSignal, For, Index, type JSX, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Index,
+  type JSX,
+  onCleanup,
+  Show,
+} from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { SearchField } from '@/components/SearchField';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
@@ -48,6 +57,15 @@ export function SearchSectionPicker(props: {
       return matchesSection || groups.length ? [{ section, groups }] : [];
     }),
   );
+  // A popover left open while the results scroll floats over unrelated content; close it.
+  createEffect(() => {
+    if (!open()) return;
+    const close = (): void => {
+      setOpen(false);
+    };
+    window.addEventListener('scroll', close, { passive: true });
+    onCleanup(() => window.removeEventListener('scroll', close));
+  });
   const select = (scope: SearchScope, group?: string): void => {
     props.onSelect(scope, group);
     setOpen(false);

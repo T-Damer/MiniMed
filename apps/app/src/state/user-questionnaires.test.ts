@@ -6,6 +6,7 @@ import {
   type StoredUserQuestionnaire,
   userQuestionnaireReadinessError,
   userQuestionnaireToAssessmentDefinition,
+  withQuestionnaireImportDefaults,
 } from '@/state/user-questionnaires';
 
 describe('user questionnaires', () => {
@@ -133,5 +134,29 @@ describe('user questionnaires', () => {
       { label: 'Плохо', value: 0, hideValue: true },
       { label: 'Хорошо', value: 1, hideValue: true },
     ]);
+  });
+});
+
+describe('questionnaire import defaults', () => {
+  it('accepts the minimal hand-written format shown in the import dialog', () => {
+    const parsed = parseUserQuestionnaire(
+      withQuestionnaireImportDefaults({
+        format: 'minimed-questionnaire',
+        version: 1,
+        title: 'Мой опросник',
+        questions: [
+          {
+            prompt: 'Вопрос 1',
+            options: [
+              { label: 'Нет', weight: 0 },
+              { label: 'Да', weight: 1 },
+            ],
+          },
+        ],
+      }),
+    );
+    expect(parsed.title).toBe('Мой опросник');
+    expect(parsed.questions[0]?.options.map((option) => option.weight)).toEqual([0, 1]);
+    expect(new Set(parsed.questions[0]?.options.map((option) => option.id)).size).toBe(2);
   });
 });

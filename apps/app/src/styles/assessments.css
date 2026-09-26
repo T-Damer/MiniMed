@@ -1187,10 +1187,6 @@ html:has(.assessment-next-button) .patient-notes-fab {
   margin: 0;
 }
 
-.assessment-user-questionnaires__input {
-  display: none;
-}
-
 .assessment-user-questionnaires__grid {
   display: grid;
   grid-template-columns: repeat(var(--layout-cols), minmax(0, 1fr));
@@ -1614,4 +1610,33 @@ html:has(.assessment-next-button) .patient-notes-fab {
     break-inside: avoid;
     box-shadow: none;
   }
+}
+
+.assessment-import-dialog__body {
+  display: grid;
+  gap: 1rem;
+}
+
+.assessment-import-dialog__format {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.assessment-import-dialog__text {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.assessment-import-dialog__example {
+  margin: 0;
+  padding: 0.75rem;
+  overflow-x: auto;
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-muted);
+  color: var(--theme-text);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.45;
 }

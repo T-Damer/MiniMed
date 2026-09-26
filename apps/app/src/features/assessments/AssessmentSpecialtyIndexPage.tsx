@@ -1,8 +1,10 @@
-import { For, type JSX, Show } from 'solid-js';
+import { createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { FileDropZone } from '@/components/FileDropZone';
 import { NavBack } from '@/components/NavBack';
+import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { SearchField } from '@/components/SearchField';
@@ -79,7 +81,7 @@ export function AssessmentSpecialtyIndexPage(props: {
       ].some((value) => value.toLocaleLowerCase('ru-RU').includes(normalizedQuery)),
     );
   };
-  let importInput: HTMLInputElement | undefined;
+  const [importOpen, setImportOpen] = createSignal(false);
 
   return (
     <>
@@ -102,6 +104,15 @@ export function AssessmentSpecialtyIndexPage(props: {
           <Button
             type="button"
             variant="icon"
+            class="assessment-user-questionnaires__import knowledge-subroute-heading__control"
+            aria-label="Импортировать опросник"
+            title="Импортировать опросник"
+            onClick={() => setImportOpen(true)}
+            icon={<AppGlyph name="file-arrow-down" class="assessment-user-questionnaires__icon" />}
+          />
+          <Button
+            type="button"
+            variant="icon"
             class="assessment-user-questionnaires__create knowledge-subroute-heading__control ui-button--primary"
             aria-label="Создать опросник"
             title="Создать опросник"
@@ -113,21 +124,6 @@ export function AssessmentSpecialtyIndexPage(props: {
 
       <Page
         class="assessment-catalog-page-header"
-        actions={
-          props.mineOnly ? (
-            <Button
-              type="button"
-              variant="primary"
-              class="assessment-user-questionnaires__import"
-              onClick={() => importInput?.click()}
-              icon={
-                <AppGlyph name="file-arrow-down" class="assessment-user-questionnaires__icon" />
-              }
-            >
-              Импорт
-            </Button>
-          ) : undefined
-        }
         icon={
           <AppGlyph name={props.mineOnly ? 'notepad' : 'list-checks'} class="page__icon-glyph" />
         }
@@ -220,19 +216,44 @@ export function AssessmentSpecialtyIndexPage(props: {
 
       <Show when={props.mineOnly}>
         <section class="assessment-user-questionnaires">
-          <input
-            ref={(element) => {
-              importInput = element;
-            }}
-            class="assessment-user-questionnaires__input"
-            type="file"
-            accept=".minimed-questionnaire,application/vnd.minimed.questionnaire+json,application/json"
-            onChange={(event) => {
-              const file = event.currentTarget.files?.[0];
-              event.currentTarget.value = '';
-              if (file) props.onImportUserQuestionnaire(file);
-            }}
-          />
+          <OverlayDialog
+            open={importOpen()}
+            title="Импорт опросника"
+            class="assessment-import-dialog"
+            bodyClass="assessment-import-dialog__body"
+            onClose={() => setImportOpen(false)}
+          >
+            <FileDropZone
+              accept=".json,.minimed-questionnaire,application/vnd.minimed.questionnaire+json,application/json"
+              title="Файл опросника MiniMed"
+              onFile={(file) => {
+                setImportOpen(false);
+                props.onImportUserQuestionnaire(file);
+              }}
+            />
+            <div class="assessment-import-dialog__format">
+              <p class="assessment-import-dialog__text">
+                Подходит файл, который вы или коллега выгрузили кнопкой «Экспорт» у своего
+                опросника. Это JSON-файл: название, описание, вопросы с вариантами ответов и баллами
+                за каждый вариант.
+              </p>
+              <pre class="assessment-import-dialog__example">{`{
+  "format": "minimed-questionnaire",
+  "version": 1,
+  "title": "Мой опросник",
+  "questions": [
+    { "prompt": "Вопрос 1",
+      "options": [
+        { "label": "Нет", "weight": 0 },
+        { "label": "Да", "weight": 1 }
+      ] }
+  ]
+}`}</pre>
+              <p class="assessment-import-dialog__text">
+                Импортированный опросник появится в списке, его можно будет изменить.
+              </p>
+            </div>
+          </OverlayDialog>
           <div class="assessment-user-questionnaires__grid">
             <For each={visibleUserQuestionnaires()}>
               {(stored) => {

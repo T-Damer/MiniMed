@@ -102,7 +102,6 @@ import {
   updatePatientNoteCategories,
   updatePatientNoteTitle,
 } from '@/state/patient-notes';
-import { installPatientVaultLifecycle } from '@/state/patient-vault';
 import {
   deleteAllPersonalNotes,
   exportPersonalNotesBackup,
@@ -611,8 +610,8 @@ export function NotesView(props: {
   ];
   onMount(() => {
     setFloatingControlsHost(document.getElementById('app-floating-controls') ?? undefined);
-    const cleanupPatientVaultLifecycle = installPatientVaultLifecycle();
-    onCleanup(cleanupPatientVaultLifecycle);
+    // No automatic lock or privacy curtain (user decision 2026-09-26): the vault stays open
+    // until the doctor presses «Заблокировать».
   });
   const [deleteTarget, setDeleteTarget] = createSignal<DeleteTarget | null>(null);
   const [reminderNoteId, setReminderNoteId] = createSignal<string | null>(null);

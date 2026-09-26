@@ -305,9 +305,9 @@ function whooleySample(): UserQuestionnaire {
   return {
     format: USER_QUESTIONNAIRE_FORMAT,
     version: USER_QUESTIONNAIRE_VERSION,
-    title: 'Пример: скрининг настроения Whooley',
+    title: 'Скрининг настроения (вопросы Whooley)',
     description:
-      'Демонстрационный локальный файл с двумя вопросами Whooley для первичного скрининга настроения.',
+      'Два вопроса Whooley для быстрого первичного скрининга настроения. Опросник можно изменить под себя.',
     disclaimer:
       'Это сверхкороткий скрининг, а не диагноз. Положительный ответ — повод для более подробного разговора со специалистом.',
     images: [],
@@ -504,6 +504,36 @@ export async function exportUserQuestionnaire(fileId: string): Promise<File> {
   return questionnaireFile({ ...stored.questionnaire, title: stored.file.title });
 }
 
+/**
+ * Hand-written files may omit ids, dates and the disclaimer; exported files already carry them.
+ * Only absent fields are filled, so the strict parser still validates everything present.
+ */
+export function withQuestionnaireImportDefaults(value: unknown): unknown {
+  if (!isRecord(value)) return value;
+  const now = new Date().toISOString();
+  const withId = (item: unknown, prefix: string): unknown =>
+    isRecord(item) && item.id === undefined ? { ...item, id: createId(prefix) } : item;
+  return {
+    ...value,
+    description: value.description ?? '',
+    disclaimer:
+      value.disclaimer ?? 'Локальный авторский опросник. Его результат не является диагнозом.',
+    createdAt: value.createdAt ?? now,
+    updatedAt: value.updatedAt ?? now,
+    questions: Array.isArray(value.questions)
+      ? value.questions.map((question) => {
+          const withQuestionId = withId(question, 'question');
+          return isRecord(withQuestionId) && Array.isArray(withQuestionId.options)
+            ? {
+                ...withQuestionId,
+                options: withQuestionId.options.map((option) => withId(option, 'option')),
+              }
+            : withQuestionId;
+        })
+      : value.questions,
+  };
+}
+
 export async function importUserQuestionnaire(file: File): Promise<StoredUserQuestionnaire> {
   let parsed: unknown;
   try {
@@ -511,7 +541,7 @@ export async function importUserQuestionnaire(file: File): Promise<StoredUserQue
   } catch {
     throw new Error('Выберите файл опросника MiniMed в формате JSON.');
   }
-  const source = parseUserQuestionnaire(parsed);
+  const source = parseUserQuestionnaire(withQuestionnaireImportDefaults(parsed));
   const now = new Date().toISOString();
   return createUserQuestionnaire({ ...source, createdAt: now, updatedAt: now });
 }

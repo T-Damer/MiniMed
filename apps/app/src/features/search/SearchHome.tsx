@@ -215,13 +215,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           </button>
         </Show>
         <button
-          class="search-reference-button"
-          type="button"
-          onClick={() => setReferenceOpen(true)}
-        >
-          Словарь
-        </button>
-        <button
           class="search-mode-help"
           type="button"
           aria-label="Как работает поиск"

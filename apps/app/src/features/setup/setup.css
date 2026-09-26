@@ -290,8 +290,7 @@
 .package-row__button:hover {
   background: var(--theme-accent-soft);
 }
-.package-row__button:focus-visible,
-.search-reference-button:focus-visible {
+.package-row__button:focus-visible {
   outline: 2px solid var(--theme-accent);
   outline-offset: 3px;
 }
@@ -303,17 +302,6 @@
 }
 .package-row__button--primary:hover {
   background: var(--theme-floating-surface);
-}
-.search-reference-button {
-  min-height: 2.75rem;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-radius-control);
-  background: var(--theme-surface-raised);
-  color: var(--theme-text);
-  font: inherit;
-  font-size: 0.8rem;
-  cursor: pointer;
 }
 @media (max-width: 420px) {
   .package-row {
