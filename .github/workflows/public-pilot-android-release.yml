@@ -233,12 +233,13 @@ jobs:
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Changes:
-          - search, personal files and settings remain independently available while the core loads;
-          - unified search includes specialty catalogs, content-kind filters, history and section downloads;
-          - four corrected tool-pack versions install without immutable-version conflicts;
-          - readers render Markdown tables and more precise source links;
-          - the ECG editor supports reviewing regions and measurement points with an A4 report;
-          - the browser core uses 64 KiB SQLite pages to reduce OPFS reads; Android keeps its verified download.
+          - one consolidated release of the browser-integration, search-quality and native Android branches;
+          - visit dictaphone on Android: consented recording, on-device speaker separation and GigaAM transcription saved into the visit;
+          - Android requests the highest display refresh rate available for the current resolution;
+          - the knowledge core downloads automatically on first run (not on cellular/data-saver) with a live feature tour;
+          - patient self-monitoring diary exchanged by QR code, canvas links and reader text scale;
+          - search quality: exact identity, spelling alternatives, definition reference and a smaller FTS index;
+          - smoother shared UI: animated accordions and consistent form fields.
 
           Catalog packs are downloaded separately, with their preview/review status preserved.
           The browser application is under /app/. The local/GitHub download switch is DEV-only.

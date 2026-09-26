@@ -1,9 +1,8 @@
 # Current state
 
-> Updated: 24 September 2026
-> Released version: `0.6.39` (public prerelease toward `1.0`)
-> Unreleased work: draft PR #174 (concept-first knowledge) and stacked draft PR #180
-> (search quality, definition reference, spelling)
+> Updated: 26 September 2026
+> Released version: `0.6.40` (public prerelease toward `1.0`)
+> Next planned step: native migration (see the release note below).
 
 This file records what exists now, its trust boundaries and the ordered next work. Keep it short:
 append dated measurements to `docs/state/` or `docs/research/`, and link them from here. The target
@@ -17,6 +16,36 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Release 0.6.40 — 2026-09-26
+
+One consolidated branch (`release/0.6.40`) merges every open line of work into `main`:
+`feature/browser-integration` (diary, canvas links, browser ASR, reading scale, notes backup),
+PR #180/#174 (search quality, definition reference, index compaction — see the section below, now
+released), the native Android transcriber, and the Android high-refresh display mode.
+
+- **Visit dictaphone (Android).** A visit in the patient card can record a consented conversation.
+  sherpa-onnx 1.13.8 (JitPack AAR) runs pyannote segmentation + CAM++ speaker clustering and GigaAM v3
+  CTC recognition fully on the device after a one-time verified model download. The doctor renames
+  speakers, edits the text and saves: the audio is stored as a patient-vault blob and the transcript as
+  a `note` event labelled «Автоматическая расшифровка аудиозаписи; проверьте перед использованием».
+  Recording files are deleted from app storage after a successful save. Only arm64 native libraries
+  are packaged (APK ≈ 102 MB). Not qualified on physical devices; iOS (libopus) is not implemented.
+- **Display refresh.** Android requests the highest refresh mode for the current resolution
+  (`preferredDisplayModeId`, plus `setFrameRate` on Android 15+). MIUI behaviour on real hardware is
+  unverified.
+- **First run.** The core download now starts automatically, except when the connection reports
+  `cellular` or `saveData` (then the user decides). The screen cannot be dismissed while the core
+  downloads; it shows a feature tour with live demos of real screens (search, patient chart, dictaphone,
+  canvas, questionnaire). Onboarding is remembered as completed only once the core is installed.
+- **Shared UI.** New `Disclosure` (animated accordion, card/inline variants, reduced-motion aware)
+  replaces native `<details>` in setup, settings, calculator sources, reader source details, Allmed
+  supplements and the definition-reference panel. New `SelectField` replaces raw selects in the patient
+  workspace. `OverlayDialog` accepts `dismissible={false}`.
+- **Verification.** Local only (Actions minutes are reserved for the release build): Biome, strict
+  TypeScript, Vitest, Vite build, Python checks, native source checks and benchmarks — see the release
+  commit. The release APK is built by the release workflow. Not tested: physical Android devices, MIUI,
+  iOS, and the boot-screen Playwright spec on a real build.
 
 ## Browser integration workspace — 2026-09-25
 
@@ -154,7 +183,7 @@ Detailed history, moved verbatim on 2026-09-24:
   PoC in `research/system-one-search-benchmark-2026-09.md`.
 - Personal notes and the patient vault are separate local trust layers, never official sources.
 
-## Unreleased on PR #180 (not yet released)
+## Search quality from PR #180 (released in 0.6.40)
 
 - **Search quality gates.** A corpus-derived lookup benchmark (titles, navigation aliases, declared
   aliases) and a diagnosis-free, leakage-checked clinical challenge set with graded multi-document
