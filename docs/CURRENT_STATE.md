@@ -23,9 +23,9 @@
   present in the integration tree.
 - Draft PR #185 (`feature/browser-integration` → `main`) is the consolidated review surface.
   GitHub Actions are intentionally not used because the repository Actions quota is exhausted.
-  Dependency-free source validation currently passes 40/40 invariants across diary, canvas,
-  MediaRecorder, structured ASR, persistent Whisper lifecycle, transcript retention, diarization
-  admission and integration wiring.
+  Dependency-free source validation currently passes 48/48 invariants across diary, canvas,
+  MediaRecorder, structured ASR, persistent Whisper lifecycle, transcript retention, portable
+  personal-notes backup, diarization admission and integration wiring.
   A full browser
   `tsc/vitest/vite build` is still a pre-merge gate when a checkout/build environment is available.
 
@@ -47,7 +47,9 @@
   reopen with text from the previous device state; rejected imports leave them untouched.
 - Notes UI validates/parses the selected JSON before showing the destructive confirmation and displays
   its card/note/file/image/transcript counts. Export/import actions live in a separate data menu rather
-  than the create-note menu. Raw backup files above 512 MiB are rejected before parsing.
+  than the create-note menu. Raw backup files above 512 MiB are rejected before parsing. Export also
+  estimates the final base64-expanded JSON before reading attachment blobs and refuses a result above
+  512 MiB, avoiding a late browser-memory spike after hundreds of megabytes have already been copied.
 - Backup v1 also supports `scope: card` for handover. Each ordinary note card has an explicit export
   action that serializes only that card and its files/images/transcripts. Importing a card backup
   replaces or adds only that card; all unrelated cards remain unchanged, and note/file/image/transcript
@@ -2835,9 +2837,9 @@ review-required intermediate draft. Neither pilot has been run with provider cre
   follow-up checks even when the debug APK and browser automation are green.
 - Personal notes use unencrypted device-local browser storage and are a notebook rather than an
   electronic medical record. Browser-local Russian transcription is implemented with optional
-  Whisper Base/Small, editable stored transcripts and word timestamps. Per-card export and a
-  whole-notebook wipe remain open; verified multi-speaker diarization still waits for a fully pinned
-  browser WASM runtime.
+  Whisper Base/Small, editable stored transcripts and word timestamps. Full-backup export/import,
+  single-card handover and a rollback-safe whole-notebook wipe are implemented. Verified
+  multi-speaker diarization still waits for a fully pinned browser WASM runtime.
 
 ## Ordered next work toward 1.0
 
@@ -2868,9 +2870,10 @@ and built output remains ignored private data with `rightsStatus: unresolved` an
 5. Expand real Russian clinician-query, unsupported-answer, and source-scope benchmark coverage.
    The 70-query medication regression after pack installation is fixed. Use `benchmark:runtime` to investigate
    symptom/phrase misses, and missing published document membership before claiming retrieval quality.
-6. Add explicit export and whole-notebook deletion. For voice notes, qualify the existing browser
-   Whisper path on real Russian consultations and enable multi-speaker diarization only after the full
-   WASM runtime is immutable/pinned and the two speaker models pass the existing size+SHA admission.
+6. Qualify the existing browser Whisper path on real Russian consultations and enable multi-speaker
+   diarization only after the full WASM runtime is immutable/pinned. The two speaker models already
+   pass exact size+SHA admission and verified IndexedDB reuse; the executable JS/WASM runtime remains
+   the missing supply-chain/runtime gate.
 7. Qualify bundled local models on citation fidelity, abstention, latency, storage, and memory before
    presenting diagnostic assistance as a 1.0 capability. For ECG, qualify the digitizer and
    deterministic measurement/rule pipeline on licensed phone-photo fixtures, compare the integrated
