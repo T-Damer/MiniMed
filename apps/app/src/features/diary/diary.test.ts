@@ -142,6 +142,35 @@ describe('diary local storage', () => {
     ]);
   });
 
+  it('recovers a saved diary when the compact index write fails once', () => {
+    const base = memoryStorage({ 'minimed.diary.v1.index': '[]' });
+    let failIndexWrite = true;
+    const storage: Storage = {
+      get length() {
+        return base.length;
+      },
+      clear: () => base.clear(),
+      getItem: (key) => base.getItem(key),
+      key: (index) => base.key(index),
+      removeItem: (key) => base.removeItem(key),
+      setItem(key, value) {
+        if (key === 'minimed.diary.v1.index' && failIndexWrite) {
+          failIndexWrite = false;
+          throw new DOMException('quota', 'QuotaExceededError');
+        }
+        base.setItem(key, value);
+      },
+    };
+    const results = bpResults(1);
+    const store = createDiaryStore(storage, () => NOW);
+
+    expect(() => store.save(results)).not.toThrow();
+    expect(store.list()).toEqual([results.invitation]);
+    expect(JSON.parse(storage.getItem('minimed.diary.v1.index') ?? '[]')).toEqual([
+      results.invitation.id,
+    ]);
+  });
+
   it('keeps valid diaries visible when another local diary record is corrupt', () => {
     const results = bpResults(1);
     const storage = memoryStorage({
