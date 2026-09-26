@@ -44,15 +44,15 @@ const INTERVALS: readonly {
   { id: 'RR_Mean_Global', key: 'rrMs', needs: 'минимум две соседние вершины R' },
 ];
 
-type Lookup =
+export type Lookup =
   | { readonly point: EcgEditorPoint; readonly error?: undefined }
   | { readonly point?: undefined; readonly error: string };
 
-function pointsIn(draft: EcgEditorDraft, region: EcgLeadRegion): readonly EcgEditorPoint[] {
+export function pointsIn(draft: EcgEditorDraft, region: EcgLeadRegion): readonly EcgEditorPoint[] {
   return draft.points.filter((p) => p.regionId === region.id && pointInsideEcgRegion(p, region));
 }
 
-function single(points: readonly EcgEditorPoint[], kind: EcgPointKind): Lookup {
+export function single(points: readonly EcgEditorPoint[], kind: EcgPointKind): Lookup {
   const matches = points.filter((p) => p.kind === kind);
   if (matches.length === 1 && matches[0]) return { point: matches[0] };
   return {
@@ -62,7 +62,7 @@ function single(points: readonly EcgEditorPoint[], kind: EcgPointKind): Lookup {
   };
 }
 
-function rPeak(points: readonly EcgEditorPoint[]): Lookup {
+export function rPeak(points: readonly EcgEditorPoint[]): Lookup {
   const peaks = points.filter((p) => p.kind === 'rPeak');
   const onset = points.filter((p) => p.kind === 'qrsOnset');
   const offset = points.filter((p) => p.kind === 'qrsOffset');
@@ -82,7 +82,7 @@ function rPeak(points: readonly EcgEditorPoint[]): Lookup {
 }
 
 /** Standard lead region first; the measured region wins when it shows the same lead. */
-function candidateRegions(
+export function candidateRegions(
   draft: EcgEditorDraft,
   lead: EcgLeadName,
   measuredRegionId: string,

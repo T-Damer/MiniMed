@@ -71,6 +71,19 @@
   font-size: 18px;
   font-weight: 600;
 }
+.ecg-report__st {
+  margin: 0 0 5mm;
+}
+.ecg-report__st-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 1.5mm;
+  margin: 0;
+}
+.ecg-report__st-cell {
+  min-width: 0;
+  text-align: center;
+}
 .ecg-report__unit {
   font-size: 10px;
   font-weight: 400;

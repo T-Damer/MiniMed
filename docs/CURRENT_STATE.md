@@ -73,6 +73,7 @@ Detailed history, moved verbatim on 2026-09-24:
 
 One consolidated branch (`release/0.6.40`) merges every open line of work into `main`:
 `feature/browser-integration` (diary, canvas links, browser ASR, reading scale, notes backup),
+- **ECG ST.** Per-lead ST at the J point and adult Fourth UDMI/ESC 2023 review findings from a declared schema, checked against PTB-XL+ ([details](state/ecg-research-log.md)).
 PR #180/#174 (search quality, definition reference, index compaction — see the section below, now
 released), the native Android transcriber, and the Android high-refresh display mode.
 

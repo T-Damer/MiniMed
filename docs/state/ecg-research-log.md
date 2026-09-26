@@ -3,6 +3,53 @@
 > Moved verbatim from `docs/CURRENT_STATE.md` on 2026-09-24 so the mandatory state file stays short.
 > Newest entries first; later entries supersede earlier ones.
 
+## ST at the J point and ischaemia review findings — 2026-09-26
+
+**Measurement.** ST is the signed level of the confirmed QRS end («Конец QRS (точка J)») relative
+to the isoelectric «Изолиния» point of the same lead (PR/TP), divided by the confirmed vertical scale
+and gain. J, not J+60/J+80 ms, because the adult cut-points of the Fourth Universal Definition of MI
+(Thygesen et al., Eur Heart J 2019;40:237–269) and the 2023 ESC ACS Guidelines (Byrne et al., Eur
+Heart J 2023;44:3720–3826) are defined at the J point. Per-lead region choice follows the numeric
+draft (measured region first, standard frame next); a missing frame, baseline or J point is named,
+never imputed. The per-lead row is shown for any age; findings only for the adult route.
+
+**Rules** (`ecg-st-criteria.ts`, read generically by `ecg-st.ts`; the UI renders findings without
+id branches). Elevation in two contiguous leads: ≥1 mm, but in V2–V3 ≥2 mm for men ≥40, ≥2.5 mm for
+men <40, ≥1.5 mm for women; with unknown sex/age V2–V3 uses the lowest cut-point and says so.
+Contiguity: any two of II/III/aVF or of I/aVL, and only adjacent precordial pairs. Separate
+findings: ST depression ≥0.5 mm at J in two contiguous leads (the horizontal/downsloping shape is
+left to visual review), T inversion deeper than 1 mm in two contiguous leads with R/S > 1, and
+reciprocal depression (≥0.5 mm in any lead of inferior↔lateral, or inferior for precordial
+elevation — a MiniMed pairing choice, not a guideline table). QRS ≥120 ms suppresses all automatic
+ST findings. Every text says «признак для проверки» and never names infarction; a scope line states
+that the criteria assume no LVH/bundle-branch block and need comparison with a prior ECG.
+
+**Validation on PTB-XL 1.0.3 / PTB-XL+ 1.0.1** (PhysioNet, CC BY 4.0; raw data outside Git;
+`tools/benchmarks/src/evaluate-ecg-st-ptbxl.ts`, report SHA-256
+`dc0b89ca89d471f3b5a09e8b0986f5ad0b83acfcb8829a3e398d214e93da48c1`):
+
+- *Measurement definition.* On 60 adult fold-10 Uni-G median beats (720 lead values), J minus the
+  median P-offset→QRS-onset level differed from Uni-G `ST_Amp` by median 0.015 mV (mean 0.025);
+  89.6 % within 0.05 mV and 97.9 % within 0.1 mV. For scale, GE 12SL and Uni-G themselves differ by
+  a median 0.010–0.045 mV per lead (largest in V2/V3). The median-beat WFDB headers say mV but the
+  samples are µV (a 565-unit lead-II peak equals R_Amp_II 0.562 mV).
+- *Rules on machine measurements*, 21,630 adults with complete 12-lead ST (2,106 abstained on QRS
+  ≥120 ms): elevation fired on 411 (12SL) and 789 (Uni-G) records; the two measurers agree on the
+  flag in 97.2 %. PTB-XL has no acute-STEMI label: its only elevation statement, STE_ «non-specific
+  ST elevation» (28 records), was not flagged by 12SL values (1 by Uni-G) — mostly men under 40 with
+  V2–V3 at 1.0–2.0 mm, below the 2.5 mm cut-point, one wide-QRS abstention and single-lead cases — so
+  guideline sensitivity cannot be estimated on PTB-XL. Of the 411 flags, 43.6 % carry ASMI, 29.2 %
+  LVH (excluded by the criteria but not detectable in the editor), 14.8 % NORM, 10.2 % ANEUR.
+  INJ* («subendocardial injury») is an ST-depression statement; against STD_/INJ* the depression
+  finding had sensitivity/specificity/PPV 0.668/0.768/0.154 (12SL) and 0.587/0.871/0.223 (Uni-G).
+- *Regression.* `ecg-st-ptbxl.test.ts` pins the per-record findings of an attributed 25-record
+  fold-10 sample (`fixtures/ptbxl-plus-st-sample.json`, SHA-256
+  `c7f43e43759e9d2b71380357c90f90d728a2603761be0d384c3a07679d8d24f6`): STE_ records stay unflagged,
+  inferolateral MI shows elevation with reciprocal lateral depression.
+
+These are agreement checks against machine measurements and dataset statements, not clinical
+accuracy; photo-derived J points add their own digitisation error on top.
+
 ## Perspective correction — 2026-09-26
 
 On upload the editor looks for the four sheet corners (`ecg-sheet-corners.ts`): Otsu-thresholded

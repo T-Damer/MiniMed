@@ -121,7 +121,7 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   await page.getByRole('button', { name: NEXT.regions }).click();
 
   await addPoint(page, 'Q', 'Начало QRS', 0.29, 0.82);
-  await addPoint(page, 'S', 'Конец QRS', 0.315, 0.82);
+  await addPoint(page, 'S', 'Конец QRS (точка J)', 0.315, 0.82);
   await addPoint(page, 'R', '', 0.3, 0.78);
   await addPoint(page, 'R', '', 0.55, 0.78);
   await addPoint(page, 'P', 'Начало P', 0.25, 0.82);
@@ -143,8 +143,11 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   expect(geometry.width).toBe(geometry.viewportWidth);
   expect(geometry.height).toBe(geometry.viewportHeight);
   await page.getByRole('button', { name: NEXT.points }).click();
-  await page.getByRole('combobox', { name: 'Возраст', exact: true }).selectOption('adult');
-  await page.getByRole('combobox', { name: 'Пол для QTc', exact: true }).selectOption('male');
+  await page.getByRole('combobox', { name: 'Возраст', exact: true }).selectOption('adult-40-plus');
+  await page.getByRole('combobox', { name: 'Пол для QTc и ST', exact: true }).selectOption('male');
+  // No baseline point was placed in any lead, so ST is reported as unmeasured, not as normal.
+  await expect(page.locator('.ecg-report__st-cell')).toHaveCount(12);
+  await expect(page.getByText(/^ST не измерен в отведениях: I, II, III/u)).toBeVisible();
   await expect(page.locator('.ecg-report__finding').first()).toBeVisible();
   await expect(
     page.locator('.ecg-report__metric').filter({ hasText: /^RR/ }).locator('dd'),

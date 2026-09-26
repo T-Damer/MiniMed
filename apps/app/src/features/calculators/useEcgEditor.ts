@@ -13,6 +13,7 @@ import type { EcgPatientRoute } from './ecg-patient-age';
 import type { EcgPatientSex } from './ecg-photo-interpreter';
 import { createRectifiedEcgPhotoPreview, readEcgPhotoRgb } from './ecg-photo-rectification';
 import { detectEcgSheetCorners } from './ecg-sheet-corners';
+import { evaluateEcgSt, measureEcgStByLead } from './ecg-st';
 import {
   type EcgEditorDraft,
   type EcgEditorStep,
@@ -25,6 +26,8 @@ import {
 import { extractEcgEditorRegion, prepareEcgEditorReview } from './ecgReviewExtraction';
 
 export type EcgCornerSource = 'auto' | 'manual' | 'default';
+/** Adult bands exist because V2–V3 ST cut-points differ for men under and over 40. */
+export type EcgEditorAgeBand = 'unknown' | 'adult-under-40' | 'adult-40-plus' | 'pediatric';
 
 /** Starting handles when no sheet border was found: inset so every corner can be grabbed. */
 const DEFAULT_CORNERS: EcgPhotoCorners = {
@@ -82,7 +85,9 @@ export function useEcgEditor() {
   const [pointsConfirmed, setPointsConfirmed] = createSignal(false);
   const [activeRegion, setActiveRegion] = createSignal('rhythm-II');
   const [measurementRegion, setMeasurementRegion] = createSignal('rhythm-II');
-  const [patientRoute, setPatientRoute] = createSignal<EcgPatientRoute>('unknown');
+  const [ageBand, setAgeBand] = createSignal<EcgEditorAgeBand>('unknown');
+  const patientRoute = (): EcgPatientRoute =>
+    ageBand() === 'pediatric' ? 'pediatric' : ageBand() === 'unknown' ? 'unknown' : 'adult';
   const [sex, setSex] = createSignal<EcgPatientSex | undefined>();
   const [maps, setMaps] = createSignal<EcgReviewMaps>();
   const [autoSummary, setAutoSummary] = createSignal<readonly EcgAutoSummaryItem[]>();
@@ -194,6 +199,26 @@ export function useEcgEditor() {
   });
   const stepConfirmed = (value: EcgEditorStep): boolean => completed()[value - 1] ?? false;
   /** Numeric-model fields exist only after every editor step, including points, is confirmed. */
+  /** Per-lead ST at J is a measurement for any age; ischaemia criteria apply to adults only. */
+  const stMeasurement = createMemo(() =>
+    completed().every(Boolean) ? measureEcgStByLead(draft(), measurementRegion()) : undefined,
+  );
+  const stEvaluation = createMemo(() => {
+    const measured = stMeasurement();
+    if (!measured || patientRoute() !== 'adult') return undefined;
+    const currentSex = sex();
+    const qrsMs = measurement().measurements.qrsMs;
+    return evaluateEcgSt({
+      measurement: measured,
+      ...(currentSex === 'male' || currentSex === 'female' ? { sex: currentSex } : {}),
+      ...(ageBand() === 'adult-40-plus'
+        ? { ageBand: '40-plus' as const }
+        : ageBand() === 'adult-under-40'
+          ? { ageBand: 'under-40' as const }
+          : {}),
+      ...(qrsMs === undefined ? {} : { qrsMs }),
+    });
+  });
   const numericDraft = createMemo(() =>
     completed().every(Boolean)
       ? ecgNumericDraftFromEditor(draft(), measurementRegion())
@@ -336,7 +361,7 @@ export function useEcgEditor() {
       setCornerSource(undefined);
       resetMarkup();
       void detectCorners(file, version);
-      setPatientRoute('unknown');
+      setAgeBand('unknown');
       setSex(undefined);
       // Without the model, step 1 already offers installation; repeating it on every step was noise.
       setNotice('');
@@ -438,7 +463,10 @@ export function useEcgEditor() {
     },
     // Age and sex are chosen on the result step; they select thresholds, not reviewed points.
     patientRoute,
-    setPatientRoute,
+    ageBand,
+    setAgeBand,
+    stMeasurement,
+    stEvaluation,
     sex,
     setSex,
     measurement,

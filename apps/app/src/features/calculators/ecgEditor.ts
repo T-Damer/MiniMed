@@ -36,7 +36,7 @@ export const ECG_POINT_LABELS = {
   qPeak: 'Вершина Q',
   rPeak: 'Вершина R',
   sPeak: 'Вершина S',
-  qrsOffset: 'Конец QRS',
+  qrsOffset: 'Конец QRS (точка J)',
   tOnset: 'Начало T',
   tPeak: 'Вершина T',
   tOffset: 'Конец T',

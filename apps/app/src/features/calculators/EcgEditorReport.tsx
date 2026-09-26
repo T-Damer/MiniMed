@@ -3,10 +3,20 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { PrintManager } from '@/features/printing/print-manager';
 import reportStyles from '@/styles/ecg-editor-report.css?inline';
 import { EcgStepGuide } from './EcgEditorFlow';
+import { ECG_STANDARD_LEADS } from './ecg-model-contract';
 import type { EcgMeasurements } from './ecg-photo-caliper';
 import { interpretAdultEcgMeasurements } from './ecg-photo-interpreter';
+import { ECG_ST_CRITERIA } from './ecg-st-criteria';
 import { ecgRegionLabel } from './ecgEditor';
-import type { EcgEditor } from './useEcgEditor';
+import type { EcgEditor, EcgEditorAgeBand } from './useEcgEditor';
+
+const AGE_BANDS: readonly { readonly value: EcgEditorAgeBand; readonly label: string }[] = [
+  { value: 'unknown', label: 'Не указан' },
+  { value: 'adult-under-40', label: '18–39 лет' },
+  { value: 'adult-40-plus', label: '40 лет и старше' },
+  { value: 'pediatric', label: 'Младше 18 лет' },
+];
+
 import '@/styles/ecg-editor-report.css';
 
 const METRICS: readonly {
@@ -83,22 +93,24 @@ export function EcgEditorReport(props: {
           Возраст
           <select
             class="ecg-editor__select"
-            classList={{ 'ecg-editor__select--required': e.patientRoute() === 'unknown' }}
-            value={e.patientRoute()}
+            classList={{ 'ecg-editor__select--required': e.ageBand() === 'unknown' }}
+            value={e.ageBand()}
             onChange={(event) => {
-              const value = event.currentTarget.value;
-              e.setPatientRoute(
-                value === 'adult' ? 'adult' : value === 'pediatric' ? 'pediatric' : 'unknown',
-              );
+              const next = AGE_BANDS.find((band) => band.value === event.currentTarget.value);
+              if (next) e.setAgeBand(next.value);
             }}
           >
-            <option value="unknown">Не указан</option>
-            <option value="adult">18 лет и старше</option>
-            <option value="pediatric">Младше 18 лет</option>
+            <For each={AGE_BANDS}>
+              {(band) => (
+                <option value={band.value} selected={band.value === e.ageBand()}>
+                  {band.label}
+                </option>
+              )}
+            </For>
           </select>
         </label>
         <label class="ecg-editor__field">
-          Пол для QTc
+          Пол для QTc и ST
           <select
             class="ecg-editor__select"
             value={e.sex() ?? 'unknown'}
@@ -160,11 +172,9 @@ export function EcgEditorReport(props: {
             {e.rectified() ? 'снимок выпрямлен по 4 углам · ' : ''}
             {e.draft().calibration.speed} мм/с · {e.draft().calibration.gain} мм/мВ · отведение{' '}
             {measuredLead()} ·{' '}
-            {e.patientRoute() === 'adult'
-              ? '18 лет и старше'
-              : e.patientRoute() === 'pediatric'
-                ? 'младше 18 лет'
-                : 'возраст не указан'}{' '}
+            {e.ageBand() === 'unknown'
+              ? 'возраст не указан'
+              : AGE_BANDS.find((band) => band.value === e.ageBand())?.label.toLowerCase()}{' '}
             ·{' '}
             {e.sex() === 'male'
               ? 'мужской пол'
@@ -194,6 +204,30 @@ export function EcgEditorReport(props: {
               </div>
             </Show>
           </dl>
+          <Show when={e.stMeasurement()}>
+            {(st) => (
+              <section class="ecg-report__st">
+                <h3 class="ecg-report__heading">{ECG_ST_CRITERIA.measurement.heading}</h3>
+                <dl class="ecg-report__st-grid">
+                  <For each={ECG_STANDARD_LEADS}>
+                    {(lead) => {
+                      const value = () => st().leads.find((item) => item.lead === lead)?.stMv;
+                      return (
+                        <div class="ecg-report__st-cell">
+                          <dt class="ecg-report__metric-label">{lead}</dt>
+                          <dd class="ecg-report__metric-value">
+                            {value() === undefined
+                              ? '—'
+                              : ((value() ?? 0) * 10).toFixed(1).replace('.', ',')}
+                          </dd>
+                        </div>
+                      );
+                    }}
+                  </For>
+                </dl>
+              </section>
+            )}
+          </Show>
           <section class="ecg-report__conclusion">
             <h3 class="ecg-report__heading">Предположительное заключение</h3>
             <Show
@@ -221,6 +255,33 @@ export function EcgEditorReport(props: {
                       )}
                     </For>
                   </ul>
+                  <Show when={e.stEvaluation()}>
+                    {(st) => (
+                      <>
+                        <ul class="ecg-report__findings">
+                          <For each={st().findings}>
+                            {(finding) => (
+                              <li
+                                class="ecg-report__finding"
+                                classList={{
+                                  'ecg-report__finding--urgent': finding.severity === 'urgent',
+                                }}
+                              >
+                                {finding.text}
+                              </li>
+                            )}
+                          </For>
+                        </ul>
+                        <p class="ecg-report__text">
+                          {st().scope} Источники:{' '}
+                          {st()
+                            .sources.map((source) => `${source.label} — ${source.citation}`)
+                            .join('; ')}
+                          .
+                        </p>
+                      </>
+                    )}
+                  </Show>
                   <Show when={result().missingData.length}>
                     <p class="ecg-report__text">
                       Не измерено:{' '}
