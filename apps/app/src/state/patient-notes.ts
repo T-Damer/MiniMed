@@ -575,9 +575,7 @@ export async function hydratePatientNotesFromIndexedDb(): Promise<PatientNotesSn
   }
 }
 
-export async function replacePatientNotesSnapshot(
-  value: unknown,
-): Promise<PatientNotesSnapshot> {
+export function parsePatientNotesSnapshot(value: unknown): PatientNotesSnapshot {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('Повреждён snapshot личных заметок.');
   }
@@ -593,13 +591,17 @@ export async function replacePatientNotesSnapshot(
   const notes = candidate.notes.map(normalizedNote);
   const cardIds = new Set<string>();
   for (const card of cards) {
-    if (!card.id || cardIds.has(card.id)) throw new Error('ID карточек в backup должны быть уникальны.');
+    if (!card.id || cardIds.has(card.id)) {
+      throw new Error('ID карточек в backup должны быть уникальны.');
+    }
     cardIds.add(card.id);
   }
 
   const notesById = new Map<string, PatientNote>();
   for (const note of notes) {
-    if (!note.id || notesById.has(note.id)) throw new Error('ID заметок в backup должны быть уникальны.');
+    if (!note.id || notesById.has(note.id)) {
+      throw new Error('ID заметок в backup должны быть уникальны.');
+    }
     if (!cardIds.has(note.cardId)) throw new Error('Backup содержит заметку без карточки.');
     notesById.set(note.id, note);
   }
@@ -619,7 +621,13 @@ export async function replacePatientNotesSnapshot(
     }
   }
 
-  const snapshot: PatientNotesSnapshot = { cards, notes };
+  return { cards, notes };
+}
+
+export async function replacePatientNotesSnapshot(
+  value: unknown,
+): Promise<PatientNotesSnapshot> {
+  const snapshot = parsePatientNotesSnapshot(value);
   persist(snapshot);
   await persistToIndexedDb(snapshot);
   return snapshot;
