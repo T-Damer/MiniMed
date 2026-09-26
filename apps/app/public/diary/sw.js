@@ -1,5 +1,6 @@
 // Diary page cache: keeps the page usable offline after the first visit. Scope: diary/ only.
-const CACHE_NAME = 'minimed-diary-v1';
+const CACHE_NAME = 'minimed-diary-v2';
+const STATIC_DESTINATIONS = new Set(['document', 'script', 'style', 'font', 'worker', 'image']);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['./'])));
@@ -24,7 +25,13 @@ self.addEventListener('activate', (event) => {
 // Network first, so a new page version arrives when online; the cache answers offline.
 self.addEventListener('fetch', (event) => {
   const request = event.request;
-  if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
+  if (
+    request.method !== 'GET' ||
+    new URL(request.url).origin !== self.location.origin ||
+    !STATIC_DESTINATIONS.has(request.destination)
+  ) {
+    return;
+  }
   event.respondWith(
     fetch(request)
       .then((response) => {
