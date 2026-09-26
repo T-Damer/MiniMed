@@ -274,6 +274,50 @@ export async function loadNoteImagesForNotes(
   }
 }
 
+export async function replaceAllNoteImages(records: readonly NoteImage[]): Promise<void> {
+  if (!('indexedDB' in globalThis) || !indexedDB) {
+    if (records.length === 0) return;
+    throw new Error('Хранилище изображений недоступно.');
+  }
+  const ids = new Set<string>();
+  for (const record of records) {
+    if (!record.id || !record.noteId || !record.name || !ALLOWED_IMAGE_TYPES.has(record.mimeType)) {
+      throw new Error('Backup содержит повреждённое изображение.');
+    }
+    if (ids.has(record.id)) throw new Error('ID изображений в backup должны быть уникальны.');
+    if (!record.dataUrl.startsWith(`data:${record.mimeType};base64,`)) {
+      throw new Error(`Данные изображения «${record.name}» не совпадают с MIME-типом.`);
+    }
+    if (
+      record.thumbnailDataUrl &&
+      !/^data:image\/(?:jpeg|png|webp);base64,/u.test(record.thumbnailDataUrl)
+    ) {
+      throw new Error(`Миниатюра изображения «${record.name}» повреждена.`);
+    }
+    ids.add(record.id);
+  }
+
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      store.clear();
+      for (const record of records) store.put(record);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось восстановить изображения.'));
+      transaction.onabort = () =>
+        reject(transaction.error ?? new Error('Восстановление изображений отменено.'));
+    });
+  } finally {
+    database.close();
+  }
+  invalidateListCache();
+  window.dispatchEvent(new CustomEvent(NOTE_IMAGES_EVENT));
+  scheduleLibrarySync();
+}
+
 export async function deleteNoteImage(imageIdValue: string): Promise<void> {
   if (!imageIdValue || !('indexedDB' in globalThis) || !indexedDB) return;
   const database = await openDatabase();
