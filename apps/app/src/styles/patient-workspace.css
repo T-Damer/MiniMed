@@ -388,23 +388,3 @@
     background: var(--theme-accent-soft);
   }
 }
-
-.patient-workspace__unlock-text {
-  margin: 0;
-  color: var(--theme-text-muted);
-  line-height: 1.5;
-}
-
-.patient-workspace__locked-list {
-  display: grid;
-  gap: 0.6rem;
-  opacity: 0.45;
-}
-
-.patient-workspace__locked-row {
-  height: 4.5rem;
-}
-
-.patient-vault-dialog.overlay-dialog {
-  max-width: 30rem;
-}

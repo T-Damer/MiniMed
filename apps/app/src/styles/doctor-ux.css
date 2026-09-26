@@ -1666,16 +1666,6 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
     max-height: 100dvh;
   }
 
-  /* Small choices (unlock, confirm) stay a card over the page instead of a full screen. */
-  .overlay-dialog.overlay-dialog--compact {
-    width: calc(100% - 1.5rem);
-    min-height: 0;
-    max-height: calc(100dvh - 2rem);
-    align-self: center;
-    justify-self: center;
-    border-radius: 0.9rem;
-  }
-
   .overlay-dialog-header {
     padding-top: calc(0.875rem + var(--safe-top, 0px));
   }

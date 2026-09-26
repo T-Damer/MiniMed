@@ -19,7 +19,7 @@ test('patient list has a safe sticky header, local search, and grouped actions',
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
   await page.getByRole('button', { name: 'Добавить', exact: true }).click();
   await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
-  await page.getByRole('button', { name: /^(Продолжить без защиты|Открыть)$/u }).click();
+  await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
   await page.getByRole('button', { name: 'Отмена', exact: true }).click();
   await expect(page.locator('.patient-workspace__empty')).toContainText('Карточек пока нет.');
   await expect(page.locator('.patient-workspace__empty-icon')).toBeVisible();
@@ -90,9 +90,9 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await page.getByRole('menuitem', { name: 'Карточка пациента', exact: true }).press('Enter');
 
   await expect(
-    page.getByRole('heading', { name: /^(Защитите карточки пациентов|Пациенты закрыты)$/u }),
+    page.getByRole('heading', { name: /^(Карточки пациентов без шифрования|Пациенты закрыты)$/u }),
   ).toBeVisible();
-  await page.getByRole('button', { name: /^(Продолжить без защиты|Открыть)$/u }).click();
+  await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
   await expect(page.getByRole('heading', { name: 'Новая карточка пациента' })).toBeVisible();
   await page.getByLabel('Имя или псевдоним').fill('Пациент динамики');
   await page.getByLabel('Дата рождения').fill('2020-01-02');
@@ -259,7 +259,7 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
   await page.getByRole('button', { name: /^Пациент динамики/u }).click();
   await page.getByRole('button', { name: 'Заблокировать', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: /^(Защитите карточки пациентов|Пациенты закрыты)$/u }),
+    page.getByRole('heading', { name: /^(Карточки пациентов без шифрования|Пациенты закрыты)$/u }),
   ).toBeVisible();
   await expect(page.locator('html')).not.toHaveClass(/patient-vault--privacy-curtain/u);
   await page
@@ -275,7 +275,7 @@ test('repeats an assessment for the same protected patient', async ({ page }) =>
 
   await page.getByRole('button', { name: 'Заметки', exact: true }).click();
   await page.getByRole('button', { name: /^Пациенты/u }).click();
-  await page.getByRole('button', { name: /^(Продолжить без защиты|Открыть)$/u }).click();
+  await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
   await page.getByRole('button', { name: 'Новый пациент' }).click();
   await page.getByLabel('Имя или псевдоним').fill('Пациент повторной оценки');
   await page.getByRole('button', { name: 'Создать карточку' }).click();

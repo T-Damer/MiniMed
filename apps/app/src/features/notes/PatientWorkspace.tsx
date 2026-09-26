@@ -20,7 +20,6 @@ import {
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { NavBack } from '@/components/NavBack';
-import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { PatientAvatar } from '@/components/PatientAvatar';
 import { PatientAvatarPicker } from '@/components/PatientAvatarPicker';
@@ -1730,23 +1729,7 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
           </>
         }
       >
-        {/* Locked list stays visible underneath; the choice happens in a dialog on top. */}
-        <div class="patient-workspace__locked-list" aria-hidden="true">
-          <For each={[0, 1, 2]}>
-            {() => <div class="patient-workspace__locked-row paper-card" />}
-          </For>
-        </div>
-        <OverlayDialog
-          open
-          title="Пациенты"
-          class="patient-vault-dialog overlay-dialog--compact"
-          tracksHistory={false}
-          onClose={() => {
-            window.location.hash = '#/notes';
-          }}
-        >
-          <PatientVaultUnlock onUnlocked={onUnlocked} />
-        </OverlayDialog>
+        <PatientVaultUnlock onUnlocked={onUnlocked} />
         <Show when={error()}>
           <p class="patient-workspace__error" role="alert">
             {error()}
