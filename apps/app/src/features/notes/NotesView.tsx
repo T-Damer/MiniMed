@@ -1793,12 +1793,14 @@ export function NotesView(props: {
                           </span>
                         )}
                       </For>
-                      <input
+                      <UiTextField
                         id="patient-note-categories"
-                        class="patient-note-form__categories-input"
+                        class="patient-note-form__categories-field"
+                        inputClass="patient-note-form__categories-input"
                         type="text"
+                        label="Теги записи"
+                        hideLabel
                         value={noteCategoryInput()}
-                        aria-label="Теги записи"
                         placeholder={
                           noteCategories().length > 0 ? 'Добавить тег' : 'Например: контроль'
                         }
