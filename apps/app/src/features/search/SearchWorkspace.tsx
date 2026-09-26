@@ -88,6 +88,8 @@ interface SearchWorkspaceProps {
   readonly specialty?: string | undefined;
   readonly catalogResultCount?: number;
   readonly showExamples?: boolean;
+  /** Greeting and shortcuts shown above an empty query; collapses once the user searches. */
+  readonly welcome?: JSX.Element;
   readonly filters?: SearchFilters;
   readonly onQueryChange?: (query: string) => void;
   readonly placeholder?: string;
@@ -804,10 +806,22 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     >
       <div
         class="search-column case-folder"
-        classList={{ 'has-search-content': query().length > 0 }}
+        classList={{
+          'has-search-content': query().length > 0,
+          'case-folder--with-welcome': Boolean(props.welcome),
+        }}
       >
         {/* The page heading lives in SearchHome; repeating a second hero here doubled the height
             a doctor scrolls past before the first result. */}
+        <Show when={props.welcome}>
+          <div
+            class="search-welcome"
+            classList={{ 'search-welcome--hidden': query().length > 0 || Boolean(response()) }}
+            inert={query().length > 0 || Boolean(response())}
+          >
+            <div class="search-welcome__inner">{props.welcome}</div>
+          </div>
+        </Show>
         <form
           class="query-sheet"
           onSubmit={(event) => {

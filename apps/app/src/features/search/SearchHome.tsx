@@ -25,6 +25,7 @@ import {
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
 import { SearchSectionPicker } from '@/features/search/SearchSectionPicker';
+import { SearchWelcome } from '@/features/search/SearchWelcome';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import {
   matchingCatalogTools,
@@ -241,6 +242,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           onQueryChange={setCatalogQuery}
           catalogOnly={catalogOnly()}
           showExamples
+          welcome={<SearchWelcome onOpenReference={() => setReferenceOpen(true)} />}
           searchActions={
             <Show when={!catalogOnly() && scope() !== 'diagnosis'}>
               <button

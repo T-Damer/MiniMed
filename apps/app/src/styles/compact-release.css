@@ -448,6 +448,11 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   margin-top: 0;
 }
 
+/* The welcome block fills the space the empty-state margin used to reserve. */
+.case-folder.case-folder--with-welcome {
+  margin-top: 0;
+}
+
 .search-workspace-main .case-heading {
   margin-bottom: 0.5rem;
   text-align: left;

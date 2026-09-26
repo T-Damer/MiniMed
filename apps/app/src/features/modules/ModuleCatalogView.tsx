@@ -90,6 +90,7 @@ import {
 import {
   collectionLabel,
   documentCountLabel,
+  pluralRu,
   recommendationCountLabel,
   sectionCountLabel,
 } from '@/i18n/labels';
@@ -1136,7 +1137,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                   <strong class="recommendation-section-card-title">Заболевания и состояния</strong>
                   <span class="recommendation-section-card-meta">
                     {overviewConditionCount() > 0
-                      ? `${overviewConditionCount()} записей · МКБ-10, рекомендации и справочники`
+                      ? `${overviewConditionCount()} ${pluralRu(overviewConditionCount(), 'запись', 'записи', 'записей')} · МКБ-10, рекомендации и справочники`
                       : 'МКБ-10, рекомендации и справочники'}
                   </span>
                   {sectionDownloadControls(

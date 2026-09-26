@@ -228,6 +228,13 @@ function CalculatorCard(props: {
   );
 }
 
+/** Total download size in one figure: module names are an implementation detail here. */
+function downloadSize(modules: readonly ContentModuleCatalogEntry[]): string {
+  return formatModuleBytes(
+    modules.reduce((sum, module) => sum + (module.sizes.downloadBytes ?? 0), 0),
+  );
+}
+
 function CalculatorSectionCard(props: {
   readonly section: (typeof CALCULATOR_SECTIONS)[number];
   readonly installation: CalculatorInstallationState;
@@ -272,7 +279,7 @@ function CalculatorSectionCard(props: {
           <p>{props.section.description}</p>
           <small>
             {hasDownloads()
-              ? `${bundled() || installedCount() > 0 ? 'Доступно офлайн · ' : ''}${props.downloadLabel}: ${props.downloadableModules.map((module) => `${module.title} (${formatModuleBytes(module.sizes.downloadBytes)})`).join(', ')}`
+              ? `${bundled() || installedCount() > 0 ? 'Часть уже работает офлайн · ' : ''}${props.downloadLabel} · ${downloadSize(props.downloadableModules)}`
               : availableCount() === 0
                 ? 'Доступных инструментов пока нет · источники и правила ещё проверяются'
                 : core() || isCalculatorSectionFromDatabase(props.section.id, props.definitions)
@@ -378,10 +385,8 @@ function CalculatorSectionPage(props: {
       </header>
       <Show when={hasDownloads()}>
         <p class="calculator-section-page__status" role="status">
-          {props.downloadLabel}:{' '}
-          {props.downloadableModules
-            .map((module) => `${module.title} (${formatModuleBytes(module.sizes.downloadBytes)})`)
-            .join(', ')}
+          {props.downloadLabel} · {downloadSize(props.downloadableModules)}. После скачивания
+          калькуляторы раздела работают без интернета.
         </p>
       </Show>
       <Show when={availableCount() === 0}>
