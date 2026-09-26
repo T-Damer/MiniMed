@@ -19,6 +19,11 @@
 - Note drawings support links to MiniMed documents, calculators, assessments and notes through the
   shared note-link target index. Drawing attachments render an actual Excalidraw preview in note
   timelines instead of a generic file icon.
+- Text and Markdown readers now expose a persistent reading scale in the existing document menu:
+  90/100/110/125/140%. Plain text, Markdown body text, headings, tables, code and captions scale as
+  layout typography rather than a visual transform, preserving selection and scroll geometry. The
+  preference is local/session-safe when storage is unavailable and remains independent of PDF
+  pinch/zoom and two-page mode.
 - Voice notes use the browser MediaRecorder + optional local Whisper path documented below. Persisted
   audio opens the editable transcript panel; a transcript can be copied or inserted at the current
   note caret, including a timestamped form.
