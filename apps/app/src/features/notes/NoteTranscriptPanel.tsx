@@ -181,7 +181,7 @@ export function NoteTranscriptPanel(props: {
     document.body.append(anchor);
     anchor.click();
     anchor.remove();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   const save = async (): Promise<void> => {
