@@ -20,8 +20,9 @@ Short-term 1.0 follow-up work that remains after the 0.6.0 release-candidate imp
 - [x] RTF import (cp1251 + group-stack parser).
 - [x] Notes: undo/redo with shortcut labels, selection-menu active states, quote escape.
 - [x] Notes: mentions search across documents/calculators/tests/notes, clickable hash links.
-- [x] Notes: voice recording (10-min chunks, Telegram-style bubbles) + ASR queue via
-      ParityController; transformers.js worker with Parakeet v3 / Whisper-tiny; Settings picker.
+- [x] Notes: voice recording (10-min ceiling, Telegram-style bubbles) + ASR queue via
+      ParityController; optional local Whisper Base/Small, word timestamps, persisted editable
+      transcripts and explicit retry/error states.
 - [x] Text highlighting: `==mark==` in notes; saved highlights in text documents.
 - [x] assessments-subpage-header column layout on mobile; animated next-button progress ring.
 - [x] Floating windows: collapse to header, marquee title.
@@ -96,15 +97,19 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
 
 ## Patient notes and voice
 
-Cards, nested notes, search integration, and follow-up reminders have landed. Voice and data
-portability remain.
+Cards, nested notes, search integration, follow-up reminders and browser voice transcription
+have landed. Portability now has two deliberately separate domains: patient-vault backup already
+exports/imports patient profiles, visits/events and vault blobs; personal notes remain separate.
 
-- Browser speech-to-text now works locally with optional quantized Whisper Base/Small, word-derived
+- Browser speech-to-text works locally with optional quantized Whisper Base/Small, word-derived
   timestamps, persistent editable transcripts, retry/error states and insertion back into an open note.
   Finish speaker diarization only after a complete browser WASM runtime is pinned and routed through
   the verified download/cache path; do not fabricate speakers from pauses or one Whisper stream.
-- Consider exporting or wiping a single card for handover and retention, once real use shows whether
-  that is needed.
+- Add a portable **personal-notes backup** that preserves card/note ids, note files/images and
+  transcript ids/edits together. Do not fold these stores into patient-vault backup implicitly:
+  attachment ids are referenced by derived data and must survive round-trip exactly.
+- Consider a single-card export/wipe for handover and retention after the full notes-backup format is
+  versioned and round-trip tested.
 
 ## Data and AI
 
