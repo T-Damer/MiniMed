@@ -256,7 +256,11 @@
 }
 
 .diary-list__item {
+  display: grid;
   min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0.5rem;
 }
 
 .diary-list__open {
@@ -276,4 +280,14 @@
 .diary-list__meta {
   color: var(--theme-text-muted);
   font-size: 0.85rem;
+}
+
+.diary-list__delete {
+  align-self: stretch;
+}
+
+@media (max-width: 32rem) {
+  .diary-list__item {
+    grid-template-columns: 1fr;
+  }
 }
