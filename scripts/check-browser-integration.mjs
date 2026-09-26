@@ -29,6 +29,9 @@ const files = {
   noteTranscriptionTests: read('apps/app/src/state/note-transcription.test.ts'),
   retentionCleanup: read('apps/app/src/state/note-retention-cleanup.ts'),
   patientNotes: read('apps/app/src/state/patient-notes.ts'),
+  noteImages: read('apps/app/src/state/note-images.ts'),
+  personalNotesBackup: read('apps/app/src/state/personal-notes-backup.ts'),
+  personalNotesBackupTests: read('apps/app/src/state/personal-notes-backup.test.ts'),
   patientWorkspace: read('apps/app/src/features/notes/PatientWorkspace.tsx'),
   patientWorkspaceCss: read('apps/app/src/styles/patient-workspace.css'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
@@ -302,6 +305,31 @@ const checks = [
       files.patientWorkspaceCss.includes('select.patient-workspace__control') &&
       files.patientWorkspaceCss.includes('output.patient-workspace__control') &&
       !files.patientWorkspaceCss.includes('.patient-workspace__event-revision-input'),
+  ],
+  [
+    'portable personal-notes backup preserves stable ids',
+    files.personalNotesBackup.includes("PERSONAL_NOTES_BACKUP_KIND = 'minimed-personal-notes-backup'") &&
+      files.personalNotesBackup.includes('PERSONAL_NOTES_BACKUP_SCHEMA_VERSION = 1') &&
+      files.patientNotes.includes('export async function replacePatientNotesSnapshot(') &&
+      files.noteFiles.includes('export async function replaceAllNoteFiles(') &&
+      files.noteImages.includes('export async function replaceAllNoteImages(') &&
+      files.noteTranscription.includes('export async function replaceAllTranscripts('),
+  ],
+  [
+    'personal-notes import validates links and rolls back',
+    files.personalNotesBackup.includes('parsePatientNotesSnapshot(candidate.snapshot)') &&
+      files.personalNotesBackup.includes('Расшифровка в backup не связана с исходной аудиозаписью') &&
+      files.personalNotesBackup.includes('const previous = await capturePersonalNotesState()') &&
+      files.personalNotesBackup.includes('await applyPersonalNotesState(previous)') &&
+      files.notes.includes('exportPersonalNotesBackup') &&
+      files.notes.includes('importPersonalNotesBackup'),
+  ],
+  [
+    'personal-notes backup round trip is covered',
+    files.personalNotesBackupTests.includes('round-trips stable note, attachment, image and transcript ids') &&
+      files.personalNotesBackupTests.includes("bytesBase64: 'AQID'") &&
+      files.personalNotesBackupTests.includes("speakerNames: { 'speaker-1': 'Врач' }") &&
+      files.personalNotesBackupTests.includes('not linked to its source audio before mutating data'),
   ],
   [
     'diary shared controls',
