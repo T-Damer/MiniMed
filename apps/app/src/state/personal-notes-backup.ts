@@ -108,6 +108,64 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
     .join('');
 }
 
+function base64EncodedLength(bytes: number): number {
+  return Math.ceil(bytes / 3) * 4;
+}
+
+export function estimatePersonalNotesBackupBytes(
+  state: {
+    readonly snapshot: PatientNotesSnapshot;
+    readonly files: readonly Pick<
+      NoteFile,
+      'id' | 'noteId' | 'name' | 'mimeType' | 'size' | 'thumbnailDataUrl' | 'createdAt'
+    >[];
+    readonly images: readonly NoteImage[];
+    readonly transcripts: readonly NoteTranscript[];
+  },
+  scope: PersonalNotesBackupScope,
+): number {
+  const files = state.files.map((file) => ({
+    id: file.id,
+    noteId: file.noteId,
+    name: file.name,
+    mimeType: file.mimeType,
+    size: file.size,
+    sha256: '0'.repeat(64),
+    bytesBase64: '',
+    ...(file.thumbnailDataUrl ? { thumbnailDataUrl: file.thumbnailDataUrl } : {}),
+    createdAt: file.createdAt,
+  }));
+  const skeleton = {
+    kind: PERSONAL_NOTES_BACKUP_KIND,
+    schemaVersion: PERSONAL_NOTES_BACKUP_SCHEMA_VERSION,
+    exportedAt: '2000-01-01T00:00:00.000Z',
+    scope,
+    snapshot: state.snapshot,
+    files,
+    images: state.images,
+    transcripts: state.transcripts,
+  };
+  const structuralBytes = new TextEncoder().encode(JSON.stringify(skeleton)).byteLength;
+  const attachmentBase64Bytes = state.files.reduce(
+    (total, file) => total + base64EncodedLength(file.size),
+    0,
+  );
+  return structuralBytes + attachmentBase64Bytes;
+}
+
+function assertPersonalNotesBackupFits(
+  state: PersonalNotesState,
+  scope: PersonalNotesBackupScope,
+): void {
+  const estimatedBytes = estimatePersonalNotesBackupBytes(state, scope);
+  if (estimatedBytes > MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES) {
+    const estimatedMiB = Math.ceil(estimatedBytes / (1024 * 1024));
+    throw new Error(
+      `Backup личных заметок получится около ${estimatedMiB} МБ и превышает лимит 512 МБ.`,
+    );
+  }
+}
+
 function bytesToBase64(bytes: Uint8Array): string {
   // Every non-final chunk is divisible by three, so base64 chunks concatenate losslessly.
   const chunkSize = 3 * 16_384;
@@ -439,6 +497,7 @@ async function applyPersonalNotesState(state: PersonalNotesState): Promise<void>
 export async function exportPersonalNotesBackup(): Promise<PersonalNotesBackup> {
   await runPendingNoteRetentionCleanup();
   const state = await capturePersonalNotesState();
+  assertPersonalNotesBackupFits(state, { kind: 'all' });
   const files: PersonalNotesBackupFile[] = [];
   for (const file of state.files) {
     const bytes = new Uint8Array(await file.blob.arrayBuffer());
@@ -471,6 +530,7 @@ export async function exportPersonalNotesCardBackup(
 ): Promise<PersonalNotesBackup> {
   await runPendingNoteRetentionCleanup();
   const selected = selectCardState(await capturePersonalNotesState(), cardId);
+  assertPersonalNotesBackupFits(selected, { kind: 'card', cardId });
   const files: PersonalNotesBackupFile[] = [];
   for (const file of selected.files) {
     const bytes = new Uint8Array(await file.blob.arrayBuffer());
