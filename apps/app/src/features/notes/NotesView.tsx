@@ -149,7 +149,7 @@ function downloadNotesBackup(value: unknown, fileName: string): void {
   document.body.append(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function formatDate(value: string): string {
