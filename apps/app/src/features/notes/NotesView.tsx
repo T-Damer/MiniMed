@@ -616,6 +616,7 @@ export function NotesView(props: {
     // until the doctor presses «Заблокировать».
   });
   const [deleteTarget, setDeleteTarget] = createSignal<DeleteTarget | null>(null);
+  const [editorFullscreen, setEditorFullscreen] = createSignal(false);
   const [reminderNoteId, setReminderNoteId] = createSignal<string | null>(null);
   const [cardTitleDraft, setCardTitleDraft] = createSignal('');
   const [cardTitleEditInitial, setCardTitleEditInitial] = createSignal('');
@@ -1205,6 +1206,7 @@ export function NotesView(props: {
       class="patient-notes-view page-surface page-grain"
       classList={{ 'patient-notes-view--document-reader': activeTemplateId() !== null }}
       aria-label="Личные заметки"
+      inert={editorFullscreen()}
     >
       <input
         ref={(element) => {
@@ -1620,11 +1622,12 @@ export function NotesView(props: {
           {(card) => {
             const editing = () => route().kind === 'record';
             const note = activeNote;
-            return (
-              <>
-                <Page
-                  class="notes-route-heading"
-                  navigation={
+            const recordHeading = (): JSX.Element => (
+              <Page
+                class="notes-route-heading"
+                navigation={
+                  // The full-screen editor draws its own «Назад к записям» on top.
+                  <Show when={!editorFullscreen()}>
                     <button
                       class="notes-route-heading__back knowledge-back-button"
                       type="button"
@@ -1634,123 +1637,204 @@ export function NotesView(props: {
                     >
                       <AppGlyph name="arrow-left" />
                     </button>
-                  }
-                  breadcrumbs={
-                    <AppBreadcrumbs
-                      items={[
-                        {
-                          label: props.backToFiles ? 'Мои файлы' : 'Заметки',
-                          href: props.backToFiles ? USER_LIBRARY_CATALOG_HASH : notesPath(),
-                        },
-                        { label: card().title, href: notesPath(card().id) },
-                        {
-                          label: recordTitleDraft().trim() || 'Новая запись',
-                          ...(editingRecordTitle()
-                            ? {
-                                currentContent: (
-                                  // biome-ignore lint/a11y/useSemanticElements: contenteditable keeps the breadcrumb title inline.
-                                  <span
-                                    class="notes-route-heading__breadcrumb-editor"
-                                    contentEditable
-                                    role="textbox"
-                                    aria-label="Название записи"
-                                    aria-multiline="false"
-                                    tabIndex={0}
-                                    data-placeholder="Название записи"
-                                    ref={(element) => {
-                                      queueMicrotask(() => element.focus());
-                                    }}
-                                    onInput={(event) => {
-                                      recordTitleValue = event.currentTarget.textContent ?? '';
-                                    }}
-                                    onBlur={saveRecordTitle}
-                                    onKeyDown={handleRecordTitleKeyDown}
-                                  >
-                                    {recordTitleDraft()}
-                                  </span>
-                                ),
-                              }
-                            : viewingPreviousRevision()
-                              ? {}
-                              : {
-                                  onCurrentClick: startRecordTitleEdit,
-                                  currentAriaLabel: recordTitleDraft().trim()
-                                    ? `Изменить название записи «${recordTitleDraft().trim()}»`
-                                    : 'Добавить название записи',
-                                }),
-                        },
-                      ]}
-                      onNavigate={(href) => {
-                        window.location.hash = href;
+                  </Show>
+                }
+                breadcrumbs={
+                  <AppBreadcrumbs
+                    items={[
+                      {
+                        label: props.backToFiles ? 'Мои файлы' : 'Заметки',
+                        href: props.backToFiles ? USER_LIBRARY_CATALOG_HASH : notesPath(),
+                      },
+                      { label: card().title, href: notesPath(card().id) },
+                      {
+                        label: recordTitleDraft().trim() || 'Новая запись',
+                        ...(editingRecordTitle()
+                          ? {
+                              currentContent: (
+                                // biome-ignore lint/a11y/useSemanticElements: contenteditable keeps the breadcrumb title inline.
+                                <span
+                                  class="notes-route-heading__breadcrumb-editor"
+                                  contentEditable
+                                  role="textbox"
+                                  aria-label="Название записи"
+                                  aria-multiline="false"
+                                  tabIndex={0}
+                                  data-placeholder="Название записи"
+                                  ref={(element) => {
+                                    queueMicrotask(() => element.focus());
+                                  }}
+                                  onInput={(event) => {
+                                    recordTitleValue = event.currentTarget.textContent ?? '';
+                                  }}
+                                  onBlur={saveRecordTitle}
+                                  onKeyDown={handleRecordTitleKeyDown}
+                                >
+                                  {recordTitleDraft()}
+                                </span>
+                              ),
+                            }
+                          : viewingPreviousRevision()
+                            ? {}
+                            : {
+                                onCurrentClick: startRecordTitleEdit,
+                                currentAriaLabel: recordTitleDraft().trim()
+                                  ? `Изменить название записи «${recordTitleDraft().trim()}»`
+                                  : 'Добавить название записи',
+                              }),
+                      },
+                    ]}
+                    onNavigate={(href) => {
+                      window.location.hash = href;
+                    }}
+                  />
+                }
+                actions={
+                  <>
+                    <button
+                      class="notes-route-heading__edit patient-card-icon-action"
+                      type="button"
+                      aria-label="Изменить название записи"
+                      title="Изменить название записи"
+                      disabled={viewingPreviousRevision() || editingRecordTitle()}
+                      onClick={startRecordTitleEdit}
+                    >
+                      <AppGlyph name="edit" class="patient-card-icon-action__icon" />
+                    </button>
+                    <Show when={note()}>
+                      {(currentNote) => (
+                        <>
+                          <button
+                            class="notes-route-heading__previous patient-card-icon-action"
+                            classList={{
+                              'notes-route-heading__previous--active': viewingPreviousRevision(),
+                            }}
+                            type="button"
+                            aria-label={
+                              viewingPreviousRevision()
+                                ? 'Скрыть предыдущую редакцию'
+                                : 'Показать предыдущую редакцию'
+                            }
+                            aria-expanded={viewingPreviousRevision()}
+                            title={
+                              viewingPreviousRevision()
+                                ? 'Скрыть предыдущую редакцию'
+                                : 'Предыдущая редакция'
+                            }
+                            disabled={!previousRevisionDiffers()}
+                            onClick={() => setShowPreviousRevision((visible) => !visible)}
+                          >
+                            <AppGlyph name="share-fat" class="notes-route-heading__previous-icon" />
+                          </button>
+                          <button
+                            class="notes-route-heading__delete patient-record-delete patient-card-icon-action danger"
+                            type="button"
+                            aria-label="Удалить запись"
+                            title="Удалить запись"
+                            disabled={viewingPreviousRevision()}
+                            onClick={() =>
+                              setDeleteTarget({
+                                kind: 'note',
+                                id: currentNote().id,
+                                title:
+                                  currentNote().title ||
+                                  currentNote().text.slice(0, 80) ||
+                                  'Без названия',
+                                returnPath: notesPath(card().id),
+                              })
+                            }
+                          >
+                            <AppGlyph name="trash" class="patient-card-icon-action__icon" />
+                          </button>
+                        </>
+                      )}
+                    </Show>
+                  </>
+                }
+              />
+            );
+            // Tags, pictures and the reminder belong to the record, not to one editor mode.
+            const recordTags = (): JSX.Element => (
+              <>
+                <div class="patient-note-form__categories">
+                  <label class="patient-note-form__categories-label" for="patient-note-categories">
+                    Теги
+                  </label>
+                  <div class="patient-note-form__categories-control">
+                    <For each={noteCategories()}>
+                      {(category, index) => (
+                        <span class="patient-note-form__category">
+                          <NoteCategoryLabel category={category} />
+                          <button
+                            type="button"
+                            class="patient-note-form__category-remove"
+                            aria-label={`Удалить тег «${category}»`}
+                            title={`Удалить тег «${category}»`}
+                            disabled={viewingPreviousRevision()}
+                            onClick={() =>
+                              setNoteCategories((current) =>
+                                current.filter((_, categoryIndex) => categoryIndex !== index()),
+                              )
+                            }
+                          >
+                            <AppGlyph
+                              name="close"
+                              class="patient-note-form__category-remove-icon"
+                            />
+                          </button>
+                        </span>
+                      )}
+                    </For>
+                    <UiTextField
+                      id="patient-note-categories"
+                      class="patient-note-form__categories-field"
+                      inputClass="patient-note-form__categories-input"
+                      type="text"
+                      label="Теги записи"
+                      hideLabel
+                      value={noteCategoryInput()}
+                      placeholder={
+                        noteCategories().length > 0 ? 'Добавить тег' : 'Например: контроль'
+                      }
+                      disabled={viewingPreviousRevision()}
+                      onInput={(event) => {
+                        event.currentTarget.value = handleNoteCategoriesInput(
+                          event.currentTarget.value,
+                        );
                       }}
                     />
-                  }
-                  actions={
-                    <>
-                      <button
-                        class="notes-route-heading__edit patient-card-icon-action"
-                        type="button"
-                        aria-label="Изменить название записи"
-                        title="Изменить название записи"
-                        disabled={viewingPreviousRevision() || editingRecordTitle()}
-                        onClick={startRecordTitleEdit}
-                      >
-                        <AppGlyph name="edit" class="patient-card-icon-action__icon" />
-                      </button>
-                      <Show when={note()}>
-                        {(currentNote) => (
-                          <>
-                            <button
-                              class="notes-route-heading__previous patient-card-icon-action"
-                              classList={{
-                                'notes-route-heading__previous--active': viewingPreviousRevision(),
-                              }}
-                              type="button"
-                              aria-label={
-                                viewingPreviousRevision()
-                                  ? 'Скрыть предыдущую редакцию'
-                                  : 'Показать предыдущую редакцию'
-                              }
-                              aria-expanded={viewingPreviousRevision()}
-                              title={
-                                viewingPreviousRevision()
-                                  ? 'Скрыть предыдущую редакцию'
-                                  : 'Предыдущая редакция'
-                              }
-                              disabled={!previousRevisionDiffers()}
-                              onClick={() => setShowPreviousRevision((visible) => !visible)}
-                            >
-                              <AppGlyph
-                                name="share-fat"
-                                class="notes-route-heading__previous-icon"
-                              />
-                            </button>
-                            <button
-                              class="notes-route-heading__delete patient-record-delete patient-card-icon-action danger"
-                              type="button"
-                              aria-label="Удалить запись"
-                              title="Удалить запись"
-                              disabled={viewingPreviousRevision()}
-                              onClick={() =>
-                                setDeleteTarget({
-                                  kind: 'note',
-                                  id: currentNote().id,
-                                  title:
-                                    currentNote().title ||
-                                    currentNote().text.slice(0, 80) ||
-                                    'Без названия',
-                                  returnPath: notesPath(card().id),
-                                })
-                              }
-                            >
-                              <AppGlyph name="trash" class="patient-card-icon-action__icon" />
-                            </button>
-                          </>
-                        )}
-                      </Show>
-                    </>
-                  }
+                  </div>
+                  <small class="patient-note-form__categories-hint">
+                    Нажмите пробел, запятую или точку с запятой, чтобы добавить тег
+                  </small>
+                </div>
+              </>
+            );
+            const recordExtras = (): JSX.Element => (
+              <>
+                <NoteImagePicker
+                  files={pendingImages()}
+                  images={noteImages()}
+                  savedFiles={recordFilesForActive()}
+                  error={imageError()}
+                  onFilesChange={setPendingImages}
+                  onError={setImageError}
+                  disabled={viewingPreviousRevision()}
                 />
+                <Show when={!editing()}>
+                  <ReminderFields
+                    date={reminderDate()}
+                    time={reminderTime()}
+                    notificationMessage={notificationMessage()}
+                    onDateChange={setReminderDate}
+                    onTimeChange={setReminderTime}
+                  />
+                </Show>
+              </>
+            );
+            return (
+              <>
+                <Show when={!editorFullscreen()}>{recordHeading()}</Show>
                 <div
                   class="patient-note-form patient-record-editor"
                   classList={{
@@ -1768,61 +1852,7 @@ export function NotesView(props: {
                       Черновик восстановлен
                     </p>
                   </Show>
-                  <div class="patient-note-form__categories">
-                    <label
-                      class="patient-note-form__categories-label"
-                      for="patient-note-categories"
-                    >
-                      Теги
-                    </label>
-                    <div class="patient-note-form__categories-control">
-                      <For each={noteCategories()}>
-                        {(category, index) => (
-                          <span class="patient-note-form__category">
-                            <NoteCategoryLabel category={category} />
-                            <button
-                              type="button"
-                              class="patient-note-form__category-remove"
-                              aria-label={`Удалить тег «${category}»`}
-                              title={`Удалить тег «${category}»`}
-                              disabled={viewingPreviousRevision()}
-                              onClick={() =>
-                                setNoteCategories((current) =>
-                                  current.filter((_, categoryIndex) => categoryIndex !== index()),
-                                )
-                              }
-                            >
-                              <AppGlyph
-                                name="close"
-                                class="patient-note-form__category-remove-icon"
-                              />
-                            </button>
-                          </span>
-                        )}
-                      </For>
-                      <UiTextField
-                        id="patient-note-categories"
-                        class="patient-note-form__categories-field"
-                        inputClass="patient-note-form__categories-input"
-                        type="text"
-                        label="Теги записи"
-                        hideLabel
-                        value={noteCategoryInput()}
-                        placeholder={
-                          noteCategories().length > 0 ? 'Добавить тег' : 'Например: контроль'
-                        }
-                        disabled={viewingPreviousRevision()}
-                        onInput={(event) => {
-                          event.currentTarget.value = handleNoteCategoriesInput(
-                            event.currentTarget.value,
-                          );
-                        }}
-                      />
-                    </div>
-                    <small class="patient-note-form__categories-hint">
-                      Нажмите пробел, запятую или точку с запятой, чтобы добавить тег
-                    </small>
-                  </div>
+                  <Show when={!editorFullscreen()}>{recordTags()}</Show>
                   <Show when={note()}>
                     {(currentNote) => (
                       <NoteAttachedResults
@@ -1833,7 +1863,16 @@ export function NotesView(props: {
                   </Show>
                   <NoteMarkdownEditor
                     onExitFullscreen={() => navigate(notesPath(card().id))}
+                    onFullscreenChange={setEditorFullscreen}
+                    fullscreenHeader={() => (
+                      <>
+                        {recordHeading()}
+                        {recordTags()}
+                      </>
+                    )}
+                    fullscreenFooter={recordExtras}
                     exitFullscreenLabel="Назад к записям"
+                    autofocus={!editing()}
                     label={editing() ? 'Текст записи' : `Новая заметка для ${card().title}`}
                     printTitle={recordTitleDraft()}
                     printDate={(() => {
@@ -1932,24 +1971,7 @@ export function NotesView(props: {
                     }}
                     disabled={viewingPreviousRevision()}
                   />
-                  <NoteImagePicker
-                    files={pendingImages()}
-                    images={noteImages()}
-                    savedFiles={recordFilesForActive()}
-                    error={imageError()}
-                    onFilesChange={setPendingImages}
-                    onError={setImageError}
-                    disabled={viewingPreviousRevision()}
-                  />
-                  <Show when={!editing()}>
-                    <ReminderFields
-                      date={reminderDate()}
-                      time={reminderTime()}
-                      notificationMessage={notificationMessage()}
-                      onDateChange={setReminderDate}
-                      onTimeChange={setReminderTime}
-                    />
-                  </Show>
+                  <Show when={!editorFullscreen()}>{recordExtras()}</Show>
                 </div>
 
                 <Show when={viewingPreviousRevision()}>

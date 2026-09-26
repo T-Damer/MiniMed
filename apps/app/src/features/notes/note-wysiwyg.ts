@@ -15,6 +15,9 @@ export interface NoteWysiwygOptions {
   readonly initialValue: string;
   readonly editable: () => boolean;
   readonly onChange: (markdown: string) => void;
+  /** Hint shown while the document is empty. */
+  readonly placeholder?: string;
+  readonly autofocus?: boolean;
 }
 
 export interface NoteWysiwygActiveState {
@@ -122,6 +125,10 @@ const highlightInputRule = $inputRule(() => {
   });
 });
 
+function markEmpty(surface: Element, markdown: string): void {
+  surface.classList.toggle('note-markdown-wysiwyg__surface--empty', markdown.trim() === '');
+}
+
 export async function createNoteWysiwyg(options: NoteWysiwygOptions): Promise<NoteWysiwyg> {
   const [
     { Editor, rootCtx, defaultValueCtx, editorViewOptionsCtx, editorViewCtx, serializerCtx },
@@ -159,11 +166,15 @@ export async function createNoteWysiwyg(options: NoteWysiwygOptions): Promise<No
         attributes: {
           class: 'note-markdown-wysiwyg__surface',
           'aria-label': options.label,
+          'data-placeholder': options.placeholder ?? 'Начните писать…',
         },
       }));
       ctx
         .get(listenerCtx)
-        .markdownUpdated((_ctx, markdown) => options.onChange(markdown))
+        .markdownUpdated((listenerCtxValue, markdown) => {
+          markEmpty(listenerCtxValue.get(editorViewCtx).dom, markdown);
+          options.onChange(markdown);
+        })
         .blur((listenerCtxValue) => {
           const view = listenerCtxValue.get(editorViewCtx);
           options.onChange(listenerCtxValue.get(serializerCtx)(view.state.doc));
@@ -185,6 +196,9 @@ export async function createNoteWysiwyg(options: NoteWysiwygOptions): Promise<No
     .use(highlightCommand)
     .use(highlightInputRule)
     .create();
+  const view = editor.ctx.get(editorViewCtx);
+  markEmpty(view.dom, options.initialValue);
+  if (options.autofocus) view.focus();
 
   let destroyed = false;
   const result: NoteWysiwyg = {

@@ -754,3 +754,22 @@ body:has(.note-markdown-editor--fullscreen) {
     text-decoration: underline;
   }
 }
+
+.note-markdown-wysiwyg__surface {
+  position: relative;
+}
+
+/* Overlay hint: ProseMirror keeps one empty paragraph, so the text sits on top of it. */
+.note-markdown-wysiwyg__surface--empty::before {
+  position: absolute;
+  inset: 0.65rem 0.875rem auto;
+  color: var(--theme-text-faint, var(--theme-text-muted));
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+/* The text owns the screen; tags above and pictures/reminder below stay compact. */
+.note-markdown-editor__fullscreen-content {
+  min-height: 50dvh;
+  margin-block: 0.5rem 1rem;
+}

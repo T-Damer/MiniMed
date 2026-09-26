@@ -98,6 +98,13 @@ interface NoteMarkdownEditorProps {
   /** Where «Назад» leads from the full-screen editor; without it, back only leaves full screen. */
   readonly onExitFullscreen?: () => void;
   readonly exitFullscreenLabel?: string;
+  /** Lets the host hide what lies under the full-screen editor from focus and assistive tech. */
+  readonly onFullscreenChange?: (fullscreen: boolean) => void;
+  /** Record metadata shown above and below the text while editing full screen. */
+  readonly fullscreenHeader?: () => JSX.Element;
+  /** Put the caret into the text as soon as the editor opens (a brand-new record). */
+  readonly autofocus?: boolean;
+  readonly fullscreenFooter?: () => JSX.Element;
   readonly disabled?: boolean;
 }
 
@@ -196,6 +203,7 @@ interface WysiwygFieldProps {
   readonly onReady: (instance: NoteWysiwyg | null) => void;
   readonly onInput?: () => void;
   readonly onKeyDown?: (event: KeyboardEvent) => void;
+  readonly autofocus?: boolean;
 }
 
 function WysiwygField(props: WysiwygFieldProps): JSX.Element {
@@ -242,6 +250,7 @@ function WysiwygField(props: WysiwygFieldProps): JSX.Element {
       initialValue: props.initialValue,
       editable: () => !props.disabled,
       onChange: (markdown) => props.onChange(markdown),
+      ...(props.autofocus ? { autofocus: true } : {}),
     })
       .then((created) => {
         if (disposed) {
@@ -318,6 +327,9 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       currentHistoryState && typeof currentHistoryState === 'object' ? currentHistoryState : {};
     window.history.replaceState({ ...nextHistoryState, noteFullscreen: enabled }, '', nextHash);
   };
+
+  createEffect(() => props.onFullscreenChange?.(fullscreen()));
+  onCleanup(() => props.onFullscreenChange?.(false));
 
   const chrome = useDocumentReaderChrome({
     sectionSelector:
@@ -1181,6 +1193,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
         fallback={<SafeMarkdown class="note-markdown-editor__readonly-preview" markdown={text()} />}
       >
         <WysiwygField
+          autofocus={Boolean(props.autofocus) && variant === 'fullscreen'}
           label={props.label}
           initialValue={text()}
           latest={() => text()}
@@ -1297,7 +1310,7 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
         setSearchOpen(false);
         return true;
       }}
-      breadcrumbs={<AppBreadcrumbs items={[{ label: fullscreenTitle() ?? 'Без названия' }]} />}
+      breadcrumbs={<AppBreadcrumbs items={[{ label: fullscreenTitle() ?? 'Новая запись' }]} />}
       headerSearchSlot={
         <div class="note-markdown-editor__header-actions">
           <Show
@@ -1357,7 +1370,9 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
           <Show when={fullscreenTitle()}>
             {(title) => <h1 class="document-overlay-paper__title">{title()}</h1>}
           </Show>
+          {props.fullscreenHeader?.()}
           <div class="note-markdown-editor__fullscreen-content">{wysiwygEditor('fullscreen')}</div>
+          {props.fullscreenFooter?.()}
         </article>
       }
     />
