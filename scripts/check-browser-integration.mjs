@@ -440,6 +440,16 @@ const checks = [
       files.diary.includes('variant="danger"'),
   ],
   [
+    'diary QR photos and camera lifecycle are bounded',
+    files.diaryPanel.includes('const MAX_QR_PHOTOS = 40') &&
+      files.diaryPanel.includes('const MAX_QR_PHOTO_BYTES = 20 * 1024 * 1024') &&
+      files.diaryPanel.includes('bitmap?.close()') &&
+      files.diaryPanel.includes('let disposed = false') &&
+      files.diaryPanel.includes('if (disposed) {') &&
+      files.diaryPanel.includes('video.srcObject = null') &&
+      files.diaryPanel.includes('disabled={startingCamera()}'),
+  ],
+  [
     'diary shared controls',
     files.diaryPanel.includes('<TextField') &&
       files.diaryPanel.includes('<TextArea') &&
