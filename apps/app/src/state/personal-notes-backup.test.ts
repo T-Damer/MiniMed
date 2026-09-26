@@ -216,6 +216,101 @@ describe('portable personal-notes backup', () => {
     expect(env.local.getItem('minimed.patient-note-revisions.v1')).toBeNull();
   });
 
+  it('exports one card and imports it without replacing unrelated cards', async () => {
+    const env = installEnvironment();
+    const twoCards = {
+      cards: [
+        snapshot.cards[0],
+        {
+          id: 'card-2',
+          title: 'Пациент Б',
+          summary: 'Оставить без изменений',
+          createdAt: '2026-09-26T06:00:00.000Z',
+          updatedAt: '2026-09-26T06:30:00.000Z',
+        },
+      ],
+      notes: [
+        snapshot.notes[0],
+        {
+          id: 'note-2',
+          cardId: 'card-2',
+          parentNoteId: null,
+          title: 'Другая запись',
+          text: 'Не менять',
+          createdAt: '2026-09-26T06:10:00.000Z',
+          updatedAt: '2026-09-26T06:20:00.000Z',
+          categories: ['Общее'],
+          relatedDocumentIds: [],
+        },
+      ],
+    };
+    env.local.setItem('minimed.patient-notes.v1', JSON.stringify(twoCards));
+    env.files.set('file-audio', {
+      id: 'file-audio',
+      noteId: 'note-1',
+      name: 'приём.webm',
+      mimeType: 'audio/webm',
+      size: 3,
+      blob: new Blob([new Uint8Array([1, 2, 3])], { type: 'audio/webm' }),
+      createdAt: '2026-09-26T07:20:00.000Z',
+    });
+    env.files.set('file-other', {
+      id: 'file-other',
+      noteId: 'note-2',
+      name: 'другой.txt',
+      mimeType: 'text/plain',
+      size: 1,
+      blob: new Blob([new Uint8Array([9])], { type: 'text/plain' }),
+      createdAt: '2026-09-26T06:25:00.000Z',
+    });
+
+    const { exportPersonalNotesCardBackup, importPersonalNotesBackup } = await import(
+      './personal-notes-backup'
+    );
+    const backup = await exportPersonalNotesCardBackup('card-1');
+
+    expect(backup.scope).toEqual({ kind: 'card', cardId: 'card-1' });
+    expect(backup.snapshot.cards.map((card) => card.id)).toEqual(['card-1']);
+    expect(backup.snapshot.notes.map((note) => note.id)).toEqual(['note-1']);
+    expect(backup.files.map((file) => file.id)).toEqual(['file-audio']);
+
+    env.local.setItem(
+      'minimed.patient-notes.v1',
+      JSON.stringify({
+        cards: [
+          {
+            ...snapshot.cards[0],
+            title: 'Старая версия карточки А',
+          },
+          twoCards.cards[1],
+        ],
+        notes: [
+          {
+            ...snapshot.notes[0],
+            text: 'Старая версия записи А',
+          },
+          twoCards.notes[1],
+        ],
+      }),
+    );
+    env.files.delete('file-audio');
+
+    await importPersonalNotesBackup(backup);
+
+    const restored = JSON.parse(env.local.getItem('minimed.patient-notes.v1') ?? '{}') as {
+      cards: Array<{ id: string; title: string }>;
+      notes: Array<{ id: string; text: string }>;
+    };
+    expect(restored.cards.find((card) => card.id === 'card-1')?.title).toBe('Пациент А');
+    expect(restored.cards.find((card) => card.id === 'card-2')?.title).toBe('Пациент Б');
+    expect(restored.notes.find((note) => note.id === 'note-1')?.text).toBe(
+      'Жалобы на бессонницу.',
+    );
+    expect(restored.notes.find((note) => note.id === 'note-2')?.text).toBe('Не менять');
+    expect(env.files.has('file-audio')).toBe(true);
+    expect(env.files.has('file-other')).toBe(true);
+  });
+
   it('rejects same-size attachment corruption before mutating current notes', async () => {
     const env = installEnvironment();
     env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
