@@ -268,6 +268,7 @@ export async function loadNoteFilesForNotes(
 }
 
 export async function deleteNoteFile(fileId: string): Promise<void> {
+  await deleteTranscript(fileId);
   const database = await openDatabase();
   try {
     await new Promise<void>((resolve, reject) => {
@@ -282,11 +283,11 @@ export async function deleteNoteFile(fileId: string): Promise<void> {
   }
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
-  await deleteTranscript(fileId);
 }
 
 export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promise<void> {
   if (noteIds.length === 0) return;
+  await deleteTranscriptsForNotes(noteIds);
   const database = await openDatabase();
   try {
     await new Promise<void>((resolve, reject) => {
@@ -308,7 +309,6 @@ export async function deleteNoteFilesForNotes(noteIds: readonly string[]): Promi
   }
   window.dispatchEvent(new Event(NOTE_FILES_EVENT));
   scheduleLibrarySync();
-  await deleteTranscriptsForNotes(noteIds);
 }
 
 /** Save a stored attachment back to the user's machine (web download). */
