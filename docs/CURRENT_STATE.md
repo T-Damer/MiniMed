@@ -48,9 +48,18 @@
 - Notes UI validates/parses the selected JSON before showing the destructive confirmation and displays
   its card/note/file/image/transcript counts. Export/import actions live in a separate data menu rather
   than the create-note menu. Raw backup files above 512 MiB are rejected before parsing.
-- Unit coverage includes exact-ID round trip with audio bytes, image and edited speaker name,
-  same-size binary corruption rejected by SHA-256, and a transcript whose source audio is absent
-  rejected before mutation. Patient-vault data is never read or replaced by this format.
+- Backup v1 also supports `scope: card` for handover. Each ordinary note card has an explicit export
+  action that serializes only that card and its files/images/transcripts. Importing a card backup
+  replaces or adds only that card; all unrelated cards remain unchanged, and note/file/image/transcript
+  ID collisions with another card are rejected before mutation. Legacy v1 backups without a scope are
+  read as full backups for compatibility with earlier branch exports.
+- Card wipe remains a separate destructive action and explicitly states that the card, nested notes,
+  files, images and transcripts are removed. The existing retention journal makes that cascade
+  retryable across browser restarts.
+- Unit coverage includes exact-ID full round trip with audio bytes, image and edited speaker name,
+  same-size binary corruption rejected by SHA-256, missing transcript source-audio rejection, scoped
+  card round trip preserving unrelated data and working drafts, plus cross-card ID-conflict rejection.
+  Patient-vault data is never read or replaced by this format.
 
 ## Browser voice transcription — 2026-09-25
 
