@@ -19,6 +19,7 @@ import {
   replacePatientNotesSnapshot,
 } from '@/state/patient-notes';
 import {
+  deleteTranscript,
   loadTranscriptsForNotes,
   type NoteTranscript,
   parseRestoredTranscript,
@@ -374,11 +375,37 @@ async function capturePersonalNotesState(): Promise<PersonalNotesState> {
     loadNoteImagesForNotes(noteIds),
     loadTranscriptsForNotes(noteIds),
   ]);
+  const files = flatten(noteIds, fileGroups);
+  const audioById = new Map(
+    files
+      .filter((file) => file.mimeType.startsWith('audio/'))
+      .map((file) => [file.id, file] as const),
+  );
+  const transcripts = flatten(noteIds, transcriptGroups);
+  const linkedTranscripts = transcripts.filter((transcript) => {
+    const audio = audioById.get(transcript.fileId);
+    return Boolean(audio && audio.noteId === transcript.noteId);
+  });
+  const orphanTranscripts = transcripts.filter(
+    (transcript) => !linkedTranscripts.includes(transcript),
+  );
+  if (orphanTranscripts.length > 0) {
+    void Promise.allSettled(
+      orphanTranscripts.map((transcript) => deleteTranscript(transcript.fileId)),
+    ).then((results) => {
+      const rejected = results.filter((result) => result.status === 'rejected').length;
+      if (rejected > 0) {
+        console.warn(
+          `Не удалось удалить ${rejected} устаревших расшифровок без исходного аудиофайла.`,
+        );
+      }
+    });
+  }
   return {
     snapshot,
-    files: flatten(noteIds, fileGroups),
+    files,
     images: flatten(noteIds, imageGroups),
-    transcripts: flatten(noteIds, transcriptGroups),
+    transcripts: linkedTranscripts,
   };
 }
 
