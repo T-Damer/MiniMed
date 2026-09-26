@@ -29,6 +29,29 @@
   A full browser
   `tsc/vitest/vite build` is still a pre-merge gate when a checkout/build environment is available.
 
+## Portable personal-notes backup — 2026-09-26
+
+- Personal notes now have their own plaintext JSON backup domain, deliberately separate from the
+  encrypted/optional-plaintext patient-vault backup. Schema v1 includes stable card/note ids,
+  arbitrary note files, note images and transcript records including edited speaker labels.
+- Binary note files retain their exact ids and carry declared size plus SHA-256. Import decodes and
+  verifies all binaries and every cross-store link (card→note, file/image→note,
+  transcript→source-audio) before changing durable state. Duplicate ids, note hierarchy cycles,
+  missing parents and transcript/audio mismatches are rejected.
+- Import is a full replacement of the personal-notes domain. It snapshots the current durable state
+  first and attempts rollback if a later store replacement fails. Active transcription jobs are
+  quiesced before transcript-store replacement. Restored queued/running transcript records become
+  explicit retryable failures instead of pretending an inference job survived the backup.
+- Backup v1 intentionally excludes ephemeral editor drafts and the single previous-revision recovery
+  slot. A successful import clears those stale local recovery records so an imported note cannot
+  reopen with text from the previous device state; rejected imports leave them untouched.
+- Notes UI validates/parses the selected JSON before showing the destructive confirmation and displays
+  its card/note/file/image/transcript counts. Export/import actions live in a separate data menu rather
+  than the create-note menu. Raw backup files above 512 MiB are rejected before parsing.
+- Unit coverage includes exact-ID round trip with audio bytes, image and edited speaker name,
+  same-size binary corruption rejected by SHA-256, and a transcript whose source audio is absent
+  rejected before mutation. Patient-vault data is never read or replaced by this format.
+
 ## Browser voice transcription — 2026-09-25
 
 - Browser voice notes use MediaRecorder with a 64 kbit/s target, one-second chunks and a 10-minute
