@@ -16,7 +16,7 @@ export const THUMBNAIL_QUALITY = 0.7;
 const DATABASE_NAME = 'minimed-note-images-v1';
 const DATABASE_VERSION = 2;
 const STORE_NAME = 'images';
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
+export const MAX_NOTE_IMAGE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(['image/gif', 'image/jpeg', 'image/png', 'image/webp']);
 
 const listImageCache = new Map<string, ReadonlyMap<string, readonly NoteImage[]>>();
@@ -143,7 +143,7 @@ function validateFile(file: File): void {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
     throw new Error('Поддерживаются изображения JPEG, PNG, WebP и GIF.');
   }
-  if (file.size > MAX_IMAGE_BYTES) {
+  if (file.size > MAX_NOTE_IMAGE_BYTES) {
     throw new Error('Размер одного изображения не должен превышать 8 МБ.');
   }
 }
