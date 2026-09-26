@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Display;
+import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import androidx.core.content.pm.PackageInfoCompat;
@@ -20,22 +21,39 @@ public class MainActivity extends BridgeActivity {
     private static final String WEB_ASSET_CACHE_PREFS = "LocalMedWebAssetCache";
     private static final String WEB_ASSET_CACHE_VERSION = "version";
 
+    /** The fastest mode with the current physical resolution, so the resolution never changes. */
+    static Display.Mode fastestModeAtCurrentResolution(Display display) {
+        Display.Mode current = display.getMode();
+        Display.Mode fastest = current;
+        for (Display.Mode mode : display.getSupportedModes()) {
+            if (mode.getPhysicalWidth() == current.getPhysicalWidth()
+                    && mode.getPhysicalHeight() == current.getPhysicalHeight()
+                    && mode.getRefreshRate() > fastest.getRefreshRate()) {
+                fastest = mode;
+            }
+        }
+        return fastest;
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        Display display = getWindowManager().getDefaultDisplay();
-        Display.Mode current = display.getMode();
-        float refreshRate = current.getRefreshRate();
-        for (Display.Mode mode : display.getSupportedModes()) {
-            if (mode.getPhysicalWidth() == current.getPhysicalWidth()
-                    && mode.getPhysicalHeight() == current.getPhysicalHeight()) {
-                refreshRate = Math.max(refreshRate, mode.getRefreshRate());
+        Display.Mode fastest = fastestModeAtCurrentResolution(getWindowManager().getDefaultDisplay());
+        // Preferences only: Android keeps battery, thermal and user-policy limits. Some vendor
+        // policies (observed on HyperOS) ignore preferredRefreshRate but honour an explicit mode.
+        WindowManager.LayoutParams attributes = getWindow().getAttributes();
+        attributes.preferredRefreshRate = fastest.getRefreshRate();
+        attributes.preferredDisplayModeId = fastest.getModeId();
+        getWindow().setAttributes(attributes);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            // Android 15 adaptive refresh: ask for the high category instead of letting an idle
+            // WebView be classified as a low-rate surface, and opt out of power-saving lowering.
+            getWindow().setFrameRatePowerSavingsBalanced(false);
+            WebView webView = getBridge() == null ? null : getBridge().getWebView();
+            if (webView != null) {
+                webView.setRequestedFrameRate(View.REQUESTED_FRAME_RATE_CATEGORY_HIGH);
             }
         }
-        // A preference only: Android retains battery, thermal and user-policy limits.
-        WindowManager.LayoutParams attributes = getWindow().getAttributes();
-        attributes.preferredRefreshRate = refreshRate;
-        getWindow().setAttributes(attributes);
     }
 
     private boolean shouldClearWebAssetCache() {

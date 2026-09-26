@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class RefreshRateTest {
     @Test
-    public void requestsHighestRefreshRateWithoutChoosingResolution() {
+    public void requestsFastestModeAtTheCurrentResolution() {
         try (ActivityScenario<MainActivity> app = ActivityScenario.launch(MainActivity.class)) {
             app.onActivity(activity -> {
                 Display display = activity.getWindowManager().getDefaultDisplay();
@@ -25,7 +25,15 @@ public class RefreshRateTest {
                 }
                 assertEquals(expected,
                         activity.getWindow().getAttributes().preferredRefreshRate, 0.01f);
-                assertEquals(0, activity.getWindow().getAttributes().preferredDisplayModeId);
+                int modeId = activity.getWindow().getAttributes().preferredDisplayModeId;
+                Display.Mode selected = null;
+                for (Display.Mode mode : display.getSupportedModes()) {
+                    if (mode.getModeId() == modeId) selected = mode;
+                }
+                // The chosen mode keeps the physical resolution; only the refresh rate differs.
+                assertEquals(current.getPhysicalWidth(), selected.getPhysicalWidth());
+                assertEquals(current.getPhysicalHeight(), selected.getPhysicalHeight());
+                assertEquals(expected, selected.getRefreshRate(), 0.01f);
             });
         }
     }
