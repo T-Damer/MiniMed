@@ -267,6 +267,47 @@ export async function loadNoteFilesForNotes(
   return loadByNoteIds(noteIds);
 }
 
+export async function replaceAllNoteFiles(records: readonly NoteFile[]): Promise<void> {
+  if (!('indexedDB' in globalThis) || !indexedDB) {
+    if (records.length === 0) return;
+    throw new Error('Хранилище файлов недоступно.');
+  }
+  const ids = new Set<string>();
+  for (const record of records) {
+    if (!record.id || !record.noteId || !record.name || !record.mimeType) {
+      throw new Error('Backup содержит повреждённое вложение.');
+    }
+    if (ids.has(record.id)) throw new Error('ID вложений в backup должны быть уникальны.');
+    if (!(record.blob instanceof Blob) || record.blob.size !== record.size || record.size <= 0) {
+      throw new Error(`Размер вложения «${record.name}» не совпадает с backup.`);
+    }
+    if (record.size > MAX_NOTE_FILE_BYTES) {
+      throw new Error(`Файл «${record.name}» больше 64 МБ.`);
+    }
+    ids.add(record.id);
+  }
+
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      store.clear();
+      for (const record of records) store.put(record);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось восстановить вложения.'));
+      transaction.onabort = () =>
+        reject(transaction.error ?? new Error('Восстановление вложений отменено.'));
+    });
+  } finally {
+    database.close();
+  }
+  invalidateNoteFileCache();
+  window.dispatchEvent(new Event(NOTE_FILES_EVENT));
+  scheduleLibrarySync();
+}
+
 export async function deleteNoteFile(fileId: string): Promise<void> {
   await deleteTranscript(fileId);
   const database = await openDatabase();
