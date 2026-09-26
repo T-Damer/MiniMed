@@ -27,6 +27,8 @@ import { PatientVaultUnlock } from '@/components/PatientVaultUnlock';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
+import { TextArea } from '@/components/TextArea';
+import { TextField } from '@/components/TextField';
 import { PatientDiaryPanel } from '@/features/diary/PatientDiaryPanel';
 import type { NotesRoute } from '@/features/notes/notes-routing';
 import { notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
@@ -373,32 +375,29 @@ function NewPatientForm(props: {
             setAvatar(value);
           }}
         />
-        <label class="patient-workspace__field">
-          <span class="patient-workspace__label">Имя или псевдоним</span>
-          <input
-            class="patient-workspace__control"
-            value={name()}
-            onInput={(event) => setName(event.currentTarget.value)}
-            required
-          />
-        </label>
-        <label class="patient-workspace__field">
-          <span class="patient-workspace__label">Номер карты (необязательно)</span>
-          <input
-            class="patient-workspace__control"
-            value={recordNumber()}
-            onInput={(event) => setRecordNumber(event.currentTarget.value)}
-          />
-        </label>
-        <label class="patient-workspace__field">
-          <span class="patient-workspace__label">Дата рождения</span>
-          <input
-            class="patient-workspace__control"
-            type="date"
-            value={birthDate()}
-            onInput={(event) => setBirthDate(event.currentTarget.value)}
-          />
-        </label>
+        <TextField
+          class="patient-workspace__field"
+          inputClass="patient-workspace__control"
+          label="Имя или псевдоним"
+          value={name()}
+          onInput={(event) => setName(event.currentTarget.value)}
+          required
+        />
+        <TextField
+          class="patient-workspace__field"
+          inputClass="patient-workspace__control"
+          label="Номер карты (необязательно)"
+          value={recordNumber()}
+          onInput={(event) => setRecordNumber(event.currentTarget.value)}
+        />
+        <TextField
+          class="patient-workspace__field"
+          inputClass="patient-workspace__control"
+          label="Дата рождения"
+          type="date"
+          value={birthDate()}
+          onInput={(event) => setBirthDate(event.currentTarget.value)}
+        />
         <label class="patient-workspace__field">
           <span class="patient-workspace__label">Биологический пол</span>
           <select
@@ -416,28 +415,26 @@ function NewPatientForm(props: {
           </select>
         </label>
         <div class="patient-workspace__form-grid">
-          <label class="patient-workspace__field">
-            <span class="patient-workspace__label">Масса, кг</span>
-            <input
-              class="patient-workspace__control"
-              type="number"
-              min="0"
-              step="0.01"
-              value={weight()}
-              onInput={(event) => setWeight(event.currentTarget.value)}
-            />
-          </label>
-          <label class="patient-workspace__field">
-            <span class="patient-workspace__label">Рост, см</span>
-            <input
-              class="patient-workspace__control"
-              type="number"
-              min="0"
-              step="0.1"
-              value={height()}
-              onInput={(event) => setHeight(event.currentTarget.value)}
-            />
-          </label>
+          <TextField
+            class="patient-workspace__field"
+            inputClass="patient-workspace__control"
+            label="Масса, кг"
+            type="number"
+            min="0"
+            step="0.01"
+            value={weight()}
+            onInput={(event) => setWeight(event.currentTarget.value)}
+          />
+          <TextField
+            class="patient-workspace__field"
+            inputClass="patient-workspace__control"
+            label="Рост, см"
+            type="number"
+            min="0"
+            step="0.1"
+            value={height()}
+            onInput={(event) => setHeight(event.currentTarget.value)}
+          />
         </div>
         <Show when={error()}>
           <p class="patient-workspace__error" role="alert">
@@ -638,45 +635,41 @@ function ManualEventForm(props: {
             </select>
           </label>
           <Show when={customMetric()}>
-            <label class="patient-workspace__field">
-              <span class="patient-workspace__label">Идентификатор пользовательского ряда</span>
-              <input
-                class="patient-workspace__control"
-                value={metricId()}
-                onInput={(event) => setMetricId(event.currentTarget.value)}
-                required
-              />
-            </label>
-            <label class="patient-workspace__field">
-              <span class="patient-workspace__label">Название пользовательского показателя</span>
-              <input
-                class="patient-workspace__control"
-                value={label()}
-                onInput={(event) => setLabel(event.currentTarget.value)}
-                required
-              />
-            </label>
-            <label class="patient-workspace__field">
-              <span class="patient-workspace__label">Единица пользовательского показателя</span>
-              <input
-                class="patient-workspace__control"
-                value={unit()}
-                onInput={(event) => setUnit(event.currentTarget.value)}
-                required
-              />
-            </label>
-          </Show>
-          <label class="patient-workspace__field">
-            <span class="patient-workspace__label">Значение</span>
-            <input
-              class="patient-workspace__control"
-              type="number"
-              step="any"
-              value={value()}
-              onInput={(event) => setValue(event.currentTarget.value)}
+            <TextField
+              class="patient-workspace__field"
+              inputClass="patient-workspace__control"
+              label="Идентификатор пользовательского ряда"
+              value={metricId()}
+              onInput={(event) => setMetricId(event.currentTarget.value)}
               required
             />
-          </label>
+            <TextField
+              class="patient-workspace__field"
+              inputClass="patient-workspace__control"
+              label="Название пользовательского показателя"
+              value={label()}
+              onInput={(event) => setLabel(event.currentTarget.value)}
+              required
+            />
+            <TextField
+              class="patient-workspace__field"
+              inputClass="patient-workspace__control"
+              label="Единица пользовательского показателя"
+              value={unit()}
+              onInput={(event) => setUnit(event.currentTarget.value)}
+              required
+            />
+          </Show>
+          <TextField
+            class="patient-workspace__field"
+            inputClass="patient-workspace__control"
+            label="Значение"
+            type="number"
+            step="any"
+            value={value()}
+            onInput={(event) => setValue(event.currentTarget.value)}
+            required
+          />
           <Show when={!customMetric()}>
             <span class="patient-workspace__field">
               <span class="patient-workspace__label">Единица</span>
@@ -685,27 +678,25 @@ function ManualEventForm(props: {
           </Show>
         </div>
         <Show when={kind() === 'laboratory'}>
-          <label class="patient-workspace__field">
-            <span class="patient-workspace__label">Референс с бланка</span>
-            <input
-              class="patient-workspace__control"
-              value={range()}
-              onInput={(event) => setRange(event.currentTarget.value)}
-              placeholder="Например: 3,5–5,5 ммоль/л"
-            />
-          </label>
+          <TextField
+            class="patient-workspace__field"
+            inputClass="patient-workspace__control"
+            label="Референс с бланка"
+            value={range()}
+            onInput={(event) => setRange(event.currentTarget.value)}
+            placeholder="Например: 3,5–5,5 ммоль/л"
+          />
         </Show>
       </Show>
       <Show when={kind() === 'medication'}>
-        <label class="patient-workspace__field">
-          <span class="patient-workspace__label">Препарат</span>
-          <input
-            class="patient-workspace__control"
-            value={medication()}
-            onInput={(event) => setMedication(event.currentTarget.value)}
-            required
-          />
-        </label>
+        <TextField
+          class="patient-workspace__field"
+          inputClass="patient-workspace__control"
+          label="Препарат"
+          value={medication()}
+          onInput={(event) => setMedication(event.currentTarget.value)}
+          required
+        />
         <label class="patient-workspace__field">
           <span class="patient-workspace__label">Событие лечения</span>
           <select
@@ -722,16 +713,15 @@ function ManualEventForm(props: {
           </select>
         </label>
       </Show>
-      <label class="patient-workspace__field">
-        <span class="patient-workspace__label">Дата</span>
-        <input
-          class="patient-workspace__control"
-          type="date"
-          value={date()}
-          onInput={(event) => setDate(event.currentTarget.value)}
-          required
-        />
-      </label>
+      <TextField
+        class="patient-workspace__field"
+        inputClass="patient-workspace__control"
+        label="Дата"
+        type="date"
+        value={date()}
+        onInput={(event) => setDate(event.currentTarget.value)}
+        required
+      />
       <Show when={error()}>
         <p class="patient-workspace__error" role="alert">
           {error()}
@@ -1095,8 +1085,11 @@ function PatientDetail(props: {
             </For>
           </div>
         </Show>
-        <textarea
-          class="patient-workspace__control"
+        <TextArea
+          class="patient-workspace__field"
+          textareaClass="patient-workspace__control"
+          label="Краткая запись осмотра"
+          hideLabel
           value={episodeText()}
           onInput={(event) => setEpisodeText(event.currentTarget.value)}
           placeholder="Краткая запись осмотра"
@@ -1180,18 +1173,17 @@ function PatientDetail(props: {
                           }
                         >
                           <div class="patient-workspace__event-revision">
-                            <label class="patient-workspace__event-revision-label">
-                              <span>Новое значение</span>
-                              <input
-                                class="patient-workspace__event-revision-input"
-                                type="number"
-                                step="any"
-                                value={revisionValue()}
-                                onInput={(inputEvent) =>
-                                  setRevisionValue(inputEvent.currentTarget.value)
-                                }
-                              />
-                            </label>
+                            <TextField
+                              class="patient-workspace__event-revision-label"
+                              inputClass="patient-workspace__event-revision-input"
+                              label="Новое значение"
+                              type="number"
+                              step="any"
+                              value={revisionValue()}
+                              onInput={(inputEvent) =>
+                                setRevisionValue(inputEvent.currentTarget.value)
+                              }
+                            />
                             <div class="patient-workspace__event-revision-actions">
                               <button
                                 type="button"
