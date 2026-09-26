@@ -37,7 +37,9 @@ const files = {
   patientWorkspaceCss: read('apps/app/src/styles/patient-workspace.css'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
   diaryCodec: read('apps/app/src/features/diary/diary-codec.ts'),
+  diaryStorage: read('apps/app/src/features/diary/diary-storage.ts'),
   diaryTests: read('apps/app/src/features/diary/diary.test.ts'),
+  diaryServiceWorker: read('apps/app/public/diary/sw.js'),
   diary: read('apps/app/src/diary/DiaryApp.tsx'),
   diaryMain: read('apps/app/src/diary/main.tsx'),
   vite: read('apps/app/vite.config.ts'),
@@ -418,6 +420,24 @@ const checks = [
       files.diaryCodec.includes('chunk.length > DIARY_QR_CHUNK') &&
       files.diaryTests.includes('rejects a compressed payload that expands beyond the diary JSON budget') &&
       files.diaryTests.includes('rejects an individual QR part larger than the advertised chunk size'),
+  ],
+  [
+    'diary storage recovers index and isolates corrupt records',
+    files.diaryStorage.includes('function scanDiaryIds(storage: Storage)') &&
+      files.diaryStorage.includes('Rebuild the navigation index from the source diary records') &&
+      files.diaryTests.includes('rebuilds a damaged index from valid diary records') &&
+      files.diaryTests.includes('keeps valid diaries visible when another local diary record is corrupt'),
+  ],
+  [
+    'diary service worker caches only static assets',
+    files.diaryServiceWorker.includes("STATIC_DESTINATIONS = new Set(['document', 'script', 'style', 'font', 'worker', 'image'])") &&
+      files.diaryServiceWorker.includes('!STATIC_DESTINATIONS.has(request.destination)'),
+  ],
+  [
+    'stored diary has explicit local deletion',
+    files.diary.includes('Удалить этот дневник и все его локальные записи с этого устройства?') &&
+      files.diary.includes('current.store.remove(diary.id)') &&
+      files.diary.includes('variant="danger"'),
   ],
   [
     'diary shared controls',
