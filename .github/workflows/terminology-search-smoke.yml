@@ -28,13 +28,13 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: '1.2.3'
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           version: '0.10.0'
       - name: Install locked dependencies without provider credentials
@@ -55,7 +55,7 @@ jobs:
             env -i PATH="$PATH" HOME="$HOME" CI=1 bunx playwright test apps/app/e2e/terminology.spec.ts --workers=1 --retries=0 --reporter=list
             env -i PATH="$PATH" HOME="$HOME" CI=1 bunx playwright test apps/app/e2e/search.spec.ts --grep 'toggles the document outline on desktop|renders ordinary lookup on a phone-sized' --workers=1 --retries=0 --reporter=list
           } 2>&1 | tee terminology-browser.log
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: terminology-search-reader-smoke
