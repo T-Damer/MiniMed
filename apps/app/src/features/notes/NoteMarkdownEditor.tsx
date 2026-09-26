@@ -95,6 +95,9 @@ interface NoteMarkdownEditorProps {
   ) => string | undefined | Promise<string | undefined>;
   readonly onRemoveRecording?: (file: File, ownerId: string, persistedFileId?: string) => void;
   readonly onOpenReminders?: () => void;
+  /** Where «Назад» leads from the full-screen editor; without it, back only leaves full screen. */
+  readonly onExitFullscreen?: () => void;
+  readonly exitFullscreenLabel?: string;
   readonly disabled?: boolean;
 }
 
@@ -1284,7 +1287,11 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
       chrome={chrome}
       searchOpen={searchOpen}
       chromeClassList={{ 'note-markdown-editor__chrome': true }}
-      onBack={() => setFullscreen(false)}
+      onBack={() => {
+        setFullscreen(false);
+        props.onExitFullscreen?.();
+      }}
+      {...(props.exitFullscreenLabel ? { backLabel: props.exitFullscreenLabel } : {})}
       onBackIntercept={() => {
         if (!searchOpen()) return false;
         setSearchOpen(false);

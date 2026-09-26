@@ -8,6 +8,8 @@ for (const viewport of [
     page,
   }, testInfo) => {
     await page.setViewportSize(viewport);
+    // This suite covers the boot screen itself; onboarding has separate coverage.
+    await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
     let releaseCore = () => {};
     const coreGate = new Promise<void>((resolve) => {
       releaseCore = resolve;

@@ -50,6 +50,8 @@ export async function mountBuiltApp(page: Page, options: MountBuiltAppOptions = 
   // Existing route suites also qualify the retained six-section layout. New unified-navigation
   // cases opt out of this preference and exercise the application's actual default.
   const initialStorage = {
+    // Route suites test the app behind onboarding; the setup screen has its own coverage.
+    'minimed:package-setup-dismissed:v1': '1',
     ...(options.splitNavigation === false
       ? {}
       : {

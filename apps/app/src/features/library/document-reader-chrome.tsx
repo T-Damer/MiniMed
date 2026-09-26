@@ -335,6 +335,8 @@ export interface DocumentReaderChromeShellProps {
   readonly trail?: DocumentTrail | null;
   readonly onNavigate?: (href: string) => void;
   readonly onBack?: () => void;
+  /** Accessible name of the back control; defaults to «Назад». */
+  readonly backLabel?: string;
   /** Return true to consume the back press (e.g. exit an inline mode first). */
   readonly onBackIntercept?: () => boolean;
   readonly breadcrumbs: JSX.Element;
@@ -501,7 +503,7 @@ export function DocumentReaderChromeShell(props: DocumentReaderChromeShellProps)
           >
             <NavBack
               class="document-page__back"
-              aria-label={searchOpen() ? 'Закрыть поиск' : 'Назад'}
+              aria-label={searchOpen() ? 'Закрыть поиск' : (props.backLabel ?? 'Назад')}
               onClick={handleBack}
               icon={
                 <AppGlyph

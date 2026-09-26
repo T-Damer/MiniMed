@@ -43,8 +43,12 @@ test('patient list has a safe sticky header, local search, and grouped actions',
 
   await page.getByRole('button', { name: 'Действия с пациентами' }).click();
   await expect(page.getByRole('menuitem', { name: 'Заблокировать', exact: true })).toBeVisible();
-  await expect(page.getByRole('menuitem', { name: 'Экспорт backup', exact: true })).toBeVisible();
-  await expect(page.getByRole('menuitem', { name: 'Импорт backup', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('menuitem', { name: 'Экспорт карточек пациентов', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('menuitem', { name: 'Импорт карточек пациентов', exact: true }),
+  ).toBeVisible();
   await expect(page.getByRole('menuitem', { name: 'Удалить всё', exact: true })).toBeVisible();
   await page.keyboard.press('Escape');
 

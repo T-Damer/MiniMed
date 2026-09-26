@@ -1,8 +1,11 @@
 import {
+  type DiaryEntry,
+  type DiaryField,
+  type DiaryInvitation,
+  type DiaryPlanValue,
   type DiaryResults,
-  GLUCOSE_CONTEXT_LABEL,
-  isBloodPressureEntry,
-  isGlucoseEntry,
+  describeDiaryValue,
+  planItem,
 } from '@/features/diary/diary-model';
 import {
   appendEvent,
@@ -15,60 +18,49 @@ import {
 /** Marks every imported observation as patient-reported rather than measured by the doctor. */
 export const DIARY_OBSERVATION_METHOD = 'Дневник пациента';
 
-const GLUCOSE_METRIC = {
-  metricId: 'capillary-glucose',
-  label: 'Глюкоза (глюкометр)',
-  unit: 'ммоль/л',
-} as const;
-
-interface MeasurementInput {
-  readonly metricId: string;
-  readonly label: string;
-  readonly unit: string;
-  readonly value: number;
+function isPlanValue(value: unknown): value is DiaryPlanValue {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function measurementEvent(
-  base: {
-    readonly id: string;
-    readonly patientId: string;
-    readonly episodeId?: string;
-    readonly occurredAt: string;
-    readonly title: string;
-    readonly method: string;
-    readonly text?: string;
-  },
-  measurements: readonly MeasurementInput[],
-): PatientEvent {
-  const observations = measurements.map(
-    (measurement): PatientObservation => ({
-      id: `${base.id}-${measurement.metricId}`,
-      patientId: base.patientId,
-      eventId: base.id,
-      metricId: measurement.metricId,
-      value: measurement.value,
-      unit: measurement.unit,
-      observedAt: base.occurredAt,
-      method: base.method,
-      source: { kind: 'manual', label: measurement.label, metricVersion: '1' },
-    }),
+function observationsFor(
+  invitation: DiaryInvitation,
+  entry: DiaryEntry,
+  eventId: string,
+  patientId: string,
+): PatientObservation[] {
+  return invitation.fields.flatMap((field): PatientObservation[] => {
+    const value = entry.values[field.id];
+    if (field.type !== 'number' || !field.metric || typeof value !== 'number') return [];
+    const unit = field.metric.unit ?? field.unit ?? '';
+    return [
+      {
+        id: `${eventId}-${field.metric.metricId}`,
+        patientId,
+        eventId,
+        metricId: field.metric.metricId,
+        value: Math.round(value * (field.metric.factor ?? 1) * 1000) / 1000,
+        unit,
+        observedAt: entry.at,
+        method: DIARY_OBSERVATION_METHOD,
+        source: { kind: 'manual', label: field.metric.label, metricVersion: '1' },
+      },
+    ];
+  });
+}
+
+function isTrackedPlan(field: DiaryField, value: unknown): value is DiaryPlanValue {
+  return (
+    field.type === 'plan' &&
+    field.trackDone === true &&
+    isPlanValue(value) &&
+    value.done !== undefined
   );
-  return {
-    id: base.id,
-    patientId: base.patientId,
-    ...(base.episodeId ? { episodeId: base.episodeId } : {}),
-    kind: 'manual-measurement',
-    occurredAt: base.occurredAt,
-    title: base.title,
-    ...(base.text ? { text: base.text } : {}),
-    observations,
-    immutable: false,
-  };
 }
 
 /**
- * Patient events for a scanned diary. Event ids derive from the diary and entry ids, so scanning
- * the same codes twice cannot duplicate records.
+ * Patient events for a scanned diary. Measurements become card observations, a tracked
+ * medicine intake becomes a medication event, everything else is kept verbatim as text.
+ * Event ids derive from the diary, entry and field ids, so rescanning cannot duplicate records.
  */
 export function diaryImportEvents(
   results: DiaryResults,
@@ -77,70 +69,79 @@ export function diaryImportEvents(
 ): readonly PatientEvent[] {
   const { invitation } = results;
   const episode = episodeId ? { episodeId } : {};
-  return results.entries.map((entry): PatientEvent => {
+  return results.entries.flatMap((entry): PatientEvent[] => {
     const id = `diary-${invitation.id}-${entry.id}`;
-    const common = { id, patientId, ...episode, occurredAt: entry.at };
-    if (isBloodPressureEntry(entry)) {
-      return measurementEvent(
-        {
-          ...common,
-          title: 'Давление (дневник пациента)',
-          method: DIARY_OBSERVATION_METHOD,
-          ...(entry.note ? { text: entry.note } : {}),
-        },
-        [
-          {
-            metricId: 'blood-pressure-systolic',
-            label: 'Давление: систолическое',
-            unit: 'мм рт. ст.',
-            value: entry.systolic,
-          },
-          {
-            metricId: 'blood-pressure-diastolic',
-            label: 'Давление: диастолическое',
-            unit: 'мм рт. ст.',
-            value: entry.diastolic,
-          },
-          ...(entry.pulse === undefined
-            ? []
-            : [{ metricId: 'pulse', label: 'Пульс', unit: 'уд/мин', value: entry.pulse }]),
-        ],
-      );
-    }
-    if (isGlucoseEntry(entry)) {
-      return measurementEvent(
-        {
-          ...common,
-          title: 'Глюкоза (дневник пациента)',
-          method: `${DIARY_OBSERVATION_METHOD}, ${GLUCOSE_CONTEXT_LABEL[entry.context]}`,
-          ...(entry.note ? { text: entry.note } : {}),
-        },
-        [{ ...GLUCOSE_METRIC, value: entry.mmol }],
-      );
-    }
-    const medication = invitation.medications?.[entry.medication];
-    const name = medication?.name ?? 'Препарат';
-    const details = [medication?.dose, entry.note].filter(Boolean).join('. ');
-    if (entry.taken) {
-      return createMedicationEvent({
-        ...common,
-        medicationKind: 'take',
-        title: name,
-        text: ['Приём отмечен пациентом в дневнике', details].filter(Boolean).join('. '),
+    const observations = observationsFor(invitation, entry, id, patientId);
+    const measured = new Set(
+      invitation.fields.filter((field) => field.metric).map((field) => field.id),
+    );
+    const textLines = invitation.fields.flatMap((field) => {
+      const value = entry.values[field.id];
+      if (value === undefined || measured.has(field.id) || isTrackedPlan(field, value)) return [];
+      return [describeDiaryValue(invitation, field, value)];
+    });
+    const text = [...textLines, entry.note].filter(Boolean).join('. ');
+    const events: PatientEvent[] = [];
+    if (observations.length > 0) {
+      events.push({
+        id,
+        patientId,
+        ...episode,
+        kind: 'manual-measurement',
+        occurredAt: entry.at,
+        title: `${invitation.title} (дневник пациента)`,
+        ...(text ? { text } : {}),
+        observations,
+        immutable: false,
+      });
+    } else if (text) {
+      events.push({
+        id,
+        patientId,
+        ...episode,
+        kind: 'note',
+        occurredAt: entry.at,
+        title: `${invitation.title} (дневник пациента)`,
+        text,
+        observations: [],
+        immutable: false,
       });
     }
-    // A missed dose is not an intake; keep it as an explicit text event.
-    return {
-      id,
-      patientId,
-      ...episode,
-      kind: 'note',
-      occurredAt: entry.at,
-      title: `Пропущен приём: ${name}`,
-      text: ['Отмечено пациентом в дневнике', details].filter(Boolean).join('. '),
-      observations: [],
-      immutable: false,
-    };
+    for (const field of invitation.fields) {
+      const value = entry.values[field.id];
+      if (!isTrackedPlan(field, value)) continue;
+      const item = planItem(invitation, value.item);
+      const name = item?.name ?? value.other ?? field.label;
+      const details = [item?.dose, entry.note].filter(Boolean).join('. ');
+      const eventId = `${id}-${field.id}`;
+      if (value.done) {
+        events.push(
+          createMedicationEvent({
+            id: eventId,
+            patientId,
+            ...episode,
+            occurredAt: entry.at,
+            medicationKind: 'take',
+            title: name,
+            text: ['Приём отмечен пациентом в дневнике', details].filter(Boolean).join('. '),
+          }),
+        );
+      } else {
+        // A missed dose is not an intake; keep it as an explicit text event.
+        events.push({
+          id: eventId,
+          patientId,
+          ...episode,
+          kind: 'note',
+          occurredAt: entry.at,
+          title: `Пропущен приём: ${name}`,
+          text: ['Отмечено пациентом в дневнике', details].filter(Boolean).join('. '),
+          observations: [],
+          immutable: false,
+        });
+      }
+    }
+    return events;
   });
 }
 

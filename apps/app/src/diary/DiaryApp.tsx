@@ -2,22 +2,17 @@ import QRCode from 'qrcode';
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
 import { Button } from '@/components/Button';
-import { TextField } from '@/components/TextField';
+import { DiaryEntryForm } from '@/features/diary/DiaryEntryForm';
 import { encodeDiaryResults, readInvitationFragment } from '@/features/diary/diary-codec';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import {
-  BLOOD_PRESSURE_LIMITS,
-  createDiaryId,
-  DIARY_KIND_TITLE,
   type DiaryEntry,
   type DiaryInvitation,
   type DiaryResults,
   describeDiaryEntry,
-  GLUCOSE_CONTEXT_LABEL,
-  GLUCOSE_CONTEXTS,
-  type GlucoseContext,
   parseDiaryEntry,
 } from '@/features/diary/diary-model';
+import { diaryPrintHtml, printHtmlInFrame } from '@/features/diary/diary-print';
 import {
   createDiaryStore,
   type DiaryStore,
@@ -29,11 +24,6 @@ function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
 }
 
-function localDateTimeValue(date = new Date()): string {
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-}
-
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString('ru-RU', {
     day: 'numeric',
@@ -41,182 +31,6 @@ function formatDateTime(iso: string): string {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-function entryId(): string {
-  return createDiaryId().slice(0, 10);
-}
-
-function EntryForm(props: {
-  readonly invitation: DiaryInvitation;
-  readonly onAdd: (value: Record<string, unknown>) => void;
-}): JSX.Element {
-  const [at, setAt] = createSignal(localDateTimeValue());
-  const [systolic, setSystolic] = createSignal('');
-  const [diastolic, setDiastolic] = createSignal('');
-  const [pulse, setPulse] = createSignal('');
-  const [mmol, setMmol] = createSignal('');
-  const [context, setContext] = createSignal<GlucoseContext>('fasting');
-  const [note, setNote] = createSignal('');
-
-  const submit = (event: SubmitEvent): void => {
-    event.preventDefault();
-    const base = {
-      id: entryId(),
-      at: new Date(at()).toISOString(),
-      ...(note().trim() ? { note: note().trim() } : {}),
-    };
-    if (props.invitation.kind === 'blood-pressure') {
-      props.onAdd({
-        ...base,
-        systolic: Number(systolic()),
-        diastolic: Number(diastolic()),
-        ...(pulse().trim() ? { pulse: Number(pulse()) } : {}),
-      });
-      setSystolic('');
-      setDiastolic('');
-      setPulse('');
-    } else {
-      props.onAdd({ ...base, mmol: Number(mmol().replace(',', '.')), context: context() });
-      setMmol('');
-    }
-    setNote('');
-    setAt(localDateTimeValue());
-  };
-
-  return (
-    <form class="diary-form" onSubmit={submit}>
-      <Show
-        when={props.invitation.kind === 'blood-pressure'}
-        fallback={
-          <div class="diary-form__row">
-            <TextField
-              class="diary-form__field"
-              inputClass="diary-form__input"
-              label="Глюкоза, ммоль/л"
-              inputmode="decimal"
-              required
-              value={mmol()}
-              pattern="[0-9]+([.,][0-9])?"
-              onInput={(event) => setMmol(event.currentTarget.value)}
-            />
-            <label class="diary-form__field">
-              <span class="diary-form__label">Когда</span>
-              <select
-                class="diary-form__input"
-                value={context()}
-                onChange={(event) => setContext(event.currentTarget.value as GlucoseContext)}
-              >
-                <For each={GLUCOSE_CONTEXTS}>
-                  {(option) => <option value={option}>{GLUCOSE_CONTEXT_LABEL[option]}</option>}
-                </For>
-              </select>
-            </label>
-          </div>
-        }
-      >
-        <div class="diary-form__row">
-          <TextField
-            class="diary-form__field"
-            inputClass="diary-form__input"
-            label="Верхнее"
-            type="number"
-            inputmode="numeric"
-            required
-            min={BLOOD_PRESSURE_LIMITS.systolic[0]}
-            max={BLOOD_PRESSURE_LIMITS.systolic[1]}
-            value={systolic()}
-            onInput={(event) => setSystolic(event.currentTarget.value)}
-          />
-          <TextField
-            class="diary-form__field"
-            inputClass="diary-form__input"
-            label="Нижнее"
-            type="number"
-            inputmode="numeric"
-            required
-            min={BLOOD_PRESSURE_LIMITS.diastolic[0]}
-            max={BLOOD_PRESSURE_LIMITS.diastolic[1]}
-            value={diastolic()}
-            onInput={(event) => setDiastolic(event.currentTarget.value)}
-          />
-          <TextField
-            class="diary-form__field"
-            inputClass="diary-form__input"
-            label="Пульс"
-            type="number"
-            inputmode="numeric"
-            min={BLOOD_PRESSURE_LIMITS.pulse[0]}
-            max={BLOOD_PRESSURE_LIMITS.pulse[1]}
-            value={pulse()}
-            onInput={(event) => setPulse(event.currentTarget.value)}
-          />
-        </div>
-      </Show>
-      <div class="diary-form__row">
-        <TextField
-          class="diary-form__field"
-          inputClass="diary-form__input"
-          label="Дата и время"
-          type="datetime-local"
-          required
-          value={at()}
-          onInput={(event) => setAt(event.currentTarget.value)}
-        />
-      </div>
-      <TextField
-        class="diary-form__field"
-        inputClass="diary-form__input"
-        label="Комментарий"
-        maxLength={200}
-        value={note()}
-        placeholder="Например: болела голова"
-        onInput={(event) => setNote(event.currentTarget.value)}
-      />
-      <Button class="diary-button" type="submit" variant="primary">
-        Записать
-      </Button>
-    </form>
-  );
-}
-
-function MedicationButtons(props: {
-  readonly invitation: DiaryInvitation;
-  readonly onAdd: (value: Record<string, unknown>) => void;
-}): JSX.Element {
-  const mark = (medication: number, taken: boolean): void =>
-    props.onAdd({ id: entryId(), at: new Date().toISOString(), medication, taken });
-  return (
-    <ul class="diary-medications">
-      <For each={props.invitation.medications ?? []}>
-        {(medication, index) => (
-          <li class="diary-medications__item">
-            <div class="diary-medications__info">
-              <strong class="diary-medications__name">{medication.name}</strong>
-              <Show when={medication.dose || medication.schedule}>
-                <span class="diary-medications__dose">
-                  {[medication.dose, medication.schedule].filter(Boolean).join(' · ')}
-                </span>
-              </Show>
-            </div>
-            <div class="diary-medications__actions">
-              <Button
-                class="diary-button"
-                type="button"
-                variant="primary"
-                onClick={() => mark(index(), true)}
-              >
-                Принял сейчас
-              </Button>
-              <Button class="diary-button" type="button" onClick={() => mark(index(), false)}>
-                Пропустил
-              </Button>
-            </div>
-          </li>
-        )}
-      </For>
-    </ul>
-  );
 }
 
 function ShareCodes(props: {
@@ -327,10 +141,14 @@ function DiaryView(props: {
     setResults(next);
   };
 
-  const add = (value: Record<string, unknown>): void => {
+  const [editing, setEditing] = createSignal<DiaryEntry | null>(null);
+
+  const save = (value: Record<string, unknown>): void => {
     setError('');
     try {
-      commit(withEntry(results(), parseDiaryEntry(props.invitation, value)));
+      const entry = parseDiaryEntry(props.invitation, value);
+      commit(withEntry(withoutEntry(results(), entry.id), entry));
+      setEditing(null);
     } catch (cause) {
       setError(errorMessage(cause, 'Не удалось сохранить запись.'));
     }
@@ -348,7 +166,7 @@ function DiaryView(props: {
   return (
     <main class="diary-page">
       <header class="diary-header">
-        <h1 class="diary-header__title">{DIARY_KIND_TITLE[props.invitation.kind]}</h1>
+        <h1 class="diary-header__title">{props.invitation.title}</h1>
         <Show when={props.invitation.doctor}>
           <p class="diary-header__meta">Врач: {props.invitation.doctor}</p>
         </Show>
@@ -368,11 +186,37 @@ function DiaryView(props: {
         when={!sharing()}
         fallback={<ShareCodes results={results()} onClose={() => setSharing(false)} />}
       >
+        <Show when={props.invitation.plan?.length}>
+          <section class="diary-plan-list" aria-label="Назначение врача">
+            <h2 class="diary-entries__title">{props.invitation.planTitle ?? 'Назначение врача'}</h2>
+            <ul class="diary-plan-list__items">
+              <For each={props.invitation.plan ?? []}>
+                {(item) => (
+                  <li class="diary-plan-list__item">
+                    <strong class="diary-plan-list__name">{item.name}</strong>
+                    <Show when={item.dose || item.schedule}>
+                      <span class="diary-plan-list__detail">
+                        {[item.dose, item.schedule].filter(Boolean).join(' · ')}
+                      </span>
+                    </Show>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </section>
+        </Show>
         <Show
-          when={props.invitation.kind === 'medication'}
-          fallback={<EntryForm invitation={props.invitation} onAdd={add} />}
+          when={editing()}
+          fallback={<DiaryEntryForm invitation={props.invitation} onSave={save} />}
         >
-          <MedicationButtons invitation={props.invitation} onAdd={add} />
+          {(entry) => (
+            <DiaryEntryForm
+              invitation={props.invitation}
+              entry={entry()}
+              onSave={save}
+              onCancel={() => setEditing(null)}
+            />
+          )}
         </Show>
         <div class="diary-actions">
           <Button
@@ -392,6 +236,15 @@ function DiaryView(props: {
           >
             Сохранить файл
           </Button>
+          <Button
+            class="diary-button"
+            type="button"
+            onClick={() =>
+              printHtmlInFrame(diaryPrintHtml(props.invitation, results().entries, 10))
+            }
+          >
+            Распечатать
+          </Button>
         </div>
         <section class="diary-entries" aria-label="Записи">
           <h2 class="diary-entries__title">Записи: {results().entries.length}</h2>
@@ -406,15 +259,29 @@ function DiaryView(props: {
                   <Show when={entry.note}>
                     <span class="diary-entries__note">{entry.note}</span>
                   </Show>
-                  <Button
-                    class="diary-entries__remove"
-                    type="button"
-                    variant="quiet"
-                    aria-label="Удалить запись"
-                    onClick={() => remove(entry)}
-                  >
-                    ×
-                  </Button>
+                  <div class="diary-entries__actions">
+                    <Button
+                      class="diary-entries__edit"
+                      type="button"
+                      variant="quiet"
+                      aria-label="Изменить запись"
+                      onClick={() => {
+                        setEditing(entry);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                    >
+                      Изменить
+                    </Button>
+                    <Button
+                      class="diary-entries__remove"
+                      type="button"
+                      variant="quiet"
+                      aria-label="Удалить запись"
+                      onClick={() => remove(entry)}
+                    >
+                      ×
+                    </Button>
+                  </div>
                 </li>
               )}
             </For>
@@ -517,7 +384,7 @@ export function DiaryApp(): JSX.Element {
                             }}
                           >
                             <span class="diary-list__open-content">
-                              {DIARY_KIND_TITLE[diary.kind]}
+                              {diary.title}
                               <span class="diary-list__meta">
                                 выдан {new Date(diary.issuedAt).toLocaleDateString('ru-RU')}
                               </span>
@@ -527,7 +394,7 @@ export function DiaryApp(): JSX.Element {
                             class="diary-list__delete"
                             type="button"
                             variant="danger"
-                            aria-label={`Удалить ${DIARY_KIND_TITLE[diary.kind]}`}
+                            aria-label={`Удалить: ${diary.title}`}
                             title="Удалить дневник с этого устройства"
                             onClick={() => {
                               if (

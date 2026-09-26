@@ -54,9 +54,11 @@ import {
   notesPatientsPath,
   notesTemplatesPath,
   noteTemplatePath,
+  withNotesFullscreen,
 } from '@/features/notes/notes-routing';
 import { type PatientRoute, PatientWorkspace } from '@/features/notes/PatientWorkspace';
 import { useNotesRoute } from '@/features/notes/use-notes-route';
+import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import {
@@ -1307,7 +1309,7 @@ export function NotesView(props: {
                       <p>{card.summary}</p>
                     </Show>
                     <small>
-                      {notes().length} зап.
+                      {notes().length} {pluralRu(notes().length, 'запись', 'записи', 'записей')}
                       <br />
                       {formatDate(card.updatedAt)}
                     </small>
@@ -1506,7 +1508,7 @@ export function NotesView(props: {
                 <Button
                   type="button"
                   variant="primary"
-                  onClick={() => navigate(notesPath(card().id, 'new'))}
+                  onClick={() => navigate(withNotesFullscreen(notesPath(card().id, 'new'), true))}
                 >
                   Добавить запись
                 </Button>
@@ -1523,7 +1525,9 @@ export function NotesView(props: {
                           type="button"
                           class="patient-note-record__open"
                           aria-label={`Открыть запись${note.title ? ` «${note.title}»` : ''} от ${formatDate(note.createdAt)}`}
-                          onClick={() => navigate(notesPath(card().id, note.id))}
+                          onClick={() =>
+                            navigate(withNotesFullscreen(notesPath(card().id, note.id), true))
+                          }
                         />
                         <div class="patient-note-record__content">
                           <small class="patient-note-record__date">
@@ -1828,6 +1832,8 @@ export function NotesView(props: {
                     )}
                   </Show>
                   <NoteMarkdownEditor
+                    onExitFullscreen={() => navigate(notesPath(card().id))}
+                    exitFullscreenLabel="Назад к записям"
                     label={editing() ? 'Текст записи' : `Новая заметка для ${card().title}`}
                     printTitle={recordTitleDraft()}
                     printDate={(() => {
@@ -2069,8 +2075,8 @@ export function NotesView(props: {
 
       <OverlayDialog
         open={creating()}
-        title="Новая карточка"
-        subtitle="Введите название обычной заметки"
+        title="Новая заметка"
+        subtitle="Название поможет найти её потом"
         class="patient-card-dialog"
         onClose={() => setCreating(false)}
       >
@@ -2080,15 +2086,18 @@ export function NotesView(props: {
           onSubmit={(event) => {
             event.preventDefault();
             const title = event.currentTarget.elements.namedItem('title');
-            if (title instanceof HTMLInputElement) createPatientCard(title.value);
             setCreating(false);
+            if (!(title instanceof HTMLInputElement)) return;
+            // Open the first record straight away: a new note exists to be written in.
+            const created = createPatientCard(title.value).cards[0];
+            if (created) navigate(withNotesFullscreen(notesPath(created.id, 'new'), true));
           }}
         >
           <UiTextField
             name="title"
-            label="Название карточки"
+            label="Название заметки"
             hideLabel
-            placeholder="ФИО или название заметки"
+            placeholder="Например: Разбор случая, план на неделю"
             required
           />
           <div class="patient-note-form-actions">

@@ -48,12 +48,11 @@ test('keeps patient note records local, editable in nested routes, and findable 
   await page.getByRole('button', { name: 'Отмена', exact: true }).click();
   await navigationButton(page, 'Заметки').click();
   await openOrdinaryNoteDialog(page);
-  await page.getByLabel('Название карточки').fill(initialCardTitle);
+  await page.getByLabel('Название заметки').fill(initialCardTitle);
   await page.getByRole('button', { name: 'Создать', exact: true }).click();
-
-  const card = page.locator('.patient-card').filter({ hasText: 'Иванов И.' });
-  await expect(card).toBeVisible();
-  await card.click();
+  // A new note opens straight into its first record; step back to the card.
+  await expect(page).toHaveURL(/\/records\/new(?:\?|$)/u);
+  await page.getByLabel('Назад к записям').click();
 
   await expect(page).toHaveURL(/#\/notes\/.+/u);
   await expect(page.locator('.notes-route-heading .page__header')).toHaveCount(0);
@@ -70,7 +69,7 @@ test('keeps patient note records local, editable in nested routes, and findable 
     page.getByRole('button', { name: 'Изменить название карточки', exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Добавить запись' }).click();
-  await expect(page).toHaveURL(/\/records\/new$/u);
+  await expect(page).toHaveURL(/\/records\/new(?:\?|$)/u);
   await page
     .getByLabel(`Новая заметка для ${cardTitle}`)
     .fill('Назначен цефтриаксон, вторая линия при пневмонии');
@@ -217,12 +216,8 @@ test('a reminder can be attached while writing a note', async ({ page }) => {
     .click();
 
   await openOrdinaryNoteDialog(page);
-  await page.getByLabel('Название карточки').fill('Сидорова А.');
+  await page.getByLabel('Название заметки').fill('Сидорова А.');
   await page.getByRole('button', { name: 'Создать', exact: true }).click();
-
-  const card = page.locator('.patient-card').filter({ hasText: 'Сидорова А.' });
-  await card.click();
-  await page.getByRole('button', { name: 'Добавить запись' }).click();
   await page.getByLabel('Новая заметка для Сидорова А.').fill('Повторный осмотр');
   await setReminderDate(page);
   await expect(page.getByText('Системное уведомление', { exact: true })).toHaveCount(0);
@@ -237,10 +232,8 @@ test('requires a valid reminder timestamp before installation', async ({ page })
   await mountBuiltApp(page, { persistentOrigin: true });
   await navigationButton(page, 'Заметки').click();
   await openOrdinaryNoteDialog(page);
-  await page.getByLabel('Название карточки').fill('Орлова М.');
+  await page.getByLabel('Название заметки').fill('Орлова М.');
   await page.getByRole('button', { name: 'Создать', exact: true }).click();
-  await page.locator('.patient-card').filter({ hasText: 'Орлова М.' }).click();
-  await page.getByRole('button', { name: 'Добавить запись' }).click();
   await page.getByLabel('Новая заметка для Орлова М.').fill('Контроль состояния');
   await page.getByLabel('Назад к записям').click();
   await page.locator('.patient-note-record').getByRole('button').first().click();

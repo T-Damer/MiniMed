@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/Checkbox';
 import { ChoiceGroup } from '@/components/ChoiceGroup';
 import { FileButton } from '@/components/FileButton';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { SelectField } from '@/components/SelectField';
 import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
@@ -19,15 +20,23 @@ import { applyDiaryImport, diaryImportEvents } from '@/features/diary/diary-impo
 import { diaryPageUrl } from '@/features/diary/diary-links';
 import {
   createDiaryId,
+  DIARY_FIELD_TYPE_LABEL,
+  DIARY_FIELD_TYPES,
   DIARY_FORMAT_VERSION,
-  DIARY_KIND_TITLE,
-  DIARY_KINDS,
-  type DiaryKind,
+  DIARY_TEMPLATES,
+  type DiaryField,
+  type DiaryFieldType,
+  type DiaryInvitation,
   type DiaryResults,
   describeDiaryEntry,
+  diaryTemplate,
+  MAX_DIARY_FIELDS,
+  MAX_DIARY_PLAN_ITEMS,
   parseDiaryInvitation,
 } from '@/features/diary/diary-model';
+import { diaryPrintHtml } from '@/features/diary/diary-print';
 import { decodeQrFromSource } from '@/features/diary/qr-decode';
+import { PrintManager } from '@/features/printing/print-manager';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import { updatePatientVault } from '@/state/patient-vault';
 import '@/styles/patient-diary.css';
@@ -39,56 +48,137 @@ function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
 }
 
-interface MedicationDraft {
+interface PlanDraft {
   readonly name: string;
   readonly dose: string;
   readonly schedule: string;
 }
 
+interface FieldDraft {
+  readonly type: DiaryFieldType;
+  readonly label: string;
+  readonly unit: string;
+  readonly options: string;
+  readonly required: boolean;
+}
+
+const CUSTOM = 'custom';
+const EMPTY_PLAN: PlanDraft = { name: '', dose: '', schedule: '' };
+const EMPTY_FIELD: FieldDraft = {
+  type: 'number',
+  label: '',
+  unit: '',
+  options: '',
+  required: false,
+};
+
+function slug(label: string, index: number, used: Set<string>): string {
+  const base = `f${index + 1}`;
+  let id = base;
+  let suffix = 1;
+  while (used.has(id)) id = `${base}-${suffix++}`;
+  used.add(id);
+  return label ? id : id;
+}
+
+function customFields(drafts: readonly FieldDraft[]): DiaryField[] {
+  const used = new Set<string>();
+  return drafts
+    .filter((draft) => draft.label.trim())
+    .map((draft, index) => {
+      const options = draft.options
+        .split(/[,;\n]/u)
+        .map((option) => option.trim())
+        .filter(Boolean);
+      return {
+        id: slug(draft.label, index, used),
+        type: draft.type,
+        label: draft.label.trim(),
+        ...(draft.unit.trim() && (draft.type === 'number' || draft.type === 'count')
+          ? { unit: draft.unit.trim() }
+          : {}),
+        ...(draft.type === 'choice' || draft.type === 'multi' ? { options } : {}),
+        ...(draft.type === 'plan' ? { trackDone: true } : {}),
+        ...(draft.required ? { required: true } : {}),
+      };
+    });
+}
+
 function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element {
-  const [kind, setKind] = createSignal<DiaryKind>('blood-pressure');
+  const [templateId, setTemplateId] = createSignal<string>(DIARY_TEMPLATES[0]?.id ?? CUSTOM);
+  const [customTitle, setCustomTitle] = createSignal('');
+  const [fields, setFields] = createSignal<readonly FieldDraft[]>([EMPTY_FIELD]);
   const [doctor, setDoctor] = createSignal('');
   const [note, setNote] = createSignal('');
-  const [medications, setMedications] = createSignal<readonly MedicationDraft[]>([
-    { name: '', dose: '', schedule: '' },
-  ]);
+  const [plan, setPlan] = createSignal<readonly PlanDraft[]>([EMPTY_PLAN]);
   const [link, setLink] = createSignal('');
   const [code, setCode] = createSignal('');
   const [error, setError] = createSignal('');
 
-  const updateMedication = (index: number, patch: Partial<MedicationDraft>): void => {
-    setMedications((current) =>
+  const template = () => diaryTemplate(templateId());
+  const custom = () => templateId() === CUSTOM;
+  const hasPlan = () =>
+    custom() ? fields().some((field) => field.type === 'plan') : Boolean(template()?.planTitle);
+
+  const updatePlan = (index: number, patch: Partial<PlanDraft>): void => {
+    setPlan((current) =>
       current.map((item, position) => (position === index ? { ...item, ...patch } : item)),
     );
+  };
+  const updateField = (index: number, patch: Partial<FieldDraft>): void => {
+    setFields((current) =>
+      current.map((item, position) => (position === index ? { ...item, ...patch } : item)),
+    );
+  };
+
+  const invitation = (): DiaryInvitation => {
+    const planItems = hasPlan()
+      ? plan()
+          .filter((item) => item.name.trim())
+          .map((item, index) => ({
+            id: `p${index + 1}`,
+            name: item.name,
+            ...(item.dose.trim() ? { dose: item.dose } : {}),
+            ...(item.schedule.trim() ? { schedule: item.schedule } : {}),
+          }))
+      : [];
+    if (!custom() && template()?.planRequired && planItems.length === 0) {
+      throw new Error('Добавьте хотя бы один пункт назначения.');
+    }
+    const base = template();
+    return parseDiaryInvitation({
+      v: DIARY_FORMAT_VERSION,
+      id: createDiaryId(),
+      template: custom() ? CUSTOM : templateId(),
+      title: custom() ? customTitle() : (base?.title ?? ''),
+      issuedAt: new Date().toISOString(),
+      fields: custom() ? customFields(fields()) : (base?.fields ?? []),
+      ...(planItems.length ? { plan: planItems } : {}),
+      ...(hasPlan() ? { planTitle: custom() ? 'Назначение врача' : base?.planTitle } : {}),
+      ...(doctor().trim() ? { doctor: doctor() } : {}),
+      ...(note().trim() ? { note: note() } : {}),
+    });
   };
 
   const create = async (event: SubmitEvent): Promise<void> => {
     event.preventDefault();
     setError('');
     try {
-      const drafts = medications().filter((item) => item.name.trim());
-      const invitation = parseDiaryInvitation({
-        v: DIARY_FORMAT_VERSION,
-        id: createDiaryId(),
-        kind: kind(),
-        issuedAt: new Date().toISOString(),
-        ...(doctor().trim() ? { doctor: doctor() } : {}),
-        ...(note().trim() ? { note: note() } : {}),
-        ...(kind() === 'medication'
-          ? {
-              medications: drafts.map((item) => ({
-                name: item.name,
-                ...(item.dose.trim() ? { dose: item.dose } : {}),
-                ...(item.schedule.trim() ? { schedule: item.schedule } : {}),
-              })),
-            }
-          : {}),
-      });
-      const next = await diaryInvitationLink(invitation, diaryPageUrl());
+      const next = await diaryInvitationLink(invitation(), diaryPageUrl());
       setCode(await QRCode.toDataURL(next, { errorCorrectionLevel: 'M', margin: 2, width: 360 }));
       setLink(next);
     } catch (cause) {
       setError(errorMessage(cause, 'Не удалось создать дневник.'));
+    }
+  };
+
+  const printBlank = (): void => {
+    setError('');
+    try {
+      const current = invitation();
+      PrintManager.html(diaryPrintHtml(current, [], 24), current.title);
+    } catch (cause) {
+      setError(errorMessage(cause, 'Не удалось подготовить бланк.'));
     }
   };
 
@@ -105,7 +195,7 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
     <OverlayDialog
       open
       title="Выдать дневник"
-      subtitle="Пациент ведёт записи в своём браузере; сервер не нужен"
+      subtitle="Онлайн в браузере пациента или на бумаге"
       class="patient-diary-dialog"
       onClose={props.onClose}
     >
@@ -116,13 +206,14 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
             <img class="patient-diary__code" src={code()} alt="QR-код дневника для пациента" />
             <p class="patient-diary__hint">
               Попросите пациента отсканировать код камерой телефона. Имя пациента в ссылку не
-              входит.
+              входит, записи хранятся только у пациента.
             </p>
             <a class="patient-diary__link" href={link()} target="_blank" rel="noreferrer">
               {link()}
             </a>
             <div class="patient-diary__actions">
               <Button onClick={() => void copy()}>Копировать ссылку</Button>
+              <Button onClick={printBlank}>Распечатать бланк</Button>
               <Button variant="primary" onClick={props.onClose}>
                 Готово
               </Button>
@@ -132,45 +223,135 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
       >
         <form class="patient-diary__form" onSubmit={(event) => void create(event)}>
           <ChoiceGroup
-            legend="Что записывает пациент"
-            name="diary-kind"
-            value={kind()}
-            options={DIARY_KINDS.map((option) => ({
-              value: option,
-              label: DIARY_KIND_TITLE[option],
-            }))}
-            onChange={(value) => setKind(value as DiaryKind)}
+            legend="Какой дневник"
+            name="diary-template"
+            value={templateId()}
+            options={[
+              ...DIARY_TEMPLATES.map((option) => ({
+                value: option.id,
+                label: option.title,
+                hint: option.summary,
+              })),
+              {
+                value: CUSTOM,
+                label: 'Свой дневник',
+                hint: 'Задайте поля сами: числа, варианты, отметки, текст.',
+              },
+            ]}
+            onChange={setTemplateId}
           />
-          <Show when={kind() === 'medication'}>
+          <Show when={custom()}>
+            <div class="patient-diary__builder">
+              <TextField
+                label="Название дневника"
+                value={customTitle()}
+                placeholder="Например: Дневник головной боли"
+                onInput={(event) => setCustomTitle(event.currentTarget.value)}
+              />
+              <Index each={fields()}>
+                {(field, index) => (
+                  <div class="patient-diary__field-row">
+                    <TextField
+                      label={`Поле ${index + 1}`}
+                      value={field().label}
+                      placeholder="Что записывать"
+                      onInput={(event) => updateField(index, { label: event.currentTarget.value })}
+                    />
+                    <SelectField
+                      label="Тип"
+                      value={field().type}
+                      options={DIARY_FIELD_TYPES.map((type) => ({
+                        value: type,
+                        label: DIARY_FIELD_TYPE_LABEL[type],
+                      }))}
+                      onChange={(event) =>
+                        updateField(index, { type: event.currentTarget.value as DiaryFieldType })
+                      }
+                    />
+                    <Show when={field().type === 'number' || field().type === 'count'}>
+                      <TextField
+                        label="Единица"
+                        value={field().unit}
+                        placeholder="например, °C"
+                        onInput={(event) => updateField(index, { unit: event.currentTarget.value })}
+                      />
+                    </Show>
+                    <Show when={field().type === 'choice' || field().type === 'multi'}>
+                      <TextField
+                        label="Варианты через запятую"
+                        value={field().options}
+                        placeholder="слабая, средняя, сильная"
+                        onInput={(event) =>
+                          updateField(index, { options: event.currentTarget.value })
+                        }
+                      />
+                    </Show>
+                    <div class="patient-diary__field-actions">
+                      <Checkbox
+                        label="Обязательно"
+                        checked={field().required}
+                        onChange={(event) =>
+                          updateField(index, { required: event.currentTarget.checked })
+                        }
+                      />
+                      <Button
+                        type="button"
+                        variant="quiet"
+                        disabled={fields().length === 1}
+                        onClick={() =>
+                          setFields((current) =>
+                            current.filter((_, position) => position !== index),
+                          )
+                        }
+                      >
+                        Убрать
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Index>
+              <Button
+                type="button"
+                variant="quiet"
+                disabled={fields().length >= MAX_DIARY_FIELDS}
+                onClick={() => setFields((current) => [...current, EMPTY_FIELD])}
+              >
+                Добавить поле
+              </Button>
+            </div>
+          </Show>
+          <Show when={hasPlan()}>
             <div class="patient-diary__medications">
-              <Index each={medications()}>
+              <Heading depth={3}>
+                {custom() ? 'Назначение врача' : (template()?.planTitle ?? 'Назначение врача')}
+              </Heading>
+              <Show when={!custom() && template()?.planHint}>
+                <p class="patient-diary__hint">{template()?.planHint}</p>
+              </Show>
+              <Index each={plan()}>
                 {(item, index) => (
                   <div class="patient-diary__medication">
                     <TextField
-                      label="Препарат"
+                      label="Название"
                       hideLabel
-                      placeholder="Препарат"
+                      placeholder="Название"
                       value={item().name}
-                      onInput={(event) =>
-                        updateMedication(index, { name: event.currentTarget.value })
-                      }
+                      onInput={(event) => updatePlan(index, { name: event.currentTarget.value })}
                     />
                     <TextField
-                      label="Доза"
+                      label="Доза или объём"
                       hideLabel
-                      placeholder="Доза"
+                      placeholder="Доза или объём"
                       value={item().dose}
-                      onInput={(event) =>
-                        updateMedication(index, { dose: event.currentTarget.value })
-                      }
+                      onInput={(event) => updatePlan(index, { dose: event.currentTarget.value })}
                     />
                     <TextField
-                      label="Схема приёма"
+                      label="Когда"
                       hideLabel
-                      placeholder="Когда (например, 8:00 и 20:00)"
+                      placeholder="Когда (например, 8:00 и 20:00, дни 1–5)"
                       value={item().schedule}
                       onInput={(event) =>
-                        updateMedication(index, { schedule: event.currentTarget.value })
+                        updatePlan(index, { schedule: event.currentTarget.value })
                       }
                     />
                   </div>
@@ -179,11 +360,10 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
               <Button
                 type="button"
                 variant="quiet"
-                onClick={() =>
-                  setMedications((current) => [...current, { name: '', dose: '', schedule: '' }])
-                }
+                disabled={plan().length >= MAX_DIARY_PLAN_ITEMS}
+                onClick={() => setPlan((current) => [...current, EMPTY_PLAN])}
               >
-                Добавить препарат
+                Добавить пункт
               </Button>
             </div>
           </Show>
@@ -206,9 +386,14 @@ function IssueDiaryDialog(props: { readonly onClose: () => void }): JSX.Element 
               {error()}
             </p>
           </Show>
-          <Button type="submit" variant="primary">
-            Создать QR-код
-          </Button>
+          <div class="patient-diary__actions">
+            <Button type="button" onClick={printBlank}>
+              Распечатать бланк
+            </Button>
+            <Button type="submit" variant="primary">
+              Создать QR-код
+            </Button>
+          </div>
         </form>
       </Show>
     </OverlayDialog>
@@ -444,7 +629,7 @@ function ImportDiaryDialog(props: {
       >
         {(current) => (
           <div class="patient-diary__preview">
-            <Heading depth={3}>{DIARY_KIND_TITLE[current().invitation.kind]}</Heading>
+            <Heading depth={3}>{current().invitation.title}</Heading>
             <p class="patient-diary__hint">
               {period(current())} · записей: {current().entries.length}
               {current().invitation.doctor ? ` · врач: ${current().invitation.doctor}` : ''}
@@ -504,8 +689,8 @@ export function PatientDiaryPanel(props: {
     <section class="patient-diary paper-card">
       <Heading depth={3}>Дневник самоконтроля</Heading>
       <p class="patient-diary__hint">
-        Давление, глюкоза или приём препаратов. Пациент ведёт дневник в браузере телефона и на
-        приёме показывает QR-коды.
+        Давление, приём препаратов, дневник ребёнка, течение болезни или свой дневник. Пациент ведёт
+        его в браузере телефона или на распечатанном бланке и на приёме показывает QR-коды.
       </p>
       <div class="patient-diary__actions">
         <Button onClick={() => setDialog('issue')}>Выдать дневник</Button>

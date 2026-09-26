@@ -1,12 +1,12 @@
 import {
   DIARY_FORMAT_VERSION,
   type DiaryEntry,
+  type DiaryField,
   DiaryFormatError,
   type DiaryInvitation,
+  type DiaryPlanValue,
   type DiaryResults,
-  GLUCOSE_CONTEXTS,
-  isBloodPressureEntry,
-  isGlucoseEntry,
+  type DiaryValue,
   parseDiaryInvitation,
   parseDiaryResults,
 } from '@/features/diary/diary-model';
@@ -135,7 +135,8 @@ export async function readInvitationFragment(
 
 // --- Results as QR parts ---------------------------------------------------------------------
 
-type WireEntry = readonly (string | number)[];
+type WireValue = number | string | null | readonly (number | string)[];
+type WireEntry = readonly [string, number, readonly WireValue[], ...string[]];
 
 function minutes(iso: string): number {
   return Math.round(Date.parse(iso) / 60_000);
@@ -147,62 +148,114 @@ function fromMinutes(value: unknown): string | unknown {
     : value;
 }
 
-function entryToWire(entry: DiaryEntry): WireEntry {
-  const note = entry.note ? [entry.note] : [];
-  if (isBloodPressureEntry(entry)) {
-    return [
-      entry.id,
-      minutes(entry.at),
-      entry.systolic,
-      entry.diastolic,
-      entry.pulse ?? 0,
-      ...note,
-    ];
-  }
-  if (isGlucoseEntry(entry)) {
-    return [
-      entry.id,
-      minutes(entry.at),
-      Math.round(entry.mmol * 10),
-      GLUCOSE_CONTEXTS.indexOf(entry.context),
-      ...note,
-    ];
-  }
-  return [entry.id, minutes(entry.at), entry.medication, entry.taken ? 1 : 0, ...note];
+/** Values follow the invitation's field order; options and plan items travel as indices. */
+function valueToWire(
+  invitation: DiaryInvitation,
+  field: DiaryField,
+  value: DiaryValue | undefined,
+): WireValue {
+  if (value === undefined) return null;
+  if (typeof value === 'number' || (typeof value === 'string' && field.type === 'text'))
+    return value;
+  if (typeof value === 'boolean') return value ? 1 : 0;
+  if (typeof value === 'string') return field.options?.indexOf(value) ?? -1;
+  if (Array.isArray(value)) return value.map((option) => field.options?.indexOf(option) ?? -1);
+  const plan = value as DiaryPlanValue;
+  const index =
+    plan.item === undefined
+      ? -1
+      : (invitation.plan ?? []).findIndex((item) => item.id === plan.item);
+  return [index, plan.other ?? '', plan.done === undefined ? -1 : plan.done ? 1 : 0];
 }
 
-function entryFromWire(kind: DiaryInvitation['kind'], wire: unknown): unknown {
+function valueFromWire(invitation: DiaryInvitation, field: DiaryField, wire: unknown): unknown {
+  if (wire === null || wire === undefined) return undefined;
+  switch (field.type) {
+    case 'number':
+    case 'count':
+    case 'text':
+      return wire;
+    case 'flag':
+      return wire === 1 ? true : wire === 0 ? false : wire;
+    case 'choice':
+      return typeof wire === 'number' ? field.options?.[wire] : wire;
+    case 'multi':
+      return Array.isArray(wire)
+        ? wire.map((index) => (typeof index === 'number' ? field.options?.[index] : index))
+        : wire;
+    case 'plan': {
+      if (!Array.isArray(wire) || wire.length !== 3) return wire;
+      const [index, other, done] = wire as unknown[];
+      const item =
+        typeof index === 'number' && index >= 0 ? invitation.plan?.[index]?.id : undefined;
+      return {
+        ...(item ? { item } : {}),
+        ...(typeof other === 'string' && other ? { other } : {}),
+        ...(done === 1 ? { done: true } : done === 0 ? { done: false } : {}),
+      };
+    }
+  }
+}
+
+function entryToWire(invitation: DiaryInvitation, entry: DiaryEntry): WireEntry {
+  return [
+    entry.id,
+    minutes(entry.at),
+    invitation.fields.map((field) => valueToWire(invitation, field, entry.values[field.id])),
+    ...(entry.note ? [entry.note] : []),
+  ];
+}
+
+function entryFromWire(invitation: DiaryInvitation, wire: unknown): unknown {
+  if (!Array.isArray(wire) || wire.length < 3 || wire.length > 4 || !Array.isArray(wire[2])) {
+    throw new DiaryFormatError('Повреждённая запись дневника.');
+  }
+  const [id, at, values, note] = wire as [unknown, unknown, unknown[], unknown];
+  if (values.length !== invitation.fields.length) {
+    throw new DiaryFormatError('Повреждённая запись дневника.');
+  }
+  const decoded: Record<string, unknown> = {};
+  invitation.fields.forEach((field, index) => {
+    const value = valueFromWire(invitation, field, values[index]);
+    if (value !== undefined) decoded[field.id] = value;
+  });
+  return { id, at: fromMinutes(at), values: decoded, ...(note === undefined ? {} : { note }) };
+}
+
+const V1_GLUCOSE_CONTEXTS = ['fasting', 'before-meal', 'after-meal', 'bedtime', 'other'] as const;
+
+/** Codes shown by a v1 patient page: fixed columns per diary kind. */
+function legacyEntryFromWire(kind: unknown, wire: unknown): unknown {
   if (!Array.isArray(wire) || wire.length < 4 || wire.length > 6) {
     throw new DiaryFormatError('Повреждённая запись дневника.');
   }
   const [id, at, first, second, third, fourth] = wire as unknown[];
-  switch (kind) {
-    case 'blood-pressure':
-      return {
-        id,
-        at: fromMinutes(at),
-        systolic: first,
-        diastolic: second,
-        ...(third === 0 || third === undefined ? {} : { pulse: third }),
-        ...(fourth === undefined ? {} : { note: fourth }),
-      };
-    case 'glucose':
-      return {
-        id,
-        at: fromMinutes(at),
-        mmol: typeof first === 'number' ? first / 10 : first,
-        context: typeof second === 'number' ? GLUCOSE_CONTEXTS[second] : second,
-        ...(third === undefined ? {} : { note: third }),
-      };
-    case 'medication':
-      return {
-        id,
-        at: fromMinutes(at),
-        medication: first,
-        taken: second === 1 ? true : second === 0 ? false : second,
-        ...(third === undefined ? {} : { note: third }),
-      };
+  if (kind === 'blood-pressure') {
+    return {
+      id,
+      at: fromMinutes(at),
+      systolic: first,
+      diastolic: second,
+      ...(third === 0 || third === undefined ? {} : { pulse: third }),
+      ...(fourth === undefined ? {} : { note: fourth }),
+    };
   }
+  if (kind === 'glucose') {
+    return {
+      id,
+      at: fromMinutes(at),
+      mmol: typeof first === 'number' ? first / 10 : first,
+      context: typeof second === 'number' ? V1_GLUCOSE_CONTEXTS[second] : second,
+      ...(third === undefined ? {} : { note: third }),
+    };
+  }
+  return {
+    id,
+    at: fromMinutes(at),
+    medication: first,
+    taken: second === 1 ? true : second === 0 ? false : second,
+    ...(third === undefined ? {} : { note: third }),
+  };
 }
 
 async function checksum(text: string): Promise<string> {
@@ -215,7 +268,7 @@ export async function encodeDiaryResults(results: DiaryResults): Promise<readonl
   const payload = await encodePayload([
     DIARY_FORMAT_VERSION,
     results.invitation,
-    results.entries.map(entryToWire),
+    results.entries.map((entry) => entryToWire(results.invitation, entry)),
   ]);
   if (payload.length > MAX_PAYLOAD) {
     throw new DiaryFormatError('В дневнике слишком много записей для передачи кодами.');
@@ -316,12 +369,24 @@ export async function decodeDiaryResultsPayload(
   if (!Array.isArray(value) || value.length !== 3 || !Array.isArray(value[2])) {
     throw new DiaryFormatError('Повреждённые данные дневника.');
   }
+  const wires = value[2] as unknown[];
+  if (value[0] === 1) {
+    const legacyKind = (value[1] as { kind?: unknown } | null)?.kind;
+    return parseDiaryResults(
+      {
+        v: 1,
+        invitation: value[1],
+        entries: wires.map((wire) => legacyEntryFromWire(legacyKind, wire)),
+      },
+      now,
+    );
+  }
   const invitation = parseDiaryInvitation(value[1], now);
   return parseDiaryResults(
     {
       v: value[0],
       invitation,
-      entries: (value[2] as unknown[]).map((wire) => entryFromWire(invitation.kind, wire)),
+      entries: wires.map((wire) => entryFromWire(invitation, wire)),
     },
     now,
   );

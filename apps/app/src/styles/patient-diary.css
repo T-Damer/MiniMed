@@ -98,3 +98,26 @@
   margin: 0;
   color: var(--theme-danger);
 }
+
+.patient-diary__builder {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.patient-diary__field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+}
+
+.patient-diary__field-actions {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}

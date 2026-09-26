@@ -29,6 +29,7 @@ for (const viewport of [
         body: '<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>',
       });
     });
+    await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
     let release: (() => void) | undefined;
     const blocked = new Promise<void>((resolve) => {
       release = resolve;
@@ -68,10 +69,8 @@ for (const viewport of [
       await expect(page.getByRole('heading', { name: 'Заметки', exact: true })).toBeVisible();
       await page.getByRole('button', { name: 'Добавить', exact: true }).click();
       await page.getByRole('menuitem', { name: 'Обычная заметка', exact: true }).click();
-      await page.getByLabel('Название карточки').fill('До загрузки ядра');
+      await page.getByLabel('Название заметки').fill('До загрузки ядра');
       await page.getByRole('button', { name: 'Создать', exact: true }).click();
-      await page.locator('.patient-card').filter({ hasText: 'До загрузки ядра' }).click();
-      await page.getByRole('button', { name: 'Добавить запись' }).click();
       await page
         .getByLabel('Новая заметка для До загрузки ядра')
         .fill('Заметка без медицинского поиска');

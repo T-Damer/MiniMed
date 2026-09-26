@@ -13,12 +13,17 @@ import {
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
 import { applyDiaryImport, diaryImportEvents } from '@/features/diary/diary-import';
 import {
+  type DiaryEntry,
   DiaryFormatError,
   type DiaryInvitation,
   type DiaryResults,
+  describeDiaryEntry,
+  diaryTemplate,
+  parseDiaryEntry,
   parseDiaryInvitation,
   parseDiaryResults,
 } from '@/features/diary/diary-model';
+import { diaryPrintHtml } from '@/features/diary/diary-print';
 import { createDiaryStore } from '@/features/diary/diary-storage';
 import {
   appendEpisode,
@@ -29,7 +34,8 @@ import {
 
 const NOW = Date.parse('2026-09-24T12:00:00Z');
 
-const bpInvitation: DiaryInvitation = {
+/** A v1 invitation as older links carried it; v2 reads it through the template. */
+const bpInvitationV1 = {
   v: 1,
   id: 'bpdiary001',
   kind: 'blood-pressure',
@@ -38,7 +44,7 @@ const bpInvitation: DiaryInvitation = {
   note: 'Утром и вечером, сидя, после 5 минут отдыха',
 };
 
-const medicationInvitation: DiaryInvitation = {
+const medicationInvitation = {
   v: 1,
   id: 'meddiary01',
   kind: 'medication',
@@ -46,11 +52,13 @@ const medicationInvitation: DiaryInvitation = {
   medications: [{ name: 'Эналаприл', dose: '5 мг', schedule: '08:00, 20:00' }],
 };
 
+const bpInvitation: DiaryInvitation = parseDiaryInvitation(bpInvitationV1, NOW);
+
 function bpResults(count: number): DiaryResults {
   return parseDiaryResults(
     {
       v: 1,
-      invitation: bpInvitation,
+      invitation: bpInvitationV1,
       entries: Array.from({ length: count }, (_, index) => ({
         id: `e${String(index).padStart(6, '0')}`,
         at: new Date(Date.parse('2026-09-02T07:00:00Z') + index * 8 * 3_600_000).toISOString(),
@@ -90,12 +98,12 @@ function memoryStorage(seed: Readonly<Record<string, string>> = {}): Storage {
 
 describe('diary validation', () => {
   it.each([
-    [{ ...bpInvitation, v: 2 }, 'версия'],
-    [{ ...bpInvitation, kind: 'weight' }, 'тип'],
-    [{ ...bpInvitation, id: '../x' }, 'идентификатор'],
-    [{ ...bpInvitation, issuedAt: '2099-01-01T00:00:00Z' }, 'диапазона'],
+    [{ ...bpInvitationV1, v: 3 }, 'версия'],
+    [{ ...bpInvitationV1, kind: 'weight' }, 'тип'],
+    [{ ...bpInvitationV1, id: '../x' }, 'идентификатор'],
+    [{ ...bpInvitationV1, issuedAt: '2099-01-01T00:00:00Z' }, 'диапазона'],
     [{ ...medicationInvitation, medications: [] }, 'препарат'],
-    [{ ...bpInvitation, note: 'a\u0000b' }, 'текст'],
+    [{ ...bpInvitationV1, note: 'a\u0000b' }, 'текст'],
   ])('rejects an unsafe invitation %#', (value, message) => {
     expect(() => parseDiaryInvitation(value, NOW)).toThrow(message);
   });
@@ -104,13 +112,13 @@ describe('diary validation', () => {
     const entry = { id: 'entry01', at: '2026-09-10T08:00:00Z' };
     expect(() =>
       parseDiaryResults(
-        { v: 1, invitation: bpInvitation, entries: [{ ...entry, systolic: 80, diastolic: 90 }] },
+        { v: 1, invitation: bpInvitationV1, entries: [{ ...entry, systolic: 80, diastolic: 90 }] },
         NOW,
       ),
-    ).toThrow('меньше верхнего');
+    ).toThrow('должно быть меньше');
     expect(() =>
       parseDiaryResults(
-        { v: 1, invitation: bpInvitation, entries: [{ ...entry, systolic: 400, diastolic: 90 }] },
+        { v: 1, invitation: bpInvitationV1, entries: [{ ...entry, systolic: 400, diastolic: 90 }] },
         NOW,
       ),
     ).toThrow(DiaryFormatError);
@@ -123,7 +131,7 @@ describe('diary validation', () => {
         },
         NOW,
       ),
-    ).toThrow('неизвестный препарат');
+    ).toThrow('неизвестный пункт назначения');
   });
 });
 
@@ -331,5 +339,106 @@ describe('diary export and import', () => {
     const [taken, missed] = diaryImportEvents(results, 'patient-1');
     expect(taken).toMatchObject({ kind: 'medication', medicationKind: 'take', title: 'Эналаприл' });
     expect(missed).toMatchObject({ kind: 'note', title: 'Пропущен приём: Эналаприл' });
+  });
+});
+
+describe('diary schema v2', () => {
+  const child = diaryTemplate('child');
+  const childInvitation = parseDiaryInvitation(
+    {
+      v: 2,
+      id: 'childdiary1',
+      template: 'child',
+      title: child?.title,
+      issuedAt: '2026-09-01T09:00:00.000Z',
+      fields: child?.fields,
+      plan: [{ id: 'p1', name: 'Смесь', dose: '90 мл', schedule: 'каждые 3 часа' }],
+      planTitle: child?.planTitle,
+    },
+    NOW,
+  );
+
+  it('validates, transports and imports a child diary entry', async () => {
+    const results = parseDiaryResults(
+      {
+        v: 2,
+        invitation: childInvitation,
+        entries: [
+          {
+            id: 'child00001',
+            at: '2026-09-02T09:00:00Z',
+            values: {
+              feeding: { item: 'p1' },
+              amount: 80,
+              weight: 3500,
+              stool: true,
+              'stool-count': 3,
+              complaints: ['колики', 'срыгивание'],
+            },
+            note: 'Беспокойный после кормления',
+          },
+          {
+            id: 'child00002',
+            at: '2026-09-02T12:00:00Z',
+            values: { feeding: { other: 'грудное молоко' } },
+          },
+        ],
+      },
+      NOW,
+    );
+    expect(describeDiaryEntry(childInvitation, results.entries[0] as DiaryEntry)).toContain(
+      'Смесь 90 мл',
+    );
+
+    const collector = new DiaryPartCollector();
+    for (const part of await encodeDiaryResults(results)) collector.add(part);
+    expect((await collector.results(NOW)).entries).toEqual(results.entries);
+
+    const [event] = diaryImportEvents(results, 'patient-1');
+    expect(event?.observations).toEqual([
+      expect.objectContaining({ metricId: 'body-mass', value: 3.5, unit: 'кг' }),
+    ]);
+    expect(event?.text).toContain('Жалобы сейчас: колики, срыгивание');
+    expect(event?.text).toContain('Беспокойный после кормления');
+  });
+
+  it('rejects unknown options and missing required fields in a custom diary', () => {
+    const custom = parseDiaryInvitation(
+      {
+        v: 2,
+        id: 'custom0001',
+        template: 'custom',
+        title: 'Дневник головной боли',
+        issuedAt: '2026-09-01T09:00:00.000Z',
+        fields: [
+          {
+            id: 'f1',
+            type: 'choice',
+            label: 'Сила',
+            options: ['слабая', 'сильная'],
+            required: true,
+          },
+          { id: 'f2', type: 'text', label: 'Что помогло' },
+        ],
+      },
+      NOW,
+    );
+    const at = '2026-09-02T09:00:00Z';
+    expect(() =>
+      parseDiaryEntry(custom, { id: 'entry0001', at, values: { f2: 'сон' } }, NOW),
+    ).toThrow('заполните поле');
+    expect(() =>
+      parseDiaryEntry(custom, { id: 'entry0001', at, values: { f1: 'средняя' } }, NOW),
+    ).toThrow('неизвестный вариант');
+    expect(
+      parseDiaryEntry(custom, { id: 'entry0001', at, values: { f1: 'сильная' } }, NOW).values,
+    ).toEqual({ f1: 'сильная' });
+  });
+
+  it('prints every field as a column with blank rows to fill by hand', () => {
+    const html = diaryPrintHtml(childInvitation, [], 5);
+    for (const field of childInvitation.fields) expect(html).toContain(field.label);
+    expect(html).toContain('Смесь');
+    expect(html.match(/class="blank"/gu)).toHaveLength(5);
   });
 });

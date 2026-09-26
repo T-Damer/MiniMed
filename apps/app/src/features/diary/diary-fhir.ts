@@ -1,14 +1,17 @@
 import {
+  type DiaryField,
+  type DiaryPlanValue,
   type DiaryResults,
-  GLUCOSE_CONTEXT_LABEL,
-  isBloodPressureEntry,
-  isGlucoseEntry,
+  type DiaryValue,
+  describeDiaryValue,
+  planItem,
 } from '@/features/diary/diary-model';
 
 /**
  * HL7 FHIR R4 representation of a diary for exchange with other systems. The patient is not
  * identified in the diary, so resources carry no subject; the importing system binds them.
- * Codes: LOINC for measurements, UCUM for units.
+ * Numeric fields with a LOINC code become coded Observations (UCUM units); a tracked plan item
+ * becomes a MedicationStatement; every other answer is an Observation coded by its label text.
  */
 
 const LOINC = 'http://loinc.org';
@@ -22,16 +25,29 @@ const PATIENT_REPORTED = {
 
 type FhirResource = Readonly<Record<string, unknown>>;
 
-function quantity(value: number, unit: string, code: string) {
-  return { value, unit, system: UCUM, code };
-}
-
-function coding(code: string, display: string) {
-  return { coding: [{ system: LOINC, code, display }] };
-}
-
 function vitalSigns() {
   return [{ coding: [{ system: OBSERVATION_CATEGORY, code: 'vital-signs' }] }];
+}
+
+function survey() {
+  return [{ coding: [{ system: OBSERVATION_CATEGORY, code: 'survey' }] }];
+}
+
+function answer(field: DiaryField, value: DiaryValue): Record<string, unknown> {
+  if (typeof value === 'number') {
+    return field.type === 'count'
+      ? { valueInteger: value }
+      : {
+          valueQuantity: {
+            value,
+            ...(field.unit ? { unit: field.unit } : {}),
+            ...(field.metric?.ucum ? { system: UCUM, code: field.metric.ucum } : {}),
+          },
+        };
+  }
+  if (typeof value === 'boolean') return { valueBoolean: value };
+  if (typeof value === 'string') return { valueString: value };
+  return { valueString: (value as readonly string[]).join(', ') };
 }
 
 export function diaryToFhirBundle(results: DiaryResults, exportedAt = new Date()): FhirResource {
@@ -40,71 +56,90 @@ export function diaryToFhirBundle(results: DiaryResults, exportedAt = new Date()
   const performer = [{ display: 'Пациент (самоконтроль)' }];
   const resources: FhirResource[] = [];
   for (const entry of results.entries) {
-    const id = `${invitation.id}-${entry.id}`;
     const note = entry.note ? { note: [{ text: entry.note }] } : {};
-    if (isBloodPressureEntry(entry)) {
+    const systolic = entry.values['systolic'];
+    const diastolic = entry.values['diastolic'];
+    const pressurePanel =
+      invitation.template === 'blood-pressure' &&
+      typeof systolic === 'number' &&
+      typeof diastolic === 'number';
+    if (pressurePanel) {
       resources.push({
         resourceType: 'Observation',
-        id,
+        id: `${invitation.id}-${entry.id}`,
         meta,
         status: 'final',
         category: vitalSigns(),
-        code: coding('85354-9', 'Blood pressure panel with all children optional'),
+        code: { coding: [{ system: LOINC, code: '85354-9', display: 'Blood pressure panel' }] },
         effectiveDateTime: entry.at,
         performer,
         component: [
           {
-            code: coding('8480-6', 'Systolic blood pressure'),
-            valueQuantity: quantity(entry.systolic, 'mm[Hg]', 'mm[Hg]'),
+            code: {
+              coding: [{ system: LOINC, code: '8480-6', display: 'Systolic blood pressure' }],
+            },
+            valueQuantity: { value: systolic, unit: 'mm[Hg]', system: UCUM, code: 'mm[Hg]' },
           },
           {
-            code: coding('8462-4', 'Diastolic blood pressure'),
-            valueQuantity: quantity(entry.diastolic, 'mm[Hg]', 'mm[Hg]'),
+            code: {
+              coding: [{ system: LOINC, code: '8462-4', display: 'Diastolic blood pressure' }],
+            },
+            valueQuantity: { value: diastolic, unit: 'mm[Hg]', system: UCUM, code: 'mm[Hg]' },
           },
         ],
         ...note,
       });
-      if (entry.pulse !== undefined) {
+    }
+    for (const field of invitation.fields) {
+      const value = entry.values[field.id];
+      if (value === undefined) continue;
+      if (pressurePanel && (field.id === 'systolic' || field.id === 'diastolic')) continue;
+      const id = `${invitation.id}-${entry.id}-${field.id}`;
+      if (field.type === 'plan') {
+        const plan = value as DiaryPlanValue;
+        const item = planItem(invitation, plan.item);
+        if (field.trackDone && plan.done !== undefined) {
+          resources.push({
+            resourceType: 'MedicationStatement',
+            id,
+            meta,
+            status: plan.done ? 'completed' : 'not-taken',
+            medicationCodeableConcept: { text: item?.name ?? plan.other ?? field.label },
+            effectiveDateTime: entry.at,
+            informationSource: { display: 'Пациент' },
+            ...(item?.dose ? { dosage: [{ text: item.dose }] } : {}),
+            ...note,
+          });
+          continue;
+        }
         resources.push({
           resourceType: 'Observation',
-          id: `${id}-hr`,
+          id,
           meta,
           status: 'final',
-          category: vitalSigns(),
-          code: coding('8867-4', 'Heart rate'),
+          category: survey(),
+          code: { text: field.label },
           effectiveDateTime: entry.at,
           performer,
-          valueQuantity: quantity(entry.pulse, '/min', '/min'),
+          valueString: describeDiaryValue(invitation, field, value),
         });
+        continue;
       }
-    } else if (isGlucoseEntry(entry)) {
+      const loinc = field.metric?.loinc;
       resources.push({
         resourceType: 'Observation',
         id,
         meta,
         status: 'final',
-        code: coding('14743-9', 'Glucose [Moles/volume] in Capillary blood by Glucometer'),
+        category: loinc ? vitalSigns() : survey(),
+        code: loinc
+          ? {
+              coding: [{ system: LOINC, code: loinc, display: field.metric?.label ?? field.label }],
+            }
+          : { text: field.label },
         effectiveDateTime: entry.at,
         performer,
-        valueQuantity: quantity(entry.mmol, 'mmol/L', 'mmol/L'),
-        note: [
-          {
-            text: [GLUCOSE_CONTEXT_LABEL[entry.context], entry.note].filter(Boolean).join('. '),
-          },
-        ],
-      });
-    } else {
-      const medication = invitation.medications?.[entry.medication];
-      resources.push({
-        resourceType: 'MedicationStatement',
-        id,
-        meta,
-        status: entry.taken ? 'completed' : 'not-taken',
-        medicationCodeableConcept: { text: medication?.name ?? 'Препарат' },
-        effectiveDateTime: entry.at,
-        informationSource: { display: 'Пациент' },
-        ...(medication?.dose ? { dosage: [{ text: medication.dose }] } : {}),
-        ...note,
+        ...answer(field, value),
       });
     }
   }
