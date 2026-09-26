@@ -15,6 +15,7 @@ import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { isAsrReady } from '@/features/asr/asr-models';
 import type { NoteFile } from '@/state/note-files';
+import { transcriptTextMatchesSegments } from '@/features/notes/transcript-edit-alignment';
 import {
   deleteTranscript,
   isTranscriptionQueued,
@@ -32,13 +33,6 @@ function timeLabel(ms: number): string {
   const rest = seconds % 60;
   const body = `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
   return hours > 0 ? `${String(hours).padStart(2, '0')}:${body}` : body;
-}
-
-function normalizedTranscriptWords(value: string): string {
-  return value
-    .toLocaleLowerCase('ru-RU')
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
 }
 
 function defaultSpeakerLabels(transcript: NoteTranscript | null): ReadonlyMap<string, string> {
@@ -171,14 +165,8 @@ export function NoteTranscriptPanel(props: {
       )
       .join('\n\n');
 
-  const timestampsMatchText = (): boolean => {
-    const segments = transcript()?.segments ?? [];
-    if (segments.length === 0) return false;
-    return (
-      normalizedTranscriptWords(draft()) ===
-      normalizedTranscriptWords(segments.map((segment) => segment.text).join(' '))
-    );
-  };
+  const timestampsMatchText = (): boolean =>
+    transcriptTextMatchesSegments(draft(), transcript()?.segments);
 
   const exportTranscript = (withTimestamps = false): void => {
     const value = withTimestamps ? speakerTranscript().trim() : draft().trim();
