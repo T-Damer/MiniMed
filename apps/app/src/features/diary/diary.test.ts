@@ -3,8 +3,11 @@ import { describe, expect, it } from 'vitest';
 import {
   DIARY_QR_CHUNK,
   DiaryPartCollector,
+  decodePayload,
   diaryInvitationLink,
   encodeDiaryResults,
+  MAX_DIARY_JSON_BYTES,
+  parseDiaryPart,
   readInvitationFragment,
 } from '@/features/diary/diary-codec';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
@@ -122,6 +125,29 @@ describe('diary transport', () => {
     const decoded = await collector.results(NOW);
     expect(decoded.invitation).toEqual(bpInvitation);
     expect(decoded.entries).toEqual(results.entries);
+  });
+
+  it('rejects a compressed payload that expands beyond the diary JSON budget', async () => {
+    expect(typeof CompressionStream).toBe('function');
+    const oversizedJson = JSON.stringify({ text: 'a'.repeat(MAX_DIARY_JSON_BYTES + 1) });
+    const compressed = new Blob([new TextEncoder().encode(oversizedJson)])
+      .stream()
+      .pipeThrough(new CompressionStream('deflate-raw'));
+    const bytes = new Uint8Array(await new Response(compressed).arrayBuffer());
+    let binary = '';
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    const payload =
+      'z' + btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/u, '');
+    expect(payload.length).toBeLessThan(DIARY_QR_CHUNK * 40);
+
+    await expect(decodePayload(payload)).rejects.toThrow('Распакованные данные дневника слишком велики');
+  });
+
+  it('rejects an individual QR part larger than the advertised chunk size', () => {
+    const oversizedChunk = 'a'.repeat(DIARY_QR_CHUNK + 1);
+    expect(parseDiaryPart(`MMD1.ABCDEFGH.1.1.${oversizedChunk}`)).toBeNull();
+    const collector = new DiaryPartCollector();
+    expect(collector.add(`MMD1.ABCDEFGH.1.1.${oversizedChunk}`)).toBe(false);
   });
 
   it('ignores codes from another transfer and detects a corrupted part', async () => {
