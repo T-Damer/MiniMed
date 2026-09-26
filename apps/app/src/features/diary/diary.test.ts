@@ -11,6 +11,7 @@ import {
   readInvitationFragment,
 } from '@/features/diary/diary-codec';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
+import { createDiaryStore } from '@/features/diary/diary-storage';
 import { applyDiaryImport, diaryImportEvents } from '@/features/diary/diary-import';
 import {
   DiaryFormatError,
@@ -63,6 +64,30 @@ function bpResults(count: number): DiaryResults {
   );
 }
 
+function memoryStorage(seed: Readonly<Record<string, string>> = {}): Storage {
+  const values = new Map(Object.entries(seed));
+  return {
+    get length() {
+      return values.size;
+    },
+    clear() {
+      values.clear();
+    },
+    getItem(key) {
+      return values.get(key) ?? null;
+    },
+    key(index) {
+      return [...values.keys()][index] ?? null;
+    },
+    removeItem(key) {
+      values.delete(key);
+    },
+    setItem(key, value) {
+      values.set(key, value);
+    },
+  };
+}
+
 describe('diary validation', () => {
   it.each([
     [{ ...bpInvitation, v: 2 }, 'версия'],
@@ -99,6 +124,35 @@ describe('diary validation', () => {
         NOW,
       ),
     ).toThrow('неизвестный препарат');
+  });
+});
+
+describe('diary local storage', () => {
+  it('rebuilds a damaged index from valid diary records', () => {
+    const results = bpResults(2);
+    const storage = memoryStorage({
+      'minimed.diary.v1.index': '{broken-json',
+      [`minimed.diary.v1.${results.invitation.id}`]: JSON.stringify(results),
+    });
+    const store = createDiaryStore(storage, () => NOW);
+
+    expect(store.list()).toEqual([results.invitation]);
+    expect(JSON.parse(storage.getItem('minimed.diary.v1.index') ?? '[]')).toEqual([
+      results.invitation.id,
+    ]);
+  });
+
+  it('keeps valid diaries visible when another local diary record is corrupt', () => {
+    const results = bpResults(1);
+    const storage = memoryStorage({
+      'minimed.diary.v1.index': JSON.stringify([results.invitation.id, 'broken01']),
+      [`minimed.diary.v1.${results.invitation.id}`]: JSON.stringify(results),
+      'minimed.diary.v1.broken01': '{"v":1,"invitation":',
+    });
+    const store = createDiaryStore(storage, () => NOW);
+
+    expect(store.list()).toEqual([results.invitation]);
+    expect(store.load(results.invitation)).toEqual(results);
   });
 });
 
