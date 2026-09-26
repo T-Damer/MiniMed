@@ -207,7 +207,7 @@ wheels = [
 
 [[package]]
 name = "crawlee"
-version = "1.9.3"
+version = "1.10.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-timeout" },
@@ -223,9 +223,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "yarl" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/43/a0/b79ee1397c97bdb487d8d267b3f7605738072a92cb7b8a01ff375f3baa0c/crawlee-1.9.3.tar.gz", hash = "sha256:2f9ade0707193368c32642cfbfa3f20848eddcc2cd0b020e52ee575aa272bd9d", size = 332668, upload-time = "2026-08-24T05:57:43.581Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cc/e8/11b1a6aa6074aaa7aef0716ea329c014787ca400236187a6076c60691fae/crawlee-1.10.2.tar.gz", hash = "sha256:bb64e7808319112d5d5ffffbd8127a804d1beb50d575ae7c6f8ce00f5eaf6929", size = 336662, upload-time = "2026-09-22T12:09:18.736Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/0d/34509e630e07136c2351edf6bd13d9d1ce54d502a984d0d6c7615c058a68/crawlee-1.9.3-py3-none-any.whl", hash = "sha256:df833b18e1c1aa34822f12a9e8b9d88027bf7c6a97d0b243d46cd9c3bedb55c1", size = 419069, upload-time = "2026-08-24T05:57:41.783Z" },
+    { url = "https://files.pythonhosted.org/packages/a8/87/f15c02bd8fa014cfc9cac701b9eb01919408f3049280f2f45dd46a588027/crawlee-1.10.2-py3-none-any.whl", hash = "sha256:83fcb724845e99c776cef43a6f93498ba7a44cf9edb73939981a013a95e2a0ba", size = 422063, upload-time = "2026-09-22T12:09:17.017Z" },
 ]
 
 [package.optional-dependencies]
@@ -330,7 +330,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "crawlee", extras = ["beautifulsoup"], specifier = "==1.9.3" },
+    { name = "crawlee", extras = ["beautifulsoup"], specifier = "==1.10.2" },
     { name = "pydantic", specifier = "==2.13.5" },
     { name = "pymupdf", specifier = "==1.28.2" },
     { name = "pyyaml", specifier = "==6.0.3" },
