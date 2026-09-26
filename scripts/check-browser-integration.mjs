@@ -213,6 +213,19 @@ const checks = [
       files.diarizationModels.includes('storeCachedModel(artifact, bytes)'),
   ],
   [
+    'verified diarization cache has behavioural coverage',
+    files.diarizationModels.includes('export async function getBrowserDiarizationModelBytes(') &&
+      files.diarizationModels.includes('const completed = modelCacheTransaction(transaction)') &&
+      files.diarizationModels.includes('await completed') &&
+      files.personalNotesBackupTests.length > 0 &&
+      read('apps/app/src/features/asr/browser-diarization-models.test.ts').includes(
+        'reuses a verified IndexedDB model without a second download',
+      ) &&
+      read('apps/app/src/features/asr/browser-diarization-models.test.ts').includes(
+        'drops a same-size corrupt cached model and downloads the verified artifact again',
+      ),
+  ],
+  [
     'transcript export and speaker roles',
     files.transcriptPanel.includes('Скачать .txt') &&
       files.transcriptPanel.includes("setSpeakerRole(speakerId, 'Врач')") &&
@@ -305,6 +318,32 @@ const checks = [
       files.patientWorkspaceCss.includes('select.patient-workspace__control') &&
       files.patientWorkspaceCss.includes('output.patient-workspace__control') &&
       !files.patientWorkspaceCss.includes('.patient-workspace__event-revision-input'),
+  ],
+  [
+    'personal-notes export preflights encoded size',
+    files.personalNotesBackup.includes('export function estimatePersonalNotesBackupBytes(') &&
+      files.personalNotesBackup.includes('function assertPersonalNotesBackupFits(') &&
+      files.personalNotesBackup.includes("assertPersonalNotesBackupFits(state, { kind: 'all' })") &&
+      files.personalNotesBackup.includes(
+        "assertPersonalNotesBackupFits(selected, { kind: 'card', cardId })",
+      ) &&
+      files.personalNotesBackupTests.includes(
+        'preflights base64 expansion before allocating large backup blobs',
+      ) &&
+      files.notes.includes('file.size > MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES'),
+  ],
+  [
+    'whole personal-notes notebook can be deleted independently',
+    files.personalNotesBackup.includes('export async function deleteAllPersonalNotes()') &&
+      files.personalNotesBackup.includes('clearPatientNoteWorkingState()') &&
+      files.notes.includes("id: 'delete-all-personal-notes'") &&
+      files.notes.includes('Защищённые карточки пациентов') &&
+      files.personalNotesBackupTests.includes(
+        'deletes the whole personal-notes notebook without touching patient-vault data',
+      ) &&
+      files.personalNotesBackupTests.includes(
+        "expect(env.local.getItem('minimed.patient-vault.test-fixture')).toBe('keep-me')",
+      ),
   ],
   [
     'portable personal-notes backup preserves stable ids',
