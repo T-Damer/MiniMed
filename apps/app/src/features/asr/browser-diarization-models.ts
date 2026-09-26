@@ -126,12 +126,13 @@ async function loadCachedModel(
   let record: CachedBrowserDiarizationModel | undefined;
   try {
     const transaction = database.transaction(MODEL_CACHE_STORE, 'readonly');
+    const completed = modelCacheTransaction(transaction);
     record = await modelCacheRequest(
       transaction.objectStore(MODEL_CACHE_STORE).get(artifact.id) as IDBRequest<
         CachedBrowserDiarizationModel | undefined
       >,
     );
-    await modelCacheTransaction(transaction);
+    await completed;
   } finally {
     database.close();
   }
