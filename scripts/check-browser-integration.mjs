@@ -30,6 +30,7 @@ const files = {
   retentionCleanup: read('apps/app/src/state/note-retention-cleanup.ts'),
   patientNotes: read('apps/app/src/state/patient-notes.ts'),
   patientWorkspace: read('apps/app/src/features/notes/PatientWorkspace.tsx'),
+  patientWorkspaceCss: read('apps/app/src/styles/patient-workspace.css'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
   diary: read('apps/app/src/diary/DiaryApp.tsx'),
   diaryMain: read('apps/app/src/diary/main.tsx'),
@@ -293,9 +294,14 @@ const checks = [
       !files.patientWorkspace.includes('<textarea') &&
       (files.patientWorkspace.match(/<TextField\\b/gu) ?? []).length >= 13 &&
       files.patientWorkspace.includes('<TextArea') &&
+      !files.patientWorkspace.includes('inputClass="patient-workspace__control"') &&
+      !files.patientWorkspace.includes('textareaClass="patient-workspace__control"') &&
       files.patientWorkspace.includes('<Button\n          class="patient-workspace__quick-action"') &&
       !files.patientWorkspace.includes('<button\n          class="patient-workspace__quick-action"') &&
-      files.patientWorkspace.includes('class="patient-workspace__event-action"'),
+      files.patientWorkspace.includes('class="patient-workspace__event-action"') &&
+      files.patientWorkspaceCss.includes('select.patient-workspace__control') &&
+      files.patientWorkspaceCss.includes('output.patient-workspace__control') &&
+      !files.patientWorkspaceCss.includes('.patient-workspace__event-revision-input'),
   ],
   [
     'diary shared controls',
