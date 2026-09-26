@@ -12,6 +12,7 @@ import {
 } from '@/state/note-images';
 import { runPendingNoteRetentionCleanup } from '@/state/note-retention-cleanup';
 import {
+  clearPatientNoteWorkingState,
   loadPatientNotes,
   parsePatientNotesSnapshot,
   type PatientNotesSnapshot,
@@ -343,6 +344,7 @@ export async function importPersonalNotesBackup(value: unknown): Promise<Persona
 
   try {
     await applyPersonalNotesState(prepared);
+    clearPatientNoteWorkingState();
     return backup;
   } catch (cause) {
     try {
