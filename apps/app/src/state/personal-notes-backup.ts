@@ -182,7 +182,7 @@ function parseBackupTranscript(value: unknown): NoteTranscript {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('Backup содержит повреждённую расшифровку.');
   }
-  return parseRestoredTranscript(value as NoteTranscript);
+  return parseRestoredTranscript(value);
 }
 
 export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
@@ -282,7 +282,7 @@ async function preparedStateFromBackup(backup: PersonalNotesBackup): Promise<Per
       name: file.name,
       mimeType: file.mimeType,
       size: file.size,
-      blob: new Blob([bytes], { type: file.mimeType }),
+      blob: new Blob([Uint8Array.from(bytes)], { type: file.mimeType }),
       ...(file.thumbnailDataUrl ? { thumbnailDataUrl: file.thumbnailDataUrl } : {}),
       createdAt: file.createdAt,
     };
