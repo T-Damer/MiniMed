@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   installMultiStoreIndexedDbDouble,
+  type IndexedDbDoubleOptions,
   type IndexedDbStoreDouble,
 } from '@/features/network/indexeddb-test-double';
 
@@ -32,7 +33,7 @@ function localStorageDouble(): Storage {
   };
 }
 
-function installEnvironment(): {
+function installEnvironment(options: IndexedDbDoubleOptions = {}): {
   readonly local: Storage;
   readonly files: Map<string, Record<string, unknown>>;
   readonly images: Map<string, Record<string, unknown>>;
@@ -50,6 +51,7 @@ function installEnvironment(): {
       ['transcripts', { keyPath: 'fileId', records: transcripts }],
       ['snapshots', { keyPath: 'id', records: snapshots }],
     ]),
+    options,
   );
   const local = localStorageDouble();
   vi.stubGlobal('localStorage', local);
@@ -506,6 +508,99 @@ describe('portable personal-notes backup', () => {
     >;
     expect(drafts['note-1']).toBeUndefined();
     expect(drafts['note-2']).toBeDefined();
+  });
+
+  it('rolls back files and transcripts when a later image-store write fails', async () => {
+    const env = installEnvironment({ failWritesToStoreOnce: 'images' });
+    env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
+    env.files.set('file-old', {
+      id: 'file-old',
+      noteId: 'note-1',
+      name: 'старый.webm',
+      mimeType: 'audio/webm',
+      size: 3,
+      blob: new Blob([new Uint8Array([1, 2, 3])], { type: 'audio/webm' }),
+      createdAt: '2026-09-26T06:00:00.000Z',
+    });
+    env.images.set('image-old', {
+      id: 'image-old',
+      noteId: 'note-1',
+      name: 'старое.png',
+      mimeType: 'image/png',
+      dataUrl: 'data:image/png;base64,AQID',
+      createdAt: '2026-09-26T06:01:00.000Z',
+    });
+    env.transcripts.set('file-old', {
+      fileId: 'file-old',
+      noteId: 'note-1',
+      text: 'Старая расшифровка',
+      status: 'done',
+      createdAt: '2026-09-26T06:02:00.000Z',
+      updatedAt: '2026-09-26T06:02:00.000Z',
+    });
+
+    const incomingSnapshot = {
+      ...snapshot,
+      notes: snapshot.notes.map((note) => ({
+        ...note,
+        text: 'Новый текст, который не должен остаться после rollback.',
+      })),
+    };
+    const incoming = {
+      kind: 'minimed-personal-notes-backup',
+      schemaVersion: 1,
+      exportedAt: '2026-09-26T09:00:00.000Z',
+      scope: { kind: 'all' },
+      snapshot: incomingSnapshot,
+      files: [
+        {
+          id: 'file-new',
+          noteId: 'note-1',
+          name: 'новый.webm',
+          mimeType: 'audio/webm',
+          size: 3,
+          sha256: '787c798e39a5bc1910355bae6d0cd87a36b2e10fd0202a83e3bb6b005da83472',
+          bytesBase64: 'BAUG',
+          createdAt: '2026-09-26T08:00:00.000Z',
+        },
+      ],
+      images: [
+        {
+          id: 'image-new',
+          noteId: 'note-1',
+          name: 'новое.png',
+          mimeType: 'image/png',
+          dataUrl: 'data:image/png;base64,BAUG',
+          createdAt: '2026-09-26T08:01:00.000Z',
+        },
+      ],
+      transcripts: [
+        {
+          fileId: 'file-new',
+          noteId: 'note-1',
+          text: 'Новая расшифровка',
+          status: 'done',
+          createdAt: '2026-09-26T08:02:00.000Z',
+          updatedAt: '2026-09-26T08:02:00.000Z',
+        },
+      ],
+    };
+
+    const { importPersonalNotesBackup } = await import('./personal-notes-backup');
+    await expect(importPersonalNotesBackup(incoming)).rejects.toThrow(
+      'Injected IndexedDB write failure for store: images',
+    );
+
+    const restored = JSON.parse(env.local.getItem('minimed.patient-notes.v1') ?? '{}') as {
+      notes?: Array<{ text?: string }>;
+    };
+    expect(restored.notes?.[0]?.text).toBe('Жалобы на бессонницу.');
+    expect([...env.files.keys()]).toEqual(['file-old']);
+    const oldBlob = env.files.get('file-old')?.blob as Blob;
+    expect([...new Uint8Array(await oldBlob.arrayBuffer())]).toEqual([1, 2, 3]);
+    expect([...env.images.keys()]).toEqual(['image-old']);
+    expect([...env.transcripts.keys()]).toEqual(['file-old']);
+    expect(env.transcripts.get('file-old')?.text).toBe('Старая расшифровка');
   });
 
   it('rejects a card backup whose note id collides with another card', async () => {
