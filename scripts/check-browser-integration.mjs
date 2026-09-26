@@ -232,6 +232,12 @@ const checks = [
       files.transcriptPanel.includes("setSpeakerRole(speakerId, 'Пациент')"),
   ],
   [
+    'transcript rerun protects unsaved edits',
+    files.transcriptPanel.includes('const hasUnsavedEdits = (): boolean =>') &&
+      files.transcriptPanel.includes('Есть несохранённые правки расшифровки') &&
+      files.transcriptPanel.includes('disabled={deleting() || saving()}'),
+  ],
+  [
     'failed MediaRecorder capture is discarded',
     files.voiceRecorder.includes('let captureFailed = false') &&
       files.voiceRecorder.includes('captureFailed = true') &&
