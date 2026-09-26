@@ -104,7 +104,38 @@ export function NoteTranscriptPanel(props: {
     }));
   };
 
+  const speakerNamesEqual = (
+    left: Readonly<Record<string, string>>,
+    right: Readonly<Record<string, string>>,
+  ): boolean => {
+    const leftEntries = Object.entries(left)
+      .filter(([, label]) => label.trim().length > 0)
+      .toSorted(([leftId], [rightId]) => leftId.localeCompare(rightId));
+    const rightEntries = Object.entries(right)
+      .filter(([, label]) => label.trim().length > 0)
+      .toSorted(([leftId], [rightId]) => leftId.localeCompare(rightId));
+    return JSON.stringify(leftEntries) === JSON.stringify(rightEntries);
+  };
+  const hasUnsavedEdits = (): boolean => {
+    const current = transcript();
+    if (!current || current.status !== 'done') return false;
+    return (
+      draft() !== current.text ||
+      !speakerNamesEqual(speakerNames(), current.speakerNames ?? {})
+    );
+  };
+
   const start = (force = false): void => {
+    if (saving() || deleting()) return;
+    if (
+      force &&
+      hasUnsavedEdits() &&
+      !window.confirm(
+        'Есть несохранённые правки расшифровки. Повторное распознавание заменит их. Продолжить?',
+      )
+    ) {
+      return;
+    }
     queueTranscription({
       fileId: props.file.id,
       noteId: props.file.noteId,
@@ -379,7 +410,11 @@ export function NoteTranscriptPanel(props: {
           <Button type="button" disabled={deleting()} onClick={exportTranscript}>
             Скачать .txt
           </Button>
-          <Button type="button" disabled={deleting()} onClick={() => start(true)}>
+          <Button
+            type="button"
+            disabled={deleting() || saving()}
+            onClick={() => start(true)}
+          >
             Распознать заново
           </Button>
         </div>
