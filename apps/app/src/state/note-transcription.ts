@@ -245,10 +245,27 @@ function emitTranscriptChange(fileId: string): void {
   window.dispatchEvent(new CustomEvent(NOTE_TRANSCRIPTS_EVENT, { detail: { fileId } }));
 }
 
-export function parseRestoredTranscript(record: NoteTranscript): NoteTranscript {
-  if (!record.fileId || !record.noteId || typeof record.text !== 'string') {
+export function parseRestoredTranscript(value: unknown): NoteTranscript {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('Backup содержит повреждённую расшифровку.');
   }
+  const record = value as Partial<NoteTranscript>;
+  if (
+    typeof record.fileId !== 'string' ||
+    !record.fileId ||
+    typeof record.noteId !== 'string' ||
+    !record.noteId ||
+    typeof record.text !== 'string' ||
+    typeof record.createdAt !== 'string' ||
+    Number.isNaN(new Date(record.createdAt).getTime()) ||
+    typeof record.updatedAt !== 'string' ||
+    Number.isNaN(new Date(record.updatedAt).getTime()) ||
+    (record.error !== undefined && typeof record.error !== 'string') ||
+    (record.diarized !== undefined && typeof record.diarized !== 'boolean')
+  ) {
+    throw new Error('Backup содержит повреждённую расшифровку.');
+  }
+
   const statuses: readonly TranscriptStatus[] = [
     'queued',
     'running',
@@ -256,11 +273,18 @@ export function parseRestoredTranscript(record: NoteTranscript): NoteTranscript 
     'failed',
     'unsupported',
   ];
-  if (!statuses.includes(record.status)) {
+  if (!record.status || !statuses.includes(record.status)) {
     throw new Error('Backup содержит неизвестный статус расшифровки.');
+  }
+
+  if (record.segments !== undefined && !Array.isArray(record.segments)) {
+    throw new Error('Backup содержит повреждённые таймкоды расшифровки.');
   }
   const segments = record.segments?.map((segment) => {
     if (
+      !segment ||
+      typeof segment !== 'object' ||
+      typeof segment.speakerId !== 'string' ||
       !segment.speakerId ||
       !Number.isFinite(segment.startMs) ||
       !Number.isFinite(segment.endMs) ||
@@ -270,29 +294,47 @@ export function parseRestoredTranscript(record: NoteTranscript): NoteTranscript 
     ) {
       throw new Error('Backup содержит повреждённые таймкоды расшифровки.');
     }
-    return { ...segment };
+    return {
+      speakerId: segment.speakerId,
+      startMs: segment.startMs,
+      endMs: segment.endMs,
+      text: segment.text,
+    };
   });
-  const speakerNames =
-    record.speakerNames === undefined
-      ? undefined
-      : Object.fromEntries(
-          Object.entries(record.speakerNames).filter(
-            ([speakerId, label]) =>
-              speakerId.length > 0 && typeof label === 'string' && label.trim().length > 0,
-          ),
-        );
+
+  if (
+    record.speakerNames !== undefined &&
+    (!record.speakerNames ||
+      typeof record.speakerNames !== 'object' ||
+      Array.isArray(record.speakerNames) ||
+      Object.entries(record.speakerNames).some(
+        ([speakerId, label]) => !speakerId || typeof label !== 'string',
+      ))
+  ) {
+    throw new Error('Backup содержит повреждённые имена спикеров.');
+  }
+  const speakerNames = record.speakerNames
+    ? Object.fromEntries(
+        Object.entries(record.speakerNames).filter(([, label]) => label.trim().length > 0),
+      )
+    : undefined;
+
   const incomplete = record.status === 'queued' || record.status === 'running';
   return {
-    ...record,
-    ...(segments?.length ? { segments } : { segments: undefined }),
-    ...(speakerNames && Object.keys(speakerNames).length > 0
-      ? { speakerNames }
-      : { speakerNames: undefined }),
-    ...(record.diarized === true && segments?.length ? { diarized: true } : { diarized: undefined }),
+    fileId: record.fileId,
+    noteId: record.noteId,
+    text: record.text,
+    ...(segments?.length ? { segments } : {}),
+    ...(speakerNames && Object.keys(speakerNames).length > 0 ? { speakerNames } : {}),
+    ...(record.diarized === true && segments?.length ? { diarized: true } : {}),
     status: incomplete ? 'failed' : record.status,
     ...(incomplete
       ? { error: 'Импортирована незавершённая задача распознавания. Запустите её повторно.' }
-      : {}),
+      : record.error
+        ? { error: record.error }
+        : {}),
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
   };
 }
 
