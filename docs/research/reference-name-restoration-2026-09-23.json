@@ -1,0 +1,40 @@
+{
+  "checkedCommit": "0cb473120314089409c3c1cdc7be6855c3ba963b",
+  "runId": "35789282972",
+  "recovery": {
+    "byKind": {
+      "classification": 9,
+      "law": 10,
+      "scale": 52,
+      "symptom": 234,
+      "syndrome": 329,
+      "term": 6944,
+      "tool": 59
+    },
+    "medicalDefinitionsImported": 0,
+    "normalizedTitles": 7637,
+    "sourceInputs": 11,
+    "sourceLocalNames": 7637,
+    "sources": 2
+  },
+  "definitions": 8410,
+  "searchableEntries": 16047,
+  "restoredNameRowsVerified": 7637,
+  "existingBlocksCompared": 26685,
+  "installedBytes": 128147456,
+  "downloadBytes": 26877059,
+  "tests": {
+    "tests": 58,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "logicalRoundTripEqual": true,
+  "boundary": "Name recovery is not new definition acquisition. Existing definition variants remain distinct; no canonical merging, clinical review, UI lifecycle or Android qualification.",
+  "actualReader": {
+    "readableById": 7637,
+    "titleVisibleAt20": 7637,
+    "total": 7637,
+    "missingNameIds": []
+  }
+}

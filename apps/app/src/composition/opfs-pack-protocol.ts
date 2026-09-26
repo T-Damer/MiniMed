@@ -1,7 +1,8 @@
-import type { ContentPackSeed } from '@localmed/contracts';
+import type { ContentPackSeed, DefinitionReferenceRequest } from '@localmed/contracts';
 import type { LexicalSearchRequest, VectorSearchRequest } from '@localmed/storage';
 
 export type OpfsPackWorkerMethod =
+  | 'reference'
   | 'initialize'
   | 'getHealth'
   | 'inspectIntegrity'
@@ -24,6 +25,7 @@ export type OpfsPackWorkerMethod =
   | 'close';
 
 export type OpfsPackWorkerRequest =
+  | { readonly id: number; readonly type: 'approve-download' }
   | {
       readonly id: number;
       readonly type: 'open';
@@ -31,6 +33,7 @@ export type OpfsPackWorkerRequest =
       readonly databaseName: string;
       readonly fetchTimeoutMs: number;
       readonly poolName: string;
+      readonly waitForDownloadApproval?: boolean;
     }
   | {
       readonly id: number;
@@ -40,6 +43,13 @@ export type OpfsPackWorkerRequest =
     };
 
 export type OpfsPackWorkerResponse =
+  | { readonly id: number; readonly event: 'download-required' }
+  | {
+      readonly id: number;
+      readonly event: 'download-progress';
+      readonly loaded: number;
+      readonly total: number;
+    }
   | { readonly id: number; readonly result: unknown }
   | { readonly id: number; readonly error: string };
 
@@ -48,9 +58,11 @@ export type OpfsPackWorkerOpenOptions = {
   readonly databaseName: string;
   readonly fetchTimeoutMs: number;
   readonly poolName: string;
+  readonly waitForDownloadApproval?: boolean;
 };
 
 export type OpfsPackWorkerCallArgs = {
+  readonly reference: readonly [request: DefinitionReferenceRequest];
   readonly initialize: readonly [seed?: ContentPackSeed];
   readonly getHealth: readonly [];
   readonly inspectIntegrity: readonly [];

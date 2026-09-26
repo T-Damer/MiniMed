@@ -1,0 +1,310 @@
+{
+  "beforeRecords": 18384,
+  "beforeBatchRecords": 153,
+  "afterBatchRecords": 126,
+  "afterRecords": 18357,
+  "removedStandaloneLabels": [
+    {
+      "id": "journal.reference.1027-4898.15668.entry.3049ec3c95db206507bf02cf",
+      "title": "Скорее самоповреждающее поведение",
+      "sourceUrl": "https://journals.eco-vector.com/1027-4898/article/view/15668/ru_RU",
+      "labelEvidence": {
+        "block": 36,
+        "end": 33,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.1027-4898.15672.entry.10b74ad0ebf3620fd535aa30",
+      "title": "Деперсонализационные расстройства отмечаются на фоне интоксикации целым рядом психоактивных веществ",
+      "sourceUrl": "https://journals.eco-vector.com/1027-4898/article/view/15672/ru_RU",
+      "labelEvidence": {
+        "block": 48,
+        "end": 99,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.1027-4898.16382.entry.d9880d92d47b01d5229855f5",
+      "title": "Метод исследования",
+      "sourceUrl": "https://journals.eco-vector.com/1027-4898/article/view/16382/ru_RU",
+      "labelEvidence": {
+        "block": 3,
+        "end": 18,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.1027-4898.16442.entry.b19c56d6ca10f0c74defea43",
+      "title": "Основные задача этапа стабилизации достигнутого эффекта",
+      "sourceUrl": "https://journals.eco-vector.com/1027-4898/article/view/16442/ru_RU",
+      "labelEvidence": {
+        "block": 15,
+        "end": 55,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.1027-4898.33875.entry.81bb6377e3e72db7b126674d",
+      "title": "Клиническая картина заболевания",
+      "sourceUrl": "https://journals.eco-vector.com/1027-4898/article/view/33875/ru_RU",
+      "labelEvidence": {
+        "block": 25,
+        "end": 31,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.104992.entry.78ef77667a9e328b65f73210",
+      "title": "Секреция кортизола происходит по циркадному ритму",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/104992/ru_RU",
+      "labelEvidence": {
+        "block": 34,
+        "end": 49,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.33858.entry.2a58e20e62211d667b36c0f1",
+      "title": "аритмическая",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/33858/ru_RU",
+      "labelEvidence": {
+        "block": 21,
+        "end": 15,
+        "start": 3
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.33858.entry.64ef4eb95b30b0a28d2321d1",
+      "title": "псевдокоронарная",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/33858/ru_RU",
+      "labelEvidence": {
+        "block": 19,
+        "end": 19,
+        "start": 3
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.33858.entry.69865685ac6b660d224615fc",
+      "title": "Первое",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/33858/ru_RU",
+      "labelEvidence": {
+        "block": 57,
+        "end": 6,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.33858.entry.706fca1b444aa9c87cd42324",
+      "title": "декомпенсационная",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/33858/ru_RU",
+      "labelEvidence": {
+        "block": 20,
+        "end": 20,
+        "start": 3
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.33858.entry.8b23c432e2669ed772204739",
+      "title": "Инвазивный метод исследования",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/33858/ru_RU",
+      "labelEvidence": {
+        "block": 31,
+        "end": 29,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.33858.entry.9ecc2bc2a11eb82ae8e5cde2",
+      "title": "смешанная",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/33858/ru_RU",
+      "labelEvidence": {
+        "block": 22,
+        "end": 12,
+        "start": 3
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.33858.entry.d8565e3d6b2db423c8c500a2",
+      "title": "Второе",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/33858/ru_RU",
+      "labelEvidence": {
+        "block": 58,
+        "end": 6,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.42537.entry.3fb20cf37dc6d188018848c1",
+      "title": "Важное преимущество теста",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/42537/ru_RU",
+      "labelEvidence": {
+        "block": 38,
+        "end": 25,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.pediatr.90070.entry.03f2bcdd29626c03aa07d898",
+      "title": "Такое течение инфекции COVID-19 в литературе описывается как Kawa-COVID-19 [39]",
+      "sourceUrl": "https://journals.eco-vector.com/pediatr/article/view/90070/ru_RU",
+      "labelEvidence": {
+        "block": 34,
+        "end": 79,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.11362.entry.f99b803b0fd835a06da40a7d",
+      "title": "Новое лечебное направление в радиологии",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/11362/ru_RU",
+      "labelEvidence": {
+        "block": 30,
+        "end": 39,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12924.entry.054f731dacf5c08215c29a56",
+      "title": "Передняя доля гипофиза регулирует репродуктивную систему с помощью гонадотропных гормонов",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12924/ru_RU",
+      "labelEvidence": {
+        "block": 7,
+        "end": 89,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12924.entry.fd2df9a59c60acdc9c997766",
+      "title": "Существует две формы β-субъединиц",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12924/ru_RU",
+      "labelEvidence": {
+        "block": 23,
+        "end": 33,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12925.entry.4b9e563e4d2c2fe0813b9a4c",
+      "title": "Следующим шагом для группы доктора Гиллинга стал метод HoLAP (Holmium Laser Ablation of the Prostate)",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12925/ru_RU",
+      "labelEvidence": {
+        "block": 29,
+        "end": 101,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12925.entry.5cf7397a49486a2718ebfa29",
+      "title": "Третья стадия",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12925/ru_RU",
+      "labelEvidence": {
+        "block": 39,
+        "end": 13,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12925.entry.77ccc4f61e458c26df65c9a3",
+      "title": "Новая эра в применении гольмиевого лазера наступила с изобретением морцеллятора",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12925/ru_RU",
+      "labelEvidence": {
+        "block": 31,
+        "end": 79,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12925.entry.7bbbe230a43f9b1c9ac59617",
+      "title": "факультативные",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12925/ru_RU",
+      "labelEvidence": {
+        "block": 42,
+        "end": 14,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12925.entry.862b744c85ec8f7331827e92",
+      "title": "Вторая стадия",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12925/ru_RU",
+      "labelEvidence": {
+        "block": 38,
+        "end": 13,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12925.entry.97568d01a9a61b0d32fc27c1",
+      "title": "рекомендуемые",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12925/ru_RU",
+      "labelEvidence": {
+        "block": 41,
+        "end": 13,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12925.entry.e7f77ddf6b9156466aa0f15c",
+      "title": "обязательные",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12925/ru_RU",
+      "labelEvidence": {
+        "block": 40,
+        "end": 12,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.12925.entry.e9e6404b838b501c137e7f48",
+      "title": "Первая стадия",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/12925/ru_RU",
+      "labelEvidence": {
+        "block": 37,
+        "end": 13,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    },
+    {
+      "id": "journal.reference.uroved.44804.entry.7a212e3dda6af8361c678d47",
+      "title": "Непрямым методом определения ФДС",
+      "sourceUrl": "https://journals.eco-vector.com/uroved/article/view/44804/ru_RU",
+      "labelEvidence": {
+        "block": 12,
+        "end": 32,
+        "start": 0
+      },
+      "textRetainedInArticle": true
+    }
+  ],
+  "articleSourcesAndBlocksExact": true,
+  "allRetainedTermsExact": true,
+  "archivedPriorManifestSha256": "36ee683f3294265bc73a8f6544929a4587fe902492b00521fcd81cde470f72d2",
+  "networkRequests": 0,
+  "boundary": "Lexical/contextual screening only. Every source paragraph remains readable; no parent name is fabricated for an incomplete subtype and no clinical interpretation is approved."
+}

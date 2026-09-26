@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.assessment.pediatric-assessment-triangle.ru.kr25_3.2026",
+  "title": "PAT — Pediatric Assessment Triangle from current pediatric ARVI recommendation",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "assessment-source-review-required",
+  "verificationStatus": "current-kr-table-reviewed-with-explicit-pattern-gap",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "categorical_triage_assessment",
+  "source": {
+    "recommendationTitle": "Острая респираторная вирусная инфекция (ОРВИ)",
+    "recommendationId": "25_3",
+    "recommendationYear": 2026,
+    "revisionDueNoLaterThan": 2028,
+    "population": "children",
+    "appendix": "Г2",
+    "urls": [
+      "https://www.consultant.ru/document/cons_doc_LAW_543697/7a398ec08dd343208380f00e97585da1a396bebf/",
+      "https://www.consultant.ru/document/cons_doc_LAW_543697/e675e2f410892081f194cc41d6420f8078f4ada9/",
+      "https://www.consultant.ru/document/cons_doc_LAW_543697/2f7f5ea286ee945dca3b7727daa680b53e3984dd/",
+      "https://www.consultant.ru/document/cons_doc_LAW_543697/2637f0ffe8c19bdd34c407bb8dad546fc9a48343/"
+    ],
+    "validationPublications": [
+      {
+        "citation": "Dieckmann RA, Brownstein D, Gausche-Hill M. Pediatric Assessment Triangle. PEPP Textbook. 2nd ed. 2006."
+      },
+      {
+        "citation": "Ares MI et al. Pediatric Emergency Care. 2017;33(4):234-238.",
+        "doi": "10.1097/PEC.0000000000000717"
+      },
+      {
+        "citation": "Ma X et al. International Emergency Nursing. 2021;58:101041.",
+        "doi": "10.1016/j.ienj.2021.101041"
+      },
+      {
+        "citation": "Zhu S et al. Frontiers in Pediatrics. 2025;13:1435604.",
+        "doi": "10.3389/fped.2025.1435604"
+      }
+    ]
+  },
+  "purpose": {
+    "durationSeconds": {
+      "min": 30,
+      "max": 60
+    },
+    "setting": [
+      "prehospital",
+      "emergency_department",
+      "admission_department"
+    ],
+    "use": "rapid_visual_triage_before_instrumental_testing"
+  },
+  "domains": [
+    {
+      "id": "appearance",
+      "normal": [
+        "active",
+        "good_tone",
+        "responds_to_examination",
+        "easily_consoled",
+        "alert_gaze",
+        "strong_age_appropriate_cry_or_speech"
+      ],
+      "pathological": [
+        "lethargic_or_agitated",
+        "hypotonia_or_hypertonia",
+        "poor_contact",
+        "inconsolable",
+        "vacant_or_roving_gaze",
+        "weak_or_grunting_cry",
+        "disorientation"
+      ]
+    },
+    {
+      "id": "breathing",
+      "normal": [
+        "age_appropriate_respiratory_rate",
+        "quiet_breathing",
+        "no_intercostal_retractions",
+        "no_nasal_flaring"
+      ],
+      "pathological": [
+        "tachypnea_or_bradypnea",
+        "retractions",
+        "accessory_muscle_use",
+        "grunting",
+        "wheezing",
+        "forced_position",
+        "apnea"
+      ]
+    },
+    {
+      "id": "skin_circulation",
+      "normal": [
+        "pink_skin",
+        "warm_skin",
+        "no_mottling",
+        "no_cyanosis"
+      ],
+      "pathological": [
+        "pallor",
+        "mottling",
+        "acrocyanosis_or_central_cyanosis",
+        "blotchy_skin",
+        "cold_extremities",
+        "shock_signs"
+      ]
+    }
+  ],
+  "patternInterpretations": [
+    {
+      "pattern": [
+        "normal",
+        "normal",
+        "normal"
+      ],
+      "syndrome": "normal",
+      "semantic": "stable_child_without_acute_respiratory_or_circulatory_failure"
+    },
+    {
+      "pattern": [
+        "normal",
+        "pathological",
+        "normal"
+      ],
+      "syndrome": "respiratory_failure_stage_1",
+      "semantic": "respiratory_abnormality_with_preserved_perfusion"
+    },
+    {
+      "pattern": [
+        "normal",
+        "pathological",
+        "pathological"
+      ],
+      "syndrome": "respiratory_failure_stage_2_or_3",
+      "semantic": "respiratory_abnormality_with_impaired_perfusion"
+    },
+    {
+      "pattern": [
+        "normal",
+        "normal",
+        "pathological"
+      ],
+      "syndrome": "compensated_shock",
+      "semantic": "shock_signs_with_preserved_appearance_and_no_respiratory_abnormality"
+    },
+    {
+      "pattern": [
+        "pathological",
+        "normal",
+        "pathological"
+      ],
+      "syndrome": "decompensated_hypotensive_shock",
+      "semantic": "abnormal_appearance_with_shock_signs"
+    },
+    {
+      "pattern": [
+        "pathological",
+        "normal",
+        "normal"
+      ],
+      "syndrome": "cns_dysfunction_or_metabolic_disorder",
+      "semantic": "isolated_altered_appearance_or_consciousness_with_preserved_breathing_and_circulation",
+      "sourceQualifier": "source_key_mentions_plus_minus_minor_breathing_or_skin_changes"
+    },
+    {
+      "pattern": [
+        "pathological",
+        "pathological",
+        "pathological"
+      ],
+      "syndrome": "cardiorespiratory_failure_or_circulatory_arrest",
+      "semantic": "combined_appearance_respiratory_and_circulatory_failure"
+    }
+  ],
+  "sourcePatternGap": {
+    "allBinaryPatternCount": 8,
+    "explicitlyInterpretedPatternCount": 7,
+    "missingPattern": [
+      "pathological",
+      "pathological",
+      "normal"
+    ],
+    "handling": "no_interpretation_invented"
+  },
+  "triageLevelGuidance": [
+    {
+      "levels": [
+        1,
+        2
+      ],
+      "semantic": "critical",
+      "disposition": "medical_evacuation_to_pediatric_intensive_care"
+    },
+    {
+      "levels": [
+        3
+      ],
+      "semantic": "urgent",
+      "disposition": "hospital_evacuation_and_priority_treatment"
+    },
+    {
+      "levels": [
+        4
+      ],
+      "semantic": "semi_urgent_stable",
+      "disposition": "no_hospital_evacuation_required_source_text"
+    },
+    {
+      "levels": [
+        5
+      ],
+      "semantic": "non_urgent",
+      "disposition": "outpatient_treatment"
+    }
+  ],
+  "patternToTriageLevelMapping": null,
+  "reviewNotes": [
+    "PAT is a rapid categorical visual assessment, not a numeric additive score.",
+    "The current recommendation explicitly lists seven pattern interpretations; the eighth possible binary pattern is not present in the text key and is intentionally left unmapped.",
+    "The recommendation separately gives triage-level 1-5 disposition guidance, but the text page does not provide an explicit pattern-to-level mapping; MiniMed must not infer one.",
+    "PAT is intended to identify urgency and syndrome pattern before detailed ABCDE/instrumental assessment; it does not replace the subsequent clinical examination.",
+    "Promotion requires clinical review of the source figure/key and rights/UX review."
+  ]
+}

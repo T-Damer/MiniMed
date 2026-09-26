@@ -26,6 +26,8 @@ import {
   isUserLibraryCatalogRoute,
   USER_LIBRARY_CATALOG_HASH,
 } from '@/features/library/user-library-routing';
+import { FirstRunSetup } from '@/features/setup/FirstRunSetup';
+import { dismissSetup, isSetupDismissed } from '@/features/setup/setup-state';
 import {
   getFloatingWindowsEnabled,
   getSplitNavigation,
@@ -95,6 +97,7 @@ export function App(): JSX.Element {
   const scaledFloatingWindow =
     embeddedFloatingWindow && floatingWindowParams.get('minimed-floating-scale') !== '0';
   const session = useAppSession();
+  const [setupDismissed, setSetupDismissed] = createSignal(isSetupDismissed());
   const navigation = useRootNavigation();
   const [shellReady, setShellReady] = createSignal(document.readyState === 'complete');
   const [splitNavigation, setSplitNavigation] = createSignal(getSplitNavigation());
@@ -290,6 +293,21 @@ export function App(): JSX.Element {
           }}
         />
       </Portal>
+      <Show when={shellReady() && !embeddedFloatingWindow && !setupDismissed()}>
+        <FirstRunSetup
+          coreReady={Boolean(session.ready())}
+          coreRequired={session.coreDownloadRequired()}
+          coreDownloading={session.coreDownloading()}
+          coreProgress={session.coreProgress()}
+          coreError={session.error()}
+          onDownloadCore={session.downloadCore}
+          onContentChanged={session.connectInstalledModules}
+          onClose={() => {
+            dismissSetup();
+            setSetupDismissed(true);
+          }}
+        />
+      </Show>
       <main
         class="app-main"
         classList={{

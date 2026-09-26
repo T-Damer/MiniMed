@@ -1,0 +1,511 @@
+{
+  "version": 1,
+  "counts": {
+    "articles": 11,
+    "records": 69,
+    "articleOverviews": 11,
+    "definitionCandidates": 47,
+    "sectionCards": 10,
+    "criterionLists": 1,
+    "blocks": 408,
+    "tables": 0
+  },
+  "articles": [
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "90541",
+      "journal": "Неврологический вестник",
+      "title": "Кататоническая шизофрения: историческая ошибка психиатрической систематики?",
+      "doi": "10.17816/nb90541",
+      "publicationDate": "2021-12-15",
+      "articleType": [
+        "Передовые статьи"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "evidence": "evidence/1027-4898-90541.json.gz",
+      "evidenceSha256": "f9baf4770bac59a917cb1859eecf84f2a9c8e19bfd16cdc7a284f28911304b15",
+      "prepared": "1027-4898-90541.json",
+      "preparedSha256": "7d69680478e0fba400b1eb6c2fc780f710a8b9f86c1337ce6af0a3e108d29642",
+      "records": 2,
+      "names": [
+        "Кататоническая шизофрения: историческая ошибка психиатрической систематики?",
+        "Кататония"
+      ],
+      "distinctNormalizedNames": 2,
+      "previousCandidateNamesNotSelected": [],
+      "blocks": 41,
+      "extraction": {
+        "bodyBlocks": 39,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "media": 0,
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "14094",
+      "journal": "Неврологический вестник",
+      "title": "НЕГАТИВНАЯ ГАЛЛЮЦИНАЦИЯ. ИСТОРИЯ КОНЦЕПТА, ПСИХОПАТОЛОГИЯ И ВОЗМОЖНОЕ МЕСТО В КЛИНИКЕ",
+      "doi": "10.17816/nb14094",
+      "publicationDate": "2017-09-15",
+      "articleType": [
+        "Articles"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "evidence": "evidence/1027-4898-14094.json.gz",
+      "evidenceSha256": "ec09006f735da629c3f2b6213248d9e34d11c2f88fb8555a6b221e280d20d182",
+      "prepared": "1027-4898-14094.json",
+      "preparedSha256": "33abbbb8210b7a4484e5f27f0d67dab31ce3f42240ab37f062ad4b44e44ab092",
+      "records": 5,
+      "names": [
+        "Алекситимия",
+        "НГ согласно воззрениям психоанализа",
+        "НЕГАТИВНАЯ ГАЛЛЮЦИНАЦИЯ. ИСТОРИЯ КОНЦЕПТА, ПСИХОПАТОЛОГИЯ И ВОЗМОЖНОЕ МЕСТО В КЛИНИКЕ",
+        "Негативная галлюцинация (НГ)",
+        "Синдром Котара"
+      ],
+      "distinctNormalizedNames": 5,
+      "previousCandidateNamesNotSelected": [],
+      "blocks": 8,
+      "extraction": {
+        "bodyBlocks": 2,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "14095",
+      "journal": "Неврологический вестник",
+      "title": "К ВОПРОСУ О ФАБУЛЕ, СЮЖЕТЕ И ТЕМАТИКЕ БРЕДА. ЧАСТЬ 1",
+      "doi": "10.17816/nb14095",
+      "publicationDate": "2017-09-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "evidence": "evidence/1027-4898-14095.json.gz",
+      "evidenceSha256": "701295a97d12ac23f60acfdf5e07766ae57b81d77800a3483e1582bf5124da24",
+      "prepared": "1027-4898-14095.json",
+      "preparedSha256": "efecfc277c72f84062fb365d928b9347f94e1a9020afefd080c2eb195170fa9b",
+      "records": 1,
+      "names": [
+        "К ВОПРОСУ О ФАБУЛЕ, СЮЖЕТЕ И ТЕМАТИКЕ БРЕДА. ЧАСТЬ 1"
+      ],
+      "distinctNormalizedNames": 1,
+      "previousCandidateNamesNotSelected": [],
+      "blocks": 4,
+      "extraction": {
+        "bodyBlocks": 2,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "14043",
+      "journal": "Неврологический вестник",
+      "title": "В ПОИСКАХ АУТИЗМА",
+      "doi": "10.17816/nb14043",
+      "publicationDate": "2017-03-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "evidence": "evidence/1027-4898-14043.json.gz",
+      "evidenceSha256": "696336cd2443a51095aad97a576b301f06ecce0b1d700eb962e28bcac8a54bf7",
+      "prepared": "1027-4898-14043.json",
+      "preparedSha256": "9cb1e566c9bacaf15548b29de31c0864157382faa2b094376f77a11a08d5051a",
+      "records": 1,
+      "names": [
+        "В ПОИСКАХ АУТИЗМА"
+      ],
+      "distinctNormalizedNames": 1,
+      "previousCandidateNamesNotSelected": [],
+      "blocks": 4,
+      "extraction": {
+        "bodyBlocks": 2,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "105915",
+      "journal": "Неврологический вестник",
+      "title": "Современные представления о синдроме вегетативной дистонии",
+      "doi": "10.17816/nb105915",
+      "publicationDate": "1993-09-20",
+      "articleType": [
+        "Оригинальные исследования"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "evidence": "evidence/1027-4898-105915.json.gz",
+      "evidenceSha256": "97aaccaee76c310486ee78473ae173377254382cf636adb03e9f0acdadb359d6",
+      "prepared": "1027-4898-105915.json",
+      "preparedSha256": "de3941b92d9d7958381b6dbbb02c42c49c0bfc416f56d1f9f9c3e2dbcfd9684e",
+      "records": 1,
+      "names": [
+        "Современные представления о синдроме вегетативной дистонии"
+      ],
+      "distinctNormalizedNames": 1,
+      "previousCandidateNamesNotSelected": [
+        "Настоящий этап изучения СВД"
+      ],
+      "blocks": 31,
+      "extraction": {
+        "bodyBlocks": 30,
+        "bibliographyBlocks": 1,
+        "omissions": {
+          "media": 0,
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "7752",
+      "journal": "Российский семейный врач",
+      "title": "Диагностика и лечение вестибулопатии в амбулаторной практике",
+      "doi": "10.17816/RFD201746-14",
+      "publicationDate": "2017-12-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "evidence": "evidence/rfd-7752.json.gz",
+      "evidenceSha256": "4d20753f1ff7106e52db67e9306d486a5e877a1189afb6a0a083f39cf4383cc5",
+      "prepared": "rfd-7752.json",
+      "preparedSha256": "7611bb44c482dd12bf8c27187aaec6331fc22d9ffdb79cbe3107f32d2a4257d7",
+      "records": 32,
+      "names": [
+        "Болезнь Меньера",
+        "Вестибуловизуальные симптомы",
+        "Вестибулопатии",
+        "Вестибулярный нейронит",
+        "Внешнее головокружение (external vertigo)",
+        "Внутреннее головокружение (internal vertigo)",
+        "Диагностика и лечение вестибулопатии в амбулаторной практике",
+        "Дисциркуляторные вестибулопатии",
+        "Дифференциальная диагностика вестибулопатии",
+        "Доброкачественное пароксизмальное позиционное головокружение",
+        "Зрительная задержка (visual lag)",
+        "Зрительная размытость, индуцированная движением (movement-induced blur)",
+        "Зрительный наклон (visual tilt)",
+        "Международная классификация вестибулярных симптомов",
+        "Нарушение пространственной ориентации (non-vertiginous dizziness)",
+        "Одна из патофизиологических основ вестибулярной реабилитации",
+        "Одна из причин избирательного воспаления вестибулярного нерва",
+        "Острая вестибулопатия",
+        "Осциллопсия (oscilloscopy)",
+        "Патогенетическая терапия вестибулярных расстройств",
+        "Периферическая вестибулопатия",
+        "Постуральные симптомы",
+        "Провокационные движения",
+        "Симптоматическая терапия вестибулопатии",
+        "Смешанная вестибулопатия",
+        "Типы вестибулярных расстройств",
+        "Хроническая вестибулопатия",
+        "Центральная вестибулопатия",
+        "Эпизодическая вестибулопатия",
+        "экстракт гинкго билоба"
+      ],
+      "distinctNormalizedNames": 30,
+      "previousCandidateNamesNotSelected": [
+        "Тактика семейного врача при диагностике вестибулопатии",
+        "Патофизиологическая основа развития головокружения при цереброваскулярной болезни",
+        "Цель вестибулярной реабилитации"
+      ],
+      "blocks": 77,
+      "extraction": {
+        "bodyBlocks": 65,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "media": 0,
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "6178",
+      "journal": "Российский семейный врач",
+      "title": "Острый коронарный синдром",
+      "doi": "10.17816/RFD201715-14",
+      "publicationDate": "2017-02-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "evidence": "evidence/rfd-6178.json.gz",
+      "evidenceSha256": "875b76f65c5a37f1a89f07d327172672b802ac432435fc918d053bb667e1c449",
+      "prepared": "rfd-6178.json",
+      "preparedSha256": "9bee7e0ca028ca8e52843ea799fae88f2fa69a050a8106cf6e477c8e405ae2de",
+      "records": 6,
+      "names": [
+        "ИБС",
+        "Нестабильная стенокардия",
+        "Острый коронарный синдром",
+        "впервые возникшая полная блокада левой ножки пучка Гиса",
+        "прогрессирующая стенокардия (стенокардия крещендо)"
+      ],
+      "distinctNormalizedNames": 5,
+      "previousCandidateNamesNotSelected": [
+        "Патогенез ишемической болезни сердца",
+        "Классификация",
+        "Абдоминальная форма ОКС чаще",
+        "ОКС в возрасте до 30 лет",
+        "Диагностика острого коронарного синдрома в амбулаторной практике отличается определенными сложностями. Во-первых, ОКС",
+        "наличие реципрокной депрессии сегмента ST в правых грудных отведениях (в основном в V1-2)",
+        "Тактика ведения пациента с острым коронарным синдромом"
+      ],
+      "blocks": 79,
+      "extraction": {
+        "bodyBlocks": 75,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "media": 0,
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "1431",
+      "journal": "Российский семейный врач",
+      "title": "КЛИНИЧЕСКИЕ РЕКОМЕНДАЦИИ ПО ДИАГНОСТИКЕ, ЛЕЧЕНИЮ И ПРОФИЛАКТИКЕ ГОЛОВНОЙ БОЛИ В ПРАКТИКЕ СЕМЕЙНОГО ВРАЧА",
+      "doi": "10.17816/RFD201524-17",
+      "publicationDate": "2015-06-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "evidence": "evidence/rfd-1431.json.gz",
+      "evidenceSha256": "7985b5fa33a8d94198768e60752712d2525aeea565d024fb010acc99cf6a6584",
+      "prepared": "rfd-1431.json",
+      "preparedSha256": "adb9ef3c0f2ea84a1f124aa4351bddc980eb0e8f7c3a4f058a3dfd1bf67caa9f",
+      "records": 3,
+      "names": [
+        "КЛИНИЧЕСКИЕ РЕКОМЕНДАЦИИ ПО ДИАГНОСТИКЕ, ЛЕЧЕНИЮ И ПРОФИЛАКТИКЕ ГОЛОВНОЙ БОЛИ В ПРАКТИКЕ СЕМЕЙНОГО ВРАЧА",
+        "Мигрень",
+        "Приступы ми-гренозной ГБ обычно впервые"
+      ],
+      "distinctNormalizedNames": 3,
+      "previousCandidateNamesNotSelected": [],
+      "blocks": 6,
+      "extraction": {
+        "bodyBlocks": 2,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "3577",
+      "journal": "Российский семейный врач",
+      "title": "ОШИБКИ В АМБУЛАТОРНОЙ НЕВРОЛОГИЧЕСКОЙ ПРАКТИКЕ. ЧАСТЬ 1",
+      "doi": "10.17816/RFD201514-12",
+      "publicationDate": "2015-03-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "evidence": "evidence/rfd-3577.json.gz",
+      "evidenceSha256": "460d3a1ea1f56813d353da5aba6f40bf2c58a0b0a0f901c143ace15a72f3e185",
+      "prepared": "rfd-3577.json",
+      "preparedSha256": "caff45a325adf4d7f8a4a25a5b41f4d3a4628628c29a62dfdb51a23bd537e03e",
+      "records": 1,
+      "names": [
+        "ОШИБКИ В АМБУЛАТОРНОЙ НЕВРОЛОГИЧЕСКОЙ ПРАКТИКЕ. ЧАСТЬ 1"
+      ],
+      "distinctNormalizedNames": 1,
+      "previousCandidateNamesNotSelected": [],
+      "blocks": 4,
+      "extraction": {
+        "bodyBlocks": 2,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "11910",
+      "journal": "Педиатр",
+      "title": "Проблема определения критериев нарушения речи у современных дошкольников в аспекте междисциплинарного взаимодействия специалистов",
+      "doi": "10.17816/PED101117-126",
+      "publicationDate": "2019-04-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "evidence": "evidence/pediatr-11910.json.gz",
+      "evidenceSha256": "80a6342a03b1004a547782a33926afd0ee54c6780a470eda8e6524273a668649",
+      "prepared": "pediatr-11910.json",
+      "preparedSha256": "32b8bfffec39d3e77c53a08ee9debdc1790d57837e76fe0bdb98f07f23ecf9f2",
+      "records": 5,
+      "names": [
+        "Все дальнейшие модели",
+        "Кроме того, DAS",
+        "Остальные 98 % детей по существу",
+        "Отсутствие единых подходов к квалификации речевых нарушений",
+        "Проблема определения критериев нарушения речи у современных дошкольников в аспекте междисциплинарного взаимодействия специалистов"
+      ],
+      "distinctNormalizedNames": 5,
+      "previousCandidateNamesNotSelected": [
+        "Психолингвисты определяют две основные области исследований"
+      ],
+      "blocks": 42,
+      "extraction": {
+        "bodyBlocks": 36,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "media": 0,
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "status": "selected-requires-clinical-review",
+      "articleId": "10468",
+      "journal": "Российский семейный врач",
+      "title": "Герпесвирусные инфекции, вызываемые лимфотропными ­вирусами. Часть V",
+      "doi": "10.17816/RFD201835-13",
+      "publicationDate": "2018-11-15",
+      "articleType": [
+        "Лекции"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "evidence": "evidence/rfd-10468.json.gz",
+      "evidenceSha256": "bb8ff6f1db9c1b6551a49572a4657d66c2f9d5a6076223d07644a3a6d9b1b450",
+      "prepared": "rfd-10468.json",
+      "preparedSha256": "ce88ae692fccfcfe103d427ff82606107664f699638b983165f9e5ea7090b013",
+      "records": 12,
+      "names": [
+        "IL-6, фактор роста фибробластов",
+        "Болезнь Кастлемана (ангиофолликулярная гиперплазия лимфатических узлов)",
+        "Внезапная экзантема (exanthema subtitum/roseola infantum, шестая болезнь).",
+        "Герпесвирусные инфекции, вызываемые лимфотропными ­вирусами. Часть V",
+        "Довольно часто многоочаговый тип болезни Кастлемана",
+        "Классическая СК",
+        "Лихорадка без сыпи",
+        "Первичная инфекция",
+        "Первичная лимфома серозных оболочек, или лимфома полостей тела",
+        "Персистирующая форма вирусной инфекции",
+        "Саркома Капоши (СК)",
+        "Эпидемическая (СПИД-ассоциированная) СК"
+      ],
+      "distinctNormalizedNames": 12,
+      "previousCandidateNamesNotSelected": [
+        "Источником инфекции являются преимущественно дети, больные ВГЧ-6-инфекцией. Пути передачи",
+        "Приобретенная первичная ВГЧ-6В-инфек­ция. Заболевание может протекать как субклинически, так и манифестно. В большинстве случаев ВГЧ-6B-инфекция",
+        "ВГЧ-6B-инфекция у детей в 17–20 % случаев",
+        "Ведущие клинические признаки болезни",
+        "Инфицирование ВГЧ-7 здорового ребенка происходит воздушно-капельным и контактным путями. Основной фактор передачи ВГЧ-7",
+        "Патогенез. ВГЧ-7",
+        "Заболевание",
+        "Эндемическая (африканская) СК распространена у жителей Центральной Африки. Протекает в двух формах",
+        "Длительность заболевания СК",
+        "Острое течение",
+        "СК гистологически",
+        "Первичная лимфома серозных оболочек, или лимфома полостей тела,",
+        "Плазмоклеточный тип отмечается реже, чем гиалино-васкулярный. Обычно он"
+      ],
+      "blocks": 112,
+      "extraction": {
+        "bodyBlocks": 109,
+        "bibliographyBlocks": 2,
+        "omissions": {
+          "media": 0,
+          "layout": 2
+        },
+        "bibliographyOmissions": {
+          "media": 0
+        },
+        "clinicalReview": "not-performed",
+        "instrumentScoring": "not-created"
+      }
+    },
+    {
+      "url": "https://journals.eco-vector.com/1606-8181/article/view/696660/ru_RU",
+      "status": "pending-source-review",
+      "reason": "ValueError: Reuse license lacks matching publisher declaration"
+    }
+  ],
+  "acquisitionReportSha256": "021e1984950630bc8dcfcffc7a97af47ccca57e210b57732bf35410b9ed89d00",
+  "rawEvidenceUnchanged": true,
+  "networkRequests": 0,
+  "boundary": "Structure/source-fidelity intake, not clinical review. Article overviews and section cards are counted separately from definition clauses. Old source classification and terminology are retained, not harmonized."
+}

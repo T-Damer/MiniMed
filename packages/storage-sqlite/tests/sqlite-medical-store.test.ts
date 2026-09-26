@@ -4,6 +4,7 @@ import { embedPortableText, PORTABLE_HASH_PROFILE } from '@localmed/search-seman
 import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { createSqliteDefinitionReference } from '../src/definition-reference-reader';
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '../src/index';
 
 const stores: SqliteMedicalStore[] = [];
@@ -32,9 +33,11 @@ describe('SqliteMedicalStore', () => {
       catalogFamily: 'clinical',
       ageGroups: ['children'],
       entityType: 'disease',
+      conceptId: 'condition.test',
       contentMode: 'module-pointer',
       interactiveAssessmentId: 'assessment',
       interactiveCalculatorId: 'calculator',
+      interactiveRoute: '#/assessments/pediatrics/assessment',
       calculationRequired: true,
       notLegalAdvice: true,
     };
@@ -65,7 +68,13 @@ describe('SqliteMedicalStore', () => {
     });
     const projected = await store.listSearchDocuments();
     expect(projected).toHaveLength(seed.documents.length);
-    expect(projected.every((document) => Object.keys(document).length === 3)).toBe(true);
+    expect(projected.every((document) => Object.keys(document).length === 5)).toBe(true);
+    for (const document of projected) {
+      const original = seed.documents.find((entry) => entry.id === document.id);
+      expect(original).toBeDefined();
+      expect(document.title).toBe(original?.title);
+      expect(document.shortTitle).toBe(original?.shortTitle);
+    }
     for (const document of projected) expect(document.metadata).toEqual(metadata);
     const navigation = await store.listNavigationDocuments();
     expect(navigation).toHaveLength(seed.documents.length);
@@ -118,6 +127,110 @@ describe('SqliteMedicalStore', () => {
       chunkCount: 15,
       ftsRowCount: 15,
     });
+  });
+
+  it('builds the migration-010 external-content index from chunks for a JSON seed', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(DEMO_CONTENT_PACK);
+    const database = (
+      store as unknown as {
+        readonly database: {
+          readonly exec: (sql: string) => void;
+          readonly selectValue: (sql: string) => unknown;
+        };
+      }
+    ).database;
+    expect(
+      String(database.selectValue("SELECT sql FROM sqlite_master WHERE name = 'chunks_fts'")),
+    ).toContain("content = 'chunks_fts_source'");
+    // Rank 1 compares the index with its source rows; it throws if rowids drifted.
+    database.exec("INSERT INTO chunks_fts(chunks_fts, rank) VALUES ('integrity-check', 1)");
+    expect(Number(database.selectValue('SELECT count(*) FROM chunks_fts_docsize'))).toBe(15);
+    const hits = await store.search({
+      ftsQuery: 'кашель*',
+      terms: ['кашель'],
+      filters: {},
+      limit: 5,
+    });
+    expect(hits.length).toBeGreaterThan(0);
+    // chunk_id comes from the source view, so every hit must hydrate as a real chunk.
+    for (const hit of hits) expect((await store.getChunk(hit.chunk.id))?.id).toBe(hit.chunk.id);
+  });
+
+  it('keeps reviewed definition-reference links readable and hides rejected ones', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(DEMO_CONTENT_PACK);
+    type Row = Readonly<Record<string, unknown>>;
+    const database = (
+      store as unknown as {
+        readonly database: {
+          readonly exec: (options: {
+            readonly sql: string;
+            readonly bind?: readonly (string | number)[];
+            readonly rowMode?: 'object';
+            readonly returnValue?: 'resultRows';
+          }) => Row[];
+        };
+      }
+    ).database;
+    const read = async (sql: string, bind: readonly (string | number)[] = []) =>
+      database.exec({ sql, bind, rowMode: 'object', returnValue: 'resultRows' });
+    const [packRow] = await read('SELECT id FROM content_packs');
+    const editionId = String(packRow?.['id']);
+    const chunks = await read(
+      `SELECT c.id, c.section_id, c.document_version_id, v.document_id FROM chunks c
+       JOIN document_versions v ON v.id = c.document_version_id ORDER BY c.id LIMIT 2`,
+    );
+    await read("INSERT INTO app_metadata(key, value) VALUES ('definition_reference', ?)", [
+      JSON.stringify({
+        contract: 1,
+        editionId,
+        reviewStatus: 'requires-review',
+        publicationState: 'local-dev',
+        identityStatus: 'source-local-proposed',
+      }),
+    ]);
+    for (const [index, status] of ['reviewed', 'rejected'].entries()) {
+      const chunk = chunks[index];
+      const entity = `fixture.${status}`;
+      await read('INSERT INTO knowledge_entities VALUES (?, ?, ?, ?, ?, ?)', [
+        entity,
+        'term',
+        status,
+        status,
+        '{}',
+        JSON.stringify({
+          definitionReference: 1,
+          editionId,
+          coverage: 'definition',
+          textKind: 'source-excerpt',
+          blockCount: 1,
+        }),
+      ]);
+      await read('INSERT INTO knowledge_document_links VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+        `${entity}.reference.000000`,
+        entity,
+        String(chunk?.['document_id']),
+        String(chunk?.['document_version_id']),
+        String(chunk?.['section_id']),
+        String(chunk?.['id']),
+        'reference:definition',
+        1,
+        status,
+        JSON.stringify({ ordinal: 0, role: 'definition' }),
+      ]);
+    }
+    const reader = await createSqliteDefinitionReference({ read });
+
+    const reviewed = await reader.listBlocks('fixture.reviewed');
+    expect(reviewed.blocks.map((block) => block.chunkId)).toEqual([String(chunks[0]?.['id'])]);
+    expect(
+      (await reader.readBlock('fixture.reviewed', String(chunks[0]?.['id'])))?.text.length,
+    ).toBeGreaterThan(0);
+    expect((await reader.listBlocks('fixture.rejected')).blocks).toEqual([]);
+    expect(await reader.readBlock('fixture.rejected', String(chunks[1]?.['id']))).toBeNull();
   });
 
   it('opens a precompiled SQLite content pack without replaying the JSON seed', async () => {

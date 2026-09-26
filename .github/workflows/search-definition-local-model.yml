@@ -1,0 +1,106 @@
+name: Definition search and offline local model
+
+on:
+  pull_request:
+    branches: [agent/concept-first-knowledge-search]
+    paths:
+      - content/definition-pilot/**
+      - tools/benchmarks/definition-queries.json
+      - tools/benchmarks/local_reranker.py
+      - tools/benchmarks/local_model_smoke.py
+      - tools/benchmarks/test_local_reranker.py
+      - tools/benchmarks/src/local-*.ts
+      - tools/benchmarks/src/run-definition-quality.ts
+      - .github/workflows/search-definition-local-model.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: definition-local-model-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.3
+          no-cache: true
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: '0.10.0'
+          enable-cache: false
+      - name: Install locked application dependencies
+        run: |
+          bun install --frozen-lockfile
+          uv sync --project tools/ingest --all-groups --locked
+      - name: Validate model boundary without downloading weights
+        run: |
+          python3 -m unittest discover -s tools/benchmarks -p test_local_reranker.py -v
+          bunx vitest run tools/benchmarks/src/local-reranker-contract.test.ts
+      - name: Check benchmark TypeScript contracts
+        run: bunx tsc --noEmit -p tools/benchmarks/tsconfig.json
+      - name: Build source-linked draft definitions with the normal ingester
+        if: always()
+        id: build
+        run: |
+          uv run --project tools/ingest medbase lint --input content/definition-pilot
+          uv run --project tools/ingest medbase build --input content/definition-pilot \
+            --output data/build/definitions.db --report data/build/definitions-build.json --lexical-only
+          bun run content:restore:core
+      - name: Test definitions against the bundled corpus and optional pack
+        run: |
+          bun tools/benchmarks/src/run-definition-quality.ts \
+            --core=apps/app/public/content/core.db --pack=data/build/definitions.db
+      - name: Explicitly prepare CPU model (no hosted inference or artifact uploads)
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        run: |
+          uv venv .venv-cross --python 3.12
+          uv pip install --python .venv-cross/bin/python \
+            --index-url https://download.pytorch.org/whl/cpu torch==2.8.0
+          uv pip install --python .venv-cross/bin/python transformers==5.12.1
+          .venv-cross/bin/python tools/benchmarks/local_reranker.py prepare
+      - name: Real MedicalCore to offline classifier smoke
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        env:
+          HF_HUB_OFFLINE: '1'
+          TRANSFORMERS_OFFLINE: '1'
+        run: |
+          .venv-cross/bin/python tools/benchmarks/local_model_smoke.py
+          printf '%s\n' \
+            'боль в правой подвздошной области' \
+            'боль при скольжении пальцами через натянутую рубашку' \
+            'Симптом белого пятна' \
+            | bun tools/benchmarks/src/local-search-demo.ts > data/build/local-search-demo.jsonl
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          rows = [json.loads(line) for line in Path('data/build/local-search-demo.jsonl').read_text().splitlines() if line.strip()]
+          assert len(rows) == 3, 'Missing demo responses'
+          print('CLI_STATUSES', json.dumps([{'status': row['status'], 'inferenceMs': row['inferenceMs']} for row in rows]))
+          assert rows[0]['status'] == 'observe', 'Real model did not run on multi-candidate query'
+          assert rows[1]['status'] in ('observe', 'insufficient-candidates'), 'Unexpected classifier failure'
+          assert rows[2]['status'] == 'identity-bypass', 'Exact identity invoked model'
+          assert all(not row['applied'] and row['selected'] == row['baseline'] for row in rows)
+          print('OFFLINE_CPU_DEMO', json.dumps([{'status': row['status'], 'inferenceMs': row['inferenceMs'], 'baselineTop1': row['baseline'][0]['documentId'], 'experimentalTop1': row['experimental'][0]['documentId']} for row in rows], ensure_ascii=False))
+          PY
+      - name: Summarize without artifact storage
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path('data/build/definition-quality.json')
+          if path.exists():
+              data = json.loads(path.read_text())
+              text = json.dumps({'strict': data['strict'], 'descriptionProbes': data['descriptionProbes'], 'fixtureSha256': data['fixtureSha256']}, ensure_ascii=False)
+              print('DEFINITION_SUMMARY', text)
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as output:
+                  output.write('### Definition regressions\n\n' + text + '\n\nDraft content, not clinical qualification. No artifacts uploaded.\n')
+          PY

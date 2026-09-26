@@ -1,0 +1,680 @@
+[
+  {
+    "id": "clinical.respiratory.infant-wheeze-after-cold",
+    "query": "Грудничок после насморка свистит при дыхании, хуже ест и втягивает межреберья",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "diagnosis-navigation",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.360_3.bronchiolitis",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture", "routing"]
+      },
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 1,
+        "sectionTypes": ["clinical-picture"]
+      },
+      {
+        "documentId": "kr.rf.381_3.bronchitis",
+        "grade": 1,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["бронхиолит", "пневмония", "бронхит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Common infant respiratory presentation; several sources are relevant, but the infant small-airway source should rank highest."
+  },
+  {
+    "id": "clinical.respiratory.infant-apnea-after-uri",
+    "query": "После ОРВИ у грудничка периодически бывают паузы дыхания на несколько секунд",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "diagnosis-navigation",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.360_3.bronchiolitis",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture", "routing"]
+      },
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture", "routing"]
+      }
+    ],
+    "leakageTerms": ["бронхиолит", "пневмония"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Replaces the old forced pneumonia-only gold with graded multi-relevance."
+  },
+  {
+    "id": "clinical.respiratory.schoolchild-fever-tachypnea",
+    "query": "Ребенку 5 лет, четвертый день высокая температура и кашель, дышит часто, заметны втяжения грудной клетки",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "diagnosis-navigation",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture", "routing"]
+      },
+      {
+        "documentId": "kr.rf.381_3.bronchitis",
+        "grade": 1,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["пневмония", "бронхит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Diagnosis-free school-age respiratory vignette with severity clues."
+  },
+  {
+    "id": "clinical.respiratory.cough-chest-pain-fever",
+    "query": "Кашель уже неделю, при кашле болит в грудной клетке и держится температура",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "diagnosis-navigation",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture"]
+      },
+      {
+        "documentId": "kr.rf.381_3.bronchitis",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["пневмония", "бронхит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Natural symptom-only wording with two plausible respiratory sources."
+  },
+  {
+    "id": "clinical.respiratory.hypoxemia-routing",
+    "query": "У ребенка 6 лет кашель и температура, губы посинели, сатурация 88 процентов — когда нужна госпитализация",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "routing",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 3,
+        "sectionTypes": ["routing", "clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["пневмония"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Tests routing retrieval without naming the diagnosis."
+  },
+  {
+    "id": "clinical.respiratory.postviral-cough-wheeze",
+    "query": "После ОРВИ у школьника сохраняется кашель, рассеянные хрипы и небольшая температура",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "diagnosis-navigation",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.381_3.bronchitis",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture"]
+      },
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 1,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["бронхит", "пневмония"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Common outpatient respiratory wording where a generic cough source must not dominate."
+  },
+  {
+    "id": "clinical.respiratory.colored-sputum",
+    "query": "У ребенка кашель и желто-зеленая мокрота — доказывает ли цвет мокроты бактериальную причину",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "diagnostics",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.381_3.bronchitis",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture", "diagnostics"]
+      }
+    ],
+    "leakageTerms": ["бронхит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Practical diagnostic question using a symptom rather than a disease name."
+  },
+  {
+    "id": "clinical.respiratory.first-wheeze-under-two",
+    "query": "У ребенка полутора лет впервые появились свистящие хрипы после насморка — нужны ли анализы и снимок",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "diagnostics",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.360_3.bronchiolitis",
+        "grade": 3,
+        "sectionTypes": ["diagnostics", "clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["бронхиолит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Age and first-episode context should route to the infant wheeze diagnostic source."
+  },
+  {
+    "id": "clinical.respiratory.infant-wheeze-antibiotic",
+    "query": "Грудничок после насморка кашляет и свистит, ест хуже — нужен ли ему антибиотик",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "treatment",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.360_3.bronchiolitis",
+        "grade": 3,
+        "sectionTypes": ["treatment"]
+      },
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 1,
+        "sectionTypes": ["treatment"]
+      }
+    ],
+    "leakageTerms": ["бронхиолит", "пневмония"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Treatment intent must not make an incidental antibiotic/drug card the main answer."
+  },
+  {
+    "id": "clinical.respiratory.failed-amoxicillin",
+    "query": "Ребенок с кашлем и высокой температурой получает амоксициллин второй день, улучшения нет — что пересмотреть",
+    "origin": "manual-challenge",
+    "family": "respiratory",
+    "goal": "treatment",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 3,
+        "sectionTypes": ["treatment", "diagnostics"]
+      },
+      {
+        "documentId": "kr.rf.381_3.bronchitis",
+        "grade": 2,
+        "sectionTypes": ["treatment", "diagnostics"]
+      }
+    ],
+    "leakageTerms": ["пневмония", "бронхит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Prior medication is context, not automatically the requested result."
+  },
+  {
+    "id": "clinical.meningococcal.nonblanching-rash",
+    "query": "У ребенка высокая температура, вялость и сыпь на ногах не исчезает при надавливании — что делать срочно",
+    "origin": "manual-challenge",
+    "family": "meningococcal",
+    "goal": "routing",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.58_2.meningococcal",
+        "grade": 3,
+        "sectionTypes": ["routing", "clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["менингокок", "менингит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "High-salience emergency presentation without the diagnosis term."
+  },
+  {
+    "id": "clinical.meningococcal.bulging-fontanelle",
+    "query": "Грудничок вялый, отказывается от еды, температура 39 и выбухает родничок",
+    "origin": "manual-challenge",
+    "family": "meningococcal",
+    "goal": "diagnosis-navigation",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.58_2.meningococcal",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture", "routing"]
+      }
+    ],
+    "leakageTerms": ["менингокок", "менингит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Infant presentation from the source clinical picture."
+  },
+  {
+    "id": "clinical.meningococcal.monotone-cry",
+    "query": "Младенец необычно монотонно кричит, не берет грудь и стал вялым на фоне температуры",
+    "origin": "manual-challenge",
+    "family": "meningococcal",
+    "goal": "diagnosis-navigation",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.58_2.meningococcal",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["менингокок", "менингит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Colloquial symptom description that previously existed only as a brittle single-gold alias test."
+  },
+  {
+    "id": "clinical.meningococcal.headache-neck-stiffness",
+    "query": "У ребенка 10 лет температура 39, сильная головная боль, рвота и трудно наклонить голову вперед",
+    "origin": "manual-challenge",
+    "family": "meningococcal",
+    "goal": "diagnosis-navigation",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.58_2.meningococcal",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture", "diagnostics"]
+      }
+    ],
+    "leakageTerms": ["менингокок", "менингит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Natural description of meningeal symptoms without naming the condition."
+  },
+  {
+    "id": "clinical.meningococcal.altered-consciousness-rash",
+    "query": "Ребенок стал заторможенным, плохо отвечает, температура высокая и появилась геморрагическая сыпь",
+    "origin": "manual-challenge",
+    "family": "meningococcal",
+    "goal": "routing",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.58_2.meningococcal",
+        "grade": 3,
+        "sectionTypes": ["routing", "clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["менингокок", "менингит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Emergency routing should survive noisy symptom phrasing."
+  },
+  {
+    "id": "clinical.measles.descending-rash",
+    "query": "Сначала были температура, кашель, насморк и конъюнктивит, потом сыпь появилась на лице и стала спускаться вниз",
+    "origin": "manual-challenge",
+    "family": "measles",
+    "goal": "diagnosis-navigation",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.563_2.measles",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["корь", "кори", "корью"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Classic chronology expressed without the diagnosis."
+  },
+  {
+    "id": "clinical.measles.buccal-white-spots",
+    "query": "На слизистой щек появились мелкие белые точки, одновременно температура, кашель и красные глаза, позже пошла сыпь",
+    "origin": "manual-challenge",
+    "family": "measles",
+    "goal": "diagnosis-navigation",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.563_2.measles",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["корь", "кори", "корью"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Tests forgotten-term style search without spelling out Koplik or the disease name."
+  },
+  {
+    "id": "clinical.measles.unvaccinated-contact",
+    "query": "Непривитый ребенок контактировал с заболевшим в школе, затем появились температура, кашель и сыпь с лица — как подтвердить причину",
+    "origin": "manual-challenge",
+    "family": "measles",
+    "goal": "diagnostics",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.563_2.measles",
+        "grade": 3,
+        "sectionTypes": ["diagnostics", "clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["корь", "кори", "корью"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Epidemiology plus chronology without direct diagnosis leakage."
+  },
+  {
+    "id": "clinical.measles.isolation",
+    "query": "У ребенка лихорадка, кашель, конъюнктивит и сыпь; в классе были похожие случаи — как его изолировать и куда направлять",
+    "origin": "manual-challenge",
+    "family": "measles",
+    "goal": "routing",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.563_2.measles",
+        "grade": 3,
+        "sectionTypes": ["routing"]
+      }
+    ],
+    "leakageTerms": ["корь", "кори", "корью"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Workflow query aimed at the routing/infection-control section."
+  },
+  {
+    "id": "clinical.gastro.watery-diarrhea-vomiting",
+    "query": "У ребенка внезапно начались рвота, частый водянистый стул, температура и пропал аппетит",
+    "origin": "manual-challenge",
+    "family": "gastroenteritis",
+    "goal": "diagnosis-navigation",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.755_1.rotavirus",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["ротавирус"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Diagnosis-free acute gastroenteritis presentation."
+  },
+  {
+    "id": "clinical.gastro.dehydration",
+    "query": "После рвоты и жидкого стула ребенок стал вялым, почти не пьет и редко мочится",
+    "origin": "manual-challenge",
+    "family": "gastroenteritis",
+    "goal": "routing",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.755_1.rotavirus",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture", "routing"]
+      }
+    ],
+    "leakageTerms": ["ротавирус"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Dehydration signs should retrieve the relevant disease/routing material."
+  },
+  {
+    "id": "clinical.gastro.oral-rehydration",
+    "query": "Ребенку 2 года, его рвет и водянистый стул — чем и как лучше отпаивать маленькими порциями",
+    "origin": "manual-challenge",
+    "family": "gastroenteritis",
+    "goal": "treatment",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.755_1.rotavirus",
+        "grade": 3,
+        "sectionTypes": ["treatment"]
+      }
+    ],
+    "leakageTerms": ["ротавирус"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Practical treatment search without a diagnostic label."
+  },
+  {
+    "id": "clinical.gastro.cannot-drink-shock",
+    "query": "Многократная рвота и понос, ребенок не может пить, холодные конечности и становится заторможенным — куда направлять",
+    "origin": "manual-challenge",
+    "family": "gastroenteritis",
+    "goal": "routing",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.755_1.rotavirus",
+        "grade": 3,
+        "sectionTypes": ["routing"]
+      }
+    ],
+    "leakageTerms": ["ротавирус"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Severe dehydration/routing case."
+  },
+  {
+    "id": "clinical.gastro.antibiotic-question",
+    "query": "У ребенка водянистый стул и температура без крови в кале — нужны ли антибактериальные препараты",
+    "origin": "manual-challenge",
+    "family": "gastroenteritis",
+    "goal": "treatment",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.755_1.rotavirus",
+        "grade": 3,
+        "sectionTypes": ["treatment"]
+      }
+    ],
+    "leakageTerms": ["ротавирус"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Medication intent should retrieve treatment guidance rather than an unrelated antibiotic card."
+  },
+  {
+    "id": "clinical.urinary.dysuria-cloudy-urine",
+    "query": "У девочки моча стала мутной и с неприятным запахом, ей больно писать и она часто ходит в туалет",
+    "origin": "manual-challenge",
+    "family": "urinary",
+    "goal": "diagnosis-navigation",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.281_3.uti",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Natural urinary symptom cluster."
+  },
+  {
+    "id": "clinical.urinary.urgency-new-wetting",
+    "query": "Ребенок 6 лет резко хочет в туалет, не успевает добежать и снова начал писаться днем, появилась температура",
+    "origin": "manual-challenge",
+    "family": "urinary",
+    "goal": "diagnosis-navigation",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.281_3.uti",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Colloquial urinary presentation with new daytime wetting."
+  },
+  {
+    "id": "clinical.urinary.fever-vomiting-flank-pain",
+    "query": "У ребенка высокая температура, рвота и боль сбоку ближе к пояснице, мочится реже обычного",
+    "origin": "manual-challenge",
+    "family": "urinary",
+    "goal": "diagnosis-navigation",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.281_3.uti",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture", "diagnostics"]
+      },
+      {
+        "documentId": "kr.rf.755_1.rotavirus",
+        "grade": 1,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит", "ротавирус"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Systemic symptoms overlap; flank pain should favor the urinary source without making GI content impossible."
+  },
+  {
+    "id": "clinical.urinary.infant-fever-no-focus",
+    "query": "У грудничка температура без понятного очага — нужно ли брать общий анализ и посев мочи",
+    "origin": "manual-challenge",
+    "family": "urinary",
+    "goal": "diagnostics",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.281_3.uti",
+        "grade": 3,
+        "sectionTypes": ["diagnostics"]
+      }
+    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Common diagnostic workflow question where the disease term is absent."
+  },
+  {
+    "id": "clinical.urinary.young-infant-routing",
+    "query": "Ребенку 4 месяца, высокая температура, рвота, плохо пьет и моча стала резко пахнуть — нужен ли стационар",
+    "origin": "manual-challenge",
+    "family": "urinary",
+    "goal": "routing",
+    "answerability": "focused",
+    "relevance": [
+      {
+        "documentId": "kr.rf.281_3.uti",
+        "grade": 3,
+        "sectionTypes": ["routing", "clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["имп", "имвп", "инфекция мочевых путей", "пиелонефрит", "цистит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Age, inability to drink and urinary clue should retrieve routing material."
+  },
+  {
+    "id": "clinical.ambiguity.fever-rash-cough",
+    "query": "У ребенка температура, кашель и сыпь; пока неясно, бледнеет ли она при надавливании и откуда началась",
+    "origin": "manual-challenge",
+    "family": "ambiguity",
+    "goal": "diagnosis-navigation",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.563_2.measles",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture", "diagnostics"]
+      },
+      {
+        "documentId": "kr.rf.58_2.meningococcal",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture", "routing"]
+      }
+    ],
+    "leakageTerms": ["корь", "кори", "корью", "менингокок", "менингит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Deliberately underspecified rash case; benchmark rewards candidate coverage, not a forced diagnosis."
+  },
+  {
+    "id": "clinical.ambiguity.toddler-wheeze",
+    "query": "Ребенку 18 месяцев, после насморка кашляет, свистит и втягивает грудную клетку, температура небольшая",
+    "origin": "manual-challenge",
+    "family": "ambiguity",
+    "goal": "diagnosis-navigation",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.360_3.bronchiolitis",
+        "grade": 3,
+        "sectionTypes": ["clinical-picture", "routing"]
+      },
+      {
+        "documentId": "kr.rf.381_3.bronchitis",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture"]
+      },
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 1,
+        "sectionTypes": ["clinical-picture"]
+      }
+    ],
+    "leakageTerms": ["бронхиолит", "бронхит", "пневмония"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Overlap case that tests graded ranking instead of one-label accuracy."
+  },
+  {
+    "id": "clinical.ambiguity.cough-fever-four-days",
+    "query": "У ребенка четвертый день температура и кашель, но пока без четких локальных симптомов и без результатов обследования",
+    "origin": "manual-challenge",
+    "family": "ambiguity",
+    "goal": "diagnosis-navigation",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.714_2.pneumonia",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture", "diagnostics"]
+      },
+      {
+        "documentId": "kr.rf.381_3.bronchitis",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture", "diagnostics"]
+      }
+    ],
+    "leakageTerms": ["пневмония", "бронхит"],
+    "forbiddenDocumentIds": [],
+    "rationale": "Intentionally incomplete respiratory case where both documents should remain candidates."
+  },
+  {
+    "id": "clinical.ambiguity.fever-vomiting-lethargy",
+    "query": "У ребенка высокая температура, рвота и вялость, но пока нет данных о стуле, моче и сыпи",
+    "origin": "manual-challenge",
+    "family": "ambiguity",
+    "goal": "diagnosis-navigation",
+    "answerability": "ambiguous",
+    "relevance": [
+      {
+        "documentId": "kr.rf.755_1.rotavirus",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture", "diagnostics"]
+      },
+      {
+        "documentId": "kr.rf.281_3.uti",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture", "diagnostics"]
+      },
+      {
+        "documentId": "kr.rf.58_2.meningococcal",
+        "grade": 2,
+        "sectionTypes": ["clinical-picture", "routing"]
+      }
+    ],
+    "leakageTerms": [
+      "ротавирус",
+      "имп",
+      "имвп",
+      "инфекция мочевых путей",
+      "пиелонефрит",
+      "цистит",
+      "менингокок",
+      "менингит"
+    ],
+    "forbiddenDocumentIds": [],
+    "rationale": "Deliberately incomplete case; useful search should keep several source classes available instead of overcommitting."
+  }
+]

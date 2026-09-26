@@ -1,4 +1,8 @@
 import type {
+  DefinitionReferenceReply,
+  DefinitionReferenceRequest,
+} from './definition-reference-api';
+import type {
   ChunkContext,
   MedicalDocument,
   MedicalDocumentSummary,
@@ -57,6 +61,10 @@ export interface InstallContentPackResponse {
 }
 
 export interface MedicalCore {
+  /** Bounded, edition-bound source reference. Unsupported backends return unavailable. */
+  reference?(
+    request: DefinitionReferenceRequest,
+  ): Promise<Result<DefinitionReferenceReply, LocalMedError>>;
   initialize(): Promise<Result<CoreStatus, LocalMedError>>;
   getCapabilities(): Promise<Result<CoreCapabilities, LocalMedError>>;
   listDocuments(): Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>;

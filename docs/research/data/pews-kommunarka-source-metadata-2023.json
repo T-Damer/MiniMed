@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.assessment.pews-kommunarka-source-metadata.2023",
+  "title": "PEWS — Kommunarka 2023 exact-source metadata and implementation boundary",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "restricted-no-redistribution-without-permission",
+  "verificationStatus": "exact-cited-edition-identified-secondary-structure-reviewed",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "assessment_source_metadata",
+  "runtimeComputable": false,
+  "source": {
+    "title": "Методика применения шкалы PEWS при оказании стационарной помощи детям",
+    "year": 2023,
+    "pages": 23,
+    "publisher": "ГБУЗ «ММКЦ «Коммунарка» ДЗМ",
+    "authors": [
+      "О.Н. Солодовникова",
+      "А.Ю. Дягилева",
+      "А.А. Еровиченков"
+    ],
+    "ownership": "Департамент здравоохранения города Москвы / ГБУЗ «ММКЦ «Коммунарка» ДЗМ",
+    "reproductionBoundary": "document_states_no_reproduction_or_distribution_without_permission",
+    "indexedPdf": "https://niioz.ru/upload/iblock/1ac/1acbecff7f39c77840d948293cca498d.pdf",
+    "citedByCurrentRecommendation": {
+      "recommendationTitle": "Острая респираторная вирусная инфекция (ОРВИ)",
+      "recommendationId": "25_3",
+      "recommendationYear": 2026,
+      "bibliographyItem": 345
+    },
+    "supportingImplementationStudy": {
+      "cohort": "children_with_moderate_uncomplicated_arvi_at_kommunarka",
+      "year": 2023,
+      "articleContext": "Early warning system of clinical deterioration in pediatric patients with common cold"
+    }
+  },
+  "ageSpecificForms": [
+    "1-12_months",
+    "1-3_years",
+    "4-6_years",
+    "7-12_years",
+    "13-19_years"
+  ],
+  "commonObservedDomains": [
+    "respiratory_rate",
+    "work_of_breathing",
+    "oxygen_therapy",
+    "spo2",
+    "heart_rate",
+    "systolic_and_diastolic_blood_pressure",
+    "capillary_refill",
+    "body_temperature",
+    "consciousness_or_behavior"
+  ],
+  "componentScoreRange": {
+    "min": 0,
+    "max": 3
+  },
+  "scoringMatrix": null,
+  "scoringMatrixStatus": "not_redistributed_rights_and_exact_cutoffs_required",
+  "publishedEscalationWorkflow": [
+    {
+      "totalScore": {
+        "min": 0,
+        "max": 2
+      },
+      "workflow": {
+        "care": "routine",
+        "reassessmentIntervalHours": 4
+      }
+    },
+    {
+      "totalScore": {
+        "min": 3,
+        "max": 4
+      },
+      "workflow": {
+        "nurseAction": "notify_treating_or_on_call_physician",
+        "physicianReviewWithinMinutes": 60,
+        "reassessmentIntervalHours": 2
+      }
+    },
+    {
+      "totalScore": {
+        "min": 5,
+        "max": 5
+      },
+      "workflow": {
+        "nurseAction": "urgent_notify_physician",
+        "physicianReview": "urgent",
+        "treatmentAndInvestigationPlanReview": true,
+        "reassessmentIntervalHours": 1
+      }
+    },
+    {
+      "totalScore": {
+        "min": 6,
+        "max": null
+      },
+      "alternativeTrigger": "any_single_component_score_equals_3",
+      "workflow": {
+        "continuousVitalSignMonitoring": true,
+        "reassessmentIntervalMinutes": 30,
+        "nurseAction": "immediate_notify_physician",
+        "anesthesiologistIntensivistReviewWithinMinutes": 10,
+        "considerPediatricIntensiveCareTransfer": true
+      }
+    }
+  ],
+  "clinicalBoundary": {
+    "totalScoreCannotBeComputedFromThisArtifact": true,
+    "ageSpecificPhysiologicCutoffsAbsent": true,
+    "doNotSubstituteOtherPewsVariant": true,
+    "currentKrCitesThisExactEdition": true
+  },
+  "reviewNotes": [
+    "This artifact identifies the exact PEWS edition cited by current KR 25_3/2026 without reproducing the copyrighted scoring matrix.",
+    "Five age-specific forms and common measurement domains are described in the published Kommunarka implementation study.",
+    "The escalation bands are publicly described in the implementation report; they do not make the score computable without the age-specific component thresholds.",
+    "MiniMed must not substitute an NHS, Brighton, Bedside PEWS or another PEWS variant under this source identity.",
+    "A runtime PEWS calculator requires permission or another legally redistributable version plus exact cutoff verification."
+  ]
+}

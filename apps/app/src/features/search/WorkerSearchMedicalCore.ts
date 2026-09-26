@@ -5,6 +5,8 @@ import type {
   ChunkContext,
   CoreCapabilities,
   CoreStatus,
+  DefinitionReferenceReply,
+  DefinitionReferenceRequest,
   InstallContentPackRequest,
   InstallContentPackResponse,
   LocalMedError,
@@ -19,6 +21,7 @@ import type {
   SearchResponse,
   SearchResult,
 } from '@localmed/contracts';
+import { ok } from '@localmed/contracts';
 
 import { getPackagedContentBaseUrl } from '@/composition/create-browser-core';
 import type {
@@ -94,6 +97,15 @@ export class WorkerSearchMedicalCore implements MedicalCore {
         contentBaseUrl: getPackagedContentBaseUrl(),
       } satisfies SearchWorkerRequest);
     });
+  }
+
+  public reference(
+    request: DefinitionReferenceRequest,
+  ): Promise<Result<DefinitionReferenceReply, LocalMedError>> {
+    if (this.closed) return Promise.reject(new Error('Search core is closed.'));
+    return this.base.reference
+      ? this.base.reference(request)
+      : Promise.resolve(ok({ op: 'unavailable' }));
   }
 
   public initialize(): Promise<Result<CoreStatus, LocalMedError>> {

@@ -1,0 +1,238 @@
+{
+  "authoringFileSha256": "e7f049c9784b08ef597ad320b5078d10a6c3f0a8cc8ab9ada9117407b5a949ae",
+  "authoringSha256": "3f34ea332ce5bf0347e52ee04ccd404942c59f40095f3a54e7d3f87014b038eb",
+  "boundary": "One source sentence per selected title; no article cards, whole-page imports, medical rewriting, same-as relations, popularity claim or clinical approval. Name-based deferral is a coverage heuristic, not semantic reconciliation.",
+  "candidates": 25,
+  "deferred": [
+    {
+      "id": "medical.definition.diplopia",
+      "reason": "existing-definition-name-needs-sense-review",
+      "title": "Диплопия"
+    },
+    {
+      "id": "medical.definition.anisocoria",
+      "reason": "existing-definition-name-needs-sense-review",
+      "title": "Анизокория"
+    },
+    {
+      "id": "medical.definition.dysphagia",
+      "reason": "existing-definition-name-needs-sense-review",
+      "title": "Дисфагия"
+    },
+    {
+      "id": "medical.definition.proteinuria",
+      "reason": "existing-definition-name-needs-sense-review",
+      "title": "Протеинурия"
+    },
+    {
+      "id": "medical.definition.ascites",
+      "reason": "existing-definition-name-needs-sense-review",
+      "title": "Асцит"
+    },
+    {
+      "id": "medical.definition.lymphadenitis",
+      "reason": "existing-definition-name-needs-sense-review",
+      "title": "Лимфаденит"
+    },
+    {
+      "id": "medical.definition.parosmia",
+      "reason": "existing-definition-name-needs-sense-review",
+      "title": "Паросмия"
+    }
+  ],
+  "maximumWordsPerPage": 23,
+  "newInstruments": 0,
+  "originalManifestSha256": "586ea608d0a098688a85e4c3aadd61bca29605dd6de5db86bb72af2cc5e7a883",
+  "preparedFileSha256": "75f180af986543da723e0599d4fac90dc340bbb854ed98f38456491c0d1e859c",
+  "previousAuthoringRecords": 18357,
+  "previousDefinitions": 8410,
+  "selectedDefinitions": 18,
+  "selectedIds": [
+    "medical.definition.proptosis",
+    "medical.definition.agnosia",
+    "medical.definition.dysarthria",
+    "medical.definition.myoclonus",
+    "medical.definition.tremor",
+    "medical.definition.hiccups",
+    "medical.definition.dyspepsia",
+    "medical.definition.dyspnea",
+    "medical.definition.stridor",
+    "medical.definition.hemoptysis",
+    "medical.definition.pollakiuria",
+    "medical.definition.renal-glucosuria",
+    "medical.definition.lymphadenopathy",
+    "medical.definition.otorrhea",
+    "medical.definition.subjective-tinnitus",
+    "medical.definition.chemosis",
+    "medical.definition.hyperosmia",
+    "medical.definition.anisocytosis"
+  ],
+  "sourcePagesInspected": 25,
+  "checkedCommit": "ec9afc181e43dce08037525563fee3a609a6d6c5",
+  "runId": "35848445607",
+  "tests": {
+    "tests": 85,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "currentAuthoringRecords": 18375,
+  "currentDefinitions": 8428,
+  "preservedDiscoveredNames": 7637,
+  "searchableEntries": 16065,
+  "newDefinitionTitlesMatchingDiscoveredNames": 9,
+  "allSourceBlocksCompared": 26703,
+  "allSourceDescriptorsCompared": 70,
+  "originalSourceFilesUnchanged": true,
+  "selectedIdentitySetExact": true,
+  "preparedReplayExact": true,
+  "installedBytes": 129712128,
+  "downloadBytes": 26913162,
+  "sqliteSha256": "a18451f32b52cfd42b9a0ab5e1ad3efcaf990c0049a91796b6f865724e7f6674",
+  "sourceManifestSha256": "a4476ccfeef225ea45fbefa486d86e8d68817c62f41dede173e3e0beb0561849",
+  "networkAttemptsDuringBuild": 0,
+  "fullWebPageReplayPerformed": false,
+  "validationBoundary": "Exact replay of inspected authoring excerpts and SQLite projection, not full HTML snapshot validation, medical approval, automatic equivalence, Android or independent search quality.",
+  "actualReader": {
+    "definitionsRead": 18,
+    "namedTop1": 18,
+    "namedTop20": 18,
+    "outcomes": [
+      {
+        "id": "medical.definition.proptosis",
+        "title": "Проптоз",
+        "rank": 1,
+        "characters": 57
+      },
+      {
+        "id": "medical.definition.agnosia",
+        "title": "Агнозия",
+        "rank": 1,
+        "characters": 90
+      },
+      {
+        "id": "medical.definition.dysarthria",
+        "title": "Дизартрия",
+        "rank": 1,
+        "characters": 66
+      },
+      {
+        "id": "medical.definition.myoclonus",
+        "title": "Миоклония",
+        "rank": 1,
+        "characters": 73
+      },
+      {
+        "id": "medical.definition.tremor",
+        "title": "Тремор",
+        "rank": 1,
+        "characters": 195
+      },
+      {
+        "id": "medical.definition.hiccups",
+        "title": "Икота",
+        "rank": 1,
+        "characters": 185
+      },
+      {
+        "id": "medical.definition.dyspepsia",
+        "title": "Диспепсия",
+        "rank": 1,
+        "characters": 111
+      },
+      {
+        "id": "medical.definition.dyspnea",
+        "title": "Одышка",
+        "rank": 1,
+        "characters": 50
+      },
+      {
+        "id": "medical.definition.stridor",
+        "title": "Стридор",
+        "rank": 1,
+        "characters": 66
+      },
+      {
+        "id": "medical.definition.hemoptysis",
+        "title": "Кровохарканье",
+        "rank": 1,
+        "characters": 68
+      },
+      {
+        "id": "medical.definition.pollakiuria",
+        "title": "Поллакиурия",
+        "rank": 1,
+        "characters": 169
+      },
+      {
+        "id": "medical.definition.renal-glucosuria",
+        "title": "Почечная глюкозурия",
+        "rank": 1,
+        "characters": 102
+      },
+      {
+        "id": "medical.definition.lymphadenopathy",
+        "title": "Лимфаденопатия",
+        "rank": 1,
+        "characters": 154
+      },
+      {
+        "id": "medical.definition.otorrhea",
+        "title": "Оторея",
+        "rank": 1,
+        "characters": 63
+      },
+      {
+        "id": "medical.definition.subjective-tinnitus",
+        "title": "Субъективный тиннитус",
+        "rank": 1,
+        "characters": 109
+      },
+      {
+        "id": "medical.definition.chemosis",
+        "title": "Хемоз",
+        "rank": 1,
+        "characters": 98
+      },
+      {
+        "id": "medical.definition.hyperosmia",
+        "title": "Гиперосмия",
+        "rank": 1,
+        "characters": 188
+      },
+      {
+        "id": "medical.definition.anisocytosis",
+        "title": "Анизоцитоз эритроцитов",
+        "rank": 1,
+        "characters": 108
+      }
+    ]
+  },
+  "authoredPhraseDiagnostic": {
+    "total": 4,
+    "top20": 3,
+    "outcomes": [
+      {
+        "id": "medical.definition.proptosis",
+        "query": "выпячивание глазного яблока",
+        "rank": 1
+      },
+      {
+        "id": "medical.definition.agnosia",
+        "query": "неспособность идентифицировать объект",
+        "rank": 1
+      },
+      {
+        "id": "medical.definition.myoclonus",
+        "query": "быстрое сокращение группы мышц",
+        "rank": 1
+      },
+      {
+        "id": "medical.definition.anisocytosis",
+        "query": "эритроциты неравных размеров",
+        "rank": null
+      }
+    ],
+    "boundary": "Small source-derived developer probes, not independent paraphrase/clinical evaluation or measured before-after retrieval gain."
+  }
+}

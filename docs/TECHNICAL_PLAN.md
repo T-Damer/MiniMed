@@ -1,5 +1,10 @@
 # Technical plan
 
+## Active definition-reference subplan
+
+Follow [DEFINITION_REFERENCE_PLAN.md](DEFINITION_REFERENCE_PLAN.md) for the ordered SQLite reference work in PR #180. Current evidence and remaining integration gates are recorded in CURRENT_STATE.md; host storage checks do not qualify the app or Android.
+
+
 This document is the concise target architecture and acceptance plan. Implemented status and ordered
 next tasks live in [CURRENT_STATE.md](CURRENT_STATE.md). The executable completion specification for
 the data and deterministic-search work is [DATA_SEARCH_COMPLETION_GOAL.md](DATA_SEARCH_COMPLETION_GOAL.md).

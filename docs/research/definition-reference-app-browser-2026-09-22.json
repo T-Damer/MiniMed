@@ -1,0 +1,44 @@
+{
+  "contract": 1,
+  "assertions": [
+    "Fullscreen phone geometry, mandatory bold core and optional package list; no core GET before consent.",
+    "Closing setup retains core download/owner and persists dismissal.",
+    "Full 18,133-entry optional edition installed through the normal download, gzip, checksum and index validator.",
+    "Normal dictionary UI finds source records and reads bounded text, block descriptors and source citation.",
+    "Persisted dismissal and both installed databases survive application reload with database network reads blocked.",
+    "No uncaught page errors or unexpected external requests. Existing metadata-only catalog refreshes were blocked and used bundled fallback."
+  ],
+  "measurements": [
+    {
+      "stage": "setup-before-core",
+      "usedSize": 86717336,
+      "totalSize": 114003968,
+      "embedderHeapUsedSize": 6847408,
+      "backingStorageSize": 57710900
+    },
+    {
+      "stage": "core-ready",
+      "usedSize": 97284832,
+      "totalSize": 131641344,
+      "embedderHeapUsedSize": 11650744,
+      "backingStorageSize": 70623543
+    },
+    {
+      "stage": "reference-card-open",
+      "usedSize": 97652228,
+      "totalSize": 105340928,
+      "embedderHeapUsedSize": 8080320,
+      "backingStorageSize": 404325878
+    }
+  ],
+  "boundaries": "Headless Chromium, actual App with synthetic demo core and complete public local-dev reference. No native Android/device, independent clinical gold, OCR/viewer assets, whole-process peak or production release qualification. Cached restart blocks database downloads but still serves development JS and the core report.",
+  "blockedCatalogRefreshes": 2,
+  "coreBytes": 528384,
+  "referenceInstalledBytes": 110960640,
+  "referenceDownloadBytes": 27399431,
+  "entries": 18133,
+  "coreGets": 1,
+  "referenceGets": 1,
+  "checkedInputCommit": "358b2ec6605b697f18c03d50ac3e073d35078801",
+  "runId": "35666818734"
+}

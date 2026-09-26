@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "kind": "history-reference",
+  "reviewStatus": "requires-review",
+  "textKind": "editorial-paraphrase",
+  "publicationState": "local-dev",
+  "provenanceBoundary": "Внешнее исследование, не текст пособия Семенова и Берсенева. Не автоматически установленные связи с эпонимами.",
+  "sources": [
+    {
+      "id": 4001,
+      "title": "Universität Heidelberg — Karl Jaspers im Licht der modernen Psychiatrie",
+      "url": "https://www.uni-heidelberg.de/presse/meldungen/2011/m20110914_jaspers.html",
+      "accessed": "2026-09-21",
+      "locator": "Сообщение 14.09.2011; абзац, начинающийся «1913 veröffentlichte…»"
+    },
+    {
+      "id": 4002,
+      "title": "Johns Hopkins Medicine — Child Psychiatry Began at Hopkins",
+      "url": "https://www.hopkinsmedicine.org/psychiatry/specialty-areas/child-adolescent/about-us",
+      "accessed": "2026-09-21",
+      "locator": "Раздел «Child Psychiatry Began at Hopkins», первые три абзаца"
+    },
+    {
+      "id": 4003,
+      "title": "Royal College of Physicians Museum — John Hughlings Jackson",
+      "url": "https://history.rcp.ac.uk/inspiring-physicians/john-hughlings-jackson",
+      "accessed": "2026-09-21",
+      "locator": "Биография G. H. Brown, опубликованная в 1955 году; абзац о локализованных корковых нарушениях при эпилепсии"
+    }
+  ],
+  "cards": [
+    {
+      "id": "history.draft.karl-jaspers",
+      "title": "Карл Ясперс",
+      "originalName": "Karl Jaspers",
+      "lifeYears": "1883–1969",
+      "description": "Психиатр и философ. В 1913 году опубликовал «Allgemeine Psychopathologie» («Общая психопатология»). Работал в Гейдельберге и стремился связать психиатрию с философией.",
+      "source": 4001,
+      "note": "Справка о человеке и книге; не доказательство авторства любого набора критериев, обозначаемого фамилией Ясперса."
+    },
+    {
+      "id": "history.draft.leo-kanner",
+      "title": "Лео Каннер",
+      "originalName": "Leo Kanner",
+      "lifeYears": "1894–1981",
+      "description": "Психиатр, работавший в Johns Hopkins. В 1935 году выпустил учебник «Child Psychiatry». В 1943 году описал синдром инфантильного аутизма.",
+      "source": 4002,
+      "note": "Исторические сведения не заменяют современное описание аутизма. Формулировка приоритета ограничена сведениями институционального источника."
+    },
+    {
+      "id": "history.draft.hughlings-jackson",
+      "title": "Джон Хьюлингс Джексон",
+      "originalName": "John Hughlings Jackson",
+      "lifeYears": "1835–1911",
+      "description": "Невролог, исследовавший эпилепсию и функциональную организацию нервной системы. На основании клинических наблюдений связывал некоторые формы эпилепсии с локализованными нарушениями коры больших полушарий.",
+      "source": 4003,
+      "note": "Использована историческая биография RCP, первоначально опубликованная в 1955 году. Связь с конкретной карточкой эпонима требует отдельной проверки."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "databaseSha256": "5beeb1951723d6127c5e566d8e3fd723f1f8a73cfc81a4a69e47862a0a19a978",
+  "checked": 4,
+  "top1": 4,
+  "outcomes": [
+    {
+      "id": "ruwiki.definition.11097078",
+      "title": "Гипофосфатемия",
+      "rank": 1,
+      "sourceTextExact": true
+    },
+    {
+      "id": "ruwiki.definition.7286847",
+      "title": "Гиперкалиемия",
+      "rank": 1,
+      "sourceTextExact": true
+    },
+    {
+      "id": "ruwiki.definition.3952015",
+      "title": "Пресбиопия",
+      "rank": 1,
+      "sourceTextExact": true
+    },
+    {
+      "id": "ruwiki.definition.221192",
+      "title": "Турецкое седло",
+      "rank": 1,
+      "sourceTextExact": true
+    }
+  ],
+  "boundary": "Actual SQLite reader and title checks, not reverse clinical search or medical review."
+}

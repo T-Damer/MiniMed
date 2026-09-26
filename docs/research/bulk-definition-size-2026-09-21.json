@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "source": "terminology-ru-2026.9.16",
+  "senses": 6939,
+  "distinctNames": 6661,
+  "suppliedRussianGlosses": 6940,
+  "crossReferenceLikeSenses": 0,
+  "subjectMemberships": {
+    "anatomy": 938,
+    "medicine": 4647,
+    "pharmacology": 204,
+    "physiology": 401,
+    "psychiatry": 407,
+    "psychology": 517
+  },
+  "catalogBytes": 4302994,
+  "gzipBytes": 999668,
+  "catalogSha256": "6ac2ea09506ce09a7a80eccf6f2bea9516e78c73c415454db56fcce7f62278eb",
+  "preparedInputSha256": "cad12de9675a35df08c70d4d61ac91e0139b69eb3905886d37b7e4c6ce0954a3",
+  "rawSourceSha256": "672973ab0647e1860a321ef9962cdf3d6e44e75572ebad0adde1fd87b676a755",
+  "clinicalReview": "requires-review",
+  "note": "Source senses are not unique canonical clinical concepts. Cross-reference detection is conservative and not a semantic completeness audit. Sizes exclude the runtime index, JS, SQLite and device overhead."
+}

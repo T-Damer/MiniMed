@@ -1,0 +1,396 @@
+{
+  "checkedCommit": "901088425816353e432cda5906b5fe99a9b5706c",
+  "probe": [
+    {
+      "url": "https://journals.eco-vector.com/RFD/article/view/624422/ru_RU",
+      "bytes": 91130,
+      "responseSha256": "9279addd5d2a80cc7dd057d84dcb5a4b8d0145b0970d509c5f3c29f37f52cece",
+      "metadata": {
+        "DC.Identifier": [
+          "624422"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_title": [
+          "Measles and rubella are two controlled airborne infections: etiopathogenesis, epidemiology, clinical picture, diagnosis, treatment and prevention. Part 1. Measles",
+          "Корь и краснуха — две контролируемые воздушно-капельные инфекции: этиопатогенез, эпидемиология, клиническая картина, диагностика, лечение и профилактика. Часть 1. Корь"
+        ],
+        "DC.Rights": [
+          "Eco-Vector, 2024",
+          "Эко-Вектор, 2024",
+          ", 2024",
+          "https://eco-vector.com/for_authors.php#07"
+        ],
+        "DC.Date.issued": [
+          "2024-03-31"
+        ]
+      },
+      "articleHeadings": [
+        "Корь и краснуха — две контролируемые воздушно-капельные инфекции: этиопатогенез, эпидемиология, клиническая картина, диагностика, лечение и профилактика. Часть 1. Корь"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        12
+      ],
+      "fulltextLabels": [
+        "Полный текст"
+      ],
+      "status": "capture-pending",
+      "reason": "ValueError: Missing or conflicting article-specific license"
+    },
+    {
+      "url": "https://journals.eco-vector.com/RFD/article/view/624422",
+      "bytes": 91122,
+      "responseSha256": "6f77e2ab32705baa77743e4a752957cd788cd111e9e653c90411f0e226910430",
+      "metadata": {
+        "DC.Identifier": [
+          "624422"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_title": [
+          "Measles and rubella are two controlled airborne infections: etiopathogenesis, epidemiology, clinical picture, diagnosis, treatment and prevention. Part 1. Measles",
+          "Корь и краснуха — две контролируемые воздушно-капельные инфекции: этиопатогенез, эпидемиология, клиническая картина, диагностика, лечение и профилактика. Часть 1. Корь"
+        ],
+        "DC.Rights": [
+          "Eco-Vector, 2024",
+          "Эко-Вектор, 2024",
+          ", 2024",
+          "https://eco-vector.com/for_authors.php#07"
+        ],
+        "DC.Date.issued": [
+          "2024-03-31"
+        ]
+      },
+      "articleHeadings": [
+        "Корь и краснуха — две контролируемые воздушно-капельные инфекции: этиопатогенез, эпидемиология, клиническая картина, диагностика, лечение и профилактика. Часть 1. Корь"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        12
+      ],
+      "fulltextLabels": [
+        "Полный текст"
+      ],
+      "status": "capture-pending",
+      "reason": "ValueError: Missing or conflicting article-specific license"
+    },
+    {
+      "url": "https://journals.eco-vector.com/pediatr/article/view/529737/ru_RU",
+      "bytes": 157981,
+      "responseSha256": "c85fc02a86b8a8818b56c78ed7f875a23008cd12c69c84e24ad6578b9bb14799",
+      "metadata": {
+        "DC.Identifier": [
+          "529737"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_title": [
+          "Bronchial obstruction syndrome in children with connective tissue dysplasia",
+          "Синдром бронхиальной обструкции у детей с дисплазией соединительной ткани"
+        ],
+        "DC.Rights": [
+          "Eco-Vector, 2023",
+          "Эко-Вектор, 2023",
+          ", 2023"
+        ],
+        "DC.Date.issued": [
+          "2023-07-06"
+        ]
+      },
+      "articleHeadings": [
+        "Синдром бронхиальной обструкции у детей с дисплазией соединительной ткани"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        14074
+      ],
+      "fulltextLabels": [
+        "Полный текст",
+        "ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ",
+        "ADDITIONAL INFORMATION"
+      ],
+      "status": "capture-pending",
+      "reason": "ValueError: Missing or conflicting article-specific license"
+    },
+    {
+      "url": "https://journals.eco-vector.com/pediatr/article/view/529737",
+      "bytes": 157949,
+      "responseSha256": "ab8f825534697fea5056284ef44a5f9b6967cf3acd6a1bfce8ea8d1c38204793",
+      "metadata": {
+        "DC.Identifier": [
+          "529737"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_title": [
+          "Bronchial obstruction syndrome in children with connective tissue dysplasia",
+          "Синдром бронхиальной обструкции у детей с дисплазией соединительной ткани"
+        ],
+        "DC.Rights": [
+          "Eco-Vector, 2023",
+          "Эко-Вектор, 2023",
+          ", 2023"
+        ],
+        "DC.Date.issued": [
+          "2023-07-06"
+        ]
+      },
+      "articleHeadings": [
+        "Синдром бронхиальной обструкции у детей с дисплазией соединительной ткани"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        14074
+      ],
+      "fulltextLabels": [
+        "Полный текст",
+        "ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ",
+        "ADDITIONAL INFORMATION"
+      ],
+      "status": "capture-pending",
+      "reason": "ValueError: Missing or conflicting article-specific license"
+    },
+    {
+      "url": "https://journals.eco-vector.com/uroved/article/view/601835/ru_RU",
+      "bytes": 107252,
+      "responseSha256": "6bfe0231a3aa16cc9a8da5a4bfebc0672779bc1f621453d61e6030064d43485a",
+      "metadata": {
+        "DC.Identifier": [
+          "601835"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_title": [
+          "Arterial embolization in the treatment of benign and malignant prostate lesions",
+          "Артериальная эмболизация в лечении доброкачественных и злокачественных образований предстательной железы"
+        ],
+        "DC.Rights": [
+          "Eco-Vector, 2023",
+          "Эко-Вектор, 2023",
+          ", 2023"
+        ],
+        "DC.Date.issued": [
+          "2023-12-14"
+        ]
+      },
+      "articleHeadings": [
+        "Артериальная эмболизация в лечении доброкачественных и злокачественных образований предстательной железы"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        12
+      ],
+      "fulltextLabels": [
+        "Полный текст"
+      ],
+      "status": "capture-pending",
+      "reason": "ValueError: Missing or conflicting article-specific license"
+    },
+    {
+      "url": "https://journals.eco-vector.com/uroved/article/view/601835",
+      "bytes": 107244,
+      "responseSha256": "acf8f24aaf0b4af9048ea4e36e687178010f0e74c118ff684ebbbc64ce0270f1",
+      "metadata": {
+        "DC.Identifier": [
+          "601835"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_title": [
+          "Arterial embolization in the treatment of benign and malignant prostate lesions",
+          "Артериальная эмболизация в лечении доброкачественных и злокачественных образований предстательной железы"
+        ],
+        "DC.Rights": [
+          "Eco-Vector, 2023",
+          "Эко-Вектор, 2023",
+          ", 2023"
+        ],
+        "DC.Date.issued": [
+          "2023-12-14"
+        ]
+      },
+      "articleHeadings": [
+        "Артериальная эмболизация в лечении доброкачественных и злокачественных образований предстательной железы"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        12
+      ],
+      "fulltextLabels": [
+        "Полный текст"
+      ],
+      "status": "capture-pending",
+      "reason": "ValueError: Missing or conflicting article-specific license"
+    },
+    {
+      "url": "https://journals.eco-vector.com/1027-4898/article/view/508722/ru_RU",
+      "bytes": 199313,
+      "responseSha256": "403ca387901271f35004ce17a38e727dc51f946b41294c03aa3198f458147541",
+      "metadata": {
+        "DC.Identifier": [
+          "508722"
+        ],
+        "citation_language": [
+          "en"
+        ],
+        "citation_title": [
+          "Pediatric multiple sclerosis: pathogenesis, clinical and radiological features, diagnosis and treatment",
+          "Педиатрический рассеянный склероз: особенности патогенеза, клинической и радиологической картины, современные подходы к диагностике и лечению"
+        ],
+        "DC.Rights": [
+          "Eco-Vector, 2023",
+          "Эко-Вектор, 2023",
+          "https://eco-vector.com/for_authors.php#07"
+        ],
+        "DC.Date.issued": [
+          "2023-09-15"
+        ]
+      },
+      "articleHeadings": [
+        "Педиатрический рассеянный склероз: особенности патогенеза, клинической и радиологической картины, современные подходы к диагностике и лечению"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        29473
+      ],
+      "fulltextLabels": [
+        "Полный текст",
+        "ВВЕДЕНИЕ",
+        "ОСОБЕННОСТИ КЛИНИЧЕСКОЙ КАРТИНЫ ПЕДИАТРИЧЕСКОГО РАССЕЯННОГО СКЛЕРОЗА",
+        "ДИФФЕРЕНЦИАЛЬНАЯ ДИАГНОСТИКА",
+        "ЛЕЧЕНИЕ ОБОСТРЕНИЙ",
+        "ПРОТИВОРЕЦИДИВНАЯ ТЕРАПИЯ",
+        "ОБСУЖДЕНИЕ",
+        "ВЫВОДЫ",
+        "ДОПОЛНИТЕЛЬНО"
+      ],
+      "status": "capture-pending",
+      "reason": "ValueError: Wrong article identity or source language"
+    },
+    {
+      "url": "https://journals.eco-vector.com/1027-4898/article/view/508722",
+      "bytes": 199305,
+      "responseSha256": "f913d45d7d3b21e9fca9e008b7d3215effbd87fec6054cbb233f4fc1edf1dd04",
+      "metadata": {
+        "DC.Identifier": [
+          "508722"
+        ],
+        "citation_language": [
+          "en"
+        ],
+        "citation_title": [
+          "Pediatric multiple sclerosis: pathogenesis, clinical and radiological features, diagnosis and treatment",
+          "Педиатрический рассеянный склероз: особенности патогенеза, клинической и радиологической картины, современные подходы к диагностике и лечению"
+        ],
+        "DC.Rights": [
+          "Eco-Vector, 2023",
+          "Эко-Вектор, 2023",
+          "https://eco-vector.com/for_authors.php#07"
+        ],
+        "DC.Date.issued": [
+          "2023-09-15"
+        ]
+      },
+      "articleHeadings": [
+        "Педиатрический рассеянный склероз: особенности патогенеза, клинической и радиологической картины, современные подходы к диагностике и лечению"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        29473
+      ],
+      "fulltextLabels": [
+        "Полный текст",
+        "ВВЕДЕНИЕ",
+        "ОСОБЕННОСТИ КЛИНИЧЕСКОЙ КАРТИНЫ ПЕДИАТРИЧЕСКОГО РАССЕЯННОГО СКЛЕРОЗА",
+        "ДИФФЕРЕНЦИАЛЬНАЯ ДИАГНОСТИКА",
+        "ЛЕЧЕНИЕ ОБОСТРЕНИЙ",
+        "ПРОТИВОРЕЦИДИВНАЯ ТЕРАПИЯ",
+        "ОБСУЖДЕНИЕ",
+        "ВЫВОДЫ",
+        "ДОПОЛНИТЕЛЬНО"
+      ],
+      "status": "capture-pending",
+      "reason": "ValueError: Wrong article identity or source language"
+    },
+    {
+      "url": "https://journals.eco-vector.com/1027-4898/article/view/20398/ru_RU",
+      "bytes": 128064,
+      "responseSha256": "2b224f9d2322351fa9ec25c5a00a29a9efca26ea9499c3d6e01a0b593d2a5202",
+      "metadata": {
+        "DC.Identifier": [
+          "20398"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_title": [
+          "Discussion issues of general psychopathology (traditional and innovative approaches)",
+          "Дискуссионные вопросы общей психопатологии (традиционные и инновационные подходы)"
+        ],
+        "DC.Rights": [
+          "Krylov V.I., 2020",
+          "Крылов В.И., 2020",
+          "http://creativecommons.org/licenses/by-nc-sa/4.0"
+        ],
+        "DC.Date.issued": [
+          "2020-06-23"
+        ]
+      },
+      "articleHeadings": [
+        "Дискуссионные вопросы общей психопатологии (традиционные и инновационные подходы)"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        22867
+      ],
+      "fulltextLabels": [
+        "Полный текст"
+      ],
+      "status": "capture-succeeded"
+    },
+    {
+      "url": "https://journals.eco-vector.com/1027-4898/article/view/20398",
+      "bytes": 128056,
+      "responseSha256": "3483d45e23089e667115739509752207f695b88be87aa2f5c712615114c4b04e",
+      "metadata": {
+        "DC.Identifier": [
+          "20398"
+        ],
+        "citation_language": [
+          "ru"
+        ],
+        "citation_title": [
+          "Discussion issues of general psychopathology (traditional and innovative approaches)",
+          "Дискуссионные вопросы общей психопатологии (традиционные и инновационные подходы)"
+        ],
+        "DC.Rights": [
+          "Krylov V.I., 2020",
+          "Крылов В.И., 2020",
+          "http://creativecommons.org/licenses/by-nc-sa/4.0"
+        ],
+        "DC.Date.issued": [
+          "2020-06-23"
+        ]
+      },
+      "articleHeadings": [
+        "Дискуссионные вопросы общей психопатологии (традиционные и инновационные подходы)"
+      ],
+      "fulltextContainers": 1,
+      "fulltextCharacters": [
+        22867
+      ],
+      "fulltextLabels": [
+        "Полный текст"
+      ],
+      "status": "capture-succeeded"
+    }
+  ],
+  "boundary": "Bibliographic metadata and lengths only. No protected article text, abstract, private input or credentials saved."
+}

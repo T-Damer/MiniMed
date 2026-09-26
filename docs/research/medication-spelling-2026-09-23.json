@@ -1,0 +1,4490 @@
+{
+  "baselineCommit": "06b3c68de2725f124d15140daf317dc5400d199b",
+  "checkedCommit": "df51379f6c4fc01dca637851eab2fb2bd576004d",
+  "databaseSha256": "d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a",
+  "caseSha256": "2924f1fd2695c51d99c0bdbcbc4a78628b51e264a11cd6a85b5aa1dcbc01fccd",
+  "sameDatabaseForBoth": true,
+  "corpus": {
+    "documents": 19987,
+    "medicationDocuments": 3324,
+    "medicationAliases": 21610,
+    "eligibleMechanicalNames": 1154
+  },
+  "cases": [
+    {
+      "id": "transposition.0",
+      "family": "transposition",
+      "query": "иимпрамин",
+      "sourceName": "имипрамин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 276.6822119999997,
+      "alternatives": [
+        "Возможная опечатка: ИМИПРАМИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df",
+          "title": "ИМИПРАМИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.1",
+      "family": "transposition",
+      "query": "докозаонл",
+      "sourceName": "докозанол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 272.91865900000266,
+      "alternatives": [
+        "Возможная опечатка: ДОКОЗАНОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b",
+          "title": "ДОКОЗАНОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.2",
+      "family": "transposition",
+      "query": "ремифентаинл",
+      "sourceName": "ремифентанил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 251.82385000000068,
+      "alternatives": [
+        "Возможная опечатка: РЕМИФЕНТАНИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba",
+          "title": "РЕМИФЕНТАНИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.3",
+      "family": "transposition",
+      "query": "ртифаротен",
+      "sourceName": "трифаротен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 277.19022499999846,
+      "alternatives": [
+        "Возможная опечатка: ТРИФАРОТЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b",
+          "title": "ТРИФАРОТЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.4",
+      "family": "transposition",
+      "query": "ноэрпинефрин",
+      "sourceName": "норэпинефрин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 230.249241000005,
+      "alternatives": [
+        "Возможная опечатка: НОРЭПИНЕФРИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0",
+          "title": "НОРЭПИНЕФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.5",
+      "family": "transposition",
+      "query": "левсоальбутамол",
+      "sourceName": "левосальбутамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 212.95459100000153,
+      "alternatives": [
+        "Возможная опечатка: ЛЕВОСАЛЬБУТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80",
+          "title": "ЛЕВОСАЛЬБУТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амброксол-гвайфенезин-левосальбутамол-61cebc55ab30c05b",
+          "title": "АМБРОКСОЛ+ГВАЙФЕНЕЗИН+ЛЕВОСАЛЬБУТАМОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.6",
+      "family": "transposition",
+      "query": "гвафйенезин",
+      "sourceName": "гвайфенезин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 248.28821900000185,
+      "alternatives": [
+        "Возможная опечатка: ГВАЙФЕНЕЗИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e",
+          "title": "ГВАЙФЕНЕЗИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бутамират-гвайфенезин-9c0ce959c548f75e",
+          "title": "БУТАМИРАТ+ГВАЙФЕНЕЗИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "transposition.7",
+      "family": "transposition",
+      "query": "пемиагтиниб",
+      "sourceName": "пемигатиниб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 229.96737700000085,
+      "alternatives": [
+        "Возможная опечатка: ПЕМИГАТИНИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2",
+          "title": "ПЕМИГАТИНИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.8",
+      "family": "transposition",
+      "query": "султьамициллин",
+      "sourceName": "сультамициллин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 209.86082899999747,
+      "alternatives": [
+        "Возможная опечатка: СУЛЬТАМИЦИЛЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4",
+          "title": "СУЛЬТАМИЦИЛЛИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.9",
+      "family": "transposition",
+      "query": "ванкмоицин",
+      "sourceName": "ванкомицин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 251.1610970000038,
+      "alternatives": [
+        "Возможная опечатка: ВАНКОМИЦИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747",
+          "title": "ВАНКОМИЦИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.10",
+      "family": "transposition",
+      "query": "темозлоомид",
+      "sourceName": "темозоломид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 239.1157170000006,
+      "alternatives": [
+        "Возможная опечатка: ТЕМОЗОЛОМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6",
+          "title": "ТЕМОЗОЛОМИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.11",
+      "family": "transposition",
+      "query": "элпонтерсен",
+      "sourceName": "эплонтерсен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 229.3894250000012,
+      "alternatives": [
+        "Возможная опечатка: ЭПЛОНТЕРСЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb",
+          "title": "ЭПЛОНТЕРСЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.12",
+      "family": "transposition",
+      "query": "ланретоид",
+      "sourceName": "ланреотид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 247.18947299999854,
+      "alternatives": [
+        "Возможная опечатка: ЛАНРЕОТИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a",
+          "title": "ЛАНРЕОТИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.13",
+      "family": "transposition",
+      "query": "тропикаимд",
+      "sourceName": "тропикамид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 245.45419199999742,
+      "alternatives": [
+        "Возможная опечатка: ТРОПИКАМИД",
+        "Возможная опечатка: Тропикам"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea",
+          "title": "ТРОПИКАМИД"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-фенилэфрин-fba180092f849949",
+          "title": "ТРОПИКАМИД+ФЕНИЛЭФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.14",
+      "family": "transposition",
+      "query": "пиирбедил",
+      "sourceName": "пирибедил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 228.65338699999847,
+      "alternatives": [
+        "Возможная опечатка: ПИРИБЕДИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59",
+          "title": "ПИРИБЕДИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.15",
+      "family": "transposition",
+      "query": "глиецритан",
+      "sourceName": "глицеритан",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 244.87664299999597,
+      "alternatives": [
+        "Возможная опечатка: ГЛИЦЕРИТАН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006",
+          "title": "ГЛИЦЕРИТАН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.16",
+      "family": "transposition",
+      "query": "сипониомд",
+      "sourceName": "сипонимод",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 234.23708699999406,
+      "alternatives": [
+        "Возможная опечатка: СИПОНИМОД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9",
+          "title": "СИПОНИМОД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.17",
+      "family": "transposition",
+      "query": "пареокксиб",
+      "sourceName": "парекоксиб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 240.64788099999714,
+      "alternatives": [
+        "Возможная опечатка: ПАРЕКОКСИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c",
+          "title": "ПАРЕКОКСИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "transposition.18",
+      "family": "transposition",
+      "query": "монтелуакст",
+      "sourceName": "монтелукаст",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.38012900000467,
+      "alternatives": [
+        "Возможная опечатка: МОНТЕЛУКАСТ",
+        "Возможная опечатка: Монтеласт"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef",
+          "title": "МОНТЕЛУКАСТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левоцетиризин-монтелукаст-669811b7d9bee439",
+          "title": "ЛЕВОЦЕТИРИЗИН+МОНТЕЛУКАСТ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "transposition.19",
+      "family": "transposition",
+      "query": "енвирапин",
+      "sourceName": "невирапин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 238.90112500000396,
+      "alternatives": [
+        "Возможная опечатка: НЕВИРАПИН",
+        "Возможная опечатка: Невирпин"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97",
+          "title": "НЕВИРАПИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.зидовудин-ламивудин-невирапин-1970af2caffb306d",
+          "title": "ЗИДОВУДИН+ЛАМИВУДИН+НЕВИРАПИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.0",
+      "family": "deletion",
+      "query": "иипрамин",
+      "sourceName": "имипрамин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 288.42437600000267,
+      "alternatives": [
+        "Возможная опечатка: ИМИПРАМИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df",
+          "title": "ИМИПРАМИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.облепихи-крушиновидной-листьев-экстракт-3476bb42d61627a3",
+          "title": "ОБЛЕПИХИ КРУШИНОВИДНОЙ ЛИСТЬЕВ ЭКСТРАКТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ламинарии-слоевищ-экстракт-облепихи-крушиновидной-плодов-экстракт-45ea628365d1ea95",
+          "title": "ЛАМИНАРИИ СЛОЕВИЩ ЭКСТРАКТ+ОБЛЕПИХИ КРУШИНОВИДНОЙ ПЛОДОВ ЭКСТРАКТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бензокаин-облепихи-крушиновидной-плодов-масло-сульфаэтидол-3994addff4f178e2",
+          "title": "БЕНЗОКАИН+ОБЛЕПИХИ КРУШИНОВИДНОЙ ПЛОДОВ МАСЛО+СУЛЬФАЭТИДОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бензокаин-борная-кислота-облепихи-крушиновидной-плодов-масло-хлорамфеникол-1c7ffbeda14acaa6",
+          "title": "БЕНЗОКАИН+БОРНАЯ КИСЛОТА+ОБЛЕПИХИ КРУШИНОВИДНОЙ ПЛОДОВ МАСЛО+ХЛОРАМФЕНИКОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "deletion.1",
+      "family": "deletion",
+      "query": "докозаол",
+      "sourceName": "докозанол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 229.65561799999705,
+      "alternatives": [
+        "Возможная опечатка: ДОКОЗАНОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b",
+          "title": "ДОКОЗАНОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.2",
+      "family": "deletion",
+      "query": "ремифентаил",
+      "sourceName": "ремифентанил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.90969800000312,
+      "alternatives": [
+        "Возможная опечатка: РЕМИФЕНТАНИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba",
+          "title": "РЕМИФЕНТАНИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.3",
+      "family": "deletion",
+      "query": "рифаротен",
+      "sourceName": "трифаротен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 249.9981770000013,
+      "alternatives": [
+        "Возможная опечатка: ТРИФАРОТЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b",
+          "title": "ТРИФАРОТЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.4",
+      "family": "deletion",
+      "query": "ноэпинефрин",
+      "sourceName": "норэпинефрин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 244.86445499999536,
+      "alternatives": [
+        "Возможная опечатка: НОРЭПИНЕФРИН",
+        "Возможная опечатка: ЭПИНЕФРИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0",
+          "title": "НОРЭПИНЕФРИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эпинефрин-d88a1369b4527480",
+          "title": "ЭПИНЕФРИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.мепивакаин-эпинефрин-8044fb1290305db0",
+          "title": "МЕПИВАКАИН+ЭПИНЕФРИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.артикаин-эпинефрин-1f90e5e8a5d657ba",
+          "title": "АРТИКАИН+ЭПИНЕФРИН"
+        },
+        {
+          "id": "core.catalog.pointer.reference.krasotaimedicina.disease.156fe1e20285ad76-3e1b36fb31081d07",
+          "title": "Анафилактический шок у детей"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.5",
+      "family": "deletion",
+      "query": "левсальбутамол",
+      "sourceName": "левосальбутамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 210.4719929999992,
+      "alternatives": [
+        "Возможная опечатка: ЛЕВОСАЛЬБУТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80",
+          "title": "ЛЕВОСАЛЬБУТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амброксол-гвайфенезин-левосальбутамол-61cebc55ab30c05b",
+          "title": "АМБРОКСОЛ+ГВАЙФЕНЕЗИН+ЛЕВОСАЛЬБУТАМОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.6",
+      "family": "deletion",
+      "query": "гвафенезин",
+      "sourceName": "гвайфенезин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 251.30427100000088,
+      "alternatives": [
+        "Возможная опечатка: ГВАЙФЕНЕЗИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e",
+          "title": "ГВАЙФЕНЕЗИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бутамират-гвайфенезин-9c0ce959c548f75e",
+          "title": "БУТАМИРАТ+ГВАЙФЕНЕЗИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "deletion.7",
+      "family": "deletion",
+      "query": "пемиатиниб",
+      "sourceName": "пемигатиниб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 240.03230600000097,
+      "alternatives": [
+        "Возможная опечатка: ПЕМИГАТИНИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2",
+          "title": "ПЕМИГАТИНИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.8",
+      "family": "deletion",
+      "query": "султамициллин",
+      "sourceName": "сультамициллин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 217.5331240000014,
+      "alternatives": [
+        "Возможная опечатка: СУЛЬТАМИЦИЛЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4",
+          "title": "СУЛЬТАМИЦИЛЛИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.9",
+      "family": "deletion",
+      "query": "ванкмицин",
+      "sourceName": "ванкомицин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.4740229999952,
+      "alternatives": [
+        "Возможная опечатка: ВАНКОМИЦИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747",
+          "title": "ВАНКОМИЦИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.10",
+      "family": "deletion",
+      "query": "темозломид",
+      "sourceName": "темозоломид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 246.75127300000167,
+      "alternatives": [
+        "Возможная опечатка: ТЕМОЗОЛОМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6",
+          "title": "ТЕМОЗОЛОМИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.11",
+      "family": "deletion",
+      "query": "элонтерсен",
+      "sourceName": "эплонтерсен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 236.85468599999876,
+      "alternatives": [
+        "Возможная опечатка: ЭПЛОНТЕРСЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb",
+          "title": "ЭПЛОНТЕРСЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.12",
+      "family": "deletion",
+      "query": "ланретид",
+      "sourceName": "ланреотид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 233.94215600000462,
+      "alternatives": [
+        "Возможная опечатка: ЛАНРЕОТИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a",
+          "title": "ЛАНРЕОТИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.13",
+      "family": "deletion",
+      "query": "тропикаид",
+      "sourceName": "тропикамид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 239.0306300000011,
+      "alternatives": [
+        "Возможная опечатка: ТРОПИКАМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea",
+          "title": "ТРОПИКАМИД"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-фенилэфрин-fba180092f849949",
+          "title": "ТРОПИКАМИД+ФЕНИЛЭФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.14",
+      "family": "deletion",
+      "query": "пиибедил",
+      "sourceName": "пирибедил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 220.26912900000025,
+      "alternatives": [
+        "Возможная опечатка: ПИРИБЕДИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59",
+          "title": "ПИРИБЕДИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.15",
+      "family": "deletion",
+      "query": "глиеритан",
+      "sourceName": "глицеритан",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 242.93353000000207,
+      "alternatives": [
+        "Возможная опечатка: ГЛИЦЕРИТАН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006",
+          "title": "ГЛИЦЕРИТАН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.16",
+      "family": "deletion",
+      "query": "сипониод",
+      "sourceName": "сипонимод",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 227.3673259999996,
+      "alternatives": [
+        "Возможная опечатка: СИПОНИМОД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9",
+          "title": "СИПОНИМОД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.17",
+      "family": "deletion",
+      "query": "пареоксиб",
+      "sourceName": "парекоксиб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 241.09169999999722,
+      "alternatives": [
+        "Возможная опечатка: ПАРЕКОКСИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c",
+          "title": "ПАРЕКОКСИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "deletion.18",
+      "family": "deletion",
+      "query": "монтелуаст",
+      "sourceName": "монтелукаст",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 252.3927679999979,
+      "alternatives": [
+        "Возможная опечатка: Монтеласт",
+        "Возможная опечатка: МОНТЕЛУКАСТ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef",
+          "title": "МОНТЕЛУКАСТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левоцетиризин-монтелукаст-669811b7d9bee439",
+          "title": "ЛЕВОЦЕТИРИЗИН+МОНТЕЛУКАСТ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "deletion.19",
+      "family": "deletion",
+      "query": "евирапин",
+      "sourceName": "невирапин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 234.57965400000103,
+      "alternatives": [
+        "Возможная опечатка: НЕВИРАПИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97",
+          "title": "НЕВИРАПИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.зидовудин-ламивудин-невирапин-1970af2caffb306d",
+          "title": "ЗИДОВУДИН+ЛАМИВУДИН+НЕВИРАПИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.0",
+      "family": "insertion",
+      "query": "иммипрамин",
+      "sourceName": "имипрамин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 244.23674100000062,
+      "alternatives": [
+        "Возможная опечатка: ИМИПРАМИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df",
+          "title": "ИМИПРАМИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.1",
+      "family": "insertion",
+      "query": "докозаннол",
+      "sourceName": "докозанол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 238.12430699999823,
+      "alternatives": [
+        "Возможная опечатка: ДОКОЗАНОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b",
+          "title": "ДОКОЗАНОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.2",
+      "family": "insertion",
+      "query": "ремифентаннил",
+      "sourceName": "ремифентанил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 229.36100599999918,
+      "alternatives": [
+        "Возможная опечатка: РЕМИФЕНТАНИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba",
+          "title": "РЕМИФЕНТАНИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.3",
+      "family": "insertion",
+      "query": "ттрифаротен",
+      "sourceName": "трифаротен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 267.67241099999956,
+      "alternatives": [
+        "Возможная опечатка: ТРИФАРОТЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b",
+          "title": "ТРИФАРОТЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.4",
+      "family": "insertion",
+      "query": "норрэпинефрин",
+      "sourceName": "норэпинефрин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 224.6261530000047,
+      "alternatives": [
+        "Возможная опечатка: НОРЭПИНЕФРИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0",
+          "title": "НОРЭПИНЕФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.5",
+      "family": "insertion",
+      "query": "левоосальбутамол",
+      "sourceName": "левосальбутамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 206.4208490000019,
+      "alternatives": [
+        "Возможная опечатка: ЛЕВОСАЛЬБУТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80",
+          "title": "ЛЕВОСАЛЬБУТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амброксол-гвайфенезин-левосальбутамол-61cebc55ab30c05b",
+          "title": "АМБРОКСОЛ+ГВАЙФЕНЕЗИН+ЛЕВОСАЛЬБУТАМОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.6",
+      "family": "insertion",
+      "query": "гваййфенезин",
+      "sourceName": "гвайфенезин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 246.45669900000212,
+      "alternatives": [
+        "Возможная опечатка: ГВАЙФЕНЕЗИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e",
+          "title": "ГВАЙФЕНЕЗИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бутамират-гвайфенезин-9c0ce959c548f75e",
+          "title": "БУТАМИРАТ+ГВАЙФЕНЕЗИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "insertion.7",
+      "family": "insertion",
+      "query": "пемиггатиниб",
+      "sourceName": "пемигатиниб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 224.15251100000023,
+      "alternatives": [
+        "Возможная опечатка: ПЕМИГАТИНИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2",
+          "title": "ПЕМИГАТИНИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.8",
+      "family": "insertion",
+      "query": "сулььтамициллин",
+      "sourceName": "сультамициллин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 205.85875400000077,
+      "alternatives": [
+        "Возможная опечатка: СУЛЬТАМИЦИЛЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4",
+          "title": "СУЛЬТАМИЦИЛЛИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.9",
+      "family": "insertion",
+      "query": "ванкоомицин",
+      "sourceName": "ванкомицин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 241.00441900000442,
+      "alternatives": [
+        "Возможная опечатка: ВАНКОМИЦИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747",
+          "title": "ВАНКОМИЦИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.10",
+      "family": "insertion",
+      "query": "темозооломид",
+      "sourceName": "темозоломид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 229.005799999999,
+      "alternatives": [
+        "Возможная опечатка: ТЕМОЗОЛОМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6",
+          "title": "ТЕМОЗОЛОМИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.11",
+      "family": "insertion",
+      "query": "эпплонтерсен",
+      "sourceName": "эплонтерсен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 224.95670399999653,
+      "alternatives": [
+        "Возможная опечатка: ЭПЛОНТЕРСЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb",
+          "title": "ЭПЛОНТЕРСЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.12",
+      "family": "insertion",
+      "query": "ланреоотид",
+      "sourceName": "ланреотид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 260.358024000001,
+      "alternatives": [
+        "Возможная опечатка: ЛАНРЕОТИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a",
+          "title": "ЛАНРЕОТИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.13",
+      "family": "insertion",
+      "query": "тропикаммид",
+      "sourceName": "тропикамид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 242.21308499999577,
+      "alternatives": [
+        "Возможная опечатка: ТРОПИКАМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea",
+          "title": "ТРОПИКАМИД"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-фенилэфрин-fba180092f849949",
+          "title": "ТРОПИКАМИД+ФЕНИЛЭФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.14",
+      "family": "insertion",
+      "query": "пиррибедил",
+      "sourceName": "пирибедил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 229.9340910000028,
+      "alternatives": [
+        "Возможная опечатка: ПИРИБЕДИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59",
+          "title": "ПИРИБЕДИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.15",
+      "family": "insertion",
+      "query": "глиццеритан",
+      "sourceName": "глицеритан",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 238.37708399999246,
+      "alternatives": [
+        "Возможная опечатка: ГЛИЦЕРИТАН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006",
+          "title": "ГЛИЦЕРИТАН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.16",
+      "family": "insertion",
+      "query": "сипониммод",
+      "sourceName": "сипонимод",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.63186999999743,
+      "alternatives": [
+        "Возможная опечатка: СИПОНИМОД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9",
+          "title": "СИПОНИМОД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.17",
+      "family": "insertion",
+      "query": "пареккоксиб",
+      "sourceName": "парекоксиб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 235.91172400000505,
+      "alternatives": [
+        "Возможная опечатка: ПАРЕКОКСИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c",
+          "title": "ПАРЕКОКСИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "insertion.18",
+      "family": "insertion",
+      "query": "монтелуккаст",
+      "sourceName": "монтелукаст",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 238.15206400000898,
+      "alternatives": [
+        "Возможная опечатка: МОНТЕЛУКАСТ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef",
+          "title": "МОНТЕЛУКАСТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левоцетиризин-монтелукаст-669811b7d9bee439",
+          "title": "ЛЕВОЦЕТИРИЗИН+МОНТЕЛУКАСТ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "insertion.19",
+      "family": "insertion",
+      "query": "нневирапин",
+      "sourceName": "невирапин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 246.71680099998775,
+      "alternatives": [
+        "Возможная опечатка: НЕВИРАПИН",
+        "Возможная опечатка: Невирпин"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97",
+          "title": "НЕВИРАПИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.зидовудин-ламивудин-невирапин-1970af2caffb306d",
+          "title": "ЗИДОВУДИН+ЛАМИВУДИН+НЕВИРАПИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.0",
+      "family": "substitution",
+      "query": "ихипрамин",
+      "sourceName": "имипрамин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 231.88521599999513,
+      "alternatives": [
+        "Возможная опечатка: ИМИПРАМИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df",
+          "title": "ИМИПРАМИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.1",
+      "family": "substitution",
+      "query": "докозахол",
+      "sourceName": "докозанол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 225.6994900000136,
+      "alternatives": [
+        "Возможная опечатка: ДОКОЗАНОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b",
+          "title": "ДОКОЗАНОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.2",
+      "family": "substitution",
+      "query": "ремифентахил",
+      "sourceName": "ремифентанил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 228.2111189999996,
+      "alternatives": [
+        "Возможная опечатка: РЕМИФЕНТАНИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba",
+          "title": "РЕМИФЕНТАНИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.3",
+      "family": "substitution",
+      "query": "хрифаротен",
+      "sourceName": "трифаротен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 241.12174299999606,
+      "alternatives": [
+        "Возможная опечатка: ТРИФАРОТЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b",
+          "title": "ТРИФАРОТЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.4",
+      "family": "substitution",
+      "query": "нохэпинефрин",
+      "sourceName": "норэпинефрин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 222.31395599999814,
+      "alternatives": [
+        "Возможная опечатка: НОРЭПИНЕФРИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0",
+          "title": "НОРЭПИНЕФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.5",
+      "family": "substitution",
+      "query": "левхсальбутамол",
+      "sourceName": "левосальбутамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 209.36441300000297,
+      "alternatives": [
+        "Возможная опечатка: ЛЕВОСАЛЬБУТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80",
+          "title": "ЛЕВОСАЛЬБУТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амброксол-гвайфенезин-левосальбутамол-61cebc55ab30c05b",
+          "title": "АМБРОКСОЛ+ГВАЙФЕНЕЗИН+ЛЕВОСАЛЬБУТАМОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.6",
+      "family": "substitution",
+      "query": "гвахфенезин",
+      "sourceName": "гвайфенезин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 239.89153199999419,
+      "alternatives": [
+        "Возможная опечатка: ГВАЙФЕНЕЗИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e",
+          "title": "ГВАЙФЕНЕЗИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бутамират-гвайфенезин-9c0ce959c548f75e",
+          "title": "БУТАМИРАТ+ГВАЙФЕНЕЗИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "substitution.7",
+      "family": "substitution",
+      "query": "пемихатиниб",
+      "sourceName": "пемигатиниб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 229.1956599999976,
+      "alternatives": [
+        "Возможная опечатка: ПЕМИГАТИНИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2",
+          "title": "ПЕМИГАТИНИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.8",
+      "family": "substitution",
+      "query": "сулхтамициллин",
+      "sourceName": "сультамициллин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 209.82151100000192,
+      "alternatives": [
+        "Возможная опечатка: СУЛЬТАМИЦИЛЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4",
+          "title": "СУЛЬТАМИЦИЛЛИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.9",
+      "family": "substitution",
+      "query": "ванкхмицин",
+      "sourceName": "ванкомицин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 237.30264700000407,
+      "alternatives": [
+        "Возможная опечатка: ВАНКОМИЦИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747",
+          "title": "ВАНКОМИЦИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.10",
+      "family": "substitution",
+      "query": "темозхломид",
+      "sourceName": "темозоломид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 232.90954700000293,
+      "alternatives": [
+        "Возможная опечатка: ТЕМОЗОЛОМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6",
+          "title": "ТЕМОЗОЛОМИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.11",
+      "family": "substitution",
+      "query": "эхлонтерсен",
+      "sourceName": "эплонтерсен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 223.55530399999407,
+      "alternatives": [
+        "Возможная опечатка: ЭПЛОНТЕРСЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb",
+          "title": "ЭПЛОНТЕРСЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.12",
+      "family": "substitution",
+      "query": "ланрехтид",
+      "sourceName": "ланреотид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.33121700001357,
+      "alternatives": [
+        "Возможная опечатка: ЛАНРЕОТИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a",
+          "title": "ЛАНРЕОТИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.13",
+      "family": "substitution",
+      "query": "тропикахид",
+      "sourceName": "тропикамид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 236.29530100000557,
+      "alternatives": [
+        "Возможная опечатка: ТРОПИКАМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea",
+          "title": "ТРОПИКАМИД"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-фенилэфрин-fba180092f849949",
+          "title": "ТРОПИКАМИД+ФЕНИЛЭФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.14",
+      "family": "substitution",
+      "query": "пихибедил",
+      "sourceName": "пирибедил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 223.9390410000051,
+      "alternatives": [
+        "Возможная опечатка: ПИРИБЕДИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59",
+          "title": "ПИРИБЕДИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.15",
+      "family": "substitution",
+      "query": "глихеритан",
+      "sourceName": "глицеритан",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 241.7234779999999,
+      "alternatives": [
+        "Возможная опечатка: ГЛИЦЕРИТАН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006",
+          "title": "ГЛИЦЕРИТАН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.16",
+      "family": "substitution",
+      "query": "сипониход",
+      "sourceName": "сипонимод",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 250.22337700000207,
+      "alternatives": [
+        "Возможная опечатка: СИПОНИМОД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9",
+          "title": "СИПОНИМОД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.17",
+      "family": "substitution",
+      "query": "парехоксиб",
+      "sourceName": "парекоксиб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 245.51673499999742,
+      "alternatives": [
+        "Возможная опечатка: ПАРЕКОКСИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c",
+          "title": "ПАРЕКОКСИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "substitution.18",
+      "family": "substitution",
+      "query": "монтелухаст",
+      "sourceName": "монтелукаст",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 237.07715699999244,
+      "alternatives": [
+        "Возможная опечатка: МОНТЕЛУКАСТ",
+        "Возможная опечатка: Монтеласт"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef",
+          "title": "МОНТЕЛУКАСТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левоцетиризин-монтелукаст-669811b7d9bee439",
+          "title": "ЛЕВОЦЕТИРИЗИН+МОНТЕЛУКАСТ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "substitution.19",
+      "family": "substitution",
+      "query": "хевирапин",
+      "sourceName": "невирапин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 234.25415999999677,
+      "alternatives": [
+        "Возможная опечатка: НЕВИРАПИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97",
+          "title": "НЕВИРАПИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.зидовудин-ламивудин-невирапин-1970af2caffb306d",
+          "title": "ЗИДОВУДИН+ЛАМИВУДИН+НЕВИРАПИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.0",
+      "family": "confusion-1",
+      "query": "имепрамин",
+      "sourceName": "имипрамин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 240.68681900000956,
+      "alternatives": [
+        "Возможная опечатка: ИМИПРАМИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df",
+          "title": "ИМИПРАМИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.1",
+      "family": "confusion-1",
+      "query": "докозанал",
+      "sourceName": "докозанол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 231.67208499999833,
+      "alternatives": [
+        "Возможная опечатка: ДОКОЗАНОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b",
+          "title": "ДОКОЗАНОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.2",
+      "family": "confusion-1",
+      "query": "ремифентанел",
+      "sourceName": "ремифентанил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 231.91072499999427,
+      "alternatives": [
+        "Возможная опечатка: РЕМИФЕНТАНИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba",
+          "title": "РЕМИФЕНТАНИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.3",
+      "family": "confusion-1",
+      "query": "дрифаротен",
+      "sourceName": "трифаротен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 245.4292540000024,
+      "alternatives": [
+        "Возможная опечатка: ТРИФАРОТЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b",
+          "title": "ТРИФАРОТЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.4",
+      "family": "confusion-1",
+      "query": "норэпенефрин",
+      "sourceName": "норэпинефрин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 228.6703290000005,
+      "alternatives": [
+        "Возможная опечатка: НОРЭПИНЕФРИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0",
+          "title": "НОРЭПИНЕФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.5",
+      "family": "confusion-1",
+      "query": "левесальбутамол",
+      "sourceName": "левосальбутамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 206.37026799999876,
+      "alternatives": [
+        "Возможная опечатка: ЛЕВОСАЛЬБУТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80",
+          "title": "ЛЕВОСАЛЬБУТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амброксол-гвайфенезин-левосальбутамол-61cebc55ab30c05b",
+          "title": "АМБРОКСОЛ+ГВАЙФЕНЕЗИН+ЛЕВОСАЛЬБУТАМОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.6",
+      "family": "confusion-1",
+      "query": "гвайфинезин",
+      "sourceName": "гвайфенезин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 240.5449809999991,
+      "alternatives": [
+        "Возможная опечатка: ГВАЙФЕНЕЗИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e",
+          "title": "ГВАЙФЕНЕЗИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бутамират-гвайфенезин-9c0ce959c548f75e",
+          "title": "БУТАМИРАТ+ГВАЙФЕНЕЗИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-1.7",
+      "family": "confusion-1",
+      "query": "пемиготиниб",
+      "sourceName": "пемигатиниб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 225.1624579999916,
+      "alternatives": [
+        "Возможная опечатка: ПЕМИГАТИНИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2",
+          "title": "ПЕМИГАТИНИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.8",
+      "family": "confusion-1",
+      "query": "сульдамициллин",
+      "sourceName": "сультамициллин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 207.74751699999615,
+      "alternatives": [
+        "Возможная опечатка: СУЛЬТАМИЦИЛЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4",
+          "title": "СУЛЬТАМИЦИЛЛИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.9",
+      "family": "confusion-1",
+      "query": "ванкемицин",
+      "sourceName": "ванкомицин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 244.65809700000682,
+      "alternatives": [
+        "Возможная опечатка: ВАНКОМИЦИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747",
+          "title": "ВАНКОМИЦИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.10",
+      "family": "confusion-1",
+      "query": "темозеломид",
+      "sourceName": "темозоломид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 233.90797899999598,
+      "alternatives": [
+        "Возможная опечатка: ТЕМОЗОЛОМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6",
+          "title": "ТЕМОЗОЛОМИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.11",
+      "family": "confusion-1",
+      "query": "эплантерсен",
+      "sourceName": "эплонтерсен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 233.9327670000057,
+      "alternatives": [
+        "Возможная опечатка: ЭПЛОНТЕРСЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb",
+          "title": "ЭПЛОНТЕРСЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.12",
+      "family": "confusion-1",
+      "query": "ланреатид",
+      "sourceName": "ланреотид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.31880300000194,
+      "alternatives": [
+        "Возможная опечатка: ЛАНРЕОТИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a",
+          "title": "ЛАНРЕОТИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.13",
+      "family": "confusion-1",
+      "query": "тропикамед",
+      "sourceName": "тропикамид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.5759190000099,
+      "alternatives": [
+        "Возможная опечатка: ТРОПИКАМИД",
+        "Возможная опечатка: Тропикам"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea",
+          "title": "ТРОПИКАМИД"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-фенилэфрин-fba180092f849949",
+          "title": "ТРОПИКАМИД+ФЕНИЛЭФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.14",
+      "family": "confusion-1",
+      "query": "пиребедил",
+      "sourceName": "пирибедил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 224.42856400000164,
+      "alternatives": [
+        "Возможная опечатка: ПИРИБЕДИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59",
+          "title": "ПИРИБЕДИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.15",
+      "family": "confusion-1",
+      "query": "глициритан",
+      "sourceName": "глицеритан",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 238.37418600000092,
+      "alternatives": [
+        "Возможная опечатка: ГЛИЦЕРИТАН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006",
+          "title": "ГЛИЦЕРИТАН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.16",
+      "family": "confusion-1",
+      "query": "сипонимад",
+      "sourceName": "сипонимод",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 229.83689700000104,
+      "alternatives": [
+        "Возможная опечатка: СИПОНИМОД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9",
+          "title": "СИПОНИМОД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.17",
+      "family": "confusion-1",
+      "query": "парекексиб",
+      "sourceName": "парекоксиб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 234.92851500000688,
+      "alternatives": [
+        "Возможная опечатка: ПАРЕКОКСИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c",
+          "title": "ПАРЕКОКСИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-1.18",
+      "family": "confusion-1",
+      "query": "монтелукост",
+      "sourceName": "монтелукаст",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 237.50922599999467,
+      "alternatives": [
+        "Возможная опечатка: МОНТЕЛУКАСТ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef",
+          "title": "МОНТЕЛУКАСТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левоцетиризин-монтелукаст-669811b7d9bee439",
+          "title": "ЛЕВОЦЕТИРИЗИН+МОНТЕЛУКАСТ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-1.19",
+      "family": "confusion-1",
+      "query": "нивирапин",
+      "sourceName": "невирапин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 238.10737499999232,
+      "alternatives": [
+        "Возможная опечатка: НЕВИРАПИН",
+        "Возможная опечатка: Невирпин"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97",
+          "title": "НЕВИРАПИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.зидовудин-ламивудин-невирапин-1970af2caffb306d",
+          "title": "ЗИДОВУДИН+ЛАМИВУДИН+НЕВИРАПИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.0",
+      "family": "confusion-2",
+      "query": "имепромин",
+      "sourceName": "имипрамин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 237.7766879999981,
+      "alternatives": [
+        "Возможная опечатка: ИМИПРАМИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.имипрамин-bdd97979c028c0df",
+          "title": "ИМИПРАМИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.1",
+      "family": "confusion-2",
+      "query": "токозанал",
+      "sourceName": "докозанол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 233.94986199999403,
+      "alternatives": [
+        "Возможная опечатка: ДОКОЗАНОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.докозанол-275ce523e0f6209b",
+          "title": "ДОКОЗАНОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.2",
+      "family": "confusion-2",
+      "query": "римифентанел",
+      "sourceName": "ремифентанил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 233.9372730000032,
+      "alternatives": [
+        "Возможная опечатка: РЕМИФЕНТАНИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba",
+          "title": "РЕМИФЕНТАНИЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.3",
+      "family": "confusion-2",
+      "query": "дрефаротен",
+      "sourceName": "трифаротен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 238.63481899999897,
+      "alternatives": [
+        "Возможная опечатка: ТРИФАРОТЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b",
+          "title": "ТРИФАРОТЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.4",
+      "family": "confusion-2",
+      "query": "норэпенифрин",
+      "sourceName": "норэпинефрин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 222.10575000000244,
+      "alternatives": [
+        "Возможная опечатка: НОРЭПИНЕФРИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0",
+          "title": "НОРЭПИНЕФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.5",
+      "family": "confusion-2",
+      "query": "левезальбутамол",
+      "sourceName": "левосальбутамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 206.7446889999992,
+      "alternatives": [
+        "Возможная опечатка: ЛЕВОСАЛЬБУТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80",
+          "title": "ЛЕВОСАЛЬБУТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амброксол-гвайфенезин-левосальбутамол-61cebc55ab30c05b",
+          "title": "АМБРОКСОЛ+ГВАЙФЕНЕЗИН+ЛЕВОСАЛЬБУТАМОЛ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.6",
+      "family": "confusion-2",
+      "query": "гвайфинизин",
+      "sourceName": "гвайфенезин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 237.40156299999217,
+      "alternatives": [
+        "Возможная опечатка: ГВАЙФЕНЕЗИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e",
+          "title": "ГВАЙФЕНЕЗИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бутамират-гвайфенезин-9c0ce959c548f75e",
+          "title": "БУТАМИРАТ+ГВАЙФЕНЕЗИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-2.7",
+      "family": "confusion-2",
+      "query": "пемигодиниб",
+      "sourceName": "пемигатиниб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 224.2907070000074,
+      "alternatives": [
+        "Возможная опечатка: ПЕМИГАТИНИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2",
+          "title": "ПЕМИГАТИНИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.8",
+      "family": "confusion-2",
+      "query": "сульдомициллин",
+      "sourceName": "сультамициллин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 208.8186790000036,
+      "alternatives": [
+        "Возможная опечатка: СУЛЬТАМИЦИЛЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4",
+          "title": "СУЛЬТАМИЦИЛЛИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.9",
+      "family": "confusion-2",
+      "query": "ванкемецин",
+      "sourceName": "ванкомицин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.63788200001,
+      "alternatives": [
+        "Возможная опечатка: ВАНКОМИЦИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747",
+          "title": "ВАНКОМИЦИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.10",
+      "family": "confusion-2",
+      "query": "темозелемид",
+      "sourceName": "темозоломид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 233.20934899999702,
+      "alternatives": [
+        "Возможная опечатка: ТЕМОЗОЛОМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6",
+          "title": "ТЕМОЗОЛОМИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.11",
+      "family": "confusion-2",
+      "query": "эпландерсен",
+      "sourceName": "эплонтерсен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 224.64912599998934,
+      "alternatives": [
+        "Возможная опечатка: ЭПЛОНТЕРСЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb",
+          "title": "ЭПЛОНТЕРСЕН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.12",
+      "family": "confusion-2",
+      "query": "ланреадид",
+      "sourceName": "ланреотид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 245.85083999999915,
+      "alternatives": [
+        "Возможная опечатка: ЛАНРЕОТИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ланреотид-a59b7cbc84adcc3a",
+          "title": "ЛАНРЕОТИД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.13",
+      "family": "confusion-2",
+      "query": "тропикамет",
+      "sourceName": "тропикамид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 255.42739199999778,
+      "alternatives": [
+        "Возможная опечатка: ТРОПИКАМИД",
+        "Возможная опечатка: Тропикам"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea",
+          "title": "ТРОПИКАМИД"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-фенилэфрин-fba180092f849949",
+          "title": "ТРОПИКАМИД+ФЕНИЛЭФРИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.14",
+      "family": "confusion-2",
+      "query": "пиребидил",
+      "sourceName": "пирибедил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 228.28179900000396,
+      "alternatives": [
+        "Возможная опечатка: ПИРИБЕДИЛ",
+        "Возможная опечатка: Препидил"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пирибедил-5d3d2933d9760f59",
+          "title": "ПИРИБЕДИЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.динопростон-8c9f6f3ca5e14be4",
+          "title": "ДИНОПРОСТОН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.15",
+      "family": "confusion-2",
+      "query": "глициретан",
+      "sourceName": "глицеритан",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 237.91262200000347,
+      "alternatives": [
+        "Возможная опечатка: ГЛИЦЕРИТАН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006",
+          "title": "ГЛИЦЕРИТАН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.16",
+      "family": "confusion-2",
+      "query": "сипонимат",
+      "sourceName": "сипонимод",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 238.09249300000374,
+      "alternatives": [
+        "Возможная опечатка: СИПОНИМОД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сипонимод-49f8a20d98ed7cb9",
+          "title": "СИПОНИМОД"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.17",
+      "family": "confusion-2",
+      "query": "парекекзиб",
+      "sourceName": "парекоксиб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 231.34553700000106,
+      "alternatives": [
+        "Возможная опечатка: ПАРЕКОКСИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c",
+          "title": "ПАРЕКОКСИБ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-2.18",
+      "family": "confusion-2",
+      "query": "монтелукозт",
+      "sourceName": "монтелукаст",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 234.28651900000114,
+      "alternatives": [
+        "Возможная опечатка: МОНТЕЛУКАСТ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef",
+          "title": "МОНТЕЛУКАСТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левоцетиризин-монтелукаст-669811b7d9bee439",
+          "title": "ЛЕВОЦЕТИРИЗИН+МОНТЕЛУКАСТ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-2.19",
+      "family": "confusion-2",
+      "query": "ниверапин",
+      "sourceName": "невирапин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 237.81336999998894,
+      "alternatives": [
+        "Возможная опечатка: НЕВИРАПИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.невирапин-8e8ba48d4d5cea97",
+          "title": "НЕВИРАПИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.зидовудин-ламивудин-невирапин-1970af2caffb306d",
+          "title": "ЗИДОВУДИН+ЛАМИВУДИН+НЕВИРАПИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "confusion-3.0",
+      "family": "confusion-3",
+      "query": "римефентанел",
+      "sourceName": "ремифентанил",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 233.38597999999183,
+      "alternatives": [
+        "Возможная опечатка: РЕМИФЕНТАНИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ремифентанил-d4fa7afc0b5556ba",
+          "title": "РЕМИФЕНТАНИЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.1",
+      "family": "confusion-3",
+      "query": "дрефоротен",
+      "sourceName": "трифаротен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 235.68472800000745,
+      "alternatives": [
+        "Возможная опечатка: ТРИФАРОТЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.трифаротен-646c0ccb30b9d46b",
+          "title": "ТРИФАРОТЕН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.2",
+      "family": "confusion-3",
+      "query": "норэпенифрен",
+      "sourceName": "норэпинефрин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 224.1793609999877,
+      "alternatives": [
+        "Возможная опечатка: НОРЭПИНЕФРИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.норэпинефрин-14ee6a814b245fb0",
+          "title": "НОРЭПИНЕФРИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.3",
+      "family": "confusion-3",
+      "query": "левезольбутамол",
+      "sourceName": "левосальбутамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 210.36776599999575,
+      "alternatives": [
+        "Возможная опечатка: ЛЕВОСАЛЬБУТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левосальбутамол-58e066b73d125e80",
+          "title": "ЛЕВОСАЛЬБУТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амброксол-гвайфенезин-левосальбутамол-61cebc55ab30c05b",
+          "title": "АМБРОКСОЛ+ГВАЙФЕНЕЗИН+ЛЕВОСАЛЬБУТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.4",
+      "family": "confusion-3",
+      "query": "гвайфинисин",
+      "sourceName": "гвайфенезин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 229.31691899998987,
+      "alternatives": [
+        "Возможная опечатка: ГВАЙФЕНЕЗИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-1a67f95c8e128e1e",
+          "title": "ГВАЙФЕНЕЗИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-парацетамол-фенилэфрин-43966039bd057f20",
+          "title": "ГВАЙФЕНЕЗИН+ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гвайфенезин-декстрометорфана-гидробромид-рацементол-aa878ee217665d2b",
+          "title": "ГВАЙФЕНЕЗИН+ДЕКСТРОМЕТОРФАНА ГИДРОБРОМИД+РАЦЕМЕНТОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бутамират-гвайфенезин-9c0ce959c548f75e",
+          "title": "БУТАМИРАТ+ГВАЙФЕНЕЗИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.бромгексин-гвайфенезин-сальбутамол-3a545eaad497ef39",
+          "title": "БРОМГЕКСИН+ГВАЙФЕНЕЗИН+САЛЬБУТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.5",
+      "family": "confusion-3",
+      "query": "пемигодениб",
+      "sourceName": "пемигатиниб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 224.68150700000115,
+      "alternatives": [
+        "Возможная опечатка: ПЕМИГАТИНИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пемигатиниб-a1a4bc0029cd20e2",
+          "title": "ПЕМИГАТИНИБ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.6",
+      "family": "confusion-3",
+      "query": "сульдомециллин",
+      "sourceName": "сультамициллин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 209.01000399999612,
+      "alternatives": [
+        "Возможная опечатка: СУЛЬТАМИЦИЛЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.сультамициллин-ef92566822197ba4",
+          "title": "СУЛЬТАМИЦИЛЛИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.7",
+      "family": "confusion-3",
+      "query": "ванкемецен",
+      "sourceName": "ванкомицин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 238.33580600000278,
+      "alternatives": [
+        "Возможная опечатка: ВАНКОМИЦИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ванкомицин-b01a94da8dfc8747",
+          "title": "ВАНКОМИЦИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.8",
+      "family": "confusion-3",
+      "query": "темозелемед",
+      "sourceName": "темозоломид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 232.94894200000272,
+      "alternatives": [
+        "Возможная опечатка: ТЕМОЗОЛОМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.темозоломид-3f4ad4bc0f4d92f6",
+          "title": "ТЕМОЗОЛОМИД"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.9",
+      "family": "confusion-3",
+      "query": "эпландорсен",
+      "sourceName": "эплонтерсен",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 226.08853300000192,
+      "alternatives": [
+        "Возможная опечатка: ЭПЛОНТЕРСЕН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эплонтерсен-379baf7da1f96dbb",
+          "title": "ЭПЛОНТЕРСЕН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.10",
+      "family": "confusion-3",
+      "query": "дропикамет",
+      "sourceName": "тропикамид",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.50427999999374,
+      "alternatives": [
+        "Возможная опечатка: ТРОПИКАМИД"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-99f5c3dd797789ea",
+          "title": "ТРОПИКАМИД"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.тропикамид-фенилэфрин-fba180092f849949",
+          "title": "ТРОПИКАМИД+ФЕНИЛЭФРИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.11",
+      "family": "confusion-3",
+      "query": "глициредан",
+      "sourceName": "глицеритан",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 234.654377999992,
+      "alternatives": [
+        "Возможная опечатка: ГЛИЦЕРИТАН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.глицеритан-c0c5279978d71006",
+          "title": "ГЛИЦЕРИТАН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.12",
+      "family": "confusion-3",
+      "query": "парекекзеб",
+      "sourceName": "парекоксиб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 230.76137200000812,
+      "alternatives": [
+        "Возможная опечатка: ПАРЕКОКСИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парекоксиб-72c3f43374aff69c",
+          "title": "ПАРЕКОКСИБ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.13",
+      "family": "confusion-3",
+      "query": "монтелукозд",
+      "sourceName": "монтелукаст",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 226.370797999989,
+      "alternatives": [
+        "Возможная опечатка: МОНТЕЛУКАСТ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.монтелукаст-014b3b07a09888ef",
+          "title": "МОНТЕЛУКАСТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.левоцетиризин-монтелукаст-669811b7d9bee439",
+          "title": "ЛЕВОЦЕТИРИЗИН+МОНТЕЛУКАСТ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.14",
+      "family": "confusion-3",
+      "query": "кресетиниб",
+      "sourceName": "кризотиниб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.кризотиниб-ba2a797cecfb73ac"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 246.3109620000032,
+      "alternatives": [
+        "Возможная опечатка: КРИЗОТИНИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кризотиниб-ba2a797cecfb73ac",
+          "title": "КРИЗОТИНИБ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.15",
+      "family": "confusion-3",
+      "query": "пэгцодокоплан",
+      "sourceName": "пэгцетакоплан",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.пэгцетакоплан-d0d303783522b250"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 210.83181400000467,
+      "alternatives": [
+        "Возможная опечатка: ПЭГЦЕТАКОПЛАН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.пэгцетакоплан-d0d303783522b250",
+          "title": "ПЭГЦЕТАКОПЛАН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.16",
+      "family": "confusion-3",
+      "query": "оттапулгед",
+      "sourceName": "аттапулгит",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.аттапулгит-f8f28d25e4824758"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 225.95605399999477,
+      "alternatives": [
+        "Возможная опечатка: АТТАПУЛГИТ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.аттапулгит-f8f28d25e4824758",
+          "title": "АТТАПУЛГИТ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.17",
+      "family": "confusion-3",
+      "query": "везмодегеб",
+      "sourceName": "висмодегиб",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.висмодегиб-026dddcf7f04b4f0"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 224.33136999999988,
+      "alternatives": [
+        "Возможная опечатка: ВИСМОДЕГИБ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.висмодегиб-026dddcf7f04b4f0",
+          "title": "ВИСМОДЕГИБ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.18",
+      "family": "confusion-3",
+      "query": "раветосвир",
+      "sourceName": "равидасвир",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.равидасвир-cbfb2f87d00a469b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 253.24055499999668,
+      "alternatives": [
+        "Возможная опечатка: РАВИДАСВИР"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.равидасвир-cbfb2f87d00a469b",
+          "title": "РАВИДАСВИР"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "confusion-3.19",
+      "family": "confusion-3",
+      "query": "дексамодозон",
+      "sourceName": "дексаметазон",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.дексаметазон-ecda5d71540dd53d"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 239.550722999993,
+      "alternatives": [
+        "Возможная опечатка: ДЕКСАМЕТАЗОН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дексаметазон-ecda5d71540dd53d",
+          "title": "ДЕКСАМЕТАЗОН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дексаметазон-ципрофлоксацин-717fddd5b30f12c2",
+          "title": "ДЕКСАМЕТАЗОН+ЦИПРОФЛОКСАЦИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дексаметазон-неомицин-b0ac408f0f04c165",
+          "title": "ДЕКСАМЕТАЗОН+НЕОМИЦИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дексаметазон-левофлоксацин-e0ae7eba83b84ddf",
+          "title": "ДЕКСАМЕТАЗОН+ЛЕВОФЛОКСАЦИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дексаметазон-тобрамицин-f5d44550ec2e8656",
+          "title": "ДЕКСАМЕТАЗОН+ТОБРАМИЦИН"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.0",
+      "family": "authored",
+      "query": "парацетомол",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 291.3532750000013,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "title": "КОДЕИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "title": "ДИКЛОФЕНАК+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "title": "ДИЦИКЛОВЕРИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "title": "НАПРОКСЕН+ПАРАЦЕТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.1",
+      "family": "authored",
+      "query": "парацитамол",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 302.1657579999883,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "title": "КОДЕИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "title": "ДИКЛОФЕНАК+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "title": "ДИЦИКЛОВЕРИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "title": "НАПРОКСЕН+ПАРАЦЕТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.2",
+      "family": "authored",
+      "query": "парацитамолл",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 299.3641490000009,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "title": "КОДЕИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "title": "ДИКЛОФЕНАК+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "title": "ДИЦИКЛОВЕРИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "title": "НАПРОКСЕН+ПАРАЦЕТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.3",
+      "family": "authored",
+      "query": "парацетмаол",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 298.1715509999922,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "title": "КОДЕИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "title": "ДИКЛОФЕНАК+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "title": "ДИЦИКЛОВЕРИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "title": "НАПРОКСЕН+ПАРАЦЕТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.4",
+      "family": "authored",
+      "query": "парацтамол",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 301.9611309999891,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "title": "КОДЕИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "title": "ДИКЛОФЕНАК+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "title": "ДИЦИКЛОВЕРИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "title": "НАПРОКСЕН+ПАРАЦЕТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.5",
+      "family": "authored",
+      "query": "паарацетамол",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 284.7689509999909,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "title": "КОДЕИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "title": "ДИКЛОФЕНАК+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "title": "ДИЦИКЛОВЕРИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "title": "НАПРОКСЕН+ПАРАЦЕТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.6",
+      "family": "authored",
+      "query": "парацктамол",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 292.62970399999176,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "title": "КОДЕИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "title": "ДИКЛОФЕНАК+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "title": "ДИЦИКЛОВЕРИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "title": "НАПРОКСЕН+ПАРАЦЕТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.7",
+      "family": "authored",
+      "query": "пароцитамол",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 290.6030160000082,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "title": "КОДЕИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "title": "ДИКЛОФЕНАК+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "title": "ДИЦИКЛОВЕРИН+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "title": "НАПРОКСЕН+ПАРАЦЕТАМОЛ"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.8",
+      "family": "authored",
+      "query": "цефтреаксон",
+      "sourceName": "цефтриаксон",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.цефтриаксон-1b6f77bdc8c3e16f"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 251.3353849999985,
+      "alternatives": [
+        "Возможная опечатка: ЦЕФТРИАКСОН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.цефтриаксон-1b6f77bdc8c3e16f",
+          "title": "ЦЕФТРИАКСОН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.цефтриаксон-сульбактам-417ec542042fe925",
+          "title": "ЦЕФТРИАКСОН+СУЛЬБАКТАМ"
+        },
+        {
+          "id": "drug.rf.ceftriaxone.injection-1g",
+          "title": "Цефтриаксон — порошок для инъекций 1 г"
+        },
+        {
+          "id": "core.catalog.pointer.reference.krasotaimedicina.disease.adc5b2431df0621e-b0cc439580892062",
+          "title": "Спинная сухотка"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.9",
+      "family": "authored",
+      "query": "цефтриакзон",
+      "sourceName": "цефтриаксон",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.цефтриаксон-1b6f77bdc8c3e16f"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 243.93961400000262,
+      "alternatives": [
+        "Возможная опечатка: ЦЕФТРИАКСОН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.цефтриаксон-1b6f77bdc8c3e16f",
+          "title": "ЦЕФТРИАКСОН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.цефтриаксон-сульбактам-417ec542042fe925",
+          "title": "ЦЕФТРИАКСОН+СУЛЬБАКТАМ"
+        },
+        {
+          "id": "drug.rf.ceftriaxone.injection-1g",
+          "title": "Цефтриаксон — порошок для инъекций 1 г"
+        },
+        {
+          "id": "core.catalog.pointer.reference.krasotaimedicina.disease.adc5b2431df0621e-b0cc439580892062",
+          "title": "Спинная сухотка"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.10",
+      "family": "authored",
+      "query": "цефазалин",
+      "sourceName": "цефазолин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.цефазолин-2253a1f61cf6104e"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 231.68424000000232,
+      "alternatives": [
+        "Возможная опечатка: ЦЕФАЗОЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.цефазолин-2253a1f61cf6104e",
+          "title": "ЦЕФАЗОЛИН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.11",
+      "family": "authored",
+      "query": "амоксицилин",
+      "sourceName": "амоксициллин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.амоксициллин-39ac47a244d081af"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 265.1335149999941,
+      "alternatives": [
+        "Возможная опечатка: АМОКСИЦИЛЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амоксициллин-39ac47a244d081af",
+          "title": "АМОКСИЦИЛЛИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амоксициллин-сульбактам-0800dd7e65ffa2eb",
+          "title": "АМОКСИЦИЛЛИН+СУЛЬБАКТАМ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амоксициллин-клавулановая-кислота-2fb28ba2e79ec155",
+          "title": "АМОКСИЦИЛЛИН+КЛАВУЛАНОВАЯ КИСЛОТА"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амоксициллин-кларитромицин-лансопразол-набор-7ad7d50406d303da",
+          "title": "АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ЛАНСОПРАЗОЛ [НАБОР]"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амоксициллин-кларитромицин-омепразол-набор-772efff75945e53b",
+          "title": "АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ [НАБОР]"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.12",
+      "family": "authored",
+      "query": "омепрозол",
+      "sourceName": "омепразол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.омепразол-d76c829c005ec05e"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 240.22148800001014,
+      "alternatives": [
+        "Возможная опечатка: ОМЕПРАЗОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.омепразол-d76c829c005ec05e",
+          "title": "ОМЕПРАЗОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.домперидон-омепразол-00de5330703b3004",
+          "title": "ДОМПЕРИДОН+ОМЕПРАЗОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кларитромицин-омепразол-тинидазол-набор-674da39e5cce372f",
+          "title": "КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ+ТИНИДАЗОЛ [НАБОР]"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амоксициллин-кларитромицин-омепразол-набор-772efff75945e53b",
+          "title": "АМОКСИЦИЛЛИН+КЛАРИТРОМИЦИН+ОМЕПРАЗОЛ [НАБОР]"
+        },
+        {
+          "id": "core.catalog.pointer.reference.krasotaimedicina.disease.7a5d75a55eb7fc34-5d30ff4f8072e180",
+          "title": "ГЭРБ при беременности"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.13",
+      "family": "authored",
+      "query": "азетромецин",
+      "sourceName": "азитромицин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.азитромицин-27a6eedc94bfb5d5"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 250.74974500000826,
+      "alternatives": [
+        "Возможная опечатка: АЗИТРОМИЦИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.азитромицин-27a6eedc94bfb5d5",
+          "title": "АЗИТРОМИЦИН"
+        },
+        {
+          "id": "drug.rf.azithromycin.suspension-200mg-5ml",
+          "title": "Азитромицин — суспензия 200 мг/5 мл"
+        },
+        {
+          "id": "core.catalog.pointer.reference.krasotaimedicina.disease.912e5ea9e475a63b-f0f30beb0107477c",
+          "title": "Пироплазмоз ( Бабезиоз )"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.14",
+      "family": "authored",
+      "query": "ациклавир",
+      "sourceName": "ацикловир",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ацикловир-3b598fde7476f15b"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 242.10682400000223,
+      "alternatives": [
+        "Возможная опечатка: АЦИКЛОВИР"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ацикловир-3b598fde7476f15b",
+          "title": "АЦИКЛОВИР"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ацикловир-гидрокортизон-4c4ea0c471f25166",
+          "title": "АЦИКЛОВИР+ГИДРОКОРТИЗОН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.интерферон-альфа-2b-ацикловир-лидокаин-50a7751d3193a22d",
+          "title": "ИНТЕРФЕРОН АЛЬФА-2B+АЦИКЛОВИР+ЛИДОКАИН"
+        },
+        {
+          "id": "core.catalog.pointer.reference.krasotaimedicina.disease.77e162bf100ea8fa-1758be5f80dd01e9",
+          "title": "Энцефалит у детей"
+        },
+        {
+          "id": "core.catalog.pointer.reference.krasotaimedicina.disease.a09253bbb9c86dd0-bd0706c1ed074a71",
+          "title": "Герпес простой"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.15",
+      "family": "authored",
+      "query": "резперидон",
+      "sourceName": "рисперидон",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.рисперидон-07e361a9dd79f3b2"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 247.23252399999183,
+      "alternatives": [
+        "Возможная опечатка: РИСПЕРИДОН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.рисперидон-07e361a9dd79f3b2",
+          "title": "РИСПЕРИДОН"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.16",
+      "family": "authored",
+      "query": "энолоприл",
+      "sourceName": "эналаприл",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.эналаприл-2457f2d7fc9cd077"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 244.42011300000013,
+      "alternatives": [
+        "Возможная опечатка: ЭНАЛАПРИЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эналаприл-2457f2d7fc9cd077",
+          "title": "ЭНАЛАПРИЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.эналаприлат-3bbc6dbab7798026",
+          "title": "ЭНАЛАПРИЛАТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.лерканидипин-эналаприл-0fa5b92428ab7e9e",
+          "title": "ЛЕРКАНИДИПИН+ЭНАЛАПРИЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.гидрохлоротиазид-эналаприл-effcb0abb58ed797",
+          "title": "ГИДРОХЛОРОТИАЗИД+ЭНАЛАПРИЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.индапамид-эналаприл-набор-bb53a1e99ae768d3",
+          "title": "ИНДАПАМИД+ЭНАЛАПРИЛ [НАБОР]"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.17",
+      "family": "authored",
+      "query": "тиклофенак",
+      "sourceName": "диклофенак",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.диклофенак-7d1848ee7b2f17e9"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 271.1538969999965,
+      "alternatives": [
+        "Возможная опечатка: ДИКЛОФЕНАК"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-7d1848ee7b2f17e9",
+          "title": "ДИКЛОФЕНАК"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-орфенадрин-52d57dbb3ab8bc22",
+          "title": "ДИКЛОФЕНАК+ОРФЕНАДРИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "title": "ДИКЛОФЕНАК+ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-хлоргексидин-f91dd9c408272893",
+          "title": "ДИКЛОФЕНАК+ХЛОРГЕКСИДИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.диклофенак-левоментол-метилсалицилат-353e153cff9dcf90",
+          "title": "ДИКЛОФЕНАК+ЛЕВОМЕНТОЛ+МЕТИЛСАЛИЦИЛАТ"
+        }
+      ],
+      "beforeRank": 1
+    },
+    {
+      "id": "authored.18",
+      "family": "authored",
+      "query": "ацетилсалициловая кислата",
+      "sourceName": "ацетилсалициловая кислота",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.ацетилсалициловая-кислота-527dbbd2858b1f20"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 158.88873500000045,
+      "alternatives": [
+        "Возможная опечатка: АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ацетилсалициловая-кислота-527dbbd2858b1f20",
+          "title": "АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ацетилсалициловая-кислота-аскорбиновая-кислота-78dddbb232382501",
+          "title": "АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА+АСКОРБИНОВАЯ КИСЛОТА"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ацетилсалициловая-кислота-кофеин-парацетамол-аскорбиновая-кислота-a58bf3cb80b38f79",
+          "title": "АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА+КОФЕИН+ПАРАЦЕТАМОЛ+АСКОРБИНОВАЯ КИСЛОТА"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ацетилсалициловая-кислота-лимонная-кислота-натрия-гидрокарбонат-b7f5247e1f5efb7d",
+          "title": "АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА+ЛИМОННАЯ КИСЛОТА+НАТРИЯ ГИДРОКАРБОНАТ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.ацетилсалициловая-кислота-клопидогрел-8203133f7b8875c0",
+          "title": "АЦЕТИЛСАЛИЦИЛОВАЯ КИСЛОТА+КЛОПИДОГРЕЛ"
+        }
+      ],
+      "beforeRank": 4
+    },
+    {
+      "id": "authored.19",
+      "family": "authored",
+      "query": "парацитамол 500 мг",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 187.08911999998963,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин-парацетамол-фенилэфрин-хлорфенамин-набор-2ba715f8b484be4c",
+          "title": "КОФЕИН+ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+ХЛОРФЕНАМИН; ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+ХЛОРФЕНАМИН [НАБОР]"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.кофеин-парацетамол-фенилэфрин-хлорфенамин-и-парацетамол-фенилэфрин-хлорфенамин-набор-ee412fe0fe8873e1",
+          "title": "КОФЕИН+ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+ХЛОРФЕНАМИН И ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+ХЛОРФЕНАМИН [НАБОР]"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-аскорбиновая-кислота-70cbc682cd92a289",
+          "title": "ПАРАЦЕТАМОЛ+АСКОРБИНОВАЯ КИСЛОТА"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-фенилэфрин-аскорбиновая-кислота-47bdfa755788c25e",
+          "title": "ПАРАЦЕТАМОЛ+ФЕНИЛЭФРИН+АСКОРБИНОВАЯ КИСЛОТА"
+        }
+      ],
+      "beforeRank": 3
+    },
+    {
+      "id": "authored.20",
+      "family": "authored",
+      "query": "инструкция к парацитамол",
+      "sourceName": "парацетамол",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 181.18438199999218,
+      "alternatives": [
+        "Возможная опечатка: ПАРАЦЕТАМОЛ"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.парацетамол-10ddf9552dbcb3f7",
+          "title": "ПАРАЦЕТАМОЛ"
+        },
+        {
+          "id": "drug.rf.paracetamol.pediatric-suspension",
+          "title": "Парацетамол — детская суспензия 120 мг/5 мл"
+        },
+        {
+          "id": "core.catalog.pointer.reference.rls.mkb.node.b07-ce6b5dc813862486",
+          "title": "B07 Вирусные бородавки, МКБ-10"
+        },
+        {
+          "id": "core.catalog.pointer.clinical.kr.rf.205_2-6def947df479c8cf",
+          "title": "Вирусные бородавки"
+        },
+        {
+          "id": "core.catalog.pointer.reference.krasotaimedicina.disease.f9b9c35c3b28b40f-1b119197131c619c",
+          "title": "Бородавки у детей"
+        }
+      ],
+      "beforeRank": null
+    },
+    {
+      "id": "authored.21",
+      "family": "authored",
+      "query": "препарат амоксицилин",
+      "sourceName": "амоксициллин",
+      "expected": [
+        "core.catalog.pointer.medication.esklp.mnn.амоксициллин-39ac47a244d081af"
+      ],
+      "corpusMissing": false,
+      "rank": 1,
+      "elapsedMs": 209.93068300001323,
+      "alternatives": [
+        "Возможная опечатка: АМОКСИЦИЛЛИН"
+      ],
+      "top": [
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.амоксициллин-39ac47a244d081af",
+          "title": "АМОКСИЦИЛЛИН"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.поливитамины-прочие-препараты-cfa8d365f07a2212",
+          "title": "ПОЛИВИТАМИНЫ+ПРОЧИЕ ПРЕПАРАТЫ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.монокомпонентные-препараты-минерального-происхождения-d584f8f81d43402c",
+          "title": "МОНОКОМПОНЕНТНЫЕ ПРЕПАРАТЫ МИНЕРАЛЬНОГО ПРОИСХОЖДЕНИЯ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.монокомпонентные-препараты-растительного-происхождения-fdc6bc49ce0db178",
+          "title": "МОНОКОМПОНЕНТНЫЕ ПРЕПАРАТЫ РАСТИТЕЛЬНОГО ПРОИСХОЖДЕНИЯ"
+        },
+        {
+          "id": "core.catalog.pointer.medication.esklp.mnn.печени-свиньи-препарат-6b128d83826c7005",
+          "title": "ПЕЧЕНИ СВИНЬИ ПРЕПАРАТ"
+        }
+      ],
+      "beforeRank": null
+    }
+  ],
+  "byFamily": {
+    "transposition": {
+      "before": {
+        "total": 20,
+        "top1": 18,
+        "top5": 18,
+        "top20": 18,
+        "p50Ms": 216.87996099999964,
+        "p95Ms": 249.89227600000004
+      },
+      "after": {
+        "total": 20,
+        "top1": 20,
+        "top5": 20,
+        "top20": 20,
+        "p50Ms": 243.38012900000467,
+        "p95Ms": 277.19022499999846
+      }
+    },
+    "deletion": {
+      "before": {
+        "total": 20,
+        "top1": 17,
+        "top5": 17,
+        "top20": 17,
+        "p50Ms": 214.2879210000001,
+        "p95Ms": 272.2680559999999
+      },
+      "after": {
+        "total": 20,
+        "top1": 20,
+        "top5": 20,
+        "top20": 20,
+        "p50Ms": 241.09169999999722,
+        "p95Ms": 288.42437600000267
+      }
+    },
+    "insertion": {
+      "before": {
+        "total": 20,
+        "top1": 18,
+        "top5": 18,
+        "top20": 18,
+        "p50Ms": 213.72197899999992,
+        "p95Ms": 223.2921179999994
+      },
+      "after": {
+        "total": 20,
+        "top1": 20,
+        "top5": 20,
+        "top20": 20,
+        "p50Ms": 238.15206400000898,
+        "p95Ms": 267.67241099999956
+      }
+    },
+    "substitution": {
+      "before": {
+        "total": 20,
+        "top1": 18,
+        "top5": 18,
+        "top20": 18,
+        "p50Ms": 214.66312599999947,
+        "p95Ms": 228.17497500000172
+      },
+      "after": {
+        "total": 20,
+        "top1": 20,
+        "top5": 20,
+        "top20": 20,
+        "p50Ms": 234.25415999999677,
+        "p95Ms": 250.22337700000207
+      }
+    },
+    "confusion-1": {
+      "before": {
+        "total": 20,
+        "top1": 18,
+        "top5": 18,
+        "top20": 18,
+        "p50Ms": 215.2394290000011,
+        "p95Ms": 271.9712740000032
+      },
+      "after": {
+        "total": 20,
+        "top1": 20,
+        "top5": 20,
+        "top20": 20,
+        "p50Ms": 234.92851500000688,
+        "p95Ms": 245.4292540000024
+      }
+    },
+    "confusion-2": {
+      "before": {
+        "total": 20,
+        "top1": 18,
+        "top5": 18,
+        "top20": 18,
+        "p50Ms": 215.00800700000036,
+        "p95Ms": 230.3422320000027
+      },
+      "after": {
+        "total": 20,
+        "top1": 20,
+        "top5": 20,
+        "top20": 20,
+        "p50Ms": 234.28651900000114,
+        "p95Ms": 255.42739199999778
+      }
+    },
+    "confusion-3": {
+      "before": {
+        "total": 20,
+        "top1": 0,
+        "top5": 0,
+        "top20": 0,
+        "p50Ms": 212.63842999999906,
+        "p95Ms": 218.979886000001
+      },
+      "after": {
+        "total": 20,
+        "top1": 20,
+        "top5": 20,
+        "top20": 20,
+        "p50Ms": 230.76137200000812,
+        "p95Ms": 253.24055499999668
+      }
+    },
+    "authored": {
+      "before": {
+        "total": 22,
+        "top1": 10,
+        "top5": 12,
+        "top20": 12,
+        "p50Ms": 234.99108400000114,
+        "p95Ms": 271.2609109999976
+      },
+      "after": {
+        "total": 22,
+        "top1": 22,
+        "top5": 22,
+        "top20": 22,
+        "p50Ms": 251.3353849999985,
+        "p95Ms": 301.9611309999891
+      }
+    }
+  },
+  "exactChecked": 113,
+  "exactChanges": [],
+  "regressions": [],
+  "knownNameCollisionsExcluded": 0,
+  "missingTargets": [],
+  "coldLookupMs": {
+    "before": 1700.612197,
+    "after": 1838.6781520000004
+  },
+  "contextChecks": {
+    "before": 119,
+    "after": 162
+  },
+  "controls": {
+    "before": [
+      {
+        "query": "АД",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.reference.krasotaimedicina.disease.9ca4bd8f99f702f3-d0a3d727ba0adee6",
+          "core.catalog.pointer.reference.rls.mkb.node.j35-2-bfa5a2a80500a8d0",
+          "core.catalog.pointer.reference.rls.mkb.node.b30-0-6a58216a03625d8d",
+          "core.catalog.pointer.medication.esklp.mnn.вакцина-против-вируса-папилломы-человека-рекомбинантная-адсорбированная-содержащая-адъювант-as04-9edafdd52e67437a",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.411f29db2bc317aa-086afc43079b3192",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.2f00146c2c5e8a8a-fd5fe501b7948374",
+          "core.catalog.pointer.reference.rls.mkb.node.e25-8d918625270023c3",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.46330991dbe632b7-e0cecc8e5a26c9b3",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.a2c4fa2f555a9d6c-d2a8892bbc50dfdc",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.4302f3f766a82e5e-a1602845061008e0",
+          "core.catalog.pointer.reference.rls.mkb.node.e25-9-7f3fde7f7b9d899b",
+          "core.catalog.pointer.reference.rls.mkb.node.b97-0-0a0e96e6240af506",
+          "core.catalog.pointer.reference.rls.mkb.node.k00-0-86db437ad4bb828c",
+          "core.catalog.pointer.reference.rls.mkb.node.j12-0-c2f7b72225d76fc8",
+          "core.catalog.pointer.reference.rls.mkb.node.e25-8-e07547660ec31ca5",
+          "core.catalog.pointer.reference.rls.mkb.node.e27-2-c55043794a50e479",
+          "core.catalog.pointer.reference.rls.mkb.node.a08-2-49f1362c2c4bf528",
+          "core.catalog.pointer.reference.rls.mkb.node.i31-0-531a25f810320586",
+          "core.catalog.pointer.reference.rls.mkb.node.j35-45409a21ae2e967e",
+          "core.catalog.pointer.reference.rls.mkb.node.d81-3-9d6b098f58ff613a"
+        ]
+      },
+      {
+        "query": "F20",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.reference.rls.mkb.node.f20-4-ac820d8f1e760c7d",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-2-61766c2f11e892c1",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-5a5254c6aa52b647",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-3-45bd45a3c8af59ae",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-1-a3c6d78df1cb7146",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-5-4a2ff0bef7f04cc3",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-9-f2fa3bb5ed24d7d4",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-0-13bf7cb7dfd8fce4",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-6-ce0ec7e8b417e6ba",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-8-c3345d7616a80008",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-f29-1e2d91699c5353e5",
+          "core.catalog.pointer.clinical.kr.rf.674_3-dfe11c7b409a9e47",
+          "core.catalog.pointer.clinical.kr.rf.451_3-7089f733c7dacbe4",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.d675cfe59c38c1f6-1a4b1f9045e6ba10",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.73de13abd6489c51-0ab6d45f1629c4ae",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.cbe03901c17017c6-591fe018b8663b95",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.9311e7256ffe47d0-51af3a9a67d87e34",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.f435c7f9424ef94f-38d9659c1952560c",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.aec1a829274bb837-5a90992c0cb62d6e",
+          "core.catalog.pointer.reference.rls.mkb.node.f21-7d73bf8dcac36a59"
+        ]
+      },
+      {
+        "query": "123456",
+        "spellingBranches": 0,
+        "ids": []
+      },
+      {
+        "query": "космический мармелад",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.medication.esklp.mnn.граната-обыкновенного-кожуры-плодов-порошок-моллюска-раковины-кальцинированной-порошок-сыти-круглой-клубней-порошок-эгле-мармеладного-плодов-порошок-голаррены-противодизентерийной-коры-экстракт-тиноспоры-сердцелистной-стеблей-экстракт-5e27623a29983697",
+          "core.catalog.pointer.reference.rls.mkb.node.v95-v97-9acf70b971e6c2bc",
+          "core.catalog.pointer.reference.rls.mkb.node.v97-f4d014b23487a65f",
+          "core.catalog.pointer.reference.rls.mkb.node.v95-65f9f05d665dc1dd",
+          "core.catalog.pointer.reference.rls.mkb.node.v96-a1c02fefd5e7697c"
+        ]
+      },
+      {
+        "query": "не парацитомол",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "core.catalog.pointer.medication.esklp.mnn.дротаверин-парацетамол-0b8d7da3e8f5708f",
+          "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "core.catalog.pointer.medication.esklp.mnn.дифенгидрамин-парацетамол-738b14df4d59eab0",
+          "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "core.catalog.pointer.medication.esklp.mnn.ибупрофен-парацетамол-492536f3d34b8736",
+          "core.catalog.pointer.medication.esklp.mnn.кофеин-парацетамол-91fd23fd30049afc"
+        ]
+      },
+      {
+        "query": "аллергия на парацитомол",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.reference.krasotaimedicina.disease.b0526f2e36106e1f-d25708ba25aab872",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.a6ab5744419c0da1-dee749b5a160d714",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.e09038805a954927-d9afbbcc4448f800",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.b6253d519c825036-cb0f59a02d2c6cc8",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.720197cbbef0b4ba-8cc27f41e2d48bf5",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.52d85e3de592e689-4cb914c744c05565",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.8e15736426dbaa53-a845d6253fcf35cd",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.4d4057d60c3ae291-42bdc9f03bc73f40",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.763c598c45b11fa5-bd79643f5eec62dc",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.3706d4a8e605ce01-fa5bdb2a2cbc4c2a",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.1d8df200895740a6-fcaf6403b4345688",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.bc3cdaa7858c09cf-14e69a7fe07ca008",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.c0461540bde3520c-c314982600197c2d",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.01600bdf4eaf3cce-40e2213b84cc86fa",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.00e02d25874c1dca-85350274d3a4e252",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.0b9d8dc11b4da0f6-92370feaeb0f70db",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.31b7286ef474580c-edee9ca21f8cc5a9",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.740f9e89433d8560-473438d6df4bdb69",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.5d97c337b75f3ea0-8110e4da6998f3a3",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.0ce93044d3312b74-f48129904492e0d0"
+        ]
+      }
+    ],
+    "after": [
+      {
+        "query": "АД",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.reference.krasotaimedicina.disease.9ca4bd8f99f702f3-d0a3d727ba0adee6",
+          "core.catalog.pointer.reference.rls.mkb.node.j35-2-bfa5a2a80500a8d0",
+          "core.catalog.pointer.reference.rls.mkb.node.b30-0-6a58216a03625d8d",
+          "core.catalog.pointer.medication.esklp.mnn.вакцина-против-вируса-папилломы-человека-рекомбинантная-адсорбированная-содержащая-адъювант-as04-9edafdd52e67437a",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.411f29db2bc317aa-086afc43079b3192",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.2f00146c2c5e8a8a-fd5fe501b7948374",
+          "core.catalog.pointer.reference.rls.mkb.node.e25-8d918625270023c3",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.46330991dbe632b7-e0cecc8e5a26c9b3",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.a2c4fa2f555a9d6c-d2a8892bbc50dfdc",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.4302f3f766a82e5e-a1602845061008e0",
+          "core.catalog.pointer.reference.rls.mkb.node.e25-9-7f3fde7f7b9d899b",
+          "core.catalog.pointer.reference.rls.mkb.node.b97-0-0a0e96e6240af506",
+          "core.catalog.pointer.reference.rls.mkb.node.k00-0-86db437ad4bb828c",
+          "core.catalog.pointer.reference.rls.mkb.node.j12-0-c2f7b72225d76fc8",
+          "core.catalog.pointer.reference.rls.mkb.node.e25-8-e07547660ec31ca5",
+          "core.catalog.pointer.reference.rls.mkb.node.e27-2-c55043794a50e479",
+          "core.catalog.pointer.reference.rls.mkb.node.a08-2-49f1362c2c4bf528",
+          "core.catalog.pointer.reference.rls.mkb.node.i31-0-531a25f810320586",
+          "core.catalog.pointer.reference.rls.mkb.node.j35-45409a21ae2e967e",
+          "core.catalog.pointer.reference.rls.mkb.node.d81-3-9d6b098f58ff613a"
+        ]
+      },
+      {
+        "query": "F20",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.reference.rls.mkb.node.f20-4-ac820d8f1e760c7d",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-2-61766c2f11e892c1",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-5a5254c6aa52b647",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-3-45bd45a3c8af59ae",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-1-a3c6d78df1cb7146",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-5-4a2ff0bef7f04cc3",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-9-f2fa3bb5ed24d7d4",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-0-13bf7cb7dfd8fce4",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-6-ce0ec7e8b417e6ba",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-8-c3345d7616a80008",
+          "core.catalog.pointer.reference.rls.mkb.node.f20-f29-1e2d91699c5353e5",
+          "core.catalog.pointer.clinical.kr.rf.674_3-dfe11c7b409a9e47",
+          "core.catalog.pointer.clinical.kr.rf.451_3-7089f733c7dacbe4",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.d675cfe59c38c1f6-1a4b1f9045e6ba10",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.73de13abd6489c51-0ab6d45f1629c4ae",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.cbe03901c17017c6-591fe018b8663b95",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.9311e7256ffe47d0-51af3a9a67d87e34",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.f435c7f9424ef94f-38d9659c1952560c",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.aec1a829274bb837-5a90992c0cb62d6e",
+          "core.catalog.pointer.reference.rls.mkb.node.f21-7d73bf8dcac36a59"
+        ]
+      },
+      {
+        "query": "123456",
+        "spellingBranches": 0,
+        "ids": []
+      },
+      {
+        "query": "космический мармелад",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.medication.esklp.mnn.граната-обыкновенного-кожуры-плодов-порошок-моллюска-раковины-кальцинированной-порошок-сыти-круглой-клубней-порошок-эгле-мармеладного-плодов-порошок-голаррены-противодизентерийной-коры-экстракт-тиноспоры-сердцелистной-стеблей-экстракт-5e27623a29983697",
+          "core.catalog.pointer.reference.rls.mkb.node.v95-v97-9acf70b971e6c2bc",
+          "core.catalog.pointer.reference.rls.mkb.node.v97-f4d014b23487a65f",
+          "core.catalog.pointer.reference.rls.mkb.node.v95-65f9f05d665dc1dd",
+          "core.catalog.pointer.reference.rls.mkb.node.v96-a1c02fefd5e7697c"
+        ]
+      },
+      {
+        "query": "не парацитомол",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.medication.esklp.mnn.дицикловерин-парацетамол-93d3b16cc1b2881f",
+          "core.catalog.pointer.medication.esklp.mnn.напроксен-парацетамол-ce3e7120a54506a0",
+          "core.catalog.pointer.medication.esklp.mnn.дротаверин-парацетамол-0b8d7da3e8f5708f",
+          "core.catalog.pointer.medication.esklp.mnn.кодеин-парацетамол-50e7ac0aaddd4499",
+          "core.catalog.pointer.medication.esklp.mnn.дифенгидрамин-парацетамол-738b14df4d59eab0",
+          "core.catalog.pointer.medication.esklp.mnn.диклофенак-парацетамол-e0785f41baefbb2e",
+          "core.catalog.pointer.medication.esklp.mnn.ибупрофен-парацетамол-492536f3d34b8736",
+          "core.catalog.pointer.medication.esklp.mnn.кофеин-парацетамол-91fd23fd30049afc"
+        ]
+      },
+      {
+        "query": "аллергия на парацитомол",
+        "spellingBranches": 0,
+        "ids": [
+          "core.catalog.pointer.reference.krasotaimedicina.disease.b0526f2e36106e1f-d25708ba25aab872",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.a6ab5744419c0da1-dee749b5a160d714",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.e09038805a954927-d9afbbcc4448f800",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.b6253d519c825036-cb0f59a02d2c6cc8",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.720197cbbef0b4ba-8cc27f41e2d48bf5",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.52d85e3de592e689-4cb914c744c05565",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.8e15736426dbaa53-a845d6253fcf35cd",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.4d4057d60c3ae291-42bdc9f03bc73f40",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.763c598c45b11fa5-bd79643f5eec62dc",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.3706d4a8e605ce01-fa5bdb2a2cbc4c2a",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.1d8df200895740a6-fcaf6403b4345688",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.bc3cdaa7858c09cf-14e69a7fe07ca008",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.c0461540bde3520c-c314982600197c2d",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.01600bdf4eaf3cce-40e2213b84cc86fa",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.00e02d25874c1dca-85350274d3a4e252",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.0b9d8dc11b4da0f6-92370feaeb0f70db",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.31b7286ef474580c-edee9ca21f8cc5a9",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.740f9e89433d8560-473438d6df4bdb69",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.5d97c337b75f3ea0-8110e4da6998f3a3",
+          "core.catalog.pointer.reference.krasotaimedicina.disease.0ce93044d3312b74-f48129904492e0d0"
+        ]
+      }
+    ]
+  },
+  "clinicalParserUnchanged": true,
+  "documentFilterChecks": 2,
+  "limitations": "140 deterministically corrupted real medication names plus 22 authored development queries, not independent clinician typo logs or diagnostic validation. Catalog pointers are navigation records, not full drug instructions. Existing-name collisions excluded from the mechanical set are disclosed and protected by separate exact-name tests. Single Linux host run; no Android/WebView latency claim. No gold-derived aliases, medication substitution, dosage correction, corpus edits or model downloads.",
+  "runId": "35913532861",
+  "javascriptTests": 669,
+  "typechecks": [
+    "search-lexical",
+    "core",
+    "storage-sqlite",
+    "app"
+  ],
+  "sqliteIntegrity": "ok",
+  "foreignKeyErrors": 0,
+  "newModelDependencies": false,
+  "newDatabaseSchema": false
+}

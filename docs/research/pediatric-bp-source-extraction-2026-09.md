@@ -1,0 +1,168 @@
+# Pediatric blood-pressure percentile extraction — 2026-09-19
+
+## Purpose
+
+This is a review-only structured extraction from the current Russian clinical recommendation
+**«Артериальная гипертензия у детей»**, registry ID 571, version 2, year 2025.
+
+Registry:
+https://minzdrav.clinirec.ru/kr/arterialnaya-gipertenziya-u-detey/
+
+Current recommendation mirror:
+https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/
+
+The current recommendation explicitly includes reference tables for:
+
+- neonatal blood pressure by gestational age;
+- blood-pressure percentiles at one year;
+- height percentiles from 1 to 17 years;
+- 90th/95th/99th blood-pressure percentiles by age, sex and height percentile;
+- ambulatory blood-pressure monitoring references by age and height;
+- additional pediatric cardiometabolic reference tables.
+
+This first structured slice extracts only the office blood-pressure Tables 5 and 6.
+
+## Structured artifact
+
+Review-only dataset:
+
+`docs/research/data/pediatric-bp-percentiles-kr571-v2-2025.json`
+
+Shape:
+
+- ages: 1–17 years;
+- sex: boys / girls;
+- BP percentiles: 90 / 95 / 99;
+- height percentiles: 5 / 10 / 25 / 50 / 75 / 90 / 95;
+- values: systolic and diastolic blood pressure in mmHg;
+- 51 rows per sex, 102 rows total.
+
+Sources:
+
+- boys, Table 5:
+  https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-5/
+- girls, Table 6:
+  https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-6/
+
+The rendered tables themselves cite the 2009 second revision of the Russian pediatric-hypertension
+recommendations as their underlying numerical source. The 2025 clinical recommendation republishes
+these tables in its reference appendix.
+
+## Automated checks already applied
+
+The extraction was checked mechanically before commit:
+
+- exactly 51 rows for boys and 51 for girls;
+- complete ages 1 through 17;
+- exactly 90th, 95th and 99th BP rows for every age;
+- seven systolic and seven diastolic values per row, matching the seven height percentiles;
+- values are non-decreasing as height percentile rises within a row;
+- at every age/height cell, 90th < 95th < 99th BP percentile;
+- observed systolic range: boys 94–147 mmHg, girls 97–139 mmHg;
+- observed diastolic range: boys 49–97 mmHg, girls 52–93 mmHg.
+
+These checks catch transcription-shape errors; they are not independent clinical validation.
+
+## Safety / publication boundary
+
+The JSON is deliberately marked:
+
+- `status: review-required`;
+- `publicationState: blocked`;
+- `rightsStatus: unresolved`;
+- `verificationStatus: single-source-transcription`;
+- `intendedUse: authoring-review-only`.
+
+It is not wired into a calculator, runtime lookup, released SQLite module, or clinical decision rule.
+
+Before promotion:
+
+1. compare all 102 rows against an independent copy of the same source table or perform
+   clinician line-by-line verification;
+2. resolve redistribution/publication rights for the complete numeric table;
+3. model the actual diagnostic algorithm separately — table lookup alone is not a diagnosis;
+4. explicitly define height-percentile derivation/source and behavior when exact age/height bins are
+   unavailable;
+5. verify how the recommendation handles adolescents where adult absolute thresholds may also apply;
+6. add separate ABPM references rather than reusing office-BP percentiles for ambulatory measurements.
+
+## Neonatal and one-year blood-pressure tables
+
+Two younger-age source slices are now extracted separately from the same current recommendation:
+
+- `docs/research/data/neonatal-bp-by-gestational-age-kr571-v2-2025.json` — gestational ages
+  26–44 weeks, 50th/95th/99th percentiles, with systolic/diastolic/mean arterial pressure;
+- `docs/research/data/infant-bp-age-1-year-kr571-v2-2025.json` — boys/girls at age one,
+  50th/90th/95th/99th BP percentiles across seven height percentiles.
+
+Current source tables:
+
+- Table 1:
+  https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-1/
+- Table 2:
+  https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-2/
+
+The newborn table cites Dionne et al. (2012); the one-year table cites Mattoo/UpToDate (2020 update)
+inside the recommendation appendix.
+
+These slices are deliberately separate from the 1–17 year office-BP table. Older public editions of
+KR571 expose different numeric reference tables, so MiniMed must keep recommendation edition/source
+identity on every promoted dataset and must not merge rows by table caption alone.
+
+## Height-percentile dependency
+
+The height-percentile table used to select office-BP columns was extracted separately:
+
+`docs/research/data/pediatric-height-percentiles-kr571-v2-2025.json`
+
+It contains ages 1–17 and the 5th/10th/25th/50th/75th/90th/95th height percentiles for boys and
+girls. Decimal commas from the rendered Russian source are normalized to JSON decimal points; no
+interpolation has been added.
+
+Automated checks confirm monotonic ordering across percentiles and ages, but the artifact remains
+review-only. A future BP calculator must define the exact boundary/interpolation behavior explicitly
+rather than guessing how to map an arbitrary measured height between table percentiles.
+
+Source Table 4:
+https://sudact.ru/law/klinicheskie-rekomendatsii-arterialnaia-gipertenziia-u-detei-odobreny/prilozhenie-a3/tablitsa-4/
+
+## ABPM reference extraction
+
+Tables 7–10 were also transcribed into a second review-only artifact:
+
+`docs/research/data/pediatric-abpm-reference-kr571-v2-2025.json`
+
+It contains:
+
+- age-based ABPM references for boys and girls aged 5–16 years;
+- height-based ABPM references for boys (120–185 cm) and girls (120–175 cm);
+- 24-hour, daytime and nighttime values;
+- 50th, 75th, 90th and 95th percentiles;
+- paired systolic/diastolic values in mmHg.
+
+The extraction intentionally preserves a source anomaly instead of repairing it: in Table 7, boys age
+16, nighttime systolic BP is rendered as 123 mmHg at the 90th percentile and 122 mmHg at the 95th
+percentile. The automated ordering check flags this row as `review-required`. No corrected value is
+guessed.
+
+Tables 8–10 identify Lurbe et al. (2016 European Society of Hypertension pediatric-hypertension
+guideline) as the underlying reference. The current Russian recommendation remains the source locator
+for this extraction.
+
+Like the office-BP dataset, the ABPM artifact is `publicationState: blocked`,
+`rightsStatus: unresolved`, and is not connected to runtime interpretation.
+
+## Next pediatric-hypertension slices
+
+The same current recommendation contains several high-value structured tables that can be extracted
+without inventing clinical knowledge:
+
+- Table 4: height percentiles;
+- Table 4: height percentiles;
+- Table 15: LV mass/LV mass-index percentiles;
+- Table 16: pediatric lipid target/borderline/high values;
+- Table 17: waist-circumference percentiles;
+- Table 18: metabolic-syndrome criteria.
+
+Each should remain its own source-versioned review artifact so a later calculator/reference module can
+compose only independently verified pieces.

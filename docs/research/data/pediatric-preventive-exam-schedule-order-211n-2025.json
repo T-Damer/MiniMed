@@ -1,0 +1,566 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.rf-pediatric-preventive-exam-schedule.order-211n-2025",
+  "title": "Preventive medical examination schedule for minors — Order 211n (2025)",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "official-regulatory-act",
+  "verificationStatus": "official-pdf-visual-table-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "title": "Приказ Минздрава России от 14.04.2025 № 211н",
+    "registration": "Минюст России 22.05.2025 № 82300",
+    "officialPublicationNumber": "0001202505230032",
+    "officialPublicationDate": "2025-05-23",
+    "effectiveFrom": "2025-09-01",
+    "effectiveTo": "2031-09-01",
+    "officialUrl": "https://publication.pravo.gov.ru/document/0001202505230032",
+    "appendix": "Приложение № 1 к Порядку — Перечень исследований",
+    "visuallyCheckedPdfPagesOneBased": [
+      9,
+      10,
+      11,
+      12,
+      13
+    ]
+  },
+  "vocabularies": {
+    "specialists": [
+      "pediatrician",
+      "pediatric_surgeon",
+      "ophthalmologist",
+      "neurologist",
+      "traumatologist_orthopedist",
+      "otorhinolaryngologist",
+      "pediatric_dentist",
+      "child_psychiatrist",
+      "pediatric_endocrinologist",
+      "pediatric_urologist_andrologist",
+      "obstetrician_gynecologist"
+    ],
+    "studies": [
+      "complete_blood_count",
+      "urinalysis",
+      "neonatal_and_expanded_newborn_screening",
+      "audiological_screening",
+      "abdominal_ultrasound_complete",
+      "kidney_ultrasound",
+      "bilateral_hip_ultrasound",
+      "echocardiography",
+      "neurosonography",
+      "ophthalmoscopy_with_mydriasis",
+      "evoked_otoacoustic_emission",
+      "electrocardiography",
+      "mental_development_risk_screening",
+      "cholesterol_express_test_risk_group"
+    ]
+  },
+  "rows": [
+    {
+      "order": 1,
+      "age": "newborn_period",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [
+        "neonatal_and_expanded_newborn_screening",
+        "audiological_screening"
+      ],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 2,
+      "age": "1_month",
+      "specialists": [
+        "pediatrician",
+        "pediatric_surgeon",
+        "ophthalmologist"
+      ],
+      "studies": [
+        "abdominal_ultrasound_complete",
+        "kidney_ultrasound",
+        "bilateral_hip_ultrasound",
+        "echocardiography",
+        "neurosonography",
+        "ophthalmoscopy_with_mydriasis"
+      ],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 3,
+      "age": "2_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 4,
+      "age": "3_months",
+      "specialists": [
+        "pediatrician",
+        "neurologist",
+        "traumatologist_orthopedist"
+      ],
+      "studies": [
+        "complete_blood_count",
+        "urinalysis"
+      ],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 5,
+      "age": "4_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 6,
+      "age": "5_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 7,
+      "age": "6_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 8,
+      "age": "7_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 9,
+      "age": "8_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 10,
+      "age": "9_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 11,
+      "age": "10_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 12,
+      "age": "11_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 13,
+      "age": "12_months",
+      "specialists": [
+        "pediatrician",
+        "neurologist",
+        "pediatric_surgeon",
+        "ophthalmologist",
+        "otorhinolaryngologist",
+        "pediatric_dentist"
+      ],
+      "studies": [
+        "complete_blood_count",
+        "urinalysis",
+        "ophthalmoscopy_with_mydriasis",
+        "evoked_otoacoustic_emission",
+        "electrocardiography"
+      ],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 14,
+      "age": "15_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 15,
+      "age": "18_months",
+      "specialists": [
+        "pediatrician"
+      ],
+      "studies": [
+        "mental_development_risk_screening"
+      ],
+      "conditionalSpecialists": [
+        {
+          "condition": "positive_or_at_risk_mental_development_screen",
+          "specialist": "neurologist"
+        }
+      ],
+      "conditionalStudies": []
+    },
+    {
+      "order": 16,
+      "age": "2_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_dentist"
+      ],
+      "studies": [
+        "mental_development_risk_screening"
+      ],
+      "conditionalSpecialists": [
+        {
+          "condition": "positive_or_at_risk_mental_development_screen",
+          "specialist": "child_psychiatrist"
+        }
+      ],
+      "conditionalStudies": []
+    },
+    {
+      "order": 17,
+      "age": "3_years",
+      "specialists": [
+        "pediatrician",
+        "neurologist",
+        "pediatric_surgeon",
+        "ophthalmologist",
+        "pediatric_dentist",
+        "otorhinolaryngologist"
+      ],
+      "studies": [
+        "complete_blood_count",
+        "urinalysis"
+      ],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 18,
+      "age": "4_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_dentist"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 19,
+      "age": "5_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_dentist"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 20,
+      "age": "6_years",
+      "specialists": [
+        "pediatrician",
+        "neurologist",
+        "pediatric_surgeon",
+        "pediatric_dentist",
+        "traumatologist_orthopedist",
+        "ophthalmologist",
+        "otorhinolaryngologist",
+        "child_psychiatrist",
+        "pediatric_endocrinologist"
+      ],
+      "studies": [
+        "complete_blood_count",
+        "urinalysis",
+        "abdominal_ultrasound_complete",
+        "kidney_ultrasound",
+        "echocardiography",
+        "electrocardiography",
+        "evoked_otoacoustic_emission"
+      ],
+      "conditionalSpecialists": [
+        {
+          "condition": "sex_female",
+          "specialist": "obstetrician_gynecologist"
+        },
+        {
+          "condition": "sex_male",
+          "specialist": "pediatric_urologist_andrologist"
+        }
+      ],
+      "conditionalStudies": [
+        {
+          "condition": "risk_group_for_cholesterol_screening",
+          "study": "cholesterol_express_test_risk_group"
+        }
+      ]
+    },
+    {
+      "order": 21,
+      "age": "7_years",
+      "specialists": [
+        "pediatrician",
+        "neurologist",
+        "pediatric_dentist",
+        "ophthalmologist"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 22,
+      "age": "8_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_dentist"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 23,
+      "age": "9_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_dentist"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 24,
+      "age": "10_years",
+      "specialists": [
+        "pediatrician",
+        "neurologist",
+        "pediatric_dentist",
+        "pediatric_endocrinologist",
+        "pediatric_surgeon",
+        "ophthalmologist"
+      ],
+      "studies": [
+        "complete_blood_count",
+        "urinalysis"
+      ],
+      "conditionalSpecialists": [],
+      "conditionalStudies": [
+        {
+          "condition": "risk_group_for_cholesterol_screening",
+          "study": "cholesterol_express_test_risk_group"
+        }
+      ]
+    },
+    {
+      "order": 25,
+      "age": "11_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_dentist"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 26,
+      "age": "12_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_dentist",
+        "child_psychiatrist",
+        "traumatologist_orthopedist"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [],
+      "conditionalStudies": []
+    },
+    {
+      "order": 27,
+      "age": "13_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_dentist",
+        "ophthalmologist"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [
+        {
+          "condition": "sex_male",
+          "specialist": "pediatric_urologist_andrologist"
+        },
+        {
+          "condition": "sex_female",
+          "specialist": "obstetrician_gynecologist"
+        }
+      ],
+      "conditionalStudies": []
+    },
+    {
+      "order": 28,
+      "age": "14_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_surgeon",
+        "child_psychiatrist",
+        "pediatric_dentist"
+      ],
+      "studies": [],
+      "conditionalSpecialists": [
+        {
+          "condition": "sex_male",
+          "specialist": "pediatric_urologist_andrologist"
+        },
+        {
+          "condition": "sex_female",
+          "specialist": "obstetrician_gynecologist"
+        }
+      ],
+      "conditionalStudies": []
+    },
+    {
+      "order": 29,
+      "age": "15_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_surgeon",
+        "pediatric_dentist",
+        "pediatric_endocrinologist",
+        "neurologist",
+        "traumatologist_orthopedist",
+        "ophthalmologist",
+        "otorhinolaryngologist",
+        "child_psychiatrist"
+      ],
+      "studies": [
+        "complete_blood_count",
+        "urinalysis",
+        "abdominal_ultrasound_complete",
+        "kidney_ultrasound",
+        "electrocardiography"
+      ],
+      "conditionalSpecialists": [
+        {
+          "condition": "sex_male",
+          "specialist": "pediatric_urologist_andrologist"
+        },
+        {
+          "condition": "sex_female",
+          "specialist": "obstetrician_gynecologist"
+        }
+      ],
+      "conditionalStudies": []
+    },
+    {
+      "order": 30,
+      "age": "16_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_surgeon",
+        "pediatric_dentist",
+        "neurologist",
+        "ophthalmologist",
+        "child_psychiatrist"
+      ],
+      "studies": [
+        "complete_blood_count",
+        "urinalysis"
+      ],
+      "conditionalSpecialists": [
+        {
+          "condition": "sex_female",
+          "specialist": "obstetrician_gynecologist"
+        },
+        {
+          "condition": "sex_male",
+          "specialist": "pediatric_urologist_andrologist"
+        }
+      ],
+      "conditionalStudies": []
+    },
+    {
+      "order": 31,
+      "age": "17_years",
+      "specialists": [
+        "pediatrician",
+        "pediatric_surgeon",
+        "pediatric_dentist",
+        "pediatric_endocrinologist",
+        "neurologist",
+        "traumatologist_orthopedist",
+        "ophthalmologist",
+        "otorhinolaryngologist",
+        "child_psychiatrist"
+      ],
+      "studies": [
+        "complete_blood_count",
+        "urinalysis",
+        "electrocardiography"
+      ],
+      "conditionalSpecialists": [
+        {
+          "condition": "sex_female",
+          "specialist": "obstetrician_gynecologist"
+        },
+        {
+          "condition": "sex_male",
+          "specialist": "pediatric_urologist_andrologist"
+        }
+      ],
+      "conditionalStudies": []
+    }
+  ],
+  "reviewNotes": [
+    "Rows were visually checked against the 2025 order PDF table, not reconstructed from the older 514n schedule.",
+    "Sex-specific specialists and risk-triggered specialists/studies are encoded as conditional entries rather than unconditional requirements.",
+    "The mental-development screening at 18 months/2 years is represented as a screening study; neurologist/child-psychiatrist participation is conditional on screening risk.",
+    "Tuberculosis screening and toxicology/psychoactive-substance screening are governed by separate legal acts and are not inferred into this table.",
+    "This artifact structures the order's schedule only; it does not determine a patient's health group or add investigations outside the order."
+  ]
+}

@@ -1,0 +1,570 @@
+{
+  "checkedCommit": "bf911567a4af5d617f7a73f322344f9b3f4272c9",
+  "runId": "35763957556",
+  "tests": {
+    "tests": 98,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "strictPythonChecks": "passed",
+  "counts": {
+    "articles": 20,
+    "articleOverviews": 20,
+    "criterionLists": 1,
+    "records": 98,
+    "excludedCandidateLabels": 37,
+    "blocks": 1001,
+    "tables": 11,
+    "definitionCandidates": 64,
+    "sectionCards": 13,
+    "pendingArticles": 10
+  },
+  "refresh": {
+    "previousRecords": 18133,
+    "addedRecords": 98,
+    "combinedRecords": 18231,
+    "newNormalizedNames": 82,
+    "existingNormalizedNamesWithNewSource": 12,
+    "previousInputs": [
+      {
+        "bytes": 20878,
+        "entries": 36,
+        "path": "content/definition-drafts/catalog.json",
+        "sha256": "9d44b411624efe7d48f8b3366c9d4030ffdea1965e70c903d76a51a4909c94ba"
+      },
+      {
+        "bytes": 4302994,
+        "entries": 6939,
+        "path": "content/definition-drafts/ruwiktionary-2026.9.16.json",
+        "sha256": "6ac2ea09506ce09a7a80eccf6f2bea9516e78c73c415454db56fcce7f62278eb"
+      },
+      {
+        "bytes": 198215,
+        "entries": 76,
+        "path": "content/definition-drafts/prepared-source-excerpts-2026.09.21.json",
+        "sha256": "e7c6187b1b997335d50f109a409fb9f3e9803651843c8a132d9dbdfafa6124e3"
+      },
+      {
+        "bytes": 8369868,
+        "entries": 2973,
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-01.json",
+        "sha256": "cf31c7d6389af7c720d44ce4199600d6419d7cfa641bd71d4d3cf7b81e62c3f8"
+      },
+      {
+        "bytes": 8371513,
+        "entries": 2407,
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-02.json",
+        "sha256": "cf8ba554d2b3f7fa2343749a5184b165f4f37b1490d96c3cd024cce89ecc2590"
+      },
+      {
+        "bytes": 8369102,
+        "entries": 2550,
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-03.json",
+        "sha256": "c6680629595d20d0cc0993681fbd4b73dedae9e43fa09d708f2c33c3b6fb11d4"
+      },
+      {
+        "bytes": 8371393,
+        "entries": 2801,
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-04.json",
+        "sha256": "c69ed952aa16c7426d9f36fe412875ba22f89423fcce6a156e29458e4db86a6d"
+      },
+      {
+        "bytes": 909686,
+        "entries": 351,
+        "path": "content/definition-drafts/clinical-source-excerpts-2026.09.21.part-05.json",
+        "sha256": "75b0bee1d9ef75c4fe1e64e3dd409dea028fe84a6cb83478f16fbba6b886b110"
+      }
+    ],
+    "newInputs": [
+      "content/definition-drafts/specialist-journal-active-2026.09.22/1027-4898-90541.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/1027-4898-14094.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/1027-4898-14095.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/1027-4898-14043.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/1027-4898-105915.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-7752.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-6178.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-1431.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-3577.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/pediatr-11910.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-10468.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/1027-4898-20398.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/1027-4898-34129.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/1027-4898-52656.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/1027-4898-13954.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-8759.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-6856.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-12972.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-6179.json",
+      "content/definition-drafts/specialist-journal-active-2026.09.22/rfd-5928.json"
+    ],
+    "previousManifestSha256": "8408f31d0d59152fa77c4f1c63ca1593ffa7d80107dae4dc9aea0cb288ff5b0b",
+    "activeManifestSha256": "9b5466796ec180d3ccd1b821f2c33af6e1cb9d908b9f07acc0dd0d2e13a80b4c"
+  },
+  "articles": [
+    {
+      "title": "Кататоническая шизофрения: историческая ошибка психиатрической систематики?",
+      "journal": "Неврологический вестник",
+      "doi": "10.17816/nb90541",
+      "publicationDate": "2021-12-15",
+      "articleType": [
+        "Передовые статьи"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 2,
+      "blocks": 41
+    },
+    {
+      "title": "НЕГАТИВНАЯ ГАЛЛЮЦИНАЦИЯ. ИСТОРИЯ КОНЦЕПТА, ПСИХОПАТОЛОГИЯ И ВОЗМОЖНОЕ МЕСТО В КЛИНИКЕ",
+      "journal": "Неврологический вестник",
+      "doi": "10.17816/nb14094",
+      "publicationDate": "2017-09-15",
+      "articleType": [
+        "Articles"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 5,
+      "blocks": 8
+    },
+    {
+      "title": "К ВОПРОСУ О ФАБУЛЕ, СЮЖЕТЕ И ТЕМАТИКЕ БРЕДА. ЧАСТЬ 1",
+      "journal": "Неврологический вестник",
+      "doi": "10.17816/nb14095",
+      "publicationDate": "2017-09-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 1,
+      "blocks": 4
+    },
+    {
+      "title": "В ПОИСКАХ АУТИЗМА",
+      "journal": "Неврологический вестник",
+      "doi": "10.17816/nb14043",
+      "publicationDate": "2017-03-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 1,
+      "blocks": 4
+    },
+    {
+      "title": "Современные представления о синдроме вегетативной дистонии",
+      "journal": "Неврологический вестник",
+      "doi": "10.17816/nb105915",
+      "publicationDate": "1993-09-20",
+      "articleType": [
+        "Оригинальные исследования"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 1,
+      "blocks": 31
+    },
+    {
+      "title": "Диагностика и лечение вестибулопатии в амбулаторной практике",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD201746-14",
+      "publicationDate": "2017-12-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 31,
+      "blocks": 77
+    },
+    {
+      "title": "Острый коронарный синдром",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD201715-14",
+      "publicationDate": "2017-02-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 6,
+      "blocks": 79
+    },
+    {
+      "title": "КЛИНИЧЕСКИЕ РЕКОМЕНДАЦИИ ПО ДИАГНОСТИКЕ, ЛЕЧЕНИЮ И ПРОФИЛАКТИКЕ ГОЛОВНОЙ БОЛИ В ПРАКТИКЕ СЕМЕЙНОГО ВРАЧА",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD201524-17",
+      "publicationDate": "2015-06-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 3,
+      "blocks": 6
+    },
+    {
+      "title": "ОШИБКИ В АМБУЛАТОРНОЙ НЕВРОЛОГИЧЕСКОЙ ПРАКТИКЕ. ЧАСТЬ 1",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD201514-12",
+      "publicationDate": "2015-03-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 1,
+      "blocks": 4
+    },
+    {
+      "title": "Проблема определения критериев нарушения речи у современных дошкольников в аспекте междисциплинарного взаимодействия специалистов",
+      "journal": "Педиатр",
+      "doi": "10.17816/PED101117-126",
+      "publicationDate": "2019-04-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 4,
+      "blocks": 42
+    },
+    {
+      "title": "Герпесвирусные инфекции, вызываемые лимфотропными ­вирусами. Часть V",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD201835-13",
+      "publicationDate": "2018-11-15",
+      "articleType": [
+        "Лекции"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 11,
+      "blocks": 112
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: Reuse license lacks matching publisher declaration",
+      "records": null,
+      "blocks": null
+    },
+    {
+      "title": "Дискуссионные вопросы общей психопатологии (традиционные и инновационные подходы)",
+      "journal": "Неврологический вестник",
+      "doi": "10.17816/nb20398",
+      "publicationDate": "2020-06-23",
+      "articleType": [
+        "Клинические рекомендации"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 4,
+      "blocks": 56
+    },
+    {
+      "title": "Проблемы психопатологической систематики: альтернативные подходы и запросы клинической практики",
+      "journal": "Неврологический вестник",
+      "doi": "10.17816/nb34129",
+      "publicationDate": "2020-10-19",
+      "articleType": [
+        "Передовые статьи"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 2,
+      "blocks": 62
+    },
+    {
+      "title": "Психиатрия как клиническая нейронаука: настоящее и будущее",
+      "journal": "Неврологический вестник",
+      "doi": "10.17816/nb52656",
+      "publicationDate": "2020-12-31",
+      "articleType": [
+        "Передовые статьи"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 1,
+      "blocks": 57
+    },
+    {
+      "title": "ПОЛИНЕЙРОМИОПАТИЯ КРИТИЧЕСКИХ СОСТОЯНИЙ: ВОЗМОЖНОСТИ РАННЕЙ РЕАБИЛИТАЦИИ",
+      "journal": "Неврологический вестник",
+      "doi": "10.17816/nb13954",
+      "publicationDate": "2015-09-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-NC-SA-4.0",
+      "nonCommercialOnly": true,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 1,
+      "blocks": 4
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: Reuse license lacks matching publisher declaration",
+      "records": null,
+      "blocks": null
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: Reuse license lacks matching publisher declaration",
+      "records": null,
+      "blocks": null
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: Reuse license lacks matching publisher declaration",
+      "records": null,
+      "blocks": null
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: Reuse license lacks matching publisher declaration",
+      "records": null,
+      "blocks": null
+    },
+    {
+      "title": "Герпесвирусные инфекции, вызываемые лимфотропными вирусами. Часть III",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD201815-11",
+      "publicationDate": "2018-03-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 2,
+      "blocks": 77
+    },
+    {
+      "title": "Герпесвирусные инфекции, вызываемые нейротегментальнотропными вирусами (HSV-I, -II и VZV)Часть II",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD2017213-21",
+      "publicationDate": "2017-06-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 4,
+      "blocks": 103
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: Missing or ambiguous Russian article title",
+      "records": null,
+      "blocks": null
+    },
+    {
+      "title": "Недостаточность питания в пожилом и старческом возрасте",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD201915-15",
+      "publicationDate": "2019-05-30",
+      "articleType": [
+        "Лекции"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 2,
+      "blocks": 80
+    },
+    {
+      "title": "Ведение больных мерцательной аритмией в общей врачебной практике",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD2017115-28",
+      "publicationDate": "2017-02-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 10,
+      "blocks": 134
+    },
+    {
+      "title": "ВОПРОСЫ МЕДИЦИНСКОЙ ПСИХОЛОГИИ",
+      "journal": "Российский семейный врач",
+      "doi": "10.17816/RFD2016316-34",
+      "publicationDate": "2016-09-15",
+      "articleType": [
+        "Статьи"
+      ],
+      "license": "CC-BY-4.0",
+      "nonCommercialOnly": false,
+      "status": "selected-requires-clinical-review",
+      "reason": null,
+      "records": 6,
+      "blocks": 20
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: No substantive Russian full text; abstract-only is not admitted",
+      "records": null,
+      "blocks": null
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: Reuse license lacks matching publisher declaration",
+      "records": null,
+      "blocks": null
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: Reuse license lacks matching publisher declaration",
+      "records": null,
+      "blocks": null
+    },
+    {
+      "title": null,
+      "journal": null,
+      "doi": null,
+      "publicationDate": null,
+      "articleType": null,
+      "license": null,
+      "nonCommercialOnly": null,
+      "status": "pending-source-review",
+      "reason": "ValueError: Reuse license lacks matching publisher declaration",
+      "records": null,
+      "blocks": null
+    }
+  ],
+  "fidelity": {
+    "selectedRecords": 18231,
+    "newRecords": 98,
+    "sourceBlocksCompared": 24908,
+    "sourceDescriptorsCompared": 29,
+    "newCardLinksCompared": 2559,
+    "selectedIdentitySetExact": true,
+    "sourceTextAndMetadataExact": true,
+    "previousInputsUnchanged": true,
+    "archivedArticleReplayExact": true,
+    "wikipediaRecords": 0,
+    "approvedFactsOrRelations": 0,
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "networkRequests": 0,
+    "boundary": "Source fidelity, not clinical review, current-guideline approval or search relevance."
+  },
+  "reader": {
+    "cardsReconstructed": 98,
+    "blockReads": 2559,
+    "textSlices": 2658,
+    "maximumTextSliceCodePoints": 4096,
+    "sourceReferencesResolved": 20,
+    "namesWithExactSourceIdAt20": 98,
+    "nameMisses": [],
+    "adapterCalls": 3231,
+    "maximumRows": 15,
+    "maximumReplyBytes": 8008,
+    "boundary": "Actual file-backed SQLite reader and complete journal card/context reconstruction. Not browser, Android, clinical review or independent reverse-search evaluation."
+  },
+  "installedBytes": 116154368,
+  "downloadBytes": 28400266,
+  "logicalRoundTripEqual": true,
+  "boundary": "Specialist source collection, structural screening, offline rebuild and file-backed reader checks. Not clinical/current-guideline validation, browser/Android, a new reverse-search qualification or an APK/public release."
+}

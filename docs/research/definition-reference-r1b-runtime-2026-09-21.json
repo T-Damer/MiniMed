@@ -1,0 +1,23 @@
+{
+  "contract": 1,
+  "mode": "corpus",
+  "entries": 18133,
+  "sourceNameSurfaces": 13146,
+  "namesWithAResult": 13146,
+  "missingNameSha256": [],
+  "fixtureAssertions": 0,
+  "creationMs": 0.6961689999999976,
+  "lookupMs": {
+    "p50": 0.08817499999997835,
+    "p95": 0.13200900000003912
+  },
+  "rssBytes": {
+    "beforeOpen": 58630144,
+    "afterOpen": 60784640,
+    "afterAudit": 115109888
+  },
+  "adapterCalls": 13147,
+  "maxRowsPerAdapterCall": 20,
+  "maxReplyBytes": 6501,
+  "boundaries": "File-backed Bun SQLite in a fresh process, 2 MiB page-cache setting; not app/browser/native/WASM/device qualification. Name coverage is not independent reverse-definition quality. The corpus-name audit is outside the reader and runs in bounded batches. RSS is whole-process current memory, not a peak or Android PSS."
+}

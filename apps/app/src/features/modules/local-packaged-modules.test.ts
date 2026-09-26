@@ -157,11 +157,9 @@ describe('local packaged modules', () => {
     );
   });
 
-  it('selects published tool packs that are not already installed', () => {
+  it('does not select uninstalled optional tool packs without a user action', () => {
     const psychology = moduleById('minimed.tools.psychology.ru');
-    expect(localPackagedModulesToInstall(catalog, new Map()).map((entry) => entry.id)).toEqual([
-      'minimed.tools.psychology.ru',
-    ]);
+    expect(localPackagedModulesToInstall(catalog, new Map()).map((entry) => entry.id)).toEqual([]);
     expect(
       localPackagedModulesToInstall(
         catalog,

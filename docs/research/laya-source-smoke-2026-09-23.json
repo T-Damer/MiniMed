@@ -1,0 +1,704 @@
+{
+  "status": "executed",
+  "model": {
+    "repository": "convaiinnovations/laya-multilingual",
+    "revision": "052592a15d198d9ad47da779604259b10b47b7aa",
+    "downloadedBytes": 678201614,
+    "sdkCommit": "c7527708f9f5220c669d8aa385077cd28d04708a",
+    "filesBeforeLoad": {
+      "encoder/config.json": "83f6916d13ef0f556ac461f28308dc2bffa7ebeadee8ec9e2db5812020ea5bb4",
+      "model.safetensors": "9d628fd971b700382ac6f65920a86f149777b2e748e0c955fb3b19695aa8f204",
+      "rl_agent_config.json": "25061739243b617ad88d1219ba6f8a9c86c5881ca28df024fa2d9b3b2fcc30c6",
+      "tokenizer/tokenizer.json": "609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f",
+      "tokenizer/tokenizer_config.json": "424b69444bf7b5809dc2cd2e36d0bd71b8055124dd24274d6db3c655d38205e7"
+    }
+  },
+  "filesAfterLoad": {
+    "encoder/config.json": "83f6916d13ef0f556ac461f28308dc2bffa7ebeadee8ec9e2db5812020ea5bb4",
+    "model.safetensors": "9d628fd971b700382ac6f65920a86f149777b2e748e0c955fb3b19695aa8f204",
+    "rl_agent_config.json": "25061739243b617ad88d1219ba6f8a9c86c5881ca28df024fa2d9b3b2fcc30c6",
+    "tokenizer/tokenizer.json": "609d8f4c067cd3950f88594c5a802616cea245823836ef5848ee4fc40aab5b6f",
+    "tokenizer/tokenizer_config.json": "6c6b2d8e3c84ce0e671c129cd6b374b235d6f9863042a5836358d00a89bbb5a1"
+  },
+  "sourceCatalogSha256": "9d44b411624efe7d48f8b3366c9d4030ffdea1965e70c903d76a51a4909c94ba",
+  "probeDatasetSha256": "b6623334bfe077e9be7408a8b8f8d3e233d29de10d44ad6d4896b7d4f578d860",
+  "families": {
+    "definition-choice": {
+      "total": 8,
+      "correct": 1,
+      "orderChanges": 4
+    },
+    "evidence-support": {
+      "total": 6,
+      "correct": 6,
+      "orderChanges": 0
+    },
+    "negation-subject-time": {
+      "total": 4,
+      "correct": 2,
+      "orderChanges": 1
+    }
+  },
+  "outcomes": [
+    {
+      "id": "definition-1",
+      "family": "definition-choice",
+      "expected": "v0",
+      "correct": false,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "v1",
+          "confidence": 0.0465,
+          "probabilities": {
+            "v0": 0.2107,
+            "v1": 0.3779,
+            "v2": 0.276,
+            "v3": 0.1354
+          },
+          "latencyMs": 298.6571830000031,
+          "tokens": 150
+        },
+        {
+          "choice": "v1",
+          "confidence": 0.1437,
+          "probabilities": {
+            "v3": 0.1818,
+            "v2": 0.1092,
+            "v1": 0.5382,
+            "v0": 0.1708
+          },
+          "latencyMs": 287.2819449999895,
+          "tokens": 150
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.anosmia",
+        "draft.definition.dysphagia",
+        "draft.definition.hyposmia",
+        "draft.definition.aphasia"
+      ]
+    },
+    {
+      "id": "definition-2",
+      "family": "definition-choice",
+      "expected": "v1",
+      "correct": false,
+      "orderChanged": true,
+      "predictions": [
+        {
+          "choice": "v2",
+          "confidence": 0.0668,
+          "probabilities": {
+            "v0": 0.1888,
+            "v1": 0.2418,
+            "v2": 0.4317,
+            "v3": 0.1377
+          },
+          "latencyMs": 291.35677299998974,
+          "tokens": 153
+        },
+        {
+          "choice": "v1",
+          "confidence": 0.0295,
+          "probabilities": {
+            "v3": 0.1969,
+            "v2": 0.2374,
+            "v1": 0.3747,
+            "v0": 0.191
+          },
+          "latencyMs": 293.1343970000029,
+          "tokens": 153
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.aphasia",
+        "draft.definition.hyposmia",
+        "draft.definition.anosmia",
+        "draft.definition.dysphagia"
+      ]
+    },
+    {
+      "id": "definition-3",
+      "family": "definition-choice",
+      "expected": "v3",
+      "correct": false,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "v1",
+          "confidence": 0.0328,
+          "probabilities": {
+            "v0": 0.2129,
+            "v1": 0.3841,
+            "v2": 0.2201,
+            "v3": 0.183
+          },
+          "latencyMs": 306.1246350000033,
+          "tokens": 161
+        },
+        {
+          "choice": "v1",
+          "confidence": 0.054,
+          "probabilities": {
+            "v3": 0.3014,
+            "v2": 0.2171,
+            "v1": 0.365,
+            "v0": 0.1165
+          },
+          "latencyMs": 304.35355299999856,
+          "tokens": 161
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.aphasia",
+        "draft.definition.atrophy",
+        "draft.definition.apraxia",
+        "draft.definition.dysphagia"
+      ]
+    },
+    {
+      "id": "definition-4",
+      "family": "definition-choice",
+      "expected": "v3",
+      "correct": true,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "v3",
+          "confidence": 0.0069,
+          "probabilities": {
+            "v0": 0.2201,
+            "v1": 0.2189,
+            "v2": 0.2563,
+            "v3": 0.3047
+          },
+          "latencyMs": 319.0629359999946,
+          "tokens": 170
+        },
+        {
+          "choice": "v3",
+          "confidence": 0.012,
+          "probabilities": {
+            "v3": 0.2971,
+            "v2": 0.2435,
+            "v1": 0.279,
+            "v0": 0.1804
+          },
+          "latencyMs": 319.15918599999316,
+          "tokens": 170
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.dementia",
+        "draft.definition.apraxia",
+        "draft.definition.dysphagia",
+        "draft.definition.aphasia"
+      ]
+    },
+    {
+      "id": "definition-5",
+      "family": "definition-choice",
+      "expected": "v0",
+      "correct": false,
+      "orderChanged": true,
+      "predictions": [
+        {
+          "choice": "v1",
+          "confidence": 0.1111,
+          "probabilities": {
+            "v0": 0.1541,
+            "v1": 0.5087,
+            "v2": 0.1701,
+            "v3": 0.1671
+          },
+          "latencyMs": 306.5953549999989,
+          "tokens": 162
+        },
+        {
+          "choice": "v3",
+          "confidence": 0.091,
+          "probabilities": {
+            "v3": 0.4784,
+            "v2": 0.1668,
+            "v1": 0.207,
+            "v0": 0.1478
+          },
+          "latencyMs": 322.43383800000913,
+          "tokens": 162
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.apraxia",
+        "draft.definition.atrophy",
+        "draft.definition.aphasia",
+        "draft.definition.dementia"
+      ]
+    },
+    {
+      "id": "definition-6",
+      "family": "definition-choice",
+      "expected": "v0",
+      "correct": false,
+      "orderChanged": true,
+      "predictions": [
+        {
+          "choice": "v1",
+          "confidence": 0.1252,
+          "probabilities": {
+            "v0": 0.2203,
+            "v1": 0.4996,
+            "v2": 0.0906,
+            "v3": 0.1895
+          },
+          "latencyMs": 377.93308600001296,
+          "tokens": 200
+        },
+        {
+          "choice": "v3",
+          "confidence": 0.0213,
+          "probabilities": {
+            "v3": 0.3412,
+            "v2": 0.1798,
+            "v1": 0.2119,
+            "v0": 0.2671
+          },
+          "latencyMs": 362.1604949999977,
+          "tokens": 200
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.depersonalization",
+        "draft.definition.illusion",
+        "draft.definition.delusional-mood",
+        "draft.definition.derealization"
+      ]
+    },
+    {
+      "id": "definition-7",
+      "family": "definition-choice",
+      "expected": "v0",
+      "correct": false,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "v1",
+          "confidence": 0.1101,
+          "probabilities": {
+            "v0": 0.2222,
+            "v1": 0.4964,
+            "v2": 0.144,
+            "v3": 0.1374
+          },
+          "latencyMs": 363.94624799999065,
+          "tokens": 198
+        },
+        {
+          "choice": "v1",
+          "confidence": 0.0534,
+          "probabilities": {
+            "v3": 0.2015,
+            "v2": 0.1809,
+            "v1": 0.4259,
+            "v0": 0.1917
+          },
+          "latencyMs": 363.96980899999676,
+          "tokens": 198
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.derealization",
+        "draft.definition.illusion",
+        "draft.definition.depersonalization",
+        "draft.definition.delusional-mood"
+      ]
+    },
+    {
+      "id": "definition-8",
+      "family": "definition-choice",
+      "expected": "v0",
+      "correct": false,
+      "orderChanged": true,
+      "predictions": [
+        {
+          "choice": "v2",
+          "confidence": 0.1049,
+          "probabilities": {
+            "v0": 0.1768,
+            "v1": 0.3652,
+            "v2": 0.38,
+            "v3": 0.078
+          },
+          "latencyMs": 338.62563199998874,
+          "tokens": 182
+        },
+        {
+          "choice": "v1",
+          "confidence": 0.0914,
+          "probabilities": {
+            "v3": 0.2359,
+            "v2": 0.2404,
+            "v1": 0.4355,
+            "v0": 0.0882
+          },
+          "latencyMs": 338.7459349999915,
+          "tokens": 182
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.fixation-amnesia",
+        "draft.definition.anterograde-amnesia",
+        "draft.definition.ecmnesia",
+        "draft.definition.cryptomnesia"
+      ]
+    },
+    {
+      "id": "evidence-1",
+      "family": "evidence-support",
+      "expected": "yes",
+      "correct": true,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "yes",
+          "confidence": 0.9672,
+          "probabilities": {
+            "yes": 0.9948,
+            "no": 0.0022,
+            "unknown": 0.003
+          },
+          "latencyMs": 211.02520899999888,
+          "tokens": 102
+        },
+        {
+          "choice": "yes",
+          "confidence": 0.9589,
+          "probabilities": {
+            "unknown": 0.0041,
+            "no": 0.0026,
+            "yes": 0.9932
+          },
+          "latencyMs": 210.82373000000132,
+          "tokens": 102
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.anosmia"
+      ]
+    },
+    {
+      "id": "evidence-2",
+      "family": "evidence-support",
+      "expected": "no",
+      "correct": true,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "no",
+          "confidence": 0.965,
+          "probabilities": {
+            "yes": 0.0054,
+            "no": 0.994,
+            "unknown": 0.0006
+          },
+          "latencyMs": 212.39826400000084,
+          "tokens": 102
+        },
+        {
+          "choice": "no",
+          "confidence": 0.9941,
+          "probabilities": {
+            "unknown": 0.0001,
+            "no": 0.9992,
+            "yes": 0.0006
+          },
+          "latencyMs": 212.9559769999929,
+          "tokens": 102
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.anosmia"
+      ]
+    },
+    {
+      "id": "evidence-3",
+      "family": "evidence-support",
+      "expected": "unknown",
+      "correct": true,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "unknown",
+          "confidence": 0.8355,
+          "probabilities": {
+            "yes": 0.0002,
+            "no": 0.0436,
+            "unknown": 0.9562
+          },
+          "latencyMs": 213.63262099998792,
+          "tokens": 105
+        },
+        {
+          "choice": "unknown",
+          "confidence": 0.9749,
+          "probabilities": {
+            "unknown": 0.9959,
+            "no": 0.0039,
+            "yes": 0.0002
+          },
+          "latencyMs": 212.97340899999995,
+          "tokens": 105
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.anosmia"
+      ]
+    },
+    {
+      "id": "evidence-4",
+      "family": "evidence-support",
+      "expected": "yes",
+      "correct": true,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "yes",
+          "confidence": 0.9155,
+          "probabilities": {
+            "yes": 0.9838,
+            "no": 0.0111,
+            "unknown": 0.0051
+          },
+          "latencyMs": 235.0246889999994,
+          "tokens": 117
+        },
+        {
+          "choice": "yes",
+          "confidence": 0.8346,
+          "probabilities": {
+            "unknown": 0.0133,
+            "no": 0.0235,
+            "yes": 0.9632
+          },
+          "latencyMs": 234.81489600000316,
+          "tokens": 117
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.fixation-amnesia"
+      ]
+    },
+    {
+      "id": "evidence-5",
+      "family": "evidence-support",
+      "expected": "no",
+      "correct": true,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "no",
+          "confidence": 0.8231,
+          "probabilities": {
+            "yes": 0.0462,
+            "no": 0.9529,
+            "unknown": 0.0009
+          },
+          "latencyMs": 226.5107700000044,
+          "tokens": 116
+        },
+        {
+          "choice": "no",
+          "confidence": 0.5617,
+          "probabilities": {
+            "unknown": 0.0093,
+            "no": 0.8363,
+            "yes": 0.1544
+          },
+          "latencyMs": 226.91853199999912,
+          "tokens": 116
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.fixation-amnesia"
+      ]
+    },
+    {
+      "id": "evidence-6",
+      "family": "evidence-support",
+      "expected": "unknown",
+      "correct": true,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "unknown",
+          "confidence": 0.9991,
+          "probabilities": {
+            "yes": 0.0,
+            "no": 0.0001,
+            "unknown": 0.9999
+          },
+          "latencyMs": 221.00749099999462,
+          "tokens": 112
+        },
+        {
+          "choice": "unknown",
+          "confidence": 0.9929,
+          "probabilities": {
+            "unknown": 0.9991,
+            "no": 0.0006,
+            "yes": 0.0003
+          },
+          "latencyMs": 222.16513299999008,
+          "tokens": 112
+        }
+      ],
+      "sourceIds": [
+        "draft.definition.fixation-amnesia"
+      ]
+    },
+    {
+      "id": "case-language-1",
+      "family": "negation-subject-time",
+      "expected": "yes",
+      "correct": true,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "yes",
+          "confidence": 0.4887,
+          "probabilities": {
+            "yes": 0.8327,
+            "no": 0.1054,
+            "unknown": 0.0619
+          },
+          "latencyMs": 182.42320299999903,
+          "tokens": 83
+        },
+        {
+          "choice": "yes",
+          "confidence": 0.3697,
+          "probabilities": {
+            "unknown": 0.0504,
+            "no": 0.2031,
+            "yes": 0.7466
+          },
+          "latencyMs": 182.36508399999707,
+          "tokens": 83
+        }
+      ],
+      "sourceIds": []
+    },
+    {
+      "id": "case-language-2",
+      "family": "negation-subject-time",
+      "expected": "no",
+      "correct": false,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "yes",
+          "confidence": 0.214,
+          "probabilities": {
+            "yes": 0.5181,
+            "no": 0.4269,
+            "unknown": 0.055
+          },
+          "latencyMs": 183.57913500000222,
+          "tokens": 86
+        },
+        {
+          "choice": "yes",
+          "confidence": 0.2478,
+          "probabilities": {
+            "unknown": 0.0391,
+            "no": 0.4329,
+            "yes": 0.528
+          },
+          "latencyMs": 183.72920499999168,
+          "tokens": 86
+        }
+      ],
+      "sourceIds": []
+    },
+    {
+      "id": "case-language-3",
+      "family": "negation-subject-time",
+      "expected": "unknown",
+      "correct": false,
+      "orderChanged": true,
+      "predictions": [
+        {
+          "choice": "no",
+          "confidence": 0.1438,
+          "probabilities": {
+            "yes": 0.2747,
+            "no": 0.5874,
+            "unknown": 0.1379
+          },
+          "latencyMs": 190.46471000000054,
+          "tokens": 89
+        },
+        {
+          "choice": "yes",
+          "confidence": 0.0265,
+          "probabilities": {
+            "unknown": 0.2331,
+            "no": 0.3391,
+            "yes": 0.4278
+          },
+          "latencyMs": 188.7253480000055,
+          "tokens": 89
+        }
+      ],
+      "sourceIds": []
+    },
+    {
+      "id": "case-language-4",
+      "family": "negation-subject-time",
+      "expected": "no",
+      "correct": true,
+      "orderChanged": false,
+      "predictions": [
+        {
+          "choice": "no",
+          "confidence": 0.5457,
+          "probabilities": {
+            "yes": 0.1039,
+            "no": 0.8554,
+            "unknown": 0.0407
+          },
+          "latencyMs": 199.2962810000023,
+          "tokens": 96
+        },
+        {
+          "choice": "no",
+          "confidence": 0.6082,
+          "probabilities": {
+            "unknown": 0.0266,
+            "no": 0.88,
+            "yes": 0.0934
+          },
+          "latencyMs": 197.39907500000697,
+          "tokens": 96
+        }
+      ],
+      "sourceIds": []
+    }
+  ],
+  "networkAttemptsDuringInference": 0,
+  "modelLoadSeconds": 11.315075676,
+  "maxProcessRssKiB": 2441176,
+  "parameters": 321908995,
+  "device": "cpu",
+  "runtime": {
+    "laya": "0.3.6",
+    "torch": "2.8.0+cpu",
+    "transformers": "4.57.1",
+    "huggingface-hub": "0.35.3",
+    "safetensors": "0.6.2",
+    "numpy": "2.2.6"
+  },
+  "boundary": "18 authored probes / 36 executions with reversed options. Source-derived draft definitions, small fixed candidate pools, no training or tuning. Not an independent clinical benchmark, full-corpus retrieval/reranking comparison, quantized/browser/mobile run, or proof of citation correctness. No patient data. No application integration.",
+  "checkedCommit": "ea4416424d865886654edf0286cb41320d6afb66",
+  "runId": "35788375944"
+}

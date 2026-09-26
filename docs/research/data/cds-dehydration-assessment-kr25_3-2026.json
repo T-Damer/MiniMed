@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.assessment.cds-dehydration.ru.kr25_3.2026",
+  "title": "CDS — Clinical Dehydration Scale from current pediatric ARVI recommendation",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "assessment-source-review-required",
+  "verificationStatus": "current-kr-table-reviewed",
+  "intendedUse": "authoring-review-only",
+  "semanticClass": "assessment_definition",
+  "source": {
+    "recommendationTitle": "Острая респираторная вирусная инфекция (ОРВИ)",
+    "recommendationId": "25_3",
+    "recommendationYear": 2026,
+    "revisionDueNoLaterThan": 2028,
+    "population": "children",
+    "appendix": "Г1",
+    "developers": [
+      "Союз педиатров России",
+      "Межрегиональная ассоциация по клинической микробиологии и антимикробной химиотерапии",
+      "Российское общество скорой медицинской помощи"
+    ],
+    "urls": [
+      "https://www.consultant.ru/document/cons_doc_LAW_543697/",
+      "https://www.consultant.ru/document/cons_doc_LAW_543697/38b0c4fb0dccb638322867cfb5cfdbe1a3e0a2ee/",
+      "https://www.consultant.ru/document/cons_doc_LAW_543697/7140e4b299064a3cbd6f189e645e3db8be0a6e65/"
+    ],
+    "validationPublications": [
+      {
+        "citation": "Goldman RD, Friedman JN, Parkin PC. Pediatrics. 2008;122(3):545-549.",
+        "doi": "10.1542/peds.2007-3141",
+        "validationContext": "children_with_acute_gastroenteritis"
+      },
+      {
+        "citation": "Jauregui J et al. PLoS One. 2014;9(5):e95739.",
+        "doi": "10.1371/journal.pone.0095739",
+        "validationContext": "external_validation_pediatric_dehydration_scales"
+      }
+    ]
+  },
+  "scoring": {
+    "method": "sum_four_items",
+    "itemScoreRange": {
+      "min": 0,
+      "max": 2
+    },
+    "totalScoreRange": {
+      "min": 0,
+      "max": 8
+    }
+  },
+  "items": [
+    {
+      "id": "appearance",
+      "label": "Внешний вид",
+      "options": [
+        {
+          "score": 0,
+          "semantic": "normal_appearance"
+        },
+        {
+          "score": 1,
+          "semantic": "thirst_or_restlessness_or_irritability"
+        },
+        {
+          "score": 2,
+          "semantic": "lethargy_or_drowsiness_or_weakness"
+        }
+      ]
+    },
+    {
+      "id": "eyes",
+      "label": "Глаза",
+      "options": [
+        {
+          "score": 0,
+          "semantic": "normal_eyes"
+        },
+        {
+          "score": 1,
+          "semantic": "slightly_sunken_eyes"
+        },
+        {
+          "score": 2,
+          "semantic": "sunken_eyes"
+        }
+      ]
+    },
+    {
+      "id": "mucous_membranes",
+      "label": "Слизистые оболочки",
+      "options": [
+        {
+          "score": 0,
+          "semantic": "moist"
+        },
+        {
+          "score": 1,
+          "semantic": "sticky"
+        },
+        {
+          "score": 2,
+          "semantic": "dry"
+        }
+      ]
+    },
+    {
+      "id": "tears",
+      "label": "Слезы",
+      "options": [
+        {
+          "score": 0,
+          "semantic": "normal_tearing"
+        },
+        {
+          "score": 1,
+          "semantic": "reduced_tearing"
+        },
+        {
+          "score": 2,
+          "semantic": "absent_tears"
+        }
+      ]
+    }
+  ],
+  "interpretations": [
+    {
+      "minScore": 0,
+      "maxScore": 0,
+      "semantic": "dehydration_absent",
+      "sourceLabel": "дегидратация отсутствует"
+    },
+    {
+      "minScore": 1,
+      "maxScore": 4,
+      "semantic": "mild_dehydration",
+      "sourceLabel": "легкая дегидратация"
+    },
+    {
+      "minScore": 5,
+      "maxScore": 8,
+      "semantic": "moderate_or_severe_dehydration",
+      "sourceLabel": "дегидратация средней и тяжелой степени тяжести",
+      "splitIntoSeparateModerateSevereCategories": false
+    }
+  ],
+  "clinicalBoundary": {
+    "recommendationUse": "assessment_of_dehydration_degree_to_choose_rehydration_need_and_method",
+    "fluidDeficitPercentDerived": false,
+    "automaticRehydrationPrescription": false,
+    "feverContext": "The recommendation notes fluid/electrolyte losses rise with fever and advises assessing dehydration when fever/vomiting/diarrhea are present."
+  },
+  "reviewNotes": [
+    "The current 2026 recommendation explicitly provides the 4-item CDS table and the 0 / 1-4 / 5-8 interpretation.",
+    "The source groups scores 5-8 as moderate and severe dehydration without giving a split point; MiniMed must not invent separate moderate/severe cutoffs.",
+    "CDS does not by itself calculate percent fluid deficit or a rehydration volume.",
+    "Original validation was in children with acute gastroenteritis; the 2026 ARVI recommendation uses CDS when dehydration assessment is needed in the ARVI context.",
+    "Promotion to a runtime tool requires rights review, population wording and UX review."
+  ]
+}

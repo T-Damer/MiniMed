@@ -92,3 +92,7 @@ apps/app/.omo/
 # Restored from the checksum-verified compressed core during dev/build/verification.
 apps/app/public/content/core.db
 apps/app/public/content/core.db.restoring
+
+# Owner-local reference edition; never a release asset or committed corpus.
+/apps/app/src/features/modules/catalog.definition-reference.local.json
+/apps/app/public/content/definition-reference/

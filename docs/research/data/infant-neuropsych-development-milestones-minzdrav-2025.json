@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.infant-neuropsych-development-milestones.ru.minzdrav-ka-2025",
+  "title": "Infant neuropsychological-development milestone checklist, 1-12 months",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "unresolved",
+  "verificationStatus": "visual-table-review-source-context-limited",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "publisher": "Министерство здравоохранения Российской Федерации",
+    "organization": "ФГБУ «Уральский НИИ охраны материнства и младенчества» Минздрава России",
+    "documentType": "protocol-of-clinical-approbation-with-patient-registration-form",
+    "documentYear": 2025,
+    "methodContext": "ботулинотерапия + управляемая механотерапия при ДЦП/паралитических синдромах",
+    "pdfUrl": "https://static-0.minzdrav.gov.ru/system/attachments/attaches/000/076/274/original/2025-44-8.pdf?1754462317=",
+    "tableTitle": "ТАБЛИЦА ОЦЕНКИ НЕРВНО-ПСИХИЧЕСКОГО РАЗВИТИЯ",
+    "pdfPageIndexesZeroBased": [
+      33,
+      34,
+      35,
+      36,
+      37
+    ],
+    "formPrintedPages": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "scoring": "skill_present_1_skill_absent_0"
+  },
+  "domains": {
+    "Az": "visual_analyzer",
+    "As": "auditory_analyzer",
+    "E": "emotions_social_response",
+    "Dr": "hand_movement_and_object_actions",
+    "Do": "gross_movement",
+    "Rp": "speech_comprehension",
+    "Ra": "speech_activity",
+    "N": "self_care_skill",
+    "S": "sensory_development"
+  },
+  "ages": [
+    {
+      "ageMonths": 1,
+      "items": [
+        [
+          "Az",
+          "fixes_gaze_and_tracks_moving_object"
+        ],
+        [
+          "As",
+          "listens_to_sound_and_adult_voice"
+        ],
+        [
+          "E",
+          "social_smile_to_conversation"
+        ],
+        [
+          "Do",
+          "prone_attempts_head_lift"
+        ],
+        [
+          "Ra",
+          "single_vocal_sounds"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 2,
+      "items": [
+        [
+          "Az",
+          "sustained_visual_fixation"
+        ],
+        [
+          "As",
+          "turns_head_searching_for_prolonged_sound"
+        ],
+        [
+          "E",
+          "smiles_quickly_to_adult_conversation"
+        ],
+        [
+          "Do",
+          "holds_head_briefly_while_prone"
+        ],
+        [
+          "Ra",
+          "repeats_single_vocal_sounds"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 3,
+      "items": [
+        [
+          "Az",
+          "fixates_on_talking_adult_face_upright"
+        ],
+        [
+          "E",
+          "animation_complex_to_toys"
+        ],
+        [
+          "Do",
+          "prone_forearm_support_with_head_control"
+        ],
+        [
+          "Dr",
+          "contacts_low_hanging_toys_accidentally"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 4,
+      "items": [
+        [
+          "Az",
+          "recognizes_mother"
+        ],
+        [
+          "As",
+          "locates_unseen_sound_source"
+        ],
+        [
+          "E",
+          "laughs_in_social_response"
+        ],
+        [
+          "Dr",
+          "grasps_and_moves_hanging_toy"
+        ],
+        [
+          "Ra",
+          "cooing"
+        ],
+        [
+          "N",
+          "holds_breast_or_bottle"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 5,
+      "items": [
+        [
+          "Az",
+          "distinguishes_familiar_from_unfamiliar_people"
+        ],
+        [
+          "As",
+          "recognizes_mothers_voice_and_intonation"
+        ],
+        [
+          "E",
+          "social_interest_in_other_child"
+        ],
+        [
+          "Dr",
+          "takes_and_holds_toy_from_adult"
+        ],
+        [
+          "Do",
+          "prone_extended_arm_support_and_rolls_back_to_prone"
+        ],
+        [
+          "Ra",
+          "prolonged_melodic_cooing"
+        ],
+        [
+          "N",
+          "eats_semi_thick_or_thick_food_from_spoon"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 6,
+      "items": [
+        [
+          "As",
+          "reacts_differently_to_own_and_other_names"
+        ],
+        [
+          "Dr",
+          "manipulates_and_transfers_toy_between_hands"
+        ],
+        [
+          "Do",
+          "rolls_prone_to_supine_and_begins_mobile_progression"
+        ],
+        [
+          "Ra",
+          "begins_babbling_with_syllables"
+        ],
+        [
+          "N",
+          "removes_food_from_spoon_with_lips"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 7,
+      "items": [
+        [
+          "Dr",
+          "varied_toy_actions_banging_waving_transferring_throwing"
+        ],
+        [
+          "Do",
+          "crawls_well_in_multiple_directions"
+        ],
+        [
+          "Rp",
+          "finds_named_object_in_fixed_location"
+        ],
+        [
+          "Ra",
+          "repetitive_babbling"
+        ],
+        [
+          "N",
+          "drinks_from_adult_held_cup"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 8,
+      "items": [
+        [
+          "E",
+          "observes_and_responds_to_other_child"
+        ],
+        [
+          "Dr",
+          "varied_property_based_toy_use_and_adult_imitation"
+        ],
+        [
+          "Do",
+          "sits_lies_stands_with_support_and_cruises_sideways"
+        ],
+        [
+          "Rp",
+          "finds_multiple_named_objects_and_performs_learned_actions_on_request"
+        ],
+        [
+          "Ra",
+          "repeated_clear_varied_syllables"
+        ],
+        [
+          "N",
+          "self_feeds_bread_piece_and_drinks_from_adult_held_cup"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 9,
+      "items": [
+        [
+          "As",
+          "moves_rhythmically_to_music"
+        ],
+        [
+          "E",
+          "imitates_other_child_actions"
+        ],
+        [
+          "Dr",
+          "property_specific_object_actions"
+        ],
+        [
+          "Do",
+          "transfers_between_supports"
+        ],
+        [
+          "Rp",
+          "finds_named_objects_across_locations_and_responds_to_name"
+        ],
+        [
+          "Ra",
+          "imitates_new_syllables_already_in_babbling"
+        ],
+        [
+          "N",
+          "drinks_from_cup_with_light_hand_support_and_accepts_potting"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 10,
+      "items": [
+        [
+          "E",
+          "plays_alongside_child_or_with_shared_toy"
+        ],
+        [
+          "Dr",
+          "performs_varied_toy_actions_independently_or_on_request"
+        ],
+        [
+          "Do",
+          "climbs_low_surface_with_rail_and_walks_with_two_hand_support"
+        ],
+        [
+          "Rp",
+          "gives_named_objects_and_performs_learned_social_games"
+        ],
+        [
+          "Ra",
+          "imitates_new_syllables_not_yet_in_babbling"
+        ],
+        [
+          "N",
+          "consolidates_nine_month_self_care_skills"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 11,
+      "items": [
+        [
+          "E",
+          "selective_social_response_to_children"
+        ],
+        [
+          "Dr",
+          "performs_learned_actions_on_request"
+        ],
+        [
+          "Do",
+          "stands_independently_and_takes_first_steps"
+        ],
+        [
+          "Rp",
+          "follows_verbal_instruction_and_shows_early_comprehensible_communication"
+        ],
+        [
+          "Ra",
+          "first_word_labels"
+        ],
+        [
+          "N",
+          "skills_consolidating"
+        ]
+      ]
+    },
+    {
+      "ageMonths": 12,
+      "items": [
+        [
+          "Az",
+          "discriminates_simple_shapes_and_recognizes_familiar_photos"
+        ],
+        [
+          "E",
+          "shares_toy_and_searches_for_hidden_toy_in_social_play"
+        ],
+        [
+          "Dr",
+          "independent_varied_toy_actions_and_transfers_learned_action_to_new_object"
+        ],
+        [
+          "Do",
+          "walks_independently"
+        ],
+        [
+          "Rp",
+          "understands_object_names_adult_names_simple_requests_and_prohibition"
+        ],
+        [
+          "Ra",
+          "uses_five_to_ten_simplified_words_and_imitates_new_syllables"
+        ],
+        [
+          "N",
+          "drinks_independently_from_cup"
+        ]
+      ]
+    }
+  ],
+  "reviewNotes": [
+    "Milestone descriptions are normalized to compact semantic identifiers; full source wording is not redistributed in this artifact.",
+    "The table is embedded in a clinical-approbation patient form and is not treated as a universally validated developmental norm for all healthy infants.",
+    "No total-score interpretation, developmental-delay cutoff, or diagnosis is inferred.",
+    "A future clinical tool needs an independent normative/validation source and explicit population contract.",
+    "The source table was visually checked across PDF pages 33-37 (zero-based indexes) before transcription."
+  ]
+}

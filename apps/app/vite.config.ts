@@ -134,6 +134,8 @@ function excludeOptionalPublicAssets(): Plugin {
       outDir = config.build.outDir;
     },
     closeBundle() {
+      // The unreviewed local reference is installed explicitly in DEV, never bundled for release.
+      rmSync(join(outDir, 'content/definition-reference'), { recursive: true, force: true });
       // Illustrations are verified optional downloads; keep their small manifest in the app.
       rmSync(join(outDir, 'content/reference-images/assets'), { recursive: true, force: true });
       const packageLarge = process.env['VITE_PACKAGE_LARGE_COMPANIONS'] === 'true';

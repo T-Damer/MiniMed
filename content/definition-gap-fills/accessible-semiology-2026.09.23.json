@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "id": "accessible-definition-gaps-2026.09.23",
+  "reviewStatus": "requires-review",
+  "publicationState": "local-dev",
+  "textKind": "source-excerpt",
+  "selectionPolicy": "Six unique empty names measured in run 35846752791. Each candidate requires a new successful public HTTP fetch, robots permission and exact visible-paragraph verification. Prior blocked candidates are preserved in clinic-semiology-2026.09.23.json; no authentication or anti-bot bypass.",
+  "researchDate": "2026-09-23",
+  "sources": [
+    {"id": 1, "title": "Медицинский вестник — авторская статья оториноларингологов", "baseUrl": "https://medvestnik.by/", "sourceType": "medical-site", "authority": "professional-community", "releaseEligible": false},
+    {"id": 2, "title": "Белая Медведица — стоматологическая клиника", "baseUrl": "https://wbdent.ru/", "sourceType": "medical-clinic", "authority": "secondary-medical", "releaseEligible": false},
+    {"id": 3, "title": "Стоматологическая клиника Дентал — медицинские статьи", "baseUrl": "https://stom-dental.ru/", "sourceType": "medical-clinic", "authority": "secondary-medical", "releaseEligible": false},
+    {"id": 4, "title": "К+31 — медицинские статьи", "baseUrl": "https://www.k31.ru/", "sourceType": "medical-clinic", "authority": "secondary-medical", "releaseEligible": false},
+    {"id": 5, "title": "Клиники СМТ — функциональная диагностика", "baseUrl": "https://clinic-complex.ru/", "sourceType": "medical-clinic", "authority": "secondary-medical", "releaseEligible": false},
+    {"id": 6, "title": "Красота и Медицина — медицинский справочник", "baseUrl": "https://www.krasotaimedicina.ru/", "sourceType": "medical-site", "authority": "secondary-medical", "releaseEligible": false}
+  ],
+  "fills": [
+    {"id": "aphonia-medvestnik", "targetTitle": "Афония", "source": 1, "path": "be/konspektvracha-bel/molchalivaya-reaktsiya-na-stress", "excerpt": "Афония — это расстройство голосообразования, при котором утрачивается звучность речи.", "locator": "Афония или молчаливая реакция на стресс; вводное определение", "author": "Татьяна Рыженкова", "modified": null, "publishedAtResearch": "2022-10-03", "additionalAuthorAtResearch": "Олег Логис"},
+    {"id": "xerostomia-wbdent", "targetTitle": "Ксеростомия", "source": 2, "path": "blog/gigiena/suhost-vo-rtu-kserostomiya/", "excerpt": "Ксеростомия или синдром сухости во рту — это не просто жажда, а стойкое субъективное ощущение нехватки слюны.", "locator": "Сухость во рту (ксеростомия): причины и как помочь; первый абзац", "author": "Елизавета Николаевна Савицкая (Зайцева)", "modified": null},
+    {"id": "hypersalivation-dental", "targetTitle": "Гиперсаливация", "source": 3, "path": "informacionnye-stati/gipersalivatsiya/", "excerpt": "Гиперсаливация — это состояние, при котором у человека выделяется чрезмерное количество слюны.", "locator": "Введение; первое предложение", "author": null, "modified": null},
+    {"id": "hematocrit-k31", "targetTitle": "Гематокрит", "source": 4, "path": "baza-statey/gematokrit-v-obshchem-analize-krovi-hct/", "excerpt": "Гематокрит – отношение объема форменных элементов к единице общего объема цельной крови, выраженное в процентах.", "locator": "Гематокрит в общем анализе крови (HCT); первый абзац", "author": null, "modified": null},
+    {"id": "electromyography-smt", "targetTitle": "Электромиография", "source": 5, "path": "services/diagnostika/elektromiografiya-emg-enmg/elektromiografiya-emg-enmg/", "excerpt": "Электромиография (ЭМГ) – метод измерения электрической активности мышц и нервной проводимости.", "locator": "Электромиография: важный метод диагностики мышечной активности и нервной проводимости; первое предложение", "author": null, "modified": null},
+    {"id": "asphyxia-kim", "targetTitle": "Асфиксия", "source": 6, "path": "diseases/zabolevanija_pulmonology/asphyxia", "excerpt": "Асфиксия – это состояние удушья, сопровождающееся критическим падением уровня кислорода (гипоксией) и избытком углекислого газа (гиперкапнией) в крови и тканях.", "locator": "Асфиксия; вводное определение", "author": null, "modified": null}
+  ]
+}

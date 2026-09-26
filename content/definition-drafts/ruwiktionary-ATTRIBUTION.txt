@@ -1,0 +1,6 @@
+Russian Wiktionary contributors; extraction by Wiktextract/Kaikki.org.
+Adapted dictionary data: CC-BY-SA-4.0, https://creativecommons.org/licenses/by-sa/4.0/
+Source terms: https://kaikki.org/ruwiktionary/ and Wikimedia Terms of Use section 7.
+Changes: selection and whitespace normalization inherited from the prepared release; compact glossary projection and joining multiple glosses. No medical rewriting or translation.
+Every record resolves to its original page and author history, and preserves original source-line/sense and record/archive checksums.
+This is a community lexical reference, not clinical guidance or a reviewed MeSH translation.

@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.rf-neonatal-screening.order-274n-2022-rev-745n-2025-effective-2026-04-01",
+  "title": "Neonatal and expanded neonatal screening — current Order 274n source contract",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "official-regulatory-act",
+  "verificationStatus": "current-legal-text-single-pass-review",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "baseOrder": {
+      "authority": "Министерство здравоохранения Российской Федерации",
+      "number": "274н",
+      "signedAt": "2022-04-21",
+      "title": "Об утверждении Порядка оказания медицинской помощи пациентам с врожденными и (или) наследственными заболеваниями"
+    },
+    "currentAmendment": {
+      "number": "745н",
+      "signedAt": "2025-12-19",
+      "minjustRegistrationNumber": "85184",
+      "officialPublicationNumber": "0001202602030006",
+      "officialPublicationDate": "2026-02-03",
+      "effectiveFrom": "2026-04-01",
+      "changes": [
+        "adds AADC deficiency to expanded neonatal screening",
+        "adds X-linked adrenoleukodystrophy to expanded neonatal screening"
+      ]
+    },
+    "currentTextUrls": [
+      "https://www.consultant.ru/document/cons_doc_LAW_422278/e3bdeb015fe71849ec5f86c0ffa78849c60512eb/",
+      "https://base.garant.ru/404987183/53f89421bbdaf741eb2d1ecc4ddb4c33/"
+    ]
+  },
+  "collection": {
+    "specimen": "heel_capillary_blood_on_filter_test_forms",
+    "afterFeedingHours": 3,
+    "termNewborn": {
+      "ageHoursMin": 24,
+      "ageHoursMax": 48
+    },
+    "pretermNewborn": {
+      "lifeDaySource": "7th day",
+      "ageHoursMin": 144,
+      "ageHoursMax": 168
+    },
+    "testFormSpots": {
+      "neonatalScreening": 5,
+      "expandedNeonatalScreening": 3
+    }
+  },
+  "workflow": {
+    "screeningScope": "mass_unselected_newborn_screening",
+    "steps": [
+      "screen_every_newborn",
+      "form_high_risk_group",
+      "perform_confirmatory_biochemical_and_or_molecular_genetic_testing_for_high_risk",
+      "medical_genetic_counseling_for_confirmed_patients_and_family"
+    ],
+    "sourceLabTurnaround": {
+      "maxHoursFromTestFormReceipt": 72
+    }
+  },
+  "standardScreening": [
+    {
+      "icd10": "E70.0",
+      "concept": "classical_phenylketonuria"
+    },
+    {
+      "icd10": "E70.1",
+      "concept": "phenylketonuria_b"
+    },
+    {
+      "icd10": "E03.0",
+      "concept": "congenital_hypothyroidism_with_diffuse_goiter"
+    },
+    {
+      "icd10": "E03.1",
+      "concept": "congenital_hypothyroidism_without_goiter"
+    },
+    {
+      "icd10": "E84.9",
+      "concept": "cystic_fibrosis_unspecified"
+    },
+    {
+      "icd10": "E74.2",
+      "concept": "galactose_metabolism_disorder_galactosemia"
+    },
+    {
+      "icd10": "E25.9",
+      "concept": "adrenogenital_disorder_unspecified"
+    },
+    {
+      "icd10": "E25.0",
+      "concept": "adrenogenital_disorders_due_to_enzyme_deficiency"
+    }
+  ],
+  "expandedScreeningGroups": [
+    {
+      "icd10": "E53.8",
+      "concepts": [
+        "biotinidase_deficiency",
+        "holocarboxylase_synthetase_deficiency"
+      ]
+    },
+    {
+      "icd10": "E70.1",
+      "concepts": [
+        "tetrahydrobiopterin_synthesis_deficiency",
+        "tetrahydrobiopterin_reactivation_deficiency"
+      ]
+    },
+    {
+      "icd10": "E70.2",
+      "concepts": [
+        "tyrosinemia"
+      ]
+    },
+    {
+      "icd10": "E70.8",
+      "concepts": [
+        "aromatic_l_amino_acid_decarboxylase_deficiency_aadc"
+      ],
+      "addedBy": "745n-2025",
+      "effectiveFrom": "2026-04-01"
+    },
+    {
+      "icd10": "E71.0",
+      "concepts": [
+        "maple_syrup_urine_disease"
+      ]
+    },
+    {
+      "icd10": "E71.1",
+      "concepts": [
+        "propionic_acidemia",
+        "methylmalonic_acidemia_methylmalonyl_coa_mutase_deficiency",
+        "methylmalonic_acidemia_cobalamin_a_deficiency",
+        "methylmalonic_acidemia_cobalamin_b_deficiency",
+        "methylmalonic_acidemia_methylmalonyl_coa_epimerase_deficiency",
+        "methylmalonic_acidemia_cobalamin_d_deficiency",
+        "methylmalonic_acidemia_cobalamin_c_deficiency",
+        "isovaleric_acidemia",
+        "3_hydroxy_3_methylglutaryl_coa_lyase_deficiency",
+        "beta_ketothiolase_deficiency"
+      ]
+    },
+    {
+      "icd10": "E71.3",
+      "concepts": [
+        "primary_carnitine_deficiency",
+        "medium_chain_acyl_coa_dehydrogenase_deficiency_mcad",
+        "very_long_chain_acyl_coa_dehydrogenase_deficiency_vlcad",
+        "mitochondrial_trifunctional_protein_deficiency",
+        "carnitine_palmitoyltransferase_i_deficiency",
+        "carnitine_palmitoyltransferase_ii_deficiency",
+        "carnitine_acylcarnitine_translocase_deficiency",
+        "x_linked_adrenoleukodystrophy"
+      ],
+      "additions": [
+        {
+          "concept": "x_linked_adrenoleukodystrophy",
+          "addedBy": "745n-2025",
+          "effectiveFrom": "2026-04-01"
+        }
+      ]
+    },
+    {
+      "icd10": "E72.1",
+      "concepts": [
+        "homocystinuria"
+      ]
+    },
+    {
+      "icd10": "E72.2",
+      "concepts": [
+        "citrullinemia_type_i",
+        "arginase_deficiency"
+      ]
+    },
+    {
+      "icd10": "E72.3",
+      "concepts": [
+        "glutaric_acidemia_type_i",
+        "glutaric_acidemia_type_ii"
+      ]
+    },
+    {
+      "icd10": "G12.0",
+      "concepts": [
+        "spinal_muscular_atrophy_type_i_werdnig_hoffmann"
+      ]
+    },
+    {
+      "icd10": "G12.1",
+      "concepts": [
+        "other_hereditary_spinal_muscular_atrophies"
+      ]
+    },
+    {
+      "icd10": "D80-D84",
+      "concepts": [
+        "primary_immunodeficiencies"
+      ]
+    }
+  ],
+  "reviewNotes": [
+    "Do not infer or display a fixed marketing count such as 36/38 from the number of rows: the legal text groups several molecular disorders under shared ICD-10 headings.",
+    "The 2025 Ministry news still commonly describes the program as 36 diseases, but the legal amendment effective 2026-04-01 adds AADC deficiency and X-linked adrenoleukodystrophy; MiniMed should key identity to the legal edition rather than a stale count label.",
+    "Screen-positive or high-risk status is not a diagnosis; confirmatory testing and medical-genetic counseling are separate workflow steps.",
+    "This artifact intentionally stores semantic concept IDs rather than reproducing full statutory wording.",
+    "A second line-by-line legal review is required before this dataset can leave research status."
+  ]
+}

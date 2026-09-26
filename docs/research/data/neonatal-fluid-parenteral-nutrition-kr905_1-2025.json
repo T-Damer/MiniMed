@@ -1,0 +1,665 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.neonatal-fluid-parenteral-nutrition.ru.kr905_1.2025",
+  "title": "Neonatal fluid, energy, parenteral nutrients and electrolytes — KR 905_1 (2025)",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "clinical-recommendation-source-review-required",
+  "verificationStatus": "official-guideline-pdf-visual-table-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "recommendationTitle": "Врожденная пневмония",
+    "recommendationId": "905_1",
+    "recommendationYear": 2025,
+    "revisionDueNoLaterThan": 2027,
+    "developerOrganizations": [
+      "Союз педиатров России",
+      "Российское общество неонатологов",
+      "АСПМ"
+    ],
+    "appendix": "А3.3 / А3.3.1 / А3.3.2 / А3.3.3",
+    "sourcePdf": "https://www.crbnovopokrovskay.ru/info_spec/klin_rekom/2025/kr_vrozhdennaja_pnevmonija.pdf",
+    "visuallyCheckedPdfPagesOneBased": [
+      58,
+      59
+    ],
+    "mirrors": [
+      "https://sudact.ru/law/klinicheskie-rekomendatsii-vrozhdennaia-pnevmoniia-odobreny-minzdravom-rossii/prilozhenie-a3/prilozhenie-a3.3/",
+      "https://www.consultant.ru/document/cons_doc_LAW_503332/"
+    ]
+  },
+  "fluid": {
+    "transitionalDays": [
+      {
+        "day": 1,
+        "term": {
+          "min": 40,
+          "max": 60
+        },
+        "pretermGt1500": {
+          "min": 60,
+          "max": 80
+        },
+        "preterm1000To1500": {
+          "min": 70,
+          "max": 90
+        },
+        "pretermLt1000": {
+          "min": 80,
+          "max": 100
+        }
+      },
+      {
+        "day": 2,
+        "term": {
+          "min": 50,
+          "max": 70
+        },
+        "pretermGt1500": {
+          "min": 80,
+          "max": 100
+        },
+        "preterm1000To1500": {
+          "min": 90,
+          "max": 110
+        },
+        "pretermLt1000": {
+          "min": 100,
+          "max": 120
+        }
+      },
+      {
+        "day": 3,
+        "term": {
+          "min": 60,
+          "max": 80
+        },
+        "pretermGt1500": {
+          "min": 100,
+          "max": 120
+        },
+        "preterm1000To1500": {
+          "min": 110,
+          "max": 130
+        },
+        "pretermLt1000": {
+          "min": 120,
+          "max": 140
+        }
+      },
+      {
+        "day": 4,
+        "term": {
+          "min": 60,
+          "max": 100
+        },
+        "pretermGt1500": {
+          "min": 120,
+          "max": 140
+        },
+        "preterm1000To1500": {
+          "min": 130,
+          "max": 150
+        },
+        "pretermLt1000": {
+          "min": 140,
+          "max": 160
+        }
+      },
+      {
+        "day": 5,
+        "term": {
+          "min": 100,
+          "max": 140
+        },
+        "pretermGt1500": {
+          "min": 140,
+          "max": 160
+        },
+        "preterm1000To1500": {
+          "min": 160,
+          "max": 180
+        },
+        "pretermLt1000": {
+          "min": 160,
+          "max": 180
+        }
+      }
+    ],
+    "intermediatePhase": {
+      "sourceAge": "7-10_days",
+      "term": {
+        "min": 140,
+        "max": 170
+      },
+      "pretermGt1500": {
+        "min": 140,
+        "max": 160
+      },
+      "preterm1000To1500": null,
+      "pretermLt1000": null,
+      "note": "Source table leaves the last two preterm weight columns blank in this phase row."
+    },
+    "stableGrowthPhase": {
+      "sourceAge": "after_10_days",
+      "appliesTo": "table-wide-merged-cell",
+      "preferred": {
+        "min": 140,
+        "max": 160
+      },
+      "parentheticalRange": {
+        "min": 135,
+        "max": 200
+      }
+    },
+    "unit": "ml_per_kg_per_day"
+  },
+  "parenteralNutrition": {
+    "protein": {
+      "unit": "g_per_kg_per_day",
+      "rows": [
+        {
+          "age": "day_1",
+          "term": 1.5,
+          "pretermGt1500": {
+            "min": 1.5,
+            "max": 2
+          },
+          "pretermLt1500": {
+            "min": 2,
+            "max": 2.5
+          }
+        },
+        {
+          "age": "day_2",
+          "term": {
+            "min": 2,
+            "max": 2.5
+          },
+          "pretermGt1500": {
+            "min": 2.5,
+            "max": 3.5
+          },
+          "pretermLt1500": {
+            "min": 2.5,
+            "max": 3.5
+          }
+        },
+        {
+          "age": "day_3_plus",
+          "term": {
+            "preferred": 2.5,
+            "parenthetical": {
+              "min": 2.3,
+              "max": 2.7
+            },
+            "max": 3
+          },
+          "pretermGt1500": {
+            "min": 2.5,
+            "max": 3.5
+          },
+          "pretermLt1500": 3.5
+        }
+      ]
+    },
+    "fat": {
+      "unit": "g_per_kg_per_day",
+      "rows": [
+        {
+          "age": "day_1",
+          "term": 1,
+          "pretermGt1500": {
+            "min": 1,
+            "max": 3
+          },
+          "pretermLt1500": {
+            "min": 2,
+            "max": 3
+          }
+        },
+        {
+          "age": "day_2",
+          "term": 2,
+          "pretermGt1500": {
+            "min": 2,
+            "max": 3
+          },
+          "pretermLt1500": 3
+        },
+        {
+          "age": "day_3_plus",
+          "appliesTo": "table-wide-merged-cell",
+          "preferred": {
+            "min": 3,
+            "max": 3.5
+          },
+          "max": 4
+        }
+      ]
+    },
+    "carbohydrate": {
+      "infusionUnit": "mg_per_kg_per_min",
+      "dailyDoseUnit": "g_per_kg_per_day",
+      "sourceCellEncoding": "infusion_rate_(daily_dose)",
+      "rows": [
+        {
+          "kind": "day_1",
+          "term": {
+            "infusion": {
+              "min": 2.5,
+              "max": 5
+            },
+            "dailyDose": {
+              "min": 3.6,
+              "max": 7.2
+            }
+          },
+          "preterm": {
+            "infusion": {
+              "min": 4,
+              "max": 8
+            },
+            "dailyDose": {
+              "min": 5.8,
+              "max": 11.5
+            }
+          }
+        },
+        {
+          "kind": "increase_rate",
+          "term": {
+            "infusion": {
+              "min": 1.5,
+              "max": 3
+            },
+            "dailyDose": {
+              "min": 2.2,
+              "max": 4.3
+            }
+          },
+          "preterm": {
+            "infusion": {
+              "min": 1,
+              "max": 2
+            },
+            "dailyDose": {
+              "min": 1.4,
+              "max": 2.9
+            }
+          }
+        },
+        {
+          "kind": "optimal",
+          "term": {
+            "infusion": {
+              "min": 5,
+              "max": 10
+            },
+            "dailyDose": {
+              "min": 7.2,
+              "max": 14.4
+            }
+          },
+          "preterm": {
+            "infusion": {
+              "min": 8,
+              "max": 10
+            },
+            "dailyDose": {
+              "min": 11.5,
+              "max": 14.4
+            }
+          }
+        },
+        {
+          "kind": "minimum",
+          "term": {
+            "infusion": 2.5,
+            "dailyDose": 3.6
+          },
+          "preterm": {
+            "infusion": 4,
+            "dailyDose": 5.8
+          }
+        },
+        {
+          "kind": "maximum",
+          "appliesTo": "table-wide-merged-cell",
+          "infusion": 12,
+          "dailyDose": 17.3
+        }
+      ]
+    },
+    "energy": {
+      "unit": "kcal_per_kg_per_day",
+      "initialRecommended": {
+        "min": 40,
+        "max": 60
+      },
+      "targetTotal": {
+        "term": {
+          "min": 85,
+          "max": 100
+        },
+        "preterm": {
+          "min": 90,
+          "max": 120
+        }
+      },
+      "sourceEnergyFactors": {
+        "proteinKcalPerG": 4,
+        "carbohydrateKcalPerG": 4,
+        "fatKcalPerG": {
+          "min": 9.25,
+          "max": 10
+        }
+      }
+    }
+  },
+  "electrolytes": {
+    "unit": "mmol_per_kg_per_day",
+    "sodium": {
+      "startAfterEstablishedDiuresis": true,
+      "rows": [
+        {
+          "age": "day_1",
+          "term": {
+            "min": 0,
+            "max": 2
+          },
+          "pretermGt1500": {
+            "min": 0,
+            "max": 2,
+            "parentheticalMax": 3
+          },
+          "pretermLt1500": {
+            "min": 0,
+            "max": 2,
+            "parentheticalMax": 3
+          }
+        },
+        {
+          "age": "days_2_3",
+          "term": {
+            "min": 0,
+            "max": 2
+          },
+          "pretermGt1500": {
+            "min": 0,
+            "max": 2,
+            "parentheticalMax": 3
+          },
+          "pretermLt1500": {
+            "min": 0,
+            "max": 2,
+            "parentheticalMax": 3
+          }
+        },
+        {
+          "age": "days_4_5",
+          "term": {
+            "min": 1,
+            "max": 3
+          },
+          "pretermGt1500": {
+            "min": 2,
+            "max": 5
+          },
+          "pretermLt1500": {
+            "min": 2,
+            "max": 5,
+            "parentheticalMax": 7
+          }
+        },
+        {
+          "age": "day_6_plus",
+          "term": {
+            "min": 2,
+            "max": 3
+          },
+          "pretermGt1500": {
+            "min": 2,
+            "max": 5
+          },
+          "pretermLt1500": {
+            "min": 2,
+            "max": 5,
+            "parentheticalMax": 7
+          }
+        }
+      ]
+    },
+    "potassium": {
+      "startAfterEstablishedDiuresis": true,
+      "rows": [
+        {
+          "age": "day_1",
+          "term": {
+            "min": 0,
+            "max": 2
+          },
+          "pretermGt1500": {
+            "min": 0,
+            "max": 2
+          },
+          "pretermLt1500": {
+            "min": 0,
+            "max": 2
+          }
+        },
+        {
+          "age": "days_2_3",
+          "term": {
+            "min": 0,
+            "max": 3
+          },
+          "pretermGt1500": {
+            "min": 0,
+            "max": 3
+          },
+          "pretermLt1500": {
+            "min": 0,
+            "max": 3
+          }
+        },
+        {
+          "age": "days_4_5",
+          "term": {
+            "min": 2,
+            "max": 3
+          },
+          "pretermGt1500": {
+            "min": 2,
+            "max": 3
+          },
+          "pretermLt1500": {
+            "min": 2,
+            "max": 3
+          }
+        },
+        {
+          "age": "day_6_plus",
+          "term": {
+            "min": 1.5,
+            "max": 3
+          },
+          "pretermGt1500": {
+            "min": 1,
+            "max": 3
+          },
+          "pretermLt1500": {
+            "min": 2,
+            "max": 5
+          }
+        }
+      ]
+    },
+    "calcium": {
+      "pretermColumnsMerged": true,
+      "rows": [
+        {
+          "age": "day_1",
+          "term": {
+            "min": 0.8,
+            "max": 1.5
+          },
+          "preterm": {
+            "min": 0.8,
+            "max": 2
+          }
+        },
+        {
+          "age": "days_2_3",
+          "term": {
+            "min": 0.8,
+            "max": 1.5
+          },
+          "preterm": {
+            "min": 0.8,
+            "max": 2
+          }
+        },
+        {
+          "age": "days_4_5",
+          "term": {
+            "min": 0.8,
+            "max": 1.5
+          },
+          "preterm": {
+            "min": 0.8,
+            "max": 2
+          }
+        },
+        {
+          "age": "day_6_plus",
+          "term": {
+            "min": 0.8,
+            "max": 1.5
+          },
+          "preterm": {
+            "min": 1.6,
+            "max": 2.5,
+            "parentheticalMax": 3.5
+          }
+        }
+      ],
+      "sourceNote": "Values assume adequate phosphorus supply; without phosphorus the source says calcium dose is reduced 2-4 times to 0.4-0.7 mmol/kg with blood-calcium monitoring."
+    },
+    "phosphorus": {
+      "pretermColumnsMerged": true,
+      "rows": [
+        {
+          "age": "day_1",
+          "term": {
+            "min": 0.7,
+            "max": 1.3
+          },
+          "preterm": {
+            "min": 1,
+            "max": 2
+          }
+        },
+        {
+          "age": "days_2_3",
+          "term": {
+            "min": 0.7,
+            "max": 1.3
+          },
+          "preterm": {
+            "min": 1,
+            "max": 2
+          }
+        },
+        {
+          "age": "days_4_5",
+          "term": {
+            "min": 0.7,
+            "max": 1.3
+          },
+          "preterm": {
+            "min": 1,
+            "max": 2
+          }
+        },
+        {
+          "age": "day_6_plus",
+          "term": {
+            "min": 0.7,
+            "max": 1.3
+          },
+          "preterm": {
+            "min": 1.5,
+            "max": 2.5,
+            "parentheticalMax": 3.5
+          }
+        }
+      ],
+      "caPRatio": {
+        "usual": 1.3,
+        "earlyHypophosphatemia": {
+          "min": 0.8,
+          "max": 1
+        },
+        "unit": "mmol_per_mmol"
+      }
+    },
+    "magnesium": {
+      "pretermColumnsMerged": true,
+      "rows": [
+        {
+          "age": "day_1",
+          "term": {
+            "min": 0.1,
+            "max": 0.2
+          },
+          "preterm": {
+            "min": 0.1,
+            "max": 0.2
+          }
+        },
+        {
+          "age": "days_2_3",
+          "term": {
+            "min": 0.1,
+            "max": 0.2
+          },
+          "preterm": {
+            "min": 0.1,
+            "max": 0.2
+          }
+        },
+        {
+          "age": "days_4_5",
+          "term": {
+            "min": 0.1,
+            "max": 0.2
+          },
+          "preterm": {
+            "min": 0.1,
+            "max": 0.2
+          }
+        },
+        {
+          "age": "day_6_plus",
+          "term": {
+            "min": 0.1,
+            "max": 0.2
+          },
+          "preterm": {
+            "min": 0.2,
+            "max": 0.3
+          }
+        }
+      ],
+      "sourceNote": "In the first days of life, exclude hypermagnesemia if the mother received magnesium sulfate before delivery."
+    }
+  },
+  "reviewNotes": [
+    "This appendix is inside the congenital-pneumonia recommendation; MiniMed must retain that source context even though the appendix title states general neonatal needs.",
+    "The same fluid/nutrition appendix is cross-referenced by other current neonatal recommendations, which supports concept reuse but not silent conversion to a universal treatment order.",
+    "Blank/merged source cells are preserved explicitly instead of extrapolating values to missing weight groups.",
+    "All values are treatment/reference ranges, not automatic prescriptions; clinical condition, renal output, enteral intake, respiratory status, losses and laboratory monitoring remain outside this compact dataset.",
+    "Runtime calculator/order-set promotion is blocked pending clinician review of eligibility, phase/age boundaries, merged cells and monitoring requirements."
+  ]
+}

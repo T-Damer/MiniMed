@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.rop-screening-classification-treatment.kr107_2-2025-current-2026",
+  "title": "Retinopathy of prematurity — screening, type classification and treatment trigger contract",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "clinical-recommendation-review-required",
+  "verificationStatus": "single-current-guideline-pass",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "title": "Ретинопатия недоношенных",
+    "recommendationId": "107_2",
+    "approvedYear": 2025,
+    "appliesFrom": "2026-01-19",
+    "reviewDueNoLaterThan": 2027,
+    "population": "children",
+    "icd10": [
+      "H35.1",
+      "H35.2"
+    ],
+    "developer": [
+      "Ассоциация врачей-офтальмологов",
+      "Общество офтальмологов России"
+    ],
+    "urls": [
+      "https://www.consultant.ru/document/cons_doc_LAW_524612/",
+      "https://base.garant.ru/413461344/"
+    ]
+  },
+  "riskGroup": {
+    "includeIfAny": [
+      {
+        "field": "gestationalAgeAtBirthWeeks",
+        "operator": "<",
+        "value": 35
+      },
+      {
+        "field": "birthWeightG",
+        "operator": "<",
+        "value": 2000
+      }
+    ],
+    "note": "The current KR recommends primary ophthalmologist examination of all preterm infants meeting either criterion."
+  },
+  "postConceptualAge": {
+    "formula": "gestational_age_at_birth_weeks + chronological_age_weeks"
+  },
+  "firstScreeningSchedule": [
+    {
+      "birthGestationalAgeWeeks": {
+        "min": 22,
+        "max": 27
+      },
+      "firstExam": {
+        "basis": "postconceptual_age",
+        "minWeeks": 30,
+        "maxWeeks": 31
+      }
+    },
+    {
+      "birthGestationalAgeWeeks": {
+        "min": 28,
+        "max": 30
+      },
+      "firstExam": {
+        "basis": "postconceptual_age_or_chronological_age",
+        "postconceptualAgeWeeks": {
+          "min": 32,
+          "max": 34
+        },
+        "chronologicalAgeWeeks": 4
+      }
+    },
+    {
+      "birthGestationalAgeWeeks": {
+        "min": 31,
+        "max": null
+      },
+      "firstExam": {
+        "basis": "chronological_age",
+        "noLaterThanWeeks": 2
+      }
+    }
+  ],
+  "earlyExamModifier": {
+    "condition": "severe_concomitant_neonatal_pathology",
+    "adjustment": "may_be_examined_one_week_earlier_than_table_schedule"
+  },
+  "followUp": [
+    {
+      "state": "incomplete_retinal_vascularization_without_rop",
+      "intervalDays": 14,
+      "continueUntil": [
+        "retinal_vascularization_complete",
+        "rop_signs_appear"
+      ]
+    },
+    {
+      "state": "rop_detected",
+      "intervalDays": 7,
+      "continueUntil": [
+        "spontaneous_stop",
+        "specialized_treatment_indication"
+      ],
+      "regulatorySource": "Order 614n-2025"
+    },
+    {
+      "state": "aggressive_posterior_rop",
+      "intervalDays": 3,
+      "purpose": "reassess_treatment_indications"
+    }
+  ],
+  "vascularActivity": {
+    "states": [
+      "normal",
+      "pre_plus",
+      "plus"
+    ],
+    "note": "Pre-plus and plus are treated as a continuous spectrum; plus assessment is based on vessels in zone I."
+  },
+  "courseTypes": [
+    {
+      "type": 1,
+      "criteria": [
+        {
+          "zone": "I",
+          "stage": "any",
+          "plusDisease": true
+        },
+        {
+          "zone": "I",
+          "stage": 3,
+          "plusDisease": false
+        },
+        {
+          "zone": "II",
+          "stage": [
+            2,
+            3
+          ],
+          "plusDisease": true
+        }
+      ],
+      "sourceFollowUp": "single control after 3 days",
+      "treatmentIndication": true
+    },
+    {
+      "type": 2,
+      "criteria": [
+        {
+          "zone": "I",
+          "stage": [
+            1,
+            2
+          ],
+          "plusDisease": false
+        },
+        {
+          "zone": "II",
+          "stage": 3,
+          "plusDisease": false
+        }
+      ],
+      "sourceFollowUp": "every 7 days",
+      "treatmentIndication": false
+    }
+  ],
+  "thresholdRop": {
+    "stage": 3,
+    "plusDisease": true,
+    "extraretinalProliferationClockHours": {
+      "consecutive": 5,
+      "cumulative": 8
+    }
+  },
+  "laserTreatmentTrigger": {
+    "indicatedFor": [
+      "type_1_rop",
+      "aggressive_posterior_rop",
+      "threshold_rop"
+    ],
+    "explicitType1Pattern": [
+      "zone_I_any_stage_with_plus",
+      "zone_I_stage_3_without_plus",
+      "zone_II_stage_2_or_3_with_plus"
+    ]
+  },
+  "antiVegfTrigger": {
+    "sourcePatterns": [
+      "zone_I_stage_1_to_3_with_plus",
+      "zone_I_stage_3_without_plus",
+      "zone_II_stage_3_with_plus",
+      "aggressive_posterior_rop"
+    ],
+    "note": "This artifact stores indication patterns only; no drug/dose selection is encoded."
+  },
+  "regulatoryOverlay": {
+    "source": "Order 614n dated 2025-10-09, pediatric ophthalmology",
+    "treatmentTiming": {
+      "activeProgressiveType1Rop": {
+        "maxHoursAfterIndication": 72,
+        "modalities": [
+          "retinal_laser_coagulation",
+          "intravitreal_angiogenesis_inhibitor"
+        ]
+      }
+    },
+    "reviewNote": "The organizational order and KR screening-time wording are stored separately and require alignment review before a runtime scheduler is built."
+  },
+  "safetyBoundary": {
+    "incompleteVascularizationIsNotRop": true,
+    "screeningFindingIsNotAutomaticTreatment": true,
+    "treatmentRequiresOphthalmologistAssessment": true,
+    "noDrugDoseEncoded": true
+  },
+  "reviewNotes": [
+    "The first-exam schedule is transcribed from current KR Table 2 rather than older ROP recommendations.",
+    "The 2025 pediatric-ophthalmology order has related organizational wording; do not silently merge differing time expressions until reviewed.",
+    "Zone/stage/type are separate dimensions; a runtime model must not flatten them into one severity number.",
+    "Treatment triggers are source conditions, not an autonomous diagnosis or treatment order.",
+    "A second ophthalmology review is required before runtime publication."
+  ]
+}

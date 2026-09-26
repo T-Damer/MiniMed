@@ -4,6 +4,7 @@ import {
   ContentPackSeedSchema,
   type CoreCapabilities,
   type CoreStatus,
+  DefinitionReferenceRequestSchema,
   err,
   type LocalMedError,
   localMedError,
@@ -14,6 +15,7 @@ import {
   ok,
   type QueryAnalysis,
   type Result,
+  type SearchFilters,
   SearchRequestSchema,
   type SearchResponse,
   type SearchResult,
@@ -148,6 +150,11 @@ function buildQueryAlignedSnippet(
   return buildSnippet(hit.chunk.originalText, snippetTerms, rowTerms.length > 0 ? 520 : 360);
 }
 
+function conceptIdFromMetadata(metadata: Readonly<Record<string, unknown>>): string | undefined {
+  const value = metadata['conceptId'];
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
 function resultCategory(sectionType: string | null): SearchResultCategory {
   switch (sectionType) {
     case 'definition':
@@ -176,7 +183,9 @@ function toSearchResult(aggregate: AggregatedHit): SearchResult {
   const terms = [...aggregate.terms];
   const matches = matchedTerms(aggregate.hit, terms);
   const snippet = buildQueryAlignedSnippet(aggregate.hit, matches.length > 0 ? matches : terms);
+  const conceptId = conceptIdFromMetadata(aggregate.hit.document.metadata);
   return {
+    ...(conceptId ? { conceptId } : {}),
     chunkId: aggregate.hit.chunk.id,
     documentId: aggregate.hit.document.id,
     documentVersionId: aggregate.hit.document.version.id,
@@ -434,14 +443,23 @@ function filterSuffixFallbackGroups(
   groups: readonly SearchResultGroup[],
   query: string,
   aliases: MedicalAliasRecords,
+  protectedDocumentIds: ReadonlySet<string> = new Set(),
 ): readonly SearchResultGroup[] {
   const canonicalTerms = suffixFallbackCanonicalTerms(query, aliases);
   if (canonicalTerms.size === 0) return groups;
 
-  const canonicalGroups = groups.filter((group) =>
-    group.results.some((result) => canonicalTerms.has(normalizeSurfaceText(result.title))),
+  const canonicalDocumentIds = new Set(
+    groups
+      .filter((group) =>
+        group.results.some((result) => canonicalTerms.has(normalizeSurfaceText(result.title))),
+      )
+      .map((group) => group.documentId),
   );
-  return canonicalGroups.length > 0 ? canonicalGroups : groups;
+  if (canonicalDocumentIds.size === 0) return groups;
+  return groups.filter(
+    (group) =>
+      canonicalDocumentIds.has(group.documentId) || protectedDocumentIds.has(group.documentId),
+  );
 }
 
 function groupResults(
@@ -500,7 +518,13 @@ function groupResults(
         searchTerms,
         medicationAliasCandidates,
       );
+      const conceptId = first.conceptId;
+      const sharedConceptId =
+        conceptId && sorted.every((result) => result.conceptId === conceptId)
+          ? conceptId
+          : undefined;
       return {
+        ...(sharedConceptId ? { conceptId: sharedConceptId } : {}),
         documentId,
         title: presentation ? `${presentation} · ${first.title}` : first.title,
         bestScore: Math.max(...documentResults.map((result) => result.finalScore)),
@@ -525,6 +549,130 @@ function filterSupersededSummaryResults(
   return results.filter(
     (result) => !isSupersededSummaryDocument(result.documentId, availableDocumentIds),
   );
+}
+
+function exactIdentityDocumentMatchesFilters(
+  document: LexicalHit['document'],
+  filters: SearchFilters,
+): boolean {
+  if (filters.documentIds?.length && !filters.documentIds.includes(document.id)) return false;
+  if (
+    filters.specialties?.length &&
+    !filters.specialties.some((specialty) => document.specialties.includes(specialty))
+  ) {
+    return false;
+  }
+  if (filters.ageGroups?.length) {
+    const ageGroups = metadataStrings(document.metadata, 'ageGroups');
+    if (!filters.ageGroups.some((ageGroup) => ageGroups.includes(ageGroup))) return false;
+  }
+  return true;
+}
+
+function exactIdentityResult(hit: LexicalHit, terms: readonly string[], spelling: boolean) {
+  return toSearchResult({
+    hit,
+    branchIds: new Set([spelling ? 'medication-spelling-identity' : 'exact-identity']),
+    branchLabels: new Set([
+      spelling ? 'Возможная опечатка в названии препарата' : 'Точное название',
+    ]),
+    terms: new Set(terms),
+    branchScores: [1],
+    sectionBoost: 0,
+    score: 1,
+    bestLexicalScore: 1,
+  });
+}
+
+async function buildExactIdentityResults(
+  store: MedicalStore,
+  documentIds: ReadonlySet<string>,
+  filters: SearchFilters,
+  terms: readonly string[],
+  ftsQueries: readonly string[],
+  spelling = false,
+): Promise<readonly SearchResult[]> {
+  const eligible = [...documentIds].filter(
+    (id) => !filters.documentIds?.length || filters.documentIds.includes(id),
+  );
+  if (eligible.length === 0) return [];
+  // A lookup's own FTS expression restricted to the missing identities usually returns a passage
+  // for each of them in one storage round trip (through the OPFS worker, one message).
+  const found = new Map<string, SearchResult>();
+  for (const ftsQuery of ftsQueries) {
+    const remaining = eligible.filter((id) => !found.has(id));
+    if (remaining.length === 0) break;
+    const hits = await store.search({
+      ftsQuery,
+      terms,
+      filters: { ...filters, documentIds: remaining },
+      limit: Math.min(500, remaining.length * 8),
+    });
+    for (const hit of hits) {
+      if (!found.has(hit.document.id)) {
+        found.set(hit.document.id, exactIdentityResult(hit, terms, spelling));
+      }
+    }
+  }
+  const results = await Promise.all(
+    eligible.map(async (documentId): Promise<SearchResult | null> => {
+      const direct = found.get(documentId);
+      if (direct) return direct;
+      // Aliases and short titles need not occur in the indexed text: read the first passage.
+      const document = await store.getDocument(documentId);
+      if (!document || !exactIdentityDocumentMatchesFilters(document, filters)) return null;
+
+      const sections = await store.getSectionsByDocument(documentId);
+      // Outline/parent sections can be empty. Stop at the first readable eligible section;
+      // do not hydrate the entire document or cross the caller's section filters.
+      for (const section of sections) {
+        if (
+          filters.sectionTypes?.length &&
+          (section.sectionType === null || !filters.sectionTypes.includes(section.sectionType))
+        ) {
+          continue;
+        }
+        const chunk = (await store.getChunksBySection(section.id)).find(
+          (candidate) => candidate.originalText.trim().length > 0,
+        );
+        if (!chunk) continue;
+
+        return exactIdentityResult({ chunk, section, document, rank: 1 }, terms, spelling);
+      }
+      return null;
+    }),
+  );
+  return results.filter((result): result is SearchResult => result !== null);
+}
+
+function mergeExactIdentityResults(
+  rankedResults: readonly SearchResult[],
+  exactResults: readonly SearchResult[],
+): readonly SearchResult[] {
+  if (exactResults.length === 0) return rankedResults;
+  const byChunk = new Map(rankedResults.map((result) => [result.chunkId, result]));
+  for (const result of exactResults) {
+    if (!byChunk.has(result.chunkId)) byChunk.set(result.chunkId, result);
+  }
+  return [...byChunk.values()];
+}
+
+function exactWords(text: string): readonly string[] {
+  return normalizeSurfaceText(text).match(/[\p{L}\p{N}]+/gu) ?? [];
+}
+
+/** True when one retrieved source passage literally contains every word of the typed subject. */
+function hitsContainExactSubject(hits: readonly LexicalHit[], subject: string): boolean {
+  const wanted = exactWords(subject);
+  if (wanted.length === 0) return false;
+  return hits.some((hit) => {
+    const words = new Set([
+      ...exactWords(hit.document.title),
+      ...exactWords(hit.section.title),
+      ...exactWords(hit.chunk.originalText),
+    ]);
+    return wanted.every((word) => words.has(word));
+  });
 }
 
 function requestId(): string {
@@ -624,7 +772,9 @@ function vectorResult(
   const lexicalLikeHit: LexicalHit = { ...hit, rank: 0 };
   const matches = matchedTerms(lexicalLikeHit, terms);
   const snippet = buildQueryAlignedSnippet(lexicalLikeHit, matches.length > 0 ? matches : terms);
+  const conceptId = conceptIdFromMetadata(hit.document.metadata);
   return {
+    ...(conceptId ? { conceptId } : {}),
     chunkId: hit.chunk.id,
     documentId: hit.document.id,
     documentVersionId: hit.document.version.id,
@@ -772,6 +922,8 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             if (!result.ok) throw result.error;
             return result.value.map((document) => ({
               id: document.id,
+              title: document.title,
+              shortTitle: document.shortTitle,
               sourceType: document.sourceType,
               metadata: document.metadata ?? {},
             }));
@@ -983,7 +1135,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             expand: createAliasExpander(aliasesResult.value),
           };
         }
-        const plan =
+        let plan: ReturnType<typeof buildLookupQueryPlan> =
           parsed.data.analysisMode === 'lookup'
             ? buildLookupQueryPlan(
                 parsed.data.query,
@@ -1009,34 +1161,67 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         const termIndex = terminologyIndex;
         const terminologyMatch =
           parsed.data.analysisMode === 'lookup' ? termIndex.match(parsed.data.query) : undefined;
-        const searches = [
-          ...plan.branches.map((branch) => ({ branch, filters: parsed.data.filters })),
-          ...(terminologyMatch ? termIndex.searches(terminologyMatch, parsed.data.filters) : []),
-        ];
+        const terminologySearches = terminologyMatch
+          ? termIndex.searches(terminologyMatch, parsed.data.filters)
+          : [];
         const perBranchLimit = Math.max(parsed.data.limit * 5, 50);
-        const branchSearches = await Promise.all(
-          searches.map(async ({ branch, filters }) => {
-            const branchStartedAt = performance.now();
-            const hits = await options.store.search({
-              ftsQuery: branch.ftsQuery,
-              terms: branch.terms,
-              filters,
-              limit: perBranchLimit,
-            });
-            return {
-              branch,
-              hits,
-              diagnostics: {
-                id: branch.id,
-                label: branch.label,
+        const runBranchSearches = (
+          searches: readonly {
+            readonly branch: (typeof plan.branches)[number];
+            readonly filters: SearchFilters;
+          }[],
+        ) =>
+          Promise.all(
+            searches.map(async ({ branch, filters }) => {
+              const branchStartedAt = performance.now();
+              const hits = await options.store.search({
                 ftsQuery: branch.ftsQuery,
-                candidateCount: hits.length,
-                elapsedMs: performance.now() - branchStartedAt,
-                weight: branch.weight,
-              },
-            };
-          }),
-        );
+                terms: branch.terms,
+                filters,
+                limit: perBranchLimit,
+              });
+              return {
+                branch,
+                hits,
+                diagnostics: {
+                  id: branch.id,
+                  label: branch.label,
+                  ftsQuery: branch.ftsQuery,
+                  candidateCount: hits.length,
+                  elapsedMs: performance.now() - branchStartedAt,
+                  weight: branch.weight,
+                },
+              };
+            }),
+          );
+        const spelling = 'medicationSpelling' in plan ? plan.medicationSpelling : undefined;
+        const baseBranches = spelling ? spelling.withoutSpelling.branches : plan.branches;
+        const [baseSearches, terminologyBranchSearches] = await Promise.all([
+          runBranchSearches(
+            baseBranches.map((branch) => ({ branch, filters: parsed.data.filters })),
+          ),
+          runBranchSearches(terminologySearches),
+        ]);
+        let spellingSearches: Awaited<ReturnType<typeof runBranchSearches>> = [];
+        if (spelling) {
+          if (
+            hitsContainExactSubject(
+              [...baseSearches, ...terminologyBranchSearches].flatMap(({ hits }) => hits),
+              spelling.subject,
+            )
+          ) {
+            // The typed word exists in the searched source text, so it is not a misspelling here.
+            plan = spelling.withoutSpelling;
+          } else {
+            const baseIds = new Set(baseBranches.map((branch) => branch.id));
+            spellingSearches = await runBranchSearches(
+              plan.branches
+                .filter((branch) => !baseIds.has(branch.id))
+                .map((branch) => ({ branch, filters: parsed.data.filters })),
+            );
+          }
+        }
+        const branchSearches = [...baseSearches, ...spellingSearches, ...terminologyBranchSearches];
         const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
         const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
 
@@ -1045,6 +1230,25 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           ...(terminologyMatch?.documents.map((entry) => entry.documentId) ?? []),
           ...(terminologyMatch?.related.map((entry) => entry.documentId) ?? []),
         ]);
+        const exactTitleDocumentIds = documentIndex.exactTitleIds(parsed.data.query);
+        const exactNavigationAliasDocumentIds = documentIndex.exactNavigationAliasIds(
+          parsed.data.query,
+        );
+        const exactShortTitleDocumentIds = documentIndex.exactShortTitleIds(parsed.data.query);
+        const exactSecondaryIdentityDocumentIds = new Set([
+          ...exactNavigationAliasDocumentIds,
+          ...exactShortTitleDocumentIds,
+        ]);
+        const exactIdentityDocumentIds = new Set([
+          ...exactTitleDocumentIds,
+          ...exactSecondaryIdentityDocumentIds,
+        ]);
+        // Spelling alternatives are navigation candidates, never exact matches or medication facts.
+        const spellingDocumentIds = new Set(
+          ('medicationSpellingNames' in plan ? (plan.medicationSpellingNames ?? []) : [])
+            .flatMap((name) => [...documentIndex.exactIdentityIds(name)])
+            .slice(0, 40),
+        );
         // Keep exact names and every declared meaning through the chunk cutoff for document ranking.
         const lexicalResults = fuseBranchHits(
           branchHits,
@@ -1118,11 +1322,43 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 parsed.data.query,
                 exactAliasDocumentIds,
               );
+        // Semantic-only retrieval and hybrid truncation may discard an identity that survived
+        // lexical fusion. Reuse its source-backed lexical hits before reading missing identities.
+        const retainedResults = mergeExactIdentityResults(
+          rankedResults,
+          lexicalResults.filter((result) => exactIdentityDocumentIds.has(result.documentId)),
+        );
+        const retainedDocumentIds = new Set(retainedResults.map((result) => result.documentId));
+        const missingExactIdentityDocumentIds = new Set(
+          [...exactIdentityDocumentIds].filter(
+            (documentId) => !retainedDocumentIds.has(documentId),
+          ),
+        );
+        const exactIdentityResults = await buildExactIdentityResults(
+          options.store,
+          missingExactIdentityDocumentIds,
+          parsed.data.filters,
+          plan.terms,
+          baseBranches.slice(0, 1).map((branch) => branch.ftsQuery),
+        );
+        const spellingResults = await buildExactIdentityResults(
+          options.store,
+          new Set([...spellingDocumentIds].filter((id) => !retainedDocumentIds.has(id))),
+          parsed.data.filters,
+          plan.terms,
+          spellingSearches.map(({ branch }) => branch.ftsQuery),
+          true,
+        );
         const availableDocumentIds = documentIndex.availableIds;
-        const results = filterSupersededSummaryResults(rankedResults, availableDocumentIds);
+        const results = filterSupersededSummaryResults(
+          mergeExactIdentityResults(retainedResults, [...exactIdentityResults, ...spellingResults]),
+          availableDocumentIds,
+        );
         const candidateIds = new Set([
           ...branchHits.flatMap((item) => item.hits.map((hit) => hit.chunk.id)),
           ...vectorHits.map((hit) => hit.chunk.id),
+          ...exactIdentityResults.map((result) => result.chunkId),
+          ...spellingResults.map((result) => result.chunkId),
         ]);
         const groupedResults = filterSuffixFallbackGroups(
           groupResults(
@@ -1140,6 +1376,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           ),
           plan.analysis.normalizedQuery,
           aliasesResult.value,
+          new Set([...exactIdentityDocumentIds, ...spellingDocumentIds]),
         );
         return ok({
           requestId: requestId(),
@@ -1148,7 +1385,18 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           modeUsed,
           analysis: plan.analysis,
           suggestions: plan.analysis.suggestions,
-          groups: termIndex.rank(groupedResults, terminologyMatch).slice(0, parsed.data.limit),
+          groups: termIndex
+            .rank(groupedResults, terminologyMatch)
+            .toSorted(
+              (left, right) =>
+                Number(exactTitleDocumentIds.has(right.documentId)) -
+                  Number(exactTitleDocumentIds.has(left.documentId)) ||
+                Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
+                  Number(exactSecondaryIdentityDocumentIds.has(left.documentId)) ||
+                Number(spellingDocumentIds.has(right.documentId)) -
+                  Number(spellingDocumentIds.has(left.documentId)),
+            )
+            .slice(0, parsed.data.limit),
           diagnostics: {
             ftsQuery: branchDiagnostics.map((branch) => branch.ftsQuery).join(' || '),
             candidateCount: candidateIds.size,
@@ -1165,6 +1413,23 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             },
           },
         });
+      } catch (error) {
+        return err(asLocalMedError(error));
+      }
+    },
+
+    async reference(request) {
+      try {
+        const ready = await ensureInitialized();
+        if (!ready.ok) return err(ready.error);
+        const parsed = DefinitionReferenceRequestSchema.safeParse(request);
+        if (!parsed.success)
+          return err(localMedError('INVALID_REQUEST', 'Invalid reference request.'));
+        return ok(
+          options.store.reference
+            ? await options.store.reference(parsed.data)
+            : { op: 'unavailable' as const },
+        );
       } catch (error) {
         return err(asLocalMedError(error));
       }

@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "research.pediatric-water-beverages.ru.mr-2.3.1.0253-21",
+  "title": "Recommended water and beverage intake for children",
+  "status": "review-required",
+  "publicationState": "blocked",
+  "rightsStatus": "official-public-document-review-required",
+  "verificationStatus": "single-official-table-transcription",
+  "intendedUse": "authoring-review-only",
+  "source": {
+    "title": "МР 2.3.1.0253-21. Нормы физиологических потребностей в энергии и пищевых веществах для различных групп населения Российской Федерации",
+    "authority": "Федеральная служба по надзору в сфере защиты прав потребителей и благополучия человека",
+    "approvedAt": "2021-07-22",
+    "tableNumber": 8,
+    "tableTitle": "Рекомендуемое потребление воды и напитков для поддержания водного баланса организма детей",
+    "sourceUrls": [
+      "https://www.garant.ru/products/ipo/prime/doc/402716140/",
+      "https://sudact.ru/law/mr-2310253-21-231-gigiena-gigiena-pitaniia-ratsionalnoe/"
+    ]
+  },
+  "rows": [
+    {
+      "age": "7-11_months",
+      "sex": "all",
+      "minLitersPerDay": 0.2,
+      "maxLitersPerDay": 0.3
+    },
+    {
+      "age": "1-2_years",
+      "sex": "all",
+      "minLitersPerDay": 0.6,
+      "maxLitersPerDay": 0.7
+    },
+    {
+      "age": "3-6_years",
+      "sex": "all",
+      "minLitersPerDay": 0.8,
+      "maxLitersPerDay": 0.9
+    },
+    {
+      "age": "7-10_years",
+      "sex": "male",
+      "minLitersPerDay": 1.2,
+      "maxLitersPerDay": 1.3
+    },
+    {
+      "age": "7-10_years",
+      "sex": "female",
+      "minLitersPerDay": 1.1,
+      "maxLitersPerDay": 1.2
+    },
+    {
+      "age": "11-13_years",
+      "sex": "male",
+      "minLitersPerDay": 1.3,
+      "maxLitersPerDay": 1.4
+    },
+    {
+      "age": "11-13_years",
+      "sex": "female",
+      "minLitersPerDay": 1.2,
+      "maxLitersPerDay": 1.3
+    },
+    {
+      "age": "14-17_years",
+      "sex": "male",
+      "minLitersPerDay": 1.5,
+      "maxLitersPerDay": 1.6
+    },
+    {
+      "age": "14-17_years",
+      "sex": "female",
+      "minLitersPerDay": 1.4,
+      "maxLitersPerDay": 1.5
+    }
+  ],
+  "infantContext": {
+    "sourceStatementSemantic": "For infants in the first months of life, water need is met from breast milk; before complementary feeding a healthy child does not need additional fluid.",
+    "numericAdditionalFluidFor0To6Months": null,
+    "interpretation": "no-numeric-extra-fluid-rule"
+  },
+  "scope": {
+    "quantity": "water_and_beverages",
+    "excludes": [
+      "total_water_from_all_food",
+      "maintenance_intravenous_fluid",
+      "illness_related_rehydration",
+      "pathologic_fluid_losses"
+    ],
+    "foodWaterContext": "The source states that water obtained with food contributes approximately 40-60% depending on age/diet."
+  },
+  "reviewNotes": [
+    "The 7-11 month value is a recommended intake of water and beverages, not a total fluid requirement in ml/kg/day.",
+    "The nonnumeric pre-complementary-feeding statement is retained as context and is not converted into a universal zero-fluid clinical rule.",
+    "Illness, dehydration, fever, environmental heat, formula preparation, and therapeutic fluid calculations are outside this table's contract.",
+    "Keep this dataset separate from Holliday-Segar/maintenance-fluid calculators and oral-rehydration treatment."
+  ]
+}
