@@ -523,6 +523,34 @@ export function DiaryApp(): JSX.Element {
                               </span>
                             </span>
                           </Button>
+                          <Button
+                            class="diary-list__delete"
+                            type="button"
+                            variant="danger"
+                            aria-label={`Удалить ${DIARY_KIND_TITLE[diary.kind]}`}
+                            title="Удалить дневник с этого устройства"
+                            onClick={() => {
+                              if (
+                                !window.confirm(
+                                  'Удалить этот дневник и все его локальные записи с этого устройства?',
+                                )
+                              ) {
+                                return;
+                              }
+                              try {
+                                current.store.remove(diary.id);
+                                setState({
+                                  kind: 'list',
+                                  store: current.store,
+                                  diaries: current.store.list(),
+                                });
+                              } catch (cause) {
+                                window.alert(errorMessage(cause, 'Не удалось удалить дневник.'));
+                              }
+                            }}
+                          >
+                            Удалить
+                          </Button>
                         </li>
                       )}
                     </For>
