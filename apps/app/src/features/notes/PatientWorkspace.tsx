@@ -704,7 +704,6 @@ function ManualEventForm(props: {
       </Show>
       <TextField
         class="patient-workspace__field"
-        inputClass="patient-workspace__control"
         label="Дата"
         type="date"
         value={date()}
