@@ -1,62 +1,26 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
+import {
+  DownloadProgressMark,
+  type DownloadProgressMarkState,
+} from '@/components/DownloadProgressMark';
+import { SegmentedControl } from '@/components/SegmentedControl';
+import { DownloadTaskRow, formatDownloadBytes } from '@/features/downloads/DownloadTaskRow';
 import {
   aggregateDownloadFraction,
-  type DownloadKind,
   type DownloadPhase,
   type DownloadTask,
-  downloadTaskFraction,
   isDownloadActive,
 } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { pluralRu } from '@/i18n/labels';
 
-const LABELS: Readonly<Record<DownloadPhase, string>> = {
-  queued: 'В очереди',
-  downloading: 'Скачивается',
-  retrying: 'Ожидаем повтор',
-  verifying: 'Проверяем данные',
-  installing: 'Сохраняем и подключаем',
-  completed: 'Готово',
-  failed: 'Нужен повтор',
-  cancelling: 'Останавливаем',
-  cancelled: 'Отменено',
-  interrupted: 'Прервано перезапуском',
-};
-const KINDS: Readonly<Record<DownloadKind, string>> = {
-  core: 'Ядро знаний',
-  module: 'Набор документов',
-  images: 'Изображения',
-  ecg: 'ЭКГ',
-  speech: 'Распознавание речи',
-  model: 'Локальная модель',
-  document: 'Файл',
-  app: 'Обновление приложения',
-};
-function bytes(value: number): string {
-  if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)} ГБ`;
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)} МБ`;
-  return `${Math.round(value / 1_000)} КБ`;
-}
-function detail(task: DownloadTask): string {
-  if (task.state === 'verifying') return 'Файл скачан. Проверка ещё не завершена.';
-  if (task.state === 'installing') return 'Завершаем сохранение. Этот этап нельзя прервать.';
-  if (task.state === 'cancelling')
-    return 'Ждём подтверждения остановки; место в очереди ещё занято.';
-  if (task.state === 'retrying')
-    return 'Место освобождено для других загрузок. Повтор запустится автоматически.';
-  if (task.state === 'interrupted') return 'Продолжить можно после сверки с текущим каталогом.';
-  if (task.state === 'queued')
-    return 'Запустится, когда появятся сеть и свободное место в очереди.';
-  const transferred = task.totalBytes
-    ? `${bytes(task.downloadedBytes)} из ${bytes(task.totalBytes)}`
-    : bytes(task.downloadedBytes);
-  return task.totalFiles !== null
-    ? `${transferred} · Файлы: ${task.completedFiles ?? 0} / ${task.totalFiles}`
-    : transferred;
-}
+const RUNNING = new Set<DownloadPhase>(['downloading', 'verifying', 'installing', 'cancelling']);
+const WAITING = new Set<DownloadPhase>(['queued', 'retrying']);
+const ATTENTION = new Set<DownloadPhase>(['failed', 'interrupted']);
 
-/** A view only: opening Settings never starts a database, model or download. */
 function downloadSummary(active: number, queued: number, attention: number): string {
   const parts: string[] = [];
   if (active > 0)
@@ -67,6 +31,7 @@ function downloadSummary(active: number, queued: number, attention: number): str
   return parts.length > 0 ? parts.join(' · ') : 'Сейчас ничего не скачивается';
 }
 
+/** A view only: opening Settings never starts a database, model or download. */
 export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}): JSX.Element {
   const queue = getDownloadQueue();
   const [tasks, setTasks] = createSignal(queue.list());
@@ -83,39 +48,66 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
     update();
     onCleanup(queue.subscribe(update));
   });
-  const active = () => tasks().filter(isDownloadActive);
-  const attention = () => tasks().filter((task) => ['failed', 'interrupted'].includes(task.state));
-  const visible = () =>
-    [...tasks()]
-      .reverse()
-      .filter(
-        (task) =>
-          filter() === 'all' ||
-          isDownloadActive(task) ||
-          ['failed', 'interrupted'].includes(task.state),
-      );
-  const fraction = () => aggregateDownloadFraction(tasks());
+  const attention = () => tasks().filter((task) => ATTENTION.has(task.state));
+  const fraction = () => aggregateDownloadFraction([...running(), ...waiting()]);
+  const running = () => tasks().filter((task) => RUNNING.has(task.state));
+  const waiting = () => tasks().filter((task) => WAITING.has(task.state));
+  /** Attention first, then work in progress, then the queue; newest first inside each group. */
+  const groups = () =>
+    [
+      { label: 'Требуют внимания', tasks: attention() },
+      { label: 'Скачиваются', tasks: running() },
+      { label: 'В очереди', tasks: waiting() },
+    ]
+      .map((group) => ({ ...group, tasks: [...group.tasks].reverse() }))
+      .filter((group) => group.tasks.length > 0);
+  const current = () => [...attention(), ...running(), ...waiting()];
+  const finished = () =>
+    [...tasks()].reverse().filter((task) => !isDownloadActive(task) && !ATTENTION.has(task.state));
+  const canCancelAny = () => tasks().some((task) => task.canCancel);
+  const overviewMark = (): DownloadProgressMarkState | undefined => {
+    if (running().length > 0) return 'running';
+    if (waiting().length > 0) return 'queued';
+    return undefined;
+  };
+  const overviewTitle = (): string => {
+    if (running().length > 0) return 'Идёт загрузка';
+    if (waiting().length > 0) return online() ? 'Ожидают своей очереди' : 'Ждём сеть';
+    if (attention().length > 0) return 'Нужна повторная попытка';
+    return 'Все загрузки завершены';
+  };
+  const overviewMeta = (): string => {
+    const parts: string[] = [];
+    if (running().length > 0) parts.push(`передач: ${running().length} из 3`);
+    if (waiting().length > 0) parts.push(`в очереди: ${waiting().length}`);
+    if (attention().length > 0) parts.push(`с ошибкой: ${attention().length}`);
+    // Failed work is not transferring; only running and waiting items make up the remaining volume.
+    const withSize = [...running(), ...waiting()].filter((task) => task.totalBytes);
+    if (withSize.length > 0) {
+      const done = withSize.reduce((sum, task) => sum + task.downloadedBytes, 0);
+      const total = withSize.reduce((sum, task) => sum + (task.totalBytes ?? 0), 0);
+      parts.push(`${formatDownloadBytes(done)} из ${formatDownloadBytes(total)}`);
+    }
+    return parts.length > 0
+      ? parts.join(' · ')
+      : 'Ядро, наборы документов, изображения и модели скачиваются через одну очередь.';
+  };
   const summary = () =>
     !online()
       ? 'Нет сети. Новые передачи ожидают подключения.'
-      : downloadSummary(
-          active().length,
-          tasks().filter((task) => task.state === 'queued').length,
-          attention().length,
-        );
+      : downloadSummary(running().length, waiting().length, attention().length);
   const act = (operation: () => Promise<void>): void => {
     setError('');
     void operation().catch(() =>
       setError('Действие не завершено. Состояние каждой загрузки указано ниже.'),
     );
   };
+  const cancel = (task: DownloadTask): void => act(() => queue.cancel(task.id));
+  const retry = (task: DownloadTask): void => act(() => queue.retry(task.id));
   return (
     <section
       class="content-download-status"
-      classList={{
-        'content-download-status--compact': props.compact,
-        'paper-card': !props.compact,
-      }}
+      classList={{ 'content-download-status--compact': props.compact }}
       aria-label="Все загрузки"
       data-testid="content-download-status"
     >
@@ -123,147 +115,128 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
         when={props.compact}
         fallback={
           <>
-            <header class="content-download-status__heading">
-              <div class="content-download-status__heading-text">
-                <h2 class="content-download-status__title">Все загрузки</h2>
-                <p class="content-download-status__summary">{summary()}</p>
+            <section
+              class="downloads-overview paper-card"
+              classList={{
+                'downloads-overview--attention': attention().length > 0 && !overviewMark(),
+              }}
+              aria-live="polite"
+            >
+              <span class="downloads-overview__mark">
+                <Show
+                  when={overviewMark()}
+                  fallback={
+                    <AppGlyph
+                      name={attention().length > 0 ? 'close' : 'check'}
+                      class="downloads-overview__glyph"
+                    />
+                  }
+                >
+                  {(state) => (
+                    <DownloadProgressMark
+                      class="downloads-overview__progress"
+                      state={state()}
+                      progress={fraction()}
+                    />
+                  )}
+                </Show>
+              </span>
+              <div class="downloads-overview__copy">
+                <h2 class="downloads-overview__title">{overviewTitle()}</h2>
+                <p class="downloads-overview__meta">{overviewMeta()}</p>
               </div>
-            </header>
-            <div class="content-download-status__actions">
-              <button
-                type="button"
-                class="content-download-status__action"
-                aria-pressed={filter() === 'active'}
-                onClick={() => setFilter('active')}
-              >
-                Текущие
-              </button>
-              <button
-                type="button"
-                class="content-download-status__action"
-                aria-pressed={filter() === 'all'}
-                onClick={() => setFilter('all')}
-              >
-                История
-              </button>
-              <Show when={attention().some((task) => task.canRetry)}>
-                <button
-                  type="button"
-                  class="content-download-status__action"
-                  onClick={() => act(() => queue.retryFailed())}
-                >
-                  Повторить ошибки
-                </button>
+              <Show when={attention().some((task) => task.canRetry) || canCancelAny()}>
+                <div class="downloads-overview__actions">
+                  <Show when={attention().some((task) => task.canRetry)}>
+                    <Button
+                      variant="primary"
+                      icon={<AppGlyph name="arrow-counter-clockwise" class="downloads-glyph" />}
+                      onClick={() => act(() => queue.retryFailed())}
+                    >
+                      Повторить ошибки
+                    </Button>
+                  </Show>
+                  <Show when={canCancelAny()}>
+                    <Button
+                      variant="secondary"
+                      icon={<AppGlyph name="close" class="downloads-glyph" />}
+                      onClick={() => act(() => queue.cancelAll())}
+                    >
+                      Отменить все
+                    </Button>
+                  </Show>
+                </div>
               </Show>
-              <Show when={tasks().some((task) => task.canCancel)}>
-                <button
-                  type="button"
-                  class="content-download-status__action"
-                  onClick={() => act(() => queue.cancelAll())}
-                >
-                  Отменить все
-                </button>
-              </Show>
-              <Show when={filter() === 'all'}>
-                <button
-                  type="button"
-                  class="content-download-status__action"
-                  onClick={() => queue.clearFinished()}
-                >
-                  Очистить историю
-                </button>
-              </Show>
-            </div>
+            </section>
+            <Show when={!online()}>
+              <p class="downloads-banner" role="status">
+                Нет сети. Передачи продолжатся после подключения.
+              </p>
+            </Show>
             <Show when={error() || storageError()}>
-              <p class="content-download-status__manager-error" role="alert">
+              <p class="downloads-banner downloads-banner--error" role="alert">
                 {error() || storageError()}
               </p>
             </Show>
+            <div class="downloads-toolbar">
+              <SegmentedControl
+                label="Показать загрузки"
+                value={filter()}
+                onChange={setFilter}
+                options={[
+                  { value: 'active', label: 'Текущие', count: current().length },
+                  { value: 'all', label: 'История' },
+                ]}
+              />
+              <Show when={filter() === 'all' && finished().length > 0}>
+                <Button variant="quiet" onClick={() => queue.clearFinished()}>
+                  Очистить историю
+                </Button>
+              </Show>
+            </div>
             <Show
-              when={visible().length > 0}
+              when={filter() === 'active'}
               fallback={
-                <p class="content-download-status__empty">
-                  Здесь появятся загрузки, когда вы начнёте что-нибудь скачивать.
-                </p>
+                <Show
+                  when={finished().length > 0}
+                  fallback={<p class="downloads-empty">История пуста.</p>}
+                >
+                  <ul class="downloads-group__list paper-card">
+                    <For each={finished()}>
+                      {(task) => <DownloadTaskRow task={task} onCancel={cancel} onRetry={retry} />}
+                    </For>
+                  </ul>
+                </Show>
               }
             >
-              <div class="content-download-status__scroll">
-                <ul class="content-download-status__list">
-                  <For each={visible()}>
-                    {(task) => (
-                      <li
-                        class="content-download-status__item"
-                        data-download-id={task.id}
-                        data-download-state={task.state}
-                        classList={{
-                          'content-download-status__item--failed': task.state === 'failed',
-                          'content-download-status__item--retrying': task.state === 'retrying',
-                        }}
-                      >
-                        <div class="content-download-status__row">
-                          <div class="content-download-status__identity">
-                            <strong class="content-download-status__name">{task.title}</strong>
-                            <small class="content-download-status__version">
-                              {KINDS[task.kind]}
-                            </small>
-                          </div>
-                          <span class="content-download-status__state" role="status">
-                            {LABELS[task.state]}
-                          </span>
-                        </div>
-                        <Show when={downloadTaskFraction(task) !== null}>
-                          <div
-                            class="content-download-status__progress"
-                            role="progressbar"
-                            aria-label={task.title}
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-valuenow={Math.floor((downloadTaskFraction(task) ?? 0) * 100)}
-                          >
-                            <span
-                              class="content-download-status__progress-fill"
-                              style={{
-                                width: `${Math.floor((downloadTaskFraction(task) ?? 0) * 100)}%`,
-                              }}
-                            />
-                          </div>
-                        </Show>
-                        <small class="content-download-status__detail">{detail(task)}</small>
-                        <Show when={task.errorMessage}>
-                          <small class="content-download-status__error">{task.errorMessage}</small>
-                        </Show>
-                        <div class="content-download-status__task-actions">
-                          <Show when={task.canCancel}>
-                            <button
-                              type="button"
-                              class="content-download-status__action"
-                              onClick={() => act(() => queue.cancel(task.id))}
-                            >
-                              Отменить
-                            </button>
-                          </Show>
-                          <Show when={task.canRetry}>
-                            <button
-                              type="button"
-                              class="content-download-status__action"
-                              onClick={() => act(() => queue.retry(task.id))}
-                            >
-                              Повторить сейчас
-                            </button>
-                          </Show>
-                          <Show when={task.state === 'interrupted' && !task.canRetry}>
-                            <small class="content-download-status__detail">
-                              Откройте раздел этой загрузки для проверки доступной версии.
-                            </small>
-                          </Show>
-                        </div>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </div>
+              <Show
+                when={current().length > 0}
+                fallback={
+                  <p class="downloads-empty">
+                    Здесь появятся загрузки, когда вы начнёте что-нибудь скачивать.
+                  </p>
+                }
+              >
+                <For each={groups()}>
+                  {(group) => (
+                    <section class="downloads-group" aria-label={group.label}>
+                      <h3 class="downloads-group__title">
+                        {group.label}
+                        <span class="downloads-group__count">{group.tasks.length}</span>
+                      </h3>
+                      <ul class="downloads-group__list paper-card">
+                        <For each={group.tasks}>
+                          {(task) => (
+                            <DownloadTaskRow task={task} onCancel={cancel} onRetry={retry} />
+                          )}
+                        </For>
+                      </ul>
+                    </section>
+                  )}
+                </For>
+              </Show>
             </Show>
-            <p class="content-download-status__summary">
+            <p class="downloads-footnote">
               Одновременно идёт до трёх загрузок. Их можно не ждать: переход в другие разделы
               загрузку не прерывает.
             </p>

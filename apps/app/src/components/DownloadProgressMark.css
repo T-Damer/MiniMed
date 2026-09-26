@@ -8,7 +8,9 @@
   aspect-ratio: 1;
   border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
   border-radius: 50%;
-  background: conic-gradient(
+  /* Keep the fill inside the ring; under the translucent border it tinted the edge yellow. */
+  background-clip: padding-box;
+  background-image: conic-gradient(
     var(--download-progress-mark-fill) var(--download-progress-mark-degrees, 0deg),
     color-mix(in srgb, currentColor 18%, transparent) var(--download-progress-mark-degrees, 0deg)
   );

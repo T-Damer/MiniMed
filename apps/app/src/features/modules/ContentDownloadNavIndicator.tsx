@@ -35,7 +35,9 @@ export function ContentDownloadNavIndicator(): JSX.Element {
           style={
             waiting()
               ? undefined
-              : { background: downloadNavPieBackground(progress() ?? 0.08, attention()) }
+              : {
+                  'background-image': downloadNavPieBackground(progress() ?? 0.08, attention()),
+                }
           }
           data-testid="content-download-nav"
           title={label()}
