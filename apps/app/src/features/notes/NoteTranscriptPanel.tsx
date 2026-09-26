@@ -34,6 +34,13 @@ function timeLabel(ms: number): string {
   return hours > 0 ? `${String(hours).padStart(2, '0')}:${body}` : body;
 }
 
+function normalizedTranscriptWords(value: string): string {
+  return value
+    .toLocaleLowerCase('ru-RU')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
 function defaultSpeakerLabels(transcript: NoteTranscript | null): ReadonlyMap<string, string> {
   const labels = new Map<string, string>();
   for (const segment of transcript?.segments ?? []) {
@@ -164,9 +171,17 @@ export function NoteTranscriptPanel(props: {
       )
       .join('\n\n');
 
-  const exportTranscript = (): void => {
-    const value =
-      (transcript()?.segments?.length ?? 0) > 0 ? speakerTranscript().trim() : draft().trim();
+  const timestampsMatchText = (): boolean => {
+    const segments = transcript()?.segments ?? [];
+    if (segments.length === 0) return false;
+    return (
+      normalizedTranscriptWords(draft()) ===
+      normalizedTranscriptWords(segments.map((segment) => segment.text).join(' '))
+    );
+  };
+
+  const exportTranscript = (withTimestamps = false): void => {
+    const value = withTimestamps ? speakerTranscript().trim() : draft().trim();
     if (!value) {
       toast.error('Расшифровка пустая.');
       return;
@@ -347,6 +362,12 @@ export function NoteTranscriptPanel(props: {
         </Show>
 
         <Show when={(transcript()?.segments?.length ?? 0) > 0}>
+          <Show when={!timestampsMatchText()}>
+            <p class="note-transcript__hint">
+              Текст был изменён словами. Таймкодные действия скрыты, потому что сегменты относятся
+              к исходному распознаванию. Обычный экспорт использует текущий отредактированный текст.
+            </p>
+          </Show>
           <div class="note-transcript__segments">
             <For each={transcript()?.segments ?? []}>
               {(segment) => (
@@ -391,7 +412,7 @@ export function NoteTranscriptPanel(props: {
           <Button type="button" onClick={() => void copy(draft())}>
             Копировать текст
           </Button>
-          <Show when={(transcript()?.segments?.length ?? 0) > 0}>
+          <Show when={timestampsMatchText()}>
             <Show when={props.onInsertText}>
               <Button
                 type="button"
@@ -407,9 +428,18 @@ export function NoteTranscriptPanel(props: {
               Копировать с таймкодами
             </Button>
           </Show>
-          <Button type="button" disabled={deleting()} onClick={exportTranscript}>
+          <Button type="button" disabled={deleting()} onClick={() => exportTranscript(false)}>
             Скачать .txt
           </Button>
+          <Show when={timestampsMatchText()}>
+            <Button
+              type="button"
+              disabled={deleting()}
+              onClick={() => exportTranscript(true)}
+            >
+              Скачать с таймкодами
+            </Button>
+          </Show>
           <Button
             type="button"
             disabled={deleting() || saving()}
