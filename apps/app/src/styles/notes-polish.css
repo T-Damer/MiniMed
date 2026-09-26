@@ -451,10 +451,14 @@
   height: 0.7rem;
 }
 
-.patient-note-form__categories-input {
+.patient-note-form__categories-field {
   flex: 1 1 8rem;
   min-width: 8rem;
-  width: auto;
+}
+
+.patient-note-form__categories-input {
+  min-width: 0;
+  width: 100%;
   padding: 0.25rem 0.15rem;
   border: 0;
   color: var(--theme-text);
