@@ -29,6 +29,7 @@ const files = {
   noteTranscriptionTests: read('apps/app/src/state/note-transcription.test.ts'),
   retentionCleanup: read('apps/app/src/state/note-retention-cleanup.ts'),
   patientNotes: read('apps/app/src/state/patient-notes.ts'),
+  patientWorkspace: read('apps/app/src/features/notes/PatientWorkspace.tsx'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
   diary: read('apps/app/src/diary/DiaryApp.tsx'),
   diaryMain: read('apps/app/src/diary/main.tsx'),
@@ -275,6 +276,14 @@ const checks = [
       files.retentionCleanup.includes('await deleteNoteImagesForNotes(ids)') &&
       files.retentionCleanup.includes("if (typeof window !== 'undefined')") &&
       files.retentionCleanup.includes('queueMicrotask'),
+  ],
+  [
+    'patient backup scope and destructive import are explicit',
+    files.patientWorkspace.includes('Импорт заменит текущие карточки пациентов') &&
+      files.patientWorkspace.includes('Личные заметки, голосовые вложения и их расшифровки') &&
+      files.patientWorkspace.includes('Backup этого раздела не включает личные заметки') &&
+      files.patientWorkspace.includes("label: 'Экспорт карточек пациентов'") &&
+      files.patientWorkspace.includes("label: 'Импорт карточек пациентов'"),
   ],
   [
     'diary shared controls',
