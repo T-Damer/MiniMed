@@ -103,6 +103,7 @@ import {
 } from '@/state/patient-notes';
 import {
   exportPersonalNotesBackup,
+  exportPersonalNotesCardBackup,
   importPersonalNotesBackup,
   MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES,
   parsePersonalNotesBackup,
@@ -124,6 +125,17 @@ type DeleteTarget =
       readonly title: string;
       readonly returnPath: string;
     };
+
+function safeNotesBackupName(value: string): string {
+  return (
+    value
+      .trim()
+      .replace(/[\\/:*?"<>|]+/gu, ' ')
+      .replace(/\s+/gu, ' ')
+      .slice(0, 80)
+      .trim() || 'Карточка'
+  );
+}
 
 function downloadNotesBackup(value: unknown, fileName: string): void {
   const blob = new Blob([JSON.stringify(value)], { type: 'application/json;charset=utf-8' });
@@ -477,6 +489,32 @@ export function NotesView(props: {
     }
   };
 
+  const exportCardBackup = async (card: PatientCard): Promise<void> => {
+    if (backupBusy()) return;
+    if (
+      !window.confirm(
+        `Экспортировать карточку «${card.title}» вместе со всеми её записями, файлами, ` +
+          'изображениями и расшифровками в незашифрованный JSON?',
+      )
+    ) {
+      return;
+    }
+    setBackupBusy(true);
+    try {
+      const backup = await exportPersonalNotesCardBackup(card.id);
+      const date = new Date().toISOString().slice(0, 10);
+      downloadNotesBackup(
+        backup,
+        `MiniMed — ${safeNotesBackupName(card.title)} — заметки — ${date}.json`,
+      );
+      toast.success(`Карточка «${card.title}» экспортирована.`);
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось экспортировать карточку.');
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
   const importNotesBackupFile = async (file: File): Promise<void> => {
     if (file.size > MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES) {
       toast.error('Backup личных заметок больше 512 МБ.');
@@ -486,11 +524,15 @@ export function NotesView(props: {
     try {
       const raw = await file.text();
       const backup = parsePersonalNotesBackup(JSON.parse(raw) as unknown);
+      const scopeMessage =
+        backup.scope.kind === 'card'
+          ? `Импорт заменит или добавит только карточку «${backup.snapshot.cards[0]?.title ?? backup.scope.cardId}». Остальные личные заметки останутся без изменений. `
+          : 'Импорт полностью заменит текущие личные заметки и их локальные вложения. ';
       const description =
         `В backup: карточек — ${backup.snapshot.cards.length}, записей — ${backup.snapshot.notes.length}, ` +
         `файлов — ${backup.files.length}, изображений — ${backup.images.length}, ` +
         `расшифровок — ${backup.transcripts.length}.\n\n` +
-        'Импорт полностью заменит текущие личные заметки и их локальные вложения. ' +
+        scopeMessage +
         'Карточки пациентов/осмотры из защищённого patient-vault не изменятся. Продолжить?';
       if (!window.confirm(description)) return;
       await importPersonalNotesBackup(backup);
@@ -1225,6 +1267,16 @@ export function NotesView(props: {
                     </small>
                   </button>
                   <div class="patient-card-corner-actions">
+                    <button
+                      type="button"
+                      class="patient-card-icon-action"
+                      aria-label={`Экспортировать карточку «${card.title}»`}
+                      title="Экспортировать карточку"
+                      disabled={backupBusy()}
+                      onClick={() => void exportCardBackup(card)}
+                    >
+                      <AppGlyph name="download" class="patient-card-icon-action__icon" />
+                    </button>
                     <button
                       type="button"
                       class="patient-card-icon-action danger"
