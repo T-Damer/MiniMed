@@ -8,9 +8,11 @@ import {
   readEcgModelDescriptor,
   subscribeEcgModel,
 } from './ecg-model';
-import type { EcgModelDescriptor, EcgReviewMaps } from './ecg-model-contract';
+import type { EcgModelDescriptor, EcgPhotoCorners, EcgReviewMaps } from './ecg-model-contract';
 import type { EcgPatientRoute } from './ecg-patient-age';
 import type { EcgPatientSex } from './ecg-photo-interpreter';
+import { createRectifiedEcgPhotoPreview, readEcgPhotoRgb } from './ecg-photo-rectification';
+import { detectEcgSheetCorners } from './ecg-sheet-corners';
 import {
   type EcgEditorDraft,
   type EcgEditorStep,
@@ -21,6 +23,16 @@ import {
   validEcgRegions,
 } from './ecgEditor';
 import { extractEcgEditorRegion, prepareEcgEditorReview } from './ecgReviewExtraction';
+
+export type EcgCornerSource = 'auto' | 'manual' | 'default';
+
+/** Starting handles when no sheet border was found: inset so every corner can be grabbed. */
+const DEFAULT_CORNERS: EcgPhotoCorners = {
+  topLeft: { x: 0.06, y: 0.06 },
+  topRight: { x: 0.94, y: 0.06 },
+  bottomRight: { x: 0.94, y: 0.94 },
+  bottomLeft: { x: 0.06, y: 0.94 },
+};
 
 export interface EcgEditorPhoto {
   readonly file: File;
@@ -55,6 +67,13 @@ async function readPhoto(file: File): Promise<EcgEditorPhoto> {
 export function useEcgEditor() {
   const [step, setStep] = createSignal<EcgEditorStep>(1);
   const [photo, setPhoto] = createSignal<EcgEditorPhoto>();
+  /** The untouched upload; `photo` is either this image or its perspective-corrected copy. */
+  const [original, setOriginal] = createSignal<EcgEditorPhoto>();
+  const [corners, setCorners] = createSignal<EcgPhotoCorners>();
+  const [cornerSource, setCornerSource] = createSignal<EcgCornerSource>();
+  const [detectingCorners, setDetectingCorners] = createSignal(false);
+  const [rectifying, setRectifying] = createSignal(false);
+  const rectified = (): boolean => Boolean(original() && photo() && photo() !== original());
   const [draft, setDraft] = createSignal<EcgEditorDraft>(EMPTY_ECG_DRAFT);
   const [past, setPast] = createSignal<readonly EcgEditorDraft[]>([]);
   const [future, setFuture] = createSignal<readonly EcgEditorDraft[]>([]);
@@ -162,7 +181,7 @@ export function useEcgEditor() {
   const canConfirmStep = createMemo(() => {
     switch (step()) {
       case 1:
-        return Boolean(photo()) && !loading();
+        return Boolean(photo()) && !loading() && !rectifying();
       case 2:
         return Boolean(ecgCalibrationScale(draft().calibration));
       case 3:
@@ -236,6 +255,70 @@ export function useEcgEditor() {
       if (version === generation) setDigitizing(false);
     }
   };
+  /** New pixel geometry invalidates every coordinate-bound annotation and the model maps. */
+  const resetMarkup = (): void => {
+    setDraft({ ...EMPTY_ECG_DRAFT, regions: ecgRegionTemplate('3x4+1R') });
+    setPast([]);
+    setFuture([]);
+    setMaps(undefined);
+    setAutoSummary(undefined);
+    setCalibrationConfirmed(false);
+    setRegionsConfirmed(false);
+    setPointsConfirmed(false);
+    setActiveRegion('rhythm-II');
+    setMeasurementRegion('rhythm-II');
+    setStudyRevision((value) => value + 1);
+  };
+  const detectCorners = async (file: File, version: number): Promise<void> => {
+    setDetectingCorners(true);
+    try {
+      const found = detectEcgSheetCorners(await readEcgPhotoRgb(file));
+      if (version !== generation) return;
+      setCorners(found?.corners ?? DEFAULT_CORNERS);
+      setCornerSource(found ? 'auto' : 'default');
+    } catch (cause) {
+      if (version === generation)
+        setError(cause instanceof Error ? cause.message : 'Не удалось найти углы листа.');
+    } finally {
+      if (version === generation) setDetectingCorners(false);
+    }
+  };
+  const showImage = async (next: EcgEditorPhoto, message: string): Promise<void> => {
+    generation += 1;
+    setDigitizing(false);
+    setPhoto(next);
+    resetMarkup();
+    setNotice(message);
+    if (model()) await digitize();
+  };
+  const rectify = async (): Promise<void> => {
+    const source = original();
+    const quad = corners();
+    if (!source || !quad || rectifying()) return;
+    const version = ++generation;
+    setRectifying(true);
+    setError('');
+    try {
+      const preview = await createRectifiedEcgPhotoPreview(source.file, quad);
+      const stem = source.file.name.replace(/\.[^.]+$/u, '') || 'ecg';
+      const next = await readPhoto(
+        new File([preview.blob], `${stem}-выпрямлено.jpg`, { type: 'image/jpeg' }),
+      );
+      if (version !== generation) return;
+      // The perspective panel states the rectified mode; a footer copy only repeated it.
+      await showImage(next, '');
+    } catch (cause) {
+      if (version === generation)
+        setError(cause instanceof Error ? cause.message : 'Не удалось выпрямить снимок.');
+    } finally {
+      setRectifying(false);
+    }
+  };
+  const restoreOriginal = async (): Promise<void> => {
+    const source = original();
+    if (!source || !rectified()) return;
+    await showImage(source, '');
+  };
   const load = async (file: File | undefined): Promise<void> => {
     if (!file) return;
     const version = ++generation;
@@ -247,17 +330,12 @@ export function useEcgEditor() {
     try {
       const next = await readPhoto(file);
       if (version !== generation) return;
+      setOriginal(next);
       setPhoto(next);
-      setStudyRevision((value) => value + 1);
-      setDraft({ ...EMPTY_ECG_DRAFT, regions: ecgRegionTemplate('3x4+1R') });
-      setPast([]);
-      setFuture([]);
-      setMaps(undefined);
-      setAutoSummary(undefined);
-      setCalibrationConfirmed(false);
-      setRegionsConfirmed(false);
-      setActiveRegion('rhythm-II');
-      setMeasurementRegion('rhythm-II');
+      setCorners(undefined);
+      setCornerSource(undefined);
+      resetMarkup();
+      void detectCorners(file, version);
       setPatientRoute('unknown');
       setSex(undefined);
       // Without the model, step 1 already offers installation; repeating it on every step was noise.
@@ -311,6 +389,18 @@ export function useEcgEditor() {
     step,
     go,
     photo,
+    original,
+    rectified,
+    corners,
+    cornerSource,
+    detectingCorners,
+    rectifying,
+    setCorners: (next: EcgPhotoCorners) => {
+      setCorners(next);
+      setCornerSource('manual');
+    },
+    rectify,
+    restoreOriginal,
     load,
     draft,
     commit,

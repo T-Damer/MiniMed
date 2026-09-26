@@ -62,6 +62,8 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   await context.addInitScript(() => {
     window.print = () => {};
   });
+  // First-run package setup and its feature tour overlay the tool route in a fresh profile.
+  await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto(`${origin}/#/calculators/ecg-photo-caliper`);
   await expect(page.getByRole('heading', { name: 'Загрузите ЭКГ' })).toBeVisible();

@@ -157,6 +157,7 @@ export function EcgEditorReport(props: {
             alt="ЭКГ, по которой выполнены измерения"
           />
           <p class="ecg-report__profile">
+            {e.rectified() ? 'снимок выпрямлен по 4 углам · ' : ''}
             {e.draft().calibration.speed} мм/с · {e.draft().calibration.gain} мм/мВ · отведение{' '}
             {measuredLead()} ·{' '}
             {e.patientRoute() === 'adult'

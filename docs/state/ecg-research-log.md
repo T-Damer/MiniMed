@@ -3,6 +3,30 @@
 > Moved verbatim from `docs/CURRENT_STATE.md` on 2026-09-24 so the mandatory state file stays short.
 > Newest entries first; later entries supersede earlier ones.
 
+## Perspective correction — 2026-09-26
+
+On upload the editor looks for the four sheet corners (`ecg-sheet-corners.ts`): Otsu-thresholded
+luminance at ≤512 px, a morphological close over grid lines and traces, the largest bright
+component, and its x±y extreme points; each side is then refined at full resolution by scanning
+from outside inward for the first dark→bright paper edge, fitting a total-least-squares line and
+intersecting neighbouring sides. It abstains (default inset handles) when the component is under
+20 % of the frame, touches every border, or fills under 85 % of its quadrilateral. Corners are
+draggable handles on the step-1 canvas (keyboard arrows as well); «Выпрямить по углам» reuses the
+existing `rectifyEcgPhotoRgb` homography, keeps the untouched upload as `original`, replaces the
+working image and resets all coordinate-bound markup and model maps; «Вернуть оригинал» restores
+it the same way. Calibration, regions, points, the digitizer and the report then use the rectified
+image, and the report states that it was rectified. The former unused `EcgPerspectiveEditor.tsx`
+was removed; its `.ecg-perspective*` rules in `ecg-photo-caliper.css` are now unused.
+
+Measured on a synthetic 150 × 100 mm sheet with a 1/5 mm grid, rotated and foreshortened into a
+900 × 700 photo (`ecg-sheet-corners.test.ts`): corners within 2.5 px (observed 1.7 px); after
+rectification the autocorrelation-measured 5 mm period differs from the true scale by 0.12 %
+horizontally and 0.28 % vertically, far vs near edge 0.00 % and left vs right 0.03 %, versus more
+than 5 % far/near difference on the raw photo. A browser regression (`ecg-perspective.spec.ts`,
+375 × 667) draws an affinely skewed sheet, finds four corners, rectifies, confirms calibration on
+the rectified image and restores the original. These are synthetic checks, not phone-camera
+evidence; curled paper and strong lens distortion are not modelled.
+
 ## Guided editor, stale-model update and numeric draft — 2026-09-26
 
 opening the calculator opens a fullscreen,

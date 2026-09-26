@@ -121,6 +121,52 @@ export function EcgModelOffer(props: { readonly editor: EcgEditor }): JSX.Elemen
   );
 }
 
+export function EcgPerspectivePanel(props: { readonly editor: EcgEditor }): JSX.Element {
+  const e = props.editor;
+  return (
+    <Show when={e.photo()}>
+      <section class="ecg-perspective-panel" aria-label="Перспектива снимка">
+        <p class="ecg-perspective-panel__text">
+          {e.rectified()
+            ? 'Снимок выпрямлен по 4 углам листа. Калибровка и разметка идут по выпрямленному снимку; исходное фото сохранено.'
+            : e.rectifying()
+              ? 'Выпрямляем снимок…'
+              : e.detectingCorners()
+                ? 'Ищем углы листа…'
+                : e.cornerSource() === 'default'
+                  ? 'Углы листа не найдены. Если снимок сделан под углом, перетащите четыре угла к углам листа или сетки и выпрямите его.'
+                  : 'Углы листа найдены автоматически. Если снимок сделан под углом, проверьте их на фото и выпрямите — клетки сетки станут одинаковыми.'}
+        </p>
+        <div class="ecg-perspective-panel__actions">
+          <Show
+            when={e.rectified()}
+            fallback={
+              <button
+                class="ecg-editor__button"
+                type="button"
+                disabled={!e.corners() || e.rectifying() || e.detectingCorners()}
+                onClick={() => void e.rectify()}
+              >
+                <AppGlyph class="ecg-editor__icon" name="frame-corners" />
+                Выпрямить по углам
+              </button>
+            }
+          >
+            <button
+              class="ecg-editor__button"
+              type="button"
+              onClick={() => void e.restoreOriginal()}
+            >
+              <AppGlyph class="ecg-editor__icon" name="arrow-counter-clockwise" />
+              Вернуть оригинал
+            </button>
+          </Show>
+        </div>
+      </section>
+    </Show>
+  );
+}
+
 export function EcgModelUpdateNotice(props: { readonly editor: EcgEditor }): JSX.Element {
   const e = props.editor;
   const [postponed, setPostponed] = createSignal(false);

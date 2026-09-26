@@ -446,6 +446,52 @@
   font-size: var(--type-micro);
 }
 
+.ecg-editor__sheet-outline {
+  fill: rgb(214 150 26 / 10%);
+  stroke: #d68a0f;
+  stroke-width: 2;
+  stroke-dasharray: 6 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.ecg-editor__sheet-dot {
+  fill: #ffffff;
+  stroke: #d68a0f;
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+/* Transparent finger-sized hit area around the small visible corner dot. */
+.ecg-editor__sheet-handle {
+  fill: transparent;
+  cursor: move;
+}
+.ecg-editor__sheet-handle:focus-visible {
+  outline: none;
+  stroke: #ffffff;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.ecg-perspective-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 1rem;
+}
+.ecg-perspective-panel__text {
+  min-width: 13rem;
+  flex: 1;
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.ecg-perspective-panel__actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
 .ecg-editor__report-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -538,6 +584,7 @@
     flex: 1;
   }
   .ecg-guide--padded,
+  .ecg-perspective-panel,
   .ecg-update,
   .ecg-offer,
   .ecg-summary {

@@ -9,6 +9,7 @@ import {
   EcgAutoSummary,
   EcgModelOffer,
   EcgModelUpdateNotice,
+  EcgPerspectivePanel,
   EcgStepGuide,
   EcgStepper,
 } from './EcgEditorFlow';
@@ -103,6 +104,7 @@ export function EcgPhotoCaliper(): JSX.Element {
                   : 'JPEG, PNG или WebP · обработка на устройстве'}
               </span>
             </div>
+            <EcgPerspectivePanel editor={editor} />
             <Show when={!editor.model()}>
               <EcgModelOffer editor={editor} />
             </Show>

@@ -11,7 +11,7 @@ import {
 } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { EcgPointTools } from './EcgPointTools';
-import type { EcgNormalizedPoint } from './ecg-model-contract';
+import type { EcgNormalizedPoint, EcgPhotoCorners } from './ecg-model-contract';
 import {
   ECG_POINT_LABELS,
   type EcgCalibrationLine,
@@ -26,9 +26,22 @@ import type { EcgEditor } from './useEcgEditor';
 import { useEcgViewport } from './useEcgViewport';
 
 type CalibrationAxis = 'horizontal' | 'vertical';
+type SheetCorner = keyof EcgPhotoCorners;
+const SHEET_CORNERS: readonly { readonly id: SheetCorner; readonly label: string }[] = [
+  { id: 'topLeft', label: 'Верхний левый угол листа' },
+  { id: 'topRight', label: 'Верхний правый угол листа' },
+  { id: 'bottomRight', label: 'Нижний правый угол листа' },
+  { id: 'bottomLeft', label: 'Нижний левый угол листа' },
+];
 type RegionCorner = 'tl' | 'tr' | 'bl' | 'br';
 type Gesture =
   | { readonly type: 'point'; readonly pointerId: number; readonly value: EcgEditorPoint }
+  | {
+      readonly type: 'corner';
+      readonly pointerId: number;
+      readonly corner: SheetCorner;
+      readonly value: EcgPhotoCorners;
+    }
   | {
       readonly type: 'region';
       readonly pointerId: number;
@@ -124,6 +137,11 @@ export function EcgEditorCanvas(props: {
     const current = gesture();
     return current?.type === 'region' && current.value.id === region.id ? current.value : region;
   };
+  const sheetCorners = (): EcgPhotoCorners | undefined => {
+    const current = gesture();
+    return current?.type === 'corner' ? current.value : e.corners();
+  };
+  const showCorners = () => e.step() === 1 && !e.rectified() && !e.rectifying();
   const calibration = (axis: CalibrationAxis): EcgCalibrationLine | undefined => {
     const current = gesture();
     return current?.type === 'calibration' && current.axis === axis
@@ -150,7 +168,9 @@ export function EcgEditorCanvas(props: {
     }
     event.preventDefault();
     const p = pointAt(event);
-    if (current.type === 'point') {
+    if (current.type === 'corner') {
+      setGesture({ ...current, value: { ...current.value, [current.corner]: p } });
+    } else if (current.type === 'point') {
       const region = e.draft().regions.find((r) => r.id === current.value.regionId);
       if (!region) return;
       setGesture({
@@ -198,7 +218,8 @@ export function EcgEditorCanvas(props: {
       return;
     }
     if (svg?.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
-    if (!cancel) {
+    if (!cancel && current.type === 'corner') e.setCorners(current.value);
+    else if (!cancel) {
       const draft = e.draft();
       if (current.type === 'point')
         e.commit({
@@ -210,7 +231,7 @@ export function EcgEditorCanvas(props: {
           ...draft,
           regions: draft.regions.map((r) => (r.id === current.value.id ? current.value : r)),
         });
-      else {
+      else if (current.type === 'calibration') {
         e.commit({
           ...draft,
           calibration: { ...draft.calibration, [current.axis]: current.value },
@@ -309,6 +330,57 @@ export function EcgEditorCanvas(props: {
           width={size().width}
           height={size().height}
         />
+        <Show when={showCorners() && sheetCorners()}>
+          {(quad) => (
+            <g class="ecg-editor__sheet">
+              <polygon
+                class="ecg-editor__sheet-outline"
+                points={SHEET_CORNERS.map(
+                  ({ id }) => `${quad()[id].x * size().width},${quad()[id].y * size().height}`,
+                ).join(' ')}
+              />
+              <For each={SHEET_CORNERS}>
+                {(corner) => (
+                  <g class="ecg-editor__sheet-corner">
+                    <circle
+                      class="ecg-editor__sheet-dot"
+                      cx={quad()[corner.id].x * size().width}
+                      cy={quad()[corner.id].y * size().height}
+                      r={radius() * 1.6}
+                    />
+                    {/* biome-ignore lint/a11y/useSemanticElements: SVG corner handles support keyboard movement. */}
+                    <circle
+                      class="ecg-editor__sheet-handle"
+                      cx={quad()[corner.id].x * size().width}
+                      cy={quad()[corner.id].y * size().height}
+                      r={hitRadius()}
+                      role="button"
+                      tabindex={0}
+                      aria-label={corner.label}
+                      onPointerDown={(event) =>
+                        capture(event, {
+                          type: 'corner',
+                          pointerId: event.pointerId,
+                          corner: corner.id,
+                          value: quad(),
+                        })
+                      }
+                      onKeyDown={(event) => {
+                        const d = keyDelta(event);
+                        if (!d) return;
+                        const previous = quad()[corner.id];
+                        e.setCorners({
+                          ...quad(),
+                          [corner.id]: { x: clamp(previous.x + d.x), y: clamp(previous.y + d.y) },
+                        });
+                      }}
+                    />
+                  </g>
+                )}
+              </For>
+            </g>
+          )}
+        </Show>
         <Show when={e.step() === 3 || e.step() === 4}>
           <For each={e.draft().regions}>
             {(region) => {

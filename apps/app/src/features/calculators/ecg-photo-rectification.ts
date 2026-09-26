@@ -153,55 +153,64 @@ export function rectifyEcgPhotoRgb(image: RgbImage, corners: EcgPhotoCorners): R
   return { data: output, height, width };
 }
 
-export async function createRectifiedEcgPhotoPreview(
-  file: Blob,
-  corners: EcgPhotoCorners,
-): Promise<RectifiedEcgPhotoPreview> {
+/** Decodes a photo into RGB, downscaled to at most MAX_OUTPUT_EDGE on the long side. */
+export async function readEcgPhotoRgb(file: Blob): Promise<RgbImage> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, MAX_OUTPUT_EDGE / Math.max(bitmap.width, bitmap.height));
-  const sourceWidth = Math.max(2, Math.round(bitmap.width * scale));
-  const sourceHeight = Math.max(2, Math.round(bitmap.height * scale));
-  const sourceCanvas = document.createElement('canvas');
-  sourceCanvas.width = sourceWidth;
-  sourceCanvas.height = sourceHeight;
-  const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
-  if (!sourceContext) {
+  const width = Math.max(2, Math.round(bitmap.width * scale));
+  const height = Math.max(2, Math.round(bitmap.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  if (!context) {
     bitmap.close();
-    throw new Error('Не удалось подготовить выправленный вид ЭКГ.');
+    throw new Error('Не удалось подготовить снимок ЭКГ.');
   }
-  sourceContext.drawImage(bitmap, 0, 0, sourceWidth, sourceHeight);
+  context.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
-  const rgba = sourceContext.getImageData(0, 0, sourceWidth, sourceHeight).data;
-  const rgb = new Uint8Array(sourceWidth * sourceHeight * 3);
+  const rgba = context.getImageData(0, 0, width, height).data;
+  const rgb = new Uint8Array(width * height * 3);
   for (let source = 0, target = 0; source < rgba.length; source += 4, target += 3) {
     rgb[target] = rgba[source] ?? 0;
     rgb[target + 1] = rgba[source + 1] ?? 0;
     rgb[target + 2] = rgba[source + 2] ?? 0;
   }
-  const rectified = rectifyEcgPhotoRgb(
-    { data: rgb, height: sourceHeight, width: sourceWidth },
-    corners,
-  );
-  const outputCanvas = document.createElement('canvas');
-  outputCanvas.width = rectified.width;
-  outputCanvas.height = rectified.height;
-  const outputContext = outputCanvas.getContext('2d');
-  if (!outputContext) throw new Error('Не удалось показать выправленный вид ЭКГ.');
-  const output = outputContext.createImageData(rectified.width, rectified.height);
-  for (let source = 0, target = 0; source < rectified.data.length; source += 3, target += 4) {
-    output.data[target] = rectified.data[source] ?? 0;
-    output.data[target + 1] = rectified.data[source + 1] ?? 0;
-    output.data[target + 2] = rectified.data[source + 2] ?? 0;
+  return { data: rgb, height, width };
+}
+
+async function encodeRgbJpeg(image: RgbImage): Promise<Blob> {
+  const canvas = document.createElement('canvas');
+  canvas.width = image.width;
+  canvas.height = image.height;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Не удалось показать выправленный вид ЭКГ.');
+  const output = context.createImageData(image.width, image.height);
+  for (let source = 0, target = 0; source < image.data.length; source += 3, target += 4) {
+    output.data[target] = image.data[source] ?? 0;
+    output.data[target + 1] = image.data[source + 1] ?? 0;
+    output.data[target + 2] = image.data[source + 2] ?? 0;
     output.data[target + 3] = 255;
   }
-  outputContext.putImageData(output, 0, 0);
-  const blob = await new Promise<Blob>((resolve, reject) => {
-    outputCanvas.toBlob(
+  context.putImageData(output, 0, 0);
+  return await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
       (value) =>
         value ? resolve(value) : reject(new Error('Не удалось сохранить выправленный вид.')),
       'image/jpeg',
-      0.9,
+      0.92,
     );
   });
-  return { blob, height: rectified.height, width: rectified.width };
+}
+
+export async function createRectifiedEcgPhotoPreview(
+  file: Blob,
+  corners: EcgPhotoCorners,
+): Promise<RectifiedEcgPhotoPreview> {
+  const rectified = rectifyEcgPhotoRgb(await readEcgPhotoRgb(file), corners);
+  return {
+    blob: await encodeRgbJpeg(rectified),
+    height: rectified.height,
+    width: rectified.width,
+  };
 }

@@ -16,6 +16,8 @@ test('proposes local segmentation and editable unconfirmed points offline on iPh
   // The 19 MB model download dominates; slow mirrors have taken about ten minutes.
   test.setTimeout(1_200_000);
   if (!fixturePath) throw new Error('ECG_SUCCESS_QA_FILE is required.');
+  // First-run package setup and its feature tour overlay the tool route in a fresh profile.
+  await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto(`${origin}/#/calculators/ecg-photo-caliper`);
   await page.getByRole('button', { name: 'Установить авторазметку · 19 МБ' }).click();

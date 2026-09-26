@@ -61,6 +61,7 @@ Detailed history, moved verbatim on 2026-09-24:
   update, and the 30 numeric-model features drafted from confirmed editor points. Details and
   checks: [state/ecg-research-log.md](state/ecg-research-log.md). The dev/preview Vite server
   serves `/content/releases/<tag>/<file>` from the gitignored `.cache/releases/` cache.
+- **ECG perspective.** Automatic sheet corners with manual handles and «Выпрямить по углам»; calibration runs on the rectified image, the original is kept ([details](state/ecg-research-log.md)).
 - **Query-parser POC (tools only).** Local LLM/GLiNER parsers compared with the deterministic
   parser on 40 realistic narratives; no model or runtime was added to the app. See
   [research/query-parser-llm-ner-poc-2026-09.md](research/query-parser-llm-ner-poc-2026-09.md).
