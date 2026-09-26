@@ -114,6 +114,30 @@ describe('portable personal-notes backup', () => {
       thumbnailDataUrl: 'data:image/png;base64,AQID',
       createdAt: '2026-09-26T07:21:00.000Z',
     });
+    env.local.setItem(
+      'minimed.patient-note-drafts.v1',
+      JSON.stringify({
+        'note-1': {
+          noteId: 'note-1',
+          title: 'Старый черновик',
+          text: 'Черновик до импорта',
+          categories: 'Общее',
+          reminderDate: '',
+          reminderTime: '',
+          savedAt: '2026-09-26T07:30:00.000Z',
+        },
+      }),
+    );
+    env.local.setItem(
+      'minimed.patient-note-revisions.v1',
+      JSON.stringify({
+        'note-1': {
+          noteId: 'note-1',
+          text: 'Предыдущая версия до импорта',
+          savedAt: '2026-09-26T07:31:00.000Z',
+        },
+      }),
+    );
     env.transcripts.set('file-audio', {
       fileId: 'file-audio',
       noteId: 'note-1',
@@ -187,11 +211,25 @@ describe('portable personal-notes backup', () => {
       speakerNames: { 'speaker-1': 'Врач' },
       status: 'done',
     });
+    expect(env.local.getItem('minimed.patient-note-drafts.v1')).toBeNull();
+    expect(env.local.getItem('minimed.patient-note-revisions.v1')).toBeNull();
   });
 
   it('rejects a transcript that is not linked to its source audio before mutating data', async () => {
     const env = installEnvironment();
     env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
+    env.local.setItem(
+      'minimed.patient-note-drafts.v1',
+      JSON.stringify({
+        'note-1': {
+          noteId: 'note-1',
+          text: 'Не удалять при отказе импорта',
+          reminderDate: '',
+          reminderTime: '',
+          savedAt: '2026-09-26T07:00:00.000Z',
+        },
+      }),
+    );
     const { importPersonalNotesBackup } = await import('./personal-notes-backup');
 
     const broken = {
@@ -220,5 +258,6 @@ describe('portable personal-notes backup', () => {
       cards?: Array<{ id?: string }>;
     };
     expect(current.cards?.[0]?.id).toBe('card-1');
+    expect(env.local.getItem('minimed.patient-note-drafts.v1')).not.toBeNull();
   });
 });
