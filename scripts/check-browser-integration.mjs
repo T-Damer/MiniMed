@@ -219,10 +219,9 @@ const checks = [
       files.voiceRecorder.includes('chunks = []'),
   ],
   [
-    'attachment deletion is privacy-first',
-    replaceFileSection.indexOf('await deleteTranscript(fileId)') >= 0 &&
-      replaceFileSection.indexOf('await deleteTranscript(fileId)') <
-        replaceFileSection.indexOf('const database = await openDatabase()') &&
+    'replacement is atomic while deletion remains privacy-first',
+    replaceFileSection.indexOf('await deleteTranscript(fileId)') >
+      replaceFileSection.indexOf('window.dispatchEvent(new Event(NOTE_FILES_EVENT))') &&
       deleteFileSection.indexOf('await deleteTranscript(fileId)') >= 0 &&
       deleteFileSection.indexOf('await deleteTranscript(fileId)') <
         deleteFileSection.indexOf('const database = await openDatabase()') &&
