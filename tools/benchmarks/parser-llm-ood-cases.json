@@ -1,0 +1,713 @@
+{
+  "schema_version": 1,
+  "dataset": "minimed-parser-llm-ood-v1",
+  "provenance": "Agent-authored realistic Russian case narratives for the parser LLM/NER comparison; not clinician-written and not release evidence.",
+  "fact_format": "type may be one type or a list of accepted types; value may be one normalized value or a list of accepted alternatives; optional facts are neither rewarded nor penalized and match regardless of polarity.",
+  "cases": [
+    {
+      "id": "ood-01",
+      "query": "Ребенок 3 года, кашель 2 дня, сейчас влажный, температура до 38.5, сыпи нет. Что делать?",
+      "intent": "treatment",
+      "facts": [
+        { "type": "age", "value": "3 лет", "polarity": "positive" },
+        { "type": "symptom", "value": ["кашель", "влажный кашель"], "polarity": "positive" },
+        { "type": "duration", "value": "2 дня", "polarity": "positive" },
+        { "type": "temperature", "value": "38.5", "polarity": "positive" },
+        { "type": "symptom", "value": "сыпь", "polarity": "negative" }
+      ]
+    },
+    {
+      "id": "ood-02",
+      "query": "Ж 34 г, беременность 12 нед, жжение при мочеиспускании 3 дня, t 37,4. Аллергия на цефалоспорины. Чем лечить?",
+      "intent": "treatment",
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive" },
+        { "type": "age", "value": "34 лет", "polarity": "positive" },
+        { "type": "pregnancy", "value": "беременность", "polarity": "positive" },
+        { "type": "gestational_age", "value": "12 недель", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["жжение при мочеиспускании", "дизурия"],
+          "polarity": "positive"
+        },
+        { "type": "duration", "value": "3 дня", "polarity": "positive" },
+        { "type": "temperature", "value": "37.4", "polarity": "positive" },
+        { "type": "allergy", "value": "аллергия на цефалоспорины", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-03",
+      "query": "Мужчина 67 лет, одышка при минимальной нагрузке, отеки голеней, АД 160/95, ЧСС 104, СКФ 28",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "мужской", "polarity": "positive" },
+        { "type": "age", "value": "67 лет", "polarity": "positive" },
+        { "type": "symptom", "value": ["одышка", "одышка при нагрузке"], "polarity": "positive" },
+        { "type": "symptom", "value": ["отеки голеней", "отеки"], "polarity": "positive" },
+        { "type": "vital", "value": "АД 160/95", "polarity": "positive" },
+        { "type": "vital", "value": "ЧСС 104", "polarity": "positive" },
+        {
+          "type": ["investigation", "organ_function"],
+          "value": ["СКФ 28", "СКФ"],
+          "polarity": "positive"
+        }
+      ]
+    },
+    {
+      "id": "ood-04",
+      "query": "Девочка 7 мес, вес 8,2 кг, жидкий стул до 6 раз в день, рвота, мочится редко. Какие анализы?",
+      "intent": "diagnosis",
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive" },
+        { "type": "age", "value": "7 месяцев", "polarity": "positive" },
+        { "type": "weight", "value": "8.2 кг", "polarity": "positive" },
+        { "type": "symptom", "value": ["жидкий стул", "диарея"], "polarity": "positive" },
+        { "type": "frequency", "value": "6 раз в сутки", "polarity": "positive", "optional": true },
+        { "type": "symptom", "value": "рвота", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["мочится редко", "редкое мочеиспускание", "олигурия"],
+          "polarity": "positive",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-05",
+      "query": "Мальчик 10 лет, болит горло 4 дня, налеты на миндалинах, кашля и насморка нет, t 39",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "мужской", "polarity": "positive" },
+        { "type": "age", "value": "10 лет", "polarity": "positive" },
+        { "type": "symptom", "value": ["боль в горле", "болит горло"], "polarity": "positive" },
+        { "type": "duration", "value": "4 дня", "polarity": "positive" },
+        { "type": "symptom", "value": ["налеты на миндалинах", "налеты"], "polarity": "positive" },
+        { "type": "symptom", "value": "кашель", "polarity": "negative" },
+        { "type": "symptom", "value": "насморк", "polarity": "negative" },
+        { "type": "temperature", "value": "39", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-06",
+      "query": "пациентка 45 лет с СД 2 типа, HbA1c 9,1%, принимает метформин 1000 мг 2 р/д, креатинин 140",
+      "intent": ["treatment", "unknown", "mixed"],
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive" },
+        { "type": "age", "value": "45 лет", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["сахарный диабет 2 типа", "СД 2 типа"],
+          "polarity": "positive"
+        },
+        {
+          "type": "investigation",
+          "value": ["HbA1c 9.1%", "HbA1c 9.1", "гликированный гемоглобин 9.1"],
+          "polarity": "positive"
+        },
+        { "type": "medication", "value": "метформин", "polarity": "positive" },
+        { "type": "strength", "value": "1000 мг", "polarity": "positive" },
+        { "type": "frequency", "value": "2 раза в сутки", "polarity": "positive" },
+        { "type": "investigation", "value": "креатинин 140", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-07",
+      "query": "Температурит третьи сутки, до 39,5, парацетамол не сбивает, ребенку 2 года 12 кг",
+      "intent": ["treatment", "medication"],
+      "facts": [
+        { "type": "temperature", "value": "39.5", "polarity": "positive" },
+        { "type": "duration", "value": ["3 дня", "3 суток"], "polarity": "positive" },
+        { "type": "medication", "value": "парацетамол", "polarity": "negative" },
+        { "type": "age", "value": "2 лет", "polarity": "positive" },
+        { "type": "weight", "value": "12 кг", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["лихорадка", "температура", "температурит"],
+          "polarity": "positive",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-08",
+      "query": "Амоксиклав 3й день без эффекта, сохраняется лихорадка и влажный кашель, сатурация 93%",
+      "intent": ["treatment", "medication"],
+      "facts": [
+        { "type": "medication", "value": "амоксиклав", "polarity": "negative" },
+        { "type": "duration", "value": "3 дня", "polarity": "positive", "optional": true },
+        { "type": "symptom", "value": "лихорадка", "polarity": "positive" },
+        { "type": "symptom", "value": ["кашель", "влажный кашель"], "polarity": "positive" },
+        { "type": "vital", "value": "SpO2 93", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-09",
+      "query": "Подозрение на пневмонию у ребенка 5 лет, ЧДД 36, хрипы справа, лейкоциты 18",
+      "intent": "diagnosis",
+      "facts": [
+        { "type": "symptom", "value": "пневмония", "polarity": "uncertain" },
+        { "type": "age", "value": "5 лет", "polarity": "positive" },
+        { "type": "vital", "value": "ЧДД 36", "polarity": "positive" },
+        { "type": "symptom", "value": ["хрипы справа", "хрипы"], "polarity": "positive" },
+        { "type": "investigation", "value": ["лейкоциты 18", "лейкоцитоз"], "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-10",
+      "query": "Женщина 28 лет, 32 нед беременности, АД 150/100, отеки, белок в моче",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive" },
+        { "type": "age", "value": "28 лет", "polarity": "positive" },
+        { "type": "gestational_age", "value": "32 недель", "polarity": "positive" },
+        { "type": "pregnancy", "value": "беременность", "polarity": "positive" },
+        { "type": "vital", "value": "АД 150/100", "polarity": "positive" },
+        { "type": "symptom", "value": "отеки", "polarity": "positive" },
+        {
+          "type": ["investigation", "symptom"],
+          "value": ["белок в моче", "протеинурия"],
+          "polarity": "positive"
+        }
+      ]
+    },
+    {
+      "id": "ood-11",
+      "query": "боль в животе справа внизу с утра, тошнит, рвоты не было, стул норм",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        {
+          "type": "symptom",
+          "value": [
+            "боль в животе справа внизу",
+            "боль в животе",
+            "боль в правой подвздошной области"
+          ],
+          "polarity": "positive"
+        },
+        { "type": "duration", "value": "с утра", "polarity": "positive", "optional": true },
+        { "type": "symptom", "value": ["тошнота", "тошнит"], "polarity": "positive" },
+        { "type": "symptom", "value": "рвота", "polarity": "negative" },
+        {
+          "type": "symptom",
+          "value": ["стул", "нормальный стул", "нарушение стула"],
+          "polarity": "positive",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-12",
+      "query": "Ребенок 4 года, укусила оса 20 минут назад, отек лица, осиплость голоса. Аллергии раньше не было",
+      "intent": "treatment",
+      "facts": [
+        { "type": "age", "value": "4 лет", "polarity": "positive" },
+        { "type": "symptom", "value": ["укус осы", "укус"], "polarity": "positive" },
+        { "type": "duration", "value": "20 минут", "polarity": "positive", "optional": true },
+        { "type": "symptom", "value": "отек лица", "polarity": "positive" },
+        { "type": "symptom", "value": ["осиплость голоса", "осиплость"], "polarity": "positive" },
+        { "type": "allergy", "value": "аллергия", "polarity": "negative" }
+      ]
+    },
+    {
+      "id": "ood-13",
+      "query": "мужик 50 лет давит за грудиной 30 мин, отдает в левую руку, холодный пот",
+      "intent": ["diagnosis", "treatment", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "мужской", "polarity": "positive" },
+        { "type": "age", "value": "50 лет", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["боль за грудиной", "давит за грудиной", "давящая боль за грудиной"],
+          "polarity": "positive"
+        },
+        { "type": "duration", "value": "30 минут", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["отдает в левую руку", "иррадиация в левую руку", "боль в левой руке"],
+          "polarity": "positive",
+          "optional": true
+        },
+        { "type": "symptom", "value": ["холодный пот", "потливость"], "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-14",
+      "query": "Мама спрашивает дозу нурофена ребенку 1,5 года, вес 11 кг, сироп 100мг/5мл",
+      "intent": "medication",
+      "facts": [
+        { "type": "medication", "value": ["нурофен", "ибупрофен"], "polarity": "positive" },
+        { "type": "age", "value": "18 месяцев", "polarity": "positive" },
+        { "type": "weight", "value": "11 кг", "polarity": "positive" },
+        { "type": "dose_form", "value": "сироп", "polarity": "positive" },
+        { "type": "strength", "value": "100 мг/5 мл", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-15",
+      "query": "пациент 72 г на варфарине, МНО 4,2, кровоточивость десен, черного стула нет",
+      "intent": ["treatment", "unknown"],
+      "facts": [
+        { "type": "age", "value": "72 лет", "polarity": "positive" },
+        { "type": "sex", "value": "мужской", "polarity": "positive", "optional": true },
+        { "type": "medication", "value": "варфарин", "polarity": "positive" },
+        { "type": "investigation", "value": "МНО 4.2", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["кровоточивость десен", "кровоточивость"],
+          "polarity": "positive"
+        },
+        { "type": "symptom", "value": ["черный стул", "мелена"], "polarity": "negative" }
+      ]
+    },
+    {
+      "id": "ood-16",
+      "query": "Девочка 15 лет, 2 недели сухой кашель по ночам, свистящее дыхание при беге, в семье астма",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive" },
+        { "type": "age", "value": "15 лет", "polarity": "positive" },
+        { "type": "duration", "value": "2 недели", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["сухой кашель", "кашель", "ночной кашель"],
+          "polarity": "positive"
+        },
+        {
+          "type": "symptom",
+          "value": ["свистящее дыхание", "свистящее дыхание при беге"],
+          "polarity": "positive"
+        },
+        {
+          "type": "symptom",
+          "value": ["астма", "бронхиальная астма", "астма в семье"],
+          "polarity": "positive",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-17",
+      "query": "Ребенку 3 нед, желтушка не проходит, стул светлый, моча темная",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "age", "value": ["21 день", "3 недели"], "polarity": "positive" },
+        { "type": "symptom", "value": ["желтуха", "желтушка"], "polarity": "positive" },
+        { "type": "symptom", "value": ["светлый стул", "ахоличный стул"], "polarity": "positive" },
+        { "type": "symptom", "value": "темная моча", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-18",
+      "query": "Пациентка 30 лет, головная боль пульсирующая с одной стороны, светобоязнь, тошнота, приступы 2-3 раза в месяц",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive" },
+        { "type": "age", "value": "30 лет", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["головная боль", "пульсирующая головная боль", "односторонняя головная боль"],
+          "polarity": "positive"
+        },
+        { "type": "symptom", "value": "светобоязнь", "polarity": "positive" },
+        { "type": "symptom", "value": "тошнота", "polarity": "positive" },
+        {
+          "type": "frequency",
+          "value": "2-3 раза в месяц",
+          "polarity": "positive",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-19",
+      "query": "Нужна схема эрадикации H. pylori, аллергия на пенициллины, кларитромицин не принимал",
+      "intent": ["treatment", "medication"],
+      "facts": [
+        {
+          "type": ["symptom", "investigation"],
+          "value": ["H. pylori", "хеликобактер", "эрадикация H. pylori"],
+          "polarity": "positive",
+          "optional": true
+        },
+        {
+          "type": "allergy",
+          "value": ["аллергия на пенициллины", "аллергия на пенициллин"],
+          "polarity": "positive"
+        },
+        { "type": "medication", "value": "кларитромицин", "polarity": "negative" }
+      ]
+    },
+    {
+      "id": "ood-20",
+      "query": "ОРВИ у ребенка 6 лет, насморк, t 37,8, кашля нет, чем капать нос",
+      "intent": ["treatment", "medication"],
+      "facts": [
+        { "type": "symptom", "value": "ОРВИ", "polarity": "positive" },
+        { "type": "age", "value": "6 лет", "polarity": "positive" },
+        { "type": "symptom", "value": "насморк", "polarity": "positive" },
+        { "type": "temperature", "value": "37.8", "polarity": "positive" },
+        { "type": "symptom", "value": "кашель", "polarity": "negative" }
+      ]
+    },
+    {
+      "id": "ood-21",
+      "query": "Мужчина 58 л, ХБП 4 ст, нужно обезболивающее, НПВС нельзя?",
+      "intent": ["medication", "treatment"],
+      "facts": [
+        { "type": "sex", "value": "мужской", "polarity": "positive" },
+        { "type": "age", "value": "58 лет", "polarity": "positive" },
+        {
+          "type": ["organ_function", "symptom"],
+          "value": ["хроническая болезнь почек", "ХБП", "ХБП 4 стадии", "почечная недостаточность"],
+          "polarity": "positive"
+        },
+        {
+          "type": "medication",
+          "value": ["НПВС", "обезболивающее"],
+          "polarity": "uncertain",
+          "optional": true
+        },
+        {
+          "type": "medication",
+          "value": ["обезболивающее", "анальгетик"],
+          "polarity": "positive",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-22",
+      "query": "Бабушка 80 лет упала, боль в бедре, не может встать на ногу, нога ротирована кнаружи",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive" },
+        { "type": "age", "value": "80 лет", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["падение", "упала"],
+          "polarity": "positive",
+          "optional": true
+        },
+        { "type": "symptom", "value": "боль в бедре", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["не может встать на ногу", "невозможность опоры на ногу"],
+          "polarity": "positive",
+          "optional": true
+        },
+        {
+          "type": "symptom",
+          "value": ["наружная ротация ноги", "нога ротирована кнаружи"],
+          "polarity": "positive",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-23",
+      "query": "t 38,9 у ребенка 8 мес, без катаральных явлений, 2 сутки, ОАМ: лейкоциты сплошь",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "temperature", "value": "38.9", "polarity": "positive" },
+        { "type": "age", "value": "8 месяцев", "polarity": "positive" },
+        { "type": "symptom", "value": "катаральные явления", "polarity": "negative" },
+        {
+          "type": "duration",
+          "value": ["2 дня", "2 суток"],
+          "polarity": "positive",
+          "optional": true
+        },
+        {
+          "type": "investigation",
+          "value": [
+            "ОАМ: лейкоциты сплошь",
+            "лейкоциты в моче",
+            "лейкоцитурия",
+            "лейкоциты сплошь"
+          ],
+          "polarity": "positive"
+        }
+      ]
+    },
+    {
+      "id": "ood-24",
+      "query": "Беременность исключена, 25 лет, цистит, чем лечить",
+      "intent": "treatment",
+      "facts": [
+        { "type": "pregnancy", "value": "беременность", "polarity": "negative" },
+        { "type": "age", "value": "25 лет", "polarity": "positive" },
+        { "type": "symptom", "value": "цистит", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-25",
+      "query": "Ребёнок 2 г. 9 мес., вес 14 кг, рвота 3 раза, не удерживает воду, сухой язык",
+      "intent": ["diagnosis", "treatment", "unknown"],
+      "facts": [
+        { "type": "age", "value": "33 месяцев", "polarity": "positive" },
+        { "type": "weight", "value": "14 кг", "polarity": "positive" },
+        { "type": "symptom", "value": "рвота", "polarity": "positive" },
+        { "type": "frequency", "value": "3 раза", "polarity": "positive", "optional": true },
+        {
+          "type": "symptom",
+          "value": ["не удерживает воду", "невозможность пить"],
+          "polarity": "positive",
+          "optional": true
+        },
+        { "type": "symptom", "value": ["сухой язык", "сухость языка"], "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-26",
+      "query": "Пациент на гемодиализе, гиперкалиемия 6,8, ЭКГ высокие зубцы Т",
+      "intent": ["treatment", "unknown"],
+      "facts": [
+        {
+          "type": ["organ_function", "symptom", "investigation"],
+          "value": ["гемодиализ", "почечная недостаточность"],
+          "polarity": "positive",
+          "optional": true
+        },
+        {
+          "type": ["investigation", "symptom"],
+          "value": ["гиперкалиемия", "калий 6.8", "гиперкалиемия 6.8"],
+          "polarity": "positive"
+        },
+        {
+          "type": "investigation",
+          "value": ["ЭКГ высокие зубцы Т", "высокие зубцы Т"],
+          "polarity": "positive"
+        },
+        { "type": "sex", "value": "мужской", "polarity": "positive", "optional": true }
+      ]
+    },
+    {
+      "id": "ood-27",
+      "query": "СОЭ 45, CRP 80, боли в плечах и бедрах по утрам, 70 лет",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "investigation", "value": "СОЭ 45", "polarity": "positive" },
+        { "type": "investigation", "value": ["CRP 80", "СРБ 80"], "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["боли в плечах", "боль в плечах", "боли в плечах и бедрах"],
+          "polarity": "positive"
+        },
+        {
+          "type": "symptom",
+          "value": ["боли в бедрах", "боль в бедрах"],
+          "polarity": "positive",
+          "optional": true
+        },
+        { "type": "age", "value": "70 лет", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-28",
+      "query": "Цефтриаксон в/м ребенку 20 кг какая доза при отите",
+      "intent": "medication",
+      "facts": [
+        { "type": "medication", "value": "цефтриаксон", "polarity": "positive" },
+        { "type": "route", "value": "внутримышечно", "polarity": "positive" },
+        { "type": "weight", "value": "20 кг", "polarity": "positive" },
+        { "type": "symptom", "value": "отит", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-29",
+      "query": "Сыпь по всему телу после амоксициллина, зуда нет, отека губ нет",
+      "intent": ["treatment", "diagnosis", "unknown"],
+      "facts": [
+        { "type": "symptom", "value": ["сыпь", "сыпь по всему телу"], "polarity": "positive" },
+        { "type": "medication", "value": "амоксициллин", "polarity": "positive" },
+        { "type": "symptom", "value": "зуд", "polarity": "negative" },
+        { "type": "symptom", "value": ["отек губ", "отек"], "polarity": "negative" },
+        {
+          "type": "allergy",
+          "value": ["аллергия на амоксициллин", "аллергия"],
+          "polarity": "uncertain",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-30",
+      "query": "Сахар 2,8 у пациента с СД 1, в сознании",
+      "intent": ["treatment", "unknown"],
+      "facts": [
+        {
+          "type": ["investigation", "vital", "symptom"],
+          "value": ["сахар 2.8", "глюкоза 2.8", "гликемия 2.8", "гипогликемия"],
+          "polarity": "positive"
+        },
+        {
+          "type": "symptom",
+          "value": ["сахарный диабет 1 типа", "СД 1", "СД 1 типа"],
+          "polarity": "positive"
+        },
+        {
+          "type": "symptom",
+          "value": ["нарушение сознания", "сознание", "в сознании"],
+          "polarity": "negative",
+          "optional": true
+        },
+        { "type": "sex", "value": "мужской", "polarity": "positive", "optional": true }
+      ]
+    },
+    {
+      "id": "ood-31",
+      "query": "Кашель больше 3 недель, похудел на 5 кг, ночная потливость, контакт с туберкулезом",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "symptom", "value": "кашель", "polarity": "positive" },
+        { "type": "duration", "value": ["3 недели", "более 3 недель"], "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["похудание", "похудел", "потеря веса", "снижение веса"],
+          "polarity": "positive"
+        },
+        { "type": "weight", "value": "5 кг", "polarity": "positive", "optional": true },
+        { "type": "symptom", "value": "ночная потливость", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["контакт с туберкулезом", "туберкулез"],
+          "polarity": "positive"
+        },
+        { "type": "sex", "value": "мужской", "polarity": "positive", "optional": true }
+      ]
+    },
+    {
+      "id": "ood-32",
+      "query": "Мальчику 4 года, ларингит, лающий кашель, стридор в покое, ЧДД 40",
+      "intent": ["treatment", "diagnosis", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "мужской", "polarity": "positive" },
+        { "type": "age", "value": "4 лет", "polarity": "positive" },
+        { "type": "symptom", "value": "ларингит", "polarity": "positive" },
+        { "type": "symptom", "value": ["лающий кашель", "кашель"], "polarity": "positive" },
+        { "type": "symptom", "value": ["стридор", "стридор в покое"], "polarity": "positive" },
+        { "type": "vital", "value": "ЧДД 40", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-33",
+      "query": "Женщина 40 лет, ИМТ 35, АД 145/90 при повторных измерениях, отеков нет",
+      "intent": ["diagnosis", "treatment", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive" },
+        { "type": "age", "value": "40 лет", "polarity": "positive" },
+        { "type": ["investigation", "vital"], "value": "ИМТ 35", "polarity": "positive" },
+        { "type": "vital", "value": "АД 145/90", "polarity": "positive" },
+        { "type": "symptom", "value": "отеки", "polarity": "negative" }
+      ]
+    },
+    {
+      "id": "ood-34",
+      "query": "У ребенка 11 мес судороги на фоне t 39,3 впервые, длились 2 минуты",
+      "intent": ["treatment", "diagnosis", "unknown"],
+      "facts": [
+        { "type": "age", "value": "11 месяцев", "polarity": "positive" },
+        { "type": "symptom", "value": ["судороги", "фебрильные судороги"], "polarity": "positive" },
+        { "type": "temperature", "value": "39.3", "polarity": "positive" },
+        { "type": "duration", "value": "2 минуты", "polarity": "positive", "optional": true }
+      ]
+    },
+    {
+      "id": "ood-35",
+      "query": "Пациенту 35 лет нужен антибиотик при синусите, аллергии на лекарства нет",
+      "intent": ["medication", "treatment"],
+      "facts": [
+        { "type": "age", "value": "35 лет", "polarity": "positive" },
+        { "type": "symptom", "value": "синусит", "polarity": "positive" },
+        {
+          "type": "allergy",
+          "value": ["аллергия на лекарства", "аллергия"],
+          "polarity": "negative"
+        },
+        { "type": "medication", "value": "антибиотик", "polarity": "positive", "optional": true },
+        { "type": "sex", "value": "мужской", "polarity": "positive", "optional": true }
+      ]
+    },
+    {
+      "id": "ood-36",
+      "query": "кормящая мама 26 лет, мастит, t 38,2, можно ли продолжать ГВ",
+      "intent": ["treatment", "care-guidance"],
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive", "optional": true },
+        { "type": "age", "value": "26 лет", "polarity": "positive" },
+        { "type": "symptom", "value": "мастит", "polarity": "positive" },
+        { "type": "temperature", "value": "38.2", "polarity": "positive" },
+        {
+          "type": ["symptom", "pregnancy"],
+          "value": ["грудное вскармливание", "лактация", "кормящая", "ГВ"],
+          "polarity": "positive",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-37",
+      "query": "Давление 90/60, пульс 120, бледный, кровь в рвоте, ребенку 12 лет",
+      "intent": ["treatment", "diagnosis", "unknown"],
+      "facts": [
+        { "type": "vital", "value": "АД 90/60", "polarity": "positive" },
+        { "type": "vital", "value": "ЧСС 120", "polarity": "positive" },
+        { "type": "symptom", "value": ["бледность", "бледный"], "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["кровь в рвоте", "рвота с кровью", "кровавая рвота", "гематемезис"],
+          "polarity": "positive"
+        },
+        { "type": "age", "value": "12 лет", "polarity": "positive" },
+        { "type": "sex", "value": "мужской", "polarity": "positive", "optional": true }
+      ]
+    },
+    {
+      "id": "ood-38",
+      "query": "Мальчик 6 лет, диарея 5 дней, не лихорадит, кровь в стуле, в саду был случай сальмонеллеза",
+      "intent": ["diagnosis", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "мужской", "polarity": "positive" },
+        { "type": "age", "value": "6 лет", "polarity": "positive" },
+        { "type": "symptom", "value": "диарея", "polarity": "positive" },
+        { "type": "duration", "value": "5 дней", "polarity": "positive" },
+        { "type": "symptom", "value": ["лихорадка", "температура"], "polarity": "negative" },
+        { "type": "symptom", "value": "кровь в стуле", "polarity": "positive" },
+        {
+          "type": "symptom",
+          "value": ["сальмонеллез", "контакт с сальмонеллезом"],
+          "polarity": "positive",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "id": "ood-39",
+      "query": "Пациентка 55 лет, ТТГ 12, свободный Т4 снижен, слабость, зябкость",
+      "intent": ["diagnosis", "treatment", "unknown"],
+      "facts": [
+        { "type": "sex", "value": "женский", "polarity": "positive" },
+        { "type": "age", "value": "55 лет", "polarity": "positive" },
+        { "type": "investigation", "value": "ТТГ 12", "polarity": "positive" },
+        {
+          "type": "investigation",
+          "value": ["свободный Т4 снижен", "свободный Т4", "Т4 снижен"],
+          "polarity": "positive"
+        },
+        { "type": "symptom", "value": "слабость", "polarity": "positive" },
+        { "type": "symptom", "value": "зябкость", "polarity": "positive" }
+      ]
+    },
+    {
+      "id": "ood-40",
+      "query": "Ребенок 5 лет, 18 кг, в/в инфузия при обезвоживании, какой объем",
+      "intent": ["medication", "treatment"],
+      "facts": [
+        { "type": "age", "value": "5 лет", "polarity": "positive" },
+        { "type": "weight", "value": "18 кг", "polarity": "positive" },
+        { "type": "route", "value": "внутривенно", "polarity": "positive" },
+        { "type": "symptom", "value": "обезвоживание", "polarity": "positive" }
+      ]
+    }
+  ]
+}

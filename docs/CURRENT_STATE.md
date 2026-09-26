@@ -61,6 +61,9 @@ Detailed history, moved verbatim on 2026-09-24:
   update, and the 30 numeric-model features drafted from confirmed editor points. Details and
   checks: [state/ecg-research-log.md](state/ecg-research-log.md). The dev/preview Vite server
   serves `/content/releases/<tag>/<file>` from the gitignored `.cache/releases/` cache.
+- **Query-parser POC (tools only).** Local LLM/GLiNER parsers compared with the deterministic
+  parser on 40 realistic narratives; no model or runtime was added to the app. See
+  [research/query-parser-llm-ner-poc-2026-09.md](research/query-parser-llm-ner-poc-2026-09.md).
 - **Integration note.** These entries were developed on a base older than 0.6.40 and merged on
   2026-09-26; the merge combined the consent-gated core download with the other-tab lock wait and
   the FeatureCard ECG settings with the model-update state.
