@@ -575,6 +575,56 @@ export async function hydratePatientNotesFromIndexedDb(): Promise<PatientNotesSn
   }
 }
 
+export async function replacePatientNotesSnapshot(
+  value: unknown,
+): Promise<PatientNotesSnapshot> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('Повреждён snapshot личных заметок.');
+  }
+  const candidate = value as { readonly cards?: unknown; readonly notes?: unknown };
+  if (!Array.isArray(candidate.cards) || !candidate.cards.every(isCard)) {
+    throw new Error('Backup содержит повреждённые карточки заметок.');
+  }
+  if (!Array.isArray(candidate.notes) || !candidate.notes.every(isNote)) {
+    throw new Error('Backup содержит повреждённые записи.');
+  }
+
+  const cards = candidate.cards;
+  const notes = candidate.notes.map(normalizedNote);
+  const cardIds = new Set<string>();
+  for (const card of cards) {
+    if (!card.id || cardIds.has(card.id)) throw new Error('ID карточек в backup должны быть уникальны.');
+    cardIds.add(card.id);
+  }
+
+  const notesById = new Map<string, PatientNote>();
+  for (const note of notes) {
+    if (!note.id || notesById.has(note.id)) throw new Error('ID заметок в backup должны быть уникальны.');
+    if (!cardIds.has(note.cardId)) throw new Error('Backup содержит заметку без карточки.');
+    notesById.set(note.id, note);
+  }
+
+  for (const note of notes) {
+    if (!note.parentNoteId) continue;
+    const parent = notesById.get(note.parentNoteId);
+    if (!parent || parent.cardId !== note.cardId) {
+      throw new Error('Backup содержит неверную иерархию заметок.');
+    }
+    const visited = new Set<string>([note.id]);
+    let cursor: PatientNote | undefined = parent;
+    while (cursor) {
+      if (visited.has(cursor.id)) throw new Error('Backup содержит цикл вложенных заметок.');
+      visited.add(cursor.id);
+      cursor = cursor.parentNoteId ? notesById.get(cursor.parentNoteId) : undefined;
+    }
+  }
+
+  const snapshot: PatientNotesSnapshot = { cards, notes };
+  persist(snapshot);
+  await persistToIndexedDb(snapshot);
+  return snapshot;
+}
+
 export function createPatientCard(title: string, summary = ''): PatientNotesSnapshot {
   const trimmed = title.trim();
   if (!trimmed) return loadPatientNotes();
