@@ -11,7 +11,11 @@
 - The patient card can issue a blood-pressure, glucose or medication diary. The lightweight
   `app/diary/` entry stores patient-entered readings locally, exchanges invitation/result payloads
   through QR codes and can export an HL7 FHIR R4 bundle. Doctor-side import remains idempotent by
-  diary/entry id and can attach imported events to an open visit.
+  diary/entry id and can attach imported events to an open visit. The QR transport caps both encoded
+  input and decompressed JSON (1 MiB), rejects oversized individual QR chunks, limits photo import
+  batches/files, and releases camera/ImageBitmap resources on every exit path. The local diary index
+  is reconstructed from source records after corrupt/stale/quota-failed index writes, and patients
+  can explicitly remove a stored diary. Its scoped service worker caches static assets only.
 - Note drawings support links to MiniMed documents, calculators, assessments and notes through the
   shared note-link target index. Drawing attachments render an actual Excalidraw preview in note
   timelines instead of a generic file icon.
@@ -23,7 +27,7 @@
   present in the integration tree.
 - Draft PR #185 (`feature/browser-integration` → `main`) is the consolidated review surface.
   GitHub Actions are intentionally not used because the repository Actions quota is exhausted.
-  Dependency-free source validation currently passes 48/48 invariants across diary, canvas,
+  Dependency-free source validation currently passes 56/56 invariants across diary, canvas,
   MediaRecorder, structured ASR, persistent Whisper lifecycle, transcript retention, portable
   personal-notes backup, diarization admission and integration wiring.
   A full browser
