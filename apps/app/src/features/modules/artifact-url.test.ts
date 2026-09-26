@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+const platform = vi.hoisted(() => ({ native: false }));
+vi.mock('@capacitor/core', () => ({
+  Capacitor: { isNativePlatform: () => platform.native },
+}));
+
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
 import { APP_PREFERENCES_KEY } from '@/state/app-preferences';
 
@@ -7,6 +12,31 @@ describe('resolveContentModuleArtifactUrl', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
+    platform.native = false;
+  });
+  it('reads terminology and definition-reference releases from the Pages release mirror', () => {
+    vi.stubGlobal('window', { location: { href: 'https://t-damer.github.io/MiniMed/app/' } });
+    vi.stubEnv('BASE_URL', './');
+    for (const [tag, file] of [
+      ['terminology-ru-2026.9.16', 'minimed.terminology.ruwiktionary.index.db.gz'],
+      ['definition-reference-2026.9.27', 'minimed.definition.reference.2026.9.27.db.gz'],
+    ] as const) {
+      const release = `https://github.com/T-Damer/MiniMed/releases/download/${tag}/${file}`;
+      expect(resolveContentModuleArtifactUrl(release)).toBe(
+        `https://t-damer.github.io/MiniMed/app/content/releases/${tag}/${file}`,
+      );
+      platform.native = true;
+      vi.stubGlobal('window', { location: { href: 'https://localhost/' } });
+      expect(resolveContentModuleArtifactUrl(release)).toBe(
+        `https://t-damer.github.io/MiniMed/app/content/releases/${tag}/${file}`,
+      );
+      platform.native = false;
+      vi.stubGlobal('window', { location: { href: 'http://127.0.0.1:5173/' } });
+      expect(resolveContentModuleArtifactUrl(release)).toBe(
+        `http://127.0.0.1:5173/content/releases/${tag}/${file}`,
+      );
+      vi.stubGlobal('window', { location: { href: 'https://t-damer.github.io/MiniMed/app/' } });
+    }
   });
   it('switches DEV downloads between local files and GitHub, ignoring the preference in production', () => {
     let local = true;

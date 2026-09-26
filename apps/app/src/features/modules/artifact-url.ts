@@ -1,3 +1,5 @@
+import { MIRRORED_DATA_RELEASE_TAG } from '@/features/network/mirrored-release-tags';
+import { releaseAssetMirrorUrl } from '@/features/network/release-mirror';
 import { loadAppPreferences } from '@/state/app-preferences';
 
 const GITHUB_RELEASE_PATTERN =
@@ -68,6 +70,9 @@ export function resolveContentModuleArtifactUrl(url: string): string {
       ) {
         // Large medication databases live in LFS; media URLs expose bytes with browser CORS.
         return `https://media.githubusercontent.com/media/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
+      }
+      if (MIRRORED_DATA_RELEASE_TAG.test(releaseTag) && fileName.endsWith('.db.gz')) {
+        return releaseAssetMirrorUrl(releaseTag, fileName);
       }
       if (
         fileName.startsWith('clinical-') &&

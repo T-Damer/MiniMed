@@ -6,6 +6,17 @@
   gap: 1rem;
   min-width: 0;
 }
+.reference-panel__draft {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--theme-danger) 45%, transparent);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text);
+  background: color-mix(in srgb, var(--theme-danger) 12%, var(--theme-surface-raised));
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
 .reference-panel__notice {
   margin: 0;
   padding: 0.85rem 1rem;

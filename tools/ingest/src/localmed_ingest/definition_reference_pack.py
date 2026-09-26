@@ -21,6 +21,7 @@ from typing import cast
 from urllib.parse import unquote, urljoin, urlsplit
 
 from .definition_reference_scope import definition_scope
+from .definition_reference_state import REFERENCE_PUBLICATION_STATES
 from .models import ContentPack, PackChunk, PackDocument, PackManifest, PackSection, PackVersion
 from .sqlite_builder import inspect_integrity, write_sqlite_pack
 
@@ -376,16 +377,24 @@ class Projection:
             raise ValueError("Reference build entry budget exceeded")
 
     def build(
-        self, output: Path, *, edition_id: str, version: str, built_at: str
+        self,
+        output: Path,
+        *,
+        edition_id: str,
+        version: str,
+        built_at: str,
+        publication_state: str = "local-dev",
     ) -> dict[str, object]:
         if not self.entries or output.exists():
             raise ValueError("Need nonempty inputs and a new immutable output path")
+        if publication_state not in REFERENCE_PUBLICATION_STATES:
+            raise ValueError("Unsupported definition reference publication state")
         manifest = {
             "contract": 1,
             "editionId": edition_id,
             "version": version,
             "reviewStatus": "requires-review",
-            "publicationState": "local-dev",
+            "publicationState": publication_state,
             "identityStatus": "source-local-proposed",
             "receipts": self.receipts,
             "entries": len(self.entries),
@@ -560,6 +569,7 @@ def build_definition_reference(
     completion_inputs: tuple[Path, ...] = (),
     supplied_root: Path | None = None,
     supplied_manifest: Path | None = None,
+    publication_state: str = "local-dev",
 ) -> dict[str, object]:
     projection = Projection()
     if not inputs or len(inputs) > 32:
@@ -629,7 +639,13 @@ def build_definition_reference(
         seen.add(receipt)
         completed += apply_name_completions(projection, json.loads(payload), receipt)
         projection.receipts.append({"sha256": receipt, "bytes": len(payload)})
-    report = projection.build(output, edition_id=edition_id, version=version, built_at=built_at)
+    report = projection.build(
+        output,
+        edition_id=edition_id,
+        version=version,
+        built_at=built_at,
+        publication_state=publication_state,
+    )
     report["completedNames"] = completed
     report["suppliedSources"] = {
         "entries": supplied_entries,

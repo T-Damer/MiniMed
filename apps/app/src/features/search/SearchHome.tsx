@@ -49,6 +49,7 @@ import { searchSectionDownloadBlocks } from '@/features/search/searchSectionDown
 import { UnifiedSearchCatalog } from '@/features/search/UnifiedSearchCatalog';
 import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { openDocumentOverlay } from '@/state/document-navigation';
+import { experimentalModulesEnabled } from '@/state/experimental-modules';
 import {
   ignoreAppUpdate,
   isHomeAppUpdateVisible,
@@ -91,13 +92,18 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       icon: 'microphone',
       run: () => void startConversation(),
     },
-    {
-      id: APP_TOOL_IDS.reference,
-      title: 'Словарь терминов',
-      kindLabel: 'Справочник',
-      icon: 'book-open',
-      run: () => setReferenceOpen(true),
-    },
+    // The draft definition reference is an experimental module.
+    ...(experimentalModulesEnabled()
+      ? [
+          {
+            id: APP_TOOL_IDS.reference,
+            title: 'Словарь терминов',
+            kindLabel: 'Черновой справочник',
+            icon: 'book-open' as const,
+            run: () => setReferenceOpen(true),
+          },
+        ]
+      : []),
     ...featuredCatalogTools(catalogQuickTools()),
   ]);
   const quickTools = createMemo(() => [
@@ -381,7 +387,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         />
       </div>
 
-      <Show when={referenceOpen()}>
+      <Show when={referenceOpen() && experimentalModulesEnabled()}>
         <OverlayDialog
           open
           title="Словарь терминов"

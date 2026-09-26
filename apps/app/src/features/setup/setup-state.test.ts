@@ -53,6 +53,13 @@ describe('package setup', () => {
     expect(groups).toHaveLength(1);
     expect(groups[0]?.modules.map((entry) => entry.id)).toEqual(['dictionary']);
   });
+  it('lists experimental (preview) packages only while experimental modules are enabled', () => {
+    const modules = [module('draft-dictionary', 'reference', false, 'preview')];
+    expect(setupPackageGroups(modules, { experimental: false })).toEqual([]);
+    expect(
+      setupPackageGroups(modules, { experimental: true })[0]?.modules.map((entry) => entry.id),
+    ).toEqual(['draft-dictionary']);
+  });
   it('does not promote a planned package into a published download', () => {
     const groups = setupPackageGroups([module('later', 'reference', false, 'planned')]);
     expect(groups[0]?.modules[0]?.releaseState).toBe('planned');

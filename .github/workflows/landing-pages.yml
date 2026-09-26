@@ -16,6 +16,7 @@ on:
       - "bun.lock"
       - "uv.lock"
       - ".github/workflows/landing-pages.yml"
+      - "scripts/list-mirrored-release-assets.ts"
 
 permissions:
   contents: read
@@ -70,6 +71,17 @@ jobs:
             --pattern minimed-ecg-open-digitizer-2026.1-q8.zip \
             --pattern minimed-ecg-numeric-adult-2026.2.zip \
             --dir apps/app/public/content/releases/models-preview-1 --clobber
+          # Data prereleases (terminology, draft definition reference) advertised by the module
+          # catalogs. Release hosts send no CORS headers, so the app reads these Pages copies.
+          bun scripts/list-mirrored-release-assets.ts > "$RUNNER_TEMP/mirrored-assets.tsv"
+          while IFS=$'\t' read -r tag file bytes digest; do
+            dir="apps/app/public/content/releases/$tag"
+            mkdir -p "$dir"
+            gh release download "$tag" --repo "$GITHUB_REPOSITORY" \
+              --pattern "$file" --dir "$dir" --clobber
+            test "$(stat -c '%s' "$dir/$file")" = "$bytes"
+            echo "$digest  $dir/$file" | sha256sum --check -
+          done < "$RUNNER_TEMP/mirrored-assets.tsv"
       - name: Build regulatory and reference databases
         run: |
           mkdir -p apps/app/public/content

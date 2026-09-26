@@ -8,6 +8,8 @@ import sqlite3
 from collections.abc import Iterable
 from typing import cast
 
+from .definition_reference_state import REFERENCE_PUBLICATION_STATES
+
 type Cell = str | int | float | None
 LINK_COLUMNS = (
     "id, entity_id, document_id, document_version_id, section_id, chunk_id, "
@@ -103,7 +105,7 @@ def compact_reference_links(database: sqlite3.Connection) -> dict[str, object]:
         manifest = cast(dict[str, object], manifest)
         if (
             manifest.get("contract") != 1
-            or manifest.get("publicationState") != "local-dev"
+            or manifest.get("publicationState") not in REFERENCE_PUBLICATION_STATES
             or manifest.get("reviewStatus") != "requires-review"
             or manifest.get("identityStatus") != "source-local-proposed"
         ):

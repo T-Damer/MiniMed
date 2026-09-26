@@ -42,7 +42,11 @@ export function currentNetworkConnection(): NetworkConnectionHint | undefined {
   return (navigator as Navigator & { readonly connection?: NetworkConnectionHint }).connection;
 }
 
-export function setupPackageGroups(modules: readonly ContentModuleCatalogEntry[]) {
+/** Preview (experimental) packages are listed only while experimental modules are enabled. */
+export function setupPackageGroups(
+  modules: readonly ContentModuleCatalogEntry[],
+  options: { readonly experimental: boolean } = { experimental: true },
+) {
   const kinds = [
     ['reference', 'Справочники и словари', 'Определения терминов и справочные материалы.'],
     ['clinical', 'Клинические рекомендации', 'Полные документы по нужным специальностям.'],
@@ -58,7 +62,11 @@ export function setupPackageGroups(modules: readonly ContentModuleCatalogEntry[]
       description,
       modules: modules
         .filter(
-          (module) => module.kind === kind && !module.required && module.releaseState !== 'bundled',
+          (module) =>
+            module.kind === kind &&
+            !module.required &&
+            module.releaseState !== 'bundled' &&
+            (options.experimental || module.releaseState !== 'preview'),
         )
         .toSorted(
           (a, b) =>

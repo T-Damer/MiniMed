@@ -19,6 +19,18 @@ Detailed history, moved verbatim on 2026-09-24:
 
 ## After 0.6.40 on `release/0.6.40` (unreleased) — 2026-09-26
 
+- **Experimental definition reference and data-release mirror.** Everything that previously worked
+  only in DEV now follows the experimental-modules setting (default on). The draft dictionary
+  edition `2026.9.27` (16 069 entries, 27 003 687-byte gzip, 127 369 216 bytes installed; verified
+  by `scripts/verify-definition-reference.ts`: all 12 644 source names found) is built with
+  `prepare-definition-reference.py --publication-state experimental-preview --artifact-url …` and
+  advertised from the `definition-reference-2026.9.27` data prerelease. Release hosts send no CORS
+  headers and the old resolver rewrote such URLs to a nonexistent raw-`main` path (terminology
+  downloads returned 404 since 0.6.39), so `terminology-*` and `definition-reference-*` assets are
+  now read from the Pages mirror (`content/releases/<tag>/<file>`, absolute on native builds) via
+  the shared `releaseAssetMirrorUrl`; `landing-pages.yml` mirrors exactly the assets the catalogs
+  advertise (`scripts/list-mirrored-release-assets.ts`), verifying size and SHA-256 (~64 MB; the
+  Pages site stays ≈677 MB of 1 GB). Definition drafts remain DEV-only.
 - **Search home widget, favourites and tool collections.** The welcome block (greeting, key tools
   and the ECG photo entry, previously a separate card) collapses once typing starts; a compact
   «Мои инструменты» row stays above the field with favourite chips and a menu: favourites first,
@@ -244,12 +256,17 @@ released), the native Android transcriber, and the Android high-refresh display 
 
 ## Production versus DEV boundaries
 
-- **Definition reference (thesaurus) is disabled in production.** The reader accepts only
-  editions whose manifest says `publicationState: local-dev`, and the only catalog descriptor is the
-  DEV-only `catalog.definition-reference.local.json`. The app dispatcher also rejects the
-  `fragments-v1` metadata layout, so that compaction is not used in the app. All definition
-  content is `requires-review`.
-- Definition drafts (`content/definition-drafts`) load only under `import.meta.env.DEV`.
+- **Definition reference (thesaurus) ships as an experimental module.** The reader accepts
+  `publicationState` `local-dev` (a developer's own build, DEV-only `catalog.definition-reference.local.json`,
+  which replaces the published entry with the same id) or `experimental-preview` (the edition
+  advertised in `catalog.preview.json` as a `preview` module, installable only while experimental
+  modules are enabled; `minAppVersion` 0.6.41). The «Словарь» entry points and the onboarding row
+  follow the same setting reactively. All content stays `requires-review` and the UI says «Черновая
+  редакция, не проверено». The app dispatcher still rejects the `fragments-v1` metadata layout.
+- Definition drafts (`content/definition-drafts`, ~39 MB of JSON) still load only under
+  `import.meta.env.DEV`; shipping them needs a separate downloadable artifact, not bundle chunks.
+- DEV-only infrastructure (not features): local module artifacts (`artifact-url.ts`), local
+  reference-image assets, DEV download settings and the DEV update checker.
 - Ordinary lookup is deterministic: lexical FTS5, aliases, exact-identity retention, bounded
   medication spelling alternatives. No model participates in ordinary search. Laya multilingual and
   a Russian cross-encoder were measured and not adopted (they lowered Top-1 on the frozen

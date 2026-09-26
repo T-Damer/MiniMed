@@ -109,7 +109,26 @@ export type DefinitionReferenceReply =
   | { readonly op: 'source'; readonly source: Readonly<Record<string, unknown>> | null }
   | { readonly op: 'annotations'; readonly page: DefinitionReferenceAnnotationPage };
 
-/** This contract currently describes explicitly selected, local-dev reference editions only. */
+/**
+ * Where an edition may come from. Neither state is clinically reviewed:
+ * - `local-dev`: a developer's own build, loaded only by DEV builds from `public/content`;
+ * - `experimental-preview`: a published draft edition in the ordinary module catalog, offered
+ *   only while experimental modules are enabled and always shown as requiring review.
+ */
+export const DEFINITION_REFERENCE_PUBLICATION_STATES = [
+  'local-dev',
+  'experimental-preview',
+] as const;
+export type DefinitionReferencePublicationState =
+  (typeof DEFINITION_REFERENCE_PUBLICATION_STATES)[number];
+
+export function isDefinitionReferencePublicationState(
+  value: unknown,
+): value is DefinitionReferencePublicationState {
+  return DEFINITION_REFERENCE_PUBLICATION_STATES.some((state) => state === value);
+}
+
+/** Catalog capability of an explicitly selected, unreviewed reference edition. */
 export const DefinitionReferenceModuleSchema = z
   .object({
     contract: z.literal(1),

@@ -1,4 +1,9 @@
-"""Build the current source-linked DEV dictionary; no model, release or owner-source upload."""
+"""Build the source-linked dictionary edition; never uploads models, releases or owner sources.
+
+`--publication-state local-dev` (default) writes the DEV edition and its ignored local descriptor.
+`experimental-preview` writes a publishable draft edition plus a catalog entry for the release
+owner to upload; the app offers it only while experimental modules are enabled.
+"""
 
 from __future__ import annotations
 
@@ -45,7 +50,26 @@ def main() -> None:
     )
     parser.add_argument("--supplied-root", type=Path)
     parser.add_argument("--supplied-manifest", type=Path)
+    parser.add_argument(
+        "--publication-state",
+        choices=("local-dev", "experimental-preview"),
+        default="local-dev",
+    )
+    parser.add_argument(
+        "--artifact-url",
+        help="Final download URL of the .db.gz (required for experimental-preview).",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        help="Destination for experimental-preview output (default data/build/definition-reference/<version>).",
+    )
     args = parser.parse_args()
+    experimental = args.publication_state == "experimental-preview"
+    if experimental and not args.artifact_url:
+        parser.error("experimental-preview needs --artifact-url of the uploaded .db.gz")
+    if not experimental and (args.artifact_url or args.output_dir):
+        parser.error("--artifact-url/--output-dir apply only to experimental-preview")
     if (args.supplied_root is None) != (args.supplied_manifest is None):
         parser.error("Supply both --supplied-root and --supplied-manifest")
     if not re.fullmatch(r"[a-z0-9]+(?:[.-][a-z0-9]+)*", args.version):
@@ -55,8 +79,16 @@ def main() -> None:
     inputs, expected_entries = read_source_manifest(root, source_manifest)
     for source_input in inputs:
         require_active_definition_source(obj(json.loads(source_input.read_bytes())))
-    destination = root / "apps/app/public/content/definition-reference"
+    destination = (
+        (args.output_dir or root / "data/build/definition-reference" / args.version)
+        if experimental
+        else root / "apps/app/public/content/definition-reference"
+    )
     file_name = f"minimed.definition.reference.{args.version}.db"
+    if experimental and not str(args.artifact_url).startswith("https://"):
+        parser.error("--artifact-url must be an https URL")
+    if experimental and not str(args.artifact_url).endswith("/" + file_name + ".gz"):
+        parser.error(f"--artifact-url must end with /{file_name}.gz")
     database = destination / file_name
     archive = destination / (file_name + ".gz")
     report_path = destination / (file_name + ".report.json")
@@ -78,6 +110,7 @@ def main() -> None:
         completion_inputs=read_completion_manifest(root),
         supplied_root=args.supplied_root,
         supplied_manifest=args.supplied_manifest,
+        publication_state=args.publication_state,
     )
     if args.scope == "definitions":
         selection = obj(report["selection"])
@@ -154,9 +187,11 @@ def main() -> None:
         "releaseState": "preview",
         "specialties": [],
         "populations": [],
-        "tags": ["definitions", "requires-review"],
+        "tags": ["definitions", "requires-review"]
+        + (["experimental"] if experimental else []),
         "compatibility": {
-            "minAppVersion": "0.6.39",
+            # Readers before 0.6.41 accept only local-dev reference manifests.
+            "minAppVersion": "0.6.41" if experimental else "0.6.39",
             "maxAppVersion": None,
             "schemaVersion": 7,
             "coreCatalogVersion": "1",
@@ -183,7 +218,7 @@ def main() -> None:
                 "id": "reference-index",
                 "kind": "index",
                 "required": True,
-                "url": None,
+                "url": args.artifact_url if experimental else None,
                 "sha256": sha256(archive),
                 "sizeBytes": archive.stat().st_size,
                 "compression": "gzip",
@@ -209,16 +244,24 @@ def main() -> None:
             f" Дополнительных справочных записей: {supplied_counts['otherReferences']};"
             f" расшифровок сокращений: {supplied_counts['abbreviations']}."
         )
-    descriptor = (
-        root / "apps/app/src/features/modules/catalog.definition-reference.local.json"
-    )
-    descriptor.parent.mkdir(parents=True, exist_ok=True)
-    descriptor.write_text(
-        json.dumps(
-            {"module": module, "fileName": archive.name}, ensure_ascii=False, indent=2
+    if experimental:
+        # A catalog entry for the ordinary module catalog; the release owner uploads the archive.
+        descriptor = destination / (file_name + ".catalog-entry.json")
+        descriptor.write_text(json.dumps(module, ensure_ascii=False, indent=2) + "\n")
+    else:
+        descriptor = (
+            root
+            / "apps/app/src/features/modules/catalog.definition-reference.local.json"
         )
-        + "\n"
-    )
+        descriptor.parent.mkdir(parents=True, exist_ok=True)
+        descriptor.write_text(
+            json.dumps(
+                {"module": module, "fileName": archive.name},
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n"
+        )
     report["scope"] = args.scope
     report["sourceManifestSha256"] = sha256(source_manifest)
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
@@ -229,7 +272,10 @@ def main() -> None:
                 "installedBytes": database.stat().st_size,
                 "downloadBytes": archive.stat().st_size,
                 "sqliteSha256": checksum,
-                "publicationState": "local-dev",
+                "publicationState": args.publication_state,
+                "archive": str(archive),
+                "archiveSha256": sha256(archive),
+                "catalogEntry": str(descriptor),
             },
             indent=2,
         )

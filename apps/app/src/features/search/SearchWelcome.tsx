@@ -6,6 +6,7 @@ import {
   conversationSession,
   startConversation,
 } from '@/features/conversations/conversation-session';
+import { experimentalModulesEnabled } from '@/state/experimental-modules';
 
 import './search-welcome.css';
 
@@ -22,6 +23,8 @@ interface WelcomeLink {
   readonly href?: string;
   readonly onClick?: () => void;
   readonly primary?: boolean;
+  /** Shown only while experimental modules are enabled. */
+  readonly experimental?: boolean;
 }
 
 /**
@@ -39,8 +42,15 @@ export function SearchWelcome(props: { readonly onOpenReference: () => void }): 
     { icon: 'users', label: 'Пациенты', href: '#/notes/patients' },
     { icon: 'calculator', label: 'Калькуляторы', href: '#/calculators' },
     { icon: 'list-checks', label: 'Опросники', href: '#/assessments' },
-    { icon: 'book-open', label: 'Словарь', onClick: () => props.onOpenReference() },
+    {
+      icon: 'book-open',
+      label: 'Словарь',
+      onClick: () => props.onOpenReference(),
+      experimental: true,
+    },
   ];
+  const visibleLinks = () =>
+    links.filter((link) => !link.experimental || experimentalModulesEnabled());
   return (
     <div class="search-welcome__content">
       <div class="search-welcome__intro">
@@ -50,7 +60,7 @@ export function SearchWelcome(props: { readonly onOpenReference: () => void }): 
           интернета.
         </p>
         <nav class="search-welcome__links" aria-label="Быстрый переход">
-          <For each={links}>
+          <For each={visibleLinks()}>
             {(link) =>
               link.href ? (
                 <a class="search-welcome__link" href={link.href}>

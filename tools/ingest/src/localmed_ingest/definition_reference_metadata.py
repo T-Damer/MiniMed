@@ -10,6 +10,8 @@ from collections import Counter
 from collections.abc import Iterator
 from typing import cast
 
+from .definition_reference_state import REFERENCE_PUBLICATION_STATES
+
 MARKER = '{"$p":1}'
 MAX_METADATA = 65536
 MAX_PARTS = 128
@@ -79,7 +81,7 @@ def compact_reference_metadata(database: sqlite3.Connection) -> dict[str, object
             manifest.get("contract") != 1
             or manifest.get("linkLayout") != "numeric-v1"
             or manifest.get("metadataLayout") is not None
-            or manifest.get("publicationState") != "local-dev"
+            or manifest.get("publicationState") not in REFERENCE_PUBLICATION_STATES
             or manifest.get("reviewStatus") != "requires-review"
             or manifest.get("identityStatus") != "source-local-proposed"
         ):

@@ -294,3 +294,36 @@ def test_input_root_escape(tmp_path: Path) -> None:
 def test_name_normalization_keeps_short_words_and_punctuation() -> None:
     assert normalized_name("  ЁЖ  В/В  ") == "еж в/в"
     assert normalized_name("об") == "об"
+
+
+def test_experimental_preview_marks_only_the_reference_manifest(tmp_path: Path) -> None:
+    write_input(tmp_path, fixture())
+    output = tmp_path / "experimental.db"
+    build_definition_reference(
+        (Path("input.json"),),
+        output,
+        input_root=tmp_path,
+        edition_id="fixture.reference",
+        version="1",
+        built_at="2026-09-27",
+        publication_state="experimental-preview",
+    )
+    with sqlite3.connect(output) as db:
+        manifest = json.loads(
+            db.execute(
+                "SELECT value FROM app_metadata WHERE key='definition_reference'"
+            ).fetchone()[0]
+        )
+    assert manifest["publicationState"] == "experimental-preview"
+    assert manifest["reviewStatus"] == "requires-review"
+    with pytest.raises(ValueError, match="publication state"):
+        build_definition_reference(
+            (Path("input.json"),),
+            tmp_path / "reviewed.db",
+            input_root=tmp_path,
+            edition_id="fixture.reference",
+            version="1",
+            built_at="2026-09-27",
+            publication_state="published",
+        )
+    assert not (tmp_path / "reviewed.db").exists()

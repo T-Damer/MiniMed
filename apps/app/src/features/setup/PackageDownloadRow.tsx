@@ -85,7 +85,8 @@ export function PackageDownloadRow(props: {
         <p class="package-row__description">{props.module.description}</p>
         <Show when={props.module.definitionReference}>
           <p class="package-row__notice">
-            Предварительный справочник: исходные записи требуют проверки.
+            Черновая редакция, не проверено: экспериментальный справочник, исходные записи требуют
+            проверки.
           </p>
         </Show>
         <Show when={!downloadable() && !ready() && props.module.releaseState === 'preview'}>

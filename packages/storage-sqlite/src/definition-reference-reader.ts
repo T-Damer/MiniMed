@@ -1,3 +1,4 @@
+import { isDefinitionReferencePublicationState } from '@localmed/contracts';
 import {
   definitionNameTranspositions,
   definitionQuestionSubject,
@@ -99,7 +100,7 @@ export async function createSqliteDefinitionReference(
   if (
     manifest['contract'] !== 1 ||
     manifest['reviewStatus'] !== 'requires-review' ||
-    manifest['publicationState'] !== 'local-dev' ||
+    !isDefinitionReferencePublicationState(manifest['publicationState']) ||
     manifest['identityStatus'] !== 'source-local-proposed'
   ) {
     throw new Error('Unsupported definition reference contract.');

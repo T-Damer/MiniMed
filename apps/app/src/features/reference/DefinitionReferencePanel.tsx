@@ -204,6 +204,9 @@ export function DefinitionReferencePanel(props: {
     });
   return (
     <section class="reference-panel">
+      <p class="reference-panel__draft" role="note">
+        Черновая редакция, не проверено. Экспериментальный модуль: записи ещё не отсмотрены врачом.
+      </p>
       <p class="reference-panel__notice">
         Определения из источников, а не сгенерированные ответы. Предварительные записи требуют
         проверки; одинаковые названия могут обозначать разные понятия.
@@ -296,7 +299,7 @@ export function DefinitionReferencePanel(props: {
             <article class="reference-card">
               <h3 class="reference-card__title">{current().title}</h3>
               <p class="reference-card__review">
-                Требует проверки ·{' '}
+                Черновая редакция, не проверено ·{' '}
                 {current().textKind === 'editorial-paraphrase'
                   ? 'Редакционное изложение'
                   : 'Текст источника'}

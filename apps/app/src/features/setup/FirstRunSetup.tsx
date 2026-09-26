@@ -8,6 +8,7 @@ import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { subscribeAppPreferences } from '@/state/app-preferences';
+import { experimentalModulesEnabled } from '@/state/experimental-modules';
 import { DownloadProgress } from './DownloadProgress';
 import { FeatureTour } from './FeatureTour';
 import { PackageDownloadRow } from './PackageDownloadRow';
@@ -40,7 +41,11 @@ export function FirstRunSetup(props: {
   const refresh = () => setRevision((value) => value + 1);
   onCleanup(runtime.subscribe(refresh));
   onCleanup(subscribeAppPreferences(refresh));
-  const groups = createMemo(() => setupPackageGroups(runtime.getCatalog().modules));
+  const groups = createMemo(() =>
+    setupPackageGroups(runtime.getCatalog().modules, {
+      experimental: experimentalModulesEnabled(),
+    }),
+  );
 
   // Search needs the core, so the screen stays until it is installed. Only a failure or a
   // metered connection lets the user leave early for their own files and settings.

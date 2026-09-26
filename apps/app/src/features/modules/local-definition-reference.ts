@@ -11,16 +11,16 @@ const localDescriptors = import.meta.env.DEV
     })
   : {};
 
+/**
+ * DEV only: a developer's own build of the reference replaces the published experimental entry
+ * with the same module id, so local editions can be tested without editing the release catalog.
+ */
 export function mergeLocalReferenceDescriptor(
   modules: readonly ContentModuleCatalogEntry[],
   module: ContentModuleCatalogEntry,
 ): ContentModuleCatalogEntry[] {
-  const existing = modules.find((candidate) => candidate.id === module.id);
-  if (!existing) return [...modules, module];
-  if (JSON.stringify(ContentModuleCatalogEntrySchema.parse(existing)) !== JSON.stringify(module)) {
-    throw new Error('Conflicting local reference descriptor.');
-  }
-  return [...modules];
+  if (!modules.some((candidate) => candidate.id === module.id)) return [...modules, module];
+  return modules.map((candidate) => (candidate.id === module.id ? module : candidate));
 }
 
 export function withLocalDefinitionReference(

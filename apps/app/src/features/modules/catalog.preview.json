@@ -98959,6 +98959,67 @@
       ],
       "title": "Прочие препараты и диагностические средства",
       "version": "2026-08-28"
+    },
+    {
+      "id": "minimed.definition.reference.ru",
+      "version": "2026.9.27",
+      "kind": "reference",
+      "collection": "definition-reference",
+      "title": "Словарь терминов, симптомов и синдромов",
+      "description": "8 474 исходных определения: определения с исходными формулировками и ссылками. Предварительная редакция, требующая проверки. Названий для дополнения: 7 595.",
+      "required": false,
+      "releaseState": "preview",
+      "specialties": [],
+      "populations": [],
+      "tags": [
+        "definitions",
+        "requires-review",
+        "experimental"
+      ],
+      "compatibility": {
+        "minAppVersion": "0.6.41",
+        "maxAppVersion": null,
+        "schemaVersion": 7,
+        "coreCatalogVersion": "1"
+      },
+      "sourceSetDigest": "sha256:e22c18d1e0d17814f83c013a669d64881e84b1c54bac14b44135d18f72e69af1",
+      "dependencies": [],
+      "sizes": {
+        "downloadBytes": 27003687,
+        "installedBytes": 127369216,
+        "sourceAssetsDownloadBytes": null,
+        "precision": "exact"
+      },
+      "capabilities": {
+        "search": true,
+        "fullText": true,
+        "structuredTables": false,
+        "images": false,
+        "originalPdf": false,
+        "structuredKnowledge": false,
+        "calculations": false
+      },
+      "artifacts": [
+        {
+          "id": "reference-index",
+          "kind": "index",
+          "required": true,
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/definition-reference-2026.9.27/minimed.definition.reference.2026.9.27.db.gz",
+          "sha256": "sha256:6c06275e61df8886f5c0493d9ae9f9f2fedc3ed0cb0c50cd883536ab38627b8c",
+          "sizeBytes": 27003687,
+          "compression": "gzip",
+          "decodedSha256": "sha256:1be69ab9ae430788e7805a7b688f8f7bd04581802a205767799fde3a3ede1df7",
+          "decodedSizeBytes": 127369216,
+          "sourceSetDigest": "sha256:e22c18d1e0d17814f83c013a669d64881e84b1c54bac14b44135d18f72e69af1"
+        }
+      ],
+      "documents": [],
+      "previewDocumentCount": 79,
+      "definitionReference": {
+        "contract": 1,
+        "editionId": "minimed.definition.reference.2026.9.27",
+        "entries": 16069
+      }
     }
   ]
 }

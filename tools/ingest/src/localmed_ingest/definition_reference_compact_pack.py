@@ -32,6 +32,7 @@ def build_compact_definition_reference(
     completion_inputs: tuple[Path, ...] = (),
     supplied_root: Path | None = None,
     supplied_manifest: Path | None = None,
+    publication_state: str = "local-dev",
 ) -> dict[str, object]:
     if output.exists():
         raise ValueError("Compact edition output must be a new immutable path")
@@ -50,6 +51,7 @@ def build_compact_definition_reference(
             completion_inputs=completion_inputs,
             supplied_root=supplied_root,
             supplied_manifest=supplied_manifest,
+            publication_state=publication_state,
         )
         allocation_before = profile_reference(staged) if profile else None
         with closing(sqlite3.connect(staged)) as database, database:

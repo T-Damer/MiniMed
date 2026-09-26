@@ -5,12 +5,13 @@ function executor(
   metadataLayout?: unknown,
   linkLayout: unknown = 'numeric-v1',
   metadata: unknown = '{}',
+  publicationState: unknown = 'local-dev',
 ) {
   const statements: string[] = [];
   const manifest = {
     contract: 1,
     editionId: 'fixture.reference',
-    publicationState: 'local-dev',
+    publicationState,
     reviewStatus: 'requires-review',
     identityStatus: 'source-local-proposed',
     ...(linkLayout === 'legacy' ? {} : { linkLayout }),
@@ -30,6 +31,21 @@ function executor(
     },
   };
 }
+
+describe('reference publication state', () => {
+  it('opens local-dev and experimental-preview editions and refuses anything else', async () => {
+    for (const state of ['local-dev', 'experimental-preview']) {
+      await expect(
+        createSqliteDefinitionReference(executor(undefined, 'numeric-v1', '{}', state).sql),
+      ).resolves.toBeDefined();
+    }
+    for (const state of ['published', 'reviewed', null]) {
+      await expect(
+        createSqliteDefinitionReference(executor(undefined, 'numeric-v1', '{}', state).sql),
+      ).rejects.toThrow('Unsupported definition reference contract.');
+    }
+  });
+});
 
 describe('reference metadata layout capability', () => {
   it('does not reference metadata tables in legacy or numeric-only reads', async () => {
