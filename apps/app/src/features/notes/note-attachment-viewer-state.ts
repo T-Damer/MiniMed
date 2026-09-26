@@ -14,7 +14,8 @@ export type ViewerState =
       readonly kind: 'audio';
       readonly name: string;
       readonly src: string;
-      readonly record: NoteFile;
+      /** Absent for a recording that is not saved yet; transcription needs a stored file. */
+      readonly record?: NoteFile;
     }
   | {
       readonly kind: 'text';

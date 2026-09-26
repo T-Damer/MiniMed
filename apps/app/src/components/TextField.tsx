@@ -3,10 +3,7 @@ import { createUniqueId, type JSX, Show, splitProps } from 'solid-js';
 import '@/components/TextField.css';
 
 export interface TextFieldProps
-  extends Omit<
-    JSX.InputHTMLAttributes<HTMLInputElement>,
-    'aria-describedby' | 'class' | 'id'
-  > {
+  extends Omit<JSX.InputHTMLAttributes<HTMLInputElement>, 'aria-describedby' | 'class' | 'id'> {
   readonly label: JSX.Element;
   readonly hint?: JSX.Element;
   readonly error?: JSX.Element;
@@ -42,10 +39,7 @@ export function TextField(props: TextFieldProps): JSX.Element {
   };
 
   return (
-    <label
-      class={`ui-text-field${local.class ? ` ${local.class}` : ''}`}
-      for={fieldId()}
-    >
+    <label class={`ui-text-field${local.class ? ` ${local.class}` : ''}`} for={fieldId()}>
       <span
         class="ui-text-field__label"
         classList={{ 'ui-text-field__label--hidden': local.hideLabel ?? false }}

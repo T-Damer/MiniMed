@@ -11,7 +11,6 @@ import {
   readInvitationFragment,
 } from '@/features/diary/diary-codec';
 import { diaryToFhirBundle } from '@/features/diary/diary-fhir';
-import { createDiaryStore } from '@/features/diary/diary-storage';
 import { applyDiaryImport, diaryImportEvents } from '@/features/diary/diary-import';
 import {
   DiaryFormatError,
@@ -20,6 +19,7 @@ import {
   parseDiaryInvitation,
   parseDiaryResults,
 } from '@/features/diary/diary-model';
+import { createDiaryStore } from '@/features/diary/diary-storage';
 import {
   appendEpisode,
   createClinicalEpisode,
@@ -223,7 +223,9 @@ describe('diary transport', () => {
       'z' + btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/u, '');
     expect(payload.length).toBeLessThan(DIARY_QR_CHUNK * 40);
 
-    await expect(decodePayload(payload)).rejects.toThrow('Распакованные данные дневника слишком велики');
+    await expect(decodePayload(payload)).rejects.toThrow(
+      'Распакованные данные дневника слишком велики',
+    );
   });
 
   it('rejects an individual QR part larger than the advertised chunk size', () => {

@@ -97,9 +97,10 @@ function formatDateTime(value: string): string {
 }
 
 function safeExportFilePart(value: string): string {
-  const normalized = value
-    .normalize('NFKC')
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/gu, ' ')
+  const normalized = Array.from(value.normalize('NFKC'), (character) =>
+    character.charCodeAt(0) < 0x20 || '<>:"/\\|?*'.includes(character) ? ' ' : character,
+  )
+    .join('')
     .replace(/\s+/gu, ' ')
     .trim();
   return normalized.slice(0, 80) || 'пациент';
@@ -414,7 +415,7 @@ function NewPatientForm(props: {
         <div class="patient-workspace__form-grid">
           <TextField
             class="patient-workspace__field"
-              label="Масса, кг"
+            label="Масса, кг"
             type="number"
             min="0"
             step="0.01"
@@ -423,7 +424,7 @@ function NewPatientForm(props: {
           />
           <TextField
             class="patient-workspace__field"
-              label="Рост, см"
+            label="Рост, см"
             type="number"
             min="0"
             step="0.1"
@@ -632,21 +633,21 @@ function ManualEventForm(props: {
           <Show when={customMetric()}>
             <TextField
               class="patient-workspace__field"
-                  label="Идентификатор пользовательского ряда"
+              label="Идентификатор пользовательского ряда"
               value={metricId()}
               onInput={(event) => setMetricId(event.currentTarget.value)}
               required
             />
             <TextField
               class="patient-workspace__field"
-                  label="Название пользовательского показателя"
+              label="Название пользовательского показателя"
               value={label()}
               onInput={(event) => setLabel(event.currentTarget.value)}
               required
             />
             <TextField
               class="patient-workspace__field"
-                  label="Единица пользовательского показателя"
+              label="Единица пользовательского показателя"
               value={unit()}
               onInput={(event) => setUnit(event.currentTarget.value)}
               required
@@ -654,7 +655,7 @@ function ManualEventForm(props: {
           </Show>
           <TextField
             class="patient-workspace__field"
-              label="Значение"
+            label="Значение"
             type="number"
             step="any"
             value={value()}
@@ -671,7 +672,7 @@ function ManualEventForm(props: {
         <Show when={kind() === 'laboratory'}>
           <TextField
             class="patient-workspace__field"
-              label="Референс с бланка"
+            label="Референс с бланка"
             value={range()}
             onInput={(event) => setRange(event.currentTarget.value)}
             placeholder="Например: 3,5–5,5 ммоль/л"

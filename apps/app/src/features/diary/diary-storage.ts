@@ -44,9 +44,7 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
       const value = readJson(storage, INDEX_KEY);
       if (Array.isArray(value)) {
         indexed = [
-          ...new Set(
-            value.filter((id): id is string => typeof id === 'string' && id.length > 0),
-          ),
+          ...new Set(value.filter((id): id is string => typeof id === 'string' && id.length > 0)),
         ];
       }
     } catch {

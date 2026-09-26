@@ -4,13 +4,16 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { NoteTranscriptPanel } from '@/features/notes/NoteTranscriptPanel';
-import { downloadNoteFile } from '@/state/note-files';
 import {
   recordToViewerState,
   type ViewerState,
 } from '@/features/notes/note-attachment-viewer-state';
+import { downloadNoteFile } from '@/state/note-files';
 
-export { recordToViewerState, type ViewerState } from '@/features/notes/note-attachment-viewer-state';
+export {
+  recordToViewerState,
+  type ViewerState,
+} from '@/features/notes/note-attachment-viewer-state';
 
 async function readTextBlob(blob: Blob): Promise<string> {
   try {
@@ -165,10 +168,18 @@ export function AttachmentViewerDialog(props: {
                     >
                       <track kind="captions" label="Без субтитров" />
                     </audio>
-                    <NoteTranscriptPanel
-                      file={(current as Extract<ViewerState, { readonly kind: 'audio' }>).record}
-                      onInsertText={props.onInsertTranscript}
-                    />
+                    <Show
+                      when={(current as Extract<ViewerState, { readonly kind: 'audio' }>).record}
+                    >
+                      {(record) => (
+                        <NoteTranscriptPanel
+                          file={record()}
+                          {...(props.onInsertTranscript
+                            ? { onInsertText: props.onInsertTranscript }
+                            : {})}
+                        />
+                      )}
+                    </Show>
                   </div>
                 </Match>
                 <Match when={current.kind === 'text'}>

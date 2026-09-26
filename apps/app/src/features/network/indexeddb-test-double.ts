@@ -255,9 +255,7 @@ export function installMultiStoreIndexedDbDouble(
             onupgradeneeded: null,
           };
           track(() => {
-            request.result = definition.records.get(key) as
-              | PartialDownloadRecordDouble
-              | undefined;
+            request.result = definition.records.get(key) as PartialDownloadRecordDouble | undefined;
             request.onsuccess?.();
           });
           return request;
@@ -270,7 +268,9 @@ export function installMultiStoreIndexedDbDouble(
             onupgradeneeded: null,
           };
           track(() => {
-            request.result = [...definition.records.values()] as unknown as PartialDownloadRecordDouble[];
+            request.result = [
+              ...definition.records.values(),
+            ] as unknown as PartialDownloadRecordDouble[];
             request.onsuccess?.();
           });
           return request;

@@ -34,10 +34,7 @@ export function stepDocumentTextScale(current: number, direction: -1 | 1): numbe
   const index = DOCUMENT_TEXT_SCALE_LEVELS.indexOf(
     normalized as (typeof DOCUMENT_TEXT_SCALE_LEVELS)[number],
   );
-  const nextIndex = Math.max(
-    0,
-    Math.min(DOCUMENT_TEXT_SCALE_LEVELS.length - 1, index + direction),
-  );
+  const nextIndex = Math.max(0, Math.min(DOCUMENT_TEXT_SCALE_LEVELS.length - 1, index + direction));
   return DOCUMENT_TEXT_SCALE_LEVELS[nextIndex] ?? DEFAULT_DOCUMENT_TEXT_SCALE;
 }
 

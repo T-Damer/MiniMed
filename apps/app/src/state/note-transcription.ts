@@ -220,10 +220,7 @@ export function setTranscriptionEngine(engine: TranscribeEngine | null): void {
   activeEngine = engine;
 }
 
-const running = new Map<
-  string,
-  { noteId: string; cancel: () => void; done: Promise<unknown> }
->();
+const running = new Map<string, { noteId: string; cancel: () => void; done: Promise<unknown> }>();
 const cancelledTranscriptions = new Set<string>();
 
 export function isTranscriptionQueued(fileId: string): boolean {
@@ -338,9 +335,7 @@ export function parseRestoredTranscript(value: unknown): NoteTranscript {
   };
 }
 
-export async function replaceAllTranscripts(
-  records: readonly NoteTranscript[],
-): Promise<void> {
+export async function replaceAllTranscripts(records: readonly NoteTranscript[]): Promise<void> {
   const ids = new Set<string>();
   const normalized = records.map((record) => {
     const next = parseRestoredTranscript(record);
@@ -423,65 +418,77 @@ export function queueTranscription(input: {
       if (existing?.status === 'done' && !input.force) return;
       const createdAt = existing?.createdAt ?? new Date().toISOString();
       if (!activeEngine) {
-        await putTranscript({
+        await putTranscript(
+          {
+            fileId: input.fileId,
+            noteId: input.noteId,
+            text: existing?.text ?? '',
+            ...(existing?.segments ? { segments: existing.segments } : {}),
+            ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
+            ...(existing?.diarized === true ? { diarized: true } : {}),
+            status: 'unsupported',
+            createdAt,
+            updatedAt: new Date().toISOString(),
+          },
+          canWrite,
+        );
+        return;
+      }
+      await ctx.checkpoint();
+      await putTranscript(
+        {
           fileId: input.fileId,
           noteId: input.noteId,
           text: existing?.text ?? '',
           ...(existing?.segments ? { segments: existing.segments } : {}),
           ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
           ...(existing?.diarized === true ? { diarized: true } : {}),
-          status: 'unsupported',
+          status: 'running',
           createdAt,
           updatedAt: new Date().toISOString(),
-        }, canWrite);
-        return;
-      }
-      await ctx.checkpoint();
-      await putTranscript({
-        fileId: input.fileId,
-        noteId: input.noteId,
-        text: existing?.text ?? '',
-        ...(existing?.segments ? { segments: existing.segments } : {}),
-        ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
-        ...(existing?.diarized === true ? { diarized: true } : {}),
-        status: 'running',
-        createdAt,
-        updatedAt: new Date().toISOString(),
-      }, canWrite);
+        },
+        canWrite,
+      );
       try {
         const output = normalizeOutput(
           await activeEngine(input.blob, input.blob.type || 'audio/webm'),
         );
         await ctx.checkpoint();
         const speakerNames = retainedSpeakerNames(existing?.speakerNames, output);
-        await putTranscript({
-          fileId: input.fileId,
-          noteId: input.noteId,
-          text: output.text,
-          ...(output.segments ? { segments: output.segments } : {}),
-          ...(speakerNames ? { speakerNames } : {}),
-          ...(output.diarized === true ? { diarized: true } : {}),
-          status: 'done',
-          createdAt,
-          updatedAt: new Date().toISOString(),
-        }, canWrite);
+        await putTranscript(
+          {
+            fileId: input.fileId,
+            noteId: input.noteId,
+            text: output.text,
+            ...(output.segments ? { segments: output.segments } : {}),
+            ...(speakerNames ? { speakerNames } : {}),
+            ...(output.diarized === true ? { diarized: true } : {}),
+            status: 'done',
+            createdAt,
+            updatedAt: new Date().toISOString(),
+          },
+          canWrite,
+        );
       } catch (cause) {
         if (ctx.signal.aborted || !canWrite() || cause instanceof PreemptedError) {
           throw cause;
         }
         const message = cause instanceof Error ? cause.message : 'Не удалось расшифровать запись.';
-        await putTranscript({
-          fileId: input.fileId,
-          noteId: input.noteId,
-          text: existing?.text ?? '',
-          ...(existing?.segments ? { segments: existing.segments } : {}),
-          ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
-          ...(existing?.diarized === true ? { diarized: true } : {}),
-          status: 'failed',
-          error: message,
-          createdAt,
-          updatedAt: new Date().toISOString(),
-        }, canWrite);
+        await putTranscript(
+          {
+            fileId: input.fileId,
+            noteId: input.noteId,
+            text: existing?.text ?? '',
+            ...(existing?.segments ? { segments: existing.segments } : {}),
+            ...(existing?.speakerNames ? { speakerNames: existing.speakerNames } : {}),
+            ...(existing?.diarized === true ? { diarized: true } : {}),
+            status: 'failed',
+            error: message,
+            createdAt,
+            updatedAt: new Date().toISOString(),
+          },
+          canWrite,
+        );
         throw cause;
       }
     },

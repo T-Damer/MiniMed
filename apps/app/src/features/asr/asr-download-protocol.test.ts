@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  type AsrAssetRequest,
   ASR_MODEL_REVISIONS,
+  type AsrAssetRequest,
   assertAsrAssetRequest,
 } from './asr-download-protocol';
 

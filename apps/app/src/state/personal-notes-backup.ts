@@ -12,19 +12,19 @@ import {
 } from '@/state/note-images';
 import { runPendingNoteRetentionCleanup } from '@/state/note-retention-cleanup';
 import {
-  clearPatientNoteWorkingState,
-  loadPatientNotes,
-  parsePatientNotesSnapshot,
-  type PatientNotesSnapshot,
-  replacePatientNotesSnapshot,
-} from '@/state/patient-notes';
-import {
   deleteTranscript,
   loadTranscriptsForNotes,
   type NoteTranscript,
   parseRestoredTranscript,
   replaceAllTranscripts,
 } from '@/state/note-transcription';
+import {
+  clearPatientNoteWorkingState,
+  loadPatientNotes,
+  type PatientNotesSnapshot,
+  parsePatientNotesSnapshot,
+  replacePatientNotesSnapshot,
+} from '@/state/patient-notes';
 
 export const PERSONAL_NOTES_BACKUP_KIND = 'minimed-personal-notes-backup';
 export const PERSONAL_NOTES_BACKUP_SCHEMA_VERSION = 1;
@@ -104,9 +104,7 @@ function base64ToBytes(value: string): Uint8Array {
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const copy = Uint8Array.from(bytes);
   const digest = await crypto.subtle.digest('SHA-256', copy.buffer);
-  return [...new Uint8Array(digest)]
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
 function base64EncodedLength(bytes: number): number {
@@ -296,7 +294,7 @@ export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
             !Array.isArray(candidate.scope) &&
             (candidate.scope as { readonly kind?: unknown }).kind === 'card' &&
             typeof (candidate.scope as { readonly cardId?: unknown }).cardId === 'string' &&
-            Boolean((candidate.scope as { readonly cardId?: string }).cardId)
+            (candidate.scope as { readonly cardId?: string }).cardId
           ? {
               kind: 'card',
               cardId: (candidate.scope as { readonly cardId: string }).cardId,
@@ -306,7 +304,11 @@ export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
             })();
 
   const snapshot = parsePatientNotesSnapshot(candidate.snapshot);
-  if (!Array.isArray(candidate.files) || !Array.isArray(candidate.images) || !Array.isArray(candidate.transcripts)) {
+  if (
+    !Array.isArray(candidate.files) ||
+    !Array.isArray(candidate.images) ||
+    !Array.isArray(candidate.transcripts)
+  ) {
     throw new Error('Backup личных заметок неполный.');
   }
   const files = candidate.files.map(parseBackupFile);
@@ -578,9 +580,7 @@ export async function exportPersonalNotesBackup(): Promise<PersonalNotesBackup> 
   });
 }
 
-export async function exportPersonalNotesCardBackup(
-  cardId: string,
-): Promise<PersonalNotesBackup> {
+export async function exportPersonalNotesCardBackup(cardId: string): Promise<PersonalNotesBackup> {
   await runPendingNoteRetentionCleanup();
   const selected = selectCardState(await capturePersonalNotesState(), cardId);
   assertPersonalNotesBackupFits(selected, { kind: 'card', cardId });
@@ -618,17 +618,15 @@ export async function importPersonalNotesBackup(value: unknown): Promise<Persona
   // Finish any previously journalled deletion before resurrecting stable IDs from a backup.
   await runPendingNoteRetentionCleanup();
   const previous = await capturePersonalNotesState();
-  const next =
-    backup.scope.kind === 'card'
-      ? mergeCardState(previous, prepared, backup.scope.cardId)
-      : prepared;
+  const scopedCardId = backup.scope.kind === 'card' ? backup.scope.cardId : null;
+  const next = scopedCardId === null ? prepared : mergeCardState(previous, prepared, scopedCardId);
   const importedNoteIds = prepared.snapshot.notes.map((note) => note.id);
   const replacedNoteIds =
-    backup.scope.kind === 'card'
-      ? previous.snapshot.notes
-          .filter((note) => note.cardId === backup.scope.cardId)
-          .map((note) => note.id)
-      : previous.snapshot.notes.map((note) => note.id);
+    scopedCardId === null
+      ? previous.snapshot.notes.map((note) => note.id)
+      : previous.snapshot.notes
+          .filter((note) => note.cardId === scopedCardId)
+          .map((note) => note.id);
 
   try {
     await applyPersonalNotesState(next);

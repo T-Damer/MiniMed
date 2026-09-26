@@ -129,10 +129,7 @@ const cachedOnlyActivations = new Set<string>();
 
 function recordAssetRequirement(request: AsrAssetRequest): void {
   const requirements = assetRequirements.get(request.modelId) ?? new Map<string, boolean>();
-  requirements.set(
-    request.url,
-    Boolean(requirements.get(request.url) || !request.metadataOnly),
-  );
+  requirements.set(request.url, Boolean(requirements.get(request.url) || !request.metadataOnly));
   assetRequirements.set(request.modelId, requirements);
 }
 
@@ -555,10 +552,7 @@ interface ActivateAsrModelOptions {
 }
 
 /** Loads the model into the worker and registers it as transcription engine. */
-export function activateAsrModel(
-  id: string,
-  options: ActivateAsrModelOptions = {},
-): Promise<void> {
+export function activateAsrModel(id: string, options: ActivateAsrModelOptions = {}): Promise<void> {
   const inFlight = activations.get(id);
   if (inFlight) return inFlight;
   if (!isSupportedAsrModelId(id)) {

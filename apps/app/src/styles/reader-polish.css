@@ -106,9 +106,7 @@
     calc(2.4vw * var(--user-document-text-scale, 1)),
     calc(1.55rem * var(--user-document-text-scale, 1))
   );
-  --safe-markdown-small-heading-size: calc(
-    1.05rem * var(--user-document-text-scale, 1)
-  );
+  --safe-markdown-small-heading-size: calc(1.05rem * var(--user-document-text-scale, 1));
   --safe-markdown-code-size: calc(0.8rem * var(--user-document-text-scale, 1));
   --safe-markdown-table-size: calc(0.86rem * var(--user-document-text-scale, 1));
   --safe-markdown-caption-size: calc(0.72rem * var(--user-document-text-scale, 1));

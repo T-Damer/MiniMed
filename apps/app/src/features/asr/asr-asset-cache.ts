@@ -98,9 +98,7 @@ function ownedBuffer(bytes: Uint8Array): ArrayBuffer {
 
 async function sha256(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', ownedBuffer(bytes));
-  return [...new Uint8Array(digest)]
-    .map((value) => value.toString(16).padStart(2, '0'))
-    .join('');
+  return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('');
 }
 
 function normalizedHeaders(
@@ -179,12 +177,7 @@ export async function readCachedAsrAsset(
   options: { readonly allowUnadmitted?: boolean } = {},
 ): Promise<CachedAsrAssetBytes | null> {
   const record = await loadRecord(modelId, url);
-  if (
-    !record ||
-    (!record.admitted && !options.allowUnadmitted) ||
-    !record.data ||
-    !record.sha256
-  ) {
+  if (!record || (!record.admitted && !options.allowUnadmitted) || !record.data || !record.sha256) {
     return null;
   }
   if (record.byteLength !== record.data.size) {
@@ -318,9 +311,7 @@ export async function commitAsrModelCacheManifest(
   }
 }
 
-export async function deleteCachedAsrModel(
-  modelId: SupportedAsrModelId,
-): Promise<void> {
+export async function deleteCachedAsrModel(modelId: SupportedAsrModelId): Promise<void> {
   if (!hasIndexedDb()) return;
   const database = await openDatabase();
   try {
@@ -341,9 +332,7 @@ export async function deleteCachedAsrModel(
   }
 }
 
-export async function discardUnadmittedAsrAssets(
-  modelId: SupportedAsrModelId,
-): Promise<void> {
+export async function discardUnadmittedAsrAssets(modelId: SupportedAsrModelId): Promise<void> {
   if (!hasIndexedDb()) return;
   const database = await openDatabase();
   try {
@@ -362,9 +351,7 @@ export async function discardUnadmittedAsrAssets(
   }
 }
 
-export async function hasCompleteCachedAsrModel(
-  modelId: SupportedAsrModelId,
-): Promise<boolean> {
+export async function hasCompleteCachedAsrModel(modelId: SupportedAsrModelId): Promise<boolean> {
   if (!hasIndexedDb()) return false;
   const database = await openDatabase();
   let manifest: CachedAsrModelManifest | undefined;

@@ -1,3 +1,4 @@
+import { Capacitor, type PluginListenerHandle, registerPlugin } from '@capacitor/core';
 import type {
   NativeRecordingResult,
   NativeTranscriptionModelStatus,
@@ -9,7 +10,6 @@ import {
   NativeTranscriptionProgressSchema,
   NativeTranscriptionResultSchema,
 } from '@localmed/contracts';
-import { Capacitor, type PluginListenerHandle, registerPlugin } from '@capacitor/core';
 
 import {
   NATIVE_TRANSCRIPTION_MODEL_BYTES,
@@ -137,12 +137,12 @@ export async function stopNativeRecording(): Promise<NativeRecordingResult> {
   return NativeRecordingResultSchema.parse(await localMedTranscriber.stopRecording());
 }
 
-export async function transcribeNativeRecording(filePath: string): Promise<NativeTranscriptionResult> {
+export async function transcribeNativeRecording(
+  filePath: string,
+): Promise<NativeTranscriptionResult> {
   assertNativeTranscriber();
   if (!filePath.trim()) throw new Error('Путь к аудиозаписи пуст.');
-  return NativeTranscriptionResultSchema.parse(
-    await localMedTranscriber.transcribe({ filePath }),
-  );
+  return NativeTranscriptionResultSchema.parse(await localMedTranscriber.transcribe({ filePath }));
 }
 
 export async function watchNativeTranscription(

@@ -9,7 +9,7 @@ export interface SpeakerRegion {
 
 const DEFAULT_MERGE_GAP_MS = 1_200;
 const NO_SPACE_BEFORE = /^[,.!?;:%)\]}»]/u;
-const NO_SPACE_AFTER = /[(\[{«]$/u;
+const NO_SPACE_AFTER = /[([{«]$/u;
 
 function overlapMs(
   left: Pick<TranscriptSegment, 'startMs' | 'endMs'>,
@@ -97,12 +97,7 @@ export function mergeSpeakerWords(
     if (word.endMs <= word.startMs || !word.text.trim()) continue;
     const previous = turns.at(-1);
     const gap = previous ? word.startMs - previous.endMs : Number.POSITIVE_INFINITY;
-    if (
-      previous &&
-      previous.speakerId === word.speakerId &&
-      gap >= 0 &&
-      gap <= maxGapMs
-    ) {
+    if (previous && previous.speakerId === word.speakerId && gap >= 0 && gap <= maxGapMs) {
       turns[turns.length - 1] = {
         ...previous,
         endMs: Math.max(previous.endMs, word.endMs),

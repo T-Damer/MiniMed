@@ -646,9 +646,7 @@ export function parsePatientNotesSnapshot(value: unknown): PatientNotesSnapshot 
   return { cards, notes };
 }
 
-export async function replacePatientNotesSnapshot(
-  value: unknown,
-): Promise<PatientNotesSnapshot> {
+export async function replacePatientNotesSnapshot(value: unknown): Promise<PatientNotesSnapshot> {
   const snapshot = parsePatientNotesSnapshot(value);
   persist(snapshot);
   await persistToIndexedDb(snapshot);

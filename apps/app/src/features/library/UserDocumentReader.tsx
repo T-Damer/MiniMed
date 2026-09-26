@@ -895,8 +895,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           label: `Увеличить текст · ${String(scale)}%`,
           icon: 'plus',
           disabled:
-            scale >=
-            (DOCUMENT_TEXT_SCALE_LEVELS[DOCUMENT_TEXT_SCALE_LEVELS.length - 1] ?? 140),
+            scale >= (DOCUMENT_TEXT_SCALE_LEVELS[DOCUMENT_TEXT_SCALE_LEVELS.length - 1] ?? 140),
           onSelect: readingMode.increaseTextScale,
         },
       );

@@ -151,8 +151,7 @@ describe('ASR worker model loading', () => {
   it('accepts a pinned Hugging Face Request and preserves its Range metadata', async () => {
     await import('./asr.worker');
     const revision = ASR_MODEL_REVISIONS['onnx-community/whisper-base'];
-    const url =
-      `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/config.json`;
+    const url = `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/config.json`;
     const pending = mocks.env.fetch(
       new Request(url, {
         headers: { Range: 'bytes=0-0' },
@@ -191,8 +190,7 @@ describe('ASR worker model loading', () => {
   it('rejects non-GET Request inputs before they can leave the worker', async () => {
     await import('./asr.worker');
     const revision = ASR_MODEL_REVISIONS['onnx-community/whisper-base'];
-    const url =
-      `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/config.json`;
+    const url = `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/config.json`;
 
     await expect(
       mocks.env.fetch(
@@ -210,8 +208,7 @@ describe('ASR worker model loading', () => {
   it('rejects unsupported Request Range headers', async () => {
     await import('./asr.worker');
     const revision = ASR_MODEL_REVISIONS['onnx-community/whisper-base'];
-    const url =
-      `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/config.json`;
+    const url = `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/config.json`;
 
     await expect(
       mocks.env.fetch(

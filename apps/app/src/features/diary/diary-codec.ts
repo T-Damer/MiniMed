@@ -46,9 +46,7 @@ async function transform(
   return new Uint8Array(await new Response(output).arrayBuffer());
 }
 
-async function decompressBounded(
-  bytes: Uint8Array<ArrayBuffer>,
-): Promise<Uint8Array<ArrayBuffer>> {
+async function decompressBounded(bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
   const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
   const reader = stream.getReader();
   const chunks: Uint8Array<ArrayBuffer>[] = [];

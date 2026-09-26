@@ -1,7 +1,4 @@
-import {
-  deleteTranscript,
-  deleteTranscriptsForNotes,
-} from '@/state/note-transcription';
+import { deleteTranscript, deleteTranscriptsForNotes } from '@/state/note-transcription';
 import { attachmentThumbnails } from '@/state/thumbnails';
 
 export interface NoteFile {
@@ -139,8 +136,7 @@ async function loadNoteFileById(fileId: string): Promise<NoteFile | null> {
       const transaction = database.transaction(STORE_NAME, 'readonly');
       const request = transaction.objectStore(STORE_NAME).get(fileId);
       request.onsuccess = () => resolve((request.result as NoteFile | undefined) ?? null);
-      request.onerror = () =>
-        reject(request.error ?? new Error('Не удалось прочитать вложение.'));
+      request.onerror = () => reject(request.error ?? new Error('Не удалось прочитать вложение.'));
     });
   } finally {
     database.close();

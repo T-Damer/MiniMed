@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  installMultiStoreIndexedDbDouble,
   type IndexedDbStoreDouble,
+  installMultiStoreIndexedDbDouble,
 } from '@/features/network/indexeddb-test-double';
 
 import {

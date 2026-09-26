@@ -49,9 +49,7 @@ export async function verifyBrowserDiarizationArtifact(
       `Размер модели «${artifact.fileName}» не совпал: ${bytes.byteLength} != ${artifact.expectedBytes}.`,
     );
   }
-  const digest = new Uint8Array(
-    await crypto.subtle.digest('SHA-256', Uint8Array.from(bytes)),
-  );
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', Uint8Array.from(bytes)));
   const actual = bytesToHex(digest);
   if (actual !== artifact.expectedSha256) {
     throw new Error(`Контрольная сумма модели «${artifact.fileName}» не совпала.`);

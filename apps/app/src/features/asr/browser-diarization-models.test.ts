@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  installMultiStoreIndexedDbDouble,
   type IndexedDbStoreDouble,
+  installMultiStoreIndexedDbDouble,
 } from '@/features/network/indexeddb-test-double';
 
 const { downloadWithRetryMock } = vi.hoisted(() => ({
@@ -35,9 +35,7 @@ const fixtureArtifact: BrowserDiarizationModelArtifact = {
 function installModelCache(): Map<string, Record<string, unknown>> {
   const records = new Map<string, Record<string, unknown>>();
   installMultiStoreIndexedDbDouble(
-    new Map<string, IndexedDbStoreDouble>([
-      ['models', { keyPath: 'id', records }],
-    ]),
+    new Map<string, IndexedDbStoreDouble>([['models', { keyPath: 'id', records }]]),
   );
   return records;
 }
@@ -122,8 +120,8 @@ describe('browser diarization model admission', () => {
     });
     const repairedBlob = repaired?.['data'] as Blob | undefined;
     expect(repairedBlob).toBeInstanceOf(Blob);
-    expect(
-      repairedBlob ? [...new Uint8Array(await repairedBlob.arrayBuffer())] : [],
-    ).toEqual([...fixtureBytes]);
+    expect(repairedBlob ? [...new Uint8Array(await repairedBlob.arrayBuffer())] : []).toEqual([
+      ...fixtureBytes,
+    ]);
   });
 });

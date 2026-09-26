@@ -5,9 +5,9 @@ import {
   pipeline,
 } from '@huggingface/transformers';
 import {
+  ASR_MODEL_REVISIONS,
   type AsrAssetRequest,
   type AsrAssetResponse,
-  ASR_MODEL_REVISIONS,
   assertAsrAssetRequest,
 } from './asr-download-protocol';
 
@@ -138,34 +138,30 @@ function requestParts(
   readonly body: BodyInit | null;
   readonly headers: Headers;
 } {
-  const request =
-    typeof Request !== 'undefined' && input instanceof Request ? input : null;
+  const request = typeof Request !== 'undefined' && input instanceof Request ? input : null;
   const url =
     typeof input === 'string'
       ? input
       : input instanceof URL
         ? input.href
-        : request?.url ?? String(input);
+        : (request?.url ?? String(input));
   const method = (init?.method ?? request?.method ?? 'GET').toUpperCase();
-  const body =
-    init && Object.prototype.hasOwnProperty.call(init, 'body')
-      ? (init.body ?? null)
-      : (request?.body ?? null);
+  const body = init && Object.hasOwn(init, 'body') ? (init.body ?? null) : (request?.body ?? null);
   const headers = new Headers(init?.headers ?? request?.headers);
   return { url, method, body, headers };
 }
 
 // Use the library's supported fetch hook, not a global fetch monkey-patch in the application.
 env.fetch = async (input, init) => {
-  const request = requestParts(input, init);
-  const parsed = new URL(request.url, self.location.href);
+  const parts = requestParts(input, init);
+  const parsed = new URL(parts.url, self.location.href);
   if (parsed.origin !== 'https://huggingface.co') return originalFetch(input, init);
   const modelId = parsed.pathname.match(
     /^\/(onnx-community\/whisper-(?:base|small))\/resolve\//u,
   )?.[1];
-  if (!modelId || request.method !== 'GET' || request.body !== null)
+  if (!modelId || parts.method !== 'GET' || parts.body !== null)
     throw new Error('Unsupported speech download.');
-  const range = request.headers.get('range');
+  const range = parts.headers.get('range');
   if (range !== null && range !== 'bytes=0-0')
     throw new Error('Unsupported speech metadata range.');
   const request: AsrAssetRequest = {

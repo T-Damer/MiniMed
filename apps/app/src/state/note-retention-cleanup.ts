@@ -8,7 +8,11 @@ let cleanupInFlight: Promise<void> | null = null;
 
 function normalizedIds(values: unknown): string[] {
   if (!Array.isArray(values)) return [];
-  return [...new Set(values.filter((value): value is string => typeof value === 'string' && value))];
+  return [
+    ...new Set(
+      values.filter((value): value is string => typeof value === 'string' && value.length > 0),
+    ),
+  ];
 }
 
 function storedPendingIds(): string[] {

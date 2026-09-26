@@ -9,15 +9,11 @@ const segments = [
 
 describe('transcript timestamp alignment', () => {
   it('keeps timestamps available for punctuation and case-only edits', () => {
-    expect(
-      transcriptTextMatchesSegments('ДОБРЫЙ, день! Что вас беспокоит?', segments),
-    ).toBe(true);
+    expect(transcriptTextMatchesSegments('ДОБРЫЙ, день! Что вас беспокоит?', segments)).toBe(true);
   });
 
   it('invalidates timestamp actions when words change', () => {
-    expect(
-      transcriptTextMatchesSegments('Добрый вечер, что вас беспокоит?', segments),
-    ).toBe(false);
+    expect(transcriptTextMatchesSegments('Добрый вечер, что вас беспокоит?', segments)).toBe(false);
   });
 
   it('invalidates timestamp actions when a word is inserted or removed', () => {

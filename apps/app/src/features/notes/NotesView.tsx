@@ -39,6 +39,7 @@ import {
   recordToViewerState,
   type ViewerState,
 } from '@/features/notes/NoteAttachmentViewer';
+import { NoteDrawingPreview } from '@/features/notes/NoteDrawingEditor';
 import { NoteImagePicker } from '@/features/notes/NoteImages';
 import {
   type EditorDrawingAttachment,
@@ -46,7 +47,6 @@ import {
   NoteMarkdownEditor,
 } from '@/features/notes/NoteMarkdownEditor';
 import { NoteTemplatesCatalog } from '@/features/notes/NoteTemplatesCatalog';
-import { NoteDrawingPreview } from '@/features/notes/NoteDrawingEditor';
 import { isNoteDrawingFile, isNoteDrawingMime } from '@/features/notes/note-drawing';
 import {
   notesNewPatientPath,
@@ -102,6 +102,7 @@ import {
   updatePatientNoteCategories,
   updatePatientNoteTitle,
 } from '@/state/patient-notes';
+import { installPatientVaultLifecycle } from '@/state/patient-vault';
 import {
   deleteAllPersonalNotes,
   exportPersonalNotesBackup,
@@ -110,7 +111,6 @@ import {
   MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES,
   parsePersonalNotesBackup,
 } from '@/state/personal-notes-backup';
-import { installPatientVaultLifecycle } from '@/state/patient-vault';
 import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
 import { attachmentViewerKind } from '@/state/thumbnails';
 
@@ -1244,11 +1244,7 @@ export function NotesView(props: {
             </Show>
           }
           actions={
-            <AppContextMenu
-              class="patient-notes-data-menu"
-              actions={notesDataActions()}
-              hideButton
-            >
+            <AppContextMenu class="patient-notes-data-menu" actions={notesDataActions()} hideButton>
               <Button
                 type="button"
                 variant="icon"

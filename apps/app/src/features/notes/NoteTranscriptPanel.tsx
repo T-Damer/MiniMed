@@ -1,12 +1,4 @@
-import {
-  createMemo,
-  createSignal,
-  For,
-  type JSX,
-  onCleanup,
-  onMount,
-  Show,
-} from 'solid-js';
+import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { Button } from '@/components/Button';
@@ -14,8 +6,8 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
 import { isAsrReady } from '@/features/asr/asr-models';
-import type { NoteFile } from '@/state/note-files';
 import { transcriptTextMatchesSegments } from '@/features/notes/transcript-edit-alignment';
+import type { NoteFile } from '@/state/note-files';
 import {
   deleteTranscript,
   isTranscriptionQueued,
@@ -94,9 +86,7 @@ export function NoteTranscriptPanel(props: {
   const labels = createMemo(() => defaultSpeakerLabels(transcript()));
   const speakerIds = createMemo(() => (transcript()?.diarized ? [...labels().keys()] : []));
   const speakerLabel = (id: string): string =>
-    transcript()?.diarized
-      ? speakerNames()[id]?.trim() || labels().get(id) || id
-      : 'Речь';
+    transcript()?.diarized ? speakerNames()[id]?.trim() || labels().get(id) || id : 'Речь';
 
   const setSpeakerRole = (speakerId: string, label: string): void => {
     setSpeakerNames((current) => ({
@@ -121,8 +111,7 @@ export function NoteTranscriptPanel(props: {
     const current = transcript();
     if (!current || current.status !== 'done') return false;
     return (
-      draft() !== current.text ||
-      !speakerNamesEqual(speakerNames(), current.speakerNames ?? {})
+      draft() !== current.text || !speakerNamesEqual(speakerNames(), current.speakerNames ?? {})
     );
   };
 
@@ -257,7 +246,9 @@ export function NoteTranscriptPanel(props: {
       </Show>
 
       <Show when={transcript()?.status === 'failed'}>
-        <p class="note-transcript__error">{transcript()?.error ?? 'Не удалось распознать запись.'}</p>
+        <p class="note-transcript__error">
+          {transcript()?.error ?? 'Не удалось распознать запись.'}
+        </p>
       </Show>
 
       <Show when={transcript()?.status === 'unsupported'}>
@@ -291,11 +282,7 @@ export function NoteTranscriptPanel(props: {
       </Show>
 
       <Show when={transcript()?.status === 'done'}>
-        <Show
-          when={
-            transcript()?.diarized !== true && (transcript()?.segments?.length ?? 0) > 0
-          }
-        >
+        <Show when={transcript()?.diarized !== true && (transcript()?.segments?.length ?? 0) > 0}>
           <p class="note-transcript__hint">
             Таймкоды получены из Whisper. Разделение спикеров в браузере ещё не включено.
           </p>
@@ -352,8 +339,8 @@ export function NoteTranscriptPanel(props: {
         <Show when={(transcript()?.segments?.length ?? 0) > 0}>
           <Show when={!timestampsMatchText()}>
             <p class="note-transcript__hint">
-              Текст был изменён словами. Таймкодные действия скрыты, потому что сегменты относятся
-              к исходному распознаванию. Обычный экспорт использует текущий отредактированный текст.
+              Текст был изменён словами. Таймкодные действия скрыты, потому что сегменты относятся к
+              исходному распознаванию. Обычный экспорт использует текущий отредактированный текст.
             </p>
           </Show>
           <div class="note-transcript__segments">
@@ -363,7 +350,9 @@ export function NoteTranscriptPanel(props: {
                   <span class="note-transcript__time">
                     {timeLabel(segment.startMs)}–{timeLabel(segment.endMs)}
                   </span>
-                  <strong class="note-transcript__speaker">{speakerLabel(segment.speakerId)}</strong>
+                  <strong class="note-transcript__speaker">
+                    {speakerLabel(segment.speakerId)}
+                  </strong>
                   <span class="note-transcript__segment-text">{segment.text}</span>
                 </div>
               )}
@@ -420,19 +409,11 @@ export function NoteTranscriptPanel(props: {
             Скачать .txt
           </Button>
           <Show when={timestampsMatchText()}>
-            <Button
-              type="button"
-              disabled={deleting()}
-              onClick={() => exportTranscript(true)}
-            >
+            <Button type="button" disabled={deleting()} onClick={() => exportTranscript(true)}>
               Скачать с таймкодами
             </Button>
           </Show>
-          <Button
-            type="button"
-            disabled={deleting() || saving()}
-            onClick={() => start(true)}
-          >
+          <Button type="button" disabled={deleting() || saving()} onClick={() => start(true)}>
             Распознать заново
           </Button>
         </div>
@@ -456,8 +437,8 @@ export function NoteTranscriptPanel(props: {
         title="Удалить расшифровку?"
         description={
           <>
-            Текст, таймкоды и имена спикеров будут удалены с этого устройства. Исходная
-            аудиозапись останется в заметке.
+            Текст, таймкоды и имена спикеров будут удалены с этого устройства. Исходная аудиозапись
+            останется в заметке.
           </>
         }
         confirmLabel="Удалить расшифровку"

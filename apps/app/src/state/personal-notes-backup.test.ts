@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  installMultiStoreIndexedDbDouble,
   type IndexedDbDoubleOptions,
   type IndexedDbStoreDouble,
+  installMultiStoreIndexedDbDouble,
 } from '@/features/network/indexeddb-test-double';
 
 vi.mock('@/state/note-library-sync', () => ({
@@ -188,10 +188,9 @@ describe('portable personal-notes backup', () => {
   });
 
   it('preflights base64 expansion before allocating large backup blobs', async () => {
-    const {
-      estimatePersonalNotesBackupBytes,
-      MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES,
-    } = await import('./personal-notes-backup');
+    const { estimatePersonalNotesBackupBytes, MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES } = await import(
+      './personal-notes-backup'
+    );
 
     const makeFiles = (count: number) =>
       Array.from({ length: count }, (_, index) => ({
@@ -377,9 +376,9 @@ describe('portable personal-notes backup', () => {
       noteId: 'note-1',
       size: 3,
     });
-    const restoredBlob = env.files.get('file-audio')?.blob as Blob;
+    const restoredBlob = env.files.get('file-audio')?.['blob'] as Blob;
     expect([...new Uint8Array(await restoredBlob.arrayBuffer())]).toEqual([1, 2, 3]);
-    expect(env.images.get('image-1')?.id).toBe('image-1');
+    expect(env.images.get('image-1')?.['id']).toBe('image-1');
     expect(env.transcripts.get('file-audio')).toMatchObject({
       fileId: 'file-audio',
       noteId: 'note-1',
@@ -496,16 +495,13 @@ describe('portable personal-notes backup', () => {
     };
     expect(restored.cards.find((card) => card.id === 'card-1')?.title).toBe('Пациент А');
     expect(restored.cards.find((card) => card.id === 'card-2')?.title).toBe('Пациент Б');
-    expect(restored.notes.find((note) => note.id === 'note-1')?.text).toBe(
-      'Жалобы на бессонницу.',
-    );
+    expect(restored.notes.find((note) => note.id === 'note-1')?.text).toBe('Жалобы на бессонницу.');
     expect(restored.notes.find((note) => note.id === 'note-2')?.text).toBe('Не менять');
     expect(env.files.has('file-audio')).toBe(true);
     expect(env.files.has('file-other')).toBe(true);
-    const drafts = JSON.parse(env.local.getItem('minimed.patient-note-drafts.v1') ?? '{}') as Record<
-      string,
-      unknown
-    >;
+    const drafts = JSON.parse(
+      env.local.getItem('minimed.patient-note-drafts.v1') ?? '{}',
+    ) as Record<string, unknown>;
     expect(drafts['note-1']).toBeUndefined();
     expect(drafts['note-2']).toBeDefined();
   });
@@ -596,11 +592,11 @@ describe('portable personal-notes backup', () => {
     };
     expect(restored.notes?.[0]?.text).toBe('Жалобы на бессонницу.');
     expect([...env.files.keys()]).toEqual(['file-old']);
-    const oldBlob = env.files.get('file-old')?.blob as Blob;
+    const oldBlob = env.files.get('file-old')?.['blob'] as Blob;
     expect([...new Uint8Array(await oldBlob.arrayBuffer())]).toEqual([1, 2, 3]);
     expect([...env.images.keys()]).toEqual(['image-old']);
     expect([...env.transcripts.keys()]).toEqual(['file-old']);
-    expect(env.transcripts.get('file-old')?.text).toBe('Старая расшифровка');
+    expect(env.transcripts.get('file-old')?.['text']).toBe('Старая расшифровка');
   });
 
   it('rejects a card backup whose note id collides with another card', async () => {

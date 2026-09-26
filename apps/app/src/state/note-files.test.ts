@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  installMultiStoreIndexedDbDouble,
   type IndexedDbStoreDouble,
+  installMultiStoreIndexedDbDouble,
 } from '@/features/network/indexeddb-test-double';
 
 const { thumbnailForFile } = vi.hoisted(() => ({
@@ -105,6 +105,6 @@ describe('note-file transcript retention', () => {
     await expect(
       replaceNoteFile(fileId, new File(['new'], 'new.webm', { type: 'audio/webm' })),
     ).rejects.toThrow('Вложение уже удалено.');
-    expect(transcripts.get(fileId)?.text).toBe('Нельзя потерять этот текст');
+    expect(transcripts.get(fileId)?.['text']).toBe('Нельзя потерять этот текст');
   });
 });

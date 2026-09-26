@@ -132,7 +132,13 @@ requireText('iosPatientVaultPlugin', 'SecItemCopyMatching');
 requireText('iosBridge', 'registerPluginInstance(LocalMedPatientVaultPlugin())');
 requireText('iosProject', 'LocalMedPatientVaultPlugin.swift in Sources');
 
-for (const method of ['inspectModel', 'installModelFile', 'startRecording', 'stopRecording', 'transcribe']) {
+for (const method of [
+  'inspectModel',
+  'installModelFile',
+  'startRecording',
+  'stopRecording',
+  'transcribe',
+]) {
   requireText('androidTranscriberPlugin', `fun ${method}(`);
   requireText('typescriptTranscriberPlugin', `${method}(`);
 }
@@ -140,7 +146,10 @@ requireText('androidTranscriberPlugin', '@CapacitorPlugin(');
 requireText('androidTranscriberPlugin', 'name = "LocalMedTranscriber"');
 requireText('androidActivity', 'registerPlugin(LocalMedTranscriberPlugin.class)');
 requireText('androidManifest', 'android.permission.RECORD_AUDIO');
-requireText('typescriptTranscriberPlugin', "registerPlugin<LocalMedTranscriberPlugin>('LocalMedTranscriber')");
+requireText(
+  'typescriptTranscriberPlugin',
+  "registerPlugin<LocalMedTranscriberPlugin>('LocalMedTranscriber')",
+);
 requireText('typescriptTranscriberPlugin', 'downloadFileWithRetry');
 for (const checksum of [
   'd5fea8df94263c285e54b21e5774b707c707192d3bdbeffd7b1eb07fb6743b35',

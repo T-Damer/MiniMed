@@ -21,11 +21,7 @@ describe('speaker timestamp alignment', () => {
       ],
     );
 
-    expect(aligned.map((segment) => segment.speakerId)).toEqual([
-      'doctor',
-      'doctor',
-      'patient',
-    ]);
+    expect(aligned.map((segment) => segment.speakerId)).toEqual(['doctor', 'doctor', 'patient']);
   });
 
   it('keeps the original speaker when no diarization region overlaps the word', () => {
@@ -34,9 +30,7 @@ describe('speaker timestamp alignment', () => {
         [{ speakerId: 'speaker-1', startMs: 3_000, endMs: 3_500, text: 'Отдельно' }],
         [{ speakerId: 'patient', startMs: 0, endMs: 1_000 }],
       ),
-    ).toEqual([
-      { speakerId: 'speaker-1', startMs: 3_000, endMs: 3_500, text: 'Отдельно' },
-    ]);
+    ).toEqual([{ speakerId: 'speaker-1', startMs: 3_000, endMs: 3_500, text: 'Отдельно' }]);
   });
 
   it('merges adjacent words into readable turns without adding spaces before punctuation', () => {
