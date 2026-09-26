@@ -333,7 +333,7 @@ const checks = [
   ],
   [
     'notes view reuses shared visible form controls',
-    (files.notes.match(/<input\\b/gu) ?? []).length === 1 &&
+    (files.notes.match(/<input\b/gu) ?? []).length === 1 &&
       files.notes.includes('class="visually-hidden"') &&
       files.notes.includes('aria-label="Импорт backup личных заметок"') &&
       files.notes.includes('<UiTextField') &&
@@ -342,11 +342,11 @@ const checks = [
   ],
   [
     'patient workspace reuses shared visible form controls',
-    (files.patientWorkspace.match(/<input\\b/gu) ?? []).length === 1 &&
+    (files.patientWorkspace.match(/<input\b/gu) ?? []).length === 1 &&
       files.patientWorkspace.includes('class="visually-hidden"') &&
       files.patientWorkspace.includes('type="file"') &&
       !files.patientWorkspace.includes('<textarea') &&
-      (files.patientWorkspace.match(/<TextField\\b/gu) ?? []).length >= 13 &&
+      (files.patientWorkspace.match(/<TextField\b/gu) ?? []).length >= 13 &&
       files.patientWorkspace.includes('<TextArea') &&
       !files.patientWorkspace.includes('inputClass="patient-workspace__control"') &&
       !files.patientWorkspace.includes('textareaClass="patient-workspace__control"') &&
