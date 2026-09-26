@@ -784,13 +784,13 @@ function PatientList(props: {
     },
     {
       id: 'export-backup',
-      label: 'Экспорт backup',
+      label: 'Экспорт карточек пациентов',
       icon: 'download',
       onSelect: props.onExportBackup,
     },
     {
       id: 'import-backup',
-      label: 'Импорт backup',
+      label: 'Импорт карточек пациентов',
       icon: 'file-arrow-down',
       onSelect: props.onImportBackup,
     },
@@ -851,7 +851,7 @@ function PatientList(props: {
         class="patient-workspace__page"
         icon={<AppGlyph name="users" class="page__icon-glyph" />}
         title={<Heading depth={1}>Пациенты</Heading>}
-        description="Карточки пациентов хранятся локально и доступны в поиске «Ваши данные»."
+        description="Карточки пациентов хранятся локально. Backup этого раздела не включает личные заметки, голосовые вложения и расшифровки."
       />
       <div class="patient-workspace__list">
         <For each={visibleProfiles()}>
@@ -1591,12 +1591,21 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
       if (file.size > 128 * 1024 * 1024) {
         throw new Error('Файл резервной копии больше 128 МБ.');
       }
+      if (
+        !window.confirm(
+          'Импорт заменит текущие карточки пациентов, осмотры, события и файлы этого раздела. ' +
+            'Личные заметки, голосовые вложения и их расшифровки в этот backup не входят и не изменятся. ' +
+            'Продолжить?',
+        )
+      ) {
+        return;
+      }
       const raw = await file.text();
       await importPatientVaultBackup(JSON.parse(raw) as unknown);
       const request = ++vaultReadRequest;
       const next = await readPatientVault();
       if (request === vaultReadRequest && isPatientVaultUnlocked()) setSnapshot(next);
-      toast('Резервная копия импортирована.');
+      toast('Карточки пациентов и файлы этого раздела импортированы.');
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Не удалось импортировать резервную копию.',
@@ -1609,13 +1618,18 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
     importBackupInput.click();
   };
   const exportBackup = async (): Promise<void> => {
-    if (!window.confirm('Резервная копия содержит пациентские данные без шифрования. Продолжить?'))
+    if (
+      !window.confirm(
+        'Backup содержит карточки пациентов, осмотры, события и файлы этого раздела без шифрования. ' +
+          'Личные заметки, голосовые вложения и расшифровки в него не входят. Продолжить?',
+      )
+    )
       return;
     try {
       const backup = await exportPatientVaultBackup();
       const date = new Date().toISOString().slice(0, 10);
       downloadJsonFile(backup, `MiniMed — пациенты — ${date}.json`);
-      toast('Незашифрованная резервная копия сохранена в JSON.');
+      toast('Карточки пациентов и файлы этого раздела сохранены в незашифрованный JSON.');
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : 'Не удалось экспортировать резервную копию.',
@@ -1623,14 +1637,20 @@ export function PatientWorkspace(props: PatientWorkspaceProps): JSX.Element {
     }
   };
   const exportPatient = async (patientId: string): Promise<void> => {
-    if (!window.confirm('Экспорт содержит данные пациента без шифрования. Продолжить?')) return;
+    if (
+      !window.confirm(
+        'Экспорт содержит карточку пациента, её осмотры, события и файлы этого раздела без шифрования. ' +
+          'Личные заметки, голосовые вложения и расшифровки не входят. Продолжить?',
+      )
+    )
+      return;
     try {
       const backup = await exportPatientVaultBackup(patientId);
       const profile = snapshot()?.profiles.find((candidate) => candidate.id === patientId);
       const date = new Date().toISOString().slice(0, 10);
       const name = safeExportFilePart(profile?.displayName ?? patientId);
       downloadJsonFile(backup, `MiniMed — ${name} — ${date}.json`);
-      toast('Незашифрованная копия карточки сохранена в JSON.');
+      toast('Карточка пациента и её файлы сохранены в незашифрованный JSON.');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось экспортировать карточку.');
     }
