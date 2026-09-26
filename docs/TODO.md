@@ -105,11 +105,11 @@ exports/imports patient profiles, visits/events and vault blobs; personal notes 
   timestamps, persistent editable transcripts, retry/error states and insertion back into an open note.
   Finish speaker diarization only after a complete browser WASM runtime is pinned and routed through
   the verified download/cache path; do not fabricate speakers from pauses or one Whisper stream.
-- Add a portable **personal-notes backup** that preserves card/note ids, note files/images and
-  transcript ids/edits together. Do not fold these stores into patient-vault backup implicitly:
-  attachment ids are referenced by derived data and must survive round-trip exactly.
-- Consider a single-card export/wipe for handover and retention after the full notes-backup format is
-  versioned and round-trip tested.
+- [x] Portable **personal-notes backup v1** is separate from patient-vault backup and preserves
+  card/note ids, note files/images and transcript ids/edits together. Binary attachments carry exact
+  size + SHA-256, cross-store links are validated before mutation, import has rollback, and stale
+  editor drafts/revisions are cleared only after a successful restore.
+- Add a single-card export/wipe for handover and retention on top of the now-versioned backup format.
 
 ## Data and AI
 
