@@ -286,6 +286,18 @@ const checks = [
       files.patientWorkspace.includes("label: 'Импорт карточек пациентов'"),
   ],
   [
+    'patient workspace reuses shared visible form controls',
+    (files.patientWorkspace.match(/<input\\b/gu) ?? []).length === 1 &&
+      files.patientWorkspace.includes('class="visually-hidden"') &&
+      files.patientWorkspace.includes('type="file"') &&
+      !files.patientWorkspace.includes('<textarea') &&
+      (files.patientWorkspace.match(/<TextField\\b/gu) ?? []).length >= 13 &&
+      files.patientWorkspace.includes('<TextArea') &&
+      files.patientWorkspace.includes('<Button\n          class="patient-workspace__quick-action"') &&
+      !files.patientWorkspace.includes('<button\n          class="patient-workspace__quick-action"') &&
+      files.patientWorkspace.includes('class="patient-workspace__event-action"'),
+  ],
+  [
     'diary shared controls',
     files.diaryPanel.includes('<TextField') &&
       files.diaryPanel.includes('<TextArea') &&
