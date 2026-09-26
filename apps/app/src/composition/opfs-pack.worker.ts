@@ -16,11 +16,31 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
       if (store) throw new Error('OPFS pack worker is already open.');
       // A pool owns exclusive filesystem handles until its worker terminates. Keep the matching
       // browser lock for that lifetime so a reload waits for the old worker's teardown.
-      await new Promise<void>((resolve, reject) => {
+      // Another tab can hold it indefinitely, so report the wait instead of timing out.
+      const lockName = `minimed-opfs:${message.poolName}`;
+      const holdLock = (lock: Lock | null, resolve: (held: boolean) => void) =>
+        new Promise<void>(() => resolve(lock !== null));
+      const acquiredImmediately = await new Promise<boolean>((resolve, reject) => {
         void navigator.locks
-          .request(`minimed-opfs:${message.poolName}`, () => new Promise<void>(() => resolve()))
+          .request(lockName, { ifAvailable: true }, (lock) => {
+            if (lock === null) {
+              resolve(false);
+              return undefined;
+            }
+            return holdLock(lock, resolve);
+          })
           .catch(reject);
       });
+      if (!acquiredImmediately) {
+        self.postMessage({ id: message.id, status: 'lock-wait' } satisfies OpfsPackWorkerResponse);
+        await new Promise<boolean>((resolve, reject) => {
+          void navigator.locks.request(lockName, (lock) => holdLock(lock, resolve)).catch(reject);
+        });
+      }
+      self.postMessage({
+        id: message.id,
+        status: 'lock-acquired',
+      } satisfies OpfsPackWorkerResponse);
       const next = await SqliteMedicalStore.createFromOpfsUrl(message.url, message.databaseName, {
         fetchTimeoutMs: message.fetchTimeoutMs,
         poolName: message.poolName,

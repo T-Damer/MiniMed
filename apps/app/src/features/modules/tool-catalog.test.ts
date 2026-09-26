@@ -66,8 +66,10 @@ describe('core tool discovery', () => {
       expect(entry).not.toHaveProperty('questions');
       if (entry.kind === 'calculator') expect(entry.preview).not.toHaveProperty('steps');
     }
-    expect(moduleIdsForCalculatorSection('pediatrics')).toContain('minimed.tools.pediatrics.ru');
-    expect(moduleIdsForCalculatorSection('anthropometry')).toContain(
+    expect(moduleIdsForCalculatorSection('pediatrics', MODULE_CATALOG.modules)).toContain(
+      'minimed.tools.pediatrics.ru',
+    );
+    expect(moduleIdsForCalculatorSection('anthropometry', MODULE_CATALOG.modules)).toContain(
       'minimed.tools.pediatrics-growth.ru',
     );
   });

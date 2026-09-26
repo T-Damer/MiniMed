@@ -14,6 +14,7 @@ import type { SqliteIntegrityReport } from '@localmed/storage-sqlite';
 
 import type {
   OpfsPackWorkerCallArgs,
+  OpfsPackWorkerLockStatus,
   OpfsPackWorkerMethod,
   OpfsPackWorkerOpenOptions,
   OpfsPackWorkerResponse,
@@ -45,10 +46,15 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     private readonly worker: Worker,
     private readonly shared?: SharedWorkerStore,
     owner?: WorkerOpfsMedicalStore,
+    onLockStatus?: (status: OpfsPackWorkerLockStatus) => void,
   ) {
     this.owner = owner ?? this;
     if (owner) return;
     worker.onmessage = (event: MessageEvent<OpfsPackWorkerResponse>) => {
+      if ('status' in event.data) {
+        onLockStatus?.(event.data.status);
+        return;
+      }
       const pending = this.pending.get(event.data.id);
       if (!pending) return;
       this.pending.delete(event.data.id);
@@ -58,7 +64,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     worker.onerror = () => this.shutdown(new Error('OPFS pack worker failed.'));
   }
 
-  public static async open(options: OpfsPackWorkerOpenOptions): Promise<WorkerOpfsMedicalStore> {
+  public static async open(
+    options: OpfsPackWorkerOpenOptions,
+    onWaitingForOtherTab?: (waiting: boolean) => void,
+  ): Promise<WorkerOpfsMedicalStore> {
     const optionsKey = JSON.stringify([options.databaseName, options.fetchTimeoutMs]);
     const existing = WorkerOpfsMedicalStore.sharedStores.get(options.poolName);
     if (existing) {
@@ -68,18 +77,18 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
       const owner = await existing.owner;
       if (owner.closing) {
         await owner.closing;
-        return WorkerOpfsMedicalStore.open(options);
+        return WorkerOpfsMedicalStore.open(options, onWaitingForOtherTab);
       }
       if (owner.connectionClosed) {
         WorkerOpfsMedicalStore.sharedStores.delete(options.poolName);
-        return WorkerOpfsMedicalStore.open(options);
+        return WorkerOpfsMedicalStore.open(options, onWaitingForOtherTab);
       }
       owner.leaseCount += 1;
       return new WorkerOpfsMedicalStore(owner.worker, existing, owner);
     }
 
     const shared = { optionsKey, poolName: options.poolName } as SharedWorkerStore;
-    shared.owner = WorkerOpfsMedicalStore.openOwner(options, shared);
+    shared.owner = WorkerOpfsMedicalStore.openOwner(options, shared, onWaitingForOtherTab);
     WorkerOpfsMedicalStore.sharedStores.set(options.poolName, shared);
     try {
       return await shared.owner;
@@ -94,23 +103,35 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   private static async openOwner(
     options: OpfsPackWorkerOpenOptions,
     shared: SharedWorkerStore,
+    onWaitingForOtherTab?: (waiting: boolean) => void,
   ): Promise<WorkerOpfsMedicalStore> {
     const worker = new Worker(new URL('./opfs-pack.worker.ts', import.meta.url), {
       type: 'module',
     });
-    const store = new WorkerOpfsMedicalStore(worker, shared);
-    const opened = store.request('open', options);
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let rejectTimeout: (error: Error) => void = () => undefined;
+    const timedOut = new Promise<never>((_, reject) => {
+      rejectTimeout = reject;
+    });
+    const startTimeout = (): void => {
+      timer ??= setTimeout(
+        () => rejectTimeout(new Error(`Opening ${options.databaseName} timed out.`)),
+        options.fetchTimeoutMs,
+      );
+    };
+    // Waiting for another tab's pool lock is not an I/O failure: the timeout covers only the
+    // download/open after this worker owns the pool.
+    const store = new WorkerOpfsMedicalStore(worker, shared, undefined, (status) => {
+      if (status === 'lock-wait') {
+        onWaitingForOtherTab?.(true);
+        return;
+      }
+      onWaitingForOtherTab?.(false);
+      startTimeout();
+    });
+    const opened = store.request('open', options);
     try {
-      await Promise.race([
-        opened,
-        new Promise<never>((_, reject) => {
-          timer = setTimeout(
-            () => reject(new Error(`Opening ${options.databaseName} timed out.`)),
-            options.fetchTimeoutMs,
-          );
-        }),
-      ]);
+      await Promise.race([opened, timedOut]);
       return store;
     } catch (cause) {
       store.shutdown(cause instanceof Error ? cause : new Error('OPFS pack worker failed.'));

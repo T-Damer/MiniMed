@@ -1,4 +1,4 @@
-import type { ContentModuleCatalogEntry } from '@localmed/contracts';
+import type { ContentModuleCatalog, ContentModuleCatalogEntry } from '@localmed/contracts';
 import {
   type Accessor,
   batch,
@@ -16,32 +16,45 @@ import {
   contentModuleNeedsInstall,
   mergePreinstalledModules,
 } from '@/features/modules/local-packaged-modules';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import {
   getContentModuleRuntime,
   peekContentModuleRuntime,
+  subscribeContentModuleRuntime,
 } from '@/features/modules/module-runtime-service';
 import { installPublishedCategoryModules } from '@/features/modules/recommendation-category-operations';
 import { subscribeAppPreferences } from '@/state/app-preferences';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 
+/** Placeholder until the lazily loaded release catalog and module runtime are available. */
+const EMPTY_CATALOG: ContentModuleCatalog = {
+  catalogVersion: '',
+  channel: 'preview',
+  publishedAt: '',
+  categories: [],
+  modules: [],
+};
+
 export function useSearchSectionDownloads(open: Accessor<boolean>, connect: () => Promise<void>) {
-  const runtime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
-  const [catalog, setCatalog] = createSignal(runtime.getCatalog());
-  const [installed, setInstalled] = createSignal(runtime.listInstalled());
-  const [tasks, setTasks] = createSignal(runtime.listTasks());
+  const [runtime, setRuntime] = createSignal(peekContentModuleRuntime());
+  const [catalog, setCatalog] = createSignal(runtime()?.getCatalog() ?? EMPTY_CATALOG);
+  const [installed, setInstalled] = createSignal(runtime()?.listInstalled() ?? []);
+  const [tasks, setTasks] = createSignal(runtime()?.listTasks() ?? []);
   const [ready, setReady] = createSignal(false);
   const [error, setError] = createSignal('');
   const [scheduled, setScheduled] = createSignal<ReadonlySet<string>>(new Set());
   const [preferenceRevision, setPreferenceRevision] = createSignal(0);
   let reconnect: Promise<void> | undefined;
   let reconnectPending = false;
-  const refresh = (): void =>
+  const refresh = (): void => {
+    const current = runtime();
+    if (!current) return;
     batch(() => {
-      setCatalog(runtime.getCatalog());
-      setInstalled(runtime.listInstalled());
-      setTasks(runtime.listTasks());
+      setCatalog(current.getCatalog());
+      setInstalled(current.listInstalled());
+      setTasks(current.listTasks());
     });
+  };
   const reconnectContent = (): Promise<void> => {
     reconnectPending = true;
     if (reconnect) return reconnect;
@@ -55,22 +68,44 @@ export function useSearchSectionDownloads(open: Accessor<boolean>, connect: () =
     });
     return reconnect;
   };
+  const reportError = (cause: unknown): void => {
+    setError(cause instanceof Error ? cause.message : 'Не удалось проверить локальные пакеты.');
+  };
+  /** Startup loads the catalog on idle; a menu or download request needs it right away. */
+  const ensureRuntime = (): void => {
+    if (runtime()) return;
+    void loadModuleCatalog().then(getContentModuleRuntime).catch(reportError);
+  };
   onMount(() => {
-    onCleanup(runtime.subscribe(refresh));
+    let disposed = false;
+    let unsubscribeRuntime: (() => void) | undefined;
+    onCleanup(() => {
+      disposed = true;
+      unsubscribeRuntime?.();
+    });
     onCleanup(subscribeAppPreferences(() => setPreferenceRevision((value) => value + 1)));
     window.addEventListener(CONTENT_CHANGED_EVENT, refresh);
     onCleanup(() => window.removeEventListener(CONTENT_CHANGED_EVENT, refresh));
-    void runtime
-      .whenLocalPackagedModulesReady()
-      .then(() => {
-        batch(() => {
-          refresh();
-          setReady(true);
-        });
-      })
-      .catch((cause: unknown) =>
-        setError(cause instanceof Error ? cause.message : 'Не удалось проверить локальные пакеты.'),
-      );
+    onCleanup(
+      subscribeContentModuleRuntime((current) => {
+        if (disposed) return;
+        unsubscribeRuntime?.();
+        setReady(false);
+        setRuntime(current);
+        unsubscribeRuntime = current.subscribe(refresh);
+        refresh();
+        void current
+          .whenLocalPackagedModulesReady()
+          .then(() => {
+            if (disposed || runtime() !== current) return;
+            batch(() => {
+              refresh();
+              setReady(true);
+            });
+          })
+          .catch(reportError);
+      }),
+    );
   });
   createEffect(() => {
     if (open()) refresh();
@@ -100,11 +135,13 @@ export function useSearchSectionDownloads(open: Accessor<boolean>, connect: () =
     const pending = modules.filter(
       (module) => !complete.has(module.id) && !activeIds().has(module.id),
     );
-    if (!pending.length) return;
+    // Offered modules come from catalog(), which is empty until a runtime exists.
+    const current = runtime();
+    if (!pending.length || !current) return;
     setError('');
     setScheduled(new Set([...scheduled(), ...pending.map((module) => module.id)]));
     try {
-      const result = await installPublishedCategoryModules(runtime, pending, complete);
+      const result = await installPublishedCategoryModules(current, pending, complete);
       if (result.errorMessage) setError(result.errorMessage);
       if (result.changed) await reconnectContent();
     } catch (cause) {
@@ -118,6 +155,10 @@ export function useSearchSectionDownloads(open: Accessor<boolean>, connect: () =
   };
   return {
     catalog,
+    refresh: (): void => {
+      ensureRuntime();
+      refresh();
+    },
     preferenceRevision,
     ready,
     error,
@@ -127,3 +168,5 @@ export function useSearchSectionDownloads(open: Accessor<boolean>, connect: () =
     install,
   };
 }
+
+export type SearchSectionDownloads = ReturnType<typeof useSearchSectionDownloads>;

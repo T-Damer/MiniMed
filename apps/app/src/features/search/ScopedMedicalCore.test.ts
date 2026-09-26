@@ -765,6 +765,33 @@ describe('ScopedMedicalCore', () => {
     ]);
   });
 
+  it('keeps a medication named in an intent-free lookup query in free search', async () => {
+    const named = pointerDocument('metformin-pointer', 'medication', 'medication');
+    const mentioned = document('insulin-registry', 'official_registry_summary');
+    const guideline = document('diabetes-guideline', 'clinical_recommendation');
+    const baseResponse = response();
+    const base = coreWithDocuments([named, mentioned, guideline]);
+    base.search.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        ...baseResponse,
+        analysis: { ...baseResponse.analysis, originalQuery: 'метформин' },
+        groups: [
+          searchGroup(named.id, [searchResult(named.id, 'Метформин.')], 'МЕТФОРМИН'),
+          searchGroup(mentioned.id, [searchResult(mentioned.id, 'С метформином.')], 'Инсулин'),
+          searchGroup(guideline.id, [searchResult(guideline.id, 'Метформин.')], 'Диабет'),
+        ],
+      },
+    });
+
+    const result = await new ScopedMedicalCore(base.core, 'all').search(queryRequest('метформин'));
+
+    expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([
+      named.id,
+      guideline.id,
+    ]);
+  });
+
   it('keeps medication pointers for medication intent and explicit medication scope', async () => {
     const medication = pointerDocument('medication-pointer', 'medication', 'medication');
     const baseResponse = response();

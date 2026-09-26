@@ -7,6 +7,49 @@
   unchanged source hashes. Published data remains `terminology-ru-2026.9.16`. See
   `RUSSIAN_TERMINOLOGY.md` for source rights, sizes and measurements. The discovery core is unchanged.
 
+## Unreleased UX pass — search recovery, startup and readability
+
+- Free search (“Все источники”) no longer drops every medication group for intent-free lookup
+  queries: a medication stays when its title stem is typed in the query (“метформин”), while drug
+  mentions in disease queries are still filtered. Catalog fuzzy matching no longer accepts a short
+  catalog word found inside a longer query word (“форм” in “метформин”).
+- Source-pointer results offer the exact module that contains the target document (verified index
+  membership) as an in-result “Скачать полный текст · <module> · <size>” action. A completed search
+  with no document groups shows an explicit empty state with downloads for the current scope's
+  missing published modules and, outside free search, a switch to all sources. Ambiguous query
+  phrases list every candidate document as buttons with kind icons. Enter submits source lookup;
+  the clinical-case scope keeps Enter for new lines (Ctrl/⌘+Enter submits).
+- Shared `ChoiceChip` component; the “Прочее” category stamp is hidden; result kind watermarks scale
+  to the card instead of ending in an ellipsis; section counters show “…” until documents load.
+- All UI font sizes below 11px use the new `--type-micro` token (11px); print stylesheets are
+  unchanged. Reader body text is 16px, and in dark mode uses the primary text colour.
+- The unfiltered home catalog lists guidelines, then references/ICD, legal acts and medications;
+  symbol- or digit-led titles follow words within each group.
+- Startup: the bundled module and terminology catalogs load as raw JSON text (`JSON.parse`
+  instead of multi-megabyte object literals), the ~10 MB merged catalog is no longer re-validated
+  after merging two already-validated parts, and the remote-catalog loader validates only the base
+  catalog. Bottom-nav views are prefetched one at a time on idle once search is ready.
+- The ~10 MB release catalog is no longer in the startup bundle: startup reads a generated
+  `catalog.shell.json` (bundled core descriptor + tool index, ~170 KB JS; `bun run catalog:shell`,
+  also run by `content:catalog:tools`; a unit test fails if it drifts from `catalog.preview.json`).
+  The full catalog loads through `loadModuleCatalog()` on idle after search is ready, or on demand
+  (section menu, downloads, pointer documents, module views). Initial modulepreload fell from
+  ~11 MB to ~2.3 MB of JS. ATC medication groups appear once the catalog has loaded.
+- Download status marks (`DownloadProgressMark`): queued or scheduled work shows a clock; only
+  downloading/verifying/installing shows a round pie (fixed size, never squeezed) with a percentage.
+  The bottom-nav indicator follows the same rule. Section-menu selection highlights the whole row;
+  long section names end in an ellipsis and scroll (`MarqueeText`) only for the selected, hovered
+  or focused row, and never under reduced motion.
+- Calculators and assessments no longer wait for the medical core (they never read it); their
+  routes open while the core loads, downloads, or is held by another tab. The boot screen explains
+  when another tab owns the local database (OPFS lock wait no longer counts toward the open
+  timeout), and long error text wraps.
+- Validation: typecheck, 2,861 JS tests, 289 Python tests, build, benchmarks and native source
+  check pass; `bun run check` reports only the pre-existing `.claude/launch.json` format error.
+  Browser checks covered free-search medication results, the pointer download action and meaning
+  choices; watermark scaling, home ordering, dark reader colour, ungated tool routes and the
+  other-tab boot state were not checked visually. No physical Android device or native build.
+
 ## Terminology and measured lookup — 0.6.39
 
 - MeSH collector/section packs now connect to ordinary MedicalCore lookup through a versioned compact
@@ -1300,8 +1343,8 @@ checks were run independently. Native SDK builds and physical devices were not t
   Point review uses one lead selector for editing and measurement, frames that lead on entry, and
   colours P/QRS/T/baseline points with dashed outlines for untouched automatic points; the report
   states how many measured-lead points were automatic versus placed or corrected manually. A
-  prop-free `EcgHomeEntry` card (camera/gallery hand-off into the editor) exists for the search home
-  but is mounted only by the search owner; the calculator route still waits for core readiness.
+  prop-free `EcgHomeEntry` card (camera/gallery hand-off into the editor) is
+  mounted on the search home; the calculator route opens before core readiness.
   Speed is 25 or 50 mm/s; gain is 5, 10 or 20 mm/mV. Local ONNX segmentation proposes grid/regions;
   the existing waveform heuristics propose reviewable landmarks, not validated delineation.
   Missing/unusable model output leaves manual editing available. Late results do not overwrite

@@ -1,15 +1,15 @@
 import { createMemo, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
-import { downloadNavPieBackground } from '@/features/modules/content-download-progress';
+import { DownloadProgressMark } from '@/components/DownloadProgressMark';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { moduleGroupDownloadProgress } from '@/features/modules/recommendation-categories';
 import type { SearchDownloadBlock } from '@/features/search/searchSectionDownloads';
-import type { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
+import type { SearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 
 export function SearchSectionDownload(props: {
   readonly label: string;
   readonly block: SearchDownloadBlock;
-  readonly downloads: ReturnType<typeof useSearchSectionDownloads>;
+  readonly downloads: SearchSectionDownloads;
   readonly noDownload?: boolean;
   readonly loading?: boolean;
 }): JSX.Element {
@@ -26,6 +26,12 @@ export function SearchSectionDownload(props: {
   const active = () =>
     props.block.modules.some((module) => props.downloads.activeIds().has(module.id));
   const failed = () => tasks().some((task) => task.state === 'failed');
+  // Scheduled or queued work has not started: show a clock, not a stalled percentage.
+  const running = () =>
+    tasks().some(
+      (task) =>
+        task.state === 'downloading' || task.state === 'verifying' || task.state === 'installing',
+    );
   const progress = createMemo(() =>
     moduleGroupDownloadProgress(props.block.modules, installed(), tasks()),
   );
@@ -54,10 +60,8 @@ export function SearchSectionDownload(props: {
   };
   const compactStatus = (): string => {
     if (!props.downloads.ready() || props.loading) return '…';
-    if (active())
-      return progress().byteProgress === null
-        ? '…'
-        : `${Math.floor((progress().byteProgress ?? 0) * 100)}%`;
+    if (running() && progress().byteProgress !== null)
+      return `${Math.floor((progress().byteProgress ?? 0) * 100)}%`;
     return '';
   };
   const title = () =>
@@ -100,10 +104,9 @@ export function SearchSectionDownload(props: {
             />
           }
         >
-          <span
-            class="search-section-download__pie"
-            style={{ background: downloadNavPieBackground(progress().byteProgress ?? 0.08, false) }}
-            aria-hidden="true"
+          <DownloadProgressMark
+            state={running() ? 'running' : 'queued'}
+            progress={progress().byteProgress}
           />
         </Show>
         <span class="search-section-download__status" aria-hidden="true">

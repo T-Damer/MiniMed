@@ -620,9 +620,13 @@
     color: var(--theme-text-faint);
   }
 
-  .document-overlay-lead,
-  .document-overlay-section__paragraph {
+  .document-overlay-lead {
     color: var(--theme-text-muted);
+  }
+
+  /* Body copy is what a doctor reads at night; muted beige was noticeably dimmer than headings. */
+  .document-overlay-section__paragraph {
+    color: var(--theme-text);
   }
 
   .document-overlay-outline-backdrop {

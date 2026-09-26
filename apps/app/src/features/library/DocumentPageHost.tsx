@@ -24,7 +24,7 @@ import {
   parseTradeNameSupplement,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import {
   installModulePointer,
@@ -236,7 +236,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       const pointerMetadata = requested.ok ? requested.value.metadata : pointerSummary?.metadata;
       const pointer = parseModulePointerMetadata(pointerMetadata);
       if (pointer) {
-        const runtime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
+        const runtime =
+          peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
         const resolution = resolveModulePointer(
           pointer,
           runtime.getCatalog(),
@@ -334,7 +335,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const requestModulePointerInstall = async (): Promise<void> => {
     const resolution = modulePointer();
     if (resolution?.state !== 'available' || modulePointerPending()) return;
-    const runtime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
+    const runtime =
+      peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
     const targetAnchor = modulePointerTargetAnchor(document()?.metadata, initialAnchor());
     const pointerDocumentId = document()?.id;
     setModulePointerPending(true);
@@ -383,7 +385,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       new Set(documents.map((item) => item.id)),
     );
     if (fullDocumentId === summary.id) {
-      const runtime = peekContentModuleRuntime() ?? getContentModuleRuntime(MODULE_CATALOG);
+      const runtime =
+        peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
       const candidateIds = new Set(fullDocumentCandidateIds(summary.id));
       const matchingModules = runtime
         .getCatalog()

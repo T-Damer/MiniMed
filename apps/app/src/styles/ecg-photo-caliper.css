@@ -1544,7 +1544,7 @@
   padding-inline-start: 0.3rem;
   border-inline-start: 0.14rem solid #d31f3a;
   color: #8c1025;
-  font-size: 0.68rem;
+  font-size: var(--type-micro);
   font-weight: 800;
   text-shadow: 0 1px #fff;
 }
@@ -1565,7 +1565,7 @@
   padding-block-start: 0.2rem;
   border-block-start: 0.14rem solid #d31f3a;
   color: #8c1025;
-  font-size: 0.68rem;
+  font-size: var(--type-micro);
   font-weight: 800;
 }
 
@@ -1577,7 +1577,7 @@
   padding-inline-start: 0.3rem;
   border-inline-start: 0.14rem solid #d31f3a;
   color: #8c1025;
-  font-size: 0.68rem;
+  font-size: var(--type-micro);
   font-weight: 800;
 }
 

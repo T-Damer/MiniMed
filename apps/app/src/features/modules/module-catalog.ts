@@ -4,39 +4,41 @@ import {
   ContentModuleCatalogSchema,
 } from '@localmed/contracts';
 
-import rawCatalog from '@/features/modules/catalog.preview.json';
-import rawTerminologyModules from '@/features/modules/catalog.terminology.json';
+// Raw text keeps the multi-megabyte catalogs on V8's JSON.parse fast path; the bundler would
+// otherwise emit them as JavaScript object literals, which are slower to parse at startup.
+import catalogText from '@/features/modules/catalog.preview.json?raw';
+import terminologyText from '@/features/modules/catalog.terminology.json?raw';
 
-const terminologyModules = ContentModuleCatalogEntrySchema.array().parse(rawTerminologyModules);
+const terminologyModules = ContentModuleCatalogEntrySchema.array().parse(
+  JSON.parse(terminologyText),
+);
+if (new Set(terminologyModules.map((module) => module.id)).size !== terminologyModules.length) {
+  throw new Error('Bundled terminology catalog contains duplicate module IDs.');
+}
 
-/** Release-generated descriptors: exact membership and gzip/decoded identities, never guessed URLs. */
+/**
+ * Release-generated descriptors: exact membership and gzip/decoded identities, never guessed URLs.
+ * Both inputs are already schema-validated; the merge adds only unseen, unique IDs and keeps the
+ * base catalog's required core, so re-parsing the ~10 MB result would only repeat startup work.
+ */
 export function withBundledTerminology(catalog: ContentModuleCatalog): ContentModuleCatalog {
   const known = new Set(catalog.modules.map((module) => module.id));
-  return ContentModuleCatalogSchema.parse({
+  return {
     ...catalog,
     modules: [...catalog.modules, ...terminologyModules.filter((module) => !known.has(module.id))],
-  });
+  };
 }
 
-export const MODULE_CATALOG = withBundledTerminology(ContentModuleCatalogSchema.parse(rawCatalog));
+/** The release catalog without bundled terminology, for loaders that merge terminology later. */
+export const BASE_MODULE_CATALOG = ContentModuleCatalogSchema.parse(JSON.parse(catalogText));
 
-const bundledCoreModule = MODULE_CATALOG.modules.find((module) => module.id === 'minimed.core.ru');
-
-if (!bundledCoreModule?.sourceSetDigest || bundledCoreModule.sizes.installedBytes === null) {
-  throw new Error('Bundled core catalog metadata is incomplete.');
-}
-
-export const BUNDLED_CORE_MODULE = {
-  ...bundledCoreModule,
-  sourceSetDigest: bundledCoreModule.sourceSetDigest,
-  sizes: { ...bundledCoreModule.sizes, installedBytes: bundledCoreModule.sizes.installedBytes },
-};
+export const MODULE_CATALOG = withBundledTerminology(BASE_MODULE_CATALOG);
 
 export const REMOTE_MODULE_CATALOG_URL =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/src/features/modules/catalog.preview.json';
 
-/** Always shipped with core discovery; these entries do not imply an installed tool payload. */
-export const TOOL_CATALOG = MODULE_CATALOG.modules.flatMap((module) => module.tools ?? []);
+// Startup code imports these from the small shell; re-exported for module-feature callers.
+export { BUNDLED_CORE_MODULE, TOOL_CATALOG } from '@/features/modules/module-catalog-shell';
 
 export function moduleForTool(toolId: string) {
   return MODULE_CATALOG.modules.find((module) =>

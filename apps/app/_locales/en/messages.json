@@ -102,5 +102,13 @@
         "example": "5"
       }
     }
+  },
+  "search_meaning_count_one": {
+    "message": "$1 document",
+    "description": "Number of documents a search phrase may refer to"
+  },
+  "search_meaning_count_other": {
+    "message": "$1 documents",
+    "description": "Number of documents a search phrase may refer to"
   }
 }

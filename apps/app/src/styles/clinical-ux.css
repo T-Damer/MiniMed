@@ -136,7 +136,7 @@
 .knowledge-map-document-copy small {
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   text-transform: uppercase;
 }
 
@@ -144,7 +144,7 @@
   margin: 0.4375rem 0 0;
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
 }
 
 .result-category-line {
@@ -199,7 +199,7 @@
   color: #fff;
   background: var(--stamp);
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   line-height: 1;
 }
 
@@ -262,7 +262,7 @@
   background: rgb(255 255 255 / 42%);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }

@@ -436,7 +436,7 @@
   position: absolute;
   overflow: hidden;
   color: transparent;
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   line-height: 1;
   white-space: nowrap;
   user-select: text;
@@ -591,7 +591,7 @@
   color: var(--theme-personal-contrast);
   background: var(--theme-personal);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -1382,7 +1382,7 @@
   max-width: 100%;
   overflow: hidden;
   color: var(--theme-text-muted);
-  font-size: 0.64rem;
+  font-size: var(--type-micro);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

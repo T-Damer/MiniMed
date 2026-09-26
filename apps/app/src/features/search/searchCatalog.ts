@@ -15,7 +15,7 @@ import {
   medicationGroupLabel,
 } from '@/features/medications/medicationGroups';
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { loadedModuleCatalog } from '@/features/modules/module-catalog-state';
 import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
@@ -201,7 +201,7 @@ export function searchCatalogSections(
         true,
       );
     if (section.id === 'medications') {
-      for (const module of MODULE_CATALOG.modules) {
+      for (const module of loadedModuleCatalog()?.modules ?? []) {
         if (module.kind !== 'medication' || !isModuleReleased(module)) continue;
         const id = `module:${module.id}`;
         counts.set(id, module.documents.length);

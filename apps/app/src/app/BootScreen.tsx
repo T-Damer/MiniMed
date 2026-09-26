@@ -6,6 +6,8 @@ export function BootScreen(props: {
   readonly appLoading?: boolean;
   readonly error: string | undefined;
   readonly bootSlow: boolean;
+  /** Another tab owns the local database; this one opens it once that tab closes. */
+  readonly waitingForOtherTab?: boolean;
   readonly coreDownloadRequired?: boolean;
   readonly coreDownloading?: boolean;
   readonly coreProgress?:
@@ -33,19 +35,23 @@ export function BootScreen(props: {
             ? 'Запускаем MiniMed…'
             : props.error
               ? 'База не открылась'
-              : props.coreDownloadRequired
-                ? 'Скачайте ядро MiniMed'
-                : 'Подготавливаем поиск…'}
+              : props.waitingForOtherTab
+                ? 'MiniMed открыт в другой вкладке'
+                : props.coreDownloadRequired
+                  ? 'Скачайте ядро MiniMed'
+                  : 'Подготавливаем поиск…'}
         </h1>
         <p class="boot-card__description">
           {props.appLoading
             ? 'Загружаем интерфейс приложения…'
             : (props.error ??
-              (props.coreDownloadRequired
-                ? 'Для поиска скачайте ядро — около 490 МБ. Пока оно не установлено, можно пользоваться своими файлами и настройками. После установки поиск работает без интернета.'
-                : props.bootSlow
-                  ? 'Подготовка базы продолжается. Свои файлы и настройки доступны через нижнее меню.'
-                  : 'Поиск откроется, когда ядро будет готово. Пока можно пользоваться своими файлами и настройками.'))}
+              (props.waitingForOtherTab
+                ? 'Локальную базу одновременно может открыть только одна вкладка. Закройте другую вкладку или окно MiniMed — поиск откроется здесь автоматически.'
+                : props.coreDownloadRequired
+                  ? 'Для поиска скачайте ядро — около 490 МБ. Пока оно не установлено, можно пользоваться своими файлами и настройками. После установки поиск работает без интернета.'
+                  : props.bootSlow
+                    ? 'Подготовка базы продолжается. Свои файлы и настройки доступны через нижнее меню.'
+                    : 'Поиск откроется, когда ядро будет готово. Пока можно пользоваться своими файлами и настройками.'))}
         </p>
         <Show when={!props.appLoading && props.coreDownloadRequired && !props.error}>
           <Show

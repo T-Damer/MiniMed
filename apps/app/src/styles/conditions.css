@@ -52,7 +52,7 @@
   flex: none;
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
 }
 
 .condition-catalog-search {
@@ -103,7 +103,7 @@
 
 .condition-detail-definition__source-label {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
 }
 
 .condition-detail-definition__source-icon {
@@ -155,7 +155,7 @@
 .condition-source-card__kind {
   color: var(--theme-accent);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -171,7 +171,7 @@
 .condition-catalog-card__coverage {
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
 }
 
 .condition-catalog-card__footer {
@@ -257,7 +257,7 @@
   }
 
   .condition-catalog-tabs__label {
-    font-size: 0.625rem;
+    font-size: var(--type-micro);
   }
 }
 

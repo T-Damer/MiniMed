@@ -1,6 +1,6 @@
 import { AssessmentDefinitionSchema, type ToolDefinitionRecord } from '@localmed/contracts';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
-import { TOOL_CATALOG } from '@/features/modules/module-catalog';
+import { TOOL_CATALOG } from '@/features/modules/module-catalog-shell';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 
 export type AssessmentCategory = AssessmentDefinition['category'];

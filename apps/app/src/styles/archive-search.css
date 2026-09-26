@@ -14,7 +14,7 @@
 .archive-search__label {
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -166,7 +166,7 @@
   padding-bottom: 0.6875rem;
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;

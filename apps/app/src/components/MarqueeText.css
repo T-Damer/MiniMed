@@ -1,0 +1,36 @@
+.marquee-text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.marquee-text__track {
+  display: inline;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-text--running {
+    text-overflow: clip;
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 1rem), transparent);
+  }
+
+  .marquee-text__track--running {
+    display: inline-block;
+    animation: marquee-text-scroll var(--marquee-text-duration, 6s) ease-in-out infinite alternate;
+    will-change: transform;
+  }
+}
+
+@keyframes marquee-text-scroll {
+  0%,
+  15% {
+    transform: translateX(0);
+  }
+
+  85%,
+  100% {
+    transform: translateX(var(--marquee-text-distance, 0));
+  }
+}

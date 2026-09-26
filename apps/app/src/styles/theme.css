@@ -20,6 +20,8 @@
   background: var(--theme-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  /* Smallest readable label size; uppercase mono stamps below this were unreadable on phones. */
+  --type-micro: 0.6875rem;
   --theme-background: #777266;
   --theme-surface: #f3ecd9;
   --theme-surface-raised: #fbf7ea;

@@ -283,6 +283,10 @@ function filterMedicationDocuments(
   const requireSameResult = positiveMedicationFacts.length > 0 && structuredFacts.length > 0;
   if (!excludeByIntent && !requireSameResult) return response;
 
+  // Lookup queries carry no clinical intent, so a typed drug name is the only medication signal.
+  const queryStems = new Set(stemmedTokens(response.analysis.originalQuery));
+  const titleNamedInQuery = (title: string): boolean =>
+    stemmedTokens(title).some((stem) => stem.length >= 4 && queryStems.has(stem));
   const documentsById = new Map(documents.map((document) => [document.id, document]));
   return {
     ...response,
@@ -290,7 +294,7 @@ function filterMedicationDocuments(
       const document = documentsById.get(group.documentId);
       const metadata = document?.metadata as SearchDocumentKindMetadata | undefined;
       if (!document || !isMedicationSearchDocument(document)) return [group];
-      if (excludeByIntent) return [];
+      if (excludeByIntent) return titleNamedInQuery(group.title) ? [group] : [];
       if (!requireSameResult) return [group];
       const isMedicationPointer =
         document.sourceType === 'core_catalog_pointer' && metadata?.catalogFamily === 'medication';

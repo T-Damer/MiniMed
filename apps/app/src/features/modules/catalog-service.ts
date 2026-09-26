@@ -7,6 +7,7 @@ import {
 } from '@localmed/core';
 
 import {
+  BASE_MODULE_CATALOG,
   MODULE_CATALOG,
   REMOTE_MODULE_CATALOG_URL,
   withBundledTerminology,
@@ -41,7 +42,8 @@ export async function refreshContentModuleCatalog(): Promise<LoadedContentModule
     import.meta.env as { readonly VITE_MODULE_CATALOG_URL?: string }
   ).VITE_MODULE_CATALOG_URL?.trim();
   const loaded = await loadContentModuleCatalog({
-    bundledCatalog: MODULE_CATALOG,
+    // Terminology is merged below; validating it again inside the loader only delays startup.
+    bundledCatalog: BASE_MODULE_CATALOG,
     remoteUrl: configuredUrl || REMOTE_MODULE_CATALOG_URL,
     cache: new BrowserContentModuleCatalogCache(),
   });

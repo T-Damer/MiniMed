@@ -11,8 +11,11 @@ function tokens(value: string): readonly string[] {
 }
 
 function tokenMatches(queryToken: string, hayToken: string): boolean {
-  if (hayToken.includes(queryToken) || (hayToken.length >= 3 && queryToken.includes(hayToken))) {
-    return true;
+  if (hayToken.includes(queryToken)) return true;
+  // A shorter catalog word only counts as the stem of the typed word: “форм” inside “метформин”
+  // used to surface unrelated calculators.
+  if (hayToken.length >= 4 && queryToken.startsWith(hayToken)) {
+    return hayToken.length >= queryToken.length * 0.6;
   }
   if (queryToken.length < MIN_FUZZY_TOKEN_LENGTH && hayToken.length < MIN_FUZZY_TOKEN_LENGTH) {
     return queryToken === hayToken;

@@ -347,7 +347,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
 
 .rich-sheet__save-state {
   color: #5f6368;
-  font-size: 0.68rem;
+  font-size: var(--type-micro);
   line-height: 1.2;
 }
 
@@ -711,7 +711,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
   flex: 0 0 auto;
   padding-top: 0.75rem;
   color: #5f6368;
-  font-size: 0.68rem;
+  font-size: var(--type-micro);
   white-space: nowrap;
 }
 

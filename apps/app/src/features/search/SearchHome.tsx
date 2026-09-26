@@ -13,16 +13,20 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-packs';
+import { EcgHomeEntry } from '@/features/calculators/EcgHomeEntry';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
+import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
 import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
   ScopedMedicalCore,
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
+import { SearchNoResults } from '@/features/search/SearchNoResults';
+import { SearchResultModuleDownload } from '@/features/search/SearchResultModuleDownload';
 import { SearchSectionPicker } from '@/features/search/SearchSectionPicker';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import {
@@ -32,7 +36,9 @@ import {
   searchCatalogTools,
   unifiedSearchSpecialty,
 } from '@/features/search/searchCatalog';
+import { searchSectionDownloadBlocks } from '@/features/search/searchSectionDownloads';
 import { UnifiedSearchCatalog } from '@/features/search/UnifiedSearchCatalog';
+import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import {
   ignoreAppUpdate,
@@ -66,6 +72,36 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     return searchCatalogTools();
   });
   const sections = createMemo(() => searchCatalogSections(documents(), toolRows()));
+  const downloads = useSearchSectionDownloads(
+    () => props.active,
+    () => props.onContentChanged(),
+  );
+  const documentsById = createMemo(
+    () => new Map(documents().map((document) => [document.id, document])),
+  );
+  const downloadBlocks = createMemo(() => {
+    downloads.preferenceRevision();
+    return searchSectionDownloadBlocks(documents(), toolRows(), downloads.catalog());
+  });
+  /** Document sections of the current scope whose published modules are not installed yet. */
+  const missingSections = createMemo(() => {
+    const scopes =
+      scope() === 'all'
+        ? SEARCH_SECTIONS.filter(
+            (section) =>
+              section.id !== 'all' &&
+              section.id !== 'diagnosis' &&
+              section.id !== 'assessments' &&
+              section.id !== 'calculators',
+          )
+        : SEARCH_SECTIONS.filter((section) => section.id === scope());
+    return scopes.flatMap((section) => {
+      const modules = downloadBlocks().get(`${section.id}/${specialty() ?? ''}`)?.modules ?? [];
+      const installed = downloads.installedIds(modules);
+      const pending = modules.filter((module) => !installed.has(module.id));
+      return pending.length ? [{ id: section.id, label: section.label, modules: pending }] : [];
+    });
+  });
   const catalogOnly = createMemo(() => {
     if (scope() === 'calculators' || scope() === 'assessments') return true;
     const group = sections()
@@ -97,6 +133,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                     (scope() === 'all' ? unifiedSearchSpecialty(group) : group) === specialty(),
                 ))),
     ),
+  );
+  const catalogDocuments = createMemo(() =>
+    scope() === 'all' ? homeDocumentOrder(visibleDocuments()) : visibleDocuments(),
   );
   createEffect(() => {
     const core = props.baseCore;
@@ -230,6 +269,28 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           catalogResultCount={visibleTools().length}
           filters={filters()}
           onQueryChange={setCatalogQuery}
+          groupAction={(group) =>
+            group.contentKind === 'pointer' ? (
+              <SearchResultModuleDownload
+                document={documentsById().get(group.documentId)}
+                downloads={downloads}
+              />
+            ) : undefined
+          }
+          emptyResults={(query) => (
+            <SearchNoResults
+              query={query}
+              downloads={downloads}
+              missing={missingSections()}
+              onSearchEverywhere={
+                scope() === 'all'
+                  ? undefined
+                  : () => {
+                      setScope('all');
+                    }
+              }
+            />
+          )}
           catalogOnly={catalogOnly()}
           showExamples={scope() === 'diagnosis'}
           searchActions={
@@ -247,21 +308,31 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             </Show>
           }
           catalog={
-            <UnifiedSearchCatalog
-              core={props.baseCore}
-              scope={scope()}
-              query={catalogQuery()}
-              catalogOnly={catalogOnly()}
-              hideDocuments={scope() === 'diagnosis'}
-              documents={visibleDocuments()}
-              tools={visibleTools()}
-              onOpenTool={() => {
-                if (catalogQuery().trim())
-                  appendSearchHistory(catalogQuery(), scope(), visibleTools().length, specialty());
-              }}
-              loading={catalogLoading()}
-              error={catalogError()}
-            />
+            <>
+              <Show when={scope() === 'all' && !catalogQuery().trim()}>
+                <EcgHomeEntry />
+              </Show>
+              <UnifiedSearchCatalog
+                core={props.baseCore}
+                scope={scope()}
+                query={catalogQuery()}
+                catalogOnly={catalogOnly()}
+                hideDocuments={scope() === 'diagnosis'}
+                documents={catalogDocuments()}
+                tools={visibleTools()}
+                onOpenTool={() => {
+                  if (catalogQuery().trim())
+                    appendSearchHistory(
+                      catalogQuery(),
+                      scope(),
+                      visibleTools().length,
+                      specialty(),
+                    );
+                }}
+                loading={catalogLoading()}
+                error={catalogError()}
+              />
+            </>
           }
           placeholder={
             scope() === 'diagnosis'
@@ -273,7 +344,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               loading={catalogLoading()}
               documents={documents()}
               tools={toolRows()}
-              onContentChanged={props.onContentChanged}
+              downloads={downloads}
               sections={sections()}
               scope={scope()}
               group={specialty()}

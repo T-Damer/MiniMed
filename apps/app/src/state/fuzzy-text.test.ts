@@ -26,6 +26,11 @@ describe('matchesFuzzyQuery', () => {
     expect(matchesFuzzyQuery('фармакология', ['Клиническая фармакология'])).toBe(true);
   });
 
+  it('does not match a short word that only occurs inside a longer query word', () => {
+    expect(matchesFuzzyQuery('метформин', ['Пересчёт палочкоядерных форм в ANC'])).toBe(false);
+    expect(matchesFuzzyQuery('пневмонией', ['Пневмония'])).toBe(true);
+  });
+
   it('scores an exact title above a later mention', () => {
     expect(fuzzyQueryScore('парацетамол', ['Парацетамол', 'инструкция'])).toBeGreaterThan(
       fuzzyQueryScore('парацетамол', ['Колдрекс', 'содержит парацетамол']),

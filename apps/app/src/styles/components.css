@@ -509,7 +509,7 @@
   align-self: end;
   color: var(--theme-text-muted);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }

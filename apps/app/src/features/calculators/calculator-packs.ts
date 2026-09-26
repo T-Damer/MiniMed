@@ -1,3 +1,5 @@
+import type { ContentModuleCatalog } from '@localmed/contracts';
+
 import {
   CALCULATOR_REGISTRY,
   ECG_PHOTO_CALIPER_ID,
@@ -9,7 +11,7 @@ import type {
 } from '@/features/calculators/calculator-types';
 import { PEDIATRIC_FEEDING_PLAN_ID } from '@/features/calculators/pediatric-feeding-plan';
 
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { loadedModuleCatalog } from '@/features/modules/module-catalog-state';
 
 export type CalculatorSectionId = CalculatorCategory;
 
@@ -92,13 +94,16 @@ export function moduleIdForCalculatorSection(sectionId: CalculatorSectionId): st
   return CALCULATOR_SECTION_MODULE_IDS[sectionId];
 }
 
-export function moduleIdsForCalculatorSection(sectionId: CalculatorSectionId): readonly string[] {
+export function moduleIdsForCalculatorSection(
+  sectionId: CalculatorSectionId,
+  modules: ContentModuleCatalog['modules'] = loadedModuleCatalog()?.modules ?? [],
+): readonly string[] {
   const primary = moduleIdForCalculatorSection(sectionId);
   return [
     ...new Set([
       ...(primary ? [primary] : []),
       ...(CALCULATOR_SECTION_EXTRA_MODULE_IDS[sectionId] ?? []),
-      ...MODULE_CATALOG.modules
+      ...modules
         .filter((module) =>
           (module.tools ?? []).some(
             (tool) =>

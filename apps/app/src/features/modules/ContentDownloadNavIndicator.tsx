@@ -1,4 +1,5 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { AppGlyph } from '@/components/AppGlyph';
 import { aggregateDownloadFraction, isDownloadActive } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { downloadNavPieBackground } from '@/features/modules/content-download-progress';
@@ -15,15 +16,27 @@ export function ContentDownloadNavIndicator(): JSX.Element {
   const attention = () =>
     tasks().some((task) => task.state === 'failed' || task.state === 'interrupted');
   const progress = () => aggregateDownloadFraction(tasks());
+  // Queued or retrying work is waiting, not progressing: a clock instead of a frozen pie.
+  const waiting = () =>
+    !attention() &&
+    !active().some(
+      (task) =>
+        task.state === 'downloading' || task.state === 'verifying' || task.state === 'installing',
+    );
   const label = () =>
-    `Загрузки: ${active().length}${progress() === null ? '' : `, ${Math.floor((progress() ?? 0) * 100)}%`}${attention() ? '. Есть прерванные задания' : ''}. Открыть загрузки`;
+    `Загрузки: ${active().length}${waiting() ? ', в очереди' : progress() === null ? '' : `, ${Math.floor((progress() ?? 0) * 100)}%`}${attention() ? '. Есть прерванные задания' : ''}. Открыть загрузки`;
   return (
     <Show when={active().length > 0 || attention()}>
       <div class="content-download-nav">
         <button
           type="button"
           class="content-download-nav__pie"
-          style={{ background: downloadNavPieBackground(progress() ?? 0.08, attention()) }}
+          classList={{ 'content-download-nav__pie--waiting': waiting() }}
+          style={
+            waiting()
+              ? undefined
+              : { background: downloadNavPieBackground(progress() ?? 0.08, attention()) }
+          }
           data-testid="content-download-nav"
           title={label()}
           aria-label={label()}
@@ -31,7 +44,11 @@ export function ContentDownloadNavIndicator(): JSX.Element {
             event.stopPropagation();
             window.location.hash = SETTINGS_DOWNLOADS_HASH;
           }}
-        />
+        >
+          <Show when={waiting()}>
+            <AppGlyph name="clock" class="content-download-nav__glyph" />
+          </Show>
+        </button>
       </div>
     </Show>
   );

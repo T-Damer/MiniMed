@@ -1,9 +1,11 @@
 import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { expect, it } from 'vitest';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { medicationDocumentGroups, medicationGroupLabel } from './medicationGroups';
 
-it('uses exact medication manifest membership and source pharmacology', () => {
+it('uses exact medication manifest membership and source pharmacology', async () => {
+  await loadModuleCatalog();
   const module = MODULE_CATALOG.modules.find(
     (entry) => entry.kind === 'medication' && entry.documents.length,
   );

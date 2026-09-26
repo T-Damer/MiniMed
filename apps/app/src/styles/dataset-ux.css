@@ -27,7 +27,7 @@
   background: var(--theme-surface);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -83,7 +83,7 @@
   border-radius: var(--theme-radius-control);
   color: var(--theme-text-muted);
   background: var(--theme-surface-muted);
-  font-size: 0.5625rem;
+  font-size: var(--type-micro);
 }
 
 .module-card__status {
@@ -107,7 +107,7 @@
   border-radius: var(--theme-radius-control);
   color: var(--theme-text-muted);
   background: var(--theme-surface-muted);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
 }
 
 .module-task-status__label {

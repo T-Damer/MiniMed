@@ -165,7 +165,7 @@
 }
 .ecg-editor__eyebrow {
   color: #b5d1c4;
-  font-size: 0.65rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.16em;
 }
 .ecg-editor__welcome-title {
@@ -347,7 +347,7 @@
   padding: 0.25rem 0.4rem;
   color: #eaf6f0;
   background: #193d32dc;
-  font-size: 0.65rem;
+  font-size: var(--type-micro);
 }
 .ecg-editor__region {
   fill: transparent;
@@ -467,18 +467,18 @@
   .ecg-editor__field {
     flex: 1 1 42%;
     justify-content: space-between;
-    font-size: 0.65rem;
+    font-size: var(--type-micro);
   }
   .ecg-editor__select {
     font-size: 0.7rem;
   }
   .ecg-editor__button {
     min-height: 2rem;
-    font-size: 0.68rem;
+    font-size: var(--type-micro);
     padding: 0.4rem 0.5rem;
   }
   .ecg-editor__instruction {
-    font-size: 0.67rem;
+    font-size: var(--type-micro);
   }
   .ecg-editor__welcome {
     padding: 1rem;
@@ -491,17 +491,7 @@
     gap: 0.6rem;
   }
   .ecg-editor__example-caption {
-    font-size: 0.6rem;
-  }
-  .ecg-editor__arrow {
-    width: 2.2rem;
-    height: 2.2rem;
-  }
-  .ecg-editor__arrow--back {
-    left: max(0.35rem, var(--safe-left, 0px));
-  }
-  .ecg-editor__arrow--next {
-    right: max(0.35rem, var(--safe-right, 0px));
+    font-size: var(--type-micro);
   }
   .ecg-editor__point-toolbar {
     inset: 0.4rem 0.4rem auto;

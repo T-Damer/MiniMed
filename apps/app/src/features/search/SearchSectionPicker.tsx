@@ -3,6 +3,7 @@ import type { MedicalDocumentSummary } from '@localmed/contracts';
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-solid';
 import { createMemo, createSignal, For, Index, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
+import { MarqueeText } from '@/components/MarqueeText';
 import { SearchField } from '@/components/SearchField';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchSectionDownload } from '@/features/search/SearchSectionDownload';
@@ -12,15 +13,25 @@ import {
   EMPTY_SEARCH_DOWNLOAD_BLOCK,
   searchSectionDownloadBlocks,
 } from '@/features/search/searchSectionDownloads';
-import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
+import type { SearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { SETTINGS_DOWNLOADS_HASH } from '@/features/settings/settings-routing';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
+
+/** Hover or keyboard focus anywhere in a row lets its long name scroll into view. */
+function engagement(setEngaged: (engaged: boolean) => void) {
+  return {
+    onPointerEnter: () => setEngaged(true),
+    onPointerLeave: () => setEngaged(false),
+    onFocusIn: () => setEngaged(true),
+    onFocusOut: () => setEngaged(false),
+  };
+}
 
 export function SearchSectionPicker(props: {
   readonly loading: boolean;
   readonly documents: readonly MedicalDocumentSummary[];
   readonly tools: readonly SearchCatalogTool[];
-  readonly onContentChanged: () => Promise<void>;
+  readonly downloads: SearchSectionDownloads;
   readonly sections: readonly SearchCatalogSection[];
   readonly scope: SearchScope;
   readonly group: string | undefined;
@@ -28,7 +39,7 @@ export function SearchSectionPicker(props: {
 }): JSX.Element {
   let menu: HTMLDivElement | undefined;
   const [open, setOpen] = createSignal(false);
-  const downloads = useSearchSectionDownloads(open, () => props.onContentChanged());
+  const downloads = props.downloads;
   const downloadBlocks = createMemo(() => {
     downloads.preferenceRevision();
     return searchSectionDownloadBlocks(props.documents, props.tools, downloads.catalog());
@@ -58,6 +69,7 @@ export function SearchSectionPicker(props: {
       onOpenChange={(value) => {
         setOpen(value);
         if (value) {
+          downloads.refresh();
           setQuery('');
           setExpanded(props.group ? props.scope : undefined);
         }
@@ -78,7 +90,10 @@ export function SearchSectionPicker(props: {
         />
         <span class="search-source-picker__label">
           {selectedGroup()?.label ?? selected()?.label}{' '}
-          <Show when={(selectedGroup()?.count ?? selected()?.count) !== undefined}>
+          {/* Until documents load only tools are counted, so the total would jump (71 → 24 819). */}
+          <Show
+            when={!props.loading && (selectedGroup()?.count ?? selected()?.count) !== undefined}
+          >
             ({selectedGroup()?.count ?? selected()?.count})
           </Show>
         </span>
@@ -117,6 +132,14 @@ export function SearchSectionPicker(props: {
                 {(row) => {
                   const section = () => row().section;
                   const groups = () => row().groups;
+                  const sectionSelected = () =>
+                    props.scope === section().id &&
+                    !props.group &&
+                    !(
+                      groups().length > 0 &&
+                      (Boolean(query().trim()) || expanded() === section().id)
+                    );
+                  const [sectionEngaged, setSectionEngaged] = createSignal(false);
                   return (
                     <div
                       class="search-section-menu__section"
@@ -126,24 +149,27 @@ export function SearchSectionPicker(props: {
                           (Boolean(query().trim()) || expanded() === section().id),
                       }}
                     >
-                      <div class="search-section-menu__row">
+                      <div
+                        class="search-section-menu__row"
+                        classList={{
+                          // The whole row carries the selection, not only the label button.
+                          'search-section-menu__row--selected': sectionSelected(),
+                        }}
+                        {...engagement(setSectionEngaged)}
+                      >
                         <button
                           class="search-section-menu__option search-section-menu__option--top"
-                          classList={{
-                            'search-section-menu__option--selected':
-                              props.scope === section().id &&
-                              !props.group &&
-                              !(
-                                groups().length > 0 &&
-                                (Boolean(query().trim()) || expanded() === section().id)
-                              ),
-                          }}
                           type="button"
                           aria-label={`${section().label} (${section().count})`}
                           onClick={() => select(section().id)}
                         >
                           <AppGlyph name={section().icon} class="search-section-menu__icon" />
-                          <span class="search-section-menu__label">{section().label}</span>
+                          <MarqueeText
+                            class="search-section-menu__label"
+                            active={sectionSelected() || sectionEngaged()}
+                          >
+                            {section().label}
+                          </MarqueeText>
                         </button>
                         <SearchSectionDownload
                           label={section().label}
@@ -152,7 +178,9 @@ export function SearchSectionPicker(props: {
                           loading={props.loading}
                           noDownload={section().id === 'diagnosis'}
                         />
-                        <span class="search-section-menu__count">{section().count}</span>
+                        <span class="search-section-menu__count">
+                          {props.loading ? '…' : section().count}
+                        </span>
                         <Show when={groups().length > 0}>
                           <button
                             class="search-section-menu__expand"
@@ -176,44 +204,58 @@ export function SearchSectionPicker(props: {
                       </div>
                       <Show when={query().trim() || expanded() === section().id}>
                         <Index each={groups()}>
-                          {(group) => (
-                            <div class="search-section-menu__row search-section-menu__row--child">
-                              <button
-                                class="search-section-menu__option search-section-menu__option--child"
+                          {(group) => {
+                            const groupSelected = () =>
+                              props.scope === section().id && props.group === group().id;
+                            const [groupEngaged, setGroupEngaged] = createSignal(false);
+                            return (
+                              <div
+                                class="search-section-menu__row search-section-menu__row--child"
                                 classList={{
-                                  'search-section-menu__option--selected':
-                                    props.scope === section().id && props.group === group().id,
+                                  'search-section-menu__row--selected': groupSelected(),
                                 }}
-                                type="button"
-                                aria-label={`${group().label} (${group().count})`}
-                                onClick={() => select(section().id, group().id)}
+                                {...engagement(setGroupEngaged)}
                               >
-                                <span class="search-section-menu__kinds">
-                                  <For each={group().kinds}>
-                                    {(kind) => (
-                                      <span
-                                        class="search-section-menu__kind"
-                                        title={RESULT_KIND_VISUALS[kind].label}
-                                      >
-                                        <AppGlyph
-                                          name={RESULT_KIND_VISUALS[kind].icon}
-                                          class="search-section-menu__kind-icon"
-                                        />
-                                      </span>
-                                    )}
-                                  </For>
+                                <button
+                                  class="search-section-menu__option search-section-menu__option--child"
+                                  type="button"
+                                  aria-label={`${group().label} (${group().count})`}
+                                  onClick={() => select(section().id, group().id)}
+                                >
+                                  <span class="search-section-menu__kinds">
+                                    <For each={group().kinds}>
+                                      {(kind) => (
+                                        <span
+                                          class="search-section-menu__kind"
+                                          title={RESULT_KIND_VISUALS[kind].label}
+                                        >
+                                          <AppGlyph
+                                            name={RESULT_KIND_VISUALS[kind].icon}
+                                            class="search-section-menu__kind-icon"
+                                          />
+                                        </span>
+                                      )}
+                                    </For>
+                                  </span>
+                                  <MarqueeText
+                                    class="search-section-menu__label"
+                                    active={groupSelected() || groupEngaged()}
+                                  >
+                                    {group().label}
+                                  </MarqueeText>
+                                </button>
+                                <SearchSectionDownload
+                                  label={group().label}
+                                  block={block(section().id, group().id)}
+                                  downloads={downloads}
+                                  loading={props.loading}
+                                />
+                                <span class="search-section-menu__count">
+                                  {props.loading ? '…' : group().count}
                                 </span>
-                                <span class="search-section-menu__label">{group().label}</span>
-                              </button>
-                              <SearchSectionDownload
-                                label={group().label}
-                                block={block(section().id, group().id)}
-                                downloads={downloads}
-                                loading={props.loading}
-                              />
-                              <span class="search-section-menu__count">{group().count}</span>
-                            </div>
-                          )}
+                              </div>
+                            );
+                          }}
                         </Index>
                       </Show>
                     </div>

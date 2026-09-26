@@ -138,6 +138,7 @@ export interface CoreDownloadUi {
     readonly total: number;
     readonly phase?: 'downloading' | 'verifying' | 'installing';
   }) => void;
+  readonly onWaitingForOtherTab?: (waiting: boolean) => void;
 }
 
 export async function createNativeStore(
@@ -292,19 +293,24 @@ async function packagedContentLength(url: URL): Promise<number | undefined> {
 function openRequiredCoreFromOpfs(
   url: string,
   databaseName = PACK_DATABASE_NAME,
+  onWaitingForOtherTab?: (waiting: boolean) => void,
 ): Promise<WorkerOpfsMedicalStore> {
-  return WorkerOpfsMedicalStore.open({
-    url,
-    databaseName,
-    fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
-    poolName: 'minimed-sah-core',
-  });
+  return WorkerOpfsMedicalStore.open(
+    {
+      url,
+      databaseName,
+      fetchTimeoutMs: OPFS_PACK_FETCH_TIMEOUT_MS,
+      poolName: 'minimed-sah-core',
+    },
+    onWaitingForOtherTab,
+  );
 }
 
 export async function createRequiredWebCoreStore(
   contentBaseUrl: string,
   databaseUrl?: string,
   cacheName = PACK_DATABASE_NAME,
+  onWaitingForOtherTab?: (waiting: boolean) => void,
 ): Promise<MedicalStore> {
   const url = new URL(databaseUrl ?? `content/${PACK_DATABASE_NAME}`, contentBaseUrl);
   const contentLength = await packagedContentLength(url);
@@ -313,7 +319,7 @@ export async function createRequiredWebCoreStore(
     contentLength === 0 ||
     contentLength > SQLITE_WASM_DESERIALIZE_MAX_BYTES
   ) {
-    return await openRequiredCoreFromOpfs(url.href, cacheName);
+    return await openRequiredCoreFromOpfs(url.href, cacheName, onWaitingForOtherTab);
   }
   const response = await fetchContent(url);
   if (!response.ok) {
@@ -323,7 +329,7 @@ export async function createRequiredWebCoreStore(
   if (!bytes) {
     // A server may under-report HEAD. Cancel the bounded read and stream the original resource
     // in its worker instead of retaining a whole-core ArrayBuffer plus a copied Blob.
-    return await openRequiredCoreFromOpfs(url.href, cacheName);
+    return await openRequiredCoreFromOpfs(url.href, cacheName, onWaitingForOtherTab);
   }
   if (!hasSqliteHeader(bytes)) {
     throw new Error(`Unable to load compiled content pack (${PACK_DATABASE_NAME} is not SQLite).`);
@@ -560,6 +566,7 @@ export async function createBrowserCore(downloadUi?: CoreDownloadUi) {
       contentBaseUrl,
       fallbackCoreUrl,
       `core.${(fallbackCoreUrl ? ANDROID_CORE_DOWNLOAD.checksum : report.outputChecksum).slice(7)}.db`,
+      downloadUi?.onWaitingForOtherTab,
     );
     const companions = await createPackagedCompanionStores(contentBaseUrl, {
       includeMedications: platform !== 'android' && !isFloatingWindowRuntime(),
