@@ -36,7 +36,7 @@ interface FakeIndex {
 interface FakeObjectStore {
   get: (key: string) => FakeRequest<PartialDownloadRecordDouble | undefined>;
   getAll: () => FakeRequest<PartialDownloadRecordDouble[]>;
-  put: (record: PartialDownloadRecordDouble) => void;
+  put: (record: PartialDownloadRecordDouble, key?: string) => void;
   delete: (key: string) => void;
   clear: () => void;
   index: (name: string) => FakeIndex;
@@ -123,8 +123,8 @@ export function installIndexedDbDouble(
         });
         return request;
       },
-      put: (record) => {
-        track(() => store.set(record.key, record), writeDelayMs);
+      put: (record, explicitKey) => {
+        track(() => store.set(explicitKey ?? record.key, record), writeDelayMs);
       },
       delete: (key) => {
         track(() => store.delete(key));
@@ -267,9 +267,9 @@ export function installMultiStoreIndexedDbDouble(
           });
           return request;
         },
-        put: (record) => {
+        put: (record, explicitKey) => {
           const generic = record as unknown as Record<string, unknown>;
-          const key = generic[definition.keyPath];
+          const key = explicitKey ?? generic[definition.keyPath];
           if (typeof key !== 'string' || !key) {
             throw new Error(`Missing IndexedDB test keyPath: ${definition.keyPath}`);
           }
