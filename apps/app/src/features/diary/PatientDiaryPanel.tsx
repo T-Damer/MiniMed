@@ -32,6 +32,9 @@ import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import { updatePatientVault } from '@/state/patient-vault';
 import '@/styles/patient-diary.css';
 
+const MAX_QR_PHOTOS = 40;
+const MAX_QR_PHOTO_BYTES = 20 * 1024 * 1024;
+
 function errorMessage(cause: unknown, fallback: string): string {
   return cause instanceof Error ? cause.message : fallback;
 }
@@ -295,15 +298,30 @@ function ImportDiaryDialog(props: {
   };
 
   const readPhotos = async (files: FileList | null): Promise<void> => {
-    for (const file of Array.from(files ?? [])) {
+    const selected = Array.from(files ?? []);
+    if (selected.length > MAX_QR_PHOTOS) {
+      setStatus(`Можно выбрать не больше ${MAX_QR_PHOTOS} фото кодов за один раз.`);
+      return;
+    }
+    for (const file of selected) {
+      if (!file.type.startsWith('image/')) {
+        setStatus(`«${file.name}» не является изображением.`);
+        continue;
+      }
+      if (file.size > MAX_QR_PHOTO_BYTES) {
+        setStatus(`Фото «${file.name}» больше 20 МБ. Уменьшите изображение и попробуйте снова.`);
+        continue;
+      }
+      let bitmap: ImageBitmap | undefined;
       try {
-        const bitmap = await createImageBitmap(file);
+        bitmap = await createImageBitmap(file);
         const text = decodeQrFromSource(bitmap, bitmap.width, bitmap.height, canvas);
-        bitmap.close();
         if (text) accept(text);
         else setStatus(`На фото «${file.name}» код не найден.`);
       } catch (cause) {
         setStatus(errorMessage(cause, `Не удалось открыть «${file.name}».`));
+      } finally {
+        bitmap?.close();
       }
     }
   };
