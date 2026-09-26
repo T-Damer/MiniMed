@@ -382,13 +382,13 @@ async function capturePersonalNotesState(): Promise<PersonalNotesState> {
       .map((file) => [file.id, file] as const),
   );
   const transcripts = flatten(noteIds, transcriptGroups);
-  const linkedTranscripts = transcripts.filter((transcript) => {
+  const linkedTranscripts: NoteTranscript[] = [];
+  const orphanTranscripts: NoteTranscript[] = [];
+  for (const transcript of transcripts) {
     const audio = audioById.get(transcript.fileId);
-    return Boolean(audio && audio.noteId === transcript.noteId);
-  });
-  const orphanTranscripts = transcripts.filter(
-    (transcript) => !linkedTranscripts.includes(transcript),
-  );
+    if (audio?.noteId === transcript.noteId) linkedTranscripts.push(transcript);
+    else orphanTranscripts.push(transcript);
+  }
   if (orphanTranscripts.length > 0) {
     void Promise.allSettled(
       orphanTranscripts.map((transcript) => deleteTranscript(transcript.fileId)),
