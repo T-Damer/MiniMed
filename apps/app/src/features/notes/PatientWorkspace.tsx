@@ -25,6 +25,7 @@ import { PatientAvatar } from '@/components/PatientAvatar';
 import { PatientAvatarPicker } from '@/components/PatientAvatarPicker';
 import { PatientVaultUnlock } from '@/components/PatientVaultUnlock';
 import { SearchField } from '@/components/SearchField';
+import { SelectField } from '@/components/SelectField';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
@@ -397,22 +398,21 @@ function NewPatientForm(props: {
           value={birthDate()}
           onInput={(event) => setBirthDate(event.currentTarget.value)}
         />
-        <label class="patient-workspace__field">
-          <span class="patient-workspace__label">Биологический пол</span>
-          <select
-            class="patient-workspace__control"
-            value={sex() ?? ''}
-            onChange={(event) =>
-              setSex((event.currentTarget.value || undefined) as PatientProfile['biologicalSex'])
-            }
-          >
-            <option value="">Не указан</option>
-            <option value="female">Женский</option>
-            <option value="male">Мужской</option>
-            <option value="intersex">Интерсекс</option>
-            <option value="unknown">Неизвестно</option>
-          </select>
-        </label>
+        <SelectField
+          class="patient-workspace__field"
+          label="Биологический пол"
+          value={sex() ?? ''}
+          options={[
+            { value: '', label: 'Не указан' },
+            { value: 'female', label: 'Женский' },
+            { value: 'male', label: 'Мужской' },
+            { value: 'intersex', label: 'Интерсекс' },
+            { value: 'unknown', label: 'Неизвестно' },
+          ]}
+          onChange={(event) =>
+            setSex((event.currentTarget.value || undefined) as PatientProfile['biologicalSex'])
+          }
+        />
         <div class="patient-workspace__form-grid">
           <TextField
             class="patient-workspace__field"
@@ -587,50 +587,40 @@ function ManualEventForm(props: {
           Пульс
         </Button>
       </div>
-      <label class="patient-workspace__field">
-        <span class="patient-workspace__label">Тип события</span>
-        <select
-          class="patient-workspace__control"
-          value={kind()}
-          onChange={(event) =>
-            setKind(event.currentTarget.value as 'measurement' | 'laboratory' | 'medication')
-          }
-        >
-          <option value="measurement">Показатель</option>
-          <option value="laboratory">Лаборатория</option>
-          <option value="medication">Лекарство</option>
-        </select>
-      </label>
+      <SelectField
+        class="patient-workspace__field"
+        label="Тип события"
+        value={kind()}
+        options={[
+          { value: 'measurement', label: 'Показатель' },
+          { value: 'laboratory', label: 'Лаборатория' },
+          { value: 'medication', label: 'Лекарство' },
+        ]}
+        onChange={(event) =>
+          setKind(event.currentTarget.value as 'measurement' | 'laboratory' | 'medication')
+        }
+      />
       <Show when={kind() !== 'medication'}>
         <div class="patient-workspace__form-grid">
-          <label class="patient-workspace__field">
-            <span class="patient-workspace__label">Показатель</span>
-            <select
-              class="patient-workspace__control"
-              value={metricChoice()}
-              onChange={(event) => applyMetricChoice(event.currentTarget.value)}
-            >
-              <For each={PATIENT_METRIC_REGISTRY}>
-                {(definition) => (
-                  <option value={`${definition.metricId}:${definition.unit}`}>
-                    {definition.label} · {definition.unit}
-                  </option>
-                )}
-              </For>
-              <For
-                each={props.snapshot.metricDefinitions.filter(
-                  (definition) => definition.kind === 'custom',
-                )}
-              >
-                {(definition) => (
-                  <option value={`${definition.metricId}:${definition.unit}`}>
-                    {definition.label} · {definition.unit} · пользовательский
-                  </option>
-                )}
-              </For>
-              <option value={customMetricChoice}>Создать свой показатель…</option>
-            </select>
-          </label>
+          <SelectField
+            class="patient-workspace__field"
+            label="Показатель"
+            value={metricChoice()}
+            options={[
+              ...PATIENT_METRIC_REGISTRY.map((definition) => ({
+                value: `${definition.metricId}:${definition.unit}`,
+                label: `${definition.label} · ${definition.unit}`,
+              })),
+              ...props.snapshot.metricDefinitions
+                .filter((definition) => definition.kind === 'custom')
+                .map((definition) => ({
+                  value: `${definition.metricId}:${definition.unit}`,
+                  label: `${definition.label} · ${definition.unit} · пользовательский`,
+                })),
+              { value: customMetricChoice, label: 'Создать свой показатель…' },
+            ]}
+            onChange={(event) => applyMetricChoice(event.currentTarget.value)}
+          />
           <Show when={customMetric()}>
             <TextField
               class="patient-workspace__field"
@@ -664,10 +654,7 @@ function ManualEventForm(props: {
             required
           />
           <Show when={!customMetric()}>
-            <span class="patient-workspace__field">
-              <span class="patient-workspace__label">Единица</span>
-              <output class="patient-workspace__control">{unit()}</output>
-            </span>
+            <TextField class="patient-workspace__field" label="Единица" value={unit()} readOnly />
           </Show>
         </div>
         <Show when={kind() === 'laboratory'}>
@@ -688,21 +675,18 @@ function ManualEventForm(props: {
           onInput={(event) => setMedication(event.currentTarget.value)}
           required
         />
-        <label class="patient-workspace__field">
-          <span class="patient-workspace__label">Событие лечения</span>
-          <select
-            class="patient-workspace__control"
-            value={medicationKind()}
-            onChange={(event) =>
-              setMedicationKind(event.currentTarget.value as MedicationEventKind)
-            }
-          >
-            <option value="start">Начало</option>
-            <option value="take">Приём</option>
-            <option value="dose-change">Изменение дозы</option>
-            <option value="stop">Отмена</option>
-          </select>
-        </label>
+        <SelectField
+          class="patient-workspace__field"
+          label="Событие лечения"
+          value={medicationKind()}
+          options={[
+            { value: 'start', label: 'Начало' },
+            { value: 'take', label: 'Приём' },
+            { value: 'dose-change', label: 'Изменение дозы' },
+            { value: 'stop', label: 'Отмена' },
+          ]}
+          onChange={(event) => setMedicationKind(event.currentTarget.value as MedicationEventKind)}
+        />
       </Show>
       <TextField
         class="patient-workspace__field"
