@@ -67,6 +67,8 @@ export interface IndexedDbDoubleOptions {
    * silently restarts the download from zero.
    */
   readonly writeDelayMs?: number;
+  /** Test-only one-shot failure for the first write/delete/clear against a named object store. */
+  readonly failWritesToStoreOnce?: string;
 }
 
 export function installIndexedDbDouble(
@@ -212,6 +214,7 @@ export function installMultiStoreIndexedDbDouble(
 ): void {
   const writeDelayMs = options.writeDelayMs ?? 0;
   let upgraded = false;
+  let pendingFailureStore = options.failWritesToStoreOnce ?? null;
 
   const createTransaction = (): FakeTransaction => {
     let pending = 0;
@@ -237,6 +240,11 @@ export function installMultiStoreIndexedDbDouble(
     const objectStore = (name: string): FakeObjectStore => {
       const definition = stores.get(name);
       if (!definition) throw new Error(`Unknown IndexedDB test store: ${name}`);
+      const failWriteIfRequested = (): void => {
+        if (pendingFailureStore !== name) return;
+        pendingFailureStore = null;
+        throw new Error(`Injected IndexedDB write failure for store: ${name}`);
+      };
 
       return {
         get: (key) => {
@@ -268,6 +276,7 @@ export function installMultiStoreIndexedDbDouble(
           return request;
         },
         put: (record, explicitKey) => {
+          failWriteIfRequested();
           const generic = record as unknown as Record<string, unknown>;
           const key = explicitKey ?? generic[definition.keyPath];
           if (typeof key !== 'string' || !key) {
@@ -276,9 +285,11 @@ export function installMultiStoreIndexedDbDouble(
           track(() => definition.records.set(key, generic), writeDelayMs);
         },
         delete: (key) => {
+          failWriteIfRequested();
           track(() => definition.records.delete(key));
         },
         clear: () => {
+          failWriteIfRequested();
           track(() => definition.records.clear());
         },
         index: () => ({
