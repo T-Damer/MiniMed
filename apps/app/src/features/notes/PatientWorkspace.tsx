@@ -550,21 +550,21 @@ function ManualEventForm(props: {
     <form class="patient-workspace__event-form paper-card" onSubmit={submit}>
       <Heading depth={3}>Быстрая запись</Heading>
       <div class="patient-workspace__quick-actions">
-        <button
+        <Button
           class="patient-workspace__quick-action"
           type="button"
           onClick={() => quickMetric('body-mass', 'Масса тела', 'кг')}
         >
           Масса
-        </button>
-        <button
+        </Button>
+        <Button
           class="patient-workspace__quick-action"
           type="button"
           onClick={() => quickMetric('body-height', 'Рост', 'см')}
         >
           Рост
-        </button>
-        <button
+        </Button>
+        <Button
           class="patient-workspace__quick-action"
           type="button"
           onClick={() =>
@@ -572,8 +572,8 @@ function ManualEventForm(props: {
           }
         >
           АД верхнее
-        </button>
-        <button
+        </Button>
+        <Button
           class="patient-workspace__quick-action"
           type="button"
           onClick={() =>
@@ -581,14 +581,14 @@ function ManualEventForm(props: {
           }
         >
           АД нижнее
-        </button>
-        <button
+        </Button>
+        <Button
           class="patient-workspace__quick-action"
           type="button"
           onClick={() => quickMetric('pulse', 'Пульс', 'уд/мин')}
         >
           Пульс
-        </button>
+        </Button>
       </div>
       <label class="patient-workspace__field">
         <span class="patient-workspace__label">Тип события</span>
@@ -1162,14 +1162,14 @@ function PatientDetail(props: {
                         <Show
                           when={editingObservationId() === observation.id}
                           fallback={
-                            <button
+                            <Button
                               type="button"
                               class="patient-workspace__event-action"
                               disabled={busy()}
                               onClick={() => startObservationRevision(observation)}
                             >
                               Исправить значение
-                            </button>
+                            </Button>
                           }
                         >
                           <div class="patient-workspace__event-revision">
@@ -1185,22 +1185,22 @@ function PatientDetail(props: {
                               }
                             />
                             <div class="patient-workspace__event-revision-actions">
-                              <button
+                              <Button
                                 type="button"
                                 class="patient-workspace__event-action"
                                 disabled={busy()}
                                 onClick={() => void reviseObservation(observation)}
                               >
                                 {busy() ? 'Сохраняем…' : 'Сохранить исправление'}
-                              </button>
-                              <button
+                              </Button>
+                              <Button
                                 type="button"
                                 class="patient-workspace__event-action"
                                 disabled={busy()}
                                 onClick={cancelObservationRevision}
                               >
                                 Отмена
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         </Show>
