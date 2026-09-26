@@ -37,6 +37,7 @@ export interface PersonalNotesBackupFile {
   readonly name: string;
   readonly mimeType: string;
   readonly size: number;
+  readonly sha256: string;
   readonly bytesBase64: string;
   readonly thumbnailDataUrl?: string;
   readonly createdAt: string;
@@ -94,6 +95,14 @@ function base64ToBytes(value: string): Uint8Array {
   return bytes;
 }
 
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const copy = Uint8Array.from(bytes);
+  const digest = await crypto.subtle.digest('SHA-256', copy.buffer);
+  return [...new Uint8Array(digest)]
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 function bytesToBase64(bytes: Uint8Array): string {
   // Every non-final chunk is divisible by three, so base64 chunks concatenate losslessly.
   const chunkSize = 3 * 16_384;
@@ -140,6 +149,8 @@ function parseBackupFile(value: unknown): PersonalNotesBackupFile {
     !Number.isSafeInteger(candidate.size) ||
     candidate.size <= 0 ||
     candidate.size > MAX_NOTE_FILE_BYTES ||
+    typeof candidate.sha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/u.test(candidate.sha256) ||
     typeof candidate.bytesBase64 !== 'string' ||
     !validThumbnail(candidate.thumbnailDataUrl) ||
     !validDate(candidate.createdAt)
@@ -275,9 +286,13 @@ async function capturePersonalNotesState(): Promise<PersonalNotesState> {
 }
 
 async function preparedStateFromBackup(backup: PersonalNotesBackup): Promise<PersonalNotesState> {
-  const files = backup.files.map((file): NoteFile => {
+  const files: NoteFile[] = [];
+  for (const file of backup.files) {
     const bytes = base64ToBytes(file.bytesBase64);
-    return {
+    if ((await sha256Hex(bytes)) !== file.sha256) {
+      throw new Error(`Контрольная сумма вложения «${file.name}» не совпадает.`);
+    }
+    files.push({
       id: file.id,
       noteId: file.noteId,
       name: file.name,
@@ -286,8 +301,8 @@ async function preparedStateFromBackup(backup: PersonalNotesBackup): Promise<Per
       blob: new Blob([Uint8Array.from(bytes)], { type: file.mimeType }),
       ...(file.thumbnailDataUrl ? { thumbnailDataUrl: file.thumbnailDataUrl } : {}),
       createdAt: file.createdAt,
-    };
-  });
+    });
+  }
   return {
     snapshot: backup.snapshot,
     files,
@@ -318,6 +333,7 @@ export async function exportPersonalNotesBackup(): Promise<PersonalNotesBackup> 
       name: file.name,
       mimeType: file.mimeType,
       size: file.size,
+      sha256: await sha256Hex(bytes),
       bytesBase64: bytesToBase64(bytes),
       ...(file.thumbnailDataUrl ? { thumbnailDataUrl: file.thumbnailDataUrl } : {}),
       createdAt: file.createdAt,
