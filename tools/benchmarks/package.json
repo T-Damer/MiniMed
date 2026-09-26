@@ -49,7 +49,7 @@
     "@localmed/storage-sqlite": "workspace:*",
     "@localmed/test-fixtures": "workspace:*",
     "@localmed/search-semantic": "workspace:*",
-    "yaml": "2.9.0",
+    "yaml": "2.9.1",
     "@localmed/storage": "workspace:*"
   }
 }
