@@ -51,7 +51,11 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
       // Rebuild the navigation index from the source diary records below.
     }
     const scanned = scanDiaryIds(storage);
-    const recovered = [...indexed, ...scanned.filter((id) => !indexed.includes(id))];
+    const scannedIds = new Set(scanned);
+    const recovered = [
+      ...indexed.filter((id) => scannedIds.has(id)),
+      ...scanned.filter((id) => !indexed.includes(id)),
+    ];
     if (
       recovered.length !== indexed.length ||
       recovered.some((id, index) => id !== indexed[index])
