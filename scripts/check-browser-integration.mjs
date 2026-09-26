@@ -24,6 +24,7 @@ const files = {
   transcriptPanel: read('apps/app/src/features/notes/NoteTranscriptPanel.tsx'),
   voiceRecorder: read('apps/app/src/features/notes/VoiceRecordingButton.tsx'),
   noteFiles: read('apps/app/src/state/note-files.ts'),
+  noteFilesTests: read('apps/app/src/state/note-files.test.ts'),
   noteTranscription: read('apps/app/src/state/note-transcription.ts'),
   noteTranscriptionTests: read('apps/app/src/state/note-transcription.test.ts'),
   retentionCleanup: read('apps/app/src/state/note-retention-cleanup.ts'),
@@ -231,6 +232,12 @@ const checks = [
         bulkDeleteSection.indexOf('const database = await openDatabase()') &&
       files.noteTranscription.includes('export async function deleteTranscript(') &&
       files.noteTranscription.includes('export async function deleteTranscriptsForNotes('),
+  ],
+  [
+    'atomic replacement retention has behavioural coverage',
+    files.noteFilesTests.includes('deletes the old transcript only after a replacement file is committed') &&
+      files.noteFilesTests.includes('does not delete a transcript when replacement fails before touching the file store') &&
+      files.noteFilesTests.includes("expect(transcripts.get(fileId)?.text).toBe('Нельзя потерять этот текст')"),
   ],
   [
     'cancelled transcription cannot recreate deleted data',
