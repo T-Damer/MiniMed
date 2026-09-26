@@ -309,6 +309,15 @@ const checks = [
       files.patientWorkspace.includes("label: 'Импорт карточек пациентов'"),
   ],
   [
+    'notes view reuses shared visible form controls',
+    (files.notes.match(/<input\\b/gu) ?? []).length === 1 &&
+      files.notes.includes('class="visually-hidden"') &&
+      files.notes.includes('aria-label="Импорт backup личных заметок"') &&
+      files.notes.includes('<UiTextField') &&
+      files.notes.includes('inputClass="patient-note-form__categories-input"') &&
+      files.notes.includes('<Button type="submit" variant="primary">'),
+  ],
+  [
     'patient workspace reuses shared visible form controls',
     (files.patientWorkspace.match(/<input\\b/gu) ?? []).length === 1 &&
       files.patientWorkspace.includes('class="visually-hidden"') &&
