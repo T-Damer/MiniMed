@@ -102,6 +102,7 @@ import {
   updatePatientNoteTitle,
 } from '@/state/patient-notes';
 import {
+  deleteAllPersonalNotes,
   exportPersonalNotesBackup,
   exportPersonalNotesCardBackup,
   importPersonalNotesBackup,
@@ -552,6 +553,40 @@ export function NotesView(props: {
     notesBackupInput.click();
   };
 
+  const deleteAllNotesData = async (): Promise<void> => {
+    if (backupBusy()) return;
+    const current = snapshot();
+    if (current.cards.length === 0 && current.notes.length === 0) {
+      toast('Личных заметок уже нет.');
+      return;
+    }
+    if (
+      !window.confirm(
+        'Удалить все личные карточки заметок, записи, вложения, изображения, расшифровки, ' +
+          'черновики и предыдущие ревизии на этом устройстве? Защищённые карточки пациентов и ' +
+          'осмотры из patient-vault не изменятся. Отменить действие нельзя.',
+      )
+    ) {
+      return;
+    }
+
+    setBackupBusy(true);
+    try {
+      await deleteAllPersonalNotes();
+      navigate(notesPath());
+      setTimelineViewer(null);
+      setPendingImages([]);
+      refresh();
+      toast.success('Все личные заметки и их локальные данные удалены.');
+    } catch (cause) {
+      toast.error(
+        cause instanceof Error ? cause.message : 'Не удалось удалить все личные заметки.',
+      );
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
   const notesDataActions = (): readonly AppContextMenuAction[] => [
     {
       id: 'export-personal-notes-backup',
@@ -564,6 +599,13 @@ export function NotesView(props: {
       label: 'Импорт backup заметок',
       icon: 'file-arrow-down',
       onSelect: requestNotesBackupImport,
+    },
+    {
+      id: 'delete-all-personal-notes',
+      label: backupBusy() ? 'Подождите…' : 'Удалить все личные заметки',
+      icon: 'trash',
+      danger: true,
+      onSelect: () => void deleteAllNotesData(),
     },
   ];
   onMount(() => {
