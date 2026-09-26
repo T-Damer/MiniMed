@@ -1,5 +1,6 @@
 import { createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 import { type EcgAutoSummaryItem, summarizeEcgAutoMarkup } from './ecg-auto-summary';
+import { ecgNumericDraftFromEditor } from './ecg-editor-numeric';
 import {
   digitizeEcgPhoto,
   ECG_MODEL_CATALOG,
@@ -73,6 +74,7 @@ export function useEcgEditor() {
   const [progress, setProgress] = createSignal(0);
   const [error, setError] = createSignal('');
   const [notice, setNotice] = createSignal('');
+  const [studyRevision, setStudyRevision] = createSignal(0);
   let generation = 0;
   let installation: AbortController | undefined;
 
@@ -172,6 +174,12 @@ export function useEcgEditor() {
     }
   });
   const stepConfirmed = (value: EcgEditorStep): boolean => completed()[value - 1] ?? false;
+  /** Numeric-model fields exist only after every editor step, including points, is confirmed. */
+  const numericDraft = createMemo(() =>
+    completed().every(Boolean)
+      ? ecgNumericDraftFromEditor(draft(), measurementRegion())
+      : undefined,
+  );
   /** The primary action states what the clinician confirms, then advances in one tap. */
   const confirmStep = (): void => {
     const current = step();
@@ -240,6 +248,7 @@ export function useEcgEditor() {
       const next = await readPhoto(file);
       if (version !== generation) return;
       setPhoto(next);
+      setStudyRevision((value) => value + 1);
       setDraft({ ...EMPTY_ECG_DRAFT, regions: ecgRegionTemplate('3x4+1R') });
       setPast([]);
       setFuture([]);
@@ -322,6 +331,8 @@ export function useEcgEditor() {
     canConfirmStep,
     stepConfirmed,
     confirmStep,
+    numericDraft,
+    studyRevision,
     autoSummary,
     activeRegion,
     setActiveRegion,

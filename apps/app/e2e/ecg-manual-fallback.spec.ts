@@ -171,6 +171,20 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   });
   await popup.pdf({ path: 'output/playwright/ecg-editor-report.pdf', preferCSSPageSize: true });
   await popup.close();
+  // Confirmed editor points become an editable draft for the 30-field numeric model.
+  await page.getByRole('button', { name: '30 признаков для модели' }).click();
+  const numeric = page.getByRole('dialog', { name: 'Готовые измерения ЭКГ' });
+  await expect(numeric.locator('#ecg-feature-RR_Mean_Global')).toHaveValue('1000');
+  await expect(numeric.locator('#ecg-feature-QT_Int_Global')).toHaveValue('440');
+  await expect(numeric.locator('#ecg-feature-R_Amp_II')).toHaveValue('');
+  await expect(
+    numeric.getByText('Не заполнено: II · ритм: нет точки «Изолиния»').first(),
+  ).toBeAttached();
+  await numeric.getByText(/^Амплитуды зубцов/u).click();
+  await numeric.locator('#ecg-feature-R_Amp_II').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'output/playwright/ecg-numeric-draft-mobile.png' });
+  await numeric.getByRole('button', { name: 'Закрыть' }).click();
+  await page.getByRole('button', { name: 'Продолжить разметку ЭКГ' }).click();
   await page.getByRole('button', { name: 'Предыдущий шаг' }).click();
   await expect(page.locator('.ecg-editor__point-hit')).toHaveCount(7);
   // Any point edit withdraws the confirmation, so the result step closes again.

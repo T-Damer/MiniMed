@@ -1345,6 +1345,15 @@ checks were run independently. Native SDK builds and physical devices were not t
   states how many measured-lead points were automatic versus placed or corrected manually. A
   prop-free `EcgHomeEntry` card (camera/gallery hand-off into the editor) is
   mounted on the search home; the calculator route opens before core readiness.
+  After all five editor steps are confirmed, «30 признаков для модели» opens the numeric panel with
+  an editable draft from `ecg-editor-numeric.ts`: the six intervals come from the measured lead,
+  and each of the 24 Q/R/S/T amplitudes is the signed distance from that lead's own baseline point,
+  divided by the confirmed vertical scale and gain (5/10/20 mm/mV; paper speed affects intervals
+  only). R is taken between the QRS boundaries or only when unique; duplicate points, a missing
+  lead frame, baseline or wave point leave the field empty with the missing point named under it,
+  and an unmarked Q is never imputed as zero. Each filled field names its lead and whether its points
+  were automatic or corrected. The panel still requires all 30 clinician-confirmed values and age
+  18+ before the adult model runs; editing any draft clears that confirmation.
   Speed is 25 or 50 mm/s; gain is 5, 10 or 20 mm/mV. Local ONNX segmentation proposes grid/regions;
   the existing waveform heuristics propose reviewable landmarks, not validated delineation.
   Missing/unusable model output leaves manual editing available. Late results do not overwrite

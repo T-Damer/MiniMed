@@ -172,7 +172,13 @@ export function EcgPhotoCaliper(): JSX.Element {
               </Show>
             }
           >
-            <EcgEditorReport editor={editor} />
+            <EcgEditorReport
+              editor={editor}
+              onOpenNumeric={() => {
+                setOpen(false);
+                setNumericOpen(true);
+              }}
+            />
           </Show>
         </div>
         <footer class="ecg-editor__footer">
@@ -233,15 +239,23 @@ export function EcgPhotoCaliper(): JSX.Element {
         onClose={() => setNumericOpen(false)}
       >
         <EcgNumericDiagnosticPanel
-          automaticAmplitudeValues={{}}
-          automaticMeasurementsDraft={{}}
+          automaticAmplitudeValues={editor.numericDraft()?.amplitudes ?? {}}
+          automaticMeasurementsDraft={editor.numericDraft()?.measurements ?? {}}
+          {...(editor.numericDraft()
+            ? {
+                draftNotes: {
+                  missing: editor.numericDraft()?.missing ?? {},
+                  sources: editor.numericDraft()?.sources ?? {},
+                },
+              }
+            : {})}
           exampleMode={false}
           measurements={{}}
           morphology={numericMorphology()}
           onMorphologyChange={(id, value) =>
             setNumericMorphology((current) => ({ ...current, [id]: value }))
           }
-          studyRevision={0}
+          studyRevision={editor.studyRevision()}
         />
       </OverlayDialog>
     </section>

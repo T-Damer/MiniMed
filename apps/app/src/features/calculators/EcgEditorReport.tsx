@@ -25,7 +25,10 @@ const METRICS: readonly {
   { key: 'qtcFraminghamMs', label: 'QTc Framingham', unit: 'мс' },
 ];
 
-export function EcgEditorReport(props: { readonly editor: EcgEditor }): JSX.Element {
+export function EcgEditorReport(props: {
+  readonly editor: EcgEditor;
+  readonly onOpenNumeric: () => void;
+}): JSX.Element {
   const e = props.editor;
   const [error, setError] = createSignal('');
   let paper: HTMLElement | undefined;
@@ -117,14 +120,25 @@ export function EcgEditorReport(props: { readonly editor: EcgEditor }): JSX.Elem
         <span class="ecg-editor__hint">
           Один лист A4 · исходное фото и подтверждённые измерения
         </span>
-        <button
-          class="ecg-editor__button ecg-editor__button--primary"
-          type="button"
-          onClick={print}
-        >
-          <AppGlyph class="ecg-editor__icon" name="printer" />
-          Распечатать
-        </button>
+        <div class="ecg-editor__report-buttons">
+          <button
+            class="ecg-editor__button"
+            type="button"
+            disabled={!e.numericDraft()}
+            onClick={props.onOpenNumeric}
+          >
+            <AppGlyph class="ecg-editor__icon" name="calculator" />
+            30 признаков для модели
+          </button>
+          <button
+            class="ecg-editor__button ecg-editor__button--primary"
+            type="button"
+            onClick={print}
+          >
+            <AppGlyph class="ecg-editor__icon" name="printer" />
+            Распечатать
+          </button>
+        </div>
       </div>
       <Show when={error()}>
         <p class="ecg-editor__error" role="alert">
