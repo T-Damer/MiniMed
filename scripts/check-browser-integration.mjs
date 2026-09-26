@@ -310,6 +310,8 @@ const checks = [
     'portable personal-notes backup preserves stable ids',
     files.personalNotesBackup.includes("PERSONAL_NOTES_BACKUP_KIND = 'minimed-personal-notes-backup'") &&
       files.personalNotesBackup.includes('PERSONAL_NOTES_BACKUP_SCHEMA_VERSION = 1') &&
+      files.personalNotesBackup.includes("readonly kind: 'card'; readonly cardId: string") &&
+      files.personalNotesBackup.includes('export async function exportPersonalNotesCardBackup(') &&
       files.personalNotesBackup.includes('readonly sha256: string') &&
       files.personalNotesBackup.includes("crypto.subtle.digest('SHA-256'") &&
       files.patientNotes.includes('export async function replacePatientNotesSnapshot(') &&
@@ -324,9 +326,11 @@ const checks = [
       files.personalNotesBackup.includes('Контрольная сумма вложения') &&
       files.personalNotesBackup.includes('const previous = await capturePersonalNotesState()') &&
       files.personalNotesBackup.includes('await applyPersonalNotesState(previous)') &&
-      files.personalNotesBackup.includes('clearPatientNoteWorkingState()') &&
+      files.personalNotesBackup.includes('mergeCardState(previous, prepared, backup.scope.cardId)') &&
+      files.personalNotesBackup.includes('clearPatientNoteWorkingState(') &&
       files.notes.includes('parsePersonalNotesBackup(JSON.parse(raw) as unknown)') &&
-      files.notes.includes('importPersonalNotesBackup(backup)'),
+      files.notes.includes('importPersonalNotesBackup(backup)') &&
+      files.notes.includes('exportPersonalNotesCardBackup(card.id)'),
   ],
   [
     'personal-notes backup round trip is covered',
@@ -336,6 +340,8 @@ const checks = [
       files.personalNotesBackupTests.includes("speakerNames: { 'speaker-1': 'Врач' }") &&
       files.personalNotesBackupTests.includes('rejects same-size attachment corruption before mutating current notes') &&
       files.personalNotesBackupTests.includes('not linked to its source audio before mutating data') &&
+      files.personalNotesBackupTests.includes('exports one card and imports it without replacing unrelated cards') &&
+      files.personalNotesBackupTests.includes('rejects a card backup whose note id collides with another card') &&
       files.personalNotesBackupTests.includes("minimed.patient-note-drafts.v1"),
   ],
   [
