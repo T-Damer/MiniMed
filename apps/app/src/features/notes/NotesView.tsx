@@ -105,6 +105,7 @@ import {
   exportPersonalNotesBackup,
   importPersonalNotesBackup,
   MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES,
+  parsePersonalNotesBackup,
 } from '@/state/personal-notes-backup';
 import { installPatientVaultLifecycle } from '@/state/patient-vault';
 import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
@@ -481,19 +482,18 @@ export function NotesView(props: {
       toast.error('Backup личных заметок больше 512 МБ.');
       return;
     }
-    if (
-      !window.confirm(
-        'Импорт полностью заменит текущие личные карточки заметок, их файлы, изображения и ' +
-          'расшифровки данными из backup. Карточки пациентов/осмотры из защищённого patient-vault ' +
-          'не изменятся. Продолжить?',
-      )
-    ) {
-      return;
-    }
     setBackupBusy(true);
     try {
       const raw = await file.text();
-      await importPersonalNotesBackup(JSON.parse(raw) as unknown);
+      const backup = parsePersonalNotesBackup(JSON.parse(raw) as unknown);
+      const description =
+        `В backup: карточек — ${backup.snapshot.cards.length}, записей — ${backup.snapshot.notes.length}, ` +
+        `файлов — ${backup.files.length}, изображений — ${backup.images.length}, ` +
+        `расшифровок — ${backup.transcripts.length}.\n\n` +
+        'Импорт полностью заменит текущие личные заметки и их локальные вложения. ' +
+        'Карточки пациентов/осмотры из защищённого patient-vault не изменятся. Продолжить?';
+      if (!window.confirm(description)) return;
+      await importPersonalNotesBackup(backup);
       navigate(notesPath());
       refresh();
       toast.success('Backup личных заметок восстановлен.');
