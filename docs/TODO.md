@@ -109,7 +109,10 @@ exports/imports patient profiles, visits/events and vault blobs; personal notes 
   card/note ids, note files/images and transcript ids/edits together. Binary attachments carry exact
   size + SHA-256, cross-store links are validated before mutation, import has rollback, and stale
   editor drafts/revisions are cleared only after a successful restore.
-- Add a single-card export/wipe for handover and retention on top of the now-versioned backup format.
+- [x] Single-card handover uses the same backup v1 with `scope: card`: export includes only that
+  card's notes/files/images/transcripts, import replaces/adds only that card and rejects ID collisions
+  with unrelated cards. The existing card wipe journals and cascades deletion through files, images
+  and transcripts, and its confirmation now states that retention scope explicitly.
 
 ## Data and AI
 
