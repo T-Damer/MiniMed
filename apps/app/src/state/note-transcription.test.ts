@@ -72,6 +72,51 @@ describe('note transcript retention', () => {
     expect(records.has(fileId)).toBe(false);
   });
 
+  it('allows a fresh transcription after a deleted job has fully stopped', async () => {
+    const records = installTranscriptStore();
+    const fileId = 'file-delete-then-rerun';
+    let resolveFirst: ((value: { readonly text: string }) => void) | undefined;
+    const firstResult = new Promise<{ readonly text: string }>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const engine = vi
+      .fn()
+      .mockImplementationOnce(async () => firstResult)
+      .mockResolvedValueOnce({ text: 'Новая расшифровка после удаления' });
+
+    setTranscriptionEngine(engine);
+    queueTranscription({
+      fileId,
+      noteId: 'note-rerun',
+      blob: new Blob(['audio'], { type: 'audio/webm' }),
+    });
+
+    await vi.waitFor(() => {
+      expect((records.get(fileId) as TranscriptRecord | undefined)?.status).toBe('running');
+    });
+
+    await deleteTranscript(fileId);
+    resolveFirst?.({ text: 'Старый результат после удаления' });
+
+    await vi.waitFor(() => {
+      expect(isTranscriptionQueued(fileId)).toBe(false);
+    });
+    expect(records.has(fileId)).toBe(false);
+
+    queueTranscription({
+      fileId,
+      noteId: 'note-rerun',
+      blob: new Blob(['audio'], { type: 'audio/webm' }),
+    });
+
+    await vi.waitFor(() => {
+      const record = records.get(fileId) as TranscriptRecord | undefined;
+      expect(record?.status).toBe('done');
+      expect(record?.text).toBe('Новая расшифровка после удаления');
+    });
+    expect(engine).toHaveBeenCalledTimes(2);
+  });
+
   it('does not recreate a transcript when an active Whisper job resolves after deletion', async () => {
     const records = installTranscriptStore();
     const fileId = 'file-active-delete-race';
