@@ -21,6 +21,7 @@ const files = {
   diarization: read('apps/app/src/features/asr/browser-diarization.ts'),
   speakerAlignment: read('apps/app/src/features/asr/speaker-alignment.ts'),
   diarizationModels: read('apps/app/src/features/asr/browser-diarization-models.ts'),
+  diarizationModelTests: read('apps/app/src/features/asr/browser-diarization-models.test.ts'),
   transcriptPanel: read('apps/app/src/features/notes/NoteTranscriptPanel.tsx'),
   voiceRecorder: read('apps/app/src/features/notes/VoiceRecordingButton.tsx'),
   noteFiles: read('apps/app/src/state/note-files.ts'),
@@ -217,11 +218,10 @@ const checks = [
     files.diarizationModels.includes('export async function getBrowserDiarizationModelBytes(') &&
       files.diarizationModels.includes('const completed = modelCacheTransaction(transaction)') &&
       files.diarizationModels.includes('await completed') &&
-      files.personalNotesBackupTests.length > 0 &&
-      read('apps/app/src/features/asr/browser-diarization-models.test.ts').includes(
+      files.diarizationModelTests.includes(
         'reuses a verified IndexedDB model without a second download',
       ) &&
-      read('apps/app/src/features/asr/browser-diarization-models.test.ts').includes(
+      files.diarizationModelTests.includes(
         'drops a same-size corrupt cached model and downloads the verified artifact again',
       ),
   ],
