@@ -134,7 +134,7 @@ html:has(.user-document-reader--sheet-fullscreen) .app-bottom-nav {
 }
 
 .user-document-reader--fullscreen .user-document-reader__text {
-  font-size: 1rem;
+  font-size: calc(1rem * var(--user-document-text-scale, 1));
   line-height: 1.6;
 }
 
