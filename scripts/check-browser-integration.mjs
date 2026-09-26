@@ -25,6 +25,7 @@ const files = {
   voiceRecorder: read('apps/app/src/features/notes/VoiceRecordingButton.tsx'),
   noteFiles: read('apps/app/src/state/note-files.ts'),
   noteTranscription: read('apps/app/src/state/note-transcription.ts'),
+  noteTranscriptionTests: read('apps/app/src/state/note-transcription.test.ts'),
   retentionCleanup: read('apps/app/src/state/note-retention-cleanup.ts'),
   patientNotes: read('apps/app/src/state/patient-notes.ts'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
@@ -240,6 +241,12 @@ const checks = [
       files.noteTranscription.includes('await putTranscript({') &&
       files.noteTranscription.includes('}, canWrite)') &&
       files.noteTranscription.includes('if (noteIds.has(active.noteId)) cancelTranscription(fileId)'),
+  ],
+  [
+    'transcript deletion races have behavioural coverage',
+    files.noteTranscriptionTests.includes('tombstones an explicitly deleted transcript') &&
+      files.noteTranscriptionTests.includes('does not recreate a transcript when an active Whisper job resolves after deletion') &&
+      files.noteTranscriptionTests.includes('expect(records.has(fileId)).toBe(false)'),
   ],
   [
     'transcript can be deleted without deleting audio',
