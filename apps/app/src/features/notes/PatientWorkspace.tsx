@@ -377,7 +377,6 @@ function NewPatientForm(props: {
         />
         <TextField
           class="patient-workspace__field"
-          inputClass="patient-workspace__control"
           label="Имя или псевдоним"
           value={name()}
           onInput={(event) => setName(event.currentTarget.value)}
@@ -385,14 +384,12 @@ function NewPatientForm(props: {
         />
         <TextField
           class="patient-workspace__field"
-          inputClass="patient-workspace__control"
           label="Номер карты (необязательно)"
           value={recordNumber()}
           onInput={(event) => setRecordNumber(event.currentTarget.value)}
         />
         <TextField
           class="patient-workspace__field"
-          inputClass="patient-workspace__control"
           label="Дата рождения"
           type="date"
           value={birthDate()}
@@ -417,8 +414,7 @@ function NewPatientForm(props: {
         <div class="patient-workspace__form-grid">
           <TextField
             class="patient-workspace__field"
-            inputClass="patient-workspace__control"
-            label="Масса, кг"
+              label="Масса, кг"
             type="number"
             min="0"
             step="0.01"
@@ -427,8 +423,7 @@ function NewPatientForm(props: {
           />
           <TextField
             class="patient-workspace__field"
-            inputClass="patient-workspace__control"
-            label="Рост, см"
+              label="Рост, см"
             type="number"
             min="0"
             step="0.1"
@@ -637,24 +632,21 @@ function ManualEventForm(props: {
           <Show when={customMetric()}>
             <TextField
               class="patient-workspace__field"
-              inputClass="patient-workspace__control"
-              label="Идентификатор пользовательского ряда"
+                  label="Идентификатор пользовательского ряда"
               value={metricId()}
               onInput={(event) => setMetricId(event.currentTarget.value)}
               required
             />
             <TextField
               class="patient-workspace__field"
-              inputClass="patient-workspace__control"
-              label="Название пользовательского показателя"
+                  label="Название пользовательского показателя"
               value={label()}
               onInput={(event) => setLabel(event.currentTarget.value)}
               required
             />
             <TextField
               class="patient-workspace__field"
-              inputClass="patient-workspace__control"
-              label="Единица пользовательского показателя"
+                  label="Единица пользовательского показателя"
               value={unit()}
               onInput={(event) => setUnit(event.currentTarget.value)}
               required
@@ -662,8 +654,7 @@ function ManualEventForm(props: {
           </Show>
           <TextField
             class="patient-workspace__field"
-            inputClass="patient-workspace__control"
-            label="Значение"
+              label="Значение"
             type="number"
             step="any"
             value={value()}
@@ -680,8 +671,7 @@ function ManualEventForm(props: {
         <Show when={kind() === 'laboratory'}>
           <TextField
             class="patient-workspace__field"
-            inputClass="patient-workspace__control"
-            label="Референс с бланка"
+              label="Референс с бланка"
             value={range()}
             onInput={(event) => setRange(event.currentTarget.value)}
             placeholder="Например: 3,5–5,5 ммоль/л"
@@ -691,7 +681,6 @@ function ManualEventForm(props: {
       <Show when={kind() === 'medication'}>
         <TextField
           class="patient-workspace__field"
-          inputClass="patient-workspace__control"
           label="Препарат"
           value={medication()}
           onInput={(event) => setMedication(event.currentTarget.value)}
@@ -1087,7 +1076,6 @@ function PatientDetail(props: {
         </Show>
         <TextArea
           class="patient-workspace__field"
-          textareaClass="patient-workspace__control"
           label="Краткая запись осмотра"
           hideLabel
           value={episodeText()}
@@ -1175,7 +1163,6 @@ function PatientDetail(props: {
                           <div class="patient-workspace__event-revision">
                             <TextField
                               class="patient-workspace__event-revision-label"
-                              inputClass="patient-workspace__event-revision-input"
                               label="Новое значение"
                               type="number"
                               step="any"
