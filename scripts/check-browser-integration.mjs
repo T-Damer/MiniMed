@@ -281,6 +281,7 @@ const checks = [
     'transcript deletion races have behavioural coverage',
     files.noteTranscriptionTests.includes('tombstones an explicitly deleted transcript') &&
       files.noteTranscriptionTests.includes('does not recreate a transcript when an active Whisper job resolves after deletion') &&
+      files.noteTranscriptionTests.includes('allows a fresh transcription after a deleted job has fully stopped') &&
       files.noteTranscriptionTests.includes('expect(records.has(fileId)).toBe(false)'),
   ],
   [
