@@ -494,6 +494,32 @@ async function applyPersonalNotesState(state: PersonalNotesState): Promise<void>
   await replacePatientNotesSnapshot(state.snapshot);
 }
 
+export async function deleteAllPersonalNotes(): Promise<void> {
+  await runPendingNoteRetentionCleanup();
+  const previous = await capturePersonalNotesState();
+  const empty: PersonalNotesState = {
+    snapshot: { cards: [], notes: [] },
+    files: [],
+    images: [],
+    transcripts: [],
+  };
+
+  try {
+    await applyPersonalNotesState(empty);
+    clearPatientNoteWorkingState();
+  } catch (cause) {
+    try {
+      await applyPersonalNotesState(previous);
+    } catch (rollbackCause) {
+      throw new AggregateError(
+        [cause, rollbackCause],
+        'Удаление не завершено, а восстановить прежние личные заметки автоматически не удалось.',
+      );
+    }
+    throw cause;
+  }
+}
+
 export async function exportPersonalNotesBackup(): Promise<PersonalNotesBackup> {
   await runPendingNoteRetentionCleanup();
   const state = await capturePersonalNotesState();
