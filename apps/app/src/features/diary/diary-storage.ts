@@ -37,19 +37,30 @@ function scanDiaryIds(storage: Storage): string[] {
 
 export function createDiaryStore(storage: Storage, now: () => number = Date.now): DiaryStore {
   const ids = (): string[] => {
+    let indexed: string[] = [];
     try {
       const value = readJson(storage, INDEX_KEY);
       if (Array.isArray(value)) {
-        return [...new Set(value.filter((id): id is string => typeof id === 'string' && id.length > 0))];
+        indexed = [
+          ...new Set(
+            value.filter((id): id is string => typeof id === 'string' && id.length > 0),
+          ),
+        ];
       }
     } catch {
       // Rebuild the navigation index from the source diary records below.
     }
-    const recovered = scanDiaryIds(storage);
-    try {
-      storage.setItem(INDEX_KEY, JSON.stringify(recovered));
-    } catch {
-      // The diary records remain the source of truth even if the compact index cannot be rewritten.
+    const scanned = scanDiaryIds(storage);
+    const recovered = [...indexed, ...scanned.filter((id) => !indexed.includes(id))];
+    if (
+      recovered.length !== indexed.length ||
+      recovered.some((id, index) => id !== indexed[index])
+    ) {
+      try {
+        storage.setItem(INDEX_KEY, JSON.stringify(recovered));
+      } catch {
+        // The diary records remain the source of truth even if the compact index cannot be rewritten.
+      }
     }
     return recovered;
   };
