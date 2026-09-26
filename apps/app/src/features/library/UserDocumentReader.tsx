@@ -1449,7 +1449,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
                           <div class="user-document-reader__text-section" id={markdownAnchor()}>
                             <Show when={parsedMarkdown()} keyed>
                               {(parsed) => (
-                                <SafeMarkdown markdown={markdownText()} parsed={parsed} />
+                                <SafeMarkdown
+                                  class="user-document-reader__markdown"
+                                  markdown={markdownText()}
+                                  parsed={parsed}
+                                />
                               )}
                             </Show>
                           </div>
