@@ -29,7 +29,7 @@ Short-term 1.0 follow-up work that remains after the 0.6.0 release-candidate imp
 - [ ] ASR ONNX inference quality pass on device (worker + engine seam are ready).
 - [ ] Highlighting for PDF surfaces (text documents and EPUB are done).
 - [ ] PDF text-selection quality check in a live browser.
-- [ ] Reading scale for text/markdown content (PDF-only today).
+- [x] Persistent reading scale for text/Markdown content (90/100/110/125/140%); PDF zoom remains separate.
 - [ ] e2e + on-device validation of the whole batch.
 
 ## In progress — core glossary, definitions, and document links
