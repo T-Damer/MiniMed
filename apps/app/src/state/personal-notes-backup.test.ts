@@ -269,6 +269,19 @@ describe('portable personal-notes backup', () => {
   it('round-trips stable note, attachment, image and transcript ids', async () => {
     const env = installEnvironment();
     env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
+    const toolCollections = {
+      version: 1,
+      favorites: ['minimed.assessment.pucai'],
+      collections: [
+        {
+          id: 'collection-1',
+          name: 'Приём кардиолога',
+          toolIds: ['ecg-photo-caliper', 'tool.removed'],
+          createdAt: '2026-09-26T07:00:00.000Z',
+        },
+      ],
+    };
+    env.local.setItem('minimed.tool-collections.v1', JSON.stringify(toolCollections));
     env.files.set('file-audio', {
       id: 'file-audio',
       noteId: 'note-1',
@@ -343,6 +356,11 @@ describe('portable personal-notes backup', () => {
       bytesBase64: 'AQID',
     });
     expect(backup.transcripts[0]?.speakerNames).toEqual({ 'speaker-1': 'Врач' });
+    expect(backup.toolCollections).toEqual(toolCollections);
+    env.local.setItem(
+      'minimed.tool-collections.v1',
+      JSON.stringify({ version: 1, favorites: [], collections: [] }),
+    );
 
     env.local.setItem(
       'minimed.patient-notes.v1',
@@ -387,6 +405,9 @@ describe('portable personal-notes backup', () => {
     });
     expect(env.local.getItem('minimed.patient-note-drafts.v1')).toBeNull();
     expect(env.local.getItem('minimed.patient-note-revisions.v1')).toBeNull();
+    expect(JSON.parse(env.local.getItem('minimed.tool-collections.v1') ?? '{}')).toEqual(
+      toolCollections,
+    );
   });
 
   it('exports one card and imports it without replacing unrelated cards', async () => {
@@ -462,6 +483,8 @@ describe('portable personal-notes backup', () => {
     const backup = await exportPersonalNotesCardBackup('card-1');
 
     expect(backup.scope).toEqual({ kind: 'card', cardId: 'card-1' });
+    // Handover of one patient card never carries the doctor's own tool collections.
+    expect(backup.toolCollections).toBeUndefined();
     expect(backup.snapshot.cards.map((card) => card.id)).toEqual(['card-1']);
     expect(backup.snapshot.notes.map((note) => note.id)).toEqual(['note-1']);
     expect(backup.files.map((file) => file.id)).toEqual(['file-audio']);

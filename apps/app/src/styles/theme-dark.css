@@ -56,7 +56,8 @@
     background: var(--desk);
   }
 
-  .user-library-folder-card {
+  .user-library-folder-card,
+  .tool-collection-row {
     --folder: #b9a06a;
     --folder-light: #cbb37c;
     --folder-dark: #8f7849;

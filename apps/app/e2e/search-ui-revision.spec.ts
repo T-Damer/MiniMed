@@ -89,16 +89,20 @@ for (const width of [375, 1280]) {
     await expect
       .poll(() => page.locator('.catalog-card__index').first().textContent())
       .toMatch(/\d{4,}/u);
-    const geometry = await page
-      .locator('.document-library-card')
-      .first()
-      .evaluate((card) => {
-        const index = card.querySelector('.catalog-card__index')?.getBoundingClientRect();
-        const title = card.querySelector('.catalog-card__title')?.getBoundingClientRect();
-        if (!index || !title) throw new Error('Catalog card is missing its number or title');
-        return { indexBottom: index.bottom, titleTop: title.top };
-      });
-    expect(geometry.titleTop).toBeGreaterThan(geometry.indexBottom);
+    // The virtualized grid re-renders its window after the jump; measure once it has settled.
+    await expect
+      .poll(() =>
+        page
+          .locator('.document-library-card')
+          .first()
+          .evaluate((card) => {
+            const index = card.querySelector('.catalog-card__index')?.getBoundingClientRect();
+            const title = card.querySelector('.catalog-card__title')?.getBoundingClientRect();
+            if (!index || !title) throw new Error('Catalog card is missing its number or title');
+            return index.height > 0 && title.top > index.bottom;
+          }),
+      )
+      .toBe(true);
     await page.screenshot({ path: test.info().outputPath('long-catalog.png') });
     await page.getByRole('button', { name: 'Вернуться наверх' }).click();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
@@ -127,6 +131,12 @@ for (const width of [375, 1280]) {
     await expect(page.locator('.user-library-folder-card__lock')).toHaveCount(0);
     await page.getByRole('button', { name: 'Открыть папку «Пациенты»', exact: true }).click();
     await expect(page).toHaveURL(/#\/notes\/patients/u);
+    // A fresh profile opens the modal vault dialog over the patients page; a user dismisses it
+    // with Escape before reaching the bottom navigation again.
+    const vaultDialog = page.locator('.patient-vault-dialog');
+    await expect(vaultDialog).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(vaultDialog).toBeHidden();
     await nav.getByRole('button', { name: /^Настройки/u }).click();
     await expect(
       page
@@ -159,12 +169,16 @@ for (const splitNavigation of [false, true]) {
     });
     const specialty = allSection.locator('.search-section-menu__option--child');
     await expect(specialty).toHaveAccessibleName(/Акушерство и гинекология \(\d+\)/u);
-    const count = Number(
-      await allSection
-        .locator('.search-section-menu__row--child .search-section-menu__count')
-        .innerText(),
-    );
-    expect(count).toBeGreaterThanOrEqual(21);
+    // The counter shows “…” until documents load; wait for the number.
+    await expect
+      .poll(async () =>
+        Number(
+          await allSection
+            .locator('.search-section-menu__row--child .search-section-menu__count')
+            .innerText(),
+        ),
+      )
+      .toBeGreaterThanOrEqual(21);
     await specialty.click();
     await expect(picker).toContainText('Акушерство и гинекология');
     await expect(page.locator('.unified-catalog__tool[href^="#/assessments/"]')).toHaveCount(4);

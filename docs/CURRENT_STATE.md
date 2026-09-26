@@ -19,6 +19,20 @@ Detailed history, moved verbatim on 2026-09-24:
 
 ## After 0.6.40 on `release/0.6.40` (unreleased) — 2026-09-26
 
+- **Search home widget, favourites and tool collections.** The welcome block (greeting, key tools
+  and the ECG photo entry, previously a separate card) collapses once typing starts; a compact
+  «Мои инструменты» row stays above the field with favourite chips and a menu: favourites first,
+  then user collections drawn as the same folders as «Мои файлы» (shared `FolderFigure`), then
+  built-in tools (conversation recording, term dictionary, ECG). Any catalog calculator or
+  questionnaire can be starred or added to several collections from its card; collections can be
+  created, renamed and deleted. Data lives only on the device (`state/tool-collections.ts`, stable
+  tool ids); ids missing from the catalog stay listed as «Недоступен». Full personal-notes backups
+  carry favourites and collections as an optional v1 field; card handover backups do not.
+- **Section menu stability.** Opening the menu focused it without `preventScroll`, so the smooth
+  page scroll immediately triggered the release's close-on-scroll and detached its rows. It now
+  focuses without scrolling and closes on scroll only once its trigger leaves the viewport.
+  E2E (`--workers=1`): search-dropdown 2/2, tool-collections 2/2, search-ui-revision 4/4 (the
+  long scenario now dismisses the modal patient-vault dialog with Escape, as a user would).
 - **Search latency.** Clinical analysis no longer re-prepares 44k aliases per query; medication
   aliases are normalized once; Levenshtein runs in a band. `bun run benchmark:search-latency`
   (132 queries, full core, native SQLite): Bun p50 657 → 208 ms. Ranking benchmarks unchanged.

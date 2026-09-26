@@ -19,8 +19,28 @@
 
 .search-welcome__content {
   display: grid;
-  gap: 0.6rem;
+  /* One column: the ECG entry lays itself out horizontally and needs the full width. */
+  gap: 1rem;
   padding: clamp(1.5rem, 8dvh, 4rem) 0.25rem 1.25rem;
+}
+
+@media (max-width: 40rem) {
+  /* Phones: keep the search field within the first screen under the taller one-column block. */
+  .search-welcome__content {
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+}
+
+.search-welcome__intro {
+  display: grid;
+  min-width: 0;
+  gap: 0.6rem;
+}
+
+.search-welcome__feature {
+  min-width: 0;
 }
 
 .search-welcome__title {

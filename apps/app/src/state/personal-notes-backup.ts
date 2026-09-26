@@ -26,6 +26,12 @@ import {
   replacePatientNotesSnapshot,
 } from '@/state/patient-notes';
 
+import {
+  loadToolCollections,
+  parseToolCollections,
+  replaceToolCollections,
+  type ToolCollectionsState,
+} from '@/state/tool-collections';
 export const PERSONAL_NOTES_BACKUP_KIND = 'minimed-personal-notes-backup';
 export const PERSONAL_NOTES_BACKUP_SCHEMA_VERSION = 1;
 export const MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES = 512 * 1024 * 1024;
@@ -57,6 +63,8 @@ export interface PersonalNotesBackup {
   readonly files: readonly PersonalNotesBackupFile[];
   readonly images: readonly NoteImage[];
   readonly transcripts: readonly NoteTranscript[];
+  /** Full backups also carry favourite tools and tool collections (optional for older files). */
+  readonly toolCollections?: ToolCollectionsState;
 }
 
 interface PersonalNotesState {
@@ -272,6 +280,7 @@ export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
     readonly files?: unknown;
     readonly images?: unknown;
     readonly transcripts?: unknown;
+    readonly toolCollections?: unknown;
   };
   if (candidate.kind !== PERSONAL_NOTES_BACKUP_KIND) {
     throw new Error('Это не backup личных заметок MiniMed.');
@@ -366,6 +375,9 @@ export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
     files,
     images,
     transcripts,
+    ...(scope.kind === 'all' && candidate.toolCollections !== undefined
+      ? { toolCollections: parseToolCollections(candidate.toolCollections) }
+      : {}),
   };
 }
 
@@ -577,6 +589,7 @@ export async function exportPersonalNotesBackup(): Promise<PersonalNotesBackup> 
     files,
     images: state.images,
     transcripts: state.transcripts,
+    toolCollections: loadToolCollections(),
   });
 }
 
@@ -630,6 +643,8 @@ export async function importPersonalNotesBackup(value: unknown): Promise<Persona
 
   try {
     await applyPersonalNotesState(next);
+    // Local-storage only and applied after the notes succeed, so a notes rollback never races it.
+    if (backup.toolCollections) replaceToolCollections(backup.toolCollections);
     clearPatientNoteWorkingState(
       backup.scope.kind === 'card'
         ? [...new Set([...replacedNoteIds, ...importedNoteIds])]

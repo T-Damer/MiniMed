@@ -1,6 +1,7 @@
 import { For, type JSX } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import { EcgHomeEntry } from '@/features/calculators/EcgHomeEntry';
 import {
   conversationSession,
   startConversation,
@@ -23,7 +24,10 @@ interface WelcomeLink {
   readonly primary?: boolean;
 }
 
-/** First screen of search: what can be typed here and where the other tools live. */
+/**
+ * First screen of search, collapsed as soon as typing starts: what can be searched, the key tools,
+ * and the ECG photo entry as one of the capabilities — a single block rather than separate cards.
+ */
 export function SearchWelcome(props: { readonly onOpenReference: () => void }): JSX.Element {
   const links: readonly WelcomeLink[] = [
     {
@@ -39,37 +43,42 @@ export function SearchWelcome(props: { readonly onOpenReference: () => void }): 
   ];
   return (
     <div class="search-welcome__content">
-      <h1 class="search-welcome__title">{greeting(new Date().getHours())}</h1>
-      <p class="search-welcome__text">
-        Ищите болезнь, препарат или код МКБ — или опишите случай своими словами. Всё работает без
-        интернета.
-      </p>
-      <nav class="search-welcome__links" aria-label="Быстрый переход">
-        <For each={links}>
-          {(link) =>
-            link.href ? (
-              <a class="search-welcome__link" href={link.href}>
-                <AppGlyph name={link.icon} class="search-welcome__link-icon" />
-                {link.label}
-              </a>
-            ) : (
-              <button
-                class="search-welcome__link"
-                classList={{ 'search-welcome__link--primary': link.primary ?? false }}
-                type="button"
-                disabled={link.primary ? conversationSession.recorder() !== null : false}
-                onClick={link.onClick}
-              >
-                <AppGlyph
-                  name={link.icon}
-                  class={`search-welcome__link-icon${link.primary ? ' search-welcome__link-icon--primary' : ''}`}
-                />
-                {link.label}
-              </button>
-            )
-          }
-        </For>
-      </nav>
+      <div class="search-welcome__intro">
+        <h1 class="search-welcome__title">{greeting(new Date().getHours())}</h1>
+        <p class="search-welcome__text">
+          Ищите болезнь, препарат или код МКБ — или опишите случай своими словами. Всё работает без
+          интернета.
+        </p>
+        <nav class="search-welcome__links" aria-label="Быстрый переход">
+          <For each={links}>
+            {(link) =>
+              link.href ? (
+                <a class="search-welcome__link" href={link.href}>
+                  <AppGlyph name={link.icon} class="search-welcome__link-icon" />
+                  {link.label}
+                </a>
+              ) : (
+                <button
+                  class="search-welcome__link"
+                  classList={{ 'search-welcome__link--primary': link.primary ?? false }}
+                  type="button"
+                  disabled={link.primary ? conversationSession.recorder() !== null : false}
+                  onClick={link.onClick}
+                >
+                  <AppGlyph
+                    name={link.icon}
+                    class={`search-welcome__link-icon${link.primary ? ' search-welcome__link-icon--primary' : ''}`}
+                  />
+                  {link.label}
+                </button>
+              )
+            }
+          </For>
+        </nav>
+      </div>
+      <div class="search-welcome__feature">
+        <EcgHomeEntry />
+      </div>
     </div>
   );
 }

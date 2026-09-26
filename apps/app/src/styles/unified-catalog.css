@@ -367,3 +367,19 @@
 .search-graph-button--hidden {
   display: none;
 }
+
+.unified-catalog__tool-shell {
+  position: relative;
+  min-width: 0;
+}
+
+.unified-catalog__tool-pins {
+  position: absolute;
+  z-index: var(--z-raised-2);
+  top: 0.35rem;
+  right: 0.35rem;
+  display: flex;
+  gap: 0.1rem;
+  border-radius: var(--theme-radius-control);
+  background: color-mix(in srgb, var(--theme-surface-raised) 85%, transparent);
+}

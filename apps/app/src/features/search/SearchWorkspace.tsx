@@ -92,6 +92,8 @@ interface SearchWorkspaceProps {
   readonly showExamples?: boolean;
   /** Greeting and shortcuts shown above an empty query; collapses once the user searches. */
   readonly welcome?: JSX.Element;
+  /** Stays above the field while typing, unlike the welcome block. */
+  readonly quickAccess?: JSX.Element;
   readonly filters?: SearchFilters;
   readonly onQueryChange?: (query: string) => void;
   readonly placeholder?: string;
@@ -835,6 +837,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             <div class="search-welcome__inner">{props.welcome}</div>
           </div>
         </Show>
+        {props.quickAccess}
         <form
           class="query-sheet"
           onSubmit={(event) => {

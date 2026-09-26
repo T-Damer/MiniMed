@@ -47,6 +47,7 @@ export function SearchSectionPicker(props: {
   readonly onSelect: (scope: SearchScope, group?: string) => void;
 }): JSX.Element {
   let menu: HTMLDivElement | undefined;
+  let trigger: HTMLButtonElement | undefined;
   const [open, setOpen] = createSignal(false);
   const downloads = props.downloads;
   const downloadBlocks = createMemo(() => {
@@ -68,11 +69,13 @@ export function SearchSectionPicker(props: {
       return matchesSection || groups.length ? [{ section, groups }] : [];
     }),
   );
-  // A popover left open while the results scroll floats over unrelated content; close it.
+  // A popover whose trigger has scrolled away floats over unrelated content; close it. Scrolling
+  // that keeps the trigger on screen (reaching a lower row, scroll restoration) keeps it open.
   createEffect(() => {
     if (!open()) return;
     const close = (): void => {
-      setOpen(false);
+      const rect = trigger?.getBoundingClientRect();
+      if (!rect || rect.bottom < 0 || rect.top > window.innerHeight) setOpen(false);
     };
     window.addEventListener('scroll', close, { passive: true });
     onCleanup(() => window.removeEventListener('scroll', close));
@@ -97,7 +100,13 @@ export function SearchSectionPicker(props: {
       fitViewport
       overflowPadding={8}
     >
-      <Popover.Trigger class="search-source-picker" aria-label="Раздел поиска">
+      <Popover.Trigger
+        ref={(element: HTMLButtonElement) => {
+          trigger = element;
+        }}
+        class="search-source-picker"
+        aria-label="Раздел поиска"
+      >
         <AppGlyph
           name={
             selectedGroup()?.kinds.length === 1
@@ -124,7 +133,9 @@ export function SearchSectionPicker(props: {
           aria-label="Разделы поиска"
           onOpenAutoFocus={(event) => {
             event.preventDefault();
-            menu?.focus();
+            // Focusing without preventScroll scrolled the page (smoothly), which the scroll
+            // handler above read as the user leaving and closed the menu right after opening.
+            menu?.focus({ preventScroll: true });
           }}
         >
           <SearchField

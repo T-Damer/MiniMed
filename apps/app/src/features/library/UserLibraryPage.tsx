@@ -5,6 +5,7 @@ import { AppContextMenu, type AppContextMenuAction } from '@/components/AppConte
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { FolderFigure } from '@/components/FolderFigure';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
@@ -1758,22 +1759,11 @@ export function UserLibraryPage(): JSX.Element {
                 openThisFolder();
               }}
             >
-              <span
-                class={`user-library-folder-card__figure user-library-folder-card__figure--${viewMode()}`}
-                aria-hidden="true"
-              >
-                <span class="user-library-folder-card__back" />
-                <Show when={fileCount() > 0}>
-                  <span class="user-library-folder-card__document" />
-                </Show>
-                <span class="user-library-folder-card__front">
-                  <Show when={USER_LIBRARY_FOLDER_GLYPHS[props.folder.id]}>
-                    {(glyph) => (
-                      <AppGlyph name={glyph()} class="user-library-folder-card__system-icon" />
-                    )}
-                  </Show>
-                </span>
-              </span>
+              <FolderFigure
+                variant={viewMode()}
+                hasDocument={fileCount() > 0}
+                glyph={USER_LIBRARY_FOLDER_GLYPHS[props.folder.id]}
+              />
               <Show
                 when={viewMode() === 'list'}
                 fallback={

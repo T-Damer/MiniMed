@@ -6,6 +6,7 @@ import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import type { SearchCatalogTool } from '@/features/search/searchCatalog';
+import { ToolCollectionMenu, ToolFavoriteButton } from '@/features/search/ToolPinControls';
 
 export function UnifiedSearchCatalog(props: {
   readonly core: MedicalCore;
@@ -27,19 +28,26 @@ export function UnifiedSearchCatalog(props: {
         <div class="unified-catalog__tools">
           <LayoutVirtualizedGrid data={props.tools}>
             {(entry) => (
-              <a
-                class="unified-catalog__tool catalog-card paper-card"
-                href={entry.href}
-                aria-label={entry.title}
-                onClick={props.onOpenTool}
-              >
-                <span class="catalog-card__tags">
-                  <AppGlyph name={entry.icon} class="unified-catalog__icon" />
-                  <ClinicalTags title={entry.title} specialties={[entry.group]} />
-                </span>
-                <strong class="catalog-card__title">{entry.title}</strong>
-                <span class="catalog-card__description">{entry.description}</span>
-              </a>
+              <div class="unified-catalog__tool-shell">
+                <a
+                  class="unified-catalog__tool catalog-card paper-card"
+                  href={entry.href}
+                  aria-label={entry.title}
+                  onClick={props.onOpenTool}
+                >
+                  <span class="catalog-card__tags">
+                    <AppGlyph name={entry.icon} class="unified-catalog__icon" />
+                    <ClinicalTags title={entry.title} specialties={[entry.group]} />
+                  </span>
+                  <strong class="catalog-card__title">{entry.title}</strong>
+                  <span class="catalog-card__description">{entry.description}</span>
+                </a>
+                {/* Siblings of the link, layered over its corner: buttons cannot nest in <a>. */}
+                <div class="unified-catalog__tool-pins">
+                  <ToolFavoriteButton toolId={entry.id} toolTitle={entry.title} />
+                  <ToolCollectionMenu toolId={entry.id} toolTitle={entry.title} />
+                </div>
+              </div>
             )}
           </LayoutVirtualizedGrid>
         </div>

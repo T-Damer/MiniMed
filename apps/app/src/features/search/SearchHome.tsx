@@ -13,7 +13,7 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-packs';
-import { EcgHomeEntry } from '@/features/calculators/EcgHomeEntry';
+import { startConversation } from '@/features/conversations/conversation-session';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
@@ -21,12 +21,19 @@ import { medicationDocumentGroups } from '@/features/medications/medicationGroup
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
 import {
+  APP_TOOL_IDS,
+  featuredCatalogTools,
+  type QuickTool,
+  quickToolsFromCatalog,
+} from '@/features/search/quick-tools';
+import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
   ScopedMedicalCore,
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
 import { SearchNoResults } from '@/features/search/SearchNoResults';
+import { SearchQuickAccess } from '@/features/search/SearchQuickAccess';
 import { SearchResultModuleDownload } from '@/features/search/SearchResultModuleDownload';
 import { SearchSectionPicker } from '@/features/search/SearchSectionPicker';
 import { SearchWelcome } from '@/features/search/SearchWelcome';
@@ -75,6 +82,28 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     return searchCatalogTools();
   });
   const sections = createMemo(() => searchCatalogSections(documents(), toolRows()));
+  const catalogQuickTools = createMemo(() => quickToolsFromCatalog(toolRows()));
+  const builtInTools = createMemo((): readonly QuickTool[] => [
+    {
+      id: APP_TOOL_IDS.conversation,
+      title: 'Записать беседу',
+      kindLabel: 'Запись и расшифровка',
+      icon: 'microphone',
+      run: () => void startConversation(),
+    },
+    {
+      id: APP_TOOL_IDS.reference,
+      title: 'Словарь терминов',
+      kindLabel: 'Справочник',
+      icon: 'book-open',
+      run: () => setReferenceOpen(true),
+    },
+    ...featuredCatalogTools(catalogQuickTools()),
+  ]);
+  const quickTools = createMemo(() => [
+    ...builtInTools().filter((tool) => !tool.href),
+    ...catalogQuickTools(),
+  ]);
   const downloads = useSearchSectionDownloads(
     () => props.active,
     () => props.onContentChanged(),
@@ -297,6 +326,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           catalogOnly={catalogOnly()}
           showExamples
           welcome={<SearchWelcome onOpenReference={() => setReferenceOpen(true)} />}
+          quickAccess={<SearchQuickAccess tools={quickTools()} builtInTools={builtInTools()} />}
           searchActions={
             <Show when={!catalogOnly() && scope() !== 'diagnosis'}>
               <button
@@ -312,31 +342,21 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             </Show>
           }
           catalog={
-            <>
-              <Show when={scope() === 'all' && !catalogQuery().trim()}>
-                <EcgHomeEntry />
-              </Show>
-              <UnifiedSearchCatalog
-                core={props.baseCore}
-                scope={scope()}
-                query={catalogQuery()}
-                catalogOnly={catalogOnly()}
-                hideDocuments={scope() === 'diagnosis'}
-                documents={catalogDocuments()}
-                tools={visibleTools()}
-                onOpenTool={() => {
-                  if (catalogQuery().trim())
-                    appendSearchHistory(
-                      catalogQuery(),
-                      scope(),
-                      visibleTools().length,
-                      specialty(),
-                    );
-                }}
-                loading={catalogLoading()}
-                error={catalogError()}
-              />
-            </>
+            <UnifiedSearchCatalog
+              core={props.baseCore}
+              scope={scope()}
+              query={catalogQuery()}
+              catalogOnly={catalogOnly()}
+              hideDocuments={scope() === 'diagnosis'}
+              documents={catalogDocuments()}
+              tools={visibleTools()}
+              onOpenTool={() => {
+                if (catalogQuery().trim())
+                  appendSearchHistory(catalogQuery(), scope(), visibleTools().length, specialty());
+              }}
+              loading={catalogLoading()}
+              error={catalogError()}
+            />
           }
           placeholder={
             scope() === 'diagnosis'
