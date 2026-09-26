@@ -146,46 +146,16 @@
 .ecg-editor__photo {
   pointer-events: none;
 }
-.ecg-editor__arrow {
-  position: absolute;
-  z-index: 4;
-  top: 50%;
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0;
-  border: 1px solid #b4cac070;
-  border-radius: 50%;
-  color: white;
-  background: #193d32d9;
-  box-shadow: 0 3px 16px #0004;
-  transform: translateY(-50%);
-  cursor: pointer;
-}
-.ecg-editor__arrow--back {
-  left: max(0.75rem, var(--safe-left, 0px));
-}
-.ecg-editor__arrow--next {
-  right: max(0.75rem, var(--safe-right, 0px));
-}
-.ecg-editor__arrow:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-.ecg-editor__arrow-icon {
-  width: 1.4rem;
-  height: 1.4rem;
-}
 .ecg-editor__welcome {
   display: flex;
   height: 100%;
   box-sizing: border-box;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* Safe centering keeps the heading reachable when the step panel leaves little height. */
+  justify-content: safe center;
   gap: clamp(0.6rem, 2vh, 1.5rem);
-  padding: 1.25rem 4.5rem;
+  padding: 1.25rem;
   overflow: auto;
   color: #e5eee8;
 }
@@ -195,7 +165,7 @@
 }
 .ecg-editor__eyebrow {
   color: #b5d1c4;
-  font-size: 0.65rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.16em;
 }
 .ecg-editor__welcome-title {
@@ -244,26 +214,6 @@
 .ecg-editor__footer {
   flex: 0 0 auto;
   padding: 0.55rem 1rem calc(0.55rem + var(--safe-bottom, 0px));
-}
-.ecg-editor__confirmation {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 1rem;
-}
-.ecg-editor__check-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2rem;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-.ecg-editor__checkbox {
-  width: 1.1rem;
-  height: 1.1rem;
-  flex-shrink: 0;
-  accent-color: #365f52;
 }
 .ecg-editor__error {
   margin: 0.25rem 0;
@@ -397,7 +347,7 @@
   padding: 0.25rem 0.4rem;
   color: #eaf6f0;
   background: #193d32dc;
-  font-size: 0.65rem;
+  font-size: var(--type-micro);
 }
 .ecg-editor__region {
   fill: transparent;
@@ -466,6 +416,21 @@
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
+.ecg-editor__point--p {
+  fill: #7a4fb3;
+}
+.ecg-editor__point--qrs {
+  fill: #067bcc;
+}
+.ecg-editor__point--t {
+  fill: #1f8a5b;
+}
+.ecg-editor__point--baseline {
+  fill: #6b6b6b;
+}
+.ecg-editor__point--auto {
+  stroke-dasharray: 2 2;
+}
 .ecg-editor__point--selected {
   fill: #e47708;
   stroke-width: 2;
@@ -483,7 +448,7 @@
   box-sizing: border-box;
   height: 100%;
   overflow: hidden;
-  padding: 0.75rem 4.5rem;
+  padding: 0.75rem 1rem;
   background: #d5ddd8;
 }
 .ecg-editor__report-actions {
@@ -502,22 +467,22 @@
   .ecg-editor__field {
     flex: 1 1 42%;
     justify-content: space-between;
-    font-size: 0.65rem;
+    font-size: var(--type-micro);
   }
   .ecg-editor__select {
     font-size: 0.7rem;
   }
   .ecg-editor__button {
     min-height: 2rem;
-    font-size: 0.68rem;
+    font-size: var(--type-micro);
     padding: 0.4rem 0.5rem;
   }
   .ecg-editor__instruction {
-    font-size: 0.67rem;
+    font-size: var(--type-micro);
   }
   .ecg-editor__welcome {
-    padding: 1rem 3.2rem;
-    justify-content: center;
+    padding: 1rem;
+    justify-content: safe center;
   }
   .ecg-editor__welcome-text {
     font-size: 0.75rem;
@@ -526,17 +491,7 @@
     gap: 0.6rem;
   }
   .ecg-editor__example-caption {
-    font-size: 0.6rem;
-  }
-  .ecg-editor__arrow {
-    width: 2.2rem;
-    height: 2.2rem;
-  }
-  .ecg-editor__arrow--back {
-    left: max(0.35rem, var(--safe-left, 0px));
-  }
-  .ecg-editor__arrow--next {
-    right: max(0.35rem, var(--safe-right, 0px));
+    font-size: var(--type-micro);
   }
   .ecg-editor__point-toolbar {
     inset: 0.4rem 0.4rem auto;
@@ -558,13 +513,10 @@
   .ecg-editor__footer {
     padding: 0.4rem 0.6rem calc(0.4rem + var(--safe-bottom, 0px));
   }
-  .ecg-editor__check-label {
-    font-size: 0.7rem;
-  }
   .ecg-editor__report-view {
     display: flex;
     flex-direction: column;
-    padding: 0.6rem 2.7rem;
+    padding: 0.6rem;
   }
   .ecg-editor__report-actions {
     flex-wrap: wrap;
@@ -610,9 +562,5 @@
     width: 2.75rem;
     height: 2.75rem;
     min-width: 2.75rem;
-  }
-  .ecg-editor__arrow {
-    width: 2.75rem;
-    height: 2.75rem;
   }
 }

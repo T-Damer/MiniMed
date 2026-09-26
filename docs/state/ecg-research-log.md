@@ -3,6 +3,56 @@
 > Moved verbatim from `docs/CURRENT_STATE.md` on 2026-09-24 so the mandatory state file stays short.
 > Newest entries first; later entries supersede earlier ones.
 
+## Guided editor, stale-model update and numeric draft — 2026-09-26
+
+opening the calculator opens a fullscreen,
+  five-stage review: photo/examples, independent horizontal/vertical grid calibration,
+  editable lead regions, P/Q/R/S/T landmarks and a printable report. Only the current stage title
+  appears in the header, above a five-step rail with per-step confirmation marks. A single footer
+  action names what is confirmed (for example «Калибровка верна — далее») and advances; the former
+  per-step checkboxes and side arrows over the photo were removed, and the disabled action explains
+  what is still missing. Every step has a collapsible «Зачем этот шаг и что проверить» guide
+  (purpose, checks, method, common mistakes) declared in `ecg-editor-guide.ts`. Step 1 offers
+  camera capture (`capture="environment"`) beside gallery import, a prominent 19 MB auto-markup
+  offer when the model is absent, and after segmentation a found/review/manual summary of grid axes,
+  speed/gain, extracted leads, a heart-rate draft stated for both 50 and 25 mm/s, and photo-quality
+  defects. Paper speed has no default and must be chosen from the printed strip before calibration
+  can be confirmed; age and sex moved to the result step and no longer withdraw point confirmation.
+  Point review uses one lead selector for editing and measurement, frames that lead on entry, and
+  colours P/QRS/T/baseline points with dashed outlines for untouched automatic points; the report
+  states how many measured-lead points were automatic versus placed or corrected manually. A
+  prop-free `EcgHomeEntry` card (camera/gallery hand-off into the editor) is
+  mounted on the search home; the calculator route opens before core readiness.
+  After all five editor steps are confirmed, «30 признаков для модели» opens the numeric panel with
+  an editable draft from `ecg-editor-numeric.ts`: the six intervals come from the measured lead,
+  and each of the 24 Q/R/S/T amplitudes is the signed distance from that lead's own baseline point,
+  divided by the confirmed vertical scale and gain (5/10/20 mm/mV; paper speed affects intervals
+  only). R is taken between the QRS boundaries or only when unique; duplicate points, a missing
+  lead frame, baseline or wave point leave the field empty with the missing point named under it,
+  and an unmarked Q is never imputed as zero. Each filled field names its lead and whether its points
+  were automatic or corrected. The panel still requires all 30 clinician-confirmed values and age
+  18+ before the adult model runs; editing any draft clears that confirmation.
+  Speed is 25 or 50 mm/s; gain is 5, 10 or 20 mm/mV. Local ONNX segmentation proposes grid/regions;
+  the existing waveform heuristics propose reviewable landmarks, not validated delineation.
+  Missing/unusable model output leaves manual editing available. Late results do not overwrite
+  edited or confirmed calibration/regions. Zoom/pan, two-finger pinch (up to 20×), region movement/
+  resize, landmark addition/deletion and undo/redo stay in the viewport. Measurement boundaries
+  and R peaks belong to one explicitly selected lead; missing P/T is not inferred as normal.
+  The report uses confirmed RR, rate, P/PR/QRS/QT and QTc values with the existing adult interval
+  rules; an unknown/child age produces measurements only. The original photo remains local and
+  appears in the one-A4-page printout; on screen the entire sheet scales to the available viewport.
+
+Stale-model check: installed descriptors are compared with the catalog version and bundle SHA-256;
+the editor offers an update banner and settings show «Доступно обновление»; the old model stays
+usable until the new bundle passes size and SHA-256 checks. Web model URLs carry
+`?sha256=<catalog digest>` so the service worker's same-origin cache cannot serve a replaced zip.
+
+Numeric draft: once all five editor steps are confirmed, the six global intervals come from the
+measured lead and the 24 R/S/Q/T amplitudes from each lead's own baseline divided by grid scale and
+gain (0.01 mV). Missing frame/baseline/wave point, duplicate or ambiguous R leave the field empty
+with a stated reason; Q = 0 is never substituted. The adult model still requires all 30
+clinician-confirmed values and age 18+.
+
 The ECG photo tool has experimental automatic waveform extraction for the fixed 3x4+1R layout,
 but still falls back to manual calipers when its quality gate does not pass. Its adult-alpha rule
 layer does not infer morphology, rhythm, infarction, or bundle/AV block from intervals alone.

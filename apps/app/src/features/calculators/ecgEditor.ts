@@ -18,7 +18,8 @@ export interface EcgCalibrationLine {
   readonly end: EcgNormalizedPoint;
 }
 export interface EcgEditorCalibration {
-  readonly speed: 25 | 50;
+  /** Unset until the clinician reads the printed speed: a wrong guess doubles every interval. */
+  readonly speed?: 25 | 50;
   readonly gain: 5 | 10 | 20;
   readonly horizontal?: EcgCalibrationLine;
   readonly vertical?: EcgCalibrationLine;
@@ -65,34 +66,35 @@ export interface EcgEditorDraft {
 }
 
 export const EMPTY_ECG_DRAFT: EcgEditorDraft = {
-  calibration: { speed: 25, gain: 10 },
+  calibration: { gain: 10 },
   regions: [],
   points: [],
 };
 
+export interface EcgCalibrationScale {
+  readonly x: number;
+  readonly y: number;
+  readonly speed: 25 | 50;
+  readonly gain: 5 | 10 | 20;
+}
+
 export function ecgCalibrationScale(
   calibration: EcgEditorCalibration,
-): { x: number; y: number } | undefined {
-  const horizontal = calibration.horizontal;
-  const vertical = calibration.vertical;
-  if (!horizontal || !vertical) return undefined;
+): EcgCalibrationScale | undefined {
+  const { horizontal, vertical, speed, gain } = calibration;
+  if (!horizontal || !vertical || speed === undefined) return undefined;
   if (![horizontal.start, horizontal.end, vertical.start, vertical.end].every(validEcgPoint))
     return undefined;
   const x = Math.abs(horizontal.end.x - horizontal.start.x) / 25;
   const y = Math.abs(vertical.end.y - vertical.start.y) / 10;
-  if (
-    x < 0.0001 ||
-    y < 0.0001 ||
-    ![25, 50].includes(calibration.speed) ||
-    ![5, 10, 20].includes(calibration.gain)
-  )
+  if (x < 0.0001 || y < 0.0001 || ![25, 50].includes(speed) || ![5, 10, 20].includes(gain))
     return undefined;
   if (
     Math.abs(horizontal.start.y - horizontal.end.y) > 0.000001 ||
     Math.abs(vertical.start.x - vertical.end.x) > 0.000001
   )
     return undefined;
-  return { x, y };
+  return { x, y, speed, gain };
 }
 
 export function validEcgPoint(point: EcgNormalizedPoint): boolean {
@@ -262,12 +264,10 @@ export function measureEcgEditor(draft: EcgEditorDraft, regionId: string): EcgEd
     errors.push('Между началом и концом QRS должна находиться вершина R этого комплекса.');
   const amplitude =
     baseline && representativeR
-      ? (baseline.y - representativeR.y) / scale.y / draft.calibration.gain
+      ? (baseline.y - representativeR.y) / scale.y / scale.gain
       : undefined;
   return {
-    measurements: errors.length
-      ? {}
-      : calculateEcgMeasurements(pairs, scale.x, draft.calibration.speed),
+    measurements: errors.length ? {} : calculateEcgMeasurements(pairs, scale.x, scale.speed),
     ...(amplitude === undefined ? {} : { rAmplitudeMv: amplitude }),
     errors,
   };

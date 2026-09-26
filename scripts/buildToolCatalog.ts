@@ -68,3 +68,5 @@ const formatted = execFileSync(
 );
 await writeFile(catalogPath, formatted);
 console.log(`Core tool catalog: ${seenIds.size} tools in ${sourceModules.length} modules.`);
+// Startup reads tools and the core descriptor from the small shell derived from this catalog.
+execFileSync('bun', ['scripts/build-module-catalog-shell.ts'], { stdio: 'inherit' });

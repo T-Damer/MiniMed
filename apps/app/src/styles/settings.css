@@ -234,7 +234,7 @@
   border-radius: 999px;
   color: var(--theme-text-muted);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: var(--type-micro);
   line-height: 1.2;
 }
 

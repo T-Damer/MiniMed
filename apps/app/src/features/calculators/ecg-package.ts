@@ -20,11 +20,72 @@ export const ECG_DOWNLOAD_VERSION = ECG_PACKAGE_COMPONENTS.map((item) => item.bu
   ':',
 );
 
+export interface EcgComponentUpdate {
+  readonly name: string;
+  readonly installedVersion: string;
+  readonly catalogVersion: string;
+  readonly downloadBytes: number;
+}
+
+export type EcgPackageState = 'missing' | 'partial' | 'outdated' | 'installed';
+
+export interface EcgPackageStatus {
+  readonly state: EcgPackageState;
+  /** Installed components whose checksum differs from the catalog; they keep working meanwhile. */
+  readonly updates: readonly EcgComponentUpdate[];
+}
+
+interface InstalledComponent {
+  readonly checksum: string;
+  readonly version: string;
+}
+
+export function summarizeEcgPackage(
+  components: readonly {
+    readonly installed: InstalledComponent | null;
+    readonly candidate: (typeof ECG_PACKAGE_COMPONENTS)[number] | undefined;
+  }[],
+): EcgPackageStatus {
+  const updates: EcgComponentUpdate[] = [];
+  let current = 0;
+  let missing = 0;
+  for (const { installed, candidate } of components) {
+    if (!installed || !candidate) missing += 1;
+    else if (installed.checksum === candidate.bundleSha256) current += 1;
+    else
+      updates.push({
+        name: candidate.name,
+        installedVersion: installed.version,
+        catalogVersion: candidate.version,
+        downloadBytes: candidate.downloadBytes,
+      });
+  }
+  const state: EcgPackageState = updates.length
+    ? 'outdated'
+    : missing === 0
+      ? 'installed'
+      : current > 0
+        ? 'partial'
+        : 'missing';
+  return { state, updates };
+}
+
+export function ecgPackageStatus(): EcgPackageStatus {
+  return summarizeEcgPackage([
+    { installed: readEcgModelDescriptor(), candidate: ECG_MODEL_CATALOG[0] },
+    { installed: readEcgDiagnosticModelDescriptor(), candidate: ECG_DIAGNOSTIC_MODEL_CATALOG[0] },
+  ]);
+}
+
 export function isEcgPackageInstalled(): boolean {
-  return (
-    readEcgModelDescriptor()?.checksum === ECG_MODEL_CATALOG[0]?.bundleSha256 &&
-    readEcgDiagnosticModelDescriptor()?.checksum === ECG_DIAGNOSTIC_MODEL_CATALOG[0]?.bundleSha256
-  );
+  return ecgPackageStatus().state === 'installed';
+}
+
+/** Human wording for one update: a same-version replacement is a corrected build, not a release. */
+export function describeEcgComponentUpdate(update: EcgComponentUpdate): string {
+  return update.installedVersion === update.catalogVersion
+    ? `${update.name}: исправленная сборка ${update.catalogVersion}`
+    : `${update.name}: ${update.installedVersion} → ${update.catalogVersion}`;
 }
 
 export async function installEcgPackage(

@@ -93,6 +93,7 @@ export function useAppSession() {
     beginCoreDownload?.();
   };
   const [bootSlow, setBootSlow] = createSignal(false);
+  const [coreWaitingForOtherTab, setCoreWaitingForOtherTab] = createSignal(false);
   const [availableModuleCount, setAvailableModuleCount] = createSignal(0);
   const [downloadedModuleCount, setDownloadedModuleCount] = createSignal(0);
   const [dueReminderCount, setDueReminderCount] = createSignal(0);
@@ -369,6 +370,7 @@ export function useAppSession() {
           }
         }),
       onProgress: setCoreProgress,
+      onWaitingForOtherTab: setCoreWaitingForOtherTab,
     });
 
   const reconnectInstalledModules = async (): Promise<void> => {
@@ -456,24 +458,29 @@ export function useAppSession() {
       performance.mark('minimed:search-ready');
       setCoreDownloading(false);
       if (reconnectRequested) await connectInstalledModules();
+      // The ~10 MB release catalog is parsed only after search is interactive and the main thread
+      // is idle; the remote refresh below reuses the same load.
       const moduleRuntimeLoad = scheduleIdle(() =>
         Promise.all([
-          import('@/features/modules/module-catalog'),
+          import('@/features/modules/module-catalog-state').then(({ loadModuleCatalog }) =>
+            loadModuleCatalog(),
+          ),
           import('@/features/modules/module-runtime-service'),
         ]),
       );
       void moduleRuntimeLoad
-        .then(([catalogModule, runtimeService]) => {
+        .then(([catalog, runtimeService]) => {
           if (disposed) return;
           moduleRuntimeService = runtimeService;
-          bindModuleRuntime(runtimeService.getContentModuleRuntime(catalogModule.MODULE_CATALOG));
+          bindModuleRuntime(runtimeService.getContentModuleRuntime(catalog));
           unsubscribeModuleRuntime =
             runtimeService.subscribeContentModuleRuntime(bindModuleRuntime);
         })
         .catch((cause: unknown) => {
           console.warn('Optional content module runtime could not be loaded.', cause);
         });
-      void import('@/features/modules/catalog-service')
+      void moduleRuntimeLoad
+        .then(() => import('@/features/modules/catalog-service'))
         .then(({ refreshContentModuleCatalog }) => refreshContentModuleCatalog())
         .then((result) => {
           setAvailableModuleCount(countPublishedCatalogModules(result.catalog.modules));
@@ -519,6 +526,7 @@ export function useAppSession() {
     ready,
     error,
     bootSlow,
+    coreWaitingForOtherTab,
     availableModuleCount,
     setAvailableModuleCount,
     downloadedModuleCount,

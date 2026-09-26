@@ -9,7 +9,7 @@ import type {
   CalculatorDefinition,
 } from '@/features/calculators/calculator-types';
 
-import { TOOL_CATALOG } from '@/features/modules/module-catalog';
+import { TOOL_CATALOG } from '@/features/modules/module-catalog-shell';
 
 const DOWNLOADED_CALCULATORS = new Map<string, AvailableCalculatorDefinition>();
 

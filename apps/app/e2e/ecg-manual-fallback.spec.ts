@@ -46,6 +46,13 @@ async function addPoint(page: Page, group: string, label: string, x: number, y: 
   await page.mouse.up();
 }
 
+const NEXT = {
+  photo: 'Фото подходит — далее',
+  calibration: 'Калибровка верна — далее',
+  regions: 'Отведения верны — далее',
+  points: 'Точки верны — к итогу',
+} as const;
+
 test('reviews a photo in five fullscreen steps, undoes edits and prints one report', async ({
   page,
   context,
@@ -58,7 +65,10 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto(`${origin}/#/calculators/ecg-photo-caliper`);
   await expect(page.getByRole('heading', { name: 'Загрузите ЭКГ' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Следующий шаг' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: NEXT.photo })).toBeDisabled();
+  await expect(page.getByLabel('Сфотографировать ЭКГ')).toHaveAttribute('capture', 'environment');
+  await page.getByText('Зачем этот шаг и что проверить').click();
+  await expect(page.getByText('Лист виден целиком, ни одно отведение не обрезано.')).toBeVisible();
   await page.getByLabel('Загрузить ЭКГ', { exact: true }).setInputFiles(fixture);
   const canvas = page.locator('.ecg-editor__canvas');
   const fullView = await canvas.getAttribute('viewBox');
@@ -89,16 +99,16 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   await expect(canvas).not.toHaveAttribute('viewBox', fullView ?? '');
   await page.getByRole('button', { name: 'Показать всю ЭКГ' }).click();
-  await page.getByRole('button', { name: 'Следующий шаг' }).click();
-  await page.getByRole('combobox', { name: 'Возраст', exact: true }).selectOption('adult');
-  await page.getByRole('combobox', { name: 'Пол для QTc', exact: true }).selectOption('male');
+  await page.getByRole('button', { name: NEXT.photo }).click();
+  // Speed has no default: the draft cannot be confirmed until it is read from the paper.
+  await expect(page.getByRole('combobox', { name: 'Скорость', exact: true })).toHaveValue('');
+  await page.getByRole('combobox', { name: 'Скорость', exact: true }).selectOption('25');
   await page.screenshot({ path: 'output/playwright/ecg-editor-SE-calibration.png' });
   await page.getByRole('button', { name: 'Отметить 25 мм ↔' }).click();
   await draw(page, [0.1, 0.1], [0.35, 0.1]);
   await page.getByRole('button', { name: 'Отметить 10 мм ↕' }).click();
   await draw(page, [0.4, 0.1], [0.4, 0.2]);
-  await page.getByLabel('Скорость, усиление и обе шкалы проверены').check();
-  await page.getByRole('button', { name: 'Следующий шаг' }).click();
+  await page.getByRole('button', { name: NEXT.calibration }).click();
   await expect(page.locator('.ecg-editor__region')).toHaveCount(13);
   const rhythm = page.getByRole('button', { name: 'Область II · ритм', exact: true });
   const before = await rhythm.getAttribute('x');
@@ -106,8 +116,7 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   await expect(rhythm).not.toHaveAttribute('x', before ?? '');
   await page.getByRole('button', { name: 'Отменить изменение', exact: true }).click();
   await expect(rhythm).toHaveAttribute('x', before ?? '');
-  await page.getByLabel('Области всех отведений проверены').check();
-  await page.getByRole('button', { name: 'Следующий шаг' }).click();
+  await page.getByRole('button', { name: NEXT.regions }).click();
 
   await addPoint(page, 'Q', 'Начало QRS', 0.29, 0.82);
   await addPoint(page, 'S', 'Конец QRS', 0.315, 0.82);
@@ -119,12 +128,7 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   await expect(page.locator('.ecg-editor__point-hit')).toHaveCount(7);
   await page.getByRole('button', { name: 'Отменить изменение', exact: true }).click();
   await page.getByRole('button', { name: 'Повторить изменение', exact: true }).click();
-  await page.getByLabel('Точки в отведении для расчёта проверены по ЭКГ').check();
-  await page.getByRole('button', { name: 'Отменить изменение', exact: true }).click();
-  await expect(page.getByLabel('Точки в отведении для расчёта проверены по ЭКГ')).not.toBeChecked();
-  await expect(page.getByRole('button', { name: 'Следующий шаг' })).toBeDisabled();
-  await page.getByRole('button', { name: 'Повторить изменение', exact: true }).click();
-  await page.getByLabel('Точки в отведении для расчёта проверены по ЭКГ').check();
+  await expect(page.getByRole('button', { name: 'Результат', exact: true })).toBeDisabled();
   await page.screenshot({ path: 'output/playwright/ecg-editor-points-desktop.png' });
   await page.setViewportSize({ width: 375, height: 667 });
   await page.screenshot({ path: 'output/playwright/ecg-editor-points-mobile.png' });
@@ -136,7 +140,10 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   }));
   expect(geometry.width).toBe(geometry.viewportWidth);
   expect(geometry.height).toBe(geometry.viewportHeight);
-  await page.getByRole('button', { name: 'Следующий шаг' }).click();
+  await page.getByRole('button', { name: NEXT.points }).click();
+  await page.getByRole('combobox', { name: 'Возраст', exact: true }).selectOption('adult');
+  await page.getByRole('combobox', { name: 'Пол для QTc', exact: true }).selectOption('male');
+  await expect(page.locator('.ecg-report__finding').first()).toBeVisible();
   await expect(
     page.locator('.ecg-report__metric').filter({ hasText: /^RR/ }).locator('dd'),
   ).toContainText('1000');
@@ -164,10 +171,28 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   });
   await popup.pdf({ path: 'output/playwright/ecg-editor-report.pdf', preferCSSPageSize: true });
   await popup.close();
+  // Confirmed editor points become an editable draft for the 30-field numeric model.
+  await page.getByRole('button', { name: '30 признаков для модели' }).click();
+  const numeric = page.getByRole('dialog', { name: 'Готовые измерения ЭКГ' });
+  await expect(numeric.locator('#ecg-feature-RR_Mean_Global')).toHaveValue('1000');
+  await expect(numeric.locator('#ecg-feature-QT_Int_Global')).toHaveValue('440');
+  await expect(numeric.locator('#ecg-feature-R_Amp_II')).toHaveValue('');
+  await expect(
+    numeric.getByText('Не заполнено: II · ритм: нет точки «Изолиния»').first(),
+  ).toBeAttached();
+  await numeric.getByText(/^Амплитуды зубцов/u).click();
+  await numeric.locator('#ecg-feature-R_Amp_II').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'output/playwright/ecg-numeric-draft-mobile.png' });
+  await numeric.getByRole('button', { name: 'Закрыть' }).click();
+  await page.getByRole('button', { name: 'Продолжить разметку ЭКГ' }).click();
   await page.getByRole('button', { name: 'Предыдущий шаг' }).click();
   await expect(page.locator('.ecg-editor__point-hit')).toHaveCount(7);
+  // Any point edit withdraws the confirmation, so the result step closes again.
+  await page.getByRole('button', { name: 'Отменить изменение', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Результат', exact: true })).toBeDisabled();
   for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Предыдущий шаг' }).click();
   await page.getByLabel('Загрузить ЭКГ', { exact: true }).setInputFiles(fixture);
-  await page.getByRole('button', { name: 'Следующий шаг' }).click();
-  await expect(page.getByRole('button', { name: 'Следующий шаг' })).toBeDisabled();
+  await page.getByRole('button', { name: NEXT.photo }).click();
+  await expect(page.getByRole('button', { name: NEXT.calibration })).toBeDisabled();
+  await expect(page.getByText('Выберите скорость и отметьте 25 мм')).toBeVisible();
 });

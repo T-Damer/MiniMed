@@ -1508,7 +1508,7 @@ export function CalculatorsView(): JSX.Element {
     sectionId: CalculatorSectionId,
   ): readonly ContentModuleCatalogEntry[] => {
     experimentalModulesEnabled();
-    const moduleIds = moduleIdsForCalculatorSection(sectionId);
+    const moduleIds = moduleIdsForCalculatorSection(sectionId, MODULE_CATALOG.modules);
     const sectionAlreadyAvailable =
       isCalculatorSectionCore(sectionId, calculatorRegistry()) ||
       isCalculatorSectionFromDatabase(sectionId, calculatorRegistry());

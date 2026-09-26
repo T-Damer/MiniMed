@@ -91,6 +91,42 @@ describe('existing OPFS owner core download consent', () => {
     await store.close();
     expect(worker.terminate).toHaveBeenCalledTimes(1);
   });
+  it('times out only while it owns the pool and is not waiting for consent', async () => {
+    vi.useFakeTimers();
+    const instances = mockWorker();
+    let approve = () => {};
+    const waitingForOtherTab = vi.fn();
+    const opened = WorkerOpfsMedicalStore.open(
+      options,
+      {
+        requestDownload: () =>
+          new Promise<void>((resolve) => {
+            approve = resolve;
+          }),
+        onProgress: vi.fn(),
+      },
+      waitingForOtherTab,
+    );
+    const failure = expect(opened).rejects.toThrow('Opening core.db timed out.');
+    const worker = first(instances);
+    worker.emit({ id: 1, status: 'lock-wait' });
+    expect(waitingForOtherTab).toHaveBeenLastCalledWith(true);
+    await vi.advanceTimersByTimeAsync(5000);
+    worker.emit({ id: 1, status: 'lock-acquired' });
+    expect(waitingForOtherTab).toHaveBeenLastCalledWith(false);
+    await vi.advanceTimersByTimeAsync(500);
+    worker.emit({ id: 1, event: 'download-required' });
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(worker.terminate).not.toHaveBeenCalled();
+    approve();
+    await Promise.resolve();
+    expect(worker.postMessage).toHaveBeenCalledWith({ id: 1, type: 'approve-download' });
+    await vi.advanceTimersByTimeAsync(999);
+    expect(worker.terminate).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    await failure;
+    expect(worker.terminate).toHaveBeenCalledTimes(1);
+  });
   it('opens an installed file without asking for another download', async () => {
     const instances = mockWorker();
     const requestDownload = vi.fn(async () => {});

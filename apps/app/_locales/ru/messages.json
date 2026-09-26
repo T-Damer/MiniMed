@@ -504,5 +504,21 @@
   "attachment_count_other": {
     "message": "$1 вложения",
     "description": "Attachment count"
+  },
+  "search_meaning_count_one": {
+    "message": "$1 документ",
+    "description": "Number of documents a search phrase may refer to"
+  },
+  "search_meaning_count_few": {
+    "message": "$1 документа",
+    "description": "Number of documents a search phrase may refer to"
+  },
+  "search_meaning_count_many": {
+    "message": "$1 документов",
+    "description": "Number of documents a search phrase may refer to"
+  },
+  "search_meaning_count_other": {
+    "message": "$1 документа",
+    "description": "Number of documents a search phrase may refer to"
   }
 }

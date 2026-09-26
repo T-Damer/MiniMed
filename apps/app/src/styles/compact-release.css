@@ -340,7 +340,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   flex: 0 0 auto;
   color: inherit;
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   opacity: 0.72;
   text-transform: uppercase;
 }
@@ -362,7 +362,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   color: #f6edd8;
   background: #4c5d50;
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -386,7 +386,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   background: transparent;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   text-transform: uppercase;
 }
 
@@ -695,7 +695,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   cursor: pointer;
   list-style: none;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -776,7 +776,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   overflow: hidden;
   color: var(--theme-text-faint);
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -817,7 +817,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   background: transparent;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   text-transform: uppercase;
 }
 
@@ -850,7 +850,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 .search-history-panel-footer__link:visited {
   color: var(--theme-link);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.15rem;
@@ -1262,7 +1262,7 @@ html.app-chrome-hidden .app-bottom-nav {
   border-radius: 0.3125rem;
   color: #403416;
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   font-weight: 700;
   line-height: 1;
 }
@@ -1390,7 +1390,7 @@ html.app-chrome-hidden .app-bottom-nav {
   padding: 0.75rem 1rem calc(0.75rem + var(--safe-bottom));
   border-top: 1px solid var(--paper-line);
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: var(--type-micro);
 }
 
 .search-history-panel-footer a {
@@ -1423,7 +1423,7 @@ html.app-chrome-hidden .app-bottom-nav {
   color: #f6edd8;
   background: #565b49;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
 }
 
 .search-history-panel-header__close {
@@ -1593,7 +1593,7 @@ html.app-chrome-hidden .app-bottom-nav {
 .patient-note-actions small {
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1643,7 +1643,7 @@ html.app-chrome-hidden .app-bottom-nav {
   color: #f7efdc;
   background: #596b5c;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
 }
 
 .patient-note-related > span {
@@ -1700,7 +1700,7 @@ html.app-chrome-hidden .app-bottom-nav {
   background: transparent;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1769,7 +1769,7 @@ html.app-chrome-hidden .app-bottom-nav {
   background: #5c5044;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1846,7 +1846,7 @@ html.app-chrome-hidden .app-bottom-nav {
 
 .document-library-copy__specialties {
   overflow: hidden;
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1857,7 +1857,7 @@ html.app-chrome-hidden .app-bottom-nav {
 }
 
 .document-library-index {
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
 }
 
 .document-library-grid {
@@ -1880,7 +1880,7 @@ html.app-chrome-hidden .app-bottom-nav {
 .knowledge-base-page .library-mode-tabs button {
   min-height: 1.75rem;
   padding: 0.25rem 0.625rem;
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
 }
 
 .knowledge-base-page .archive-search-row {
@@ -1948,7 +1948,7 @@ fieldset.search-mode-picker {
 }
 
 .search-mode-picker .search-mode-option-copy small {
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
 }
 
 .search-selected-mode {
@@ -2000,7 +2000,7 @@ fieldset.search-mode-picker {
   color: #594d35;
   background: rgb(248 240 218 / 55%);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   text-transform: uppercase;
 }
 
@@ -2023,7 +2023,7 @@ fieldset.search-mode-picker {
 .note-reminder-fields span {
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -2077,7 +2077,7 @@ fieldset.search-mode-picker {
   background: transparent;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   text-decoration: underline;
   text-underline-offset: 0.1875rem;
@@ -2315,7 +2315,7 @@ fieldset.search-mode-picker {
   color: var(--theme-accent-contrast);
   background: var(--theme-accent);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: var(--type-micro);
 }
 
 .model-catalog-details__chevron {
@@ -2343,7 +2343,7 @@ fieldset.search-mode-picker {
 .document-text-chunk {
   max-width: 74ch;
   margin: 0 0 0.9em;
-  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  font-size: 1rem;
   line-height: 1.62;
 }
 
@@ -2694,7 +2694,7 @@ html.native-print-active #root {
 .patient-note-record small {
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.5625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -3046,7 +3046,7 @@ html.native-print-active #root {
   background: #5c5044;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -3255,7 +3255,7 @@ html.native-print-active #root {
   padding: 0.25rem 0.375rem;
   color: #fff;
   background: rgb(20 19 17 / 72%);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   text-overflow: ellipsis;
   white-space: nowrap;
   pointer-events: none;

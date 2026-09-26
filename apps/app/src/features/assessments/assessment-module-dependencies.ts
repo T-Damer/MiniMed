@@ -3,7 +3,6 @@ import type { MedicalStore } from '@localmed/storage';
 
 import { getAssessmentCatalog } from '@/features/assessments/assessment-catalog';
 import { resolveDeclaredAssessmentDependencies } from '@/features/assessments/assessment-module-manifest';
-import { getActiveContentModuleCatalog } from '@/features/modules/catalog-service';
 import { assessmentIdsReferencedInText } from '@/features/tool-links/document-tool-links';
 
 type AssessmentDependencyStore = Pick<MedicalStore, 'getChunksByDocument' | 'listDocuments'> &
@@ -11,6 +10,7 @@ type AssessmentDependencyStore = Pick<MedicalStore, 'getChunksByDocument' | 'lis
 type AssessmentModuleDescriptor = Pick<ContentModuleCatalogEntry, 'id' | 'kind' | 'tags'>;
 
 export interface AssessmentDependencyScanOptions {
+  /** Catalog descriptors owned by the caller; without them only the content scan applies. */
   readonly modules?: readonly AssessmentModuleDescriptor[];
   readonly onDeclarationError?: (moduleId: string, cause: unknown) => void;
 }
@@ -56,7 +56,7 @@ async function declaredDependencies(
 
   const moduleId = contentPackIds[0];
   if (!moduleId) return null;
-  const modules = options.modules ?? getActiveContentModuleCatalog().modules;
+  const modules = options.modules ?? [];
   const descriptor = modules.find((module) => module.id === moduleId);
   if (descriptor?.kind !== 'clinical') return null;
 

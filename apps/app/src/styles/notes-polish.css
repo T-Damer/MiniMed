@@ -37,7 +37,7 @@
 .note-result-card__heading small {
   color: var(--theme-text-faint);
   font-family: var(--font-mono);
-  font-size: 0.58rem;
+  font-size: var(--type-micro);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -75,7 +75,7 @@
 .note-result-card__value-row span,
 .note-result-card__value-row small {
   color: var(--theme-text-muted);
-  font-size: 0.68rem;
+  font-size: var(--type-micro);
 }
 
 .note-result-card__value-row strong {
@@ -112,14 +112,14 @@
 
 .note-result-card__source-row > span {
   color: var(--theme-text-muted);
-  font-size: 0.65rem;
+  font-size: var(--type-micro);
 }
 
 .note-result-card__source-row code,
 .note-result-card__source-row strong {
   min-width: 0;
   overflow-wrap: anywhere;
-  font-size: 0.68rem;
+  font-size: var(--type-micro);
 }
 
 .note-result-card__trace {
@@ -133,7 +133,7 @@
   display: grid;
   grid-template-columns: minmax(5rem, 0.8fr) minmax(0, 1.5fr) auto;
   gap: 0.35rem;
-  font-size: 0.66rem;
+  font-size: var(--type-micro);
 }
 
 .note-result-card__trace code {
@@ -153,7 +153,7 @@
   color: var(--theme-text-muted);
   background: var(--theme-surface-raised);
   cursor: pointer;
-  font-size: 0.64rem;
+  font-size: var(--type-micro);
 }
 
 .note-result-card__actions button:hover,
@@ -930,7 +930,7 @@
 
 .note-voice-button__time {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-micro);
   font-variant-numeric: tabular-nums;
 }
 
@@ -952,7 +952,7 @@
   color: var(--theme-text);
   background: var(--theme-surface-raised);
   box-shadow: none;
-  font-size: 0.58rem;
+  font-size: var(--type-micro);
   line-height: 1;
 }
 
@@ -1015,7 +1015,7 @@
   flex: none;
   color: var(--theme-text-muted);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: var(--type-micro);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1065,7 +1065,7 @@
 
 .note-voice-button__time {
   font-family: var(--font-mono);
-  font-size: 0.56rem;
+  font-size: var(--type-micro);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1364,7 +1364,7 @@
 .note-file-block__meta {
   overflow: hidden;
   color: var(--theme-text-muted);
-  font-size: 0.64rem;
+  font-size: var(--type-micro);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

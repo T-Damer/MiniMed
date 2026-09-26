@@ -334,6 +334,11 @@ export function EcgNumericDiagnosticPanel(props: {
   ) => void;
   readonly onPatientRouteChange?: (route: EcgPatientRoute) => void;
   readonly studyRevision: number;
+  /** Per-field provenance from reviewed editor points; missing entries name the absent point. */
+  readonly draftNotes?: {
+    readonly missing: Partial<Record<EcgNumericFeatureId, string>>;
+    readonly sources: Partial<Record<EcgNumericFeatureId, string>>;
+  };
 }): JSX.Element {
   const [model, setModel] = createSignal<EcgDiagnosticModelDescriptor | null>(null);
   const [dateOfBirth, setDateOfBirth] = createSignal(
@@ -650,6 +655,23 @@ export function EcgNumericDiagnosticPanel(props: {
     return getEcgPediatricQrsReferenceFlag(age, current.result.QRS_Dur_Global);
   });
 
+  const draftNote = (id: EcgNumericFeatureId): JSX.Element => {
+    const missing = props.draftNotes?.missing[id];
+    const source = props.draftNotes?.sources[id];
+    return (
+      <Show when={missing ?? source}>
+        {(text) => (
+          <span
+            class="ecg-numeric__field-note"
+            classList={{ 'ecg-numeric__field-note--missing': Boolean(missing) }}
+          >
+            {missing ? `Не заполнено: ${text()}` : text()}
+          </span>
+        )}
+      </Show>
+    );
+  };
+
   const helpButton = (help: EcgFieldHelp): JSX.Element => (
     <button
       class="ecg-numeric__help-button"
@@ -681,7 +703,14 @@ export function EcgNumericDiagnosticPanel(props: {
         </Show>
       </div>
 
-      <Show when={Object.keys(props.automaticAmplitudeValues).length > 0}>
+      <Show when={props.draftNotes}>
+        <p class="ecg-numeric__draft-note">
+          Поля заполнены черновиком по подтверждённым точкам редактора. Сверьте каждое значение со
+          снимком; под пустыми полями указано, какой точки не хватает. Отсутствующий зубец Q не
+          считается нулём — введите 0 сами, если его действительно нет.
+        </p>
+      </Show>
+      <Show when={!props.draftNotes && Object.keys(props.automaticAmplitudeValues).length > 0}>
         <p class="ecg-numeric__draft-note">
           Оцифровщик предложил амплитуды по извлечённым кривым. Кнопка только копирует их в
           редактируемые поля — проверьте точки Q/R/S/T перед расчётом.
@@ -1041,6 +1070,7 @@ export function EcgNumericDiagnosticPanel(props: {
                   value={values()[feature.id] ?? ''}
                   onInput={(event) => updateValue(feature.id, event.currentTarget.value)}
                 />
+                {draftNote(feature.id)}
               </div>
             )}
           </For>
@@ -1076,6 +1106,7 @@ export function EcgNumericDiagnosticPanel(props: {
                   value={values()[feature.id] ?? ''}
                   onInput={(event) => updateValue(feature.id, event.currentTarget.value)}
                 />
+                {draftNote(feature.id)}
               </div>
             )}
           </For>

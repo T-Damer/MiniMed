@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   type EcgEditorDraft,
   type EcgEditorPoint,
+  EMPTY_ECG_DRAFT,
   ecgCalibrationScale,
   ecgRegionTemplate,
   measureEcgEditor,
@@ -56,6 +57,13 @@ describe('semi-manual ECG measurement', () => {
     );
     expect(faster.measurements).toMatchObject({ rrMs: 500, heartRate: 120, qtMs: 220 });
     expect(faster.rAmplitudeMv).toBeCloseTo(2);
+  });
+
+  it('measures nothing until the paper speed is chosen explicitly', () => {
+    const { speed: _speed, ...unset } = calibration;
+    expect(ecgCalibrationScale(unset)).toBeUndefined();
+    expect(measureEcgEditor({ ...draft, calibration: unset }, 'II').measurements).toEqual({});
+    expect(EMPTY_ECG_DRAFT.calibration.speed).toBeUndefined();
   });
 
   it('does not mix lead fragments, accept reversed boundaries or treat missing T as a normal QT', () => {

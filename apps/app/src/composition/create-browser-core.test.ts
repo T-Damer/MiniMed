@@ -141,12 +141,16 @@ describe('createRequiredWebCoreStore', () => {
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('HEAD');
     expect(createFromBytes).not.toHaveBeenCalled();
-    expect(open).toHaveBeenCalledWith({
-      url: 'https://example.test/app/content/core.db',
-      databaseName: 'core.db',
-      fetchTimeoutMs: 180_000,
-      poolName: 'minimed-sah-core',
-    });
+    expect(open).toHaveBeenCalledWith(
+      {
+        url: 'https://example.test/app/content/core.db',
+        databaseName: 'core.db',
+        fetchTimeoutMs: 180_000,
+        poolName: 'minimed-sah-core',
+      },
+      undefined,
+      undefined,
+    );
   });
 
   it('opens the verified native file through a checksum-specific OPFS identity for the fallback', async () => {
@@ -161,9 +165,18 @@ describe('createRequiredWebCoreStore', () => {
       .spyOn(WorkerOpfsMedicalStore, 'open')
       .mockResolvedValue(store() as WorkerOpfsMedicalStore);
     const url = 'https://localhost/_capacitor_file_/data/localmed/content/core.db';
-    await createRequiredWebCoreStore('https://localhost/', url, 'core.verified-sha.db');
+    const onWaitingForOtherTab = vi.fn();
+    await createRequiredWebCoreStore(
+      'https://localhost/',
+      url,
+      'core.verified-sha.db',
+      undefined,
+      onWaitingForOtherTab,
+    );
     expect(open).toHaveBeenCalledWith(
       expect.objectContaining({ url, databaseName: 'core.verified-sha.db' }),
+      undefined,
+      onWaitingForOtherTab,
     );
     expect(String(fetchMock.mock.calls[0]?.[0])).toBe(url);
   });
@@ -209,6 +222,8 @@ describe('createRequiredWebCoreStore', () => {
       expect(fetchMock).toHaveBeenCalledOnce();
       expect(open).toHaveBeenCalledWith(
         expect.objectContaining({ url: 'https://example.test/app/content/core.db' }),
+        undefined,
+        undefined,
       );
       expect(createFromBytes).not.toHaveBeenCalled();
     },
@@ -246,6 +261,8 @@ describe('createRequiredWebCoreStore', () => {
     expect(createObjectUrl).not.toHaveBeenCalled();
     expect(open).toHaveBeenCalledWith(
       expect.objectContaining({ url: 'https://example.test/app/content/core.db' }),
+      undefined,
+      undefined,
     );
   });
 

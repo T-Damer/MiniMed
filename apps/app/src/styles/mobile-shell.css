@@ -219,7 +219,7 @@ body {
 .app-brand-copy small {
   color: #bbb3a2;
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
@@ -344,7 +344,7 @@ body {
   gap: 0.375rem;
   color: #aba393;
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -464,7 +464,7 @@ body {
   background: rgb(249 241 220 / 38%);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   text-transform: uppercase;
 }
 
@@ -541,7 +541,7 @@ body {
   color: var(--theme-text-muted);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   letter-spacing: 0.07em;
   text-transform: uppercase;
   list-style: none;
@@ -631,7 +631,7 @@ body {
 .history-copy small {
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
 }
 
 .history-copy {
@@ -714,7 +714,7 @@ body {
   background: rgb(246 237 214 / 44%);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   text-transform: uppercase;
 }
 
@@ -749,7 +749,7 @@ body {
   gap: 0.875rem;
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   text-transform: uppercase;
 }
 
@@ -798,14 +798,14 @@ body {
 .graph-specialty text,
 .graph-document text {
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--type-micro);
   text-anchor: middle;
   pointer-events: none;
 }
 
 .graph-root .secondary {
   fill: var(--ink-faint);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
 }
 
 .graph-specialty rect {
@@ -893,7 +893,7 @@ body {
   }
 
   .case-heading .archive-kicker {
-    font-size: 0.4375rem;
+    font-size: var(--type-micro);
   }
 
   .query-sheet textarea {
@@ -931,7 +931,7 @@ body {
 
   .search-button span::after {
     content: "Найти";
-    font-size: 0.5625rem;
+    font-size: var(--type-micro);
   }
 
   .query-index__label {
@@ -1044,7 +1044,7 @@ body {
 .graph-selection small {
   color: var(--ink-faint);
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   text-transform: uppercase;
 }
 
@@ -1064,7 +1064,7 @@ body {
   background: var(--green-file);
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: var(--type-micro);
   text-transform: uppercase;
 }
 

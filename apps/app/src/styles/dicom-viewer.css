@@ -188,7 +188,7 @@
   top: 0.16rem;
   right: 0.2rem;
   color: currentColor;
-  font-size: 0.56rem;
+  font-size: var(--type-micro);
   font-weight: 800;
   line-height: 1;
   pointer-events: none;
@@ -489,7 +489,7 @@
 .medical-image-viewer__details-label {
   margin-bottom: 0.18rem;
   color: rgb(255 255 255 / 48%);
-  font-size: 0.68rem;
+  font-size: var(--type-micro);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;

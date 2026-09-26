@@ -32,10 +32,9 @@ Detailed history, moved verbatim on 2026-09-24:
   one-second slice is committed to IndexedDB, so a crash keeps the recorded part (reported as
   interrupted). After stopping, audio is added to a patient/visit or kept in «Записи бесед».
   Stored unencrypted for now.
-- **Patient vault in the browser.** Passkey via WebAuthn PRF (HKDF-wrapped data key) or an explicit
-  «Продолжить без защиты»; unlock/creation in a compact dialog. No automatic lock or privacy
-  curtain any more (user decision). Verified with a Chromium virtual authenticator only — not on
-  real Apple/Google/Bitwarden passkeys.
+- **Patient vault in the browser.** Unlock/creation in a compact dialog; no automatic lock or
+  privacy curtain any more (user decision). Passkey protection (WebAuthn PRF) was moved to the
+  unmerged `feature/patient-vault-passkey` branch and is not part of this line.
 - **UX.** Settings grouped with a shared `FeatureCard`; animated `Disclosure`; `SelectField`,
   `FileDropZone`; search welcome with shortcuts; questionnaire import dialog; notes open straight
   into the full-screen editor with title, tags, pictures and reminder; plain-language copy;
@@ -44,6 +43,27 @@ Detailed history, moved verbatim on 2026-09-24:
   generator change, a core rebuild and a new dataset); UI strings are not yet on Lingui; patient
   storage is not yet migrated to HL7 FHIR resources; e2e «creates a protected patient profile»
   needs the anthropometry pack (download area owned by another agent).
+
+- **Search recovery and startup (merged from `feature/ux-ecg-pass`).** Free search keeps a
+  medication whose title stem is typed; source-pointer results offer the exact containing module
+  (verified index membership) as an in-result download; a completed search with no document groups
+  shows an explicit empty state with scope downloads; ambiguous phrases list candidate documents
+  as `ChoiceChip` buttons. Startup parses bundled catalogs as raw JSON text and reads tools and the
+  core descriptor from a generated `catalog.shell.json` (`bun run catalog:shell`, drift-checked by
+  a test). UI font sizes below 11px use `--type-micro`. Section-menu, result-chip and bottom-nav
+  download states separate “queued” from “transferring” (`DownloadProgressMark`); long section
+  names scroll only for the selected/hovered/focused row (`MarqueeText`).
+- **Core opening.** The OPFS open timeout counts only while this worker owns the pool lock and is
+  not waiting for the user's download consent; the boot screen explains when another tab holds the
+  local database. Calculators and assessments open before the medical core is ready.
+- **ECG photo editor.** Guided five-step flow with per-step guides, camera capture, auto-markup
+  summary, explicit paper speed, a home-screen entry card, stale-model detection with in-place
+  update, and the 30 numeric-model features drafted from confirmed editor points. Details and
+  checks: [state/ecg-research-log.md](state/ecg-research-log.md). The dev/preview Vite server
+  serves `/content/releases/<tag>/<file>` from the gitignored `.cache/releases/` cache.
+- **Integration note.** These entries were developed on a base older than 0.6.40 and merged on
+  2026-09-26; the merge combined the consent-gated core download with the other-tab lock wait and
+  the FeatureCard ECG settings with the model-update state.
 
 ## Release 0.6.40 — 2026-09-26
 

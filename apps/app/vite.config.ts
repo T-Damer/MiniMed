@@ -1,5 +1,6 @@
 import {
   copyFileSync,
+  createReadStream,
   createWriteStream,
   existsSync,
   mkdirSync,
@@ -12,8 +13,15 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
 
-import { defineConfig, type Plugin } from 'vite';
+import { type Connect, defineConfig, type Plugin } from 'vite';
 import solid from 'vite-plugin-solid';
+
+import {
+  downloadReleaseAsset,
+  isReleaseCacheCurrent,
+  type ReleaseCacheTarget,
+  resolveReleaseCacheTarget,
+} from './src/dev-server/release-cache';
 
 const require = createRequire(import.meta.url);
 
@@ -125,6 +133,60 @@ function ensureCornerstoneCodecAssets(): Plugin {
   };
 }
 
+/**
+ * Dev/preview only: serve MiniMed release assets (for example the 19 MB ECG digitizer) from a
+ * gitignored disk cache, fetching each from GitHub once. The app still verifies size and SHA-256.
+ */
+function localReleaseCache(): Plugin {
+  const cacheRoot = fileURLToPath(new URL('./.cache/releases', import.meta.url));
+  const pending = new Map<string, Promise<void>>();
+  const ensureCached = (target: ReleaseCacheTarget): Promise<void> => {
+    const existing = pending.get(target.path);
+    if (existing) return existing;
+    // A replaced release keeps its file name; the catalog digest decides whether to refetch.
+    const refresh = isReleaseCacheCurrent(target)
+      .then((current) => (current ? undefined : downloadReleaseAsset(target)))
+      .finally(() => pending.delete(target.path));
+    pending.set(target.path, refresh);
+    return refresh;
+  };
+  const middleware: Connect.NextHandleFunction = (request, response, next) => {
+    const target =
+      request.method === 'GET' || request.method === 'HEAD'
+        ? resolveReleaseCacheTarget(cacheRoot, request.url ?? '')
+        : undefined;
+    if (!target) {
+      next();
+      return;
+    }
+    ensureCached(target).then(
+      () => {
+        response.statusCode = 200;
+        response.setHeader('Content-Type', 'application/octet-stream');
+        response.setHeader('Content-Length', String(statSync(target.path).size));
+        response.setHeader('Cache-Control', 'no-store');
+        if (request.method === 'HEAD') response.end();
+        else createReadStream(target.path).pipe(response);
+      },
+      (cause: unknown) => {
+        console.error(`[local-release-cache] ${target.tag}/${target.fileName}:`, cause);
+        response.statusCode = 502;
+        response.end('Release asset download failed.');
+      },
+    );
+  };
+  return {
+    name: 'local-release-cache',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use(middleware);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(middleware);
+    },
+  };
+}
+
 function excludeOptionalPublicAssets(): Plugin {
   let outDir = 'dist';
 
@@ -159,6 +221,7 @@ export default defineConfig({
     ensurePdfJsAssets(),
     ensureCornerstoneCodecAssets(),
     excludeOptionalPublicAssets(),
+    localReleaseCache(),
   ],
   resolve: {
     alias: {
@@ -172,6 +235,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@sqlite.org/sqlite-wasm'],
     include: [
+      // Workers import these lazily; discovering them mid-session made Vite reload the page.
+      '@huggingface/transformers',
+      'onnxruntime-web',
       // Keep lazy viewers and thumbnails on one Cornerstone runtime/cache.
       '@cornerstonejs/core',
       '@cornerstonejs/tools',

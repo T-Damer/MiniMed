@@ -118,11 +118,15 @@ export function App(): JSX.Element {
   const personalDocumentActive = () => parseDocumentReadRoute(currentHash())?.kind === 'user';
   const personalLibraryActive = () =>
     isUserLibraryCatalogRoute(currentHash().replace(/^#\/?/u, ''));
+  // Tools, notes and settings never read the medical core, so they stay usable while it opens,
+  // downloads, or is held by another tab (offline-first).
   const showingBootScreen = () =>
     !shellReady() ||
     (!session.ready() &&
       navigation.view() !== 'notes' &&
       navigation.view() !== 'settings' &&
+      navigation.view() !== 'calculators' &&
+      navigation.view() !== 'assessments' &&
       !personalLibraryActive() &&
       !personalDocumentActive());
   onMount(() => {
@@ -208,6 +212,30 @@ export function App(): JSX.Element {
     for (const windowState of floatingWindows.windows()) {
       if (!windowState.ownerRoute) floatingWindows.close(windowState.id);
     }
+  });
+  // Phones have no hover, so pointer-down prefetch fired only a moment before the tap and the tab
+  // still opened on a spinner. Warm the bottom-nav views one at a time once search is usable.
+  let navViewsPrefetched = false;
+  createEffect(() => {
+    if (navViewsPrefetched || !session.ready() || embeddedFloatingWindow) return;
+    navViewsPrefetched = true;
+    const pending = navItems()
+      .map((item) => item.id)
+      .filter((view) => view !== navigation.view());
+    const idle = (run: () => void): void => {
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(run, { timeout: 4000 });
+      } else setTimeout(run, 1500);
+    };
+    const next = (): void => {
+      const view = pending.shift();
+      if (view)
+        void rootViewLoaders[view]().then(
+          () => idle(next),
+          () => idle(next),
+        );
+    };
+    idle(next);
   });
   const bottomNav = useBottomNav({
     view: navView,
@@ -347,6 +375,12 @@ export function App(): JSX.Element {
             onAvailableUpdates={session.setAvailableModuleCount}
           />
         ))}
+        {rootPane('assessments', () => (
+          <AssessmentsView active={navigation.view() === 'assessments'} />
+        ))}
+        {rootPane('calculators', () => (
+          <CalculatorsView />
+        ))}
         {rootPane('notes', () => (
           <NotesView
             core={session.searchCore() ?? session.ready()?.core}
@@ -359,6 +393,7 @@ export function App(): JSX.Element {
             appLoading={!shellReady()}
             error={session.error()}
             bootSlow={session.bootSlow()}
+            waitingForOtherTab={session.coreWaitingForOtherTab()}
             coreDownloadRequired={session.coreDownloadRequired()}
             coreDownloading={session.coreDownloading()}
             coreProgress={session.coreProgress()}
@@ -368,12 +403,6 @@ export function App(): JSX.Element {
         <Show when={session.ready()}>
           {(state) => (
             <>
-              {rootPane('assessments', () => (
-                <AssessmentsView active={navigation.view() === 'assessments'} />
-              ))}
-              {rootPane('calculators', () => (
-                <CalculatorsView />
-              ))}
               {rootPane('search', () => (
                 <SearchHome
                   baseCore={session.searchCore() ?? state().core}

@@ -19,6 +19,7 @@ import type { SqliteIntegrityReport } from '@localmed/storage-sqlite';
 
 import type {
   OpfsPackWorkerCallArgs,
+  OpfsPackWorkerLockStatus,
   OpfsPackWorkerMethod,
   OpfsPackWorkerOpenOptions,
   OpfsPackWorkerResponse,
@@ -57,10 +58,15 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     private readonly shared?: SharedWorkerStore,
     owner?: WorkerOpfsMedicalStore,
     private readonly downloadUi?: OpfsDownloadUi,
+    onLockStatus?: (status: OpfsPackWorkerLockStatus) => void,
   ) {
     this.owner = owner ?? this;
     if (owner) return;
     worker.onmessage = (event: MessageEvent<OpfsPackWorkerResponse>) => {
+      if ('status' in event.data) {
+        if (!this.connectionClosed) onLockStatus?.(event.data.status);
+        return;
+      }
       if ('event' in event.data) {
         const message = event.data;
         if (this.connectionClosed) return;
@@ -98,6 +104,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   public static async open(
     options: OpfsPackWorkerOpenOptions,
     downloadUi?: OpfsDownloadUi,
+    onWaitingForOtherTab?: (waiting: boolean) => void,
   ): Promise<WorkerOpfsMedicalStore> {
     const optionsKey = JSON.stringify([options.databaseName, options.fetchTimeoutMs]);
     const existing = WorkerOpfsMedicalStore.sharedStores.get(options.poolName);
@@ -108,18 +115,23 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
       const owner = await existing.owner;
       if (owner.closing) {
         await owner.closing;
-        return WorkerOpfsMedicalStore.open(options, downloadUi);
+        return WorkerOpfsMedicalStore.open(options, downloadUi, onWaitingForOtherTab);
       }
       if (owner.connectionClosed) {
         WorkerOpfsMedicalStore.sharedStores.delete(options.poolName);
-        return WorkerOpfsMedicalStore.open(options, downloadUi);
+        return WorkerOpfsMedicalStore.open(options, downloadUi, onWaitingForOtherTab);
       }
       owner.leaseCount += 1;
       return new WorkerOpfsMedicalStore(owner.worker, existing, owner);
     }
 
     const shared = { optionsKey, poolName: options.poolName } as SharedWorkerStore;
-    shared.owner = WorkerOpfsMedicalStore.openOwner(options, shared, downloadUi);
+    shared.owner = WorkerOpfsMedicalStore.openOwner(
+      options,
+      shared,
+      downloadUi,
+      onWaitingForOtherTab,
+    );
     WorkerOpfsMedicalStore.sharedStores.set(options.poolName, shared);
     try {
       return await shared.owner;
@@ -135,34 +147,46 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
     options: OpfsPackWorkerOpenOptions,
     shared: SharedWorkerStore,
     downloadUi?: OpfsDownloadUi,
+    onWaitingForOtherTab?: (waiting: boolean) => void,
   ): Promise<WorkerOpfsMedicalStore> {
     const worker = new Worker(new URL('./opfs-pack.worker.ts', import.meta.url), {
       type: 'module',
     });
-    const store = new WorkerOpfsMedicalStore(worker, shared, undefined, downloadUi);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let rejectTimeout: (error: Error) => void = () => undefined;
+    const timedOut = new Promise<never>((_, reject) => {
+      rejectTimeout = reject;
+    });
+    let lockAcquired = false;
+    let awaitingApproval = false;
+    const armTimeout = (): void => {
+      if (timer) clearTimeout(timer);
+      timer = undefined;
+      if (!lockAcquired || awaitingApproval) return;
+      timer = setTimeout(
+        () => rejectTimeout(new Error(`Opening ${options.databaseName} timed out.`)),
+        options.fetchTimeoutMs,
+      );
+    };
+    // Neither another tab's pool lock nor the user's download consent is an I/O failure: the
+    // timeout covers only the download/open while this worker owns the pool and may proceed.
+    const store = new WorkerOpfsMedicalStore(worker, shared, undefined, downloadUi, (status) => {
+      const waiting = status === 'lock-wait';
+      onWaitingForOtherTab?.(waiting);
+      if (waiting) return;
+      lockAcquired = true;
+      armTimeout();
+    });
+    store.onDownloadWait = (waiting) => {
+      awaitingApproval = waiting;
+      armTimeout();
+    };
     const opened = store.request('open', {
       ...options,
       ...(downloadUi ? { waitForDownloadApproval: true } : {}),
     });
-    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      await Promise.race([
-        opened,
-        new Promise<never>((_, reject) => {
-          const arm = () => {
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(
-              () => reject(new Error(`Opening ${options.databaseName} timed out.`)),
-              options.fetchTimeoutMs,
-            );
-          };
-          store.onDownloadWait = (waiting) => {
-            if (timer) clearTimeout(timer);
-            if (!waiting) arm();
-          };
-          arm();
-        }),
-      ]);
+      await Promise.race([opened, timedOut]);
       return store;
     } catch (cause) {
       store.shutdown(cause instanceof Error ? cause : new Error('OPFS pack worker failed.'));

@@ -37,7 +37,7 @@ import {
   isModuleReleased,
   localPackagedModulesToInstall,
 } from '@/features/modules/local-packaged-modules';
-import { BUNDLED_CORE_MODULE } from '@/features/modules/module-catalog';
+import { BUNDLED_CORE_MODULE } from '@/features/modules/module-catalog-shell';
 import { decodeModuleIndex } from '@/features/modules/module-index-compression';
 import {
   type ModuleIndexPayload,
@@ -816,7 +816,9 @@ export class BrowserContentModuleRuntime {
     try {
       store = await SqliteMedicalStore.createFromBytes(bytes);
       await store.initialize();
-      const assessmentIds = await findAssessmentDependenciesInStore(store);
+      const assessmentIds = await findAssessmentDependenciesInStore(store, {
+        modules: this.catalog.modules,
+      });
       if (!this.isCurrentAssessmentDependencyScan(moduleId, version, generation)) return;
       if (assessmentIds.length > 0) {
         await preloadAssessmentDefinitions(assessmentIds).catch((cause: unknown) => {

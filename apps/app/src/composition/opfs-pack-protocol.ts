@@ -42,6 +42,9 @@ export type OpfsPackWorkerRequest =
       readonly args: readonly unknown[];
     };
 
+// `lock-wait` means another tab owns the pool; `lock-acquired` starts the open timeout.
+export type OpfsPackWorkerLockStatus = 'lock-wait' | 'lock-acquired';
+
 export type OpfsPackWorkerResponse =
   | { readonly id: number; readonly event: 'download-required' }
   | {
@@ -51,7 +54,8 @@ export type OpfsPackWorkerResponse =
       readonly total: number;
     }
   | { readonly id: number; readonly result: unknown }
-  | { readonly id: number; readonly error: string };
+  | { readonly id: number; readonly error: string }
+  | { readonly id: number; readonly status: OpfsPackWorkerLockStatus };
 
 export type OpfsPackWorkerOpenOptions = {
   readonly url: string;

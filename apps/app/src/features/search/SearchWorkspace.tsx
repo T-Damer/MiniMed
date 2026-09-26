@@ -9,6 +9,7 @@ import type {
   SearchResponse,
   SearchResult,
   SearchResultCategory,
+  SearchResultGroup,
   SearchSuggestion,
 } from '@localmed/contracts';
 import {
@@ -53,7 +54,7 @@ import {
   buildDocumentLinkPhrases,
   createDocumentLinkMatcher,
 } from '@/features/library/document-medication-links';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import { CalculatorSuggestionCard } from '@/features/search/CalculatorSuggestionCard';
@@ -68,6 +69,7 @@ import {
 } from '@/features/search/calculator-tool-mention';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
+import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
@@ -97,6 +99,10 @@ interface SearchWorkspaceProps {
   readonly onAnalysis?: (analysis: QueryAnalysis) => void;
   /** Collapse to a single-line bar until focused or typed into; used when embedded above a scrollable list. */
   readonly compact?: boolean;
+  /** Next steps shown when a completed search has no document groups. */
+  readonly emptyResults?: (query: string) => JSX.Element;
+  /** Per-group action, e.g. downloading the full text behind a source pointer. */
+  readonly groupAction?: (group: SearchResultGroup) => JSX.Element;
 }
 
 const SearchInlineCalculatorWorkspace = lazy(async () => {
@@ -247,7 +253,7 @@ let downloadedCalculatorRefresh: Promise<void> | undefined;
 function refreshDownloadedCalculatorDefinitions(): Promise<void> {
   if (downloadedCalculatorRefresh) return downloadedCalculatorRefresh;
   downloadedCalculatorRefresh = (async () => {
-    const runtime = getContentModuleRuntime(MODULE_CATALOG);
+    const runtime = getContentModuleRuntime(await loadModuleCatalog());
     await runtime.whenLocalPackagedModulesReady();
     const definitions = await runtime.listInstalledToolDefinitions();
     clearDownloadedCalculators();
@@ -282,14 +288,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   const queryLinkMatcher = createMemo(() =>
     createDocumentLinkMatcher(buildDocumentLinkPhrases(contextDocuments())),
   );
-  const ambiguousPhrases = createMemo(() => [
-    ...new Set(
+  const ambiguousMeanings = createMemo((): readonly SearchMeaning[] => [
+    ...new Map(
       queryLinkMatcher()
         .segment(response()?.analysis.originalQuery ?? '')
-        .flatMap((segment) =>
-          segment.kind === 'link' && (segment.alternatives?.length ?? 0) > 1 ? [segment.value] : [],
+        .flatMap((segment): [string, SearchMeaning][] =>
+          segment.kind === 'link' && segment.alternatives && segment.alternatives.length > 1
+            ? [[segment.value, { phrase: segment.value, alternatives: segment.alternatives }]]
+            : [],
         ),
-    ),
+    ).values(),
   ]);
   const [loading, setLoading] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
@@ -745,7 +753,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         return;
       }
     }
-    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+    // Source lookup is a one-line query, so Enter searches; a clinical case keeps Enter for new lines.
+    const submits =
+      event.key === 'Enter' &&
+      !event.isComposing &&
+      (event.ctrlKey || event.metaKey || (props.scope !== 'diagnosis' && !event.shiftKey));
+    if (submits) {
       event.preventDefault();
       void runSearch(query(), true);
     }
@@ -862,6 +875,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             disabled={props.searchAllowed === false}
             maxlength={20_000}
             autocomplete="off"
+            enterkeyhint={props.scope === 'diagnosis' ? 'enter' : 'search'}
             autocapitalize="sentences"
             spellcheck={false}
           />
@@ -970,21 +984,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </Show>
         </form>
 
-        <Show when={ambiguousPhrases().length > 0}>
-          <aside class="search-ambiguities" aria-label="Значения сокращений">
-            <span class="search-ambiguities__label">Уточните, что вы имели в виду:</span>
-            <For each={ambiguousPhrases()}>
-              {(phrase) => (
-                <DocumentText
-                  text={phrase}
-                  paragraphClass="search-ambiguities__term"
-                  documentLinkMatcher={queryLinkMatcher()}
-                  onDocumentLink={openDocumentInArchive}
-                  core={props.core}
-                />
-              )}
-            </For>
-          </aside>
+        <Show when={ambiguousMeanings().length > 0}>
+          <SearchMeaningChoices
+            meanings={ambiguousMeanings()}
+            documentsById={contextDocumentsById()}
+            onOpen={(documentId) => openDocumentInArchive(documentId)}
+          />
         </Show>
 
         <Show when={props.scope === 'diagnosis' && activeAnalysis()}>
@@ -1268,6 +1273,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                               </span>
                             </span>
                           </button>
+                          {props.groupAction?.(group)}
                           <div class="result-group__snippets">
                             <For
                               each={
@@ -1302,9 +1308,12 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                                         >
                                           <ClinicalGlyph name={visual.icon} />
                                         </span>
-                                        <span class={`category-stamp tone-${visual.tone}`}>
-                                          {CATEGORY_LABELS[result.category]}
-                                        </span>
+                                        {/* “Прочее” names no section; the path suffix says more. */}
+                                        <Show when={result.category !== 'other'}>
+                                          <span class={`category-stamp tone-${visual.tone}`}>
+                                            {CATEGORY_LABELS[result.category]}
+                                          </span>
+                                        </Show>
                                         <Show when={pathSuffix}>
                                           <span class="result-path">{pathSuffix}</span>
                                         </Show>
@@ -1326,6 +1335,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     }}
                   </LayoutVirtualizedGrid>
                 </div>
+              </Show>
+
+              <Show
+                when={
+                  !loading() && visibleGroups().length === 0 && props.scope !== 'personal'
+                    ? props.emptyResults
+                    : undefined
+                }
+              >
+                {(emptyResults) => emptyResults()(searchableQuery(query()))}
               </Show>
             </>
           )}

@@ -278,7 +278,7 @@ export async function installEcgDiagnosticModelFromCatalog(
 ): Promise<EcgDiagnosticModelDescriptor> {
   const bytes = await downloadWithRetry({
     ...(options.downloadContext ? { jobId: options.downloadContext.id, trackProgress: false } : {}),
-    url: resolveEcgModelDownloadUrl(model.bundleUrl),
+    url: resolveEcgModelDownloadUrl(model.bundleUrl, model.bundleSha256),
     cacheKey: `ecg-diagnostic:${model.id}:${model.bundleSha256}`,
     expectedBytes: model.downloadBytes,
     ...(options.signal ? { signal: options.signal } : {}),

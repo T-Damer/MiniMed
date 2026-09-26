@@ -127,6 +127,61 @@ describe('WorkerOpfsMedicalStore', () => {
     expect(terminate).toHaveBeenCalledOnce();
   });
 
+  it('reports another tab holding the pool and starts the open timeout only after the lock', async () => {
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal(
+        'Worker',
+        vi.fn(function FakeWorker(this: {
+          postMessage: () => void;
+          terminate: () => void;
+          onmessage: unknown;
+          onerror: unknown;
+        }) {
+          this.postMessage = () => undefined;
+          this.terminate = () => undefined;
+          this.onmessage = undefined;
+          this.onerror = undefined;
+        }),
+      );
+      const waiting = vi.fn();
+      let settled = false;
+      const openPromise = WorkerOpfsMedicalStore.open(
+        {
+          url: 'https://example.test/content/core.db',
+          databaseName: 'core.db',
+          fetchTimeoutMs: 1_000,
+          poolName: 'minimed-sah-lock-test',
+        },
+        undefined,
+        waiting,
+      );
+      void openPromise.then(
+        () => {
+          settled = true;
+        },
+        () => {
+          settled = true;
+        },
+      );
+      const worker = vi.mocked(Worker).mock.instances[0] as unknown as {
+        onmessage?: (event: MessageEvent) => void;
+      };
+      worker.onmessage?.({ data: { id: 1, status: 'lock-wait' } } as MessageEvent);
+      expect(waiting).toHaveBeenLastCalledWith(true);
+
+      await vi.advanceTimersByTimeAsync(5_000);
+      expect(settled).toBe(false);
+
+      worker.onmessage?.({ data: { id: 1, status: 'lock-acquired' } } as MessageEvent);
+      expect(waiting).toHaveBeenLastCalledWith(false);
+      worker.onmessage?.({ data: { id: 1, result: HEALTH } } as MessageEvent);
+      await expect(openPromise).resolves.toBeInstanceOf(WorkerOpfsMedicalStore);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('shares one worker while the same SAH pool has multiple active stores', async () => {
     const workers: Array<{
       postMessage: ReturnType<typeof vi.fn>;

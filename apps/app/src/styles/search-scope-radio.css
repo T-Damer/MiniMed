@@ -137,7 +137,7 @@ fieldset.search-mode-picker::-webkit-scrollbar {
 .search-mode-option-copy small {
   flex: none;
   font-family: var(--font-mono);
-  font-size: 0.4375rem;
+  font-size: var(--type-micro);
   opacity: 0.72;
   text-transform: uppercase;
 }

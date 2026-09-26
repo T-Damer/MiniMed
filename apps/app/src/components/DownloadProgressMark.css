@@ -1,0 +1,29 @@
+.download-progress-mark {
+  --download-progress-mark-fill: #e8c654;
+  display: inline-grid;
+  width: var(--download-progress-mark-size, 1.125rem);
+  height: var(--download-progress-mark-size, 1.125rem);
+  flex: none;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--download-progress-mark-fill) var(--download-progress-mark-degrees, 0deg),
+    color-mix(in srgb, currentColor 18%, transparent) var(--download-progress-mark-degrees, 0deg)
+  );
+}
+
+.download-progress-mark--failed {
+  --download-progress-mark-fill: var(--theme-danger);
+}
+
+.download-progress-mark--queued {
+  border-style: dashed;
+  background: none;
+}
+
+.download-progress-mark__glyph {
+  width: 72%;
+  height: 72%;
+}

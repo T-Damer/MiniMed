@@ -22,6 +22,7 @@ import brainBold from '@phosphor-icons/core/assets/bold/brain-bold.svg?raw';
 import browsersBold from '@phosphor-icons/core/assets/bold/browsers-bold.svg?raw';
 import calculatorBold from '@phosphor-icons/core/assets/bold/calculator-bold.svg?raw';
 import calendarBlankBold from '@phosphor-icons/core/assets/bold/calendar-blank-bold.svg?raw';
+import cameraBold from '@phosphor-icons/core/assets/bold/camera-bold.svg?raw';
 import caretDownBold from '@phosphor-icons/core/assets/bold/caret-down-bold.svg?raw';
 import caretLeftBold from '@phosphor-icons/core/assets/bold/caret-left-bold.svg?raw';
 import caretRightBold from '@phosphor-icons/core/assets/bold/caret-right-bold.svg?raw';
@@ -56,6 +57,7 @@ import frameCornersBold from '@phosphor-icons/core/assets/bold/frame-corners-bol
 import gearSixBold from '@phosphor-icons/core/assets/bold/gear-six-bold.svg?raw';
 import graphBold from '@phosphor-icons/core/assets/bold/graph-bold.svg?raw';
 import handBold from '@phosphor-icons/core/assets/bold/hand-bold.svg?raw';
+import heartbeatBold from '@phosphor-icons/core/assets/bold/heartbeat-bold.svg?raw';
 import highlighterBold from '@phosphor-icons/core/assets/bold/highlighter-bold.svg?raw';
 import houseBold from '@phosphor-icons/core/assets/bold/house-bold.svg?raw';
 import imageSquareBold from '@phosphor-icons/core/assets/bold/image-square-bold.svg?raw';
@@ -125,6 +127,8 @@ export type AppGlyphName =
   | 'books'
   | 'graph'
   | 'calculator'
+  | 'camera'
+  | 'heartbeat'
   | 'list'
   | 'arrow-left'
   | 'arrow-counter-clockwise'
@@ -248,6 +252,8 @@ const glyphBodies: Record<AppGlyphName, string> = {
   books: svgBody(booksBold),
   graph: svgBody(graphBold),
   calculator: svgBody(calculatorBold),
+  camera: svgBody(cameraBold),
+  heartbeat: svgBody(heartbeatBold),
   list: svgBody(listBold),
   'arrow-left': svgBody(arrowLeftBold),
   'arrow-counter-clockwise': svgBody(arrowCounterClockwiseBold),

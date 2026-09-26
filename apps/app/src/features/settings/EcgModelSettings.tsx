@@ -3,24 +3,28 @@ import { Button } from '@/components/Button';
 import { FeatureCard } from '@/components/FeatureCard';
 import { openCalculator } from '@/features/calculators/calculator-links';
 import { ECG_PHOTO_CALIPER_ID } from '@/features/calculators/calculator-registry';
-import { readEcgModelDescriptor, subscribeEcgModel } from '@/features/calculators/ecg-model';
+import { subscribeEcgModel } from '@/features/calculators/ecg-model';
+import { subscribeEcgDiagnosticModel } from '@/features/calculators/ecg-numeric-diagnostic';
 import {
-  readEcgDiagnosticModelDescriptor,
-  subscribeEcgDiagnosticModel,
-} from '@/features/calculators/ecg-numeric-diagnostic';
-import {
+  describeEcgComponentUpdate,
   ECG_DOWNLOAD_ID,
   ECG_PACKAGE_COMPONENTS,
+  type EcgPackageStatus,
+  ecgPackageStatus,
   installEcgPackage,
-  isEcgPackageInstalled,
   removeEcgPackage,
 } from '@/features/calculators/ecg-package';
 import { downloadTaskFraction, isDownloadActive } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
+import '@/styles/ecg-editor-flow.css';
 
 export function EcgModelSettings(): JSX.Element {
-  const [installed, setInstalled] = createSignal(false);
-  const [hasFiles, setHasFiles] = createSignal(false);
+  const [status, setStatus] = createSignal<EcgPackageStatus>({ state: 'missing', updates: [] });
+  const installed = () => status().state === 'installed';
+  const outdated = () => status().state === 'outdated';
+  const hasFiles = () => status().state !== 'missing';
+  const updateMegabytes = () =>
+    (status().updates.reduce((sum, item) => sum + item.downloadBytes, 0) / 1024 / 1024).toFixed(1);
   const queue = getDownloadQueue();
   const [task, setTask] = createSignal(queue.get(ECG_DOWNLOAD_ID));
   const [removing, setRemoving] = createSignal(false);
@@ -35,8 +39,7 @@ export function EcgModelSettings(): JSX.Element {
   const [error, setError] = createSignal('');
   let disposed = false;
   const sync = (): void => {
-    setInstalled(isEcgPackageInstalled());
-    setHasFiles(Boolean(readEcgModelDescriptor() || readEcgDiagnosticModelDescriptor()));
+    setStatus(ecgPackageStatus());
   };
   onMount(() => {
     sync();
@@ -89,7 +92,7 @@ export function EcgModelSettings(): JSX.Element {
     `${(ECG_PACKAGE_COMPONENTS.reduce((sum, item) => sum + item.downloadBytes, 0) / 1024 / 1024)
       .toFixed(1)
       .replace('.', ',')} МБ`;
-  const status = (): string => {
+  const statusLabel = (): string => {
     const current = task();
     if (busy() === 'remove') return 'Удаляем…';
     if (busy() === 'download') {
@@ -99,6 +102,7 @@ export function EcgModelSettings(): JSX.Element {
       return `Скачивается · ${Math.floor(progress() * 100)}%`;
     }
     if (installed()) return 'Готово к работе';
+    if (outdated()) return `Доступно обновление · ${updateMegabytes().replace('.', ',')} МБ`;
     if (hasFiles()) return 'Скачано не полностью';
     return `Не скачано · ${sizeLabel()}`;
   };
@@ -109,7 +113,7 @@ export function EcgModelSettings(): JSX.Element {
       icon="microscope"
       title="Распознавание ЭКГ по фото"
       summary="Сфотографируйте ленту ЭКГ: MiniMed оцифрует кривые и поможет измерить интервалы. Фото и результаты не покидают устройство."
-      status={status()}
+      status={statusLabel()}
       tone={error() ? 'error' : busy() ? 'working' : installed() ? 'ready' : 'idle'}
       {...(busy() === 'download' ? { progress: progress() || null } : {})}
       {...(error() ? { error: error() } : {})}
@@ -124,13 +128,22 @@ export function EcgModelSettings(): JSX.Element {
                 disabled={busy() !== null}
                 onClick={() => void install()}
               >
-                {hasFiles() ? 'Докачать' : 'Скачать'}
+                {outdated() ? 'Обновить' : hasFiles() ? 'Докачать' : 'Скачать'}
               </Button>
             }
           >
             <Button
               type="button"
               variant="primary"
+              onClick={() => openCalculator(ECG_PHOTO_CALIPER_ID)}
+            >
+              Открыть
+            </Button>
+          </Show>
+          <Show when={outdated() && busy() === null}>
+            <Button
+              type="button"
+              variant="quiet"
               onClick={() => openCalculator(ECG_PHOTO_CALIPER_ID)}
             >
               Открыть
@@ -179,6 +192,19 @@ export function EcgModelSettings(): JSX.Element {
           </For>
         </>
       }
-    />
+    >
+      <Show when={outdated()}>
+        <p class="ecg-model-settings__update-note">
+          Установленная версия работает, пока новая не скачана и не проверена.
+        </p>
+        <ul class="ecg-model-settings__updates">
+          <For each={status().updates}>
+            {(update) => (
+              <li class="ecg-model-settings__update">{describeEcgComponentUpdate(update)}</li>
+            )}
+          </For>
+        </ul>
+      </Show>
+    </FeatureCard>
   );
 }
