@@ -93,6 +93,74 @@ afterEach(() => {
 });
 
 describe('portable personal-notes backup', () => {
+  it('deletes the whole personal-notes notebook without touching patient-vault data', async () => {
+    const env = installEnvironment();
+    env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
+    env.local.setItem(
+      'minimed.patient-note-drafts.v1',
+      JSON.stringify({
+        'note-1': {
+          noteId: 'note-1',
+          text: 'Черновик',
+          reminderDate: '',
+          reminderTime: '',
+          savedAt: '2026-09-26T07:00:00.000Z',
+        },
+      }),
+    );
+    env.local.setItem(
+      'minimed.patient-note-revisions.v1',
+      JSON.stringify({
+        'note-1': {
+          noteId: 'note-1',
+          text: 'Предыдущая версия',
+          savedAt: '2026-09-26T07:01:00.000Z',
+        },
+      }),
+    );
+    env.local.setItem('minimed.patient-vault.test-fixture', 'keep-me');
+    env.files.set('file-audio', {
+      id: 'file-audio',
+      noteId: 'note-1',
+      name: 'приём.webm',
+      mimeType: 'audio/webm',
+      size: 3,
+      blob: new Blob([new Uint8Array([1, 2, 3])], { type: 'audio/webm' }),
+      createdAt: '2026-09-26T07:20:00.000Z',
+    });
+    env.images.set('image-1', {
+      id: 'image-1',
+      noteId: 'note-1',
+      name: 'фото.png',
+      mimeType: 'image/png',
+      dataUrl: 'data:image/png;base64,AQID',
+      createdAt: '2026-09-26T07:21:00.000Z',
+    });
+    env.transcripts.set('file-audio', {
+      fileId: 'file-audio',
+      noteId: 'note-1',
+      text: 'Добрый день.',
+      status: 'done',
+      createdAt: '2026-09-26T07:22:00.000Z',
+      updatedAt: '2026-09-26T07:23:00.000Z',
+    });
+
+    const { deleteAllPersonalNotes } = await import('./personal-notes-backup');
+    await deleteAllPersonalNotes();
+
+    const restoredSnapshot = JSON.parse(env.local.getItem('minimed.patient-notes.v1') ?? '{}') as {
+      cards?: unknown[];
+      notes?: unknown[];
+    };
+    expect(restoredSnapshot).toEqual({ cards: [], notes: [] });
+    expect(env.files.size).toBe(0);
+    expect(env.images.size).toBe(0);
+    expect(env.transcripts.size).toBe(0);
+    expect(env.local.getItem('minimed.patient-note-drafts.v1')).toBeNull();
+    expect(env.local.getItem('minimed.patient-note-revisions.v1')).toBeNull();
+    expect(env.local.getItem('minimed.patient-vault.test-fixture')).toBe('keep-me');
+  });
+
   it('preflights base64 expansion before allocating large backup blobs', async () => {
     const {
       estimatePersonalNotesBackupBytes,
