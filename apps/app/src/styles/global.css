@@ -160,7 +160,14 @@ button:disabled {
     .personal-note-matches__toggle,
     .content-download-nav__pie,
     .patient-card-open,
-    .patient-note-record__open
+    .patient-note-record__open,
+    .ui-button--quiet,
+    .ui-disclosure__header,
+    .search-welcome__link,
+    .diary-chips__chip,
+    .tour-search__chip,
+    .tour-tools__option,
+    .feature-tour__dot
   ):hover {
     transform: translateY(-1px);
     box-shadow: var(--theme-control-hover-shadow);

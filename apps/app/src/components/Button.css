@@ -84,6 +84,11 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
+  /* A quiet button has no surface, so hover shows a soft one instead of a lift and shadow. */
+  .ui-button--quiet:hover:not(:disabled) {
+    background: var(--theme-accent-soft);
+  }
+
   .ui-button--danger:hover {
     background: color-mix(in srgb, var(--theme-danger) 20%, var(--theme-surface-raised));
   }

@@ -24,7 +24,8 @@
 /* Declared after --open so an open inline section stays flat. */
 .ui-disclosure--inline {
   --ui-disclosure-header-height: 2.75rem;
-  --ui-disclosure-header-padding: 0.4rem 0;
+  --ui-disclosure-header-padding: 0.45rem 0.6rem;
+  --ui-disclosure-header-inset: -0.6rem;
   --ui-disclosure-content-padding: 0.25rem 0 0.75rem;
   --ui-disclosure-chevron-size: 1.6rem;
   --ui-disclosure-title-size: 0.9rem;
@@ -33,16 +34,20 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  /* The header's hover surface reaches slightly past the text column. */
+  overflow: visible;
 }
 
 .ui-disclosure__header {
   display: flex;
-  width: 100%;
+  width: calc(100% - 2 * var(--ui-disclosure-header-inset, 0px));
   min-height: var(--ui-disclosure-header-height);
   align-items: center;
   gap: 0.75rem;
+  margin-inline: var(--ui-disclosure-header-inset, 0);
   padding: var(--ui-disclosure-header-padding);
   border: 0;
+  border-radius: calc(var(--theme-radius-panel) - 1px);
   background: transparent;
   color: var(--theme-text);
   font: inherit;
@@ -59,7 +64,6 @@
 .ui-disclosure__header:focus-visible {
   outline: var(--theme-outline-width, 2px) solid var(--theme-accent);
   outline-offset: -0.2rem;
-  border-radius: var(--theme-radius-panel);
 }
 
 .ui-disclosure__heading {
