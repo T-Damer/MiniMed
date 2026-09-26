@@ -1,4 +1,4 @@
-import { For, type JSX, Show } from 'solid-js';
+import { createSignal, For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import type { EcgAutoSummaryStatus } from './ecg-auto-summary';
 import { ECG_STEP_GUIDES } from './ecg-editor-guide';
@@ -118,6 +118,49 @@ export function EcgModelOffer(props: { readonly editor: EcgEditor }): JSX.Elemen
         <progress class="ecg-offer__progress" max="1" value={e.progress()} />
       </Show>
     </section>
+  );
+}
+
+export function EcgModelUpdateNotice(props: { readonly editor: EcgEditor }): JSX.Element {
+  const e = props.editor;
+  const [postponed, setPostponed] = createSignal(false);
+  return (
+    <Show when={!postponed() && e.modelUpdate()}>
+      {(update) => (
+        <section class="ecg-update" aria-label="Обновление распознавания ЭКГ">
+          <div class="ecg-update__copy">
+            <strong class="ecg-update__title">Распознавание ЭКГ устарело — обновить?</strong>
+            <span class="ecg-update__text">
+              {update().installedVersion === update().catalogVersion
+                ? `Доступна исправленная сборка версии ${update().catalogVersion}.`
+                : `Установлена версия ${update().installedVersion}, доступна ${update().catalogVersion}.`}{' '}
+              Текущая версия работает, пока новая не скачана и не проверена.
+            </span>
+          </div>
+          <div class="ecg-update__actions">
+            <button
+              class="ecg-offer__button"
+              classList={{ 'ecg-offer__button--busy': e.installing() }}
+              type="button"
+              onClick={() => void e.install()}
+            >
+              <AppGlyph class="ecg-offer__icon" name="download" />
+              {e.installing()
+                ? `Отменить · ${Math.round(e.progress() * 100)}%`
+                : `Обновить · ${Math.round(update().downloadBytes / 1_000_000)} МБ`}
+            </button>
+            <Show when={!e.installing()}>
+              <button class="ecg-update__later" type="button" onClick={() => setPostponed(true)}>
+                Позже
+              </button>
+            </Show>
+          </div>
+          <Show when={e.installing()}>
+            <progress class="ecg-offer__progress" max="1" value={e.progress()} />
+          </Show>
+        </section>
+      )}
+    </Show>
   );
 }
 

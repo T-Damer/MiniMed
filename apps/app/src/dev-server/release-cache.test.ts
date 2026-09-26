@@ -1,6 +1,13 @@
+import { createHash } from 'node:crypto';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { isAllowedReleaseUrl, resolveReleaseCacheTarget } from './release-cache';
+import {
+  isAllowedReleaseUrl,
+  isReleaseCacheCurrent,
+  resolveReleaseCacheTarget,
+} from './release-cache';
 
 const root = resolve('/tmp/minimed-release-cache');
 
@@ -32,6 +39,34 @@ describe('dev release cache', () => {
     '/other/models/file.zip',
   ])('rejects %s', (path) => {
     expect(resolveReleaseCacheTarget(root, path)).toBeUndefined();
+  });
+
+  it('carries only a well-formed catalog digest', () => {
+    const sha256 = 'a'.repeat(64);
+    expect(
+      resolveReleaseCacheTarget(root, `/content/releases/models/pack.zip?sha256=${sha256}`)?.sha256,
+    ).toBe(sha256);
+    expect(
+      resolveReleaseCacheTarget(root, '/content/releases/models/pack.zip?sha256=../../x'),
+    ).toBeUndefined();
+  });
+
+  it('treats a cached copy with another digest as stale', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'minimed-release-cache-'));
+    try {
+      const path = join(directory, 'pack.zip');
+      writeFileSync(path, 'old release');
+      const current = createHash('sha256').update('old release').digest('hex');
+      const base = { tag: 'models', fileName: 'pack.zip', path };
+      await expect(isReleaseCacheCurrent({ ...base, sha256: current })).resolves.toBe(true);
+      await expect(isReleaseCacheCurrent({ ...base, sha256: 'b'.repeat(64) })).resolves.toBe(false);
+      await expect(isReleaseCacheCurrent(base)).resolves.toBe(true);
+      await expect(
+        isReleaseCacheCurrent({ ...base, path: join(directory, 'missing.zip') }),
+      ).resolves.toBe(false);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it('follows redirects only to GitHub release hosts over HTTPS', () => {

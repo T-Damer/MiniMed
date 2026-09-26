@@ -8,6 +8,7 @@ import {
   ECG_CONFIRM_LABELS,
   EcgAutoSummary,
   EcgModelOffer,
+  EcgModelUpdateNotice,
   EcgStepGuide,
   EcgStepper,
 } from './EcgEditorFlow';
@@ -105,6 +106,7 @@ export function EcgPhotoCaliper(): JSX.Element {
             <Show when={!editor.model()}>
               <EcgModelOffer editor={editor} />
             </Show>
+            <EcgModelUpdateNotice editor={editor} />
             <EcgAutoSummary editor={editor} />
             <EcgStepGuide step={1} padded />
           </div>

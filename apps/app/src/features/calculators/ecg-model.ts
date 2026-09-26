@@ -292,17 +292,23 @@ export async function verifyEcgModelDownload(
   return data;
 }
 
-export function resolveEcgModelDownloadUrl(bundleUrl: string): string {
+/**
+ * The optional checksum lets the dev/preview release cache replace a stale local copy; static
+ * mirrors ignore the query and installation verifies the same SHA-256 either way.
+ */
+export function resolveEcgModelDownloadUrl(bundleUrl: string, expectedSha256?: string): string {
   const match = GITHUB_RELEASE_PATTERN.exec(bundleUrl);
   if (!match) return bundleUrl;
   const [, owner, repository, tag = '', fileName = ''] = match;
   if (owner !== 'T-Damer' || repository !== 'MiniMed') return bundleUrl;
   const relativePath = `${encodeURIComponent(tag)}/${encodeURIComponent(fileName)}`;
   if (Capacitor.isNativePlatform()) return `${BROWSER_MODEL_MIRROR}/${relativePath}`;
-  return new URL(
+  const url = new URL(
     `./content/releases/${relativePath}`,
     new URL(import.meta.env.BASE_URL, window.location.href),
-  ).toString();
+  );
+  if (expectedSha256) url.searchParams.set('sha256', expectedSha256);
+  return url.toString();
 }
 
 export async function installEcgModelFromCatalog(
@@ -315,7 +321,7 @@ export async function installEcgModelFromCatalog(
 ): Promise<EcgModelDescriptor> {
   const bytes = await downloadWithRetry({
     ...(options.downloadContext ? { jobId: options.downloadContext.id, trackProgress: false } : {}),
-    url: resolveEcgModelDownloadUrl(model.bundleUrl),
+    url: resolveEcgModelDownloadUrl(model.bundleUrl, model.bundleSha256),
     cacheKey: `ecg-digitizer:${model.id}:${model.bundleSha256}`,
     expectedBytes: model.downloadBytes,
     ...(options.signal ? { signal: options.signal } : {}),

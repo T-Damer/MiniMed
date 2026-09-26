@@ -18,6 +18,7 @@ import solid from 'vite-plugin-solid';
 
 import {
   downloadReleaseAsset,
+  isReleaseCacheCurrent,
   type ReleaseCacheTarget,
   resolveReleaseCacheTarget,
 } from './src/dev-server/release-cache';
@@ -140,12 +141,14 @@ function localReleaseCache(): Plugin {
   const cacheRoot = fileURLToPath(new URL('./.cache/releases', import.meta.url));
   const pending = new Map<string, Promise<void>>();
   const ensureCached = (target: ReleaseCacheTarget): Promise<void> => {
-    if (existsSync(target.path)) return Promise.resolve();
     const existing = pending.get(target.path);
     if (existing) return existing;
-    const download = downloadReleaseAsset(target).finally(() => pending.delete(target.path));
-    pending.set(target.path, download);
-    return download;
+    // A replaced release keeps its file name; the catalog digest decides whether to refetch.
+    const refresh = isReleaseCacheCurrent(target)
+      .then((current) => (current ? undefined : downloadReleaseAsset(target)))
+      .finally(() => pending.delete(target.path));
+    pending.set(target.path, refresh);
+    return refresh;
   };
   const middleware: Connect.NextHandleFunction = (request, response, next) => {
     const target =

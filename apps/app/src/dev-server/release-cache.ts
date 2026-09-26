@@ -1,4 +1,12 @@
-import { createWriteStream, mkdirSync, renameSync, rmSync, statSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import {
+  createReadStream,
+  createWriteStream,
+  mkdirSync,
+  renameSync,
+  rmSync,
+  statSync,
+} from 'node:fs';
 import { get } from 'node:https';
 import { dirname, resolve, sep } from 'node:path';
 
@@ -16,11 +24,14 @@ const ALLOWED_REDIRECT_HOSTS = new Set([
 const MAX_REDIRECTS = 5;
 const SEGMENT = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/u;
 const RELEASE_PATH = /^\/content\/releases\/([^/]+)\/([^/]+)$/u;
+const SHA256 = /^[a-f0-9]{64}$/u;
 
 export interface ReleaseCacheTarget {
   readonly tag: string;
   readonly fileName: string;
   readonly path: string;
+  /** From the app catalog; a cached copy with another digest is stale and is replaced. */
+  readonly sha256?: string;
 }
 
 function safeSegment(value: string): boolean {
@@ -32,12 +43,15 @@ export function resolveReleaseCacheTarget(
   cacheRoot: string,
   requestPath: string,
 ): ReleaseCacheTarget | undefined {
+  const [pathname = '', query = ''] = requestPath.split('?');
   let decoded: string;
   try {
-    decoded = decodeURIComponent(requestPath.split('?')[0] ?? '');
+    decoded = decodeURIComponent(pathname);
   } catch {
     return undefined;
   }
+  const sha256 = new URLSearchParams(query).get('sha256') ?? undefined;
+  if (sha256 !== undefined && !SHA256.test(sha256)) return undefined;
   const match = RELEASE_PATH.exec(decoded);
   const tag = match?.[1];
   const fileName = match?.[2];
@@ -45,7 +59,27 @@ export function resolveReleaseCacheTarget(
   const root = resolve(cacheRoot);
   const path = resolve(root, tag, fileName);
   if (!path.startsWith(`${root}${sep}`)) return undefined;
-  return { tag, fileName, path };
+  return sha256 ? { tag, fileName, path, sha256 } : { tag, fileName, path };
+}
+
+export function sha256OfFile(path: string): Promise<string> {
+  return new Promise((resolveDigest, reject) => {
+    const hash = createHash('sha256');
+    createReadStream(path)
+      .on('data', (chunk) => hash.update(chunk))
+      .on('error', reject)
+      .on('end', () => resolveDigest(hash.digest('hex')));
+  });
+}
+
+/** True when the cached copy exists and, if the app named a digest, still matches it. */
+export async function isReleaseCacheCurrent(target: ReleaseCacheTarget): Promise<boolean> {
+  try {
+    statSync(target.path);
+  } catch {
+    return false;
+  }
+  return target.sha256 === undefined || (await sha256OfFile(target.path)) === target.sha256;
 }
 
 export function isAllowedReleaseUrl(url: URL): boolean {
@@ -107,6 +141,11 @@ export async function downloadReleaseAsset(target: ReleaseCacheTarget): Promise<
       partial,
       0,
     );
+    if (target.sha256 !== undefined) {
+      const actual = await sha256OfFile(partial);
+      if (actual !== target.sha256)
+        throw new Error(`Release asset SHA-256 ${actual} does not match ${target.sha256}.`);
+    }
     renameSync(partial, target.path);
   } finally {
     rmSync(partial, { force: true });

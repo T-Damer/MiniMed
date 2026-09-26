@@ -446,6 +446,55 @@
   font-size: var(--type-micro);
 }
 
+.ecg-model-settings__updates {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.1rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+}
+
+.ecg-update {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #c0841a;
+  border-radius: 0.6rem;
+  background: rgb(214 150 26 / 12%);
+}
+.ecg-update__copy {
+  display: flex;
+  min-width: 13rem;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.ecg-update__title {
+  font-size: 0.88rem;
+}
+.ecg-update__text {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+.ecg-update__actions {
+  display: flex;
+  gap: 0.4rem;
+}
+.ecg-update__later {
+  min-height: 2.4rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.5rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .ecg-picker__option:hover,
   .ecg-offer__button:hover,
@@ -466,6 +515,7 @@
     flex: 1;
   }
   .ecg-guide--padded,
+  .ecg-update,
   .ecg-offer,
   .ecg-summary {
     margin-inline: 0.6rem;

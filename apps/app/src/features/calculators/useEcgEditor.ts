@@ -106,6 +106,18 @@ export function useEcgEditor() {
     setDraft(next);
   };
   const measurement = createMemo(() => measureEcgEditor(draft(), measurementRegion()));
+  /** An installed digitizer from an older catalog keeps working until the update is verified. */
+  const modelUpdate = createMemo(() => {
+    const installed = model();
+    const candidate = ECG_MODEL_CATALOG[0];
+    return installed && candidate && installed.checksum !== candidate.bundleSha256
+      ? {
+          installedVersion: installed.version,
+          catalogVersion: candidate.version,
+          downloadBytes: candidate.downloadBytes,
+        }
+      : undefined;
+  });
   const canReviewPoints = createMemo(() =>
     Boolean(
       measurement().measurements.rrMs &&
@@ -331,6 +343,7 @@ export function useEcgEditor() {
     measurement,
     maps,
     model,
+    modelUpdate,
     loading,
     digitizing,
     digitize,
