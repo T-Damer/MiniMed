@@ -220,7 +220,10 @@ export function setTranscriptionEngine(engine: TranscribeEngine | null): void {
   activeEngine = engine;
 }
 
-const running = new Map<string, { noteId: string; cancel: () => void }>();
+const running = new Map<
+  string,
+  { noteId: string; cancel: () => void; done: Promise<unknown> }
+>();
 const cancelledTranscriptions = new Set<string>();
 
 export function isTranscriptionQueued(fileId: string): boolean {
@@ -240,6 +243,103 @@ function cancelTranscriptionsForNotes(noteIds: ReadonlySet<string>): void {
 
 function emitTranscriptChange(fileId: string): void {
   window.dispatchEvent(new CustomEvent(NOTE_TRANSCRIPTS_EVENT, { detail: { fileId } }));
+}
+
+function normalizedRestoredTranscript(record: NoteTranscript): NoteTranscript {
+  if (!record.fileId || !record.noteId || typeof record.text !== 'string') {
+    throw new Error('Backup содержит повреждённую расшифровку.');
+  }
+  const statuses: readonly TranscriptStatus[] = [
+    'queued',
+    'running',
+    'done',
+    'failed',
+    'unsupported',
+  ];
+  if (!statuses.includes(record.status)) {
+    throw new Error('Backup содержит неизвестный статус расшифровки.');
+  }
+  const segments = record.segments?.map((segment) => {
+    if (
+      !segment.speakerId ||
+      !Number.isFinite(segment.startMs) ||
+      !Number.isFinite(segment.endMs) ||
+      segment.startMs < 0 ||
+      segment.endMs <= segment.startMs ||
+      typeof segment.text !== 'string'
+    ) {
+      throw new Error('Backup содержит повреждённые таймкоды расшифровки.');
+    }
+    return { ...segment };
+  });
+  const speakerNames =
+    record.speakerNames === undefined
+      ? undefined
+      : Object.fromEntries(
+          Object.entries(record.speakerNames).filter(
+            ([speakerId, label]) =>
+              speakerId.length > 0 && typeof label === 'string' && label.trim().length > 0,
+          ),
+        );
+  const incomplete = record.status === 'queued' || record.status === 'running';
+  return {
+    ...record,
+    ...(segments?.length ? { segments } : { segments: undefined }),
+    ...(speakerNames && Object.keys(speakerNames).length > 0
+      ? { speakerNames }
+      : { speakerNames: undefined }),
+    ...(record.diarized === true && segments?.length ? { diarized: true } : { diarized: undefined }),
+    status: incomplete ? 'failed' : record.status,
+    ...(incomplete
+      ? { error: 'Импортирована незавершённая задача распознавания. Запустите её повторно.' }
+      : {}),
+  };
+}
+
+export async function replaceAllTranscripts(
+  records: readonly NoteTranscript[],
+): Promise<void> {
+  const ids = new Set<string>();
+  const normalized = records.map((record) => {
+    const next = normalizedRestoredTranscript(record);
+    if (ids.has(next.fileId)) throw new Error('ID расшифровок в backup должны быть уникальны.');
+    ids.add(next.fileId);
+    return next;
+  });
+
+  const active = [...running.entries()];
+  for (const [fileId, job] of active) {
+    cancelledTranscriptions.add(fileId);
+    job.cancel();
+  }
+  await Promise.allSettled(active.map(([, job]) => job.done));
+
+  if (!('indexedDB' in globalThis) || !indexedDB) {
+    if (normalized.length === 0) return;
+    throw new Error('Хранилище расшифровок недоступно.');
+  }
+
+  const database = await openDatabase();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      store.clear();
+      for (const record of normalized) store.put(record);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(transaction.error ?? new Error('Не удалось восстановить расшифровки.'));
+      transaction.onabort = () =>
+        reject(transaction.error ?? new Error('Восстановление расшифровок отменено.'));
+    });
+  } finally {
+    database.close();
+  }
+
+  for (const record of normalized) {
+    cancelledTranscriptions.delete(record.fileId);
+    emitTranscriptChange(record.fileId);
+  }
 }
 
 function retainedSpeakerNames(
@@ -347,6 +447,7 @@ export function queueTranscription(input: {
   running.set(input.fileId, {
     noteId: input.noteId,
     cancel: () => ticket.cancel(),
+    done: ticket.done,
   });
   emitTranscriptChange(input.fileId);
   void ticket.done
