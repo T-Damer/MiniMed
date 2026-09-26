@@ -245,7 +245,7 @@ function emitTranscriptChange(fileId: string): void {
   window.dispatchEvent(new CustomEvent(NOTE_TRANSCRIPTS_EVENT, { detail: { fileId } }));
 }
 
-function normalizedRestoredTranscript(record: NoteTranscript): NoteTranscript {
+export function parseRestoredTranscript(record: NoteTranscript): NoteTranscript {
   if (!record.fileId || !record.noteId || typeof record.text !== 'string') {
     throw new Error('Backup содержит повреждённую расшифровку.');
   }
@@ -301,7 +301,7 @@ export async function replaceAllTranscripts(
 ): Promise<void> {
   const ids = new Set<string>();
   const normalized = records.map((record) => {
-    const next = normalizedRestoredTranscript(record);
+    const next = parseRestoredTranscript(record);
     if (ids.has(next.fileId)) throw new Error('ID расшифровок в backup должны быть уникальны.');
     ids.add(next.fileId);
     return next;
