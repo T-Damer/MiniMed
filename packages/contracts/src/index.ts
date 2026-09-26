@@ -10,4 +10,5 @@ export * from './result';
 export * from './search';
 export * from './semantic';
 export * from './terminology';
+export * from './transcription';
 export * from './tool-modules';
