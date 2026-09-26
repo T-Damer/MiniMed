@@ -23,7 +23,7 @@
   present in the integration tree.
 - Draft PR #185 (`feature/browser-integration` → `main`) is the consolidated review surface.
   GitHub Actions are intentionally not used because the repository Actions quota is exhausted.
-  Dependency-free source validation currently passes 38/38 invariants across diary, canvas,
+  Dependency-free source validation currently passes 40/40 invariants across diary, canvas,
   MediaRecorder, structured ASR, persistent Whisper lifecycle, transcript retention, diarization
   admission and integration wiring.
   A full browser
