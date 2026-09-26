@@ -245,6 +245,25 @@ describe('portable personal-notes backup', () => {
       ],
     };
     env.local.setItem('minimed.patient-notes.v1', JSON.stringify(twoCards));
+    env.local.setItem(
+      'minimed.patient-note-drafts.v1',
+      JSON.stringify({
+        'note-1': {
+          noteId: 'note-1',
+          text: 'Черновик заменяемой карточки',
+          reminderDate: '',
+          reminderTime: '',
+          savedAt: '2026-09-26T07:00:00.000Z',
+        },
+        'note-2': {
+          noteId: 'note-2',
+          text: 'Черновик другой карточки',
+          reminderDate: '',
+          reminderTime: '',
+          savedAt: '2026-09-26T07:00:00.000Z',
+        },
+      }),
+    );
     env.files.set('file-audio', {
       id: 'file-audio',
       noteId: 'note-1',
@@ -309,6 +328,90 @@ describe('portable personal-notes backup', () => {
     expect(restored.notes.find((note) => note.id === 'note-2')?.text).toBe('Не менять');
     expect(env.files.has('file-audio')).toBe(true);
     expect(env.files.has('file-other')).toBe(true);
+    const drafts = JSON.parse(env.local.getItem('minimed.patient-note-drafts.v1') ?? '{}') as Record<
+      string,
+      unknown
+    >;
+    expect(drafts['note-1']).toBeUndefined();
+    expect(drafts['note-2']).toBeDefined();
+  });
+
+  it('rejects a card backup whose note id collides with another card', async () => {
+    const env = installEnvironment();
+    env.local.setItem(
+      'minimed.patient-notes.v1',
+      JSON.stringify({
+        cards: [
+          {
+            id: 'card-existing',
+            title: 'Существующая карточка',
+            summary: '',
+            createdAt: '2026-09-26T06:00:00.000Z',
+            updatedAt: '2026-09-26T06:00:00.000Z',
+          },
+        ],
+        notes: [
+          {
+            id: 'note-collision',
+            cardId: 'card-existing',
+            parentNoteId: null,
+            title: '',
+            text: 'Существующая запись',
+            createdAt: '2026-09-26T06:10:00.000Z',
+            updatedAt: '2026-09-26T06:10:00.000Z',
+            categories: ['Общее'],
+            relatedDocumentIds: [],
+          },
+        ],
+      }),
+    );
+    const { importPersonalNotesBackup } = await import('./personal-notes-backup');
+    const colliding = {
+      kind: 'minimed-personal-notes-backup',
+      schemaVersion: 1,
+      exportedAt: '2026-09-26T08:00:00.000Z',
+      scope: { kind: 'card', cardId: 'card-imported' },
+      snapshot: {
+        cards: [
+          {
+            id: 'card-imported',
+            title: 'Импортируемая карточка',
+            summary: '',
+            createdAt: '2026-09-26T07:00:00.000Z',
+            updatedAt: '2026-09-26T07:00:00.000Z',
+          },
+        ],
+        notes: [
+          {
+            id: 'note-collision',
+            cardId: 'card-imported',
+            parentNoteId: null,
+            title: '',
+            text: 'Нельзя перезаписать чужую запись',
+            createdAt: '2026-09-26T07:10:00.000Z',
+            updatedAt: '2026-09-26T07:10:00.000Z',
+            categories: ['Общее'],
+            relatedDocumentIds: [],
+          },
+        ],
+      },
+      files: [],
+      images: [],
+      transcripts: [],
+    };
+
+    await expect(importPersonalNotesBackup(colliding)).rejects.toThrow(
+      'ID заметки из backup уже используется другой карточкой',
+    );
+    const current = JSON.parse(env.local.getItem('minimed.patient-notes.v1') ?? '{}') as {
+      cards?: Array<{ id?: string }>;
+      notes?: Array<{ id?: string; text?: string }>;
+    };
+    expect(current.cards?.map((card) => card.id)).toEqual(['card-existing']);
+    expect(current.notes?.[0]).toMatchObject({
+      id: 'note-collision',
+      text: 'Существующая запись',
+    });
   });
 
   it('rejects same-size attachment corruption before mutating current notes', async () => {
