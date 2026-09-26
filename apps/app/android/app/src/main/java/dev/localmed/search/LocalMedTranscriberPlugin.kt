@@ -257,6 +257,28 @@ class LocalMedTranscriberPlugin : Plugin() {
         }
     }
 
+    /** Removes a visit recording once the app has copied it into the patient vault. */
+    @PluginMethod
+    fun deleteRecording(call: PluginCall) {
+        val path = call.getString("filePath")
+        if (path.isNullOrBlank()) {
+            call.reject("Путь к записи не указан.", "RECORDING_FILE_REQUIRED")
+            return
+        }
+        val file =
+            try {
+                recordingFile(path)
+            } catch (error: Exception) {
+                call.reject("Запись недоступна.", "RECORDING_FILE_INVALID", error)
+                return
+            }
+        if (!file.delete()) {
+            call.reject("Не удалось удалить исходную запись.", "RECORDING_DELETE_FAILED")
+            return
+        }
+        call.resolve()
+    }
+
     @PluginMethod
     fun transcribe(call: PluginCall) {
         val path = call.getString("filePath")

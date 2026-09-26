@@ -138,6 +138,7 @@ for (const method of [
   'startRecording',
   'stopRecording',
   'transcribe',
+  'deleteRecording',
 ]) {
   requireText('androidTranscriberPlugin', `fun ${method}(`);
   requireText('typescriptTranscriberPlugin', `${method}(`);

@@ -1,0 +1,73 @@
+.visit-recorder {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.visit-recorder__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+}
+
+.visit-recorder__error {
+  margin: 0;
+  color: var(--theme-danger);
+}
+
+.visit-recorder__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.visit-recorder__start,
+.visit-recorder__review,
+.visit-recorder__progress {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.visit-recorder__recording {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.visit-recorder__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 1.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.visit-recorder__dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--theme-danger);
+  animation: visit-recorder-pulse 1.2s ease-in-out infinite;
+}
+
+.visit-recorder__speakers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.5rem;
+}
+
+.visit-recorder__transcript {
+  min-height: 14rem;
+}
+
+@keyframes visit-recorder-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visit-recorder__dot {
+    animation: none;
+  }
+}

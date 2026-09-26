@@ -29,6 +29,7 @@ import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
+import { VisitRecorder } from '@/features/asr/VisitRecorderPanel';
 import { PatientDiaryPanel } from '@/features/diary/PatientDiaryPanel';
 import type { NotesRoute } from '@/features/notes/notes-routing';
 import { notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
@@ -1107,6 +1108,11 @@ function PatientDetail(props: {
         onSaved={props.onSnapshot}
       />
       <PatientDiaryPanel
+        patientId={props.profile.id}
+        episodeId={activeEpisodeId()}
+        onSaved={props.onSnapshot}
+      />
+      <VisitRecorder
         patientId={props.profile.id}
         episodeId={activeEpisodeId()}
         onSaved={props.onSnapshot}

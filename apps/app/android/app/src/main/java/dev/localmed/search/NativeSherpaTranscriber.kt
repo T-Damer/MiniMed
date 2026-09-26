@@ -99,10 +99,15 @@ internal object NativeSherpaTranscriber {
 
         try {
             val diarized =
-                diarizer.processWithCallback(audio.samples) { completed, total, _ ->
-                    onDiarizationProgress(max(0, completed), max(1, total))
-                    if (Thread.currentThread().isInterrupted) 1 else 0
-                }
+                diarizer.processWithCallback(
+                    audio.samples,
+                    { completed: Int, total: Int, _: Long ->
+                        onDiarizationProgress(max(0, completed), max(1, total))
+                        // A non-zero return asks sherpa-onnx to stop early.
+                        if (Thread.currentThread().isInterrupted) 1 else 0
+                    },
+                    0L,
+                )
             if (diarized.isEmpty()) {
                 val text = recognizeWindowed(recognizer, audio.samples)
                 onTranscriptionProgress(1, 1)

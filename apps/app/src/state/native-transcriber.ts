@@ -42,6 +42,7 @@ interface LocalMedTranscriberPlugin {
   startRecording(): Promise<void>;
   stopRecording(): Promise<unknown>;
   transcribe(options: { readonly filePath: string }): Promise<unknown>;
+  deleteRecording(options: { readonly filePath: string }): Promise<void>;
   checkPermissions(): Promise<NativePermissionStatus>;
   requestPermissions(options?: {
     readonly permissions?: readonly ['microphone'];
@@ -93,15 +94,27 @@ export async function getNativeTranscriptionModelStatus(): Promise<NativeTranscr
   };
 }
 
-export async function ensureNativeTranscriptionModels(): Promise<NativeTranscriptionModelStatus> {
+export async function ensureNativeTranscriptionModels(
+  onProgress?: (progress: { readonly bytesReady: number; readonly bytesTotal: number }) => void,
+): Promise<NativeTranscriptionModelStatus> {
   assertNativeTranscriber();
+  let completedBytes = 0;
   for (const artifact of NATIVE_TRANSCRIPTION_MODELS) {
-    if ((await inspectArtifact(artifact)).valid) continue;
+    if ((await inspectArtifact(artifact)).valid) {
+      completedBytes += artifact.expectedBytes;
+      onProgress?.({ bytesReady: completedBytes, bytesTotal: NATIVE_TRANSCRIPTION_MODEL_BYTES });
+      continue;
+    }
     await downloadFileWithRetry(
       {
         url: artifact.url,
         cacheKey: `native-transcription:${artifact.id}:${artifact.expectedSha256}`,
         expectedBytes: artifact.expectedBytes,
+        onProgress: (progress) =>
+          onProgress?.({
+            bytesReady: completedBytes + progress.downloadedBytes,
+            bytesTotal: NATIVE_TRANSCRIPTION_MODEL_BYTES,
+          }),
       },
       async (file) => {
         const installed = await localMedTranscriber.installModelFile({
@@ -115,6 +128,7 @@ export async function ensureNativeTranscriptionModels(): Promise<NativeTranscrip
         }
       },
     );
+    completedBytes += artifact.expectedBytes;
   }
   return getNativeTranscriptionModelStatus();
 }
@@ -153,4 +167,17 @@ export async function watchNativeTranscription(
     const parsed = NativeTranscriptionProgressSchema.safeParse(value);
     if (parsed.success) listener(parsed.data);
   });
+}
+
+/** Reads a finished visit recording through the WebView file bridge (no base64 over the bridge). */
+export async function readNativeRecording(filePath: string): Promise<Uint8Array> {
+  assertNativeTranscriber();
+  const response = await fetch(Capacitor.convertFileSrc(filePath));
+  if (!response.ok) throw new Error('Не удалось прочитать аудиозапись.');
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+export async function deleteNativeRecording(filePath: string): Promise<void> {
+  assertNativeTranscriber();
+  await localMedTranscriber.deleteRecording({ filePath });
 }
