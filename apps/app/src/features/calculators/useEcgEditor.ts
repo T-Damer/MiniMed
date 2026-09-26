@@ -1,6 +1,6 @@
 import { createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 import { type EcgAutoSummaryItem, summarizeEcgAutoMarkup } from './ecg-auto-summary';
-import { ecgNumericDraftFromEditor } from './ecg-editor-numeric';
+import { ecgLeadWaveAmplitude, ecgNumericDraftFromEditor } from './ecg-editor-numeric';
 import {
   digitizeEcgPhoto,
   ECG_MODEL_CATALOG,
@@ -10,6 +10,11 @@ import {
 } from './ecg-model';
 import type { EcgModelDescriptor, EcgPhotoCorners, EcgReviewMaps } from './ecg-model-contract';
 import type { EcgPatientRoute } from './ecg-patient-age';
+import {
+  type EcgPediatricNormGroup,
+  type EcgPediatricUncoveredGroup,
+  evaluateEcgPediatricNorms,
+} from './ecg-pediatric-norms';
 import type { EcgPatientSex } from './ecg-photo-interpreter';
 import { createRectifiedEcgPhotoPreview, readEcgPhotoRgb } from './ecg-photo-rectification';
 import { detectEcgSheetCorners } from './ecg-sheet-corners';
@@ -86,6 +91,9 @@ export function useEcgEditor() {
   const [activeRegion, setActiveRegion] = createSignal('rhythm-II');
   const [measurementRegion, setMeasurementRegion] = createSignal('rhythm-II');
   const [ageBand, setAgeBand] = createSignal<EcgEditorAgeBand>('unknown');
+  const [pediatricGroup, setPediatricGroup] = createSignal<
+    EcgPediatricNormGroup | EcgPediatricUncoveredGroup
+  >();
   const patientRoute = (): EcgPatientRoute =>
     ageBand() === 'pediatric' ? 'pediatric' : ageBand() === 'unknown' ? 'unknown' : 'adult';
   const [sex, setSex] = createSignal<EcgPatientSex | undefined>();
@@ -217,6 +225,32 @@ export function useEcgEditor() {
           ? { ageBand: 'under-40' as const }
           : {}),
       ...(qrsMs === undefined ? {} : { qrsMs }),
+    });
+  });
+  /** Under 18 the adult rules stay off; age-group limits from the declared Rijnbeek schema apply. */
+  const pediatricEvaluation = createMemo(() => {
+    const group = pediatricGroup();
+    if (!completed().every(Boolean) || patientRoute() !== 'pediatric' || !group) return undefined;
+    const measured = measurement().measurements;
+    const amplitude = (lead: 'V1' | 'V6', wave: 'R' | 'S') =>
+      ecgLeadWaveAmplitude(draft(), lead, wave, measurementRegion()).value;
+    const currentSex = sex();
+    const values = {
+      heartRate: measured.heartRate,
+      prMs: measured.prMs,
+      qrsMs: measured.qrsMs,
+      qtcBazettMs: measured.qtcBazettMs,
+      rV1Mv: amplitude('V1', 'R'),
+      sV1Mv: amplitude('V1', 'S'),
+      rV6Mv: amplitude('V6', 'R'),
+      sV6Mv: amplitude('V6', 'S'),
+    };
+    return evaluateEcgPediatricNorms({
+      group,
+      ...(currentSex === 'male' || currentSex === 'female' ? { sex: currentSex } : {}),
+      values: Object.fromEntries(
+        Object.entries(values).filter((entry): entry is [string, number] => entry[1] !== undefined),
+      ),
     });
   });
   const numericDraft = createMemo(() =>
@@ -362,6 +396,7 @@ export function useEcgEditor() {
       resetMarkup();
       void detectCorners(file, version);
       setAgeBand('unknown');
+      setPediatricGroup(undefined);
       setSex(undefined);
       // Without the model, step 1 already offers installation; repeating it on every step was noise.
       setNotice('');
@@ -467,6 +502,9 @@ export function useEcgEditor() {
     setAgeBand,
     stMeasurement,
     stEvaluation,
+    pediatricGroup,
+    setPediatricGroup,
+    pediatricEvaluation,
     sex,
     setSex,
     measurement,

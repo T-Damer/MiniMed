@@ -96,6 +96,41 @@ export function candidateRegions(
     );
 }
 
+export type EcgWaveAmplitude =
+  | { readonly value: number; readonly source: string; readonly error?: undefined }
+  | { readonly value?: undefined; readonly source?: undefined; readonly error: string };
+
+/**
+ * Signed amplitude of one wave in one lead: peak minus that lead's own baseline, divided by the
+ * confirmed vertical scale and gain, rounded to 0.01 mV. Missing or ambiguous points are named.
+ */
+export function ecgLeadWaveAmplitude(
+  draft: EcgEditorDraft,
+  lead: EcgLeadName,
+  wave: 'Q' | 'R' | 'S' | 'T',
+  measuredRegionId: string,
+): EcgWaveAmplitude {
+  const scale = ecgCalibrationScale(draft.calibration);
+  if (!scale) return { error: 'нет подтверждённой калибровки' };
+  const regions = candidateRegions(draft, lead, measuredRegionId);
+  if (!regions.length) return { error: `нет рамки отведения ${lead}` };
+  let firstError: string | undefined;
+  for (const region of regions) {
+    const points = pointsIn(draft, region);
+    const baseline = single(points, 'baseline');
+    const peak = wave === 'R' ? rPeak(points) : single(points, WAVE_POINT[wave]);
+    if (baseline.point && peak.point) {
+      const edited = [baseline.point, peak.point].some((p) => p.source === 'manual');
+      return {
+        value: Math.round(((baseline.point.y - peak.point.y) / scale.y / scale.gain) * 100) / 100,
+        source: `Отведение ${ecgRegionLabel(region)} · ${edited ? 'точки исправлены вручную' : 'автоматические точки'}`,
+      };
+    }
+    firstError ??= `${ecgRegionLabel(region)}: ${baseline.error ?? peak.error}`;
+  }
+  return { error: firstError ?? `нет рамки отведения ${lead}` };
+}
+
 /**
  * Drafts the 30 numeric-model fields from reviewed editor points. Intervals come from the measured
  * lead; each amplitude is the signed distance from that lead's own baseline point in mV.
@@ -126,32 +161,12 @@ export function ecgNumericDraftFromEditor(
     const wave = match?.[1] as Wave | undefined;
     const lead = match?.[2] as EcgLeadName | undefined;
     if (!wave || !lead) continue;
-    if (!scale) {
-      missing[feature.id] = 'нет подтверждённой калибровки';
-      continue;
+    const amplitude = ecgLeadWaveAmplitude(draft, lead, wave, measuredRegionId);
+    if (amplitude.value === undefined) missing[feature.id] = amplitude.error;
+    else {
+      amplitudes[feature.id] = amplitude.value;
+      sources[feature.id] = amplitude.source;
     }
-    const regions = candidateRegions(draft, lead, measuredRegionId);
-    if (!regions.length) {
-      missing[feature.id] = `нет рамки отведения ${lead}`;
-      continue;
-    }
-    let firstError: string | undefined;
-    for (const region of regions) {
-      const points = pointsIn(draft, region);
-      const baseline = single(points, 'baseline');
-      const peak = wave === 'R' ? rPeak(points) : single(points, WAVE_POINT[wave]);
-      if (baseline.point && peak.point) {
-        amplitudes[feature.id] =
-          Math.round(((baseline.point.y - peak.point.y) / scale.y / scale.gain) * 100) / 100;
-        const edited = [baseline.point, peak.point].some((p) => p.source === 'manual');
-        sources[feature.id] =
-          `Отведение ${ecgRegionLabel(region)} · ${edited ? 'точки исправлены вручную' : 'автоматические точки'}`;
-        firstError = undefined;
-        break;
-      }
-      firstError ??= `${ecgRegionLabel(region)}: ${baseline.error ?? peak.error}`;
-    }
-    if (firstError) missing[feature.id] = firstError;
   }
 
   return { measurements: measured.measurements, amplitudes, missing, sources };

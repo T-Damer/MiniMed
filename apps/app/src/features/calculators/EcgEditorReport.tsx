@@ -4,11 +4,18 @@ import { PrintManager } from '@/features/printing/print-manager';
 import reportStyles from '@/styles/ecg-editor-report.css?inline';
 import { EcgStepGuide } from './EcgEditorFlow';
 import { ECG_STANDARD_LEADS } from './ecg-model-contract';
+import { ECG_PEDIATRIC_NORM_GROUPS, ECG_PEDIATRIC_UNCOVERED } from './ecg-pediatric-norms';
 import type { EcgMeasurements } from './ecg-photo-caliper';
 import { interpretAdultEcgMeasurements } from './ecg-photo-interpreter';
 import { ECG_ST_CRITERIA } from './ecg-st-criteria';
 import { ecgRegionLabel } from './ecgEditor';
 import type { EcgEditor, EcgEditorAgeBand } from './useEcgEditor';
+
+const PEDIATRIC_GROUPS = [
+  ECG_PEDIATRIC_UNCOVERED[0],
+  ...ECG_PEDIATRIC_NORM_GROUPS,
+  ECG_PEDIATRIC_UNCOVERED[1],
+] as const;
 
 const AGE_BANDS: readonly { readonly value: EcgEditorAgeBand; readonly label: string }[] = [
   { value: 'unknown', label: 'Не указан' },
@@ -109,6 +116,33 @@ export function EcgEditorReport(props: {
             </For>
           </select>
         </label>
+        <Show when={e.ageBand() === 'pediatric'}>
+          <label class="ecg-editor__field">
+            Возрастная группа
+            <select
+              class="ecg-editor__select"
+              classList={{ 'ecg-editor__select--required': !e.pediatricGroup() }}
+              value={e.pediatricGroup() ?? ''}
+              onChange={(event) => {
+                const next = PEDIATRIC_GROUPS.find(
+                  (group) => group.id === event.currentTarget.value,
+                );
+                if (next) e.setPediatricGroup(next.id);
+              }}
+            >
+              <option value="" disabled>
+                Выберите
+              </option>
+              <For each={PEDIATRIC_GROUPS}>
+                {(group) => (
+                  <option value={group.id} selected={group.id === e.pediatricGroup()}>
+                    {group.label}
+                  </option>
+                )}
+              </For>
+            </select>
+          </label>
+        </Show>
         <label class="ecg-editor__field">
           Пол для QTc и ST
           <select
@@ -233,10 +267,65 @@ export function EcgEditorReport(props: {
             <Show
               when={interpretation()}
               fallback={
-                <p class="ecg-report__text">
-                  Показаны только измерения. Для применения взрослых правил необходимо подтвердить
-                  возраст 18 лет и старше.
-                </p>
+                <Show
+                  when={e.pediatricEvaluation()}
+                  fallback={
+                    <p class="ecg-report__text">
+                      {e.ageBand() === 'pediatric'
+                        ? 'Выберите возрастную группу ребёнка: детские нормы зависят от возраста.'
+                        : 'Показаны только измерения. Для применения взрослых правил необходимо подтвердить возраст 18 лет и старше.'}
+                    </p>
+                  }
+                >
+                  {(pediatric) => {
+                    const covered = () => {
+                      const evaluation = pediatric();
+                      return evaluation.covered ? evaluation : undefined;
+                    };
+                    const uncovered = () => {
+                      const evaluation = pediatric();
+                      return evaluation.covered ? undefined : evaluation;
+                    };
+                    return (
+                      <>
+                        <Show when={covered()}>
+                          {(evaluation) => (
+                            <>
+                              <ul class="ecg-report__findings">
+                                <For
+                                  each={evaluation().flags.filter(
+                                    (flag) => flag.status !== 'within',
+                                  )}
+                                >
+                                  {(flag) => <li class="ecg-report__finding">{flag.text}</li>}
+                                </For>
+                              </ul>
+                              <p class="ecg-report__text">
+                                {evaluation().flags.some((flag) => flag.status === 'within')
+                                  ? `В пределах норм: ${evaluation()
+                                      .flags.filter((flag) => flag.status === 'within')
+                                      .map((flag) => flag.label)
+                                      .join(', ')}. `
+                                  : ''}
+                                {evaluation().missing.length
+                                  ? `Не измерено: ${evaluation().missing.join(', ')}. `
+                                  : ''}
+                                {evaluation().note} Источник: {evaluation().source}.
+                              </p>
+                            </>
+                          )}
+                        </Show>
+                        <Show when={uncovered()}>
+                          {(evaluation) => (
+                            <p class="ecg-report__text">
+                              {evaluation().text} Источник: {evaluation().source}.
+                            </p>
+                          )}
+                        </Show>
+                      </>
+                    );
+                  }}
+                </Show>
               }
             >
               {(result) => (

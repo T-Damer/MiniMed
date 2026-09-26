@@ -3,6 +3,26 @@
 > Moved verbatim from `docs/CURRENT_STATE.md` on 2026-09-24 so the mandatory state file stays short.
 > Newest entries first; later entries supersede earlier ones.
 
+## Paediatric reference limits — 2026-09-26
+
+**Decision (user, relayed by the coordinating session, 2026-09-26):** children get deterministic
+age-group limits only; no paediatric neural network is connected. Research, sources and the
+verification of secondary tables are in [research/ecg-pediatric.md](../research/ecg-pediatric.md).
+
+`ecg-pediatric-norms.ts` declares Rijnbeek et al. 2001 (Eur Heart J 22:702–711) limits, transcribed
+from Tables 3.2, 3.5 and 3.6 of the author's thesis and pinned by tests: 2nd/98th percentiles of
+heart rate, PR, QRS, QTc (Bazett) and QRS axis, and the 98th percentile of R and |S| in V1/V6, for
+boys and girls in nine groups from 11 days to 16 years. Unknown sex uses the union of both ranges and
+says so. Under 11 days and at 16–17 years the layer abstains with a stated reason («оцените по
+взрослым с осторожностью» for 16–17; adult thresholds are never applied automatically). The editor
+asks for the age group when «Младше 18 лет» is chosen and shows only out-of-range flags, the in-range
+list, unmeasured items and the source; the numeric panel derives the group from the exact
+calendar age, computes heart rate and Bazett QTc from RR/QT and keeps the existing AHA/ACCF/HRS QRS
+flag. Adult interval rules, the HGB model and ST criteria stay blocked below 18. A secondary review
+(Miliaraki 2026, CC BY) matched the primary interval limits but misattributed Rijnbeek's V6 R-wave
+limits (2.31 vs 3.05 mV), so amplitudes come only from the primary tables. T-wave polarity in V1 is
+not implemented until a primary source is obtained.
+
 ## ST at the J point and ischaemia review findings — 2026-09-26
 
 **Measurement.** ST is the signed level of the confirmed QRS end («Конец QRS (точка J)») relative

@@ -925,6 +925,24 @@
   -webkit-user-drag: none;
 }
 
+.ecg-numeric__pediatric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ecg-numeric__pediatric-list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.ecg-numeric__pediatric-item {
+  margin: 0.15rem 0;
+  color: var(--theme-danger);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
 .ecg-caliper__marker {
   position: absolute;
   z-index: 2;

@@ -62,6 +62,8 @@ Detailed history, moved verbatim on 2026-09-24:
   checks: [state/ecg-research-log.md](state/ecg-research-log.md). The dev/preview Vite server
   serves `/content/releases/<tag>/<file>` from the gitignored `.cache/releases/` cache.
 - **ECG perspective.** Automatic sheet corners with manual handles and «Выпрямить по углам»; calibration runs on the rectified image, the original is kept ([details](state/ecg-research-log.md)).
+- **ECG ST.** Per-lead ST at the J point and adult Fourth UDMI/ESC 2023 review findings from a declared schema, checked against PTB-XL+ ([details](state/ecg-research-log.md)).
+- **ECG children.** Under 18 the editor and numeric panel compare confirmed values with Rijnbeek 2001 age/sex limits declared in a schema; no paediatric model by user decision ([details](state/ecg-research-log.md)).
 - **Query-parser POC (tools only).** Local LLM/GLiNER parsers compared with the deterministic
   parser on 40 realistic narratives; no model or runtime was added to the app. See
   [research/query-parser-llm-ner-poc-2026-09.md](research/query-parser-llm-ner-poc-2026-09.md).
@@ -73,7 +75,6 @@ Detailed history, moved verbatim on 2026-09-24:
 
 One consolidated branch (`release/0.6.40`) merges every open line of work into `main`:
 `feature/browser-integration` (diary, canvas links, browser ASR, reading scale, notes backup),
-- **ECG ST.** Per-lead ST at the J point and adult Fourth UDMI/ESC 2023 review findings from a declared schema, checked against PTB-XL+ ([details](state/ecg-research-log.md)).
 PR #180/#174 (search quality, definition reference, index compaction — see the section below, now
 released), the native Android transcriber, and the Android high-refresh display mode.
 

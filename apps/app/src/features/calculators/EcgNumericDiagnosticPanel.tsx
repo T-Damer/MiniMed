@@ -44,6 +44,11 @@ import {
   interpretAdultEcgMeasurements,
 } from '@/features/calculators/ecg-photo-interpreter';
 import { rememberReturnTo } from '@/state/return-navigation';
+import {
+  type EcgPediatricNormId,
+  ecgPediatricNormGroup,
+  evaluateEcgPediatricNorms,
+} from './ecg-pediatric-norms';
 
 const STATUS_LABELS = {
   negative: 'ниже порога',
@@ -655,6 +660,38 @@ export function EcgNumericDiagnosticPanel(props: {
     return getEcgPediatricQrsReferenceFlag(age, current.result.QRS_Dur_Global);
   });
 
+  /** Under 18 with an exact age: Rijnbeek 2001 limits from the declared schema, never adult rules. */
+  const pediatricNorms = createMemo(() => {
+    const age = patientAge();
+    if (!measurementsConfirmed() || age.route !== 'pediatric') return undefined;
+    const group = ecgPediatricNormGroup(age);
+    if (!group) return undefined;
+    const current = parsed();
+    const value = (id: EcgNumericFeatureId): number | undefined =>
+      current.invalid.includes(id) ? undefined : current.result[id];
+    const rrMs = value('RR_Mean_Global');
+    const qtMs = value('QT_Int_Global');
+    const axis = Number(qrsAxisDegrees().trim());
+    const values: Partial<Record<EcgPediatricNormId, number | undefined>> = {
+      heartRate: rrMs ? Math.round(60_000 / rrMs) : undefined,
+      prMs: value('PR_Int_Global'),
+      qrsMs: value('QRS_Dur_Global'),
+      qtcBazettMs: rrMs && qtMs ? Math.round(qtMs / Math.sqrt(rrMs / 1000)) : undefined,
+      qrsAxisDeg: qrsAxisDegrees().trim() !== '' && axisIsValid() ? axis : undefined,
+      rV1Mv: value('R_Amp_V1'),
+      sV1Mv: value('S_Amp_V1'),
+      rV6Mv: value('R_Amp_V6'),
+    };
+    const currentSex = sex();
+    return evaluateEcgPediatricNorms({
+      group,
+      ...(currentSex === 'male' || currentSex === 'female' ? { sex: currentSex } : {}),
+      values: Object.fromEntries(
+        Object.entries(values).filter((entry): entry is [string, number] => entry[1] !== undefined),
+      ),
+    });
+  });
+
   const draftNote = (id: EcgNumericFeatureId): JSX.Element => {
     const missing = props.draftNotes?.missing[id];
     const source = props.draftNotes?.sources[id];
@@ -904,6 +941,52 @@ export function EcgNumericDiagnosticPanel(props: {
             . Это screening/reference-flag, не диагноз.
           </p>
         )}
+      </Show>
+      <Show when={pediatricNorms()}>
+        {(norms) => {
+          const covered = () => {
+            const evaluation = norms();
+            return evaluation.covered ? evaluation : undefined;
+          };
+          const uncovered = () => {
+            const evaluation = norms();
+            return evaluation.covered ? undefined : evaluation;
+          };
+          return (
+            <>
+              <Show when={covered()}>
+                {(evaluation) => (
+                  <div class="ecg-numeric__pediatric" role="note">
+                    <ul class="ecg-numeric__pediatric-list">
+                      <For each={evaluation().flags.filter((flag) => flag.status !== 'within')}>
+                        {(flag) => <li class="ecg-numeric__pediatric-item">{flag.text}</li>}
+                      </For>
+                    </ul>
+                    <p class="ecg-numeric__hint">
+                      {evaluation().flags.some((flag) => flag.status === 'within')
+                        ? `В пределах норм: ${evaluation()
+                            .flags.filter((flag) => flag.status === 'within')
+                            .map((flag) => flag.label)
+                            .join(', ')}. `
+                        : ''}
+                      {evaluation().missing.length
+                        ? `Не измерено: ${evaluation().missing.join(', ')}. `
+                        : ''}
+                      {evaluation().note} Источник: {evaluation().source}.
+                    </p>
+                  </div>
+                )}
+              </Show>
+              <Show when={uncovered()}>
+                {(evaluation) => (
+                  <p class="ecg-numeric__hint" role="note">
+                    {evaluation().text} Источник: {evaluation().source}.
+                  </p>
+                )}
+              </Show>
+            </>
+          );
+        }}
       </Show>
 
       <details class="ecg-numeric__fieldset ecg-av-sequence">

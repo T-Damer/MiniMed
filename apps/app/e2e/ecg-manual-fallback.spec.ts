@@ -148,6 +148,18 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   // No baseline point was placed in any lead, so ST is reported as unmeasured, not as normal.
   await expect(page.locator('.ecg-report__st-cell')).toHaveCount(12);
   await expect(page.getByText(/^ST не измерен в отведениях: I, II, III/u)).toBeVisible();
+  // Under 18 the adult rules stay off and Rijnbeek 2001 age limits apply instead.
+  await page.getByRole('combobox', { name: 'Возраст', exact: true }).selectOption('pediatric');
+  await page.getByRole('combobox', { name: 'Возрастная группа', exact: true }).selectOption('y1-3');
+  await expect(
+    page.getByText(/ЧСС 60 \/мин — ниже 2-го перцентиля для возраста 1–3 года/u),
+  ).toBeVisible();
+  await expect(page.getByText(/^ST не измерен/u)).toHaveCount(0);
+  await page
+    .getByRole('combobox', { name: 'Возрастная группа', exact: true })
+    .selectOption('y16-17');
+  await expect(page.getByText(/оцените по взрослым с осторожностью/u)).toBeVisible();
+  await page.getByRole('combobox', { name: 'Возраст', exact: true }).selectOption('adult-40-plus');
   await expect(page.locator('.ecg-report__finding').first()).toBeVisible();
   await expect(
     page.locator('.ecg-report__metric').filter({ hasText: /^RR/ }).locator('dd'),
