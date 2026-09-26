@@ -17,6 +17,34 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## After 0.6.40 on `release/0.6.40` (unreleased) — 2026-09-26
+
+- **Search latency.** Clinical analysis no longer re-prepares 44k aliases per query; medication
+  aliases are normalized once; Levenshtein runs in a band. `bun run benchmark:search-latency`
+  (132 queries, full core, native SQLite): Bun p50 657 → 208 ms. Ranking benchmarks unchanged.
+- **Diaries v2 (schema-driven).** Fields (number, choice, multi, flag, count, text, plan) plus the
+  doctor's plan. Templates: blood pressure, medication (prescribed list, taken/missed), child
+  (feeding plan, amount, weight in g → body mass in kg, sleep, stool flag/count, complaints),
+  illness course (temperature, symptoms, medicine), glucose; doctors can build custom diaries.
+  Entries default to now and stay editable; landscape A4 print for doctor and patient. v1 links,
+  stored diaries and QR codes convert on read. FHIR export codes LOINC vitals/MedicationStatement.
+- **Conversation recording.** «Записать беседу» on the home screen records immediately; each
+  one-second slice is committed to IndexedDB, so a crash keeps the recorded part (reported as
+  interrupted). After stopping, audio is added to a patient/visit or kept in «Записи бесед».
+  Stored unencrypted for now.
+- **Patient vault in the browser.** Passkey via WebAuthn PRF (HKDF-wrapped data key) or an explicit
+  «Продолжить без защиты»; unlock/creation in a compact dialog. No automatic lock or privacy
+  curtain any more (user decision). Verified with a Chromium virtual authenticator only — not on
+  real Apple/Google/Bitwarden passkeys.
+- **UX.** Settings grouped with a shared `FeatureCard`; animated `Disclosure`; `SelectField`,
+  `FileDropZone`; search welcome with shortcuts; questionnaire import dialog; notes open straight
+  into the full-screen editor with title, tags, pictures and reminder; plain-language copy;
+  virtualized grids pass a row-size hint (no first-frame jump); smoother nav bubble overscroll.
+- **Known open items.** Content pointer text still exposes internal ids/English categories (needs a
+  generator change, a core rebuild and a new dataset); UI strings are not yet on Lingui; patient
+  storage is not yet migrated to HL7 FHIR resources; e2e «creates a protected patient profile»
+  needs the anthropometry pack (download area owned by another agent).
+
 ## Release 0.6.40 — 2026-09-26
 
 One consolidated branch (`release/0.6.40`) merges every open line of work into `main`:

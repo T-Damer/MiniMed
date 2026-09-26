@@ -207,7 +207,7 @@ function FieldInput(props: {
             />
           </Show>
           <Show when={props.field.trackDone && selected()}>
-            <div class="diary-plan__done" role="group" aria-label="Выполнено ли">
+            <fieldset class="diary-plan__done" aria-label="Выполнено ли">
               <button
                 type="button"
                 class="diary-chips__chip"
@@ -226,7 +226,7 @@ function FieldInput(props: {
               >
                 Пропустил(а)
               </button>
-            </div>
+            </fieldset>
           </Show>
         </div>
       );

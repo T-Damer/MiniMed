@@ -207,6 +207,13 @@
   gap: 0.5rem;
 }
 
+.diary-plan__done {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
 .diary-plan-list {
   display: grid;
   gap: 0.5rem;
