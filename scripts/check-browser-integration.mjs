@@ -505,7 +505,7 @@ const checks = [
   [
     'drawing editor shared controls',
     files.drawing.includes('<SearchField') && files.drawing.includes('<Button'),
-  ],,
+  ],
   [
     'text and Markdown reading scale persists independently of PDF zoom',
     files.readingMode.includes("const TEXT_SCALE_KEY = 'minimed.userDocTextScale'") &&
