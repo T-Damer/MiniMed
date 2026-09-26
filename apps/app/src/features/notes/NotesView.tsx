@@ -1233,7 +1233,7 @@ export function NotesView(props: {
           class="patient-notes-heading"
           icon={<AppGlyph name="notes" class="page__icon-glyph" />}
           title={<Heading depth={1}>Заметки</Heading>}
-          description="Личный слой, только на этом устройстве."
+          description="Ваши записи и пациенты. Хранятся только на этом устройстве."
           navigation={
             <Show when={props.backToFiles}>
               <NavBack
@@ -1276,7 +1276,7 @@ export function NotesView(props: {
               onClick={() => navigate(notesPatientsPath())}
             >
               <span class="patient-card-title">Пациенты</span>
-              <p>Карточки, осмотры и продольная динамика в отдельном локальном контуре</p>
+              <p>Карточки пациентов, визиты и показатели в динамике</p>
               <small>Открыть раздел</small>
             </button>
           </article>

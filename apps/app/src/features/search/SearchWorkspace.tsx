@@ -958,7 +958,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
         <Show when={ambiguousPhrases().length > 0}>
           <aside class="search-ambiguities" aria-label="Значения сокращений">
-            <span class="search-ambiguities__label">Несколько значений — выберите нужное</span>
+            <span class="search-ambiguities__label">Уточните, что вы имели в виду:</span>
             <For each={ambiguousPhrases()}>
               {(phrase) => (
                 <DocumentText
@@ -1130,14 +1130,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           )}
         </Show>
 
-        {props.catalog}
-
         <Show
           when={
             (props.showExamples ?? !props.catalog) &&
             props.searchAllowed !== false &&
             !response() &&
-            query().length === 0
+            query().length === 0 &&
+            (props.examples ?? EXAMPLES_BY_SCOPE[props.scope]).length > 0
           }
         >
           <SearchExamples
@@ -1148,6 +1147,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             }}
           />
         </Show>
+
+        {props.catalog}
 
         <PersonalNoteMatches query={searchableQuery(query())} scope={props.scope} />
 

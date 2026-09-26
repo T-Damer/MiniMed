@@ -40,7 +40,7 @@ export function PatientVaultUnlock(props: {
         setError(
           cause instanceof Error
             ? cause.message
-            : 'Keychain/Keystore недоступен; можно продолжить без шифрования.',
+            : 'Защищённое хранилище устройства недоступно; можно продолжить без шифрования.',
         );
       } finally {
         setBusy(false);
@@ -69,14 +69,17 @@ export function PatientVaultUnlock(props: {
       <Heading depth={2}>
         {busy()
           ? 'Открываем пациентов…'
-          : canUseUnencrypted()
-            ? 'Хранилище без шифрования'
-            : 'Не удалось открыть Keychain'}
+          : storedMode() === 'unencrypted'
+            ? 'Пациенты закрыты'
+            : canUseUnencrypted()
+              ? 'Карточки пациентов без шифрования'
+              : 'Не удалось открыть защищённое хранилище'}
       </Heading>
       <Show when={!busy() && canUseUnencrypted()}>
         <p class="patient-workspace__warning" role="alert">
-          Keychain/Keystore недоступен. Карточки будут храниться в IndexedDB без шифрования и
-          останутся доступны любому, кто получит доступ к этому профилю браузера или устройству.
+          Здесь MiniMed не может зашифровать карточки. Они хранятся только на этом устройстве, но
+          открыть их сможет любой, у кого есть доступ к этому браузеру. Для реальных пациентов
+          используйте приложение для Android — там данные шифруются.
         </p>
       </Show>
       <Show when={error()}>
@@ -86,7 +89,7 @@ export function PatientVaultUnlock(props: {
       </Show>
       <Show when={!busy() && canUseUnencrypted()}>
         <Button type="button" variant="primary" onClick={() => void continueUnencrypted()}>
-          {storedMode() === 'unencrypted' ? 'Открыть без шифрования' : 'Продолжить без шифрования'}
+          {storedMode() === 'unencrypted' ? 'Открыть' : 'Понятно, продолжить'}
         </Button>
       </Show>
     </section>

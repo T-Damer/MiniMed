@@ -181,7 +181,11 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
             </Show>
             <Show
               when={visible().length > 0}
-              fallback={<p class="content-download-status__empty">Нет незавершённых загрузок</p>}
+              fallback={
+                <p class="content-download-status__empty">
+                  Здесь появятся загрузки, когда вы начнёте что-нибудь скачивать.
+                </p>
+              }
             >
               <div class="content-download-status__scroll">
                 <ul class="content-download-status__list">
@@ -260,8 +264,8 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
               </div>
             </Show>
             <p class="content-download-status__summary">
-              Общий лимит — три передачи. Скачивание, проверка и установка показаны отдельно.
-              Переход между разделами не отменяет загрузки.
+              Одновременно идёт до трёх загрузок. Их можно не ждать: переход в другие разделы
+              загрузку не прерывает.
             </p>
           </>
         }

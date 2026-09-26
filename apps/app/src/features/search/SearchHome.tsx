@@ -240,7 +240,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           filters={filters()}
           onQueryChange={setCatalogQuery}
           catalogOnly={catalogOnly()}
-          showExamples={scope() === 'diagnosis'}
+          showExamples
           searchActions={
             <Show when={!catalogOnly() && scope() !== 'diagnosis'}>
               <button

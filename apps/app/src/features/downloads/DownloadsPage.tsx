@@ -24,7 +24,7 @@ export function DownloadsPage(): JSX.Element {
         }
         icon={<AppGlyph name="download" class="page__icon-glyph" />}
         title={<h1 class="settings-page__title">Загрузки</h1>}
-        description="Единая очередь ядра, документов, изображений и моделей."
+        description="Всё, что MiniMed скачивает: база, документы, картинки и модели."
       />
       <ContentDownloadStatus />
     </section>

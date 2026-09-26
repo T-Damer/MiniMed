@@ -564,7 +564,7 @@ export async function createPatientVault(options?: {
   }
   if (!isPatientVaultNativePlatform() || !(await isNativePatientVaultKeychainAvailable())) {
     throw new PatientVaultError(
-      'Keychain/Keystore недоступен. Можно продолжить без шифрования после предупреждения.',
+      'Защищённое хранилище устройства недоступно. Можно продолжить без шифрования.',
       'unavailable',
     );
   }
