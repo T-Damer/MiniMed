@@ -36,6 +36,8 @@ const files = {
   patientWorkspace: read('apps/app/src/features/notes/PatientWorkspace.tsx'),
   patientWorkspaceCss: read('apps/app/src/styles/patient-workspace.css'),
   diaryPanel: read('apps/app/src/features/diary/PatientDiaryPanel.tsx'),
+  diaryCodec: read('apps/app/src/features/diary/diary-codec.ts'),
+  diaryTests: read('apps/app/src/features/diary/diary.test.ts'),
   diary: read('apps/app/src/diary/DiaryApp.tsx'),
   diaryMain: read('apps/app/src/diary/main.tsx'),
   vite: read('apps/app/vite.config.ts'),
@@ -408,6 +410,14 @@ const checks = [
       files.personalNotesBackupTests.includes('exports one card and imports it without replacing unrelated cards') &&
       files.personalNotesBackupTests.includes('rejects a card backup whose note id collides with another card') &&
       files.personalNotesBackupTests.includes("minimed.patient-note-drafts.v1"),
+  ],
+  [
+    'diary transport bounds compressed and QR payloads',
+    files.diaryCodec.includes('MAX_DIARY_JSON_BYTES = 1024 * 1024') &&
+      files.diaryCodec.includes('async function decompressBounded(') &&
+      files.diaryCodec.includes('chunk.length > DIARY_QR_CHUNK') &&
+      files.diaryTests.includes('rejects a compressed payload that expands beyond the diary JSON budget') &&
+      files.diaryTests.includes('rejects an individual QR part larger than the advertised chunk size'),
   ],
   [
     'diary shared controls',
