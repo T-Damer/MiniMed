@@ -1,4 +1,5 @@
 import { createMemo, createSignal, onCleanup, onMount } from 'solid-js';
+import { type EcgAutoSummaryItem, summarizeEcgAutoMarkup } from './ecg-auto-summary';
 import {
   digitizeEcgPhoto,
   ECG_MODEL_CATALOG,
@@ -64,6 +65,7 @@ export function useEcgEditor() {
   const [patientRoute, setPatientRoute] = createSignal<EcgPatientRoute>('unknown');
   const [sex, setSex] = createSignal<EcgPatientSex | undefined>();
   const [maps, setMaps] = createSignal<EcgReviewMaps>();
+  const [autoSummary, setAutoSummary] = createSignal<readonly EcgAutoSummaryItem[]>();
   const [model, setModel] = createSignal<EcgModelDescriptor | null>(null);
   const [loading, setLoading] = createSignal(false);
   const [digitizing, setDigitizing] = createSignal(false);
@@ -138,8 +140,34 @@ export function useEcgEditor() {
         .every(Boolean)
     )
       return;
+    // One lead is both edited and measured; separate selectors made the measured lead ambiguous.
+    if (next === 4) setActiveRegion(measurementRegion());
     if (next === 4 && draft().points.length === 0) generatePoints();
     setStep(next);
+  };
+  const canConfirmStep = createMemo(() => {
+    switch (step()) {
+      case 1:
+        return Boolean(photo()) && !loading();
+      case 2:
+        return Boolean(ecgCalibrationScale(draft().calibration));
+      case 3:
+        return validEcgRegions(draft().regions);
+      case 4:
+        return canReviewPoints();
+      default:
+        return false;
+    }
+  });
+  const stepConfirmed = (value: EcgEditorStep): boolean => completed()[value - 1] ?? false;
+  /** The primary action states what the clinician confirms, then advances in one tap. */
+  const confirmStep = (): void => {
+    const current = step();
+    if (current === 5 || !canConfirmStep()) return;
+    if (current === 2) setCalibrationConfirmed(true);
+    if (current === 3) setRegionsConfirmed(true);
+    if (current === 4) setPointsConfirmed(true);
+    go((current + 1) as EcgEditorStep);
   };
   const digitize = async (): Promise<void> => {
     const currentPhoto = photo();
@@ -155,6 +183,7 @@ export function useEcgEditor() {
       const review = prepareEcgEditorReview(result);
       if (!review) throw new Error('Оцифровщик не вернул разметку. Можно продолжить вручную.');
       setMaps(review.maps);
+      setAutoSummary(summarizeEcgAutoMarkup(result, review.calibration));
       const current = draft();
       // Late model results cannot replace edits or confirmations made while it was running.
       const applyCalibration =
@@ -203,17 +232,15 @@ export function useEcgEditor() {
       setPast([]);
       setFuture([]);
       setMaps(undefined);
+      setAutoSummary(undefined);
       setCalibrationConfirmed(false);
       setRegionsConfirmed(false);
       setActiveRegion('rhythm-II');
       setMeasurementRegion('rhythm-II');
       setPatientRoute('unknown');
       setSex(undefined);
-      setNotice(
-        model()
-          ? ''
-          : 'Модель не установлена. Можно разметить снимок вручную или установить оцифровку.',
-      );
+      // Without the model, step 1 already offers installation; repeating it on every step was noise.
+      setNotice('');
       if (model()) void digitize();
     } catch (cause) {
       if (version === generation)
@@ -280,23 +307,27 @@ export function useEcgEditor() {
     confirmPoints: (value: boolean) => setPointsConfirmed(value && canReviewPoints()),
     canReviewPoints,
     completed,
+    canConfirmStep,
+    stepConfirmed,
+    confirmStep,
+    autoSummary,
     activeRegion,
     setActiveRegion,
+    selectMeasuredLead: (id: string) => {
+      setActiveRegion(id);
+      setMeasurementRegion(id);
+      setPointsConfirmed(false);
+    },
     measurementRegion,
     setMeasurementRegion: (id: string) => {
       setMeasurementRegion(id);
       setPointsConfirmed(false);
     },
+    // Age and sex are chosen on the result step; they select thresholds, not reviewed points.
     patientRoute,
-    setPatientRoute: (value: EcgPatientRoute) => {
-      setPatientRoute(value);
-      setPointsConfirmed(false);
-    },
+    setPatientRoute,
     sex,
-    setSex: (value: EcgPatientSex | undefined) => {
-      setSex(value);
-      setPointsConfirmed(false);
-    },
+    setSex,
     measurement,
     maps,
     model,

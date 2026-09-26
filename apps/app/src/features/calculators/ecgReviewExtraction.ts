@@ -118,7 +118,7 @@ export function extractEcgEditorRegion(
   const finite = [...trace].filter(Number.isFinite).sort((a, b) => a - b);
   const baseline = finite[Math.floor(finite.length / 2)];
   if (baseline === undefined || trace.length < 2) return empty;
-  const durationSeconds = (trace.length - 1) / maps.width / scale.x / calibration.speed;
+  const durationSeconds = (trace.length - 1) / maps.width / scale.x / scale.speed;
   if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > 60)
     return empty;
   const samples = new Float32Array(Math.round(durationSeconds * 100) + 1).fill(Number.NaN);
@@ -129,8 +129,8 @@ export function extractEcgEditorRegion(
     return a + (b - a) * (offset - low);
   };
   for (let i = 0; i < samples.length; i += 1) {
-    const offset = (i / 100) * calibration.speed * scale.x * maps.width;
-    samples[i] = (baseline - yAt(offset)) / maps.height / scale.y / calibration.gain;
+    const offset = (i / 100) * scale.speed * scale.x * maps.width;
+    samples[i] = (baseline - yAt(offset)) / maps.height / scale.y / scale.gain;
   }
   const coverage = [...samples].filter(Number.isFinite).length / samples.length;
   let open = false;
@@ -149,7 +149,7 @@ export function extractEcgEditorRegion(
   const points: EcgEditorPoint[] = [];
   const add = (kind: EcgPointKind, index: number | undefined): void => {
     if (index === undefined) return;
-    const offset = (index / 100) * calibration.speed * scale.x * maps.width;
+    const offset = (index / 100) * scale.speed * scale.x * maps.width;
     const point = { x: (left + offset) / maps.width, y: yAt(offset) / maps.height };
     if (pointInsideEcgRegion(point, region))
       points.push({

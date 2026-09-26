@@ -1,16 +1,26 @@
-import { createSignal, type JSX, Show } from 'solid-js';
+import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import ecgPhotoExample from '@/assets/ecg-photo-example.jpg';
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { EcgEditorCanvas } from './EcgEditorCanvas';
-import { EcgEditorConfirmation, EcgEditorControls } from './EcgEditorControls';
+import { EcgEditorControls } from './EcgEditorControls';
+import {
+  ECG_CONFIRM_LABELS,
+  EcgAutoSummary,
+  EcgModelOffer,
+  EcgStepGuide,
+  EcgStepper,
+} from './EcgEditorFlow';
 import { EcgEditorReport } from './EcgEditorReport';
 import { EcgNumericDiagnosticPanel } from './EcgNumericDiagnosticPanel';
+import { EcgPhotoPicker } from './EcgPhotoPicker';
+import { ECG_PHOTO_HANDOFF_EVENT, takeHandedOffEcgPhoto } from './ecg-photo-handoff';
 import type { EcgMorphologyObservations } from './ecg-photo-interpreter';
 import type { EcgEditorStep } from './ecgEditor';
 import { useEcgEditor } from './useEcgEditor';
 import '@/styles/ecg-photo-caliper.css';
 import '@/styles/ecg-editor.css';
+import '@/styles/ecg-editor-flow.css';
 
 const TITLES = [
   'Загрузите ЭКГ',
@@ -20,6 +30,13 @@ const TITLES = [
   'Измерения и заключение',
 ] as const;
 
+const BLOCKED_HINTS: Readonly<Record<Exclude<EcgEditorStep, 5>, string>> = {
+  1: 'Сначала сфотографируйте ленту или выберите снимок.',
+  2: 'Выберите скорость и отметьте 25 мм по горизонтали и 10 мм по вертикали.',
+  3: 'Нужны рамки всех 12 отведений внутри снимка.',
+  4: 'Нужны минимум две вершины R, начало и конец QRS.',
+};
+
 export function EcgPhotoCaliper(): JSX.Element {
   const editor = useEcgEditor();
   const [open, setOpen] = createSignal(true);
@@ -28,10 +45,24 @@ export function EcgPhotoCaliper(): JSX.Element {
   const [calibrationTool, setCalibrationTool] = createSignal<'horizontal' | 'vertical' | 'pan'>(
     'pan',
   );
-  const load = (event: Event & { currentTarget: HTMLInputElement }): void => {
-    const file = event.currentTarget.files?.[0];
-    event.currentTarget.value = '';
+  const load = (file: File): void => {
+    setOpen(true);
     void editor.load(file);
+  };
+  onMount(() => {
+    // Keep-alive tool routes stay mounted, so a later home-screen photo arrives as an event.
+    const receive = (): void => {
+      const file = takeHandedOffEcgPhoto();
+      if (file) load(file);
+    };
+    receive();
+    window.addEventListener(ECG_PHOTO_HANDOFF_EVENT, receive);
+    onCleanup(() => window.removeEventListener(ECG_PHOTO_HANDOFF_EVENT, receive));
+  });
+  const blockedHint = (): string | undefined => {
+    const step = editor.step();
+    if (step === 5 || editor.canConfirmStep()) return undefined;
+    return step === 4 ? (editor.measurement().errors[0] ?? BLOCKED_HINTS[4]) : BLOCKED_HINTS[step];
   };
   return (
     <section class="ecg-entry" aria-label="Измерения по фото ЭКГ">
@@ -56,36 +87,26 @@ export function EcgPhotoCaliper(): JSX.Element {
         bodyClass="ecg-editor__body"
         onClose={() => setOpen(false)}
       >
+        <EcgStepper editor={editor} />
         <Show when={editor.step() === 1}>
-          <div class="ecg-editor__upload-bar">
-            <label class="ecg-editor__button ecg-editor__button--primary ecg-editor__upload-button">
-              <AppGlyph class="ecg-editor__icon" name="image" />
-              {editor.photo() ? 'Заменить фото' : 'Выбрать фото'}
-              <input
-                class="ecg-editor__file-input"
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                aria-label="Загрузить ЭКГ"
-                onChange={load}
+          <div class="ecg-flow__panel">
+            <div class="ecg-editor__upload-bar">
+              <EcgPhotoPicker
                 disabled={editor.loading()}
+                replacing={Boolean(editor.photo())}
+                onFile={load}
               />
-            </label>
-            <span class="ecg-editor__hint">
-              {editor.photo()
-                ? `${editor.photo()?.width} × ${editor.photo()?.height} · ${editor.photo()?.file.name}`
-                : 'JPEG, PNG или WebP · обработка на устройстве'}
-            </span>
+              <span class="ecg-editor__hint">
+                {editor.photo()
+                  ? `${editor.photo()?.width} × ${editor.photo()?.height} · ${editor.photo()?.file.name}`
+                  : 'JPEG, PNG или WebP · обработка на устройстве'}
+              </span>
+            </div>
             <Show when={!editor.model()}>
-              <button
-                class="ecg-editor__button"
-                type="button"
-                onClick={() => void editor.install()}
-              >
-                {editor.installing()
-                  ? `Отменить установку · ${Math.round(editor.progress() * 100)}%`
-                  : 'Установить авторазметку · 19 МБ'}
-              </button>
+              <EcgModelOffer editor={editor} />
             </Show>
+            <EcgAutoSummary editor={editor} />
+            <EcgStepGuide step={1} padded />
           </div>
         </Show>
         <Show when={editor.step() >= 2 && editor.step() <= 4}>
@@ -151,33 +172,8 @@ export function EcgPhotoCaliper(): JSX.Element {
           >
             <EcgEditorReport editor={editor} />
           </Show>
-          <button
-            class="ecg-editor__arrow ecg-editor__arrow--back"
-            type="button"
-            aria-label="Предыдущий шаг"
-            title="Предыдущий шаг"
-            disabled={editor.step() === 1}
-            onClick={() => editor.go((editor.step() - 1) as EcgEditorStep)}
-          >
-            <AppGlyph class="ecg-editor__arrow-icon" name="caret-left" />
-          </button>
-          <Show when={editor.step() < 5}>
-            <button
-              class="ecg-editor__arrow ecg-editor__arrow--next"
-              type="button"
-              aria-label="Следующий шаг"
-              title="Следующий шаг"
-              disabled={!editor.completed().slice(0, editor.step()).every(Boolean)}
-              onClick={() => editor.go((editor.step() + 1) as EcgEditorStep)}
-            >
-              <AppGlyph class="ecg-editor__arrow-icon" name="caret-right" />
-            </button>
-          </Show>
         </div>
         <footer class="ecg-editor__footer">
-          <Show when={editor.step() < 5}>
-            <EcgEditorConfirmation editor={editor} />
-          </Show>
           <Show when={editor.error()}>
             <p class="ecg-editor__error" role="alert">
               {editor.error()}
@@ -195,6 +191,37 @@ export function EcgPhotoCaliper(): JSX.Element {
             <p class="ecg-editor__status" role="status">
               Открываем фотографию…
             </p>
+          </Show>
+          <div class="ecg-flow-nav">
+            <button
+              class="ecg-flow-nav__back"
+              type="button"
+              aria-label="Предыдущий шаг"
+              disabled={editor.step() === 1}
+              onClick={() => editor.go((editor.step() - 1) as EcgEditorStep)}
+            >
+              <AppGlyph class="ecg-flow-nav__icon" name="caret-left" />
+              Назад
+            </button>
+            <Show when={editor.step() < 5}>
+              <button
+                class="ecg-flow-nav__next"
+                type="button"
+                disabled={!editor.canConfirmStep()}
+                aria-describedby={blockedHint() ? 'ecg-flow-blocked' : undefined}
+                onClick={editor.confirmStep}
+              >
+                {ECG_CONFIRM_LABELS[editor.step() as Exclude<EcgEditorStep, 5>]}
+                <AppGlyph class="ecg-flow-nav__icon" name="caret-right" />
+              </button>
+            </Show>
+          </div>
+          <Show when={blockedHint()}>
+            {(hint) => (
+              <p class="ecg-flow-nav__hint" id="ecg-flow-blocked">
+                {hint()}
+              </p>
+            )}
           </Show>
         </footer>
       </OverlayDialog>

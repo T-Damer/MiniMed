@@ -1287,7 +1287,21 @@ checks were run independently. Native SDK builds and physical devices were not t
   **Current ECG photo editor (2026-09-08):** opening the calculator opens a fullscreen,
   five-stage review: photo/examples, independent horizontal/vertical grid calibration,
   editable lead regions, P/Q/R/S/T landmarks and a printable report. Only the current stage title
-  appears in the header; side arrows overlay the image and forward navigation requires confirmation.
+  appears in the header, above a five-step rail with per-step confirmation marks. A single footer
+  action names what is confirmed (for example «Калибровка верна — далее») and advances; the former
+  per-step checkboxes and side arrows over the photo were removed, and the disabled action explains
+  what is still missing. Every step has a collapsible «Зачем этот шаг и что проверить» guide
+  (purpose, checks, method, common mistakes) declared in `ecg-editor-guide.ts`. Step 1 offers
+  camera capture (`capture="environment"`) beside gallery import, a prominent 19 MB auto-markup
+  offer when the model is absent, and after segmentation a found/review/manual summary of grid axes,
+  speed/gain, extracted leads, a heart-rate draft stated for both 50 and 25 mm/s, and photo-quality
+  defects. Paper speed has no default and must be chosen from the printed strip before calibration
+  can be confirmed; age and sex moved to the result step and no longer withdraw point confirmation.
+  Point review uses one lead selector for editing and measurement, frames that lead on entry, and
+  colours P/QRS/T/baseline points with dashed outlines for untouched automatic points; the report
+  states how many measured-lead points were automatic versus placed or corrected manually. A
+  prop-free `EcgHomeEntry` card (camera/gallery hand-off into the editor) exists for the search home
+  but is mounted only by the search owner; the calculator route still waits for core readiness.
   Speed is 25 or 50 mm/s; gain is 5, 10 or 20 mm/mV. Local ONNX segmentation proposes grid/regions;
   the existing waveform heuristics propose reviewable landmarks, not validated delineation.
   Missing/unusable model output leaves manual editing available. Late results do not overwrite
@@ -1300,8 +1314,9 @@ checks were run independently. Native SDK builds and physical devices were not t
   The standalone numeric tool remains available after closing the editor. This replaces the old
   photo-to-numeric transfer and perspective/cropped-preview workflow described below; the new
   editor requires a straight, readable photograph and retains annotations only for the current session.
-  Browser regression covers a complete manual flow at 375×667 (iPhone SE viewport), 20× zoom,
-  two-touch pinch, confirmation invalidation after undo, and a 320×568 report preview. The generated
+  Browser regression covers a complete manual flow at 375×667 (iPhone SE viewport), explicit speed
+  selection, the step guide, 20× zoom, two-touch pinch, confirmation invalidation after undo, and a
+  320×568 report preview. The generated
   PDF was checked as one A4 page. A separate browser regression installs the verified published
   19 MB model, reviews calibration, checks generated points remain unconfirmed, then repeats
   segmentation with the network disabled. The faint-grid public fixture needs one axis supplied

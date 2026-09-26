@@ -17,9 +17,13 @@ export function EcgPointTools(props: {
       <div class="ecg-editor__lead-tools">
         <select
           class="ecg-editor__select"
-          aria-label="Отведение"
+          aria-label={e.step() === 4 ? 'Отведение для расчёта' : 'Отведение'}
           value={e.activeRegion()}
-          onChange={(event) => e.setActiveRegion(event.currentTarget.value)}
+          onChange={(event) =>
+            e.step() === 4
+              ? e.selectMeasuredLead(event.currentTarget.value)
+              : e.setActiveRegion(event.currentTarget.value)
+          }
         >
           <For each={e.draft().regions}>
             {(region) => (

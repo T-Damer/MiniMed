@@ -1,4 +1,14 @@
-import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  on,
+  onCleanup,
+  Show,
+  untrack,
+} from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { EcgPointTools } from './EcgPointTools';
 import type { EcgNormalizedPoint } from './ecg-model-contract';
@@ -36,6 +46,20 @@ type Gesture =
     };
 
 const clamp = (n: number): number => Math.max(0, Math.min(1, n));
+const POINT_WAVE: Readonly<Record<EcgPointKind, 'p' | 'qrs' | 't' | 'baseline'>> = {
+  pOnset: 'p',
+  pPeak: 'p',
+  pOffset: 'p',
+  qrsOnset: 'qrs',
+  qPeak: 'qrs',
+  rPeak: 'qrs',
+  sPeak: 'qrs',
+  qrsOffset: 'qrs',
+  tOnset: 't',
+  tPeak: 't',
+  tOffset: 't',
+  baseline: 'baseline',
+};
 export function EcgEditorCanvas(props: {
   readonly editor: EcgEditor;
   readonly calibrationTool: CalibrationAxis | 'pan';
@@ -77,6 +101,15 @@ export function EcgEditorCanvas(props: {
     e.activeRegion();
     setSelectedPoint(undefined);
   });
+  // Entering point review frames the measured lead instead of the whole sheet.
+  // Keyed on step and lead only: point drags commit drafts and must not re-frame the view.
+  createEffect(
+    on([e.step, e.activeRegion], ([step]) => {
+      if (step !== 4) return;
+      const region = untrack(activeRegion);
+      if (region) viewport.focus(region);
+    }),
+  );
   const capture = (event: PointerEvent, next: Gesture): void => {
     event.preventDefault();
     event.stopPropagation();
@@ -466,7 +499,14 @@ export function EcgEditorCanvas(props: {
                   />
                   <circle
                     class="ecg-editor__point"
-                    classList={{ 'ecg-editor__point--selected': selectedPoint() === original.id }}
+                    classList={{
+                      'ecg-editor__point--selected': selectedPoint() === original.id,
+                      'ecg-editor__point--p': POINT_WAVE[original.kind] === 'p',
+                      'ecg-editor__point--qrs': POINT_WAVE[original.kind] === 'qrs',
+                      'ecg-editor__point--t': POINT_WAVE[original.kind] === 't',
+                      'ecg-editor__point--baseline': POINT_WAVE[original.kind] === 'baseline',
+                      'ecg-editor__point--auto': original.source === 'auto',
+                    }}
                     cx={p().x * size().width}
                     cy={p().y * size().height}
                     r={radius()}

@@ -94,5 +94,8 @@ bun run models:publish -- /tmp/minimed-ecg-numeric-adult-2026.2.zip
 
 The current digitizer and numeric pack are published in the
 [`models-preview-1`](https://github.com/T-Damer/MiniMed/releases/tag/models-preview-1) prerelease.
-The Pages build copies it to the CORS-safe download mirror; DEV serves the same path through the Vite
-release proxy.
+The Pages build copies it to the CORS-safe download mirror. The Vite dev and preview servers answer
+the same `/content/releases/<tag>/<file>` path from the gitignored `apps/app/.cache/releases/`
+cache, downloading each asset from this repository's GitHub releases once (atomic temp-file rename,
+strict tag/file names, GitHub-only redirects). Installation still verifies the catalog size and
+SHA-256, so delete the cached file if a release asset is replaced.

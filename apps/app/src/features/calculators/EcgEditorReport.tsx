@@ -2,6 +2,7 @@ import { createMemo, createSignal, For, type JSX, onCleanup, onMount, Show } fro
 import { AppGlyph } from '@/components/AppGlyph';
 import { PrintManager } from '@/features/printing/print-manager';
 import reportStyles from '@/styles/ecg-editor-report.css?inline';
+import { EcgStepGuide } from './EcgEditorFlow';
 import type { EcgMeasurements } from './ecg-photo-caliper';
 import { interpretAdultEcgMeasurements } from './ecg-photo-interpreter';
 import { ecgRegionLabel } from './ecgEditor';
@@ -54,6 +55,11 @@ export function EcgEditorReport(props: { readonly editor: EcgEditor }): JSX.Elem
         })
       : undefined,
   );
+  const pointOrigin = createMemo(() => {
+    const points = e.draft().points.filter((p) => p.regionId === e.measurementRegion());
+    const auto = points.filter((p) => p.source === 'auto').length;
+    return { auto, manual: points.length - auto };
+  });
   const measuredLead = () => {
     const region = e.draft().regions.find((r) => r.id === e.measurementRegion());
     return region ? ecgRegionLabel(region) : '—';
@@ -69,6 +75,44 @@ export function EcgEditorReport(props: { readonly editor: EcgEditor }): JSX.Elem
   };
   return (
     <div class="ecg-editor__report-view">
+      <div class="ecg-editor__patient">
+        <label class="ecg-editor__field">
+          Возраст
+          <select
+            class="ecg-editor__select"
+            classList={{ 'ecg-editor__select--required': e.patientRoute() === 'unknown' }}
+            value={e.patientRoute()}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              e.setPatientRoute(
+                value === 'adult' ? 'adult' : value === 'pediatric' ? 'pediatric' : 'unknown',
+              );
+            }}
+          >
+            <option value="unknown">Не указан</option>
+            <option value="adult">18 лет и старше</option>
+            <option value="pediatric">Младше 18 лет</option>
+          </select>
+        </label>
+        <label class="ecg-editor__field">
+          Пол для QTc
+          <select
+            class="ecg-editor__select"
+            value={e.sex() ?? 'unknown'}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              e.setSex(value === 'male' || value === 'female' ? value : 'unknown');
+            }}
+          >
+            <option value="unknown">Не указан</option>
+            <option value="male">Мужской</option>
+            <option value="female">Женский</option>
+          </select>
+        </label>
+        <div class="ecg-editor__patient-guide">
+          <EcgStepGuide step={5} />
+        </div>
+      </div>
       <div class="ecg-editor__report-actions">
         <span class="ecg-editor__hint">
           Один лист A4 · исходное фото и подтверждённые измерения
@@ -175,6 +219,10 @@ export function EcgEditorReport(props: { readonly editor: EcgEditor }): JSX.Elem
               )}
             </Show>
           </section>
+          <p class="ecg-report__text">
+            Точки отведения {measuredLead()}: {pointOrigin().auto} предложены авторазметкой и
+            подтверждены без изменений, {pointOrigin().manual} поставлены или исправлены вручную.
+          </p>
           <footer class="ecg-report__footer">
             Полумануальные измерения по фотографии, проверенные пользователем. Интервалы относятся к
             выбранному отведению; это не глобальные интервалы по 12 отведениям. Заключение требует
