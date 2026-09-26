@@ -6,6 +6,8 @@ import { chunkLayoutRows, type LayoutColumnCount, layoutColumnCount } from '@/st
 interface LayoutVirtualizedGridProps<T> {
   readonly data: readonly T[];
   readonly bufferSize?: number;
+  /** Expected row height; a close estimate stops rows from jumping as they are first measured. */
+  readonly rowSize?: number;
   readonly columns?: number;
   readonly maxColumns?: LayoutColumnCount;
   readonly minColumns?: LayoutColumnCount;
@@ -56,7 +58,11 @@ export function LayoutVirtualizedGrid<T>(props: LayoutVirtualizedGridProps<T>): 
         container = element;
       }}
     >
-      <WindowVirtualizer data={rows()} bufferSize={props.bufferSize ?? 400}>
+      <WindowVirtualizer
+        data={rows()}
+        bufferSize={props.bufferSize ?? 400}
+        itemSize={props.rowSize ?? 160}
+      >
         {(row, rowIndex) => (
           <div class="layout-card-row">
             <div

@@ -52,6 +52,8 @@ interface BottomNavGesture {
   lastX: number;
   lastTime: number;
   lastDirection: number;
+  /** Exponentially smoothed 0–1 speed; raw per-frame speed makes the bubble flicker. */
+  velocity: number;
   moved: boolean;
 }
 
@@ -197,13 +199,20 @@ export function useBottomNav(options: {
     const minCenter = first.center;
     const maxCenter = last.center;
     const relativeX = clientX - geometry.left;
-    const edge: -1 | 0 | 1 = relativeX < 0 ? -1 : relativeX > geometry.width ? 1 : 0;
-    const outsideDistance = edge === -1 ? -relativeX : edge === 1 ? relativeX - geometry.width : 0;
-    const overscroll = Math.min(1, outsideDistance / Math.max(1, geometry.width * 0.35));
-    const center = Math.max(minCenter, Math.min(maxCenter, relativeX));
-    const left =
-      edge === -1 ? 0 : edge === 1 ? geometry.width - current.width : center - current.width / 2;
-    setBottomNavBubble({ ...current, left });
+    // Past the first/last button the bubble follows with rubber-band resistance instead of
+    // snapping to the pill edge, so crossing the boundary never jumps.
+    const beyond =
+      relativeX < minCenter
+        ? relativeX - minCenter
+        : relativeX > maxCenter
+          ? relativeX - maxCenter
+          : 0;
+    const edge: -1 | 0 | 1 = beyond < 0 ? -1 : beyond > 0 ? 1 : 0;
+    const reach = current.width * 0.35;
+    const resisted = Math.sign(beyond) * reach * (1 - 1 / (Math.abs(beyond) / 80 + 1));
+    const overscroll = reach > 0 ? Math.abs(resisted) / reach : 0;
+    const center = Math.max(minCenter, Math.min(maxCenter, relativeX)) + resisted;
+    setBottomNavBubble({ ...current, left: center - current.width / 2 });
     return { edge, overscroll };
   };
 
@@ -215,11 +224,14 @@ export function useBottomNav(options: {
     if (!pending || !gesture?.moved) return;
     if (gesture.pointerId !== pending.pointerId) return;
     const travel = moveBottomNavBubbleTo(pending.clientX);
+    gesture.velocity += (pending.velocity - gesture.velocity) * 0.35;
+    const speed = gesture.velocity;
+    // A steady transform origin: switching it mid-drag moved the bubble by half its width.
     setBottomNavBubbleMotion({
-      origin: travel.edge === -1 ? 'left' : travel.edge === 1 ? 'right' : 'center',
-      scaleX: Math.max(0.38, 1 + pending.velocity * 0.72 - travel.overscroll * 0.62),
-      scaleY: 1 - pending.velocity * 0.18 + travel.overscroll * 0.12,
-      rotate: pending.direction * (pending.velocity * 8 + travel.overscroll * 2),
+      origin: 'center',
+      scaleX: 1 + speed * 0.45 + travel.overscroll * 0.18,
+      scaleY: 1 - speed * 0.14 - travel.overscroll * 0.08,
+      rotate: pending.direction * speed * 6,
     });
     const nextIndex = navIndexAtX(pending.clientX);
     if (nextIndex !== bottomNavDragIndex()) hapticFeedback('selection');
@@ -278,6 +290,7 @@ export function useBottomNav(options: {
       lastX: event.clientX,
       lastTime: now,
       lastDirection: 0,
+      velocity: 0,
       moved: false,
     };
     setBottomNavDragIndex(startIndex);
