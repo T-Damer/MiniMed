@@ -9,6 +9,7 @@ import {
   removePatientFromSnapshot,
   selectPatientFromSnapshot,
 } from '@/state/patient-domain';
+
 import {
   deletePatientVaultNativeKey,
   isNativePatientVaultKeychainAvailable,
@@ -16,6 +17,14 @@ import {
   unwrapPatientVaultKey,
   wrapPatientVaultKey,
 } from '@/state/patient-vault-native';
+import {
+  createPasskeyKey,
+  type PasskeyReference,
+  passkeyKek,
+  unwrapDataKey,
+  type WrappedDataKey,
+  wrapDataKey,
+} from '@/state/patient-vault-passkey';
 
 const DATABASE_NAME = 'minimed-patient-vault-v3';
 const LEGACY_DATABASE_NAMES = ['minimed-patient-vault-v2'] as const;
@@ -31,7 +40,7 @@ export const PATIENT_VAULT_EVENT = 'minimed:patient-vault-changed';
 export const PATIENT_VAULT_LOCK_EVENT = 'minimed:patient-vault-locked';
 export const PATIENT_VAULT_UI_CLEARED_EVENT = 'minimed:patient-vault-ui-cleared';
 
-export type PatientVaultStorageMode = 'native-keychain' | 'unencrypted';
+export type PatientVaultStorageMode = 'native-keychain' | 'passkey' | 'unencrypted';
 
 interface NativeWrappedKey {
   readonly ivBase64: string;
@@ -61,13 +70,22 @@ interface NativeStoredVault {
   readonly snapshot: EncryptedRecord;
 }
 
+/** Browser vault whose data key is wrapped by a key derived from a passkey (WebAuthn PRF). */
+interface PasskeyStoredVault {
+  readonly schemaVersion: typeof PATIENT_VAULT_SCHEMA_VERSION;
+  readonly mode: 'passkey';
+  readonly passkey: PasskeyReference;
+  readonly passkeyKey: WrappedDataKey;
+  readonly snapshot: EncryptedRecord;
+}
+
 interface PlainStoredVault {
   readonly schemaVersion: typeof PATIENT_VAULT_SCHEMA_VERSION;
   readonly mode: 'unencrypted';
   readonly snapshot: PlainRecord;
 }
 
-type StoredVault = NativeStoredVault | PlainStoredVault;
+type StoredVault = NativeStoredVault | PasskeyStoredVault | PlainStoredVault;
 
 interface StoredBlobBase {
   readonly type: 'patient-file';
@@ -123,7 +141,11 @@ export class PatientVaultLockedError extends PatientVaultError {
 }
 
 type VaultSession =
-  | { readonly mode: 'native-keychain'; readonly key: CryptoKey; readonly rawKey: Uint8Array }
+  | {
+      readonly mode: 'native-keychain' | 'passkey';
+      readonly key: CryptoKey;
+      readonly rawKey: Uint8Array;
+    }
   | { readonly mode: 'unencrypted' };
 
 let session: VaultSession | undefined;
@@ -365,6 +387,20 @@ function assertStoredVault(value: unknown): asserts value is StoredVault {
     assertEncryptedRecord(stored.snapshot);
     return;
   }
+  if (stored.mode === 'passkey') {
+    const passkey = stored.passkey as Partial<PasskeyReference> | undefined;
+    const wrapped = stored.passkeyKey as Partial<WrappedDataKey> | undefined;
+    if (
+      typeof passkey?.credentialId !== 'string' ||
+      typeof passkey.salt !== 'string' ||
+      typeof wrapped?.ivBase64 !== 'string' ||
+      typeof wrapped.ciphertextBase64 !== 'string'
+    ) {
+      throw new PatientVaultError('Повреждена passkey-обёртка хранилища.', 'integrity');
+    }
+    assertEncryptedRecord(stored.snapshot);
+    return;
+  }
   if (stored.mode === 'unencrypted') {
     const record = stored.snapshot as Partial<PlainRecord> | undefined;
     if (
@@ -508,9 +544,9 @@ async function storedVaultWithSnapshot(
 ): Promise<StoredVault> {
   if (!session || session.mode !== stored.mode) throw new PatientVaultLockedError();
   const record = await snapshotRecord(snapshot);
-  return stored.mode === 'native-keychain'
-    ? { ...stored, snapshot: record as EncryptedRecord }
-    : { ...stored, snapshot: record as PlainRecord };
+  return stored.mode === 'unencrypted'
+    ? { ...stored, snapshot: record as PlainRecord }
+    : { ...stored, snapshot: record as EncryptedRecord };
 }
 
 function emit(name: string): void {
@@ -535,16 +571,47 @@ export async function patientVaultStorageMode(): Promise<PatientVaultStorageMode
 }
 
 export function lockPatientVault(): void {
-  if (session?.mode === 'native-keychain') session.rawKey.fill(0);
+  if (session && session.mode !== 'unencrypted') session.rawKey.fill(0);
   session = undefined;
   emit(PATIENT_VAULT_LOCK_EVENT);
 }
 
 export async function createPatientVault(options?: {
   readonly allowUnencrypted?: boolean;
+  readonly passkey?: boolean;
 }): Promise<PatientVaultStorageMode> {
   if (await readStoredVault()) {
     throw new PatientVaultError('Пациентское хранилище уже создано.', 'storage');
+  }
+  if (options?.passkey) {
+    const created = await createPasskeyKey();
+    const dataKey = await generateDataKey();
+    try {
+      const encrypted = await encryptBytes(
+        dataKey.key,
+        utf8(JSON.stringify(emptyPatientVaultSnapshot())),
+        'patient-snapshot',
+        'current',
+      );
+      await writeStoredVault({
+        schemaVersion: PATIENT_VAULT_SCHEMA_VERSION,
+        mode: 'passkey',
+        passkey: { credentialId: created.credentialId, salt: created.salt },
+        passkeyKey: await wrapDataKey(created.kek, dataKey.rawKey),
+        snapshot: {
+          type: 'patient-snapshot',
+          id: 'current',
+          version: PATIENT_VAULT_SCHEMA_VERSION,
+          ...encrypted,
+        },
+      });
+      session = { mode: 'passkey', ...dataKey };
+      emit(PATIENT_VAULT_EVENT);
+      return 'passkey';
+    } catch (error) {
+      dataKey.rawKey.fill(0);
+      throw asStorageError(error, 'Не удалось сохранить защищённое хранилище.');
+    }
   }
   if (options?.allowUnencrypted) {
     const stored: PlainStoredVault = {
@@ -609,7 +676,10 @@ export async function unlockPatientVault(): Promise<PatientVaultSnapshot> {
   }
   let rawKey: Uint8Array;
   try {
-    rawKey = await unwrapPatientVaultKey(stored.wrappedKey);
+    rawKey =
+      stored.mode === 'passkey'
+        ? await unwrapDataKey(await passkeyKek(stored.passkey), stored.passkeyKey)
+        : await unwrapPatientVaultKey(stored.wrappedKey);
   } catch (error) {
     throw new PatientVaultError(
       error instanceof Error ? error.message : 'Keychain/Keystore не открыл ключ хранилища.',
@@ -622,7 +692,7 @@ export async function unlockPatientVault(): Promise<PatientVaultSnapshot> {
     const snapshot = normalizePatientVaultSnapshot(
       JSON.parse(new TextDecoder().decode(plain)) as unknown,
     );
-    session = { mode: 'native-keychain', key, rawKey };
+    session = { mode: stored.mode, key, rawKey };
     emit(PATIENT_VAULT_EVENT);
     return snapshot;
   } catch (error) {
@@ -641,7 +711,7 @@ export async function readPatientVault(): Promise<PatientVaultSnapshot> {
     if (stored.mode === 'unencrypted') {
       return normalizePatientVaultSnapshot(stored.snapshot.data);
     }
-    if (session.mode !== 'native-keychain') throw new PatientVaultLockedError();
+    if (session.mode === 'unencrypted') throw new PatientVaultLockedError();
     const plain = await decryptBytes(stored.snapshot, session.key);
     return normalizePatientVaultSnapshot(JSON.parse(new TextDecoder().decode(plain)) as unknown);
   } catch (error) {
@@ -753,7 +823,7 @@ async function blobBytes(blob: StoredBlob): Promise<Uint8Array> {
     if (session.mode !== 'unencrypted') throw new PatientVaultLockedError();
     return blob.bytes.slice();
   }
-  if (session.mode !== 'native-keychain') throw new PatientVaultLockedError();
+  if (session.mode === 'unencrypted') throw new PatientVaultLockedError();
   return decryptBytes(blob, session.key);
 }
 

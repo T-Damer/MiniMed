@@ -10,6 +10,7 @@ import {
   unlockPatientVault,
 } from '@/state/patient-vault';
 import { isPatientVaultNativePlatform } from '@/state/patient-vault-native';
+import { passkeyPrfSupport } from '@/state/patient-vault-passkey';
 import '@/styles/patient-workspace.css';
 
 export function PatientVaultUnlock(props: {
@@ -31,7 +32,13 @@ export function PatientVaultUnlock(props: {
       try {
         const mode = await patientVaultStorageMode();
         setStoredMode(mode);
-        if (mode === 'unencrypted' || (!mode && !isPatientVaultNativePlatform())) return;
+        // Browsers only run WebAuthn from a tap, so web vaults wait for the doctor's choice.
+        if (
+          mode === 'unencrypted' ||
+          mode === 'passkey' ||
+          (!mode && !isPatientVaultNativePlatform())
+        )
+          return;
         if (!mode) {
           await createPatientVault();
           unlocked(await readPatientVault());
@@ -47,50 +54,89 @@ export function PatientVaultUnlock(props: {
       }
     })();
   });
-  const continueUnencrypted = async (): Promise<void> => {
+  const [passkeySupport, setPasskeySupport] =
+    createSignal<Awaited<ReturnType<typeof passkeyPrfSupport>>>('unknown');
+  onMount(() => {
+    void passkeyPrfSupport().then(setPasskeySupport);
+  });
+  const run = async (action: () => Promise<PatientVaultSnapshot>): Promise<void> => {
     setError('');
     setBusy(true);
     try {
-      if (storedMode() === 'unencrypted') unlocked(await unlockPatientVault());
-      else {
-        await createPatientVault({ allowUnencrypted: true });
-        unlocked(await readPatientVault());
-      }
+      unlocked(await action());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось открыть хранилище.');
     } finally {
       setBusy(false);
     }
   };
-  const canUseUnencrypted = (): boolean => storedMode() !== 'native-keychain';
+  const protectWithPasskey = (): Promise<void> =>
+    run(async () => {
+      await createPatientVault({ passkey: true });
+      return readPatientVault();
+    });
+  const continueUnprotected = (): Promise<void> =>
+    run(async () => {
+      if (storedMode() === 'unencrypted') return unlockPatientVault();
+      await createPatientVault({ allowUnencrypted: true });
+      return readPatientVault();
+    });
+  const openWithPasskey = (): Promise<void> => run(unlockPatientVault);
+  const firstRun = (): boolean => !storedMode() && !isPatientVaultNativePlatform();
   return (
     <section class="patient-workspace__unlock paper-card">
       <AppGlyph name="lock" class="patient-workspace__unlock-icon" />
       <Heading depth={2}>
         {busy()
           ? 'Открываем пациентов…'
-          : storedMode() === 'unencrypted'
-            ? 'Пациенты закрыты'
-            : canUseUnencrypted()
-              ? 'Карточки пациентов без шифрования'
+          : firstRun()
+            ? 'Защитите карточки пациентов'
+            : storedMode() === 'unencrypted' || storedMode() === 'passkey'
+              ? 'Пациенты закрыты'
               : 'Не удалось открыть защищённое хранилище'}
       </Heading>
-      <Show when={!busy() && canUseUnencrypted()}>
-        <p class="patient-workspace__warning" role="alert">
-          Здесь MiniMed не может зашифровать карточки. Они хранятся только на этом устройстве, но
-          открыть их сможет любой, у кого есть доступ к этому браузеру. Для реальных пациентов
-          используйте приложение для Android — там данные шифруются.
+      <Show when={!busy() && firstRun()}>
+        <p class="patient-workspace__unlock-text">
+          Карточки хранятся только на этом устройстве. Passkey зашифрует их: открыть сможете только
+          вы — лицом, отпечатком, Windows Hello, телефоном или менеджером паролей вроде Bitwarden.
         </p>
+        <Button
+          type="button"
+          variant="primary"
+          disabled={passkeySupport() === 'unsupported'}
+          onClick={() => void protectWithPasskey()}
+        >
+          Защитить через passkey
+        </Button>
+        <Show when={passkeySupport() === 'unsupported'}>
+          <p class="patient-workspace__unlock-text">
+            Этот браузер не умеет шифровать данные через passkey. Откройте MiniMed в свежем Chrome,
+            Edge или Safari либо используйте приложение для Android.
+          </p>
+        </Show>
+        <Button type="button" variant="quiet" onClick={() => void continueUnprotected()}>
+          Продолжить без защиты
+        </Button>
+        <p class="patient-workspace__warning">
+          Без защиты карточки откроет любой, у кого есть доступ к этому браузеру. Подходит для
+          пробы, не для реальных пациентов.
+        </p>
+      </Show>
+      <Show when={!busy() && storedMode() === 'passkey'}>
+        <Button type="button" variant="primary" onClick={() => void openWithPasskey()}>
+          Открыть по passkey
+        </Button>
+      </Show>
+      <Show when={!busy() && storedMode() === 'unencrypted'}>
+        <p class="patient-workspace__unlock-text">Карточки на этом устройстве без шифрования.</p>
+        <Button type="button" variant="primary" onClick={() => void continueUnprotected()}>
+          Открыть
+        </Button>
       </Show>
       <Show when={error()}>
         <p class="patient-workspace__error" role="alert">
           {error()}
         </p>
-      </Show>
-      <Show when={!busy() && canUseUnencrypted()}>
-        <Button type="button" variant="primary" onClick={() => void continueUnencrypted()}>
-          {storedMode() === 'unencrypted' ? 'Открыть' : 'Понятно, продолжить'}
-        </Button>
       </Show>
     </section>
   );

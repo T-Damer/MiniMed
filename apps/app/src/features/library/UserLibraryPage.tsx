@@ -464,7 +464,9 @@ export function UserLibraryPage(): JSX.Element {
 
   const refreshVaultMode = async (): Promise<void> => {
     try {
-      setVaultEncrypted((await patientVaultStorageMode()) === 'native-keychain');
+      setVaultEncrypted(
+        ['native-keychain', 'passkey'].includes((await patientVaultStorageMode()) ?? ''),
+      );
     } catch (cause) {
       setVaultEncrypted(false);
       toast.error(
