@@ -161,6 +161,30 @@ describe('portable personal-notes backup', () => {
     expect(env.local.getItem('minimed.patient-vault.test-fixture')).toBe('keep-me');
   });
 
+  it('rejects an oversized export before reading attachment blobs', async () => {
+    const env = installEnvironment();
+    env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
+    const arrayBuffer = vi.fn(async () => {
+      throw new Error('Oversized export must not read attachment bytes.');
+    });
+    for (let index = 0; index < 6; index += 1) {
+      env.files.set(`file-large-${index}`, {
+        id: `file-large-${index}`,
+        noteId: 'note-1',
+        name: `large-${index}.bin`,
+        mimeType: 'application/octet-stream',
+        size: 64 * 1024 * 1024,
+        blob: { arrayBuffer },
+        createdAt: '2026-09-26T07:00:00.000Z',
+      });
+    }
+
+    const { exportPersonalNotesBackup } = await import('./personal-notes-backup');
+
+    await expect(exportPersonalNotesBackup()).rejects.toThrow('превышает лимит 512 МБ');
+    expect(arrayBuffer).not.toHaveBeenCalled();
+  });
+
   it('preflights base64 expansion before allocating large backup blobs', async () => {
     const {
       estimatePersonalNotesBackupBytes,
