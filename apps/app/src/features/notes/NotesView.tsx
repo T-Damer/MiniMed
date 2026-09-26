@@ -29,6 +29,7 @@ import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
+import { TextField as UiTextField } from '@/components/TextField';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
@@ -1499,9 +1500,13 @@ export function NotesView(props: {
               />
               <div class="patient-records-toolbar">
                 <h2>Записи</h2>
-                <button type="button" onClick={() => navigate(notesPath(card().id, 'new'))}>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => navigate(notesPath(card().id, 'new'))}
+                >
                   Добавить запись
-                </button>
+                </Button>
               </div>
               <Show
                 when={notesForCard(card().id).length > 0}
@@ -2074,14 +2079,17 @@ export function NotesView(props: {
             setCreating(false);
           }}
         >
-          <input
+          <UiTextField
             name="title"
+            label="Название карточки"
+            hideLabel
             placeholder="ФИО или название заметки"
-            aria-label="Название карточки"
             required
           />
           <div class="patient-note-form-actions">
-            <button type="submit">Создать</button>
+            <Button type="submit" variant="primary">
+              Создать
+            </Button>
           </div>
         </form>
       </OverlayDialog>
@@ -2143,7 +2151,9 @@ export function NotesView(props: {
                     placeholder="Состояние, результат, условие завершения"
                   />
                   <div class="patient-note-form-actions">
-                    <button type="submit">Выполнено</button>
+                    <Button type="submit" variant="primary">
+                      Выполнено
+                    </Button>
                   </div>
                 </form>
               </Show>
