@@ -196,6 +196,15 @@ export function savePatientNoteDraft(draft: PatientNoteDraft): void {
   writeNoteStorage(PATIENT_NOTE_DRAFTS_KEY, drafts);
 }
 
+export function clearPatientNoteWorkingState(): void {
+  try {
+    window.localStorage.removeItem(PATIENT_NOTE_DRAFTS_KEY);
+    window.localStorage.removeItem(PATIENT_NOTE_REVISIONS_KEY);
+  } catch {
+    // Draft/revision state is optional editor recovery data; imported durable notes remain usable.
+  }
+}
+
 export function removePatientNoteDraft(noteId: string): void {
   const drafts = readNoteStorage(PATIENT_NOTE_DRAFTS_KEY);
   if (!(noteId in drafts)) return;
