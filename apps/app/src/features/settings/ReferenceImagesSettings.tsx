@@ -1,7 +1,7 @@
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { FeatureCard } from '@/components/FeatureCard';
 import { downloadTaskFraction, isDownloadActive } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import {
@@ -79,96 +79,75 @@ export function ReferenceImagesSettings(): JSX.Element {
       if (!disposed) setRemoving(false);
     }
   };
-  const downloadLabel = (): string => {
+  const statusLabel = (): string => {
     const current = task();
-    if (current?.state === 'verifying') return 'Проверяем данные';
-    if (current?.state === 'installing') return 'Сохраняем данные';
-    if (current?.state === 'cancelling') return 'Останавливаем';
+    if (removing()) return 'Удаляем…';
+    if (current?.state === 'verifying') return 'Проверяем файлы…';
+    if (current?.state === 'installing') return 'Сохраняем…';
+    if (current?.state === 'cancelling') return 'Останавливаем…';
     if (current?.state === 'queued') return 'В очереди';
-    return busy()
-      ? progress() === null
-        ? 'Скачиваем'
-        : `Скачиваем ${Math.floor((progress() ?? 0) * 100)}%`
-      : 'Скачать';
+    if (busy()) {
+      const fraction = progress();
+      return fraction === null ? 'Скачивается…' : `Скачивается · ${Math.floor(fraction * 100)}%`;
+    }
+    const known = status();
+    if (!known) return 'Проверяем…';
+    if (known.complete) return 'Все скачаны';
+    if (known.files > 0) return `Скачано ${known.files} из ${known.totalFiles}`;
+    return `Не скачано · ${formatModuleBytes(known.totalBytes)}`;
   };
   return (
-    <section
-      class="settings-section paper-sheet reference-images-settings"
-      aria-labelledby="settings-reference-images-heading"
-    >
-      <header class="settings-section__heading">
-        <div class="settings-section__heading-main">
-          <AppGlyph name="image-fill" class="settings-section__icon" />
-          <div class="settings-section__heading-copy">
-            <h2 id="settings-reference-images-heading" class="settings-section__title">
-              Иллюстрации справочника
-            </h2>
-            <p class="settings-section__description">
-              Изображения источника «Красота и медицина». Скачайте заранее для просмотра без
-              интернета. Уже просмотренные изображения сохраняются автоматически.
-            </p>
-          </div>
-        </div>
-      </header>
-      <p class="reference-images-settings__status" role="status">
-        <Show when={status()} fallback={'Проверяем каталог иллюстраций…'}>
-          {(current) => (
-            <>
-              {current().complete
-                ? 'Скачаны все иллюстрации'
-                : current().files > 0
-                  ? `Сохранено файлов: ${current().files}`
-                  : 'Ещё не скачано'}
-              {' · '}Файлы: {current().totalFiles}
-              {' · '}
-              {formatModuleBytes(current().totalBytes)}
-            </>
-          )}
-        </Show>
-      </p>
-      <div class="reference-images-settings__actions">
-        <Show when={!status()?.complete}>
-          <Button
-            type="button"
-            class="reference-images-settings__action"
-            variant="primary"
-            disabled={busy() || removing() || !status()}
-            onClick={() => void download()}
-          >
-            {downloadLabel()}
-          </Button>
-        </Show>
-        <Show
-          when={busy()}
-          fallback={
-            <Show when={(status()?.files ?? 0) > 0}>
-              <Button
-                type="button"
-                class="reference-images-settings__action"
-                variant="danger"
-                onClick={() => void remove()}
-              >
-                Удалить
-              </Button>
-            </Show>
+    <FeatureCard
+      class="reference-images-settings"
+      headingId="settings-reference-images-heading"
+      icon="image-fill"
+      title="Картинки к справочнику"
+      summary="Иллюстрации к статьям «Красота и медицина» будут открываться без интернета. То, что вы уже смотрели, сохраняется само."
+      status={statusLabel()}
+      tone={
+        error() ? 'error' : busy() || removing() ? 'working' : status()?.complete ? 'ready' : 'idle'
+      }
+      {...(busy() ? { progress: progress() } : {})}
+      {...(error() ? { error: error() } : {})}
+      actions={
+        <>
+          <Show when={!status()?.complete && !busy()}>
+            <Button
+              type="button"
+              variant="primary"
+              disabled={removing() || !status()}
+              onClick={() => void download()}
+            >
+              {(status()?.files ?? 0) > 0 ? 'Докачать остальные' : 'Скачать все'}
+            </Button>
+          </Show>
+          <Show when={busy()}>
+            <Button type="button" variant="quiet" disabled={!task()?.canCancel} onClick={cancel}>
+              Отменить
+            </Button>
+          </Show>
+          <Show when={!busy() && (status()?.files ?? 0) > 0}>
+            <Button
+              type="button"
+              variant="quiet"
+              disabled={removing()}
+              onClick={() => void remove()}
+            >
+              Удалить скачанные
+            </Button>
+          </Show>
+        </>
+      }
+      {...(status()
+        ? {
+            details: (
+              <p class="reference-images-settings__details">
+                {status()?.totalFiles} файлов, {formatModuleBytes(status()?.totalBytes ?? 0)}.
+                Картинки хранятся на этом устройстве и не занимают место в базе поиска.
+              </p>
+            ),
           }
-        >
-          <Button
-            type="button"
-            class="reference-images-settings__action"
-            variant="danger"
-            disabled={!task()?.canCancel}
-            onClick={cancel}
-          >
-            Отменить
-          </Button>
-        </Show>
-      </div>
-      <Show when={error()}>
-        <p class="reference-images-settings__error" role="alert">
-          {error()}
-        </p>
-      </Show>
-    </section>
+        : {})}
+    />
   );
 }

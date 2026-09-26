@@ -37,7 +37,7 @@ test('keeps source and tool lookup together and restores the six-section layout 
   await nav.getByRole('button', { name: 'Мои файлы', exact: true }).click();
   await expect(page).toHaveURL(/#\/modules\/documents\/user/u);
   await nav.getByRole('button', { name: /^Настройки/u }).click();
-  const legacy = page.getByRole('switch', { name: 'Разбивать навигацию на разделы' });
+  const legacy = page.getByRole('switch', { name: 'Отдельные вкладки разделов' });
   await legacy.click();
   await expect(nav.locator('.app-nav-button')).toHaveCount(6);
   await expect(nav.getByRole('button', { name: /^База знаний/u })).toBeVisible();

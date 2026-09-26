@@ -1196,104 +1196,33 @@
 
 /* ASR settings card */
 
-.asr-model-list {
-  display: grid;
-  gap: 0.5rem;
-  margin-top: 0.6rem;
+.asr-settings__note {
+  margin: 0;
 }
 
-.asr-model-row {
+.asr-settings__model {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.7rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.6rem;
-  background: var(--theme-surface-raised);
-}
-
-.asr-model-row__toggle {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
-  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-muted);
 }
 
-.asr-model-row--active {
-  border-color: var(--theme-accent);
-}
-
-.asr-model-row__check {
-  flex: none;
-  margin-top: 0.2rem;
-  accent-color: var(--theme-accent);
-}
-
-.asr-model-row__info {
+.asr-settings__model-copy {
   display: grid;
-  flex: 1;
-  min-width: 0;
   gap: 0.1rem;
-  font-size: 0.8rem;
+  min-width: 0;
 }
 
-.asr-model-row__description {
-  color: var(--theme-text-muted);
-  font-size: 0.7rem;
-}
-
-.asr-model-row__meta {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-}
-
-.asr-model-row__state {
-  color: var(--theme-text-muted);
-  font-size: 0.7rem;
-}
-
-.asr-model-row__state--on {
-  color: var(--theme-accent);
+.asr-settings__model-name {
+  color: var(--theme-text);
   font-weight: 700;
 }
 
-.asr-model-row__progress {
-  color: var(--theme-accent);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.asr-model-row__remove.ui-button {
-  min-height: 1.9rem;
-  flex: none;
-  padding: 0.2rem 0.45rem;
-  color: var(--theme-danger);
-  font-size: 0.68rem;
-}
-
-@media (max-width: 38rem) {
-  .asr-model-row {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .asr-model-row__toggle {
-    flex-basis: 100%;
-  }
-
-  .asr-model-row__state,
-  .asr-model-row__progress {
-    margin-left: 1.85rem;
-  }
-}
-
-.asr-settings__error {
-  margin: 0.5rem 0 0;
-  color: #b3402f;
-  font-size: 0.72rem;
+.asr-settings__model-state {
+  font-size: 0.75rem;
 }
 
 /* ==highlight== mark */

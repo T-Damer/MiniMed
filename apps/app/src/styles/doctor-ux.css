@@ -1926,16 +1926,8 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   overflow: hidden;
 }
 
-.reference-images-settings__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.reference-images-settings__status {
-  color: var(--ink-soft);
-}
-.reference-images-settings__error {
-  color: var(--theme-danger);
+.reference-images-settings__details {
+  margin: 0;
 }
 .boot-card__progress {
   font-variant-numeric: tabular-nums;

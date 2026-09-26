@@ -1,7 +1,8 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
-import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { ChoiceGroup } from '@/components/ChoiceGroup';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { FeatureCard } from '@/components/FeatureCard';
 import { asrDownloadId } from '@/features/asr/asr-download-protocol';
 import {
   ASR_MODELS,
@@ -119,58 +120,106 @@ export function AsrSettings(): JSX.Element {
     }
   };
 
-  return (
-    <section
-      class="settings-section settings-section--asr paper-sheet"
-      aria-labelledby="settings-asr-heading"
-    >
-      <header class="settings-section__heading">
-        <div class="settings-section__heading-main">
-          <AppGlyph name="text-aa-fill" class="settings-section__icon" />
-          <div class="settings-section__heading-copy">
-            <h2 id="settings-asr-heading" class="settings-section__title">
-              Расшифровка голосовых заметок
-            </h2>
-            <p class="settings-section__description">
-              Модель работает на устройстве. После успешной первой загрузки MiniMed сохраняет
-              проверенный набор файлов локально и при следующем запуске поднимает его без сети. Если
-              браузер очистит хранилище, модель нужно будет загрузить заново. Выбор другой модели
-              приостановит текущую загрузку.
-            </p>
-          </div>
-        </div>
-      </header>
-      <div class="asr-model-list">
-        <For each={ASR_MODELS.filter((model) => model.runtimeReady)}>
-          {(model) => (
-            <AsrModelRow
-              model={model}
-              ready={ready().has(model.id)}
-              cached={cached().has(model.id)}
-              selected={selected() === model.id || busy() === model.id}
-              progress={progress()[model.id]}
-              busy={busy() === model.id}
-              removing={removing() === model.id}
-              onToggle={(checked) => void toggleModel(model, checked)}
-              onRemove={() => setRemoveTarget(model)}
-            />
-          )}
-        </For>
-      </div>
-      <Show when={error()}>
-        <p class="asr-settings__error" role="alert">
-          {error()}
-        </p>
-      </Show>
+  const available = ASR_MODELS.filter((model) => model.runtimeReady);
+  const activeModel = () => available.find((model) => model.id === (busy() ?? selected()));
+  const statusLabel = (): string => {
+    const loading = busy();
+    if (removing()) return 'Удаляем…';
+    if (loading) {
+      const fraction = progress()[loading];
+      return typeof fraction === 'number'
+        ? `Скачивается · ${Math.round(fraction * 100)}%`
+        : 'Скачивается…';
+    }
+    const model = activeModel();
+    if (!model) return 'Выключено';
+    return ready().has(model.id)
+      ? `Включено · ${model.choiceLabel}`
+      : `Выбрано · ${model.choiceLabel}`;
+  };
+  const loadingProgress = (): number | null | undefined => {
+    const loading = busy();
+    if (!loading) return undefined;
+    return progress()[loading] ?? null;
+  };
 
+  return (
+    <FeatureCard
+      class="asr-settings"
+      headingId="settings-asr-heading"
+      icon="microphone"
+      title="Расшифровка голосовых заметок"
+      summary="Голосовые заметки превращаются в текст прямо на устройстве, запись никуда не отправляется. Модель скачивается один раз."
+      status={statusLabel()}
+      tone={error() ? 'error' : busy() || removing() ? 'working' : activeModel() ? 'ready' : 'idle'}
+      {...(loadingProgress() !== undefined ? { progress: loadingProgress() } : {})}
+      {...(error() ? { error: error() } : {})}
+      detailsTitle="Модели и место на устройстве"
+      details={
+        <>
+          <p class="asr-settings__note">
+            Используются открытые модели Whisper. Если браузер очистит хранилище сайта, модель
+            придётся скачать заново; готовые расшифровки при этом сохранятся.
+          </p>
+          <For each={available}>
+            {(model) => (
+              <div class="asr-settings__model">
+                <span class="asr-settings__model-copy">
+                  <span class="asr-settings__model-name">
+                    {model.choiceLabel} — {model.name}
+                  </span>
+                  <span class="asr-settings__model-state">
+                    {cached().has(model.id) ? 'Скачана на устройство' : 'Не скачана'}
+                  </span>
+                </span>
+                <Show when={cached().has(model.id) && busy() !== model.id}>
+                  <Button
+                    type="button"
+                    variant="quiet"
+                    disabled={removing() === model.id}
+                    aria-label={`Удалить модель «${model.choiceLabel}» с устройства`}
+                    onClick={() => setRemoveTarget(model)}
+                  >
+                    {removing() === model.id ? 'Удаляем…' : 'Удалить'}
+                  </Button>
+                </Show>
+              </div>
+            )}
+          </For>
+        </>
+      }
+    >
+      <ChoiceGroup
+        class="asr-settings__choice"
+        legend="Режим расшифровки"
+        value={busy() ?? selected() ?? 'off'}
+        disabled={removing() !== null}
+        options={[
+          { value: 'off', label: 'Выключено', hint: 'Голосовые заметки сохраняются без текста.' },
+          ...available.map((model) => ({
+            value: model.id,
+            label: model.choiceLabel,
+            hint: model.choiceHint,
+          })),
+        ]}
+        onChange={(value) => {
+          if (value === 'off') {
+            const current = selected();
+            const model = available.find((item) => item.id === current);
+            if (model) void toggleModel(model, false);
+            return;
+          }
+          const model = available.find((item) => item.id === value);
+          if (model) void toggleModel(model, true);
+        }}
+      />
       <ConfirmationDialog
         open={removeTarget() !== null}
-        title="Удалить речевую модель?"
+        title="Удалить модель с устройства?"
         description={
           <>
-            Модель будет удалена из локального хранилища браузера и перестанет занимать место.
-            Готовые расшифровки останутся в заметках. При следующем включении модель потребуется
-            скачать заново.
+            Модель перестанет занимать место. Готовые расшифровки останутся в заметках. Чтобы снова
+            расшифровывать, модель нужно будет скачать заново.
           </>
         }
         confirmLabel="Удалить модель"
@@ -180,69 +229,6 @@ export function AsrSettings(): JSX.Element {
           if (!open && !removing()) setRemoveTarget(null);
         }}
       />
-    </section>
-  );
-}
-
-function AsrModelRow(props: {
-  readonly model: AsrModelDescriptor;
-  readonly ready: boolean;
-  readonly cached: boolean;
-  readonly selected: boolean;
-  readonly progress: number | null | undefined;
-  readonly busy: boolean;
-  readonly removing: boolean;
-  readonly onToggle: (checked: boolean) => void;
-  readonly onRemove: () => void;
-}): JSX.Element {
-  const percent = (): string =>
-    typeof props.progress === 'number' ? `${Math.round(props.progress * 100)}%` : '';
-  return (
-    <div class="asr-model-row" classList={{ 'asr-model-row--active': props.selected }}>
-      <label class="asr-model-row__toggle">
-        <input
-          type="checkbox"
-          class="asr-model-row__check"
-          checked={props.selected}
-          disabled={props.removing}
-          onChange={(event) => props.onToggle(event.currentTarget.checked)}
-        />
-        <span class="asr-model-row__info">
-          <strong>{props.model.name}</strong>
-          <small class="asr-model-row__description">{props.model.description}</small>
-          <small class="asr-model-row__meta">
-            {props.model.preferredForRussian ? 'рекомендуется для русского' : 'резервная'}
-            {props.cached ? ' · скачана' : ''}
-          </small>
-        </span>
-      </label>
-      <Show
-        when={props.busy}
-        fallback={
-          <Show when={props.selected || props.ready || props.cached}>
-            <span
-              class="asr-model-row__state"
-              classList={{ 'asr-model-row__state--on': props.selected }}
-            >
-              {props.selected ? 'Активна' : props.ready ? 'Загружена' : 'Скачана'}
-            </span>
-          </Show>
-        }
-      >
-        <span class="asr-model-row__progress">{percent() || 'Загрузка…'}</span>
-      </Show>
-      <Show when={props.cached && !props.busy}>
-        <Button
-          type="button"
-          class="asr-model-row__remove"
-          variant="quiet"
-          disabled={props.removing}
-          aria-label={`Удалить модель ${props.model.name} из браузера`}
-          onClick={props.onRemove}
-        >
-          {props.removing ? 'Удаление…' : 'Удалить'}
-        </Button>
-      </Show>
-    </div>
+    </FeatureCard>
   );
 }

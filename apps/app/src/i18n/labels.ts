@@ -41,6 +41,15 @@ export function sourceTypeReaderLabel(sourceType: string): string | null {
   return browserI18n.getMessage(key) || null;
 }
 
+/** Russian one/few/many noun form for a count: pluralRu(3, 'файл', 'файла', 'файлов'). */
+export function pluralRu(count: number, one: string, few: string, many: string): string {
+  const mod10 = Math.abs(count) % 10;
+  const mod100 = Math.abs(count) % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+  return many;
+}
+
 export function recommendationCountLabel(count: number): string {
   const mod10 = count % 10;
   const mod100 = count % 100;

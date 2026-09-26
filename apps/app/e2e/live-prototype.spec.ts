@@ -15,7 +15,7 @@ test.describe('published MiniMed prototype', () => {
     });
     await expect(nav.locator('.app-nav-button')).toHaveCount(3);
     await nav.getByRole('button', { name: 'Настройки', exact: true }).click();
-    const splitNavigation = page.getByRole('switch', { name: 'Разбивать навигацию на разделы' });
+    const splitNavigation = page.getByRole('switch', { name: 'Отдельные вкладки разделов' });
     await splitNavigation.click();
     await expect(splitNavigation).toHaveAttribute('aria-checked', 'true');
     await expect(nav.getByRole('button', { name: 'Тесты', exact: true })).toBeVisible({

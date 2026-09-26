@@ -9,6 +9,7 @@ import {
   isDownloadActive,
 } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
+import { pluralRu } from '@/i18n/labels';
 
 const LABELS: Readonly<Record<DownloadPhase, string>> = {
   queued: 'В очереди',
@@ -56,6 +57,16 @@ function detail(task: DownloadTask): string {
 }
 
 /** A view only: opening Settings never starts a database, model or download. */
+function downloadSummary(active: number, queued: number, attention: number): string {
+  const parts: string[] = [];
+  if (active > 0)
+    parts.push(`${active} ${pluralRu(active, 'загрузка идёт', 'загрузки идут', 'загрузок идёт')}`);
+  if (queued > 0) parts.push(`${queued} в очереди`);
+  if (attention > 0)
+    parts.push(`${attention} ${pluralRu(attention, 'требует', 'требуют', 'требуют')} внимания`);
+  return parts.length > 0 ? parts.join(' · ') : 'Сейчас ничего не скачивается';
+}
+
 export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}): JSX.Element {
   const queue = getDownloadQueue();
   const [tasks, setTasks] = createSignal(queue.list());
@@ -87,7 +98,11 @@ export function ContentDownloadStatus(props: { readonly compact?: boolean } = {}
   const summary = () =>
     !online()
       ? 'Нет сети. Новые передачи ожидают подключения.'
-      : `Активные: ${active().length} · В очереди: ${tasks().filter((task) => task.state === 'queued').length} · Требуют внимания: ${attention().length}`;
+      : downloadSummary(
+          active().length,
+          tasks().filter((task) => task.state === 'queued').length,
+          attention().length,
+        );
   const act = (operation: () => Promise<void>): void => {
     setError('');
     void operation().catch(() =>

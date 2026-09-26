@@ -1,7 +1,6 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
-import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { Disclosure } from '@/components/Disclosure';
+import { FeatureCard } from '@/components/FeatureCard';
 import { openCalculator } from '@/features/calculators/calculator-links';
 import { ECG_PHOTO_CALIPER_ID } from '@/features/calculators/calculator-registry';
 import { readEcgModelDescriptor, subscribeEcgModel } from '@/features/calculators/ecg-model';
@@ -86,114 +85,100 @@ export function EcgModelSettings(): JSX.Element {
       setRemoving(false);
     }
   };
+  const sizeLabel = (): string =>
+    `${(ECG_PACKAGE_COMPONENTS.reduce((sum, item) => sum + item.downloadBytes, 0) / 1024 / 1024)
+      .toFixed(1)
+      .replace('.', ',')} МБ`;
+  const status = (): string => {
+    const current = task();
+    if (busy() === 'remove') return 'Удаляем…';
+    if (busy() === 'download') {
+      if (current?.state === 'verifying') return 'Проверяем файлы…';
+      if (current?.state === 'installing') return 'Устанавливаем…';
+      if (current?.state === 'queued') return 'В очереди';
+      return `Скачивается · ${Math.floor(progress() * 100)}%`;
+    }
+    if (installed()) return 'Готово к работе';
+    if (hasFiles()) return 'Скачано не полностью';
+    return `Не скачано · ${sizeLabel()}`;
+  };
   return (
-    <section
-      class="settings-section settings-section--ecg-model paper-sheet ecg-model-settings"
-      aria-labelledby="settings-ecg-model-heading"
-    >
-      <header class="settings-section__heading">
-        <div class="settings-section__heading-main">
-          <AppGlyph name="brain-fill" class="settings-section__icon" />
-          <div class="settings-section__heading-copy">
-            <h2 id="settings-ecg-model-heading" class="settings-section__title">
-              Распознавание ЭКГ
-            </h2>
-            <p class="settings-section__description">
-              Фото, измерения и результаты остаются на устройстве. После скачивания работает офлайн.
-            </p>
-          </div>
-        </div>
-      </header>
-      <p class="ecg-model-settings__status">
-        {installed()
-          ? 'Установлено'
-          : hasFiles()
-            ? 'Скачано частично — продолжите установку'
-            : `${(ECG_PACKAGE_COMPONENTS.reduce((sum, item) => sum + item.downloadBytes, 0) / 1024 / 1024).toFixed(1)} МБ`}
-      </p>
-      <div class="ecg-model-settings__option-footer">
-        <Show
-          when={installed()}
-          fallback={
+    <FeatureCard
+      class="ecg-model-settings"
+      headingId="settings-ecg-model-heading"
+      icon="microscope"
+      title="Распознавание ЭКГ по фото"
+      summary="Сфотографируйте ленту ЭКГ: MiniMed оцифрует кривые и поможет измерить интервалы. Фото и результаты не покидают устройство."
+      status={status()}
+      tone={error() ? 'error' : busy() ? 'working' : installed() ? 'ready' : 'idle'}
+      {...(busy() === 'download' ? { progress: progress() || null } : {})}
+      {...(error() ? { error: error() } : {})}
+      actions={
+        <>
+          <Show
+            when={installed()}
+            fallback={
+              <Button
+                type="button"
+                variant="primary"
+                disabled={busy() !== null}
+                onClick={() => void install()}
+              >
+                {hasFiles() ? 'Докачать' : 'Скачать'}
+              </Button>
+            }
+          >
             <Button
               type="button"
               variant="primary"
-              class="ecg-model-settings__action"
-              disabled={busy() !== null}
-              onClick={() => void install()}
+              onClick={() => openCalculator(ECG_PHOTO_CALIPER_ID)}
             >
-              {busy() === 'download'
-                ? task()?.state === 'verifying'
-                  ? 'Проверяем данные'
-                  : task()?.state === 'installing'
-                    ? 'Сохраняем данные'
-                    : task()?.state === 'queued'
-                      ? 'В очереди'
-                      : `Скачиваем ${Math.floor(progress() * 100)}%`
-                : 'Скачать'}
+              Открыть
             </Button>
-          }
-        >
-          <Button
-            type="button"
-            variant="primary"
-            class="ecg-model-settings__action"
-            onClick={() => openCalculator(ECG_PHOTO_CALIPER_ID)}
-          >
-            Открыть
-          </Button>
-        </Show>
-        <Show when={busy() === 'download'}>
-          <Button
-            type="button"
-            variant="danger"
-            class="ecg-model-settings__action"
-            disabled={!task()?.canCancel}
-            onClick={cancel}
-          >
-            Отменить
-          </Button>
-        </Show>
-        <Show when={hasFiles() && busy() !== 'download'}>
-          <Button
-            type="button"
-            variant="danger"
-            class="ecg-model-settings__action"
-            disabled={busy() !== null}
-            onClick={() => void remove()}
-          >
-            Удалить
-          </Button>
-        </Show>
-      </div>
-      <Disclosure variant="inline" title="Подробнее о пакете">
-        <For each={ECG_PACKAGE_COMPONENTS}>
-          {(candidate) => (
-            <div class="ecg-model-settings__option">
-              <h3 class="ecg-model-settings__option-name">{candidate.name}</h3>
-              <p class="ecg-model-settings__option-description">{candidate.description}</p>
-              <a
-                class="ecg-model-settings__license-link"
-                href={candidate.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {candidate.license} · {candidate.version}
-              </a>
-            </div>
-          )}
-        </For>
-        <p class="ecg-model-settings__notice">
-          Только для взрослых 18+. Оцифровщик извлекает кривые; числовая модель принимает 30
-          подтверждённых измерений и выдаёт пять исследовательских гипотез. Результат требует
-          проверки по исходной ЭКГ врачом и не подтверждает острый инфаркт.
-        </p>
-      </Disclosure>
-      <Show when={error()}>
-        <p class="ecg-model-settings__error" role="alert">
-          {error()}
-        </p>
-      </Show>
-    </section>
+          </Show>
+          <Show when={busy() === 'download'}>
+            <Button type="button" variant="quiet" disabled={!task()?.canCancel} onClick={cancel}>
+              Отменить
+            </Button>
+          </Show>
+          <Show when={hasFiles() && busy() !== 'download'}>
+            <Button
+              type="button"
+              variant="quiet"
+              disabled={busy() !== null}
+              onClick={() => void remove()}
+            >
+              Удалить
+            </Button>
+          </Show>
+        </>
+      }
+      detailsTitle="Что внутри и ограничения"
+      details={
+        <>
+          <p class="ecg-model-settings__notice">
+            Для взрослых 18+. Модель предлагает исследовательские гипотезы по 30 подтверждённым
+            измерениям. Заключение всегда делает врач по исходной ЭКГ; острый инфаркт так не
+            подтверждается и не исключается.
+          </p>
+          <For each={ECG_PACKAGE_COMPONENTS}>
+            {(candidate) => (
+              <div class="ecg-model-settings__option">
+                <span class="ecg-model-settings__option-name">{candidate.name}</span>
+                <span class="ecg-model-settings__option-description">{candidate.description}</span>
+                <a
+                  class="ecg-model-settings__license-link"
+                  href={candidate.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {candidate.license} · {candidate.version}
+                </a>
+              </div>
+            )}
+          </For>
+        </>
+      }
+    />
   );
 }

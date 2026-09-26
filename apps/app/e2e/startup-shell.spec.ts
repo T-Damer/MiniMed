@@ -94,7 +94,7 @@ for (const viewport of [
       }
       await navigation.getByRole('button', { name: 'Настройки', exact: true }).click();
       await expect(page.getByRole('heading', { name: 'Настройки', exact: true })).toBeVisible();
-      await page.getByRole('switch', { name: 'Разбивать навигацию на разделы' }).click();
+      await page.getByRole('switch', { name: 'Отдельные вкладки разделов' }).click();
       await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
       await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
       await expect(page.locator('.boot-card')).toBeVisible();

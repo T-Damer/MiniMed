@@ -30,6 +30,9 @@ export interface AsrModelDescriptor {
   readonly id: string;
   readonly name: string;
   readonly description: string;
+  /** Plain choice label for Settings, e.g. «Быстрая». */
+  readonly choiceLabel: string;
+  readonly choiceHint: string;
   readonly language: 'ru' | 'multilingual';
   readonly preferredForRussian: boolean;
   /** False while the weights lack a transformers.js-executable export. */
@@ -42,6 +45,8 @@ export const ASR_MODELS: readonly AsrModelDescriptor[] = [
     id: 'onnx-community/whisper-base',
     name: 'Whisper Base (q8)',
     description: 'Компактная модель для обычных голосовых заметок.',
+    choiceLabel: 'Быстрая',
+    choiceHint: 'Для записи в тихой обстановке. Скачивается быстрее и занимает меньше памяти.',
     language: 'multilingual',
     preferredForRussian: true,
     runtimeReady: true,
@@ -50,6 +55,8 @@ export const ASR_MODELS: readonly AsrModelDescriptor[] = [
     id: 'onnx-community/whisper-small',
     name: 'Whisper Small (q8)',
     description: 'Точнее на шумной записи, но требует больше памяти.',
+    choiceLabel: 'Точная',
+    choiceHint: 'Лучше разбирает речь с шумом. Файлы больше, расшифровка медленнее.',
     language: 'multilingual',
     preferredForRussian: false,
     runtimeReady: true,
@@ -58,6 +65,8 @@ export const ASR_MODELS: readonly AsrModelDescriptor[] = [
     id: 'gigaam-v3-onnx',
     name: 'GigaAM v3 (ONNX)',
     description: 'требует отдельного GigaAM-препроцессора и CTC-декодера',
+    choiceLabel: 'Русская',
+    choiceHint: 'Пока недоступна в браузере.',
     language: 'ru',
     preferredForRussian: true,
     runtimeReady: false,

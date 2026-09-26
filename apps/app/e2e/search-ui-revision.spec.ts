@@ -131,7 +131,7 @@ for (const width of [375, 1280]) {
     await expect(
       page
         .locator('.settings-row')
-        .filter({ hasText: 'Разбивать навигацию на разделы' })
+        .filter({ hasText: 'Отдельные вкладки разделов' })
         .locator('.settings-row__label-icon'),
     ).toBeVisible();
     await page.screenshot({ path: test.info().outputPath('settings.png') });

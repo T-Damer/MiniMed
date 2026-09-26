@@ -138,7 +138,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
           }
           icon={<AppGlyph name="system" class="page__icon-glyph" />}
           title={<h1 class="settings-page__title">Настройки</h1>}
-          description="Параметры интерфейса, локальных данных и моделей MiniMed."
+          description="Внешний вид, загрузки и дополнительные возможности."
         />
 
         <AppUpdateChecker
@@ -154,33 +154,28 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
           onCancel={props.onCancelAppUpdate}
         />
 
+        <h2 id="settings-interface-heading" class="settings-page__group-title">
+          Основное
+        </h2>
         <section
           class="settings-section settings-section--interface paper-sheet"
           aria-labelledby="settings-interface-heading"
         >
-          <header class="settings-section__heading">
-            <div class="settings-section__heading-main">
-              <AppGlyph name="system-fill" class="settings-section__icon" />
-              <h2 id="settings-interface-heading" class="settings-section__title">
-                Интерфейс
-              </h2>
-            </div>
-          </header>
-
           {DevDownloadSettings && <DevDownloadSettings />}
           <div class="settings-row">
             <div class="settings-row__text">
               <span class="settings-row__label settings-row__label--with-icon">
                 <AppGlyph name="squares-four" class="settings-row__label-icon" aria-hidden="true" />
-                Разбивать навигацию на разделы
+                Отдельные вкладки разделов
               </span>
               <p class="settings-row__helper">
-                Отдельные кнопки базы знаний, опросников, калькуляторов и заметок.
+                Показывать базу знаний, опросники, калькуляторы и заметки отдельными кнопками внизу
+                экрана.
               </p>
             </div>
             <Switch
               checked={splitNavigation()}
-              aria-label="Разбивать навигацию на разделы"
+              aria-label="Отдельные вкладки разделов"
               onChange={setSplitNavigation}
             />
           </div>
@@ -191,6 +186,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
                 <AppGlyph name="vibrate" class="settings-row__label-icon" aria-hidden="true" />
                 Вибрация
               </span>
+              <p class="settings-row__helper">Лёгкий отклик телефона при нажатиях.</p>
             </div>
             <Switch
               checked={vibrationEnabled()}
@@ -207,16 +203,16 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
                   class="settings-row__label-icon"
                   aria-hidden="true"
                 />
-                Отключить плавающие окна
+                Плавающие окна
               </span>
               <p class="settings-row__helper">
-                Скрыть кнопку и закрыть уже открытые маленькие окна
+                Открывать документы и калькуляторы в маленьком окне поверх текущего экрана.
               </p>
             </div>
             <Switch
-              checked={!floatingWindowsEnabled()}
-              aria-label="Отключить плавающие окна"
-              onChange={(disabled) => setFloatingWindowsEnabled(!disabled)}
+              checked={floatingWindowsEnabled()}
+              aria-label="Плавающие окна"
+              onChange={(enabled) => setFloatingWindowsEnabled(enabled)}
             />
           </div>
 
@@ -224,30 +220,33 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
             <div class="settings-row__text">
               <span class="settings-row__label settings-row__label--with-icon">
                 <AppGlyph name="flask" class="settings-row__label-icon" aria-hidden="true" />
-                Experimental
+                Предварительные материалы
               </span>
               <p class="settings-row__helper">
-                Показывать загрузку предварительных баз препаратов, калькуляторов и опросников. Они
-                могут быть неполными или измениться без обратной совместимости.
+                Показывать черновые наборы препаратов, калькуляторов и опросников. Они могут быть
+                неполными и ещё меняться.
               </p>
             </div>
             <Switch
               checked={experimentalModulesEnabled()}
-              aria-label="Экспериментальные базы"
+              aria-label="Предварительные материалы"
               onChange={(checked) => setExperimentalModulesEnabled(checked)}
             />
           </div>
 
           <div class="settings-row">
             <div class="settings-row__text">
-              <span class="settings-row__label">Автообновление пакетов знаний</span>
+              <span class="settings-row__label settings-row__label--with-icon">
+                <AppGlyph name="refresh" class="settings-row__label-icon" aria-hidden="true" />
+                Обновлять материалы автоматически
+              </span>
               <p class="settings-row__helper">
-                Автоматически скачивать новые версии уже установленных пакетов.
+                Новые версии уже скачанных наборов загружаются сами.
               </p>
             </div>
             <Switch
               checked={moduleAutoUpdatesEnabled()}
-              aria-label="Автообновление пакетов знаний"
+              aria-label="Обновлять материалы автоматически"
               onChange={setModuleAutoUpdatesEnabled}
             />
           </div>
@@ -277,6 +276,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
           </div>
         </section>
 
+        <h2 class="settings-page__group-title">Загрузки</h2>
         <a
           class="settings-section settings-section--downloads paper-sheet"
           href={SETTINGS_DOWNLOADS_HASH}
@@ -286,11 +286,11 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
             <div class="settings-section__heading-main">
               <AppGlyph name="download-fill" class="settings-section__icon" />
               <div class="settings-section__heading-copy">
-                <h2 id="settings-downloads-heading" class="settings-section__title">
-                  Загрузки
-                </h2>
+                <h3 id="settings-downloads-heading" class="settings-section__title">
+                  Скачанные материалы
+                </h3>
                 <p class="settings-section__description">
-                  Наборы документов, прогресс и повтор прерванных загрузок
+                  Что уже на устройстве, что скачивается сейчас и что можно повторить.
                 </p>
               </div>
             </div>
@@ -298,12 +298,18 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
           <ContentDownloadStatus compact />
         </a>
 
+        <div class="settings-page__group-heading">
+          <h2 class="settings-page__group-title">Дополнительные возможности</h2>
+          <p class="settings-page__group-description">
+            Скачиваются по желанию и дальше работают без интернета.
+          </p>
+        </div>
         <EcgModelSettings />
         <ReferenceImagesSettings />
-
         <AsrSettings />
 
-        <Disclosure class="system-technical-panel" title="Техническая информация о приложении">
+        <h2 class="settings-page__group-title">О приложении</h2>
+        <Disclosure class="system-technical-panel" title="Техническая информация">
           <Show
             when={props.status}
             fallback={
