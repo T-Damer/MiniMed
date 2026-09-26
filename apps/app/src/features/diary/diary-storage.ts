@@ -14,6 +14,7 @@ const INDEX_KEY = `${KEY_PREFIX}index`;
 
 export interface DiaryStore {
   list(): readonly DiaryInvitation[];
+  warnings(): readonly string[];
   load(invitation: DiaryInvitation): DiaryResults;
   save(results: DiaryResults): void;
   remove(id: string): void;
@@ -36,6 +37,7 @@ function scanDiaryIds(storage: Storage): string[] {
 }
 
 export function createDiaryStore(storage: Storage, now: () => number = Date.now): DiaryStore {
+  let lastWarnings: string[] = [];
   const ids = (): string[] => {
     let indexed: string[] = [];
     try {
@@ -70,16 +72,23 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
   };
   return {
     list() {
-      return ids().flatMap((id) => {
+      const warnings: string[] = [];
+      const invitations = ids().flatMap((id) => {
         try {
           const stored = readJson(storage, KEY_PREFIX + id);
           if (stored === null) return [];
           return [parseDiaryResults(stored, now()).invitation];
         } catch {
-          // One damaged local diary must not prevent opening the remaining valid diaries.
+          // Preserve the raw record for possible recovery; isolate it from the valid diary list.
+          warnings.push(`Локальный дневник ${id} повреждён и не открыт.`);
           return [];
         }
       });
+      lastWarnings = warnings;
+      return invitations;
+    },
+    warnings() {
+      return lastWarnings;
     },
     load(invitation) {
       const stored = readJson(storage, KEY_PREFIX + invitation.id);
