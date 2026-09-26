@@ -29,10 +29,17 @@ interface FakeCursor {
   continue: () => void;
 }
 
+interface FakeIndex {
+  openCursor: () => FakeRequest<FakeCursor | null>;
+}
+
 interface FakeObjectStore {
   get: (key: string) => FakeRequest<PartialDownloadRecordDouble | undefined>;
+  getAll: () => FakeRequest<PartialDownloadRecordDouble[]>;
   put: (record: PartialDownloadRecordDouble) => void;
   delete: (key: string) => void;
+  clear: () => void;
+  index: (name: string) => FakeIndex;
   openCursor: () => FakeRequest<FakeCursor | null>;
 }
 
@@ -103,12 +110,31 @@ export function installIndexedDbDouble(
         });
         return request;
       },
+      getAll: () => {
+        const request: FakeRequest<PartialDownloadRecordDouble[]> = {
+          result: [],
+          onsuccess: null,
+          onerror: null,
+          onupgradeneeded: null,
+        };
+        track(() => {
+          request.result = [...store.values()];
+          request.onsuccess?.();
+        });
+        return request;
+      },
       put: (record) => {
         track(() => store.set(record.key, record), writeDelayMs);
       },
       delete: (key) => {
         track(() => store.delete(key));
       },
+      clear: () => {
+        track(() => store.clear());
+      },
+      index: () => ({
+        openCursor: () => objectStore.openCursor(),
+      }),
       openCursor: () => {
         const keys = [...store.keys()];
         const request: FakeRequest<FakeCursor | null> = {
@@ -228,6 +254,19 @@ export function installMultiStoreIndexedDbDouble(
           });
           return request;
         },
+        getAll: () => {
+          const request: FakeRequest<PartialDownloadRecordDouble[]> = {
+            result: [],
+            onsuccess: null,
+            onerror: null,
+            onupgradeneeded: null,
+          };
+          track(() => {
+            request.result = [...definition.records.values()] as unknown as PartialDownloadRecordDouble[];
+            request.onsuccess?.();
+          });
+          return request;
+        },
         put: (record) => {
           const generic = record as unknown as Record<string, unknown>;
           const key = generic[definition.keyPath];
@@ -239,6 +278,12 @@ export function installMultiStoreIndexedDbDouble(
         delete: (key) => {
           track(() => definition.records.delete(key));
         },
+        clear: () => {
+          track(() => definition.records.clear());
+        },
+        index: () => ({
+          openCursor: () => objectStore(name).openCursor(),
+        }),
         openCursor: () => {
           const keys = [...definition.records.keys()];
           const request: FakeRequest<FakeCursor | null> = {
