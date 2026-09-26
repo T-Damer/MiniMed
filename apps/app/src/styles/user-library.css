@@ -126,10 +126,31 @@
 }
 
 .user-document-reader.page-surface {
+  --user-document-text-scale: 1;
   min-height: calc(100dvh + 4.875rem + var(--nav-safe-bottom));
   margin-top: 0;
   margin-bottom: calc(-4.875rem - var(--nav-safe-bottom));
   padding: var(--safe-top, 0px) 0 0;
+}
+
+.user-document-reader--text-scale-90.user-document-reader {
+  --user-document-text-scale: 0.9;
+}
+
+.user-document-reader--text-scale-100.user-document-reader {
+  --user-document-text-scale: 1;
+}
+
+.user-document-reader--text-scale-110.user-document-reader {
+  --user-document-text-scale: 1.1;
+}
+
+.user-document-reader--text-scale-125.user-document-reader {
+  --user-document-text-scale: 1.25;
+}
+
+.user-document-reader--text-scale-140.user-document-reader {
+  --user-document-text-scale: 1.4;
 }
 
 .user-document-reader .document-page__body {
@@ -462,7 +483,7 @@
 .user-document-reader__text {
   margin: 0;
   color: var(--ink);
-  font-size: 0.8125rem;
+  font-size: calc(0.8125rem * var(--user-document-text-scale, 1));
   line-height: 1.45;
   white-space: pre-wrap;
 }
