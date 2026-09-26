@@ -27,11 +27,12 @@
   present in the integration tree.
 - Draft PR #185 (`feature/browser-integration` → `main`) is the consolidated review surface.
   GitHub Actions are intentionally not used because the repository Actions quota is exhausted.
-  Dependency-free source validation currently passes 56/56 invariants across diary, canvas,
-  MediaRecorder, structured ASR, persistent Whisper lifecycle, transcript retention, portable
-  personal-notes backup, diarization admission and integration wiring.
-  A full browser
-  `tsc/vitest/vite build` is still a pre-merge gate when a checkout/build environment is available.
+  Dependency-free source validation passes **57/57** top-level invariants on
+  `56fe5dfabe1c17419ffc3e74c0202a43714a556b` across diary, canvas, MediaRecorder, structured ASR,
+  persistent Whisper lifecycle, transcript retention, portable personal-notes backup, diarization
+  admission and integration wiring. The source gate's three over-escaped word-boundary regexes were
+  corrected before that run. A full browser `tsc/vitest/vite build` is still a pre-merge gate when
+  a checkout/build environment is available.
 
 ## Portable personal-notes backup — 2026-09-26
 
