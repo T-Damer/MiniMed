@@ -356,22 +356,35 @@ function filterQueryAliases(aliases: MedicalAliasRecords): MedicalAliasRecords {
   );
 }
 
+// Normalizing every medication alias per query dominated search time; the list is immutable.
+const preparedMedicationAliases = new WeakMap<
+  MedicalAliasRecords,
+  readonly MedicationAliasCandidate[]
+>();
+
 function exactMedicationAliasCandidates(
   query: string,
   aliases: MedicalAliasRecords,
 ): readonly MedicationAliasCandidate[] {
+  let prepared = preparedMedicationAliases.get(aliases);
+  if (!prepared) {
+    prepared = aliases
+      .filter((alias) => alias.category === 'medication')
+      .map((alias) => ({
+        alias: alias.alias,
+        normalizedAlias: normalizeSurfaceText(alias.alias),
+        normalizedCanonicalTerm: normalizeSurfaceText(alias.canonicalTerm),
+      }))
+      .filter(
+        ({ normalizedAlias, normalizedCanonicalTerm }) =>
+          normalizedAlias !== normalizedCanonicalTerm,
+      );
+    preparedMedicationAliases.set(aliases, prepared);
+  }
   const normalizedQuery = normalizeSurfaceText(query);
-  return aliases
-    .filter((alias) => alias.category === 'medication')
-    .map((alias) => ({
-      alias: alias.alias,
-      normalizedAlias: normalizeSurfaceText(alias.alias),
-      normalizedCanonicalTerm: normalizeSurfaceText(alias.canonicalTerm),
-    }))
+  return prepared
     .filter(
-      ({ normalizedAlias, normalizedCanonicalTerm }) =>
-        normalizedAlias !== normalizedCanonicalTerm &&
-        findNormalizedPhraseIndex(normalizedQuery, normalizedAlias) >= 0,
+      ({ normalizedAlias }) => findNormalizedPhraseIndex(normalizedQuery, normalizedAlias) >= 0,
     )
     .toSorted((left, right) => right.normalizedAlias.length - left.normalizedAlias.length);
 }

@@ -214,27 +214,49 @@ export function normalizeForIndex(value: string): string {
  * the edit distance provably exceeds the budget, so callers never pay for a full O(n*m) table on
  * clearly unrelated tokens.
  */
+// Reused rows: fuzzy alias matching compares thousands of token pairs per query.
+let previousRowBuffer = new Int32Array(64);
+let currentRowBuffer = new Int32Array(64);
+
+/**
+ * Exact edit distance when it is at most `maxDistance`, otherwise `maxDistance + 1`. Only the
+ * diagonal band of width ±maxDistance can stay within the bound, so cells outside it are skipped.
+ */
 export function levenshteinDistance(left: string, right: string, maxDistance: number): number {
   if (left === right) return 0;
   if (Math.abs(left.length - right.length) > maxDistance) return maxDistance + 1;
-
-  let previousRow: number[] = Array.from({ length: right.length + 1 }, (_, index) => index);
-  for (let i = 1; i <= left.length; i += 1) {
-    const currentRow: number[] = [i];
-    let rowMin = i;
-    for (let j = 1; j <= right.length; j += 1) {
-      const substitutionCost = left[i - 1] === right[j - 1] ? 0 : 1;
-      const deleteCost = (previousRow[j] ?? maxDistance + 1) + 1;
-      const insertCost = (currentRow[j - 1] ?? maxDistance + 1) + 1;
-      const substituteCost = (previousRow[j - 1] ?? maxDistance + 1) + substitutionCost;
-      const value = Math.min(deleteCost, insertCost, substituteCost);
-      currentRow.push(value);
-      rowMin = Math.min(rowMin, value);
-    }
-    if (rowMin > maxDistance) return maxDistance + 1;
-    previousRow = currentRow;
+  const over = maxDistance + 1;
+  const width = right.length + 1;
+  if (previousRowBuffer.length < width) {
+    previousRowBuffer = new Int32Array(width * 2);
+    currentRowBuffer = new Int32Array(width * 2);
   }
-  return previousRow[right.length] ?? maxDistance + 1;
+  let previousRow = previousRowBuffer;
+  let currentRow = currentRowBuffer;
+  for (let j = 0; j < width; j += 1) previousRow[j] = j <= maxDistance ? j : over;
+  for (let i = 1; i <= left.length; i += 1) {
+    const from = Math.max(1, i - maxDistance);
+    const to = Math.min(right.length, i + maxDistance);
+    currentRow[0] = i <= maxDistance ? i : over;
+    if (from > 1) currentRow[from - 1] = over;
+    let rowMin = currentRow[0] ?? over;
+    const leftCode = left.charCodeAt(i - 1);
+    for (let j = from; j <= to; j += 1) {
+      const substitute =
+        (previousRow[j - 1] ?? over) + (leftCode === right.charCodeAt(j - 1) ? 0 : 1);
+      const remove = (previousRow[j] ?? over) + 1;
+      const insert = (currentRow[j - 1] ?? over) + 1;
+      const value = Math.min(over, substitute, remove, insert);
+      currentRow[j] = value;
+      if (value < rowMin) rowMin = value;
+    }
+    if (to < right.length) currentRow[to + 1] = over;
+    if (rowMin > maxDistance) return over;
+    const swap = previousRow;
+    previousRow = currentRow;
+    currentRow = swap;
+  }
+  return Math.min(over, previousRow[right.length] ?? over);
 }
 
 /**

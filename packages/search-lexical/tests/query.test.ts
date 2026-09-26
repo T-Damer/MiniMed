@@ -54,6 +54,16 @@ it('retains all abbreviation meanings but prefers an explicit longer name', () =
   ]);
 });
 
+it('reuses a prepared alias index per list without mixing different lists', () => {
+  const first = [
+    { id: 'first', alias: 'ОРВИ', canonicalTerm: 'Острая респираторная инфекция', weight: 1 },
+  ];
+  const second = [{ id: 'second', alias: 'ОРВИ', canonicalTerm: 'Другое значение', weight: 1 }];
+  expect(expandAliases('ОРВИ', first).matchedAliases.map((alias) => alias.id)).toEqual(['first']);
+  expect(expandAliases('ОРВИ', second).matchedAliases.map((alias) => alias.id)).toEqual(['second']);
+  expect(expandAliases('ОРВИ', first).matchedAliases.map((alias) => alias.id)).toEqual(['first']);
+});
+
 it('keeps ambiguous alias facts as distinct uncertain meanings instead of choosing the first', () => {
   const dictionary = ['Первое средство', 'Второе средство'].map((canonicalTerm, index) => ({
     id: `meaning-${index}`,

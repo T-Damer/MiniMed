@@ -147,8 +147,17 @@ export function createAliasExpander(aliases: readonly AliasRecord[]): AliasExpan
   return (query) => expandPreparedAliases(query, prepared, heads);
 }
 
+// Preparing tens of thousands of aliases costs hundreds of milliseconds; clinical analysis calls
+// expandAliases several times per query with the same immutable list, so reuse it by identity.
+const preparedExpanders = new WeakMap<readonly AliasRecord[], AliasExpander>();
+
 export function expandAliases(query: string, aliases: readonly AliasRecord[]): AliasExpansion {
-  return createAliasExpander(aliases)(query);
+  let expander = preparedExpanders.get(aliases);
+  if (!expander) {
+    expander = createAliasExpander(aliases);
+    preparedExpanders.set(aliases, expander);
+  }
+  return expander(query);
 }
 
 function expandPreparedAliases(
