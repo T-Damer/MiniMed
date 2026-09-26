@@ -227,21 +227,31 @@ function ImportDiaryDialog(props: {
   const [status, setStatus] = createSignal('');
   const [results, setResults] = createSignal<DiaryResults | null>(null);
   const [cameraOn, setCameraOn] = createSignal(false);
+  const [startingCamera, setStartingCamera] = createSignal(false);
   const [attach, setAttach] = createSignal(Boolean(props.episodeId));
   const [saving, setSaving] = createSignal(false);
   let video: HTMLVideoElement | undefined;
   let stream: MediaStream | undefined;
   let frame: number | undefined;
   let lastScan = 0;
+  let disposed = false;
 
   const stopCamera = (): void => {
     if (frame !== undefined) cancelAnimationFrame(frame);
     frame = undefined;
     for (const track of stream?.getTracks() ?? []) track.stop();
     stream = undefined;
+    if (video) {
+      video.pause();
+      video.srcObject = null;
+    }
     setCameraOn(false);
+    setStartingCamera(false);
   };
-  onCleanup(stopCamera);
+  onCleanup(() => {
+    disposed = true;
+    stopCamera();
+  });
 
   const accept = (text: string): void => {
     if (results()) return;
@@ -278,22 +288,36 @@ function ImportDiaryDialog(props: {
   };
 
   const startCamera = async (): Promise<void> => {
+    if (startingCamera() || stream || disposed) return;
     setStatus('');
+    setStartingCamera(true);
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
+      const requestedStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
         audio: false,
       });
-      setCameraOn(true);
+      if (disposed) {
+        for (const track of requestedStream.getTracks()) track.stop();
+        return;
+      }
+      stream = requestedStream;
       if (!video) throw new Error('Видео недоступно.');
       video.srcObject = stream;
       await video.play();
+      if (disposed || !stream) {
+        stopCamera();
+        return;
+      }
+      setCameraOn(true);
+      setStartingCamera(false);
       frame = requestAnimationFrame(scanLoop);
     } catch (cause) {
       stopCamera();
-      setStatus(
-        `${errorMessage(cause, 'Камера недоступна.')} Можно сфотографировать коды и выбрать фото.`,
-      );
+      if (!disposed) {
+        setStatus(
+          `${errorMessage(cause, 'Камера недоступна.')} Можно сфотографировать коды и выбрать фото.`,
+        );
+      }
     }
   };
 
@@ -396,8 +420,12 @@ function ImportDiaryDialog(props: {
               <Show
                 when={cameraOn()}
                 fallback={
-                  <Button variant="primary" onClick={() => void startCamera()}>
-                    Включить камеру
+                  <Button
+                    variant="primary"
+                    disabled={startingCamera()}
+                    onClick={() => void startCamera()}
+                  >
+                    {startingCamera() ? 'Открываем камеру…' : 'Включить камеру'}
                   </Button>
                 }
               >
