@@ -23,6 +23,10 @@ const files = {
   diarizationModels: read('apps/app/src/features/asr/browser-diarization-models.ts'),
   diarizationModelTests: read('apps/app/src/features/asr/browser-diarization-models.test.ts'),
   transcriptPanel: read('apps/app/src/features/notes/NoteTranscriptPanel.tsx'),
+  transcriptEditAlignment: read('apps/app/src/features/notes/transcript-edit-alignment.ts'),
+  transcriptEditAlignmentTests: read(
+    'apps/app/src/features/notes/transcript-edit-alignment.test.ts',
+  ),
   voiceRecorder: read('apps/app/src/features/notes/VoiceRecordingButton.tsx'),
   noteFiles: read('apps/app/src/state/note-files.ts'),
   noteFilesTests: read('apps/app/src/state/note-files.test.ts'),
@@ -234,6 +238,20 @@ const checks = [
     files.transcriptPanel.includes('Скачать .txt') &&
       files.transcriptPanel.includes("setSpeakerRole(speakerId, 'Врач')") &&
       files.transcriptPanel.includes("setSpeakerRole(speakerId, 'Пациент')"),
+  ],
+  [
+    'manual transcript edits cannot masquerade as aligned timestamps',
+    files.transcriptPanel.includes(
+      'transcriptTextMatchesSegments(draft(), transcript()?.segments)',
+    ) &&
+      files.transcriptPanel.includes('Скачать с таймкодами') &&
+      files.transcriptEditAlignment.includes('normalizedTranscriptWords') &&
+      files.transcriptEditAlignmentTests.includes(
+        'keeps timestamps available for punctuation and case-only edits',
+      ) &&
+      files.transcriptEditAlignmentTests.includes(
+        'invalidates timestamp actions when words change',
+      ),
   ],
   [
     'transcript rerun protects unsaved edits',
