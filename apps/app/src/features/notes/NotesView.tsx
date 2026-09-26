@@ -101,6 +101,11 @@ import {
   updatePatientNoteCategories,
   updatePatientNoteTitle,
 } from '@/state/patient-notes';
+import {
+  exportPersonalNotesBackup,
+  importPersonalNotesBackup,
+  MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES,
+} from '@/state/personal-notes-backup';
 import { installPatientVaultLifecycle } from '@/state/patient-vault';
 import { requestReminderNotificationPermission } from '@/state/reminder-notifications';
 import { attachmentViewerKind } from '@/state/thumbnails';
@@ -118,6 +123,19 @@ type DeleteTarget =
       readonly title: string;
       readonly returnPath: string;
     };
+
+function downloadNotesBackup(value: unknown, fileName: string): void {
+  const blob = new Blob([JSON.stringify(value)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.rel = 'noopener';
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
 
 function formatDate(value: string): string {
   const date = new Date(value);
@@ -408,6 +426,8 @@ export function NotesView(props: {
   });
   const route = notesRoute.route;
   const [creating, setCreating] = createSignal(false);
+  const [backupBusy, setBackupBusy] = createSignal(false);
+  let notesBackupInput: HTMLInputElement | undefined;
   const [reminderOpen, setReminderOpen] = createSignal(false);
   const [floatingControlsHost, setFloatingControlsHost] = createSignal<HTMLElement | undefined>(
     undefined,
@@ -430,6 +450,78 @@ export function NotesView(props: {
       label: 'Шаблон',
       icon: 'file-plus',
       onSelect: () => navigate(notesTemplatesPath(true)),
+    },
+  ];
+
+  const exportNotesBackup = async (): Promise<void> => {
+    if (
+      !window.confirm(
+        'Backup личных заметок — незашифрованный JSON. Он содержит карточки заметок, вложения, ' +
+          'изображения и готовые/отредактированные расшифровки. Черновики редактора и предыдущая ' +
+          'ревизия заметки в формат v1 не входят. Продолжить?',
+      )
+    ) {
+      return;
+    }
+    setBackupBusy(true);
+    try {
+      const backup = await exportPersonalNotesBackup();
+      const date = new Date().toISOString().slice(0, 10);
+      downloadNotesBackup(backup, `MiniMed — личные заметки — ${date}.json`);
+      toast.success('Личные заметки сохранены в незашифрованный JSON.');
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось экспортировать заметки.');
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const importNotesBackupFile = async (file: File): Promise<void> => {
+    if (file.size > MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES) {
+      toast.error('Backup личных заметок больше 512 МБ.');
+      return;
+    }
+    if (
+      !window.confirm(
+        'Импорт полностью заменит текущие личные карточки заметок, их файлы, изображения и ' +
+          'расшифровки данными из backup. Карточки пациентов/осмотры из защищённого patient-vault ' +
+          'не изменятся. Продолжить?',
+      )
+    ) {
+      return;
+    }
+    setBackupBusy(true);
+    try {
+      const raw = await file.text();
+      await importPersonalNotesBackup(JSON.parse(raw) as unknown);
+      navigate(notesPath());
+      refresh();
+      toast.success('Backup личных заметок восстановлен.');
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось импортировать заметки.');
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const requestNotesBackupImport = (): void => {
+    if (!notesBackupInput || backupBusy()) return;
+    notesBackupInput.value = '';
+    notesBackupInput.click();
+  };
+
+  const notesDataActions = (): readonly AppContextMenuAction[] => [
+    {
+      id: 'export-personal-notes-backup',
+      label: backupBusy() ? 'Подготовка backup…' : 'Экспорт backup заметок',
+      icon: 'download',
+      onSelect: () => void exportNotesBackup(),
+    },
+    {
+      id: 'import-personal-notes-backup',
+      label: 'Импорт backup заметок',
+      icon: 'file-arrow-down',
+      onSelect: requestNotesBackupImport,
     },
   ];
   onMount(() => {
@@ -1020,6 +1112,20 @@ export function NotesView(props: {
       classList={{ 'patient-notes-view--document-reader': activeTemplateId() !== null }}
       aria-label="Личные заметки"
     >
+      <input
+        ref={(element) => {
+          notesBackupInput = element;
+        }}
+        class="visually-hidden"
+        type="file"
+        accept="application/json,.json"
+        aria-label="Импорт backup личных заметок"
+        disabled={backupBusy()}
+        onChange={(event) => {
+          const file = event.currentTarget.files?.[0];
+          if (file) void importNotesBackupFile(file);
+        }}
+      />
       <Show when={props.active && patientRoute()}>
         {(current) => (
           <PatientWorkspace
@@ -1043,6 +1149,23 @@ export function NotesView(props: {
                 onClick={() => navigate(USER_LIBRARY_CATALOG_HASH)}
               />
             </Show>
+          }
+          actions={
+            <AppContextMenu
+              class="patient-notes-data-menu"
+              actions={notesDataActions()}
+              hideButton
+            >
+              <Button
+                type="button"
+                variant="icon"
+                disabled={backupBusy()}
+                aria-label="Данные личных заметок"
+                title="Данные личных заметок"
+                onClick={requestContextMenu}
+                icon={<AppGlyph name="menu" />}
+              />
+            </AppContextMenu>
           }
         />
         <SearchField
