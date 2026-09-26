@@ -24,17 +24,46 @@ function readJson(storage: Storage, key: string): unknown {
   return raw === null ? null : (JSON.parse(raw) as unknown);
 }
 
+function scanDiaryIds(storage: Storage): string[] {
+  const found: string[] = [];
+  for (let index = 0; index < storage.length; index += 1) {
+    const key = storage.key(index);
+    if (!key || key === INDEX_KEY || !key.startsWith(KEY_PREFIX)) continue;
+    const id = key.slice(KEY_PREFIX.length);
+    if (id && !found.includes(id)) found.push(id);
+  }
+  return found;
+}
+
 export function createDiaryStore(storage: Storage, now: () => number = Date.now): DiaryStore {
   const ids = (): string[] => {
-    const value = readJson(storage, INDEX_KEY);
-    return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
+    try {
+      const value = readJson(storage, INDEX_KEY);
+      if (Array.isArray(value)) {
+        return [...new Set(value.filter((id): id is string => typeof id === 'string' && id.length > 0))];
+      }
+    } catch {
+      // Rebuild the navigation index from the source diary records below.
+    }
+    const recovered = scanDiaryIds(storage);
+    try {
+      storage.setItem(INDEX_KEY, JSON.stringify(recovered));
+    } catch {
+      // The diary records remain the source of truth even if the compact index cannot be rewritten.
+    }
+    return recovered;
   };
   return {
     list() {
       return ids().flatMap((id) => {
-        const stored = readJson(storage, KEY_PREFIX + id);
-        if (stored === null) return [];
-        return [parseDiaryResults(stored, now()).invitation];
+        try {
+          const stored = readJson(storage, KEY_PREFIX + id);
+          if (stored === null) return [];
+          return [parseDiaryResults(stored, now()).invitation];
+        } catch {
+          // One damaged local diary must not prevent opening the remaining valid diaries.
+          return [];
+        }
       });
     },
     load(invitation) {
@@ -51,12 +80,20 @@ export function createDiaryStore(storage: Storage, now: () => number = Date.now)
       storage.setItem(KEY_PREFIX + results.invitation.id, JSON.stringify(results));
       const current = ids();
       if (!current.includes(results.invitation.id)) {
-        storage.setItem(INDEX_KEY, JSON.stringify([...current, results.invitation.id]));
+        try {
+          storage.setItem(INDEX_KEY, JSON.stringify([...current, results.invitation.id]));
+        } catch {
+          // The saved diary itself is durable; a later list() can reconstruct the index from keys.
+        }
       }
     },
     remove(id) {
       storage.removeItem(KEY_PREFIX + id);
-      storage.setItem(INDEX_KEY, JSON.stringify(ids().filter((candidate) => candidate !== id)));
+      try {
+        storage.setItem(INDEX_KEY, JSON.stringify(ids().filter((candidate) => candidate !== id)));
+      } catch {
+        // A stale index is harmless: list() skips absent records and can rebuild after corruption.
+      }
     },
   };
 }
