@@ -182,44 +182,49 @@ export interface BrowserDiarizationModelBytes {
   readonly embedding: Uint8Array;
 }
 
+export async function getBrowserDiarizationModelBytes(
+  artifact: BrowserDiarizationModelArtifact,
+  signal?: AbortSignal,
+): Promise<Uint8Array> {
+  if (signal?.aborted) throw new DOMException('Download aborted.', 'AbortError');
+  let cached: Uint8Array | null = null;
+  try {
+    cached = await loadCachedModel(artifact);
+  } catch (cause) {
+    console.warn(
+      cause instanceof Error
+        ? `Не удалось прочитать кэш модели «${artifact.fileName}»: ${cause.message}`
+        : `Не удалось прочитать кэш модели «${artifact.fileName}».`,
+    );
+  }
+  if (cached) return cached;
+
+  const bytes = await downloadWithRetry({
+    url: artifact.url,
+    cacheKey: `browser-diarization:${artifact.id}:${artifact.expectedSha256}`,
+    expectedBytes: artifact.expectedBytes,
+    ...(signal ? { signal } : {}),
+    retryMissingAssets: false,
+  });
+  await verifyBrowserDiarizationArtifact(bytes, artifact);
+  try {
+    await storeCachedModel(artifact, bytes);
+  } catch (cause) {
+    console.warn(
+      cause instanceof Error
+        ? `Не удалось сохранить модель «${artifact.fileName}» для офлайн-повтора: ${cause.message}`
+        : `Не удалось сохранить модель «${artifact.fileName}» для офлайн-повтора.`,
+    );
+  }
+  return bytes;
+}
+
 export async function downloadBrowserDiarizationModels(
   signal?: AbortSignal,
 ): Promise<BrowserDiarizationModelBytes> {
   const values = new Map<BrowserDiarizationModelArtifact['id'], Uint8Array>();
   for (const artifact of BROWSER_DIARIZATION_MODELS) {
-    if (signal?.aborted) throw new DOMException('Download aborted.', 'AbortError');
-    let cached: Uint8Array | null = null;
-    try {
-      cached = await loadCachedModel(artifact);
-    } catch (cause) {
-      console.warn(
-        cause instanceof Error
-          ? `Не удалось прочитать кэш модели «${artifact.fileName}»: ${cause.message}`
-          : `Не удалось прочитать кэш модели «${artifact.fileName}».`,
-      );
-    }
-    if (cached) {
-      values.set(artifact.id, cached);
-      continue;
-    }
-    const bytes = await downloadWithRetry({
-      url: artifact.url,
-      cacheKey: `browser-diarization:${artifact.id}:${artifact.expectedSha256}`,
-      expectedBytes: artifact.expectedBytes,
-      ...(signal ? { signal } : {}),
-      retryMissingAssets: false,
-    });
-    await verifyBrowserDiarizationArtifact(bytes, artifact);
-    try {
-      await storeCachedModel(artifact, bytes);
-    } catch (cause) {
-      console.warn(
-        cause instanceof Error
-          ? `Не удалось сохранить модель «${artifact.fileName}» для офлайн-повтора: ${cause.message}`
-          : `Не удалось сохранить модель «${artifact.fileName}» для офлайн-повтора.`,
-      );
-    }
-    values.set(artifact.id, bytes);
+    values.set(artifact.id, await getBrowserDiarizationModelBytes(artifact, signal));
   }
 
   const segmentation = values.get('pyannote-segmentation');
