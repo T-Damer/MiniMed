@@ -226,6 +226,45 @@ describe('portable personal-notes backup', () => {
     ).toBeGreaterThan(MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES);
   });
 
+  it('excludes orphan transcripts from export and cleans them best-effort', async () => {
+    const env = installEnvironment();
+    env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
+    env.files.set('file-audio', {
+      id: 'file-audio',
+      noteId: 'note-1',
+      name: 'приём.webm',
+      mimeType: 'audio/webm',
+      size: 3,
+      blob: new Blob([new Uint8Array([1, 2, 3])], { type: 'audio/webm' }),
+      createdAt: '2026-09-26T07:20:00.000Z',
+    });
+    env.transcripts.set('file-audio', {
+      fileId: 'file-audio',
+      noteId: 'note-1',
+      text: 'Связанная расшифровка',
+      status: 'done',
+      createdAt: '2026-09-26T07:21:00.000Z',
+      updatedAt: '2026-09-26T07:21:00.000Z',
+    });
+    env.transcripts.set('file-orphan', {
+      fileId: 'file-orphan',
+      noteId: 'note-1',
+      text: 'Сирота после неудачной вторичной очистки',
+      status: 'done',
+      createdAt: '2026-09-26T07:22:00.000Z',
+      updatedAt: '2026-09-26T07:22:00.000Z',
+    });
+
+    const { exportPersonalNotesBackup } = await import('./personal-notes-backup');
+    const backup = await exportPersonalNotesBackup();
+
+    expect(backup.transcripts.map((item) => item.fileId)).toEqual(['file-audio']);
+    await vi.waitFor(() => {
+      expect(env.transcripts.has('file-orphan')).toBe(false);
+    });
+    expect(env.transcripts.has('file-audio')).toBe(true);
+  });
+
   it('round-trips stable note, attachment, image and transcript ids', async () => {
     const env = installEnvironment();
     env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
