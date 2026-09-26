@@ -28,6 +28,8 @@ import {
 } from '@/features/library/document-reader-chrome';
 import { isDesktopReaderLayout } from '@/features/library/document-reader-outline';
 import {
+  DEFAULT_DOCUMENT_TEXT_SCALE,
+  DOCUMENT_TEXT_SCALE_LEVELS,
   markMedicalImageViewerActive,
   markUserDocumentPdf,
   setTwoPageMode,
@@ -871,6 +873,34 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         onSelect: readingMode.toggleBookMode,
       });
     }
+    if (isTextLike() && !draftOpen()) {
+      const scale = readingMode.textScalePercent();
+      actions.push(
+        {
+          id: 'text-scale-down',
+          label: `Уменьшить текст · ${String(scale)}%`,
+          icon: 'minus',
+          disabled: scale <= (DOCUMENT_TEXT_SCALE_LEVELS[0] ?? 90),
+          onSelect: readingMode.decreaseTextScale,
+        },
+        {
+          id: 'text-scale-reset',
+          label: `Размер текста · ${String(scale)}%`,
+          icon: 'text-aa',
+          disabled: scale === DEFAULT_DOCUMENT_TEXT_SCALE,
+          onSelect: readingMode.resetTextScale,
+        },
+        {
+          id: 'text-scale-up',
+          label: `Увеличить текст · ${String(scale)}%`,
+          icon: 'plus',
+          disabled:
+            scale >=
+            (DOCUMENT_TEXT_SCALE_LEVELS[DOCUMENT_TEXT_SCALE_LEVELS.length - 1] ?? 140),
+          onSelect: readingMode.increaseTextScale,
+        },
+      );
+    }
     if (hasReaderAction('two-page')) {
       actions.push({
         id: 'two-page',
@@ -898,6 +928,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           'user-document-reader--medical': isMedicalImage(),
           'user-document-reader--sheet': isSheet(),
           'user-document-reader--sheet-fullscreen': isSheet() && fullscreen(),
+          'user-document-reader--text-scale-90': readingMode.textScalePercent() === 90,
+          'user-document-reader--text-scale-100': readingMode.textScalePercent() === 100,
+          'user-document-reader--text-scale-110': readingMode.textScalePercent() === 110,
+          'user-document-reader--text-scale-125': readingMode.textScalePercent() === 125,
+          'user-document-reader--text-scale-140': readingMode.textScalePercent() === 140,
         }}
         chromeClass="document-page__chrome sticky-surface route-sticky-chrome route-sticky-chrome--opaque"
         chromeClassList={{
