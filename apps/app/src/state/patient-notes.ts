@@ -196,10 +196,23 @@ export function savePatientNoteDraft(draft: PatientNoteDraft): void {
   writeNoteStorage(PATIENT_NOTE_DRAFTS_KEY, drafts);
 }
 
-export function clearPatientNoteWorkingState(): void {
+export function clearPatientNoteWorkingState(noteIds?: readonly string[]): void {
   try {
-    window.localStorage.removeItem(PATIENT_NOTE_DRAFTS_KEY);
-    window.localStorage.removeItem(PATIENT_NOTE_REVISIONS_KEY);
+    if (!noteIds) {
+      window.localStorage.removeItem(PATIENT_NOTE_DRAFTS_KEY);
+      window.localStorage.removeItem(PATIENT_NOTE_REVISIONS_KEY);
+      return;
+    }
+    const ids = new Set(noteIds.filter(Boolean));
+    if (ids.size === 0) return;
+    const drafts = readNoteStorage(PATIENT_NOTE_DRAFTS_KEY);
+    const revisions = readNoteStorage(PATIENT_NOTE_REVISIONS_KEY);
+    for (const noteId of ids) {
+      delete drafts[noteId];
+      delete revisions[noteId];
+    }
+    writeNoteStorage(PATIENT_NOTE_DRAFTS_KEY, drafts);
+    writeNoteStorage(PATIENT_NOTE_REVISIONS_KEY, revisions);
   } catch {
     // Draft/revision state is optional editor recovery data; imported durable notes remain usable.
   }
