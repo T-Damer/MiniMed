@@ -215,11 +215,9 @@
   gap: 0.4rem;
 }
 
-.patient-workspace__quick-action,
 .patient-workspace__source,
 .patient-workspace__source-details-link,
-.patient-workspace__back,
-.patient-workspace__event-action {
+.patient-workspace__back {
   border: 1px solid var(--theme-border);
   border-radius: 999px;
   background: transparent;
@@ -227,6 +225,16 @@
   padding: 0.35rem 0.6rem;
   font: inherit;
   cursor: pointer;
+}
+
+.patient-workspace__quick-action.ui-button,
+.patient-workspace__event-action.ui-button {
+  --ui-button-height: 2rem;
+  --ui-button-padding-block: 0.3rem;
+  --ui-button-padding-inline: 0.65rem;
+
+  border-radius: 999px;
+  font-size: 0.78rem;
 }
 
 .patient-workspace__event-revision {
@@ -404,12 +412,12 @@
 
 @media (hover: hover) and (pointer: fine) {
   .patient-workspace__patient-card:hover,
-  .patient-workspace__quick-action:hover,
   .patient-workspace__source:hover,
   .patient-workspace__source-details-link:hover,
-  .patient-workspace__event-action:hover,
   .patient-dynamics__toggle:hover,
-  .patient-workspace__back:hover {
+  .patient-workspace__back:hover,
+  .patient-workspace__quick-action.ui-button:hover,
+  .patient-workspace__event-action.ui-button:hover {
     border-color: var(--theme-accent);
     background: var(--theme-accent-soft);
   }
