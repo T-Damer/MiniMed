@@ -113,6 +113,11 @@ exports/imports patient profiles, visits/events and vault blobs; personal notes 
   card's notes/files/images/transcripts, import replaces/adds only that card and rejects ID collisions
   with unrelated cards. The existing card wipe journals and cascades deletion through files, images
   and transcripts, and its confirmation now states that retention scope explicitly.
+- [x] Full personal-notes wipe is explicit and rollback-safe: it clears cards/notes, files, images,
+  transcripts, drafts and previous revisions while leaving the protected patient-vault domain
+  untouched.
+- [x] Backup export preflights base64 expansion against the 512 MiB file limit before reading note
+  attachment blobs; import already rejects oversized raw JSON before parsing.
 
 ## Data and AI
 
