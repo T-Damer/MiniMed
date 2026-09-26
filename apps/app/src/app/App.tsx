@@ -21,6 +21,7 @@ import { useNativeBack } from '@/app/use-native-back';
 import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
+import { ConversationRecorderHost } from '@/features/conversations/ConversationRecorder';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
 import {
   isUserLibraryCatalogRoute,
@@ -293,6 +294,9 @@ export function App(): JSX.Element {
           }}
         />
       </Portal>
+      <Show when={!embeddedFloatingWindow}>
+        <ConversationRecorderHost />
+      </Show>
       <Show when={shellReady() && !embeddedFloatingWindow && !setupDismissed()}>
         <FirstRunSetup
           coreReady={Boolean(session.ready())}

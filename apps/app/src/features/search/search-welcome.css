@@ -92,3 +92,22 @@
     transition: none;
   }
 }
+
+.search-welcome__link--primary {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent);
+  color: var(--theme-accent-contrast);
+}
+
+.search-welcome__link--primary:hover {
+  background: color-mix(in srgb, var(--theme-accent) 88%, black);
+}
+
+.search-welcome__link:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.search-welcome__link-icon--primary {
+  color: inherit;
+}

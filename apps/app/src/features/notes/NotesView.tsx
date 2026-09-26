@@ -30,6 +30,7 @@ import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { TextField as UiTextField } from '@/components/TextField';
+import { ConversationInbox } from '@/features/conversations/ConversationInbox';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
@@ -1271,6 +1272,7 @@ export function NotesView(props: {
           placeholder="Поиск по заметкам"
         />
 
+        <ConversationInbox />
         <div class="patient-card-list">
           <article class="patient-notes-protected-card paper-card">
             <button

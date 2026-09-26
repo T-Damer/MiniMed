@@ -1,6 +1,10 @@
 import { For, type JSX } from 'solid-js';
 
 import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
+import {
+  conversationSession,
+  startConversation,
+} from '@/features/conversations/conversation-session';
 
 import './search-welcome.css';
 
@@ -16,11 +20,18 @@ interface WelcomeLink {
   readonly label: string;
   readonly href?: string;
   readonly onClick?: () => void;
+  readonly primary?: boolean;
 }
 
 /** First screen of search: what can be typed here and where the other tools live. */
 export function SearchWelcome(props: { readonly onOpenReference: () => void }): JSX.Element {
   const links: readonly WelcomeLink[] = [
+    {
+      icon: 'microphone',
+      label: 'Записать беседу',
+      onClick: () => void startConversation(),
+      primary: true,
+    },
     { icon: 'users', label: 'Пациенты', href: '#/notes/patients' },
     { icon: 'calculator', label: 'Калькуляторы', href: '#/calculators' },
     { icon: 'list-checks', label: 'Опросники', href: '#/assessments' },
@@ -42,8 +53,17 @@ export function SearchWelcome(props: { readonly onOpenReference: () => void }): 
                 {link.label}
               </a>
             ) : (
-              <button class="search-welcome__link" type="button" onClick={link.onClick}>
-                <AppGlyph name={link.icon} class="search-welcome__link-icon" />
+              <button
+                class="search-welcome__link"
+                classList={{ 'search-welcome__link--primary': link.primary ?? false }}
+                type="button"
+                disabled={link.primary ? conversationSession.recorder() !== null : false}
+                onClick={link.onClick}
+              >
+                <AppGlyph
+                  name={link.icon}
+                  class={`search-welcome__link-icon${link.primary ? ' search-welcome__link-icon--primary' : ''}`}
+                />
                 {link.label}
               </button>
             )
