@@ -93,6 +93,47 @@ afterEach(() => {
 });
 
 describe('portable personal-notes backup', () => {
+  it('preflights base64 expansion before allocating large backup blobs', async () => {
+    const {
+      estimatePersonalNotesBackupBytes,
+      MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES,
+    } = await import('./personal-notes-backup');
+
+    const makeFiles = (count: number) =>
+      Array.from({ length: count }, (_, index) => ({
+        id: `file-${index}`,
+        noteId: 'note-1',
+        name: `file-${index}.bin`,
+        mimeType: 'application/octet-stream',
+        size: 64 * 1024 * 1024,
+        createdAt: '2026-09-26T07:00:00.000Z',
+      }));
+
+    expect(
+      estimatePersonalNotesBackupBytes(
+        {
+          snapshot,
+          files: makeFiles(5),
+          images: [],
+          transcripts: [],
+        },
+        { kind: 'all' },
+      ),
+    ).toBeLessThan(MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES);
+
+    expect(
+      estimatePersonalNotesBackupBytes(
+        {
+          snapshot,
+          files: makeFiles(6),
+          images: [],
+          transcripts: [],
+        },
+        { kind: 'all' },
+      ),
+    ).toBeGreaterThan(MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES);
+  });
+
   it('round-trips stable note, attachment, image and transcript ids', async () => {
     const env = installEnvironment();
     env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
