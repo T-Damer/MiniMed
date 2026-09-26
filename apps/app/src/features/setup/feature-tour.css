@@ -1,0 +1,707 @@
+.feature-tour {
+  --tour-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.feature-tour__track {
+  display: grid;
+  grid-auto-columns: 100%;
+  grid-auto-flow: column;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  border-radius: var(--theme-radius-panel);
+}
+
+.feature-tour__track::-webkit-scrollbar {
+  display: none;
+}
+
+.feature-tour__slide {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+  padding: 0.25rem;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  opacity: 0.45;
+  transform: scale(0.97);
+  transition:
+    opacity 360ms var(--tour-ease),
+    transform 360ms var(--tour-ease);
+}
+
+.feature-tour__slide--active {
+  opacity: 1;
+  transform: none;
+}
+
+.feature-tour__stage {
+  display: grid;
+  height: 13rem;
+  place-items: start center;
+  overflow: hidden;
+  padding: 1rem 1rem 0;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-panel);
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      color-mix(in srgb, var(--theme-accent) 14%, transparent),
+      transparent 60%
+    ),
+    var(--theme-surface-muted);
+}
+
+.feature-tour__copy {
+  display: grid;
+  gap: 0.4rem;
+  padding-inline: 0.25rem;
+}
+
+.feature-tour__title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.feature-tour__icon {
+  display: inline-flex;
+  width: 1.9rem;
+  height: 1.9rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.55rem;
+  background: var(--theme-accent-soft);
+  color: var(--theme-accent);
+}
+
+.feature-tour__icon-glyph {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.feature-tour__badge {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--theme-info-soft, var(--theme-accent-soft));
+  color: var(--theme-info, var(--theme-accent));
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.feature-tour__text {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.feature-tour__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  --ui-icon-button-size: 2.25rem;
+}
+
+.feature-tour__dots {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.feature-tour__dot {
+  display: inline-flex;
+  width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.feature-tour__dot::before {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--theme-border);
+  content: "";
+  transition:
+    width 320ms var(--tour-ease),
+    background-color 320ms var(--tour-ease);
+}
+
+.feature-tour__dot--active::before {
+  width: 1.35rem;
+  background: var(--theme-accent);
+}
+
+.feature-tour__dot:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: -0.2rem;
+  border-radius: 999px;
+}
+
+/* Shared demo frame: a tiny "screen" inside the stage. */
+.tour-demo {
+  display: grid;
+  width: min(100%, 19rem);
+  gap: 0.55rem;
+  padding: 0.75rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.8rem;
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 10%);
+  font-size: 0.78rem;
+  /* The mini screen continues below the stage like a scrolled page. */
+  mask-image: linear-gradient(to bottom, #000 78%, transparent);
+}
+
+/* Search */
+.tour-search__field {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.1rem;
+  padding: 0 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--theme-accent) 40%, var(--theme-border));
+  border-radius: 999px;
+  background: var(--theme-surface);
+}
+
+.tour-search__icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--theme-text-muted);
+}
+
+.tour-search__query {
+  overflow: hidden;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.tour-search__caret {
+  width: 1px;
+  height: 1rem;
+  background: var(--theme-accent);
+  animation: tour-caret 900ms steps(1) infinite;
+}
+
+.tour-search__caret--idle {
+  opacity: 0;
+  animation: none;
+}
+
+.tour-search__chips {
+  display: flex;
+  gap: 0.3rem;
+  overflow: hidden;
+}
+
+.tour-search__chip {
+  flex: 0 0 auto;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--theme-text-muted);
+  font: inherit;
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.tour-search__chip--active {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+  color: var(--theme-accent);
+}
+
+.tour-search__results {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tour-search__result {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--theme-surface);
+  animation: tour-rise 420ms var(--tour-ease) both;
+  animation-delay: calc(var(--tour-order) * 90ms);
+}
+
+.tour-search__source {
+  color: var(--theme-kicker, var(--theme-text-muted));
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.tour-search__title {
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tour-search__mark {
+  border-radius: 0.2rem;
+  background: color-mix(in srgb, var(--theme-accent) 20%, transparent);
+  color: inherit;
+}
+
+.tour-search__line {
+  height: 0.3rem;
+  border-radius: 999px;
+  background: var(--theme-border);
+}
+
+.tour-search__line--short {
+  width: 62%;
+}
+
+/* Patient */
+.tour-patient__header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.tour-patient__avatar {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--theme-personal-soft, var(--theme-accent-soft));
+  font-size: 1.05rem;
+}
+
+.tour-patient__identity {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tour-patient__name {
+  font-size: 0.85rem;
+}
+
+.tour-patient__meta {
+  color: var(--theme-text-muted);
+  font-size: 0.68rem;
+}
+
+.tour-patient__qr {
+  display: grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.12rem;
+  padding: 0.15rem;
+  border-radius: 0.3rem;
+  background: var(--theme-surface);
+}
+
+.tour-patient__qr-cell {
+  border-radius: 0.08rem;
+}
+
+.tour-patient__qr-cell--on {
+  background: var(--theme-text);
+}
+
+.tour-patient__chart {
+  width: 100%;
+  height: 5.5rem;
+  overflow: visible;
+}
+
+.tour-patient__grid {
+  stroke: var(--theme-border);
+  stroke-dasharray: 3 4;
+  stroke-width: 1;
+}
+
+.tour-patient__line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.5;
+  transition: all 360ms var(--tour-ease);
+}
+
+.tour-patient__line--systolic {
+  stroke: var(--theme-danger);
+}
+
+.tour-patient__line--diastolic {
+  stroke: var(--theme-info, var(--theme-accent));
+}
+
+.tour-patient__chart--playing {
+  animation: tour-reveal-x 1100ms var(--tour-ease) both;
+}
+
+.tour-patient__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tour-patient__reading {
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tour-patient__unit {
+  color: var(--theme-text-muted);
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+.tour-patient__add {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 1.9rem;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--theme-accent);
+  color: var(--theme-accent-contrast);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tour-patient__add:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tour-patient__add-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+/* Dictaphone */
+.tour-dictaphone__recorder {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 999px;
+  background: var(--theme-surface);
+}
+
+.tour-dictaphone__dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--theme-danger);
+}
+
+.tour-dictaphone__dot--live {
+  animation: tour-pulse 1200ms ease-in-out infinite;
+}
+
+.tour-dictaphone__wave {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.12rem;
+  height: 1.4rem;
+}
+
+.tour-dictaphone__bar {
+  flex: 1 1 0;
+  height: calc(20% + var(--tour-height) * 7%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-accent) 70%, transparent);
+  transform-origin: center;
+}
+
+.tour-dictaphone__bar--live {
+  animation: tour-wave 900ms ease-in-out infinite alternate;
+  animation-delay: calc(var(--tour-order) * -130ms);
+}
+
+.tour-dictaphone__time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.tour-dictaphone__transcript {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tour-dictaphone__line {
+  justify-self: end;
+  max-width: 85%;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.7rem 0.7rem 0.2rem;
+  background: var(--theme-surface);
+}
+
+.tour-dictaphone__line--doctor {
+  justify-self: start;
+  border-radius: 0.7rem 0.7rem 0.7rem 0.2rem;
+  background: var(--theme-accent-soft);
+}
+
+.tour-dictaphone__line--playing {
+  animation: tour-rise 420ms var(--tour-ease) both;
+  animation-delay: calc(400ms + var(--tour-order) * 700ms);
+}
+
+.tour-dictaphone__speaker {
+  display: block;
+  color: var(--theme-text-muted);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+/* Canvas */
+.tour-canvas {
+  position: relative;
+  height: 10.5rem;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--theme-surface-raised);
+  background-image: radial-gradient(var(--theme-border) 1px, transparent 1px);
+  background-size: 0.9rem 0.9rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tour-canvas__drawing {
+  width: 100%;
+  height: 100%;
+}
+
+.tour-canvas__stroke {
+  fill: none;
+  stroke: var(--theme-text);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+  stroke-dasharray: 360;
+}
+
+.tour-canvas__link {
+  fill: none;
+  stroke: var(--theme-accent);
+  stroke-dasharray: 4 5;
+  stroke-width: 1.5;
+}
+
+.tour-canvas__stroke--playing {
+  animation: tour-draw 1600ms var(--tour-ease) both;
+}
+
+/* Declared after --playing so the shorthand does not reset this delay. */
+.tour-canvas__stroke--late {
+  stroke: var(--theme-accent);
+  animation-delay: 1200ms;
+}
+
+/* Overlay labels on the drawing surface are intentional absolute overlays. */
+.tour-canvas__note {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.7rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.35rem;
+  background: var(--theme-note, #f5e7a8);
+  color: #3b3321;
+  font-size: 0.7rem;
+  font-weight: 700;
+  transform: rotate(-3deg);
+}
+
+.tour-canvas__chip {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--theme-accent);
+  border-radius: 999px;
+  background: var(--theme-surface);
+  color: var(--theme-accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.tour-canvas__chip-icon {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+/* Tools */
+.tour-tools__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tour-tools__question {
+  color: var(--theme-text-muted);
+}
+
+.tour-tools__options {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.tour-tools__option {
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.45rem;
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 200ms var(--tour-ease),
+    color 200ms var(--tour-ease),
+    transform 200ms var(--tour-ease);
+}
+
+.tour-tools__option--selected {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent);
+  color: var(--theme-accent-contrast);
+  transform: scale(1.06);
+}
+
+.tour-tools__score {
+  display: grid;
+  gap: 0.3rem;
+  padding-top: 0.2rem;
+}
+
+.tour-tools__total {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tour-tools__meter {
+  height: 0.4rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--theme-surface);
+}
+
+.tour-tools__meter-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--theme-accent), var(--theme-warning));
+  transform: scaleX(var(--tour-fill));
+  transform-origin: left;
+  transition: transform 420ms var(--tour-ease);
+}
+
+@keyframes tour-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes tour-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+}
+
+@keyframes tour-reveal-x {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes tour-pulse {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes tour-wave {
+  from {
+    transform: scaleY(0.35);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes tour-draw {
+  from {
+    stroke-dashoffset: 360;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-tour__slide,
+  .feature-tour__dot::before,
+  .tour-patient__line,
+  .tour-tools__option,
+  .tour-tools__meter-fill {
+    transition: none;
+  }
+
+  .tour-search__caret,
+  .tour-search__result,
+  .tour-patient__chart--playing,
+  .tour-dictaphone__dot--live,
+  .tour-dictaphone__bar--live,
+  .tour-dictaphone__line--playing,
+  .tour-canvas__stroke--playing {
+    animation: none;
+  }
+}

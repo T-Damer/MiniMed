@@ -21,6 +21,27 @@ export function dismissSetup(): void {
   }
 }
 
+/** Subset of the Network Information API; absent in Safari/Firefox. */
+export interface NetworkConnectionHint {
+  readonly saveData?: boolean;
+  readonly type?: string;
+}
+
+/**
+ * The ~490 MB core starts downloading on first launch without a tap, except on a
+ * connection the platform reports as cellular or data-saving: there the user decides.
+ * An unknown connection (no API) counts as unmetered, matching the desktop browser case.
+ */
+export function coreAutoDownloadAllowed(connection: NetworkConnectionHint | undefined): boolean {
+  if (!connection) return true;
+  if (connection.saveData === true) return false;
+  return connection.type !== 'cellular';
+}
+
+export function currentNetworkConnection(): NetworkConnectionHint | undefined {
+  return (navigator as Navigator & { readonly connection?: NetworkConnectionHint }).connection;
+}
+
 export function setupPackageGroups(modules: readonly ContentModuleCatalogEntry[]) {
   const kinds = [
     ['reference', 'Справочники и словари', 'Определения терминов и справочные материалы.'],

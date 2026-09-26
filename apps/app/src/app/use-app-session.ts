@@ -13,6 +13,7 @@ import {
   startQueuedAndroidApkDownload,
 } from '@/features/downloads/native-apk-download';
 import { WorkerSearchMedicalCore } from '@/features/search/WorkerSearchMedicalCore';
+import { coreAutoDownloadAllowed, currentNetworkConnection } from '@/features/setup/setup-state';
 import {
   APP_UPDATE_READY_EVENT,
   type AppUpdateProgress,
@@ -84,7 +85,10 @@ export function useAppSession() {
     readonly phase?: 'downloading' | 'verifying' | 'installing';
   }>();
   let beginCoreDownload: (() => void) | undefined;
+  // True only while a metered connection holds the first core download for the user's tap.
+  const [coreDownloadDeferred, setCoreDownloadDeferred] = createSignal(false);
   const downloadCore = (): void => {
+    setCoreDownloadDeferred(false);
     setCoreDownloading(true);
     beginCoreDownload?.();
   };
@@ -356,10 +360,13 @@ export function useAppSession() {
             return;
           }
           setCoreDownloadRequired(true);
-          if (resuming) {
+          if (resuming || coreAutoDownloadAllowed(currentNetworkConnection())) {
             setCoreDownloading(true);
             resolve();
-          } else beginCoreDownload = resolve;
+          } else {
+            setCoreDownloadDeferred(true);
+            beginCoreDownload = resolve;
+          }
         }),
       onProgress: setCoreProgress,
     });
@@ -505,6 +512,7 @@ export function useAppSession() {
   return {
     isNativeShell,
     coreDownloadRequired,
+    coreDownloadDeferred,
     coreDownloading,
     coreProgress,
     downloadCore,

@@ -57,11 +57,14 @@ for (const viewport of [
   });
 }
 
-test('missing core locks search while files and settings remain available', async ({
+test('missing core on a cellular connection waits for the user while files and settings remain available', async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
+    // On Wi-Fi the core starts downloading by itself; cellular keeps the explicit button.
+    Object.defineProperty(navigator, 'connection', { value: { type: 'cellular' } });
+    localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
     Object.assign(window, {
       CapacitorCustomPlatform: { name: 'android' },
       Capacitor: {

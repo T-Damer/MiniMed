@@ -14,6 +14,8 @@ interface OverlayDialogProps {
   readonly headerClass?: string;
   /** When false, the dialog does not push a browser history entry (document overlays manage URL elsewhere). */
   readonly tracksHistory?: boolean;
+  /** When false, the dialog has no close button and ignores Escape and backdrop taps. */
+  readonly dismissible?: boolean;
   readonly headerStart?: JSX.Element;
   readonly headerEnd?: JSX.Element;
   readonly onClose: () => void;
@@ -42,6 +44,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   let historyEntryPushed = false;
   const titleId = props.labelledBy ?? `overlay-dialog-title-${++nextOverlayDialogId}`;
   const tracksHistory = () => props.tracksHistory !== false;
+  const dismissible = () => props.dismissible !== false;
 
   const closeDialog = (): void => {
     if (historyEntryPushed) {
@@ -77,7 +80,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       if (event.key === 'Escape') {
         // Only a media viewer layered over THIS dialog consumes Escape (zoom reset);
         // unrelated viewers elsewhere must not disable closing this dialog.
-        if (panel?.querySelector('.media-viewer')) return;
+        if (panel?.querySelector('.media-viewer') || !dismissible()) return;
         closeDialog();
         return;
       }
@@ -109,7 +112,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       }
     };
     const handlePopState = (): void => {
-      if (!isTopmostDialog()) return;
+      if (!isTopmostDialog() || !dismissible()) return;
       historyEntryPushed = false;
       props.onClose();
     };
@@ -136,7 +139,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
           class="overlay-backdrop"
           role="presentation"
           onPointerDown={(event) => {
-            if (event.target === event.currentTarget) closeDialog();
+            if (event.target === event.currentTarget && dismissible()) closeDialog();
           }}
         >
           <section
@@ -160,15 +163,17 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
                 </Show>
               </div>
               {props.headerEnd}
-              <button
-                type="button"
-                class="overlay-dialog__close-button"
-                aria-label="Закрыть"
-                title="Закрыть"
-                onClick={closeDialog}
-              >
-                <AppGlyph name="close" class="overlay-dialog__button-icon" />
-              </button>
+              <Show when={dismissible()}>
+                <button
+                  type="button"
+                  class="overlay-dialog__close-button"
+                  aria-label="Закрыть"
+                  title="Закрыть"
+                  onClick={closeDialog}
+                >
+                  <AppGlyph name="close" class="overlay-dialog__button-icon" />
+                </button>
+              </Show>
             </header>
             <div class={`overlay-dialog-body ${props.bodyClass ?? ''}`}>{props.children}</div>
           </section>

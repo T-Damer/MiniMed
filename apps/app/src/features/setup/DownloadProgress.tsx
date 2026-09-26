@@ -4,6 +4,7 @@ import { createEffect, type JSX } from 'solid-js';
 export function DownloadProgress(props: {
   readonly value: number | undefined;
   readonly label: string;
+  readonly class?: string;
 }): JSX.Element {
   let progress: HTMLProgressElement | undefined;
   createEffect(() => {
@@ -17,7 +18,7 @@ export function DownloadProgress(props: {
       ref={(element) => {
         progress = element;
       }}
-      class="package-row__progress"
+      class={props.class ?? 'package-row__progress'}
       max={100}
       aria-label={props.label}
     />

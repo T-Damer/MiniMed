@@ -1,6 +1,6 @@
 import { ContentModuleCatalogEntrySchema } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
-import { downloadPercent, setupPackageGroups } from './setup-state';
+import { coreAutoDownloadAllowed, downloadPercent, setupPackageGroups } from './setup-state';
 
 function module(
   id: string,
@@ -67,5 +67,18 @@ describe('package setup', () => {
     expect(downloadPercent(25, 100)).toBe(25);
     expect(downloadPercent(120, 100)).toBe(100);
     expect(downloadPercent(-20, 100)).toBe(0);
+  });
+});
+
+describe('core auto-download policy', () => {
+  it('starts on unknown, wifi and ethernet connections', () => {
+    expect(coreAutoDownloadAllowed(undefined)).toBe(true);
+    expect(coreAutoDownloadAllowed({ type: 'wifi' })).toBe(true);
+    expect(coreAutoDownloadAllowed({ type: 'ethernet', saveData: false })).toBe(true);
+  });
+
+  it('waits for the user on cellular or data-saver connections', () => {
+    expect(coreAutoDownloadAllowed({ type: 'cellular' })).toBe(false);
+    expect(coreAutoDownloadAllowed({ type: 'wifi', saveData: true })).toBe(false);
   });
 });

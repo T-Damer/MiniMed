@@ -298,12 +298,15 @@ export function App(): JSX.Element {
           coreReady={Boolean(session.ready())}
           coreRequired={session.coreDownloadRequired()}
           coreDownloading={session.coreDownloading()}
+          coreDeferred={session.coreDownloadDeferred()}
           coreProgress={session.coreProgress()}
           coreError={session.error()}
           onDownloadCore={session.downloadCore}
           onContentChanged={session.connectInstalledModules}
           onClose={() => {
-            dismissSetup();
+            // Leaving early (error or metered network) hides the screen for this session only,
+            // so onboarding returns on the next launch until the core is actually installed.
+            if (session.ready()) dismissSetup();
             setSetupDismissed(true);
           }}
         />
