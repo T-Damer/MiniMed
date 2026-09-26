@@ -50,6 +50,12 @@ const files = {
   appPackage: read('apps/app/package.json'),
   notesCss: read('apps/app/src/styles/notes-polish.css'),
   drawing: read('apps/app/src/features/notes/NoteDrawingEditor.tsx'),
+  readingMode: read('apps/app/src/features/library/document-reading-mode.ts'),
+  readingModeTests: read('apps/app/src/features/library/document-reading-mode.test.ts'),
+  userDocumentReader: read('apps/app/src/features/library/UserDocumentReader.tsx'),
+  readerPolishCss: read('apps/app/src/styles/reader-polish.css'),
+  userLibraryCss: read('apps/app/src/styles/user-library.css'),
+  userReaderCss: read('apps/app/src/styles/user-reader.css'),
 };
 
 function sourceSection(source, startMarker, endMarker) {
@@ -499,7 +505,29 @@ const checks = [
   [
     'drawing editor shared controls',
     files.drawing.includes('<SearchField') && files.drawing.includes('<Button'),
-  ],
+  ],,
+  [
+    'text and Markdown reading scale persists independently of PDF zoom',
+    files.readingMode.includes("const TEXT_SCALE_KEY = 'minimed.userDocTextScale'") &&
+      files.readingMode.includes('DOCUMENT_TEXT_SCALE_LEVELS = [90, 100, 110, 125, 140]') &&
+      files.readingMode.includes('setDocumentTextScale(stepDocumentTextScale') &&
+      files.readingModeTests.includes('normalizes arbitrary stored values to the nearest supported level') &&
+      files.readingModeTests.includes('steps without leaving the supported bounds') &&
+      files.userDocumentReader.includes("id: 'text-scale-down'") &&
+      files.userDocumentReader.includes("id: 'text-scale-reset'") &&
+      files.userDocumentReader.includes("id: 'text-scale-up'") &&
+      files.userDocumentReader.includes('class="user-document-reader__markdown"') &&
+      files.userDocumentReader.includes("'user-document-reader--text-scale-140'") &&
+      files.userLibraryCss.includes('--user-document-text-scale: 1.4') &&
+      files.userLibraryCss.includes(
+        'font-size: calc(0.8125rem * var(--user-document-text-scale, 1))',
+      ) &&
+      files.readerPolishCss.includes('--safe-markdown-body-size: calc(') &&
+      files.readerPolishCss.includes('--safe-markdown-table-size: calc(') &&
+      files.userReaderCss.includes(
+        'font-size: calc(1rem * var(--user-document-text-scale, 1))',
+      ),
+  ]
 ];
 
 let failed = 0;
