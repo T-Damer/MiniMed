@@ -16,6 +16,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { Disclosure } from '@/components/Disclosure';
 import { NavBack } from '@/components/NavBack';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { PatientCaseCombobox } from '@/components/PatientCaseCombobox';
@@ -1824,10 +1825,11 @@ export function CalculatorsView(): JSX.Element {
                   {definition().title}
                 </Heading>
                 <p class="calculator-subpage-summary">{definition().summary}</p>
-                <details class="calculator-subpage-sources">
-                  <summary class="calculator-subpage-sources__summary">
-                    Источники ({definition().sources.length})
-                  </summary>
+                <Disclosure
+                  variant="inline"
+                  class="calculator-subpage-sources"
+                  title={`Источники (${definition().sources.length})`}
+                >
                   <ul class="calculator-subpage-sources__list">
                     <For each={definition().sources}>
                       {(source) => (
@@ -1844,7 +1846,7 @@ export function CalculatorsView(): JSX.Element {
                       )}
                     </For>
                   </ul>
-                </details>
+                </Disclosure>
               </div>
             </header>
 

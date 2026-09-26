@@ -1184,36 +1184,34 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   }
 }
 
-.doctor-technical-details > summary,
-.system-technical-panel > .system-technical-panel__summary {
-  cursor: pointer;
-  font-weight: 700;
-}
-
 .doctor-technical-details {
   flex-shrink: 0;
   margin-top: 0.75rem;
-  padding: 0.65rem 0.7rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.45rem;
+  border-top: 1px solid var(--theme-border);
   color: var(--theme-text-muted);
-  background: var(--theme-surface);
-  font-size: 0.625rem;
 }
 
-.doctor-technical-details dl {
-  margin: 0.625rem 0 0;
+.doctor-technical-details__list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.78rem;
 }
 
-.doctor-technical-details dl > div {
+.doctor-technical-details__row {
   display: grid;
   grid-template-columns: 5rem minmax(0, 1fr);
   gap: 0.5rem;
-  margin-top: 0.3125rem;
 }
 
-.doctor-technical-details dd {
+.doctor-technical-details__term {
+  color: var(--theme-text-faint, var(--theme-text-muted));
+}
+
+.doctor-technical-details__value {
   margin: 0;
+  color: var(--theme-text);
+  overflow-wrap: anywhere;
 }
 
 .archive-library-heading,
@@ -1541,42 +1539,6 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
 .system-technical-panel {
   width: 100%;
   margin: 1rem 0 2.5rem;
-  padding: 0.75rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-radius-panel);
-  color: var(--theme-text);
-  background: var(--theme-surface);
-}
-
-.system-technical-panel__summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.625rem;
-  padding: 0.375rem 0.5rem;
-  list-style: none;
-  color: var(--theme-text);
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.system-technical-panel__summary::-webkit-details-marker,
-.system-technical-panel__summary::marker {
-  display: none;
-  content: none;
-}
-
-.system-technical-panel__chevron {
-  width: 0.875rem;
-  height: 0.875rem;
-  flex: 0 0 auto;
-  color: var(--theme-text-muted);
-  transition: transform 130ms ease;
-}
-
-.system-technical-panel[open] .system-technical-panel__chevron {
-  transform: rotate(180deg);
 }
 
 .system-model-technical {

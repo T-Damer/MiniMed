@@ -566,12 +566,6 @@ html.calculator-route-open body {
   font-size: 0.8rem;
 }
 
-.calculator-subpage-sources__summary {
-  width: fit-content;
-  color: var(--theme-accent);
-  cursor: pointer;
-}
-
 .calculator-subpage-sources__list {
   display: grid;
   gap: 0.3rem;

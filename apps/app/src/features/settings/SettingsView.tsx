@@ -3,6 +3,7 @@ import { createSignal, type JSX, lazy, onCleanup, onMount, Show } from 'solid-js
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { Disclosure } from '@/components/Disclosure';
 import { Page } from '@/components/Page';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { Switch } from '@/components/Switch';
@@ -302,17 +303,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
 
         <AsrSettings />
 
-        <details class="system-technical-panel">
-          <summary class="system-technical-panel__summary">
-            <span class="system-technical-panel__summary-text">
-              Техническая информация о приложении
-            </span>
-            <AppGlyph
-              name="caret-down"
-              class="system-technical-panel__chevron"
-              aria-hidden="true"
-            />
-          </summary>
+        <Disclosure class="system-technical-panel" title="Техническая информация о приложении">
           <Show
             when={props.status}
             fallback={
@@ -323,7 +314,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
           >
             {(status) => <StatusPanel initialStatus={status()} />}
           </Show>
-        </details>
+        </Disclosure>
 
         <nav class="settings-page__links" aria-label="Ссылки приложения">
           <ReleaseLinks linkClass="settings-page__link" />

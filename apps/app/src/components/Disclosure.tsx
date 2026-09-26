@@ -6,8 +6,12 @@ import '@/components/Disclosure.css';
 
 export interface DisclosureProps {
   readonly title: JSX.Element;
-  readonly open: boolean;
-  readonly onToggle: (open: boolean) => void;
+  /** Controlled state; omit both `open` and `onToggle` to let the section manage itself. */
+  readonly open?: boolean;
+  readonly onToggle?: (open: boolean) => void;
+  readonly defaultOpen?: boolean;
+  /** `card` is a bordered panel; `inline` is a compact text row for secondary details. */
+  readonly variant?: 'card' | 'inline';
   /** Short trailing meta such as a count; rendered before the chevron. */
   readonly meta?: JSX.Element;
   readonly description?: string;
@@ -22,21 +26,27 @@ export interface DisclosureProps {
  */
 export function Disclosure(props: DisclosureProps): JSX.Element {
   const panelId = createUniqueId();
-  const [visited, setVisited] = createSignal(props.open);
+  const [ownOpen, setOwnOpen] = createSignal(props.defaultOpen ?? false);
+  const open = (): boolean => props.open ?? ownOpen();
+  const [visited, setVisited] = createSignal(open());
   const toggle = (): void => {
-    const next = !props.open;
+    const next = !open();
     if (next) setVisited(true);
-    props.onToggle(next);
+    setOwnOpen(next);
+    props.onToggle?.(next);
   };
   return (
     <section
       class={`ui-disclosure ${props.class ?? ''}`.trim()}
-      classList={{ 'ui-disclosure--open': props.open }}
+      classList={{
+        'ui-disclosure--open': open(),
+        'ui-disclosure--inline': props.variant === 'inline',
+      }}
     >
       <button
         class="ui-disclosure__header"
         type="button"
-        aria-expanded={props.open}
+        aria-expanded={open()}
         aria-controls={panelId}
         onClick={toggle}
       >
@@ -49,24 +59,21 @@ export function Disclosure(props: DisclosureProps): JSX.Element {
         <Show when={props.meta !== undefined}>
           <span class="ui-disclosure__meta">{props.meta}</span>
         </Show>
-        <span
-          class="ui-disclosure__chevron"
-          classList={{ 'ui-disclosure__chevron--open': props.open }}
-        >
+        <span class="ui-disclosure__chevron" classList={{ 'ui-disclosure__chevron--open': open() }}>
           <AppGlyph name="caret-down" class="ui-disclosure__chevron-icon" />
         </span>
       </button>
       <div
         class="ui-disclosure__panel"
-        classList={{ 'ui-disclosure__panel--open': props.open }}
+        classList={{ 'ui-disclosure__panel--open': open() }}
         id={panelId}
-        inert={!props.open}
+        inert={!open()}
       >
         <div class="ui-disclosure__inner">
-          <Show when={visited() || props.open}>
+          <Show when={visited() || open()}>
             <div
               class="ui-disclosure__content"
-              classList={{ 'ui-disclosure__content--open': props.open }}
+              classList={{ 'ui-disclosure__content--open': open() }}
             >
               {props.children}
             </div>

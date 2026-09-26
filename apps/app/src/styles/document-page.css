@@ -251,23 +251,9 @@
   gap: 0.45rem;
 }
 
-.document-allmed-supplement {
-  border: 1px solid var(--theme-border, var(--paper-line));
-  border-radius: 0.55rem;
-  background: var(--theme-surface, var(--paper-surface));
-}
-
-.document-allmed-supplement__summary {
-  padding: 0.65rem 0.75rem;
-  color: var(--theme-text, var(--ink));
-  cursor: pointer;
-  font-weight: 650;
-}
-
 .document-allmed-supplement__body {
   display: grid;
   gap: 0.65rem;
-  padding: 0 0.75rem 0.75rem;
 }
 
 .document-allmed-supplement__figure {

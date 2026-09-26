@@ -9,6 +9,7 @@ import type {
   MedicalCore,
 } from '@localmed/contracts';
 import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import { Disclosure } from '@/components/Disclosure';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { PackageDownloadRow } from '@/features/setup/PackageDownloadRow';
@@ -373,12 +374,15 @@ export function DefinitionReferencePanel(props: {
                       </button>
                     </Show>
                     <p class="reference-card__source">Источник: {sourceTitle(source())}</p>
-                    <details class="reference-card__provenance">
-                      <summary>Источник и точное расположение</summary>
+                    <Disclosure
+                      variant="inline"
+                      class="reference-card__provenance"
+                      title="Источник и точное расположение"
+                    >
                       <pre class="reference-card__metadata">
                         {JSON.stringify({ source: source(), locator: body().provenance }, null, 2)}
                       </pre>
-                    </details>
+                    </Disclosure>
                   </>
                 )}
               </Show>
@@ -404,8 +408,12 @@ export function DefinitionReferencePanel(props: {
         )}
       </Show>
       <Show when={candidates().length > 0}>
-        <details class="reference-panel__packages">
-          <summary>Пакеты справочника</summary>
+        <Disclosure
+          variant="inline"
+          class="reference-panel__packages"
+          title="Пакеты справочника"
+          meta={candidates().length}
+        >
           <ul class="package-list">
             <For each={candidates()}>
               {(module) => (
@@ -418,7 +426,7 @@ export function DefinitionReferencePanel(props: {
               )}
             </For>
           </ul>
-        </details>
+        </Disclosure>
       </Show>
     </section>
   );

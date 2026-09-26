@@ -1,6 +1,7 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { Disclosure } from '@/components/Disclosure';
 import { openCalculator } from '@/features/calculators/calculator-links';
 import { ECG_PHOTO_CALIPER_ID } from '@/features/calculators/calculator-registry';
 import { readEcgModelDescriptor, subscribeEcgModel } from '@/features/calculators/ecg-model';
@@ -165,8 +166,7 @@ export function EcgModelSettings(): JSX.Element {
           </Button>
         </Show>
       </div>
-      <details class="ecg-model-settings__details">
-        <summary class="ecg-model-settings__details-summary">Подробнее о пакете</summary>
+      <Disclosure variant="inline" title="Подробнее о пакете">
         <For each={ECG_PACKAGE_COMPONENTS}>
           {(candidate) => (
             <div class="ecg-model-settings__option">
@@ -188,7 +188,7 @@ export function EcgModelSettings(): JSX.Element {
           подтверждённых измерений и выдаёт пять исследовательских гипотез. Результат требует
           проверки по исходной ЭКГ врачом и не подтверждает острый инфаркт.
         </p>
-      </details>
+      </Disclosure>
       <Show when={error()}>
         <p class="ecg-model-settings__error" role="alert">
           {error()}

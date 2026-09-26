@@ -19,6 +19,7 @@ import { Dynamic } from 'solid-js/web';
 import { toast } from 'solid-sonner';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { Disclosure } from '@/components/Disclosure';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { DocumentText, documentTextSearchText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
@@ -155,10 +156,7 @@ function AllmedSupplementPanel(props: { readonly supplement: TradeNameSupplement
   });
 
   return (
-    <details class="document-allmed-supplement">
-      <summary class="document-allmed-supplement__summary">
-        {props.supplement.product.tradeName}
-      </summary>
+    <Disclosure class="document-allmed-supplement" title={props.supplement.product.tradeName}>
       <div class="document-allmed-supplement__body">
         <Show when={image()}>
           {(resolvedImage) => (
@@ -187,7 +185,7 @@ function AllmedSupplementPanel(props: { readonly supplement: TradeNameSupplement
           Источник: allmed.pro
         </a>
       </div>
-    </details>
+    </Disclosure>
   );
 }
 
@@ -765,23 +763,30 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       outlineFooter={
         <Show when={props.document}>
           {(documentValue) => (
-            <details class="doctor-technical-details">
-              <summary>Сведения об источнике</summary>
-              <dl>
-                <div>
-                  <dt>Редакция</dt>
-                  <dd>{documentValue().versionLabel}</dd>
+            <Disclosure
+              variant="inline"
+              class="doctor-technical-details"
+              title="Сведения об источнике"
+            >
+              <dl class="doctor-technical-details__list">
+                <div class="doctor-technical-details__row">
+                  <dt class="doctor-technical-details__term">Редакция</dt>
+                  <dd class="doctor-technical-details__value">{documentValue().versionLabel}</dd>
                 </div>
-                <div>
-                  <dt>Статус</dt>
-                  <dd>{statusLabel(documentValue().status)}</dd>
+                <div class="doctor-technical-details__row">
+                  <dt class="doctor-technical-details__term">Статус</dt>
+                  <dd class="doctor-technical-details__value">
+                    {statusLabel(documentValue().status)}
+                  </dd>
                 </div>
-                <div>
-                  <dt>Тип</dt>
-                  <dd>{documentValue().sourceType.replaceAll('_', ' ')}</dd>
+                <div class="doctor-technical-details__row">
+                  <dt class="doctor-technical-details__term">Тип</dt>
+                  <dd class="doctor-technical-details__value">
+                    {documentValue().sourceType.replaceAll('_', ' ')}
+                  </dd>
                 </div>
               </dl>
-            </details>
+            </Disclosure>
           )}
         </Show>
       }

@@ -131,5 +131,5 @@
 }
 .reference-panel__packages {
   border-top: 1px solid var(--theme-border);
-  padding-top: 1rem;
+  padding-top: 0.5rem;
 }
