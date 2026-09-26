@@ -166,6 +166,7 @@ describe('portable personal-notes backup', () => {
     expect(backup.files[0]).toMatchObject({
       id: 'file-audio',
       noteId: 'note-1',
+      sha256: '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
       bytesBase64: 'AQID',
     });
     expect(backup.transcripts[0]?.speakerNames).toEqual({ 'speaker-1': 'Врач' });
@@ -213,6 +214,40 @@ describe('portable personal-notes backup', () => {
     });
     expect(env.local.getItem('minimed.patient-note-drafts.v1')).toBeNull();
     expect(env.local.getItem('minimed.patient-note-revisions.v1')).toBeNull();
+  });
+
+  it('rejects same-size attachment corruption before mutating current notes', async () => {
+    const env = installEnvironment();
+    env.local.setItem('minimed.patient-notes.v1', JSON.stringify(snapshot));
+    const { importPersonalNotesBackup } = await import('./personal-notes-backup');
+
+    const corrupt = {
+      kind: 'minimed-personal-notes-backup',
+      schemaVersion: 1,
+      exportedAt: '2026-09-26T08:00:00.000Z',
+      snapshot,
+      files: [
+        {
+          id: 'file-audio',
+          noteId: 'note-1',
+          name: 'приём.webm',
+          mimeType: 'audio/webm',
+          size: 3,
+          sha256: '039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81',
+          bytesBase64: 'BAUG',
+          createdAt: '2026-09-26T07:20:00.000Z',
+        },
+      ],
+      images: [],
+      transcripts: [],
+    };
+
+    await expect(importPersonalNotesBackup(corrupt)).rejects.toThrow('Контрольная сумма вложения');
+    const current = JSON.parse(env.local.getItem('minimed.patient-notes.v1') ?? '{}') as {
+      cards?: Array<{ id?: string }>;
+    };
+    expect(current.cards?.[0]?.id).toBe('card-1');
+    expect(env.files.size).toBe(0);
   });
 
   it('rejects a transcript that is not linked to its source audio before mutating data', async () => {
