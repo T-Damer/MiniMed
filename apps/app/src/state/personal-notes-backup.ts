@@ -43,10 +43,15 @@ export interface PersonalNotesBackupFile {
   readonly createdAt: string;
 }
 
+export type PersonalNotesBackupScope =
+  | { readonly kind: 'all' }
+  | { readonly kind: 'card'; readonly cardId: string };
+
 export interface PersonalNotesBackup {
   readonly kind: typeof PERSONAL_NOTES_BACKUP_KIND;
   readonly schemaVersion: typeof PERSONAL_NOTES_BACKUP_SCHEMA_VERSION;
   readonly exportedAt: string;
+  readonly scope: PersonalNotesBackupScope;
   readonly snapshot: PatientNotesSnapshot;
   readonly files: readonly PersonalNotesBackupFile[];
   readonly images: readonly NoteImage[];
@@ -205,6 +210,7 @@ export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
     readonly kind?: unknown;
     readonly schemaVersion?: unknown;
     readonly exportedAt?: unknown;
+    readonly scope?: unknown;
     readonly snapshot?: unknown;
     readonly files?: unknown;
     readonly images?: unknown;
@@ -217,6 +223,28 @@ export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
     throw new Error('Версия backup личных заметок не поддерживается.');
   }
   if (!validDate(candidate.exportedAt)) throw new Error('Дата backup повреждена.');
+
+  const scope: PersonalNotesBackupScope =
+    candidate.scope === undefined
+      ? { kind: 'all' }
+      : candidate.scope &&
+          typeof candidate.scope === 'object' &&
+          !Array.isArray(candidate.scope) &&
+          (candidate.scope as { readonly kind?: unknown }).kind === 'all'
+        ? { kind: 'all' }
+        : candidate.scope &&
+            typeof candidate.scope === 'object' &&
+            !Array.isArray(candidate.scope) &&
+            (candidate.scope as { readonly kind?: unknown }).kind === 'card' &&
+            typeof (candidate.scope as { readonly cardId?: unknown }).cardId === 'string' &&
+            Boolean((candidate.scope as { readonly cardId?: string }).cardId)
+          ? {
+              kind: 'card',
+              cardId: (candidate.scope as { readonly cardId: string }).cardId,
+            }
+          : (() => {
+              throw new Error('Область backup личных заметок повреждена.');
+            })();
 
   const snapshot = parsePatientNotesSnapshot(candidate.snapshot);
   if (!Array.isArray(candidate.files) || !Array.isArray(candidate.images) || !Array.isArray(candidate.transcripts)) {
@@ -258,10 +286,21 @@ export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
     }
   }
 
+  if (scope.kind === 'card') {
+    if (
+      snapshot.cards.length !== 1 ||
+      snapshot.cards[0]?.id !== scope.cardId ||
+      snapshot.notes.some((note) => note.cardId !== scope.cardId)
+    ) {
+      throw new Error('Backup одной карточки содержит данные другой карточки.');
+    }
+  }
+
   return {
     kind: PERSONAL_NOTES_BACKUP_KIND,
     schemaVersion: PERSONAL_NOTES_BACKUP_SCHEMA_VERSION,
     exportedAt: candidate.exportedAt,
+    scope,
     snapshot,
     files,
     images,
@@ -282,6 +321,82 @@ async function capturePersonalNotesState(): Promise<PersonalNotesState> {
     files: flatten(noteIds, fileGroups),
     images: flatten(noteIds, imageGroups),
     transcripts: flatten(noteIds, transcriptGroups),
+  };
+}
+
+function selectCardState(state: PersonalNotesState, cardId: string): PersonalNotesState {
+  const card = state.snapshot.cards.find((candidate) => candidate.id === cardId);
+  if (!card) throw new Error('Карточка для экспорта не найдена.');
+  const notes = state.snapshot.notes.filter((note) => note.cardId === cardId);
+  const noteIds = new Set(notes.map((note) => note.id));
+  return {
+    snapshot: { cards: [card], notes },
+    files: state.files.filter((file) => noteIds.has(file.noteId)),
+    images: state.images.filter((image) => noteIds.has(image.noteId)),
+    transcripts: state.transcripts.filter((transcript) => noteIds.has(transcript.noteId)),
+  };
+}
+
+function mergeCardState(
+  current: PersonalNotesState,
+  incoming: PersonalNotesState,
+  cardId: string,
+): PersonalNotesState {
+  const incomingCard = incoming.snapshot.cards[0];
+  if (!incomingCard || incomingCard.id !== cardId) {
+    throw new Error('Backup одной карточки не соответствует заявленному ID.');
+  }
+
+  const oldNoteIds = new Set(
+    current.snapshot.notes.filter((note) => note.cardId === cardId).map((note) => note.id),
+  );
+  const incomingNoteIds = new Set(incoming.snapshot.notes.map((note) => note.id));
+  const otherNotes = current.snapshot.notes.filter((note) => note.cardId !== cardId);
+  const otherNoteIds = new Set(otherNotes.map((note) => note.id));
+  for (const noteId of incomingNoteIds) {
+    if (otherNoteIds.has(noteId)) {
+      throw new Error('ID заметки из backup уже используется другой карточкой.');
+    }
+  }
+
+  const otherFiles = current.files.filter((file) => !oldNoteIds.has(file.noteId));
+  const otherFileIds = new Set(otherFiles.map((file) => file.id));
+  for (const file of incoming.files) {
+    if (otherFileIds.has(file.id)) {
+      throw new Error('ID вложения из backup уже используется другой карточкой.');
+    }
+  }
+
+  const otherImages = current.images.filter((image) => !oldNoteIds.has(image.noteId));
+  const otherImageIds = new Set(otherImages.map((image) => image.id));
+  for (const image of incoming.images) {
+    if (otherImageIds.has(image.id)) {
+      throw new Error('ID изображения из backup уже используется другой карточкой.');
+    }
+  }
+
+  const otherTranscripts = current.transcripts.filter(
+    (transcript) => !oldNoteIds.has(transcript.noteId),
+  );
+  const otherTranscriptIds = new Set(otherTranscripts.map((transcript) => transcript.fileId));
+  for (const transcript of incoming.transcripts) {
+    if (otherTranscriptIds.has(transcript.fileId)) {
+      throw new Error('ID расшифровки из backup уже используется другой карточкой.');
+    }
+  }
+
+  const cards = current.snapshot.cards.some((card) => card.id === cardId)
+    ? current.snapshot.cards.map((card) => (card.id === cardId ? incomingCard : card))
+    : [incomingCard, ...current.snapshot.cards];
+
+  return {
+    snapshot: {
+      cards,
+      notes: [...otherNotes, ...incoming.snapshot.notes],
+    },
+    files: [...otherFiles, ...incoming.files],
+    images: [...otherImages, ...incoming.images],
+    transcripts: [...otherTranscripts, ...incoming.transcripts],
   };
 }
 
@@ -343,10 +458,43 @@ export async function exportPersonalNotesBackup(): Promise<PersonalNotesBackup> 
     kind: PERSONAL_NOTES_BACKUP_KIND,
     schemaVersion: PERSONAL_NOTES_BACKUP_SCHEMA_VERSION,
     exportedAt: new Date().toISOString(),
+    scope: { kind: 'all' },
     snapshot: state.snapshot,
     files,
     images: state.images,
     transcripts: state.transcripts,
+  });
+}
+
+export async function exportPersonalNotesCardBackup(
+  cardId: string,
+): Promise<PersonalNotesBackup> {
+  await runPendingNoteRetentionCleanup();
+  const selected = selectCardState(await capturePersonalNotesState(), cardId);
+  const files: PersonalNotesBackupFile[] = [];
+  for (const file of selected.files) {
+    const bytes = new Uint8Array(await file.blob.arrayBuffer());
+    files.push({
+      id: file.id,
+      noteId: file.noteId,
+      name: file.name,
+      mimeType: file.mimeType,
+      size: file.size,
+      sha256: await sha256Hex(bytes),
+      bytesBase64: bytesToBase64(bytes),
+      ...(file.thumbnailDataUrl ? { thumbnailDataUrl: file.thumbnailDataUrl } : {}),
+      createdAt: file.createdAt,
+    });
+  }
+  return parsePersonalNotesBackup({
+    kind: PERSONAL_NOTES_BACKUP_KIND,
+    schemaVersion: PERSONAL_NOTES_BACKUP_SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    scope: { kind: 'card', cardId },
+    snapshot: selected.snapshot,
+    files,
+    images: selected.images,
+    transcripts: selected.transcripts,
   });
 }
 
@@ -357,10 +505,25 @@ export async function importPersonalNotesBackup(value: unknown): Promise<Persona
   // Finish any previously journalled deletion before resurrecting stable IDs from a backup.
   await runPendingNoteRetentionCleanup();
   const previous = await capturePersonalNotesState();
+  const next =
+    backup.scope.kind === 'card'
+      ? mergeCardState(previous, prepared, backup.scope.cardId)
+      : prepared;
+  const importedNoteIds = prepared.snapshot.notes.map((note) => note.id);
+  const replacedNoteIds =
+    backup.scope.kind === 'card'
+      ? previous.snapshot.notes
+          .filter((note) => note.cardId === backup.scope.cardId)
+          .map((note) => note.id)
+      : previous.snapshot.notes.map((note) => note.id);
 
   try {
-    await applyPersonalNotesState(prepared);
-    clearPatientNoteWorkingState();
+    await applyPersonalNotesState(next);
+    clearPatientNoteWorkingState(
+      backup.scope.kind === 'card'
+        ? [...new Set([...replacedNoteIds, ...importedNoteIds])]
+        : undefined,
+    );
     return backup;
   } catch (cause) {
     try {
