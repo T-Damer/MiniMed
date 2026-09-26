@@ -22,6 +22,8 @@ const RESULT_PREFIX = 'MMD1';
 export const DIARY_QR_CHUNK = 700;
 const MAX_PARTS = 40;
 const MAX_PAYLOAD = DIARY_QR_CHUNK * MAX_PARTS;
+/** Enough for 1,500 validated entries while bounding decompression before JSON.parse. */
+export const MAX_DIARY_JSON_BYTES = 1024 * 1024;
 
 function toBase64Url(bytes: Uint8Array): string {
   let binary = '';
@@ -38,14 +40,48 @@ function fromBase64Url(value: string): Uint8Array<ArrayBuffer> {
 
 async function transform(
   bytes: Uint8Array<ArrayBuffer>,
-  stream: CompressionStream | DecompressionStream,
+  stream: CompressionStream,
 ): Promise<Uint8Array<ArrayBuffer>> {
   const output = new Blob([bytes]).stream().pipeThrough(stream);
   return new Uint8Array(await new Response(output).arrayBuffer());
 }
 
+async function decompressBounded(
+  bytes: Uint8Array<ArrayBuffer>,
+): Promise<Uint8Array<ArrayBuffer>> {
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  const reader = stream.getReader();
+  const chunks: Uint8Array<ArrayBuffer>[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const next = await reader.read();
+      if (next.done) break;
+      const chunk = Uint8Array.from(next.value);
+      total += chunk.byteLength;
+      if (total > MAX_DIARY_JSON_BYTES) {
+        await reader.cancel();
+        throw new DiaryFormatError('Распакованные данные дневника слишком велики.');
+      }
+      chunks.push(chunk);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const result = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return result;
+}
+
 export async function encodePayload(value: unknown): Promise<string> {
   const json = new TextEncoder().encode(JSON.stringify(value));
+  if (json.byteLength > MAX_DIARY_JSON_BYTES) {
+    throw new DiaryFormatError('Данные дневника слишком велики.');
+  }
   if (typeof CompressionStream === 'undefined') return `j${toBase64Url(json)}`;
   return `z${toBase64Url(await transform(json, new CompressionStream('deflate-raw')))}`;
 }
@@ -55,14 +91,19 @@ export async function decodePayload(text: string): Promise<unknown> {
   const mode = text[0];
   const bytes = fromBase64Url(text.slice(1));
   let json: Uint8Array<ArrayBuffer>;
-  if (mode === 'j') json = bytes;
-  else if (mode === 'z') {
+  if (mode === 'j') {
+    if (bytes.byteLength > MAX_DIARY_JSON_BYTES) {
+      throw new DiaryFormatError('Данные дневника слишком велики.');
+    }
+    json = bytes;
+  } else if (mode === 'z') {
     if (typeof DecompressionStream === 'undefined') {
       throw new DiaryFormatError('Браузер не умеет распаковывать сжатые данные дневника.');
     }
     try {
-      json = await transform(bytes, new DecompressionStream('deflate-raw'));
+      json = await decompressBounded(bytes);
     } catch (cause) {
+      if (cause instanceof DiaryFormatError) throw cause;
       throw new DiaryFormatError('Повреждённые данные дневника.', { cause });
     }
   } else throw new DiaryFormatError('Неизвестный формат данных дневника.');
@@ -204,8 +245,18 @@ export function parseDiaryPart(text: string): DiaryPart | null {
   if (!match) return null;
   const index = Number(match[2]);
   const count = Number(match[3]);
-  if (count < 1 || count > MAX_PARTS || index < 1 || index > count) return null;
-  return { sum: match[1] ?? '', index, count, chunk: match[4] ?? '' };
+  const chunk = match[4] ?? '';
+  if (
+    count < 1 ||
+    count > MAX_PARTS ||
+    index < 1 ||
+    index > count ||
+    chunk.length === 0 ||
+    chunk.length > DIARY_QR_CHUNK
+  ) {
+    return null;
+  }
+  return { sum: match[1] ?? '', index, count, chunk };
 }
 
 /** Collects scanned parts in any order; ignores duplicates and parts of another transfer. */
