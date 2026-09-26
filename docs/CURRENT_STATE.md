@@ -42,6 +42,12 @@ released), the native Android transcriber, and the Android high-refresh display 
   replaces native `<details>` in setup, settings, calculator sources, reader source details, Allmed
   supplements and the definition-reference panel. New `SelectField` replaces raw selects in the patient
   workspace. `OverlayDialog` accepts `dismissible={false}`.
+- **Ranking fix found by the release gate.** Body weight («вес 20 кг», label «Масса») was treated as
+  a positive clinical finding, so any document mentioning body mass got full finding coverage and
+  outranked a named medicine (`drug.ceftriaxone.pediatric-pneumonia-workflow` fell to rank 5).
+  Weight facts are now excluded from ranking findings. Pilot, lookup (Top-1 100%) and clinical
+  (Top-1 81.8%, NDCG@5 0.913) benchmarks pass. Note: `benchmark:all` does not run `benchmark:pilot`;
+  run it locally before a release.
 - **Verification.** Local only (Actions minutes are reserved for the release build): Biome, strict
   TypeScript, Vitest, Vite build, Python checks, native source checks and benchmarks — see the release
   commit. The release APK is built by the release workflow. Not tested: physical Android devices, MIUI,

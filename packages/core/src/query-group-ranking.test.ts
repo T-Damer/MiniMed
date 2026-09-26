@@ -168,6 +168,25 @@ it('ranks the named condition above narrower variants and preserves short diseas
   ).toBe('cancer');
 });
 
+it('does not treat body weight as a clinical finding that outranks a named medicine', () => {
+  const query = 'Цефтриаксон ребенку 3 лет вес 20 кг при пневмонии как второй антибиотик';
+  const { analysis } = analyzeClinicalQuery(query, []);
+  const ranked = rankSearchGroupsByQuery(
+    [
+      group('bronchiolitis', 'Бронхиолит', 0.35, [
+        result('bronchiolitis', 'Бронхиолит', 'Дозу рассчитывают на массу тела ребенка.'),
+      ]),
+      group('ceftriaxone', 'Цефтриаксон', 0.56, [
+        result('ceftriaxone', 'Цефтриаксон', 'Цефтриаксон, порошок для приготовления раствора.'),
+      ]),
+    ],
+    query,
+    [],
+    analysis,
+  );
+  expect(ranked[0]?.documentId).toBe('ceftriaxone');
+});
+
 function result(
   documentId: string,
   title: string,

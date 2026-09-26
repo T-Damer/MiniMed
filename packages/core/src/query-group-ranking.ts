@@ -470,10 +470,19 @@ export function rankSearchGroupsByQuery(
   const namedMedication =
     !analysis ||
     analysis.facts.some((fact) => fact.kind === 'medication' && fact.polarity === 'positive');
-  const clinicalPositiveFacts =
+  // Body weight is a dosing parameter, not a finding: its «Масса» label would otherwise give full
+  // finding coverage to any document that merely mentions body mass.
+  const weightRanges = (analysis?.clinicalContext?.weight ?? []).map((fact) => fact.range);
+  const clinicalPositiveFacts = (
     analysis?.clinicalContext?.positiveFindings ??
     analysis?.facts.filter((fact) => fact.kind === 'symptom' && fact.polarity === 'positive') ??
-    [];
+    []
+  ).filter(
+    (fact) =>
+      !weightRanges.some(
+        (range) => range.start === fact.range.start && range.end === fact.range.end,
+      ),
+  );
   const clinicalNarrative =
     analysis?.intent?.primary !== 'medication' && clinicalPositiveFacts.length > 0;
   const negativeTerms = new Set(
