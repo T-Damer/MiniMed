@@ -310,6 +310,8 @@ const checks = [
     'portable personal-notes backup preserves stable ids',
     files.personalNotesBackup.includes("PERSONAL_NOTES_BACKUP_KIND = 'minimed-personal-notes-backup'") &&
       files.personalNotesBackup.includes('PERSONAL_NOTES_BACKUP_SCHEMA_VERSION = 1') &&
+      files.personalNotesBackup.includes('readonly sha256: string') &&
+      files.personalNotesBackup.includes("crypto.subtle.digest('SHA-256'") &&
       files.patientNotes.includes('export async function replacePatientNotesSnapshot(') &&
       files.noteFiles.includes('export async function replaceAllNoteFiles(') &&
       files.noteImages.includes('export async function replaceAllNoteImages(') &&
@@ -319,17 +321,22 @@ const checks = [
     'personal-notes import validates links and rolls back',
     files.personalNotesBackup.includes('parsePatientNotesSnapshot(candidate.snapshot)') &&
       files.personalNotesBackup.includes('Расшифровка в backup не связана с исходной аудиозаписью') &&
+      files.personalNotesBackup.includes('Контрольная сумма вложения') &&
       files.personalNotesBackup.includes('const previous = await capturePersonalNotesState()') &&
       files.personalNotesBackup.includes('await applyPersonalNotesState(previous)') &&
-      files.notes.includes('exportPersonalNotesBackup') &&
-      files.notes.includes('importPersonalNotesBackup'),
+      files.personalNotesBackup.includes('clearPatientNoteWorkingState()') &&
+      files.notes.includes('parsePersonalNotesBackup(JSON.parse(raw) as unknown)') &&
+      files.notes.includes('importPersonalNotesBackup(backup)'),
   ],
   [
     'personal-notes backup round trip is covered',
     files.personalNotesBackupTests.includes('round-trips stable note, attachment, image and transcript ids') &&
       files.personalNotesBackupTests.includes("bytesBase64: 'AQID'") &&
+      files.personalNotesBackupTests.includes('039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81') &&
       files.personalNotesBackupTests.includes("speakerNames: { 'speaker-1': 'Врач' }") &&
-      files.personalNotesBackupTests.includes('not linked to its source audio before mutating data'),
+      files.personalNotesBackupTests.includes('rejects same-size attachment corruption before mutating current notes') &&
+      files.personalNotesBackupTests.includes('not linked to its source audio before mutating data') &&
+      files.personalNotesBackupTests.includes("minimed.patient-note-drafts.v1"),
   ],
   [
     'diary shared controls',
