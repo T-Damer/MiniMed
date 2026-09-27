@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple magnifier glyph, plain white on the adaptive-icon background layer. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M46,30 A22,22 0 1 0 46,74 A22,22 0 1 0 46,30 Z M46,38 A14,14 0 1 1 46,66 A14,14 0 1 1 46,38 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M61,61 L80,80 L74,86 L55,67 Z" />
+</vector>
