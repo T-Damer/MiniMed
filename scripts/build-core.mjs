@@ -21,14 +21,22 @@
 //                           "unsupported source_type: clinical_recommendation_catalog_record").
 //     pointers-build        medbase build <pointer module> -> core-pointers-base.db.
 //
-//   Track B/C -- clinical (744) and medication (3,324) catalog pointers:
-//     catalog-pointers-<family>        medbase build-core-catalog-pointers --family
-//                           <clinical|medication> --ledger <official-*-coverage-ledger.json>
-//                           -> markdown pointer module. Reads the ledger JSON directly; no
-//                           compose and no compiled per-specialty .db needed for this track.
-//     catalog-pointers-<family>-build  medbase build <pointer module> -> .db.
+//   Track B -- clinical (744) catalog pointers:
+//     catalog-pointers-clinical         medbase build-core-catalog-pointers --family clinical
+//                           --ledger official-clinical-coverage-ledger.json -> markdown pointer
+//                           module. Reads the ledger JSON directly; no compose and no compiled
+//                           per-specialty .db needed for this track.
+//     catalog-pointers-clinical-build   medbase build <pointer module> -> .db.
 //     (A fourth 'legal' CatalogFamily exists in code but has 0 documents in the released
 //     core.db, so it is not wired in here.)
+//
+//   Track C -- medication (3,324), PINNED, not rebuilt from a ledger (coordinator decision,
+//   2026-09-27 -- see the long comment further down, "Medical (medication) track"):
+//     medication-pointers-pinned   tools/ingest/scripts/pin_medication_pointers.py bulk-copies
+//                           the released core.db's own 3,324 medication pointer rows, selected
+//                           by a committed, hashed id list, into
+//                           data/build/core-medication-pointers-pinned.db. The full GRLS
+//                           registry (38,815 records and growing) is NOT rebuilt into the core.
 //
 //   Assembly:
 //     public-pilot-build    medbase build content/pilot-rf -> rf-public-pilot.db (15 docs: 7
@@ -38,7 +46,7 @@
 //                           content:build:pilot.
 //     finalize              medbase compose --input core-pointers-base.db --input
 //                           core-catalog-pointers-clinical.db --input
-//                           core-catalog-pointers-medication.db --input rf-public-pilot.db
+//                           core-medication-pointers-pinned.db --input rf-public-pilot.db
 //                           --compact -> data/build/core.<version>.db (candidate final core;
 //                           NOT copied over apps/app/public/content/core.db -- that publish step
 //                           is manual/separate). This is the equivalence-proving build: it still
@@ -58,7 +66,7 @@
 //                         stage is skipped entirely (no clean-pilot input to compose).
 //   finalize-clean        medbase compose --input core-pointers-base.db --input
 //                         core-catalog-pointers-clinical.db --input
-//                         core-catalog-pointers-medication.db [--input
+//                         core-medication-pointers-pinned.db [--input
 //                         rf-public-pilot-clean.db] --compact -> core.<version>.no-pilot.db.
 //   pilot-removal-diff    Diffs finalize vs finalize-clean's document id sets and writes
 //                         data/build/core-pilot-removal-diff.json (removed ids, kept ids,
@@ -197,12 +205,47 @@ function run(command, commandArgs, { label }) {
 //     a real run raised "unsupported source_type: clinical_recommendation_catalog_record"
 //     the one time this was tried, because build-core-reference-pointers only accepts
 //     {medical_reference, rls_mkb_reference, krasotaimedicina_reference}.
-//   - 'clinical' and 'medication': build-core-catalog-pointers --family <family> --ledger
-//     <coverage ledger>, which reads the ledger JSON directly (data/build/official-clinical-
-//     coverage-ledger.json / official-grls-coverage-ledger.json) -- no compose, no compiled
-//     per-module .db needed at all for this track.
+//   - 'clinical': build-core-catalog-pointers --family clinical --ledger
+//     official-clinical-coverage-ledger.json, which reads the ledger JSON directly -- no
+//     compose, no compiled per-module .db needed at all for this track.
+//   - 'medication' is DIFFERENT from the other two and deliberately NOT built the same way --
+//     see "Medical (medication) track: pinned, not rebuilt from a ledger" below.
 // A fourth 'legal' family exists in the code (CatalogFamily) but has 0 documents in the
 // currently released core.db, so it is not wired in here.
+//
+// ## Medical (medication) track: pinned, not rebuilt from a ledger (coordinator decision,
+// 2026-09-27; product direction: the core is a lightweight pointer/routing index over
+// everything, full content loads through separate downloadable modules)
+//
+// A first attempt fed `official-grls-coverage-ledger.json` (raw GRLS product registrations,
+// `drug.ru.*`) to `build-core-catalog-pointers --family medication` and got 38,815 documents --
+// wrong both in *count* and in *kind*. The released core.db's 3,324 medication pointers all
+// target `esklp.mnn.*` records (ESKLP: the deduplicated, INN-level drug-substance catalog, NOT
+// the per-product GRLS registry) via a completely different code path
+// (`catalog_module_builder.py::project_esklp_mnn_to_core_topic_stub`, dispatched when a ledger
+// record has `recordKind == "esklp-mnn"`). Building that ledger needs a raw ESKLP archive
+// (`medbase-regulated-catalog esklp --archive ... --taxonomy ...`) that is not available on this
+// machine -- only the *output* of that pipeline is here: `data/build/release-esklp/*.db` (15
+// per-ATC-category modules, already built, summing to exactly 3,324 documents -- confirmed by
+// direct count) and the 3,324 pointers already baked into the released core.db.
+//
+// Rather than re-deriving a ledger that might drift from what the release actually shipped, the
+// medication track is PINNED: `tools/ingest/scripts/pin_medication_pointers.py` bulk-copies
+// (not hand-edits) exactly the released core.db's medication pointer rows -- selected by a
+// committed id list, `tools/ingest/scripts/released-medication-pointer-ids-2026-09-08.json`
+// (3,324 ids, sha256 hashed into this stage's cache key and into its own report) -- into a
+// small schema-compatible SQLite file that composes like any other pointer track. This also
+// sidesteps the ~10-minute cascading-delete cost a whole-then-filter approach hit in an earlier
+// attempt (see docs/research/core-build-reconstruction-2026-09-27.md); the insert-only,
+// scoped-from-the-start approach here takes ~14s.
+//
+// The full GRLS registry (currently 38,815 `drug.ru.*` records and growing -- another agent's
+// concurrent `grls-instruction-batch` work) is deliberately NOT in the core. It is the
+// downloadable module side of the same "esklp-release" mechanism already used for the ESKLP
+// catalog: `medbase-regulated-catalog esklp-release --db-dir data/build/release-esklp ...`
+// validates the 15 built modules and writes downloadable catalog updates (docs/research/
+// core-build-reconstruction-2026-09-27.md has the coverage/membership findings). This script
+// does not build or publish that module.
 
 function catalogPointerTrack(family, ledgerFile) {
   const pointerDir = resolve(buildDir, `core-catalog-pointers-${family}`);
@@ -277,9 +320,45 @@ function catalogPointerTrack(family, ledgerFile) {
   ];
 }
 
+const RELEASED_CORE = resolve(root, 'apps/app/public/content/core.db');
+const PINNED_MEDICATION_IDS = resolve(
+  root,
+  'tools/ingest/scripts/released-medication-pointer-ids-2026-09-08.json',
+);
+
 const stages = [
   ...catalogPointerTrack('clinical', 'official-clinical-coverage-ledger.json'),
-  ...catalogPointerTrack('medication', 'official-grls-coverage-ledger.json'),
+  {
+    name: 'medication-pointers-pinned',
+    deps: [],
+    async inputs() {
+      return { releasedCore: RELEASED_CORE, pinnedIds: PINNED_MEDICATION_IDS };
+    },
+    async outputs() {
+      return [resolve(buildDir, 'core-medication-pointers-pinned.db')];
+    },
+    async execute() {
+      return run(
+        'uv',
+        [
+          'run',
+          '--project',
+          'tools/ingest',
+          'python',
+          'tools/ingest/scripts/pin_medication_pointers.py',
+          '--source',
+          'apps/app/public/content/core.db',
+          '--pinned-ids',
+          'tools/ingest/scripts/released-medication-pointer-ids-2026-09-08.json',
+          '--output',
+          'data/build/core-medication-pointers-pinned.db',
+          '--report',
+          'data/build/core-medication-pointers-pinned-report.json',
+        ],
+        { label: 'pin medication pointers to the released core.db set (not the growing GRLS ledger)' },
+      );
+    },
+  },
   {
     name: 'compose-reference',
     deps: [],
@@ -427,14 +506,14 @@ const stages = [
     deps: [
       'pointers-build',
       'catalog-pointers-clinical-build',
-      'catalog-pointers-medication-build',
+      'medication-pointers-pinned',
       'public-pilot-build',
     ],
     async inputs() {
       return {
         reference: resolve(buildDir, 'core-pointers-base.db'),
         clinical: resolve(buildDir, 'core-catalog-pointers-clinical.db'),
-        medication: resolve(buildDir, 'core-catalog-pointers-medication.db'),
+        medication: resolve(buildDir, 'core-medication-pointers-pinned.db'),
         pilot: resolve(buildDir, 'rf-public-pilot.db'),
       };
     },
@@ -455,7 +534,7 @@ const stages = [
           '--input',
           'data/build/core-catalog-pointers-clinical.db',
           '--input',
-          'data/build/core-catalog-pointers-medication.db',
+          'data/build/core-medication-pointers-pinned.db',
           '--input',
           'data/build/rf-public-pilot.db',
           '--output',
@@ -537,7 +616,7 @@ const stages = [
       return {
         reference: resolve(buildDir, 'core-pointers-base.db'),
         clinical: resolve(buildDir, 'core-catalog-pointers-clinical.db'),
-        medication: resolve(buildDir, 'core-catalog-pointers-medication.db'),
+        medication: resolve(buildDir, 'core-medication-pointers-pinned.db'),
         cleanPilot: keptPilotFiles().length ? resolve(buildDir, 'rf-public-pilot-clean.db') : null,
         dropOrs,
       };
@@ -557,7 +636,7 @@ const stages = [
         '--input',
         'data/build/core-catalog-pointers-clinical.db',
         '--input',
-        'data/build/core-catalog-pointers-medication.db',
+        'data/build/core-medication-pointers-pinned.db',
       ];
       if (keptPilotFiles().length) {
         composeArgs.push('--input', 'data/build/rf-public-pilot-clean.db');

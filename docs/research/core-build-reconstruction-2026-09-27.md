@@ -181,6 +181,128 @@ once this is the settled behavior; `public-pilot-build`/`finalize` (pilot-inclus
 the script only to reproduce the *old* released core.db for the equivalence proof, not as the
 target end state.
 
+## Medication track: pinned to the released set (coordinator decision, 2026-09-27)
+
+Product direction: the core is a lightweight pointer/routing index over everything; full content
+loads through separate downloadable modules. Concretely for medication: the released core.db's
+3,324 medication pointers all target `esklp.mnn.*` records (the ESKLP MNN catalog: deduplicated,
+INN/substance-level — NOT the raw GRLS per-product registry, `drug.ru.*`, which is a different
+and much larger catalog, confirmed 38,815 records and growing). `build-core-catalog-pointers
+--family medication` dispatches to the ESKLP-shaped pointer builder only when a ledger record has
+`recordKind == "esklp-mnn"`; building that ledger needs a raw ESKLP archive
+(`medbase-regulated-catalog esklp --archive ... --taxonomy ...`) not available on this machine —
+only the pipeline's *output* is: `data/build/release-esklp/*.db` (15 per-ATC-category modules,
+already built, **summing to exactly 3,324 documents** — confirmed by direct count, an exact match
+for the released core's medication pointer count) and `data/build/catalog-esklp-membership.json`
+(the existing downloadable-module membership manifest, already describing `minimed.core.ru` as
+"Глобальный каталог... короткие проверяемые справки... маршрутизация к незагруженным модулям" —
+i.e. this lightweight-core/downloadable-modules architecture is already the documented intent,
+not a new decision).
+
+Because that ledger can't be reproduced here, and because "the current ledger" is not the
+released set the coordinator wants, the track is **pinned**:
+`tools/ingest/scripts/pin_medication_pointers.py` bulk-copies (`INSERT ... SELECT` from an
+ATTACHed read-only source, not a hand-edit) exactly the released core.db's 3,324 medication
+pointer rows — selected by a committed, hashed id list,
+`tools/ingest/scripts/released-medication-pointer-ids-2026-09-08.json` (sha256
+`2c1f22a4f28bd7cc…`) — into `data/build/core-medication-pointers-pinned.db`, which composes like
+any other pointer track. An id-based `DELETE ... CASCADE` from a full copy was tried first and
+took over 10 minutes (killed); the insert-only, scoped-from-the-start version takes **~14s**.
+`aliases` (no per-document FK in that table) are picked up by joining on `canonical_term = title`,
+since medication pointer aliases were written with `canonicalTerm = stub.title`
+(`_core_medication_pointer_document`). Verified: `documentsRemaining: 3324`, `foundCount: 3324`,
+`missingIds: []`, `sqliteIntegrity: ok`.
+
+The full GRLS registry (38,815 `drug.ru.*` records, growing via another agent's concurrent
+`grls-instruction-batch` work) is **not** rebuilt into the core. It is the downloadable-module
+side of the same mechanism already used for ESKLP: `medbase-regulated-catalog esklp-release
+--db-dir data/build/release-esklp ...` validates the 15 built modules and writes downloadable
+catalog updates — i.e. the infrastructure for "full registry as a downloadable module, like KR"
+already exists for ESKLP and the pattern is directly reusable for the GRLS registry once that
+agent's work stabilizes. This script does not build or publish that module.
+
+## Real end-to-end comparison: candidate vs released (`0.7.0-test2`, pinned medication + alias fix)
+
+Per-family document counts (exact match on all three pointer tracks):
+
+| Family | Released | Candidate (no-pilot) |
+| --- | ---: | ---: |
+| reference | 15,904 | 15,904 |
+| clinical | 744 | 744 |
+| medication | 3,324 | 3,324 |
+| public pilot | 15 | 0 (removed) |
+| **total** | **19,987** | **19,972** |
+
+Document-id diff: **exactly** the 15 expected pilot ids removed, 0 unexpected additions/removals.
+Size: released 403.2 MiB vs candidate 425.1 MiB (+21.9 MiB, +5.4% — attributable to the alias
+fix: 7,353 diagnosis-category aliases that the old code silently collapsed to one document now
+attach to every matching document, adding declared-alias text to each). sha256 necessarily
+differs (content differs by construction: alias fan-out + pinned medication content).
+
+Alias fan-out, measured directly from this run's `build-core-reference-pointers` report:
+**7,353 of 12,432+ diagnosis-category source aliases went from single-target (old `min()`
+behavior) to multi-target** (attached to every matching document instead of one arbitrary pick);
+6,497 remained unmatched (unchanged by the fix, a pre-existing coverage gap, not a regression).
+
+## Benchmark results on the candidate (`core.0.7.0-test2.no-pilot.db`, --core= override, released
+core.db untouched)
+
+**`benchmark:lookup-quality` — the explicit stop/go gate — PASSES: Top-1 stays 1.0.** It also
+*improves* on discovery metrics: `discoveryAliasRecallAt20` 0.773→0.942, `overallExactSurfaceRecallAt20`
+0.936→0.984, `discoveryMissCount` 32→8, `bodyOnlyIntrusionRate` 0.144→0.064 (all better) — the
+alias fix measurably helps synonym-driven discovery, exactly as intended.
+
+**`benchmark:doctor-lookup` — a real, measured regression, root-caused, not fixed:**
+`recallAt5` 0.6→**0.1**, `mrrAt5` 0.223→**0.025**, `forbiddenFreeRate` 1.0→0.9. Confirmed this is
+*not* about the pilot removal (identical result running the pilot-*inclusive* equivalence
+candidate). Row-by-row diff shows the mechanism: for queries like "мужчина 60 лет пневмония", the
+released corpus ranks the clinical pointer (`kr.rf.714_2`) above the MKB reference pointers; the
+candidate's top 5 is `rls.mkb.node.j18-9, j18-1, j18-2, j18-9, j18-1` — four MKB-reference
+pointer variants for the same code, zero clinical pointers. This is the exact mechanism
+`docs/research/search-kr-pointers-vs-mkb-2026-09.md` already documented ("clinical-recommendation
+pointers lose to short ICD entries" — bm25 length normalization + duplicated ICD entries), made
+measurably worse by the alias fix: fanning aliases out to *more* MKB code-page documents gives
+each of those short documents *more* matching terms, further crowding out the longer clinical
+pointer for the same topic. Not fixed here — that research doc already scopes the fix
+(collapsing ICD pointer + mkb.db record into one group by `targetDocumentId`, or reviewing pack
+weights) as separate, ranking-layer work, gated on this exact benchmark.
+
+**`run-real-corpus.ts --check` (both `--path=core --corpus=core` and `--path=app --corpus=all`)
+— fails the tolerance gate, for two distinct, separable reasons:**
+1. Expected: the `pilot`/`demo`/`cases` query fixtures still expect pilot-only ids as their
+   *primary* target (e.g. `expectedTargets: ["kr.rf.714_2.pneumonia", "kr.rf.714_2"]` — the first
+   is a removed pilot id). The coordinator already knows this ("benchmark:real принимает указатели
+   КР и ЕСКЛП-указатели МНН" — another agent is retargeting these fixtures).
+2. **Not (only) expected:** even where the fixture accepts the *surviving* clinical-pointer
+   alternative (the bare `kr.rf.714_2`/`kr.rf.281_3` id), it still misses top-5 — the same
+   ranking-dilution mechanism as doctor-lookup, not a fixture problem. `--check` output:
+   `core:core.db` — pilot.recallAt5 0.787→0.246, cases.passRate 0.4→0; `app:all` — pilot.recallAt5
+   0.77→0.049, cases.passRate 0.4→0.
+
+**`benchmark:runtime`** — `passed: false` on *both* released and candidate in this sandbox
+(pre-existing: `unverifiedDownloadQueries` 13/13, a module-download-verification gate this
+offline sandbox can't satisfy either way — not caused by this work). Recall did drop measurably:
+`recallAt5` 0.923→0.846, `mrrAt5` 0.885→0.769, `failedQueries` 13→14 — smaller than doctor-lookup's
+drop but the same direction and, most likely, the same cause.
+
+**Net assessment:** the diagnosis-alias fan-out fix does what it was built to do (measurably
+better discovery/synonym recall, Top-1 unaffected) but interacts badly with the pre-existing
+ICD-pointer-vs-clinical-pointer ranking tension, turning an already-known issue into a much
+larger one on doctor-phrased and clinical-note-style queries specifically. Recommend resolving
+(or at least re-scoring) that ranking tension before this candidate is a real release candidate,
+per the options `search-kr-pointers-vs-mkb-2026-09.md` already lists. This is a ranking/scoring
+concern in `packages/*`/`apps/app/src/features/search`, outside this task's scripts/tools/ingest
+zone — flagged for the search/ranking owner, not fixed here.
+
+Enabling scripts to reproduce/tweak/re-check this analysis:
+`bun tools/benchmarks/src/run-lookup-quality.ts --core=<candidate>`,
+`bun tools/benchmarks/src/run-doctor-lookup.ts --core=<candidate>`,
+`bun tools/benchmarks/src/run-real-corpus.ts --path=<core|app> --corpus=<core|all> --core=<candidate> --check`,
+`bun tools/benchmarks/src/run-runtime-retrieval.ts --core=<candidate>` — the `--core=` override on
+`openRealCorpus`/`run-doctor-lookup.ts`/`run-real-corpus.ts` is new in this session (mirrors the
+existing `--core=` convention already on `run-lookup-quality.ts`/`run-runtime-retrieval.ts`);
+released `apps/app/public/content/core.db` is never touched by any of this.
+
 ## What to run next
 
 ```bash

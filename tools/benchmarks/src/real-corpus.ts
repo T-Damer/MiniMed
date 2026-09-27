@@ -36,9 +36,16 @@ export async function openRealCorpus(
     readonly embedder?: QueryEmbedder;
     /** `false` mounts core.db alone, as CI has it after content:restore:core. */
     readonly companions?: boolean;
+    /**
+     * Mount a candidate core.db from elsewhere instead of the released
+     * apps/app/public/content/core.db -- e.g. a rebuild candidate under data/build/, to compare
+     * against the released corpus without touching the released file. Companion packs still
+     * come from apps/app/public/content (this only substitutes core.db itself).
+     */
+    readonly corePath?: string;
   } = {},
 ): Promise<RealCorpus> {
-  const corePath = resolve(CONTENT, 'core.db');
+  const corePath = options.corePath ? resolve(options.corePath) : resolve(CONTENT, 'core.db');
   if (!existsSync(corePath)) throw new Error(`Missing ${corePath}; run content:restore:core.`);
   const companions =
     options.companions === false

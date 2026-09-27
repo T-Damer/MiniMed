@@ -6,6 +6,12 @@ import { dirname, resolve } from 'node:path';
 import { ScopedMedicalCore } from '../../../apps/app/src/features/search/ScopedMedicalCore';
 import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
 
+const args = process.argv.slice(2);
+for (const arg of args) {
+  if (!/^--core=.+$/u.test(arg)) throw new Error(`Unknown argument ${arg}`);
+}
+const corePathOverride = args.find((arg) => arg.startsWith('--core='))?.slice('--core='.length);
+
 interface DoctorLookupCase {
   readonly id: string;
   readonly query: string;
@@ -22,7 +28,7 @@ const cases = JSON.parse(
 if (new Set(cases.map((item) => item.id)).size !== cases.length)
   throw new Error('Doctor lookup fixture contains duplicate ids.');
 
-const { core, corpus, target } = await openRealCorpus();
+const { core, corpus, target } = await openRealCorpus({ corePath: corePathOverride });
 const scoped = new ScopedMedicalCore(core, 'all');
 const rows = [];
 for (const fixture of cases) {

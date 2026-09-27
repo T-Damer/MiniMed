@@ -17,7 +17,9 @@ import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
 
 const args = process.argv.slice(2);
 for (const arg of args)
-  if (!/^(?:--path=(?:core|app)|--corpus=(?:core|all)|--check|--write-baseline)$/u.test(arg))
+  if (
+    !/^(?:--path=(?:core|app)|--corpus=(?:core|all)|--check|--write-baseline|--core=.+)$/u.test(arg)
+  )
     throw new Error(`Unknown argument ${arg}`);
 /**
  * `core` repeats the former pilot request (hybrid search over the whole corpus); `app` sends the
@@ -28,6 +30,8 @@ const path = args.find((arg) => arg.startsWith('--path='))?.slice(7) ?? 'core';
 const corpusScope = args.find((arg) => arg.startsWith('--corpus='))?.slice(9) ?? 'all';
 const check = args.includes('--check');
 const writeBaseline = args.includes('--write-baseline');
+/** Mount a rebuild candidate instead of the released core.db without touching that file. */
+const corePathOverride = args.find((arg) => arg.startsWith('--core='))?.slice('--core='.length);
 
 interface PilotQuery {
   readonly id: string;
@@ -82,6 +86,7 @@ const percentile = (values: readonly number[], share: number) => {
 const { core, corpus, target } = await openRealCorpus({
   embedder: new PortableHashEmbedder(),
   companions: corpusScope === 'all',
+  corePath: corePathOverride,
 });
 const clinical = new ScopedMedicalCore(core, 'diagnosis');
 const searchClinical = (query: string) =>
