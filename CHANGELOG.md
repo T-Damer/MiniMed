@@ -4,6 +4,43 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.41] - 2026-09-27
+
+- Search home: the welcome block now carries the ECG photo entry and collapses once typing starts;
+  a «Мои инструменты» row keeps favourites, user collections (drawn as «Мои файлы» folders) and
+  built-in tools. Calculators and questionnaires can be starred or collected; the data stays on the
+  device and full personal-notes backups include it.
+- Section menu no longer closes itself on open (focus scrolled the page into its close-on-scroll
+  rule); ambiguous phrases list candidate documents as buttons; free search keeps medications whose
+  name is typed; pointer results offer the exact containing module; empty results offer downloads.
+- Downloads page groups «Требуют внимания / Скачиваются / В очереди» with a history tab; progress
+  marks separate queued from transferring.
+- Experimental mode (on by default) now also shows the draft definition reference: edition
+  `2026.9.27`, 16,069 entries, «Черновая редакция, не проверено», from the
+  `definition-reference-2026.9.27` data prerelease. Definition drafts stay development-only.
+- Fix: optional terminology packs were not downloadable on the web since 0.6.39 (the resolver pointed
+  at a missing path and release hosts send no CORS). Terminology and definition-reference assets are
+  now served from the Pages mirror.
+- ECG photo editor: guided five-step flow with camera capture, automatic sheet-corner detection and
+  perspective correction, stale-model update, the 30 numeric-model features drafted from confirmed
+  points, per-lead ST at the J point with Fourth UDMI/ESC 2023 review findings, and Rijnbeek 2001
+  age/sex norms for children (no paediatric model). Findings are worded as items to review.
+- Startup: calculators and assessments open before the medical core; the boot screen explains when
+  another tab holds the local database, and that wait no longer counts toward the open timeout.
+
+The application reuses the verified discovery corpus. Terminology packs remain
+`terminology-ru-2026.9.16`; the definition reference edition requires this app version. This is a
+debug-signed engineering prerelease; physical-device and clinical qualification remain outstanding.
+
+## [0.6.40] - 2026-09-26
+
+- Consolidated release of the browser integration line (diaries, canvas links, browser ASR, reading
+  scale, notes backup), search quality and index compaction (PR #180/#174), the native Android visit
+  dictaphone (sherpa-onnx diarization, GigaAM recognition) and the Android high-refresh display mode.
+- First run starts the core download automatically except on cellular or save-data connections and
+  shows a feature tour; shared `Disclosure`, `SelectField` and dialog components.
+- Body weight is no longer treated as a clinical finding in ranking.
+
 ## [0.6.39] - 2026-09-17
 
 - Optional Russian Wiktionary/Kaikki medical dictionary downloads: 6,939 lexical senses and 6,940

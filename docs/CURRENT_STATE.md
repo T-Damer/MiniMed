@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 26 September 2026
-> Released version: `0.6.40` (public prerelease toward `1.0`)
+> Updated: 27 September 2026
+> Released version: `0.6.41` (public prerelease toward `1.0`)
 > Next planned step: native migration (see the release note below).
 
 This file records what exists now, its trust boundaries and the ordered next work. Keep it short:
@@ -17,7 +17,7 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## After 0.6.40 on `release/0.6.40` (unreleased) — 2026-09-26
+## Release 0.6.41 — 2026-09-27
 
 - **Experimental definition reference and data-release mirror.** Everything that previously worked
   only in DEV now follows the experimental-modules setting (default on). The draft dictionary
@@ -93,7 +93,14 @@ Detailed history, moved verbatim on 2026-09-24:
 - **Query-parser POC (tools only).** Local LLM/GLiNER parsers compared with the deterministic
   parser on 40 realistic narratives; no model or runtime was added to the app. See
   [research/query-parser-llm-ner-poc-2026-09.md](research/query-parser-llm-ner-poc-2026-09.md).
-- **Integration note.** These entries were developed on a base older than 0.6.40 and merged on
+- **Verification (0.6.41).** `bun run verify` passes (Biome, strict TypeScript, Vitest, build,
+  Python, native source checks, benchmarks, secret scan); `benchmark:pilot` Recall@1 0.951,
+  Recall@5 0.984, MRR@5 0.967. Targeted Playwright (`--workers=1`) over boot, startup, core reload,
+  downloads, modules, terminology, calculators, assessments, navigation, search, experimental
+  reference and patient vault: 16 failures that equally fail on 0.6.40 (stale selectors and
+  pre-core flows; 18 tests that failed on 0.6.40 now pass); the one new regression (inline
+  preview under the bottom navigation) was fixed. Not tested: physical Android devices, MIUI, iOS.
+- **Integration note.** Part of this work was developed on a base older than 0.6.40 and merged on
   2026-09-26; the merge combined the consent-gated core download with the other-tab lock wait and
   the FeatureCard ECG settings with the model-update state.
 
