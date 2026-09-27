@@ -23,11 +23,20 @@ export function mergeLocalReferenceDescriptor(
   return modules.map((candidate) => (candidate.id === module.id ? module : candidate));
 }
 
-export function withLocalDefinitionReference(
+/**
+ * Merges local descriptors (the parsed `catalog.definition-reference.local.json`) into the
+ * catalog. The archive is served next to the page, so without a page URL — unit tests or any
+ * other non-browser context — there is nowhere to install it from and the catalog is unchanged.
+ */
+export function applyLocalReferenceDescriptors(
   modules: readonly ContentModuleCatalogEntry[],
+  descriptors: readonly unknown[],
+  pageUrl: string | undefined,
+  baseUrl = './',
 ): ContentModuleCatalogEntry[] {
   let result = [...modules];
-  for (const raw of Object.values(localDescriptors)) {
+  if (!pageUrl) return result;
+  for (const raw of descriptors) {
     if (
       !raw ||
       typeof raw !== 'object' ||
@@ -46,7 +55,7 @@ export function withLocalDefinitionReference(
     ) {
       throw new Error('Conflicting local reference descriptor.');
     }
-    const base = new URL(import.meta.env.BASE_URL, globalThis.location.href);
+    const base = new URL(baseUrl, pageUrl);
     const url = new URL(`content/definition-reference/${raw.fileName}`, base).href;
     result = mergeLocalReferenceDescriptor(
       result,
@@ -57,4 +66,15 @@ export function withLocalDefinitionReference(
     );
   }
   return result;
+}
+
+export function withLocalDefinitionReference(
+  modules: readonly ContentModuleCatalogEntry[],
+): ContentModuleCatalogEntry[] {
+  return applyLocalReferenceDescriptors(
+    modules,
+    Object.values(localDescriptors),
+    globalThis.location?.href,
+    import.meta.env.BASE_URL,
+  );
 }

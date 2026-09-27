@@ -16,6 +16,7 @@ import { fileURLToPath, URL } from 'node:url';
 import { type Connect, defineConfig, type Plugin } from 'vite';
 import solid from 'vite-plugin-solid';
 
+import { contentArchiveHeaders } from './src/dev-server/content-archive-headers';
 import {
   downloadReleaseAsset,
   isReleaseCacheCurrent,
@@ -187,6 +188,23 @@ function localReleaseCache(): Plugin {
   };
 }
 
+/**
+ * Dev/preview only: `.gz` archives under `content/` travel as opaque `application/gzip` instead
+ * of a gzip transfer encoding, matching the published Pages mirror (see content-archive-headers.ts).
+ */
+function contentArchiveServing(): Plugin {
+  return {
+    name: 'content-archive-headers',
+    apply: 'serve',
+    configureServer(server) {
+      server.middlewares.use(contentArchiveHeaders);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(contentArchiveHeaders);
+    },
+  };
+}
+
 function excludeOptionalPublicAssets(): Plugin {
   let outDir = 'dist';
 
@@ -222,6 +240,7 @@ export default defineConfig({
     ensureCornerstoneCodecAssets(),
     excludeOptionalPublicAssets(),
     localReleaseCache(),
+    contentArchiveServing(),
   ],
   resolve: {
     alias: {
