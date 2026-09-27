@@ -8,8 +8,12 @@ from pathlib import Path
 
 import yaml
 
+from .grls_instruction_sections import classify_grls_heading_title, resegment_paragraph_text
 from .models import PackChunk, PackDocument, PackSection, PackVersion, SourceMetadata
 from .normalization import normalize_for_index, normalize_surface_text
+
+_GRLS_INSTRUCTION_SOURCE_TYPE = "official_drug_instruction"
+_GRLS_REGISTRY_CARD_SOURCE_TYPE = "official_registry_summary"
 
 HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 SOURCE_MARKER_PATTERN = re.compile(r"^<!--\s*localmed:source\s+(.+?)\s*-->$")
@@ -36,6 +40,10 @@ class DraftSection:
     level: int
     path: list[str]
     paragraphs: list[DraftParagraph] = field(default_factory=list)
+    section_type: str | None = None
+    """Explicit section_type assigned by a content-aware preparer (for
+    example the GRLS instruction re-segmenter). None falls back to the
+    generic ``infer_section_type(title)`` heuristic."""
 
 
 def sha256_text(value: str) -> str:
@@ -158,6 +166,67 @@ def parse_sections(body: str) -> list[DraftSection]:
     return sections
 
 
+def expand_grls_instruction_sections(draft_sections: list[DraftSection]) -> list[DraftSection]:
+    """Re-segment GRLS instruction sections whose PDF extraction could not
+    tell a subheading from body text (see ``grls_instruction_sections``).
+
+    Splits each original section's paragraphs at recognized canonical GRLS
+    instruction headings, in original document order, keeping the exact
+    source text and source spans of every resulting piece. A section with no
+    recognizable heading at all is returned completely unchanged.
+    """
+    expanded: list[DraftSection] = []
+    for section_index, original in enumerate(draft_sections):
+        pieces_with_spans = [
+            (piece, paragraph.source_spans, paragraph.metadata)
+            for paragraph in original.paragraphs
+            for piece in resegment_paragraph_text(paragraph.text)
+        ]
+        if not any(piece.heading_title is not None for piece, _, _ in pieces_with_spans):
+            # No inline heading found in the body text: the PDF's own font
+            # or layout may already have separated this as its own real
+            # heading (title carries the phrase, not the body). Classify the
+            # title itself with the same canonical GRLS vocabulary instead
+            # of falling through to the generic clinical-recommendation
+            # keyword rules, which do not know instruction-specific headings.
+            original.section_type = classify_grls_heading_title(original.title)
+            expanded.append(original)
+            continue
+        current: DraftSection | None = None
+        for piece, source_spans, paragraph_metadata in pieces_with_spans:
+            if piece.heading_title is not None:
+                current = DraftSection(
+                    title=piece.heading_title,
+                    level=original.level + 1,
+                    path=[*original.path, piece.heading_title],
+                    section_type=piece.section_type,
+                )
+                expanded.append(current)
+            elif current is None:
+                # Leading text before the first recognized heading. In a
+                # GRLS instruction this is almost always the registration
+                # number / trade name / INN preamble; elsewhere fall back to
+                # the section's own type.
+                leading_type = classify_grls_heading_title(original.title) or (
+                    "registration" if section_index == 0 else original.section_type
+                )
+                current = DraftSection(
+                    title=original.title,
+                    level=original.level,
+                    path=original.path,
+                    section_type=leading_type,
+                )
+                expanded.append(current)
+            current.paragraphs.append(
+                DraftParagraph(
+                    text=piece.text,
+                    source_spans=[dict(span) for span in source_spans],
+                    metadata=dict(paragraph_metadata),
+                )
+            )
+    return expanded
+
+
 def infer_section_type(title: str) -> str:
     normalized = normalize_surface_text(title)
     rules = [
@@ -248,6 +317,15 @@ def parse_markdown_document(path: Path, extracted_at: str) -> PackDocument:
     source_checksum = metadata.source_checksum or markdown_checksum
     version_id = f"{metadata.id}@{metadata.version_label}"
     draft_sections = parse_sections(body)
+    if metadata.source_type == _GRLS_INSTRUCTION_SOURCE_TYPE:
+        draft_sections = expand_grls_instruction_sections(draft_sections)
+    elif metadata.source_type == _GRLS_REGISTRY_CARD_SOURCE_TYPE:
+        # An official registry/price-registry summary card is administrative
+        # identity data end to end (trade name, INN, registration number,
+        # dosage form, packaging, dispensing status) with no clinical
+        # content; every section sorts as 'registration'.
+        for draft in draft_sections:
+            draft.section_type = "registration"
     pack_sections: list[PackSection] = []
     section_id_by_path: dict[tuple[str, ...], str] = {}
     section_path_occurrences: dict[tuple[str, ...], int] = {}
@@ -308,7 +386,7 @@ def parse_markdown_document(path: Path, extracted_at: str) -> PackDocument:
                 parent_section_id=parent_id,
                 title=draft.title,
                 normalized_title=normalize_for_index(draft.title),
-                section_type=infer_section_type(draft.title),
+                section_type=draft.section_type or infer_section_type(draft.title),
                 depth=draft.level,
                 order_index=section_order,
                 page_start=min(section_pages) if section_pages else None,
