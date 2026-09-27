@@ -77,6 +77,28 @@ export function setupPackageGroups(
     .filter((group) => group.modules.length > 0);
 }
 
+/**
+ * The setup button while the core is not ready. A percentage only while bytes are counted
+ * against a known total in the same units; installation and checks are named stages, never «100%».
+ */
+export function setupCoreFooterLabel(state: {
+  readonly downloading: boolean;
+  readonly progress:
+    | {
+        readonly loaded: number;
+        readonly total: number;
+        readonly phase?: 'downloading' | 'verifying' | 'installing';
+      }
+    | undefined;
+}): string {
+  const phase = state.progress?.phase;
+  if (phase === 'installing') return 'Устанавливаем ядро…';
+  if (phase === 'verifying') return 'Проверяем ядро…';
+  if (!state.downloading && !state.progress) return 'Готовим поиск…';
+  const value = downloadPercent(state.progress?.loaded ?? 0, state.progress?.total);
+  return value === undefined ? 'Загружаем ядро…' : `Загружаем ядро · ${Math.floor(value)}%`;
+}
+
 export function downloadPercent(
   loaded: number,
   total: number | null | undefined,

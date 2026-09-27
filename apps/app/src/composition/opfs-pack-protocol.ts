@@ -51,7 +51,10 @@ export type OpfsPackWorkerResponse =
       readonly id: number;
       readonly event: 'download-progress';
       readonly loaded: number;
+      /** 0 when the size of the streamed bytes is unknown (for example, compressed in transit). */
       readonly total: number;
+      /** Present once the download is written and the database is being opened and checked. */
+      readonly phase?: 'installing';
     }
   | { readonly id: number; readonly result: unknown }
   | { readonly id: number; readonly error: string }

@@ -166,3 +166,16 @@ test('missing core on a cellular connection waits for the user while files and s
   await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Скачать ядро · ~490 МБ' })).toBeVisible();
 });
+
+test('the first run on a cellular connection shows only the setup screen', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'connection', { value: { type: 'cellular' } });
+  });
+  await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`);
+  const setup = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
+  await expect(setup).toBeVisible();
+  // The consent to download belongs to the setup screen; no boot card may layer under it.
+  await expect(setup).toContainText('Ждёт вашего решения', { timeout: 30_000 });
+  await expect(page.locator('.boot-screen')).toHaveCount(0);
+});

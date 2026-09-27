@@ -332,12 +332,12 @@ async function openRequiredCoreFromOpfs(
                 {},
               );
             },
-            onProgress: ({ loaded, total }) => {
-              downloadUi.onProgress({ loaded, total, phase: 'downloading' });
+            onProgress: ({ loaded, total, phase }) => {
+              downloadUi.onProgress({ loaded, total, phase: phase ?? 'downloading' });
               getDownloadQueue().observe(
                 descriptor,
                 {
-                  state: 'downloading',
+                  state: phase === 'installing' ? 'installing' : 'downloading',
                   downloadedBytes: loaded,
                   totalBytes: total > 0 ? total : null,
                   errorMessage: null,

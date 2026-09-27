@@ -1,6 +1,11 @@
 import { ContentModuleCatalogEntrySchema } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
-import { coreAutoDownloadAllowed, downloadPercent, setupPackageGroups } from './setup-state';
+import {
+  coreAutoDownloadAllowed,
+  downloadPercent,
+  setupCoreFooterLabel,
+  setupPackageGroups,
+} from './setup-state';
 
 function module(
   id: string,
@@ -87,5 +92,32 @@ describe('core auto-download policy', () => {
   it('waits for the user on cellular or data-saver connections', () => {
     expect(coreAutoDownloadAllowed({ type: 'cellular' })).toBe(false);
     expect(coreAutoDownloadAllowed({ type: 'wifi', saveData: true })).toBe(false);
+  });
+});
+
+describe('setup core button', () => {
+  it('shows a percentage only against a known total, then names the install stage', () => {
+    expect(setupCoreFooterLabel({ downloading: false, progress: undefined })).toBe(
+      'Готовим поиск…',
+    );
+    expect(
+      setupCoreFooterLabel({
+        downloading: true,
+        progress: { loaded: 38_000_000, total: 76_000_000, phase: 'downloading' },
+      }),
+    ).toBe('Загружаем ядро · 50%');
+    // Compressed in transit: the streamed bytes have no known total, so no false «100%».
+    expect(
+      setupCoreFooterLabel({
+        downloading: true,
+        progress: { loaded: 252_000_000, total: 0, phase: 'downloading' },
+      }),
+    ).toBe('Загружаем ядро…');
+    expect(
+      setupCoreFooterLabel({
+        downloading: true,
+        progress: { loaded: 252_000_000, total: 252_000_000, phase: 'installing' },
+      }),
+    ).toBe('Устанавливаем ядро…');
   });
 });

@@ -38,7 +38,7 @@ type SharedWorkerStore = {
 
 export interface OpfsDownloadUi {
   requestDownload(): Promise<void>;
-  onProgress(progress: { loaded: number; total: number }): void;
+  onProgress(progress: { loaded: number; total: number; phase?: 'installing' }): void;
 }
 
 export class WorkerOpfsMedicalStore implements MedicalStore {
@@ -71,7 +71,11 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
         const message = event.data;
         if (this.connectionClosed) return;
         if (message.event === 'download-progress') {
-          this.downloadUi?.onProgress({ loaded: message.loaded, total: message.total });
+          this.downloadUi?.onProgress({
+            loaded: message.loaded,
+            total: message.total,
+            ...(message.phase ? { phase: message.phase } : {}),
+          });
         } else {
           this.onDownloadWait(true);
           if (!this.downloadUi) {

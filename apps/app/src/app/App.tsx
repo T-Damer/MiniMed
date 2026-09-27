@@ -134,10 +134,13 @@ export function App(): JSX.Element {
   // A separate screen only while the application itself loads, or while a missing core waits for
   // the user's consent to download. Opening, verifying, another tab, errors and later downloads
   // keep the search page (field disabled, compact status); tools, notes and settings never read
-  // the medical core and stay usable throughout (offline-first).
+  // the medical core and stay usable throughout (offline-first). While first-run setup is open
+  // it owns the screen, including the consent to download; the boot screen never layers under it.
+  const firstRunSetupVisible = () => shellReady() && !embeddedFloatingWindow && !setupDismissed();
   const showingBootScreen = () =>
     !shellReady() ||
-    (coreStatus()?.kind === 'download-required' &&
+    (!firstRunSetupVisible() &&
+      coreStatus()?.kind === 'download-required' &&
       navigation.view() !== 'notes' &&
       navigation.view() !== 'settings' &&
       navigation.view() !== 'calculators' &&
@@ -340,7 +343,7 @@ export function App(): JSX.Element {
       <Show when={!embeddedFloatingWindow}>
         <ConversationRecorderHost />
       </Show>
-      <Show when={shellReady() && !embeddedFloatingWindow && !setupDismissed()}>
+      <Show when={firstRunSetupVisible()}>
         <FirstRunSetup
           coreReady={Boolean(session.ready())}
           coreRequired={session.coreDownloadRequired()}

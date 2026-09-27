@@ -145,23 +145,41 @@ function hasTable(database: Database, tableName: string): boolean {
   );
 }
 
+/**
+ * Total for import progress, in the same units as the streamed bytes. A server that compresses
+ * in transit (Content-Encoding) reports the compressed length, while the browser streams the
+ * inflated file, so that length is not a total of the streamed bytes: report it as unknown (0).
+ */
+export function opfsImportProgressTotal(
+  headByteLength: number | null,
+  contentEncoding: string | null,
+  loaded: number,
+): number {
+  if (headByteLength === null) return 0;
+  if (contentEncoding && contentEncoding.trim().toLowerCase() !== 'identity') return 0;
+  // A hidden transfer encoding shows up as more bytes than the declared length.
+  return loaded > headByteLength ? 0 : headByteLength;
+}
+
 async function importOpfsPack(
   pool: SahPool,
   url: string,
   databaseName: string,
   vfsName: string,
   fetchTimeoutMs: number,
-  onProgress?: (loaded: number) => void,
+  headByteLength: number | null,
+  onProgress?: (loaded: number, total: number) => void,
 ): Promise<void> {
   const response = await fetchPack(url, fetchTimeoutMs);
   if (!response.body) throw new Error(`Unable to stream ${databaseName}.`);
+  const contentEncoding = response.headers.get('content-encoding');
   const read = createStreamChunkImporter(response.body);
   let loaded = 0;
   await pool.importDb(vfsName, async () => {
     const bytes = await read();
     if (bytes) {
       loaded += bytes.byteLength;
-      onProgress?.(loaded);
+      onProgress?.(loaded, opfsImportProgressTotal(headByteLength, contentEncoding, loaded));
     }
     return bytes;
   });
@@ -485,6 +503,8 @@ export class SqliteMedicalStore implements MedicalStore {
       readonly poolName?: string;
       readonly beforeImport?: () => Promise<void>;
       readonly onImportProgress?: (loaded: number, total: number) => void;
+      /** Called once the file is written, before the new database is opened and checked. */
+      readonly onImportInstalling?: () => void;
     } = {},
   ): Promise<SqliteMedicalStore> {
     const sqlite = await getSqliteModule();
@@ -526,10 +546,10 @@ export class SqliteMedicalStore implements MedicalStore {
       databaseName,
       vfsName,
       fetchTimeoutMs,
-      options.onImportProgress
-        ? (loaded) => options.onImportProgress?.(loaded, byteLength ?? 0)
-        : undefined,
+      byteLength,
+      options.onImportProgress,
     );
+    options.onImportInstalling?.();
     if (legacyVfsName !== vfsName) pool.unlink(legacyVfsName);
     return open('copied');
   }

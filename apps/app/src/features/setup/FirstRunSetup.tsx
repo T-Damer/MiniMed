@@ -12,7 +12,7 @@ import { experimentalModulesEnabled } from '@/state/experimental-modules';
 import { DownloadProgress } from './DownloadProgress';
 import { FeatureTour } from './FeatureTour';
 import { PackageDownloadRow } from './PackageDownloadRow';
-import { downloadPercent, setupPackageGroups } from './setup-state';
+import { downloadPercent, setupCoreFooterLabel, setupPackageGroups } from './setup-state';
 import './feature-tour.css';
 import './setup.css';
 
@@ -71,11 +71,13 @@ export function FirstRunSetup(props: {
     }
     return 'Проверяем, установлено ли ядро…';
   };
-  const footerLabel = () => {
-    if (props.coreReady) return 'Начать работу';
-    const value = percent();
-    return value === undefined ? 'Готовим поиск…' : `Загружаем ядро · ${Math.floor(value)}%`;
-  };
+  const footerLabel = () =>
+    props.coreReady
+      ? 'Начать работу'
+      : setupCoreFooterLabel({
+          downloading: props.coreDownloading,
+          progress: props.coreProgress,
+        });
 
   return (
     <OverlayDialog

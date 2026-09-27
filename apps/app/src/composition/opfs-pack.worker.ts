@@ -9,6 +9,8 @@ import type {
 
 let store: SqliteMedicalStore | undefined;
 let downloadApproval: { id: number; resolve: () => void } | undefined;
+/** Bytes streamed into OPFS so far; reported again when installation starts. */
+let importedBytes = 0;
 
 self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<void> => {
   const message = event.data;
@@ -48,6 +50,7 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
         id: message.id,
         status: 'lock-acquired',
       } satisfies OpfsPackWorkerResponse);
+      importedBytes = 0;
       const next = await SqliteMedicalStore.createFromOpfsUrl(message.url, message.databaseName, {
         fetchTimeoutMs: message.fetchTimeoutMs,
         poolName: message.poolName,
@@ -61,12 +64,22 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
                     event: 'download-required',
                   } satisfies OpfsPackWorkerResponse);
                 }),
-              onImportProgress: (loaded: number, total: number) =>
+              onImportProgress: (loaded: number, total: number) => {
+                importedBytes = loaded;
                 self.postMessage({
                   id: message.id,
                   event: 'download-progress',
                   loaded,
                   total,
+                } satisfies OpfsPackWorkerResponse);
+              },
+              onImportInstalling: () =>
+                self.postMessage({
+                  id: message.id,
+                  event: 'download-progress',
+                  loaded: importedBytes,
+                  total: importedBytes,
+                  phase: 'installing',
                 } satisfies OpfsPackWorkerResponse),
             }
           : {}),
