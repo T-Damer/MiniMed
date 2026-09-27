@@ -541,6 +541,33 @@ describe('lexical query planning', () => {
     expect(plan.aliasMatches).toHaveLength(0);
   });
 
+  it('does not fuzzy-expand a word that already names an alias exactly', () => {
+    const vocabulary = [
+      {
+        id: 'alias.bronchitis',
+        canonicalTerm: 'Бронхит',
+        alias: 'Бронхит',
+        category: 'diagnosis',
+        weight: 1,
+      },
+      {
+        id: 'alias.bronchophyt',
+        canonicalTerm: 'АНИСА ОБЫКНОВЕННОГО ПЛОДЫ+ПОДОРОЖНИКА БОЛЬШОГО ЛИСТЬЯ+СОЛОДКИ КОРНИ',
+        alias: 'Бронхофит',
+        category: 'medication',
+        weight: 1,
+      },
+    ];
+    // «бронхит» is a known word, not a misspelled «Бронхофит»: no herbal ingredients in the query.
+    const exact = expandAliases('бронхит у ребенка', vocabulary);
+    expect(exact.matches).toEqual(['Бронхит → Бронхит']);
+    expect(exact.terms).not.toEqual(expect.arrayContaining(['подорожника']));
+    // A real misspelling with no exact alias still reaches the medication.
+    expect(expandAliases('бронхофитт', vocabulary).matches).toEqual([
+      'Бронхофит → АНИСА ОБЫКНОВЕННОГО ПЛОДЫ+ПОДОРОЖНИКА БОЛЬШОГО ЛИСТЬЯ+СОЛОДКИ КОРНИ',
+    ]);
+  });
+
   it('does not promote a fuzzy-matched alias that is explicitly negated', () => {
     const plan = analyzeClinicalQuery('Дизурея не наблюдается', aliases);
     const clinical = plan.branches.find((branch) => branch.id === 'clinical');

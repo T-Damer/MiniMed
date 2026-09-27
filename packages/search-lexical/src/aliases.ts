@@ -232,12 +232,25 @@ function expandPreparedAliases(
         next < 0 ? null : { start: offset + next, end: offset + next + normalizedAlias.length };
     }
     if (!span) continue;
+    matchSpans.push({ alias, range: span, matchType });
+  }
 
+  // Fuzzy matching repairs misspellings. A word that already names a known alias exactly is not
+  // misspelled, so fuzzy neighbours of that same span («бронхит» ~ «Бронхофит», a herbal mixture)
+  // must not pour their unrelated canonical terms into the query.
+  const exactRanges = matchSpans
+    .filter((match) => match.matchType === 'exact')
+    .map((match) => match.range);
+  const kept = matchSpans.filter(
+    (match) =>
+      match.matchType === 'exact' ||
+      !exactRanges.some((range) => range.start < match.range.end && match.range.start < range.end),
+  );
+  for (const { alias } of kept) {
     matches.push(`${alias.alias} → ${alias.canonicalTerm}`);
     matchedAliases.push(alias);
-    matchSpans.push({ alias, range: span, matchType });
     for (const term of tokenize(alias.canonicalTerm)) terms.add(term);
   }
 
-  return { terms: [...terms], matches, matchedAliases, matchSpans };
+  return { terms: [...terms], matches, matchedAliases, matchSpans: kept };
 }
