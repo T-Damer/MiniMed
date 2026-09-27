@@ -621,10 +621,12 @@ export function medicationDocumentRegistration(document: MedicalDocument): strin
   return stringValue((document.metadata as MedicationMetadata).registrationNumber);
 }
 
+/**
+ * The product card opens on its short version (the MNN or registration card); the official
+ * instruction is one switch away in the card, see {@link medicationReadingChoices}.
+ */
 export function readableMedicationDocumentId(product: MedicationProduct): string | null {
-  return (
-    product.mnnDocumentId ?? product.instructionDocumentId ?? product.registrationDocumentId ?? null
-  );
+  return product.mnnDocumentId ?? product.registrationDocumentId ?? product.instructionDocumentId;
 }
 
 export type MedicationReadingMode = 'short' | 'instruction';

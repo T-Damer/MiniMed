@@ -275,7 +275,8 @@ function MedicationProductPanel(props: {
         : null,
     ].filter(
       (item): item is { readonly id: string; readonly label: string } =>
-        item !== null && item.id !== props.currentDocumentId,
+        // The opened card is the short version: the switch already leads back to it.
+        item !== null && item.id !== props.currentDocumentId && item.id !== props.openedDocumentId,
     );
 
   return (

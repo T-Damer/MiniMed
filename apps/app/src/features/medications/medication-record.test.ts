@@ -607,7 +607,7 @@ describe('parseMedicationProduct', () => {
 });
 
 describe('readableMedicationDocumentId', () => {
-  it('prefers the instruction document when both ids are present', () => {
+  it('opens the registration card first and keeps the instruction one switch away', () => {
     const product = parseMedicationProduct(
       {
         id: 'drug.registry',
@@ -638,7 +638,15 @@ describe('readableMedicationDocumentId', () => {
       'drug.instruction',
     );
     if (!product) throw new Error('expected registry product');
-    expect(readableMedicationDocumentId(product)).toBe('drug.instruction');
+    expect(readableMedicationDocumentId(product)).toBe('drug.registry');
+    expect(medicationReadingChoices(product, 'drug.registry')).toMatchObject({
+      initialMode: 'short',
+      note: null,
+      options: [
+        { value: 'short', label: 'Кратко', disabled: false },
+        { value: 'instruction', label: 'Инструкция', disabled: false },
+      ],
+    });
   });
 
   it('falls back to the registration document id', () => {
