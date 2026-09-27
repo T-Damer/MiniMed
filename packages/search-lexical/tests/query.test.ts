@@ -568,6 +568,30 @@ describe('lexical query planning', () => {
     ]);
   });
 
+  it('keeps a longer fuzzy alias that only contains an exact one', () => {
+    const vocabulary = [
+      {
+        id: 'alias.amoxicillin',
+        canonicalTerm: 'амоксициллин',
+        alias: 'амоксициллин',
+        category: 'medication',
+        weight: 1,
+      },
+      {
+        id: 'alias.amoxiclav',
+        canonicalTerm: 'амоксициллин-клавуланат',
+        alias: 'амоксициллин-клавуланат',
+        category: 'medication',
+        weight: 1,
+      },
+    ];
+    // The exact «амоксициллин» covers only part of the misspelled combination name.
+    const expansion = expandAliases('амоксициллин-клавуланатт ребенку', vocabulary);
+    expect(expansion.matchedAliases.map((alias) => alias.canonicalTerm)).toEqual(
+      expect.arrayContaining(['амоксициллин', 'амоксициллин-клавуланат']),
+    );
+  });
+
   it('does not promote a fuzzy-matched alias that is explicitly negated', () => {
     const plan = analyzeClinicalQuery('Дизурея не наблюдается', aliases);
     const clinical = plan.branches.find((branch) => branch.id === 'clinical');

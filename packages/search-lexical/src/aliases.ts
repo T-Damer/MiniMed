@@ -237,14 +237,17 @@ function expandPreparedAliases(
 
   // Fuzzy matching repairs misspellings. A word that already names a known alias exactly is not
   // misspelled, so fuzzy neighbours of that same span («бронхит» ~ «Бронхофит», a herbal mixture)
-  // must not pour their unrelated canonical terms into the query.
+  // must not pour their unrelated canonical terms into the query. A longer fuzzy match that only
+  // contains an exact one («амоксициллин-клавуланатт» around «амоксициллин») still repairs a typo.
   const exactRanges = matchSpans
     .filter((match) => match.matchType === 'exact')
     .map((match) => match.range);
   const kept = matchSpans.filter(
     (match) =>
       match.matchType === 'exact' ||
-      !exactRanges.some((range) => range.start < match.range.end && match.range.start < range.end),
+      !exactRanges.some(
+        (range) => range.start <= match.range.start && match.range.end <= range.end,
+      ),
   );
   for (const { alias } of kept) {
     matches.push(`${alias.alias} → ${alias.canonicalTerm}`);
