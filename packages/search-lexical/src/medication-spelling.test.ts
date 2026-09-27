@@ -144,6 +144,28 @@ describe('source-vocabulary medication spelling', () => {
   });
 });
 
+describe('RapidFuzz OSA fallback (2026-09-24 experiment; only when the primary matcher finds nothing)', () => {
+  it('recovers a name too far (length diff > 3) for the primary weighted-OSA window', () => {
+    const matcher = createMedicationSpellingMatcher(vocabulary(['Ацикловир']));
+    // Outside the primary matcher's length-window entirely (diff of 4), so the primary loop
+    // alone finds nothing; RapidFuzz OSA normalized_similarity is still 0.69 >= the 0.65 cutoff.
+    expect(matcher('ацикловирание').map((item) => item.name)).toEqual(['Ацикловир']);
+  });
+  it('still abstains on an unrelated real word (negative control)', () => {
+    const matcher = createMedicationSpellingMatcher(vocabulary(['Ацикловир', 'Парацетамол']));
+    expect(matcher('головокружение')).toEqual([]);
+    expect(matcher('пневмония')).toEqual([]);
+  });
+  it('never applies to a query with its own space/hyphen (marker or multi-word structure)', () => {
+    const matcher = createMedicationSpellingMatcher(vocabulary(['Ацикловир']));
+    expect(matcher('ацикловирание доп')).toEqual([]);
+  });
+  it('bounds output and stays within MAX_MEDICATION_SPELLING_MATCHES', () => {
+    const matcher = createMedicationSpellingMatcher(vocabulary(['Ацикловир']));
+    expect(matcher('ацикловирание').length).toBeLessThanOrEqual(MAX_MEDICATION_SPELLING_MATCHES);
+  });
+});
+
 describe('ordinary lookup integration, not clinical inference', () => {
   it('adds explicit alternative branches without changing original query, facts or calculations', () => {
     const query = 'парацитомол 500 мг';

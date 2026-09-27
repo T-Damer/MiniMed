@@ -10,4 +10,16 @@ export { buildLookupQueryPlan } from './medication-lookup';
 export * from './medication-spelling';
 export * from './normalize';
 export * from './query';
+export type { DistanceOptions, ExtractMatch, ExtractOptions, SimilarityOptions } from './rapidfuzz';
+export { extract, extractTop, Levenshtein, OSA } from './rapidfuzz';
 export * from './snippet';
+export type {
+  CorpusVocabulary,
+  CorpusVocabularyOptions,
+  CorrectQueryOptions,
+} from './typo-correction';
+export {
+  buildCorpusVocabulary,
+  correctQueryAgainstVocabulary,
+  MIN_TYPO_WORD_LENGTH,
+} from './typo-correction';

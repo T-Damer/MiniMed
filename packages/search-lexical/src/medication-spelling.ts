@@ -1,5 +1,12 @@
 import type { AliasRecord } from '@localmed/domain';
 import { normalizeSurfaceText } from './normalize';
+import { extractTop } from './rapidfuzz';
+
+// 2026-09-24 RapidFuzz OSA medication-name experiment (docs/research/rapidfuzz-medication-experiment-2026-09-24.md):
+// swept 0.65-0.90; 0.65 and 0.70 tied for best recall (Top-1 889/929, Top-8 929/929, 0/10 negative
+// controls). Only reached when the weighted-OSA matcher above finds nothing.
+const RAPIDFUZZ_FALLBACK_CUTOFF = 0.65;
+const RAPIDFUZZ_FALLBACK_LIMIT = 12;
 
 // Search costs, not equivalence classes or clinically interchangeable medicine names.
 // In particular и/о is not inferred transitively from и/е and е/о.
@@ -142,11 +149,19 @@ export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[])
     }
   }
   const lengths = new Map<number, Name[]>();
+  // RapidFuzz OSA fallback candidate index: grouped by lookup key (full name or marker-projected
+  // stem), not length — the whole point is to catch names the length/mask-windowed loop above
+  // misses (e.g. more than 3 edits away in length or letter content).
+  const byLookup = new Map<string, Name[]>();
   for (const name of names.values()) {
     const bucket = lengths.get(name.normalized.length) ?? [];
     bucket.push(name);
     lengths.set(name.normalized.length, bucket);
+    const lookupBucket = byLookup.get(name.normalized) ?? [];
+    lookupBucket.push(name);
+    byLookup.set(name.normalized, lookupBucket);
   }
+  const rapidfuzzChoices = [...byLookup.keys()];
   return (query: string): readonly MedicationSpellingMatch[] => {
     if (!query || query.length > 160 || query.includes('\0')) return [];
     const normalized = normalizeSurfaceText(query);
@@ -198,6 +213,33 @@ export function createMedicationSpellingMatcher(aliases: readonly AliasRecord[])
             cost: cost + Number(name.omittedSuffix !== null),
             omittedSuffix: name.omittedSuffix,
           });
+      }
+    }
+    // RapidFuzz OSA fallback: only when the primary weighted-OSA matcher above found nothing, and
+    // only for a single bare word (`parts.length === 1`, no space/hyphen) — the same scope the
+    // marker projection above is built for. A query that already spells out a separate marker
+    // word (e.g. "канефрно п") must keep going through the exact structural comparison above,
+    // never a free-form similarity score, so an explicitly entered marker is never silently
+    // corrected or discarded.
+    if (matches.length === 0 && parts.length === 1) {
+      const candidates = extractTop(subject, rapidfuzzChoices, RAPIDFUZZ_FALLBACK_LIMIT, {
+        scoreCutoff: RAPIDFUZZ_FALLBACK_CUTOFF,
+      });
+      for (const { choice: lookupKey, score } of candidates) {
+        for (const name of byLookup.get(lookupKey) ?? []) {
+          matches.push({
+            name: name.name,
+            canonicalTerms: [...name.canonicals].sort().slice(0, 8),
+            matchedText: subject,
+            replacementQuery: prefix + name.fullNormalized + remainder.slice(suffixIndex),
+            // Not the same cost scale as the weighted-OSA matcher above (that one counts edits;
+            // this is a RapidFuzz normalized_similarity in [cutoff, 1]) — only used to rank
+            // fallback candidates against each other, which are always ranked below any primary
+            // match since a primary match short-circuits this branch entirely.
+            cost: Math.round((1 - score) * 20),
+            omittedSuffix: name.omittedSuffix,
+          });
+        }
       }
     }
     return matches

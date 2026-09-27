@@ -290,6 +290,31 @@ export interface SearchDiagnostics {
   readonly semantic: SemanticSearchDiagnostics;
 }
 
+/**
+ * One corpus-vocabulary spelling correction applied to a single unknown query word, and the
+ * resulting query actually searched. Populated only by the offline corpus-typo fallback (see
+ * `@localmed/search-lexical`'s `correctQueryAgainstVocabulary`): the *original* query returned
+ * nothing useful, every corrected word is unknown to the corpus vocabulary on its own, and the
+ * *corrected* query is what actually produced `SearchResponse.groups`. Never applied when the
+ * original query already found something — this is strictly a last-resort fallback, not a
+ * silent rewrite of a working query.
+ *
+ * UI copy convention (not enforced here — no UI files are part of this contract): render as
+ * «Показаны результаты по: {correctedQuery}», the same phrasing already used for the existing
+ * medication-spelling fallback's alternative-name branches.
+ */
+export interface QueryWordCorrection {
+  readonly original: string;
+  readonly corrected: string;
+  /** RapidFuzz OSA `normalized_similarity` in `[0, 1]` between `original` and `corrected`. */
+  readonly score: number;
+}
+
+export interface QueryCorrection {
+  readonly correctedQuery: string;
+  readonly corrections: readonly QueryWordCorrection[];
+}
+
 export interface SearchResponse {
   readonly requestId: string;
   readonly normalizedQuery: string;
@@ -299,4 +324,6 @@ export interface SearchResponse {
   readonly suggestions: readonly SearchSuggestion[];
   readonly groups: readonly SearchResultGroup[];
   readonly diagnostics: SearchDiagnostics;
+  /** Present only when the corpus-typo fallback corrected and re-ran the query; see above. */
+  readonly queryCorrection?: QueryCorrection;
 }
