@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 from localmed_ingest.clinical_definition_sections import (
     build_clinical_glossary_drafts,
     parse_glossary_block,
     parse_prose_definition,
 )
-from localmed_ingest.definition_reference_pack import Projection, digest, obj
+from localmed_ingest.definition_reference_pack import Projection, digest
+from localmed_ingest.definition_reference_pack import obj as json_object
 
 SOURCE_DESCRIPTOR = {
     "authority": "third-party",
@@ -28,7 +30,12 @@ SOURCE_DESCRIPTOR = {
 }
 
 
-def _shard(entries: list[dict[str, object]]) -> dict[str, object]:
+def obj(value: object) -> dict[str, Any]:
+    """A validated JSON object whose nested values the assertions below index freely."""
+    return json_object(value)
+
+
+def _shard(entries: list[dict[str, str]]) -> dict[str, Any]:
     blocks = []
     terms = []
     for index, entry in enumerate(entries, start=1):
@@ -68,7 +75,7 @@ def _shard(entries: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
-def _write_fixture_corpus(root: Path, shards: list[dict[str, object]]) -> None:
+def _write_fixture_corpus(root: Path, shards: list[dict[str, Any]]) -> None:
     drafts = root / "content/definition-drafts"
     drafts.mkdir(parents=True, exist_ok=True)
     parts = []

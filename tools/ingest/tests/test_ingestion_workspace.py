@@ -423,10 +423,11 @@ def test_prepare_registry_marks_one_unrecognized_source_without_dropping_the_bat
     monkeypatch.setattr(pdf_import, "_extract_raw_blocks_macos_vision", raise_ocr_error)
 
     payload = registry_payload(good_path.name)
-    bad_source = dict(payload["sources"][0])
+    sources = cast(list[dict[str, object]], payload["sources"])
+    bad_source = dict(sources[0])
     bad_source["id"] = "kr.private.corrupted"
     bad_source["path"] = bad_path.name
-    payload["sources"].append(bad_source)
+    sources.append(bad_source)
     registry_path = tmp_path / "sources.yaml"
     registry_path.write_text(
         yaml.safe_dump(payload, allow_unicode=True, sort_keys=False), encoding="utf-8"
