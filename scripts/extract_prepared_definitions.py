@@ -20,6 +20,18 @@ SKIP_SOURCE = {"core_catalog_pointer", "official_registry_summary", "regulatory_
 DEF_HEADING = re.compile(r"(?:^|\b)(?:определени[еяй]|термины\s+и\s+определения)(?:\b|$)", re.I)
 INSTRUMENT = re.compile(r"\b(?:шкала|шкалы|опросник|индекс|критерии|классификация|стадии|степени)\b", re.I)
 NOISE = re.compile(r"^(?:критерии оценки качества|критерии качества|уровень убедительности|уровень достоверности|список|методология|оглавление|литература|содержание)", re.I)
+# A "Список сокращений"/"Сокращения" heading is never the document's own lead definition,
+# even when it lands in the document's first three chunks. NOISE already rejects headings
+# literally starting with "список", but a bare "Сокращения" heading (no "список" prefix)
+# needs its own check so the elif "lead paragraph" branch below cannot mistake a whole
+# abbreviation list for a definition of the first acronym it contains. Anchored at the start
+# of the heading (like NOISE) so it never matches "сокращение" used mid-heading in its other
+# Russian sense (muscle contraction, e.g. a heading about "Сокращения миокарда").
+ABBREV_HEADING = re.compile(r"^сокращени", re.I)
+# Matches both "Сокращения" and "Список сокращений" (NOISE already rejects the "список ..."
+# form for the lead-paragraph branch above, but the whole-block capture below wants both
+# heading forms admitted, since either one marks the same kind of section).
+ABBREV_SECTION_HEADING = re.compile(r"^(?:список\s+)?сокращени", re.I)
 
 
 def digest(data: bytes) -> str:
@@ -179,11 +191,20 @@ def scan_sqlite(path: Path, collector: Collector, repo_ref: str):
                 if not extracted:
                     collector.term("prepared.definition." + digest(row["chunk_id"].encode())[:24], row["document_title"], "term", [add_block()], coverage="definition-section", sectionTitle=section)
                 collector.stats["definition_chunks"] += 1
-            elif source_type in {"krasotaimedicina_reference", "medical_reference", "clinical_recommendation"} and row["document_id"] not in direct_documents and row["chunk_order"] < 3:
+            elif source_type in {"krasotaimedicina_reference", "medical_reference", "clinical_recommendation"} and row["document_id"] not in direct_documents and row["chunk_order"] < 3 and not NOISE.search(heading) and not ABBREV_HEADING.search(heading):
                 title = explicit_label(text)
                 if title:
                     collector.term("prepared.lead." + digest(row["chunk_id"].encode())[:24], title, kind_for(title), [add_block()], coverage="explicit-definition", sectionTitle=section)
                     direct_documents.add(row["document_id"])
+            elif ABBREV_SECTION_HEADING.search(heading) and len(heading) <= 200:
+                # Whole "Список сокращений"/"Сокращения" block, captured verbatim under its own
+                # section title -- never attributed as one acronym's definition (see the guard
+                # above). Not restricted to source_type/chunk_order/one-per-document like the
+                # lead-paragraph branch: every such section in every document is real source
+                # material for a downstream abbreviation-list splitter, regardless of where in
+                # the document it falls.
+                collector.term("prepared.abbreviation-section." + digest(row["chunk_id"].encode())[:24], row["document_title"], "term", [add_block()], coverage="abbreviation-section", sectionTitle=section)
+                collector.stats["abbreviation_section_chunks"] += 1
             for match in re.finditer(r"\b(?:шкала|опросник|критерии|классификация)\s+[А-ЯA-Z][^\n.;:]{1,100}", text):
                 collector.mentions.append({"name": match[0], "documentId": row["document_id"], "chunkId": row["chunk_id"], "anchor": row["anchor"], "charStart": match.start(), "charEnd": match.end(), "reviewStatus": "requires-review", "coverage": "mention-only"})
         collector.stats["instrument_sections"] = len(seen_section)

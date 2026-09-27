@@ -17,15 +17,18 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Definition reference data — 2026-09-28 (local, unpublished)
+## Definition reference data — 2026-09-29 (local, unpublished)
 
-- KR «Термины и определения» and «Список сокращений» sections are split into verbatim, provenance-linked
-  records: +706 clinical definitions and a separate `abbreviation` type (6 418); Wiktionary glosses are a
-  separate `lexical-gloss` type (6 939). Local edition `2026.9.28` has 30 132 entries; 6 311 of the 7 637
-  names without a definition still need an external source. A 452-pair same-title review queue has no
-  auto-merge. Known data bug: ~596 older `explicit-definition` drafts are whole abbreviation lists
-  (`scripts/extract_prepared_definitions.py`). Details:
-  [research/definition-reference-2026-09-28.md](research/definition-reference-2026-09-28.md).
+- Fixed the ~596-record `Список сокращений` mislabeling bug (`scripts/extract_prepared_definitions.py`)
+  and a trailing-punctuation over-splitting bug in the KR glossary/abbreviation dedup key; catalog
+  description now reports real per-type counts instead of one lumped figure. Local edition `2026.9.29`
+  has 31 488 entries (8 582 clinical definitions, 8 369 abbreviation expansions, 6 939 Wiktionary
+  glosses); verified, all 23 279 source name surfaces found. 7 144 names still need an external source,
+  freshly re-scored by priority in `research/definition-gap-priority-2026-09-27.json` (methodology
+  reconstructed from the undocumented 2026-09-27 analysis); a 454-pair same-title review queue has no
+  auto-merge. Abbreviation-list parsing is now shared with `clinical_aliases.py` (core search aliases
+  unchanged). Details:
+  [research/definition-reference-2026-09-29.md](research/definition-reference-2026-09-29.md).
 
 ## Knowledge graph («Карта связей») — 2026-09-27
 

@@ -11,6 +11,7 @@ from typing import Literal, cast
 
 from pydantic import Field
 
+from .abbreviation_line_parsing import split_abbreviation_pair
 from .clinical_catalog import (
     CatalogModel,
     ClinicalCanonicalDefinition,
@@ -645,11 +646,11 @@ def _section_aliases(chunk: _SourceChunk, title_variants: list[str]) -> list[tup
     for source_block in _source_blocks(chunk.source_text):
         compact = _clean(source_block)
         if "сокращен" in normalized_title:
-            entry = _DASHED_ENTRY_PATTERN.fullmatch(compact)
-            if entry is None:
+            pair = split_abbreviation_pair(compact)
+            if pair is None:
                 continue
-            acronym = _safe_alias(entry.group("left"))
-            expansion = _safe_alias(entry.group("right"))
+            acronym = _safe_alias(pair[0])
+            expansion = _safe_alias(pair[1])
             if (
                 acronym
                 and expansion

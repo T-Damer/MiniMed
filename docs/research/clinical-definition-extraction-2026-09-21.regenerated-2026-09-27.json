@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "edition": "minimed.definition.clinical-detail.2026-09-21",
+  "examined": {
+    "documents": 744,
+    "sections": 33459,
+    "chunks": 92303,
+    "abbreviation_section_chunks": 931,
+    "definition_chunks": 2551,
+    "instrument_sections": 2317,
+    "detail_packs": 744
+  },
+  "sourceTypes": {
+    "clinical_recommendation": 744
+  },
+  "records": 11421,
+  "distinctTitles": 6543,
+  "byKind": {
+    "term": 9123,
+    "classification": 976,
+    "scale": 818,
+    "criterion_set": 141,
+    "syndrome": 248,
+    "symptom": 114,
+    "law": 1
+  },
+  "byCoverage": {
+    "abbreviation-section": 931,
+    "definition-section": 541,
+    "explicit-definition": 7632,
+    "section-excerpt": 2317
+  },
+  "sources": 1,
+  "sharedBlocks": 15753,
+  "jsonBytes": 35500425,
+  "gzipBytes": 5876057,
+  "shards": [
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-01.json",
+      "records": 2977,
+      "sharedBlocks": 3897,
+      "bytes": 8371848,
+      "gzipBytes": 1350255,
+      "sha256": "27e69b483e415ae673915aeb1dd6b43f48fb2cfe424ac86719c574073269824d"
+    },
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-02.json",
+      "records": 2456,
+      "sharedBlocks": 3617,
+      "bytes": 8371894,
+      "gzipBytes": 1398462,
+      "sha256": "e29532a96a10c2fa08e5441f5be4820cc055329a1065706481bdd1cbae86e265"
+    },
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-03.json",
+      "records": 2462,
+      "sharedBlocks": 3577,
+      "bytes": 8371668,
+      "gzipBytes": 1394978,
+      "sha256": "c6b7597301a1e7995ccc37c2b7a4e3eae1827b0ad7a15793c7d8bca0a25558af"
+    },
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-04.json",
+      "records": 2810,
+      "sharedBlocks": 3724,
+      "bytes": 8372462,
+      "gzipBytes": 1403428,
+      "sha256": "30af9ef2e7bd2e03d83cec290f1cb7b55bc19c07f37b60f192ff41f50f50ac64"
+    },
+    {
+      "path": "clinical-source-excerpts-2026.09.21.part-05.json",
+      "records": 716,
+      "sharedBlocks": 938,
+      "bytes": 2012553,
+      "gzipBytes": 328934,
+      "sha256": "a002a0749bdcbfb3b852c60dd3dffa5ab0894a1b5277c46f1494a72e950b2f26"
+    }
+  ],
+  "instrumentMentionCandidates": 987,
+  "datasetCommit": "77fe143a31608a925c608fff3a5de28163cc77a4",
+  "datasetTree": "5234e93faeeef01c364df182b84399536a4213ab",
+  "downloadedBytes": 2072457216,
+  "allPinnedPacksScanned": true,
+  "qualification": "source-extraction-only; no clinical/independent reverse-search/device qualification or new-release rights implied. Shards bound payload size, not in-memory index size. Regenerated 2026-09-27 offline from previously-fetched, sha256-verified local per-document databases to apply the Список сокращений lead-heuristic bugfix; no network fetch performed."
+}

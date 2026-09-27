@@ -28,22 +28,9 @@ from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .abbreviation_line_parsing import split_abbreviation_pair
 from .definition_reference_pack import contained, digest, normalized_name, obj, seq, text
 
-# Typographic dashes (en/em/figure/minus) essentially never sit inside a Russian compound
-# word, so they may have optional surrounding whitespace as the "term - definition" split.
-# The plain ASCII hyphen is exactly how Russian compounds are written ("какой-либо",
-# "герминативно-клеточная"), so it only counts as a separator when whitespace surrounds it
-# on *both* sides - otherwise "герминативно-клеточная опухоль" would wrongly split in two.
-TYPOGRAPHIC_DASH_CLASS = "‐‑‒–—―−"
-PLAIN_HYPHEN = "-"
-PAIR_RE = re.compile(
-    rf"^(?:[-*•]\s+)?(?P<term>[^\n]{{1,140}}?)(?:"
-    rf"[­]?\s*[{TYPOGRAPHIC_DASH_CLASS}]\s*"
-    rf"|\s[{PLAIN_HYPHEN}]\s"
-    rf")(?P<definition>.+)$",
-    re.DOTALL,
-)
 EMPTY_RE = re.compile(
     r"не\s+примен[яа]ю?тся|\bнет\b\.?$|не\s+использ\w*|не\s+вы?делен\w*|см\.?\s+раздел|^-{1,3}$",
     re.IGNORECASE,
@@ -61,6 +48,17 @@ DISEASE_DEFINITION_HEADING_RE = re.compile(
 IMAGE_PLACEHOLDER_RE = re.compile(
     r"^[\w.\-]+\.(?:png|jpe?g|gif|bmp|svg|webp|tiff?)$", re.IGNORECASE
 )
+# For de-duplication only: "антибактериальная терапия", "антибактериальная терапия." and
+# "антибактериальная терапия;" are the same expansion with incidental trailing punctuation
+# picked up by the paragraph split (a table cell border, a list separator). Stripping this
+# before hashing lets identical-in-substance quotes fold into one entry instead of each
+# distinct trailing character minting its own "conflicting" record. The stored block text
+# stays the untouched verbatim quote; only the fold/compare key is normalized.
+_TRAILING_PUNCT_RE = re.compile(r"[\s.;,]+$")
+
+
+def _dedup_key_text(definition: str) -> str:
+    return _TRAILING_PUNCT_RE.sub("", definition)
 
 
 def _split_paragraphs(value: str) -> list[tuple[int, int, str]]:
@@ -104,11 +102,10 @@ def parse_glossary_block(body: str) -> SectionParse:
     pairs: list[ParsedPair] = []
     skipped = 0
     for start, end, paragraph in paragraphs:
-        match = PAIR_RE.match(paragraph)
-        definition = match.group("definition").strip() if match else ""
-        term = match.group("term").strip(" \t*#­") if match else ""
+        pair = split_abbreviation_pair(paragraph)
+        term, definition = pair if pair else ("", "")
         if (
-            not match
+            not pair
             or len(definition) < 3
             or not term
             or len(term.split()) > MAX_TERM_WORDS
@@ -234,7 +231,7 @@ def _add_pair(
     offset_start: int,
     offset_end: int,
 ) -> None:
-    definition_sha = hashlib.sha256(definition.encode("utf-8")).hexdigest()
+    definition_sha = hashlib.sha256(_dedup_key_text(definition).encode("utf-8")).hexdigest()
     key = (record_type, normalized_name(term), definition_sha)
     record = records.setdefault(key, _Record(record_type, term, kind))
     record.flags.update(flags)

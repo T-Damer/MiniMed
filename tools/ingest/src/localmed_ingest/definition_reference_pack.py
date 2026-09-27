@@ -48,6 +48,13 @@ COVERAGE = frozenset(
         "definition",
         "explicit-definition",
         "definition-section",
+        # Whole "Список сокращений"/"Сокращения" block, captured verbatim under the document's
+        # own title (extract_prepared_definitions.py); raw material for
+        # clinical_definition_sections.py's abbreviation splitter, never a standalone clinical
+        # definition of that title. definition_scope() already excludes it the same way it
+        # excludes "definition-section" (not in {"definition","explicit-definition"}); it is
+        # listed here only so Projection.add() accepts the raw draft record at all.
+        "abbreviation-section",
         "contextual-definition",
         "criterion-list",
         "classification",

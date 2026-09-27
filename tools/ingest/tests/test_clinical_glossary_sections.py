@@ -229,6 +229,84 @@ def test_builder_extracts_abbreviations_as_a_separate_non_definition_type(tmp_pa
         assert row["coverage"] == "abbreviation"
 
 
+def test_trailing_punctuation_differences_fold_into_one_abbreviation_entry(tmp_path: Path) -> None:
+    # Regression: "артериальное давление", "артериальное давление." and "артериальное
+    # давление;" used to hash to three different definition_sha values (byte-exact match
+    # on the raw quote) and therefore mint three separate "АД" records instead of one
+    # folded entry with multiple citation blocks. Only the fold/compare key is normalized;
+    # each block still stores its own untouched verbatim quote.
+    shard = _shard(
+        [
+            {
+                "title": "Документ 1",
+                "sectionTitle": "Список сокращений",
+                "coverage": "abbreviation-section",
+                "text": "АД – артериальное давление.",
+            },
+            {
+                "title": "Документ 2",
+                "sectionTitle": "Список сокращений",
+                "coverage": "abbreviation-section",
+                "text": "АД – артериальное давление",
+            },
+            {
+                "title": "Документ 3",
+                "sectionTitle": "Список сокращений",
+                "coverage": "abbreviation-section",
+                "text": "АД – артериальное давление;",
+            },
+        ]
+    )
+    _write_fixture_corpus(tmp_path, [shard])
+    result = build_clinical_glossary_drafts(tmp_path)
+    abbreviations = obj(result["abbreviations"])
+    rows = [obj(term) for term in abbreviations["terms"] if obj(term)["title"] == "АД"]
+    assert len(rows) == 1
+    assert "conflicting-expansion" not in rows[0]["flags"]
+    assert len(rows[0]["blockIds"]) == 3
+    quoted_texts = {
+        obj(block)["text"]
+        for block in abbreviations["blocks"]
+        if block["id"] in rows[0]["blockIds"]
+    }
+    # Verbatim per-citation text is preserved even though the fold key was normalized.
+    assert quoted_texts == {
+        "артериальное давление.",
+        "артериальное давление",
+        "артериальное давление;",
+    }
+
+
+def test_abbreviation_section_parent_title_is_the_document_title_not_a_stray_acronym(
+    tmp_path: Path,
+) -> None:
+    # Regression: with the old lead-paragraph bug, `entry.title` for a whole "Список
+    # сокращений" block used to be the first acronym in the list (e.g. "АВП"), so every
+    # pair parsed out of that block -- including unrelated ones like "АД" -- inherited
+    # "АВП" as parentTitle. The corrected extractor captures abbreviation-section blocks
+    # under the document's own title, so this metadata must point at that document title.
+    shard = _shard(
+        [
+            {
+                "title": "Тревожно-фобические расстройства",
+                "sectionTitle": "Список сокращений",
+                "coverage": "abbreviation-section",
+                "text": (
+                    "АВП – антипсихотические средства второго поколения\n\nАД – антидепрессанты"
+                ),
+            }
+        ]
+    )
+    _write_fixture_corpus(tmp_path, [shard])
+    result = build_clinical_glossary_drafts(tmp_path)
+    abbreviations = obj(result["abbreviations"])
+    rows = {obj(term)["title"]: obj(term) for term in abbreviations["terms"]}
+    ad_block_id = rows["АД"]["blockIds"][0]
+    ad_block = next(b for b in abbreviations["blocks"] if b["id"] == ad_block_id)
+    assert ad_block["parentTitle"] == "Тревожно-фобические расстройства"
+    assert ad_block["parentTitle"] != "АВП"
+
+
 def test_identical_wording_across_documents_is_one_entry_with_two_citations(tmp_path: Path) -> None:
     boilerplate = "Пациент - физическое лицо, которому оказывается медицинская помощь."
     shard = _shard(

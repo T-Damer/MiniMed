@@ -41,6 +41,59 @@ def record_label(count: int, *, definitions_only: bool = False) -> str:
     return f"{count:,}".replace(",", " ") + " " + noun
 
 
+def _plural_ru(count: int, one: str, few: str, many: str) -> str:
+    if 11 <= count % 100 <= 14:
+        noun = many
+    elif count % 10 == 1:
+        noun = one
+    elif 2 <= count % 10 <= 4:
+        noun = few
+    else:
+        noun = many
+    return f"{count:,}".replace(",", " ") + " " + noun
+
+
+# `selectedByRecordType` (definition_reference_scope.definition_scope) never lets a
+# lexical gloss or an abbreviation expansion be silently counted as a clinical
+# "definition" for UI purposes; the catalog description must keep the same separation
+# instead of folding all three record types into one "N исходных определений" figure.
+_RECORD_TYPE_NOUNS = {
+    "clinical-definition": (
+        "клиническое определение",
+        "клинических определения",
+        "клинических определений",
+    ),
+    "abbreviation": (
+        "расшифровка сокращения",
+        "расшифровки сокращений",
+        "расшифровок сокращений",
+    ),
+    "lexical-gloss": (
+        "лексическое толкование",
+        "лексических толкования",
+        "лексических толкований",
+    ),
+}
+_RECORD_TYPE_ORDER = ("clinical-definition", "abbreviation", "lexical-gloss")
+
+
+def definitions_breakdown_label(record_types: dict[str, int]) -> str:
+    """Per-kind counts, never a single lumped "N исходных определений" figure.
+
+    `record_types` must already include any supplied/completed clinical definitions folded
+    into the "clinical-definition" bucket by the caller, so the parts sum to the same total
+    the manifest reports elsewhere.
+    """
+    parts = [
+        _plural_ru(record_types[key], *_RECORD_TYPE_NOUNS[key])
+        for key in _RECORD_TYPE_ORDER
+        if record_types.get(key, 0) > 0
+    ]
+    if not parts:
+        raise ValueError("Definitions scope produced no records of any known type")
+    return ", ".join(parts)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--version", required=True)
@@ -112,6 +165,7 @@ def main() -> None:
         supplied_manifest=args.supplied_manifest,
         publication_state=args.publication_state,
     )
+    selected_by_record_type: dict[str, int] = {}
     if args.scope == "definitions":
         selection = obj(report["selection"])
         if number(selection["sourceRecordsBefore"]) != expected_entries:
@@ -119,6 +173,14 @@ def main() -> None:
                 "Definition scope differs from the complete source manifest"
             )
         expected_entries = number(selection["definitionRecordsAfter"])
+        selected_by_record_type = {
+            key: number(value)
+            for key, value in obj(selection["selectedByRecordType"]).items()
+        }
+        if sum(selected_by_record_type.values()) != expected_entries:
+            raise ValueError(
+                "Per-record-type breakdown disagrees with the selected total"
+            )
     supplied = obj(report["suppliedSources"])
     supplied_counts: dict[str, int] = {}
     for key in ("entries", "definitions", "abbreviations", "otherReferences"):
@@ -168,21 +230,35 @@ def main() -> None:
         report["receipts"], sort_keys=True, separators=(",", ":")
     ).encode()
     source_set = "sha256:" + hashlib.sha256(receipts).hexdigest()
+    if args.scope == "definitions":
+        # Never lump clinical definitions, abbreviation expansions and lexical glosses into
+        # one "N исходных определений" figure -- each is its own record type (see
+        # definition_reference_scope.definition_scope) and the description must say so.
+        record_types = dict(selected_by_record_type)
+        record_types["clinical-definition"] = (
+            record_types.get("clinical-definition", 0)
+            + supplied_counts["definitions"]
+            + completed_names
+        )
+        if sum(record_types.values()) != definition_entries:
+            raise ValueError(
+                "Description breakdown disagrees with the definitions total"
+            )
+        description = definitions_breakdown_label(record_types) + (
+            ": определения и расшифровки с исходными формулировками и ссылками. "
+            "Предварительная редакция, требующая проверки."
+        )
+    else:
+        description = record_label(definition_entries, definitions_only=False) + (
+            ": справочные записи и контекст. Предварительная редакция, требующая проверки."
+        )
     module = {
         "id": "minimed.definition.reference.ru",
         "version": args.version,
         "kind": "reference",
         "collection": "definition-reference",
         "title": "Словарь терминов, симптомов и синдромов",
-        "description": record_label(
-            definition_entries, definitions_only=args.scope == "definitions"
-        )
-        + (
-            ": определения с исходными формулировками и ссылками. "
-            "Предварительная редакция, требующая проверки."
-            if args.scope == "definitions"
-            else ": справочные записи и контекст. Предварительная редакция, требующая проверки."
-        ),
+        "description": description,
         "required": False,
         "releaseState": "preview",
         "specialties": [],

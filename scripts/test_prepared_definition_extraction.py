@@ -101,6 +101,71 @@ class ExtractionTests(unittest.TestCase):
             c.execute("UPDATE chunks SET original_text='Наличие оформленной документации.'")
         self.assertEqual(self.run_scan()['terms'], [])
 
+    def test_does_not_treat_an_abbreviation_list_as_a_lead_definition(self):
+        # Regression: "Список сокращений" used to fall through the DEF_HEADING branch (it
+        # is not "определение"/"термины и определения") into the early-chunk "lead
+        # paragraph" heuristic, which then mistook the first acronym line for a definition
+        # of the whole document and kept the entire list as that one acronym's "body".
+        # It must now be captured whole under its own coverage instead, never attributed
+        # to "АБТ" as that one acronym's definition.
+        with sqlite3.connect(self.path) as c:
+            c.execute("UPDATE documents SET source_type='clinical_recommendation'")
+            c.execute("UPDATE sections SET title='Список сокращений',section_type='other'")
+            c.execute(
+                "UPDATE chunks SET original_text=?",
+                ('АБТ – антибактериальная терапия.\n\nАД – артериальное давление.',),
+            )
+        result = self.run_scan()
+        self.assertEqual(len(result['terms']), 1)
+        term = result['terms'][0]
+        self.assertEqual(term['coverage'], 'abbreviation-section')
+        self.assertEqual(term['title'], 'Тестовый источник')
+        self.assertNotEqual(term['title'], 'АБТ')
+        block = result['blocks'][term['blockIds'][0] - 1]
+        self.assertEqual(block['text'], 'АБТ – антибактериальная терапия.\n\nАД – артериальное давление.')
+
+    def test_does_not_treat_a_bare_abbreviations_heading_as_a_lead_definition(self):
+        with sqlite3.connect(self.path) as c:
+            c.execute("UPDATE documents SET source_type='medical_reference'")
+            c.execute("UPDATE sections SET title='Сокращения',section_type='other'")
+            c.execute(
+                "UPDATE chunks SET original_text=?", ('АБТ – антибактериальная терапия.',)
+            )
+        result = self.run_scan()
+        self.assertEqual(len(result['terms']), 1)
+        self.assertEqual(result['terms'][0]['coverage'], 'abbreviation-section')
+        self.assertNotEqual(result['terms'][0]['title'], 'АБТ')
+
+    def test_captures_an_abbreviation_list_regardless_of_position_or_source_type(self):
+        # Unlike the old (buggy) lead-paragraph path, the dedicated whole-block capture is
+        # not limited to the first three chunks of a krasotaimedicina/medical-reference/
+        # clinical-recommendation document -- every abbreviation-list section is real raw
+        # source material for a downstream abbreviation splitter, wherever it falls.
+        with sqlite3.connect(self.path) as c:
+            c.execute("UPDATE documents SET source_type='personal_profile_note_unrelated'")
+            c.execute("UPDATE sections SET title='Список сокращений',section_type='other'")
+            c.execute(
+                "UPDATE chunks SET original_text=?, order_index=7",
+                ('АБТ – антибактериальная терапия.',),
+            )
+        result = self.run_scan()
+        self.assertEqual(len(result['terms']), 1)
+        self.assertEqual(result['terms'][0]['coverage'], 'abbreviation-section')
+
+    def test_still_extracts_a_genuine_lead_definition_from_an_early_chunk(self):
+        # The fix must not blanket-suppress the legitimate "lead paragraph" heuristic for
+        # headings that are not an abbreviations list.
+        with sqlite3.connect(self.path) as c:
+            c.execute("UPDATE documents SET source_type='medical_reference'")
+            c.execute("UPDATE sections SET title='Общие сведения',section_type='other'")
+            c.execute(
+                "UPDATE chunks SET original_text=?",
+                ('Крапивница — заболевание, характеризующееся зудящими волдырями.',),
+            )
+        result = self.run_scan()
+        self.assertEqual([t['title'] for t in result['terms']], ['Крапивница'])
+        self.assertEqual(result['terms'][0]['coverage'], 'explicit-definition')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -3,8 +3,6 @@ export async function loadClinicalSourceExcerptAssets(): Promise<readonly unknow
     import('./clinical-source-excerpts-2026.09.21.part-01.json'),
     import('./clinical-source-excerpts-2026.09.21.part-02.json'),
     import('./clinical-source-excerpts-2026.09.21.part-03.json'),
-    import('./clinical-source-excerpts-2026.09.21.part-04.json'),
-    import('./clinical-source-excerpts-2026.09.21.part-05.json'),
   ]);
   return parts.map((part) => part.default);
 }
