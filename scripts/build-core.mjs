@@ -247,13 +247,13 @@ function run(command, commandArgs, { label }) {
 // core-build-reconstruction-2026-09-27.md has the coverage/membership findings). This script
 // does not build or publish that module.
 
-function catalogPointerTrack(family, ledgerFile) {
+function catalogPointerTrack(family, ledgerFile, deps = []) {
   const pointerDir = resolve(buildDir, `core-catalog-pointers-${family}`);
   const dbPath = resolve(buildDir, `core-catalog-pointers-${family}.db`);
   return [
     {
       name: `catalog-pointers-${family}`,
-      deps: [],
+      deps,
       async inputs() {
         return { ledger: resolve(buildDir, ledgerFile) };
       },
@@ -327,7 +327,6 @@ const PINNED_MEDICATION_IDS = resolve(
 );
 
 const stages = [
-  ...catalogPointerTrack('clinical', 'official-clinical-coverage-ledger.json'),
   {
     name: 'medication-pointers-pinned',
     deps: [],
@@ -355,10 +354,151 @@ const stages = [
           '--report',
           'data/build/core-medication-pointers-pinned-report.json',
         ],
-        { label: 'pin medication pointers to the released core.db set (not the growing GRLS ledger)' },
+        {
+          label:
+            'pin medication pointers to the released core.db set (not the growing GRLS ledger)',
+        },
       );
     },
   },
+  // --- clinical-definition enrichment (coordinator decision, 2026-09-27) --------------------
+  //
+  // A full metadata audit (docs/research/core-build-reconstruction-2026-09-27.md) found the
+  // entityType build defect was necessary but not sufficient: 273/744 clinical pointers in the
+  // released core.db carry a real canonicalDefinition, 318/744 carry declaredAliases, 271/744
+  // carry clinicalMedicationLinks -- all zero in a candidate built straight from the base
+  // coverage ledger. None of that content comes from official-sync/build at all; it comes from
+  // `medbase-regulated-catalog clinical-aliases`, which reads the already-fetched clinical
+  // guideline databases (`data/build/official-clinical-documents/databases`, 723 files, no
+  // network) and writes an ENRICHED ledger copy. `clinical_definition_migration_006.py` (the
+  // migration named in the task) instead patches an already-built SQLite pack in place and
+  // cross-validates against markdown already staged from a specific build version; since this
+  // pipeline rebuilds the clinical pointer track from scratch every time anyway,
+  // enriching the LEDGER once and feeding it to the existing, unmodified
+  // `build-core-catalog-pointers --family clinical` (which already reads `aliases`/`keywords`/
+  // `canonicalDefinition`/`clinicalMedicationLinks` off each ledger record -- see
+  // catalog_module_builder.py::_clinical_core_pointer_document) reaches the identical enriched
+  // fields without a separate SQL-patching stage. This still fits AGENTS.md's rule (never
+  // hand-edit a generated pack): every step below is an explicit, hashed build stage over an
+  // intermediate ledger file, not an edit to a built database.
+  {
+    name: 'clinical-ledger-base',
+    deps: [],
+    async inputs() {
+      return {
+        catalog: resolve(root, 'data/raw/official-clinical-registry/catalog.json'),
+        taxonomy: resolve(root, 'content/clinical-module-taxonomy.yaml'),
+        overrides: resolve(root, 'content/clinical-coverage-overrides.yaml'),
+      };
+    },
+    async outputs() {
+      return [resolve(buildDir, 'official-clinical-coverage-ledger.json')];
+    },
+    async execute() {
+      return run(
+        'uv',
+        [
+          'run',
+          '--project',
+          'tools/ingest',
+          'medbase-clinical-catalog',
+          'build',
+          '--source',
+          'data/raw/official-clinical-registry/catalog.json',
+          '--taxonomy',
+          'content/clinical-module-taxonomy.yaml',
+          '--overrides',
+          'content/clinical-coverage-overrides.yaml',
+          '--output',
+          'data/build/official-clinical-coverage-ledger.json',
+        ],
+        {
+          label:
+            'regenerate the base clinical coverage ledger from the cached raw catalog (no network)',
+        },
+      );
+    },
+  },
+  {
+    name: 'clinical-medication-relations',
+    deps: ['medication-pointers-pinned'],
+    async inputs() {
+      return {
+        databases: resolve(root, 'data/build/official-clinical-documents/databases'),
+        medicationIndex: resolve(buildDir, 'core-medication-pointers-pinned.db'),
+      };
+    },
+    async outputs() {
+      return [resolve(buildDir, 'clinical-medication-relations')];
+    },
+    async execute() {
+      return run(
+        'uv',
+        [
+          'run',
+          '--project',
+          'tools/ingest',
+          'medbase-regulated-catalog',
+          'clinical-medication-relations-batch',
+          '--clinical-dir',
+          'data/build/official-clinical-documents/databases',
+          '--medication-index',
+          'data/build/core-medication-pointers-pinned.db',
+          '--output-dir',
+          'data/build/clinical-medication-relations',
+          '--workers',
+          '4',
+        ],
+        {
+          label:
+            'extract clinical-recommendation -> ESKLP MNN relation candidates (deterministic, no LLM/network)',
+        },
+      );
+    },
+  },
+  {
+    name: 'clinical-ledger-enriched',
+    deps: ['clinical-ledger-base', 'clinical-medication-relations'],
+    async inputs() {
+      return {
+        baseLedger: resolve(buildDir, 'official-clinical-coverage-ledger.json'),
+        databases: resolve(root, 'data/build/official-clinical-documents/databases'),
+        medicationRelations: resolve(buildDir, 'clinical-medication-relations'),
+      };
+    },
+    async outputs() {
+      return [resolve(buildDir, 'official-clinical-coverage-ledger-enriched.json')];
+    },
+    async execute() {
+      return run(
+        'uv',
+        [
+          'run',
+          '--project',
+          'tools/ingest',
+          'medbase-regulated-catalog',
+          'clinical-aliases',
+          '--ledger',
+          'data/build/official-clinical-coverage-ledger.json',
+          '--databases',
+          'data/build/official-clinical-documents/databases',
+          '--output',
+          'data/build/official-clinical-coverage-ledger-enriched.json',
+          '--report',
+          'data/build/clinical-aliases-enrichment-report.json',
+          '--medication-relations',
+          'data/build/clinical-medication-relations',
+        ],
+        {
+          label:
+            'enrich the clinical ledger with traceable aliases, keywords, definitions, medication links',
+        },
+      );
+    },
+  },
+  ...catalogPointerTrack('clinical', 'official-clinical-coverage-ledger-enriched.json', [
+    'clinical-ledger-enriched',
+  ]),
   {
     name: 'compose-reference',
     deps: [],

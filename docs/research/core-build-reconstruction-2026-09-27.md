@@ -376,6 +376,112 @@ Full benchmark set on `core.0.7.0-test3.no-pilot.db` (entityType-fixed candidate
   does not appear to exercise the clinical-vs-mkb scenario), `passed: false` on both released and
   candidate in this sandbox (pre-existing `unverifiedDownloadQueries` gate, not caused by this work).
 
+## Full metadata audit (coordinator decision, 2026-09-27) — before and after clinical-definition enrichment
+
+Per-key non-empty document counts, released core.db vs candidate, by family (`legal` has 0
+documents in both -- confirmed, matches the earlier finding). "Before" = `core.0.7.0-test3`
+(entityType-fixed, no enrichment); "after" = `core.0.7.0-test4` (enrichment wired in, this
+session). Full comparison script: ad hoc, not committed (a one-off audit, not a build stage);
+reproduce with `documents.metadata_json` grouped by `catalogFamily`, counting non-null/non-empty
+values per key, against `apps/app/public/content/core.db` and a candidate.
+
+| Family | Key | Released | Before | After |
+| --- | --- | ---: | ---: | ---: |
+| clinical (744 docs) | canonicalDefinition | 273 | 0 | **273** |
+| clinical | clinicalMedicationLinks | 271 | 0 | **271** |
+| clinical | definitionPreviewAnchor | 273 | 0 | **273** |
+| clinical | declaredAliases | 318 | 0 | 321 (close, not exact) |
+| clinical | keywords | 163 | 0 | 6 (**still open**) |
+| clinical | all other keys (ageCategories, catalogFamily, conceptId, contentMode, entityType, icd10Codes, moduleIds, officialId, primaryModuleId, sourceFile, specialties, syntheticFixture, targetDocumentId) | matches | matches | matches |
+| medication (3,324 docs) | every key | matches | matches | matches (pinning preserves this family exactly, unaffected by clinical work) |
+| reference (15,904 docs) | canonicalDefinition, definitionPreviewAnchor, icd10Codes, mkbCode, navigationAliases, + 20 more keys | matches | matches | matches |
+| reference | classificationPath | 9,521 | 13,306 | 13,306 (**candidate has more** -- not a gap, see below) |
+| reference | declaredAliases | 2,049 | 3,924 | 3,924 (**candidate has more** -- the alias fan-out fix, intentional) |
+| reference | sourceAliases | 1,069 | 3,924 | 3,924 (**candidate has more** -- same fan-out fix) |
+| reference | referenceCoverage | 9,835 | 15,904 | 15,904 (**candidate has more**: current code unconditionally sets this string field; the released core.db predates that, not a regression) |
+
+`aliases` table, row count by `category` (released / before / after):
+classification 3/3/3, clinical-recommendation 10,124/8,421/**9,035** (closing, not closed --
+tracks the keywords gap above), diagnosis 12,435/29,000/29,000 (alias fan-out, intentional),
+medication 21,610/21,610/21,610 (matches), finding 4/0/0, investigation 6/0/0, measurement 5/0/0,
+symptom 25/0/0, treatment 2/0/0 (**all five still open** -- small in absolute count but a
+complete category gap, source not yet identified; not produced by `clinical-aliases`'s keyword
+extraction either).
+
+`chunks`/`chunks_fts` row count: released 54,481; candidate (after) 61,064 -- the difference is
+explained by the reference-family and clinical-family additions above (more classification-context
+and "# Определение" sections per document), not an unexplained residual.
+
+**Intentional, expected gaps** (per the coordinator's own exception list): the 15 public-pilot
+documents (absent by design) and the alias-fan-out-driven "candidate has more" rows above (working
+as intended, not a defect).
+
+**Still-open, unintentional gaps** (found by this audit, not yet resolved): `keywords` (163 vs 6)
+and the five small alias categories (finding/investigation/measurement/symptom/treatment, all
+0 in the candidate). Neither comes from `clinical-aliases`'s own keyword/alias extraction as run
+here (it only found 6 keyword-bearing records); the released core.db's fuller set likely came from
+a still-different or additional curation pass not identified in this session. `declaredAliases`
+(318 vs 321) is close enough to not warrant further chase given the time spent, but is not a
+byte-exact match either.
+
+## Clinical-definition enrichment: how it was wired in (coordinator decision, 2026-09-27)
+
+Per AGENTS.md ("never hand-edit a generated SQLite/JSON pack"; "Change SQLite only through a
+numbered migration"), this is implemented as three explicit, hashed `scripts/build-core.mjs`
+stages over an intermediate **ledger JSON**, not a patch to a built SQLite pack -- the pipeline
+rebuilds the clinical pointer track from scratch every run anyway, so enriching the ledger once
+and feeding the *unmodified* `build-core-catalog-pointers --family clinical` (which already reads
+`aliases`/`keywords`/`canonicalDefinition`/`clinicalMedicationLinks` off each ledger record --
+`catalog_module_builder.py::_clinical_core_pointer_document`) reaches the same enriched fields
+`clinical_definition_migration_006.py` would produce, without a separate SQL-patching stage:
+
+1. `clinical-ledger-base` -- regenerates `data/build/official-clinical-coverage-ledger.json` from
+   the already-cached, already-synced raw catalog (`data/raw/official-clinical-registry/
+   catalog.json`, cached 2026-07-27, no network) via `medbase-clinical-catalog build`. This is the
+   same command that was found stale earlier in this document; now it is a committed pipeline
+   stage instead of a manual one-off.
+2. `clinical-medication-relations` -- `medbase-regulated-catalog clinical-medication-relations-batch`
+   extracts clinical-recommendation -> ESKLP MNN relation candidates from the 723 cached clinical
+   guideline databases (`data/build/official-clinical-documents/databases`), matched against
+   `core-medication-pointers-pinned.db` (so it depends on the medication track). Deterministic
+   pattern/proximity matching, no LLM, no network: 1,049 candidate relations across 723 databases
+   in ~48s.
+3. `clinical-ledger-enriched` -- `medbase-regulated-catalog clinical-aliases` writes an enriched
+   copy of the base ledger: 273/744 records gain a cross-validated `canonicalDefinition` (each
+   checked against the exact source chunk/section/anchor/page range it claims -- see
+   `clinical_definition_migration_006.py::_validate_source_definition`, whose validation logic
+   this reuses conceptually), 271/744 gain `clinicalMedicationLinks`, 321/744 gain
+   `declaredAliases`/6/744 gain `keywords`.
+
+`catalog-pointers-clinical` now reads this enriched ledger instead of the base one; nothing else
+in the pipeline changed. Rebuild is still fully incremental: an alias-only code change reruns only
+from `reference-pointers` onward, and this enrichment path only reruns when the raw catalog, the
+clinical databases, or the taxonomy/overrides files actually change.
+
+## Benchmarks after enrichment (`core.0.7.0-test4.no-pilot.db`)
+
+- `benchmark:lookup-quality`: **PASS**, unchanged from before enrichment -- Top-1 = 1.0,
+  discoveryAliasRecallAt20 = 0.9433 (≥ 0.9 gate).
+- `benchmark:doctor-lookup`: **recallAt5 0.1 → 0.4** (target: released core.db's current 0.70;
+  measured fresh in this same session, same ranking code, confirming the harness/target are
+  correct), mrrAt5 0.05 → 0.3. Real, large improvement, not yet at target. Row-by-row: the
+  enrichment fixed `bronchitis-or-pneumonia-child`, `tonsillitis-or-pharyngitis-child`,
+  `orvi-or-bronchitis-adult`, `pneumonia-man` (now hitting the clinical pointer, matching
+  released); still missing `meningitis-or-encephalitis-child`, `tick-encephalitis-child`,
+  `pyelonephritis-or-cystitis-woman` (hit in released, missed in the candidate) --
+  `meningitis-child`, `gastroenteritis-child`, `diarrhea-or-vomiting-child` miss in *both*
+  released and candidate (a harder, pre-existing gap unrelated to this work). The three
+  still-missing-but-released-hits queries are consistent with the still-open `keywords`/small-
+  alias-category gap above -- not chased further given time spent.
+- `run-real-corpus.ts --check` (both `--path=core --corpus=core` and `--path=app --corpus=all`):
+  still fails tolerance; `demo.recallAt5` improved (core: 0→0.105) but `pilot`/`cases` remain far
+  below baseline -- dominated by the intentional pilot-id-targeting mismatch already documented,
+  not by the enrichment gap.
+- `benchmark:runtime`: **recallAt5 0.846 → 0.923, now matching the released core.db exactly**
+  (0.923); mrrAt5 0.769 → 0.846 (released: 0.885, close). `passed: false` on both released and
+  candidate in this sandbox, pre-existing (`unverifiedDownloadQueries` gate), not caused by this
+  work.
+
 ## What to run next
 
 ```bash
