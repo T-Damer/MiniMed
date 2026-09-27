@@ -469,3 +469,7 @@ Branch-specific next steps (PR #180):
    decision on `normalized_text` (16.9 MiB) versus a custom tokenizer.
 5. Regenerate `tools/benchmarks/fixtures/hard-medical-queries-1500.parts`: the committed base64
    parts fail gzip CRC, so `hard-query-dataset.test.ts` is excluded from Vitest until then.
+
+6. Local device sync (ADR-0019, proposed): Settings → «Синхронизация» with paired phone/tablet/desktop
+   devices, Bluetooth LE pairing and signalling, WebRTC bulk transfer, background sync, dated conflict
+   blocks. First slice: one-way copy to a new device; needs native Android BLE and a physical device.

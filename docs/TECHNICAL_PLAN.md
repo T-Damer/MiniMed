@@ -206,6 +206,18 @@ as historical snapshots. Tool results are immutable, manual corrections are revi
 never merge incompatible metrics, units, methods, scales, or versions. Missing references remain
 explicitly unavailable rather than being guessed; laboratory ranges come only from the user's report.
 
+## Local device sync (proposed, ADR-0019)
+
+Personal data (notes, patient vault, favourites and collections, selected settings) syncs directly
+between the user's own devices — phone, tablet, desktop browser — without accounts, cloud storage or
+a backend. Bluetooth LE pairs devices and carries the WebRTC offer/answer; a WebRTC data channel on
+the local network carries bulk data; a QR + share-sheet fallback covers browsers without Web
+Bluetooth. Settings → «Синхронизация» lists paired devices with device-type icons (phone, tablet,
+desktop) and syncs automatically in the background when paired devices are reachable. Records keep a
+revision history with hybrid logical clocks; concurrent text edits are kept as dated conflict blocks
+(`<<<<<<< Телефон · 27.09.2026 14:32 … >>>>>>> Ноутбук · …`) for the user to resolve. The patient
+vault is re-encrypted with each receiving device's own key. Cloud sync remains a non-goal.
+
 ## Milestones toward 1.0
 
 ### 1. Validated offline corpus editions
@@ -273,7 +285,8 @@ source navigation, provenance, errors, offline fallback, and rollback behavior.
 ## Non-goals
 
 - a Rust runtime migration before the 1.1 evaluation;
-- Tauri, Postgres, Docker, telemetry, accounts, cloud sync, or a hosted backend;
+- Tauri, Postgres, Docker, telemetry, accounts, cloud sync, or a hosted backend (local
+  device-to-device sync per ADR-0019 is not cloud sync);
 - Android/iOS parity during the browser-first phase;
 - autonomous diagnosis or prescribing;
 - generated prose replacing original medical sources;
