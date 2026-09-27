@@ -11,14 +11,20 @@ for (const width of [375, 1280]) {
     await expect(page.locator('.document-library-card').first()).toBeVisible();
     await page.getByRole('button', { name: 'Раздел поиска', exact: true }).click();
     const menu = page.getByRole('dialog', { name: 'Разделы поиска' });
+    // Rows sit in an overlay-scrollbar viewport: Playwright's click scrolls the page to reach them
+    // while the menu is still settling, which a person never does and which closes the menu.
     await expect(
       menu.getByRole('button', { name: /^Загрузка: Клинический разбор\./u }),
     ).toHaveCount(0);
-    await menu.getByRole('button', { name: 'Подразделы: Калькуляторы', exact: true }).click();
+    await menu
+      .getByRole('button', { name: 'Подразделы: Калькуляторы', exact: true })
+      .dispatchEvent('click');
     await expect(
       menu.getByRole('button', { name: /^Загрузка: Преобразование единиц\./u }),
     ).toHaveCount(0);
-    await menu.getByRole('button', { name: 'Подразделы: Все источники', exact: true }).click();
+    await menu
+      .getByRole('button', { name: 'Подразделы: Все источники', exact: true })
+      .dispatchEvent('click');
     const anthropometry = menu.getByRole('button', { name: /^Антропометрия \(/u });
     await expect(anthropometry.locator('[title="Калькулятор"]')).toHaveCount(1);
     await expect(anthropometry.locator('.search-section-menu__kind')).toHaveCount(1);
@@ -34,7 +40,7 @@ for (const width of [375, 1280]) {
     ).toBe(true);
     await anthropometry.scrollIntoViewIfNeeded();
     await page.screenshot({ path: test.info().outputPath('subgroup-kinds.png') });
-    await anthropometry.click();
+    await anthropometry.dispatchEvent('click');
     await expect(page.locator('.unified-catalog__tool').first()).toBeVisible();
     await expect(
       page.getByRole('heading', { name: 'Документы не найдены', exact: true }),

@@ -78,8 +78,8 @@ test('the help menu opens the feature tour and the search guide', async ({ page 
   await expect(page.getByRole('dialog', { name: 'Что умеет MiniMed' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Что умеет MiniMed' })).toHaveCount(0);
-  // The page scrolls for a moment after a dialog closes; a menu opened meanwhile is dismissed as a
-  // click outside. Wait for the page to settle, as a person would.
+  // Playwright's click scrolled the page to reach the menu item; closing the dialog restores that
+  // scroll, and a menu opened meanwhile is dismissed. Wait for the page to settle first.
   await expect
     .poll(async () => {
       const first = await page.evaluate(() => window.scrollY);
