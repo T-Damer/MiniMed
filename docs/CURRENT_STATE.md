@@ -448,6 +448,10 @@ and built output remains ignored private data with `rightsStatus: unresolved` an
    plus Android parity, latency, memory, storage, battery, and thermal qualification. The public pilot
    currently shows one Recall@5 regression when Giga is added with the existing fusion weights. Keep
    the deterministic/hash hybrid and lexical fallback.
+9. Local device sync (ADR-0019, proposed): Settings → «Синхронизация» with paired phone/tablet/desktop
+   devices, Bluetooth LE pairing and signalling, WebRTC bulk transfer, background sync and dated
+   conflict blocks. First slice: one-way copy to a new device; needs native Android BLE and a
+   physical device.
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.
 No cross-language runtime migration should start before shared golden fixtures demonstrate parity.
@@ -469,7 +473,3 @@ Branch-specific next steps (PR #180):
    decision on `normalized_text` (16.9 MiB) versus a custom tokenizer.
 5. Regenerate `tools/benchmarks/fixtures/hard-medical-queries-1500.parts`: the committed base64
    parts fail gzip CRC, so `hard-query-dataset.test.ts` is excluded from Vitest until then.
-
-6. Local device sync (ADR-0019, proposed): Settings → «Синхронизация» with paired phone/tablet/desktop
-   devices, Bluetooth LE pairing and signalling, WebRTC bulk transfer, background sync, dated conflict
-   blocks. First slice: one-way copy to a new device; needs native Android BLE and a physical device.
