@@ -6,6 +6,8 @@ export interface SegmentedControlOption<T extends string> {
   readonly value: T;
   readonly label: string;
   readonly count?: number | undefined;
+  /** An option that exists but cannot be chosen now; explain why next to the control. */
+  readonly disabled?: boolean | undefined;
 }
 
 /**
@@ -31,6 +33,7 @@ export function SegmentedControl<T extends string>(props: {
             classList={{
               'segmented-control__option--selected': option.value === props.value,
               'segmented-control__option--focus-visible': focusVisible() === option.value,
+              'segmented-control__option--disabled': option.disabled === true,
             }}
           >
             <input
@@ -39,6 +42,7 @@ export function SegmentedControl<T extends string>(props: {
               name={name}
               value={option.value}
               checked={option.value === props.value}
+              disabled={option.disabled === true}
               onChange={() => props.onChange(option.value)}
               onFocus={(event) => {
                 if (event.currentTarget.matches(':focus-visible'))

@@ -659,3 +659,20 @@
     z-index: var(--z-reader-outline);
   }
 }
+
+.document-medication-product__reading {
+  display: grid;
+  gap: 0.4rem;
+  justify-items: start;
+}
+
+.document-medication-product__reading-note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: var(--type-small, 0.875rem);
+}
+
+/* The panel sits on the muted surface; the switch track needs its own ground to stay visible. */
+.document-medication-product__reading-switch {
+  background: var(--theme-surface);
+}

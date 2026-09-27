@@ -577,7 +577,8 @@ export function parseAllmedMedicationProduct(document: MedicalDocument): Medicat
     sourceKind: 'allmed',
     registrationDocumentId: document.id,
     grlsRegistrationDocumentId: null,
-    instructionDocumentId: document.id,
+    // An Allmed monograph is a reference summary, not the official instruction.
+    instructionDocumentId: null,
     mnnDocumentId: null,
     linkedMnnDocumentId: stringValue(metadata.linkedMnnDocumentId),
     smnnCode: null,
@@ -624,4 +625,42 @@ export function readableMedicationDocumentId(product: MedicationProduct): string
   return (
     product.mnnDocumentId ?? product.instructionDocumentId ?? product.registrationDocumentId ?? null
   );
+}
+
+export type MedicationReadingMode = 'short' | 'instruction';
+
+export interface MedicationReadingChoices {
+  readonly options: readonly {
+    readonly value: MedicationReadingMode;
+    readonly label: string;
+    readonly disabled: boolean;
+  }[];
+  readonly initialMode: MedicationReadingMode;
+  /** Why an option is unavailable, shown under the switch. */
+  readonly note: string | null;
+}
+
+/**
+ * The product card reads either the short version (the opened card with its Allmed text) or the
+ * official instruction. The short version comes first; an option without a document is disabled.
+ */
+export function medicationReadingChoices(
+  product: MedicationProduct,
+  openedDocumentId: string,
+): MedicationReadingChoices {
+  const hasInstruction = product.instructionDocumentId !== null;
+  const hasShort = product.instructionDocumentId !== openedDocumentId;
+  const hasAllmed = product.sourceKind === 'allmed' || product.supplementalDescription !== null;
+  return {
+    options: [
+      { value: 'short', label: hasAllmed ? 'Кратко (Allmed)' : 'Кратко', disabled: !hasShort },
+      { value: 'instruction', label: 'Инструкция', disabled: !hasInstruction },
+    ],
+    initialMode: hasShort ? 'short' : 'instruction',
+    note: !hasInstruction
+      ? 'Официальной инструкции для этого препарата нет в установленных базах.'
+      : !hasShort
+        ? 'Для этого препарата есть только официальная инструкция.'
+        : null,
+  };
 }

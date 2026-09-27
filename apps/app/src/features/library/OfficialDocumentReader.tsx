@@ -23,6 +23,7 @@ import { Disclosure } from '@/components/Disclosure';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { DocumentText, documentTextSearchText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import {
   displayDocumentSubtitle,
@@ -58,9 +59,11 @@ import {
   type ResolvedMedicationPackagingImage,
   resolveMedicationPackagingImage,
 } from '@/features/medications/medication-packaging-images';
-import type {
-  MedicationProduct,
-  TradeNameSupplement,
+import {
+  type MedicationProduct,
+  type MedicationReadingMode,
+  medicationReadingChoices,
+  type TradeNameSupplement,
 } from '@/features/medications/medication-record';
 import { formatFullTextDownloadLabel, formatModuleBytes } from '@/features/modules/module-display';
 import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
@@ -73,6 +76,10 @@ interface OfficialDocumentReaderProps {
   readonly pendingTitle?: string;
   readonly availableDocuments?: readonly MedicalDocumentSummary[];
   readonly medicationProduct?: MedicationProduct;
+  /** The document the product card was opened on; the instruction may replace the body. */
+  readonly medicationOpenedDocumentId?: string;
+  readonly medicationReadingMode?: MedicationReadingMode;
+  readonly onMedicationReadingModeChange?: (mode: MedicationReadingMode) => void;
   readonly supplementalPanels?: readonly TradeNameSupplement[];
   readonly clinicalMedicationLinks?: readonly ClinicalMedicationLink[];
   readonly initialAnchor?: string | null;
@@ -246,7 +253,11 @@ function ReferencePointerImage(props: { readonly documentId: string }): JSX.Elem
 function MedicationProductPanel(props: {
   readonly product: MedicationProduct;
   readonly currentDocumentId: string;
+  readonly openedDocumentId: string;
+  readonly mode: MedicationReadingMode;
+  readonly onModeChange: (mode: MedicationReadingMode) => void;
 }): JSX.Element {
+  const choices = () => medicationReadingChoices(props.product, props.openedDocumentId);
   const sources = () => [
     ...(props.product.sourceKind === 'esklp' ? ['ЕСКЛП'] : []),
     ...(props.product.grlsRegistrationDocumentId || props.product.instructionDocumentId
@@ -262,9 +273,6 @@ function MedicationProductPanel(props: {
       props.product.grlsRegistrationDocumentId
         ? { id: props.product.grlsRegistrationDocumentId, label: 'Регистрация ГРЛС' }
         : null,
-      props.product.instructionDocumentId
-        ? { id: props.product.instructionDocumentId, label: 'Инструкция' }
-        : null,
     ].filter(
       (item): item is { readonly id: string; readonly label: string } =>
         item !== null && item.id !== props.currentDocumentId,
@@ -275,6 +283,18 @@ function MedicationProductPanel(props: {
       <h2 class="document-medication-product__title">
         {props.product.tradeName} · {props.product.inn}
       </h2>
+      <div class="document-medication-product__reading">
+        <SegmentedControl
+          label="Версия текста"
+          class="document-medication-product__reading-switch"
+          options={choices().options}
+          value={props.mode}
+          onChange={props.onModeChange}
+        />
+        <Show when={choices().note}>
+          {(note) => <p class="document-medication-product__reading-note">{note()}</p>}
+        </Show>
+      </div>
       <div class="document-medication-product__presentations">
         <For each={props.product.presentations}>
           {(presentation) => (
@@ -971,6 +991,9 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     <MedicationProductPanel
                       product={product()}
                       currentDocumentId={documentValue().id}
+                      openedDocumentId={props.medicationOpenedDocumentId ?? documentValue().id}
+                      mode={props.medicationReadingMode ?? 'short'}
+                      onModeChange={(mode) => props.onMedicationReadingModeChange?.(mode)}
                     />
                   )}
                 </Show>

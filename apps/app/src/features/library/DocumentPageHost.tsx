@@ -6,6 +6,7 @@ import type {
 } from '@localmed/contracts';
 import { fullDocumentCandidateIds } from '@localmed/core';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { toast } from 'solid-sonner';
 import {
   displayDocumentTitle,
   resolveReadableDocumentId,
@@ -21,6 +22,8 @@ import {
 import { consumeMedicationProductContext } from '@/features/medications/medication-navigation';
 import {
   type MedicationProduct,
+  type MedicationReadingMode,
+  medicationReadingChoices,
   parseTradeNameSupplement,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
@@ -122,6 +125,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     [],
   );
   const [medicationProduct, setMedicationProduct] = createSignal<MedicationProduct>();
+  const [medicationReadingMode, setMedicationReadingMode] =
+    createSignal<MedicationReadingMode>('short');
+  const [instructionDocument, setInstructionDocument] = createSignal<MedicalDocument>();
   const [clinicalMedicationLinks, setClinicalMedicationLinks] = createSignal<
     readonly ClinicalMedicationLink[]
   >([]);
@@ -179,6 +185,12 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const documentId = parsed.documentId;
     const selectedMedicationProduct = consumeMedicationProductContext(documentId) ?? undefined;
     setMedicationProduct(selectedMedicationProduct);
+    setMedicationReadingMode(
+      selectedMedicationProduct
+        ? medicationReadingChoices(selectedMedicationProduct, documentId).initialMode
+        : 'short',
+    );
+    setInstructionDocument(undefined);
     setInitialAnchor(parsed.section ?? null);
 
     if (
@@ -331,6 +343,48 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       }
     }
   };
+
+  /** The product card swaps its body between the opened card and the official instruction. */
+  const changeMedicationReadingMode = async (mode: MedicationReadingMode): Promise<void> => {
+    const instructionId = medicationProduct()?.instructionDocumentId;
+    if (mode === 'short' || !instructionId || instructionId === document()?.id) {
+      setMedicationReadingMode(mode);
+      return;
+    }
+    const core = props.getCore();
+    if (!core) {
+      toast.error('Локальный поиск ещё не готов.');
+      return;
+    }
+    setMedicationReadingMode('instruction');
+    if (instructionDocument()?.id === instructionId) return;
+    setInstructionDocument(undefined);
+    const result = await core.getDocument(instructionId);
+    if (
+      medicationReadingMode() !== 'instruction' ||
+      medicationProduct()?.instructionDocumentId !== instructionId
+    ) {
+      return;
+    }
+    if (!result.ok) {
+      setMedicationReadingMode('short');
+      toast.error(`Инструкция не открылась. ${userFacingOpenError(result.error.message)}`);
+      return;
+    }
+    setInstructionDocument(result.value);
+  };
+  const showsInstruction = (): boolean => {
+    const instructionId = medicationProduct()?.instructionDocumentId;
+    return (
+      medicationReadingMode() === 'instruction' &&
+      !!instructionId &&
+      instructionId !== document()?.id
+    );
+  };
+  const readerDocument = (): MedicalDocument | undefined =>
+    showsInstruction() ? instructionDocument() : document();
+  const readerPendingTitle = (): string | undefined =>
+    showsInstruction() && !instructionDocument() ? 'Открываем инструкцию' : pendingTitle();
 
   const requestModulePointerInstall = async (): Promise<void> => {
     const resolution = modulePointer();
@@ -544,13 +598,21 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
             <Show when={parsed.kind === 'official' ? parsed.documentId : null} keyed>
               <OfficialDocumentReader
                 core={props.getCore()}
-                document={document()}
-                {...(pendingTitle() ? { pendingTitle: pendingTitle() as string } : {})}
+                document={readerDocument()}
+                {...(readerPendingTitle() ? { pendingTitle: readerPendingTitle() as string } : {})}
                 availableDocuments={availableDocuments()}
                 {...(medicationProduct()
-                  ? { medicationProduct: medicationProduct() as MedicationProduct }
+                  ? {
+                      medicationProduct: medicationProduct() as MedicationProduct,
+                      medicationReadingMode: medicationReadingMode(),
+                      onMedicationReadingModeChange: (mode: MedicationReadingMode) =>
+                        void changeMedicationReadingMode(mode),
+                    }
                   : {})}
-                supplementalPanels={supplementalPanels()}
+                {...(document()
+                  ? { medicationOpenedDocumentId: (document() as MedicalDocument).id }
+                  : {})}
+                supplementalPanels={showsInstruction() ? [] : supplementalPanels()}
                 clinicalMedicationLinks={clinicalMedicationLinks()}
                 initialAnchor={initialAnchor()}
                 trail={trail()}

@@ -37,6 +37,7 @@ import {
   legacyMedicationRegistrationFromHash,
   MEDICATION_CATALOG_HASH,
 } from '@/features/medications/medication-routing';
+import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 
 interface MedicationCatalogViewProps {
@@ -363,7 +364,8 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                     <span class="medication-product-card__description">{description()}</span>
                   </div>
                   <p class="medication-product-card-meta">
-                    {product.registrationStatus} · {variants().length} вариантов упаковки
+                    {product.registrationStatus} · {variants().length}{' '}
+                    {pluralRu(variants().length, 'вариант', 'варианта', 'вариантов')} упаковки
                   </p>
                 </button>
               );

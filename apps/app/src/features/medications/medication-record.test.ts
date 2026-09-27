@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { documentFromSummary, processMedicationSummariesInBatches } from './medication-loading';
 import {
   composeMedicationProducts,
+  medicationReadingChoices,
   mergeAllmedSupplementalText,
   parseAllmedMedicationProduct,
   parseEsklpMedicationProducts,
@@ -142,6 +143,22 @@ describe('parseMedicationProduct', () => {
       tradeName: 'Мирамистин',
       inn: 'Miramistin',
       shortDescription: 'Антисептическое средство',
+      instructionDocumentId: null,
+    });
+    if (!product) throw new Error('expected Allmed product');
+    expect(medicationReadingChoices(product, 'drug.allmed.12')).toEqual({
+      options: [
+        { value: 'short', label: 'Кратко (Allmed)', disabled: false },
+        { value: 'instruction', label: 'Инструкция', disabled: true },
+      ],
+      initialMode: 'short',
+      note: 'Официальной инструкции для этого препарата нет в установленных базах.',
+    });
+    const withInstruction = { ...product, instructionDocumentId: 'drug.instruction.miramistin' };
+    expect(medicationReadingChoices(withInstruction, 'drug.allmed.12').note).toBeNull();
+    expect(medicationReadingChoices(withInstruction, 'drug.instruction.miramistin')).toMatchObject({
+      initialMode: 'instruction',
+      note: 'Для этого препарата есть только официальная инструкция.',
     });
   });
 
