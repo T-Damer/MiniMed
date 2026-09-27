@@ -13,6 +13,7 @@ import type {
   SearchSuggestion,
 } from '@localmed/contracts';
 import {
+  children,
   createEffect,
   createMemo,
   createSignal,
@@ -94,6 +95,8 @@ interface SearchWorkspaceProps {
   readonly catalogResultCount?: number;
   readonly showExamples?: boolean;
   /** Greeting and shortcuts shown above an empty query; collapses once the user searches. */
+  /** Page heading above the field; hidden with the welcome block once a search starts. */
+  readonly heading?: JSX.Element;
   readonly welcome?: JSX.Element;
   /** Stays above the field while typing, unlike the welcome block. */
   readonly quickAccess?: JSX.Element;
@@ -277,6 +280,9 @@ function refreshDownloadedCalculatorDefinitions(): Promise<void> {
 }
 
 export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
+  // Resolved once: reading the slot twice (class and content) would build two pickers and
+  // rebuild the visible one, closing its open menu, whenever the class is re-evaluated.
+  const modePicker = children(() => props.modePicker);
   const [query, setQuery] = createSignal('');
   const [draftAnalysis, setDraftAnalysis] = createSignal<QueryAnalysis>();
   const [response, setResponse] = createSignal<SearchResponse>();
@@ -843,16 +849,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       >
         {/* The page heading lives in SearchHome; repeating a second hero here doubled the height
             a doctor scrolls past before the first result. */}
-        <Show when={props.welcome}>
+        <Show when={props.heading}>
           <div
-            class="search-welcome"
-            classList={{ 'search-welcome--hidden': query().length > 0 || Boolean(response()) }}
+            class="search-heading"
+            classList={{ 'search-heading--hidden': query().length > 0 || Boolean(response()) }}
             inert={query().length > 0 || Boolean(response())}
           >
-            <div class="search-welcome__inner">{props.welcome}</div>
+            {props.heading}
           </div>
         </Show>
-        {props.quickAccess}
         <form
           class="query-sheet"
           onSubmit={(event) => {
@@ -906,9 +911,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               </Show>
               <div
                 class="query-buttons"
-                classList={{ 'query-buttons--with-picker': Boolean(props.modePicker) }}
+                classList={{ 'query-buttons--with-picker': modePicker.toArray().length > 0 }}
               >
-                {props.modePicker}
+                {modePicker()}
                 <Popover
                   open={toolPickerOpen()}
                   onOpenChange={setToolPickerOpen}
@@ -1002,6 +1007,20 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </Show>
         </form>
         {props.fieldStatus}
+        {/* Tools and capabilities sit under the field so the field is the first thing on screen;
+            they fold away as soon as a search starts, leaving results next to the field. */}
+        <Show when={props.welcome || props.quickAccess}>
+          <div
+            class="search-welcome"
+            classList={{ 'search-welcome--hidden': query().length > 0 || Boolean(response()) }}
+            inert={query().length > 0 || Boolean(response())}
+          >
+            <div class="search-welcome__inner">
+              {props.welcome}
+              {props.quickAccess}
+            </div>
+          </div>
+        </Show>
 
         <Show when={ambiguousMeanings().length > 0}>
           <SearchMeaningChoices

@@ -1,6 +1,6 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, hasLocalCompanionPack, mountBuiltApp } from './mount-built-app';
-import { selectSearchSection } from './select-search-section';
+import { selectSearchSection, setClinicalAnalysis } from './select-search-section';
 
 // These assertions qualify full-corpus results on CI; latency is measured by benchmarks.
 const query = 'пневмония';
@@ -60,10 +60,36 @@ test('opens with source lookup ready and clinical parsing as a separate mode', a
   await page.getByTestId('search-submit').click();
   await expect(page.getByTestId('search-results')).toBeVisible();
   await expect(page.locator('.analysis-details')).toHaveCount(0);
-  await selectSearchSection(page, 'Клинический разбор');
+  await setClinicalAnalysis(page, true);
   await expect(page.locator('.analysis-details')).toBeVisible();
-  await selectSearchSection(page, 'Все источники');
+  // The switch reads the same source; turning it off returns to plain lookup.
+  await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
+    'Все источники',
+  );
+  await setClinicalAnalysis(page, false);
   await expect(page.locator('.analysis-details')).toHaveCount(0);
+});
+
+test('the help menu opens the feature tour and the search guide', async ({ page }) => {
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await expect(page.getByRole('button', { name: 'Показать историю поиска' })).toBeVisible();
+  await page.getByRole('button', { name: 'Справка', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Что умеет MiniMed' }).click();
+  await expect(page.getByRole('dialog', { name: 'Что умеет MiniMed' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Что умеет MiniMed' })).toHaveCount(0);
+  // The page scrolls for a moment after a dialog closes; a menu opened meanwhile is dismissed as a
+  // click outside. Wait for the page to settle, as a person would.
+  await expect
+    .poll(async () => {
+      const first = await page.evaluate(() => window.scrollY);
+      await page.waitForTimeout(150);
+      return first === (await page.evaluate(() => window.scrollY));
+    })
+    .toBe(true);
+  await page.getByRole('button', { name: 'Справка', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Как работает поиск' }).click();
+  await expect(page.getByRole('dialog', { name: 'Как работает поиск' })).toBeVisible();
 });
 
 test('renders ordinary lookup on a phone-sized browser and records query latency', async ({
@@ -616,7 +642,7 @@ test('opens a random record of the current section', async ({ page }) => {
 test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {
   await mountBuiltApp(page);
   // Clarifying questions belong to the explicit clinical mode, not to ordinary lookup.
-  await selectSearchSection(page, 'Клинический разбор');
+  await setClinicalAnalysis(page, true);
   await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');
   await expect(page.getByRole('button', { name: /Сознание и судороги/u })).toBeVisible();
   await expect(page.getByTestId('search-results')).toBeVisible();

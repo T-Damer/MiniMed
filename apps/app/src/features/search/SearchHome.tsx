@@ -8,9 +8,15 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import {
+  AppContextMenu,
+  type AppContextMenuAction,
+  requestContextMenu,
+} from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { Switch } from '@/components/Switch';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-packs';
@@ -40,7 +46,7 @@ import { SearchNoResults } from '@/features/search/SearchNoResults';
 import { SearchQuickAccess } from '@/features/search/SearchQuickAccess';
 import { SearchResultModuleDownload } from '@/features/search/SearchResultModuleDownload';
 import { SearchSectionPicker } from '@/features/search/SearchSectionPicker';
-import { SearchWelcome } from '@/features/search/SearchWelcome';
+import { SearchGreeting, SearchWelcome } from '@/features/search/SearchWelcome';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import { type SearchCoreStatus, searchCoreStatusLabel } from '@/features/search/search-core-status';
 import {
@@ -53,6 +59,7 @@ import {
 import { searchSectionDownloadBlocks } from '@/features/search/searchSectionDownloads';
 import { UnifiedSearchCatalog } from '@/features/search/UnifiedSearchCatalog';
 import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
+import { FeatureTour } from '@/features/setup/FeatureTour';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { experimentalModulesEnabled } from '@/state/experimental-modules';
 import {
@@ -225,6 +232,34 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       : {};
   });
   const [helpOpen, setHelpOpen] = createSignal(false);
+  const [tourOpen, setTourOpen] = createSignal(false);
+  // One array for the component's lifetime: a literal in JSX would rebuild the open menu's items.
+  const helpActions: readonly AppContextMenuAction[] = [
+    {
+      id: 'feature-tour',
+      label: 'Что умеет MiniMed',
+      icon: 'question',
+      onSelect: () => setTourOpen(true),
+    },
+    {
+      id: 'search-help',
+      label: 'Как работает поиск',
+      icon: 'search',
+      onSelect: () => setHelpOpen(true),
+    },
+  ];
+  /** The source the clinical-analysis switch returns to when it is turned off. */
+  const [sourceScope, setSourceScope] = createSignal<SearchScope>('all');
+  const clinicalAnalysis = () => scope() === 'diagnosis';
+  // Clinical analysis is a way of reading any source, so it is a switch, not a source.
+  const sourceSections = createMemo(() =>
+    sections().filter((section) => section.id !== 'diagnosis'),
+  );
+  const setClinicalAnalysis = (on: boolean): void => {
+    if (on === clinicalAnalysis()) return;
+    if (on) setSourceScope(scope());
+    setScope(on ? 'diagnosis' : sourceScope());
+  };
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
   const [ignoredAppUpdates, setIgnoredAppUpdates] = createSignal(loadIgnoredAppUpdates());
   let searchModeTools: HTMLElement | undefined;
@@ -324,14 +359,17 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           }}
           icon={<AppGlyph name="dice" class="search-random-record__icon" />}
         />
-        <button
-          class="search-mode-help"
-          type="button"
-          aria-label="Как работает поиск"
-          onClick={() => setHelpOpen(true)}
-        >
-          ?
-        </button>
+        <AppContextMenu hideButton class="search-help-menu" actions={helpActions}>
+          <button
+            class="search-mode-help"
+            type="button"
+            aria-label="Справка"
+            title="Справка"
+            onClick={requestContextMenu}
+          >
+            ?
+          </button>
+        </AppContextMenu>
       </div>
 
       <div class="search-workspace-main">
@@ -379,6 +417,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           )}
           catalogOnly={catalogOnly()}
           showExamples
+          heading={<SearchGreeting />}
           welcome={
             <SearchWelcome
               coreReady={props.baseCore !== undefined}
@@ -432,19 +471,33 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                 : 'Название, код МКБ, препарат или фраза из документа'
           }
           modePicker={
-            <SearchSectionPicker
-              loading={catalogLoading()}
-              documents={documents()}
-              tools={toolRows()}
-              downloads={downloads}
-              sections={sections()}
-              scope={scope()}
-              group={specialty()}
-              onSelect={(next, group) => {
-                setGroups({ ...groups(), [next]: group });
-                setScope(next);
-              }}
-            />
+            <div class="search-source-controls">
+              <SearchSectionPicker
+                loading={catalogLoading()}
+                documents={documents()}
+                tools={toolRows()}
+                downloads={downloads}
+                sections={sourceSections()}
+                scope={clinicalAnalysis() ? sourceScope() : scope()}
+                group={specialty()}
+                onSelect={(next, group) => {
+                  setGroups({ ...groups(), [next]: group });
+                  setSourceScope(next);
+                  setScope(next);
+                }}
+              />
+              <label class="search-clinical-switch">
+                <Switch
+                  class="search-clinical-switch__control"
+                  checked={clinicalAnalysis()}
+                  onChange={setClinicalAnalysis}
+                  aria-label="Клинический разбор"
+                />
+                <span class="search-clinical-switch__label" aria-hidden="true">
+                  Клинический разбор
+                </span>
+              </label>
+            </div>
           }
         />
       </div>
@@ -481,6 +534,14 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           />
         </OverlayDialog>
       </Show>
+      <OverlayDialog
+        open={tourOpen()}
+        title="Что умеет MiniMed"
+        class="feature-tour-dialog"
+        onClose={() => setTourOpen(false)}
+      >
+        <FeatureTour />
+      </OverlayDialog>
       <OverlayDialog
         open={helpOpen()}
         title="Как работает поиск"

@@ -143,7 +143,7 @@ export function SearchHistoryPanel(props: SearchHistoryPanelProps): JSX.Element 
           else setOpen(true);
         }}
       >
-        <AppGlyph name="menu" />
+        <AppGlyph name="history" />
       </button>
 
       <Show when={open()}>

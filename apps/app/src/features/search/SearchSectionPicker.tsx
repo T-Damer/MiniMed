@@ -74,6 +74,9 @@ export function SearchSectionPicker(props: {
   createEffect(() => {
     if (!open()) return;
     const close = (): void => {
+      // Expanding a subgroup can scroll the page by itself; while the user works inside the menu
+      // that is not leaving it.
+      if (menu?.contains(document.activeElement)) return;
       const rect = trigger?.getBoundingClientRect();
       if (!rect || rect.bottom < 0 || rect.top > window.innerHeight) setOpen(false);
     };

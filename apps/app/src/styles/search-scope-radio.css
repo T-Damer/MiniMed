@@ -176,3 +176,26 @@ fieldset.search-mode-picker::-webkit-scrollbar {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* The source picker and the clinical-analysis switch read as one group at the start of the row. */
+.search-source-controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  min-width: 0;
+  max-width: 100%;
+  margin-inline-end: auto;
+}
+
+.search-clinical-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  color: var(--theme-text);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
