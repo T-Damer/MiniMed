@@ -218,6 +218,17 @@ revision history with hybrid logical clocks; concurrent text edits are kept as d
 (`<<<<<<< Телефон · 27.09.2026 14:32 … >>>>>>> Ноутбук · …`) for the user to resolve. The patient
 vault is re-encrypted with each receiving device's own key. Cloud sync remains a non-goal.
 
+## Medical news and research feed (proposed, ADR-0020)
+
+An optional online module: specialty and topic subscriptions over free public sources (PubMed,
+Europe PMC with preprints, OpenAlex, ClinicalTrials.gov, Crossref/Unpaywall) and Russian journals via
+their RSS/OAI-PMH, plus official news. Items are enriched on the device from article metadata and a
+readable-text preview and shown as a post-style feed (image, title, meaningful description, source,
+date, study-type badge). Users may paste their own API keys (kept on the device only). Android/iOS
+get the extended feed with background refresh and later custom RSS; the web gets a lighter
+CORS-limited feed. The feed is an external layer: it never enters the official corpus or search
+ranking, and no backend or push server is added. Research on sources, limits and CORS comes first.
+
 ## Milestones toward 1.0
 
 ### 1. Validated offline corpus editions

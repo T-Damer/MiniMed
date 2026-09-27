@@ -452,6 +452,8 @@ and built output remains ignored private data with `rightsStatus: unresolved` an
    devices, Bluetooth LE pairing and signalling, WebRTC bulk transfer, background sync and dated
    conflict blocks. First slice: one-way copy to a new device; needs native Android BLE and a
    physical device.
+10. Medical news and research feed (ADR-0020, proposed; plan only): research sources, rate limits,
+    CORS and Russian journal OAI-PMH/RSS coverage before choosing a first slice.
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.
 No cross-language runtime migration should start before shared golden fixtures demonstrate parity.
