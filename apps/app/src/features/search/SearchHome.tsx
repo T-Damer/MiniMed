@@ -392,7 +392,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                 class="search-graph-button"
                 type="button"
                 aria-label="Карта связей"
-                title="Карта связей"
+                title={
+                  catalogLoading() || visibleDocuments().length === 0
+                    ? 'Откроется, когда база будет готова'
+                    : 'Карта связей'
+                }
                 disabled={catalogLoading() || visibleDocuments().length === 0}
                 onClick={() => {
                   setGraphShowAll(false);

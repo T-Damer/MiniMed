@@ -1,6 +1,6 @@
 import { createSignal, type JSX, onCleanup, Show } from 'solid-js';
-
 import { AppGlyph } from '@/components/AppGlyph';
+import { recordingStartErrorMessage } from '@/features/conversations/recording-errors';
 
 function recorderMimeType(): string {
   for (const candidate of ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4']) {
@@ -68,9 +68,9 @@ export function VoiceRecordingButton(props: {
           autoGainControl: true,
         },
       });
-    } catch {
+    } catch (cause) {
       if (disposed) return;
-      props.onError?.('Нет доступа к микрофону.');
+      props.onError?.(recordingStartErrorMessage(cause));
       return;
     }
     if (disposed) {

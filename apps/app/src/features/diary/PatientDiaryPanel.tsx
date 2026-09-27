@@ -1,7 +1,6 @@
 import QRCode from 'qrcode';
 import { createSignal, For, Index, type JSX, onCleanup, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
-
 import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
 import { ChoiceGroup } from '@/components/ChoiceGroup';
@@ -11,6 +10,7 @@ import { SelectField } from '@/components/SelectField';
 import { Heading } from '@/components/Text';
 import { TextArea } from '@/components/TextArea';
 import { TextField } from '@/components/TextField';
+import { captureStartErrorMessage } from '@/features/conversations/recording-errors';
 import {
   DiaryPartCollector,
   diaryInvitationLink,
@@ -500,7 +500,7 @@ function ImportDiaryDialog(props: {
       stopCamera();
       if (!disposed) {
         setStatus(
-          `${errorMessage(cause, 'Камера недоступна.')} Можно сфотографировать коды и выбрать фото.`,
+          `${captureStartErrorMessage(cause, 'camera')} Можно сфотографировать коды и выбрать фото.`,
         );
       }
     }

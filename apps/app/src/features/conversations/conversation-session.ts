@@ -1,6 +1,7 @@
 import { createSignal } from 'solid-js';
 
 import { formatRecordingDuration } from '@/features/asr/visit-recording';
+import { recordingStartErrorMessage } from '@/features/conversations/recording-errors';
 import {
   type ConversationRecorder,
   type ConversationRecording,
@@ -47,13 +48,7 @@ export async function startConversation(): Promise<void> {
       setLevel(next.level());
     }, 200);
   } catch (cause) {
-    setError(
-      cause instanceof DOMException && cause.name === 'NotAllowedError'
-        ? 'Нет доступа к микрофону. Разрешите его в настройках браузера или приложения.'
-        : cause instanceof Error
-          ? cause.message
-          : 'Не удалось начать запись.',
-    );
+    setError(recordingStartErrorMessage(cause));
   } finally {
     setStarting(false);
   }
