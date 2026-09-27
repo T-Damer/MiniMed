@@ -94,7 +94,9 @@ def pin_medication_pointers(source: Path, pinned_ids_path: Path, output: Path) -
             "INSERT INTO app_metadata(key, value) VALUES ('publication_state', 'local-dev')"
         )
         connection.execute(
-            """INSERT INTO content_packs(id, version, schema_version, title, checksum, installed_at, enabled)
+            """INSERT INTO content_packs(
+                id, version, schema_version, title, checksum, installed_at, enabled
+            )
             SELECT 'minimed.core.medication.pinned', version, schema_version,
                    'MiniMed medication pointers (pinned to released core.db)', '', installed_at, 1
             FROM src.content_packs LIMIT 1"""
@@ -200,7 +202,9 @@ def main() -> None:
     args = parser.parse_args()
     report = pin_medication_pointers(args.source, args.pinned_ids, args.output)
     args.report.parent.mkdir(parents=True, exist_ok=True)
-    args.report.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    args.report.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     if report["missingIds"]:
         raise SystemExit(
             f"{len(report['missingIds'])} pinned medication ids were not found in {args.source} "
