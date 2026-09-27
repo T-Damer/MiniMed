@@ -76,6 +76,27 @@ describe('age-aware result ordering', () => {
     expect(fallback[0]?.ageGroups).toEqual(['adults']);
   });
 
+  it('does not let a source that matched only the age wording outrank a subject match', () => {
+    const hit = (terms: readonly string[]) =>
+      ({ matchedTerms: terms }) as unknown as SearchResultGroup['results'][number];
+    const withTerms = (documentId: string, terms: readonly string[]): SearchResultGroup => ({
+      ...group(documentId),
+      results: [hit(terms)],
+    });
+    // «Менингит у ребёнка»: a pediatric allowance act matched only «ребёнка», an adult-tagged
+    // reference matched the disease. The disease match comes first; age still orders the rest.
+    const ranked = rankSearchGroupsByAudience(
+      [
+        withTerms('child', ['ребенка', 'ребенк', 'детей']),
+        withTerms('adult', ['менингит']),
+        withTerms('mixed', ['менингит', 'детей']),
+      ],
+      documents,
+      'children',
+    );
+    expect(ranked.map((item) => item.documentId)).toEqual(['mixed', 'adult', 'child']);
+  });
+
   it('preserves score order when no audience is expressed', () => {
     const ranked = rankSearchGroupsByAudience(
       [group('adult'), group('child'), group('unknown')],

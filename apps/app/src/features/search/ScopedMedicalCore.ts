@@ -136,6 +136,22 @@ export function inferSearchScope(intent: QueryIntent | undefined): SearchScope |
   return 'guidelines';
 }
 
+const CHILD_AUDIENCE_WORD =
+  /(?:ребен|ребён|детск|дет(?:и|ей|ям|ьми|ях)|младен|груднич|новорож|несовершеннолет|подрост|школьник|мальчик|девочк|педиатр)/u;
+const ADULT_AUDIENCE_WORD = /(?:взросл|совершеннолет|мужчин|женщин|терапевт)/u;
+/** A matched stem such as «ребенк» or «детей» that only names who the query is about. */
+const AUDIENCE_TERM =
+  /^(?:ребен|ребён|дет|детск|младен|груднич|новорож|несовершеннолет|подрост|школьник|мальчик|девочк|взросл|совершеннолет|мужчин|женщин)/u;
+
+/**
+ * True when every hit of the group matched only audience words («ребёнка», «детей»): such a
+ * source shares the age wording but none of the subject, and must not outrank one that does.
+ */
+function matchesOnlyAudience(group: SearchResultGroup): boolean {
+  const terms = group.results.flatMap((result) => result.matchedTerms);
+  return terms.length > 0 && terms.every((term) => AUDIENCE_TERM.test(normalizeSurfaceText(term)));
+}
+
 export function inferRequestedAudience(query: string): SearchAudience | undefined {
   const normalized = normalizeSurfaceText(query);
   if (/(?:^|\s)\d{1,2}\s*(?:месяц|месяца|месяцев|мес)(?=\s|$|[,.])/u.test(normalized)) {
@@ -145,11 +161,8 @@ export function inferRequestedAudience(query: string): SearchAudience | undefine
   const years = normalized.match(/(?:^|\s)(\d{1,3})\s*(?:год|года|лет)(?=\s|$|[,.])/u);
   if (years?.[1]) return Number(years[1]) < 18 ? 'children' : 'adults';
 
-  const childSignal =
-    /(?:ребен|ребён|детск|дет(?:и|ей|ям|ьми|ях)|младен|груднич|новорож|несовершеннолет|подрост|школьник|мальчик|девочк|педиатр)/u.test(
-      normalized,
-    );
-  const adultSignal = /(?:взросл|совершеннолет|мужчин|женщин|терапевт)/u.test(normalized);
+  const childSignal = CHILD_AUDIENCE_WORD.test(normalized);
+  const adultSignal = ADULT_AUDIENCE_WORD.test(normalized);
   if (childSignal === adultSignal) return undefined;
   return childSignal ? 'children' : 'adults';
 }
@@ -409,13 +422,16 @@ export function rankSearchGroupsByAudience(
   });
   if (!audience) return annotated;
 
+  // Audience decides order only among sources that match the subject; a source that matched
+  // nothing but «ребёнка»/«детей» follows every subject match, whatever its age tag.
   return annotated
-    .map((group, index) => ({ group, index }))
+    .map((group, index) => ({ group, index, audienceOnly: matchesOnlyAudience(group) }))
     .toSorted((left, right) => {
+      const subjectDifference = Number(left.audienceOnly) - Number(right.audienceOnly);
       const priorityDifference =
         audiencePriority(right.group.ageGroups ?? [], audience) -
         audiencePriority(left.group.ageGroups ?? [], audience);
-      return priorityDifference || left.index - right.index;
+      return subjectDifference || priorityDifference || left.index - right.index;
     })
     .map((entry) => entry.group);
 }

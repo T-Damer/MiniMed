@@ -1,0 +1,67 @@
+[
+  {
+    "id": "doctor-lookup.meningitis-or-encephalitis-child",
+    "query": "Менингит или энцефалит у ребёнка",
+    "expectedTargets": ["kr.rf.995_1", "kr.rf.1031_1"],
+    "forbiddenTargets": [
+      "regulatory.rf.mintrud.374n-2024-disability",
+      "reference.who.bmi-classification",
+      "reference.who.child-growth-0-19",
+      "regulatory.rf.federal-law.255-fz-2006-child-care"
+    ]
+  },
+  {
+    "id": "doctor-lookup.meningitis-child",
+    "query": "менингит у ребенка",
+    "expectedTargets": ["kr.rf.995_1"],
+    "forbiddenTargets": ["regulatory.rf.federal-law.255-fz-2006-child-care"]
+  },
+  {
+    "id": "doctor-lookup.tick-encephalitis-child",
+    "query": "клещевой энцефалит у ребенка",
+    "expectedTargets": ["kr.rf.1031_1"],
+    "forbiddenTargets": ["regulatory.rf.mintrud.374n-2024-disability"]
+  },
+  {
+    "id": "doctor-lookup.bronchitis-or-pneumonia-child",
+    "query": "бронхит или пневмония у ребёнка 5 лет",
+    "expectedTargets": ["kr.rf.714_2", "kr.rf.891_1"],
+    "forbiddenTargets": ["reference.who.child-growth-0-19", "reference.who.bmi-classification"]
+  },
+  {
+    "id": "doctor-lookup.tonsillitis-or-pharyngitis-child",
+    "query": "ангина или фарингит у ребенка",
+    "expectedTargets": ["kr.rf.306_3"],
+    "forbiddenTargets": ["regulatory.rf.federal-law.255-fz-2006-child-care"]
+  },
+  {
+    "id": "doctor-lookup.gastroenteritis-child",
+    "query": "гастроэнтерит у ребёнка",
+    "expectedTargets": ["kr.rf.925_1", "kr.rf.755_1", "kr.rf.825_1"],
+    "forbiddenTargets": ["regulatory.rf.federal-law.255-fz-2006-child-care"]
+  },
+  {
+    "id": "doctor-lookup.diarrhea-or-vomiting-child",
+    "query": "понос или рвота у ребенка 2 лет",
+    "expectedTargets": ["kr.rf.925_1", "kr.rf.755_1", "kr.rf.825_1"],
+    "forbiddenTargets": ["reference.who.child-growth-0-19"]
+  },
+  {
+    "id": "doctor-lookup.orvi-or-bronchitis-adult",
+    "query": "ОРВИ или бронхит у взрослого",
+    "expectedTargets": ["kr.rf.724_2", "kr.rf.891_1"],
+    "forbiddenTargets": ["reference.who.bmi-classification"]
+  },
+  {
+    "id": "doctor-lookup.pneumonia-man",
+    "query": "мужчина 60 лет пневмония",
+    "expectedTargets": ["kr.rf.654_2"],
+    "forbiddenTargets": []
+  },
+  {
+    "id": "doctor-lookup.pyelonephritis-or-cystitis-woman",
+    "query": "пиелонефрит или цистит у женщины",
+    "expectedTargets": ["kr.rf.9_3", "kr.rf.281_3"],
+    "forbiddenTargets": []
+  }
+]

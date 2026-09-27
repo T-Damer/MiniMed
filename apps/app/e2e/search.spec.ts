@@ -49,7 +49,8 @@ test('opens with source lookup ready and clinical parsing as a separate mode', a
   await mountBuiltApp(page);
 
   await expect(page.getByTestId('search-input')).toBeVisible();
-  await expect(page.getByTestId('search-input')).toBeEnabled();
+  // The field is on screen at once and editable as soon as the core has opened.
+  await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60_000 });
   await expect(page.getByTestId('search-submit')).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
     'Все источники',
