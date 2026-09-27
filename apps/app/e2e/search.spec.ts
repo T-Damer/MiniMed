@@ -97,12 +97,16 @@ test('keeps the calculator picker clear of the search text', async ({ page }) =>
   const menu = page.locator('.search-tool-picker__menu');
   await expect(menu).toBeVisible();
 
-  const inputBox = await input.boundingBox();
-  const menuBox = await menu.boundingBox();
-  if (!inputBox || !menuBox) throw new Error('Search picker geometry is unavailable.');
-  expect(
-    menuBox.y >= inputBox.y + inputBox.height || menuBox.y + menuBox.height <= inputBox.y,
-  ).toBe(true);
+  // Typing collapses the home welcome block with a short transition; the picker follows its
+  // anchor, so judge the settled layout rather than a mid-transition frame.
+  await expect
+    .poll(async () => {
+      const inputBox = await input.boundingBox();
+      const menuBox = await menu.boundingBox();
+      if (!inputBox || !menuBox) throw new Error('Search picker geometry is unavailable.');
+      return menuBox.y >= inputBox.y + inputBox.height || menuBox.y + menuBox.height <= inputBox.y;
+    })
+    .toBe(true);
 });
 
 test('keeps an inline document preview inside the viewport', async ({ page }) => {

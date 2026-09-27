@@ -42,12 +42,20 @@ export function useInlinePreviewBounds(
     const observer = new ResizeObserver(schedule);
     const element = card();
     if (element) observer.observe(element);
+    // The popper positions its wrapper asynchronously and may move it again (flip, fit). Re-fit
+    // on each move before paint instead of a frame later, when the card already showed under the
+    // bottom navigation.
+    const positioner = new MutationObserver(position);
+    if (element?.parentElement)
+      positioner.observe(element.parentElement, { attributes: true, attributeFilter: ['style'] });
+    position();
     schedule();
     document.addEventListener('scroll', scroll, true);
     window.addEventListener('resize', schedule);
     window.visualViewport?.addEventListener('resize', schedule);
     onCleanup(() => {
       observer.disconnect();
+      positioner.disconnect();
       cancelAnimationFrame(frame);
       document.removeEventListener('scroll', scroll, true);
       window.removeEventListener('resize', schedule);
