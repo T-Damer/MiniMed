@@ -196,7 +196,8 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   line-height: 1.4;
 }
 
-.search-mode-help {
+.search-mode-help,
+.search-random-record {
   position: relative;
   z-index: var(--z-raised);
   display: grid;
@@ -204,7 +205,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   height: 2.5rem;
   flex: 0 0 auto;
   align-self: flex-start;
-  margin-left: auto;
   place-items: center;
   padding: 0;
   border: 1px solid rgb(72 59 34 / 34%);
@@ -3635,4 +3635,16 @@ html.native-print-active #root {
 .knowledge-base-page__pending {
   display: grid;
   gap: 0.75rem;
+}
+
+/* Random record: the first of the right-hand actions in the search toolbar, beside help. */
+.search-random-record {
+  min-width: 0;
+  min-height: 0;
+  margin-left: auto;
+}
+
+.search-random-record__icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }

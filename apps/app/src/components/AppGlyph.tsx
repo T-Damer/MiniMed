@@ -35,6 +35,7 @@ import clockCounterClockwiseBold from '@phosphor-icons/core/assets/bold/clock-co
 import codeBold from '@phosphor-icons/core/assets/bold/code-bold.svg?raw';
 import cubeBold from '@phosphor-icons/core/assets/bold/cube-bold.svg?raw';
 import diamondsFourBold from '@phosphor-icons/core/assets/bold/diamonds-four-bold.svg?raw';
+import diceFiveBold from '@phosphor-icons/core/assets/bold/dice-five-bold.svg?raw';
 import discBold from '@phosphor-icons/core/assets/bold/disc-bold.svg?raw';
 import dotsThreeVerticalBold from '@phosphor-icons/core/assets/bold/dots-three-vertical-bold.svg?raw';
 import downloadSimpleBold from '@phosphor-icons/core/assets/bold/download-simple-bold.svg?raw';
@@ -200,6 +201,7 @@ export type AppGlyphName =
   | 'squares-four'
   | 'list-dashes'
   | 'diamonds-four'
+  | 'dice'
   | 'disc'
   | 'dots-three-vertical'
   | 'file-pdf'
@@ -325,6 +327,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'squares-four': svgBody(squaresFourBold),
   'list-dashes': svgBody(listDashesBold),
   'diamonds-four': svgBody(diamondsFourBold),
+  dice: svgBody(diceFiveBold),
   disc: svgBody(discBold),
   'dots-three-vertical': svgBody(dotsThreeVerticalBold),
   'file-pdf': svgBody(filePdfBold),

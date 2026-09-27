@@ -9,6 +9,7 @@ import {
   Show,
 } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
@@ -27,6 +28,7 @@ import {
   type QuickTool,
   quickToolsFromCatalog,
 } from '@/features/search/quick-tools';
+import { pickRandomDocument } from '@/features/search/random-document';
 import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
@@ -306,6 +308,22 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             <span class="search-update-status__label">Доступно обновление</span>
           </button>
         </Show>
+        <Button
+          class="search-random-record"
+          variant="icon"
+          aria-label="Случайная запись"
+          title={
+            props.baseCore
+              ? 'Случайная запись из текущего раздела'
+              : 'Откроется, когда база будет готова'
+          }
+          disabled={!props.baseCore || catalogLoading() || visibleDocuments().length === 0}
+          onClick={() => {
+            const document = pickRandomDocument(visibleDocuments());
+            if (document) openDocumentOverlay(document.id);
+          }}
+          icon={<AppGlyph name="dice" class="search-random-record__icon" />}
+        />
         <button
           class="search-mode-help"
           type="button"

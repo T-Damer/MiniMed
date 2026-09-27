@@ -165,14 +165,16 @@
     color: #c4a8d8;
   }
 
-  .search-mode-help {
+  .search-mode-help,
+  .search-random-record {
     border-color: var(--theme-border);
     color: var(--theme-text);
     background: var(--theme-surface-raised);
   }
 
   @media (hover: hover) and (pointer: fine) {
-    .search-mode-help:hover {
+    .search-mode-help:hover,
+    .search-random-record:hover:not(:disabled) {
       background: var(--theme-accent-soft);
     }
   }

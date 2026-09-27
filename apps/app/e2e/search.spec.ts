@@ -595,6 +595,24 @@ test('opens only the exact fragment without surrounding source context', async (
   await expect(page.locator('.reader-toolbar')).toHaveCount(0);
 });
 
+test('opens a random record of the current section', async ({ page }) => {
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await waitForSearchReady(page);
+  await selectSearchSection(page, 'Клинические рекомендации');
+  const dice = page.getByRole('button', { name: 'Случайная запись' });
+  await expect(dice).toBeEnabled({ timeout: 30_000 });
+  await dice.click();
+  await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
+  await expect(page.locator('.document-page')).toBeVisible();
+  // The route carries the document id (base64url); it must come from the selected section.
+  const documentId = await page.evaluate(() => {
+    const encoded = location.hash.split('/d/')[1]?.split(/[/?#]/u)[0] ?? '';
+    const base64 = encoded.replaceAll('-', '+').replaceAll('_', '/');
+    return new TextDecoder().decode(Uint8Array.from(atob(base64), (char) => char.charCodeAt(0)));
+  });
+  expect(documentId).toMatch(/kr\.rf\.|clinical/u);
+});
+
 test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {
   await mountBuiltApp(page);
   // Clarifying questions belong to the explicit clinical mode, not to ordinary lookup.
