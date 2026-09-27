@@ -72,7 +72,12 @@ test('refreshes search sticky state when its keep-alive view becomes visible', a
   await mountBuiltApp(page);
   const tools = page.locator('.search-mode-tools');
   await tools.waitFor();
-  await page.evaluate(() => window.scrollTo(0, 160));
+  // html scrolls smoothly: jump instantly and wait for the real position, not the request.
+  const scrollInstantly = async (top: number) => {
+    await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), top);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(top);
+  };
+  await scrollInstantly(160);
   await expect(tools).toHaveClass(/sticky-surface--stuck/u);
 
   await page.evaluate(() => {
@@ -82,10 +87,11 @@ test('refreshes search sticky state when its keep-alive view becomes visible', a
     spacer.style.height = '1000px';
     document.body.append(spacer);
     view.hidden = true;
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'instant' });
   });
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expect(tools).not.toHaveClass(/sticky-surface--stuck/u);
-  await page.evaluate(() => window.scrollTo(0, 160));
+  await scrollInstantly(160);
   await expect(tools).not.toHaveClass(/sticky-surface--stuck/u);
 
   await page.evaluate(() => {
