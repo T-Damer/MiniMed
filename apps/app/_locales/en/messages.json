@@ -19,6 +19,62 @@
     "message": "General medicine",
     "description": "Fallback label when a document has no specialty tags"
   },
+  "specialty_internal_medicine": {
+    "message": "Internal medicine",
+    "description": "Medical specialty slug: internal-medicine"
+  },
+  "specialty_medical_education": {
+    "message": "Medical education",
+    "description": "Medical specialty slug: medical-education"
+  },
+  "specialty_phthisiology": {
+    "message": "Phthisiology",
+    "description": "Medical specialty slug: phthisiology"
+  },
+  "specialty_prevention": {
+    "message": "Prevention",
+    "description": "Medical specialty slug: prevention"
+  },
+  "specialty_pediatric_endocrinology": {
+    "message": "Pediatric endocrinology",
+    "description": "Medical specialty slug: pediatric-endocrinology"
+  },
+  "specialty_clinical_laboratory_diagnostics": {
+    "message": "Clinical laboratory diagnostics",
+    "description": "Medical specialty slug: clinical-laboratory-diagnostics"
+  },
+  "specialty_otolaryngology": {
+    "message": "Otolaryngology",
+    "description": "Medical specialty slug: otolaryngology"
+  },
+  "specialty_pediatric_nephrology": {
+    "message": "Pediatric nephrology",
+    "description": "Medical specialty slug: pediatric-nephrology"
+  },
+  "specialty_social_insurance": {
+    "message": "Social insurance",
+    "description": "Medical specialty slug: social-insurance"
+  },
+  "specialty_medical_social_expertise": {
+    "message": "Medical and social expertise",
+    "description": "Medical specialty slug: medical-social-expertise"
+  },
+  "specialty_adolescent_medicine": {
+    "message": "Adolescent medicine",
+    "description": "Medical specialty slug: adolescent-medicine"
+  },
+  "specialty_school_medicine": {
+    "message": "School medicine",
+    "description": "Medical specialty slug: school-medicine"
+  },
+  "specialty_pediatric_infectious_diseases": {
+    "message": "Pediatric infectious diseases",
+    "description": "Medical specialty slug: pediatric-infectious-diseases"
+  },
+  "specialty_medical_records": {
+    "message": "Medical records",
+    "description": "Medical specialty slug: medical-records"
+  },
   "collection_pediatrics": {
     "message": "Clinical pediatrics",
     "description": "Module catalog collection id: pediatrics"
@@ -110,5 +166,13 @@
   "search_meaning_count_other": {
     "message": "$1 documents",
     "description": "Number of documents a search phrase may refer to"
+  },
+  "graph_of_documents_one": {
+    "message": "$1 document",
+    "description": "Total documents in the graph's scope, after «Показано N из»"
+  },
+  "graph_of_documents_other": {
+    "message": "$1 documents",
+    "description": "Total documents in the graph's scope, after «Показано N из»"
   }
 }

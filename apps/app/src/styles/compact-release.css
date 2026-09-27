@@ -3543,3 +3543,18 @@ html.native-print-active #root {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
 }
+
+.knowledge-graph-card__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.25rem 0;
+}
+
+.knowledge-graph-card__summary-text {
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}

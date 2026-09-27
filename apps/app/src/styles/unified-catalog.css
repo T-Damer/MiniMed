@@ -364,10 +364,6 @@
   }
 }
 
-.search-graph-button--hidden {
-  display: none;
-}
-
 .unified-catalog__tool-shell {
   position: relative;
   min-width: 0;

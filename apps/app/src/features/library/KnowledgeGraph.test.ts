@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { graphDomainColor, graphToneForSourceType } from '@/features/library/graph-tones';
 import {
+  GRAPH_DOCUMENT_SPACING,
+  GRAPH_NODE_GAP,
+  graphNodeRadius,
   LARGE_GRAPH_NODE_LIMIT,
   layoutLargeKnowledgeGraph,
   shouldUseStaticKnowledgeGraphLayout,
@@ -82,5 +85,63 @@ describe('large knowledge graph layout', () => {
     expect(bounds.width).toBeGreaterThan(0);
     expect(bounds.height).toBeGreaterThan(0);
     expect(elapsed).toBeLessThan(1_000);
+  });
+
+  it('keeps every circle one gap clear of the others, areas in separate blocks', () => {
+    const domains = Array.from({ length: 12 }, (_, index) => ({
+      id: `domain:${index}`,
+      kind: 'domain' as const,
+      documentId: null,
+      x: 0,
+      y: 0,
+    }));
+    const documents = Array.from({ length: 700 }, (_, index) => ({
+      id: `document:${index}`,
+      kind: 'document' as const,
+      documentId: String(index),
+      x: 0,
+      y: 0,
+    }));
+    // Uneven areas: area k holds about 1/(k+1) of the documents.
+    const areaOf = (index: number) => Math.floor(domains.length * (index / documents.length) ** 2);
+    const edges = documents.map((document, index) => ({
+      from: `domain:${areaOf(index)}`,
+      to: document.id,
+    }));
+    const nodes = [...domains, ...documents];
+    layoutLargeKnowledgeGraph(nodes, edges);
+    for (let i = 0; i < nodes.length; i += 1) {
+      for (let j = i + 1; j < nodes.length; j += 1) {
+        const a = nodes[i];
+        const b = nodes[j];
+        if (!a || !b) continue;
+        const clearance = graphNodeRadius(a.kind) + graphNodeRadius(b.kind) + GRAPH_NODE_GAP;
+        expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThanOrEqual(clearance);
+      }
+    }
+    // Documents of different areas are never grid neighbours.
+    const box = (area: number) => {
+      const members = documents.filter((_, index) => areaOf(index) === area);
+      return {
+        left: Math.min(...members.map((node) => node.x)),
+        right: Math.max(...members.map((node) => node.x)),
+        top: Math.min(...members.map((node) => node.y)),
+        bottom: Math.max(...members.map((node) => node.y)),
+      };
+    };
+    const used = [...new Set(documents.map((_, index) => areaOf(index)))];
+    for (const first of used) {
+      for (const second of used) {
+        if (first >= second) continue;
+        const a = box(first);
+        const b = box(second);
+        const apart =
+          a.right + GRAPH_DOCUMENT_SPACING < b.left ||
+          b.right + GRAPH_DOCUMENT_SPACING < a.left ||
+          a.bottom + GRAPH_DOCUMENT_SPACING < b.top ||
+          b.bottom + GRAPH_DOCUMENT_SPACING < a.top;
+        expect(apart).toBe(true);
+      }
+    }
   });
 });

@@ -94,6 +94,8 @@ interface SearchWorkspaceProps {
   readonly welcome?: JSX.Element;
   /** Stays above the field while typing, unlike the welcome block. */
   readonly quickAccess?: JSX.Element;
+  /** Document ids of the current result groups, e.g. to centre the knowledge graph on them. */
+  readonly onResultDocuments?: (documentIds: readonly string[]) => void;
   readonly filters?: SearchFilters;
   readonly onQueryChange?: (query: string) => void;
   readonly placeholder?: string;
@@ -334,6 +336,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   >();
 
   createEffect(() => props.onQueryChange?.(query()));
+  createEffect(() =>
+    props.onResultDocuments?.(response()?.groups.map((group) => group.documentId) ?? []),
+  );
 
   createEffect(
     on(

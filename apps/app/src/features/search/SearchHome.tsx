@@ -17,6 +17,7 @@ import { startConversation } from '@/features/conversations/conversation-session
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
+import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
@@ -69,6 +70,8 @@ interface SearchHomeProps {
 
 export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [graphOpen, setGraphOpen] = createSignal(false);
+  const [graphShowAll, setGraphShowAll] = createSignal(false);
+  const [resultDocumentIds, setResultDocumentIds] = createSignal<readonly string[]>([]);
   const [referenceOpen, setReferenceOpen] = createSignal(false);
   const [scope, setScope] = createSignal<SearchScope>('all');
   const [catalogQuery, setCatalogQuery] = createSignal('');
@@ -171,6 +174,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                     (scope() === 'all' ? unifiedSearchSpecialty(group) : group) === specialty(),
                 ))),
     ),
+  );
+  /** Default graph: the current results and their neighbours, not the whole scope. */
+  const graphSelection = createMemo(() =>
+    graphShowAll()
+      ? { documents: visibleDocuments(), total: visibleDocuments().length, focused: false }
+      : selectGraphNeighborhood(visibleDocuments(), { focusIds: new Set(resultDocumentIds()) }),
   );
   const catalogDocuments = createMemo(() =>
     scope() === 'all' ? homeDocumentOrder(visibleDocuments()) : visibleDocuments(),
@@ -307,6 +316,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           catalogResultCount={visibleTools().length}
           filters={filters()}
           onQueryChange={setCatalogQuery}
+          onResultDocuments={setResultDocumentIds}
           groupAction={(group) =>
             group.contentKind === 'pointer' ? (
               <SearchResultModuleDownload
@@ -334,14 +344,17 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           welcome={<SearchWelcome onOpenReference={() => setReferenceOpen(true)} />}
           quickAccess={<SearchQuickAccess tools={quickTools()} builtInTools={builtInTools()} />}
           searchActions={
-            <Show when={!catalogOnly() && scope() !== 'diagnosis'}>
+            <Show when={!catalogOnly() && scope() !== 'diagnosis' && experimentalModulesEnabled()}>
               <button
-                class="search-graph-button search-graph-button--hidden"
+                class="search-graph-button"
                 type="button"
                 aria-label="Карта связей"
                 title="Карта связей"
                 disabled={catalogLoading() || visibleDocuments().length === 0}
-                onClick={() => setGraphOpen(true)}
+                onClick={() => {
+                  setGraphShowAll(false);
+                  setGraphOpen(true);
+                }}
               >
                 <AppGlyph name="graph" class="search-graph-button__icon" />
               </button>
@@ -409,7 +422,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         >
           <KnowledgeGraph
             variant="dialog"
-            documents={visibleDocuments()}
+            documents={graphSelection().documents}
+            total={graphSelection().total}
+            onShowAll={() => setGraphShowAll(true)}
             selectedId={undefined}
             onSelect={(id) => {
               setGraphOpen(false);

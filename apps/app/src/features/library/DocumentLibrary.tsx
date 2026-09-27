@@ -21,10 +21,12 @@ import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
+import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
-import { sourceTypeLibraryLabel, specialtyLabels } from '@/i18n/labels';
+import { documentCountLabel, sourceTypeLibraryLabel, specialtyLabels } from '@/i18n/labels';
 import { openDocumentOverlay } from '@/state/document-navigation';
+import { experimentalModulesEnabled } from '@/state/experimental-modules';
 import { fuzzyQueryScore } from '@/state/fuzzy-text';
 
 interface DocumentLibraryProps {
@@ -52,6 +54,11 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
   const [loadedDocuments, setDocuments] = createSignal<readonly MedicalDocumentSummary[]>([]);
   const documents = createMemo(() => props.documents ?? loadedDocuments());
   const [mode, setMode] = createSignal<LibraryMode>('list');
+  const [graphShowAll, setGraphShowAll] = createSignal(false);
+  const openGraph = (): void => {
+    setGraphShowAll(false);
+    setMode('graph');
+  };
   const [filter, setFilter] = createSignal('');
   const [error, setError] = createSignal<string>();
   const [listReady, setListReady] = createSignal(
@@ -78,6 +85,11 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
       .toSorted((left, right) => right.score - left.score || left.index - right.index)
       .map((entry) => entry.document);
   });
+  const graphSelection = createMemo(() =>
+    graphShowAll()
+      ? { documents: filteredDocuments(), total: filteredDocuments().length, focused: false }
+      : selectGraphNeighborhood(filteredDocuments()),
+  );
 
   onMount(() => {
     const syncListReady = (): void => {
@@ -126,27 +138,29 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
               >
                 <AppGlyph name="list" /> Список
               </button>
-              <button
-                classList={{ active: mode() === 'graph' }}
-                type="button"
-                disabled={documents().length === 0}
-                onClick={() => setMode('graph')}
-              >
-                <AppGlyph name="graph" /> Карта связей
-              </button>
+              <Show when={experimentalModulesEnabled()}>
+                <button
+                  classList={{ active: mode() === 'graph' }}
+                  type="button"
+                  disabled={documents().length === 0}
+                  onClick={() => openGraph()}
+                >
+                  <AppGlyph name="graph" /> Карта связей
+                </button>
+              </Show>
             </fieldset>
           }
         />
       </Show>
 
-      <Show when={props.embedded && !props.hideGraphControl}>
+      <Show when={props.embedded && !props.hideGraphControl && experimentalModulesEnabled()}>
         <div class="library-embedded-toolbar">
           <Button
             class="library-embedded-graph-button"
             variant="primary"
             type="button"
             disabled={documents().length === 0}
-            onClick={() => setMode('graph')}
+            onClick={() => openGraph()}
             icon={<AppGlyph name="graph" class="library-embedded-graph-button__icon" />}
           >
             Карта связей
@@ -173,12 +187,14 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
 
       <Show when={error()}>{(message) => <div class="error-card">{message()}</div>}</Show>
 
-      <Show when={mode() === 'graph'}>
+      <Show when={mode() === 'graph' && experimentalModulesEnabled()}>
         <Show
           when={props.embedded}
           fallback={
             <KnowledgeGraph
-              documents={filteredDocuments()}
+              documents={graphSelection().documents}
+              total={graphSelection().total}
+              onShowAll={() => setGraphShowAll(true)}
               selectedId={undefined}
               onSelect={(id) => {
                 setMode('list');
@@ -190,13 +206,15 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
           <OverlayDialog
             open
             title="Карта связей"
-            subtitle={`${filteredDocuments().length} документов`}
+            subtitle={documentCountLabel(graphSelection().total)}
             class="knowledge-graph-dialog"
             onClose={() => setMode('list')}
           >
             <KnowledgeGraph
               variant="dialog"
-              documents={filteredDocuments()}
+              documents={graphSelection().documents}
+              total={graphSelection().total}
+              onShowAll={() => setGraphShowAll(true)}
               selectedId={undefined}
               onSelect={(id) => {
                 setMode('list');

@@ -207,6 +207,62 @@
     "message": "Общая медицина",
     "description": "Fallback label when a document has no specialty tags"
   },
+  "specialty_internal_medicine": {
+    "message": "Терапия",
+    "description": "Medical specialty slug: internal-medicine"
+  },
+  "specialty_medical_education": {
+    "message": "Медицинское образование",
+    "description": "Medical specialty slug: medical-education"
+  },
+  "specialty_phthisiology": {
+    "message": "Фтизиатрия",
+    "description": "Medical specialty slug: phthisiology"
+  },
+  "specialty_prevention": {
+    "message": "Профилактика",
+    "description": "Medical specialty slug: prevention"
+  },
+  "specialty_pediatric_endocrinology": {
+    "message": "Детская эндокринология",
+    "description": "Medical specialty slug: pediatric-endocrinology"
+  },
+  "specialty_clinical_laboratory_diagnostics": {
+    "message": "Клиническая лабораторная диагностика",
+    "description": "Medical specialty slug: clinical-laboratory-diagnostics"
+  },
+  "specialty_otolaryngology": {
+    "message": "Оториноларингология",
+    "description": "Medical specialty slug: otolaryngology"
+  },
+  "specialty_pediatric_nephrology": {
+    "message": "Детская нефрология",
+    "description": "Medical specialty slug: pediatric-nephrology"
+  },
+  "specialty_social_insurance": {
+    "message": "Социальное страхование",
+    "description": "Medical specialty slug: social-insurance"
+  },
+  "specialty_medical_social_expertise": {
+    "message": "Медико-социальная экспертиза",
+    "description": "Medical specialty slug: medical-social-expertise"
+  },
+  "specialty_adolescent_medicine": {
+    "message": "Подростковая медицина",
+    "description": "Medical specialty slug: adolescent-medicine"
+  },
+  "specialty_school_medicine": {
+    "message": "Школьная медицина",
+    "description": "Medical specialty slug: school-medicine"
+  },
+  "specialty_pediatric_infectious_diseases": {
+    "message": "Детские инфекционные болезни",
+    "description": "Medical specialty slug: pediatric-infectious-diseases"
+  },
+  "specialty_medical_records": {
+    "message": "Медицинская документация",
+    "description": "Medical specialty slug: medical-records"
+  },
   "collection_core": {
     "message": "Всегда доступно",
     "description": "Module catalog collection id: core"
@@ -520,5 +576,21 @@
   "search_meaning_count_other": {
     "message": "$1 документа",
     "description": "Number of documents a search phrase may refer to"
+  },
+  "graph_of_documents_one": {
+    "message": "$1 документа",
+    "description": "Total documents in the graph's scope, after «Показано N из»"
+  },
+  "graph_of_documents_few": {
+    "message": "$1 документов",
+    "description": "Total documents in the graph's scope, after «Показано N из»"
+  },
+  "graph_of_documents_many": {
+    "message": "$1 документов",
+    "description": "Total documents in the graph's scope, after «Показано N из»"
+  },
+  "graph_of_documents_other": {
+    "message": "$1 документа",
+    "description": "Total documents in the graph's scope, after «Показано N из»"
   }
 }

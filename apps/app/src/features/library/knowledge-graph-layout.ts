@@ -24,6 +24,20 @@ export interface KnowledgeGraphBounds {
 
 export const LARGE_GRAPH_NODE_LIMIT = 500;
 
+/** Drawn node radii and the clear gap kept between any two node circles, in world units. */
+export const GRAPH_DOCUMENT_RADIUS = 17;
+export const GRAPH_DOMAIN_RADIUS = 26;
+export const GRAPH_NODE_GAP = 12;
+/** Closest centre distance of two documents: one diameter plus the gap. */
+export const GRAPH_DOCUMENT_SPACING = GRAPH_DOCUMENT_RADIUS * 2 + GRAPH_NODE_GAP;
+
+/** Height reserved under an area node for its label. */
+const DOMAIN_LABEL_ROOM = 16;
+
+export function graphNodeRadius(kind: KnowledgeGraphNodeKind): number {
+  return kind === 'domain' ? GRAPH_DOMAIN_RADIUS : GRAPH_DOCUMENT_RADIUS;
+}
+
 export function shouldUseStaticKnowledgeGraphLayout(nodeCount: number): boolean {
   return nodeCount > LARGE_GRAPH_NODE_LIMIT;
 }
@@ -54,7 +68,12 @@ export function layoutLargeKnowledgeGraph(
     else groups.set(groupId, [document]);
   }
 
-  const spacing = 46;
+  // One document diameter plus the gap between neighbours; blocks of areas two steps apart.
+  const spacing = GRAPH_DOCUMENT_SPACING;
+  const blockGap = spacing * 2;
+  // The area node, room for its label, then the first row of documents.
+  const firstRowOffset =
+    GRAPH_DOMAIN_RADIUS * 2 + GRAPH_NODE_GAP + DOMAIN_LABEL_ROOM + GRAPH_DOCUMENT_RADIUS;
   const targetWidth = Math.max(900, Math.ceil(Math.sqrt(Math.max(1, documents.length))) * spacing);
   let cursorX = 0;
   let cursorY = 0;
@@ -70,25 +89,25 @@ export function layoutLargeKnowledgeGraph(
     const columns = Math.max(1, Math.ceil(Math.sqrt(group.documents.length)));
     const rows = Math.max(1, Math.ceil(group.documents.length / columns));
     const groupWidth = Math.max(120, columns * spacing);
-    const groupHeight = 70 + rows * spacing;
+    const groupHeight = firstRowOffset + rows * spacing;
     if (cursorX > 0 && cursorX + groupWidth > targetWidth) {
       cursorX = 0;
-      cursorY += rowHeight + 80;
+      cursorY += rowHeight + blockGap;
       rowHeight = 0;
     }
 
     const centerX = cursorX + groupWidth / 2;
     if (group.domain) {
       group.domain.x = centerX;
-      group.domain.y = cursorY + 24;
+      group.domain.y = cursorY + GRAPH_DOMAIN_RADIUS;
     }
     group.documents.forEach((document, index) => {
       const column = index % columns;
       const row = Math.floor(index / columns);
       document.x = cursorX + (column + 0.5) * spacing;
-      document.y = cursorY + 70 + row * spacing;
+      document.y = cursorY + firstRowOffset + row * spacing;
     });
-    cursorX += groupWidth + 80;
+    cursorX += groupWidth + blockGap;
     rowHeight = Math.max(rowHeight, groupHeight);
   }
 

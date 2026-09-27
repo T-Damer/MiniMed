@@ -27,6 +27,16 @@ Detailed history, moved verbatim on 2026-09-24:
   (`scripts/extract_prepared_definitions.py`). Details:
   [research/definition-reference-2026-09-28.md](research/definition-reference-2026-09-28.md).
 
+## Knowledge graph («Карта связей») — 2026-09-27
+
+- Experimental module (follows the experimental setting like «Словарь»). Opens on at most 300
+  documents (query results plus shared areas, or an area-balanced sample) with «Показано N из M»;
+  «Показать все» draws the whole scope. Layout runs in a Web Worker (Barnes–Hut, grid collisions,
+  cluster separation; static grid above 500 nodes); the main thread only draws cached paths.
+  Headed 165 Hz measurement: pan/zoom frame p95 <= 3.6 ms in every scenario (20 040 documents
+  included), 0% node overlap after convergence. 14 missing area labels were added. Details:
+  [research/knowledge-graph-performance-2026-09.md](research/knowledge-graph-performance-2026-09.md).
+
 ## Release 0.6.41 — 2026-09-27
 
 - **Experimental definition reference and data-release mirror.** Everything that previously worked
