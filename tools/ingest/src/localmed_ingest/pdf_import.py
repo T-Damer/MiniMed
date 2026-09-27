@@ -686,6 +686,29 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
             if recovered:
                 raw_blocks.extend(recovered)
                 text_extraction_mode = "ocr"
+        if configured.ocr_fallback and is_likely_garbled_russian_pdf_text(
+            _raw_blocks_text(raw_blocks)
+        ):
+            # A PDF can have a text layer on every page and still be
+            # unusable: a non-standard font glyph-to-character map decodes
+            # to garbage instead of raising a missing-page error, so the
+            # "missing pages" path above never sees it. The PyMuPDF/Tesseract
+            # OCR path above may also be unavailable or may not improve a
+            # garbled result (Tesseract is not installed on this machine),
+            # in which case it silently keeps the original garbled blocks.
+            # Re-run recognition over every page with the macOS Vision
+            # helper (already used for missing pages) and replace the
+            # garbled blocks outright when it measurably helps, instead of
+            # only catching the problem later at build-time lint.
+            try:
+                vision_blocks = _extract_raw_blocks_macos_vision(source)
+            except MacOSVisionOCRError as error:
+                vision_blocks = []
+                ocr_failure_reason = str(error)
+            vision_text = _raw_blocks_text(vision_blocks)
+            if vision_blocks and not is_likely_garbled_russian_pdf_text(vision_text):
+                raw_blocks = vision_blocks
+                text_extraction_mode = "ocr"
         body_font_size = _weighted_body_font(raw_blocks, configured)
         pages, removed_repeated = _classify_blocks(raw_blocks, body_font_size, configured)
         existing_pages = {page.page for page in pages}

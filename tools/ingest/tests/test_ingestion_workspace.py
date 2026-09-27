@@ -201,6 +201,88 @@ def test_mixed_pdf_recovers_scanned_pages_without_replacing_native_text(
     assert extracted.pages[0].blocks == without_ocr.pages[0].blocks
 
 
+GARBLED_FONT_ENCODING_EXCERPT = (
+    "1 \nɅ<EFB>-6>?48OL – <AHBD@4J<O 8?O C4J<9AF4 \n 47A96<FD<E ɄDBAB, "
+    "48 @7 + 5 @7, F45?9F><, CB>DOFO9 C?9ABKAB= B5B?BK>B= \nȾ59AB2CRI55 25I5AB2>: "
+    "<03=89 + ?8@84>:A8=  \n#9D98 CD<9@B@ CD9C4D4F4 CB?ABEFPN CDBK<F4=F9 ?<EFB>-6>?48OL, "
+    "CBE>B?P>G 6 A9@ \nEB89D:4FEO 64:AO9 8?O ȼ4E E6989A<O. \n• \nȼA5340 "
+    "?@8=8<09B5 ?@5?0@0B 2 B>G=>AB8 A 40==O< ;8AB:><-2:;04OH5< 8;8 \n"
+    "@5:><5=40F8S<8 ;5G0I53> 2@0G0. \n• \n%>E@0=8B5 ;8AB>"
+)
+
+
+def test_extract_pdf_recovers_garbled_font_encoding_with_macos_vision(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A real GRLS instruction (ЛП-№(...)) hit exactly this: PyMuPDF finds a
+    # text layer on every page (so the "missing pages" OCR path never
+    # triggers), but the PDF's font uses a non-standard glyph-to-character
+    # map, so the "text" decodes to garbage. Historically this sailed
+    # through `extract_pdf` unflagged for OCR and only failed much later, at
+    # build-time lint, crashing the whole module build over one document.
+    source = tmp_path / "garbled.pdf"
+    document = pymupdf.open()
+    page = document.new_page(width=595, height=842)
+    page.insert_font(fontname="regular", fontfile=str(FONT_REGULAR))
+    page.insert_textbox(
+        (50, 100, 545, 700), GARBLED_FONT_ENCODING_EXCERPT, fontsize=11, fontname="regular"
+    )
+    document.save(source)
+    document.close()
+
+    clean_text = "Показания к применению. " * 10
+    recovered = RawBlock(
+        page=1,
+        page_width=595,
+        page_height=842,
+        order_index=0,
+        bbox=(50, 100, 400, 130),
+        text=clean_text,
+        font_size=None,
+        font_name=None,
+        bold=False,
+        line_count=1,
+        columnar_lines=0,
+    )
+    monkeypatch.setattr(pdf_import, "_extract_raw_blocks_macos_vision", lambda _source: [recovered])
+
+    extracted = extract_pdf(source)
+
+    assert extracted.diagnostics.text_extraction_mode == "ocr"
+    assert not any(
+        "broken" in reason and "encoding" in reason
+        for reason in extracted.diagnostics.review_reasons
+    )
+    combined = " ".join(
+        block.text for page in extracted.pages for block in page.blocks if not block.removed
+    )
+    assert "Показания" in combined
+
+
+def test_extract_pdf_keeps_garbled_text_flagged_when_vision_ocr_cannot_help(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "garbled.pdf"
+    document = pymupdf.open()
+    page = document.new_page(width=595, height=842)
+    page.insert_font(fontname="regular", fontfile=str(FONT_REGULAR))
+    page.insert_textbox(
+        (50, 100, 545, 700), GARBLED_FONT_ENCODING_EXCERPT, fontsize=11, fontname="regular"
+    )
+    document.save(source)
+    document.close()
+
+    monkeypatch.setattr(pdf_import, "_extract_raw_blocks_macos_vision", lambda _source: [])
+
+    extracted = extract_pdf(source)  # must not raise
+
+    assert extracted.diagnostics.requires_review is True
+    assert any(
+        "broken" in reason and "encoding" in reason
+        for reason in extracted.diagnostics.review_reasons
+    )
+
+
 def test_plain_instruction_section_labels_are_headings() -> None:
     for title in (
         "Способ применения и дозы",

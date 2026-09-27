@@ -88,18 +88,44 @@ def _normalize_trade_name(value: str | None) -> str:
 Member = tuple[str, str, str, str]
 """(instruction_doc_id, registry_card_id, trade_name, esklp_mnn_document_id)."""
 
+_JSON_ESCAPE_MARKER = re.compile(r"\\[bfnrtu]")
+
+
+def heading_json_escape_reason(md_path: Path) -> str | None:
+    """Detect a heading that would fail the SQLite build's own JSON-escape
+    guard (`rebuild_chunks_fts_index` in sqlite_builder.py): a section path
+    is stored as raw (non-ascii-escaped) JSON, so this only fires for a
+    genuine literal control character or backslash inside a heading — seen
+    in practice as OCR noise on a badly scanned page (a stray embedded
+    carriage return), never for ordinary Cyrillic text. Checked up front so
+    a known-bad document is never even offered to `build_content_pack`.
+    """
+    for line in md_path.read_text(encoding="utf-8").splitlines():
+        if not line.startswith("#"):
+            continue
+        title = line.lstrip("#").strip()
+        encoded = json.dumps([title], ensure_ascii=False)
+        if _JSON_ESCAPE_MARKER.search(encoded):
+            return (
+                f"heading contains a raw control character or backslash (OCR artifact): {title!r}"
+            )
+    return None
+
 
 def partition_workspace(
     workspace: Path,
     mnn_to_module: dict[str, str],
-) -> dict[str, list[Member]]:
+) -> tuple[dict[str, list[Member]], list[dict[str, str]]]:
     """Group instruction+card members by ATC module id.
 
     Only registrations that have BOTH a registry card and a prepared
     instruction document are included — a registry card alone (no
     instruction downloaded/prepared yet) is not module material here.
+    Also returns pre-build exclusions (id + reason) for instructions whose
+    heading text would fail the SQLite build's JSON-escape guard.
     """
     modules: dict[str, list[Member]] = {}
+    excluded: list[dict[str, str]] = []
     instruction_files = {path.stem: path for path in workspace.glob("drug.rf.*.instruction.md")}
     for card_path in workspace.glob("drug.registry.ru.*.md"):
         front_matter = _read_front_matter(card_path)
@@ -109,7 +135,12 @@ def partition_workspace(
         instruction_document_id = metadata.get("instructionDocumentId")
         if not isinstance(instruction_document_id, str):
             continue
-        if instruction_document_id not in instruction_files:
+        instruction_path = instruction_files.get(instruction_document_id)
+        if instruction_path is None:
+            continue
+        escape_reason = heading_json_escape_reason(instruction_path)
+        if escape_reason is not None:
+            excluded.append({"documentId": instruction_document_id, "reason": escape_reason})
             continue
         mnn_document_id = metadata.get("esklpMnnDocumentId")
         mnn_document_id = mnn_document_id if isinstance(mnn_document_id, str) else ""
@@ -123,7 +154,7 @@ def partition_workspace(
                 mnn_document_id,
             )
         )
-    return modules
+    return modules, excluded
 
 
 def build_module_packs(
@@ -132,7 +163,7 @@ def build_module_packs(
     output_dir: Path,
     *,
     dry_run: bool,
-) -> list[dict[str, object]]:
+) -> tuple[list[dict[str, object]], list[dict[str, str]]]:
     # Imported lazily: this script runs as `uv run python
     # tools/ingest/scripts/build_grls_atc_modules.py`, with the package on
     # sys.path via the project's own src layout.
@@ -142,6 +173,7 @@ def build_module_packs(
     from localmed_ingest.builder import build_content_pack
 
     results: list[dict[str, object]] = []
+    lint_excluded: list[dict[str, str]] = []
     for module_id, members in sorted(modules.items()):
         module_dir = output_dir / f".module-workspace-{module_id}"
         if module_dir.exists():
@@ -181,7 +213,57 @@ def build_module_packs(
                 {"moduleId": module_id, "instructions": len(members), "output": str(output_db)}
             )
             continue
-        _pack, build_report = build_content_pack(module_dir, output_db, report_path=report_path)
+        # A single document that fails lint (e.g. a still-garbled PDF font
+        # encoding, or any other structural lint error) must exclude only
+        # that document from this module, not crash the whole module build.
+        # Lint itself is never weakened: build_content_pack keeps raising
+        # exactly as before, this only removes the reported offender(s) and
+        # retries, recording each exclusion with its id and reason.
+        _pack = build_report = None
+        for _attempt in range(5):
+            try:
+                _pack, build_report = build_content_pack(
+                    module_dir, output_db, report_path=report_path
+                )
+                break
+            except ValueError as error:
+                message = str(error)
+                offenders: list[tuple[str, str]] = []
+                if message.startswith("Content lint failed:"):
+                    for line in message.splitlines()[1:]:
+                        document_id, _, reason = line.partition(": ")
+                        if document_id and (module_dir / f"{document_id}.md").is_file():
+                            offenders.append((document_id, reason or line))
+                elif "must not contain JSON escapes" in message:
+                    # sqlite_builder's own FTS-index guard does not name the
+                    # offending document; re-scan every remaining candidate
+                    # in this module directly (same check as the pre-filter
+                    # in partition_workspace — a defense-in-depth path for
+                    # any heading this exact scan did not already catch).
+                    for candidate in module_dir.glob("drug.rf.*.instruction.md"):
+                        reason = heading_json_escape_reason(candidate)
+                        if reason is not None:
+                            offenders.append((candidate.stem, reason))
+                else:
+                    raise
+                if not offenders:
+                    raise
+                for document_id, reason in offenders:
+                    (module_dir / f"{document_id}.md").unlink()
+                    lint_excluded.append(
+                        {"moduleId": module_id, "documentId": document_id, "reason": reason}
+                    )
+        if build_report is None:
+            results.append(
+                {
+                    "moduleId": module_id,
+                    "instructions": len(members),
+                    "documents": 0,
+                    "error": "all candidate documents failed lint",
+                    "output": None,
+                }
+            )
+            continue
         results.append(
             {
                 "moduleId": module_id,
@@ -194,7 +276,7 @@ def build_module_packs(
                 "sizeBytes": output_db.stat().st_size if output_db.is_file() else None,
             }
         )
-    return results
+    return results, lint_excluded
 
 
 def compute_allmed_coverage(
@@ -254,10 +336,23 @@ def main() -> None:
     args = parser.parse_args()
 
     mnn_to_module = load_mnn_to_module(RELEASE_ESKLP_DIR)
-    modules = partition_workspace(args.workspace, mnn_to_module)
-    build_results = build_module_packs(
+    modules, pre_build_excluded = partition_workspace(args.workspace, mnn_to_module)
+    for item in pre_build_excluded:
+        item.setdefault("moduleId", "(excluded before module assignment)")
+    total_before_lint = sum(len(m) for m in modules.values()) + len(pre_build_excluded)
+    build_results, lint_excluded = build_module_packs(
         args.workspace, modules, args.output_dir, dry_run=args.dry_run
     )
+    lint_excluded = pre_build_excluded + lint_excluded
+
+    # Drop lint-excluded instructions from membership/coverage too: a
+    # document dropped from its module's SQLite pack must not still be
+    # counted as covered in the manifest or the Allmed coverage numbers.
+    excluded_ids = {item["documentId"] for item in lint_excluded}
+    modules_after_lint = {
+        module_id: [member for member in members if member[0] not in excluded_ids]
+        for module_id, members in modules.items()
+    }
 
     membership = {
         "schemaVersion": 1,
@@ -271,7 +366,7 @@ def main() -> None:
                     instruction_id for instruction_id, _card, _tn, _mnn in members
                 ),
             }
-            for module_id, members in sorted(modules.items())
+            for module_id, members in sorted(modules_after_lint.items())
         ],
     }
     args.membership_output.parent.mkdir(parents=True, exist_ok=True)
@@ -281,13 +376,16 @@ def main() -> None:
 
     coverage = None
     if args.allmed_workspace is not None and args.allmed_workspace.is_dir():
-        coverage = compute_allmed_coverage(args.allmed_workspace, modules)
+        coverage = compute_allmed_coverage(args.allmed_workspace, modules_after_lint)
 
     print(
         json.dumps(
             {
                 "modules": build_results,
-                "totalInstructionsPartitioned": sum(len(m) for m in modules.values()),
+                "totalInstructionsPartitionedBeforeLint": total_before_lint,
+                "totalInstructionsAfterLint": sum(len(m) for m in modules_after_lint.values()),
+                "lintExcluded": lint_excluded,
+                "lintExcludedCount": len(lint_excluded),
                 "membershipOutput": str(args.membership_output),
                 "allmedCoverage": coverage,
             },
