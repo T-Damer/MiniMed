@@ -1153,20 +1153,33 @@ def _map_reference_aliases(
             targets_by_key.setdefault(key, set()).add(document.document_id)
     aliases_by_document: dict[str, list[_ReferenceSourceAlias]] = {}
     unmatched = 0
+    ambiguous = 0
     for source_alias in aliases:
         target_ids = targets_by_key.get(_reference_key(source_alias.canonical_term), set())
         if not target_ids:
             unmatched += 1
             continue
-        # Aliases are global query expansions, not document edges. Attach each one
-        # once to a deterministic pointer even when several sources share its code.
-        target_id = min(target_ids)
-        aliases_by_document.setdefault(target_id, []).append(source_alias)
+        if len(target_ids) > 1:
+            ambiguous += 1
+        # Aliases are global query expansions, not document edges. A shared classification
+        # code names the same condition under several sources as often as it names several
+        # distinct, sometimes unrelated conditions (see docs/research/diagnosis-alias-
+        # ambiguity-2026-09.md) -- there is no source-only signal that reliably tells the two
+        # apart, so every matching target gets its own alias row instead of arbitrarily
+        # picking one and discarding the rest. Each row is keyed off its own document's
+        # pointer id in `_reference_core_pointer_document`, so this never collides.
+        for target_id in sorted(target_ids):
+            aliases_by_document.setdefault(target_id, []).append(source_alias)
     for target_aliases in aliases_by_document.values():
         target_aliases.sort(key=lambda item: item.alias_id)
     warnings: list[str] = []
     if unmatched:
         warnings.append(f"Skipped {unmatched} unmapped source aliases.")
+    if ambiguous:
+        warnings.append(
+            f"{ambiguous} source aliases matched more than one target document; "
+            "attached to all matching targets rather than one arbitrary pick."
+        )
     return aliases_by_document, warnings
 
 

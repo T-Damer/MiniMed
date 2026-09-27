@@ -6,6 +6,9 @@ from pathlib import Path
 
 from localmed_ingest.builder import build_content_pack
 from localmed_ingest.catalog_module_builder import (
+    _map_reference_aliases,
+    _ReferenceSourceAlias,
+    _ReferenceSourceDocument,
     build_catalog_metadata_modules,
     build_core_catalog_pointers,
     project_esklp_mnn_to_core_topic_stub,
@@ -1061,3 +1064,88 @@ def test_builds_compact_general_medication_core_pointer(tmp_path: Path) -> None:
     assert "Сальбутамол-Аэронатив аэрозоль для ингаляций дозированный" in aliases_text
     assert "Сальбутамол-Аэронатив 100 мкг/доза" in aliases_text
     assert "Сальбутамол-Аэронатив аэрозоль для ингаляций дозированный 1 мг/мл" not in aliases_text
+
+
+def _reference_document(
+    document_id: str, title: str, *, mkb_code: str | None = None
+) -> _ReferenceSourceDocument:
+    return _ReferenceSourceDocument(
+        document_id=document_id,
+        title=title,
+        short_title=None,
+        source_type="krasotaimedicina_reference",
+        status="active",
+        specialties=("fixture",),
+        version_id=f"{document_id}@1",
+        version_label="1",
+        source_checksum="sha256:" + "0" * 64,
+        extracted_at="2026-09-01T00:00:00Z",
+        source_kind="disease-reference",
+        entity_type="disease",
+        mkb_code=mkb_code,
+        icd10_codes=(mkb_code,) if mkb_code else (),
+        source_url="https://example.invalid/" + document_id,
+        official_source_url=None,
+        publisher="Fixture",
+        rights_status=None,
+        requires_review=None,
+        definition=None,
+        classification_path=(),
+    )
+
+
+def test_ambiguous_alias_fans_out_to_every_matching_target_instead_of_one_arbitrary_pick() -> None:
+    # Regression for the acute-vs-chronic misbinding reported for abbreviations like the
+    # Russian acronyms for "acute cerebrovascular accident" and "chronic heart failure": a code
+    # shared by two distinct diseases used to collapse to whichever document id happened to
+    # sort first (`min(target_ids)`), silently discarding the other -- sometimes the
+    # actually-correct one. Every match must now get its own alias row.
+    chronic_ischemia = _reference_document(
+        "krasotaimedicina.disease.chronic", "Хроническая ишемия головного мозга", mkb_code="I67.9"
+    )
+    unspecified_cerebrovascular = _reference_document(
+        "rls.mkb.node.i67-9",
+        "I67.9 Цереброваскулярная болезнь неуточненная, МКБ-10",
+        mkb_code="I67.9",
+    )
+    source_alias = _ReferenceSourceAlias(
+        alias_id="alias.rls.mkb.i67-9.51",
+        canonical_term="I67.9",
+        alias="ОНМК",
+        category="diagnosis",
+        weight=1.0,
+    )
+    aliases_by_document, warnings = _map_reference_aliases(
+        [chronic_ischemia, unspecified_cerebrovascular], [source_alias]
+    )
+    assert aliases_by_document["krasotaimedicina.disease.chronic"] == [source_alias]
+    assert aliases_by_document["rls.mkb.node.i67-9"] == [source_alias]
+    assert any("matched more than one target" in warning for warning in warnings)
+
+
+def test_unambiguous_alias_still_attaches_to_its_single_target() -> None:
+    document = _reference_document("krasotaimedicina.disease.only", "Педикулез", mkb_code="B85.2")
+    source_alias = _ReferenceSourceAlias(
+        alias_id="alias.rls.mkb.b85-2.0",
+        canonical_term="B85.2",
+        alias="Вши",
+        category="diagnosis",
+        weight=1.0,
+    )
+    aliases_by_document, warnings = _map_reference_aliases([document], [source_alias])
+    assert aliases_by_document == {"krasotaimedicina.disease.only": [source_alias]}
+    assert not any("matched more than one target" in warning for warning in warnings)
+
+
+def test_unmatched_alias_is_skipped_and_counted() -> None:
+    document = _reference_document("krasotaimedicina.disease.only", "Педикулез", mkb_code="B85.2")
+    source_alias = _ReferenceSourceAlias(
+        alias_id="alias.rls.mkb.z00-0.0",
+        canonical_term="Z00.0",
+        alias="Диспансеризация",
+        category="diagnosis",
+        weight=1.0,
+    )
+    aliases_by_document, warnings = _map_reference_aliases([document], [source_alias])
+    assert aliases_by_document == {}
+    assert any("Skipped 1 unmapped" in warning for warning in warnings)

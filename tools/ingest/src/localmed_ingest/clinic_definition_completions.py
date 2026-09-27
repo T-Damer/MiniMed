@@ -47,6 +47,19 @@ HOSTS = {
     # Inspected professional manual; excerpt/review/rights limits remain unchanged.
     "www.msdmanuals.com",
 }
+# Specialized/professional references write dense, multi-clause definitions (a genuine MSD
+# Manual Professional lead paragraph routinely runs 30-150+ words); the short-form consumer-site
+# budget below rejected them outright with no shorter self-contained clause available. These
+# hosts get a much larger single-quote budget instead. User decision 2026-09-27: apply only after
+# an edition-size/search-speed impact check; see docs/research/definition-quote-budget-*.
+SPECIALIZED_HOSTS = {
+    "www.msdmanuals.com",
+}
+CONSUMER_EXCERPT_WORDS = 25
+SPECIALIZED_EXCERPT_WORDS = 1024
+# 1024 Russian words average ~7-9 chars incl. the trailing space; 12 KiB leaves headroom without
+# opening the door to a whole-article dump (MAX_TEXT in definition_reference_pack.py is far larger).
+SPECIALIZED_EXCERPT_CHARS = 12 * 1024
 USER_AGENT = "MiniMedReferenceBot/1.0 (+https://github.com/T-Damer/MiniMed)"
 MAX_PAGE_BYTES = 2 * 1024 * 1024
 
@@ -55,9 +68,16 @@ def normalized_visible(value: str) -> str:
     return " ".join(value.split())
 
 
-def verify_excerpt(raw: bytes, excerpt: str, author: str | None = None) -> dict[str, object]:
-    """Retain only the selected text. Hashes/offsets refer to whitespace-normalized HTML text."""
-    if len(raw) > MAX_PAGE_BYTES or not excerpt or len(excerpt.split()) > 25:
+def excerpt_word_budget(host: str) -> int:
+    return SPECIALIZED_EXCERPT_WORDS if host in SPECIALIZED_HOSTS else CONSUMER_EXCERPT_WORDS
+
+
+def verify_excerpt(
+    raw: bytes, excerpt: str, author: str | None = None, *, max_words: int = CONSUMER_EXCERPT_WORDS
+) -> dict[str, object]:
+    """Retain only the selected text, one continuous fragment (never spliced from separate
+    paragraphs). Hashes/offsets refer to whitespace-normalized HTML text."""
+    if len(raw) > MAX_PAGE_BYTES or not excerpt or len(excerpt.split()) > max_words:
         raise ValueError("Page/excerpt budget exceeded")
     if normalized_visible(excerpt) != excerpt or not excerpt.endswith((".", "!", "?")):
         raise ValueError("Expected a complete, explicitly selected sentence")
@@ -221,8 +241,10 @@ def collect(root: Path, authoring: Path) -> tuple[dict[str, object], dict[str, o
         descriptor = sources[source_id]
         relative = source_path(descriptor, candidate["path"])
         url = urljoin(text(descriptor["baseUrl"]), relative)
-        excerpt = text(candidate["excerpt"], 4096)
-        if quoted_per_url[url] + len(excerpt.split()) > 25:
+        host = urlsplit(url).netloc
+        max_words = excerpt_word_budget(host)
+        excerpt = text(candidate["excerpt"], SPECIALIZED_EXCERPT_CHARS)
+        if quoted_per_url[url] + len(excerpt.split()) > max_words:
             raise ValueError("Combined excerpt budget for a source page exceeded")
         author = None if candidate.get("author") is None else text(candidate["author"], 256)
         modified = None if candidate.get("modified") is None else text(candidate["modified"], 10)
@@ -230,7 +252,6 @@ def collect(root: Path, authoring: Path) -> tuple[dict[str, object], dict[str, o
             date.fromisoformat(modified)
         outcome["url"] = url
         try:
-            host = urlsplit(url).netloc
             if host not in robots:
                 robots_url = f"https://{host}/robots.txt"
                 status, data, _ = fetch_public(robots_url)
@@ -248,7 +269,7 @@ def collect(root: Path, authoring: Path) -> tuple[dict[str, object], dict[str, o
             status, raw, content_type = fetch_public(url)
             if status != 200 or "text/html" not in content_type.lower():
                 raise ValueError(f"Source returned unsupported HTTP/content type: {status}")
-            proof = verify_excerpt(raw, excerpt, author)
+            proof = verify_excerpt(raw, excerpt, author, max_words=max_words)
             proof["sourceModifiedAtResearch"] = modified
             proof["url"] = url
         except (OSError, ValueError, http.client.HTTPException) as exc:

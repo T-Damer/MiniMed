@@ -17,18 +17,24 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Definition reference data — 2026-09-29 (local, unpublished)
+## Definition reference data — 2026-09-30 (local, unpublished)
 
 - Fixed the ~596-record `Список сокращений` mislabeling bug (`scripts/extract_prepared_definitions.py`)
   and a trailing-punctuation over-splitting bug in the KR glossary/abbreviation dedup key; catalog
-  description now reports real per-type counts instead of one lumped figure. Local edition `2026.9.29`
-  has 31 488 entries (8 582 clinical definitions, 8 369 abbreviation expansions, 6 939 Wiktionary
-  glosses); verified, all 23 279 source name surfaces found. 7 144 names still need an external source,
-  freshly re-scored by priority in `research/definition-gap-priority-2026-09-27.json` (methodology
-  reconstructed from the undocumented 2026-09-27 analysis); a 454-pair same-title review queue has no
-  auto-merge. Abbreviation-list parsing is now shared with `clinical_aliases.py` (core search aliases
-  unchanged). Details:
-  [research/definition-reference-2026-09-29.md](research/definition-reference-2026-09-29.md).
+  description now reports real per-type counts instead of one lumped figure. Abbreviation-list parsing
+  is shared with `clinical_aliases.py` (core search aliases unchanged). The specialized-source verbatim
+  quote budget (`clinic_definition_completions.py`) is 1024 words for msdmanuals.com (was 25, still 25
+  for consumer sites); a measured rebuild with 3 real MSD quotes added ~4.1 KB installed / ~2.7 KB gzip
+  per entry, comfortably inside the accepted growth range even at full high+medium priority volume — see
+  `research/definition-quote-budget-2026-09-27.md`. Local edition `2026.9.30` has 31 488 entries (8 585
+  clinical definitions, 8 369 abbreviation expansions, 6 939 Wiktionary glosses); verified, all 23 279
+  source name surfaces found. 7 141 names still need an external source, priority-scored in
+  `research/definition-gap-priority-2026-09-27.json`; a 454-pair same-title review queue has no
+  auto-merge. Separately, `catalog_module_builder._map_reference_aliases` no longer collapses a
+  polysemous MKB-code alias (e.g. ОНМК, ХСН) to one arbitrary document — 9 218 of 12 432 raw
+  diagnosis-category aliases were affected; fixed and tested, `core.db` not yet rebuilt (see
+  `research/diagnosis-alias-ambiguity-2026-09-27.md` for scope and the missing-merge-step blocker).
+  Details: [research/definition-reference-2026-09-29.md](research/definition-reference-2026-09-29.md).
 
 ## Knowledge graph («Карта связей») — 2026-09-27
 

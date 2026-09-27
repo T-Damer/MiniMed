@@ -273,7 +273,16 @@ def test_builds_compact_reference_pointers_with_classification_and_routing(tmp_p
     aliases = yaml.safe_load((module_dir / "aliases.yaml").read_text(encoding="utf-8"))["aliases"]
     alias_values = {item["alias"] for item in aliases}
     assert {"Эпистаксис", "Перелом предплечья", "Болезнь Барта"} <= alias_values
-    assert [item["alias"] for item in aliases].count("Эпистаксис") == 1
+    # R04.0 is shared by an unrelated pair in this fixture (the actual nosebleed rubric and a
+    # krasotaimedicina article deliberately tagged with the same code): the alias must attach to
+    # both rather than one arbitrary pick discarding the other (see catalog_module_builder's
+    # `_map_reference_aliases`; docs/research/diagnosis-alias-ambiguity-2026-09.md).
+    epistaxis_targets = {item["canonicalTerm"] for item in aliases if item["alias"] == "Эпистаксис"}
+    assert epistaxis_targets == {"R04.0 Носовое кровотечение, МКБ-10", "Атопический дерматит"}
+    # S52.0 and "Синдром Барта" are each unique to one target in this fixture, so those stay
+    # single rows.
+    assert [item["alias"] for item in aliases].count("Перелом предплечья") == 1
+    assert [item["alias"] for item in aliases].count("Болезнь Барта") == 1
     assert {"Не должен попасть", "Амоксил"}.isdisjoint(alias_values)
 
     output_text = "\n".join(
