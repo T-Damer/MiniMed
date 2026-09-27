@@ -12,17 +12,37 @@ import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show 
 import { Disclosure } from '@/components/Disclosure';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import {
+  expansionCountLabel,
+  groupReferenceHits,
+  type ReferenceHitGroup,
+  referenceAnnotationFlags,
+  referenceBlockLabel,
+  referenceEntryType,
+  referenceLocation,
+  referenceLocationLabel,
+  referenceSourceAttribution,
+} from '@/features/reference/reference-entry';
 import { PackageDownloadRow } from '@/features/setup/PackageDownloadRow';
 import { subscribeAppPreferences } from '@/state/app-preferences';
 import '@/features/setup/setup.css';
 import './reference.css';
 
-const roles = {
-  definition: 'Определение',
-  item: 'Пункт',
-  context: 'Контекст',
-  annotation: 'Сведения об источнике',
-} as const;
+/** One expansion of an abbreviation and the source documents that give it. */
+interface AbbreviationExpansion {
+  readonly id: string;
+  readonly text: string;
+  readonly locations: readonly string[];
+  /** The record lists more source blocks than the first page read here. */
+  readonly moreSources: boolean;
+}
+
+interface AbbreviationView {
+  readonly title: string;
+  readonly expansions: readonly AbbreviationExpansion[];
+  /** The source marks different expansions of this spelling across documents. */
+  readonly conflicting: boolean;
+}
 
 function sourceTitle(metadata: Readonly<Record<string, unknown>> | null): string {
   const source = metadata?.['source'];
@@ -43,6 +63,8 @@ export function DefinitionReferencePanel(props: {
   const [hits, setHits] = createSignal<readonly DefinitionReferenceHit[]>([]);
   const [searched, setSearched] = createSignal(false);
   const [card, setCard] = createSignal<DefinitionReferenceHit | null>(null);
+  const [abbreviation, setAbbreviation] = createSignal<AbbreviationView | null>(null);
+  const groups = createMemo(() => groupReferenceHits(hits()));
   const [page, setPage] = createSignal<DefinitionReferencePage>({ blocks: [], next: null });
   const [text, setText] = createSignal<DefinitionReferenceText | null>(null);
   const [block, setBlock] = createSignal<DefinitionReferenceBlock>();
@@ -85,6 +107,7 @@ export function DefinitionReferencePanel(props: {
     setHits([]);
     setSearched(false);
     setCard(null);
+    setAbbreviation(null);
     setPage({ blocks: [], next: null });
     setText(null);
     setSource(null);
@@ -159,6 +182,7 @@ export function DefinitionReferencePanel(props: {
       setHits(result.hits);
       setSearched(true);
       setCard(null);
+      setAbbreviation(null);
       setText(null);
       setSource(null);
     });
@@ -192,6 +216,7 @@ export function DefinitionReferencePanel(props: {
       if (result.op !== 'card' || !result.card || blocks.op !== 'blocks')
         throw new Error('Карточка не найдена.');
       if (token !== generation) return;
+      setAbbreviation(null);
       setCard(result.card);
       setPage(blocks.page);
       setText(null);
@@ -202,6 +227,69 @@ export function DefinitionReferencePanel(props: {
       );
       if (first) await readText(token, scope, hit.id, first);
     });
+  /** Every expansion of one spelling, each with the documents and sections that give it. */
+  const openAbbreviation = (group: ReferenceHitGroup) =>
+    run(async (token, scope) => {
+      const expansions = await Promise.all(
+        group.hits.map(async (entry): Promise<AbbreviationExpansion & { flagged: boolean }> => {
+          const blocks = await request({ ...scope, op: 'blocks', id: entry.id });
+          if (blocks.op !== 'blocks') throw new Error('Некорректная страница справочника.');
+          const texts = await Promise.all(
+            blocks.page.blocks
+              .filter((item) => item.role === 'definition' || item.role === 'annotation')
+              .map(async (item) => {
+                const result = await request({
+                  ...scope,
+                  op: 'text',
+                  id: entry.id,
+                  chunkId: item.chunkId,
+                });
+                if (result.op !== 'text' || !result.block)
+                  throw new Error('Фрагмент больше не доступен в этой карточке.');
+                return { role: item.role, block: result.block };
+              }),
+          );
+          const locations: string[] = [];
+          let text = '';
+          let flagged = false;
+          for (const { role, block: body } of texts) {
+            if (role === 'annotation') {
+              flagged ||= referenceAnnotationFlags(body.text).includes('conflicting-expansion');
+              continue;
+            }
+            text ||= body.text.trim();
+            const label = referenceLocationLabel(referenceLocation(body.provenance));
+            if (label && !locations.includes(label)) locations.push(label);
+          }
+          return { id: entry.id, text, locations, moreSources: blocks.page.next !== null, flagged };
+        }),
+      );
+      if (token !== generation) return;
+      setCard(null);
+      setText(null);
+      setSource(null);
+      setBlock(undefined);
+      setAbbreviation({
+        title: group.title,
+        // The expansion most documents use comes first; ties keep the search order.
+        expansions: expansions
+          .map(({ flagged: _flagged, ...expansion }) => expansion)
+          .sort(
+            (left, right) =>
+              Number(right.moreSources) - Number(left.moreSources) ||
+              right.locations.length - left.locations.length,
+          ),
+        conflicting: expansions.some((expansion) => expansion.flagged),
+      });
+    });
+  const attribution = createMemo(() => {
+    const body = text();
+    return body ? referenceSourceAttribution(source(), body.provenance) : undefined;
+  });
+  const location = createMemo(() => {
+    const body = text();
+    return body ? referenceLocationLabel(referenceLocation(body.provenance)) : undefined;
+  });
   return (
     <section class="reference-panel">
       <p class="reference-panel__draft" role="note">
@@ -273,20 +361,42 @@ export function DefinitionReferencePanel(props: {
           </p>
         </Show>
         <ul class="reference-panel__hits">
-          <For each={hits()}>
-            {(hit) => (
+          <For each={groups()}>
+            {(group) => (
               <li class="reference-panel__hit">
                 <button
                   class="reference-panel__hit-button"
                   type="button"
                   disabled={busy()}
-                  onClick={() => void open(hit)}
+                  onClick={() =>
+                    void (group.type === 'abbreviation'
+                      ? openAbbreviation(group)
+                      : group.hits[0] && open(group.hits[0]))
+                  }
                 >
-                  {hit.title}
-                  <Show when={hit.coverage === 'needs-definition'}>
+                  {group.title}
+                  <Show when={group.type === 'abbreviation'}>
+                    <span class="reference-panel__hit-kind">
+                      Сокращение
+                      {group.hits.length > 1 ? ` · ${expansionCountLabel(group.hits.length)}` : ''}
+                    </span>
+                  </Show>
+                  <Show when={group.type === 'gloss'}>
+                    <span class="reference-panel__hit-kind">Словарное толкование</span>
+                  </Show>
+                  <Show
+                    when={
+                      group.type !== 'abbreviation' &&
+                      group.hits[0]?.coverage === 'needs-definition'
+                    }
+                  >
                     <span class="reference-panel__hit-note">Нужно определение</span>
                   </Show>
-                  <Show when={hit.coverage === 'mention-only'}>
+                  <Show
+                    when={
+                      group.type !== 'abbreviation' && group.hits[0]?.coverage === 'mention-only'
+                    }
+                  >
                     <span class="reference-panel__hit-note">Только упоминание</span>
                   </Show>
                 </button>
@@ -294,15 +404,77 @@ export function DefinitionReferencePanel(props: {
             )}
           </For>
         </ul>
+        <Show when={abbreviation()}>
+          {(view) => (
+            <article class="reference-card reference-card--abbreviation">
+              <p class="reference-card__kind">Сокращение</p>
+              <Show
+                when={view().expansions.length === 1 && !view().conflicting}
+                fallback={
+                  <>
+                    <h3 class="reference-card__title">{view().title}</h3>
+                    <p class="reference-abbreviation__conflict" role="note">
+                      В разных документах это сокращение расшифровано по-разному. Выбирайте
+                      расшифровку по документу, в котором встретили сокращение.
+                    </p>
+                  </>
+                }
+              >
+                <h3 class="reference-card__title">
+                  {view().title} → {view().expansions[0]?.text}
+                </h3>
+              </Show>
+              <ul class="reference-abbreviation__list">
+                <For each={view().expansions}>
+                  {(expansion) => (
+                    <li class="reference-abbreviation__item">
+                      <Show when={view().expansions.length > 1 || view().conflicting}>
+                        <p class="reference-abbreviation__expansion">
+                          {view().title} →{' '}
+                          <strong class="reference-abbreviation__text">{expansion.text}</strong>
+                        </p>
+                      </Show>
+                      <ul class="reference-abbreviation__sources">
+                        <For each={expansion.locations}>
+                          {(label) => <li class="reference-abbreviation__source">{label}</li>}
+                        </For>
+                        <Show when={expansion.moreSources}>
+                          <li class="reference-abbreviation__source">и другие документы</li>
+                        </Show>
+                      </ul>
+                    </li>
+                  )}
+                </For>
+              </ul>
+              <p class="reference-card__review">
+                Черновая редакция, не проверено · расшифровка из списка сокращений источника, а не
+                определение понятия
+              </p>
+            </article>
+          )}
+        </Show>
         <Show when={card()}>
           {(current) => (
-            <article class="reference-card">
+            <article
+              class="reference-card"
+              classList={{ 'reference-card--gloss': referenceEntryType(current()) === 'gloss' }}
+            >
+              <Show when={referenceEntryType(current()) === 'gloss'}>
+                <p class="reference-card__kind">
+                  Словарное толкование
+                  {attribution()
+                    ? ` · ${attribution()?.name}${attribution()?.license ? `, ${attribution()?.license}` : ''}`
+                    : ''}
+                </p>
+              </Show>
               <h3 class="reference-card__title">{current().title}</h3>
               <p class="reference-card__review">
                 Черновая редакция, не проверено ·{' '}
-                {current().textKind === 'editorial-paraphrase'
-                  ? 'Редакционное изложение'
-                  : 'Текст источника'}
+                {referenceEntryType(current()) === 'gloss'
+                  ? 'общий словарь, не клиническое определение'
+                  : current().textKind === 'editorial-paraphrase'
+                    ? 'Редакционное изложение'
+                    : 'Текст источника'}
               </p>
               <Show when={current().coverage === 'needs-definition'}>
                 <p class="reference-panel__notice">
@@ -322,7 +494,7 @@ export function DefinitionReferencePanel(props: {
                         void run((token, scope) => readText(token, scope, current().id, item))
                       }
                     >
-                      {roles[item.role]} {index() + 1}
+                      {referenceBlockLabel(item.role, referenceEntryType(current()))} {index() + 1}
                     </button>
                   )}
                 </For>
@@ -377,6 +549,49 @@ export function DefinitionReferencePanel(props: {
                       </button>
                     </Show>
                     <p class="reference-card__source">Источник: {sourceTitle(source())}</p>
+                    <Show when={location()}>
+                      {(label) => <p class="reference-card__location">{label()}</p>}
+                    </Show>
+                    <Show when={referenceEntryType(current()) === 'gloss' && attribution()}>
+                      {(credit) => (
+                        <p class="reference-card__attribution">
+                          <Show when={credit().attribution}>
+                            {(authors) => <span class="reference-card__credit">{authors()}. </span>}
+                          </Show>
+                          <Show when={credit().license}>
+                            {(license) => (
+                              <Show when={credit().licenseUrl} fallback={<span>{license()}</span>}>
+                                {(url) => (
+                                  <a
+                                    class="reference-card__link"
+                                    href={url()}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    {license()}
+                                  </a>
+                                )}
+                              </Show>
+                            )}
+                          </Show>
+                          <Show when={credit().entryUrl}>
+                            {(url) => (
+                              <>
+                                {' · '}
+                                <a
+                                  class="reference-card__link"
+                                  href={url()}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  Статья в источнике
+                                </a>
+                              </>
+                            )}
+                          </Show>
+                        </p>
+                      )}
+                    </Show>
                     <Disclosure
                       variant="inline"
                       class="reference-card__provenance"

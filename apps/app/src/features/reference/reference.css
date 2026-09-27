@@ -144,3 +144,82 @@
   border-top: 1px solid var(--theme-border);
   padding-top: 0.5rem;
 }
+.reference-panel__hit-kind {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--theme-surface-muted);
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+.reference-card__kind {
+  margin: 0 0 0.35rem;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.reference-card__location {
+  margin: -0.4rem 0 0.75rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+/* A general-dictionary gloss, visually apart from clinical definitions. */
+.reference-card--gloss {
+  border-style: dashed;
+  background: var(--theme-surface-muted);
+}
+.reference-card__attribution {
+  margin: 0 0 0.75rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.reference-card__link {
+  color: var(--theme-accent);
+}
+/* An abbreviation expansion: one compact card, never presented as a definition. */
+.reference-card--abbreviation {
+  padding-block: 0.85rem;
+}
+.reference-abbreviation__conflict {
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.8rem;
+  border-inline-start: 3px solid var(--theme-warning);
+  background: var(--theme-warning-soft);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.reference-abbreviation__list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.reference-abbreviation__item {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.reference-abbreviation__expansion {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.reference-abbreviation__text {
+  font-weight: 650;
+}
+.reference-abbreviation__sources {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reference-abbreviation__source {
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}

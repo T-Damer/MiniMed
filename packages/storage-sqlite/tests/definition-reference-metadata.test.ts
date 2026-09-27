@@ -105,3 +105,39 @@ describe('reference metadata layout capability', () => {
     await expect(reader.readBlock('fixture.term', 'fixture.block')).rejects.toThrow('metadata');
   });
 });
+
+describe('reference record types', () => {
+  it('passes the stored entity type and text kind through unchanged', async () => {
+    const manifest = {
+      contract: 1,
+      editionId: 'fixture.reference',
+      publicationState: 'experimental-preview',
+      reviewStatus: 'requires-review',
+      identityStatus: 'source-local-proposed',
+      linkLayout: 'numeric-v1',
+    };
+    const rows = [
+      // An abbreviation expansion and a dictionary gloss: the UI tells them apart by these fields.
+      { id: 'fixture.abbrev', title: 'АД', kind: 'abbreviation', coverage: 'abbreviation' },
+      {
+        id: 'fixture.gloss',
+        title: 'ад',
+        kind: 'term',
+        coverage: 'gloss',
+        text_kind: 'source-gloss',
+      },
+    ].map((row) => ({ text_kind: 'source-excerpt', block_count: 2, tier: 0, ...row }));
+    const reader = await createSqliteDefinitionReference({
+      async read(sql: string) {
+        if (sql.includes("key = 'definition_reference'"))
+          return [{ value: JSON.stringify(manifest) }];
+        return sql.includes('n.normalized_name') ? rows : [];
+      },
+    });
+    const hits = await reader.search('АД');
+    expect(hits.map((hit) => [hit.id, hit.kind, hit.textKind, hit.coverage])).toEqual([
+      ['fixture.abbrev', 'abbreviation', 'source-excerpt', 'abbreviation'],
+      ['fixture.gloss', 'term', 'source-gloss', 'gloss'],
+    ]);
+  });
+});
