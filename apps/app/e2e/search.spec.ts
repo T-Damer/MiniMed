@@ -110,6 +110,37 @@ test('the tool row holds «Все инструменты» and only the tools th
   await expect(page).toHaveURL(/#\/notes\/patients$/u);
 });
 
+for (const width of [375, 1280]) {
+  test(`one capability of the day takes turns under the empty field at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+    const card = page.locator('.feature-of-day');
+    await expect(card.getByText('Возможность дня')).toBeVisible();
+    const position = card.locator('.feature-of-day__position');
+    const total = Number((await position.textContent())?.match(/из (\d+)/u)?.[1]);
+    expect(total).toBeGreaterThanOrEqual(3);
+    const titles = new Set<string>();
+    for (let step = 0; step < total; step += 1) {
+      titles.add((await card.getByRole('heading', { level: 2 }).textContent())?.trim() ?? '');
+      await card.getByRole('button', { name: 'Показать другую возможность' }).click();
+    }
+    // Every capability shows once per round, and the ECG entry keeps its photo buttons.
+    expect(titles.size).toBe(total);
+    expect([...titles]).toEqual(expect.arrayContaining(['ЭКГ по фото', 'Просмотр исследований']));
+    while (
+      (await card.getByRole('heading', { level: 2 }).textContent())?.trim() !== 'ЭКГ по фото'
+    ) {
+      await card.getByRole('button', { name: 'Показать другую возможность' }).click();
+    }
+    await expect(card.getByText('Сфотографировать')).toBeVisible();
+    // The card folds away with the rest of the empty-field content while typing.
+    await page.getByTestId('search-input').fill('пнев');
+    await expect(page.locator('.search-welcome')).toHaveClass(/search-welcome--hidden/u);
+  });
+}
+
 test('renders ordinary lookup on a phone-sized browser and records query latency', async ({
   page,
 }) => {

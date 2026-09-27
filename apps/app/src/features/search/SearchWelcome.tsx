@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js';
 
-import { EcgHomeEntry } from '@/features/calculators/EcgHomeEntry';
+import { FeatureOfDay, type HomeFeature } from '@/features/search/FeatureOfDay';
 
 import './search-welcome.css';
 
@@ -25,14 +25,14 @@ export function SearchGreeting(): JSX.Element {
 }
 
 /**
- * The capability under the search field while it is empty. The tools themselves live in the tool
- * row and the «Все инструменты» sheet; this block folds away once a search starts.
+ * Under the search field while it is empty: one capability of the day. The tools themselves live
+ * in the tool row and the «Все инструменты» sheet; this block folds away once a search starts.
  */
-export function SearchWelcome(): JSX.Element {
+export function SearchWelcome(props: { readonly features: readonly HomeFeature[] }): JSX.Element {
   return (
     <div class="search-welcome__content">
       <div class="search-welcome__feature">
-        <EcgHomeEntry />
+        <FeatureOfDay features={props.features} />
       </div>
     </div>
   );

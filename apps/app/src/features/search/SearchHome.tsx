@@ -21,13 +21,19 @@ import { Switch } from '@/components/Switch';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-packs';
-import { startConversation } from '@/features/conversations/conversation-session';
+import { EcgHomeEntry } from '@/features/calculators/EcgHomeEntry';
+import {
+  conversationSession,
+  startConversation,
+} from '@/features/conversations/conversation-session';
 import { SearchHistoryPanel } from '@/features/history/SearchHistoryPanel';
 import { preferReadableDocuments } from '@/features/library/document-display';
 import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
+import type { HomeFeature } from '@/features/search/FeatureOfDay';
+import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
 import {
   APP_TOOL_IDS,
@@ -301,6 +307,68 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       });
     }
   };
+  /** Capabilities that take turns under the empty search field, one per day. */
+  const homeFeatures = createMemo((): readonly HomeFeature[] => [
+    { id: 'ecg-photo', render: () => <EcgHomeEntry /> },
+    {
+      id: 'imaging',
+      render: () => (
+        <HomeFeatureCard
+          icon="image"
+          kicker="КТ и МРТ"
+          title="Просмотр исследований"
+          text="DICOM и NIfTI открываются на устройстве: срезы, окна «мягкие ткани» и «кость». Попробуйте на примере КТ."
+          action={{ label: 'Скачать пример КТ', icon: 'download', run: () => void addCtExample() }}
+          link={{ label: 'Мои файлы', href: '#/notes' }}
+        />
+      ),
+    },
+    {
+      id: 'conversation',
+      render: () => (
+        <HomeFeatureCard
+          icon="microphone"
+          kicker="Приём"
+          title="Запись беседы"
+          text="Запишите разговор на приёме и прикрепите запись к карточке пациента. Запись хранится только на устройстве."
+          action={{
+            label: 'Начать запись',
+            icon: 'microphone',
+            run: () => void startConversation(),
+            ...(conversationSession.recorder() ? { unavailableReason: 'Запись уже идёт' } : {}),
+          }}
+          link={{ label: 'Пациенты', href: '#/notes/patients' }}
+        />
+      ),
+    },
+    // The relation map is an experimental module.
+    ...(experimentalModulesEnabled()
+      ? [
+          {
+            id: 'graph',
+            render: () => (
+              <HomeFeatureCard
+                icon="graph"
+                kicker="Карта связей"
+                title="Связи между источниками"
+                text="Диагнозы, коды МКБ, рекомендации и препараты на одной карте: видно, что с чем связано."
+                action={{
+                  label: 'Открыть карту',
+                  icon: 'graph',
+                  run: () => {
+                    setGraphShowAll(false);
+                    setGraphOpen(true);
+                  },
+                  ...(corpusUnavailable()
+                    ? { unavailableReason: corpusUnavailable() as string }
+                    : {}),
+                }}
+              />
+            ),
+          },
+        ]
+      : []),
+  ]);
   /** Every tool that can be starred: app tools first, then the whole catalog. */
   const quickTools = createMemo(() => {
     const builtIn = builtInTools();
@@ -551,7 +619,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           catalogOnly={catalogOnly()}
           showExamples
           heading={<SearchGreeting />}
-          welcome={<SearchWelcome />}
+          welcome={<SearchWelcome features={homeFeatures()} />}
           quickAccess={<SearchQuickAccess tools={quickTools()} />}
           searchActions={
             <Show when={!catalogOnly() && scope() !== 'diagnosis' && experimentalModulesEnabled()}>
