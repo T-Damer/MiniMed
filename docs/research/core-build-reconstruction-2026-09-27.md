@@ -482,6 +482,110 @@ clinical databases, or the taxonomy/overrides files actually change.
   candidate in this sandbox, pre-existing (`unverifiedDownloadQueries` gate), not caused by this
   work.
 
+## Pilot vocabulary: made independent of the pilot documents (coordinator decision, 2026-09-27)
+
+Root cause of the finding/investigation/measurement/symptom/treatment alias-category gap in the
+earlier audit: **all** of it is `alias.pilot.*` rows from `content/pilot-rf/aliases.yaml` (45
+rows: symptom 25, investigation 6, measurement 5, finding 4, treatment 2, diagnosis 3 -- matched
+exactly against the released core.db's `aliases` table, which has exactly two id prefixes,
+`alias.core.*` 44,166 and `alias.pilot.*` 45, plus 3 unrelated `core.navigation-alias.*` rows --
+confirmed by direct inspection, not inferred). Excluding `rf-public-pilot.db` entirely from the
+pilot-removed compose dropped this vocabulary along with the 15 documents, even though it is a
+general Russian colloquial-vocabulary layer (AGENTS.md: "Aliases are the intended Russian
+vocabulary layer"), not tied to those documents.
+
+There is **no target-document field on an alias row at all** -- `canonicalTerm`/`alias`/
+`category`/`weight` only; the `aliases` table has no document foreign key (confirmed:
+`sqlite_composer.py::TABLES`'s `aliases` `TableSpec` copies rows unconditionally, with no
+document-scoped join, unlike every other table). A search engine resolves an alias's
+`canonicalTerm` to whichever surviving document's text matches it, at query time -- so there is
+nothing to statically "retarget." Implemented as two new pieces:
+
+- `tools/ingest/scripts/build_pilot_vocabulary_pack.py` -- a new, hashed `pilot-vocabulary-pack`
+  build stage that reads `content/pilot-rf/aliases.yaml` directly (independent of that
+  directory's markdown documents) and writes a minimal schema-compatible SQLite file containing
+  only the 45 alias rows, which composes like any other input. Wired into both `finalize` and
+  `finalize-clean`.
+- `tools/ingest/scripts/report_pilot_vocabulary_retargeting.py` -- a read-only audit stage
+  (`pilot-vocabulary-retargeting-report`, depends on `finalize-clean`) that runs `chunks_fts
+  MATCH` for each alias's `canonicalTerm` against the pilot-removed candidate and records the
+  top-scoring surviving document (id, title, `catalogFamily`, `targetDocumentId`). All 45 aliases
+  resolved to a surviving document in the rebuilt candidate (0 unresolved) -- e.g. `alias.pilot.
+  oak` ("ОАК") now resolves to a krasotaimedicina reference pointer, `alias.pilot.crp-ru` ("СРБ")
+  to an ESKLP MNN medication pointer, `alias.pilot.heart-rate` ("ЧСС") to an MKB reference
+  pointer -- plausible, not orphaned. Full per-alias report:
+  `data/build/pilot-vocabulary-retargeting-report.json`.
+
+Re-audited after wiring this in: `finding`/`investigation`/`measurement`/`symptom`/`treatment`
+now match the released core.db **exactly** (4/4, 6/6, 5/5, 25/25, 2/2); `diagnosis` grew by
+exactly +3 (the pilot vocabulary's 3 diagnosis-category rows, correctly included alongside it).
+
+## keywords (163 vs 6) and clinical-recommendation alias count (10,124 vs 8,421..9,035): traced, not fixed
+
+Directly matched ids/values rather than guessing, per the instruction. Neither
+`content/reference-rf-pilot/aliases.yaml` (29 rows: laboratory-reference/calculation/measurement/
+assessment/reference categories), `content/regulatory-rf-pilot/aliases.yaml` (45 rows:
+administrative/documentation/vaccination/etc.), `content/definition-pilot/aliases.yaml` (empty),
+nor `content/fixtures/aliases.yaml` (11 rows: symptom/investigation/medication/location) matches
+-- confirmed none of their categories or counts line up, and (see the id-prefix inspection above)
+the released core.db's `aliases` table contains **no rows from any of them at all** -- only
+`alias.core.*` (generated per-pointer) and `alias.pilot.*` (from `content/pilot-rf`). This also
+answers task 3: `reference-rf-pilot`/`regulatory-rf-pilot`/`definition-pilot` feed separate
+downloadable packs (`reference.db`/`regulatory.db`), not core.db; `content/fixtures` (the demo
+pack) correctly does not reach core.db either.
+
+The real source: sample released `keywords` values (e.g. `kr.rf.1016_1` -> `["Критическая ишемия
+нижних конечностей", "Хронические облитерирующие заболевания артерий нижних конечностей", ...,
+"Клинические рекомендации"]`) are rich, specific medical term lists straight from each guideline's
+own formal "Ключевые слова" section -- confirmed present verbatim in `data/build/
+official-clinical-documents/databases/1016_1.db`'s `chunks` table. `clinical_aliases.py`'s
+`_section_keywords`/`_keyword_section` extracts this correctly **in isolation** (verified: calling
+it directly on `1016_1.db` returns all 7 keywords). But run across all 723 matched databases, only
+**7** have a section titled exactly "Ключевые слова" (matching `_KEYWORD_SECTION_PATTERN`); in the
+rest, the source PDF parse merged it with the next section into one title, e.g. "Ключевые слова
+Список сокращений" -- which the pattern's trailing-digits/punctuation-only tail does not match, so
+the whole section is skipped for those documents. This is a parsing artifact in
+`official-clinical-documents` (the already-fetched guideline databases), not something introduced
+by this pipeline, and it explains why extraction here only reached 6/744 records with keywords.
+
+**Not fixed, deliberately**: naively loosening the title match to accept "Ключевые слова X" is
+unsafe -- spot-checked one merged-title section (`79_2.db`) and its content is abbreviation
+expansions ("АДС** - анатоксин дифтерийно-столбнячный**", ...), not keywords at all; a document
+whose actual "Ключевые слова" content is genuinely absent (or located elsewhere in the merged
+block) would have abbreviation entries misclassified as keywords if the pattern were widened
+without also correctly splitting the merged block's content by sub-heading. Reliably separating
+"real keywords under a merged title" from "an abbreviations list that inherited the same title"
+needs either a smarter block-boundary heuristic or per-document review -- more content judgment
+than is safe to rush. Recommend a separately scoped follow-up.
+
+This is the one remaining, understood-but-open gap: `clinical-recommendation` alias category
+10,124 (released) vs **9,035** (candidate, up from 8,421 pre-vocabulary-fix) -- entirely
+attributable to the keywords shortfall (declaredAliases/keywords both feed
+`_clinical_core_pointer_document`'s per-pointer alias generation), not a new discrepancy.
+
+## Rebuild + re-audit + benchmarks after the vocabulary fix (`core.0.7.0-test5.no-pilot.db`)
+
+Per-family/per-key metadata audit: **no gaps remain except the one explained above and the
+intentional ones** (15 removed pilot documents; the reference-family alias-fan-out/
+classificationPath/referenceCoverage "candidate has more" rows, unchanged from before, still
+attributable to the alias fix and code evolution, not a defect).
+
+- `benchmark:lookup-quality`: **PASS** -- Top-1 = 1.0, discoveryAliasRecallAt20 = 0.9433 (≥ 0.9).
+- `benchmark:doctor-lookup`: **recallAt5 = 0.4, mrrAt5 = 0.3 -- still short of the 0.70/0.60
+  target** (released core.db, measured fresh in this session with the same ranking code: exactly
+  0.70/0.60). The vocabulary fix did not move this metric (none of its 45 terms directly cover
+  this benchmark's 10 queries); the clinical-definition enrichment from the previous round is
+  what got it from 0.1 to 0.4. The remaining shortfall traces to the keywords gap above --
+  `meningitis-or-encephalitis-child`, `tick-encephalitis-child`, and
+  `pyelonephritis-or-cystitis-woman` hit in released but miss in the candidate (same three as
+  before); `meningitis-child`/`gastroenteritis-child`/`diarrhea-or-vomiting-child` miss in both
+  (pre-existing, unrelated to this work).
+- `run-real-corpus.ts --check` (core and app): still fails tolerance, unchanged in kind from the
+  previous round (pilot/cases fixtures still target removed pilot ids; demo slightly better).
+- `benchmark:runtime`: recallAt5 = 0.923 (still matching released exactly), mrrAt5 = 0.846
+  (released 0.885, close) -- unchanged from the previous round, `passed: false` on both released
+  and candidate for the same pre-existing sandbox reason.
+
 ## What to run next
 
 ```bash

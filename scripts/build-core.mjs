@@ -641,6 +641,51 @@ const stages = [
       );
     },
   },
+  // Coordinator decision (2026-09-27): removing the 15 public-pilot documents also silently
+  // dropped content/pilot-rf/aliases.yaml's 45-row Russian colloquial vocabulary (finding 4,
+  // investigation 6, measurement 5, symptom 25, treatment 2, diagnosis 3 -- confirmed by a full
+  // alias-table audit against the released core.db). That vocabulary is independent of the pilot
+  // documents (AGENTS.md: "Aliases are the intended Russian vocabulary layer") and must survive
+  // pilot removal. tools/ingest/scripts/build_pilot_vocabulary_pack.py builds it as its own
+  // compose input straight from the committed aliases.yaml (no document required -- the
+  // `aliases` table has no document foreign key, so this is a hashed, reproducible build stage
+  // over that one committed file, not a hand-edit of any built pack).
+  {
+    name: 'pilot-vocabulary-pack',
+    deps: [],
+    async inputs() {
+      return { aliases: resolve(pilotRoot, 'aliases.yaml') };
+    },
+    async outputs() {
+      return [resolve(buildDir, 'pilot-vocabulary.db')];
+    },
+    async execute() {
+      return run(
+        'uv',
+        [
+          'run',
+          '--project',
+          'tools/ingest',
+          'python',
+          'tools/ingest/scripts/build_pilot_vocabulary_pack.py',
+          '--aliases',
+          'content/pilot-rf/aliases.yaml',
+          '--output',
+          'data/build/pilot-vocabulary.db',
+          '--report',
+          'data/build/pilot-vocabulary-report.json',
+          '--edition-version',
+          VERSION,
+          '--built-at',
+          BUILT_AT,
+        ],
+        {
+          label:
+            'build the pilot colloquial-vocabulary dictionary, independent of the pilot documents',
+        },
+      );
+    },
+  },
   {
     name: 'finalize',
     deps: [
@@ -648,6 +693,7 @@ const stages = [
       'catalog-pointers-clinical-build',
       'medication-pointers-pinned',
       'public-pilot-build',
+      'pilot-vocabulary-pack',
     ],
     async inputs() {
       return {
@@ -655,6 +701,7 @@ const stages = [
         clinical: resolve(buildDir, 'core-catalog-pointers-clinical.db'),
         medication: resolve(buildDir, 'core-medication-pointers-pinned.db'),
         pilot: resolve(buildDir, 'rf-public-pilot.db'),
+        vocabulary: resolve(buildDir, 'pilot-vocabulary.db'),
       };
     },
     async outputs() {
@@ -677,6 +724,8 @@ const stages = [
           'data/build/core-medication-pointers-pinned.db',
           '--input',
           'data/build/rf-public-pilot.db',
+          '--input',
+          'data/build/pilot-vocabulary.db',
           '--output',
           `data/build/core.${VERSION}.db`,
           '--edition-manifest',
@@ -751,13 +800,14 @@ const stages = [
   },
   {
     name: 'finalize-clean',
-    deps: ['finalize', 'public-pilot-clean-build'],
+    deps: ['finalize', 'public-pilot-clean-build', 'pilot-vocabulary-pack'],
     async inputs() {
       return {
         reference: resolve(buildDir, 'core-pointers-base.db'),
         clinical: resolve(buildDir, 'core-catalog-pointers-clinical.db'),
         medication: resolve(buildDir, 'core-medication-pointers-pinned.db'),
         cleanPilot: keptPilotFiles().length ? resolve(buildDir, 'rf-public-pilot-clean.db') : null,
+        vocabulary: resolve(buildDir, 'pilot-vocabulary.db'),
         dropOrs,
       };
     },
@@ -777,6 +827,8 @@ const stages = [
         'data/build/core-catalog-pointers-clinical.db',
         '--input',
         'data/build/core-medication-pointers-pinned.db',
+        '--input',
+        'data/build/pilot-vocabulary.db',
       ];
       if (keptPilotFiles().length) {
         composeArgs.push('--input', 'data/build/rf-public-pilot-clean.db');
@@ -801,6 +853,45 @@ const stages = [
       return run('uv', composeArgs, {
         label: 'finalize layout without the 14-or-15 public-pilot documents',
       });
+    },
+  },
+  {
+    // Read-only audit (coordinator decision, 2026-09-27): the aliases table has no per-document
+    // foreign key, so there is no field to "retarget" -- this records, for traceability, which
+    // surviving document each pilot-vocabulary alias's canonicalTerm now resolves to via the same
+    // lexical FTS the app uses, in the pilot-removed candidate.
+    name: 'pilot-vocabulary-retargeting-report',
+    deps: ['finalize-clean'],
+    async inputs() {
+      return {
+        aliases: resolve(pilotRoot, 'aliases.yaml'),
+        candidate: resolve(buildDir, `core.${VERSION}.no-pilot.db`),
+      };
+    },
+    async outputs() {
+      return [resolve(buildDir, 'pilot-vocabulary-retargeting-report.json')];
+    },
+    async execute() {
+      return run(
+        'uv',
+        [
+          'run',
+          '--project',
+          'tools/ingest',
+          'python',
+          'tools/ingest/scripts/report_pilot_vocabulary_retargeting.py',
+          '--aliases',
+          'content/pilot-rf/aliases.yaml',
+          '--candidate',
+          `data/build/core.${VERSION}.no-pilot.db`,
+          '--report',
+          'data/build/pilot-vocabulary-retargeting-report.json',
+        ],
+        {
+          label:
+            'report what each pilot-vocabulary alias resolves to in the pilot-removed candidate',
+        },
+      );
     },
   },
   {
