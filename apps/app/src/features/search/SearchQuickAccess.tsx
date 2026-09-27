@@ -1,11 +1,12 @@
-import { Popover } from '@kobalte/core/popover';
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { FolderFigure } from '@/components/FolderFigure';
-import { StarGlyph } from '@/components/StarGlyph';
+import { HorizontalScroller } from '@/components/HorizontalScroller';
+import { OverlayDialog } from '@/components/OverlayDialog';
 import {
+  groupQuickTools,
   openQuickTool,
   type QuickTool,
   type ResolvedToolRef,
@@ -28,8 +29,6 @@ import {
 
 import './search-quick-access.css';
 
-const MAX_CHIPS = 8;
-
 /** One pinned tool; a tool no longer in the catalog stays visible and marked unavailable. */
 function QuickToolRow(props: {
   readonly entry: ResolvedToolRef;
@@ -51,11 +50,18 @@ function QuickToolRow(props: {
         }
       >
         {(tool) => (
-          <button type="button" class="quick-tool-row__open" onClick={() => props.onOpen(tool())}>
+          <button
+            type="button"
+            class="quick-tool-row__open"
+            disabled={Boolean(tool().unavailableReason)}
+            onClick={() => props.onOpen(tool())}
+          >
             <AppGlyph name={tool().icon} class="quick-tool-row__icon" />
             <span class="quick-tool-row__copy">
               <span class="quick-tool-row__title">{tool().title}</span>
-              <span class="quick-tool-row__meta">{tool().kindLabel}</span>
+              <span class="quick-tool-row__meta">
+                {tool().unavailableReason ?? tool().kindLabel}
+              </span>
             </span>
           </button>
         )}
@@ -121,13 +127,13 @@ function CollectionRenameForm(props: {
 }
 
 /**
- * Compact tool access above the search field: a menu with favourites first and folder-like
- * collections below, plus chips for the first favourites. Stays visible while typing.
+ * The tool row under the search field: «Все инструменты» and the tools the doctor starred, in a
+ * horizontal scroll. Everything else lives in the «Все инструменты» sheet, grouped by task, where
+ * a star adds a tool to the row and collections keep longer lists.
  */
 export function SearchQuickAccess(props: {
+  /** Every tool that can be starred: app tools with a group, then the catalog. */
   readonly tools: readonly QuickTool[];
-  /** Built-in tools without a catalog card, offered here so they can be starred too. */
-  readonly builtInTools: readonly QuickTool[];
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
   const [expanded, setExpanded] = createSignal<string>();
@@ -135,196 +141,35 @@ export function SearchQuickAccess(props: {
   const [pendingDelete, setPendingDelete] = createSignal<ToolCollection>();
   const toolsById = createMemo(() => new Map(props.tools.map((tool) => [tool.id, tool])));
   const favorites = createMemo(() => resolveToolRefs(toolCollections().favorites, toolsById()));
-  const chips = createMemo(() =>
-    favorites()
-      .flatMap((entry) => (entry.tool ? [entry.tool] : []))
-      .slice(0, MAX_CHIPS),
-  );
-  const openFromMenu = (tool: QuickTool): void => {
+  const chips = createMemo(() => favorites().flatMap((entry) => (entry.tool ? [entry.tool] : [])));
+  const groups = createMemo(() => groupQuickTools(props.tools));
+  const openFromSheet = (tool: QuickTool): void => {
     setOpen(false);
     openQuickTool(tool);
   };
   return (
     <div class="search-quick-access">
-      <Popover open={open()} onOpenChange={setOpen} placement="bottom-start" gutter={6} fitViewport>
-        <Popover.Trigger class="search-quick-access__menu" aria-label="Мои инструменты">
-          <StarGlyph filled class="search-quick-access__menu-icon" />
-          <span class="search-quick-access__menu-label">Мои инструменты</span>
-          <AppGlyph name="caret-down" class="search-quick-access__menu-caret" />
-        </Popover.Trigger>
-        <Popover.Portal>
-          <Popover.Content class="search-quick-access__panel" aria-label="Мои инструменты">
-            <section class="search-quick-access__section" aria-labelledby="quick-access-favorites">
-              <h2 class="search-quick-access__heading" id="quick-access-favorites">
-                Избранное
-              </h2>
-              <Show
-                when={favorites().length > 0}
-                fallback={
-                  <p class="search-quick-access__empty">
-                    Отметьте калькулятор или опросник звёздочкой — он появится здесь и над поиском.
-                  </p>
-                }
-              >
-                <ul class="search-quick-access__list">
-                  <For each={favorites()}>
-                    {(entry) => (
-                      <QuickToolRow
-                        entry={entry}
-                        onOpen={openFromMenu}
-                        trailing={
-                          <ToolFavoriteButton
-                            toolId={entry.id}
-                            toolTitle={entry.tool?.title ?? entry.id}
-                          />
-                        }
-                      />
-                    )}
-                  </For>
-                </ul>
-              </Show>
-            </section>
-            <section
-              class="search-quick-access__section"
-              aria-labelledby="quick-access-collections"
+      <HorizontalScroller class="search-quick-access__row" hideScrollbar>
+        <ul class="search-quick-access__chips" aria-label="Инструменты">
+          <li class="search-quick-access__chip-item">
+            <button
+              type="button"
+              class="search-quick-access__all"
+              aria-haspopup="dialog"
+              onClick={() => setOpen(true)}
             >
-              <h2 class="search-quick-access__heading" id="quick-access-collections">
-                Коллекции
-              </h2>
-              <ul class="search-quick-access__list">
-                <For each={toolCollections().collections}>
-                  {(collection) => {
-                    const isExpanded = () => expanded() === collection.id;
-                    const entries = createMemo(() =>
-                      resolveToolRefs(collection.toolIds, toolsById()),
-                    );
-                    return (
-                      <li class="tool-collection-row">
-                        <Show
-                          when={renaming() !== collection.id}
-                          fallback={
-                            <CollectionRenameForm
-                              collection={collection}
-                              onDone={() => setRenaming(undefined)}
-                            />
-                          }
-                        >
-                          <div class="tool-collection-row__header">
-                            <button
-                              type="button"
-                              class="tool-collection-row__toggle"
-                              aria-expanded={isExpanded()}
-                              onClick={() => setExpanded(isExpanded() ? undefined : collection.id)}
-                            >
-                              <FolderFigure
-                                variant="list"
-                                hasDocument={collection.toolIds.length > 0}
-                              />
-                              <span class="tool-collection-row__name">{collection.name}</span>
-                              <span class="tool-collection-row__count">
-                                {collection.toolIds.length}
-                              </span>
-                            </button>
-                            <button
-                              type="button"
-                              class="tool-collection-row__action"
-                              aria-label={`Переименовать «${collection.name}»`}
-                              title="Переименовать"
-                              onClick={() => setRenaming(collection.id)}
-                            >
-                              <AppGlyph name="edit" class="tool-pin__glyph" />
-                            </button>
-                            <button
-                              type="button"
-                              class="tool-collection-row__action"
-                              aria-label={`Удалить «${collection.name}»`}
-                              title="Удалить коллекцию"
-                              onClick={() => setPendingDelete(collection)}
-                            >
-                              <AppGlyph name="trash" class="tool-pin__glyph" />
-                            </button>
-                          </div>
-                        </Show>
-                        <Show when={isExpanded()}>
-                          <Show
-                            when={entries().length > 0}
-                            fallback={
-                              <p class="search-quick-access__empty">
-                                Пусто. Добавьте инструмент кнопкой с папкой на его карточке.
-                              </p>
-                            }
-                          >
-                            <ul class="tool-collection-row__tools">
-                              <For each={entries()}>
-                                {(entry) => (
-                                  <QuickToolRow
-                                    entry={entry}
-                                    onOpen={openFromMenu}
-                                    trailing={
-                                      <button
-                                        type="button"
-                                        class="tool-collection-row__action"
-                                        aria-label={`Убрать «${entry.tool?.title ?? entry.id}» из «${collection.name}»`}
-                                        title="Убрать из коллекции"
-                                        onClick={() =>
-                                          updateToolCollections((state) =>
-                                            setToolInCollection(
-                                              state,
-                                              collection.id,
-                                              entry.id,
-                                              false,
-                                            ),
-                                          )
-                                        }
-                                      >
-                                        <AppGlyph name="close" class="tool-pin__glyph" />
-                                      </button>
-                                    }
-                                  />
-                                )}
-                              </For>
-                            </ul>
-                          </Show>
-                        </Show>
-                      </li>
-                    );
-                  }}
-                </For>
-              </ul>
-              <ToolCollectionCreateForm onCreated={(id) => setExpanded(id)} />
-            </section>
-            <section class="search-quick-access__section" aria-labelledby="quick-access-built-in">
-              <h2 class="search-quick-access__heading" id="quick-access-built-in">
-                Встроенные инструменты
-              </h2>
-              <ul class="search-quick-access__list">
-                <For each={props.builtInTools}>
-                  {(tool) => (
-                    <QuickToolRow
-                      entry={{ id: tool.id, tool }}
-                      onOpen={openFromMenu}
-                      trailing={
-                        <>
-                          <ToolFavoriteButton toolId={tool.id} toolTitle={tool.title} />
-                          <ToolCollectionMenu toolId={tool.id} toolTitle={tool.title} />
-                        </>
-                      }
-                    />
-                  )}
-                </For>
-              </ul>
-            </section>
-          </Popover.Content>
-        </Popover.Portal>
-      </Popover>
-      <Show when={chips().length > 0}>
-        <ul class="search-quick-access__chips" aria-label="Избранные инструменты">
+              <AppGlyph name="squares-four" class="search-quick-access__chip-icon" />
+              <span class="search-quick-access__chip-label">Все инструменты</span>
+            </button>
+          </li>
           <For each={chips()}>
             {(tool) => (
               <li class="search-quick-access__chip-item">
                 <button
                   type="button"
                   class="search-quick-access__chip"
+                  disabled={Boolean(tool.unavailableReason)}
+                  title={tool.unavailableReason}
                   onClick={() => openQuickTool(tool)}
                 >
                   <AppGlyph name={tool.icon} class="search-quick-access__chip-icon" />
@@ -333,8 +178,184 @@ export function SearchQuickAccess(props: {
               </li>
             )}
           </For>
+          <Show when={chips().length === 0}>
+            <li class="search-quick-access__hint">★ — добавить сюда</li>
+          </Show>
         </ul>
-      </Show>
+      </HorizontalScroller>
+      <OverlayDialog
+        open={open()}
+        title="Все инструменты"
+        class="search-quick-access__sheet"
+        onClose={() => setOpen(false)}
+      >
+        <div class="search-quick-access__panel">
+          <section class="search-quick-access__section" aria-labelledby="quick-access-favorites">
+            <h2 class="search-quick-access__heading" id="quick-access-favorites">
+              Избранное
+            </h2>
+            <Show
+              when={favorites().length > 0}
+              fallback={
+                <p class="search-quick-access__empty">
+                  Отметьте инструмент звёздочкой — он появится здесь и в строке под поиском.
+                </p>
+              }
+            >
+              <ul class="search-quick-access__list">
+                <For each={favorites()}>
+                  {(entry) => (
+                    <QuickToolRow
+                      entry={entry}
+                      onOpen={openFromSheet}
+                      trailing={
+                        <ToolFavoriteButton
+                          toolId={entry.id}
+                          toolTitle={entry.tool?.title ?? entry.id}
+                        />
+                      }
+                    />
+                  )}
+                </For>
+              </ul>
+            </Show>
+          </section>
+          <For each={groups()}>
+            {(group) => (
+              <section
+                class="search-quick-access__section"
+                aria-labelledby={`quick-access-group-${group.id}`}
+              >
+                <h2 class="search-quick-access__heading" id={`quick-access-group-${group.id}`}>
+                  {group.title}
+                </h2>
+                <ul class="search-quick-access__list">
+                  <For each={group.tools}>
+                    {(tool) => (
+                      <QuickToolRow
+                        entry={{ id: tool.id, tool }}
+                        onOpen={openFromSheet}
+                        trailing={
+                          <>
+                            <ToolFavoriteButton toolId={tool.id} toolTitle={tool.title} />
+                            <ToolCollectionMenu toolId={tool.id} toolTitle={tool.title} />
+                          </>
+                        }
+                      />
+                    )}
+                  </For>
+                </ul>
+              </section>
+            )}
+          </For>
+          <section class="search-quick-access__section" aria-labelledby="quick-access-collections">
+            <h2 class="search-quick-access__heading" id="quick-access-collections">
+              Коллекции
+            </h2>
+            <ul class="search-quick-access__list">
+              <For each={toolCollections().collections}>
+                {(collection) => {
+                  const isExpanded = () => expanded() === collection.id;
+                  const entries = createMemo(() =>
+                    resolveToolRefs(collection.toolIds, toolsById()),
+                  );
+                  return (
+                    <li class="tool-collection-row">
+                      <Show
+                        when={renaming() !== collection.id}
+                        fallback={
+                          <CollectionRenameForm
+                            collection={collection}
+                            onDone={() => setRenaming(undefined)}
+                          />
+                        }
+                      >
+                        <div class="tool-collection-row__header">
+                          <button
+                            type="button"
+                            class="tool-collection-row__toggle"
+                            aria-expanded={isExpanded()}
+                            onClick={() => setExpanded(isExpanded() ? undefined : collection.id)}
+                          >
+                            <FolderFigure
+                              variant="list"
+                              hasDocument={collection.toolIds.length > 0}
+                            />
+                            <span class="tool-collection-row__name">{collection.name}</span>
+                            <span class="tool-collection-row__count">
+                              {collection.toolIds.length}
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            class="tool-collection-row__action"
+                            aria-label={`Переименовать «${collection.name}»`}
+                            title="Переименовать"
+                            onClick={() => setRenaming(collection.id)}
+                          >
+                            <AppGlyph name="edit" class="tool-pin__glyph" />
+                          </button>
+                          <button
+                            type="button"
+                            class="tool-collection-row__action"
+                            aria-label={`Удалить «${collection.name}»`}
+                            title="Удалить коллекцию"
+                            onClick={() => setPendingDelete(collection)}
+                          >
+                            <AppGlyph name="trash" class="tool-pin__glyph" />
+                          </button>
+                        </div>
+                      </Show>
+                      <Show when={isExpanded()}>
+                        <Show
+                          when={entries().length > 0}
+                          fallback={
+                            <p class="search-quick-access__empty">
+                              Пусто. Добавьте инструмент кнопкой с папкой на его карточке.
+                            </p>
+                          }
+                        >
+                          <ul class="tool-collection-row__tools">
+                            <For each={entries()}>
+                              {(entry) => (
+                                <QuickToolRow
+                                  entry={entry}
+                                  onOpen={openFromSheet}
+                                  trailing={
+                                    <button
+                                      type="button"
+                                      class="tool-collection-row__action"
+                                      aria-label={`Убрать «${entry.tool?.title ?? entry.id}» из «${collection.name}»`}
+                                      title="Убрать из коллекции"
+                                      onClick={() =>
+                                        updateToolCollections((state) =>
+                                          setToolInCollection(
+                                            state,
+                                            collection.id,
+                                            entry.id,
+                                            false,
+                                          ),
+                                        )
+                                      }
+                                    >
+                                      <AppGlyph name="close" class="tool-pin__glyph" />
+                                    </button>
+                                  }
+                                />
+                              )}
+                            </For>
+                          </ul>
+                        </Show>
+                      </Show>
+                    </li>
+                  );
+                }}
+              </For>
+            </ul>
+            <ToolCollectionCreateForm onCreated={(id) => setExpanded(id)} />
+          </section>
+        </div>
+      </OverlayDialog>
       <ConfirmationDialog
         open={Boolean(pendingDelete())}
         title="Удалить коллекцию?"

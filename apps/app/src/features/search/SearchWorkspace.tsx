@@ -1016,8 +1016,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             inert={query().length > 0 || Boolean(response())}
           >
             <div class="search-welcome__inner">
-              {props.welcome}
               {props.quickAccess}
+              {props.welcome}
             </div>
           </div>
         </Show>

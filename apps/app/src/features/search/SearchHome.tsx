@@ -8,6 +8,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import { toast } from 'solid-sonner';
 import {
   AppContextMenu,
   type AppContextMenuAction,
@@ -103,32 +104,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   });
   const sections = createMemo(() => searchCatalogSections(documents(), toolRows()));
   const catalogQuickTools = createMemo(() => quickToolsFromCatalog(toolRows()));
-  const builtInTools = createMemo((): readonly QuickTool[] => [
-    {
-      id: APP_TOOL_IDS.conversation,
-      title: 'Записать беседу',
-      kindLabel: 'Запись и расшифровка',
-      icon: 'microphone',
-      run: () => void startConversation(),
-    },
-    // The draft definition reference is an experimental module.
-    ...(experimentalModulesEnabled()
-      ? [
-          {
-            id: APP_TOOL_IDS.reference,
-            title: 'Словарь терминов',
-            kindLabel: 'Черновой справочник',
-            icon: 'book-open' as const,
-            run: () => setReferenceOpen(true),
-          },
-        ]
-      : []),
-    ...featuredCatalogTools(catalogQuickTools()),
-  ]);
-  const quickTools = createMemo(() => [
-    ...builtInTools().filter((tool) => !tool.href),
-    ...catalogQuickTools(),
-  ]);
   const downloads = useSearchSectionDownloads(
     () => props.active,
     () => props.onContentChanged(),
@@ -200,6 +175,138 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const catalogDocuments = createMemo(() =>
     scope() === 'all' ? homeDocumentOrder(visibleDocuments()) : visibleDocuments(),
   );
+  /** Why tools that read the corpus cannot open yet; undefined once they can. */
+  const corpusUnavailable = (): string | undefined =>
+    !props.baseCore || catalogLoading() || visibleDocuments().length === 0
+      ? 'Откроется, когда база будет готова'
+      : undefined;
+  /** Everything in «Все инструменты»: app tools by section, plus the featured catalog tool. */
+  const builtInTools = createMemo((): readonly QuickTool[] => [
+    {
+      id: APP_TOOL_IDS.conversation,
+      title: 'Записать беседу',
+      kindLabel: 'Запись и расшифровка',
+      icon: 'microphone',
+      group: 'reception',
+      run: () => void startConversation(),
+    },
+    {
+      id: APP_TOOL_IDS.patients,
+      title: 'Пациенты',
+      kindLabel: 'Карточки и дневники',
+      icon: 'users',
+      group: 'reception',
+      href: '#/notes/patients',
+    },
+    {
+      id: APP_TOOL_IDS.calculators,
+      title: 'Калькуляторы',
+      kindLabel: 'Все расчёты',
+      icon: 'calculator',
+      group: 'calculations',
+      href: '#/calculators',
+    },
+    {
+      id: APP_TOOL_IDS.assessments,
+      title: 'Опросники',
+      kindLabel: 'Шкалы и анкеты',
+      icon: 'list-checks',
+      group: 'calculations',
+      href: '#/assessments',
+    },
+    ...featuredCatalogTools(catalogQuickTools()).map(
+      (tool): QuickTool => ({ ...tool, group: 'calculations' }),
+    ),
+    // The draft dictionary and the relation map are experimental modules.
+    ...(experimentalModulesEnabled()
+      ? [
+          {
+            id: APP_TOOL_IDS.reference,
+            title: 'Словарь терминов',
+            kindLabel: 'Черновой справочник',
+            icon: 'book-open' as const,
+            group: 'reference' as const,
+            run: () => setReferenceOpen(true),
+            ...(props.baseCore ? {} : { unavailableReason: 'Откроется, когда база будет готова' }),
+          },
+          {
+            id: APP_TOOL_IDS.graph,
+            title: 'Карта связей',
+            kindLabel: 'Связи источников',
+            icon: 'graph' as const,
+            group: 'reference' as const,
+            run: () => {
+              setGraphShowAll(false);
+              setGraphOpen(true);
+            },
+            ...(corpusUnavailable() ? { unavailableReason: corpusUnavailable() as string } : {}),
+          },
+        ]
+      : []),
+    {
+      id: APP_TOOL_IDS.randomRecord,
+      title: 'Случайная запись',
+      kindLabel: 'Из текущего раздела',
+      icon: 'dice',
+      group: 'reference',
+      run: () => {
+        const document = pickRandomDocument(visibleDocuments());
+        if (document) openDocumentOverlay(document.id);
+      },
+      ...(corpusUnavailable() ? { unavailableReason: corpusUnavailable() as string } : {}),
+    },
+    {
+      id: APP_TOOL_IDS.files,
+      title: 'Мои файлы',
+      kindLabel: 'PDF, заметки, исследования',
+      icon: 'folder-open',
+      group: 'files',
+      href: '#/notes',
+    },
+    {
+      id: APP_TOOL_IDS.noteTemplates,
+      title: 'Шаблоны заметок',
+      kindLabel: 'Готовые формы',
+      icon: 'file-text',
+      group: 'files',
+      href: '#/notes/templates',
+    },
+    {
+      id: APP_TOOL_IDS.ctExample,
+      title: 'Пример КТ',
+      kindLabel: 'Скачать в «Мои файлы»',
+      icon: 'image',
+      group: 'files',
+      run: () => void addCtExample(),
+    },
+  ]);
+  /** The CT example is also offered by the first-run tour; the user library loads on demand. */
+  const addCtExample = async (): Promise<void> => {
+    const { downloadUserLibraryExample, USER_LIBRARY_EXAMPLE_SLOTS } = await import(
+      '@/state/user-library'
+    );
+    const ct = USER_LIBRARY_EXAMPLE_SLOTS.find((slot) => slot.id === 'ct');
+    if (!ct) {
+      toast.error('Пример КТ недоступен в этой сборке.');
+      return;
+    }
+    const pending = toast.loading('Скачиваем пример КТ…');
+    try {
+      await downloadUserLibraryExample(ct);
+      toast.success('Пример КТ добавлен в «Мои файлы».', { id: pending });
+      window.location.hash = '#/notes';
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать пример КТ.', {
+        id: pending,
+      });
+    }
+  };
+  /** Every tool that can be starred: app tools first, then the whole catalog. */
+  const quickTools = createMemo(() => {
+    const builtIn = builtInTools();
+    const builtInIds = new Set(builtIn.map((tool) => tool.id));
+    return [...builtIn, ...catalogQuickTools().filter((tool) => !builtInIds.has(tool.id))];
+  });
   createEffect(() => {
     const core = props.baseCore;
     setCatalogLoading(true);
@@ -418,13 +525,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           catalogOnly={catalogOnly()}
           showExamples
           heading={<SearchGreeting />}
-          welcome={
-            <SearchWelcome
-              coreReady={props.baseCore !== undefined}
-              onOpenReference={() => setReferenceOpen(true)}
-            />
-          }
-          quickAccess={<SearchQuickAccess tools={quickTools()} builtInTools={builtInTools()} />}
+          welcome={<SearchWelcome />}
+          quickAccess={<SearchQuickAccess tools={quickTools()} />}
           searchActions={
             <Show when={!catalogOnly() && scope() !== 'diagnosis' && experimentalModulesEnabled()}>
               <button
@@ -486,6 +588,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                   setScope(next);
                 }}
               />
+              {/* biome-ignore lint/a11y/noLabelWithoutControl: Switch renders a <button>, a labelable element; the label makes its caption clickable. */}
               <label class="search-clinical-switch">
                 <Switch
                   class="search-clinical-switch__control"

@@ -57,9 +57,7 @@ for (const viewport of [
         'Подготавливаем поиск…',
       );
       await expect(
-        page.getByRole('navigation', { name: 'Быстрый переход' }).getByRole('link', {
-          name: 'Калькуляторы',
-        }),
+        page.getByRole('button', { name: 'Все инструменты', exact: true }),
       ).toBeVisible();
       await navigation.getByRole('button', { name: 'Мои файлы', exact: true }).click();
       await expect(coreStatus).toBeHidden();

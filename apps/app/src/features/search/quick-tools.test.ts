@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { quickToolsFromCatalog, resolveToolRefs } from '@/features/search/quick-tools';
+import {
+  groupQuickTools,
+  openQuickTool,
+  type QuickTool,
+  quickToolsFromCatalog,
+  resolveToolRefs,
+} from '@/features/search/quick-tools';
 
 describe('quick tools', () => {
   it('maps catalog tools and marks stored ids missing from the catalog', () => {
@@ -25,5 +31,40 @@ describe('quick tools', () => {
       ['calc.bmi', 'ИМТ'],
       ['tool.removed', undefined],
     ]);
+  });
+
+  it('groups tools by section in section order and drops empty sections', () => {
+    const tool = (id: string, group?: QuickTool['group']): QuickTool => ({
+      id,
+      title: id,
+      kindLabel: '',
+      icon: 'calculator',
+      ...(group ? { group } : {}),
+    });
+    const groups = groupQuickTools([
+      tool('files.a', 'files'),
+      tool('reception.a', 'reception'),
+      tool('catalog.only'),
+      tool('reception.b', 'reception'),
+    ]);
+    expect(groups.map((group) => [group.title, group.tools.map((item) => item.id)])).toEqual([
+      ['Приём', ['reception.a', 'reception.b']],
+      ['Файлы', ['files.a']],
+    ]);
+  });
+
+  it('does not open a tool that is not available yet', () => {
+    let opened = false;
+    openQuickTool({
+      id: 'x',
+      title: 'x',
+      kindLabel: '',
+      icon: 'dice',
+      run: () => {
+        opened = true;
+      },
+      unavailableReason: 'Откроется, когда база будет готова',
+    });
+    expect(opened).toBe(false);
   });
 });

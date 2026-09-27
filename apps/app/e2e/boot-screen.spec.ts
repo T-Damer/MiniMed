@@ -31,7 +31,7 @@ for (const viewport of [
       await expect(
         coreStatus.locator('.search-core-status__mark, .search-core-status__spinner'),
       ).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Мои инструменты' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Все инструменты' })).toBeVisible();
       // Picking a random record needs the corpus, like the dictionary.
       await expect(page.getByRole('button', { name: 'Случайная запись' })).toBeDisabled();
       const overflow = await page.evaluate(

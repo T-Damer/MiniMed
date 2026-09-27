@@ -12,7 +12,7 @@ for (const width of [375, 1280]) {
     const href = await card.locator('.unified-catalog__tool').getAttribute('href');
     expect(title).not.toBe('');
 
-    // Star from the catalog card: the tool appears as a chip above the search field.
+    // Star from the catalog card: the tool appears as a chip in the tool row.
     await card.getByRole('button', { name: `Добавить «${title}» в избранное` }).click();
     await expect(
       card.getByRole('button', { name: `Убрать «${title}» из избранного` }),
@@ -28,15 +28,15 @@ for (const width of [375, 1280]) {
     await expect(collectionMenu.getByRole('checkbox', { name: /Приём кардиолога/u })).toBeChecked();
     await page.keyboard.press('Escape');
 
-    // The widget collapses while typing; quick access stays above the field.
+    // The tool row folds away with the rest of the empty-field content while typing.
     await page.getByTestId('search-input').fill('пнев');
     await expect(page.locator('.search-welcome')).toHaveClass(/search-welcome--hidden/u);
-    await expect(quickAccess).toBeVisible();
     await page.getByTestId('search-input').fill('');
+    await expect(quickAccess).toBeVisible();
 
-    // Open the tool from the collection in the quick-access menu.
-    await page.getByRole('button', { name: 'Мои инструменты', exact: true }).click();
-    const panel = page.getByRole('dialog', { name: 'Мои инструменты' });
+    // Open the tool from the collection in the «Все инструменты» sheet.
+    await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
+    const panel = page.getByRole('dialog', { name: 'Все инструменты' });
     await expect(panel.getByRole('heading', { name: 'Избранное' })).toBeVisible();
     await panel.locator('.tool-collection-row__toggle', { hasText: 'Приём кардиолога' }).click();
     await panel

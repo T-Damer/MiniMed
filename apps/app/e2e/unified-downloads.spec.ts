@@ -66,9 +66,10 @@ for (const width of [360, 1280]) {
       const navigation = page.getByRole('navigation', { name: 'Разделы приложения' });
       await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
       await expect(page.getByTestId('search-input')).toBeDisabled();
+      await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
       await page
-        .getByRole('navigation', { name: 'Быстрый переход' })
-        .getByRole('link', { name: 'Калькуляторы' })
+        .getByRole('dialog', { name: 'Все инструменты' })
+        .locator('.quick-tool-row__open', { hasText: 'Калькуляторы' })
         .click();
       await expect(page.getByRole('heading', { name: /Калькуляторы/u }).first()).toBeVisible();
       await page.evaluate(() => {

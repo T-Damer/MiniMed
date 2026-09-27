@@ -12,12 +12,49 @@ export interface QuickTool {
   readonly icon: AppGlyphName;
   readonly href?: string;
   readonly run?: () => void;
+  /** Where the tool sits in «Все инструменты»; catalog tools without it are reached via their lists. */
+  readonly group?: QuickToolGroupId;
+  /** Set while the tool cannot open yet; shown instead of opening. */
+  readonly unavailableReason?: string;
+}
+
+export type QuickToolGroupId = 'reception' | 'calculations' | 'reference' | 'files';
+
+/** The sections of «Все инструменты», in display order. */
+export const QUICK_TOOL_GROUPS: readonly {
+  readonly id: QuickToolGroupId;
+  readonly title: string;
+}[] = [
+  { id: 'reception', title: 'Приём' },
+  { id: 'calculations', title: 'Расчёты' },
+  { id: 'reference', title: 'Справочное' },
+  { id: 'files', title: 'Файлы' },
+];
+
+/** Groups tools by section, keeping section and tool order; empty sections are left out. */
+export function groupQuickTools(tools: readonly QuickTool[]): readonly {
+  readonly id: QuickToolGroupId;
+  readonly title: string;
+  readonly tools: readonly QuickTool[];
+}[] {
+  return QUICK_TOOL_GROUPS.flatMap((group) => {
+    const members = tools.filter((tool) => tool.group === group.id);
+    return members.length > 0 ? [{ ...group, tools: members }] : [];
+  });
 }
 
 /** Stable ids for app-level tools that are not catalog entries. */
 export const APP_TOOL_IDS = {
   conversation: 'minimed.app.conversation',
   reference: 'minimed.app.reference',
+  patients: 'minimed.app.patients',
+  calculators: 'minimed.app.calculators',
+  assessments: 'minimed.app.assessments',
+  graph: 'minimed.app.graph',
+  randomRecord: 'minimed.app.random-record',
+  files: 'minimed.app.files',
+  noteTemplates: 'minimed.app.note-templates',
+  ctExample: 'minimed.app.ct-example',
 } as const;
 
 /** Catalog tools also offered among built-in tools (they have their own home entry). */
@@ -51,6 +88,7 @@ export function resolveToolRefs(
 }
 
 export function openQuickTool(tool: QuickTool): void {
+  if (tool.unavailableReason) return;
   if (tool.run) tool.run();
   else if (tool.href) window.location.hash = tool.href.replace(/^#?/u, '#');
 }

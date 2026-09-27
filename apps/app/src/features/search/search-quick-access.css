@@ -1,4 +1,4 @@
-/* Quick access above search: favourites menu, collections as folders, favourite chips. */
+/* Tool row under search: «Все инструменты» and favourite chips; the sheet groups every tool. */
 .search-quick-access {
   display: flex;
   align-items: center;
@@ -7,24 +7,38 @@
   margin-block: 0 0.6rem;
 }
 
-.search-quick-access__menu {
+.search-quick-access__row {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* The one fixed entry of the row: everything else in the row is the doctor's own favourites. */
+.search-quick-access__all {
   display: inline-flex;
   flex: none;
   align-items: center;
   gap: 0.4rem;
-  min-height: 2.5rem;
-  padding: 0.4rem 0.7rem;
-  border: 1px solid var(--theme-border);
+  min-height: 2.25rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px dashed var(--theme-accent);
   border-radius: 999px;
-  color: var(--theme-text);
-  background: var(--theme-surface-raised);
+  color: var(--theme-accent);
+  background: transparent;
   font: inherit;
-  font-size: 0.875rem;
-  font-weight: 650;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 
-.search-quick-access__menu:focus-visible,
+.search-quick-access__hint {
+  align-self: center;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.search-quick-access__all:focus-visible,
 .search-quick-access__chip:focus-visible,
 .quick-tool-row__open:focus-visible,
 .tool-collection-row__toggle:focus-visible,
@@ -34,18 +48,6 @@
 .tool-collection-form__submit:focus-visible {
   outline: 2px solid var(--theme-accent);
   outline-offset: 2px;
-}
-
-.search-quick-access__menu-icon {
-  width: 1rem;
-  height: 1rem;
-  color: var(--theme-warning);
-}
-
-.search-quick-access__menu-caret {
-  width: 0.875rem;
-  height: 0.875rem;
-  color: var(--theme-text-muted);
 }
 
 .search-quick-access__chips {
@@ -93,7 +95,6 @@
   white-space: nowrap;
 }
 
-.search-quick-access__panel,
 .tool-collection-menu {
   z-index: var(--z-dialog);
   display: grid;
@@ -169,6 +170,16 @@
   font: inherit;
   text-align: start;
   cursor: pointer;
+}
+
+.quick-tool-row__open:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.search-quick-access__chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .quick-tool-row__open--unavailable {
@@ -346,8 +357,8 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .search-quick-access__menu:hover,
-  .quick-tool-row__open:hover,
+  .search-quick-access__all:hover,
+  .quick-tool-row__open:not(:disabled):hover,
   .tool-collection-row__toggle:hover,
   .tool-collection-row__action:hover,
   .tool-pin__star:hover,
@@ -355,4 +366,16 @@
   .tool-collection-menu__option:hover {
     background: var(--theme-accent-soft);
   }
+}
+
+/* Inside the dialog the sheet is plain content: the dialog supplies the card, scroll and width. */
+.search-quick-access__panel {
+  display: grid;
+  gap: 1rem;
+  padding: 0.25rem 0 0.5rem;
+  color: var(--theme-text);
+}
+
+.search-quick-access__sheet {
+  width: min(34rem, 100%);
 }

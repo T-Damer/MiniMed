@@ -92,6 +92,24 @@ test('the help menu opens the feature tour and the search guide', async ({ page 
   await expect(page.getByRole('dialog', { name: 'Как работает поиск' })).toBeVisible();
 });
 
+test('the tool row holds «Все инструменты» and only the tools the doctor starred', async ({
+  page,
+}) => {
+  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  const row = page.locator('.search-quick-access');
+  await expect(row.locator('.search-quick-access__chip')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: 'Все инструменты' });
+  for (const group of ['Приём', 'Расчёты', 'Справочное', 'Файлы']) {
+    await expect(sheet.getByRole('heading', { name: group, exact: true })).toBeVisible();
+  }
+  await sheet.getByRole('button', { name: 'Добавить «Пациенты» в избранное' }).click();
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
+  await row.getByRole('button', { name: 'Пациенты', exact: true }).click();
+  await expect(page).toHaveURL(/#\/notes\/patients$/u);
+});
+
 test('renders ordinary lookup on a phone-sized browser and records query latency', async ({
   page,
 }) => {
