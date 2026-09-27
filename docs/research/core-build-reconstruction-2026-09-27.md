@@ -303,6 +303,79 @@ Enabling scripts to reproduce/tweak/re-check this analysis:
 existing `--core=` convention already on `run-lookup-quality.ts`/`run-runtime-retrieval.ts`);
 released `apps/app/public/content/core.db` is never touched by any of this.
 
+## entityType build defect (found by the ranking agent, 2026-09-27) — fixed, verified, not sufficient alone
+
+The ranking agent found the real mechanism behind the doctor-lookup regression above: in the
+candidate, all 744 clinical pointers carried `entityType: "reference"` instead of `"disease"`
+(released: 744/744 `"disease"`). `searchResultDocumentKind` needs `"disease"` to tell a clinical
+recommendation apart from an MKB code card; every clinical pointer defaulting to `"reference"`
+made that distinction disappear entirely.
+
+Root cause: `catalog_module_builder.py::_clinical_core_pointer_document` (~line 1587) defaulted
+an *undeclared* `entityType` to `"reference"`; `clinical_catalog.py::ClinicalCatalogRecord`
+defaults the same field to `"disease"` (~line 185). `data/build/official-clinical-coverage-ledger.json`
+on disk was stale (built before `entity_type` existed on that model) and had no `entityType` key
+at all, so every clinical record hit the wrong default. Fixed two ways:
+- Regenerated the ledger locally, no network needed (`data/raw/official-clinical-registry/
+  catalog.json` -- the *raw synced* catalog -- was already cached from Jul 27):
+  `medbase-clinical-catalog build --source data/raw/official-clinical-registry/catalog.json
+  --taxonomy content/clinical-module-taxonomy.yaml --overrides content/
+  clinical-coverage-overrides.yaml --output data/build/official-clinical-coverage-ledger.json`.
+  The current code already serializes `entity_type`'s default ("disease") with no
+  `exclude_defaults`, so the regenerated ledger now carries `"entityType": "disease"` explicitly
+  for all 744 records -- confirmed by inspection.
+- Flipped the default in `catalog_module_builder.py` itself to `"disease"` (mirroring
+  `clinical_catalog.py`) as defense-in-depth, in case a ledger ever lacks the field again.
+  Regression test: `tools/ingest/tests/test_catalog_module_builder.py::
+  test_clinical_core_pointer_defaults_to_disease_without_declared_entity_type` (a ledger record
+  with no `entityType` key must produce `entityType: disease`, not `reference`). Full
+  `tools/ingest` suite green (856 tests) after the change.
+
+Verified against the released core.db: `entityType` distribution now matches **exactly** across
+all three families (reference: disease 12,232 / syndrome 784 / reference 1 / symptom 339 /
+condition 2,548 -- clinical: disease 744 -- medication: medication 3,324, all identical).
+
+**This fix alone did not restore doctor-lookup to the released baseline** (rebuilt candidate,
+`core.0.7.0-test3.no-pilot.db`: `recallAt5` still 0.1, `mrrAt5` 0.05, vs the released core.db's
+**0.7 / 0.6** measured in this same session with the ranking agent's `5f4f9757` already applied --
+confirming the harness and ranking code are both being exercised correctly; the gap is real and
+specific to this candidate's data). Diffing the *full* `metadata_json` for the same clinical
+pointer (`kr.rf.714_2`, released vs candidate) found the actual dominant remaining cause: the
+candidate's clinical pointers are missing content the released ones have --
+`declaredAliases` (released: `["Пневмония", "Внебольничная пневмония", "ВП"]`, candidate: `[]`),
+`canonicalDefinition` (released: a real ~400-word clinical definition with source spans,
+candidate: `None`), `clinicalMedicationLinks` (released: 4 real drug-recommendation relations,
+candidate: `[]`), `definitionPreviewAnchor` (candidate: absent), and one extra per-document
+`moduleIds` entry. None of this comes from the base coverage ledger -- confirmed by inspecting the
+freshly regenerated ledger directly: `aliases: []`, `canonicalDefinition: None` for this same
+record. It is the **194-record clinical-definition-enrichment migration** already named as an open
+gap in this document's Stage 1 section (`clinical_definition_migration_006.py`), never wired into
+`scripts/build-core.mjs`'s `catalog-pointers-clinical` stage. Its inputs (`official_documents_root
+= data/build/official-clinical-documents`, populated locally, no network needed) exist on this
+machine, but wiring the migration in is nontrivial (it stages pointer markdown, cross-checks a
+ledger record set, extracts definitions from real fetched clinical-guideline text, and writes
+directly into the built SQLite) and was not attempted in this session -- this message's specific
+ask was the entityType defect, not this larger, separately-scoped enrichment gap. Recommend
+wiring `clinical_definition_migration_006.py` into the pipeline (or an equivalent that also
+populates `declaredAliases`/`clinicalMedicationLinks`, which that migration's docstring does not
+claim to cover either -- worth checking whether the released core.db's aliases/links came from
+that migration or from a still-different, unidentified step) as the next step before doctor-lookup
+can be expected to reach baseline.
+
+Full benchmark set on `core.0.7.0-test3.no-pilot.db` (entityType-fixed candidate):
+- `benchmark:lookup-quality`: **PASS** -- Top-1 = 1.0 (gate), discoveryAliasRecallAt20 = 0.9424
+  (≥ 0.9 gate, both satisfied).
+- `benchmark:doctor-lookup`: recallAt5 0.1, mrrAt5 0.05 (target was "not worse than released":
+  0.70 / 0.60) -- fails the target, root-caused above, not fixed.
+- `run-real-corpus.ts --check` (`--path=core --corpus=core`, `--path=app --corpus=all`): still
+  fails tolerance on pilot/demo/cases metrics, for the same combined reasons as before (fixtures
+  still expect removed pilot ids as primary targets, plus the same missing-enrichment content
+  above) -- slightly better than the pre-entityType-fix run (e.g. app pilot.recallAt5 0.049→0.098)
+  but nowhere near baseline.
+- `benchmark:runtime`: recallAt5 0.846 (unchanged from before the entityType fix; this fixture set
+  does not appear to exercise the clinical-vs-mkb scenario), `passed: false` on both released and
+  candidate in this sandbox (pre-existing `unverifiedDownloadQueries` gate, not caused by this work).
+
 ## What to run next
 
 ```bash

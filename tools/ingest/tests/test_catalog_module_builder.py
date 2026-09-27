@@ -940,6 +940,62 @@ def test_builds_compact_clinical_core_pointer(tmp_path: Path) -> None:
     assert report.modules[0].document_ids[0] != target_id
 
 
+def test_clinical_core_pointer_defaults_to_disease_without_declared_entity_type(
+    tmp_path: Path,
+) -> None:
+    """Regression test: a clinical ledger record with no `entityType` (as a stale ledger built
+    before that field existed on ClinicalCatalogRecord would produce) must still default to
+    "disease", mirroring ClinicalCatalogRecord.entity_type's own default in clinical_catalog.py --
+    not "reference". searchResultDocumentKind needs "disease" to tell a clinical recommendation
+    apart from an MKB code card; defaulting to "reference" here let short MKB cards outrank the
+    matching clinical recommendation in search (found by the ranking agent, 2026-09-27)."""
+    ledger = tmp_path / "clinical-pointers-no-entity-type.json"
+    target_id = "kr.rf.281_3"
+    module_id = "minimed.clinical.nephrology-urology.ru"
+    record = {
+        "recordId": target_id,
+        "title": "Инфекция мочевыводящих путей у детей",
+        "officialId": "281_3",
+        "aliases": [],
+        "keywords": [],
+        "icd10Codes": ["N39.0"],
+        "specialties": ["pediatrics", "urology"],
+        "ageCategories": ["Дети"],
+        "versionLabel": "281_3-2025",
+        "status": "active",
+        "sourceUrl": "https://example.test/281_3",
+        "moduleIds": [module_id],
+        "primaryModuleId": module_id,
+    }
+    assert "entityType" not in record
+    write_ledger(
+        ledger,
+        [record],
+        [
+            {
+                "moduleId": module_id,
+                "title": "Нефрология и урология",
+                "recordIds": [target_id],
+                "coverageCounts": {"published": 1},
+            }
+        ],
+    )
+    output = tmp_path / "clinical-core-pointers-no-entity-type"
+
+    report = build_core_catalog_pointers(
+        ledger,
+        output,
+        family="clinical",
+        version="2026.09.1",
+        built_at="2026-09-01T00:00:00Z",
+    )
+
+    module_dir = output / report.modules[0].directory
+    pointer_text = next(module_dir.glob("*.md")).read_text(encoding="utf-8")
+    assert "entityType: disease" in pointer_text
+    assert "entityType: reference" not in pointer_text
+
+
 def test_builds_compact_legal_core_pointer(tmp_path: Path) -> None:
     ledger = tmp_path / "legal-pointers.json"
     target_id = "law.ru.192n"

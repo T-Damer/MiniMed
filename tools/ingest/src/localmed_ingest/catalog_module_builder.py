@@ -1584,9 +1584,16 @@ def _clinical_core_pointer_document(
                 f"Clinical record {record_id} has an incomplete canonical definition: "
                 + ", ".join(missing_definition_fields or ["text"])
             )
+    # Mirrors ClinicalCatalogRecord.entity_type's default in clinical_catalog.py: an
+    # unclassified clinical-recommendation record is almost always about a disease, not a bare
+    # reference page, and searchResultDocumentKind needs "disease" to tell a clinical
+    # recommendation apart from an MKB code card (see docs/research/core-build-
+    # reconstruction-2026-09-27.md -- a stale ledger missing entityType entirely defaulted every
+    # clinical pointer to "reference" here, which measurably let short MKB cards outrank the
+    # matching clinical recommendation in search).
     declared_entity_type = _clean(record.get("entityType"))
     entity_type: Literal["disease", "reference"] = (
-        "disease" if declared_entity_type == "disease" else "reference"
+        "reference" if declared_entity_type == "reference" else "disease"
     )
     search_terms = _unique_texts(
         [
