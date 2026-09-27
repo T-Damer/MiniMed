@@ -29,6 +29,7 @@ import {
   displayDocumentSubtitle,
   displayDocumentTitle,
   documentSectionHeadingTag,
+  isAdministrativeMedicationSection,
   type MutableDocumentSectionTree,
   nestDocumentSections,
   resolveReadableDocumentId,
@@ -258,6 +259,16 @@ function MedicationProductPanel(props: {
   readonly onModeChange: (mode: MedicationReadingMode) => void;
 }): JSX.Element {
   const choices = () => medicationReadingChoices(props.product, props.openedDocumentId);
+  const presentationList = () => (
+    <For each={props.product.presentations}>
+      {(presentation) => (
+        <p class="document-medication-product__presentation">
+          {presentation.dosageForm}
+          <Show when={presentation.strength}> · {presentation.strength}</Show>
+        </p>
+      )}
+    </For>
+  );
   const sources = () => [
     ...(props.product.sourceKind === 'esklp' ? ['ЕСКЛП'] : []),
     ...(props.product.grlsRegistrationDocumentId || props.product.instructionDocumentId
@@ -296,16 +307,22 @@ function MedicationProductPanel(props: {
           {(note) => <p class="document-medication-product__reading-note">{note()}</p>}
         </Show>
       </div>
-      <div class="document-medication-product__presentations">
-        <For each={props.product.presentations}>
-          {(presentation) => (
-            <p class="document-medication-product__presentation">
-              {presentation.dosageForm}
-              <Show when={presentation.strength}> · {presentation.strength}</Show>
-            </p>
-          )}
-        </For>
-      </div>
+      <Show
+        when={props.product.presentations.length > 1}
+        fallback={
+          <div class="document-medication-product__presentations">{presentationList()}</div>
+        }
+      >
+        {/* Several packagings of one form read as noise above the text; they open on demand. */}
+        <Disclosure
+          variant="inline"
+          class="document-medication-product__forms"
+          title="Формы выпуска"
+          meta={props.product.presentations.length}
+        >
+          <div class="document-medication-product__presentations">{presentationList()}</div>
+        </Disclosure>
+      </Show>
       <Show when={links().length > 0}>
         <div class="document-medication-product__links">
           <For each={links()}>
@@ -1051,6 +1068,11 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                           classList={{
                             'document-overlay-section--active':
                               chrome.activeAnchor() === section.anchor,
+                            'document-overlay-section--administrative':
+                              isAdministrativeMedicationSection(
+                                section,
+                                documentValue().sourceType,
+                              ),
                           }}
                           id={section.anchor}
                         >

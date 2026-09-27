@@ -2343,7 +2343,7 @@ fieldset.search-mode-picker {
 .document-text-chunk {
   max-width: 74ch;
   margin: 0 0 0.9em;
-  font-size: 1rem;
+  font-size: var(--document-text-size, 1rem);
   line-height: 1.62;
 }
 

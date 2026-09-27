@@ -6,6 +6,7 @@ import {
   displayDocumentTitle,
   documentSectionHeadingTag,
   hasFullTextSibling,
+  isAdministrativeMedicationSection,
   isFullTextDocumentId,
   nestDocumentSections,
   orderDocumentSections,
@@ -95,6 +96,28 @@ describe('document-display', () => {
       'Регистрационная запись',
       'Ограничения',
     ]);
+  });
+
+  it('moves typed registration sections of an instruction to the end', () => {
+    const registration = { ...section('Регистрационный номер'), sectionType: 'registration' };
+    const ordered = orderDocumentSections(
+      [registration, section('Показания к применению'), section('Способ применения и дозы')],
+      'official_drug_instruction',
+    );
+    expect(ordered.map((item) => item.title)).toEqual([
+      'Показания к применению',
+      'Способ применения и дозы',
+      'Регистрационный номер',
+    ]);
+    expect(isAdministrativeMedicationSection(registration, 'official_drug_instruction')).toBe(true);
+    // Only medication readers demote registration details.
+    expect(isAdministrativeMedicationSection(registration, 'clinical_recommendation')).toBe(false);
+    expect(
+      isAdministrativeMedicationSection(
+        section('Регистрационный номер'),
+        'official_drug_instruction',
+      ),
+    ).toBe(false);
   });
 
   it('drops empty sections and the redundant Allmed medication card section', () => {

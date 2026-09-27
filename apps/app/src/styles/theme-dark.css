@@ -629,7 +629,7 @@
 
   /* Body copy is what a doctor reads at night; muted beige was noticeably dimmer than headings. */
   .document-overlay-section__paragraph {
-    color: var(--theme-text);
+    color: var(--document-text-color, var(--theme-text));
   }
 
   .document-overlay-outline-backdrop {

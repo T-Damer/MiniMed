@@ -135,18 +135,36 @@ export function nestDocumentSections(
   return roots;
 }
 
+/**
+ * Registration details (number, holder, restrictions of a registry card) matter for audit, not for
+ * treatment: medication readers show them last, in small print. The data marks them with the
+ * `registration` section type; registry cards without that type are recognised by their headings.
+ */
+export function isAdministrativeMedicationSection(
+  section: Pick<MedicalSection, 'title' | 'sectionType'>,
+  sourceType: string,
+): boolean {
+  if (!MEDICATION_READER_SOURCE_TYPES.has(sourceType)) return false;
+  if (section.sectionType === 'registration') return true;
+  return sourceType === 'official_registry_summary' && REGISTRY_SECTION_PATTERN.test(section.title);
+}
+
 export function orderDocumentSections(
   sections: readonly MedicalSection[],
   sourceType: string,
 ): readonly MedicalSection[] {
-  if (sourceType !== 'official_registry_summary') return sections;
-  const primary = sections.filter((section) => !REGISTRY_SECTION_PATTERN.test(section.title));
-  const administrative = sections.filter((section) => REGISTRY_SECTION_PATTERN.test(section.title));
+  const primary = sections.filter(
+    (section) => !isAdministrativeMedicationSection(section, sourceType),
+  );
+  if (primary.length === sections.length) return sections;
+  const administrative = sections.filter((section) =>
+    isAdministrativeMedicationSection(section, sourceType),
+  );
   return [...primary, ...administrative];
 }
 
 const REDUNDANT_MEDICATION_SECTION_TITLE = 'Карточка препарата';
-const MEDICATION_READER_SOURCE_TYPES = new Set([
+const MEDICATION_READER_SOURCE_TYPES: ReadonlySet<string> = new Set([
   'allmed_reference',
   'official_drug_instruction',
   'official_registry_summary',

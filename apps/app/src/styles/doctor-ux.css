@@ -419,6 +419,15 @@ html.app-chrome-hidden .document-overlay-paper::before {
   margin: 0 0 1.875rem;
 }
 
+/* Registration details of a medication: last, small, and left out of copied text. */
+.document-overlay-section--administrative {
+  --document-section-title-size: 0.9375rem;
+  --document-text-size: 0.8125rem;
+  --document-text-color: var(--theme-text-muted);
+  color: var(--theme-text-muted);
+  user-select: none;
+}
+
 .document-overlay-section__title--active {
   background: var(--document-paper-fill, var(--theme-surface-raised));
   box-shadow:
@@ -437,7 +446,7 @@ html.app-chrome-hidden .document-overlay-paper::before {
   margin: 0 0 0.75rem;
   padding: 0.4rem 0;
   font-family: var(--font-serif);
-  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-size: var(--document-section-title-size, clamp(1.25rem, 3vw, 1.75rem));
   font-weight: 500;
   line-height: 1.2;
 }
@@ -575,7 +584,7 @@ html.app-chrome-hidden .document-overlay-section__title--h6 {
   max-width: 74ch;
   margin: 0 0 0.9em;
   /* 14px body text on phones was below comfortable reading size for long guidelines. */
-  font-size: 1rem;
+  font-size: var(--document-text-size, 1rem);
   line-height: 1.62;
 }
 
