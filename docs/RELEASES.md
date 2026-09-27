@@ -11,9 +11,15 @@
 3. Run `bun run verify`.
 4. Run targeted browser E2E for changed UI flows. The complete Web E2E workflow is manual.
 5. Run relevant native smoke checks when native behavior changes. Android native qualification is manual.
-6. Review the generated benchmark and integrity reports.
-7. Confirm no real patient data, source PDFs, or API keys are tracked.
-8. Push a release commit only from a clean working tree; the release workflow creates the tag and
+6. With every companion pack (`mkb.db`, `medications.db`, `ambulatory.db`, `regulatory.db`,
+   `reference.db`) present in `apps/app/public/content`, run `bun run benchmark:real:release`: the
+   app's «Клинический разбор» path over the full released corpus, checked against the ratchet
+   baseline in `tools/benchmarks/real-corpus-baseline.json` (a metric may not fall more than 0.02).
+   CI runs `benchmark:all`, the same query sets over `core.db` alone. After a search improvement,
+   raise the baseline with `--write-baseline` in a separate commit.
+7. Review the generated benchmark and integrity reports.
+8. Confirm no real patient data, source PDFs, or API keys are tracked.
+9. Push a release commit only from a clean working tree; the release workflow creates the tag and
    prerelease after all gates pass.
 
 Application and downloadable-corpus versions are independent. An app-only release may reuse the current

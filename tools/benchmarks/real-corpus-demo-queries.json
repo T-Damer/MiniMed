@@ -41,9 +41,13 @@
       "query": "амоксициллин клавулановая кислота",
       "category": "medication",
       "status": "retargeted",
-      "expectedTargets": ["drug.allmed.3324", "drug.rf.amoxicillin-clavulanate.suspension-400-57"],
+      "expectedTargets": [
+        "esklp.mnn.амоксициллин-клавулановая-кислота",
+        "drug.allmed.3324",
+        "drug.rf.amoxicillin-clavulanate.suspension-400-57"
+      ],
       "demoTarget": "kr.demo.pediatrics.pneumonia",
-      "note": "A drug name is a medication lookup; the demo pointed it at the pneumonia guideline."
+      "note": "A drug name is a medication lookup; the demo pointed it at the pneumonia guideline. The ESKLP registry record and the Allmed instruction of the INN are the answer."
     },
     {
       "id": "demo.05",
@@ -284,6 +288,26 @@
       "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
     }
   ],
+  "pilotAdditionalTargets": {
+    "note": "Pilot drug queries name one registered product. On the released corpus the ESKLP registry record of the same INN and the Allmed instruction of that INN are also correct answers (coordinator decision, 2026-09-27); the drug.rf.* summaries leave together with the pilot.",
+    "targets": {
+      "drug.amoxicillin-clavulanate.registry": [
+        "esklp.mnn.амоксициллин-клавулановая-кислота",
+        "drug.allmed.3324"
+      ],
+      "drug.azithromycin.registry": ["esklp.mnn.азитромицин", "drug.allmed.6"],
+      "drug.ceftriaxone.registry": ["esklp.mnn.цефтриаксон", "drug.allmed.525"],
+      "drug.ceftriaxone.pediatric-pneumonia-workflow": ["esklp.mnn.цефтриаксон", "drug.allmed.525"],
+      "drug.amoxicillin-tablets.registry": ["esklp.mnn.амоксициллин", "drug.allmed.8"],
+      "drug.ibuprofen.registry": ["esklp.mnn.ибупрофен", "drug.allmed.11"],
+      "drug.paracetamol.registry": ["esklp.mnn.парацетамол", "drug.allmed.10"],
+      "drug.oral-rehydration-salts.registry": [
+        "esklp.mnn.декстроза-калия-хлорид-натрия-хлорид-натрия-цитрат",
+        "drug.allmed.372"
+      ],
+      "drug.oseltamivir.registry": ["esklp.mnn.осельтамивир", "drug.allmed.1676"]
+    }
+  },
   "cases": [
     {
       "id": "respiratory-with-negation-and-treatment",

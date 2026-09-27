@@ -32,11 +32,18 @@ export interface RealCorpus {
 }
 
 export async function openRealCorpus(
-  options: { readonly embedder?: QueryEmbedder } = {},
+  options: {
+    readonly embedder?: QueryEmbedder;
+    /** `false` mounts core.db alone, as CI has it after content:restore:core. */
+    readonly companions?: boolean;
+  } = {},
 ): Promise<RealCorpus> {
   const corePath = resolve(CONTENT, 'core.db');
   if (!existsSync(corePath)) throw new Error(`Missing ${corePath}; run content:restore:core.`);
-  const companions = COMPANIONS.filter(([file]) => existsSync(resolve(CONTENT, file)));
+  const companions =
+    options.companions === false
+      ? []
+      : COMPANIONS.filter(([file]) => existsSync(resolve(CONTENT, file)));
   const store = new MultiMedicalStore([
     {
       moduleId: 'minimed.core.ru',
