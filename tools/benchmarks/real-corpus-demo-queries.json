@@ -1,0 +1,355 @@
+{
+  "queries": [
+    {
+      "id": "demo.01",
+      "query": "лихорадка кашель тахипноэ",
+      "category": "exact",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    },
+    {
+      "id": "demo.02",
+      "query": "ребенок часто дышит и температурит",
+      "category": "alias",
+      "status": "mapped",
+      "expectedTargets": [
+        "kr.rf.714_2.pneumonia",
+        "kr.rf.714_2",
+        "kr.rf.360_3.bronchiolitis",
+        "kr.rf.360_3"
+      ],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    },
+    {
+      "id": "demo.03",
+      "query": "сатурация одышка кашель",
+      "category": "symptoms",
+      "status": "mapped",
+      "expectedTargets": [
+        "kr.rf.714_2.pneumonia",
+        "kr.rf.714_2",
+        "kr.rf.360_3.bronchiolitis",
+        "kr.rf.360_3",
+        "kr.rf.381_3.bronchitis",
+        "kr.rf.381_3"
+      ],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    },
+    {
+      "id": "demo.04",
+      "query": "амоксициллин клавулановая кислота",
+      "category": "medication",
+      "status": "retargeted",
+      "expectedTargets": ["drug.allmed.3324", "drug.rf.amoxicillin-clavulanate.suspension-400-57"],
+      "demoTarget": "kr.demo.pediatrics.pneumonia",
+      "note": "A drug name is a medication lookup; the demo pointed it at the pneumonia guideline."
+    },
+    {
+      "id": "demo.05",
+      "query": "аугментин пневмония",
+      "category": "alias",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    },
+    {
+      "id": "demo.06",
+      "query": "общий анализ крови маркеры воспаления",
+      "category": "investigation",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.pediatrics.pneumonia",
+      "note": "Unspecific: many conditions and sources match; no single correct target."
+    },
+    {
+      "id": "demo.07",
+      "query": "затруднение дыхания не может пить",
+      "category": "lay",
+      "status": "mapped",
+      "expectedTargets": [
+        "kr.rf.714_2.pneumonia",
+        "kr.rf.714_2",
+        "kr.rf.360_3.bronchiolitis",
+        "kr.rf.360_3"
+      ],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    },
+    {
+      "id": "demo.08",
+      "query": "частота дыхания температура сатурация",
+      "category": "investigation",
+      "status": "mapped",
+      "expectedTargets": [
+        "kr.rf.714_2.pneumonia",
+        "kr.rf.714_2",
+        "kr.rf.360_3.bronchiolitis",
+        "kr.rf.360_3"
+      ],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    },
+    {
+      "id": "demo.09",
+      "query": "заболевание нижних дыхательных путей",
+      "category": "exact",
+      "status": "mapped",
+      "expectedTargets": [
+        "kr.rf.714_2.pneumonia",
+        "kr.rf.714_2",
+        "kr.rf.381_3.bronchitis",
+        "kr.rf.381_3",
+        "kr.rf.360_3.bronchiolitis",
+        "kr.rf.360_3",
+        "kr.rf.891_1",
+        "kr.rf.654_2"
+      ],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    },
+    {
+      "id": "demo.10",
+      "query": "маршрутизация тяжесть дыхательных нарушений",
+      "category": "routing",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.pediatrics.pneumonia",
+      "note": "The phrase quotes the demo document; on the real corpus it names no single source."
+    },
+    {
+      "id": "demo.11",
+      "query": "правая подвздошная область рвота",
+      "category": "exact",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.64_2", "kr.rf.325_2"],
+      "demoTarget": "kr.demo.surgery.appendicitis"
+    },
+    {
+      "id": "demo.12",
+      "query": "Боль справа внизу живота, тошнота и рвота",
+      "category": "alias",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.64_2", "kr.rf.325_2"],
+      "demoTarget": "kr.demo.surgery.appendicitis"
+    },
+    {
+      "id": "demo.13",
+      "query": "боль в животе снижение аппетита",
+      "category": "symptoms",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.surgery.appendicitis",
+      "note": "Unspecific: many conditions and sources match; no single correct target."
+    },
+    {
+      "id": "demo.14",
+      "query": "своевременная оценка хирургом",
+      "category": "routing",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.surgery.appendicitis",
+      "note": "The phrase quotes the demo document; on the real corpus it names no single source."
+    },
+    {
+      "id": "demo.15",
+      "query": "миграция боли стул мочеиспускание",
+      "category": "investigation",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.surgery.appendicitis",
+      "note": "The phrase quotes the demo document; on the real corpus it names no single source."
+    },
+    {
+      "id": "demo.16",
+      "query": "острая абдоминальная боль мезаденит",
+      "category": "differential",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.64_2", "kr.rf.325_2"],
+      "demoTarget": "kr.demo.surgery.appendicitis"
+    },
+    {
+      "id": "demo.17",
+      "query": "аппендицит клиническая картина",
+      "category": "exact",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.64_2", "kr.rf.325_2"],
+      "demoTarget": "kr.demo.surgery.appendicitis"
+    },
+    {
+      "id": "demo.18",
+      "query": "субфебрильная температура рвота",
+      "category": "symptoms",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.surgery.appendicitis",
+      "note": "Unspecific: many conditions and sources match; no single correct target."
+    },
+    {
+      "id": "demo.19",
+      "query": "гастроэнтерит инфекция мочевых путей мезаденит",
+      "category": "differential",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.surgery.appendicitis",
+      "note": "A differential list of three conditions, not a lookup for one source."
+    },
+    {
+      "id": "demo.20",
+      "query": "локализация и миграция боли",
+      "category": "investigation",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.surgery.appendicitis",
+      "note": "The phrase quotes the demo document; on the real corpus it names no single source."
+    },
+    {
+      "id": "demo.21",
+      "query": "лихорадка без очага дизурия",
+      "category": "symptoms",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
+    },
+    {
+      "id": "demo.22",
+      "query": "оам бактериальная культура мочи",
+      "category": "alias",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
+    },
+    {
+      "id": "demo.23",
+      "query": "рези при мочеиспускании",
+      "category": "lay",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
+    },
+    {
+      "id": "demo.24",
+      "query": "болезненное мочеиспускание поясница",
+      "category": "symptoms",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3", "kr.rf.9_3"],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
+    },
+    {
+      "id": "demo.25",
+      "query": "бактериальная культура мочи",
+      "category": "investigation",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
+    },
+    {
+      "id": "demo.26",
+      "query": "антибактериальная терапия ответ на лечение",
+      "category": "treatment",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection",
+      "note": "Unspecific: many conditions and sources match; no single correct target."
+    },
+    {
+      "id": "demo.27",
+      "query": "маленький ребенок неспецифичные проявления",
+      "category": "lay",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection",
+      "note": "The phrase quotes the demo document; on the real corpus it names no single source."
+    },
+    {
+      "id": "demo.28",
+      "query": "образец мочи до терапии",
+      "category": "investigation",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
+    },
+    {
+      "id": "demo.29",
+      "query": "факторы риска повторная оценка",
+      "category": "follow-up",
+      "status": "excluded",
+      "expectedTargets": [],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection",
+      "note": "Unspecific: many conditions and sources match; no single correct target."
+    },
+    {
+      "id": "demo.30",
+      "query": "учащенное мочеиспускание боль в пояснице",
+      "category": "symptoms",
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3", "kr.rf.9_3"],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
+    }
+  ],
+  "cases": [
+    {
+      "id": "respiratory-with-negation-and-treatment",
+      "query": "Мальчик 5 лет. Второй день температура до 39,2 °C, часто дышит. Кашля нет. Сатурация 94%. Принимает аугментин.",
+      "expectedFactKinds": [
+        "sex",
+        "age",
+        "duration",
+        "temperature",
+        "symptom",
+        "negative-finding",
+        "measurement",
+        "medication"
+      ],
+      "expectedBranchKinds": ["clinical", "medication", "clause"],
+      "negativeContains": ["каш"],
+      "excludedClinicalTerms": ["кашл"],
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    },
+    {
+      "id": "migrating-abdominal-pain",
+      "query": "Девочка 9 лет. Боль началась вчера около пупка, затем сместилась справа внизу живота. Дважды была рвота. ОАК: лейкоцитоз.",
+      "expectedFactKinds": ["sex", "age", "duration", "location", "investigation"],
+      "expectedBranchKinds": ["clinical", "investigation", "clause"],
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.64_2"],
+      "demoTarget": "kr.demo.surgery.appendicitis"
+    },
+    {
+      "id": "urinary-case-with-negative-respiratory-findings",
+      "query": "Девочка 4 лет, третий день температура 38,7 без кашля и насморка. Жалуется на рези при мочеиспускании. Общий анализ мочи: лейкоцитурия.",
+      "expectedFactKinds": [
+        "sex",
+        "age",
+        "duration",
+        "temperature",
+        "symptom",
+        "negative-finding",
+        "investigation"
+      ],
+      "expectedBranchKinds": ["clinical", "investigation", "clause"],
+      "negativeContains": ["каш"],
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
+    },
+    {
+      "id": "uncertain-history",
+      "query": "Со слов матери, ребёнку 2 года. Кажется, уже 3 дня лихорадка около 38. Часто дышит, но сатурация 97%.",
+      "expectedFactKinds": ["age", "duration", "temperature", "symptom", "measurement"],
+      "expectedBranchKinds": ["clinical", "clause"],
+      "minimumWarnings": 1,
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    },
+    {
+      "id": "therapy-and-investigation-branches",
+      "query": "Мальчик 6 лет, кашель и лихорадка 3 дня, принимает аугментин по поводу предполагаемой пневмонии. ОАК выполнен.",
+      "expectedFactKinds": ["sex", "age", "duration", "medication", "investigation"],
+      "expectedBranchKinds": ["clinical", "medication", "investigation", "clause"],
+      "status": "mapped",
+      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "demoTarget": "kr.demo.pediatrics.pneumonia"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+// The released corpus as the app mounts it: apps/app/public/content/core.db plus every companion
+// pack present there, with the app's search weights. Benchmarks on it replace the former pilot
+// and demo corpora; no benchmark depends on content that is not shipped to users.
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
+import { createMedicalCore } from '@localmed/core';
+import type { QueryEmbedder } from '@localmed/search-semantic';
+import { MultiMedicalStore } from '@localmed/storage';
+
+import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
+
+export const REPOSITORY_ROOT = resolve(import.meta.dirname, '../../..');
+const CONTENT = resolve(REPOSITORY_ROOT, 'apps/app/public/content');
+// Mirrors builtInCompanionMounts in apps/app/src/composition/create-browser-core.ts.
+const COMPANIONS = [
+  ['mkb.db', 1.05],
+  ['medications.db', 1.15],
+  ['ambulatory.db', 1.05],
+  ['regulatory.db', 1.12],
+  ['reference.db', 1.08],
+] as const;
+
+export interface RealCorpus {
+  readonly core: MedicalCore;
+  /** The databases mounted, core first; companions that are not present locally are skipped. */
+  readonly corpus: readonly string[];
+  readonly documents: ReadonlyMap<string, MedicalDocumentSummary>;
+  /** A catalog pointer stands for the document it points to (`kr.rf.714_2`). */
+  readonly target: (documentId: string) => string;
+}
+
+export async function openRealCorpus(
+  options: { readonly embedder?: QueryEmbedder } = {},
+): Promise<RealCorpus> {
+  const corePath = resolve(CONTENT, 'core.db');
+  if (!existsSync(corePath)) throw new Error(`Missing ${corePath}; run content:restore:core.`);
+  const companions = COMPANIONS.filter(([file]) => existsSync(resolve(CONTENT, file)));
+  const store = new MultiMedicalStore([
+    {
+      moduleId: 'minimed.core.ru',
+      store: await createBunFileMedicalStore(corePath),
+      required: true,
+      searchWeight: 1.1,
+    },
+    ...(await Promise.all(
+      companions.map(async ([file, searchWeight]) => ({
+        moduleId: file,
+        store: await createBunFileMedicalStore(resolve(CONTENT, file)),
+        required: true,
+        searchWeight,
+      })),
+    )),
+  ]);
+  const core = createMedicalCore({
+    store,
+    platform: 'test',
+    ...(options.embedder ? { embedder: options.embedder } : {}),
+  });
+  const initialized = await core.initialize();
+  if (!initialized.ok) throw new Error(initialized.error.message);
+  const listed = await core.listDocuments();
+  if (!listed.ok) throw new Error(listed.error.message);
+  const documents = new Map(listed.value.map((document) => [document.id, document]));
+  return {
+    core,
+    corpus: ['core.db', ...companions.map(([file]) => file)],
+    documents,
+    target: (documentId) => {
+      const pointed = documents.get(documentId)?.metadata?.['targetDocumentId'];
+      return typeof pointed === 'string' ? pointed : documentId;
+    },
+  };
+}

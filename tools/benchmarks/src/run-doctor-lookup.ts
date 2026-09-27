@@ -1,14 +1,10 @@
-// Doctor phrasing on the real corpus, through the exact lookup path of the app: the released
-// core.db plus every companion pack present in apps/app/public/content, mounted with the app's
-// search weights, the «Все источники» scope and lexical lookup. No pilot or demo corpus.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+// Doctor phrasing on the real corpus, through the exact lookup path of the app: the «Все
+// источники» scope and lexical lookup over core.db plus the companion packs.
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
-import { createMedicalCore } from '@localmed/core';
-import { MultiMedicalStore } from '@localmed/storage';
-
 import { ScopedMedicalCore } from '../../../apps/app/src/features/search/ScopedMedicalCore';
-import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
+import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
 
 interface DoctorLookupCase {
   readonly id: string;
@@ -19,55 +15,14 @@ interface DoctorLookupCase {
   readonly forbiddenTargets: readonly string[];
 }
 
-const root = resolve(import.meta.dirname, '../../..');
-const content = resolve(root, 'apps/app/public/content');
-const reportPath = resolve(root, 'data/build/doctor-lookup-report.json');
-// Mirrors builtInCompanionMounts in apps/app/src/composition/create-browser-core.ts.
-const COMPANIONS = [
-  ['mkb.db', 1.05],
-  ['medications.db', 1.15],
-  ['ambulatory.db', 1.05],
-  ['regulatory.db', 1.12],
-  ['reference.db', 1.08],
-] as const;
-
+const reportPath = resolve(REPOSITORY_ROOT, 'data/build/doctor-lookup-report.json');
 const cases = JSON.parse(
-  readFileSync(resolve(root, 'tools/benchmarks/doctor-lookup-queries.json'), 'utf8'),
+  readFileSync(resolve(REPOSITORY_ROOT, 'tools/benchmarks/doctor-lookup-queries.json'), 'utf8'),
 ) as readonly DoctorLookupCase[];
 if (new Set(cases.map((item) => item.id)).size !== cases.length)
   throw new Error('Doctor lookup fixture contains duplicate ids.');
 
-const corePath = resolve(content, 'core.db');
-if (!existsSync(corePath)) throw new Error(`Missing ${corePath}; run content:restore:core.`);
-const companions = COMPANIONS.filter(([file]) => existsSync(resolve(content, file)));
-const store = new MultiMedicalStore([
-  {
-    moduleId: 'minimed.core.ru',
-    store: await createBunFileMedicalStore(corePath),
-    required: true,
-    searchWeight: 1.1,
-  },
-  ...(await Promise.all(
-    companions.map(async ([file, searchWeight]) => ({
-      moduleId: file,
-      store: await createBunFileMedicalStore(resolve(content, file)),
-      required: true,
-      searchWeight,
-    })),
-  )),
-]);
-const core = createMedicalCore({ store, platform: 'test' });
-const initialized = await core.initialize();
-if (!initialized.ok) throw new Error(initialized.error.message);
-const listed = await core.listDocuments();
-if (!listed.ok) throw new Error(listed.error.message);
-const documents = new Map(listed.value.map((document) => [document.id, document]));
-/** A catalog pointer stands for the document it points to. */
-const target = (id: string): string => {
-  const pointed = documents.get(id)?.metadata?.['targetDocumentId'];
-  return typeof pointed === 'string' ? pointed : id;
-};
-
+const { core, corpus, target } = await openRealCorpus();
 const scoped = new ScopedMedicalCore(core, 'all');
 const rows = [];
 for (const fixture of cases) {
@@ -97,7 +52,7 @@ await core.close();
 const mean = (values: readonly number[]) =>
   values.reduce((sum, value) => sum + value, 0) / Math.max(values.length, 1);
 const summary = {
-  corpus: ['core.db', ...companions.map(([file]) => file)],
+  corpus,
   queryCount: rows.length,
   recallAt5: mean(rows.map((row) => Number(row.hitAt5))),
   mrrAt5: mean(rows.map((row) => row.reciprocalRank)),

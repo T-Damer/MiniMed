@@ -146,6 +146,7 @@
     "content:restore:core": "bun scripts/restore-core.mjs",
     "benchmark:lookup-quality": "bun run --filter @localmed/benchmarks benchmark:lookup-quality",
     "benchmark:doctor-lookup": "bun run --filter @localmed/benchmarks benchmark:doctor-lookup",
+    "benchmark:real": "bun run --filter @localmed/benchmarks benchmark:real",
     "benchmark:clinical-quality": "bun run --filter @localmed/benchmarks benchmark:clinical-quality",
     "benchmark:search-quality-v2": "bun run benchmark:lookup-quality && bun run benchmark:clinical-quality",
     "benchmark:search-coverage-observations": "bun run --filter @localmed/benchmarks benchmark:search-coverage-observations",
