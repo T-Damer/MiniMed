@@ -2011,6 +2011,82 @@ function buildBranches(
     : selected;
 }
 
+// The reference-family cross-source mapping is the only place a shared classification code
+// legitimately attaches one alias surface to several unrelated targets
+// (tools/ingest/.../catalog_module_builder.py::_map_reference_aliases writes these with
+// category="diagnosis"; measured directly: that category alone grew from 12,435 to 29,003 rows
+// across a fan-out rebuild, while "clinical-recommendation", "medication" and every other category
+// were unaffected). A clinical pointer's own declared alias can share the exact same surface text
+// (e.g. both kr.rf.1031_1 and several unrelated MKB/krasotaimedicina cards declare "Энцефалит") —
+// that is the pointer's own identity, never diagnosis-category cross-mapping, so only
+// "diagnosis"-category aliases are considered for ambiguity at all.
+function ambiguousDiagnosisAliasSurfaceForms(
+  matchedAliases: readonly AliasRecord[],
+): ReadonlySet<string> {
+  const targetsBySurface = new Map<string, Set<string>>();
+  for (const alias of matchedAliases) {
+    if (alias.category !== 'diagnosis') continue;
+    const surface = normalizeSurfaceText(alias.alias);
+    const targets = targetsBySurface.get(surface) ?? new Set<string>();
+    targets.add(normalizeSurfaceText(alias.canonicalTerm));
+    targetsBySurface.set(surface, targets);
+  }
+  // A shared classification code names the same condition under two sources as often as it names
+  // several distinct, unrelated ones (the same tension the ingest-side alias mapping accepts, see
+  // above): the disease's own krasotaimedicina-style entry plus its bare mkb.db code entry is a
+  // structural, harmless duplicate that exists for the overwhelming majority (measured: 9,551 of
+  // ~10,900 matched diagnosis-alias surface forms on the released corpus) of diagnosis aliases,
+  // released or candidate, fan-out fix or not. Only a surface form spread across MORE than that
+  // two-pack baseline is treated as genuine cross-condition ambiguity worth diluting.
+  const ambiguous = new Set<string>();
+  for (const [surface, targets] of targetsBySurface) {
+    if (targets.size > 2) ambiguous.add(surface);
+  }
+  return ambiguous;
+}
+
+// At query time an ambiguous diagnosis-alias surface form expands into terms from every one of its
+// targets at once — a word like "менингит" then also pulls in "отогенные", "лептоменингит", "анти",
+// "nmda" and more, none of which the doctor typed, crowding a specific clinical recommendation off a
+// fixed top-k with generic reference cards that only share the synonym
+// (docs/research/search-kr-pointers-vs-mkb-2026-09.md). Terms reachable ONLY through such an
+// ambiguous diagnosis alias go in a separate, lower-weight branch: still searched in full (no recall
+// lost), but no longer competing at full strength with the original query words, a clinical
+// pointer's own declared alias, or any unambiguous alias in branch fusion
+// (packages/core/src/create-medical-core.ts::fuseBranchHits).
+const AMBIGUOUS_ALIAS_BRANCH_WEIGHT = 0.35;
+
+// An ICD-10-shaped token ("g00", "j03") stays a precise identifier even inside an ambiguous
+// alias's canonical term ("G00 Бактериальный менингит..., МКБ-10"): unlike a generic disease-name
+// word it rarely occurs incidentally, and a clinical recommendation often declares the same code as
+// its own alias (kr.rf.306_3 declares "J02"/"J03" directly). Diluting it along with the surrounding
+// disease-name words would also weaken that legitimate, unambiguous cross-reference.
+const ICD10_LIKE_TOKEN_PATTERN = /^[a-zа-я]\d{2,3}$/u;
+
+function splitAliasExpansionTerms(matchedAliases: readonly AliasRecord[]): {
+  readonly strongTerms: readonly string[];
+  readonly dilutedTerms: readonly string[];
+} {
+  const ambiguousSurfaces = ambiguousDiagnosisAliasSurfaceForms(matchedAliases);
+  const strong = new Set<string>();
+  const diluted = new Set<string>();
+  for (const alias of matchedAliases) {
+    const isAmbiguousDiagnosisAlias =
+      alias.category === 'diagnosis' && ambiguousSurfaces.has(normalizeSurfaceText(alias.alias));
+    for (const term of tokenize(alias.canonicalTerm)) {
+      const bucket =
+        !isAmbiguousDiagnosisAlias || ICD10_LIKE_TOKEN_PATTERN.test(term) ? strong : diluted;
+      bucket.add(term);
+    }
+  }
+  return {
+    strongTerms: [...strong],
+    // A term shared with an unambiguous/non-diagnosis alias (or the original query) keeps its
+    // full strength.
+    dilutedTerms: [...diluted].filter((term) => !strong.has(term)),
+  };
+}
+
 /** Source lookup keeps vocabulary expansion but does not interpret a patient's clinical case. */
 export function buildLookupQueryPlan(
   query: string,
@@ -2018,15 +2094,29 @@ export function buildLookupQueryPlan(
   preparedExpansion?: ReturnType<typeof expandAliases>,
 ): ClinicalQueryPlan {
   const expansion = preparedExpansion ?? expandAliases(query, aliases);
+  const { strongTerms, dilutedTerms } = splitAliasExpansionTerms(expansion.matchedAliases);
   const branch = makeBranch(
     'lookup',
     'original',
     'Поиск по источникам',
     query,
-    [query, ...expansion.terms],
+    [query, ...strongTerms],
     1,
   );
-  const branches = branch ? [branch] : [];
+  const dilutedBranch =
+    dilutedTerms.length > 0
+      ? makeBranch(
+          'lookup-broad-alias',
+          'original',
+          'Поиск по источникам (широкий синоним)',
+          query,
+          dilutedTerms,
+          AMBIGUOUS_ALIAS_BRANCH_WEIGHT,
+        )
+      : null;
+  const branches = [branch, dilutedBranch].filter(
+    (candidate): candidate is LexicalQueryBranchPlan => candidate !== null,
+  );
   return {
     analysis: {
       originalQuery: query,
@@ -2038,8 +2128,8 @@ export function buildLookupQueryPlan(
     },
     branches,
     aliasMatches: expansion.matches,
-    terms: branch?.terms ?? [],
-    ftsQuery: branch?.ftsQuery ?? '',
+    terms: [...new Set(branches.flatMap((item) => item.terms))],
+    ftsQuery: branches.map((item) => item.ftsQuery).join(' || '),
   };
 }
 
