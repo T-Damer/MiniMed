@@ -38,6 +38,9 @@ KINDS = frozenset(
         "law",
         "tool",
         "history_note",
+        # Abbreviation expansions are a distinct, non-clinical-definition record type; see
+        # definition_reference_scope.definition_scope and clinical_definition_sections.
+        "abbreviation",
     }
 )
 COVERAGE = frozenset(
@@ -55,6 +58,8 @@ COVERAGE = frozenset(
         "cross-reference",
         "mention-only",
         "gloss",
+        # Abbr -> expansion; never a clinical definition. Only valid on kind == "abbreviation".
+        "abbreviation",
     }
 )
 TEXT_KINDS = {1: "editorial-paraphrase", 2: "source-gloss", 3: "source-excerpt"}

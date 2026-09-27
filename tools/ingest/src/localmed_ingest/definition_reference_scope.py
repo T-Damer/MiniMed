@@ -27,31 +27,55 @@ class ScopeEntry(Protocol):
     def kind(self) -> str: ...
 
 
+def _record_type(entry: ScopeEntry) -> str:
+    if entry.kind == "abbreviation":
+        return "abbreviation"
+    if entry.text_kind == "source-gloss":
+        return "lexical-gloss"
+    return "clinical-definition"
+
+
 def definition_scope(
     entries: Mapping[str, ScopeEntry],
 ) -> tuple[set[str], dict[str, object]]:
-    """Return a source-local selection; coverage labels are not medical approval."""
+    """Return a source-local selection; coverage labels are not medical approval.
+
+    Three disjoint record types can be selected, each requiring its own explicit coverage
+    label so one type can never be silently promoted into another:
+
+    - clinical definitions (``coverage`` in {"definition", "explicit-definition"});
+    - Wiktionary lexical glosses (``text_kind == "source-gloss"`` and ``coverage == "gloss"``),
+      kept distinct so the UI can label them "Викисловарь" rather than a clinical card;
+    - abbreviation expansions (``kind == "abbreviation"`` and ``coverage == "abbreviation"``),
+      which are never counted as clinical definitions.
+    """
     selected: set[str] = set()
     excluded: list[dict[str, str]] = []
     coverage: Counter[str] = Counter()
     kinds: Counter[str] = Counter()
     reasons: Counter[str] = Counter()
+    record_types: Counter[str] = Counter()
     for identifier, entry in sorted(entries.items()):
         if identifier != entry.id:
             raise ValueError("Definition scope identity differs from its source key")
-        reason = (
-            "lexical-gloss-not-clinical-definition"
-            if entry.text_kind == "source-gloss"
-            else "history-is-a-separate-reference"
-            if entry.kind == "history_note"
-            else "not-a-standalone-definition"
-            if entry.coverage not in {"definition", "explicit-definition"}
-            else None
-        )
+        record_type = _record_type(entry)
+        if entry.kind == "history_note":
+            reason: str | None = "history-is-a-separate-reference"
+        elif record_type == "abbreviation":
+            reason = None if entry.coverage == "abbreviation" else "not-a-standalone-definition"
+        elif record_type == "lexical-gloss":
+            reason = None if entry.coverage == "gloss" else "lexical-gloss-not-clinical-definition"
+        else:
+            reason = (
+                None
+                if entry.coverage in {"definition", "explicit-definition"}
+                else "not-a-standalone-definition"
+            )
         if reason is None:
             selected.add(identifier)
             coverage[entry.coverage] += 1
             kinds[entry.kind] += 1
+            record_types[record_type] += 1
         else:
             reasons[reason] += 1
             excluded.append({"id": identifier, "coverage": entry.coverage, "reason": reason})
@@ -63,13 +87,15 @@ def definition_scope(
         "excludedRecords": len(excluded),
         "selectedByCoverage": dict(coverage),
         "selectedByKind": dict(kinds),
+        "selectedByRecordType": dict(record_types),
         "excludedByReason": dict(reasons),
         "excludedEntries": excluded,
         "selectedIdsSha256": hashlib.sha256(serialized).hexdigest(),
         "boundary": (
             "Source-local definition candidates, not unique concepts or medical approval. "
-            "Original inputs, source blocks and annotations remain unchanged. "
-            "Lexical glosses and other reference cards remain in the authoring sources; "
-            "a definition of a scale does not enable scoring or treatment decisions."
+            "Original inputs, source blocks and annotations remain unchanged. Lexical "
+            "glosses and abbreviation expansions are selected as their own record types, "
+            "not clinical definitions; a definition of a scale does not enable scoring or "
+            "treatment decisions."
         ),
     }

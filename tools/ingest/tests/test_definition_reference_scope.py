@@ -47,13 +47,33 @@ def test_nondefinition_cards_do_not_pad_dictionary_count(coverage: str) -> None:
     assert report["excludedRecords"] == 1
 
 
-@pytest.mark.parametrize("coverage", ["definition", "explicit-definition", "gloss"])
-def test_lexical_source_is_not_promoted_by_a_default_coverage_label(coverage: str) -> None:
+@pytest.mark.parametrize("coverage", ["definition", "explicit-definition"])
+def test_lexical_source_is_not_promoted_by_a_clinical_coverage_label(coverage: str) -> None:
     selected, report = definition_scope(
         {"a": ExampleEntry("a", coverage, text_kind="source-gloss")}
     )
     assert selected == set()
     assert report["excludedByReason"] == {"lexical-gloss-not-clinical-definition": 1}
+
+
+def test_lexical_gloss_is_selected_as_its_own_record_type() -> None:
+    selected, report = definition_scope({"a": ExampleEntry("a", "gloss", text_kind="source-gloss")})
+    assert selected == {"a"}
+    assert report["selectedByRecordType"] == {"lexical-gloss": 1}
+    assert report["excludedByReason"] == {}
+
+
+def test_abbreviation_kind_requires_abbreviation_coverage() -> None:
+    selected, report = definition_scope(
+        {"a": ExampleEntry("a", "abbreviation", kind="abbreviation")}
+    )
+    assert selected == {"a"}
+    assert report["selectedByRecordType"] == {"abbreviation": 1}
+    selected, report = definition_scope(
+        {"a": ExampleEntry("a", "explicit-definition", kind="abbreviation")}
+    )
+    assert selected == set()
+    assert report["excludedByReason"] == {"not-a-standalone-definition": 1}
 
 
 def test_history_and_empty_input_are_not_definitions() -> None:
