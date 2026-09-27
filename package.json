@@ -143,6 +143,7 @@
     "content:catalog:tools": "bun scripts/buildToolCatalog.ts",
     "catalog:shell": "bun scripts/build-module-catalog-shell.ts",
     "content:core:knowledge": "uv run --project tools/ingest medbase compose --input apps/app/public/content/core.db --output data/build/core-knowledge.db --edition-manifest data/build/core-knowledge-manifest.json --edition-id minimed.core.ru --edition-version 1.0.0-preview.8 --title \"Ядро MiniMed\" --built-at 2026-09-05T00:00:00Z --compact",
+    "content:core:build": "bun scripts/build-core.mjs",
     "content:restore:core": "bun scripts/restore-core.mjs",
     "benchmark:lookup-quality": "bun run --filter @localmed/benchmarks benchmark:lookup-quality",
     "benchmark:doctor-lookup": "bun run --filter @localmed/benchmarks benchmark:doctor-lookup",

@@ -35,6 +35,11 @@ Detailed history, moved verbatim on 2026-09-24:
   diagnosis-category aliases were affected; fixed and tested, `core.db` not yet rebuilt (see
   `research/diagnosis-alias-ambiguity-2026-09-27.md` for scope and the missing-merge-step blocker).
   Details: [research/definition-reference-2026-09-29.md](research/definition-reference-2026-09-29.md).
+  The missing-merge-step blocker is now resolved and scripted (`bun run content:core:build`,
+  `scripts/build-core.mjs`): three independent pointer tracks (reference/clinical/medication)
+  reproduce the released core.db's exact document counts (15,904/744; medication's ledger has
+  grown past the released 3,324). `core.db` not yet rebuilt/published; see
+  `research/core-build-reconstruction-2026-09-27.md` (pipeline, profiling, gated pilot removal).
 
 ## Knowledge graph («Карта связей») — 2026-09-27
 

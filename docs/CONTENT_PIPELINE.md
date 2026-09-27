@@ -98,6 +98,20 @@ bun run content:lint:private
 bun run content:build:private
 ```
 
+Discovery core (`apps/app/public/content/core.db`), reproducible and incremental:
+
+```bash
+bun run content:core:build
+```
+
+Wires three independent, already-built pointer tracks (krasotaimedicina+mkb "reference",
+"clinical", "medication" — see `docs/research/core-build-reconstruction-2026-09-27.md` for how
+this was reconstructed and verified against the released core.db's exact per-track document
+counts) through `medbase compose`/`build-core-reference-pointers`/`build-core-catalog-pointers`
+into a candidate `data/build/core.<version>.db`. Every stage is hash-keyed and skipped when
+unchanged. Never copies over the released `core.db`/`content/bundled/core.db.gz` itself — that
+publish step, plus the benchmark suite, stays manual and separate.
+
 Local ICD-10 reference pack:
 
 ```bash
