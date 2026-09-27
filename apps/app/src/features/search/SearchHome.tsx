@@ -368,6 +368,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     setScope(on ? 'diagnosis' : sourceScope());
   };
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
+  const [fieldForm, setFieldForm] = createSignal<HTMLFormElement>();
+  /** The field has scrolled up behind the sticky row: the row offers a way back to it. */
+  const [fieldAway, setFieldAway] = createSignal(false);
   const [ignoredAppUpdates, setIgnoredAppUpdates] = createSignal(loadIgnoredAppUpdates());
   let searchModeTools: HTMLElement | undefined;
   let searchScrollFrame: number | undefined;
@@ -386,6 +389,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       searchScrollFrame = requestAnimationFrame(() => {
         searchScrollFrame = undefined;
         setHasSearchScroll(window.scrollY > 1);
+        // Measured live: the row's height changes with its contents and the safe area.
+        const form = fieldForm();
+        const rowBottom = searchModeTools?.getBoundingClientRect().bottom ?? 0;
+        setFieldAway(form ? form.getBoundingClientRect().bottom < rowBottom : false);
       });
     };
     updateSearchScroll();
@@ -396,6 +403,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   onCleanup(() => {
     if (searchScrollFrame !== undefined) cancelAnimationFrame(searchScrollFrame);
   });
+
+  const returnToField = (): void => {
+    const form = fieldForm();
+    if (!form) return;
+    form.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    form.querySelector('textarea')?.focus({ preventScroll: true });
+  };
 
   const scopedCore = createMemo(() => {
     const core = props.baseCore;
@@ -433,6 +447,17 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       >
         <Show when={props.active}>
           <SearchHistoryPanel onReplay={replayHistory} />
+        </Show>
+        <Show when={fieldAway()}>
+          <button
+            class="search-field-pill"
+            type="button"
+            aria-label="Вернуться к поиску"
+            onClick={returnToField}
+          >
+            <AppGlyph name="search" class="search-field-pill__icon" />
+            <span class="search-field-pill__label">{catalogQuery().trim() || 'Поиск'}</span>
+          </button>
         </Show>
         <Show when={isHomeAppUpdateVisible(props.appUpdateVersion, ignoredAppUpdates())}>
           <button
@@ -499,6 +524,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           catalogResultCount={visibleTools().length}
           filters={filters()}
           onQueryChange={setCatalogQuery}
+          onFieldElement={setFieldForm}
           onResultDocuments={setResultDocumentIds}
           groupAction={(group) =>
             group.contentKind === 'pointer' ? (

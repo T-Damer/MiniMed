@@ -102,6 +102,42 @@ test('refreshes search sticky state when its keep-alive view becomes visible', a
   await expect(tools).toHaveClass(/sticky-surface--stuck/u);
 });
 
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 1280, height: 800 },
+]) {
+  test(`the sticky search row brings back a scrolled-away field at ${viewport.width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    await mountBuiltApp(page);
+    const row = page.locator('.search-home .search-mode-tools');
+    const field = page.locator('.search-home .query-sheet');
+    const pill = row.getByRole('button', { name: 'Вернуться к поиску' });
+    await expect(pill).toHaveCount(0);
+    await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60_000 });
+
+    const fieldBottom = await field.evaluate((element) => element.getBoundingClientRect().bottom);
+    const rowBottom = await row.evaluate((element) => element.getBoundingClientRect().bottom);
+    await page.evaluate(
+      (top) => window.scrollTo({ top, behavior: 'instant' }),
+      Math.ceil(fieldBottom - rowBottom + 40),
+    );
+    await expect(pill).toBeVisible();
+    await expect(pill).toContainText('Поиск');
+    // The way back lives inside the existing sticky row: one sticky surface, one backdrop.
+    const pillBox = await pill.boundingBox();
+    const rowBox = await row.boundingBox();
+    if (!pillBox || !rowBox) throw new Error('Sticky row geometry is unavailable.');
+    expect(pillBox.y).toBeGreaterThanOrEqual(rowBox.y);
+    expect(pillBox.y + pillBox.height).toBeLessThanOrEqual(rowBox.y + rowBox.height);
+
+    await pill.click();
+    await expect(page.getByTestId('search-input')).toBeFocused();
+    await expect(pill).toHaveCount(0);
+  });
+}
+
 test('keeps native status blur below the nested files header', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await mountBuiltApp(page);

@@ -95,6 +95,8 @@ interface SearchWorkspaceProps {
   readonly catalogResultCount?: number;
   readonly showExamples?: boolean;
   /** Greeting and shortcuts shown above an empty query; collapses once the user searches. */
+  /** Receives the field's form, so the page can offer a way back to it once it scrolls away. */
+  readonly onFieldElement?: (form: HTMLFormElement) => void;
   /** Page heading above the field; hidden with the welcome block once a search starts. */
   readonly heading?: JSX.Element;
   readonly welcome?: JSX.Element;
@@ -859,6 +861,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </div>
         </Show>
         <form
+          ref={(element) => props.onFieldElement?.(element)}
           class="query-sheet"
           onSubmit={(event) => {
             event.preventDefault();

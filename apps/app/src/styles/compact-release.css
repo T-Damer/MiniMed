@@ -484,6 +484,9 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 }
 
 .search-workspace-main .query-actions {
+  /* Painted above the sheet's margin line, which belongs to the writing area only. */
+  position: relative;
+  z-index: 1;
   padding: 0.375rem 0.5rem 0.4375rem 2.25rem;
   background: var(--theme-search-surface-muted);
 }
@@ -3635,6 +3638,61 @@ html.native-print-active #root {
 .knowledge-base-page__pending {
   display: grid;
   gap: 0.75rem;
+}
+
+/* Once the field scrolls up behind the toolbar, the toolbar carries a way back to it. */
+.search-field-pill {
+  position: relative;
+  z-index: var(--z-raised);
+  display: inline-flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 2.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--theme-accent);
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  background: var(--theme-search-surface);
+  box-shadow: 0 0.375rem 1rem rgb(58 46 24 / 14%);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: text;
+  animation: search-field-pill-in 180ms ease-out;
+}
+
+.search-field-pill:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.search-field-pill__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  color: var(--theme-accent);
+}
+
+.search-field-pill__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes search-field-pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-field-pill {
+    animation: none;
+  }
 }
 
 /* Random record: the first of the right-hand actions in the search toolbar, beside help. */
