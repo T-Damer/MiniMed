@@ -4,11 +4,11 @@ for (const viewport of [
   { width: 390, height: 844 },
   { width: 1280, height: 900 },
 ]) {
-  test(`boot screen fills the viewport at ${viewport.width}px and exits after initialization`, async ({
+  test(`search stays on screen while the core downloads at ${viewport.width}px and is not remounted when ready`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize(viewport);
-    // This suite covers the boot screen itself; onboarding has separate coverage.
+    // Onboarding has separate coverage; this suite covers later opens with the setup dismissed.
     await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
     let releaseCore = () => {};
     const coreGate = new Promise<void>((resolve) => {
@@ -21,16 +21,28 @@ for (const viewport of [
     await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`, {
       waitUntil: 'domcontentloaded',
     });
-    const boot = page.locator('.boot-screen');
+    const coreStatus = page.locator('.search-core-status');
     try {
-      await expect(boot).toBeVisible();
+      // The web build reports progress once the response starts; until then the core is opening.
+      await expect(coreStatus).toContainText(/Подготавливаем поиск|Загружаем базу/u);
+      await expect(page.locator('.boot-screen')).toHaveCount(0);
       await expect(page.locator('.app-bottom-nav')).toBeVisible();
-      const bounds = await boot.boundingBox();
-      expect(bounds?.height).toBeGreaterThanOrEqual(viewport.height);
-      expect(bounds?.y).toBe(0);
-      await page.screenshot({ path: testInfo.outputPath('boot.png') });
+      await expect(page.getByTestId('search-input')).toBeDisabled();
+      await expect(
+        coreStatus.locator('.search-core-status__mark, .search-core-status__spinner'),
+      ).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Мои инструменты' })).toBeVisible();
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth + 1,
+      );
+      expect(overflow).toBe(false);
+      // The same page element must survive core readiness: no remount, no lost state.
+      await page.evaluate(() => {
+        Object.assign(window, { __searchHome: document.querySelector('.search-home') });
+      });
+      await page.screenshot({ path: testInfo.outputPath('core-downloading.png') });
       await page.getByRole('button', { name: 'Мои файлы', exact: true }).click();
-      await expect(boot).toHaveCount(0);
+      await expect(coreStatus).toBeHidden();
       await expect(page.locator('.app-shell')).not.toHaveClass(/app-shell--booting/);
       await page.getByRole('button', { name: 'Действия со страницей' }).click();
       await page.getByRole('menuitem', { name: 'Создать папку', exact: true }).click();
@@ -53,8 +65,15 @@ for (const viewport of [
       page.getByRole('button', { name: 'Открыть папку «До готовности ядра»' }),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Поиск', exact: true }).click();
-    await expect(page.getByTestId('search-input')).toBeVisible({ timeout: 60000 });
-    await expect(boot).toHaveCount(0);
+    await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60000 });
+    await expect(coreStatus).toHaveCount(0);
+    expect(
+      await page.evaluate(
+        () =>
+          document.querySelector('.search-home') ===
+          (window as unknown as { __searchHome?: Element }).__searchHome,
+      ),
+    ).toBe(true);
     await expect(page.locator('.app-bottom-nav')).toBeVisible();
   });
 }
@@ -92,7 +111,8 @@ test('missing core on a cellular connection waits for the user while files and s
   await expect(page.getByRole('button', { name: 'Скачать ядро · ~490 МБ' })).toBeVisible();
   const navigation = page.locator('.app-bottom-nav');
   await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
-  await expect(page.getByTestId('search-input')).toHaveCount(0);
+  // The search page stays mounted under the setup screen, but hidden.
+  await expect(page.getByTestId('search-input')).toBeHidden();
   const bounds = await page.locator('.boot-screen').boundingBox();
   expect(bounds?.height).toBeGreaterThanOrEqual(844);
   expect(bounds?.y).toBe(0);

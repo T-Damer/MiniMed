@@ -25,13 +25,19 @@ interface WelcomeLink {
   readonly primary?: boolean;
   /** Shown only while experimental modules are enabled. */
   readonly experimental?: boolean;
+  /** Reads the medical core, so it waits until the core is open. */
+  readonly requiresCore?: boolean;
 }
 
 /**
  * First screen of search, collapsed as soon as typing starts: what can be searched, the key tools,
  * and the ECG photo entry as one of the capabilities — a single block rather than separate cards.
  */
-export function SearchWelcome(props: { readonly onOpenReference: () => void }): JSX.Element {
+export function SearchWelcome(props: {
+  readonly onOpenReference: () => void;
+  /** False while the medical core opens; entries that read it are disabled until then. */
+  readonly coreReady?: boolean;
+}): JSX.Element {
   const links: readonly WelcomeLink[] = [
     {
       icon: 'microphone',
@@ -47,6 +53,7 @@ export function SearchWelcome(props: { readonly onOpenReference: () => void }): 
       label: 'Словарь',
       onClick: () => props.onOpenReference(),
       experimental: true,
+      requiresCore: true,
     },
   ];
   const visibleLinks = () =>
@@ -72,7 +79,16 @@ export function SearchWelcome(props: { readonly onOpenReference: () => void }): 
                   class="search-welcome__link"
                   classList={{ 'search-welcome__link--primary': link.primary ?? false }}
                   type="button"
-                  disabled={link.primary ? conversationSession.recorder() !== null : false}
+                  disabled={
+                    link.primary
+                      ? conversationSession.recorder() !== null
+                      : Boolean(link.requiresCore) && props.coreReady === false
+                  }
+                  title={
+                    link.requiresCore && props.coreReady === false
+                      ? 'Откроется, когда база будет готова'
+                      : undefined
+                  }
                   onClick={link.onClick}
                 >
                   <AppGlyph

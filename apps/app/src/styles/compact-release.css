@@ -3558,3 +3558,75 @@ html.native-print-active #root {
   font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
 }
+
+/* Core opening, downloading or failed: a compact line under the disabled search field. */
+.search-core-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-raised);
+  color: var(--ink-soft);
+}
+
+.search-core-status--error {
+  border-color: color-mix(in srgb, var(--theme-danger) 45%, var(--theme-border));
+  background: color-mix(in srgb, var(--theme-danger) 7%, var(--theme-surface-raised));
+}
+
+.search-core-status__mark {
+  --download-progress-mark-size: 1.5rem;
+}
+
+.search-core-status__spinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+  border: 0.125rem solid var(--theme-border);
+  border-top-color: var(--theme-accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.search-core-status__copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 0.125rem;
+  margin: 0;
+}
+
+.search-core-status__title {
+  color: var(--ink);
+  font-size: 0.875rem;
+}
+
+.search-core-status__detail {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  /* Errors can carry a long core.<checksum>.db file name. */
+  overflow-wrap: anywhere;
+}
+
+.search-core-status__action {
+  flex: none;
+}
+
+@media (max-width: 30rem) {
+  .search-core-status {
+    flex-wrap: wrap;
+  }
+
+  .search-core-status__action {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-core-status__spinner {
+    animation-duration: 2.4s;
+  }
+}

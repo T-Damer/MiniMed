@@ -1,5 +1,6 @@
 import {
   createEffect,
+  createMemo,
   createSignal,
   type JSX,
   lazy,
@@ -27,6 +28,7 @@ import {
   isUserLibraryCatalogRoute,
   USER_LIBRARY_CATALOG_HASH,
 } from '@/features/library/user-library-routing';
+import { searchCoreStatus } from '@/features/search/search-core-status';
 import { FirstRunSetup } from '@/features/setup/FirstRunSetup';
 import { dismissSetup, isSetupDismissed } from '@/features/setup/setup-state';
 import {
@@ -118,11 +120,24 @@ export function App(): JSX.Element {
   const personalDocumentActive = () => parseDocumentReadRoute(currentHash())?.kind === 'user';
   const personalLibraryActive = () =>
     isUserLibraryCatalogRoute(currentHash().replace(/^#\/?/u, ''));
-  // Tools, notes and settings never read the medical core, so they stay usable while it opens,
-  // downloads, or is held by another tab (offline-first).
+  const coreStatus = createMemo(() =>
+    searchCoreStatus({
+      ready: Boolean(session.ready()),
+      error: session.error(),
+      waitingForOtherTab: session.coreWaitingForOtherTab(),
+      downloadRequired: session.coreDownloadRequired(),
+      downloading: session.coreDownloading(),
+      progress: session.coreProgress(),
+      slow: session.bootSlow(),
+    }),
+  );
+  // A separate screen only while the application itself loads, or while a missing core waits for
+  // the user's consent to download. Opening, verifying, another tab, errors and later downloads
+  // keep the search page (field disabled, compact status); tools, notes and settings never read
+  // the medical core and stay usable throughout (offline-first).
   const showingBootScreen = () =>
     !shellReady() ||
-    (!session.ready() &&
+    (coreStatus()?.kind === 'download-required' &&
       navigation.view() !== 'notes' &&
       navigation.view() !== 'settings' &&
       navigation.view() !== 'calculators' &&
@@ -400,28 +415,26 @@ export function App(): JSX.Element {
             onDownloadCore={session.downloadCore}
           />
         </Show>
-        <Show when={session.ready()}>
-          {(state) => (
-            <>
-              {rootPane('search', () => (
-                <SearchHome
-                  baseCore={session.searchCore() ?? state().core}
-                  onContentChanged={session.connectInstalledModules}
-                  splitNavigation={splitNavigation()}
-                  active={navigation.view() === 'search'}
-                  onOpenKnowledgeBase={() => navigation.navigate('modules')}
-                  {...(session.availableUpdateVersion()
-                    ? { appUpdateVersion: session.availableUpdateVersion() as string }
-                    : {})}
-                  onOpenAppUpdateSettings={() => {
-                    rememberReturnTo();
-                    navigation.navigate('settings');
-                  }}
-                />
-              ))}
-            </>
-          )}
-        </Show>
+        {/* Mounted before the core is ready and kept when it arrives: no remount, no lost state. */}
+        {rootPane('search', () => (
+          <SearchHome
+            baseCore={session.ready() ? (session.searchCore() ?? session.ready()?.core) : undefined}
+            coreStatus={coreStatus()}
+            onRetryCore={() => window.location.reload()}
+            onDownloadCore={session.downloadCore}
+            onContentChanged={session.connectInstalledModules}
+            splitNavigation={splitNavigation()}
+            active={navigation.view() === 'search'}
+            onOpenKnowledgeBase={() => navigation.navigate('modules')}
+            {...(session.availableUpdateVersion()
+              ? { appUpdateVersion: session.availableUpdateVersion() as string }
+              : {})}
+            onOpenAppUpdateSettings={() => {
+              rememberReturnTo();
+              navigation.navigate('settings');
+            }}
+          />
+        ))}
         <Show
           when={navigation.documentReadActive() && (session.ready() || personalDocumentActive())}
         >

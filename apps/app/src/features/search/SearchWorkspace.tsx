@@ -80,9 +80,12 @@ import {
 } from '@/state/search-history';
 
 interface SearchWorkspaceProps {
-  readonly core: MedicalCore;
+  /** Absent while the medical core opens; the field stays disabled until it arrives. */
+  readonly core?: MedicalCore | undefined;
   readonly scope: SearchScope;
   readonly searchAllowed?: boolean;
+  /** Compact status under the field, e.g. while the core opens, downloads or failed to open. */
+  readonly fieldStatus?: JSX.Element;
   readonly modePicker?: JSX.Element;
   readonly searchActions?: JSX.Element;
   readonly catalog?: JSX.Element;
@@ -582,8 +585,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (trimmed === lastAnalyzedQuery) return;
 
     setAnalysisLoading(true);
+    const core = props.core;
+    if (!core) {
+      setAnalysisLoading(false);
+      return;
+    }
     analysisTimer = setTimeout(async () => {
-      const result = await props.core.analyzeQuery({ query: trimmed, includeSuggestions: true });
+      const result = await core.analyzeQuery({ query: trimmed, includeSuggestions: true });
       if (searchableQuery(query()) !== trimmed) return;
       setAnalysisLoading(false);
       if (result.ok) {
@@ -637,7 +645,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setLoading(false);
       return;
     }
-    if (props.searchAllowed === false) {
+    const core = props.core;
+    if (props.searchAllowed === false || !core) {
       setLoading(false);
       return;
     }
@@ -650,7 +659,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setError(undefined);
     setContext(undefined);
 
-    const result = await props.core.search({
+    const result = await core.search({
       query: trimmed,
       mode: props.scope === 'diagnosis' ? 'auto' : 'lexical',
       analysisMode: props.scope === 'diagnosis' ? 'clinical' : 'lookup',
@@ -672,8 +681,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     if (recordHistory) appendSearchHistory(rawQuery, props.scope, result.value, props.specialty);
     // Link labels use the compact projection; extraction metadata stays in the database.
     if (contextDocuments().length === 0) {
-      const available = await (props.core.listNavigationDocuments?.() ??
-        props.core.listDocuments());
+      const available = await (core.listNavigationDocuments?.() ?? core.listDocuments());
       if (generation !== searchGeneration || searchableQuery(query()) !== trimmed) return;
       if (available.ok) setContextDocuments(available.value);
       else setError(available.error.message);
@@ -681,18 +689,20 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   }
 
   async function openResult(result: SearchResult): Promise<void> {
+    // Results only exist once a core has answered a search.
+    const core = props.core;
+    if (!core) return;
     setContextLoading(true);
     setError(undefined);
     const [resolved, available] = await Promise.all([
-      props.core.getSearchResultContext(result, 3),
-      props.core.listNavigationDocuments?.() ?? props.core.listDocuments(),
+      core.getSearchResultContext(result, 3),
+      core.listNavigationDocuments?.() ?? core.listDocuments(),
     ]);
     setContextDocuments(available.ok ? available.value : []);
     if (!available.ok) setError(available.error.message);
     setContextLoading(false);
     if (!resolved.ok) {
-      const documents = await (props.core.listNavigationDocuments?.() ??
-        props.core.listDocuments());
+      const documents = await (core.listNavigationDocuments?.() ?? core.listDocuments());
       const documentId =
         documents.ok && documents.value.length > 0
           ? resolveReadableDocumentId(
@@ -991,6 +1001,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             </div>
           </Show>
         </form>
+        {props.fieldStatus}
 
         <Show when={ambiguousMeanings().length > 0}>
           <SearchMeaningChoices

@@ -47,10 +47,22 @@ for (const viewport of [
       releaseShell();
       await expect(navigation).toBeVisible({ timeout: 5000 });
       await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
-      await expect(page.locator('.boot-card__title')).toContainText('Подготавливаем поиск');
-      await expect(page.getByTestId('search-input')).toHaveCount(0);
+      // An installed core that is still opening keeps the search page: the field waits disabled.
+      const coreStatus = page.locator('.search-core-status');
+      await expect(coreStatus).toContainText('Подготавливаем поиск');
+      await expect(page.locator('.boot-card')).toHaveCount(0);
+      await expect(page.getByTestId('search-input')).toBeDisabled();
+      await expect(page.getByTestId('search-input')).toHaveAttribute(
+        'placeholder',
+        'Подготавливаем поиск…',
+      );
+      await expect(
+        page.getByRole('navigation', { name: 'Быстрый переход' }).getByRole('link', {
+          name: 'Калькуляторы',
+        }),
+      ).toBeVisible();
       await navigation.getByRole('button', { name: 'Мои файлы', exact: true }).click();
-      await expect(page.locator('.boot-card')).toBeHidden();
+      await expect(coreStatus).toBeHidden();
       await expect(page.getByRole('region', { name: 'Ваши документы' })).toBeVisible();
       await page.getByLabel('Загрузить документы').setInputFiles({
         name: 'до-ядра.txt',
@@ -86,6 +98,9 @@ for (const viewport of [
         await page.evaluate((nextHash) => {
           window.location.hash = nextHash;
         }, hash);
+        // Browser patient cards are unencrypted; the page asks once before showing them.
+        if (hash === '#/notes/patients')
+          await page.getByRole('button', { name: /^(Понятно, продолжить|Открыть)$/u }).click();
         await expect(page.getByRole('region', { name: 'Личные заметки' })).toBeVisible();
         await navigation.getByRole('button', { name: 'Мои файлы', exact: true }).click();
         await expect(page).toHaveURL(/#\/modules\/documents\/user$/u);
@@ -96,7 +111,8 @@ for (const viewport of [
       await page.getByRole('switch', { name: 'Отдельные вкладки разделов' }).click();
       await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
       await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
-      await expect(page.locator('.boot-card')).toBeVisible();
+      await expect(coreStatus).toBeVisible();
+      await expect(page.getByTestId('search-input')).toBeDisabled();
       await expect(page.getByRole('button', { name: 'Повторить', exact: true })).toBeHidden();
       const marks = await page.evaluate(() => ({
         navigation: performance.getEntriesByName('minimed:navigation-ready').length,

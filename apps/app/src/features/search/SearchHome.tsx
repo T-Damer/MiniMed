@@ -33,12 +33,14 @@ import {
   ScopedMedicalCore,
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
+import { SearchCoreStatusNote } from '@/features/search/SearchCoreStatusNote';
 import { SearchNoResults } from '@/features/search/SearchNoResults';
 import { SearchQuickAccess } from '@/features/search/SearchQuickAccess';
 import { SearchResultModuleDownload } from '@/features/search/SearchResultModuleDownload';
 import { SearchSectionPicker } from '@/features/search/SearchSectionPicker';
 import { SearchWelcome } from '@/features/search/SearchWelcome';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
+import { type SearchCoreStatus, searchCoreStatusLabel } from '@/features/search/search-core-status';
 import {
   matchingCatalogTools,
   SEARCH_SECTIONS,
@@ -59,7 +61,12 @@ import {
 import { appendSearchHistory, replaySearch, type SearchHistoryEntry } from '@/state/search-history';
 
 interface SearchHomeProps {
-  readonly baseCore: MedicalCore;
+  /** Absent while the core opens, downloads or waits for another tab; the page stays usable. */
+  readonly baseCore?: MedicalCore | undefined;
+  /** Why search is not ready yet; undefined once it is. */
+  readonly coreStatus?: SearchCoreStatus | undefined;
+  readonly onRetryCore?: () => void;
+  readonly onDownloadCore?: () => void;
   readonly onContentChanged: () => Promise<void>;
   readonly active: boolean;
   readonly splitNavigation?: boolean;
@@ -186,8 +193,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   );
   createEffect(() => {
     const core = props.baseCore;
-    let current = true;
     setCatalogLoading(true);
+    if (!core) return;
+    let current = true;
     void (core.listNavigationDocuments?.() ?? core.listDocuments()).then((result) => {
       if (!current) return;
       setCatalogLoading(false);
@@ -245,17 +253,18 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     if (searchScrollFrame !== undefined) cancelAnimationFrame(searchScrollFrame);
   });
 
-  const scopedCore = createMemo(
-    () =>
-      new ScopedMedicalCore(
-        props.baseCore,
-        scope(),
-        (scope() === 'conditions' && specialty()?.startsWith('kind:')) ||
-          (scope() === 'medications' && specialty())
-          ? new Set(visibleDocuments().map((document) => document.id))
-          : undefined,
-      ),
-  );
+  const scopedCore = createMemo(() => {
+    const core = props.baseCore;
+    if (!core) return undefined;
+    return new ScopedMedicalCore(
+      core,
+      scope(),
+      (scope() === 'conditions' && specialty()?.startsWith('kind:')) ||
+        (scope() === 'medications' && specialty())
+        ? new Set(visibleDocuments().map((document) => document.id))
+        : undefined,
+    );
+  });
   const replayHistory = (entry: SearchHistoryEntry): void => {
     const next = SEARCH_SECTIONS.some((section) => section.id === entry.scope)
       ? entry.scope
@@ -311,7 +320,18 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         <SearchWorkspace
           core={scopedCore()}
           scope={scope()}
-          searchAllowed
+          searchAllowed={props.baseCore !== undefined}
+          fieldStatus={
+            <Show when={props.coreStatus}>
+              {(status) => (
+                <SearchCoreStatusNote
+                  status={status()}
+                  {...(props.onRetryCore ? { onRetry: props.onRetryCore } : {})}
+                  {...(props.onDownloadCore ? { onDownload: props.onDownloadCore } : {})}
+                />
+              )}
+            </Show>
+          }
           specialty={specialty()}
           catalogResultCount={visibleTools().length}
           filters={filters()}
@@ -341,7 +361,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           )}
           catalogOnly={catalogOnly()}
           showExamples
-          welcome={<SearchWelcome onOpenReference={() => setReferenceOpen(true)} />}
+          welcome={
+            <SearchWelcome
+              coreReady={props.baseCore !== undefined}
+              onOpenReference={() => setReferenceOpen(true)}
+            />
+          }
           quickAccess={<SearchQuickAccess tools={quickTools()} builtInTools={builtInTools()} />}
           searchActions={
             <Show when={!catalogOnly() && scope() !== 'diagnosis' && experimentalModulesEnabled()}>
@@ -378,9 +403,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             />
           }
           placeholder={
-            scope() === 'diagnosis'
-              ? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
-              : 'Название, код МКБ, препарат или фраза из документа'
+            props.coreStatus
+              ? searchCoreStatusLabel(props.coreStatus)
+              : scope() === 'diagnosis'
+                ? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
+                : 'Название, код МКБ, препарат или фраза из документа'
           }
           modePicker={
             <SearchSectionPicker
@@ -400,18 +427,17 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
         />
       </div>
 
-      <Show when={referenceOpen() && experimentalModulesEnabled()}>
-        <OverlayDialog
-          open
-          title="Словарь терминов"
-          class="reference-dialog"
-          onClose={() => setReferenceOpen(false)}
-        >
-          <DefinitionReferencePanel
-            core={props.baseCore}
-            onContentChanged={props.onContentChanged}
-          />
-        </OverlayDialog>
+      <Show when={referenceOpen() && experimentalModulesEnabled() && props.baseCore}>
+        {(core) => (
+          <OverlayDialog
+            open
+            title="Словарь терминов"
+            class="reference-dialog"
+            onClose={() => setReferenceOpen(false)}
+          >
+            <DefinitionReferencePanel core={core()} onContentChanged={props.onContentChanged} />
+          </OverlayDialog>
+        )}
       </Show>
       <Show when={graphOpen()}>
         <OverlayDialog

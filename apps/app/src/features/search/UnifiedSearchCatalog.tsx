@@ -9,7 +9,8 @@ import type { SearchCatalogTool } from '@/features/search/searchCatalog';
 import { ToolCollectionMenu, ToolFavoriteButton } from '@/features/search/ToolPinControls';
 
 export function UnifiedSearchCatalog(props: {
-  readonly core: MedicalCore;
+  /** Absent while the medical core opens: tools stay listed, documents wait for the core. */
+  readonly core?: MedicalCore | undefined;
   readonly scope: SearchScope;
   readonly query: string;
   readonly hideDocuments?: boolean;
@@ -68,14 +69,16 @@ export function UnifiedSearchCatalog(props: {
             </p>
           )}
         </Show>
-        <Show when={!props.loading && !props.error}>
-          <DocumentLibrary
-            core={props.core}
-            embedded
-            hideGraphControl
-            query=""
-            documents={props.documents}
-          />
+        <Show when={!props.loading && !props.error && props.core}>
+          {(core) => (
+            <DocumentLibrary
+              core={core()}
+              embedded
+              hideGraphControl
+              query=""
+              documents={props.documents}
+            />
+          )}
         </Show>
       </Show>
     </section>

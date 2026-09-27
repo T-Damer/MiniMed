@@ -37,6 +37,16 @@ Detailed history, moved verbatim on 2026-09-24:
   included), 0% node overlap after convergence. 14 missing area labels were added. Details:
   [research/knowledge-graph-performance-2026-09.md](research/knowledge-graph-performance-2026-09.md).
 
+## Search while the core is not ready — 2026-09-28
+
+- Only the shell load and a missing core waiting for download consent (metered network) keep a
+  separate screen; first-run setup is unchanged. Opening, verifying, another tab holding the
+  database, open errors and later core downloads keep the search page mounted (not remounted when
+  the core arrives): the field is disabled with the status as placeholder and a compact line shows
+  progress or the error with «Повторить»; tools that need no core work at once, «Словарь» waits
+  (`search-core-status.ts`, `SearchCoreStatusNote`). E2E boot-screen, core-reload, startup-shell and
+  unified-downloads pass (the last two had failed since 0.6.40).
+
 ## Release 0.6.41 — 2026-09-27
 
 - **Experimental definition reference and data-release mirror.** Everything that previously worked
