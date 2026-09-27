@@ -1,5 +1,8 @@
 import type { CoreStatus, MedicalCore } from '@localmed/contracts';
 import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { AppGlyph } from '@/components/AppGlyph';
+import { Page } from '@/components/Page';
+import { Heading } from '@/components/Text';
 import { ConditionCatalogView } from '@/features/conditions/ConditionCatalogView';
 import { isConditionCatalogRoute } from '@/features/conditions/condition-routing';
 import {
@@ -14,12 +17,18 @@ import {
 import { MedicationCatalogView } from '@/features/medications/MedicationCatalogView';
 import { isMedicationCatalogRoute } from '@/features/medications/medication-routing';
 import { ModuleCatalogView } from '@/features/modules/ModuleCatalogView';
+import { SearchCoreStatusNote } from '@/features/search/SearchCoreStatusNote';
+import type { SearchCoreStatus } from '@/features/search/search-core-status';
 
 type KnowledgeRoute = 'conditions' | 'documents' | 'medications';
 
 interface KnowledgeBaseViewProps {
   readonly core: MedicalCore | undefined;
   readonly status: CoreStatus | undefined;
+  /** Why the medical core is not ready yet; the page shows it instead of staying blank. */
+  readonly coreStatus?: SearchCoreStatus | undefined;
+  readonly onRetryCore?: () => void;
+  readonly onDownloadCore?: () => void;
   readonly active: boolean;
   readonly onContentChanged?: () => Promise<void>;
   readonly onAvailableUpdates?: (count: number) => void;
@@ -86,6 +95,23 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
     <section class="knowledge-base-page page-surface page-grain">
       <Show when={route() === 'documents' && isUserLibraryCatalogRoute(documentsRoute())}>
         <UserLibraryPage />
+      </Show>
+      <Show when={!ready() && !isUserLibraryCatalogRoute(documentsRoute()) && props.coreStatus}>
+        {(status) => (
+          <div class="knowledge-base-page__pending">
+            <Page
+              class="module-page-header"
+              icon={<AppGlyph name="folder-open" class="page__icon-glyph" />}
+              title={<Heading depth={1}>База знаний</Heading>}
+              description="Разделы откроются, когда локальная база будет готова."
+            />
+            <SearchCoreStatusNote
+              status={status()}
+              {...(props.onRetryCore ? { onRetry: props.onRetryCore } : {})}
+              {...(props.onDownloadCore ? { onDownload: props.onDownloadCore } : {})}
+            />
+          </div>
+        )}
       </Show>
       <Show when={ready()}>
         {(state) => (

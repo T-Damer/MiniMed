@@ -78,6 +78,48 @@ for (const viewport of [
   });
 }
 
+test('the knowledge base shows the core status by direct link and keeps its page when ready', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => localStorage.setItem('minimed:package-setup-dismissed:v1', '1'));
+  let releaseCore = () => {};
+  const coreGate = new Promise<void>((resolve) => {
+    releaseCore = resolve;
+  });
+  await page.route('**/core.db', async (route) => {
+    await coreGate;
+    await route.continue();
+  });
+  await page.goto(
+    `${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/modules/documents`,
+    { waitUntil: 'domcontentloaded' },
+  );
+  const knowledge = page.locator('.knowledge-base-page');
+  try {
+    await expect(knowledge.getByRole('heading', { name: 'База знаний', level: 1 })).toBeVisible();
+    await expect(knowledge.locator('.search-core-status')).toContainText(
+      /Подготавливаем поиск|Загружаем базу/u,
+    );
+    await page.evaluate(() => {
+      Object.assign(window, { __knowledgePage: document.querySelector('.knowledge-base-page') });
+    });
+  } finally {
+    releaseCore();
+  }
+  await expect(page.getByRole('heading', { name: 'Наборы документов' })).toBeVisible({
+    timeout: 60_000,
+  });
+  await expect(knowledge.locator('.search-core-status')).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () =>
+        document.querySelector('.knowledge-base-page') ===
+        (window as unknown as { __knowledgePage?: Element }).__knowledgePage,
+    ),
+  ).toBe(true);
+});
+
 test('missing core on a cellular connection waits for the user while files and settings remain available', async ({
   page,
 }, testInfo) => {

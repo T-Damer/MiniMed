@@ -385,6 +385,9 @@ export function App(): JSX.Element {
           <KnowledgeBaseView
             core={session.ready()?.core}
             status={session.ready()?.status}
+            coreStatus={coreStatus()}
+            onRetryCore={() => window.location.reload()}
+            onDownloadCore={session.downloadCore}
             active={navigation.view() === 'modules'}
             onContentChanged={session.connectInstalledModules}
             onAvailableUpdates={session.setAvailableModuleCount}

@@ -3630,3 +3630,9 @@ html.native-print-active #root {
     animation-duration: 2.4s;
   }
 }
+
+/* Knowledge base before the core is ready: the page header and the shared core status line. */
+.knowledge-base-page__pending {
+  display: grid;
+  gap: 0.75rem;
+}
