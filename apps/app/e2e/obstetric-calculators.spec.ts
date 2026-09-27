@@ -13,10 +13,15 @@ test('calculates an EDD by LMP and writes the result to a patient note', async (
 
   await page.getByRole('button', { name: 'Открыть раздел «Акушерство»' }).click();
   await expect(page.getByRole('heading', { name: 'Акушерство' })).toBeVisible();
-  const installSection = page.getByRole('button', { name: 'Скачать раздел «Акушерство»' });
-  if (await installSection.count()) await installSection.click();
+  const installSection = page.getByRole('button', {
+    // «Скачать раздел», «Скачать дополнения» or «Есть обновление», then the section title.
+    name: /^(Скачать раздел|Скачать дополнения|Есть обновление) — Акушерство$/u,
+  });
+  const openEdd = page.getByTestId('calculator-open-obstetric-edd-lmp');
+  await expect(installSection.or(openEdd).first()).toBeVisible();
+  if (await installSection.isVisible()) await installSection.click();
 
-  await page.getByTestId('calculator-open-obstetric-edd-lmp').click();
+  await openEdd.click();
   await expect(
     page.getByRole('heading', { name: 'ПДР по дате последней менструации' }),
   ).toBeVisible();
@@ -55,10 +60,15 @@ test('scores cervical readiness with the Bishop score calculator', async ({ page
     .getByRole('button', { name: 'Калькуляторы', exact: true })
     .click();
   await page.getByRole('button', { name: 'Открыть раздел «Акушерство»' }).click();
-  const installSection = page.getByRole('button', { name: 'Скачать раздел «Акушерство»' });
-  if (await installSection.count()) await installSection.click();
+  const installSection = page.getByRole('button', {
+    // «Скачать раздел», «Скачать дополнения» or «Есть обновление», then the section title.
+    name: /^(Скачать раздел|Скачать дополнения|Есть обновление) — Акушерство$/u,
+  });
+  const openBishop = page.getByTestId('calculator-open-obstetric-bishop-score');
+  await expect(installSection.or(openBishop).first()).toBeVisible();
+  if (await installSection.isVisible()) await installSection.click();
 
-  await page.getByTestId('calculator-open-obstetric-bishop-score').click();
+  await openBishop.click();
   await expect(page.getByRole('heading', { name: 'Шкала Бишопа' })).toBeVisible();
 
   await page.getByLabel('Раскрытие шейки матки').selectOption({ label: '3–4 см (2)' });

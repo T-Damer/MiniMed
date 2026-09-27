@@ -34,11 +34,10 @@ test('offers and installs the pediatric growth pack from the calculator catalog'
     .click();
 
   const anthropometry = page.getByTestId('calculator-section-anthropometry');
-  await expect(anthropometry).toContainText(
-    'Скачать раздел: Педиатрия: антропометрия ВОЗ и артериальное давление',
-  );
+  // The section names the download and its size; module titles live in the downloads page.
+  await expect(anthropometry).toContainText(/Скачать раздел · [\d,]+\s[КМ]Б/u);
   await anthropometry.getByRole('button', { name: 'Скачать раздел — Антропометрия' }).click();
-  await expect(anthropometry).not.toContainText('Скачать раздел:');
+  await expect(anthropometry).not.toContainText('Скачать раздел ·');
 
   await anthropometry.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
   await expect(
@@ -82,12 +81,13 @@ test('calculates body surface area and writes the result to a patient note', asy
 
   await page.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
   const anthropometryDownload = page.getByRole('button', {
-    name: 'Скачать раздел «Антропометрия»',
+    // «Скачать раздел», «Скачать дополнения» or «Есть обновление», then the section title.
+    name: /^(Скачать раздел|Скачать дополнения|Есть обновление) — Антропометрия$/u,
   });
-  if (await anthropometryDownload.count()) {
-    await anthropometryDownload.click();
-  }
-  await page.getByTestId('calculator-open-body-surface-area-mosteller').click();
+  const openMosteller = page.getByTestId('calculator-open-body-surface-area-mosteller');
+  await expect(anthropometryDownload.or(openMosteller).first()).toBeVisible();
+  if (await anthropometryDownload.isVisible()) await anthropometryDownload.click();
+  await openMosteller.click();
   await expect(
     page.getByRole('heading', { name: 'Площадь поверхности тела — Mosteller' }),
   ).toBeVisible();

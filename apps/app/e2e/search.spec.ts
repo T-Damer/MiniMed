@@ -14,6 +14,33 @@ function pneumoniaResult(page: Page): Locator {
     .first();
 }
 
+/**
+ * The first hit inside a clinical-recommendation group. Ordinary lookup keeps an exact title first
+ * (for «пневмония» the reference index card of that name); the recommendation follows it.
+ */
+function clinicalRecommendationResult(page: Page): Locator {
+  return page
+    .getByTestId('search-results')
+    .locator('.result-group')
+    .filter({
+      has: page.locator('.result-group-header__kind-label', {
+        hasText: 'Клиническая рекомендация',
+      }),
+    })
+    .first()
+    .getByTestId('search-result')
+    .first();
+}
+
+/** Knowledge-base routes stay empty until the medical core has opened. */
+async function waitForSearchReady(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => performance.getEntriesByName('minimed:search-ready').length > 0,
+    undefined,
+    { timeout: 90_000 },
+  );
+}
+
 function navigationButton(page: Page, name: string): Locator {
   return page.locator('.app-bottom-nav').getByRole('button', { name });
 }
@@ -182,12 +209,10 @@ test('finds a recommendation section and opens local context', async ({ page }) 
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
-  await expect(page.locator('.result-group-header__kind-label').first()).toHaveText(
-    'Клиническая рекомендация',
-  );
-  await expect(page.getByTestId('search-mode')).toHaveText('FTS5 + VECTOR');
+  // Lookup is lexical only (no vector mode label); a recommendation is among the first groups.
+  await expect(clinicalRecommendationResult(page)).toBeVisible();
   await expect(page.getByTestId('reader-context')).toHaveCount(0);
-  await page.getByTestId('search-results').getByTestId('search-result').first().click();
+  await clinicalRecommendationResult(page).click();
   await expect(page.getByTestId('reader-context')).toContainText('Пневмония');
   await expect(page.getByTestId('reader-context')).toContainText(
     'Полные данные находятся в скачиваемом модуле',
@@ -293,7 +318,7 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
   await expect(pneumoniaResult(page)).toBeVisible({ timeout: 60_000 });
-  await page.getByTestId('search-results').getByTestId('search-result').first().click();
+  await clinicalRecommendationResult(page).click();
   await expect(page.getByTestId('reader-context')).toBeVisible();
   await page.getByRole('button', { name: 'Открыть полный документ' }).click();
 
@@ -359,6 +384,7 @@ test('preserves the active search while navigating between mounted routes', asyn
 
 test('returns to the documents route after opening a questionnaire', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+  await waitForSearchReady(page);
 
   await page.evaluate(() => {
     window.location.hash = '#/modules/documents';
@@ -570,6 +596,8 @@ test('opens only the exact fragment without surrounding source context', async (
 
 test('shows neuroinfection clarifications without hiding search results', async ({ page }) => {
   await mountBuiltApp(page);
+  // Clarifying questions belong to the explicit clinical mode, not to ordinary lookup.
+  await selectSearchSection(page, 'Клинический разбор');
   await page.getByTestId('search-input').fill('Менингит или энцефалит у ребёнка');
   await expect(page.getByRole('button', { name: /Сознание и судороги/u })).toBeVisible();
   await expect(page.getByTestId('search-results')).toBeVisible();

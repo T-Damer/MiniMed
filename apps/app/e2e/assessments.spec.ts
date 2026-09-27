@@ -35,7 +35,10 @@ test('opens personal questionnaires from the first catalog card', async ({ page 
   expect(await search.evaluate((element) => element.getBoundingClientRect().top)).toBeLessThan(
     await heading.evaluate((element) => element.getBoundingClientRect().top),
   );
-  await expect(page.getByRole('button', { name: 'Импорт' })).toHaveClass(/ui-button--primary/u);
+  // Import is a secondary header action (an icon button); creating stays the primary action.
+  await expect(page.getByRole('button', { name: 'Импортировать опросник' })).toHaveClass(
+    /ui-button--icon/u,
+  );
   await expect(page.getByText('2 вопроса', { exact: true })).toBeVisible();
   const create = page
     .locator('.assessment-user-questionnaires__search-chrome')
@@ -61,8 +64,13 @@ test('completes a psychology questionnaire and writes the result to a patient no
   await page
     .getByRole('button', { name: 'Открыть раздел «Самооценка и личностный профиль»' })
     .click();
-  // Published local tool packs install in the background; wait for the executable schema.
-  await expect(page.getByTestId('assessment-open-braverman-behavioral-profile')).toBeEnabled({
+  // Questionnaire packs are explicit downloads; install this one, then wait for its schema.
+  const download = page.getByRole('button', { name: 'Скачать «Профиль Бравермана»' });
+  const openBraverman = page.getByTestId('assessment-open-braverman-behavioral-profile');
+  // Wait for the rendered card before deciding: a persistent origin may already have the pack.
+  await expect(download.or(openBraverman).first()).toBeVisible();
+  if (await download.isVisible()) await download.click();
+  await expect(openBraverman).toBeEnabled({
     timeout: 30_000,
   });
   await page.getByTestId('assessment-open-braverman-behavioral-profile').click();

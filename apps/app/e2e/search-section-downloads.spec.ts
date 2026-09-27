@@ -52,14 +52,15 @@ for (const width of [375, 1280]) {
     await page.screenshot({ path: test.info().outputPath('expanded-download-menu.png') });
     try {
       await download.click();
-      await expect(download.locator('.search-section-download__pie')).toBeVisible();
+      // The shared progress mark: a pie while running, a clock while the task waits in the queue.
+      await expect(download.locator('.download-progress-mark')).toBeVisible();
       await expect(download).toBeDisabled();
       await expect(menu).toBeVisible();
       await expect.poll(() => requests).toBe(1);
       await page.keyboard.press('Escape');
       await picker.click();
       await menu.getByRole('button', { name: 'Подразделы: Опросники', exact: true }).click();
-      await expect(download.locator('.search-section-download__pie')).toBeVisible();
+      await expect(download.locator('.download-progress-mark')).toBeVisible();
       await download.scrollIntoViewIfNeeded();
     } finally {
       release();

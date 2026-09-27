@@ -158,11 +158,14 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
     .getByRole('button', { name: 'Калькуляторы', exact: true })
     .click();
   await page.getByRole('button', { name: 'Открыть раздел «Антропометрия»' }).click();
+  // The anthropometry section is an explicit download; install it unless already present.
   const anthropometryDownload = page.getByRole('button', {
-    name: 'Скачать раздел «Антропометрия»',
+    name: /^(Скачать раздел|Скачать дополнения|Есть обновление) — Антропометрия$/u,
   });
-  if (await anthropometryDownload.count()) await anthropometryDownload.click();
-  await page.getByTestId('calculator-open-body-surface-area-mosteller').click();
+  const openMosteller = page.getByTestId('calculator-open-body-surface-area-mosteller');
+  await expect(anthropometryDownload.or(openMosteller).first()).toBeVisible();
+  if (await anthropometryDownload.isVisible()) await anthropometryDownload.click();
+  await openMosteller.click();
   await selectPatient(page, 'Пациент динамики');
   const calculatorEpisode = page.getByTestId('calculator-episode-select');
   await expect(calculatorEpisode.locator('option')).toHaveCount(2);
@@ -262,6 +265,11 @@ test('creates a protected patient profile and opens longitudinal dynamics', asyn
     page.getByRole('heading', { name: /^(Карточки пациентов без шифрования|Пациенты закрыты)$/u }),
   ).toBeVisible();
   await expect(page.locator('html')).not.toHaveClass(/patient-vault--privacy-curtain/u);
+  // The unlock prompt is a modal dialog over the patient area; leave it before switching tabs.
+  await page
+    .getByRole('dialog', { name: 'Пациенты' })
+    .getByRole('button', { name: 'Закрыть', exact: true })
+    .click();
   await page
     .locator('.app-bottom-nav')
     .getByRole('button', { name: 'Калькуляторы', exact: true })
