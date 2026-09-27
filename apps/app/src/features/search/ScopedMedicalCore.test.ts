@@ -14,6 +14,7 @@ import {
   documentMatchesConditionGroup,
   documentMatchesSearchScope,
   inferSearchScope,
+  preferClinicalRecommendationForCaseQueries,
   ScopedMedicalCore,
   searchResultDocumentKind,
 } from '@/features/search/ScopedMedicalCore';
@@ -983,6 +984,63 @@ describe('ScopedMedicalCore', () => {
     ]);
   });
 
+  it('prefers a clinical recommendation over an ICD reference for an age/sex case query in free search, without moving a named medication out of its slot', async () => {
+    const icd = document('icd', 'rls_mkb_reference');
+    const drug = document('drug', 'official_drug_instruction');
+    const kr = document('kr', 'clinical_recommendation');
+    const base = coreWithDocuments([icd, drug, kr]);
+    const query = 'мужчина 60 лет пневмония амоксициллин';
+    base.search.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        ...response(),
+        analysis: { ...response().analysis, originalQuery: query, normalizedQuery: query },
+        groups: [
+          searchGroup(icd.id, [searchResult(icd.id, 'J18.9 Пневмония неуточненная.')]),
+          searchGroup(
+            drug.id,
+            [searchResult(drug.id, 'Амоксициллин, инструкция.')],
+            'Амоксициллин',
+          ),
+          searchGroup(kr.id, [searchResult(kr.id, 'Внебольничная пневмония у взрослых.')]),
+        ],
+      },
+    });
+
+    const result = await new ScopedMedicalCore(base.core, 'all').search(queryRequest(query));
+
+    expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([
+      kr.id,
+      drug.id,
+      icd.id,
+    ]);
+  });
+
+  it('leaves group order untouched for a plain lookup without age/sex context', async () => {
+    const icd = document('icd', 'rls_mkb_reference');
+    const kr = document('kr', 'clinical_recommendation');
+    const base = coreWithDocuments([icd, kr]);
+    base.search.mockResolvedValueOnce({
+      ok: true,
+      value: {
+        ...response(),
+        groups: [
+          searchGroup(icd.id, [searchResult(icd.id, 'J18.9 Пневмония неуточненная.')]),
+          searchGroup(kr.id, [searchResult(kr.id, 'Внебольничная пневмония у взрослых.')]),
+        ],
+      },
+    });
+
+    const result = await new ScopedMedicalCore(base.core, 'all').search(
+      queryRequest('пневмония неуточненная'),
+    );
+
+    expect(result.ok && result.value.groups.map((group) => group.documentId)).toEqual([
+      icd.id,
+      kr.id,
+    ]);
+  });
+
   it('uses deterministic retrieval for diagnosis', async () => {
     const base = coreWithDocuments(documents);
     const scoped = new ScopedMedicalCore(base.core, 'diagnosis');
@@ -1014,6 +1072,38 @@ describe('inferSearchScope', () => {
     expect(inferSearchScope(intent('treatment'))).toBe('guidelines');
     expect(inferSearchScope(intent('mixed'))).toBeUndefined();
     expect(inferSearchScope(intent('diagnosis', 0.4))).toBeUndefined();
+  });
+});
+
+describe('preferClinicalRecommendationForCaseQueries', () => {
+  function kindGroup(
+    documentId: string,
+    documentKind: NonNullable<SearchResultGroup['documentKind']>,
+    bestScore: number,
+  ): SearchResultGroup {
+    return { documentId, title: documentId, bestScore, categories: [], results: [], documentKind };
+  }
+
+  it('moves clinical-recommendation kind ahead of reference kind, leaving every other kind in its own slot', () => {
+    const groups = [
+      kindGroup('icd-1', 'reference', 3),
+      kindGroup('drug', 'medication', 2),
+      kindGroup('icd-2', 'reference', 1.5),
+      kindGroup('kr', 'clinical-recommendation', 1),
+    ];
+
+    expect(
+      preferClinicalRecommendationForCaseQueries(groups).map((group) => group.documentId),
+    ).toEqual(['kr', 'drug', 'icd-1', 'icd-2']);
+  });
+
+  it('is a no-op with fewer than two clinical-recommendation/reference groups', () => {
+    const groups = [
+      kindGroup('drug', 'medication', 2),
+      kindGroup('kr', 'clinical-recommendation', 1),
+    ];
+
+    expect(preferClinicalRecommendationForCaseQueries(groups)).toEqual(groups);
   });
 });
 

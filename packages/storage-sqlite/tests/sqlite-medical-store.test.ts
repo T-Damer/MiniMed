@@ -81,7 +81,9 @@ describe('SqliteMedicalStore', () => {
       expect(document.title).toBe(original?.title);
       expect(document.shortTitle).toBe(original?.shortTitle);
     }
-    for (const document of projected) expect(document.metadata).toEqual(metadata);
+    for (const document of projected) {
+      expect(document.metadata).toEqual({ ...metadata, targetDocumentId: 'downloaded-target' });
+    }
     const navigation = await store.listNavigationDocuments();
     expect(navigation).toHaveLength(seed.documents.length);
     for (const document of navigation) {

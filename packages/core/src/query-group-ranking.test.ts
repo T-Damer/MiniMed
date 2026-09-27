@@ -2,7 +2,11 @@ import type { MedicalDocumentSummary, SearchResult, SearchResultGroup } from '@l
 import { analyzeClinicalQuery } from '@localmed/search-lexical';
 import { describe, expect, it } from 'vitest';
 
-import { queryGroupRelevanceBoost, rankSearchGroupsByQuery } from './query-group-ranking';
+import {
+  collapseGroupsByTargetDocument,
+  queryGroupRelevanceBoost,
+  rankSearchGroupsByQuery,
+} from './query-group-ranking';
 
 it('makes navigation aliases strict identities without promoting broad declared aliases', () => {
   const documents = [
@@ -645,6 +649,98 @@ describe('query-aware group ranking', () => {
         'Иммунопрофилактика — Федеральный закон № 157-ФЗ',
       ),
     ).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('collapseGroupsByTargetDocument', () => {
+  it('keeps only the earliest occurrence of a resolved target identity', () => {
+    const documentsById = new Map([
+      [
+        'core.catalog.pointer.reference.rls.mkb.node.j18-9',
+        {
+          id: 'core.catalog.pointer.reference.rls.mkb.node.j18-9',
+          sourceType: 'core_catalog_pointer',
+          metadata: { catalogFamily: 'reference', targetDocumentId: 'rls.mkb.node.j18-9' },
+        },
+      ],
+      [
+        'rls.mkb.node.j18-9',
+        { id: 'rls.mkb.node.j18-9', sourceType: 'rls_mkb_reference', metadata: {} },
+      ],
+      [
+        'rls.mkb.node.j18-1',
+        { id: 'rls.mkb.node.j18-1', sourceType: 'rls_mkb_reference', metadata: {} },
+      ],
+      ['kr.rf.654_2', { id: 'kr.rf.654_2', sourceType: 'clinical_recommendation', metadata: {} }],
+    ]);
+    const groups = [
+      group('rls.mkb.node.j18-9', 'J18.9', 3),
+      group('core.catalog.pointer.reference.rls.mkb.node.j18-9', 'J18.9 · указатель', 2.9),
+      group('rls.mkb.node.j18-1', 'J18.1', 2),
+      group('kr.rf.654_2', 'Пневмония у взрослых', 1),
+    ];
+
+    const collapsed = collapseGroupsByTargetDocument(groups, documentsById);
+
+    expect(collapsed.map((entry) => entry.documentId)).toEqual([
+      'rls.mkb.node.j18-9',
+      'rls.mkb.node.j18-1',
+      'kr.rf.654_2',
+    ]);
+  });
+
+  it('never removes the top-ranked group, even when it is itself a pointer', () => {
+    const documentsById = new Map([
+      [
+        'pointer',
+        {
+          id: 'pointer',
+          sourceType: 'core_catalog_pointer',
+          metadata: { catalogFamily: 'reference', targetDocumentId: 'target' },
+        },
+      ],
+      ['target', { id: 'target', sourceType: 'rls_mkb_reference', metadata: {} }],
+    ]);
+    const groups = [group('pointer', 'Указатель', 5), group('target', 'Полная запись', 1)];
+
+    expect(collapseGroupsByTargetDocument(groups, documentsById)[0]?.documentId).toBe('pointer');
+    expect(collapseGroupsByTargetDocument(groups, documentsById)).toHaveLength(1);
+  });
+
+  it('leaves unrelated groups and documents without a target untouched', () => {
+    const documentsById = new Map([
+      ['a', { id: 'a', sourceType: 'medical_reference', metadata: {} }],
+      ['b', { id: 'b', sourceType: 'medical_reference', metadata: {} }],
+    ]);
+    const groups = [group('a', 'A', 2), group('b', 'B', 1)];
+
+    expect(collapseGroupsByTargetDocument(groups, documentsById)).toEqual(groups);
+  });
+
+  it('does not conflate the unrelated terminology discovery/detail targetDocumentId with a catalog pointer target', () => {
+    // The terminology discovery mechanism reuses the same metadata key for an edition-gated
+    // discovery-to-detail relation; only a real core_catalog_pointer with a declared catalogFamily
+    // stands for the document it names, so this pairing must never be collapsed by this pass.
+    const documentsById = new Map([
+      [
+        'discovery.medical.term.mesh.M0000001',
+        {
+          id: 'discovery.medical.term.mesh.M0000001',
+          sourceType: 'core_catalog_pointer',
+          metadata: { pointerKind: 'terminology', targetDocumentId: 'medical.term.mesh.M0000001' },
+        },
+      ],
+      [
+        'medical.term.mesh.M0000001',
+        { id: 'medical.term.mesh.M0000001', sourceType: 'medical_reference', metadata: {} },
+      ],
+    ]);
+    const groups = [
+      group('discovery.medical.term.mesh.M0000001', 'Discovery', 2),
+      group('medical.term.mesh.M0000001', 'Detail', 1),
+    ];
+
+    expect(collapseGroupsByTargetDocument(groups, documentsById)).toEqual(groups);
   });
 });
 

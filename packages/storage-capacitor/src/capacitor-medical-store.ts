@@ -411,7 +411,12 @@ export class CapacitorMedicalStore implements MedicalStore {
         'calculationRequired', json(CASE WHEN json_type(metadata_json, '$.calculationRequired') = 'true'
           THEN 'true' ELSE 'false' END),
         'notLegalAdvice', json(CASE WHEN json_type(metadata_json, '$.notLegalAdvice') = 'true'
-          THEN 'true' ELSE 'false' END)
+          THEN 'true' ELSE 'false' END),
+        -- A core-catalog pointer and the full record it names (an ICD pointer and its mkb.db node,
+        -- for example) must collapse into one search-result group before the ranker cuts to a fixed
+        -- result count (query-group-ranking.ts::collapseGroupsByTargetDocument); that pass needs this
+        -- field on the same lean search projection every ranked document goes through.
+        'targetDocumentId', json_extract(metadata_json, '$.targetDocumentId')
       ) AS metadata_json FROM documents ORDER BY title COLLATE NOCASE, id
     `)
       .then((rows) =>

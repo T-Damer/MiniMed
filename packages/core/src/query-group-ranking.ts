@@ -451,6 +451,53 @@ function medicationDocumentBoost(
   return 0;
 }
 
+// The four module families `catalog_module_builder.py` generates lightweight core pointers for
+// (`_core_pointer_id(..., family)`). Only these declare `targetDocumentId` as "the full record this
+// pointer stands in for" — the same metadata key is reused by the unrelated terminology
+// discovery/detail mechanism (a *different* pointer-to-document relation, edition-gated elsewhere),
+// so this data list keeps the two from being conflated instead of trusting the key name alone.
+const CATALOG_POINTER_TARGET_FAMILIES: ReadonlySet<string> = new Set([
+  'reference',
+  'clinical',
+  'medication',
+  'legal',
+]);
+
+function resolvedGroupIdentity(
+  documentId: string,
+  documentsById: ReadonlyMap<string, SearchDocumentDescriptor>,
+): string {
+  const document = documentsById.get(documentId);
+  if (document?.sourceType !== 'core_catalog_pointer') return documentId;
+  const family = document.metadata?.['catalogFamily'];
+  if (typeof family !== 'string' || !CATALOG_POINTER_TARGET_FAMILIES.has(family)) return documentId;
+  const target = document.metadata?.['targetDocumentId'];
+  return typeof target === 'string' && target.trim() ? target : documentId;
+}
+
+/**
+ * A catalog pointer and the full record it points to (for example an ICD core-catalog pointer and
+ * the matching mkb.db node) describe one concept under two document ids. Left ungrouped, both
+ * survive ranking and spend two of a fixed top-k budget on a single real answer — see
+ * docs/research/search-kr-pointers-vs-mkb-2026-09.md. This keeps only the earliest, already
+ * best-ranked occurrence of each resolved identity: the caller has already ordered `groups` by
+ * every other signal (query relevance, exact-identity tie-breaks, terminology rank), so this pass
+ * only drops a later duplicate — it never reorders and never changes which document represents the
+ * concept, so an exact top-1 match can never be the one removed.
+ */
+export function collapseGroupsByTargetDocument(
+  groups: readonly SearchResultGroup[],
+  documentsById: ReadonlyMap<string, SearchDocumentDescriptor>,
+): readonly SearchResultGroup[] {
+  const seen = new Set<string>();
+  return groups.filter((group) => {
+    const identity = resolvedGroupIdentity(group.documentId, documentsById);
+    if (seen.has(identity)) return false;
+    seen.add(identity);
+    return true;
+  });
+}
+
 export function rankSearchGroupsByQuery(
   groups: readonly SearchResultGroup[],
   query: string,

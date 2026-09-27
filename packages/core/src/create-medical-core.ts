@@ -53,7 +53,7 @@ import {
   toMedicalSection,
 } from './mappers';
 import { QueryDocumentIndex } from './query-document-index';
-import { rankSearchGroupsByQuery } from './query-group-ranking';
+import { collapseGroupsByTargetDocument, rankSearchGroupsByQuery } from './query-group-ranking';
 import {
   resolveSearchResultContext,
   type SearchResultContextHint,
@@ -1398,18 +1398,20 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           modeUsed,
           analysis: plan.analysis,
           suggestions: plan.analysis.suggestions,
-          groups: termIndex
-            .rank(groupedResults, terminologyMatch)
-            .toSorted(
-              (left, right) =>
-                Number(exactTitleDocumentIds.has(right.documentId)) -
-                  Number(exactTitleDocumentIds.has(left.documentId)) ||
-                Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
-                  Number(exactSecondaryIdentityDocumentIds.has(left.documentId)) ||
-                Number(spellingDocumentIds.has(right.documentId)) -
-                  Number(spellingDocumentIds.has(left.documentId)),
-            )
-            .slice(0, parsed.data.limit),
+          groups: collapseGroupsByTargetDocument(
+            termIndex
+              .rank(groupedResults, terminologyMatch)
+              .toSorted(
+                (left, right) =>
+                  Number(exactTitleDocumentIds.has(right.documentId)) -
+                    Number(exactTitleDocumentIds.has(left.documentId)) ||
+                  Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
+                    Number(exactSecondaryIdentityDocumentIds.has(left.documentId)) ||
+                  Number(spellingDocumentIds.has(right.documentId)) -
+                    Number(spellingDocumentIds.has(left.documentId)),
+              ),
+            documentIndex.byId,
+          ).slice(0, parsed.data.limit),
           diagnostics: {
             ftsQuery: branchDiagnostics.map((branch) => branch.ftsQuery).join(' || '),
             candidateCount: candidateIds.size,

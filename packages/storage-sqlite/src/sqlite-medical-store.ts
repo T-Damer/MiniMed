@@ -229,12 +229,16 @@ const SEARCH_METADATA_FIELDS = [
   'interactiveRoute',
   'calculationRequired',
   'notLegalAdvice',
+  // A core-catalog pointer and the full record it names (e.g. an ICD pointer and its mkb.db node)
+  // must collapse into one search-result group before the ranker cuts to a fixed result count
+  // (packages/core/src/query-group-ranking.ts::collapseGroupsByTargetDocument); that pass needs
+  // this field on the same lean search projection every ranked document goes through.
+  'targetDocumentId',
 ] as const;
 const NAVIGATION_METADATA_FIELDS = [
   ...SEARCH_METADATA_FIELDS,
   'sourceType',
   'mkbCode',
-  'targetDocumentId',
   'canonicalDefinition',
   'primaryModuleId',
   'moduleIds',

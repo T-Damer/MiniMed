@@ -455,6 +455,50 @@ export function rankDiagnosisGroups(
     .map((entry) => entry.group);
 }
 
+/**
+ * `clinical-recommendation` outranks `reference` only; every other kind is data (declared document
+ * metadata via `searchResultDocumentKind`), never an id check.
+ */
+function clinicalCasePriority(kind: SearchResultDocumentKind | undefined): number | undefined {
+  if (kind === 'clinical-recommendation') return 0;
+  if (kind === 'reference') return 1;
+  return undefined;
+}
+
+/**
+ * A clinical-recommendation source answers a doctor's case-phrased question ("мужчина 60 лет
+ * пневмония") better than an ICD/reference card that only names the same code — short reference
+ * chunks otherwise win on lexical score alone (docs/research/search-kr-pointers-vs-mkb-2026-09.md).
+ * This reorders only the clinical-recommendation/reference subsequence, in place, by document kind;
+ * every other kind (medication, legal, calculator, assessment, ...) keeps the exact slot scoring and
+ * audience ranking already gave it, so a named medication is never demoted by this pass. Gated on
+ * the same age/sex signal `rankSearchGroupsByAudience` already uses, so a plain lookup/name query
+ * without that context is untouched.
+ */
+export function preferClinicalRecommendationForCaseQueries(
+  groups: readonly SearchResultGroup[],
+): readonly SearchResultGroup[] {
+  const relevantIndexes: number[] = [];
+  groups.forEach((group, index) => {
+    if (clinicalCasePriority(group.documentKind) !== undefined) relevantIndexes.push(index);
+  });
+  if (relevantIndexes.length < 2) return groups;
+
+  const reordered = relevantIndexes
+    .map((index) => groups[index])
+    .toSorted(
+      (left, right) =>
+        (clinicalCasePriority(left?.documentKind) ?? 0) -
+        (clinicalCasePriority(right?.documentKind) ?? 0),
+    );
+  const result = [...groups];
+  relevantIndexes.forEach((index, position) => {
+    const value = reordered[position];
+    if (value) result[index] = value;
+  });
+  return result;
+}
+
 function strictLookupIdentityPriority(
   query: string,
   document: SearchDocumentDescriptor | undefined,
@@ -577,14 +621,19 @@ export class ScopedMedicalCore implements MedicalCore {
       documents.value,
       this.scope,
     );
+    const requestedAudience = inferRequestedAudience(request.query);
     const audienceRanked = rankSearchGroupsByAudience(
       scopedResponse.groups,
       documents.value,
-      inferRequestedAudience(request.query),
+      requestedAudience,
     );
     const summaries = new Map(documents.value.map((document) => [document.id, document]));
     const ranked =
-      this.scope === 'diagnosis' ? rankDiagnosisGroups(audienceRanked) : audienceRanked;
+      this.scope === 'diagnosis'
+        ? rankDiagnosisGroups(audienceRanked)
+        : requestedAudience
+          ? preferClinicalRecommendationForCaseQueries(audienceRanked)
+          : audienceRanked;
     const strictIdentityRanked = preserveStrictIdentities(ranked, request.query, summaries);
     return {
       ok: true,
