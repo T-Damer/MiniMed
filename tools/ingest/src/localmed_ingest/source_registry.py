@@ -242,6 +242,7 @@ def _prepare_into(
         encoding="utf-8",
     )
 
+    unrecognized_sources = 0
     for source, extracted, reused in _extract_sources(
         registry.sources,
         source_root,
@@ -253,7 +254,6 @@ def _prepare_into(
         markdown_path = output_dir / f"{stem}.md"
         extraction_path = extractions / f"{stem}.json"
         diagnostic_path = diagnostics / f"{stem}.json"
-        markdown_path.write_text(render_prepared_markdown(source, extracted), encoding="utf-8")
         _write_json(extraction_path, extracted.model_dump(by_alias=True, mode="json"))
         _write_json(
             diagnostic_path,
@@ -263,19 +263,31 @@ def _prepare_into(
             *extracted.diagnostics.warnings,
             *extracted.diagnostics.review_reasons,
         ]
+        # A source-specific extraction failure (corrupted/empty/unreadable
+        # input, including one the OCR fallback itself could not process)
+        # must mark this one document for review and move on, not raise and
+        # drop every other source already prepared in the same batch.
+        is_unrecognized = False
+        try:
+            markdown_path.write_text(render_prepared_markdown(source, extracted), encoding="utf-8")
+        except NoSearchableTextError as error:
+            is_unrecognized = True
+            unrecognized_sources += 1
+            source_warnings = [*source_warnings, str(error)]
         aggregate_warnings.extend(f"{source.id}: {warning}" for warning in source_warnings)
         prepared_reports.append(
             PreparedSourceReport(
                 source_id=source.id,
                 source_file=source.path,
-                markdown_file=markdown_path.name,
+                markdown_file=None if is_unrecognized else markdown_path.name,
                 extraction_file=str(extraction_path.relative_to(output_dir)),
                 diagnostic_file=str(diagnostic_path.relative_to(output_dir)),
                 source_checksum=extracted.source_checksum,
                 included_blocks=extracted.diagnostics.included_block_count,
                 pages=extracted.diagnostics.page_count,
-                requires_review=extracted.diagnostics.requires_review,
+                requires_review=extracted.diagnostics.requires_review or is_unrecognized,
                 extraction_reused=reused,
+                unrecognized=is_unrecognized,
                 warnings=source_warnings,
             )
         )
@@ -285,6 +297,7 @@ def _prepare_into(
         pack_version=registry.pack.version,
         sources=len(prepared_reports),
         review_required=sum(item.requires_review for item in prepared_reports),
+        unrecognized_sources=unrecognized_sources,
         reused_sources=reused_sources,
         extracted_sources=len(prepared_reports) - reused_sources,
         warnings=aggregate_warnings,

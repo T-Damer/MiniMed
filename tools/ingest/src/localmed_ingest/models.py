@@ -334,7 +334,10 @@ class ExtractedSource(CamelModel):
 class PreparedSourceReport(CamelModel):
     source_id: str
     source_file: str
-    markdown_file: str
+    markdown_file: str | None = None
+    """None when the source produced no searchable text at all (see
+    ``unrecognized``): the document is marked for review rather than built
+    into the searchable corpus with fabricated content."""
     extraction_file: str
     diagnostic_file: str
     source_checksum: str
@@ -342,6 +345,11 @@ class PreparedSourceReport(CamelModel):
     pages: int = Field(ge=0)
     requires_review: bool
     extraction_reused: bool = False
+    unrecognized: bool = False
+    """True when extraction (including any OCR fallback) produced zero
+    searchable blocks for this source — a corrupted, empty, or otherwise
+    unreadable input, not silently dropped but flagged with its checksum and
+    the reason in ``warnings``."""
     warnings: list[str] = Field(default_factory=list)
 
 
@@ -350,6 +358,7 @@ class PrepareReport(CamelModel):
     pack_version: str
     sources: int = Field(ge=0)
     review_required: int = Field(ge=0)
+    unrecognized_sources: int = Field(default=0, ge=0)
     reused_sources: int = Field(default=0, ge=0)
     extracted_sources: int = Field(default=0, ge=0)
     warnings: list[str] = Field(default_factory=list)

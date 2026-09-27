@@ -288,6 +288,103 @@ def test_prepare_registry_builds_searchable_pack_with_page_provenance(tmp_path: 
     assert saved_report["packId"] == "localmed.private-pilot"
 
 
+def test_extract_pdf_marks_ocr_helper_crash_instead_of_raising(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A PDF with no extractable text on any page (pymupdf opens it fine —
+    # this models the real corrupted GRLS instruction found in production,
+    # where CoreGraphics/PyMuPDF disagree: PyMuPDF opens it leniently with a
+    # broken page tree and reads 0 characters per page, so the OCR fallback
+    # is attempted; the macOS Vision helper itself then refuses to open it
+    # at all and the underlying `swift` subprocess exits non-zero).
+    blank = tmp_path / "blank.pdf"
+    document = pymupdf.open()
+    document.new_page(width=595, height=842)
+    document.save(blank)
+    document.close()
+
+    def raise_ocr_error(_source: Path) -> list[RawBlock]:
+        raise pdf_import.MacOSVisionOCRError(
+            "macOS Vision OCR exited with code 65 for blank.pdf: cannot open PDF: blank.pdf"
+        )
+
+    monkeypatch.setattr(pdf_import, "_extract_raw_blocks_macos_vision", raise_ocr_error)
+
+    extracted = extract_pdf(blank)  # must not raise
+
+    assert extracted.diagnostics.requires_review is True
+    assert any(
+        "macOS Vision OCR fallback failed" in reason
+        for reason in extracted.diagnostics.review_reasons
+    )
+    assert extracted.diagnostics.character_count == 0
+
+
+def test_prepare_registry_marks_one_unrecognized_source_without_dropping_the_batch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root = tmp_path / "raw"
+    source_root.mkdir()
+    good_path = source_root / "good.pdf"
+    create_text_pdf(good_path)
+    bad_path = source_root / "bad.pdf"
+    document = pymupdf.open()
+    document.new_page(width=595, height=842)
+    document.save(bad_path)
+    document.close()
+
+    def raise_ocr_error(source: Path) -> list[RawBlock]:
+        if source.name == "bad.pdf":
+            raise pdf_import.MacOSVisionOCRError("macOS Vision OCR exited with code 65 for bad.pdf")
+        return []
+
+    monkeypatch.setattr(pdf_import, "_extract_raw_blocks_macos_vision", raise_ocr_error)
+
+    payload = registry_payload(good_path.name)
+    bad_source = dict(payload["sources"][0])
+    bad_source["id"] = "kr.private.corrupted"
+    bad_source["path"] = bad_path.name
+    payload["sources"].append(bad_source)
+    registry_path = tmp_path / "sources.yaml"
+    registry_path.write_text(
+        yaml.safe_dump(payload, allow_unicode=True, sort_keys=False), encoding="utf-8"
+    )
+    prepared_dir = tmp_path / "prepared"
+
+    # A batch with one unreadable source must not raise: it completes with
+    # the good source built and the bad one flagged (checksum + reason), per
+    # AGENTS.md ("do not catch and discard errors" — mark it, do not drop
+    # the rest of the batch and do not lose the failure either).
+    report = prepare_registry(registry_path, source_root, prepared_dir)
+
+    assert report.sources == 2
+    assert report.unrecognized_sources == 1
+    assert report.review_required >= 1
+    by_id = {item.source_id: item for item in report.prepared}
+    good_report = by_id["kr.private.example"]
+    bad_report = by_id["kr.private.corrupted"]
+    assert good_report.markdown_file is not None
+    assert good_report.unrecognized is False
+    assert bad_report.markdown_file is None
+    assert bad_report.unrecognized is True
+    assert bad_report.requires_review is True
+    assert any("macOS Vision OCR" in warning for warning in bad_report.warnings)
+    # The failed source keeps its raw extraction/diagnostics for review —
+    # nothing about it is discarded, only excluded from the searchable pack.
+    assert (prepared_dir / bad_report.extraction_file).is_file()
+    assert (prepared_dir / bad_report.diagnostic_file).is_file()
+    assert not (prepared_dir / "kr.private.corrupted.md").exists()
+    assert (prepared_dir / "kr.private.example.md").is_file()
+
+    # The good document alone still builds into a valid pack.
+    database = tmp_path / "pilot.db"
+    _, build_report = build_content_pack(prepared_dir, database)
+    assert build_report.sqlite_integrity == "ok"
+    pack = load_content_pack(prepared_dir)
+    assert len(pack.documents) == 1
+    assert pack.documents[0].id == "kr.private.example"
+
+
 def test_prepare_registry_extracts_in_parallel_but_reports_registry_order(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -28,6 +28,17 @@ from .text_encoding import cyrillic_letter_ratio, is_likely_garbled_russian_pdf_
 
 _MACOS_VISION_SCRIPT = Path(__file__).resolve().parents[2] / "macos_vision_ocr.swift"
 
+
+class MacOSVisionOCRError(RuntimeError):
+    """The macOS Vision OCR helper could not process one source PDF.
+
+    Raised for a source-specific failure (a PDF CoreGraphics itself refuses
+    to open, a helper crash, a timeout, or a malformed helper response) so
+    the caller can mark this one document for review instead of losing the
+    whole batch it was extracted in.
+    """
+
+
 NUMBERED_HEADING_PATTERN = re.compile(r"^(?P<number>\d+(?:\.\d+){0,5})[.)]?\s+\S")
 LIST_PATTERN = re.compile(r"^(?:[•▪◦●○*+–—-]|\d+[.)])\s+")
 PAGE_NUMBER_PATTERN = re.compile(r"^(?:стр(?:аница)?\.?\s*)?\d+(?:\s*(?:из|/)\s*\d+)?$", re.I)
@@ -462,6 +473,7 @@ def _build_diagnostics(
     *,
     text_extraction_mode: Literal["pdf_text_layer", "ocr"] = "pdf_text_layer",
     included_text: str = "",
+    ocr_failure_reason: str | None = None,
 ) -> ExtractionDiagnostics:
     blocks = [block for page in pages for block in page.blocks]
     included = [block for block in blocks if not block.removed]
@@ -483,6 +495,8 @@ def _build_diagnostics(
         reasons.append(f"Detected {table_count} table-like blocks that require spot checking.")
     if removed_repeated:
         warnings.append(f"Removed or marked {removed_repeated} repeated header/footer blocks.")
+    if ocr_failure_reason is not None:
+        reasons.append(f"macOS Vision OCR fallback failed: {ocr_failure_reason}")
     if text_extraction_mode == "ocr":
         warnings.append("Used OCR fallback for pages without a usable text layer.")
         reasons.append("OCR-derived text requires source-page review before clinical promotion.")
@@ -551,20 +565,40 @@ def _maybe_extract_with_ocr(
 def _extract_raw_blocks_macos_vision(source: Path) -> list[RawBlock]:
     if sys.platform != "darwin" or not _MACOS_VISION_SCRIPT.is_file():
         return []
-    completed = subprocess.run(
-        ["swift", str(_MACOS_VISION_SCRIPT), str(source)],
-        check=True,
-        capture_output=True,
-        text=True,
-        timeout=180,
-    )
-    payload: object = json.loads(completed.stdout)
+    try:
+        completed = subprocess.run(
+            ["swift", str(_MACOS_VISION_SCRIPT), str(source)],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+    except subprocess.CalledProcessError as error:
+        stderr_excerpt = (error.stderr or "").strip().splitlines()
+        raise MacOSVisionOCRError(
+            f"macOS Vision OCR exited with code {error.returncode} for {source.name}: "
+            + (stderr_excerpt[-1] if stderr_excerpt else "no stderr output")
+        ) from error
+    except subprocess.TimeoutExpired as error:
+        raise MacOSVisionOCRError(
+            f"macOS Vision OCR timed out after {error.timeout:.0f}s for {source.name}."
+        ) from error
+    try:
+        payload: object = json.loads(completed.stdout)
+    except json.JSONDecodeError as error:
+        raise MacOSVisionOCRError(
+            f"macOS Vision OCR returned non-JSON output for {source.name}."
+        ) from error
     if not isinstance(payload, dict) or not isinstance(payload.get("pages"), list):
-        raise ValueError("macOS Vision OCR returned an invalid payload.")
+        raise MacOSVisionOCRError(
+            f"macOS Vision OCR returned an invalid payload for {source.name}."
+        )
     blocks: list[RawBlock] = []
     for raw_page in payload["pages"]:
         if not isinstance(raw_page, dict):
-            raise ValueError("macOS Vision OCR returned an invalid page.")
+            raise MacOSVisionOCRError(
+                f"macOS Vision OCR returned an invalid page for {source.name}."
+            )
         page_number = raw_page.get("page")
         width = raw_page.get("width")
         height = raw_page.get("height")
@@ -575,7 +609,9 @@ def _extract_raw_blocks_macos_vision(source: Path) -> list[RawBlock]:
             or not isinstance(height, (int, float))
             or not isinstance(lines, list)
         ):
-            raise ValueError("macOS Vision OCR page has invalid dimensions.")
+            raise MacOSVisionOCRError(
+                f"macOS Vision OCR page has invalid dimensions for {source.name}."
+            )
         for order_index, raw_line in enumerate(lines):
             if not isinstance(raw_line, dict):
                 continue
@@ -617,6 +653,7 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
     configured = options or ExtractionOptions()
     document = pymupdf.open(source)
     text_extraction_mode: Literal["pdf_text_layer", "ocr"] = "pdf_text_layer"
+    ocr_failure_reason: str | None = None
     try:
         raw_blocks: list[RawBlock] = []
         page_dimensions: dict[int, tuple[float, float]] = {}
@@ -631,11 +668,21 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
         missing_pages = set(page_dimensions) - {block.page for block in raw_blocks}
         if configured.ocr_fallback and missing_pages:
             # Keep native text verbatim when only some PDF pages are scanned.
-            recovered = [
-                block
-                for block in _extract_raw_blocks_macos_vision(source)
-                if block.page in missing_pages
-            ]
+            # A source-specific OCR failure (a malformed PDF CoreGraphics
+            # itself refuses to open, a helper crash/timeout) must mark this
+            # one document for review, not raise and drop the whole batch it
+            # is being prepared in (AGENTS.md: do not catch and discard
+            # errors — mark the problem instead of silently repairing or
+            # propagating it past the one document it belongs to).
+            try:
+                recovered = [
+                    block
+                    for block in _extract_raw_blocks_macos_vision(source)
+                    if block.page in missing_pages
+                ]
+            except MacOSVisionOCRError as error:
+                recovered = []
+                ocr_failure_reason = str(error)
             if recovered:
                 raw_blocks.extend(recovered)
                 text_extraction_mode = "ocr"
@@ -672,6 +719,7 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
         removed_repeated,
         text_extraction_mode=text_extraction_mode,
         included_text=included_text,
+        ocr_failure_reason=ocr_failure_reason,
     )
     return ExtractedSource(
         source_file=source.name,
