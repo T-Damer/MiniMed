@@ -1,7 +1,7 @@
 import type { AliasRecord } from '@localmed/domain';
 import { describe, expect, it } from 'vitest';
 
-import { buildLookupQueryPlan } from './analysis';
+import { buildLookupQueryPlan, DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID } from './analysis';
 
 function alias(
   id: string,
@@ -48,7 +48,7 @@ describe('buildLookupQueryPlan diagnosis-alias dilution', () => {
     const [primary, diluted] = plan.branches;
     expect(primary?.id).toBe('lookup');
     expect(primary?.weight).toBe(1);
-    expect(diluted?.id).toBe('lookup-broad-alias');
+    expect(diluted?.id).toBe(DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID);
     expect(diluted?.weight).toBeLessThan(1);
     expect(diluted?.terms).toEqual(
       expect.arrayContaining(['нейроинфекции', 'пахименингит', 'отогенные', 'внутричерепные']),
@@ -67,7 +67,7 @@ describe('buildLookupQueryPlan diagnosis-alias dilution', () => {
 
     expect(plan.branches).toHaveLength(2);
     const strongTerms = branchTerms(plan, 'lookup');
-    const dilutedTerms = branchTerms(plan, 'lookup-broad-alias');
+    const dilutedTerms = branchTerms(plan, DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID);
     expect(strongTerms).toEqual(expect.arrayContaining(['клещевой', 'вирусный']));
     expect(dilutedTerms).not.toEqual(expect.arrayContaining(['клещевой']));
     expect(dilutedTerms).toEqual(expect.arrayContaining(['нейроинфекции', 'рецепторный']));
@@ -83,8 +83,10 @@ describe('buildLookupQueryPlan diagnosis-alias dilution', () => {
 
     expect(plan.branches).toHaveLength(2);
     expect(branchTerms(plan, 'lookup')).toEqual(expect.arrayContaining(['j02']));
-    expect(branchTerms(plan, 'lookup-broad-alias')).not.toEqual(expect.arrayContaining(['j02']));
-    expect(branchTerms(plan, 'lookup-broad-alias')).toEqual(
+    expect(branchTerms(plan, DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID)).not.toEqual(
+      expect.arrayContaining(['j02']),
+    );
+    expect(branchTerms(plan, DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID)).toEqual(
       expect.arrayContaining(['тонзиллофарингит']),
     );
   });

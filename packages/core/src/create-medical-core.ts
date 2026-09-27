@@ -27,6 +27,7 @@ import {
   buildLookupQueryPlan,
   buildSnippet,
   createAliasExpander,
+  DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID,
   findNormalizedPhraseIndex,
   fuzzyPhraseSpan,
   type LexicalQueryBranchPlan,
@@ -69,12 +70,17 @@ export interface CreateMedicalCoreOptions {
   readonly searchExecution?: CoreCapabilities['searchExecution'];
 }
 
+interface BranchContribution {
+  readonly branchId: string;
+  readonly score: number;
+}
+
 interface AggregatedHit {
   readonly hit: LexicalHit;
   readonly branchIds: Set<string>;
   readonly branchLabels: Set<string>;
   readonly terms: Set<string>;
-  readonly branchScores: number[];
+  readonly branchContributions: BranchContribution[];
   sectionBoost: number;
   score: number;
   bestLexicalScore: number;
@@ -590,7 +596,9 @@ function exactIdentityResult(hit: LexicalHit, terms: readonly string[], spelling
       spelling ? 'Возможная опечатка в названии препарата' : 'Точное название',
     ]),
     terms: new Set(terms),
-    branchScores: [1],
+    branchContributions: [
+      { branchId: spelling ? 'medication-spelling-identity' : 'exact-identity', score: 1 },
+    ],
     sectionBoost: 0,
     score: 1,
     bestLexicalScore: 1,
@@ -732,7 +740,7 @@ function fuseBranchHits(
         branchIds: new Set<string>(),
         branchLabels: new Set<string>(),
         terms: new Set<string>(),
-        branchScores: [],
+        branchContributions: [],
         sectionBoost: 0,
         score: 0,
         bestLexicalScore: 0,
@@ -744,7 +752,7 @@ function fuseBranchHits(
       const rankPositionSignal = 1 / (index + 1);
       const branchScore = branch.weight * (relativeLexicalScore * 0.82 + rankPositionSignal * 0.18);
 
-      existing.branchScores.push(branchScore);
+      existing.branchContributions.push({ branchId: branch.id, score: branchScore });
       existing.sectionBoost = Math.max(existing.sectionBoost, branchSectionBoost(branch, hit));
       existing.bestLexicalScore = Math.max(existing.bestLexicalScore, hit.rank);
       existing.branchIds.add(branch.id);
@@ -755,14 +763,22 @@ function fuseBranchHits(
   }
 
   for (const aggregate of aggregateByChunk.values()) {
-    const [strongest = 0, ...supporting] = aggregate.branchScores.toSorted(
-      (left, right) => right - left,
+    const [strongest, ...supporting] = aggregate.branchContributions.toSorted(
+      (left, right) => right.score - left.score,
     );
+    const strongestScore = strongest?.score ?? 0;
+    // A hit reached only through the diluted diagnosis-alias branch (a synonym shared with several
+    // unrelated conditions, see search-lexical's buildLookupQueryPlan) is corroborating noise, not
+    // independent confirmation: it must not stack on top of a stronger branch's own match. It still
+    // sets its own (already discounted) strength when it is the strongest — or only — branch hit.
+    const corroboratingScores = supporting
+      .filter((contribution) => contribution.branchId !== DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID)
+      .map((contribution) => contribution.score);
     const corroboration = Math.min(
-      strongest * 0.28,
-      supporting.reduce((sum, score) => sum + Math.min(score, strongest) * 0.1, 0),
+      strongestScore * 0.28,
+      corroboratingScores.reduce((sum, score) => sum + Math.min(score, strongestScore) * 0.1, 0),
     );
-    aggregate.score = strongest + corroboration + aggregate.sectionBoost;
+    aggregate.score = strongestScore + corroboration + aggregate.sectionBoost;
   }
 
   const subject = searchSubjectText(query);

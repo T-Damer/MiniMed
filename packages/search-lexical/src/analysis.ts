@@ -2055,6 +2055,15 @@ function ambiguousDiagnosisAliasSurfaceForms(
 // pointer's own declared alias, or any unambiguous alias in branch fusion
 // (packages/core/src/create-medical-core.ts::fuseBranchHits).
 const AMBIGUOUS_ALIAS_BRANCH_WEIGHT = 0.35;
+/**
+ * Branch id of the diluted-alias branch built in `buildLookupQueryPlan`. A hit found only through
+ * this branch is by definition reached via a synonym shared with several unrelated conditions
+ * (see `ambiguousDiagnosisAliasSurfaceForms` above), not a direct or declared-identity match. Never
+ * let it stack as corroborating evidence in `packages/core/src/create-medical-core.ts::fuseBranchHits`
+ * on top of a stronger branch's hit — only whether the branch itself is present drives its own
+ * (already discounted) strength.
+ */
+export const DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID = 'lookup-broad-alias';
 
 // An ICD-10-shaped token ("g00", "j03") stays a precise identifier even inside an ambiguous
 // alias's canonical term ("G00 Бактериальный менингит..., МКБ-10"): unlike a generic disease-name
@@ -2106,7 +2115,7 @@ export function buildLookupQueryPlan(
   const dilutedBranch =
     dilutedTerms.length > 0
       ? makeBranch(
-          'lookup-broad-alias',
+          DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID,
           'original',
           'Поиск по источникам (широкий синоним)',
           query,

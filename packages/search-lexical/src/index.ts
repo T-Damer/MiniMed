@@ -1,5 +1,6 @@
 export * from './aliases';
 export type { ClinicalQueryPlan, LexicalQueryBranchPlan } from './analysis';
+export { DILUTED_DIAGNOSIS_ALIAS_BRANCH_ID } from './analysis';
 export { analyzeClinicalQuery } from './clinical-query';
 export * from './definition-description';
 export * from './definition-name-variants';
