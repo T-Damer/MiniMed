@@ -325,6 +325,66 @@ const PINNED_MEDICATION_IDS = resolve(
   root,
   'tools/ingest/scripts/released-medication-pointer-ids-2026-09-08.json',
 );
+const CLINICAL_SOURCE_MANIFEST = resolve(
+  root,
+  'tools/ingest/scripts/released-clinical-source-databases-2026-07-27.json',
+);
+const CLINICAL_SOURCE_DIR = resolve(
+  root,
+  'data/build/official-clinical-documents-2026-07-27/databases',
+);
+
+// Verifies data/build/official-clinical-documents-2026-07-27/databases against the committed
+// per-file sha256 manifest before every 'clinical-ledger-enriched' run, so a missing directory,
+// a partial copy, or a silently-swapped file fails loudly with a clear remediation message
+// instead of quietly reproducing the "163 vs 6 keywords" regression this stage exists to fix
+// (see the long comment on that stage and released-clinical-source-databases-2026-07-27.json's
+// own "description" field for the full trace).
+async function verifyClinicalSourceDatabases() {
+  const manifest = JSON.parse(await readFile(CLINICAL_SOURCE_MANIFEST, 'utf8'));
+  const expected = manifest.checksums;
+  const expectedCount = Object.keys(expected).length;
+  if (!existsSync(CLINICAL_SOURCE_DIR)) {
+    throw new Error(
+      `clinical-ledger-enriched: missing ${CLINICAL_SOURCE_DIR}. Restore the ${expectedCount} ` +
+        `files listed in ${CLINICAL_SOURCE_MANIFEST} (sourcePath: ${manifest.sourcePath}) before ` +
+        "re-running -- this directory backs the released core.db's clinical keywords/aliases " +
+        'and is not derivable from data/build/official-clinical-documents/databases.',
+    );
+  }
+  const present = new Set(
+    readdirSync(CLINICAL_SOURCE_DIR)
+      .filter((name) => name.endsWith('.db'))
+      .map((name) => name.replace(/\.db$/, '')),
+  );
+  const missing = [];
+  const mismatched = [];
+  for (const [officialId, expectedHash] of Object.entries(expected)) {
+    const fileName = `clinical-${officialId}-clinical-json-${manifest.sourceDateSuffix}.db`;
+    const filePath = resolve(CLINICAL_SOURCE_DIR, fileName);
+    if (!existsSync(filePath)) {
+      missing.push(officialId);
+      continue;
+    }
+    const actualHash = sha256(await readFile(filePath));
+    if (actualHash !== expectedHash) mismatched.push(officialId);
+  }
+  if (missing.length || mismatched.length) {
+    throw new Error(
+      `clinical-ledger-enriched: ${CLINICAL_SOURCE_DIR} does not match ` +
+        `${CLINICAL_SOURCE_MANIFEST} -- ${missing.length} missing, ${mismatched.length} ` +
+        `checksum mismatches (e.g. ${[...missing, ...mismatched].slice(0, 5).join(', ')}). ` +
+        'Restore the exact committed batch rather than continuing with unverified input.',
+    );
+  }
+  if (present.size !== expectedCount) {
+    throw new Error(
+      `clinical-ledger-enriched: ${CLINICAL_SOURCE_DIR} has ${present.size} .db files, expected ` +
+        `${expectedCount} from ${CLINICAL_SOURCE_MANIFEST}. Remove any extra/stale files before ` +
+        're-running.',
+    );
+  }
+}
 
 const stages = [
   {
@@ -457,12 +517,86 @@ const stages = [
     },
   },
   {
+    // keywords/aliases source, restored (docs/research/core-build-reconstruction-2026-09-27.md,
+    // "keywords (163 vs 6)... traced, not fixed" -> traced further and fixed here): the released
+    // core.db's 163 keyword-bearing / 10,124 clinical-recommendation-alias clinical pointers were
+    // built from a CLEANER, EARLIER parse of the same 744 source PDFs than
+    // `data/build/official-clinical-documents/databases` (723 files) currently on disk. In that
+    // directory, only 7/723 databases have a section titled exactly "Ключевые слова" --
+    // everywhere else the heading was later re-parsed merged with the next one (e.g. "Ключевые
+    // слова Список сокращений"), which `_KEYWORD_SECTION_PATTERN` correctly refuses to treat as a
+    // keyword list (a deliberately conservative choice -- widening the match would misclassify
+    // abbreviation-expansion pairs like "АДС - анатоксин..." as keywords, confirmed by inspecting
+    // 79_2.db). The still-available, byte-identical 2026-07-27 batch that WAS cleanly parsed
+    // (filename suffix 13991c1feee5) survives, uncommitted, under
+    // output/release-0.6.33/packages/clinical-<officialId>-clinical-json-2026.07.27-
+    // 13991c1feee5.db -- confirmed by direct inspection: all 744 files parse with a standalone
+    // "Ключевые слова" section title (vs 7/723 in the current directory), all 744 official ids
+    // match the ledger's 744 records exactly (0 missing/extra, vs 21 unmatched today), and
+    // kr.rf.107_2's "Ключевые слова" chunk text in this batch is a byte-exact match for that
+    // record's `keywords` array in the released core.db. `output/` is gitignored (ephemeral
+    // release output), so this batch is copied to
+    // `data/build/official-clinical-documents-2026-07-27/databases` (gitignored too -- a local
+    // build cache like every other data/build/* input) with a committed checksum manifest,
+    // `tools/ingest/scripts/released-clinical-source-databases-2026-07-27.json` (744 sha256
+    // entries keyed by officialId), verified below before every run so a silently-swapped or
+    // partial copy fails loudly instead of quietly regressing keywords/aliases again.
+    //
+    // Neither snapshot alone is complete: 4/744 ids (940_1, 1016_1, 406_3, 801_1) have a
+    // correctly-titled "Ключевые слова" section in the 2026-07-27 batch with ZERO chunks under it
+    // (an OCR/parse gap specific to that run for those four PDFs), while the current, messier
+    // `official-clinical-documents/databases` directory happens to carry real, non-empty, byte-
+    // identical-to-released content for exactly those four. `clinical-source-snapshot` below
+    // merges the two, deterministically, using the real extraction code (not a guess) to decide
+    // per id -- see tools/ingest/scripts/build_clinical_source_snapshot.py's module docstring.
+    name: 'clinical-source-snapshot',
+    deps: ['clinical-ledger-base'],
+    async inputs() {
+      return {
+        ledger: resolve(buildDir, 'official-clinical-coverage-ledger.json'),
+        primary: resolve(root, 'data/build/official-clinical-documents-2026-07-27/databases'),
+        primaryManifest: CLINICAL_SOURCE_MANIFEST,
+        fallback: resolve(root, 'data/build/official-clinical-documents/databases'),
+      };
+    },
+    async outputs() {
+      return [resolve(buildDir, 'official-clinical-documents-merged/databases')];
+    },
+    async execute() {
+      await verifyClinicalSourceDatabases();
+      return run(
+        'uv',
+        [
+          'run',
+          '--project',
+          'tools/ingest',
+          'python',
+          'tools/ingest/scripts/build_clinical_source_snapshot.py',
+          '--ledger',
+          'data/build/official-clinical-coverage-ledger.json',
+          '--primary',
+          'data/build/official-clinical-documents-2026-07-27/databases',
+          '--fallback',
+          'data/build/official-clinical-documents/databases',
+          '--output',
+          'data/build/official-clinical-documents-merged/databases',
+          '--report',
+          'data/build/official-clinical-documents-merged-report.json',
+        ],
+        {
+          label:
+            'merge the released-parse clinical databases with the current re-parse, preferring whichever yields real keywords per id',
+        },
+      );
+    },
+  },
+  {
     name: 'clinical-ledger-enriched',
-    deps: ['clinical-ledger-base', 'clinical-medication-relations'],
+    deps: ['clinical-ledger-base', 'clinical-medication-relations', 'clinical-source-snapshot'],
     async inputs() {
       return {
         baseLedger: resolve(buildDir, 'official-clinical-coverage-ledger.json'),
-        databases: resolve(root, 'data/build/official-clinical-documents/databases'),
+        databases: resolve(buildDir, 'official-clinical-documents-merged/databases'),
         medicationRelations: resolve(buildDir, 'clinical-medication-relations'),
       };
     },
@@ -481,7 +615,7 @@ const stages = [
           '--ledger',
           'data/build/official-clinical-coverage-ledger.json',
           '--databases',
-          'data/build/official-clinical-documents/databases',
+          'data/build/official-clinical-documents-merged/databases',
           '--output',
           'data/build/official-clinical-coverage-ledger-enriched.json',
           '--report',
@@ -491,7 +625,7 @@ const stages = [
         ],
         {
           label:
-            'enrich the clinical ledger with traceable aliases, keywords, definitions, medication links',
+            'enrich the clinical ledger with traceable aliases, keywords, definitions, medication links (released-parse source, merged)',
         },
       );
     },

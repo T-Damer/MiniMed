@@ -602,3 +602,136 @@ run left `data/build/core.0.7.0-test1.db` / `core.0.7.0-test1.no-pilot.db` /
 `core-pilot-removal-diff.json` as real, verified artifacts (see checksums above) — rerun with a
 real version string once the medication-ledger churn from the concurrent GRLS work settles, then
 run the benchmark suite above before considering publication.
+
+## keywords (163 vs 6): the input traced, matched, and fixed (2026-09-27, follow-up session)
+
+The previous section left this "traced, not fixed": `clinical_aliases.py`'s
+`_KEYWORD_SECTION_PATTERN`/`_section_keywords` were confirmed unchanged since the `feat: integrate
+current MiniMed application and data tooling` squash (`6dcebebc`, 2026-09-02) and since the 0.6.33
+release commit (`7a33294f`, 2026-09-05) — `git log -S` on both names returns only those two
+commits, neither touching the keyword regex — and the 723 files in
+`data/build/official-clinical-documents/databases` are untouched since `Jul 24 15:3x-16:0x` (same
+batch as the sync report). Same code, same input, every time this session ran it: 6 keyword
+records. So the released core.db's 163 could not have come from re-running this exact pipeline
+against this exact directory, ever.
+
+**The actual input, found by direct inspection, not guessed:** `output/release-0.6.33/packages/`
+(committed nowhere — `output/` is gitignored — but still present on this machine from an earlier
+release build) holds 744 files named
+`clinical-<officialId>-clinical-json-2026.07.27-13991c1feee5.db` — the OLD naming convention
+`_database_official_id` already special-cased for backward compatibility before the Sep 5 diff
+that switched to bare `<id>.db`. Checked against `_KEYWORD_SECTION_PATTERN` directly: **all
+744/744** files have a standalone `"Ключевые слова"` section title (vs 7/723 in the current
+directory), and their 744 official ids match the ledger's 744 records exactly — 0 missing, 0
+extra (the current directory has 21 unmatched records). `kr.rf.107_2`'s `"Ключевые слова"` chunk
+in this batch (`'активная фаза\n\nгруппа риска\n\nгестационный возраст\n\n...'`) is a byte-exact
+match for that record's `keywords` array in the released core.db. This is conclusive: the release
+was built from this 2026-07-27 batch, and the currently-live `official-clinical-documents/
+databases` is a *later, different, and for most documents worse* re-parse of the same source PDFs
+(most "Ключевые слова" headings merged into the next one, e.g. `"Ключевые слова Список
+сокращений"` — `_KEYWORD_SECTION_PATTERN` correctly refuses to treat that as a keyword list,
+confirmed by inspecting `79_2.db`'s content under that merged title: abbreviation-expansion pairs,
+not keywords).
+
+**Fix implemented (option (a) from the task, not (b) or (c))**: no changes to
+`clinical_aliases.py` — its extraction logic is unchanged and already tested for exactly this
+"merged heading" case (`test_rejects_merged_keyword_section_title`,
+`test_extracts_keyword_lists_without_toc_or_abbreviation_leakage`). Instead:
+
+1. The 744 files were copied (checksum-verified byte-for-byte, 0 mismatches) from
+   `output/release-0.6.33/packages/` to `data/build/official-clinical-documents-2026-07-27/
+   databases/` (gitignored, a local build cache like every other `data/build/*` input — `output/`
+   itself is not a durable dependency). A committed manifest,
+   `tools/ingest/scripts/released-clinical-source-databases-2026-07-27.json` (744 sha256 entries
+   keyed by officialId, ~67 KB), records exactly which bytes back this fix, mirroring the existing
+   `released-medication-pointer-ids-2026-09-08.json` precedent.
+2. Neither snapshot is a strict superset of the other: 4/744 ids (`940_1`, `1016_1`, `406_3`,
+   `801_1`) have a correctly-titled `"Ключевые слова"` section in the 2026-07-27 batch with
+   **zero chunks under it** — an OCR/parse gap specific to that run for those four PDFs — while
+   the current, messier directory happens to carry real, non-empty, byte-identical-to-released
+   content for exactly those four (confirmed directly: e.g. `1016_1`'s current-directory chunk is
+   `'Критическая ишемия нижних конечностей\n\n...\n\nКлинические рекомендации'`, an exact match for
+   the released `keywords` array). A new script,
+   `tools/ingest/scripts/build_clinical_source_snapshot.py`, merges the two deterministically using
+   the real extraction code (`_database_index`/`_validated_chunks`/`_section_keywords`, imported,
+   not reimplemented) to decide per id: prefer the 2026-07-27 batch; fall back to the current
+   directory only where the batch file exists but yields zero keywords while the current directory
+   yields at least one. Every fallback is written to a report
+   (`data/build/official-clinical-documents-merged-report.json`) by official id, source path, and
+   counts — nothing silent. Wired into `scripts/build-core.mjs` as a new hashed stage,
+   `clinical-source-snapshot` (deps: `clinical-ledger-base`; output:
+   `data/build/official-clinical-documents-merged/databases`), which `clinical-ledger-enriched` now
+   reads instead of `official-clinical-documents/databases` directly. A `verifyClinicalSourceDatabases()`
+   helper (in `build-core.mjs`) checks the primary directory against the committed manifest before
+   every run — missing directory, wrong file count, or a checksum mismatch fails the build loudly
+   instead of silently regressing keywords again. `clinical-medication-relations` (a separate stage)
+   still reads the current, messier directory deliberately — its output (`clinicalMedicationLinks`)
+   already matched the released core.db exactly (271/744) before this fix and is untouched by it.
+
+**Result, rebuilt (`core.0.7.0-test7.no-pilot.db`)**: `keywords` **163/163, exact count match**
+(was 6). Content-level: **161/163 byte-identical** to the released core.db's `keywords` arrays; the
+remaining 2 (`325_2`, `43_2`) are short by one and two terms respectively — both are genuine
+fragmentary-OCR cases where *both* available directories are independently partial (each captured
+a different subset of the same PDF page, confirmed by inspecting both raw chunks side by side) and
+their union would recover the missing terms. Deliberately **not** hand-merged further per the
+task's own instruction not to force-fit content across sources beyond what the deterministic
+per-id fallback already does — flagged here, not silently patched.
+
+Knock-on effects on the same enriched ledger (all from the same, single input-source switch, no
+other code changes): `declaredAliases` 425 (released 318, "candidate has more" — same pattern as
+the existing alias-fan-out and `classificationPath`/`referenceCoverage` overshoots already
+documented above: the cleaner input lets the same deterministic extractor succeed on more
+documents than the release did, not new noise from this fix); `canonicalDefinition` 362 (released
+273, same "more" pattern — spot-checked 8 candidate-only definitions, 7 read as genuine disease
+definitions, 1 (`860_1`) is a garbled anatomical-classification fragment that passed the existing,
+unmodified `_canonical_definition` match-quality gate — a pre-existing heuristic edge case, not
+introduced by this change, out of scope to chase further here); `clinical-recommendation` alias
+category 10,314 (released 10,124, closing the previous 8,421→9,035 undershoot and now a small
+overshoot instead, same cause); `clinicalMedicationLinks` unchanged at 271/744 exact (untouched
+input, as designed).
+
+**Benchmarks on `core.0.7.0-test7.no-pilot.db`** (env sanitized: no provider credentials were
+present; only `CLAUDE_CODE_MESSAGING_TOKEN`/`BAGGAGE` were stripped before every run):
+
+- `benchmark:lookup-quality`: **PASS**, unchanged — Top-1 = 1.0, discoveryAliasRecallAt20 = 0.9433
+  (≥ 0.9 gate).
+- `benchmark:doctor-lookup`: **recallAt5 = 0.4, mrrAt5 = 0.3 — unchanged from before this fix**,
+  still short of the released core.db's 0.70/0.60 (measured fresh in this same session, same
+  ranking code, confirming the harness/target are correct). **Root-caused, not just observed**: for
+  the 3 queries where candidate and release still differ (`meningitis-or-encephalitis-child`,
+  `tick-encephalitis-child`, `pyelonephritis-or-cystitis-woman`), the released core.db's winning
+  clinical pointers are `kr.rf.1031_1` and `kr.rf.281_3`. Direct comparison of those two documents'
+  `metadata_json` between released and candidate shows **byte-identical `keywords` and
+  `declaredAliases`** (e.g. both have `1031_1: keywords=[] declaredAliases=["клещевой энцефалит",
+  "КЭ", "Энцефалит"]`; both have `281_3: keywords=["дети", "инфекция мочевыводящих путей",
+  "пиелонефрит", "цистит"]`) — so this keywords/aliases fix is complete for these specific
+  documents, and the remaining gap is **not a metadata problem**. It is the pre-existing
+  ranking-dilution mechanism `docs/research/search-kr-pointers-vs-mkb-2026-09.md` already scoped as
+  separate work (short MKB/krasotaimedicina reference documents crowding out longer clinical
+  pointers under BM25 length normalization, worsened by the (separately shipped, intentional)
+  diagnosis-alias fan-out giving more reference documents more matching terms) — confirmed still
+  present and unmoved by this session's fix, as expected since this fix touches only the clinical
+  family's own metadata, not reference-family ranking. The 3 queries that miss in *both* released
+  and candidate (`meningitis-child`, `gastroenteritis-child`, `diarrhea-or-vomiting-child`) are
+  unchanged, pre-existing, unrelated gaps.
+- `run-real-corpus.ts --check` (`--path=core --corpus=core`, `--path=app --corpus=all`): still
+  fails tolerance vs `tools/benchmarks/real-corpus-baseline.json`, in the same already-documented
+  two ways (pilot/demo/cases fixtures still target removed pilot ids as primary targets; the
+  surviving-clinical-pointer alternative still loses to the ranking-dilution mechanism above) —
+  numbers essentially unchanged from the pre-fix run (`core:core.db` pilot.recallAt5 0.246,
+  cases.passRate 0; `app:all` pilot.recallAt5 0.115, cases.passRate 0), i.e. this fix neither
+  regressed nor meaningfully moved these already-known-failing metrics, as expected since they are
+  dominated by the pilot-id-targeting and ranking issues, not by clinical keywords/aliases.
+- `run-runtime-retrieval.ts`: recallAt5 = 0.923, mrrAt5 = 0.846 — unchanged, still matching the
+  released core.db's recallAt5 exactly (0.923; released mrrAt5 0.885, close). `passed: false` on
+  both released and candidate, pre-existing (`unverifiedDownloadQueries` 13/19), not caused by this
+  work.
+
+**Net assessment**: the keywords/aliases *source* bug (task's actual ask) is fixed, reproducibly,
+and verified against the real extraction code and the released core.db's actual bytes — not
+guessed. `benchmark:doctor-lookup` does not reach the 0.70/0.60 target from this fix alone because
+its residual gap was never a keywords/aliases problem in the first place for the 3 queries that
+regressed vs release; it is the same ranking-layer tension already scoped to a different owner
+(`packages/*`/`apps/app/src/features/search`, outside `tools/ingest`/`scripts/build-core.mjs`).
+Recommend closing that ranking work next; no further `tools/ingest` change is expected to move
+`benchmark:doctor-lookup` further on its own.
