@@ -6,6 +6,7 @@ import { Button } from '@/components/Button';
 import {
   CanvasDemo,
   DictaphoneDemo,
+  ImagingDemo,
   PatientDemo,
   SearchDemo,
   ToolsDemo,
@@ -50,6 +51,13 @@ const SLIDES: readonly TourSlide[] = [
     title: 'Заметки и холст',
     text: 'Пишите от руки или стилусом, связывайте заметки с документами и пациентами.',
     demo: CanvasDemo,
+  },
+  {
+    id: 'imaging',
+    icon: 'image',
+    title: 'Снимки КТ и МРТ',
+    text: 'DICOM и NIfTI открываются прямо в «Моих файлах»: срезы, окно, масштаб — без интернета. Пока загружается база, можно добавить пример КТ.',
+    demo: ImagingDemo,
   },
   {
     id: 'tools',

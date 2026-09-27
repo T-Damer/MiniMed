@@ -31,7 +31,7 @@ import { GITHUB_REPOSITORY_URL, RELEASE_TAG } from '../../../../release';
 
 export type UserLibraryOcrStatus = 'inspecting' | 'ready' | 'ocr' | 'failed';
 export type UserLibraryOcrQuality = 'fast' | 'balanced' | 'quality';
-export type UserLibraryExampleId = 'ct' | 'mri' | 'epub';
+export type UserLibraryExampleId = 'ct' | 'mri';
 export type UserLibraryColor = 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'gray';
 
 export const USER_LIBRARY_COLORS = [
@@ -149,7 +149,6 @@ export const USER_LIBRARY_RESEARCH_FOLDER_ID = 'user-folder-research';
 export const USER_LIBRARY_RESEARCH_FOLDER_TITLE = 'Исследования';
 export const USER_LIBRARY_EXAMPLE_CT_FILE_NAME = 'Пример КТ.dcm';
 export const USER_LIBRARY_EXAMPLE_MRI_FILE_NAME = 'Пример МРТ.nii';
-export const USER_LIBRARY_EXAMPLE_BOOK_FILE_NAME = "Alice's Adventures in Wonderland.epub";
 
 export interface UserLibraryExampleSlot {
   readonly id: UserLibraryExampleId;
@@ -187,16 +186,6 @@ export const USER_LIBRARY_EXAMPLE_SLOTS = [
     url: `${USER_LIBRARY_EXAMPLE_RELEASE_BASE_URL}/example-mri.nii`,
     browserUrl: `${USER_LIBRARY_EXAMPLE_BROWSER_BASE_URL}/apps/app/src/assets/example-mri.nii`,
     expectedBytes: 17_039_712,
-  },
-  {
-    id: 'epub',
-    title: "Alice's Adventures in Wonderland",
-    fileName: USER_LIBRARY_EXAMPLE_BOOK_FILE_NAME,
-    mimeType: 'application/epub+zip',
-    folderId: USER_LIBRARY_BOOKS_FOLDER_ID,
-    url: `${USER_LIBRARY_EXAMPLE_RELEASE_BASE_URL}/pg11-images-3.epub`,
-    browserUrl: `${USER_LIBRARY_EXAMPLE_BROWSER_BASE_URL}/examples/pg11-images-3.epub`,
-    expectedBytes: 189_231,
   },
 ] as const satisfies readonly UserLibraryExampleSlot[];
 
@@ -443,7 +432,7 @@ function isUserLibraryColor(value: unknown): value is UserLibraryColor {
 }
 
 function isUserLibraryExampleId(value: unknown): value is UserLibraryExampleId {
-  return value === 'ct' || value === 'mri' || value === 'epub';
+  return value === 'ct' || value === 'mri';
 }
 
 function isDocument(value: unknown): value is UserLibraryDocument {

@@ -181,3 +181,16 @@ test('the first run on a cellular connection shows only the setup screen', async
   await expect(setup).toContainText('Ждёт вашего решения', { timeout: 30_000 });
   await expect(page.locator('.boot-screen')).toHaveCount(0);
 });
+
+test('the first-run tour shows how a CT study opens while the core downloads', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.route('**/core.db', () => new Promise(() => {}));
+  await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`);
+  const setup = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
+  await setup.getByRole('button', { name: 'Снимки КТ и МРТ' }).click();
+  const slide = setup.locator('.feature-tour__slide--active');
+  await expect(slide).toContainText('Снимки КТ и МРТ');
+  await slide.getByRole('button', { name: 'Кость', exact: true }).click();
+  await expect(slide.locator('.tour-imaging__label')).toContainText('Кость');
+  await expect(slide.getByRole('button', { name: 'Скачать пример КТ' })).toBeEnabled();
+});

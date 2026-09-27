@@ -87,14 +87,12 @@ jobs:
           release_db="release-output/${CORE_DATABASE_NAME}"
           example_ct="release-output/example-ct.dcm"
           example_mri="release-output/example-mri.nii"
-          example_epub="release-output/pg11-images-3.epub"
 
           test -s "$apk_source"
           cp "$apk_source" "$apk"
           cp "$apk" "$apk_latest"
           cp apps/app/src/assets/example-ct.dcm "$example_ct"
           cp apps/app/src/assets/example-mri.nii "$example_mri"
-          cp examples/pg11-images-3.epub "$example_epub"
           # Info-ZIP exits 1 when warnings occurred but the operation succeeded. Aligned APKs
           # routinely trigger that, and pipefail would abort before corpus checks.
           unzip_apk() {
@@ -228,7 +226,6 @@ jobs:
           release_db="release-output/${CORE_DATABASE_NAME}"
           example_ct="release-output/example-ct.dcm"
           example_mri="release-output/example-mri.nii"
-          example_epub="release-output/pg11-images-3.epub"
           notes=$(cat <<EOF
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
@@ -252,9 +249,9 @@ jobs:
           EOF
           )
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" "$example_ct" "$example_mri" "$example_epub" --clobber
+            gh release upload "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" "$example_ct" "$example_mri" --clobber
           else
-            gh release create "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" "$example_ct" "$example_mri" "$example_epub" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
+            gh release create "$RELEASE_TAG" "$apk" "$apk_latest" "$release_db" "$example_ct" "$example_mri" --title "MiniMed ${RELEASE_VERSION}" --notes "$notes" --prerelease --target "${GITHUB_SHA}"
           fi
           gh release upload "$RELEASE_TAG" release-output/VERIFICATION.json release-output/APK-SHA256.txt release-output/DB-SHA256.txt --clobber
           if [ "$(gh release view "$RELEASE_TAG" --json isDraft --jq '.isDraft')" = true ]; then

@@ -29,7 +29,7 @@ roadmap ideas.
 - Search history opens from a floating button as a drawer, never as a route or a side column.
 - The optional six-section layout contains search, knowledge base, assessments, calculators, notes,
   and settings. In the default layout, a selector beside search actions owns source/tool selection;
-  personal files reuse the user library, including notes, demo books/research, questionnaires,
+  personal files reuse the user library, including notes, CT/MRI example studies, questionnaires,
   templates, and a separate patient-workspace entry. Only a native encrypted vault gets a lock;
   ordinary file drag/drop must never write into that entry. Personal matches render outside the
   official results container so a local record can never pass as installed content — in the DOM or on

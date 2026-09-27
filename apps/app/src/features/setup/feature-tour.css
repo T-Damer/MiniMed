@@ -705,3 +705,73 @@
     animation: none;
   }
 }
+
+/* Imaging slide: an abstract scan, window presets and the optional CT example. */
+.tour-imaging__screen {
+  position: relative;
+  display: grid;
+  /* The tour stage is 13rem tall: the screen leaves room for the presets and the button. */
+  height: 5.25rem;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 0.55rem;
+  background: #111;
+}
+
+.tour-imaging__slice {
+  height: 82%;
+  aspect-ratio: 1.25;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 36% 48%, #6b6b6b 0 12%, transparent 13%),
+    radial-gradient(circle at 64% 48%, #6b6b6b 0 12%, transparent 13%),
+    radial-gradient(circle at 50% 70%, #9a9a9a 0 7%, transparent 8%),
+    radial-gradient(ellipse at 50% 50%, #3d3d3d 0 58%, #d9d9d9 60% 64%, #2a2a2a 66%);
+  transform: scale(calc(0.9 + var(--tour-slice, 0.5) * 0.15));
+  transition: filter 0.3s ease;
+}
+
+.tour-imaging__label {
+  position: absolute;
+  bottom: 0.25rem;
+  left: 0.45rem;
+  color: #e8e8e8;
+  font-size: 0.62rem;
+}
+
+.tour-imaging__windows {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.tour-imaging__window {
+  flex: 1;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: transparent;
+  color: var(--theme-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tour-imaging__window--active {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.tour-imaging__action {
+  width: 100%;
+}
+
+.tour-imaging__error {
+  margin: 0;
+  color: var(--theme-danger);
+  overflow-wrap: anywhere;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-imaging__slice {
+    transition: none;
+  }
+}

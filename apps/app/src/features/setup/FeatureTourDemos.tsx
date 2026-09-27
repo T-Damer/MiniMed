@@ -1,6 +1,7 @@
 import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { Button } from '@/components/Button';
 
 /**
  * Small, self-contained previews of real MiniMed screens for the first-run tour.
@@ -311,6 +312,108 @@ export function ToolsDemo(props: TourDemoProps): JSX.Element {
           <span class="tour-tools__meter-fill" style={{ '--tour-fill': total() / max }} />
         </span>
       </div>
+    </div>
+  );
+}
+
+const IMAGING_SLICES = 24;
+const IMAGING_WINDOWS = [
+  { label: 'Мягкие ткани', filter: 'contrast(1.15) brightness(1)' },
+  { label: 'Кость', filter: 'contrast(1.9) brightness(0.8)' },
+] as const;
+
+/**
+ * A stylised scan in the image viewer: scrolling slices and switching the window. The picture is
+ * abstract shapes, not a patient image. A real CT example can be added to «Мои файлы» meanwhile.
+ */
+export function ImagingDemo(props: TourDemoProps): JSX.Element {
+  const [slice, setSlice] = createSignal(12);
+  const [windowIndex, setWindowIndex] = createSignal(0);
+  const [example, setExample] = createSignal<
+    | { state: 'idle' }
+    | { state: 'loading'; progress: number }
+    | { state: 'added' }
+    | { state: 'error'; message: string }
+  >({ state: 'idle' });
+  createEffect(() => {
+    if (!props.active) return;
+    const timer = setInterval(() => setSlice((value) => (value % IMAGING_SLICES) + 1), 280);
+    onCleanup(() => clearInterval(timer));
+  });
+  const addExample = (): void => {
+    setExample({ state: 'loading', progress: 0 });
+    // The user library loads only when asked, so the setup screen stays light.
+    import('@/state/user-library')
+      .then(({ downloadUserLibraryExample, USER_LIBRARY_EXAMPLE_SLOTS }) => {
+        const ct = USER_LIBRARY_EXAMPLE_SLOTS.find((slot) => slot.id === 'ct');
+        if (!ct) throw new Error('Пример КТ недоступен в этой сборке.');
+        return downloadUserLibraryExample(ct, (progress) =>
+          setExample({ state: 'loading', progress }),
+        );
+      })
+      .then(
+        () => setExample({ state: 'added' }),
+        (cause: unknown) =>
+          setExample({
+            state: 'error',
+            message: cause instanceof Error ? cause.message : 'Не удалось скачать пример.',
+          }),
+      );
+  };
+  const current = () => IMAGING_WINDOWS[windowIndex()] ?? IMAGING_WINDOWS[0];
+  return (
+    <div class="tour-demo tour-demo--imaging">
+      <div class="tour-imaging__screen" aria-hidden="true">
+        <span
+          class="tour-imaging__slice"
+          style={{ filter: current().filter, '--tour-slice': slice() / IMAGING_SLICES }}
+        />
+        <span class="tour-imaging__label">
+          Срез {slice()} / {IMAGING_SLICES} · {current().label}
+        </span>
+      </div>
+      <div class="tour-imaging__windows">
+        <For each={IMAGING_WINDOWS}>
+          {(preset, index) => (
+            <button
+              class="tour-imaging__window"
+              classList={{ 'tour-imaging__window--active': index() === windowIndex() }}
+              type="button"
+              aria-pressed={index() === windowIndex()}
+              onClick={() => setWindowIndex(index())}
+            >
+              {preset.label}
+            </button>
+          )}
+        </For>
+      </div>
+      <Button
+        class="tour-imaging__action"
+        variant="secondary"
+        disabled={example().state === 'loading' || example().state === 'added'}
+        onClick={addExample}
+        title="Пример КТ появится в «Моих файлах»"
+        icon={<AppGlyph name="download" />}
+      >
+        {(() => {
+          const state = example();
+          if (state.state === 'loading') return `Скачиваем · ${Math.round(state.progress * 100)}%`;
+          if (state.state === 'added') return 'Пример КТ в «Моих файлах»';
+          return 'Скачать пример КТ';
+        })()}
+      </Button>
+      <Show
+        when={(() => {
+          const state = example();
+          return state.state === 'error' ? state.message : undefined;
+        })()}
+      >
+        {(message) => (
+          <p class="tour-imaging__error" role="alert">
+            {message()}
+          </p>
+        )}
+      </Show>
     </div>
   );
 }

@@ -475,11 +475,6 @@ describe('user-library storage', () => {
         folderId: USER_LIBRARY_RESEARCH_FOLDER_ID,
         fileName: 'Пример МРТ.nii',
       }),
-      expect.objectContaining({
-        id: 'epub',
-        folderId: USER_LIBRARY_BOOKS_FOLDER_ID,
-        fileName: "Alice's Adventures in Wonderland.epub",
-      }),
     ]);
     for (const slot of USER_LIBRARY_EXAMPLE_SLOTS) {
       expect(slot.url).toMatch(

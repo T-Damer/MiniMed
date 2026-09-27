@@ -1,6 +1,6 @@
-import { resolve } from 'node:path';
 import { expect, type Page, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import { syntheticEpub } from './synthetic-epub';
 
 async function openLibrary(page: Page): Promise<void> {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
@@ -13,13 +13,18 @@ test('EPUB chapters remain at their target after navigation and later scrolling'
 }) => {
   test.setTimeout(90_000);
   await openLibrary(page);
-  await page
-    .locator('.user-library-page__file-input')
-    .setInputFiles(resolve('examples/pg11-images-3.epub'));
-  const bookCard = page.locator('.user-library-card').filter({ hasText: 'pg11-images-3' });
+  await page.locator('.user-library-page__file-input').setInputFiles({
+    name: 'synthetic-book.epub',
+    mimeType: 'application/epub+zip',
+    buffer: await syntheticEpub(),
+  });
+  const bookCard = page.locator('.user-library-card').filter({ hasText: 'synthetic-book' });
   await expect(bookCard).toHaveAttribute('draggable', 'true');
   await bookCard.click();
-  const chapter = page.getByRole('button', { name: 'CHAPTER VII. A Mad Tea-Party', exact: true });
+  const chapter = page.getByRole('button', {
+    name: 'Глава VII. Проверочный раздел 7',
+    exact: true,
+  });
   await chapter.waitFor();
   await chapter.click();
   const targetTop = () =>
