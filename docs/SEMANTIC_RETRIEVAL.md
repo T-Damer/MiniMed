@@ -100,22 +100,22 @@ ANN should be introduced only after benchmarking representative pack sizes. Comp
 ```bash
 bun run content:build
 bun run test:unit
-bun run benchmark:search
+bun run benchmark:all
 CHROMIUM_PATH=/usr/bin/chromium bun run test:e2e
 ```
 
 Current synthetic checks require:
 
-- 15/15 chunks have vectors for the declared profile;
+- every chunk of the unit-test slice (`CORE_SLICE_PACK`) has a vector for the declared profile;
 - Python/TypeScript golden vectors match;
 - compatible profiles use hybrid mode;
 - incompatible profiles fall back to lexical mode;
-- all 30 compact benchmark queries use the semantic path;
 - the built browser application displays `FTS5 + VECTOR` and opens the expected source section.
 - the Capacitor contract loads the declared embedding profile, serializes a 384-byte query vector,
   and hydrates native top-K chunk IDs back into portable source records.
 
-Synthetic fixtures test mechanics, not medical quality.
+The slice and the benchmark sets test mechanics, not medical quality. The released `core.db`
+ships no vectors, so `benchmark:all` reports hybrid and semantic usage without gating them.
 
 ## Neural-profile exit criteria
 

@@ -1,4 +1,4 @@
-import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
+import { CORE_SLICE, CORE_SLICE_PACK } from '@localmed/test-fixtures';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -16,15 +16,13 @@ function json(value: unknown): string {
 }
 
 function fixtureRow() {
-  const document = DEMO_CONTENT_PACK.documents.find(
-    (item) => item.id === 'kr.demo.pediatrics.pneumonia',
-  );
+  const document = CORE_SLICE_PACK.documents.find((item) => item.id === CORE_SLICE.pneumonia);
   const section = document?.sections.find((item) => item.sectionType === 'clinical-picture');
   const chunk = section?.chunks[0];
   if (!document || !section || !chunk) throw new Error('Expected pneumonia fixture content.');
   return {
     id: document.id,
-    content_pack_id: DEMO_CONTENT_PACK.manifest.id,
+    content_pack_id: CORE_SLICE_PACK.manifest.id,
     title: document.title,
     short_title: document.shortTitle,
     source_type: document.sourceType,
@@ -83,8 +81,8 @@ class FakeNativePlugin implements LocalMedDatabasePlugin {
       schemaVersion: 2,
       sqliteVersion: '3.50.0-native-test',
       fts5Available: true,
-      contentPackIds: [DEMO_CONTENT_PACK.manifest.id],
-      documentCount: DEMO_CONTENT_PACK.documents.length,
+      contentPackIds: [CORE_SLICE_PACK.manifest.id],
+      documentCount: CORE_SLICE_PACK.documents.length,
       databasePath: '/test/core.db',
       copied: true,
       sizeBytes: 64_000,
@@ -100,8 +98,8 @@ class FakeNativePlugin implements LocalMedDatabasePlugin {
       return { rows: [{ id: row.id, current_version_id: row.version_id }] };
     }
     if (options.sql.includes('FROM embedding_profiles')) {
-      const profile = DEMO_CONTENT_PACK.embeddingProfiles[0];
-      if (!profile) throw new Error('Expected a demo embedding profile.');
+      const profile = CORE_SLICE_PACK.embeddingProfiles[0];
+      if (!profile) throw new Error('Expected a slice embedding profile.');
       return {
         rows: [
           {
@@ -240,7 +238,7 @@ describe('CapacitorMedicalStore', () => {
       persistent: true,
       installation: 'copied',
       sizeBytes: 64_000,
-      documentCount: 3,
+      documentCount: CORE_SLICE_PACK.documents.length,
       fts5Available: true,
     });
     await store.close();
@@ -270,8 +268,8 @@ describe('CapacitorMedicalStore', () => {
     await store.initialize();
     const documents = await store.listDocuments();
     expect(documents[0]).toMatchObject({
-      id: 'kr.demo.pediatrics.pneumonia',
-      contentPackId: DEMO_CONTENT_PACK.manifest.id,
+      id: CORE_SLICE.pneumonia,
+      contentPackId: CORE_SLICE_PACK.manifest.id,
     });
   });
 
@@ -286,7 +284,7 @@ describe('CapacitorMedicalStore', () => {
       limit: 5,
     });
     expect(hits[0]).toMatchObject({
-      document: { id: 'kr.demo.pediatrics.pneumonia' },
+      document: { id: CORE_SLICE.pneumonia },
       rank: 2.5,
     });
     expect(plugin.calls).toHaveLength(2);
@@ -322,8 +320,8 @@ describe('CapacitorMedicalStore', () => {
       1,
     ]);
 
-    const profile = DEMO_CONTENT_PACK.embeddingProfiles[0];
-    const embedding = DEMO_CONTENT_PACK.embeddings.find(
+    const profile = CORE_SLICE_PACK.embeddingProfiles[0];
+    const embedding = CORE_SLICE_PACK.embeddings.find(
       (item) => item.profileId === profile?.id && item.chunkId === fixtureChunkId(),
     );
     if (!profile || !embedding) throw new Error('Expected a pneumonia embedding fixture.');
@@ -345,8 +343,8 @@ describe('CapacitorMedicalStore', () => {
     const store = createStore(plugin);
     await store.initialize();
 
-    const profile = DEMO_CONTENT_PACK.embeddingProfiles[0];
-    const embedding = DEMO_CONTENT_PACK.embeddings.find(
+    const profile = CORE_SLICE_PACK.embeddingProfiles[0];
+    const embedding = CORE_SLICE_PACK.embeddings.find(
       (item) => item.profileId === profile?.id && item.chunkId === fixtureChunkId(),
     );
     if (!profile || !embedding) throw new Error('Expected a pneumonia embedding fixture.');
@@ -362,7 +360,7 @@ describe('CapacitorMedicalStore', () => {
       }),
     ).resolves.toMatchObject([
       {
-        document: { id: 'kr.demo.pediatrics.pneumonia' },
+        document: { id: CORE_SLICE.pneumonia },
         score: 0.75,
       },
     ]);

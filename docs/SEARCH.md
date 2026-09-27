@@ -151,16 +151,17 @@ neighbors and can open the whole section.
 ## Regression benchmarks
 
 ```bash
-bun run benchmark:search  # 30 compact lexical queries
-bun run benchmark:cases   # 5 long clinical descriptions
-bun run benchmark:all
-bun run benchmark:pilot   # 61 public-pilot clinical, medication, and workflow queries
+bun run benchmark:all           # real-corpus sets over core.db alone (CI)
+bun run benchmark:real:release  # the app path over core.db and every companion pack (release)
 ```
 
-The long-case benchmark requires the expected synthetic document at rank 1, expected extracted
-fact/branch types, negative spans, and exclusion of negated terms from the positive clinical
-branch. These fixtures protect mechanics only; a physician-authored real-corpus golden set is still
-required before judging medical retrieval quality.
+Both run `tools/benchmarks/src/run-real-corpus.ts`: the 61 former public-pilot queries, the former
+demo queries retargeted to released documents (`real-corpus-demo-queries.json`, where excluded
+queries say why) and 5 long clinical descriptions with expected facts, branches, negative spans and
+negated-term exclusion. Metrics are a ratchet against `real-corpus-baseline.json`: a check fails when
+one falls more than 0.02 below its baseline. These sets protect mechanics only; a
+physician-authored real-corpus golden set is still required before judging medical retrieval
+quality.
 
 `bun run benchmark:runtime` runs the application `MedicalCore`, `ScopedMedicalCore` and
 `MultiMedicalStore` against the canonical SQLite core, without a model or the research prototype's

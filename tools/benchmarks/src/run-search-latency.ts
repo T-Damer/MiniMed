@@ -44,7 +44,7 @@ const queries = [
   ...read('curated-clinician-queries.json'),
   ...read('doctor-workflow-queries.json'),
   ...read('pilot-rf-queries.json'),
-  ...read('queries.json'),
+  ...read('real-corpus-demo-queries.json'),
 ];
 const store = await createBunFileMedicalStore(process.argv[2] ?? 'apps/app/public/content/core.db');
 const core = createMedicalCore({ store, platform: 'test' });

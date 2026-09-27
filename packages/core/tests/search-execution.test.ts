@@ -1,6 +1,6 @@
 import type { LexicalHit, LexicalSearchRequest } from '@localmed/storage';
 import { InMemoryMedicalStore } from '@localmed/storage';
-import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
+import { CORE_SLICE_PACK } from '@localmed/test-fixtures';
 import { expect, it, vi } from 'vitest';
 
 import { createMedicalCore } from '../src/create-medical-core';
@@ -31,7 +31,7 @@ class ObservedStore extends InMemoryMedicalStore {
 
 it('uses one lexical branch for source lookup without interpreting a clinical case', async () => {
   const store = new ObservedStore();
-  const core = createMedicalCore({ store, seed: DEMO_CONTENT_PACK, platform: 'test' });
+  const core = createMedicalCore({ store, seed: CORE_SLICE_PACK, platform: 'test' });
   try {
     await core.initialize();
     const documentReads = vi.spyOn(store, 'listDocuments');
@@ -65,7 +65,7 @@ it('keeps exact subject titles through the merged chunk cutoff for document rank
   const core = createMedicalCore({
     store,
     seed: {
-      ...DEMO_CONTENT_PACK,
+      ...CORE_SLICE_PACK,
       aliases: [{ id: 'sepsis', alias: 'сепсис', canonicalTerm: 'инфекция', weight: 1 }],
     },
     platform: 'test',
@@ -115,7 +115,7 @@ it('keeps exact subject titles through the merged chunk cutoff for document rank
 
 it('caches aliases and runs independent lexical branches concurrently', async () => {
   const store = new ObservedStore();
-  const core = createMedicalCore({ store, seed: DEMO_CONTENT_PACK, platform: 'test' });
+  const core = createMedicalCore({ store, seed: CORE_SLICE_PACK, platform: 'test' });
   await core.initialize();
 
   const query = 'ребенок 3 года температура 39 кашель одышка анализ крови';

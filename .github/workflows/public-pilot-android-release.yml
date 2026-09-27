@@ -59,15 +59,11 @@ jobs:
         run: |
           bun install --frozen-lockfile
           uv sync --project tools/ingest --all-groups --locked
+          # verify runs benchmark:all: the real-corpus query sets against the released core.db.
           bun run verify
-          bun run content:lint:pilot
-          # Temporary demo override: keep reviewStatus unchanged while exposing proposed knowledge.
-          bun run content:build:pilot -- --include-unreviewed-knowledge
-          bun run benchmark:pilot
           bun run benchmark:queries:coverage
           bun run benchmark:queries:contracts
           bun run content:rebuild:regulatory
-          # Keep the verified discovery core; the pilot is only benchmark input.
           bun run build:app
           bun run native:sync:android
 

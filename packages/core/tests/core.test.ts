@@ -2,7 +2,7 @@ import { ContentPackSeedSchema } from '@localmed/contracts';
 import { normalizeForIndex } from '@localmed/search-lexical';
 import { PORTABLE_HASH_PROFILE, PortableHashEmbedder } from '@localmed/search-semantic';
 import { InMemoryMedicalStore } from '@localmed/storage';
-import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
+import { CORE_SLICE, CORE_SLICE_PACK } from '@localmed/test-fixtures';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createMedicalCore, requestedSectionType } from '../src/create-medical-core';
 
@@ -517,7 +517,7 @@ describe('MedicalCore', () => {
 
   it('does not treat an inflected component of a vaccine name as a medicine', async () => {
     const core = createInMemoryMedicalCore({
-      ...DEMO_CONTENT_PACK,
+      ...CORE_SLICE_PACK,
       aliases: [
         {
           id: 'vaccine-component',
@@ -541,9 +541,9 @@ describe('MedicalCore', () => {
 
   it('does not interpret a one-letter virus type or preposition as a medication alias', async () => {
     const core = createInMemoryMedicalCore({
-      ...DEMO_CONTENT_PACK,
+      ...CORE_SLICE_PACK,
       aliases: [
-        ...DEMO_CONTENT_PACK.aliases,
+        ...CORE_SLICE_PACK.aliases,
         {
           id: 'invalid-single-letter',
           alias: 'С',
@@ -568,16 +568,16 @@ describe('MedicalCore', () => {
   });
 
   it('initializes a portable core contract', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const status = await core.initialize();
     expect(status.ok).toBe(true);
-    if (status.ok) expect(status.value.documentCount).toBe(3);
+    if (status.ok) expect(status.value.documentCount).toBe(CORE_SLICE_PACK.documents.length);
   });
 
   it('searches through the ranking projection without loading full document metadata', async () => {
     const store = new InMemoryMedicalStore();
-    const core = createMedicalCore({ store, seed: DEMO_CONTENT_PACK, platform: 'test' });
+    const core = createMedicalCore({ store, seed: CORE_SLICE_PACK, platform: 'test' });
     cores.push(core);
     const request = { query: 'пневмония', mode: 'lexical' as const, limit: 20 };
     const baseline = await core.search(request);
@@ -944,7 +944,7 @@ describe('MedicalCore', () => {
   it('shares concurrent document-list reads', async () => {
     const store = new InMemoryMedicalStore();
     const listDocuments = vi.spyOn(store, 'listDocuments');
-    const core = createMedicalCore({ store, seed: DEMO_CONTENT_PACK, platform: 'test' });
+    const core = createMedicalCore({ store, seed: CORE_SLICE_PACK, platform: 'test' });
     cores.push(core);
 
     const results = await Promise.all([core.listDocuments(), core.listDocuments()]);
@@ -956,7 +956,7 @@ describe('MedicalCore', () => {
   });
 
   it('reports the selected storage backend through core capabilities', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const capabilities = await core.getCapabilities();
     expect(capabilities.ok).toBe(true);
@@ -973,7 +973,7 @@ describe('MedicalCore', () => {
     const store = new InMemoryMedicalStore();
     const core = createMedicalCore({
       store,
-      seed: DEMO_CONTENT_PACK,
+      seed: CORE_SLICE_PACK,
       platform: 'test',
       searchExecution: 'direct-only',
     });
@@ -985,7 +985,7 @@ describe('MedicalCore', () => {
   });
 
   it('keeps a blood-pressure reading atomic in a medication query', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
 
     const response = await core.search({
@@ -1017,7 +1017,7 @@ describe('MedicalCore', () => {
   });
 
   it('extracts pediatric age and a positive rhinitis symptom from a medication query', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
 
     const response = await core.search({
@@ -1044,7 +1044,7 @@ describe('MedicalCore', () => {
   });
 
   it('extracts pediatric age and a positive sore-throat symptom from a treatment query', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
 
     const response = await core.search({
@@ -1071,7 +1071,7 @@ describe('MedicalCore', () => {
   });
 
   it('classifies an age-qualified antipyretic request as medication', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
 
     const response = await core.search({
@@ -1091,10 +1091,10 @@ describe('MedicalCore', () => {
   });
 
   it('expands colloquial terms and keeps the pneumonia section first in hybrid search', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const response = await core.search({
-      query: 'Ребёнок часто дышит и температурит второй день',
+      query: 'Ребёнок не может пить, губы синеют, температура держится четвертый день',
       mode: 'auto',
       filters: {},
       limit: 10,
@@ -1103,12 +1103,14 @@ describe('MedicalCore', () => {
     expect(response.ok).toBe(true);
     if (!response.ok) return;
     expect(response.value.modeUsed).toBe('hybrid');
-    expect(response.value.groups[0]?.documentId).toBe('kr.demo.pediatrics.pneumonia');
-    expect(response.value.diagnostics.aliasMatches).toContain('часто дышит → тахипноэ');
+    expect(response.value.groups[0]?.documentId).toBe(CORE_SLICE.pneumonia);
+    expect(response.value.diagnostics.aliasMatches).toContain(
+      'губы синеют → цианоз дыхательная недостаточность гипоксемия',
+    );
   });
 
   it('analyzes a case without invoking a generative model', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const response = await core.analyzeQuery({
       query: 'Девочка 8 лет, температура 39 второй день, часто дышит. Кашля нет.',
@@ -1123,7 +1125,7 @@ describe('MedicalCore', () => {
   });
 
   it('fuses several lexical branches and explains the match', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const response = await core.search({
       query: 'Мальчик 5 лет. Лихорадка 39 второй день, часто дышит. Сатурация 94%.',
@@ -1135,13 +1137,14 @@ describe('MedicalCore', () => {
     expect(response.ok).toBe(true);
     if (!response.ok) return;
     expect(response.value.diagnostics.branches.length).toBeGreaterThan(1);
-    expect(response.value.groups[0]?.documentId).toBe('kr.demo.pediatrics.pneumonia');
+    expect(response.value.groups[0]?.documentId).toBe(CORE_SLICE.pneumonia);
     expect(response.value.groups[0]?.results[0]?.matchedBranches.length).toBeGreaterThan(0);
-    expect(response.value.groups[0]?.results[0]?.category).toBe('clinical-picture');
+    // A clinical case lands on a typed clinical section, not on front matter.
+    expect(response.value.groups[0]?.results[0]?.sectionType).toBe('diagnostics');
   });
 
   it('keeps a strong clinical match above weak cross-branch overlap', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const response = await core.search({
       query:
@@ -1153,12 +1156,12 @@ describe('MedicalCore', () => {
     });
     expect(response.ok).toBe(true);
     if (!response.ok) return;
-    expect(response.value.groups[0]?.documentId).toBe('kr.demo.surgery.appendicitis');
+    expect(response.value.groups[0]?.documentId).toBe(CORE_SLICE.appendicitis);
     expect(response.value.groups[0]?.results[0]?.matchedBranches.length).toBeGreaterThan(0);
   });
 
   it('prefers the explicitly requested diagnostics section', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const response = await core.search({
       query: 'Диагностика аппендицита: локальная боль и рвота требуют другого поиска',
@@ -1169,15 +1172,15 @@ describe('MedicalCore', () => {
     });
     expect(response.ok).toBe(true);
     if (!response.ok) return;
-    expect(response.value.groups[0]?.documentId).toBe('kr.demo.surgery.appendicitis');
+    expect(response.value.groups[0]?.documentId).toBe(CORE_SLICE.appendicitis);
     expect(response.value.groups[0]?.results[0]?.sectionType).toBe('diagnostics');
   });
 
-  it('prefers the routing section for an explicit hospitalization request', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+  it('prefers the treatment section for an explicit treatment request', async () => {
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const response = await core.search({
-      query: 'Пневмония с дыхательной недостаточностью: нужна экстренная госпитализация',
+      query: 'Лечение пневмонии у ребенка: какой антибиотик',
       mode: 'lexical',
       filters: {},
       limit: 10,
@@ -1185,12 +1188,12 @@ describe('MedicalCore', () => {
     });
     expect(response.ok).toBe(true);
     if (!response.ok) return;
-    expect(response.value.groups[0]?.documentId).toBe('kr.demo.pediatrics.pneumonia');
-    expect(response.value.groups[0]?.results[0]?.sectionType).toBe('routing');
+    expect(response.value.groups[0]?.documentId).toBe(CORE_SLICE.pneumonia);
+    expect(response.value.groups[0]?.results[0]?.sectionType).toBe('treatment');
   });
 
   it('returns a stable context window around a search result', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const response = await core.search({
       query: 'справа внизу живота рвота',
@@ -1211,7 +1214,7 @@ describe('MedicalCore', () => {
   });
 
   it('uses compatible local vectors for automatic hybrid retrieval', async () => {
-    const core = createInMemoryMedicalCore(DEMO_CONTENT_PACK);
+    const core = createInMemoryMedicalCore(CORE_SLICE_PACK);
     cores.push(core);
     const capabilities = await core.getCapabilities();
     expect(capabilities.ok).toBe(true);
@@ -1230,7 +1233,7 @@ describe('MedicalCore', () => {
     if (!response.ok) return;
     expect(response.value.modeUsed).toBe('hybrid');
     expect(response.value.diagnostics.semantic.status).toBe('used');
-    expect(response.value.groups[0]?.documentId).toBe('kr.demo.surgery.appendicitis');
+    expect(response.value.groups[0]?.documentId).toBe(CORE_SLICE.appendicitis);
     expect(response.value.groups[0]?.results[0]?.semanticScore).not.toBeNull();
   });
 
@@ -1244,14 +1247,14 @@ describe('MedicalCore', () => {
     });
     const core = createMedicalCore({
       store,
-      seed: DEMO_CONTENT_PACK,
+      seed: CORE_SLICE_PACK,
       platform: 'test',
       embedder: incompatibleEmbedder,
     });
     cores.push(core);
 
     const response = await core.search({
-      query: 'ребенок часто дышит и температурит',
+      query: 'Лечение пневмонии у ребенка: какой антибиотик',
       mode: 'hybrid',
       filters: {},
       limit: 10,
@@ -1264,7 +1267,7 @@ describe('MedicalCore', () => {
       status: 'fallback',
       fallbackReason: 'embedding-profile-mismatch',
     });
-    expect(response.value.groups[0]?.documentId).toBe('kr.demo.pediatrics.pneumonia');
+    expect(response.value.groups[0]?.documentId).toBe(CORE_SLICE.pneumonia);
   });
 
   it('ranks an exact medication presentation and exposes it with the canonical MNN', async () => {

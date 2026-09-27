@@ -53,17 +53,21 @@ manual inspection of parser diagnostics.
 
 ## Retrieval benchmarks
 
-`tools/benchmarks/queries.json` contains 30 compact synthetic queries. The runner records Recall@1,
-Recall@5, MRR@5, zero-result rate, latency, hybrid usage, and semantic-path usage.
+`bun run benchmark:all` (CI, `core.db` alone) and `bun run benchmark:real:release` (release, with
+the companion packs) run the same sets on the released corpus:
 
-`tools/benchmarks/pilot-rf-queries.json`, `pilot-rf-drug-queries.json`, and
-`doctor-workflow-queries.json` form the 61-case public-pilot suite. It also checks exact section,
-context, and source metadata; marked medication/workflow cases require the expected document at
-Top-1 so a passing Recall@5 cannot hide a ranking regression.
+- `pilot-rf-queries.json`, `pilot-rf-drug-queries.json` and `doctor-workflow-queries.json`: 61
+  queries with section recall; marked cases must hold Top-1. Drug queries also accept the ESKLP
+  record and the Allmed instruction of the same INN.
+- `real-corpus-demo-queries.json`: the former demo queries with real targets, or excluded with a
+  reason, and 5 long clinical descriptions with expected facts, branches, negations and warnings.
 
-`tools/benchmarks/clinical-cases.json` contains long descriptions with expected facts, branches,
-negations, warnings, and a rank-1 target document. Its purpose is to catch query-planning and
-fusion regressions.
+The report adds zero-result rate, hybrid and semantic usage and latency. Gated metrics are a
+ratchet against `real-corpus-baseline.json` (tolerance 0.02); raise a baseline in a separate commit.
+
+Unit tests use `CORE_SLICE_PACK` from `@localmed/test-fixtures`: a deterministic slice of released
+databases built by `bun run --filter @localmed/test-fixtures build:core-slice`, with portable
+feature-hash embeddings so hybrid and semantic paths stay covered.
 
 Neither benchmark estimates clinical quality. A real corpus requires a separate physician-authored
 golden set that is not identical to tuning cases.

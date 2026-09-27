@@ -1,13 +1,19 @@
 import { readFile } from 'node:fs/promises';
 
 import { embedPortableText, PORTABLE_HASH_PROFILE } from '@localmed/search-semantic';
-import { DEMO_CONTENT_PACK } from '@localmed/test-fixtures';
+import { CORE_SLICE, CORE_SLICE_PACK } from '@localmed/test-fixtures';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createSqliteDefinitionReference } from '../src/definition-reference-reader';
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '../src/index';
 
 const stores: SqliteMedicalStore[] = [];
+const SLICE_CHUNK_COUNT = CORE_SLICE_PACK.documents
+  .flatMap((document) => document.sections)
+  .reduce((sum, section) => sum + section.chunks.length, 0);
+/** A released precompiled module that predates the tool tables. */
+const PRECOMPILED_MODULE =
+  'apps/app/public/content/modules/minimed-regulatory-pediatrics-0.3.4-preview.1.db';
 
 afterEach(async () => {
   await Promise.all(stores.splice(0).map((store) => store.close()));
@@ -42,8 +48,8 @@ describe('SqliteMedicalStore', () => {
       notLegalAdvice: true,
     };
     const seed = {
-      ...DEMO_CONTENT_PACK,
-      documents: DEMO_CONTENT_PACK.documents.map((document) => ({
+      ...CORE_SLICE_PACK,
+      documents: CORE_SLICE_PACK.documents.map((document) => ({
         ...document,
         metadata: {
           ...metadata,
@@ -111,9 +117,9 @@ describe('SqliteMedicalStore', () => {
   it('loads the compiled content seed and verifies FTS5 integrity', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
-    const health = await store.initialize(DEMO_CONTENT_PACK);
+    const health = await store.initialize(CORE_SLICE_PACK);
     const integrity = await store.inspectIntegrity();
-    expect(health.documentCount).toBe(3);
+    expect(health.documentCount).toBe(CORE_SLICE_PACK.documents.length);
     expect(health.fts5Available).toBe(true);
     expect(health).toMatchObject({
       backend: 'sqlite-wasm',
@@ -124,15 +130,15 @@ describe('SqliteMedicalStore', () => {
     expect(integrity).toMatchObject({
       integrity: 'ok',
       foreignKeyViolations: 0,
-      chunkCount: 15,
-      ftsRowCount: 15,
+      chunkCount: SLICE_CHUNK_COUNT,
+      ftsRowCount: SLICE_CHUNK_COUNT,
     });
   });
 
   it('builds the migration-010 external-content index from chunks for a JSON seed', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
-    await store.initialize(DEMO_CONTENT_PACK);
+    await store.initialize(CORE_SLICE_PACK);
     const database = (
       store as unknown as {
         readonly database: {
@@ -146,7 +152,9 @@ describe('SqliteMedicalStore', () => {
     ).toContain("content = 'chunks_fts_source'");
     // Rank 1 compares the index with its source rows; it throws if rowids drifted.
     database.exec("INSERT INTO chunks_fts(chunks_fts, rank) VALUES ('integrity-check', 1)");
-    expect(Number(database.selectValue('SELECT count(*) FROM chunks_fts_docsize'))).toBe(15);
+    expect(Number(database.selectValue('SELECT count(*) FROM chunks_fts_docsize'))).toBe(
+      SLICE_CHUNK_COUNT,
+    );
     const hits = await store.search({
       ftsQuery: 'кашель*',
       terms: ['кашель'],
@@ -161,7 +169,7 @@ describe('SqliteMedicalStore', () => {
   it('keeps reviewed definition-reference links readable and hides rejected ones', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
-    await store.initialize(DEMO_CONTENT_PACK);
+    await store.initialize(CORE_SLICE_PACK);
     type Row = Readonly<Record<string, unknown>>;
     const database = (
       store as unknown as {
@@ -234,19 +242,19 @@ describe('SqliteMedicalStore', () => {
   });
 
   it('opens a precompiled SQLite content pack without replaying the JSON seed', async () => {
-    const databaseBytes = await readFile('packages/test-fixtures/data/rf-public-pilot.db');
+    const databaseBytes = await readFile(PRECOMPILED_MODULE);
     const store = await SqliteMedicalStore.createFromBytes(new Uint8Array(databaseBytes));
     stores.push(store);
     const health = await store.initialize();
     const documents = await store.listDocuments();
-    expect(health.documentCount).toBe(15);
+    expect(health.documentCount).toBe(3);
     expect(health.schemaVersion).toBe(2);
-    expect(documents).toHaveLength(15);
+    expect(documents).toHaveLength(3);
     expect(documents.every((document) => document.title.length > 0)).toBe(true);
   });
 
   it('does not mutate a precompiled pack that predates tool tables', async () => {
-    const databaseBytes = await readFile('packages/test-fixtures/data/rf-public-pilot.db');
+    const databaseBytes = await readFile(PRECOMPILED_MODULE);
     const store = await SqliteMedicalStore.createFromBytes(new Uint8Array(databaseBytes));
     stores.push(store);
     const database = (
@@ -260,23 +268,23 @@ describe('SqliteMedicalStore', () => {
     expect(await store.listToolDefinitions()).toEqual([]);
   });
 
-  it('finds a colloquial respiratory case through a generated FTS query', async () => {
+  it('finds a respiratory case through a generated FTS query', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
-    await store.initialize(DEMO_CONTENT_PACK);
+    await store.initialize(CORE_SLICE_PACK);
     const results = await store.search({
-      ftsQuery: '"тахипноэ"* OR "лихорадка"*',
-      terms: ['тахипноэ', 'лихорадка'],
+      ftsQuery: '"пневмония"* OR "лихорадка"*',
+      terms: ['пневмония', 'лихорадка'],
       filters: {},
       limit: 10,
     });
-    expect(results[0]?.document.id).toBe('kr.demo.pediatrics.pneumonia');
+    expect(results[0]?.document.id).toBe(CORE_SLICE.pneumonia);
   });
 
   it('limits lexical FTS candidates before hydrating full search rows', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
-    await store.initialize(DEMO_CONTENT_PACK);
+    await store.initialize(CORE_SLICE_PACK);
     const database = (
       store as unknown as { readonly database: { readonly exec: (sql: string) => void } }
     ).database;
@@ -284,8 +292,8 @@ describe('SqliteMedicalStore', () => {
 
     await expect(
       store.search({
-        ftsQuery: '"тахипноэ"*',
-        terms: ['тахипноэ'],
+        ftsQuery: '"пневмония"*',
+        terms: ['пневмония'],
         filters: {},
         limit: 1,
       }),
@@ -307,24 +315,24 @@ describe('SqliteMedicalStore', () => {
   it('filters by a large documentIds list without exhausting bound parameters', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
-    await store.initialize(DEMO_CONTENT_PACK);
+    await store.initialize(CORE_SLICE_PACK);
     const paddedDocumentIds = [
       ...Array.from({ length: 500 }, (_, index) => `nonexistent-document-${index}`),
-      'kr.demo.pediatrics.pneumonia',
+      CORE_SLICE.pneumonia,
     ];
     const results = await store.search({
-      ftsQuery: '"тахипноэ"* OR "лихорадка"*',
-      terms: ['тахипноэ', 'лихорадка'],
+      ftsQuery: '"пневмония"*',
+      terms: ['пневмония'],
       filters: { documentIds: paddedDocumentIds },
       limit: 10,
     });
     expect(results.length).toBeGreaterThan(0);
-    expect(results.every((hit) => hit.document.id === 'kr.demo.pediatrics.pneumonia')).toBe(true);
+    expect(results.every((hit) => hit.document.id === CORE_SLICE.pneumonia)).toBe(true);
 
     const excluded = await store.search({
-      ftsQuery: '"тахипноэ"* OR "лихорадка"*',
-      terms: ['тахипноэ', 'лихорадка'],
-      filters: { documentIds: ['kr.demo.surgery.appendicitis'] },
+      ftsQuery: '"пневмония"*',
+      terms: ['пневмония'],
+      filters: { documentIds: [CORE_SLICE.icdAppendicitis] },
       limit: 10,
     });
     expect(excluded).toHaveLength(0);
@@ -333,7 +341,7 @@ describe('SqliteMedicalStore', () => {
   it('applies specialty metadata filters before lexical and vector limits', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
-    await store.initialize(DEMO_CONTENT_PACK);
+    await store.initialize(CORE_SLICE_PACK);
 
     const lexical = await store.search({
       ftsQuery: '"аппендицит"*',
@@ -386,7 +394,7 @@ describe('SqliteMedicalStore', () => {
   it('loads embedding profiles and performs an exact local vector scan', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
-    await store.initialize(DEMO_CONTENT_PACK);
+    await store.initialize(CORE_SLICE_PACK);
     const profiles = await store.listEmbeddingProfiles();
     expect(profiles).toHaveLength(1);
     expect(profiles[0]?.id).toBe(PORTABLE_HASH_PROFILE.id);
@@ -399,14 +407,14 @@ describe('SqliteMedicalStore', () => {
       filters: {},
       limit: 5,
     });
-    expect(results[0]?.document.id).toBe('kr.demo.surgery.appendicitis');
+    expect(results[0]?.document.id).toBe(CORE_SLICE.appendicitis);
     expect(results[0]?.score).toBeGreaterThan(0);
   });
 
   it('applies document and section filters inside the vector candidate scan', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);
-    await store.initialize(DEMO_CONTENT_PACK);
+    await store.initialize(CORE_SLICE_PACK);
     const query = embedPortableText('боль справа внизу живота и рвота');
     const request = {
       profileId: query.profileId,
@@ -418,23 +426,21 @@ describe('SqliteMedicalStore', () => {
 
     const scoped = await store.searchVector({
       ...request,
-      filters: { documentIds: ['kr.demo.surgery.appendicitis'] },
+      filters: { documentIds: [CORE_SLICE.appendicitis] },
     });
     expect(scoped.length).toBeGreaterThan(0);
-    expect(scoped.every((hit) => hit.document.id === 'kr.demo.surgery.appendicitis')).toBe(true);
+    expect(scoped.every((hit) => hit.document.id === CORE_SLICE.appendicitis)).toBe(true);
 
     const otherDocument = await store.searchVector({
       ...request,
-      filters: { documentIds: ['kr.demo.pediatrics.pneumonia'] },
+      filters: { documentIds: [CORE_SLICE.pneumonia] },
     });
     expect(otherDocument.length).toBeGreaterThan(0);
-    expect(otherDocument.every((hit) => hit.document.id === 'kr.demo.pediatrics.pneumonia')).toBe(
-      true,
-    );
+    expect(otherDocument.every((hit) => hit.document.id === CORE_SLICE.pneumonia)).toBe(true);
 
     const sectionScoped = await store.searchVector({
       ...request,
-      filters: { documentIds: ['kr.demo.surgery.appendicitis'], sectionTypes: ['diagnostics'] },
+      filters: { documentIds: [CORE_SLICE.appendicitis], sectionTypes: ['diagnostics'] },
     });
     for (const hit of sectionScoped) {
       expect(hit.section.sectionType).toBe('diagnostics');
