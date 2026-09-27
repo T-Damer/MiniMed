@@ -55,6 +55,8 @@ const run = async (query: string) => {
   const response = await core.search({
     query,
     mode: 'lexical',
+    // The ordinary search box uses lookup mode, not clinical parsing; measure the path users hit.
+    analysisMode: 'lookup',
     filters: {},
     limit: 20,
     includeSuggestions: false,
@@ -80,7 +82,12 @@ console.log(
   JSON.stringify(
     {
       queries: rows.length,
-      totalMs: { p50: f(pct(totals, 0.5)), p90: f(pct(totals, 0.9)), max: f(Math.max(...totals)) },
+      totalMs: {
+        p50: f(pct(totals, 0.5)),
+        p90: f(pct(totals, 0.9)),
+        p95: f(pct(totals, 0.95)),
+        max: f(Math.max(...totals)),
+      },
       sqlMs: { p50: f(pct(sql, 0.5)), p90: f(pct(sql, 0.9)), max: f(Math.max(...sql)) },
       jsMs: { p50: f(pct(js, 0.5)), p90: f(pct(js, 0.9)), max: f(Math.max(...js)) },
       jsShare: f((100 * js.reduce((a, b) => a + b, 0)) / totals.reduce((a, b) => a + b, 0)) + '%',
