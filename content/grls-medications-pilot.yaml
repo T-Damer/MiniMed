@@ -1,9 +1,9 @@
 pack:
   id: minimed.medications.ru
-  version: 0.1.0
+  version: 0.2.0
   schemaVersion: 2
   title: "Лекарственные препараты РФ"
-  builtAt: "2026-07-29T00:00:00Z"
+  builtAt: "2026-09-27T00:00:00Z"
 
 sources:
   - id: drug.rf.miramistin.solution.instruction
@@ -22,6 +22,74 @@ sources:
       officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
       instructionUrl: https://grls.rosminzdrav.ru/InstrImg/2026/02/12/1526388/e0013398-d8e7-4602-8b0f-3f5bb55831f8.pdf
       instructionLabel: "Изм. № 0, ЛП-№(005744)-(РГ-RU), 2024"
+  - id: drug.rf.regidron.instruction
+    path: regidron.pdf
+    title: "Регидрон: инструкция по медицинскому применению"
+    shortTitle: Регидрон
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(012750)-(РГ-RU)"
+      tradeName: "Регидрон®"
+      inn: "Декстроза+Калия хлорид+Натрия хлорид+Натрия цитрат"
+      dosageForm: "Порошок для приготовления раствора для приема внутрь"
+      pharmacotherapeuticGroup: "Регидратирующее средство (пероральная регидратационная соль)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+      instructionUrl: https://grls.rosminzdrav.ru/InstrImg/2026/05/15/1529869/8b3ef84b-259a-4c59-bfad-7fe73c553609.pdf
+      instructionLabel: "Изм. № 0, ЛП-№(012750)-(РГ-RU), 2026"
+  - id: drug.rf.reaquatant.instruction
+    path: reaquatant.pdf
+    title: "РеАкватант: инструкция по медицинскому применению"
+    shortTitle: РеАкватант
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(011435)-(РГ-RU)"
+      tradeName: "РеАкватант®"
+      inn: "Декстроза+Калия хлорид+Натрия хлорид+Натрия цитрат"
+      dosageForm: "Порошок для приготовления раствора для приема внутрь"
+      pharmacotherapeuticGroup: "Регидратирующее средство (пероральная регидратационная соль)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+      instructionUrl: https://grls.rosminzdrav.ru/InstrImg/2026/04/23/1529092/79bc0ccb-9abd-4f54-a7d8-58fa0d530feb.pdf
+      instructionLabel: "Изм. № 0, ЛП-№(011435)-(РГ-RU), 2025"
+  - id: drug.rf.reaquatant-optim.instruction
+    path: reaquatant-optim.pdf
+    title: "РеАкватант Оптим: инструкция по медицинскому применению"
+    shortTitle: РеАкватант Оптим
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(012311)-(РГ-RU)"
+      tradeName: "РеАкватант® Оптим"
+      inn: "Декстроза+Калия хлорид+Натрия хлорид+Натрия цитрат"
+      dosageForm: "Порошок для приготовления раствора для приема внутрь"
+      pharmacotherapeuticGroup: "Регидратирующее средство (пероральная регидратационная соль)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+      instructionUrl: https://grls.rosminzdrav.ru/InstrImg/2025/12/10/1524133/00ba8304-02e2-4ac9-a8d6-64cbfb500123.pdf
+      instructionLabel: "Изм. № 0, ЛП-№(012311)-(РГ-RU), 2025"
+  - id: drug.rf.trigidrosol.instruction
+    path: trigidrosol.pdf
+    title: "Тригидросоль: инструкция по медицинскому применению"
+    shortTitle: Тригидросоль
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(013423)-(РГ-RU)"
+      tradeName: "Тригидросоль®"
+      inn: "Декстроза+Калия хлорид+Натрия хлорид+Натрия цитрат"
+      dosageForm: "Порошок для приготовления раствора для приема внутрь"
+      pharmacotherapeuticGroup: "Регидратирующее средство (пероральная регидратационная соль)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+      instructionUrl: https://grls.rosminzdrav.ru/InstrImg/2026/02/18/1526676/7dea2059-6ed3-4c08-8483-a27bb6b41940.pdf
+      instructionLabel: "Изм. № 0, ЛП-№(013423)-(РГ-RU), 2026"
 
 aliases:
   - id: alias.miramistin.trade

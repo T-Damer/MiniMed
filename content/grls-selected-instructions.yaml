@@ -1,9 +1,9 @@
 pack:
   id: minimed.medications.selected-instructions.ru
-  version: 0.5.2
+  version: 0.5.3
   schemaVersion: 2
   title: "Выбранные официальные инструкции ГРЛС"
-  builtAt: "2026-07-29T00:00:00Z"
+  builtAt: "2026-09-27T00:00:00Z"
 
 sources:
   - id: drug.rf.augmentin.instruction
@@ -96,4 +96,49 @@ sources:
       tradeName: "Мирамистин®"
       inn: "Бензилдиметил-миристоиламино-пропиламмоний"
       dosageForm: "Раствор для местного применения, 0,01%"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.reaquatant.instruction
+    path: reaquatant.pdf
+    title: "РеАкватант: инструкция по медицинскому применению"
+    shortTitle: РеАкватант
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(011435)-(РГ-RU)"
+      tradeName: "РеАкватант®"
+      inn: "Декстроза+Калия хлорид+Натрия хлорид+Натрия цитрат"
+      dosageForm: "Порошок для приготовления раствора для приема внутрь"
+      pharmacotherapeuticGroup: "Регидратирующее средство (пероральная регидратационная соль)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.reaquatant-optim.instruction
+    path: reaquatant-optim.pdf
+    title: "РеАкватант Оптим: инструкция по медицинскому применению"
+    shortTitle: РеАкватант Оптим
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(012311)-(РГ-RU)"
+      tradeName: "РеАкватант® Оптим"
+      inn: "Декстроза+Калия хлорид+Натрия хлорид+Натрия цитрат"
+      dosageForm: "Порошок для приготовления раствора для приема внутрь"
+      pharmacotherapeuticGroup: "Регидратирующее средство (пероральная регидратационная соль)"
+      officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
+  - id: drug.rf.trigidrosol.instruction
+    path: trigidrosol.pdf
+    title: "Тригидросоль: инструкция по медицинскому применению"
+    shortTitle: Тригидросоль
+    versionLabel: grls-current
+    sourceType: official_drug_instruction
+    status: active
+    format: pdf
+    metadata:
+      registrationNumber: "ЛП-№(013423)-(РГ-RU)"
+      tradeName: "Тригидросоль®"
+      inn: "Декстроза+Калия хлорид+Натрия хлорид+Натрия цитрат"
+      dosageForm: "Порошок для приготовления раствора для приема внутрь"
+      pharmacotherapeuticGroup: "Регидратирующее средство (пероральная регидратационная соль)"
       officialSourceUrl: https://grls.rosminzdrav.ru/GRLS.aspx
