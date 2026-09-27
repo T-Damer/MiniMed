@@ -42,7 +42,7 @@ export async function openRealCorpus(
      * against the released corpus without touching the released file. Companion packs still
      * come from apps/app/public/content (this only substitutes core.db itself).
      */
-    readonly corePath?: string;
+    readonly corePath?: string | undefined;
   } = {},
 ): Promise<RealCorpus> {
   const corePath = options.corePath ? resolve(options.corePath) : resolve(CONTENT, 'core.db');

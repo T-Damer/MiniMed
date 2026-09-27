@@ -14,29 +14,12 @@ remains compatible with the GitHub Contents API. `hard-query-dataset.ts` verifie
 uncompressed SHA-256 checksums, query uniqueness, split counts, style counts, scenario count, and
 no-answer probes before returning a row.
 
-Build or provide a SQLite corpus, then run:
-
-```bash
-bun run benchmark:hard
-```
-
-Environment controls:
-
-```text
-MINIMED_HARD_BENCHMARK_DB=data/build/rf-public-pilot.db
-MINIMED_HARD_BENCHMARK_SPLIT=all|dev|validation|hidden_test
-MINIMED_HARD_BENCHMARK_MODE=auto|lexical|semantic|hybrid
-MINIMED_HARD_BENCHMARK_MAX_QUERIES=100
-MINIMED_HARD_BENCHMARK_MIN_RECALL_AT_5=0.80
-MINIMED_HARD_BENCHMARK_MIN_SECTION_RECALL_AT_5=0.60
-MINIMED_HARD_BENCHMARK_MAX_FORBIDDEN_RATE_AT_5=0.01
-```
-
-`MINIMED_HARD_BENCHMARK_MAX_QUERIES` is intended only for smoke runs; omit it for a scored comparison.
-No quality threshold is enabled by default because the public pilot does not contain an answer for all
-75 topics. Release workflows should point the runner at a known corpus and set explicit thresholds.
-The report is written to `data/build/hard-medical-benchmark-<split>.json` with per-query rows and slices
-by style, intent, and specialty.
+The pilot-corpus runner (`benchmark:hard`, `run-hard-queries.ts`) was retired on 2026-09-27 together
+with the rest of the pilot research tooling; see
+[../../docs/research/pilot-research-tools-retired-2026-09-27.md](../../docs/research/pilot-research-tools-retired-2026-09-27.md).
+The dataset and its scoring (`hard-query-dataset.ts`, `hard-query-scoring.ts`) remain and are used by
+`run-curated-clinician`. Real-corpus quality is measured by `benchmark:all` (core ratchet) and
+`benchmark:real:release`.
 
 ## Curated clinician queries
 
