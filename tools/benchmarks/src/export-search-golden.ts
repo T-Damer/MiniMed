@@ -23,8 +23,9 @@
  * the real app; writes to a separate `search-golden.all.json` so it never silently overwrites the
  * core-only file `native/shared` actually consumes.
  */
-import { createHash } from 'node:crypto';
+
 import { execSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -62,10 +63,16 @@ function readQueryFile(file: string, sourceId: string): QuerySource[] {
 }
 
 const ourBenchQueries: QuerySource[] = [
-  { sourceId: 'bench10.meningitis-or-encephalitis-child', query: 'Менингит или энцефалит у ребёнка' },
+  {
+    sourceId: 'bench10.meningitis-or-encephalitis-child',
+    query: 'Менингит или энцефалит у ребёнка',
+  },
   { sourceId: 'bench10.meningitis-child', query: 'менингит у ребенка' },
   { sourceId: 'bench10.tick-encephalitis-child', query: 'клещевой энцефалит у ребенка' },
-  { sourceId: 'bench10.bronchitis-or-pneumonia-child', query: 'бронхит или пневмония у ребёнка 5 лет' },
+  {
+    sourceId: 'bench10.bronchitis-or-pneumonia-child',
+    query: 'бронхит или пневмония у ребёнка 5 лет',
+  },
   { sourceId: 'bench10.tonsillitis-or-pharyngitis-child', query: 'ангина или фарингит у ребенка' },
   { sourceId: 'bench10.gastroenteritis-child', query: 'гастроэнтерит у ребёнка' },
   { sourceId: 'bench10.diarrhea-or-vomiting-child', query: 'понос или рвота у ребенка 2 лет' },
@@ -117,7 +124,10 @@ async function main() {
   });
   const scoped = new ScopedMedicalCore(core, 'all');
 
-  const coreDbPath = resolve(REPOSITORY_ROOT, corePathOverride ?? 'apps/app/public/content/core.db');
+  const coreDbPath = resolve(
+    REPOSITORY_ROOT,
+    corePathOverride ?? 'apps/app/public/content/core.db',
+  );
   const coreDbSha256 = createHash('sha256').update(readFileSync(coreDbPath)).digest('hex');
   const commit = execSync('git rev-parse HEAD', { cwd: REPOSITORY_ROOT }).toString().trim();
 
