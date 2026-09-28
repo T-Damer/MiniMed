@@ -24,6 +24,7 @@ import browsersBold from '@phosphor-icons/core/assets/bold/browsers-bold.svg?raw
 import calculatorBold from '@phosphor-icons/core/assets/bold/calculator-bold.svg?raw';
 import calendarBlankBold from '@phosphor-icons/core/assets/bold/calendar-blank-bold.svg?raw';
 import cameraBold from '@phosphor-icons/core/assets/bold/camera-bold.svg?raw';
+import caretCircleDownBold from '@phosphor-icons/core/assets/bold/caret-circle-down-bold.svg?raw';
 import caretDownBold from '@phosphor-icons/core/assets/bold/caret-down-bold.svg?raw';
 import caretLeftBold from '@phosphor-icons/core/assets/bold/caret-left-bold.svg?raw';
 import caretRightBold from '@phosphor-icons/core/assets/bold/caret-right-bold.svg?raw';
@@ -90,6 +91,7 @@ import questionMarkBold from '@phosphor-icons/core/assets/bold/question-mark-bol
 import scalesBold from '@phosphor-icons/core/assets/bold/scales-bold.svg?raw';
 import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
 import shareNetworkBold from '@phosphor-icons/core/assets/bold/share-network-bold.svg?raw';
+import slidersHorizontalBold from '@phosphor-icons/core/assets/bold/sliders-horizontal-bold.svg?raw';
 import speakerHighBold from '@phosphor-icons/core/assets/bold/speaker-high-bold.svg?raw';
 import sphereBold from '@phosphor-icons/core/assets/bold/sphere-bold.svg?raw';
 import squaresFourBold from '@phosphor-icons/core/assets/bold/squares-four-bold.svg?raw';
@@ -141,6 +143,8 @@ export type AppGlyphName =
   | 'bookmark'
   | 'bookmark-fill'
   | 'push-pin'
+  | 'caret-circle-down'
+  | 'sliders-horizontal'
   | 'caret-down'
   | 'caret-left'
   | 'caret-right'
@@ -270,6 +274,8 @@ const glyphBodies: Record<AppGlyphName, string> = {
   bookmark: svgBody(bookmarkSimpleBold),
   'bookmark-fill': svgBody(bookmarkSimpleFill),
   'push-pin': svgBody(pushPinFill),
+  'caret-circle-down': svgBody(caretCircleDownBold),
+  'sliders-horizontal': svgBody(slidersHorizontalBold),
   'caret-down': svgBody(caretDownBold),
   'caret-left': svgBody(caretLeftBold),
   'caret-right': svgBody(caretRightBold),

@@ -128,6 +128,10 @@ Detailed history, moved verbatim on 2026-09-24:
   questionnaire or its section, a document set or a whole catalog section, and ECG recognition
   from Settings; «Открыть» leads to what was installed (`catalogGroupHash`, `moduleCatalogHash`).
   Background updates and restored downloads stay silent.
+- Readers (official document, medication card, file from «Мои файлы») share one header
+  «Меню действий» (`ReaderActionsMenu`: «Печать», the reader's own actions, «Сохранить в
+  коллекцию») and one bookmark in front of the title (`ReaderTitleRow`); both open the same
+  collections panel. Saved personal files reopen in the personal reader.
 
 ## Release 0.6.43 — 2026-09-28
 

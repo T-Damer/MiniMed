@@ -24,7 +24,11 @@ import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { DocumentText, documentTextSearchText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { SegmentedControl } from '@/components/SegmentedControl';
-import { ItemBookmarkMenu } from '@/features/collections/ItemBookmarkMenu';
+import {
+  createReaderBookmark,
+  ReaderActionsMenu,
+  ReaderTitleRow,
+} from '@/features/collections/ReaderItemActions';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import {
   displayDocumentSubtitle,
@@ -529,6 +533,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   });
   let lastScrolledMatchKey = '';
 
+  const bookmark = createReaderBookmark();
   const chrome = useDocumentReaderChrome({
     ...(props.initialAnchor != null && props.initialAnchor !== ''
       ? { initialAnchor: props.initialAnchor }
@@ -743,23 +748,20 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
         <Show when={props.document}>
           {(documentValue) => (
             <div class="document-page__reader-actions">
-              <Button
-                type="button"
-                variant="icon"
-                class="document-page__reader-action document-page__print-button"
-                aria-label="Распечатать документ"
-                title="Распечатать документ"
-                onClick={() => {
-                  if (!printDocument(documentValue())) {
-                    toast.error('Не удалось открыть окно печати.');
-                  }
-                }}
-                icon={
-                  <AppGlyph
-                    name="printer"
-                    class="document-page__reader-action-icon document-page__print-icon"
-                  />
-                }
+              <ReaderActionsMenu
+                bookmark={bookmark}
+                actions={[
+                  {
+                    id: 'print',
+                    label: 'Печать',
+                    icon: 'printer',
+                    onSelect: () => {
+                      if (!printDocument(documentValue())) {
+                        toast.error('Не удалось открыть окно печати.');
+                      }
+                    },
+                  },
+                ]}
               />
             </div>
           )}
@@ -856,31 +858,33 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                 <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
                   {(label) => <p class="document-overlay-paper__source-label">{label()}</p>}
                 </Show>
-                <h1
-                  class="document-overlay-paper__title"
-                  classList={{
-                    'document-overlay-paper__title--pointer': Boolean(props.modulePointer),
-                  }}
-                >
-                  <QueryHighlightedText
-                    text={displayDocumentTitle(documentValue())}
-                    query={findState().query}
-                    exact={findState().mode === 'exact'}
-                    fuzzy={findState().mode === 'similar'}
-                    ranges={rangesForFindUnit(
-                      rangesByUnit(),
-                      documentValue().id,
-                      findState().query,
-                    )}
-                    unitId={documentValue().id}
-                    activeStart={
-                      activeMatch()?.unitId === documentValue().id
-                        ? activeMatch()?.start
-                        : undefined
-                    }
-                    matchClass="document-overlay-match"
-                  />
-                </h1>
+                <ReaderTitleRow item={bookmarkItem(documentValue())} bookmark={bookmark}>
+                  <h1
+                    class="document-overlay-paper__title"
+                    classList={{
+                      'document-overlay-paper__title--pointer': Boolean(props.modulePointer),
+                    }}
+                  >
+                    <QueryHighlightedText
+                      text={displayDocumentTitle(documentValue())}
+                      query={findState().query}
+                      exact={findState().mode === 'exact'}
+                      fuzzy={findState().mode === 'similar'}
+                      ranges={rangesForFindUnit(
+                        rangesByUnit(),
+                        documentValue().id,
+                        findState().query,
+                      )}
+                      unitId={documentValue().id}
+                      activeStart={
+                        activeMatch()?.unitId === documentValue().id
+                          ? activeMatch()?.start
+                          : undefined
+                      }
+                      matchClass="document-overlay-match"
+                    />
+                  </h1>
+                </ReaderTitleRow>
                 <header class="document-overlay-paper__header">
                   <Show when={displayDocumentSubtitle(documentValue())}>
                     {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
@@ -961,7 +965,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     )}
                   </Show>
                   <div class="document-overlay-paper__actions">
-                    <ItemBookmarkMenu item={bookmarkItem(documentValue())} />
                     <Show when={interactiveTool()}>
                       {(tool) => (
                         <Button

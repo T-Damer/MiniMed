@@ -1,5 +1,5 @@
 import { Popover } from '@kobalte/core/popover';
-import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
+import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { ItemCollectionCreateForm } from '@/features/search/ToolPinControls';
@@ -31,9 +31,20 @@ import './item-bookmark.css';
 export function ItemBookmarkMenu(props: {
   readonly item: ItemRefInput;
   readonly class?: string;
+  /** Controlled panel, for a second way in (a reader's header menu); otherwise self-managed. */
+  readonly open?: boolean;
+  readonly onOpenChange?: (open: boolean) => void;
 }): JSX.Element {
-  const [open, setOpen] = createSignal(false);
+  const [ownOpen, setOwnOpen] = createSignal(false);
+  const open = (): boolean => props.open ?? ownOpen();
+  const setOpen = (value: boolean): void => {
+    setOwnOpen(value);
+    props.onOpenChange?.(value);
+  };
   const [lastTargets, setLastTargets] = createSignal(loadLastTargets());
+  createEffect(() => {
+    if (open()) setLastTargets(loadLastTargets());
+  });
   const title = () => props.item.title ?? props.item.id;
   const favorite = () => isFavoriteItem(itemCollections(), props.item);
   const memberOf = createMemo(() => collectionIdsContaining(itemCollections(), props.item));
@@ -48,16 +59,7 @@ export function ItemBookmarkMenu(props: {
   };
   const now = () => new Date().toISOString();
   return (
-    <Popover
-      open={open()}
-      onOpenChange={(value) => {
-        if (value) setLastTargets(loadLastTargets());
-        setOpen(value);
-      }}
-      placement="bottom-end"
-      gutter={6}
-      fitViewport
-    >
+    <Popover open={open()} onOpenChange={setOpen} placement="bottom-end" gutter={6} fitViewport>
       <Popover.Trigger
         class={`item-bookmark ${props.class ?? ''}`.trim()}
         classList={{ 'item-bookmark--saved': saved() }}

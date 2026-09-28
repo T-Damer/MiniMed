@@ -38,27 +38,6 @@ body:has(.user-document-reader--fullscreen) {
   padding: 0;
 }
 
-.document-reader-menu {
-  position: relative;
-  display: grid;
-  width: 2.6rem;
-  height: 2.6rem;
-  align-items: center;
-  justify-self: end;
-}
-
-.document-reader-menu__anchor {
-  display: none;
-}
-
-.app-context-menu__more.document-reader-menu__button {
-  position: static;
-  width: 2.6rem;
-  height: 2.6rem;
-  padding: 0;
-  opacity: 1;
-}
-
 .user-document-reader__document-pinch {
   width: 100%;
   min-width: 0;

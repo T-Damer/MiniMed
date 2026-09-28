@@ -1,0 +1,38 @@
+/* «Меню действий» in a reader header: same footprint as the header's other round controls. */
+.reader-actions {
+  position: relative;
+  display: grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  align-items: center;
+  justify-self: end;
+}
+
+.reader-actions__anchor {
+  display: none;
+}
+
+.app-context-menu__more.reader-actions__button {
+  position: static;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  opacity: 1;
+}
+
+/* Bookmark in front of the document title, centred on it. */
+.reader-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.reader-title-row__bookmark {
+  flex: none;
+}
+
+.reader-title-row__title {
+  min-width: 0;
+  flex: 1 1 auto;
+}

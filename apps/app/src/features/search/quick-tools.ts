@@ -1,4 +1,5 @@
 import type { AppGlyphName } from '@/components/AppGlyph';
+import { openUserLibraryDocument } from '@/features/library/user-library-routing';
 import { notesPath } from '@/features/notes/notes-routing';
 import type { SearchCatalogTool } from '@/features/search/searchCatalog';
 import { openDocumentOverlay } from '@/state/document-navigation';
@@ -113,9 +114,13 @@ export function resolveItemRefs(
           ? {
               id: ref.id,
               title,
-              kindLabel: 'Документ',
+              kindLabel: ref.documentKind === 'user' ? 'Мой файл' : 'Документ',
               icon: 'file-text',
-              run: () => openDocumentOverlay(ref.id),
+              // A file from «Мои файлы» opens in the personal reader, not the official overlay.
+              run: () =>
+                ref.documentKind === 'user'
+                  ? openUserLibraryDocument({ documentId: ref.id, title })
+                  : openDocumentOverlay(ref.id),
             }
           : {
               id: ref.id,

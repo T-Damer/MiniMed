@@ -13,13 +13,18 @@ import {
 import { toast } from 'solid-sonner';
 
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
-import { AppContextMenu, type AppContextMenuAction } from '@/components/AppContextMenu';
+import type { AppContextMenuAction } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import {
+  createReaderBookmark,
+  ReaderActionsMenu,
+  ReaderTitleRow,
+} from '@/features/collections/ReaderItemActions';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
 import { navigateDocumentReaderBack } from '@/features/library/document-reader-back';
@@ -418,6 +423,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     onCleanup(() => window.removeEventListener('keydown', closeOnEscape));
   });
 
+  const bookmark = createReaderBookmark();
   const chrome = useDocumentReaderChrome({
     sectionSelector: '[data-user-doc-anchor]',
     outlineItemAttr: 'data-outline-anchor',
@@ -859,7 +865,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     if (hasReaderAction('print')) {
       actions.push({
         id: 'print',
-        label: 'Распечатать документ',
+        label: 'Печать',
         icon: 'printer',
         disabled: draftOpen(),
         onSelect: printDocument,
@@ -981,16 +987,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
           </Show>
         }
         printButton={
-          <Show when={meta() && readerMenuActions().length > 0}>
-            <AppContextMenu
-              class="document-reader-menu"
-              buttonClass="document-reader-menu__button"
-              buttonIcon="dots-three-vertical"
-              buttonLabel="Действия документа"
+          <Show when={meta()}>
+            <ReaderActionsMenu
               actions={readerMenuActions()}
-            >
-              <span class="document-reader-menu__anchor" aria-hidden="true" />
-            </AppContextMenu>
+              {...(isMedicalImage() ? {} : { bookmark })}
+            />
           </Show>
         }
         onBackIntercept={() => {
@@ -1081,25 +1082,36 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
             <Show when={meta()}>
               {(current) => (
                 <Show when={!isMedicalImage()}>
-                  <h1
-                    class="document-overlay-paper__title"
-                    classList={{
-                      'document-overlay-paper__title--sheet-fullscreen': isSheet() && fullscreen(),
+                  <ReaderTitleRow
+                    item={{
+                      kind: 'document',
+                      id: current().id,
+                      title: current().title,
+                      documentKind: 'user',
                     }}
+                    bookmark={bookmark}
                   >
-                    <QueryHighlightedText
-                      text={current().title}
-                      query={findState().query}
-                      exact={findState().mode === 'exact'}
-                      fuzzy={findState().mode === 'similar'}
-                      ranges={rangesForFindUnit(rangesByUnit(), current().id, findState().query)}
-                      unitId={current().id}
-                      activeStart={
-                        activeMatch()?.unitId === current().id ? activeMatch()?.start : undefined
-                      }
-                      matchClass="document-overlay-match"
-                    />
-                  </h1>
+                    <h1
+                      class="document-overlay-paper__title"
+                      classList={{
+                        'document-overlay-paper__title--sheet-fullscreen':
+                          isSheet() && fullscreen(),
+                      }}
+                    >
+                      <QueryHighlightedText
+                        text={current().title}
+                        query={findState().query}
+                        exact={findState().mode === 'exact'}
+                        fuzzy={findState().mode === 'similar'}
+                        ranges={rangesForFindUnit(rangesByUnit(), current().id, findState().query)}
+                        unitId={current().id}
+                        activeStart={
+                          activeMatch()?.unitId === current().id ? activeMatch()?.start : undefined
+                        }
+                        matchClass="document-overlay-match"
+                      />
+                    </h1>
+                  </ReaderTitleRow>
                   <header
                     class="document-overlay-paper__header"
                     classList={{
