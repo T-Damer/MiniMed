@@ -10,6 +10,7 @@ plugins {
     id("org.jetbrains.compose") version "1.9.3" apply false
 }
 
-tasks.register("clean", Delete::class) {
-    delete(rootProject.layout.buildDirectory)
-}
+// No manual root `clean` task: the wasmJs target's NodeJsRootPlugin applies Gradle's own `base`
+// plugin (LifecycleBasePlugin) to the root project too, which registers its own `clean` task —
+// a hand-rolled one here collided with it (DuplicateTaskException). The base-plugin one does the
+// same thing (deletes the root build directory).

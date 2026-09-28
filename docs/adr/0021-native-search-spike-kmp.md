@@ -1,7 +1,10 @@
 # ADR-0021: Native search-page spike in Kotlin Multiplatform + Compose Multiplatform
 
-- Status: spike / proposed
-- Date: 2026-09-28
+- Status: spike / proposed — Android target measured on-device; desktop (JVM) and iOS
+  (device + simulator) targets now genuinely build and pass tests; web (Wasm) target builds but is
+  **not working** (stub data only, unresolved runtime error) — see the 2026-09-28 update at the
+  bottom for what changed since this ADR's first version.
+- Date: 2026-09-28 (updated same day after building desktop/iOS/web targets)
 
 ## Context
 
@@ -27,9 +30,10 @@ untouched by and not touching `apps/`, `packages/`, `tools/`, or CI. It opens th
 the same content and index the WebView app ships. The UI is a search field, a document-grouped
 result list with title/section/snippet/kind badge, and a simple section reader — the same shape as
 `apps/app/src/features/search/SearchHome.tsx` / `SearchWorkspace.tsx`, without attempting to copy
-its exact ranking (see "What this spike does not reproduce" below). Only `androidTarget()` is
-actually built and run; `native/shared/build.gradle.kts` documents inline, target by target, what
-adding desktop/iOS/web would each require.
+its exact ranking (see "What this spike does not reproduce" below). Originally only
+`androidTarget()` was built; `native/shared/build.gradle.kts` now also declares `jvm("desktop")`,
+`iosArm64()`/`iosSimulatorArm64()` and `wasmJs()` — see the 2026-09-28 update below for what
+actually works on each.
 
 ## Why Kotlin Multiplatform + Compose Multiplatform
 
@@ -38,23 +42,29 @@ adding desktop/iOS/web would each require.
   declarative UI code on Android, iOS, desktop (JVM) and web (Wasm) without a JS bridge or an
   embedded browser engine on any of them — the property this spike exists to test (is dropping the
   WebView actually faster).
-- **FTS5 is a solved, guaranteed problem.** `androidx.sqlite`'s bundled driver ships its own SQLite
-  build with FTS5 always enabled, independent of the OEM's system SQLite — the same reasoning
+- **FTS5 is a solved, guaranteed problem — confirmed on 3 of 4 real-database targets.**
+  `androidx.sqlite`'s bundled driver ships its own SQLite build with FTS5 always enabled,
+  independent of the OS's system SQLite — the same reasoning
   `docs/adr/0018-bundled-android-sqlite-and-native-file-transfers.md` already used for the
-  Capacitor app's native SQLite path. A KMP app gets this for Android and desktop for free; iOS has
-  no equivalent artifact yet (see the iOS row below), which is a real gap, not a rounding error.
+  Capacitor app's native SQLite path. Its Gradle Module Metadata publishes `androidJvm`, `jvm`,
+  `iosArm64` and `iosSimulatorArm64` variants with an identical Kotlin API, and this ADR's
+  2026-09-28 update below confirms all three actually build, run their tests, and (for
+  Android/desktop) execute real FTS5 queries — one `NativeSearchDatabase` implementation
+  (`sqliteBundledMain`), not three. Web (Wasm) has no such artifact at all — see below.
 - **JVM/Android-first fits how this codebase already thinks about native code.** The Capacitor
   Android project is a normal Gradle/Kotlin project already (`apps/app/android`), on the same
   Gradle (8.14.3) and AGP (8.13.0) lineage this spike reuses. No new language runtime, packaging
   format, or CI toolchain family enters the repo.
-- **Honest cost:** Compose Multiplatform's iOS and web (Wasm) targets are real but immature next to
-  Android/desktop, and this Mac has no full Xcode install (`xcode-select -p` resolves to
-  `CommandLineTools` only) — see the commented-out target blocks in
-  `native/shared/build.gradle.kts` for exactly what iOS would need (full Xcode, a Kotlin/Native iOS
-  SQLite binding with FTS5, an `iosApp` Xcode project) and what Wasm would need (no
-  browser-native SQLite exists, so a Wasm target would end up calling back into the same
-  wa-sqlite/OPFS engine `packages/storage-sqlite` already uses — not a native speed win at all for
-  that target).
+- **Honest cost, revised after actually building the other targets (was originally overstated
+  here):** this machine turned out to have full Xcode 26.6 installed at `/Applications/Xcode.app`
+  (reachable via a `DEVELOPER_DIR` env var, no `xcode-select` system change) — the original version
+  of this ADR wrongly said otherwise from a plain `xcode-select -p` check, which only reflects the
+  *default* CLI-tools pointer, not what's actually installed. iOS and desktop both turned out to
+  work for real. Web is the one target where the original "immature/no browser SQLite" caution
+  held up, and got worse in practice: even the UI-only stub build does not render at runtime in
+  this environment (opaque `JsException`, root cause not found — see the update below). Compose
+  Multiplatform's iOS/desktop maturity is no longer a documented concern here; its Wasm maturity
+  still is, empirically, not just by inference from "no SQLite exists."
 
 ## Alternatives considered
 
@@ -120,6 +130,52 @@ this spike), not ship the simplified matcher built here.
   either. It has its own `gradlew`/`local.properties`/`gradle.properties` and is not part of
   `bun run check`/`typecheck`/`test`/`build` or any CI job.
 - If a future ADR decides to actually migrate off Capacitor, this spike's measurements
-  (`docs/research/native-search-spike-2026-09.md`) are one input among several (also: cost of
+  (`docs/research/native-vs-webview-2026-09-28.md`) are one input among several (also: cost of
   porting `search-lexical`, `MedicalCore` contracts, diaries/assessments/calculators, the ECG
   pipeline, and every other feature currently in `apps/app`, none of which this spike touches).
+
+## Update, 2026-09-28: desktop/iOS/web targets actually built (not just estimated)
+
+A same-day follow-up request asked whether one codebase could really build for web, Android, iOS
+and desktop, and asked for the native side to be tested. Full results, exact commands, and every
+error hit (and fixed or not) are in `docs/research/native-vs-webview-2026-09-28.md`, "Multiplatform
+build and tests" — summary:
+
+- **Android, desktop (JVM), iOS (device + simulator): all real.** One shared `commonTest` (18
+  tests: text normalization, FTS5 MATCH-expression building, snippet-highlight formatting) passes
+  identically on all four run targets (`testDebugUnitTest`, `desktopTest`, `iosSimulatorArm64Test`,
+  and — see below — `wasmJsBrowserTest`). Both iOS frameworks (`linkDebugFrameworkIosArm64`,
+  `linkDebugFrameworkIosSimulatorArm64`) link successfully, 51 MB each (unstripped debug). Desktop
+  produces a working 48 MB runnable uber-jar (`packageUberJarForCurrentOS`); the polished DMG
+  installer task (`packageDistributionForCurrentOS`) fails on this machine specifically because it
+  only has Homebrew-distributed JDKs, which Compose Desktop's own packaging safety check refuses on
+  principle (a known upstream issue, not something to silently bypass).
+- **A genuinely useful finding from actually testing on iOS**: the original `TextNormalization.kt`
+  used `Regex` with a Cyrillic character-class range (`[^0-9a-zа-я...]`). On Kotlin/Native this
+  silently matched nothing for Cyrillic text — `normalizeSurfaceText("Менингит у ребёнка")` returned
+  `""` — while the identical code was correct on Android/desktop/wasmJs. This would have shipped
+  invisibly in an Android-only build; it surfaced immediately once `iosSimulatorArm64Test` actually
+  ran. Fixed by replacing the regex character class with plain `Char in 'а'..'я'` range checks
+  (ordinary UTF-16 arithmetic, no regex-engine Unicode-class behavior left to diverge between
+  platforms). This is the single best argument in this whole ADR for testing on every declared
+  target rather than assuming Kotlin "write once" extends to correctness.
+- **Web (Wasm) does not have a working SQLite story, confirmed rather than assumed.**
+  `androidx.sqlite-bundled`'s own Gradle Module Metadata lists no `wasmJs`/`js` variant at all,
+  matching this ADR's original reasoning. `NativeSearchDatabase`'s wasmJs actual is an explicit
+  stub (one fixed sample document) and the running UI shows a red banner saying so in Russian —
+  never silently substituting fake data for real. Beyond that, the wasmJs build has its own
+  separate, unresolved problem: even that stub UI does not render at runtime in this environment.
+  `wasmJsBrowserDistribution`/`...DevelopmentExecutableDistribution` both build a valid bundle, and
+  `wasmJsBrowserTest` (Karma + headless Chrome) passes all 18 logic tests, but loading the actual
+  page in a real Chrome 152 browser produces a blank screen and an opaque
+  `JsException: Exception was thrown while running JavaScript code` with no further stack
+  reachable from JS — checked and ruled out: wrong MIME types, missing
+  `Cross-Origin-Opener-Policy`/`Cross-Origin-Embedder-Policy` headers, and production-build
+  minification (the unminified development build fails identically). Root cause not found within
+  this pass's time budget; recorded as open, not worked around or hidden.
+- **Practical conclusion for "one codebase, four platforms":** the *domain logic and UI code* are
+  genuinely one codebase now (`commonMain`/`commonTest`, unchanged per platform). The *SQLite
+  engine* is shared across three of four run targets through one `sqliteBundledMain` source set.
+  Web is the one target that is not there: no real data access is possible with this dependency,
+  and even the UI-only shell does not demonstrably run yet. "Web, Android, iOS, desktop from one
+  codebase" is accurate for Android/iOS/desktop today and aspirational, not delivered, for web.

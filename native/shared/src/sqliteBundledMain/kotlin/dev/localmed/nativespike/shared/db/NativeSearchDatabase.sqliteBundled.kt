@@ -15,10 +15,15 @@ import kotlin.time.TimeSource
 // stay next to each other.
 
 /**
- * Android actual: opens `core.db` with the bundled SQLite driver (androidx.sqlite-bundled), which
- * guarantees FTS5 regardless of the OEM's system SQLite build — the exact reason
- * `packages/storage-sqlite` also avoids relying on Android's framework SQLite. Read-only, single
- * connection: this spike's search page is read-only and single-threaded by design.
+ * Shared actual for Android, desktop (JVM) and iOS (arm64 + simulator arm64) — one intermediate
+ * source set (`sqliteBundledMain`, see shared/build.gradle.kts), not three copies, because
+ * `androidx.sqlite-bundled`'s Kotlin API is identical across all of them (verified against its
+ * Gradle Module Metadata: it publishes `androidJvm`, `jvm`, `iosArm64` and `iosSimulatorArm64`
+ * variants — see docs/research/native-vs-webview-2026-09-28.md). It guarantees FTS5 regardless of
+ * the OS's own SQLite build — the same reason `packages/storage-sqlite`/ADR-0018 avoid relying on
+ * Android's framework SQLite. Read-only, single connection: this spike's search page is read-only
+ * and single-threaded by design. wasmJs has no equivalent — see the explicit stub actual in
+ * `wasmJsMain`.
  */
 actual class NativeSearchDatabase actual constructor(private val dbFilePath: String) {
     private var connection: SQLiteConnection? = null

@@ -35,25 +35,53 @@ private val RUSSIAN_SUFFIXES = listOf(
     "ый", "ам", "ям", "ом", "ем", "ов", "ев", "ия", "нья", "ью", "ы", "и", "а", "я", "у", "ю", "е", "о",
 ).sortedByDescending { it.length }
 
-private val KEEP_CHARS = Regex("[^0-9a-zа-я\\s.,:+/%-]", RegexOption.IGNORE_CASE)
 private val DASH_VARIANTS = Regex("[‐‑‒–—−]")
 private val WHITESPACE = Regex("\\s+")
-private val TOKEN_PATTERN = Regex("[0-9a-zа-я]+")
+
+// Character-class checks below are plain Char-range comparisons, not Regex — found the hard way
+// via iosSimulatorArm64Test: Kotlin/Native's Regex engine did not match the Cyrillic `а-я` range
+// inside a `[...]` character class the same way the JVM does (normalizeSurfaceText/tokenize
+// silently dropped every Cyrillic character on iOS, passing on Android/desktop the whole time —
+// see docs/research/native-vs-webview-2026-09-28.md, "Multiplatform build and tests" for the
+// before/after test run). Plain range comparisons on `Char` are basic UTF-16 code-unit arithmetic
+// with no engine-specific Unicode-class behavior to diverge, so they're used everywhere below
+// instead, even though a `Regex` would read slightly shorter.
+private fun isKeepableChar(c: Char): Boolean =
+    c in '0'..'9' || c in 'a'..'z' || c in 'а'..'я' || c.isWhitespace() ||
+        c == '.' || c == ',' || c == ':' || c == '+' || c == '/' || c == '%' || c == '-'
+
+private fun isTokenChar(c: Char): Boolean = c in '0'..'9' || c in 'a'..'z' || c in 'а'..'я'
+
+private fun clampCharset(value: String): String {
+    val builder = StringBuilder(value.length)
+    for (c in value) builder.append(if (isKeepableChar(c)) c else ' ')
+    return builder.toString()
+}
 
 /** Mirrors `normalizeSurfaceText` minus ICD-10 lookalike remapping (see file header). */
 fun normalizeSurfaceText(value: String): String {
     val lowered = value.lowercase().replace('ё', 'е')
     val dashUnified = DASH_VARIANTS.replace(lowered, "-")
-    val clamped = KEEP_CHARS.replace(dashUnified, " ")
+    val clamped = clampCharset(dashUnified)
     return WHITESPACE.replace(clamped, " ").trim()
 }
 
 /** Mirrors `tokenize`: split into runs of [0-9a-zа-я], drop stop words and length-1 tokens. */
-fun tokenize(value: String): List<String> =
-    TOKEN_PATTERN.findAll(normalizeSurfaceText(value))
-        .map { it.value }
-        .filter { it.length >= 2 && it !in STOP_WORDS }
-        .toList()
+fun tokenize(value: String): List<String> {
+    val normalized = normalizeSurfaceText(value)
+    val tokens = mutableListOf<String>()
+    var start = -1
+    for (i in normalized.indices) {
+        if (isTokenChar(normalized[i])) {
+            if (start < 0) start = i
+        } else if (start >= 0) {
+            tokens.add(normalized.substring(start, i))
+            start = -1
+        }
+    }
+    if (start >= 0) tokens.add(normalized.substring(start))
+    return tokens.filter { it.length >= 2 && it !in STOP_WORDS }
+}
 
 /** Mirrors `lightStemRussian`. */
 fun lightStemRussian(token: String): String {

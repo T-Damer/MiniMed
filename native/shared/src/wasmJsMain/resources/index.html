@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>LocalMed Native (spike) — Web</title>
+    <style>
+        html, body { margin: 0; padding: 0; height: 100%; }
+    </style>
+</head>
+<body>
+<pre id="early-error" style="white-space:pre-wrap;color:red;font-family:monospace;"></pre>
+<script>
+    window.addEventListener('error', function (e) {
+        document.getElementById('early-error').textContent += 'ERROR: ' + ((e.error && (e.error.stack || e.error.message)) || e.message) + '\n';
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+        document.getElementById('early-error').textContent += 'REJECTION: ' + ((e.reason && (e.reason.stack || e.reason.message)) || String(e.reason)) + '\n';
+    });
+    var origError = console.error.bind(console);
+    console.error = function () {
+        var parts = Array.prototype.map.call(arguments, function (a) {
+            if (a && a.stack) return a.stack;
+            try { return typeof a === 'object' ? JSON.stringify(a) : String(a); } catch (_) { return String(a); }
+        });
+        document.getElementById('early-error').textContent += 'CONSOLE.ERROR: ' + parts.join(' | ') + '\n';
+        origError.apply(console, arguments);
+    };
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

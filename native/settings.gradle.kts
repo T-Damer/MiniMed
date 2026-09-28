@@ -9,7 +9,14 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    // PREFER_PROJECT, not FAIL_ON_PROJECT_REPOS: the wasmJs target's Kotlin/JS tooling adds its
+    // own project-level ivy repository at configuration time (nodejs.org/dist) to fetch the
+    // Node.js distribution needed for `wasmJsBrowserTest` (Karma + headless Chrome) — legitimate,
+    // not a dependency-hygiene problem. PREFER_SETTINGS still blocked it (the project repo was
+    // added by "unknown code" outside Gradle's normal repository-declaration tracking, so
+    // "prefer settings" resolved to "settings only" for that lookup and 404'd against Maven
+    // Central/google() instead of nodejs.org).
+    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
         google()
         mavenCentral()
@@ -20,3 +27,4 @@ rootProject.name = "minimed-native-spike"
 
 include(":shared")
 include(":androidApp")
+include(":desktopApp")

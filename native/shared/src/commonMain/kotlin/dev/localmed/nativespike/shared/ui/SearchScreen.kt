@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.model.SearchOutcome
+import dev.localmed.nativespike.shared.text.formatFixed1
 import dev.localmed.nativespike.shared.model.SearchResultGroup
 import dev.localmed.nativespike.shared.search.SearchEngine
 import kotlinx.coroutines.Dispatchers
@@ -98,7 +99,7 @@ fun SearchScreen(
             val timing = outcome?.timing
             if (timing != null) {
                 Text(
-                    "SQL: ${"%.1f".format(timing.sqlOnlyMs)} мс · Итого: ${"%.1f".format(timing.totalMs)} мс",
+                    "SQL: ${formatFixed1(timing.sqlOnlyMs)} мс · Итого: ${formatFixed1(timing.totalMs)} мс",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -183,24 +184,15 @@ private fun KindBadge(label: String) {
     }
 }
 
-/** FTS5 `snippet()` marks hits with '[' / ']' (see NativeSearchDatabase); render those as bold. */
+/** Thin Compose wrapper around the pure, unit-tested `snippetSegments` (text/SnippetSegments.kt). */
 private fun highlightedSnippet(raw: String) = buildAnnotatedString {
-    var index = 0
-    while (index < raw.length) {
-        val openIndex = raw.indexOf('[', index)
-        if (openIndex < 0) {
-            append(raw.substring(index))
-            break
+    for (segment in dev.localmed.nativespike.shared.text.snippetSegments(raw)) {
+        if (segment.highlighted) {
+            withStyle(style = androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(segment.text)
+            }
+        } else {
+            append(segment.text)
         }
-        append(raw.substring(index, openIndex))
-        val closeIndex = raw.indexOf(']', openIndex)
-        if (closeIndex < 0) {
-            append(raw.substring(openIndex))
-            break
-        }
-        withStyle(style = androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold)) {
-            append(raw.substring(openIndex + 1, closeIndex))
-        }
-        index = closeIndex + 1
     }
 }
