@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { mountBuiltApp } from './mount-built-app';
-import { selectSearchSection } from './select-search-section';
+import { selectSearchSection, waitForHomeSections } from './select-search-section';
 
 for (const width of [375, 1280]) {
   test(`unified selector, tool history, folders and long catalog at ${width}px`, async ({
@@ -14,7 +14,7 @@ for (const width of [375, 1280]) {
     const nav = page.locator('.app-bottom-nav');
     await expect(page.getByRole('button', { name: 'Выбрать калькулятор' })).toHaveCount(0);
     await expect(page.locator('.unified-catalog__count')).toHaveCount(0);
-    await expect(page.locator('.document-library-card').first()).toBeVisible();
+    await waitForHomeSections(page);
     await picker.click();
     // «Клинический разбор» is a switch beside the picker, not one of the sources.
     await expect(
@@ -85,6 +85,9 @@ for (const width of [375, 1280]) {
     await expect(input).toHaveValue('препарат');
     await selectSearchSection(page, 'Все источники');
     await input.fill('');
+    // The empty home lists sections; the long virtualized catalog lives in the largest section.
+    await waitForHomeSections(page);
+    await selectSearchSection(page, 'МКБ, симптомы и состояния');
     await expect(page.locator('.document-library-card').first()).toBeVisible();
     await page.evaluate(() => window.scrollTo({ top: 1_400_000, behavior: 'instant' }));
     await expect

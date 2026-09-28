@@ -26,14 +26,55 @@ import {
 import { specialtyLabel } from '@/i18n/labels';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 
-export const SEARCH_SECTIONS: readonly { id: SearchScope; label: string; icon: AppGlyphName }[] = [
+/** Russian one / few / many forms of what a section's count counts. */
+export type CountNounForms = readonly [one: string, few: string, many: string];
+
+export const SEARCH_SECTIONS: readonly {
+  id: SearchScope;
+  label: string;
+  icon: AppGlyphName;
+  /** What the section's number counts; sections without it are not listed on the home screen. */
+  countNoun?: CountNounForms;
+}[] = [
   { id: 'all', label: 'Все источники', icon: 'books' },
-  { id: 'conditions', label: 'МКБ, симптомы и состояния', icon: 'notes' },
-  { id: 'guidelines', label: 'Клинические рекомендации', icon: 'book-open' },
-  { id: 'medications', label: 'Препараты', icon: 'prescription' },
-  { id: 'legal', label: 'Нормативные документы', icon: 'scales' },
-  { id: 'assessments', label: 'Опросники', icon: 'list-checks' },
-  { id: 'calculators', label: 'Калькуляторы', icon: 'calculator' },
+  {
+    id: 'conditions',
+    label: 'МКБ, симптомы и состояния',
+    icon: 'notes',
+    // ICD codes, reference articles and symptoms together: one noun would misname most of them.
+    countNoun: ['запись', 'записи', 'записей'],
+  },
+  {
+    id: 'guidelines',
+    label: 'Клинические рекомендации',
+    icon: 'book-open',
+    countNoun: ['рекомендация', 'рекомендации', 'рекомендаций'],
+  },
+  {
+    id: 'medications',
+    label: 'Препараты',
+    icon: 'prescription',
+    // The web catalog counts ESKLP entries per active substance (INN), not trade products.
+    countNoun: ['действующее вещество', 'действующих вещества', 'действующих веществ'],
+  },
+  {
+    id: 'legal',
+    label: 'Нормативные документы',
+    icon: 'scales',
+    countNoun: ['документ', 'документа', 'документов'],
+  },
+  {
+    id: 'assessments',
+    label: 'Опросники',
+    icon: 'list-checks',
+    countNoun: ['опросник', 'опросника', 'опросников'],
+  },
+  {
+    id: 'calculators',
+    label: 'Калькуляторы',
+    icon: 'calculator',
+    countNoun: ['калькулятор', 'калькулятора', 'калькуляторов'],
+  },
   { id: 'diagnosis', label: 'Клинический разбор', icon: 'brain' },
 ];
 
@@ -154,6 +195,7 @@ export interface SearchCatalogSection {
   readonly id: SearchScope;
   readonly label: string;
   readonly icon: AppGlyphName;
+  readonly countNoun?: CountNounForms;
   readonly count?: number;
   readonly groups: readonly {
     readonly id: string;

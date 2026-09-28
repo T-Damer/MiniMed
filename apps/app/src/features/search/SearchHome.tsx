@@ -53,6 +53,7 @@ import { SearchNoResults } from '@/features/search/SearchNoResults';
 import { SearchQuickAccess } from '@/features/search/SearchQuickAccess';
 import { SearchResultModuleDownload } from '@/features/search/SearchResultModuleDownload';
 import { SearchSectionPicker } from '@/features/search/SearchSectionPicker';
+import { SearchSectionsOverview } from '@/features/search/SearchSectionsOverview';
 import { SearchGreeting, SearchWelcome } from '@/features/search/SearchWelcome';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import { type SearchCoreStatus, searchCoreStatusLabel } from '@/features/search/search-core-status';
@@ -64,6 +65,7 @@ import {
   unifiedSearchSpecialty,
 } from '@/features/search/searchCatalog';
 import { searchSectionDownloadBlocks } from '@/features/search/searchSectionDownloads';
+import { sectionsOverviewRows } from '@/features/search/sections-overview';
 import { UnifiedSearchCatalog } from '@/features/search/UnifiedSearchCatalog';
 import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { FeatureTour } from '@/features/setup/FeatureTour';
@@ -426,6 +428,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   /** The source the clinical-analysis switch returns to when it is turned off. */
   const [sourceScope, setSourceScope] = createSignal<SearchScope>('all');
   const clinicalAnalysis = () => scope() === 'diagnosis';
+  /** The empty home lists sections instead of the endless all-sources catalog. */
+  const showSectionsOverview = () =>
+    scope() === 'all' && !specialty() && catalogQuery().trim().length === 0;
   // Clinical analysis is a way of reading any source, so it is a switch, not a source.
   const sourceSections = createMemo(() =>
     sections().filter((section) => section.id !== 'diagnosis'),
@@ -643,21 +648,40 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             </Show>
           }
           catalog={
-            <UnifiedSearchCatalog
-              core={props.baseCore}
-              scope={scope()}
-              query={catalogQuery()}
-              catalogOnly={catalogOnly()}
-              hideDocuments={scope() === 'diagnosis'}
-              documents={catalogDocuments()}
-              tools={visibleTools()}
-              onOpenTool={() => {
-                if (catalogQuery().trim())
-                  appendSearchHistory(catalogQuery(), scope(), visibleTools().length, specialty());
-              }}
-              loading={catalogLoading()}
-              error={catalogError()}
-            />
+            <Show
+              when={showSectionsOverview()}
+              fallback={
+                <UnifiedSearchCatalog
+                  core={props.baseCore}
+                  scope={scope()}
+                  query={catalogQuery()}
+                  catalogOnly={catalogOnly()}
+                  hideDocuments={scope() === 'diagnosis'}
+                  documents={catalogDocuments()}
+                  tools={visibleTools()}
+                  onOpenTool={() => {
+                    if (catalogQuery().trim())
+                      appendSearchHistory(
+                        catalogQuery(),
+                        scope(),
+                        visibleTools().length,
+                        specialty(),
+                      );
+                  }}
+                  loading={catalogLoading()}
+                  error={catalogError()}
+                />
+              }
+            >
+              <SearchSectionsOverview
+                rows={sectionsOverviewRows(sourceSections(), catalogLoading())}
+                onSelect={(next) => {
+                  setGroups({ ...groups(), [next]: undefined });
+                  setSourceScope(next);
+                  setScope(next);
+                }}
+              />
+            </Show>
           }
           placeholder={
             props.coreStatus

@@ -1,6 +1,10 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, hasLocalCompanionPack, mountBuiltApp } from './mount-built-app';
-import { selectSearchSection, setClinicalAnalysis } from './select-search-section';
+import {
+  selectSearchSection,
+  setClinicalAnalysis,
+  waitForHomeSections,
+} from './select-search-section';
 
 // These assertions qualify full-corpus results on CI; latency is measured by benchmarks.
 const query = 'пневмония';
@@ -138,6 +142,57 @@ for (const width of [375, 1280]) {
     // The card folds away with the rest of the empty-field content while typing.
     await page.getByTestId('search-input').fill('пнев');
     await expect(page.locator('.search-welcome')).toHaveClass(/search-welcome--hidden/u);
+  });
+}
+
+const SECTION_NOUNS: Readonly<Record<string, readonly [string, string, string]>> = {
+  'МКБ, симптомы и состояния': ['запись', 'записи', 'записей'],
+  'Клинические рекомендации': ['рекомендация', 'рекомендации', 'рекомендаций'],
+  Препараты: ['действующее вещество', 'действующих вещества', 'действующих веществ'],
+  'Нормативные документы': ['документ', 'документа', 'документов'],
+  Опросники: ['опросник', 'опросника', 'опросников'],
+  Калькуляторы: ['калькулятор', 'калькулятора', 'калькуляторов'],
+};
+
+function russianForm(count: number, [one, few, many]: readonly [string, string, string]): string {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+  return many;
+}
+
+for (const width of [375, 1280]) {
+  test(`the empty home lists sections with correctly worded counts at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+    await waitForHomeSections(page);
+    const rows = page.locator('.search-sections__row');
+    await expect(rows).toHaveCount(Object.keys(SECTION_NOUNS).length);
+    // No endless all-sources catalog under the empty field.
+    await expect(page.locator('.unified-catalog')).toHaveCount(0);
+    for (const [label, forms] of Object.entries(SECTION_NOUNS)) {
+      const text = (
+        await rows.filter({ hasText: label }).locator('.search-sections__count').innerText()
+      ).trim();
+      if (text === 'нет в установленных базах') continue;
+      const count = Number(text.replace(/\D+[^\d]*$/u, '').replace(/\D/gu, ''));
+      expect(text, label).toBe(
+        `${count.toLocaleString('ru-RU')}\u00a0${russianForm(count, forms)}`,
+      );
+    }
+    await rows.filter({ hasText: 'Калькуляторы' }).click();
+    await expect(page.getByRole('button', { name: 'Раздел поиска', exact: true })).toContainText(
+      'Калькуляторы',
+    );
+    await expect(page.locator('.unified-catalog__tool').first()).toBeVisible();
+    await expect(rows).toHaveCount(0);
+    await selectSearchSection(page, 'Все источники');
+    await expect(rows.first()).toBeVisible();
+    await page.getByTestId('search-input').fill('пнев');
+    await expect(rows).toHaveCount(0);
   });
 }
 

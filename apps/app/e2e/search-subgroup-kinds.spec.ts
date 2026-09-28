@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { mountBuiltApp } from './mount-built-app';
+import { waitForHomeSections } from './select-search-section';
 
 for (const width of [375, 1280]) {
   test(`all-source tool subgroups use actual content kinds at ${width}px`, async ({ page }) => {
@@ -8,7 +9,7 @@ for (const width of [375, 1280]) {
       skipLargeCompanionPacks: true,
       ...(process.env.MINIMED_LIVE_URL ? { origin: process.env.MINIMED_LIVE_URL } : {}),
     });
-    await expect(page.locator('.document-library-card').first()).toBeVisible();
+    await waitForHomeSections(page);
     await page.getByRole('button', { name: 'Раздел поиска', exact: true }).click();
     const menu = page.getByRole('dialog', { name: 'Разделы поиска' });
     // Rows sit in an overlay-scrollbar viewport: Playwright's click scrolls the page to reach them

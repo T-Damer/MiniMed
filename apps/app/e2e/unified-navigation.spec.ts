@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { mountBuiltApp } from './mount-built-app';
-import { selectSearchSection } from './select-search-section';
+import { selectSearchSection, waitForHomeSections } from './select-search-section';
 
 test('keeps source and tool lookup together and restores the six-section layout on request', async ({
   page,
@@ -11,7 +11,7 @@ test('keeps source and tool lookup together and restores the six-section layout 
   await expect(nav.locator('.app-nav-button')).toHaveCount(3);
   const mode = page.getByRole('button', { name: 'Раздел поиска', exact: true });
   const input = page.getByTestId('search-input');
-  await expect(page.locator('.unified-catalog .document-library-card').first()).toBeVisible();
+  await waitForHomeSections(page);
   await selectSearchSection(page, 'Калькуляторы');
   await input.fill('единицы');
   const units = page.locator('.unified-catalog__tool[href="#/calculators/unit-conversion"]');

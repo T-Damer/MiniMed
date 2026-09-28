@@ -1,10 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { mountBuiltApp } from './mount-built-app';
+import { openHomeSection } from './select-search-section';
 
 for (const width of [375, 1280]) {
   test(`favourite a tool and open it from a collection at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { splitNavigation: true, skipLargeCompanionPacks: true });
+    await openHomeSection(page, 'Калькуляторы');
 
     const card = page.locator('.unified-catalog__tool-shell').first();
     await expect(card).toBeVisible();
