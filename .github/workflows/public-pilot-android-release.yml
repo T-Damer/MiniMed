@@ -14,6 +14,9 @@ concurrency:
 
 env:
   BUILD_TOOLS_VERSION: 36.0.0
+  # Certificate of the persistent prerelease key (secrets MINIMED_ANDROID_*). Every APK must carry
+  # it so that a new release installs over the previous one and keeps the user's local data.
+  PRERELEASE_CERT_SHA256: 684fde01054b3860f02f406c4d90a55f0c2bb2370f624770848ebbf4d42fb970
 
 jobs:
   build-and-release:
@@ -67,9 +70,25 @@ jobs:
           bun run build:app
           bun run native:sync:android
 
-      - name: Assemble debug-signed APK
+      - name: Restore the prerelease signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.MINIMED_ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "MINIMED_ANDROID_KEYSTORE_BASE64 is missing: an ephemeral key would break updates" >&2
+            exit 1
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/minimed-prerelease.p12"
+
+      - name: Assemble debug APK signed with the prerelease key
         working-directory: apps/app/android
-        run: ./gradlew --no-daemon --stacktrace assembleDebug
+        env:
+          MINIMED_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.MINIMED_ANDROID_KEYSTORE_PASSWORD }}
+          MINIMED_ANDROID_KEY_ALIAS: ${{ secrets.MINIMED_ANDROID_KEY_ALIAS }}
+        run: |
+          MINIMED_ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/minimed-prerelease.p12" \
+            ./gradlew --no-daemon --stacktrace assembleDebug
+          rm -f "$RUNNER_TEMP/minimed-prerelease.p12"
 
       - name: Verify APK, signature and downloadable source-linked corpus
         shell: bash
@@ -113,6 +132,11 @@ jobs:
           "$aapt" dump badging "$apk" | tee release-output/APK-BADGING.txt
           "$aapt" dump permissions "$apk" | tee release-output/APK-PERMISSIONS.txt
           "$apksigner" verify --verbose --print-certs "$apk" | tee release-output/APK-SIGNATURE.txt
+          if ! grep -q "Signer #1 certificate SHA-256 digest: ${PRERELEASE_CERT_SHA256}$" \
+            release-output/APK-SIGNATURE.txt; then
+            echo "APK is not signed with the persistent prerelease key" >&2
+            exit 1
+          fi
 
           SOURCE_SHA="$(git rev-parse HEAD)" APK_FILE="$apk" python3 - <<'PY'
           import hashlib

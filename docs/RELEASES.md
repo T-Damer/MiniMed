@@ -86,6 +86,24 @@ A release should include:
 - platform build(s) that passed native smoke;
 - concise known limitations.
 
+## Android signing
+
+Prerelease APKs are debug builds signed with one persistent key, so a new release installs over the
+previous one and keeps the user's local data. Releases up to 0.6.42 were signed with a fresh
+ephemeral CI debug key each time and cannot be updated in place; moving to the persistent key needs
+one last reinstall (export a notes backup first).
+
+- Key: PKCS12 `minimed-prerelease.p12`, alias `minimed-prerelease`, certificate SHA-256
+  `684fde01054b3860f02f406c4d90a55f0c2bb2370f624770848ebbf4d42fb970` (pinned as
+  `PRERELEASE_CERT_SHA256` in `public-pilot-android-release.yml`; the release fails on any other
+  certificate).
+- CI reads the repository secrets `MINIMED_ANDROID_KEYSTORE_BASE64`,
+  `MINIMED_ANDROID_KEYSTORE_PASSWORD` and `MINIMED_ANDROID_KEY_ALIAS`; Gradle signs the debug build
+  with it only when `MINIMED_ANDROID_KEYSTORE_FILE` is set, so local builds keep the default debug key.
+- The owner's copy lives outside the repository in `~/.minimed-signing/` (keystore and password
+  file, mode 600). GitHub secrets cannot be read back: losing that copy means another forced
+  reinstall for every user. Never commit the key or pass it to app, test or browser processes.
+
 ## Compatibility policy before 1.0
 
 Breaking changes are allowed, but every release must state:

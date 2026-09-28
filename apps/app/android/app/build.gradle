@@ -38,7 +38,26 @@ android {
             }
         }
     }
+    // Prereleases are debug builds signed with one persistent key, so each APK installs over the
+    // previous one. Without these variables (local builds) the default debug keystore is used.
+    def prereleaseKeystore = System.getenv('MINIMED_ANDROID_KEYSTORE_FILE')
+    signingConfigs {
+        if (prereleaseKeystore) {
+            prerelease {
+                storeFile file(prereleaseKeystore)
+                storeType 'pkcs12'
+                storePassword System.getenv('MINIMED_ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('MINIMED_ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('MINIMED_ANDROID_KEYSTORE_PASSWORD')
+            }
+        }
+    }
     buildTypes {
+        if (prereleaseKeystore) {
+            debug {
+                signingConfig signingConfigs.prerelease
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

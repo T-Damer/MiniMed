@@ -4,6 +4,10 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+- Android: prerelease APKs are signed with one persistent key, so later releases install over this
+  one and keep local data. Releases up to 0.6.42 used a new key each time; installing the next release
+  over any of them still requires removing the old app once (export a notes backup first).
+
 ## [0.6.42] - 2026-09-28
 
 - Search home: the field comes first; the row shows «Все инструменты» and favourites only, with the
