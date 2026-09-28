@@ -1,10 +1,13 @@
 # Native (KMP/Compose) vs. WebView (Capacitor) search page — Xiaomi 14, 2026-09-28
 
-Status: measurement pass complete for what time allowed — native side is solid (cold start ×5,
-one query timing, scroll framestats, memory, size, plus a full multiplatform build/test pass and a
-web-visual-parity restyle); WebView side is partial (cold start ×5 and one memory/size reading
-landed; query latency, scrolling and post-query memory did not, blocked by a real emulator OOM —
-see Environment). This file is written directly (not committed) per the coordinator's instruction.
+Status: **complete for both apps.** The WebView OOM described below was root-caused and fixed by
+the coordinator on `main` (`ff006d84 fix(storage-capacitor): read the navigation catalog in
+1024-document pages` — `CapacitorMedicalStore.listNavigationDocuments` was returning the whole
+catalog, ~13M characters of metadata projection in one plugin response, in one shot; now paginated
+1024 documents at a time). WebView was rebuilt from that commit in a second worktree and
+re-measured — see "Post-fix measurements" below, which supersedes the earlier partial WebView
+numbers for query latency, scrolling and post-query memory. This file is written directly (not
+committed) per the coordinator's instruction.
 
 ## What is being compared
 
@@ -366,6 +369,76 @@ and the full token list are documented in `native/shared/.../ui/Theme.kt`'s own 
   width-matched pair — a `resize_window`-to-375-equivalent pass on the native emulator screenshot
   was not done before time ran out.
 
+## Post-fix measurements (2026-09-28, WebView rebuilt from `ff006d84`)
+
+**Build**: same recipe as the `v0.6.42` worktree build (Methodology unchanged) but a fresh
+`git worktree add --detach <scratchpad>/wt-headfix ff006d84` (HEAD `main`, includes the pagination
+fix) instead of the tag. Same `applicationIdSuffix ".perf"`/app-name worktree-only change, same
+`core.db` (byte-identical, re-verified by symlink + sha256). `pm path`/`dumpsys` confirm it
+installed **in place** over the previous `.perf` build (same `dev.localmed.search.perf` package,
+`versionCode 56`, `versionName 0.6.43-perf`) — app data (including the already-downloaded core
+pack) carried over, so this is a warm reinstall, not a fresh first-run.
+
+**The fix works**: ran the full "менингит" query and the entire 10-query set below with zero OOMs
+— not one crash across 50+ query submissions and 200+ scroll gestures. Confirmed via `pidof`
+staying constant and an empty `logcat` grep for `OutOfMemoryError`/`FATAL` throughout.
+
+**Two measurement-methodology bugs found and fixed while running this pass** (noted for anyone
+reusing these scripts):
+1. The Welcome/onboarding overlay (`.first-run-setup__start`) covers the real search page on every
+   cold start until dismissed — CDP's `document.querySelector('.result-card')` from the earlier
+   pass was polling a *different*, decorative demo widget inside that overlay (it has its own fake
+   `<textarea>`), never the real one, which is why nothing was ever found. The real result
+   selector is `.result-group-header` (confirmed against live DOM, not just static CSS reading).
+   Fixed by dismissing the overlay via CDP (`document.querySelector('.first-run-setup__start')
+   .click()`) once per cold start before driving any query.
+2. `adb shell am broadcast --es query "<multi-word Cyrillic>"` silently mis-parsed: passing the
+   query as a separate array element to `subprocess.run`/adb's own arg handling let the *remote*
+   shell re-split it on spaces (`клещевой энцефалит у ребенка` arrived as `pkg=энцефалит` — visible
+   directly in the broadcast's own echoed `Intent{...}` line). Single-word queries ("менингит")
+   never showed this. Fixed by building the whole `am broadcast ...` invocation as **one**
+   pre-quoted string passed to `adb shell` , not multiple argv elements.
+
+### Query latency, end-to-end (all 10 queries × 5 reps, CDP-driven, submit → first `.result-group-header`)
+
+| App | n | Median (ms) | p95 (ms) | Min | Max |
+|---|---|---|---|---|---|
+| WebView | 49 (1 cold-start timeout excluded) | 1481 | 3470 | 988 | 6305 |
+| Native | 47 (3 of 50 broadcasts missed — see caveat) | 325.5 | 461.4 | 219.1 | 563.3 |
+
+Native SQL-only (same 47 samples): median 17.4 ms, p95 31.2 ms. Native is **~4.5× faster at the
+median, ~7.5× faster at p95** for the same queries against the same `core.db`, same emulator,
+same session. WebView's numbers include its Capacitor plugin bridge (JSON serialize/deserialize
+across the JS↔native boundary) and Solid's reactive re-render; native's is Compose state → two
+`withFrameNanos` frames — see Methodology §3 for exactly what each measures.
+
+### Scrolling (5 runs each, 20 `input swipe` gestures per run, reset before each — see Methodology §5)
+
+| App | Janky % (Android's own threshold, not 120Hz) — all 5 runs | Median | p50, median (ms) | p90, median | p95, median | p99, median |
+|---|---|---|---|---|---|---|
+| Native | 43.07, 7.09, 4.66, 8.37, 4.02 | 7.09% | 16 | 28 | 32 | 44 |
+| WebView | 35.82, 51.85, 52.11, 31.88, 37.99 | 37.99% | 29 | 48 | 69 | 121 |
+
+Native's run 1 (43.07%) is a clear outlier — same pattern as the earlier pass (first scroll after
+a fresh query pays for cold layout-cache/JIT, subsequent runs settle to ~4–8%); WebView had no such
+outlier, its five runs cluster in a narrower 32–52% band instead. Reading the medians only: native
+scrolling is janky about 1 frame in 14, WebView about 1 frame in 2.6, against Android's own jank
+threshold (not the stricter 8.33 ms/120 Hz budget — Android's `dumpsys gfxinfo` jank flag uses a
+fixed internal deadline that does not appear to adapt to 120 Hz; every p50 above (16–36 ms) already
+exceeds 8.33 ms, so under a strict 120 Hz budget both apps are "janky" on most frames — the
+comparison that matters here is native-vs-WebView, not either app against a 120 Hz ideal).
+
+### Memory (TOTAL PSS) after the query+scroll session
+
+| App | PSS (KB) | vs. native |
+|---|---|---|
+| Native | 70,359 (~69 MB) | 1× |
+| WebView | 114,349 (~112 MB) | 1.6× |
+
+(WebView's post-query PSS is *lower* than the earlier pre-query/pre-fix reading of 198,205 KB from
+the buggy build — consistent with the fix: that build was holding a ~13M-character catalog
+response in memory even to reach "search ready", the paginated version doesn't.)
+
 ## Caveats (read before drawing conclusions)
 
 - Both APKs are debug-signed; production R8/ProGuard behavior for the WebView app and true
@@ -374,7 +447,11 @@ and the full token list are documented in `native/shared/.../ui/Theme.kt`'s own 
   the results section above, not assumed here).
 - The native spike's search matcher is a deliberately simplified single-branch FTS5 matcher (see
   ADR 0021, "What this spike does and does not reproduce"); result-quality is not comparable
-  between the two apps, only latency/rendering.
+  between the two apps. Query latency is not a pure platform comparison either: the WebView app
+  runs the full `MedicalCore` per query (analysis, alias expansion, several FTS branches, fusion,
+  grouping and document metadata), the spike one FTS query. The end-to-end query ratio is an upper
+  bound on what a native UI alone would gain; porting the same pipeline would narrow it. Rendering,
+  scroll frame times, memory and APK size are the like-for-like part of this comparison.
 - SQL-only timing is only available for the native side (see Methodology §4).
 - The "search ready" wall-clock measurement is not independent of the "first frame" measurement
   for either app (it is measured from the same `am start` invocation), so don't subtract one from
@@ -383,14 +460,20 @@ and the full token list are documented in `native/shared/.../ui/Theme.kt`'s own 
 - Corpus shape: this core.db is predominantly a pointer/catalog corpus, not a large body of full
   guideline text — the "long document" scroll scenario used the longest available document, which
   is still short relative to what a document-heavy corpus release would contain.
-- **The WebView side of this report is materially incomplete.** Query latency, scroll/framestats,
-  post-query memory, and a wall-clock search-ready number all failed to land for WebView because
-  of the emulator OOM described above. What *is* solid for WebView: 5 cold-start TotalTime runs,
-  one PSS reading (pre-query), and APK size. Do not read the query-latency/scrolling tables as
-  "native wins" by default — WebView's numbers are missing, not bad.
-- Query latency and scrolling numbers overall rest on very small sample counts (n=1 for the query
-  timing breakdown, two swipe batches for scrolling) given how much of this pass's time went into
-  diagnosing the HyperOS input block, the emulator heap OOM, and the mid-session restyle. Treat
+- **Update: the WebView OOM gap above is closed** — see "Post-fix measurements". Query latency
+  (n=49), scrolling (5 runs), and post-query PSS all landed for WebView on the fixed build. The one
+  number still not wall-clock-correlated for WebView is `search-ready` (mark confirmed present via
+  CDP, timestamp not correlated to the host clock — Methodology §2); everything else in this
+  bullet list is now resolved and should be read against the "Post-fix measurements" tables, not
+  the earlier partial ones.
+- The cold-start numbers (5 runs each app) are from the **pre-fix** `v0.6.42` WebView build; the
+  pagination fix touches only the navigation-catalog query path, not app boot, so re-running cold
+  start on the fixed build was not considered necessary and wasn't done — flagged in case that
+  assumption turns out wrong.
+- Query latency and scrolling sample counts: native query latency lost 3 of 50 broadcast attempts
+  to a `LaunchedEffect` re-key edge case (identical query text sent on a non-adjacent rep doesn't
+  always re-fire — see Post-fix measurements); WebView lost 1 of 50 to a cold-start timing race.
+  Neither is corrected for; both are treated as honest attrition, not resampled to hit exactly n=50eap OOM, and the mid-session restyle. Treat
   every number in this file as directional, not a settled benchmark result.
 - Input methodology: every query in this report was submitted programmatically (CDP for WebView,
   a debug broadcast receiver for native), never via real typing or touch — see Methodology §3.
