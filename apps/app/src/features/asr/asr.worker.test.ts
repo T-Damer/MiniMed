@@ -187,6 +187,25 @@ describe('ASR worker model loading', () => {
     expect(response.status).toBe(206);
   });
 
+  it('serves the transformers 4 `main` config probe from the pinned revision', async () => {
+    await import('./asr.worker');
+    const revision = ASR_MODEL_REVISIONS['onnx-community/whisper-base'];
+    void mocks.env.fetch(
+      'https://huggingface.co/onnx-community/whisper-base/resolve/main/tokenizer_config.json',
+      { headers: { Range: 'bytes=0-0' } },
+    );
+
+    await vi.waitFor(() => {
+      expect(scope.postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'fetch-asset',
+          url: `https://huggingface.co/onnx-community/whisper-base/resolve/${revision}/tokenizer_config.json`,
+          metadataOnly: true,
+        }),
+      );
+    });
+  });
+
   it('rejects non-GET Request inputs before they can leave the worker', async () => {
     await import('./asr.worker');
     const revision = ASR_MODEL_REVISIONS['onnx-community/whisper-base'];

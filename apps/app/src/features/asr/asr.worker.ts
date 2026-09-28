@@ -9,6 +9,7 @@ import {
   type AsrAssetRequest,
   type AsrAssetResponse,
   assertAsrAssetRequest,
+  isSupportedAsrModelId,
 } from './asr-download-protocol';
 
 export interface AsrLoadMessage {
@@ -159,8 +160,14 @@ env.fetch = async (input, init) => {
   const modelId = parsed.pathname.match(
     /^\/(onnx-community\/whisper-(?:base|small))\/resolve\//u,
   )?.[1];
-  if (!modelId || parts.method !== 'GET' || parts.body !== null)
+  if (!modelId || !isSupportedAsrModelId(modelId) || parts.method !== 'GET' || parts.body !== null)
     throw new Error('Unsupported speech download.');
+  // transformers 4 probes config files at `main` before it honours `revision`; serve that probe
+  // from the pinned revision too, so every file comes from the one verified snapshot.
+  const mainPrefix = `/${modelId}/resolve/main/`;
+  if (parsed.pathname.startsWith(mainPrefix)) {
+    parsed.pathname = `/${modelId}/resolve/${ASR_MODEL_REVISIONS[modelId]}/${parsed.pathname.slice(mainPrefix.length)}`;
+  }
   const range = parts.headers.get('range');
   if (range !== null && range !== 'bytes=0-0')
     throw new Error('Unsupported speech metadata range.');
