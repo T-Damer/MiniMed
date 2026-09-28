@@ -226,6 +226,41 @@ function toChunk(row: NativeSqlRow): ChunkRecord {
   };
 }
 
+/** Documents per native reply: whole-catalog replies do not fit a WebView heap. */
+const DOCUMENT_PAGE_SIZE = 1024;
+
+const NAVIGATION_DOCUMENT_SELECT = `
+  SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
+    d.specialty_json, json_object(
+      'terminology', json_extract(d.metadata_json, '$.terminology'),
+      'primaryModuleId', json_extract(d.metadata_json, '$.primaryModuleId'),
+      'moduleIds', json_extract(d.metadata_json, '$.moduleIds'),
+      'definitionPreviewAnchor', json_extract(d.metadata_json, '$.definitionPreviewAnchor'),
+      'terminologyMentionAnchors', json_extract(d.metadata_json, '$.terminologyMentionAnchors'),
+      'declaredAliases', json_extract(d.metadata_json, '$.declaredAliases'),
+      'navigationAliases', json_extract(d.metadata_json, '$.navigationAliases'),
+      'catalogFamily', json_extract(d.metadata_json, '$.catalogFamily'),
+      'ageGroups', json_extract(d.metadata_json, '$.ageGroups'),
+      'entityType', json_extract(d.metadata_json, '$.entityType'),
+      'conceptId', json_extract(d.metadata_json, '$.conceptId'),
+      'sourceType', json_extract(d.metadata_json, '$.sourceType'),
+      'mkbCode', json_extract(d.metadata_json, '$.mkbCode'),
+      'contentMode', json_extract(d.metadata_json, '$.contentMode'),
+      'targetDocumentId', json_extract(d.metadata_json, '$.targetDocumentId'),
+      'canonicalDefinition', json_extract(d.metadata_json, '$.canonicalDefinition'),
+      'interactiveAssessmentId', json_extract(d.metadata_json, '$.interactiveAssessmentId'),
+      'interactiveCalculatorId', json_extract(d.metadata_json, '$.interactiveCalculatorId'),
+      'interactiveRoute', json_extract(d.metadata_json, '$.interactiveRoute'),
+      'calculationRequired', json(CASE WHEN json_type(d.metadata_json, '$.calculationRequired') = 'true'
+        THEN 'true' ELSE 'false' END),
+      'notLegalAdvice', json(CASE WHEN json_type(d.metadata_json, '$.notLegalAdvice') = 'true'
+        THEN 'true' ELSE 'false' END)
+    ) AS metadata_json,
+    dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
+    dv.source_checksum, dv.extracted_at
+  FROM documents d JOIN document_versions dv ON dv.id = d.current_version_id
+`;
+
 const DOCUMENT_SELECT = `
   SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
     d.specialty_json, d.metadata_json, dv.id AS version_id, dv.version_label,
@@ -437,40 +472,24 @@ export class CapacitorMedicalStore implements MedicalStore {
 
   public async listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
     this.assertInitialized();
-    return (
-      await this.query(`
-      SELECT d.id, d.content_pack_id, d.title, d.short_title, d.source_type, d.status,
-        d.specialty_json, json_object(
-          'terminology', json_extract(d.metadata_json, '$.terminology'),
-          'primaryModuleId', json_extract(d.metadata_json, '$.primaryModuleId'),
-          'moduleIds', json_extract(d.metadata_json, '$.moduleIds'),
-          'definitionPreviewAnchor', json_extract(d.metadata_json, '$.definitionPreviewAnchor'),
-          'terminologyMentionAnchors', json_extract(d.metadata_json, '$.terminologyMentionAnchors'),
-          'declaredAliases', json_extract(d.metadata_json, '$.declaredAliases'),
-          'navigationAliases', json_extract(d.metadata_json, '$.navigationAliases'),
-          'catalogFamily', json_extract(d.metadata_json, '$.catalogFamily'),
-          'ageGroups', json_extract(d.metadata_json, '$.ageGroups'),
-          'entityType', json_extract(d.metadata_json, '$.entityType'),
-          'conceptId', json_extract(d.metadata_json, '$.conceptId'),
-          'sourceType', json_extract(d.metadata_json, '$.sourceType'),
-          'mkbCode', json_extract(d.metadata_json, '$.mkbCode'),
-          'contentMode', json_extract(d.metadata_json, '$.contentMode'),
-          'targetDocumentId', json_extract(d.metadata_json, '$.targetDocumentId'),
-          'canonicalDefinition', json_extract(d.metadata_json, '$.canonicalDefinition'),
-          'interactiveAssessmentId', json_extract(d.metadata_json, '$.interactiveAssessmentId'),
-          'interactiveCalculatorId', json_extract(d.metadata_json, '$.interactiveCalculatorId'),
-          'interactiveRoute', json_extract(d.metadata_json, '$.interactiveRoute'),
-          'calculationRequired', json(CASE WHEN json_type(d.metadata_json, '$.calculationRequired') = 'true'
-            THEN 'true' ELSE 'false' END),
-          'notLegalAdvice', json(CASE WHEN json_type(d.metadata_json, '$.notLegalAdvice') = 'true'
-            THEN 'true' ELSE 'false' END)
-        ) AS metadata_json,
-        dv.id AS version_id, dv.version_label, dv.effective_from, dv.effective_to,
-        dv.source_checksum, dv.extracted_at
-      FROM documents d JOIN document_versions dv ON dv.id = d.current_version_id
-      ORDER BY d.title COLLATE NOCASE, d.id
-    `)
-    ).map(toDocument);
+    // One whole-catalog reply is tens of megabytes of JSON (canonical definitions alone are ~7 M
+    // characters) and ran the Android WebView heap out of memory; read it in title-ordered pages.
+    const identities = await this.listDocumentIdentities();
+    const documents: DocumentRecord[] = [];
+    for (let offset = 0; offset < identities.length; offset += DOCUMENT_PAGE_SIZE) {
+      const ids = identities
+        .slice(offset, offset + DOCUMENT_PAGE_SIZE)
+        .map((document) => document.id);
+      const rows = await this.query(
+        `${NAVIGATION_DOCUMENT_SELECT} WHERE d.id IN (SELECT value FROM json_each(?))
+         ORDER BY d.title COLLATE NOCASE, d.id`,
+        [JSON.stringify(ids)],
+      );
+      if (rows.length !== ids.length)
+        throw new Error('Native document catalog changed while reading.');
+      documents.push(...rows.map(toDocument));
+    }
+    return documents;
   }
 
   public async listDocuments(): Promise<readonly DocumentRecord[]> {
@@ -488,9 +507,10 @@ export class CapacitorMedicalStore implements MedicalStore {
     const identities = await this.listDocumentIdentities();
     const documents: DocumentRecord[] = [];
     // ponytail: row pages fit the released corpus; use byte-capped native pages for larger metadata.
-    const pageSize = 1024;
-    for (let offset = 0; offset < identities.length; offset += pageSize) {
-      const ids = identities.slice(offset, offset + pageSize).map((document) => document.id);
+    for (let offset = 0; offset < identities.length; offset += DOCUMENT_PAGE_SIZE) {
+      const ids = identities
+        .slice(offset, offset + DOCUMENT_PAGE_SIZE)
+        .map((document) => document.id);
       // Read metadata only for this page; the immutable identity list is already title-sorted.
       const rows = await this.query(
         `${DOCUMENT_SELECT} WHERE d.id IN (SELECT value FROM json_each(?))

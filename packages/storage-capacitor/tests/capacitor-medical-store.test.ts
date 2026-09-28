@@ -177,10 +177,32 @@ describe('CapacitorMedicalStore', () => {
     const store = createStore(plugin);
     await store.initialize();
     await store.listNavigationDocuments();
-    expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.sourceType')");
-    expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.mkbCode')");
-    expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.conceptId')");
-    expect(plugin.calls[0]?.sql).toContain("json_extract(d.metadata_json, '$.interactiveRoute')");
+    const navigation = plugin.calls.find((call) => call.sql.includes("'$.sourceType'"));
+    expect(navigation?.sql).toContain("json_extract(d.metadata_json, '$.mkbCode')");
+    expect(navigation?.sql).toContain("json_extract(d.metadata_json, '$.conceptId')");
+    expect(navigation?.sql).toContain("json_extract(d.metadata_json, '$.interactiveRoute')");
+    await store.close();
+  });
+
+  it('reads the navigation catalog in bounded pages, not one whole-catalog reply', async () => {
+    const plugin = new FakeNativePlugin();
+    const identities = Array.from({ length: 2500 }, (_, index) => ({
+      id: `document-${String(index).padStart(4, '0')}`,
+      current_version_id: `version-${index}`,
+    }));
+    const pages: number[] = [];
+    vi.spyOn(plugin, 'query').mockImplementation(async ({ sql, argsJson }) => {
+      if (sql.startsWith('SELECT id, current_version_id')) return { rows: identities };
+      const [idsJson] = JSON.parse(argsJson ?? '[]') as [string];
+      const ids = JSON.parse(idsJson) as string[];
+      pages.push(ids.length);
+      return { rows: ids.map((id) => ({ ...fixtureRow(), id })) };
+    });
+    const store = createStore(plugin);
+    await store.initialize();
+    const documents = await store.listNavigationDocuments();
+    expect(pages).toEqual([1024, 1024, 452]);
+    expect(documents.map((document) => document.id)).toEqual(identities.map((row) => row.id));
     await store.close();
   });
 
