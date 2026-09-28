@@ -22,6 +22,13 @@ for (const width of [375, 1280]) {
       else await route.continue();
     });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+    // Package status is checked once the medical core has opened; that can take longer than an
+    // assertion timeout under load, and it is not what this test measures.
+    await page.waitForFunction(
+      () => performance.getEntriesByName('minimed:search-ready').length > 0,
+      undefined,
+      { timeout: 90_000 },
+    );
     const picker = page.getByRole('button', { name: 'Раздел поиска', exact: true });
     await picker.click();
     const menu = page.getByRole('dialog', { name: 'Разделы поиска' });
@@ -36,8 +43,11 @@ for (const width of [375, 1280]) {
       .filter({ has: page.getByRole('button', { name: 'Подразделы: Опросники', exact: true }) });
     await expect(section).toHaveClass(/search-section-menu__section--expanded/u);
     const expand = menu.getByRole('button', { name: 'Подразделы: Опросники', exact: true });
-    await expand.hover();
+    // Move the pointer instead of hover(): hover() scrolls the page to the target, which at 375px
+    // pushes the picker off screen and closes the menu by design.
     const expandBox = await expand.boundingBox();
+    if (expandBox)
+      await page.mouse.move(expandBox.x + expandBox.width / 2, expandBox.y + expandBox.height / 2);
     const scrollbarBox = await menu.locator('.os-scrollbar-vertical').boundingBox();
     expect(expandBox).not.toBeNull();
     expect(scrollbarBox).not.toBeNull();

@@ -1,41 +1,35 @@
 import { expect, test } from '@playwright/test';
 import { mountBuiltApp } from './mount-built-app';
 
+// Optional tool packages install only on request (e72af7f8): a fresh profile fetches nothing on its
+// own, and a tool route offers the download instead of waiting for it.
 for (const available of [true, false]) {
-  test(`tool routes wait for local packages (${available ? 'installed' : 'absent'})`, async ({
+  test(`tool routes offer optional packages on request (${available ? 'available' : 'unreachable'})`, async ({
     page,
   }) => {
-    let release = (): void => {};
-    const gate = new Promise<void>((resolve) => {
-      release = resolve;
-    });
+    const requests: string[] = [];
     await page.route('**/content/modules/**', async (route) => {
-      await gate;
+      requests.push(route.request().url());
       if (available) await route.continue();
       else await route.abort();
     });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-    try {
-      await page.evaluate(() => {
-        window.location.hash = '#/calculators/body-surface-area-mosteller';
-      });
-      await expect(page.getByRole('heading', { name: 'Подключаем калькулятор' })).toBeVisible();
-      await expect(
-        page
-          .locator('.calculator-pack-required')
-          .getByRole('button', { name: 'Скачать', exact: true }),
-      ).toHaveCount(0);
-      await page.evaluate(() => {
-        window.location.hash =
-          '#/assessments/gastroenterology/pediatric-ulcerative-colitis-activity-index';
-      });
-      await expect(page.getByRole('heading', { name: 'Подключаем опросник' })).toBeVisible();
-      await expect(page.locator('.assessment-missing-body')).toHaveCount(0);
-    } finally {
-      release();
+    await page.evaluate(() => {
+      window.location.hash = '#/calculators/body-surface-area-mosteller';
+    });
+    const required = page.locator('.calculator-pack-required');
+    const download = required.getByRole('button', { name: 'Скачать', exact: true });
+    await expect(download).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Подключаем калькулятор' })).toHaveCount(0);
+    expect(requests).toEqual([]);
+
+    await download.click();
+    await expect.poll(() => requests.length).toBeGreaterThan(0);
+    if (available) {
+      await expect(required).toHaveCount(0, { timeout: 30_000 });
+    } else {
+      await expect(required).toBeVisible();
+      await expect(download).toBeVisible();
     }
-    if (available) await expect(page.locator('.assessment-workspace')).toBeVisible();
-    else await expect(page.locator('.assessment-missing-body')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Подключаем опросник' })).toHaveCount(0);
   });
 }

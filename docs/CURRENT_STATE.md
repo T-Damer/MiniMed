@@ -70,7 +70,13 @@ Detailed history, moved verbatim on 2026-09-24:
 - **«Разделы» on the empty home** (`SearchSectionsOverview`, `sections-overview.ts`): six sections
   with one/few/many worded counts declared in `SEARCH_SECTIONS`.
 - Corpus and packs unchanged; `verify` passes; section-related e2e 59 passed / 1 skipped (serial).
-  The pre-existing `tool-hydration` and `search-section-downloads` failures noted under 0.6.42 remain.
+  The `tool-hydration` and `search-section-downloads` failures noted under 0.6.42 were stale specs,
+  fixed after this release.
+- **Speech model download (fixed after 0.6.43).** Since df6448a3 (transformers.js 4.2) the Whisper
+  download failed with «Unsupported speech asset URL»: transformers 4 probes `config.json`,
+  `tokenizer_config.json` and `preprocessor_config.json` at `resolve/main/` before honouring the
+  pinned `revision`, and the worker's host/revision guard rejected them. The worker now maps that
+  probe onto the pinned revision; the guard is unchanged.
 
 ## Release 0.6.42 — 2026-09-28
 
@@ -87,9 +93,11 @@ Detailed history, moved verbatim on 2026-09-24:
 - **Verification.** `bun run verify` and `benchmark:real:release` pass. Full serial Web E2E: 105
   passed, 8 failed, 6 skipped of 119. The section-menu specs were stale after the new home and pass
   once updated; `module-pointer` passes when rerun alone. `tool-hydration` (both variants) and
-  `search-section-downloads` (375/1280) fail the same way on a v0.6.41 build: the «Подключаем
-  калькулятор» pending state and the «Загрузка: Неонатология» download row never appear. The cause
-  is not diagnosed; these failures predate this release.
+  `search-section-downloads` (375/1280) failed the same way on a v0.6.41 build; both specs were stale
+  and were fixed after 0.6.43. `tool-hydration` still expected a fresh profile to auto-install tool
+  packages, which e72af7f8 deliberately stopped (optional packs install only on «Скачать»).
+  `search-section-downloads` lost its menu when `hover()` scrolled the page at 375 px, and its
+  25-second assertion raced the 423 MB core open that package status waits for.
 - **Native spike.** `native/` holds a Kotlin Multiplatform + Compose Multiplatform search page over
   the same `core.db` (ADR-0021) for a device speed comparison with this release's WebView; it is not
   built by CI or shipped.
