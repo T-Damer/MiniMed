@@ -75,6 +75,12 @@ Detailed history, moved verbatim on 2026-09-24:
   normative acts 0% (90% with the bundled `regulatory.db`), and tools 100% through the client-side
   catalog. Findings and the size/risk proposal:
   [research/core-coverage-2026-09-28.md](research/core-coverage-2026-09-28.md).
+- ICD fallback fix (2026-09-28): the legacy ICD query keeps the typed chapter letter (Cyrillic
+  look-alikes mapped) and adds the three-character parent token instead of assuming chapter I. On
+  the released core alone, correct@5 for «J18.9»-style codes rose from 46.0% to 96.5% and for
+  «J189» from 46.0% to 99.0%; benchmark:all within tolerance, doctor-lookup 0.70/0.60 unchanged,
+  lookup-quality Top-1 1.0. Downloadable (actionable) ICD results stay 7–15% until an MKB module
+  ships.
 
 ## Knowledge graph («Карта связей») — 2026-09-27
 

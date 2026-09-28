@@ -1509,6 +1509,27 @@ function ftsToken(term: string): string {
 const ICD10_CODE_PATTERN =
   /(?<![A-ZА-Я0-9])(?<code>[A-ZА-Я]?\d{2}(?:[.\-\s]\s*\d+|\d+)?)(?![A-ZА-Я0-9])/giu;
 
+// ICD-10 chapters use Latin letters; Cyrillic look-alikes typed on a Russian layout map back.
+const CYRILLIC_ICD_LETTERS: Readonly<Record<string, string>> = {
+  а: 'a',
+  в: 'b',
+  с: 'c',
+  е: 'e',
+  н: 'h',
+  к: 'k',
+  м: 'm',
+  о: 'o',
+  р: 'p',
+  т: 't',
+  х: 'x',
+};
+
+function icd10ChapterLetter(compact: string): string | null {
+  const first = compact[0] ?? '';
+  if (/^[a-z]$/u.test(first)) return first;
+  return CYRILLIC_ICD_LETTERS[first] ?? null;
+}
+
 function icd10LegacyFtsQueries(
   value: string,
   excludedNumericTerms?: ReadonlySet<string>,
@@ -1518,9 +1539,18 @@ function icd10LegacyFtsQueries(
     // biome-ignore lint/complexity/useLiteralKeys: named RegExp groups use an index signature.
     const compact = match.groups?.['code']?.replace(/[.\-\s]/gu, '').toLowerCase();
     const numeric = compact?.replace(/^[a-zа-я]/u, '');
-    if (!numeric || numeric.length < 3 || excludedNumericTerms?.has(numeric)) continue;
+    if (!compact || !numeric || numeric.length < 3 || excludedNumericTerms?.has(numeric)) continue;
     const prefix = numeric.slice(0, 2);
     const suffix = numeric.slice(2);
+    const chapter = icd10ChapterLetter(compact);
+    if (chapter) {
+      // The typed chapter is authoritative: «F23.3» must never fall back to I23.3. Pointers that
+      // index only the three-character code («f23») still surface the parent category.
+      queries.add(`(${ftsToken(`${chapter}${prefix}`)} AND ${ftsToken(suffix)})`);
+      queries.add(ftsToken(`${chapter}${prefix}`));
+      continue;
+    }
+    // A bare number («67.9») is read as the cardiology chapter the legacy pilot indexed.
     queries.add(`(${ftsToken(prefix)} AND ${ftsToken(suffix)})`);
     queries.add(`(${ftsToken(`i${prefix}`)} AND ${ftsToken(suffix)})`);
   }

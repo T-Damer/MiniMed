@@ -230,6 +230,16 @@ describe('lexical query planning', () => {
     expect(normalizeForIndex('Ребёнок с пневмонией')).toContain('ребенок');
   });
 
+  it.each([
+    ['F23.3', 'f23'],
+    ['L11.0', 'l11'],
+    ['Е11.9', 'e11'],
+  ])('keeps the typed ICD chapter of %s in the fallback query', (query, chapterToken) => {
+    const plan = buildLexicalQueryPlan(query, []);
+    expect(plan.ftsQuery).not.toMatch(/"i(23|11)"/u);
+    expect(plan.ftsQuery).toContain(`"${chapterToken}"*`);
+  });
+
   it.each(['I679', 'I67-9', 'I67 9', '679', '67 9', '67.9', '67-9'])(
     'normalizes ICD-10 spelling %s to the same search terms',
     (query) => {
