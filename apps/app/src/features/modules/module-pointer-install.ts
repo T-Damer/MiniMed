@@ -121,12 +121,16 @@ export function selectModuleForPointer(
   installed: readonly InstalledContentModule[] = [],
 ): ContentModuleCatalogEntry | null {
   const allowedIds = new Set([pointer.primaryModuleId, ...pointer.moduleIds]);
-  const candidates = catalog.modules.filter((module) => allowedIds.has(module.id));
-  const targetCandidates = candidates.filter(
-    (module) =>
-      moduleContainsTarget(module, pointer.targetDocumentId) &&
-      (isModuleReleased(module) || Boolean(installedModuleVersion(module, installed))),
+  const available = (module: ContentModuleCatalogEntry): boolean =>
+    moduleContainsTarget(module, pointer.targetDocumentId) &&
+    (isModuleReleased(module) || Boolean(installedModuleVersion(module, installed)));
+  const declared = catalog.modules.filter(
+    (module) => allowedIds.has(module.id) && available(module),
   );
+  // A core built before its target set was published names a module id that never shipped. Exact
+  // membership in a verified index is what makes a download safe, so any module that lists the
+  // target document may serve it.
+  const targetCandidates = declared.length ? declared : catalog.modules.filter(available);
   return (
     targetCandidates.find((module) => installedModuleVersion(module, installed)) ??
     targetCandidates.find((module) => module.id === pointer.primaryModuleId) ??

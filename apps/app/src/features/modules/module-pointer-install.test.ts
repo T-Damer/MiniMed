@@ -163,6 +163,28 @@ describe('module-pointer-install', () => {
     ).toBe('fallback');
   });
 
+  it('falls back to any released module with exact membership when no declared id ships it', () => {
+    const undeclared = catalog([
+      moduleEntry('primary', ['other.document']),
+      moduleEntry('published.later', ['target.document']),
+    ]);
+    expect(selectModuleForPointer(pointer(), undeclared)?.id).toBe('published.later');
+    // A declared module that holds the target still wins over an undeclared one.
+    expect(
+      selectModuleForPointer(
+        pointer(),
+        catalog([
+          moduleEntry('published.later', ['target.document']),
+          moduleEntry('fallback', ['target.document']),
+        ]),
+      )?.id,
+    ).toBe('fallback');
+    // Membership stays exact: an undeclared module without the target is never offered.
+    expect(
+      selectModuleForPointer(pointer(), catalog([moduleEntry('published.later', ['x'])])),
+    ).toBeNull();
+  });
+
   it('maps a local definition excerpt back to its original source anchor', () => {
     const metadata = {
       definitionPreviewAnchor: 'preview#definition',
