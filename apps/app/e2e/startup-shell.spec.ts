@@ -52,9 +52,10 @@ for (const viewport of [
       await expect(coreStatus).toContainText('Подготавливаем поиск');
       await expect(page.locator('.boot-card')).toHaveCount(0);
       await expect(page.getByTestId('search-input')).toBeDisabled();
+      // The status shows once: the note carries it, the disabled field keeps its usual prompt.
       await expect(page.getByTestId('search-input')).toHaveAttribute(
         'placeholder',
-        'Подготавливаем поиск…',
+        'Название, код МКБ, препарат или фраза из документа',
       );
       await expect(
         page.getByRole('button', { name: 'Все инструменты', exact: true }),

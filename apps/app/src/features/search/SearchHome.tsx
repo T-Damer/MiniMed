@@ -700,8 +700,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
               />
             </Show>
           }
+          // The core's status shows in one place: in the field only until the note below appears.
           placeholder={
-            props.coreStatus
+            props.coreStatus && !noteCoreStatus()
               ? searchCoreStatusLabel(props.coreStatus)
               : scope() === 'diagnosis'
                 ? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
