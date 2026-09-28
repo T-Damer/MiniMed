@@ -13,39 +13,49 @@ const ANCHOR =
 const route = (id: string) =>
   `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(`${id}\n${ANCHOR}`).toString('base64url')}`;
 
-test('downloads an exact pointer target and preserves the source anchor on reopening', async ({
-  page,
-}) => {
-  test.setTimeout(120_000);
-  const catalog = ContentModuleCatalogSchema.parse(
-    JSON.parse(
-      await readFile(resolve(ROOT, 'apps/app/src/features/modules/catalog.preview.json'), 'utf8'),
-    ),
-  );
-  const module = catalog.modules.find(
-    (entry) => entry.id === 'minimed.clinical.recommendation.1006_1',
-  );
-  const artifact = module?.artifacts.find((item) => item.kind === 'index');
-  if (!module || !artifact?.url) throw new Error('Missing clinical fixture artifact');
-  const bytes = await readFile(resolve(ROOT, 'data/build/e2e-clinical-1006-release.db'));
-  expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);
-  const fileName = new URL(artifact.url).pathname.split('/').at(-1);
-  await page.route(
-    (url) => url.pathname.endsWith(`/${fileName}`),
-    (request) => request.fulfill({ body: bytes, contentType: 'application/octet-stream' }),
-  );
-  await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-  await page.goto(route(POINTER));
-  const install = page.locator('.document-module-pointer__action');
-  await expect(install).toBeVisible();
-  await install.click();
-  await expect(page).toHaveURL(route(TARGET), { timeout: 60_000 });
-  await expect(page.locator('.document-module-pointer__error')).toHaveCount(0);
-  await expect(page.locator(`[id="${ANCHOR}"]`)).toBeInViewport();
-  await page.goto(route(POINTER));
-  await expect(page).toHaveURL(route(TARGET), { timeout: 30_000 });
-  await expect(page.locator(`[id="${ANCHOR}"]`)).toBeInViewport();
-});
+// A slow device mounts the first sections before the page below the anchor exists; the reader
+// must still land on the anchor rather than stop at the page end (4× CPU reproduced that).
+for (const cpuSlowdown of [1, 4]) {
+  test(`downloads an exact pointer target and preserves the source anchor on reopening (CPU ×${cpuSlowdown})`, async ({
+    page,
+  }) => {
+    test.setTimeout(120_000 * cpuSlowdown);
+    const catalog = ContentModuleCatalogSchema.parse(
+      JSON.parse(
+        await readFile(resolve(ROOT, 'apps/app/src/features/modules/catalog.preview.json'), 'utf8'),
+      ),
+    );
+    const module = catalog.modules.find(
+      (entry) => entry.id === 'minimed.clinical.recommendation.1006_1',
+    );
+    const artifact = module?.artifacts.find((item) => item.kind === 'index');
+    if (!module || !artifact?.url) throw new Error('Missing clinical fixture artifact');
+    const bytes = await readFile(resolve(ROOT, 'data/build/e2e-clinical-1006-release.db'));
+    expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);
+    const fileName = new URL(artifact.url).pathname.split('/').at(-1);
+    await page.route(
+      (url) => url.pathname.endsWith(`/${fileName}`),
+      (request) => request.fulfill({ body: bytes, contentType: 'application/octet-stream' }),
+    );
+    await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+    // Documents open once the core is ready; a cold core start is not what this test measures.
+    await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60_000 });
+    if (cpuSlowdown > 1) {
+      const cdp = await page.context().newCDPSession(page);
+      await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpuSlowdown });
+    }
+    await page.goto(route(POINTER));
+    const install = page.locator('.document-module-pointer__action');
+    await expect(install).toBeVisible({ timeout: 15_000 * cpuSlowdown });
+    await install.click();
+    await expect(page).toHaveURL(route(TARGET), { timeout: 60_000 });
+    await expect(page.locator('.document-module-pointer__error')).toHaveCount(0);
+    await expect(page.locator(`[id="${ANCHOR}"]`)).toBeInViewport();
+    await page.goto(route(POINTER));
+    await expect(page).toHaveURL(route(TARGET), { timeout: 30_000 });
+    await expect(page.locator(`[id="${ANCHOR}"]`)).toBeInViewport();
+  });
+}
 
 test('a preview medication package has no download action when experiments are disabled', async ({
   page,

@@ -612,12 +612,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     const frame = requestAnimationFrame(() => {
       const target = anchor ? globalThis.document.getElementById(anchor) : null;
       if (anchor && !target) return;
-      initialScrollKey = key;
-      if (target) target.scrollIntoView({ behavior: 'instant', block: 'start' });
-      else
+      if (target) {
+        target.scrollIntoView({ behavior: 'instant', block: 'start' });
+        // The page below the anchor may not have mounted yet: the scroll then stops at the page
+        // end with the anchor still below the fold. Try again as the next sections mount.
+        if (target.getBoundingClientRect().top >= window.innerHeight) return;
+      } else
         globalThis.document
           .querySelector<HTMLElement>('.document-overlay-paper')
           ?.scrollTo({ top: 0, behavior: 'instant' });
+      initialScrollKey = key;
     });
     onCleanup(() => cancelAnimationFrame(frame));
   });
