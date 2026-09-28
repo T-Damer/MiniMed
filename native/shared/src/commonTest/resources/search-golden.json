@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-28T16:35:22.039Z",
-  "commit": "6c794086d049874e359c1d3a9777aa8f9e9effd2",
+  "generatedAt": "2026-09-28T19:00:32.966Z",
+  "commit": "b516c22287592ed9b59b4ce0b421b28b7b3f1a15",
   "coreDbSha256": "d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a",
   "coreDbPath": "apps/app/public/content/core.db",
   "corpus": [

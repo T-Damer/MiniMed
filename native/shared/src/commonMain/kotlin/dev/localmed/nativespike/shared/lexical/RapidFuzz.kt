@@ -11,12 +11,15 @@ package dev.localmed.nativespike.shared.lexical
  *   Copyright (c) 2011 Adam Cohen (original fuzzywuzzy), Copyright (c) 2021 Max Bachmann
  *   (RapidFuzz). See NOTICE for the full license text.
  *
- * NOT ported here (out of scope for sub-stage A; nothing in the golden-parity check exercises
- * them): `preparePattern`'s reuse-across-many-comparisons form and the `process.extract`/
- * `extractTop` choice-list helpers built on top of the distance metrics in the TS source — those
- * are used by `medication-spelling.ts`/typo-correction, both explicitly out of scope for stage 2
- * (docs/CURRENT_STATE.md). Only the two distance/similarity metrics themselves are ported, since
- * the coordinator asked for "RapidFuzz OSA/Levenshtein" specifically for this sub-stage.
+ * `extract`/`extractTop` (added in sub-stage B, for `MedicationSpelling.kt`'s RapidFuzz-OSA
+ * fallback) are simplified relative to the TS source: they always call `scorer(query, choice)` per
+ * pair instead of `resolveFastScorer`'s "prepare the query pattern once, reuse across every choice"
+ * fast path. That fast path in rapidfuzz.ts exists purely as a performance optimization for
+ * vocabulary-scale choice lists (tens of thousands of comparisons per query) — it selects the
+ * *identical* result, just faster, by detecting `scorer === OSA.normalizedSimilarity` via function
+ * reference equality (not portable to Kotlin, where `OSA::normalizedSimilarity` creates a new
+ * function value each time with no stable identity to compare). Not reimplementing it is a
+ * documented perf simplification, not a behavior difference.
  *
  * Two implementations exist for each metric, exactly mirroring the TS source:
  *  - a bit-parallel one (Myers 1999 for Levenshtein; Hyyrö 2003 for OSA), operating on 64-bit
@@ -235,4 +238,47 @@ object RapidFuzzInternal {
     fun levenshteinDp(left: String, right: String): Int = levenshteinDpFn(left, right)
     fun osaBitParallel(left: String, right: String): Int = osaBitParallelFn(left, right)
     fun osaDp(left: String, right: String): Int = osaDpFn(left, right)
+}
+
+/** Mirrors `ExtractMatch<T>`, narrowed to `T = String` (every caller in this port only ever scores
+ * plain strings — no `processor` option, unlike the TS source's generic `ExtractMatch<T>`). */
+data class ExtractMatch(val choice: String, val score: Double, val index: Int)
+
+/**
+ * Mirrors `extract`: scores every choice, drops anything below `scoreCutoff`, returns the rest
+ * sorted by descending score (ties broken by original index, for determinism). Default scorer is
+ * `OSA.normalizedSimilarity`, matching the TS default.
+ */
+fun extract(
+    query: String,
+    choices: List<String>,
+    scorer: (String, String) -> Double = { a, b -> OSA.normalizedSimilarity(a, b) },
+    scoreCutoff: Double = 0.0,
+    limit: Int? = null,
+): List<ExtractMatch> {
+    val matches = mutableListOf<ExtractMatch>()
+    for ((index, choice) in choices.withIndex()) {
+        val value = scorer(query, choice)
+        if (value >= scoreCutoff) matches.add(ExtractMatch(choice, value, index))
+    }
+    matches.sortWith(compareByDescending<ExtractMatch> { it.score }.thenBy { it.index })
+    return if (limit == null) matches else matches.take(limit)
+}
+
+/**
+ * Mirrors `extractTop`: same selection semantics as `extract` with a `limit` — top-`limit` by
+ * score desc/index asc, filtered by `scoreCutoff`. The TS source keeps a bounded min-heap instead
+ * of sorting everything, an O(n log k) optimization for large vocabularies with small `limit`; this
+ * port sorts then slices (see this file's header for why that's a deliberate, behavior-preserving
+ * simplification here, not a shortcut that changes results).
+ */
+fun extractTop(
+    query: String,
+    choices: List<String>,
+    limit: Int,
+    scorer: (String, String) -> Double = { a, b -> OSA.normalizedSimilarity(a, b) },
+    scoreCutoff: Double = 0.0,
+): List<ExtractMatch> {
+    if (limit <= 0) return emptyList()
+    return extract(query, choices, scorer, scoreCutoff, limit)
 }
