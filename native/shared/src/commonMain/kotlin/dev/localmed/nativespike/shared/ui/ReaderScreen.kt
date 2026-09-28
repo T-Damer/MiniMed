@@ -1,6 +1,8 @@
 package dev.localmed.nativespike.shared.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.localmed.nativespike.shared.db.NativeSearchDatabase
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SectionRow
@@ -43,9 +46,12 @@ fun ReaderScreen(
     documentTitle: String,
     initialSectionAnchor: String?,
     onBack: () -> Unit,
+    // Hoistable so a debug bench harness can drive a programmatic scroll (LazyListState.scrollBy)
+    // without touch-input injection — see native/androidApp's BenchScreen.kt. Normal callers don't
+    // pass this and get an internally-remembered state exactly as before.
+    listState: LazyListState = rememberLazyListState(),
 ) {
     var rows by remember(documentId) { mutableStateOf<List<ReaderRow>>(emptyList()) }
-    val listState = rememberLazyListState()
 
     LaunchedEffect(documentId) {
         val loaded = withContext(Dispatchers.Default) {
@@ -64,37 +70,52 @@ fun ReaderScreen(
         }
     }
 
-    Scaffold(topBar = {
-        Surface(tonalElevation = 2.dp) {
-            Row(Modifier.fillMaxWidth().padding(8.dp)) {
-                IconButton(onClick = onBack) {
-                    Text("←", style = MaterialTheme.typography.titleLarge)
+    // Web reader typography (apps/app/src/styles/global.css `.document-text__paragraph`): serif,
+    // ~16-19px, line-height 1.72 — a generous "book page" measure, not compact UI text.
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface, // --theme-surface, matches the reader's paper background
+        topBar = {
+            Surface(color = MaterialTheme.colorScheme.surface) {
+                Row(Modifier.fillMaxWidth().padding(8.dp)) {
+                    IconButton(onClick = onBack) {
+                        Text("←", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                    }
+                    Text(
+                        documentTitle,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(start = 8.dp, top = 12.dp),
+                    )
                 }
-                Text(
-                    documentTitle,
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(start = 8.dp, top = 12.dp),
-                )
             }
-        }
-    }) { padding ->
+        },
+    ) { padding ->
         ReaderList(rows = rows, listState = listState, modifier = Modifier.fillMaxSize().padding(padding))
     }
 }
 
 @Composable
 private fun ReaderList(rows: List<ReaderRow>, listState: LazyListState, modifier: Modifier = Modifier) {
-    LazyColumn(modifier = modifier, state = listState) {
+    LazyColumn(
+        modifier = modifier.background(MaterialTheme.colorScheme.surface),
+        state = listState,
+        contentPadding = PaddingValues(bottom = 24.dp),
+    ) {
         items(rows) { row ->
             when (row) {
-                is ReaderRow.Header -> Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
-                    Text(row.section.title, style = MaterialTheme.typography.titleSmall)
-                    HorizontalDivider(Modifier.padding(top = 6.dp))
+                is ReaderRow.Header -> Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 18.dp, bottom = 10.dp)) {
+                    Text(
+                        row.section.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    HorizontalDivider(Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.outline)
                 }
                 is ReaderRow.Paragraph -> Text(
                     row.chunk.text,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 27.sp),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 7.dp),
                 )
             }
         }

@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.db.NativeSearchDatabase
+import dev.localmed.nativespike.shared.model.SearchOutcome
 import dev.localmed.nativespike.shared.search.SearchEngine
 
 /** Which screen is on top: the search list, or a reader open on one document/section. */
@@ -33,7 +34,14 @@ private sealed interface Screen {
  *   Every other platform passes null.
  */
 @Composable
-fun NativeSearchSpikeApp(database: NativeSearchDatabase, demoNotice: String? = null) {
+fun NativeSearchSpikeApp(
+    database: NativeSearchDatabase,
+    demoNotice: String? = null,
+    // Passed straight through to SearchScreen — see its doc comment. Only the androidApp debug
+    // bench harness ever sets these.
+    externalQuery: String? = null,
+    onOutcome: ((query: String, outcome: SearchOutcome?, tookMs: Double) -> Unit)? = null,
+) {
     val engine = remember(database) { SearchEngine(database) }
     var screen by remember { mutableStateOf<Screen>(Screen.Search) }
 
@@ -55,6 +63,8 @@ fun NativeSearchSpikeApp(database: NativeSearchDatabase, demoNotice: String? = n
                     onOpenDocument = { documentId, documentTitle, sectionAnchor ->
                         screen = Screen.Reader(documentId, documentTitle, sectionAnchor)
                     },
+                    externalQuery = externalQuery,
+                    onOutcome = onOutcome,
                 )
                 is Screen.Reader -> ReaderScreen(
                     database = database,

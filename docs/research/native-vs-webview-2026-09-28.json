@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-09-28",
+  "note": "Raw numbers backing docs/research/native-vs-webview-2026-09-28.md. Not committed.",
+  "queries": [
+    { "id": "doctor-lookup.meningitis-or-encephalitis-child", "query": "Менингит или энцефалит у ребёнка" },
+    { "id": "doctor-lookup.meningitis-child", "query": "менингит у ребенка" },
+    { "id": "doctor-lookup.tick-encephalitis-child", "query": "клещевой энцефалит у ребенка" },
+    { "id": "doctor-lookup.bronchitis-or-pneumonia-child", "query": "бронхит или пневмония у ребёнка 5 лет" },
+    { "id": "doctor-lookup.tonsillitis-or-pharyngitis-child", "query": "ангина или фарингит у ребенка" },
+    { "id": "doctor-lookup.gastroenteritis-child", "query": "гастроэнтерит у ребёнка" },
+    { "id": "doctor-lookup.diarrhea-or-vomiting-child", "query": "понос или рвота у ребенка 2 лет" },
+    { "id": "doctor-lookup.orvi-or-bronchitis-adult", "query": "ОРВИ или бронхит у взрослого" },
+    { "id": "real-corpus-demo.01", "query": "лихорадка кашель тахипноэ" },
+    { "id": "real-corpus-demo.05", "query": "аугментин пневмония" }
+  ],
+  "device": {
+    "model": "Xiaomi 14 houji 23127PN0CC",
+    "serial": "dc9509b7",
+    "os": "HyperOS, Android 16 (API 36)",
+    "display": "1200x2670, up to 120Hz",
+    "coldStart": {
+      "native_simple_ui_n1": { "totalTimeMs": 1032, "searchReadyMs": 652 },
+      "webview": "not measured — input-injection blocker hit before this step"
+    },
+    "blocker": "adb shell input tap/text/keyevent all throw SecurityException: INJECT_EVENTS permission required (HyperOS-specific; confirmed on all three subcommands)"
+  },
+  "emulator": {
+    "avdName": "minimed_spike_120hz",
+    "systemImage": "system-images;android-36;google_apis;arm64-v8a",
+    "config": { "width": 1200, "height": 2670, "density": 480, "vsync": 120, "gpu": "host" },
+    "renderFrameRateConfirmed": "120.00001 after `settings put system peak_refresh_rate 120.0` (default was 60 despite vsyncRate=120 in SurfaceFlinger)",
+    "heapWorkaround": {
+      "attempted": ["config.ini vm.heapSize", "adb shell setprop dalvik.vm.heapgrowthlimit (post-boot)", "-prop dalvik.vm.heapgrowthlimit=512m (emulator launch flag)"],
+      "result": "heapgrowthlimit stayed at 192m (density-class default) in all cases; -prop dalvik.vm.heapsize=768m did take effect (sibling property) but doesn't help unless the app declares android:largeHeap"
+    },
+    "webviewOom": {
+      "trigger": "any broad query (e.g. \"менингит\", ~20 result groups) via LocalMedDatabasePlugin.query",
+      "allocationBytes": 71802144,
+      "heapGrowthLimitBytes": 201326592,
+      "logcatSample": "OutOfMemoryError: Failed to allocate a 71802144 byte allocation with 25165824 free bytes and 53MB until OOM, target footprint 170483104, growth limit 201326592"
+    },
+    "coldStart_styledUi": {
+      "native": {
+        "totalTimeMs": [1917, 1469, 1802, 2091, 1586],
+        "totalTimeMedianMs": 1802,
+        "totalTimeP95Ms": 2056,
+        "searchReadyMs": [1151, 964, 939, 1338, 931],
+        "searchReadyMedianMs": 964
+      },
+      "webview": {
+        "totalTimeMs": [1938, 1426, 1506, 1645, 1676],
+        "totalTimeMedianMs": 1645,
+        "totalTimeP95Ms": 1897,
+        "searchReadyMs": "mark confirmed present via CDP (performance.getEntriesByName('minimed:search-ready')), wall-clock-correlated number not completed"
+      }
+    },
+    "queryLatency_menigit": {
+      "native_simple_ui_n1_firstQueryPostColdStart": { "sqlOnlyMs": 28.804, "searchFnMs": 106.232, "totalToFrameMs": 612.272, "resultGroups": 20 },
+      "native_styled_ui_n1": { "sqlOnlyMs": 21.4, "totalToFrameMs": 171.3 },
+      "webview": "not measured — OOM on every attempt"
+    },
+    "scroll_styledUi_resultList": {
+      "run1_15swipes": { "framesCaptured": 22, "jankyPct": 63.64, "p50Ms": 40, "p90Ms": 450, "p95Ms": 500, "p99Ms": 600, "note": "window included initial query-render settling, not pure scroll" },
+      "run2_20swipes": { "framesCaptured": 250, "jankyPct": 27.60, "p50Ms": 21, "p90Ms": 32, "p95Ms": 48, "p99Ms": 81 },
+      "run3_moreSwipes_cumulativeSinceEarlierReset": { "framesCaptured": 428, "jankyPct": 7.71, "p50Ms": 16, "p90Ms": 25, "p95Ms": 31, "p99Ms": 48 },
+      "budgetMs": 8.33,
+      "webview": "not measured — no scrollable result list ever rendered (OOM on the populating query)"
+    },
+    "memory": {
+      "native_styled_ui_afterSearchReady_totalPssKb": 69805,
+      "webview_afterColdStart_beforeQuery_totalPssKb": 198205
+    },
+    "apkSize": {
+      "native_bytes": 17910064,
+      "webview_bytes": 100974348
+    }
+  }
+}
