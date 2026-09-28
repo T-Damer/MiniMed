@@ -28,6 +28,7 @@
     "benchmark:search-quality-v2": "bun run benchmark:lookup-quality",
     "benchmark:lookup-quality": "bun src/run-lookup-quality.ts",
     "benchmark:doctor-lookup": "bun src/run-doctor-lookup.ts",
+    "benchmark:core-coverage": "bun src/run-core-coverage.ts",
     "benchmark:real": "bun src/run-real-corpus.ts",
     "benchmark:search-coverage-observations": "bun src/run-search-coverage-observations.ts",
     "benchmark:rapidfuzz-micro": "bun src/rapidfuzz-microbenchmark.ts",

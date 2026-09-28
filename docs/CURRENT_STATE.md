@@ -64,6 +64,18 @@ Detailed history, moved verbatim on 2026-09-24:
   module, so no split); installation holds both in memory before the OPFS copy, which is
   unqualified on Android. Article images still point to the source site.
 
+## Core coverage audit — 2026-09-28 (measurement only)
+
+- `benchmark:core-coverage` (`tools/benchmarks/src/run-core-coverage.ts`, seed 20260928, 3,850
+  queries) searches `core.db` alone through the app's lookup path. KR titles and INN reach 100%
+  correct@5. ICD codes reach only 46% because the released pointers do not index sub-codes and the
+  legacy fallback assumes chapter I; the candidate rebuild reaches 97.5–99.5%. All 15,904 MKB and
+  krasotaimedicina pointers were dead ends at measurement time; the 6,068 krasotaimedicina ones
+  resolve from 0.6.44 (module c6b63b6b, membership fallback 044ef7a7), the 9,835 MKB ones still do not. Terms reach 16%,
+  normative acts 0% (90% with the bundled `regulatory.db`), and tools 100% through the client-side
+  catalog. Findings and the size/risk proposal:
+  [research/core-coverage-2026-09-28.md](research/core-coverage-2026-09-28.md).
+
 ## Knowledge graph («Карта связей») — 2026-09-27
 
 - Experimental module (follows the experimental setting like «Словарь»). Opens on at most 300
