@@ -35,10 +35,13 @@ from .knowledge import (
 )
 from .krasotaimedicina_crawl import DEFAULT_SEEDS, crawl_krasotaimedicina
 from .krasotaimedicina_distribution import package_krasotaimedicina_module
-from .krasotaimedicina_prepare import PublicationDecision, prepare_krasotaimedicina
+from .krasotaimedicina_prepare import prepare_krasotaimedicina
 from .mkb_reference_upgrade import upgrade_mkb_reference_database, write_upgrade_report
 from .pdf_import import import_pdf
+from .publication import PublicationDecision
 from .rls_mkb import RLS_MKB_DETAIL_URL, RLS_MKB_INDEX_URL, scrape_rls_mkb
+from .rls_mkb_distribution import package_rls_mkb_modules
+from .rls_mkb_modules import split_rls_mkb_workspace
 from .source_registry import prepare_registry
 from .source_sync import sync_source_manifest
 from .sqlite_composer import compose_sqlite_packs
@@ -284,6 +287,53 @@ def prepare_krasotaimedicina_command(
     )
     report = prepare_krasotaimedicina(raw_input, output, publication)
     typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+
+
+@app.command("split-rls-mkb")
+def split_rls_mkb_command(
+    input_dir: Annotated[Path, typer.Option("--input", exists=True, file_okay=False)],
+    code_output: Annotated[Path, typer.Option("--code-output")],
+    packaging_output: Annotated[Path, typer.Option("--packaging-output")],
+    publication_decision_date: Annotated[str, typer.Option("--publication-decision-date")],
+    publication_decision_basis: Annotated[str, typer.Option("--publication-decision-basis")],
+) -> None:
+    """Split the RLS MKB workspace into a compact code workspace and a packaging workspace."""
+    report = split_rls_mkb_workspace(
+        input_dir,
+        code_output,
+        packaging_output,
+        PublicationDecision(
+            decided_at=publication_decision_date,
+            decided_by="project owner",
+            basis=publication_decision_basis,
+        ),
+    )
+    typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+
+
+@app.command("package-rls-mkb")
+def package_rls_mkb_command(
+    code_database: Annotated[Path, typer.Option("--code-database", exists=True, dir_okay=False)],
+    packaging_database: Annotated[
+        Path, typer.Option("--packaging-database", exists=True, dir_okay=False)
+    ],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+    core_database: Annotated[
+        Path | None, typer.Option("--core-database", exists=True, dir_okay=False)
+    ] = None,
+) -> None:
+    """Gzip both RLS packs, verify core pointer membership and write their catalog entries."""
+    report = package_rls_mkb_modules(
+        code_database,
+        packaging_database,
+        output,
+        version=version,
+        min_app_version=min_app_version,
+        core_database=core_database,
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
 
 
 @app.command("package-krasotaimedicina")

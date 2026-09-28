@@ -56,13 +56,40 @@ Detailed history, moved verbatim on 2026-09-24:
   pack); from 0.6.44 `selectModuleForPointer` falls back to any released module whose verified index
   lists the exact target. The packager checks every krasotaimedicina pointer against the module's
   membership: 6 068/6 068 targets present with identical document version ids and definition
-  anchors. The 9 836 RLS MKB pointers remain unresolved (not in this pack).
+  anchors. The 9 836 RLS MKB pointers are covered by the separate `minimed.mkb.ru` module below.
 - Distribution: data prerelease `reference-krasotaimedicina-2026.9.28`, mirrored to Pages by the
   existing `MIRRORED_DATA_RELEASE_TAG` list (about 820 MB of the 1 GB Pages site). The generated
   catalog entry adds 3.1 MB to `catalog.preview.json`.
 - Open risks: the one index is 143 MB gzip / 630 MB SQLite (the contract allows one index per
   module, so no split); installation holds both in memory before the OPFS copy, which is
   unqualified on Android. Article images still point to the source site.
+
+## RLS MKB-10 modules — built 2026-09-28, not yet released
+
+- User decision (2026-09-28, see `REFERENCE_SOURCE_POLICY.md`): the 2026-08-14 RLS MKB snapshot is
+  distributed as two experimental modules; documents keep `rightsStatus: unknown`, their `rights`
+  block, source URLs and response checksums. Not clinically reviewed.
+- `bun run content:module:rls-mkb` splits the existing scrape workspace without refetching
+  (`medbase split-rls-mkb`), builds both packs and packages them (`medbase package-rls-mkb`).
+  - `minimed.mkb.ru` 2026.9.28: 9 835 code pages plus the classification index (9 836 documents,
+    49 183 sections, 51 335 chunks), a classification path (category → block → chapter) derived
+    from that index, 18 929 aliases, 19 121 knowledge entities, 51 206 `listed-on-rls-mkb-page` and
+    6 986 `active-ingredient-of` relations with exact evidence, 9 286 medication profiles (forms and
+    strengths, no packaging rows). The medicine section lists names/INN/RLS links only.
+    294 768 640 bytes installed, 53 529 648-byte gzip (the local-dev `mkb.db` was 1 501 626 368).
+    Document versions, the code/synonym/limitation sections and every chunk outside the medicine
+    section keep their ids and anchors; all 9 836 core pointers and their 17 013 cited
+    classification anchors resolve.
+  - `minimed.rls.packaging.ru` 2026.9.28 (optional): 7 181 brand documents with 7 185 source tables
+    (260 022 rows, unchanged), linked by `medicationEntityId` ↔ profile `packagingDocumentId`;
+    221 089 792 bytes installed, 29 206 386-byte gzip.
+  - Lexical search over the code pack finds `J18.9`, `J189`, `J18 9`, Cyrillic look-alikes such as
+    `Е11`/`К29.7`/`А00.0`, synonyms (`ЦВБ`, `внебольничная пневмония`) and titles at rank 1.
+- Distribution: one data prerelease `reference-rls-mkb-2026.9.28` with both assets; the Pages
+  mirror needs that tag prefix and grows to about 900 MB of 1 GB. Both catalog entries together
+  add about 8.6 MB of membership to `catalog.preview.json`. The installer accepts only gzip; brotli -q 11
+  would be about 45% smaller (29.1 + 16.5 MB instead of 53.5 + 29.2 MB) but needs a decoder change. The app has no link yet from a profile's
+  `packagingDocumentId` to the packaging document.
 
 ## Core coverage audit — 2026-09-28 (measurement only)
 

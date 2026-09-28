@@ -88,8 +88,23 @@ publication decision, not a rights clearance or a clinical review:
   it is reference prose from a medical website, never presented as clinical recommendations;
 - the module is text-only; the separately built image pack is not distributed.
 
-The module is `minimed.reference.krasotaimedicina.ru`. The decision covers this source only: the RLS
-MKB cards behind the `minimed.mkb.ru` pointer id are not included and stay unpublished.
+The module is `minimed.reference.krasotaimedicina.ru`. The decision covers this source only.
+
+## User decision 2026-09-28: RLS MKB-10 pages
+
+The project owner also decided to distribute the 2026-08-14 RLS (rlsnet.ru) MKB-10 snapshot as
+experimental modules so the core's `rls.mkb.*` pointers open their documents. As above, this is a
+publication decision, not rights clearance or clinical review:
+
+- every document keeps `rightsStatus: unknown` and its `rights` block (`rlsnet-site-terms`,
+  redistribution not granted by the source) and gains `publicationState: experimental-preview`
+  with `publicationDecision`; source URLs, response checksums and source spans are preserved;
+- `minimed.mkb.ru` carries the 9 835 code pages (code/name, synonyms, source and limitations
+  sections unchanged), the classification index, a derived classification path and the proposed
+  code→medicine and substance→brand relations; its medicine section lists names only;
+- the forms/strength/packaging/manufacturer tables live, unchanged row by row and deduplicated per
+  brand, in the optional `minimed.rls.packaging.ru`; a listed medicine or strength is a
+  reference link on the RLS page, never an indication, prescription or dosing regimen.
 
 ## Uploaded sources belong to the same knowledge-base pipeline
 

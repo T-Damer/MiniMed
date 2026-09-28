@@ -6,7 +6,7 @@ import re
 import time
 import urllib.error
 import urllib.request
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
@@ -740,7 +740,49 @@ def _medication_id(prefix: str, value: str) -> str:
     return f"{prefix}.{digest}"
 
 
-def _detail_markdown(detail: RlsMkbDetail) -> str:
+RLS_MKB_MEDICINES_SECTION = "Препараты на странице РЛС"
+
+
+_COMPACT_GROUP_CHARS = 1500
+
+
+def _compact_medicine_line(medicine: RlsMkbMedicine) -> str:
+    inns = _medicine_inns(medicine)
+    return f"- {medicine.name} — МНН: {'; '.join(inns) if inns else 'не указано'} — {medicine.url}"
+
+
+def _compact_medicine_lines(detail: RlsMkbDetail) -> list[str]:
+    """One line per listed medicine; forms and packaging live in the separate packaging pack.
+
+    The list is written in marked paragraphs below the chunk size, so a chunk boundary never
+    falls inside a medicine line and every paragraph keeps its source span.
+    """
+    marker = _source_marker(detail.url, mkbCode=detail.code, sourceKind="medicines")
+    lines = [
+        "Формы, дозировки, упаковки и производители вынесены в отдельный набор упаковок РЛС.",
+        "",
+    ]
+    group: list[str] = []
+    size = 0
+    for medicine in detail.medicines:
+        line = _compact_medicine_line(medicine)
+        if group and size + len(line) + 1 > _COMPACT_GROUP_CHARS:
+            lines.extend([marker, *group, ""])
+            group, size = [], 0
+        group.append(line)
+        size += len(line) + 1
+    if group:
+        lines.extend([marker, *group, ""])
+    return lines
+
+
+def _detail_markdown(
+    detail: RlsMkbDetail,
+    *,
+    compact_medicines: bool = False,
+    extra_metadata: Mapping[str, object] | None = None,
+    classification_path: Sequence[Mapping[str, str]] = (),
+) -> str:
     body: list[str] = [
         "# Код и название",
         "",
@@ -757,12 +799,14 @@ def _detail_markdown(detail: RlsMkbDetail) -> str:
     body.extend(
         [
             "",
-            "# Препараты на странице РЛС",
+            f"# {RLS_MKB_MEDICINES_SECTION}",
             "",
             _source_marker(detail.url, mkbCode=detail.code, sourceKind="medicines"),
         ]
     )
-    for medicine in detail.medicines:
+    if compact_medicines and detail.medicines:
+        body.extend(_compact_medicine_lines(detail))
+    for medicine in () if compact_medicines else detail.medicines:
         body.extend([f"- {medicine.name} — {medicine.url}"])
         inns = _medicine_inns(medicine)
         body.append(f"  МНН: {'; '.join(inns) if inns else 'не указано'}")
@@ -802,13 +846,35 @@ def _detail_markdown(detail: RlsMkbDetail) -> str:
             "применимости препарата конкретному пациенту.",
         ]
     )
+    metadata = _front_matter(detail)
+    source_metadata = cast(dict[str, object], metadata["metadata"])
+    if classification_path:
+        source_metadata["classificationPath"] = [dict(node) for node in classification_path]
+    source_metadata.update(extra_metadata or {})
     front_matter = yaml.safe_dump(
-        _front_matter(detail),
+        metadata,
         allow_unicode=True,
         sort_keys=False,
         default_flow_style=False,
     ).rstrip()
     return f"---\n{front_matter}\n---\n\n" + "\n".join(body) + "\n"
+
+
+def _merge_presentation_summary(
+    brand_id: str, metadata: dict[str, object], medicine: RlsMkbMedicine
+) -> None:
+    """Forms and strengths without packaging rows; the rows live in the packaging document."""
+    if not medicine.presentations:
+        return
+    for key, values in (
+        ("dosageForms", [item.dosage_form for item in medicine.presentations]),
+        ("dosages", [item.dosage for item in medicine.presentations]),
+    ):
+        known = cast(list[str], metadata.setdefault(key, []))
+        known.extend(value for value in dict.fromkeys(values) if value and value not in known)
+    tradenames = cast(dict[str, int], metadata.setdefault("presentationCounts", {}))
+    tradenames[medicine.tradename_id] = len(medicine.presentations)
+    metadata["packagingDocumentId"] = packaging_document_id(brand_id)
 
 
 def _classification_markdown(
@@ -871,11 +937,16 @@ def _classification_markdown(
     return f"---\n{front_matter}\n---\n\n" + "\n".join(body) + "\n"
 
 
+def packaging_document_id(brand_id: str) -> str:
+    return f"rls.packaging.{brand_id.rsplit('.', 1)[-1]}"
+
+
 def _knowledge_workspace(
     details: Iterable[RlsMkbDetail],
     documents_dir: Path,
     *,
     built_at: str,
+    compact_medicines: bool = False,
 ) -> KnowledgeWorkspace:
     entities_by_id: dict[str, KnowledgeEntity] = {}
     relations: list[KnowledgeRelation] = []
@@ -901,17 +972,23 @@ def _knowledge_workspace(
             extracted_at=built_at,
         )
         section = next(
-            (item for item in document.sections if item.title == "Препараты на странице РЛС"),
+            (item for item in document.sections if item.title == RLS_MKB_MEDICINES_SECTION),
             None,
         )
         if section is None:
             continue
         for medicine in detail.medicines:
+            compact_line = _compact_medicine_line(medicine) if compact_medicines else None
             evidence_chunk = next(
                 (
                     chunk
                     for chunk in section.chunks
-                    if medicine.name in chunk.original_text and medicine.url in chunk.original_text
+                    if (
+                        compact_line in chunk.original_text
+                        if compact_line is not None
+                        else medicine.name in chunk.original_text
+                        and medicine.url in chunk.original_text
+                    )
                 ),
                 None,
             )
@@ -933,7 +1010,9 @@ def _knowledge_workspace(
                     ),
                 ),
             )
-            if brand.medication is not None:
+            if brand.medication is not None and compact_medicines:
+                _merge_presentation_summary(brand_id, brand.medication.metadata, medicine)
+            elif brand.medication is not None:
                 known_presentations = brand.medication.metadata.setdefault("presentations", [])
                 if isinstance(known_presentations, list):
                     for presentation in medicine.presentations:

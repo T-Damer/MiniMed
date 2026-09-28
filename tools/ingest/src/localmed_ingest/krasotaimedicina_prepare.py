@@ -13,6 +13,8 @@ import yaml
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
+from .publication import PublicationDecision
+
 _SPACE = re.compile(r"\s+")
 _ICD10 = re.compile(
     r"(?<![A-ZА-Я0-9])[A-Z]\d{2}(?:\.\d+)?(?:-[A-Z]?\d{2}(?:\.\d+)?)?(?![A-ZА-Я0-9])"
@@ -27,31 +29,6 @@ class KrasotaimedicinaPrepareReport:
     syndromes_prepared: int
     records_skipped: int
     output: str
-
-
-@dataclass(frozen=True)
-class PublicationDecision:
-    """An explicit owner decision to distribute the snapshot despite unresolved source rights.
-
-    It never changes the crawl's own classification: `rightsStatus` stays as recorded and the
-    crawler's `publicationState` is kept as `crawlPublicationState`.
-    """
-
-    decided_at: str
-    decided_by: str
-    basis: str
-    state: str = "experimental-preview"
-
-    def __post_init__(self) -> None:
-        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", self.decided_at):
-            raise ValueError("Publication decision date must be YYYY-MM-DD.")
-        if not self.decided_by.strip() or not self.basis.strip():
-            raise ValueError("Publication decision needs its author and basis.")
-        if self.state != "experimental-preview":
-            raise ValueError("Only an experimental-preview publication decision is supported.")
-
-    def metadata(self) -> dict[str, str]:
-        return {"decidedAt": self.decided_at, "decidedBy": self.decided_by, "basis": self.basis}
 
 
 def _text(node: Tag) -> str:
