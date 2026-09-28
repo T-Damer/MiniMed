@@ -16,6 +16,7 @@ import {
 } from '@/components/AppContextMenu';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Switch } from '@/components/Switch';
 import { useStickySurface } from '@/components/sticky-surface';
@@ -304,9 +305,13 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   ]);
   /** The CT example is also offered by the first-run tour; the user library loads on demand. */
   const addCtExample = async (): Promise<void> => {
-    const { downloadUserLibraryExample, USER_LIBRARY_EXAMPLE_SLOTS } = await import(
-      '@/state/user-library'
-    );
+    const [
+      { downloadUserLibraryExample, USER_LIBRARY_EXAMPLE_SLOTS },
+      { openUserLibraryDocument },
+    ] = await Promise.all([
+      import('@/state/user-library'),
+      import('@/features/library/user-library-routing'),
+    ]);
     const ct = USER_LIBRARY_EXAMPLE_SLOTS.find((slot) => slot.id === 'ct');
     if (!ct) {
       toast.error('Пример КТ недоступен в этой сборке.');
@@ -314,9 +319,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     }
     const pending = toast.loading('Скачиваем пример КТ…');
     try {
-      await downloadUserLibraryExample(ct);
-      toast.success('Пример КТ добавлен в «Мои файлы».', { id: pending });
-      window.location.hash = '#/notes';
+      const saved = await downloadUserLibraryExample(ct);
+      notifyWithOpen(
+        'Пример КТ добавлен в «Мои файлы».',
+        () => openUserLibraryDocument({ documentId: saved.id, title: saved.title }),
+        { id: pending },
+      );
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать пример КТ.', {
         id: pending,

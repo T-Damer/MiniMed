@@ -8,6 +8,7 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { FolderFigure } from '@/components/FolderFigure';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { NavBack } from '@/components/NavBack';
+import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
@@ -637,8 +638,8 @@ export function UserLibraryPage(props: {
     setCreatingPdf(true);
     const fileName = createPdfFileName(title);
     try {
-      await createUserLibraryPdfFromImages(images, fileName, folderId);
-      toast.success(`Создан PDF: ${fileName}.`);
+      const pdf = await createUserLibraryPdfFromImages(images, fileName, folderId);
+      notifyWithOpen(`Создан PDF: ${fileName}.`, () => openLibraryDocument(pdf));
       setSelectionMode(false);
       setSelectedIds(new Set<string>());
       refresh();
@@ -846,9 +847,10 @@ export function UserLibraryPage(props: {
     folderId: string | null = currentFolderId(),
   ): Promise<void> => {
     let added = 0;
+    let lastAdded: UserLibraryDocument | undefined;
     for (const file of Array.from(files ?? [])) {
       try {
-        await addUserLibraryFile(file, folderId);
+        lastAdded = await addUserLibraryFile(file, folderId);
         added += 1;
       } catch (cause) {
         if ((files?.length ?? 0) === 1) {
@@ -858,7 +860,10 @@ export function UserLibraryPage(props: {
     }
     const total = files?.length ?? 0;
     const failed = total - added;
-    if (added > 0) toast.success(`Добавлено документов: ${added}.`);
+    if (added === 1 && lastAdded) {
+      const document = lastAdded;
+      notifyWithOpen(`Добавлен документ «${document.title}».`, () => openLibraryDocument(document));
+    } else if (added > 1) toast.success(`Добавлено документов: ${added}.`);
     if (failed > 0) toast.error(`Не удалось добавить документов: ${failed}.`);
     refresh();
   };
@@ -867,12 +872,12 @@ export function UserLibraryPage(props: {
     if (exampleUploads()[slot.id]?.uploading) return;
     updateExampleUpload(slot.id, { progress: 0, uploading: true });
     try {
-      await downloadUserLibraryExample(slot, (progress) =>
+      const saved = await downloadUserLibraryExample(slot, (progress) =>
         updateExampleUpload(slot.id, { progress, uploading: true }),
       );
       await refresh();
       updateExampleUpload(slot.id, null);
-      toast.success(`Добавлен пример «${slot.title}».`);
+      notifyWithOpen(`Добавлен пример «${slot.title}».`, () => openLibraryDocument(saved));
     } catch (cause) {
       updateExampleUpload(slot.id, {
         progress: 0,
@@ -1422,6 +1427,21 @@ export function UserLibraryPage(props: {
       onMoveFolder: (source, target) => void moveFolder(source, target),
     });
 
+  /** Opens a record the way its card does: questionnaire, media player or reader. */
+  const openLibraryDocument = (document: UserLibraryDocument): void => {
+    void markUserLibraryDocumentOpened(document.id);
+    if (isUserLibraryQuestionnaire(document)) {
+      window.location.hash = userQuestionnairePath(document.id);
+      return;
+    }
+    const kind = userLibraryFileKind(document.mimeType, document.fileName);
+    if (kind === 'video' || kind === 'audio') {
+      void openMediaPlayer(document);
+      return;
+    }
+    openUserLibraryDocument({ documentId: document.id, title: document.title });
+  };
+
   const LibraryCard = (props: { readonly document: UserLibraryDocument }): JSX.Element => {
     const progress = (): number => userLibraryProgressFraction(props.document);
     const renaming = (): boolean =>
@@ -1440,19 +1460,7 @@ export function UserLibraryPage(props: {
         return;
       }
       if (props.document.status === 'inspecting') return;
-      void markUserLibraryDocumentOpened(props.document.id);
-      if (isUserLibraryQuestionnaire(props.document)) {
-        window.location.hash = userQuestionnairePath(props.document.id);
-        return;
-      }
-      if (kind() === 'video' || kind() === 'audio') {
-        void openMediaPlayer(props.document);
-        return;
-      }
-      openUserLibraryDocument({
-        documentId: props.document.id,
-        title: props.document.title,
-      });
+      openLibraryDocument(props.document);
     };
     const handleCardActivation = (event: MouseEvent): void => {
       if (event.target instanceof Element && event.target.closest('button, input')) return;

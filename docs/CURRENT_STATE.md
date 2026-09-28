@@ -80,6 +80,9 @@ Detailed history, moved verbatim on 2026-09-24:
   the first 400 ms of a quick open, the field placeholder. «Мои файлы» lists «База знаний» as a
   root folder when the navigation has no tab for it (separate tabs off, or the core not ready);
   folders that cannot be deleted carry a pin.
+- Notices about something the user now has (a downloaded example, an added file, a created PDF,
+  a recording attached to a patient) carry a link-styled «Открыть» that opens exactly that item
+  (`components/notify.ts`); the CT example no longer jumps to «Заметки» on its own.
 
 ## Release 0.6.43 — 2026-09-28
 

@@ -4,6 +4,7 @@ import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { SelectField } from '@/components/SelectField';
 import { formatRecordingDuration } from '@/features/asr/visit-recording';
@@ -14,6 +15,7 @@ import {
   recoverConversations,
   stopConversation,
 } from '@/features/conversations/conversation-session';
+import { notesPatientsPath } from '@/features/notes/notes-routing';
 import { type ConversationRecording, readConversationAudio } from '@/state/conversation-recordings';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
 import {
@@ -113,8 +115,11 @@ export function ConversationAttachDialog(props: {
     setSaving(true);
     setError('');
     try {
-      await attachConversation(props.recording, patientId(), episodeId() || undefined);
-      toast.success('Запись добавлена в карту пациента.');
+      const patient = patientId();
+      await attachConversation(props.recording, patient, episodeId() || undefined);
+      notifyWithOpen('Запись добавлена в карту пациента.', () => {
+        window.location.hash = notesPatientsPath(patient);
+      });
       props.onClose();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось добавить запись.');

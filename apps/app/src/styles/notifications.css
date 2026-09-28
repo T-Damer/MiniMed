@@ -43,3 +43,24 @@
   background: color-mix(in srgb, var(--theme-accent) 88%, white);
   border-color: color-mix(in srgb, var(--theme-accent) 55%, black);
 }
+
+/* The way to open what a notice announces: a link, not a second button competing with close. */
+[data-sonner-toast][data-styled="true"].app-notification .app-notification__action {
+  height: auto;
+  padding: 0.125rem 0.25rem;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-link);
+  background: transparent;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: var(--theme-text-underline-offset);
+  cursor: pointer;
+}
+
+[data-sonner-toast][data-styled="true"].app-notification .app-notification__action:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}

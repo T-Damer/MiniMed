@@ -350,6 +350,7 @@ export function App(): JSX.Element {
           containerAriaLabel="Уведомления"
           toastOptions={{
             className: 'app-notification',
+            classNames: { actionButton: 'app-notification__action' },
             closeButtonAriaLabel: 'Закрыть уведомление',
           }}
         />

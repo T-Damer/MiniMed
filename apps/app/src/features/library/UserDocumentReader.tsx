@@ -18,6 +18,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { QueryHighlightedText } from '@/components/HighlightedText';
+import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import { type DocumentFindUnit, rangesForFindUnit } from '@/features/library/document-find';
@@ -58,7 +59,10 @@ import {
   pageCanvasId,
   type UserDocumentOutlineItem,
 } from '@/features/library/user-document-reader-helpers';
-import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
+import {
+  openUserLibraryDocument,
+  USER_LIBRARY_CATALOG_HASH,
+} from '@/features/library/user-library-routing';
 import { NoteMarkdownEditor } from '@/features/notes/NoteMarkdownEditor';
 import { PrintManager } from '@/features/printing/print-manager';
 import type { DocumentTrail } from '@/state/document-trail';
@@ -299,7 +303,11 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
     const folderId = meta()?.folderId ?? null;
     for (const file of Array.from(files ?? [])) {
       void addUserLibraryFile(file, folderId)
-        .then(() => toast.success(`Файл «${file.name}» добавлен.`))
+        .then((saved) =>
+          notifyWithOpen(`Файл «${file.name}» добавлен.`, () =>
+            openUserLibraryDocument({ documentId: saved.id, title: saved.title }),
+          ),
+        )
         .catch((cause: unknown) => {
           toast.error(cause instanceof Error ? cause.message : 'Не удалось добавить файл.');
         });
