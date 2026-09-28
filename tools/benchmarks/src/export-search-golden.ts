@@ -36,7 +36,10 @@ import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
 
 const HITS_PER_BRANCH = 10;
 const GROUP_LIMIT = 20;
-const MAX_QUERIES = 150;
+// Was 150; bumped to fit the 10 fixed ICD-10-code queries added below (the previous 142 committed
+// queries none contained a letter-bearing ICD code, so the icd10LegacyFtsQueries chapter-letter fix
+// — commit b516c222 — went unverified by this fixture) without truncating any existing query.
+const MAX_QUERIES = 160;
 
 // ---------------------------------------------------------------------------------------------
 // Query set: already-committed fixture files only, no real clinician/patient query text (AGENTS.md
@@ -81,6 +84,28 @@ const ourBenchQueries: QuerySource[] = [
   { sourceId: 'bench10.demo05', query: 'аугментин пневмония' },
 ];
 
+// Fixed, non-clinical ICD-10-code-shaped inputs (not real clinician/patient query text — see the
+// AGENTS.md rule this file's header cites) added to cover `icd10LegacyFtsQueries`'s letter-derived
+// chapter fix (commit b516c222): none of the queries above happen to contain a letter-bearing ICD
+// code, so that fix's ftsQuery-text change went unverified by the golden fixture until now. Covers:
+// a bare "letter+3 digits" code, the same without the dot, lowercase, a chapter letter the legacy
+// hardcoded "i" fallback would have gotten wrong (F, L), a Cyrillic lookalike of a Latin chapter
+// letter (Е looks like E), a 3-character-only code, a bare number (no letter — exercises the
+// legacy "i" fallback branch, still hit deliberately since it's not dead code), and two more
+// chapter/format variants.
+const icd10CodeQueries: QuerySource[] = [
+  { sourceId: 'icd10.j18-9-dot', query: 'J18.9' },
+  { sourceId: 'icd10.j189-no-dot', query: 'J189' },
+  { sourceId: 'icd10.j18-9-lower', query: 'j18.9' },
+  { sourceId: 'icd10.f23-3', query: 'F23.3' },
+  { sourceId: 'icd10.l11-0', query: 'L11.0' },
+  { sourceId: 'icd10.e11-9-cyrillic', query: 'Е11.9' },
+  { sourceId: 'icd10.i10', query: 'I10' },
+  { sourceId: 'icd10.bare-67-9', query: '67.9' },
+  { sourceId: 'icd10.e11', query: 'E11' },
+  { sourceId: 'icd10.k35-8', query: 'K35.8' },
+];
+
 const fileSources: readonly [string, string][] = [
   ['doctor-lookup-queries.json', 'doctor-lookup'],
   ['real-corpus-demo-queries.json', 'real-corpus-demo'],
@@ -91,7 +116,11 @@ const fileSources: readonly [string, string][] = [
 ];
 
 function buildQuerySet(): QuerySource[] {
-  const all = [...ourBenchQueries, ...fileSources.flatMap(([file, id]) => readQueryFile(file, id))];
+  const all = [
+    ...ourBenchQueries,
+    ...icd10CodeQueries,
+    ...fileSources.flatMap(([file, id]) => readQueryFile(file, id)),
+  ];
   const seen = new Set<string>();
   const deduped: QuerySource[] = [];
   for (const entry of all) {

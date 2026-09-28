@@ -1,7 +1,9 @@
 package dev.localmed.nativespike.shared.db
 
 import dev.localmed.nativespike.shared.model.AliasRecord
+import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ChunkHit
+import dev.localmed.nativespike.shared.model.ExactSubjectHitText
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SectionRow
 
@@ -37,4 +39,16 @@ expect class NativeSearchDatabase(dbFilePath: String) {
     fun sectionsForDocument(documentId: String): List<SectionRow>
 
     fun chunksForSection(sectionId: String): List<ReaderChunk>
+
+    /**
+     * Mirrors `SqliteMedicalStore.search()`/`CapacitorMedicalStore.search()`'s bm25-ranking phase —
+     * stage 2 sub-stage C of the migration (docs/CURRENT_STATE.md): a two-phase rowid-window ->
+     * hydration pattern (here, no hydration is needed — see `lexical/SearchExecution.kt`'s header
+     * for why). Same bm25 weight vector both TS stores use: `bm25(chunks_fts, 0,0,0,0,0,8,4,1)`.
+     * No filters (`request.filters` is always `{}` in the golden export this is checked against).
+     */
+    fun searchBranch(ftsQuery: String, limit: Int): List<BranchHit>
+
+    /** Mirrors the fields `hitsContainExactSubject` (create-medical-core.ts) reads off a hit. */
+    fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText>
 }

@@ -1,8 +1,10 @@
 package dev.localmed.nativespike.shared.db
 
 import dev.localmed.nativespike.shared.model.AliasRecord
+import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ChunkHit
 import dev.localmed.nativespike.shared.model.DocumentKind
+import dev.localmed.nativespike.shared.model.ExactSubjectHitText
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SectionRow
 
@@ -40,6 +42,10 @@ actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
     actual fun canonicalTermsForAliases(tokens: List<String>): List<String> = emptyList()
 
     actual fun listAliases(): List<AliasRecord> = emptyList()
+
+    actual fun searchBranch(ftsQuery: String, limit: Int): List<BranchHit> = emptyList()
+
+    actual fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText> = emptyList()
 
     actual fun sectionsForDocument(documentId: String): List<SectionRow> = SAMPLE_SECTIONS
 

@@ -4,8 +4,10 @@ import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteStatement
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import dev.localmed.nativespike.shared.model.AliasRecord
+import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ChunkHit
 import dev.localmed.nativespike.shared.model.DocumentKind
+import dev.localmed.nativespike.shared.model.ExactSubjectHitText
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SectionRow
 import kotlin.time.TimeSource
@@ -124,6 +126,64 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
                         alias = statement.getText(2),
                         category = if (statement.isNull(3)) null else statement.getText(3),
                         weight = statement.getDouble(4),
+                    ),
+                )
+            }
+            results
+        }
+    }
+
+    actual fun searchBranch(ftsQuery: String, limit: Int): List<BranchHit> {
+        // Mirrors SqliteMedicalStore.search()/CapacitorMedicalStore.search()'s bm25-ranking phase
+        // exactly (same weight vector, same rowid-window query). No filters/hydration join here —
+        // see lexical/SearchExecution.kt's header for why that second phase isn't needed for this
+        // spike's parity target.
+        val sql = """
+            SELECT chunks_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank
+            FROM (
+                SELECT chunks_fts.rowid AS fts_rowid,
+                    bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
+                FROM chunks_fts
+                WHERE chunks_fts MATCH ?
+                ORDER BY bm25_rank
+                LIMIT ?
+            ) ranked
+            JOIN chunks_fts ON chunks_fts.rowid = ranked.fts_rowid
+            ORDER BY ranked.bm25_rank
+        """.trimIndent()
+        return requireConnection().prepare(sql).use { statement ->
+            statement.bindText(1, ftsQuery)
+            statement.bindLong(2, limit.toLong())
+            val results = mutableListOf<BranchHit>()
+            while (statement.step()) {
+                val rawRank = statement.getDouble(1)
+                val rank = if (rawRank < 0) -rawRank else 1.0 / (1.0 + rawRank)
+                results.add(BranchHit(chunkId = statement.getText(0), rank = rank))
+            }
+            results
+        }
+    }
+
+    actual fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText> {
+        if (chunkIds.isEmpty()) return emptyList()
+        val placeholders = chunkIds.joinToString(",") { "?" }
+        val sql = """
+            SELECT d.title AS document_title, s.title AS section_title, c.original_text AS original_text
+            FROM chunks c
+            JOIN sections s ON s.id = c.section_id
+            JOIN document_versions dv ON dv.id = c.document_version_id
+            JOIN documents d ON d.id = dv.document_id
+            WHERE c.id IN ($placeholders)
+        """.trimIndent()
+        return requireConnection().prepare(sql).use { statement ->
+            chunkIds.forEachIndexed { index, id -> statement.bindText(index + 1, id) }
+            val results = mutableListOf<ExactSubjectHitText>()
+            while (statement.step()) {
+                results.add(
+                    ExactSubjectHitText(
+                        documentTitle = statement.getText(0),
+                        sectionTitle = statement.getText(1),
+                        originalText = statement.getText(2),
                     ),
                 )
             }

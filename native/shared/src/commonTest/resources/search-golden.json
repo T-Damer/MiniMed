@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-28T19:00:32.966Z",
-  "commit": "b516c22287592ed9b59b4ce0b421b28b7b3f1a15",
+  "generatedAt": "2026-09-28T19:15:28.001Z",
+  "commit": "14228c8b09f3a6d90de2bac37a0be5226fb49eb7",
   "coreDbSha256": "d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a",
   "coreDbPath": "apps/app/public/content/core.db",
   "corpus": [
@@ -9,7 +9,7 @@
   "analysisMode": "lookup",
   "groupLimit": 20,
   "hitsPerBranch": 10,
-  "queryCount": 142,
+  "queryCount": 151,
   "queries": [
     {
       "sourceId": "bench10.meningitis-or-encephalitis-child",
@@ -2280,6 +2280,1673 @@
           "documentKind": "reference",
           "contentKind": "pointer",
           "bestScore": 0.693428
+        }
+      ]
+    },
+    {
+      "sourceId": "icd10.j18-9-dot",
+      "query": "J18.9",
+      "normalizedQuery": "j18.9",
+      "aliasMatches": [
+        "J18 → Внебольничная пневмония у взрослых",
+        "J18 → Пневмония (внебольничная)"
+      ],
+      "terms": [
+        "внебольничная",
+        "внебольничн",
+        "пневмония",
+        "пневмон",
+        "взрослых",
+        "j189",
+        "189"
+      ],
+      "branches": [
+        {
+          "id": "lookup",
+          "label": "Поиск по источникам",
+          "weight": 1,
+          "ftsQuery": "\"внебольничная\"* OR \"внебольничн\"* OR \"пневмония\"* OR \"пневмон\"* OR \"взрослых\"* OR \"j189\"* OR \"189\"* OR (\"j18\"* AND \"9\"*) OR \"j18\"*",
+          "candidateCount": 100,
+          "topHits": [
+            {
+              "chunkId": "chunk.4e5cfbde2678f79c",
+              "rank": 0.018032786885245903,
+              "position": 0
+            },
+            {
+              "chunkId": "chunk.bc5c0bf69dee6001",
+              "rank": 0.017741935483870968,
+              "position": 1
+            },
+            {
+              "chunkId": "chunk.387d4472aee0e085",
+              "rank": 0.01746031746031746,
+              "position": 2
+            },
+            {
+              "chunkId": "chunk.68474eeafb87f318",
+              "rank": 0.0171875,
+              "position": 3
+            },
+            {
+              "chunkId": "chunk.d8f5af4b1db46a17",
+              "rank": 0.016923076923076926,
+              "position": 4
+            },
+            {
+              "chunkId": "chunk.91022e638c30367c",
+              "rank": 0.016666666666666666,
+              "position": 5
+            },
+            {
+              "chunkId": "chunk.94adfdce1f197aeb",
+              "rank": 0.016417910447761197,
+              "position": 6
+            },
+            {
+              "chunkId": "chunk.7ab7f44159f2bc63",
+              "rank": 0.016176470588235296,
+              "position": 7
+            },
+            {
+              "chunkId": "chunk.bc6615dcc5de5522",
+              "rank": 0.01594202898550725,
+              "position": 8
+            },
+            {
+              "chunkId": "chunk.4fef762622b191bf",
+              "rank": 0.015714285714285715,
+              "position": 9
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-9-015488db204dc657",
+          "targetDocumentId": "rls.mkb.node.j18-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.3
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-1-2989d46490798d86",
+          "targetDocumentId": "rls.mkb.node.j18-1",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.999052
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3",
+          "targetDocumentId": "rls.mkb.node.j18",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.942638
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-2-fd06bd4f0b508f81",
+          "targetDocumentId": "rls.mkb.node.j18-2",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.93425
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-8-7439ce02e565d894",
+          "targetDocumentId": "rls.mkb.node.j18-8",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.918182
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-0-0e7d7eaab4c9dc89",
+          "targetDocumentId": "rls.mkb.node.j18-0",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.520535
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j09-j18-f3a27e3e567a0601",
+          "targetDocumentId": "rls.mkb.node.j09-j18",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.951282
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.654_2-600ef9b20b01bce5",
+          "targetDocumentId": "kr.rf.654_2",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 1.196774
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d",
+          "targetDocumentId": "kr.rf.714_2",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 1.153968
+        },
+        {
+          "documentId": "kr.rf.714_2.pneumonia",
+          "targetDocumentId": "kr.rf.714_2.pneumonia",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "summary",
+          "bestScore": 1.126563
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j15-9-14643d8b0e5c489a",
+          "targetDocumentId": "rls.mkb.node.j15-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.978933
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j12-9-aa466b5f627c4651",
+          "targetDocumentId": "rls.mkb.node.j12-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.969408
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.95c0302f9cf0735e-3fd1b0ed5c3f1a57",
+          "targetDocumentId": "krasotaimedicina.disease.95c0302f9cf0735e",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.960199
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.c9367fa96d95cbcb-3608435a7f14edfb",
+          "targetDocumentId": "krasotaimedicina.disease.c9367fa96d95cbcb",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.849321
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.121bf85ace258884-731cec4964c0cfa6",
+          "targetDocumentId": "krasotaimedicina.disease.121bf85ace258884",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.843304
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.51fff7284c5b6c1f-fc8f7a8ebba98ac7",
+          "targetDocumentId": "krasotaimedicina.disease.51fff7284c5b6c1f",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.837422
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j13-8bf2dbe8c46e7b15",
+          "targetDocumentId": "rls.mkb.node.j13",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.831669
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.66eb97363c2e6e07-7729a0ae2379c781",
+          "targetDocumentId": "krasotaimedicina.disease.66eb97363c2e6e07",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.826042
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j17-3-11b58f16c760afe2",
+          "targetDocumentId": "rls.mkb.node.j17-3",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.815145
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j12-0-c2f7b72225d76fc8",
+          "targetDocumentId": "rls.mkb.node.j12-0",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.809868
+        }
+      ]
+    },
+    {
+      "sourceId": "icd10.j189-no-dot",
+      "query": "J189",
+      "normalizedQuery": "j189",
+      "aliasMatches": [],
+      "terms": [
+        "j189",
+        "189"
+      ],
+      "branches": [
+        {
+          "id": "lookup",
+          "label": "Поиск по источникам",
+          "weight": 1,
+          "ftsQuery": "\"j189\"* OR \"189\"* OR (\"j18\"* AND \"9\"*) OR \"j18\"*",
+          "candidateCount": 90,
+          "topHits": [
+            {
+              "chunkId": "chunk.94adfdce1f197aeb",
+              "rank": 0.018032786885245903,
+              "position": 0
+            },
+            {
+              "chunkId": "chunk.7ab7f44159f2bc63",
+              "rank": 0.017741935483870968,
+              "position": 1
+            },
+            {
+              "chunkId": "chunk.4e5cfbde2678f79c",
+              "rank": 0.01746031746031746,
+              "position": 2
+            },
+            {
+              "chunkId": "chunk.3a63113df36fbf0a",
+              "rank": 0.0171875,
+              "position": 3
+            },
+            {
+              "chunkId": "chunk.3895774f903f3c5c",
+              "rank": 0.016923076923076926,
+              "position": 4
+            },
+            {
+              "chunkId": "chunk.9eafb01e8d6b1671",
+              "rank": 0.016666666666666666,
+              "position": 5
+            },
+            {
+              "chunkId": "chunk.2f1097240ddbe6dc",
+              "rank": 0.016417910447761197,
+              "position": 6
+            },
+            {
+              "chunkId": "chunk.3c7621087bad5aed",
+              "rank": 0.016176470588235296,
+              "position": 7
+            },
+            {
+              "chunkId": "chunk.0310f8a32a9600ae",
+              "rank": 0.01594202898550725,
+              "position": 8
+            },
+            {
+              "chunkId": "chunk.b72676bdbac74abc",
+              "rank": 0.015714285714285715,
+              "position": 9
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-9-015488db204dc657",
+          "targetDocumentId": "rls.mkb.node.j18-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-0-0e7d7eaab4c9dc89",
+          "targetDocumentId": "rls.mkb.node.j18-0",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.805538
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-1-2989d46490798d86",
+          "targetDocumentId": "rls.mkb.node.j18-1",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.787879
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j09-j18-f3a27e3e567a0601",
+          "targetDocumentId": "rls.mkb.node.j09-j18",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.732571
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3",
+          "targetDocumentId": "rls.mkb.node.j18",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.720871
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-2-fd06bd4f0b508f81",
+          "targetDocumentId": "rls.mkb.node.j18-2",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.699052
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j18-8-7439ce02e565d894",
+          "targetDocumentId": "rls.mkb.node.j18-8",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.678933
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j15-9-14643d8b0e5c489a",
+          "targetDocumentId": "rls.mkb.node.j15-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.772281
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j12-9-aa466b5f627c4651",
+          "targetDocumentId": "rls.mkb.node.j12-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.758088
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.95c0302f9cf0735e-3fd1b0ed5c3f1a57",
+          "targetDocumentId": "krasotaimedicina.disease.95c0302f9cf0735e",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.744928
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.k05-4-6e9992307061234e",
+          "targetDocumentId": "rls.mkb.node.k05-4",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.588551
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.c9367fa96d95cbcb-3608435a7f14edfb",
+          "targetDocumentId": "krasotaimedicina.disease.c9367fa96d95cbcb",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.581609
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.n64-4-a6b27506729bbca7",
+          "targetDocumentId": "rls.mkb.node.n64-4",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.574838
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.o72-fd01d79bd8c09780",
+          "targetDocumentId": "rls.mkb.node.o72",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.568229
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.n85-3-e2c2fc7ce624875a",
+          "targetDocumentId": "rls.mkb.node.n85-3",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.561778
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.f20-2-61766c2f11e892c1",
+          "targetDocumentId": "rls.mkb.node.f20-2",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.555477
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.i25-1-0ef9c1aaebb689fd",
+          "targetDocumentId": "rls.mkb.node.i25-1",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.549321
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.66eb97363c2e6e07-7729a0ae2379c781",
+          "targetDocumentId": "krasotaimedicina.disease.66eb97363c2e6e07",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.543304
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.f06-1-eadc82b6efd72486",
+          "targetDocumentId": "rls.mkb.node.f06-1",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.537422
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.a53e7f1627ab8203-845d46a0a847db66",
+          "targetDocumentId": "krasotaimedicina.disease.a53e7f1627ab8203",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.531669
+        }
+      ]
+    },
+    {
+      "sourceId": "icd10.f23-3",
+      "query": "F23.3",
+      "normalizedQuery": "f23.3",
+      "aliasMatches": [],
+      "terms": [
+        "f233",
+        "233"
+      ],
+      "branches": [
+        {
+          "id": "lookup",
+          "label": "Поиск по источникам",
+          "weight": 1,
+          "ftsQuery": "\"f233\"* OR \"233\"* OR (\"f23\"* AND \"3\"*) OR \"f23\"*",
+          "candidateCount": 100,
+          "topHits": [
+            {
+              "chunkId": "chunk.564c70a4cc02665d",
+              "rank": 0.018032786885245903,
+              "position": 0
+            },
+            {
+              "chunkId": "chunk.a941647da70a8fde",
+              "rank": 0.017741935483870968,
+              "position": 1
+            },
+            {
+              "chunkId": "chunk.3d6a2430e67e349e",
+              "rank": 0.01746031746031746,
+              "position": 2
+            },
+            {
+              "chunkId": "chunk.4dafd9e2b9fbb62f",
+              "rank": 0.0171875,
+              "position": 3
+            },
+            {
+              "chunkId": "chunk.d4d4c3e687207f20",
+              "rank": 0.016923076923076926,
+              "position": 4
+            },
+            {
+              "chunkId": "chunk.b8dac09784edab98",
+              "rank": 0.016666666666666666,
+              "position": 5
+            },
+            {
+              "chunkId": "chunk.533785aa18e9aa4a",
+              "rank": 0.016417910447761197,
+              "position": 6
+            },
+            {
+              "chunkId": "chunk.d5394e5067d5c406",
+              "rank": 0.016176470588235296,
+              "position": 7
+            },
+            {
+              "chunkId": "chunk.8425e667c71ffeef",
+              "rank": 0.01594202898550725,
+              "position": 8
+            },
+            {
+              "chunkId": "chunk.275bf86428b0a757",
+              "rank": 0.015714285714285715,
+              "position": 9
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.f23-3-678301070b124353",
+          "targetDocumentId": "rls.mkb.node.f23-3",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.f23-2-128cbfa8fbd40d78",
+          "targetDocumentId": "rls.mkb.node.f23-2",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.826563
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.f23-9-19344520b10c5020",
+          "targetDocumentId": "rls.mkb.node.f23-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.805538
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.f23-8362e53f6eb32230",
+          "targetDocumentId": "rls.mkb.node.f23",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.787879
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.f23-8-4c0241a564d527f9",
+          "targetDocumentId": "rls.mkb.node.f23-8",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.758088
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.f23-1-52a24848d9b54341",
+          "targetDocumentId": "rls.mkb.node.f23-1",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.709722
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.f23-0-57e4894841e0eea7",
+          "targetDocumentId": "rls.mkb.node.f23-0",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.699052
+        }
+      ]
+    },
+    {
+      "sourceId": "icd10.l11-0",
+      "query": "L11.0",
+      "normalizedQuery": "l11.0",
+      "aliasMatches": [],
+      "terms": [
+        "l110",
+        "110"
+      ],
+      "branches": [
+        {
+          "id": "lookup",
+          "label": "Поиск по источникам",
+          "weight": 1,
+          "ftsQuery": "\"l110\"* OR \"110\"* OR (\"l11\"* AND \"0\"*) OR \"l11\"*",
+          "candidateCount": 100,
+          "topHits": [
+            {
+              "chunkId": "chunk.156cc34864ae318b",
+              "rank": 0.018032786885245903,
+              "position": 0
+            },
+            {
+              "chunkId": "chunk.0cf155dacb9ecbe3",
+              "rank": 0.017741935483870968,
+              "position": 1
+            },
+            {
+              "chunkId": "chunk.cc2ed22bbfdb9e1a",
+              "rank": 0.01746031746031746,
+              "position": 2
+            },
+            {
+              "chunkId": "chunk.c48c2d8246535a35",
+              "rank": 0.0171875,
+              "position": 3
+            },
+            {
+              "chunkId": "chunk.1a05ceb2e0b49154",
+              "rank": 0.016923076923076926,
+              "position": 4
+            },
+            {
+              "chunkId": "chunk.015b47e3dc4827f7",
+              "rank": 0.016666666666666666,
+              "position": 5
+            },
+            {
+              "chunkId": "chunk.e5287a65916c2b0a",
+              "rank": 0.016417910447761197,
+              "position": 6
+            },
+            {
+              "chunkId": "chunk.65db05ca781f2cd3",
+              "rank": 0.016176470588235296,
+              "position": 7
+            },
+            {
+              "chunkId": "chunk.b1f54dbef4c64efc",
+              "rank": 0.01594202898550725,
+              "position": 8
+            },
+            {
+              "chunkId": "chunk.ec8cf3be5f306837",
+              "rank": 0.015714285714285715,
+              "position": 9
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.l11-0-11fb80714f59ee3b",
+          "targetDocumentId": "rls.mkb.node.l11-0",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.l11-1fddd0dfc9f38d97",
+          "targetDocumentId": "rls.mkb.node.l11",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.805538
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.l11-9-4b5c53084348d761",
+          "targetDocumentId": "rls.mkb.node.l11-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.787879
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.l11-8-00203894c7967567",
+          "targetDocumentId": "rls.mkb.node.l11-8",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.772281
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.l11-1-85da95832b3a56db",
+          "targetDocumentId": "rls.mkb.node.l11-1",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.758088
+        }
+      ]
+    },
+    {
+      "sourceId": "icd10.e11-9-cyrillic",
+      "query": "Е11.9",
+      "normalizedQuery": "e11.9",
+      "aliasMatches": [
+        "E11.9 → Сахарный диабет 2 типа у взрослых",
+        "E11.9 → Сахарный диабет 2 типа у детей"
+      ],
+      "terms": [
+        "сахарный",
+        "сахарн",
+        "диабет",
+        "типа",
+        "взрослых",
+        "детей",
+        "е119",
+        "119"
+      ],
+      "branches": [
+        {
+          "id": "lookup",
+          "label": "Поиск по источникам",
+          "weight": 1,
+          "ftsQuery": "\"сахарный\"* OR \"сахарн\"* OR \"диабет\"* OR \"типа\"* OR \"взрослых\"* OR \"детей\"* OR \"е119\"* OR \"119\"* OR (\"e11\"* AND \"9\"*) OR \"e11\"*",
+          "candidateCount": 100,
+          "topHits": [
+            {
+              "chunkId": "chunk.85b2d26fcdf86900",
+              "rank": 0.018032786885245903,
+              "position": 0
+            },
+            {
+              "chunkId": "chunk.cb38fae4259659ac",
+              "rank": 0.017741935483870968,
+              "position": 1
+            },
+            {
+              "chunkId": "chunk.b02e40e1585140ce",
+              "rank": 0.01746031746031746,
+              "position": 2
+            },
+            {
+              "chunkId": "chunk.30193efab63df5a2",
+              "rank": 0.0171875,
+              "position": 3
+            },
+            {
+              "chunkId": "chunk.e285b2213e8b1bc5",
+              "rank": 0.016923076923076926,
+              "position": 4
+            },
+            {
+              "chunkId": "chunk.a8f4d2f451777e88",
+              "rank": 0.016666666666666666,
+              "position": 5
+            },
+            {
+              "chunkId": "chunk.1f4f93752b7e2f0a",
+              "rank": 0.016417910447761197,
+              "position": 6
+            },
+            {
+              "chunkId": "chunk.487d14dfe7d7099b",
+              "rank": 0.016176470588235296,
+              "position": 7
+            },
+            {
+              "chunkId": "chunk.4f6f72b349c5c006",
+              "rank": 0.01594202898550725,
+              "position": 8
+            },
+            {
+              "chunkId": "core.definition-chunk.dc37088359dec24ec6a51f0a",
+              "rank": 0.015714285714285715,
+              "position": 9
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.e11-6a94c3a94c2e6451",
+          "targetDocumentId": "rls.mkb.node.e11",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.105538
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.290_2-4e0ba682838cae3e",
+          "targetDocumentId": "kr.rf.290_2",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 1.3
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.622_5-ee0a6d6ad0bbf505",
+          "targetDocumentId": "kr.rf.622_5",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 1.196774
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.ae46c0cd343ff688-8c9918eea436e9e8",
+          "targetDocumentId": "krasotaimedicina.disease.ae46c0cd343ff688",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.153968
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.286_3-f2208021f608bc64",
+          "targetDocumentId": "kr.rf.286_3",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 1.126563
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.287_3-52817da547386c99",
+          "targetDocumentId": "kr.rf.287_3",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 1.058088
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.486a9b0e623f3dc8-2f6e799963f244de",
+          "targetDocumentId": "krasotaimedicina.disease.486a9b0e623f3dc8",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.044928
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.o24-c1443a3e6bd73fcc",
+          "targetDocumentId": "rls.mkb.node.o24",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.020871
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.115_2-ff47f84a87af3124",
+          "targetDocumentId": "kr.rf.115_2",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 0.999052
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.735d6f8ed1f34e2f-4c9be4d9679939b9",
+          "targetDocumentId": "krasotaimedicina.disease.735d6f8ed1f34e2f",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.988803
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.e14-b7f75fda73f7767e",
+          "targetDocumentId": "rls.mkb.node.e14",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.969408
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.e10-7d543fb33ea46e78",
+          "targetDocumentId": "rls.mkb.node.e10",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.960199
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.810d1b46462bdf7f-cc25434687116f65",
+          "targetDocumentId": "krasotaimedicina.disease.810d1b46462bdf7f",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.951282
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.e12-44d1e422328671db",
+          "targetDocumentId": "rls.mkb.node.e12",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.942638
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.e10-e14-9e1c5ebeaeb1c92f",
+          "targetDocumentId": "rls.mkb.node.e10-e14",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.93425
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.p70-2-487110134a11461d",
+          "targetDocumentId": "rls.mkb.node.p70-2",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.902976
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.o24-9-74864e41ebccaec2",
+          "targetDocumentId": "rls.mkb.node.o24-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.868229
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.z83-3-b09e4ae0c6ed1857",
+          "targetDocumentId": "rls.mkb.node.z83-3",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.861778
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.o24-4-fd7320ccf0cf1cfa",
+          "targetDocumentId": "rls.mkb.node.o24-4",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.855477
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.o24-3-e44bfea47ac0a002",
+          "targetDocumentId": "rls.mkb.node.o24-3",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.843304
+        }
+      ]
+    },
+    {
+      "sourceId": "icd10.i10",
+      "query": "I10",
+      "normalizedQuery": "i10",
+      "aliasMatches": [
+        "I10 → Артериальная гипертензия у детей",
+        "I10 → Артериальная гипертензия у взрослых"
+      ],
+      "terms": [
+        "артериальная",
+        "артериальн",
+        "гипертензия",
+        "гипертенз",
+        "детей",
+        "взрослых",
+        "i10"
+      ],
+      "branches": [
+        {
+          "id": "lookup",
+          "label": "Поиск по источникам",
+          "weight": 1,
+          "ftsQuery": "\"артериальная\"* OR \"артериальн\"* OR \"гипертензия\"* OR \"гипертенз\"* OR \"детей\"* OR \"взрослых\"* OR \"i10\"*",
+          "candidateCount": 100,
+          "topHits": [
+            {
+              "chunkId": "chunk.60c8b60e8f1950b1",
+              "rank": 0.018032786885245903,
+              "position": 0
+            },
+            {
+              "chunkId": "chunk.c2f9612fed7b21bd",
+              "rank": 0.017741935483870968,
+              "position": 1
+            },
+            {
+              "chunkId": "chunk.a6382e9aad1f39b6",
+              "rank": 0.01746031746031746,
+              "position": 2
+            },
+            {
+              "chunkId": "chunk.8e1b3437dab37696",
+              "rank": 0.0171875,
+              "position": 3
+            },
+            {
+              "chunkId": "core.definition-chunk.a47a9ea5ad61320ebaa43450",
+              "rank": 0.016923076923076926,
+              "position": 4
+            },
+            {
+              "chunkId": "chunk.becd15f0251e073d",
+              "rank": 0.016666666666666666,
+              "position": 5
+            },
+            {
+              "chunkId": "core.definition-chunk.5ab127cbe30dcbec4fe2fc02",
+              "rank": 0.016417910447761197,
+              "position": 6
+            },
+            {
+              "chunkId": "core.definition-chunk.94d223683e16feab56f12380",
+              "rank": 0.016176470588235296,
+              "position": 7
+            },
+            {
+              "chunkId": "chunk.ab0c48d119fed3fa",
+              "rank": 0.01594202898550725,
+              "position": 8
+            },
+            {
+              "chunkId": "chunk.77403dc002022f6a",
+              "rank": 0.015714285714285715,
+              "position": 9
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.i10-123e60d71b43e8d7",
+          "targetDocumentId": "rls.mkb.node.i10",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.032571
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.62_3-9662c471a91d773c",
+          "targetDocumentId": "kr.rf.62_3",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 1.3
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.a3bfa74417c06aa3-3f900c8673b285b1",
+          "targetDocumentId": "krasotaimedicina.disease.a3bfa74417c06aa3",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.196774
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.571_2-2b1fcc56757bb2b4",
+          "targetDocumentId": "kr.rf.571_2",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 1.153968
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.c88af896731de5f4-a7450cb0d03b171a",
+          "targetDocumentId": "krasotaimedicina.disease.c88af896731de5f4",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.126563
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.2ba373487c386302-d5ad1b0c069d02cb",
+          "targetDocumentId": "krasotaimedicina.disease.2ba373487c386302",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.087879
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.41e818cd7e0c13d0-9caa93259d6070aa",
+          "targetDocumentId": "krasotaimedicina.disease.41e818cd7e0c13d0",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.044928
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.bf6c0ea79f1ed88f-06bc923ca44bcf9b",
+          "targetDocumentId": "krasotaimedicina.disease.bf6c0ea79f1ed88f",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.999052
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.06f37025561e70e8-92588890d5b1744c",
+          "targetDocumentId": "krasotaimedicina.disease.06f37025561e70e8",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.988803
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.7d61170e7e8f5f99-96f483a5c0ad719c",
+          "targetDocumentId": "krasotaimedicina.disease.7d61170e7e8f5f99",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.978933
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.i15-fa8eee94f432928b",
+          "targetDocumentId": "rls.mkb.node.i15",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.969408
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.i15-0-f0a0eee5b7ff6a2e",
+          "targetDocumentId": "rls.mkb.node.i15-0",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.951282
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.i15-8-a60ff18828c0807a",
+          "targetDocumentId": "rls.mkb.node.i15-8",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.942638
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.i15-9-55e24ecf25d329e6",
+          "targetDocumentId": "rls.mkb.node.i15-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.93425
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.9fd389bd39e9c37d-68ff2bd348c91324",
+          "targetDocumentId": "krasotaimedicina.disease.9fd389bd39e9c37d",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.926102
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.i15-2-5175825269a23d35",
+          "targetDocumentId": "rls.mkb.node.i15-2",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.918182
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.i15-1-fa24b9661906a1e0",
+          "targetDocumentId": "rls.mkb.node.i15-1",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.902976
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.2dd585da19e89e6e-0c5daa982ec4ecc0",
+          "targetDocumentId": "krasotaimedicina.disease.2dd585da19e89e6e",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.888551
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.939_1-b5eacbbbf4821833",
+          "targetDocumentId": "kr.rf.939_1",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 0.874838
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.dd9c1664ae3f6f3b-738bc254e07b0650",
+          "targetDocumentId": "krasotaimedicina.disease.dd9c1664ae3f6f3b",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.868229
+        }
+      ]
+    },
+    {
+      "sourceId": "icd10.bare-67-9",
+      "query": "67.9",
+      "normalizedQuery": "67.9",
+      "aliasMatches": [],
+      "terms": [
+        "679"
+      ],
+      "branches": [
+        {
+          "id": "lookup",
+          "label": "Поиск по источникам",
+          "weight": 1,
+          "ftsQuery": "\"679\"* OR (\"67\"* AND \"9\"*) OR (\"i67\"* AND \"9\"*)",
+          "candidateCount": 24,
+          "topHits": [
+            {
+              "chunkId": "chunk.1209d0d492d3e5e4",
+              "rank": 0.018032786885245903,
+              "position": 0
+            },
+            {
+              "chunkId": "chunk.f7c13e3c66912172",
+              "rank": 0.017741935483870968,
+              "position": 1
+            },
+            {
+              "chunkId": "chunk.661aa3bb4b8211cd",
+              "rank": 0.01746031746031746,
+              "position": 2
+            },
+            {
+              "chunkId": "chunk.e298a1f014a00888",
+              "rank": 0.0171875,
+              "position": 3
+            },
+            {
+              "chunkId": "chunk.2e0d3f93a941ef20",
+              "rank": 0.016923076923076926,
+              "position": 4
+            },
+            {
+              "chunkId": "chunk.d3812c39d753e67a",
+              "rank": 0.016666666666666666,
+              "position": 5
+            },
+            {
+              "chunkId": "chunk.969d61952f64f0bc",
+              "rank": 0.016417910447761197,
+              "position": 6
+            },
+            {
+              "chunkId": "chunk.83c4b8a28005527a",
+              "rank": 0.016176470588235296,
+              "position": 7
+            },
+            {
+              "chunkId": "chunk.ff97f61e5b5125ad",
+              "rank": 0.01594202898550725,
+              "position": 8
+            },
+            {
+              "chunkId": "chunk.ab37d7467b36a112",
+              "rank": 0.015714285714285715,
+              "position": 9
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.9dfaa7362606c64c-568adbcc8fa2e369",
+          "targetDocumentId": "krasotaimedicina.disease.9dfaa7362606c64c",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.i67-9-d50162fe3af63b5e",
+          "targetDocumentId": "rls.mkb.node.i67-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.896774
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.m33-9-584a427959c5dc4c",
+          "targetDocumentId": "rls.mkb.node.m33-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.772281
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.j02-9-c28612bcb2e1a5c5",
+          "targetDocumentId": "rls.mkb.node.j02-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.758088
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.m34-9-4e6a7cb8bf256748",
+          "targetDocumentId": "rls.mkb.node.m34-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.744928
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.m31-9-16ed65e3b5d0bdb2",
+          "targetDocumentId": "rls.mkb.node.m31-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.732571
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.1b496c1b6554d205-a309216c26038d1a",
+          "targetDocumentId": "krasotaimedicina.disease.1b496c1b6554d205",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.720871
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.g24-6ca4b1f9501f3bac",
+          "targetDocumentId": "rls.mkb.node.g24",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.709722
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.m50-ca0ef4e073a66456",
+          "targetDocumentId": "rls.mkb.node.m50",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.699052
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.679a7b4206662385-b2a71edfdb702253",
+          "targetDocumentId": "krasotaimedicina.disease.679a7b4206662385",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.688803
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.8d0bea70aeb6b23b-d422d11bd90d35c0",
+          "targetDocumentId": "krasotaimedicina.disease.8d0bea70aeb6b23b",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.678933
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.f9837aba7551176a-93d596872e84e93d",
+          "targetDocumentId": "krasotaimedicina.disease.f9837aba7551176a",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.669408
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.20dd3247b1953fca-f47252577614b8b6",
+          "targetDocumentId": "krasotaimedicina.disease.20dd3247b1953fca",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.660199
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.401c400dd7338aeb-6933138a98e3c1c3",
+          "targetDocumentId": "krasotaimedicina.disease.401c400dd7338aeb",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.651282
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.cebd03ce6d13e754-d7103496ece162da",
+          "targetDocumentId": "krasotaimedicina.disease.cebd03ce6d13e754",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.642638
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.675af8dcb81369d4-bc45070a8b8119cc",
+          "targetDocumentId": "krasotaimedicina.disease.675af8dcb81369d4",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.63425
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.8e6e171841caccb6-3f7a86008e4bed6b",
+          "targetDocumentId": "krasotaimedicina.disease.8e6e171841caccb6",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.626102
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.67cb2270e1dd2f50-99825d79a7513876",
+          "targetDocumentId": "krasotaimedicina.disease.67cb2270e1dd2f50",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.618182
+        }
+      ]
+    },
+    {
+      "sourceId": "icd10.e11",
+      "query": "E11",
+      "normalizedQuery": "e11",
+      "aliasMatches": [],
+      "terms": [
+        "e11"
+      ],
+      "branches": [
+        {
+          "id": "lookup",
+          "label": "Поиск по источникам",
+          "weight": 1,
+          "ftsQuery": "\"e11\"*",
+          "candidateCount": 12,
+          "topHits": [
+            {
+              "chunkId": "chunk.e285b2213e8b1bc5",
+              "rank": 0.018032786885245903,
+              "position": 0
+            },
+            {
+              "chunkId": "chunk.a8f4d2f451777e88",
+              "rank": 0.017741935483870968,
+              "position": 1
+            },
+            {
+              "chunkId": "chunk.1f4f93752b7e2f0a",
+              "rank": 0.01746031746031746,
+              "position": 2
+            },
+            {
+              "chunkId": "chunk.cb38fae4259659ac",
+              "rank": 0.0171875,
+              "position": 3
+            },
+            {
+              "chunkId": "chunk.85b2d26fcdf86900",
+              "rank": 0.016923076923076926,
+              "position": 4
+            },
+            {
+              "chunkId": "chunk.b02e40e1585140ce",
+              "rank": 0.016666666666666666,
+              "position": 5
+            },
+            {
+              "chunkId": "chunk.5175f0671c5c0faf",
+              "rank": 0.016417910447761197,
+              "position": 6
+            },
+            {
+              "chunkId": "chunk.bdac587440c32429",
+              "rank": 0.016176470588235296,
+              "position": 7
+            },
+            {
+              "chunkId": "chunk.bd26bde000d6866e",
+              "rank": 0.01594202898550725,
+              "position": 8
+            },
+            {
+              "chunkId": "chunk.1d1a3bd080972851",
+              "rank": 0.015714285714285715,
+              "position": 9
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.e11-6a94c3a94c2e6451",
+          "targetDocumentId": "rls.mkb.node.e11",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.622_5-ee0a6d6ad0bbf505",
+          "targetDocumentId": "kr.rf.622_5",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 0.826563
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.290_2-4e0ba682838cae3e",
+          "targetDocumentId": "kr.rf.290_2",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 0.805538
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.ae46c0cd343ff688-8c9918eea436e9e8",
+          "targetDocumentId": "krasotaimedicina.disease.ae46c0cd343ff688",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.787879
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.c2764240385c7345-fc83070e5edd2df2",
+          "targetDocumentId": "krasotaimedicina.disease.c2764240385c7345",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.772281
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.63c51a5af4765d03-c4dde366298f6de2",
+          "targetDocumentId": "krasotaimedicina.disease.63c51a5af4765d03",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.758088
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.df22ab6cb8218d78-f2c8ad7080fc601c",
+          "targetDocumentId": "krasotaimedicina.disease.df22ab6cb8218d78",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.744928
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.115_2-ff47f84a87af3124",
+          "targetDocumentId": "kr.rf.115_2",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 0.732571
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.e11e006f6290ceb4-402d71c51f120b0c",
+          "targetDocumentId": "krasotaimedicina.disease.e11e006f6290ceb4",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.720871
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.e118f4136be3dbde-af35ef016812ed96",
+          "targetDocumentId": "krasotaimedicina.disease.e118f4136be3dbde",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.709722
+        }
+      ]
+    },
+    {
+      "sourceId": "icd10.k35-8",
+      "query": "K35.8",
+      "normalizedQuery": "k35.8",
+      "aliasMatches": [
+        "K35 → Острый аппендицит и перитонит у детей"
+      ],
+      "terms": [
+        "острый",
+        "остр",
+        "аппендицит",
+        "перитонит",
+        "детей",
+        "k358",
+        "358"
+      ],
+      "branches": [
+        {
+          "id": "lookup",
+          "label": "Поиск по источникам",
+          "weight": 1,
+          "ftsQuery": "\"острый\"* OR \"остр\"* OR \"аппендицит\"* OR \"перитонит\"* OR \"детей\"* OR \"k358\"* OR \"358\"* OR (\"k35\"* AND \"8\"*) OR \"k35\"*",
+          "candidateCount": 100,
+          "topHits": [
+            {
+              "chunkId": "chunk.3740847c4cf99cfb",
+              "rank": 0.018032786885245903,
+              "position": 0
+            },
+            {
+              "chunkId": "chunk.e9494f7b673d89dd",
+              "rank": 0.017741935483870968,
+              "position": 1
+            },
+            {
+              "chunkId": "chunk.6042c1d80c8c0d51",
+              "rank": 0.01746031746031746,
+              "position": 2
+            },
+            {
+              "chunkId": "chunk.f7d7c9ff2ac360b5",
+              "rank": 0.0171875,
+              "position": 3
+            },
+            {
+              "chunkId": "chunk.29cfbb0e740cb5e0",
+              "rank": 0.016923076923076926,
+              "position": 4
+            },
+            {
+              "chunkId": "chunk.5afb64d8d46eefc0",
+              "rank": 0.016666666666666666,
+              "position": 5
+            },
+            {
+              "chunkId": "chunk.7c7fa5034e38b292",
+              "rank": 0.016417910447761197,
+              "position": 6
+            },
+            {
+              "chunkId": "chunk.258fdd7e09bb8b12",
+              "rank": 0.016176470588235296,
+              "position": 7
+            },
+            {
+              "chunkId": "chunk.8af5d77dfa585e27",
+              "rank": 0.01594202898550725,
+              "position": 8
+            },
+            {
+              "chunkId": "chunk.060f2060a7a84ec4",
+              "rank": 0.015714285714285715,
+              "position": 9
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.k35-0-c6f2353bde2ddbea",
+          "targetDocumentId": "rls.mkb.node.k35-0",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.3
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.k35-22ccffc46f175996",
+          "targetDocumentId": "rls.mkb.node.k35",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.105538
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.k35-9-16e202cf0eff3bb6",
+          "targetDocumentId": "rls.mkb.node.k35-9",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.087879
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.k35-1-8da1132fe8a1b90e",
+          "targetDocumentId": "rls.mkb.node.k35-1",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 1.058088
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.k35-k38-dc0bb8ba0013f984",
+          "targetDocumentId": "rls.mkb.node.k35-k38",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.669408
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.64_2-dd7fe3eab738bcf4",
+          "targetDocumentId": "kr.rf.64_2",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 1.126563
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.b16044479ab92988-b29bb61cb6863a4e",
+          "targetDocumentId": "krasotaimedicina.disease.b16044479ab92988",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.988803
+        },
+        {
+          "documentId": "core.catalog.pointer.clinical.kr.rf.325_2-03498ac1e23c0d00",
+          "targetDocumentId": "kr.rf.325_2",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "pointer",
+          "bestScore": 0.978933
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.c39088ef709cac8a-15a228111396793d",
+          "targetDocumentId": "krasotaimedicina.disease.c39088ef709cac8a",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.960199
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.k65-0-763fe3122980903b",
+          "targetDocumentId": "rls.mkb.node.k65-0",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.951282
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.n73-3-80bf91598d17ac41",
+          "targetDocumentId": "rls.mkb.node.n73-3",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.926102
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.b93fa846431d6d0d-e3c5973afcddd0d0",
+          "targetDocumentId": "krasotaimedicina.disease.b93fa846431d6d0d",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.918182
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.a822e38c67e65841-c034263f3832b1a0",
+          "targetDocumentId": "krasotaimedicina.disease.a822e38c67e65841",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.888551
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.40b2cfe6cad7052f-5fcdf984f08ba1de",
+          "targetDocumentId": "krasotaimedicina.disease.40b2cfe6cad7052f",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.868229
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.024560796f36facb-d7eed0dbdca9696a",
+          "targetDocumentId": "krasotaimedicina.disease.024560796f36facb",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.855477
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.k37-99a44ea1db06c610",
+          "targetDocumentId": "rls.mkb.node.k37",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.849321
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.bcc94ae88e1dbdee-e3fca6aee6aa0068",
+          "targetDocumentId": "krasotaimedicina.disease.bcc94ae88e1dbdee",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.843304
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.rls.mkb.node.k36-b275474a3f539026",
+          "targetDocumentId": "rls.mkb.node.k36",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.837422
+        },
+        {
+          "documentId": "kr.rf.360_3.bronchiolitis",
+          "targetDocumentId": "kr.rf.360_3.bronchiolitis",
+          "documentKind": "clinical-recommendation",
+          "contentKind": "summary",
+          "bestScore": 0.831669
+        },
+        {
+          "documentId": "core.catalog.pointer.reference.krasotaimedicina.disease.f078f814836fe24c-1dc771e29e03a08f",
+          "targetDocumentId": "krasotaimedicina.disease.f078f814836fe24c",
+          "documentKind": "reference",
+          "contentKind": "pointer",
+          "bestScore": 0.820535
         }
       ]
     },
