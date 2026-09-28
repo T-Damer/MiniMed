@@ -1,25 +1,31 @@
 package dev.localmed.nativespike.shared.text
 
 /**
- * A deliberately partial Kotlin port of the normalization step in
- * `packages/search-lexical/src/normalize.ts` (the web app's lexical baseline). It covers exactly
- * the pieces needed to build an FTS5 MATCH expression for ordinary lookup:
- *  - NFKC + lowercase + ё→е folding + dash unification + charset clamp (mirrors
- *    `normalizeSurfaceText`)
+ * A Kotlin port of the normalization step in `packages/search-lexical/src/normalize.ts` (the web
+ * app's lexical baseline). As of the migration's stage 2 sub-stage A (docs/CURRENT_STATE.md), this
+ * covers:
+ *  - lowercase + ё→е folding + dash unification + charset clamp + ICD-10 Cyrillic-lookalike code
+ *    normalization (mirrors `normalizeSurfaceText`)
  *  - tokenize() with the same stop-word list and minimum token length
  *  - a light Russian suffix stemmer (mirrors `lightStemRussian`)
+ *  - bounded Levenshtein distance and `isCloseToken` (mirrors normalize.ts's own — distinct from
+ *    `rapidfuzz.ts`'s OSA/Levenshtein, ported separately in `lexical/RapidFuzz.kt`)
  *
  * Deliberately NOT ported (documented for the spike report, not silently dropped):
- *  - ICD-10 Cyrillic-lookalike code normalization (`normalizeIcd10Lookalikes`)
- *  - bounded Levenshtein fuzzy token matching / typo correction (`typo-correction.ts`,
- *    `medication-spelling.ts`)
+ *  - Unicode NFKC normalization (`value.normalize('NFKC')` in the TS source) — no NFKC
+ *    implementation is available in Kotlin's common stdlib without per-platform work
+ *    (`java.text.Normalizer` on the JVM has no Kotlin/Native or Kotlin/Wasm equivalent here).
+ *    None of the 142 golden queries contain decomposed/compatibility Unicode forms that would
+ *    make this visible, so it does not affect the golden-parity numbers, but it is a real gap for
+ *    arbitrary future input.
+ *  - `normalizeSurfaceTextWithOffsets` (only needed for downstream highlight-position mapping, not
+ *    for query normalization or alias matching)
+ *  - `searchSubjectText` (navigation-preamble stripping, not used by lookup search)
  *  - the multi-branch query planner with alias-branch corroboration/dilution rules
- *    (`analysis.ts`, ~2200 lines) — this port only does single-branch OR-of-tokens matching
+ *    (`analysis.ts`, ~2200 lines) — stage 2 sub-stage B
  *  - clinical intent detection (diagnosis vs. drug vs. regulatory query), medication suffix
- *    handling, definition-question detection
- * A native product build would need to either re-implement these in Kotlin or share them via a
- * KMP-compiled core; this spike does neither, so ranking-quality comparisons against the web app
- * are not apples-to-apples — only latency and rendering are.
+ *    handling, definition-question detection, typo-correction.ts — explicitly out of scope for
+ *    stage 2 (see docs/CURRENT_STATE.md)
  */
 
 private val STOP_WORDS = setOf(
@@ -29,10 +35,13 @@ private val STOP_WORDS = setOf(
 
 // Longest suffix first, same rationale as the TS source: try the biggest ending that still leaves
 // a length->=4 stem before falling back to a shorter one.
+// TS source (normalize.ts) has 'ья' here, not 'нья' — this Kotlin port previously had a typo that
+// diverged from the TS suffix list (caught during stage 2 sub-stage A's golden-parity work, before
+// any golden query happened to depend on it). Fixed to match.
 private val RUSSIAN_SUFFIXES = listOf(
     "иями", "ями", "ами", "ого", "ему", "ому", "ыми", "ими", "иях", "ях", "ах", "ение", "ания",
     "ений", "ание", "ость", "ости", "его", "ая", "яя", "ое", "ее", "ые", "ие", "ой", "ей", "ий",
-    "ый", "ам", "ям", "ом", "ем", "ов", "ев", "ия", "нья", "ью", "ы", "и", "а", "я", "у", "ю", "е", "о",
+    "ый", "ам", "ям", "ом", "ем", "ов", "ев", "ия", "ья", "ью", "ы", "и", "а", "я", "у", "ю", "е", "о",
 ).sortedByDescending { it.length }
 
 private val DASH_VARIANTS = Regex("[‐‑‒–—−]")
@@ -46,11 +55,16 @@ private val WHITESPACE = Regex("\\s+")
 // before/after test run). Plain range comparisons on `Char` are basic UTF-16 code-unit arithmetic
 // with no engine-specific Unicode-class behavior to diverge, so they're used everywhere below
 // instead, even though a `Regex` would read slightly shorter.
-private fun isKeepableChar(c: Char): Boolean =
+// `internal`, not `private`: reused by `lexical/Aliases.kt`'s port of aliases.ts, which needs the
+// same "is this a query/token character" test `findNormalizedPhraseIndex` uses.
+internal fun isKeepableChar(c: Char): Boolean =
     c in '0'..'9' || c in 'a'..'z' || c in 'а'..'я' || c.isWhitespace() ||
         c == '.' || c == ',' || c == ':' || c == '+' || c == '/' || c == '%' || c == '-'
 
-private fun isTokenChar(c: Char): Boolean = c in '0'..'9' || c in 'a'..'z' || c in 'а'..'я'
+internal fun isTokenChar(c: Char): Boolean = c in '0'..'9' || c in 'a'..'z' || c in 'а'..'я'
+
+private fun isIcd10LetterOrDigit(c: Char): Boolean =
+    c in '0'..'9' || c in 'a'..'z' || c in 'A'..'Z' || c in 'А'..'я'
 
 private fun clampCharset(value: String): String {
     val builder = StringBuilder(value.length)
@@ -58,12 +72,64 @@ private fun clampCharset(value: String): String {
     return builder.toString()
 }
 
-/** Mirrors `normalizeSurfaceText` minus ICD-10 lookalike remapping (see file header). */
+// Mirrors `ICD10_CYRILLIC_LOOKALIKE_MAP` (normalize.ts). By the time `normalizeIcd10Lookalikes`
+// runs inside `normalizeSurfaceText` the string is already lowercased and charset-clamped (matches
+// TS's call order), so only the lowercase entries are ever reachable there; the uppercase ones
+// exist for parity with the TS function's own standalone contract (it is exported and could be
+// called against un-lowercased text elsewhere).
+private val ICD10_LOOKALIKE_MAP: Map<Char, Char> = mapOf(
+    'А' to 'A', 'а' to 'a', 'В' to 'B', 'в' to 'b', 'С' to 'C', 'с' to 'c',
+    'Е' to 'E', 'е' to 'e', 'Н' to 'H', 'н' to 'h', 'К' to 'K', 'к' to 'k',
+    'М' to 'M', 'м' to 'm', 'О' to 'O', 'о' to 'o', 'Р' to 'P', 'р' to 'p',
+    'Т' to 'T', 'т' to 't', 'Х' to 'X', 'х' to 'x', 'У' to 'Y', 'у' to 'y',
+)
+
+/**
+ * Mirrors `normalizeIcd10Lookalikes` (normalize.ts): remaps Cyrillic lookalikes only inside an
+ * ICD-10-code-shaped token (one letter, exactly two digits, then an optional `.`/`-` plus digits,
+ * or more digits — the TS regex `ICD10_CODE_LIKE_PATTERN`), never elsewhere. Implemented as a
+ * manual scan, not `Regex`, for the same Kotlin/Native Cyrillic-character-class reason documented
+ * above this file's other char-class helpers — a lookbehind/lookahead regex would be even more at
+ * risk of that divergence than a plain `[...]` class was.
+ */
+fun normalizeIcd10Lookalikes(value: String): String {
+    val result = StringBuilder(value.length)
+    var i = 0
+    val n = value.length
+    while (i < n) {
+        val c = value[i]
+        val precededByAlnum = i > 0 && isIcd10LetterOrDigit(value[i - 1])
+        val isLetter = c in 'a'..'z' || c in 'A'..'Z' || c in 'А'..'я'
+        if (!precededByAlnum && isLetter && i + 2 < n &&
+            value[i + 1] in '0'..'9' && value[i + 2] in '0'..'9'
+        ) {
+            var end = i + 3
+            if (end < n && (value[end] == '.' || value[end] == '-') && end + 1 < n && value[end + 1] in '0'..'9') {
+                end += 1
+                while (end < n && value[end] in '0'..'9') end += 1
+            } else {
+                while (end < n && value[end] in '0'..'9') end += 1
+            }
+            val followedByAlnum = end < n && isIcd10LetterOrDigit(value[end])
+            if (!followedByAlnum) {
+                for (j in i until end) result.append(ICD10_LOOKALIKE_MAP[value[j]] ?: value[j])
+                i = end
+                continue
+            }
+        }
+        result.append(c)
+        i += 1
+    }
+    return result.toString()
+}
+
+/** Mirrors `normalizeSurfaceText` (normalize.ts) except for Unicode NFKC folding (see file header). */
 fun normalizeSurfaceText(value: String): String {
     val lowered = value.lowercase().replace('ё', 'е')
     val dashUnified = DASH_VARIANTS.replace(lowered, "-")
     val clamped = clampCharset(dashUnified)
-    return WHITESPACE.replace(clamped, " ").trim()
+    val collapsed = WHITESPACE.replace(clamped, " ").trim()
+    return normalizeIcd10Lookalikes(collapsed)
 }
 
 /** Mirrors `tokenize`: split into runs of [0-9a-zа-я], drop stop words and length-1 tokens. */
@@ -115,4 +181,59 @@ fun buildMatchExpression(query: String, aliasCanonicalTerms: List<String>): Stri
         for (token in tokenize(canonical)) terms.addAll(expandTerm(token))
     }
     return terms.joinToString(" OR ")
+}
+
+/**
+ * Mirrors `levenshteinDistance` (normalize.ts): exact edit distance when it is at most
+ * `maxDistance`, otherwise `maxDistance + 1` — a cheap "too far" sentinel, not a real upper bound.
+ * Unlike the TS source, this allocates a fresh row pair per call instead of reusing a module-level
+ * buffer (that reuse was a hot-path micro-optimization for a per-keystroke UI; this is a
+ * commonTest-scale port used once per golden query) — a documented perf simplification, not a
+ * behavior difference. Distinct from `lexical/RapidFuzz.kt`'s `Levenshtein` (the `rapidfuzz.ts`
+ * port): this one is the band-limited variant `aliases.ts` actually calls via `isCloseToken`.
+ */
+fun levenshteinDistanceBounded(left: String, right: String, maxDistance: Int): Int {
+    if (left == right) return 0
+    if (kotlin.math.abs(left.length - right.length) > maxDistance) return maxDistance + 1
+    val over = maxDistance + 1
+    val width = right.length + 1
+    var previousRow = IntArray(width) { if (it <= maxDistance) it else over }
+    var currentRow = IntArray(width)
+    for (i in 1..left.length) {
+        val from = maxOf(1, i - maxDistance)
+        val to = minOf(right.length, i + maxDistance)
+        currentRow[0] = if (i <= maxDistance) i else over
+        if (from > 1) currentRow[from - 1] = over
+        var rowMin = currentRow[0]
+        val leftChar = left[i - 1]
+        for (j in from..to) {
+            val substitute = previousRow[j - 1] + if (leftChar == right[j - 1]) 0 else 1
+            val remove = previousRow[j] + 1
+            val insert = currentRow[j - 1] + 1
+            val value = minOf(over, substitute, remove, insert)
+            currentRow[j] = value
+            if (value < rowMin) rowMin = value
+        }
+        if (to < right.length) currentRow[to + 1] = over
+        if (rowMin > maxDistance) return over
+        val swap = previousRow
+        previousRow = currentRow
+        currentRow = swap
+    }
+    return minOf(over, previousRow[right.length])
+}
+
+/**
+ * Below this length, single-edit typos are indistinguishable from genuinely different clinical
+ * words — mirrors normalize.ts's `MIN_FUZZY_TOKEN_LENGTH`.
+ */
+const val MIN_FUZZY_TOKEN_LENGTH = 5
+private const val LONG_FUZZY_TOKEN_LENGTH = 9
+
+/** Mirrors `isCloseToken` (normalize.ts): exact for short tokens, bounded edit distance otherwise. */
+fun isCloseToken(left: String, right: String): Boolean {
+    if (left == right) return true
+    if (left.length < MIN_FUZZY_TOKEN_LENGTH || right.length < MIN_FUZZY_TOKEN_LENGTH) return false
+    val maxDistance = if (maxOf(left.length, right.length) >= LONG_FUZZY_TOKEN_LENGTH) 2 else 1
+    return levenshteinDistanceBounded(left, right, maxDistance) <= maxDistance
 }

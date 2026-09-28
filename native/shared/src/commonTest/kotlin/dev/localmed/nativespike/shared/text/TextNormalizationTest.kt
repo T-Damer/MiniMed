@@ -83,4 +83,47 @@ class TextNormalizationTest {
         assertTrue(expr.contains("орви*"))
         assertTrue(expr.contains("респираторная*"))
     }
+
+    // --- stage 2 sub-stage A additions (docs/CURRENT_STATE.md) ---
+
+    @Test
+    fun normalizeSurfaceText_remaps_cyrillic_lookalikes_inside_an_icd10_shaped_token() {
+        // Cyrillic А (U+0410) typed instead of Latin A, immediately followed by 2+ digits — the
+        // shape ICD10_CODE_LIKE_PATTERN (normalize.ts) targets. Mirrors normalizeIcd10Lookalikes.
+        assertEquals("a10", normalizeSurfaceText("А10"))
+        // Already-Latin ICD codes are untouched (no Cyrillic lookalikes to remap).
+        assertEquals("j18.0", normalizeSurfaceText("J18.0"))
+    }
+
+    @Test
+    fun normalizeSurfaceText_leaves_ordinary_cyrillic_words_untouched_by_icd10_remapping() {
+        // No digits adjacent to the letters, so this never matches the ICD10-code shape and must
+        // not be touched — only a code-shaped token gets remapped, not general Cyrillic text.
+        assertEquals("апельсин", normalizeSurfaceText("апельсин"))
+    }
+
+    @Test
+    fun lightStemRussian_strips_the_ya_suffix() {
+        // Regression test for a Kotlin-port-only bug found during stage 2 sub-stage A: this suffix
+        // list previously had "нья" where normalize.ts has "ья" (a plain transcription typo, not a
+        // deliberate difference), which silently broke stemming for every word genuinely ending in
+        // "-ья" (e.g. this one) since none of them end in the wrong 3-character "нья" instead.
+        assertEquals("здоров", lightStemRussian("здоровья"))
+    }
+
+    @Test
+    fun isCloseToken_accepts_a_bounded_edit_distance_typo_on_long_tokens() {
+        // "иимпрамин" vs "имипрамин": a transposition, Levenshtein distance 2 (no transpose
+        // credit), both 9 chars — at the >=9-char band maxDistance is 2, so this must match.
+        // (rapidfuzz-parity.fixture.json's "medication.existing.0" — same pair, OSA distance.)
+        assertTrue(isCloseToken("иимпрамин", "имипрамин"))
+        assertEquals(2, levenshteinDistanceBounded("иимпрамин", "имипрамин", 2))
+    }
+
+    @Test
+    fun isCloseToken_rejects_short_tokens_even_when_one_edit_apart() {
+        // Below MIN_FUZZY_TOKEN_LENGTH (5), only exact matches count — "боль" vs "моль" must not
+        // be treated as a typo of each other (see isCloseToken's doc in normalize.ts).
+        assertTrue(!isCloseToken("боль", "моль"))
+    }
 }

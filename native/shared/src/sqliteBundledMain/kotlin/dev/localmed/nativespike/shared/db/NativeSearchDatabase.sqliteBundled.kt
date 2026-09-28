@@ -3,6 +3,7 @@ package dev.localmed.nativespike.shared.db
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteStatement
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import dev.localmed.nativespike.shared.model.AliasRecord
 import dev.localmed.nativespike.shared.model.ChunkHit
 import dev.localmed.nativespike.shared.model.DocumentKind
 import dev.localmed.nativespike.shared.model.ReaderChunk
@@ -105,6 +106,27 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
             tokens.forEachIndexed { index, token -> statement.bindText(index + 1, token) }
             val results = mutableListOf<String>()
             while (statement.step()) results.add(statement.getText(0))
+            results
+        }
+    }
+
+    actual fun listAliases(): List<AliasRecord> {
+        // Mirrors `SqliteMedicalStore.listAliases()` (packages/storage-sqlite/src/sqlite-medical-store.ts):
+        // `SELECT id, canonical_term, alias, category, weight FROM aliases NOT INDEXED ORDER BY alias`.
+        val sql = "SELECT id, canonical_term, alias, category, weight FROM aliases NOT INDEXED ORDER BY alias"
+        return requireConnection().prepare(sql).use { statement ->
+            val results = mutableListOf<AliasRecord>()
+            while (statement.step()) {
+                results.add(
+                    AliasRecord(
+                        id = statement.getText(0),
+                        canonicalTerm = statement.getText(1),
+                        alias = statement.getText(2),
+                        category = if (statement.isNull(3)) null else statement.getText(3),
+                        weight = statement.getDouble(4),
+                    ),
+                )
+            }
             results
         }
     }

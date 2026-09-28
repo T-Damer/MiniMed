@@ -8,6 +8,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.compose")
     kotlin("plugin.compose")
+    kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -70,6 +71,11 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
+                // Parses `search-golden.json`/`rapidfuzz-parity.fixture.json` in the stage-2
+                // golden-parity tests (docs/CURRENT_STATE.md) — coordinator-approved for
+                // commonTest only, pinned to a release line compatible with the 2.2.10 Kotlin
+                // compiler plugin declared in the root build.gradle.kts.
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             }
         }
         // One `NativeSearchDatabase` actual shared by Android, desktop and iOS: androidx.sqlite's
@@ -138,25 +144,31 @@ android {
     }
 }
 
-// One absolute path, fed to every non-wasm test process the same way (system property on the JVM
+// Two absolute paths, fed to every non-wasm test process the same way (system property on the JVM
 // side, environment variable on iOS) — see GoldenFixture.kt and its actuals for why each platform
-// needs a different delivery mechanism but the same underlying file.
-val goldenFixturePath = layout.projectDirectory
-    .file("src/commonTest/resources/search-golden.json")
-    .asFile.absolutePath
+// needs a different delivery mechanism but the same underlying files. `TEST_RESOURCE_DIR` covers
+// every fixture under commonTest/resources/ (search-golden.json, rapidfuzz-parity.fixture.json,
+// and future stage-2/3 fixtures) by name, not one system property per file. `CORE_DB_PATH` points
+// at the *same* released core.db `export-search-golden.ts` reads (its sha256 is recorded inside
+// search-golden.json) — golden-parity tests load the real `aliases` table from it, not a copy.
+val testResourceDir = layout.projectDirectory.dir("src/commonTest/resources").asFile.absolutePath
+val coreDbPath = rootProject.projectDir.resolve("../apps/app/public/content/core.db").absolutePath
 
 tasks.withType<Test>().configureEach {
-    systemProperty("GOLDEN_FIXTURE_PATH", goldenFixturePath)
+    systemProperty("TEST_RESOURCE_DIR", testResourceDir)
+    systemProperty("CORE_DB_PATH", coreDbPath)
 }
 
 tasks.matching { it.name == "iosSimulatorArm64Test" || it.name == "iosArm64Test" }.configureEach {
     val simulatorTest = this as? org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
     // Plain: covers a real-device iosArm64Test (no simctl involved) and any direct-run path.
-    simulatorTest?.environment("GOLDEN_FIXTURE_PATH", goldenFixturePath)
+    simulatorTest?.environment("TEST_RESOURCE_DIR", testResourceDir)
+    simulatorTest?.environment("CORE_DB_PATH", coreDbPath)
     // `xcrun simctl spawn` (what actually launches the test binary inside the Simulator) only
     // forwards host environment variables prefixed `SIMCTL_CHILD_` into the spawned process — a
-    // plain `GOLDEN_FIXTURE_PATH` set on the host-side Gradle task never reaches the simulator's
-    // own process environment. Set both so the same code works whichever path Kotlin/Native uses.
-    simulatorTest?.environment("SIMCTL_CHILD_GOLDEN_FIXTURE_PATH", goldenFixturePath)
+    // plain var set on the host-side Gradle task never reaches the simulator's own process
+    // environment. Set both so the same code works whichever path Kotlin/Native uses.
+    simulatorTest?.environment("SIMCTL_CHILD_TEST_RESOURCE_DIR", testResourceDir)
+    simulatorTest?.environment("SIMCTL_CHILD_CORE_DB_PATH", coreDbPath)
 }
 

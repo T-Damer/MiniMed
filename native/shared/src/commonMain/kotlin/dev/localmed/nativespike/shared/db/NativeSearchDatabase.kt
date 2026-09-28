@@ -1,5 +1,6 @@
 package dev.localmed.nativespike.shared.db
 
+import dev.localmed.nativespike.shared.model.AliasRecord
 import dev.localmed.nativespike.shared.model.ChunkHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SectionRow
@@ -27,6 +28,11 @@ expect class NativeSearchDatabase(dbFilePath: String) {
 
     /** Canonical terms for aliases whose `alias` column exactly equals one of `tokens`. */
     fun canonicalTermsForAliases(tokens: List<String>): List<String>
+
+    /** The full `aliases` table — `id, canonical_term, alias, category, weight` — for
+     * `lexical/Aliases.kt`'s `createAliasExpander` to build its in-memory vocabulary snapshot from,
+     * mirroring `MultiMedicalStore.listAliases()` (packages/storage/src/multi-medical-store.ts). */
+    fun listAliases(): List<AliasRecord>
 
     fun sectionsForDocument(documentId: String): List<SectionRow>
 
