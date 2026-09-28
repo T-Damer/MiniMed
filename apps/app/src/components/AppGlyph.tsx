@@ -17,6 +17,7 @@ import atBold from '@phosphor-icons/core/assets/bold/at-bold.svg?raw';
 import binaryBold from '@phosphor-icons/core/assets/bold/binary-bold.svg?raw';
 import binocularsBold from '@phosphor-icons/core/assets/bold/binoculars-bold.svg?raw';
 import bookOpenBold from '@phosphor-icons/core/assets/bold/book-open-bold.svg?raw';
+import bookmarkSimpleBold from '@phosphor-icons/core/assets/bold/bookmark-simple-bold.svg?raw';
 import booksBold from '@phosphor-icons/core/assets/bold/books-bold.svg?raw';
 import brainBold from '@phosphor-icons/core/assets/bold/brain-bold.svg?raw';
 import browsersBold from '@phosphor-icons/core/assets/bold/browsers-bold.svg?raw';
@@ -103,6 +104,7 @@ import usersBold from '@phosphor-icons/core/assets/bold/users-bold.svg?raw';
 import vibrateBold from '@phosphor-icons/core/assets/bold/vibrate-bold.svg?raw';
 import xBold from '@phosphor-icons/core/assets/bold/x-bold.svg?raw';
 import arrowsClockwiseFill from '@phosphor-icons/core/assets/fill/arrows-clockwise-fill.svg?raw';
+import bookmarkSimpleFill from '@phosphor-icons/core/assets/fill/bookmark-simple-fill.svg?raw';
 import brainFill from '@phosphor-icons/core/assets/fill/brain-fill.svg?raw';
 import downloadSimpleFill from '@phosphor-icons/core/assets/fill/download-simple-fill.svg?raw';
 import gearSixFill from '@phosphor-icons/core/assets/fill/gear-six-fill.svg?raw';
@@ -135,6 +137,8 @@ export type AppGlyphName =
   | 'arrow-counter-clockwise'
   | 'arrow-up'
   | 'book-open'
+  | 'bookmark'
+  | 'bookmark-fill'
   | 'caret-down'
   | 'caret-left'
   | 'caret-right'
@@ -261,6 +265,8 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'arrow-counter-clockwise': svgBody(arrowCounterClockwiseBold),
   'arrow-up': svgBody(arrowUpBold),
   'book-open': svgBody(bookOpenBold),
+  bookmark: svgBody(bookmarkSimpleBold),
+  'bookmark-fill': svgBody(bookmarkSimpleFill),
   'caret-down': svgBody(caretDownBold),
   'caret-left': svgBody(caretLeftBold),
   'caret-right': svgBody(caretRightBold),

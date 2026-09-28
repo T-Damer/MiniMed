@@ -1,0 +1,42 @@
+/* Save button on documents, medication cards and notes. */
+.item-bookmark {
+  display: inline-grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+}
+
+.item-bookmark--saved {
+  border-color: var(--theme-accent);
+  color: var(--theme-accent);
+}
+
+.item-bookmark:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.item-bookmark__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.item-bookmark__last {
+  flex: none;
+  color: var(--theme-accent);
+  font-size: var(--type-micro);
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .item-bookmark:hover {
+    background: var(--theme-accent-soft);
+  }
+}

@@ -24,6 +24,7 @@ import { DocumentCrumbs } from '@/components/DocumentCrumbs';
 import { DocumentText, documentTextSearchText } from '@/components/DocumentText';
 import { QueryHighlightedText } from '@/components/HighlightedText';
 import { SegmentedControl } from '@/components/SegmentedControl';
+import { ItemBookmarkMenu } from '@/features/collections/ItemBookmarkMenu';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import {
   displayDocumentSubtitle,
@@ -68,8 +69,10 @@ import {
 } from '@/features/medications/medication-record';
 import { formatFullTextDownloadLabel, formatModuleBytes } from '@/features/modules/module-display';
 import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
+import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 import { buildDocumentSectionLink, openDocumentOverlay } from '@/state/document-navigation';
 import type { DocumentTrail } from '@/state/document-trail';
+import type { ItemRefInput } from '@/state/item-collections';
 
 interface OfficialDocumentReaderProps {
   readonly core?: MedicalCore | undefined;
@@ -391,6 +394,23 @@ function ClinicalMedicationLinksPanel(props: {
 }
 
 export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.Element {
+  /** A medication card saves the product (its stable card id), other pages save themselves. */
+  const bookmarkItem = (document: MedicalDocument): ItemRefInput => {
+    const product = props.medicationProduct;
+    return product
+      ? {
+          kind: 'document',
+          id: props.medicationOpenedDocumentId ?? document.id,
+          title: product.tradeName,
+          documentKind: 'medication',
+        }
+      : {
+          kind: 'document',
+          id: document.id,
+          title: displayDocumentTitle(document),
+          documentKind: searchResultDocumentKind(document),
+        };
+  };
   const [findState, setFindState] = createSignal<DocumentFindResultState>(emptyFindState);
   const [findOpen, setFindOpen] = createSignal(false);
   const [fullTextPending, setFullTextPending] = createSignal(false);
@@ -941,6 +961,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     )}
                   </Show>
                   <div class="document-overlay-paper__actions">
+                    <ItemBookmarkMenu item={bookmarkItem(documentValue())} />
                     <Show when={interactiveTool()}>
                       {(tool) => (
                         <Button

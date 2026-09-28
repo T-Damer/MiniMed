@@ -13,7 +13,6 @@ import {
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
-
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs';
 import {
   AppContextMenu,
@@ -30,6 +29,7 @@ import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { Heading } from '@/components/Text';
 import { TextField as UiTextField } from '@/components/TextField';
+import { ItemBookmarkMenu } from '@/features/collections/ItemBookmarkMenu';
 import { ConversationInbox } from '@/features/conversations/ConversationInbox';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
@@ -1728,6 +1728,17 @@ export function NotesView(props: {
                           >
                             <AppGlyph name="share-fat" class="notes-route-heading__previous-icon" />
                           </button>
+                          <ItemBookmarkMenu
+                            item={{
+                              kind: 'note',
+                              id: currentNote().id,
+                              parentId: card().id,
+                              title:
+                                currentNote().title ||
+                                currentNote().text.slice(0, 80) ||
+                                'Без названия',
+                            }}
+                          />
                           <button
                             class="notes-route-heading__delete patient-record-delete patient-card-icon-action danger"
                             type="button"
