@@ -71,7 +71,7 @@ jobs:
             --pattern minimed-ecg-open-digitizer-2026.1-q8.zip \
             --pattern minimed-ecg-numeric-adult-2026.2.zip \
             --dir apps/app/public/content/releases/models-preview-1 --clobber
-          # Data prereleases (terminology, draft definition reference) advertised by the module
+          # Data prereleases (terminology, draft definition reference, krasotaimedicina) advertised by the module
           # catalogs. Release hosts send no CORS headers, so the app reads these Pages copies.
           bun scripts/list-mirrored-release-assets.ts > "$RUNNER_TEMP/mirrored-assets.tsv"
           while IFS=$'\t' read -r tag file bytes digest; do

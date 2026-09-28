@@ -41,6 +41,29 @@ Detailed history, moved verbatim on 2026-09-24:
   grown past the released 3,324). `core.db` not yet rebuilt/published; see
   `research/core-build-reconstruction-2026-09-27.md` (pipeline, profiling, gated pilot removal).
 
+## Krasota i Meditsina disease module — built 2026-09-28, not yet released
+
+- User decision (2026-09-28, see `REFERENCE_SOURCE_POLICY.md`): the krasotaimedicina.ru snapshot
+  is distributed as an experimental module despite unresolved source rights; documents keep
+  `rightsStatus: unresolved`, `crawlPublicationState: blocked`, source URL, `fetchedAt`, raw
+  checksum and `requiresReview: true`. Not clinically reviewed.
+- `bun run content:module:krasotaimedicina` prepares the unchanged 2026-09-04 crawl (20 926 records,
+  crawl finished; 6 068 articles), builds a lexical pack and packages it
+  (`medbase package-krasotaimedicina`): 6 068 documents, 58 056 sections, 73 148 chunks,
+  629 829 632 bytes installed, 142 650 749-byte gzip, text only. Module id
+  `minimed.reference.krasotaimedicina.ru` 2026.9.28, `releaseState: preview`, `minAppVersion` 0.6.44.
+  The released core's pointers still name the unpublished `minimed.mkb.ru` (kept for the RLS MKB
+  pack); from 0.6.44 `selectModuleForPointer` falls back to any released module whose verified index
+  lists the exact target. The packager checks every krasotaimedicina pointer against the module's
+  membership: 6 068/6 068 targets present with identical document version ids and definition
+  anchors. The 9 836 RLS MKB pointers remain unresolved (not in this pack).
+- Distribution: data prerelease `reference-krasotaimedicina-2026.9.28`, mirrored to Pages by the
+  existing `MIRRORED_DATA_RELEASE_TAG` list (about 820 MB of the 1 GB Pages site). The generated
+  catalog entry adds 3.1 MB to `catalog.preview.json`.
+- Open risks: the one index is 143 MB gzip / 630 MB SQLite (the contract allows one index per
+  module, so no split); installation holds both in memory before the OPFS copy, which is
+  unqualified on Android. Article images still point to the source site.
+
 ## Knowledge graph («Карта связей») — 2026-09-27
 
 - Experimental module (follows the experimental setting like «Словарь»). Opens on at most 300
@@ -490,9 +513,10 @@ released), the native Android transcriber, and the Android high-refresh display 
 
 The private, resumable `krasotaimedicina.ru` discovery crawl uses Crawlee Python with a persistent
 request queue, robots enforcement, bounded same-host paths, raw HTML/image checksums, and per-page
-manifests. A preparer/build path exists for repeatable snapshots, but the crawl is still running. Raw
-and built output remains ignored private data with `rightsStatus: unresolved` and
-`publicationState: blocked`; it is not a publishable MiniMed content pack.
+manifests. The crawl finished on 2026-09-06 (20 926 pages, 6 failed requests). Raw and built output
+remains ignored private data with `rightsStatus: unresolved`; since the 2026-09-28 user decision the
+disease articles are packaged as the experimental `minimed.reference.krasotaimedicina.ru` module
+described above.
 
 1. Grow the content bank before further retrieval/model work — see [CONTENT_DATA_PLAN.md](CONTENT_DATA_PLAN.md)
    for the full cross-category priority list (regulatory acts, pediatric norms/calculators, assessments,

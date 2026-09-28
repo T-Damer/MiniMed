@@ -72,6 +72,25 @@ recommendations and Krasota i Meditsina. These are candidates, not a claim of co
 current endorsement or blanket redistribution clearance. Clinic/polyclinic sites are now
 explicit candidates too. New acquisition should close named definition gaps, not grow article counts.
 
+## User decision 2026-09-28: Krasota i Meditsina disease articles
+
+The project owner decided, for this personal project, to distribute the 2026-09-04
+krasotaimedicina.ru disease snapshot (6 068 articles: 5 419 diseases, 649 syndromes) as a
+downloadable experimental module so the core's catalog pointers open full text. This is an owner
+publication decision, not a rights clearance or a clinical review:
+
+- the crawl's own classification is kept: every document still says `rightsStatus: unresolved`,
+  the crawler's `publicationState: blocked` is preserved as `crawlPublicationState`, and the new
+  `publicationState: experimental-preview` carries `publicationDecision` (date, owner, basis);
+- raw crawl files are unchanged; each document keeps its source URL, crawl time (`fetchedAt`),
+  raw path and SHA-256 checksum, and every chunk its source selector span;
+- content stays `requiresReview: true` and the module is a `preview` (experimental) catalog entry;
+  it is reference prose from a medical website, never presented as clinical recommendations;
+- the module is text-only; the separately built image pack is not distributed.
+
+The module is `minimed.reference.krasotaimedicina.ru`. The decision covers this source only: the RLS
+MKB cards behind the `minimed.mkb.ru` pointer id are not included and stay unpublished.
+
 ## Uploaded sources belong to the same knowledge-base pipeline
 
 The user does not want a separate personal ZIP/viewer workflow as the endpoint. Prepared material

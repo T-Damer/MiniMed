@@ -34,7 +34,8 @@ from .knowledge import (
     load_workspace_documents,
 )
 from .krasotaimedicina_crawl import DEFAULT_SEEDS, crawl_krasotaimedicina
-from .krasotaimedicina_prepare import prepare_krasotaimedicina
+from .krasotaimedicina_distribution import package_krasotaimedicina_module
+from .krasotaimedicina_prepare import PublicationDecision, prepare_krasotaimedicina
 from .mkb_reference_upgrade import upgrade_mkb_reference_database, write_upgrade_report
 from .pdf_import import import_pdf
 from .rls_mkb import RLS_MKB_DETAIL_URL, RLS_MKB_INDEX_URL, scrape_rls_mkb
@@ -258,10 +259,52 @@ def crawl_krasotaimedicina_command(
 def prepare_krasotaimedicina_command(
     raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, file_okay=False)],
     output: Annotated[Path, typer.Option("--output")],
+    publication_decision_date: Annotated[
+        str | None,
+        typer.Option(
+            "--publication-decision-date",
+            help="Date (YYYY-MM-DD) of the owner's decision to distribute as experimental-preview.",
+        ),
+    ] = None,
+    publication_decision_basis: Annotated[
+        str | None, typer.Option("--publication-decision-basis")
+    ] = None,
 ) -> None:
     """Prepare checksummed disease articles from private crawl staging."""
-    report = prepare_krasotaimedicina(raw_input, output)
+    if (publication_decision_date is None) != (publication_decision_basis is None):
+        raise typer.BadParameter("Supply both the publication decision date and its basis.")
+    publication = (
+        PublicationDecision(
+            decided_at=publication_decision_date,
+            decided_by="project owner",
+            basis=publication_decision_basis,
+        )
+        if publication_decision_date is not None and publication_decision_basis is not None
+        else None
+    )
+    report = prepare_krasotaimedicina(raw_input, output, publication)
     typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+
+
+@app.command("package-krasotaimedicina")
+def package_krasotaimedicina_command(
+    database: Annotated[Path, typer.Option("--database", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+    core_database: Annotated[
+        Path | None, typer.Option("--core-database", exists=True, dir_okay=False)
+    ] = None,
+) -> None:
+    """Gzip the built pack, verify core pointer membership and write its catalog entry."""
+    report = package_krasotaimedicina_module(
+        database,
+        output,
+        version=version,
+        min_app_version=min_app_version,
+        core_database=core_database,
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
 
 
 @app.command("sync")

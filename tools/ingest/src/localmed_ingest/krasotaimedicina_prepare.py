@@ -29,6 +29,31 @@ class KrasotaimedicinaPrepareReport:
     output: str
 
 
+@dataclass(frozen=True)
+class PublicationDecision:
+    """An explicit owner decision to distribute the snapshot despite unresolved source rights.
+
+    It never changes the crawl's own classification: `rightsStatus` stays as recorded and the
+    crawler's `publicationState` is kept as `crawlPublicationState`.
+    """
+
+    decided_at: str
+    decided_by: str
+    basis: str
+    state: str = "experimental-preview"
+
+    def __post_init__(self) -> None:
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", self.decided_at):
+            raise ValueError("Publication decision date must be YYYY-MM-DD.")
+        if not self.decided_by.strip() or not self.basis.strip():
+            raise ValueError("Publication decision needs its author and basis.")
+        if self.state != "experimental-preview":
+            raise ValueError("Only an experimental-preview publication decision is supported.")
+
+    def metadata(self) -> dict[str, str]:
+        return {"decidedAt": self.decided_at, "decidedBy": self.decided_by, "basis": self.basis}
+
+
 def _text(node: Tag) -> str:
     return _SPACE.sub(" ", node.get_text(" ", strip=True)).strip()
 
@@ -147,7 +172,9 @@ def _record(path: Path) -> dict[str, object]:
     return record
 
 
-def _document_markdown(record: dict[str, object], raw_root: Path) -> tuple[str, bool] | None:
+def _document_markdown(
+    record: dict[str, object], raw_root: Path, publication: PublicationDecision | None = None
+) -> tuple[str, bool] | None:
     if record["entityType"] != "disease":
         return None
     raw_path = raw_root / str(record["rawPath"])
@@ -171,6 +198,16 @@ def _document_markdown(record: dict[str, object], raw_root: Path) -> tuple[str, 
     )
     url_digest = hashlib.sha256(str(record["url"]).encode()).hexdigest()[:16]
     images = record.get("images") if isinstance(record.get("images"), list) else []
+    crawl_publication_state = record.get("publicationState", "blocked")
+    publication_metadata: dict[str, object] = (
+        {"publicationState": crawl_publication_state}
+        if publication is None
+        else {
+            "publicationState": publication.state,
+            "crawlPublicationState": crawl_publication_state,
+            "publicationDecision": publication.metadata(),
+        }
+    )
     metadata = {
         "id": f"krasotaimedicina.disease.{url_digest}",
         "title": title,
@@ -189,10 +226,11 @@ def _document_markdown(record: dict[str, object], raw_root: Path) -> tuple[str, 
             "entityType": "syndrome" if syndrome else "disease",
             "icd10Codes": codes,
             "rawPath": record["rawPath"],
+            "fetchedAt": record["fetchedAt"],
             "images": images,
             "requiresReview": True,
             "rightsStatus": record.get("rightsStatus", "unresolved"),
-            "publicationState": record.get("publicationState", "blocked"),
+            **publication_metadata,
         },
     }
     front_matter = yaml.safe_dump(
@@ -201,7 +239,9 @@ def _document_markdown(record: dict[str, object], raw_root: Path) -> tuple[str, 
     return f"---\n{front_matter}\n---\n\n{body}\n", syndrome
 
 
-def prepare_krasotaimedicina(raw_root: Path, output: Path) -> KrasotaimedicinaPrepareReport:
+def prepare_krasotaimedicina(
+    raw_root: Path, output: Path, publication: PublicationDecision | None = None
+) -> KrasotaimedicinaPrepareReport:
     record_paths = sorted((raw_root / "records").glob("*.json"))
     if not record_paths:
         raise ValueError(f"No crawl records found under {raw_root}")
@@ -213,7 +253,7 @@ def prepare_krasotaimedicina(raw_root: Path, output: Path) -> KrasotaimedicinaPr
     digest = hashlib.sha256()
     for path in record_paths:
         record = _record(path)
-        result = _document_markdown(record, raw_root)
+        result = _document_markdown(record, raw_root, publication)
         if result is None:
             skipped += 1
             continue
