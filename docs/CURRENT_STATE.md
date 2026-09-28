@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 28 September 2026
-> Released version: `0.6.42` (public prerelease toward `1.0`)
+> Released version: `0.6.43` (public prerelease toward `1.0`)
 > Next planned step: native migration (see the release note below).
 
 This file records what exists now, its trust boundaries and the ordered next work. Keep it short:
@@ -60,6 +60,17 @@ Detailed history, moved verbatim on 2026-09-24:
   progress or the error with «Повторить»; tools that need no core work at once, «Словарь» waits
   (`search-core-status.ts`, `SearchCoreStatusNote`). E2E boot-screen, core-reload, startup-shell and
   unified-downloads pass (the last two had failed since 0.6.40).
+
+## Release 0.6.43 — 2026-09-28
+
+- **Persistent APK signing.** Up to 0.6.42 every release was signed with an ephemeral CI debug key, so
+  no release could be installed over another. From 0.6.43 the release workflow signs with one PKCS12
+  key from repository secrets and fails on any other certificate; see `RELEASES.md` «Android
+  signing». Users of 0.6.42 or older reinstall once.
+- **«Разделы» on the empty home** (`SearchSectionsOverview`, `sections-overview.ts`): six sections
+  with one/few/many worded counts declared in `SEARCH_SECTIONS`.
+- Corpus and packs unchanged; `verify` passes; section-related e2e 59 passed / 1 skipped (serial).
+  The pre-existing `tool-hydration` and `search-section-downloads` failures noted under 0.6.42 remain.
 
 ## Release 0.6.42 — 2026-09-28
 

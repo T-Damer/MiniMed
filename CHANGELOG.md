@@ -4,9 +4,17 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.43] - 2026-09-28
+
 - Android: prerelease APKs are signed with one persistent key, so later releases install over this
   one and keep local data. Releases up to 0.6.42 used a new key each time; installing the next release
   over any of them still requires removing the old app once (export a notes backup first).
+- Search home: with an empty query, «Все источники» shows a «Разделы» list instead of the endless
+  catalog — each section with a worded count («15 903 записи», «771 рекомендация», «3 332
+  действующих вещества»); a row opens that section.
+
+The discovery corpus and packs are unchanged from 0.6.42. Debug-signed engineering prerelease;
+physical-device and clinical qualification remain outstanding.
 
 ## [0.6.42] - 2026-09-28
 

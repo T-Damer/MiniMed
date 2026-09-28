@@ -250,12 +250,9 @@ jobs:
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Changes:
-          - search home: field first, «Все инструменты» plus favourites, history, «?» menu, «Клинический разбор» switch, «Возможность дня»;
-          - the search page stays on screen, field locked, while the core opens or downloads; first run shows only the setup screen;
-          - search quality: duplicate targets collapse, recommendations first for clinical context, less fuzzy-alias noise;
-          - medications open on the short card with a «Кратко ⇄ Инструкция» switch; registration details last;
-          - «Словарь» separates abbreviations and glosses; the knowledge graph no longer overlaps nodes;
-          - experimental mode shows the draft definition reference edition 2026.9.30 (31,488 entries, unreviewed).
+          - signed with a persistent key: from this release on, new APKs install over the previous one and keep local data;
+          - updating from 0.6.42 or older still requires removing the old app once (export a notes backup first);
+          - search home: an empty query shows «Разделы» with worded counts instead of the endless catalog.
 
           Catalog packs are downloaded separately, with their preview/review status preserved.
           The browser application is under /app/. The local/GitHub download switch is DEV-only.
