@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark splash, window and WebView ground: the web app's dark surface, so start-up never
+         flashes the light palette. -->
+    <color name="splashBackground">#2D2721</color>
+</resources>

@@ -11,6 +11,7 @@ import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebView;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.PackageInfoCompat;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
@@ -102,6 +103,10 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
 
         WebView webView = getBridge() == null ? null : getBridge().getWebView();
+        if (webView != null) {
+            // Until the page paints, the WebView shows the splash ground (light or night), not white.
+            webView.setBackgroundColor(ContextCompat.getColor(this, R.color.splashBackground));
+        }
         if (webView != null && shouldClearWebAssetCache()) {
             webView.clearCache(true);
             webView.reload();
