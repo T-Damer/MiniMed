@@ -10,6 +10,7 @@ import {
 } from 'solid-js';
 import { Button } from '@/components/Button';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
+import { notifyWithOpen } from '@/components/notify';
 import { AssessmentCatalogPage } from '@/features/assessments/AssessmentCatalogPage';
 import { AssessmentMissingPage } from '@/features/assessments/AssessmentMissingPage';
 import { AssessmentQuestionnairePage } from '@/features/assessments/AssessmentQuestionnairePage';
@@ -441,10 +442,22 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     await refreshDownloadedTools();
   };
 
+  /** A finished download becomes a notice that opens what was installed. */
+  const announceInstalled = (success: { readonly message: string; readonly open?: string }) => {
+    const open = success.open;
+    if (!open) {
+      setMessage(success.message);
+      return;
+    }
+    setMessage('');
+    notifyWithOpen(success.message, () => {
+      window.location.hash = open;
+    });
+  };
   const installIds = async (
     ids: readonly string[],
     commit: () => AssessmentInstallationState,
-    successMessage: string,
+    success: { readonly message: string; readonly open?: string },
     moduleId?: string,
   ): Promise<void> => {
     setMessage('Скачиваем опросник…');
@@ -452,7 +465,7 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
       await installToolModule(moduleId);
       await preloadAssessmentDefinitions(ids);
       setInstallation(commit());
-      setMessage(successMessage);
+      announceInstalled(success);
     } catch (cause) {
       setMessage(cause instanceof Error ? cause.message : 'Не удалось скачать опросник.');
     }
@@ -468,7 +481,10 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     void installIds(
       [id],
       () => installAssessmentIds([id], assessmentCatalog()),
-      'Опросник скачан на устройство.',
+      {
+        message: 'Опросник скачан на устройство.',
+        ...(entry ? { open: assessmentPath(entry.bankId, entry.slug) } : {}),
+      },
       moduleId,
     );
   };
@@ -494,7 +510,10 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
         const ids = assessmentIdsInSection(sectionId, assessmentCatalog());
         await preloadAssessmentDefinitions(ids);
         setInstallation(installAssessmentSection(sectionId, assessmentCatalog()));
-        setMessage('Раздел опросников скачан на устройство.');
+        announceInstalled({
+          message: 'Раздел опросников скачан на устройство.',
+          ...(section ? { open: sectionPath(section.bankId, sectionId) } : {}),
+        });
       } catch (cause) {
         setMessage(cause instanceof Error ? cause.message : 'Не удалось скачать опросник.');
       }

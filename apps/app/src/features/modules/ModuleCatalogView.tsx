@@ -22,6 +22,7 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { CountBadge } from '@/components/CountBadge';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { NavBackWithReturnTo } from '@/components/NavBackWithReturnTo';
+import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
@@ -48,8 +49,10 @@ import {
 import { ModuleTaskStatus } from '@/features/modules/ModuleTaskStatus';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import {
+  catalogGroupHash,
   catalogSelectionFromLocation,
   lawsRouteForModule,
+  moduleCatalogHash,
   regulatoryModuleForSpecialty,
 } from '@/features/modules/module-catalog-routing';
 import {
@@ -576,6 +579,9 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         } finally {
           setReconnectingModuleId((current) => (current === module.id ? null : current));
         }
+        notifyWithOpen(`Набор «${module.title}» скачан.`, () => {
+          window.location.hash = moduleCatalogHash(module);
+        });
       }
       return completed.state === 'completed';
     } catch (cause) {
@@ -590,6 +596,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   const installModuleGroup = async (
     groupId: string,
     modules: readonly ContentModuleCatalogEntry[],
+    title?: string,
   ): Promise<void> => {
     await withCategoryBusy(groupId, async () => {
       if (modules.length === 0) return;
@@ -603,7 +610,12 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         );
         setTasks(runtime().listTasks());
         setInstalled(runtime().listInstalled());
-        if (result.changed) await connectContentChanges();
+        if (result.changed) {
+          await connectContentChanges();
+          notifyWithOpen(title ? `Раздел «${title}» скачан.` : 'Раздел скачан.', () => {
+            window.location.hash = catalogGroupHash(groupId);
+          });
+        }
       } catch (cause) {
         const message =
           cause instanceof Error ? cause.message : 'Не удалось скачать раздел целиком.';
@@ -621,7 +633,8 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
 
   const installCategory = async (categoryId = recommendationCategory()): Promise<void> => {
     if (!categoryId) return;
-    await installModuleGroup(categoryId, categoryModules(categoryId));
+    const title = catalog().categories.find((category) => category.id === categoryId)?.title;
+    await installModuleGroup(categoryId, categoryModules(categoryId), title);
   };
 
   const installAllAvailable = async (
@@ -716,7 +729,7 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
               disabled={working()}
               onClick={(event) => {
                 event.stopPropagation();
-                void installModuleGroup(groupId, modules());
+                void installModuleGroup(groupId, modules(), title);
               }}
             >
               <Show

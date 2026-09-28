@@ -1,6 +1,7 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Button } from '@/components/Button';
 import { FeatureCard } from '@/components/FeatureCard';
+import { notifyWithOpen } from '@/components/notify';
 import { openCalculator } from '@/features/calculators/calculator-links';
 import { ECG_PHOTO_CALIPER_ID } from '@/features/calculators/calculator-registry';
 import { subscribeEcgModel } from '@/features/calculators/ecg-model';
@@ -63,6 +64,7 @@ export function EcgModelSettings(): JSX.Element {
     setError('');
     try {
       await installEcgPackage(new AbortController().signal, () => undefined);
+      notifyWithOpen('Распознавание ЭКГ скачано.', () => openCalculator(ECG_PHOTO_CALIPER_ID));
     } catch (cause) {
       if (!disposed && !(cause instanceof Error && cause.name === 'AbortError'))
         setError('Не удалось скачать или проверить распознавание ЭКГ.');

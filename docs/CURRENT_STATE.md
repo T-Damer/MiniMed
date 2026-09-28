@@ -83,6 +83,10 @@ Detailed history, moved verbatim on 2026-09-24:
 - Notices about something the user now has (a downloaded example, an added file, a created PDF,
   a recording attached to a patient) carry a link-styled «Открыть» that opens exactly that item
   (`components/notify.ts`); the CT example no longer jumps to «Заметки» on its own.
+- Downloads the user starts by hand end with the same notice: a calculator or its section, a
+  questionnaire or its section, a document set or a whole catalog section, and ECG recognition
+  from Settings; «Открыть» leads to what was installed (`catalogGroupHash`, `moduleCatalogHash`).
+  Background updates and restored downloads stay silent.
 
 ## Release 0.6.43 — 2026-09-28
 

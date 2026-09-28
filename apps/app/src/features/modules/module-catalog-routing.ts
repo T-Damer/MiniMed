@@ -67,3 +67,36 @@ export function regulatoryModuleForSpecialty(
       module.specialties.some((specialty) => normalizeLawsSpecialtySlug(specialty) === normalized),
   );
 }
+
+const CATALOG_ROUTE_ROOT = '#/modules/documents';
+const COLLECTION_GROUPS: ReadonlySet<string> = new Set(['reference', 'regulatory', 'tool']);
+const FIXED_GROUP_HASHES: Readonly<Record<string, string>> = {
+  conditions: `${CATALOG_ROUTE_ROOT}/conditions`,
+  medications: `${CATALOG_ROUTE_ROOT}/medications`,
+  recommendations: `${CATALOG_ROUTE_ROOT}/recommendations`,
+};
+
+/** Where a downloaded catalog section is read: its own page, a collection or a category. */
+export function catalogGroupHash(groupId: string): string {
+  const fixed = FIXED_GROUP_HASHES[groupId];
+  if (fixed) return fixed;
+  const kind = COLLECTION_GROUPS.has(groupId) ? 'collection' : 'category';
+  return `${CATALOG_ROUTE_ROOT}/${kind}/${encodeURIComponent(groupId)}`;
+}
+
+/** Where a single downloaded set is read, following how the catalog groups that kind of set. */
+export function moduleCatalogHash(module: ContentModuleCatalogEntry): string {
+  switch (module.kind) {
+    case 'clinical':
+      return catalogGroupHash(module.collection);
+    case 'medication':
+      return catalogGroupHash('medications');
+    case 'regulatory':
+      return lawsRouteForModule(module) ?? catalogGroupHash('regulatory');
+    case 'reference':
+    case 'tool':
+      return catalogGroupHash(module.kind);
+    default:
+      return CATALOG_ROUTE_ROOT;
+  }
+}

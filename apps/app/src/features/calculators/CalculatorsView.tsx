@@ -18,6 +18,7 @@ import { Card } from '@/components/Card';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { Disclosure } from '@/components/Disclosure';
 import { NavBack } from '@/components/NavBack';
+import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
 import { PatientCaseCombobox } from '@/components/PatientCaseCombobox';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
@@ -1590,7 +1591,12 @@ export function CalculatorsView(): JSX.Element {
         for (const module of modules) await installToolModule(module.id);
         setInstallation(installCalculatorSection(sectionId, calculatorRegistry()));
         const section = CALCULATOR_SECTIONS.find((candidate) => candidate.id === sectionId);
-        notify(`«${section?.title ?? 'Раздел'}» скачан. Инструменты доступны офлайн.`);
+        notifyWithOpen(
+          `«${section?.title ?? 'Раздел'}» скачан. Инструменты доступны офлайн.`,
+          () => {
+            window.location.hash = calculatorSectionPath(sectionId);
+          },
+        );
       } catch (cause) {
         notify(cause instanceof Error ? cause.message : 'Не удалось скачать раздел.');
       }
@@ -1606,7 +1612,9 @@ export function CalculatorsView(): JSX.Element {
         if (!getCalculatorSchema(definition.id))
           throw new Error('Схема инструмента отсутствует в скачанном модуле.');
         setInstallation(installCalculator(definition.id, calculatorRegistry()));
-        notify(`«${definition.title}» скачан. Инструмент доступен офлайн.`);
+        notifyWithOpen(`«${definition.title}» скачан. Инструмент доступен офлайн.`, () =>
+          openCalculator(definition),
+        );
       } catch (cause) {
         notify(cause instanceof Error ? cause.message : 'Не удалось скачать инструмент.');
       }
