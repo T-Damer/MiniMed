@@ -16,9 +16,10 @@ for (const width of [375, 1280]) {
     await expect(page.locator('.unified-catalog__count')).toHaveCount(0);
     await expect(page.locator('.document-library-card').first()).toBeVisible();
     await picker.click();
+    // «Клинический разбор» is a switch beside the picker, not one of the sources.
     await expect(
       page.locator('.search-section-menu__row .search-section-menu__option'),
-    ).toHaveCount(8);
+    ).toHaveCount(7);
     const menuBox = await page.locator('.search-section-menu').boundingBox();
     expect(menuBox).not.toBeNull();
     if (menuBox) expect(menuBox.y + menuBox.height).toBeLessThanOrEqual(height);
@@ -126,7 +127,9 @@ for (const width of [375, 1280]) {
     await expect(page.locator('.user-library-example-card').first()).toBeVisible();
     await page.getByRole('button', { name: 'Ваши файлы', exact: true }).click();
     await page.getByRole('button', { name: 'Открыть папку «Книги»', exact: true }).click();
-    await expect(page.locator('.user-library-example-card').first()).toBeVisible();
+    // The EPUB example was retired; only studies keep a CT/MRI example.
+    await expect(page.getByRole('navigation', { name: 'Папки библиотеки' })).toContainText('Книги');
+    await expect(page.locator('.user-library-example-card')).toHaveCount(0);
     await page.getByRole('button', { name: 'Ваши файлы', exact: true }).click();
     await expect(page.locator('.user-library-folder-card__lock')).toHaveCount(0);
     await page.getByRole('button', { name: 'Открыть папку «Пациенты»', exact: true }).click();

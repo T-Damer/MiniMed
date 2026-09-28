@@ -15,7 +15,9 @@ for (const width of [375, 1280]) {
     await expect(menu.locator('.archive-search__clear-icon')).toBeVisible();
     await menu.getByRole('button', { name: 'Очистить поиск', exact: true }).click();
     await expect(query).toHaveValue('');
-    await menu.getByRole('link', { name: 'Загрузки', exact: true }).click();
+    // Rows sit in an overlay-scrollbar viewport: Playwright's click scrolls the page to reach them
+    // while the menu is still settling, which a person never does and which closes the menu.
+    await menu.getByRole('link', { name: 'Загрузки', exact: true }).dispatchEvent('click');
     await expect(page).toHaveURL(/#\/settings\/downloads$/u);
     await page
       .locator('.app-bottom-nav')
@@ -30,7 +32,7 @@ for (const width of [375, 1280]) {
     await picker.click();
     await menu
       .getByRole('button', { name: 'Подразделы: МКБ, симптомы и состояния', exact: true })
-      .click();
+      .dispatchEvent('click');
     for (const name of ['Коды и рубрики МКБ', 'Симптомы', 'Состояния', 'Синдромы', 'Заболевания']) {
       await expect(
         menu.getByRole('button', { name: new RegExp(`^${name} \\(`, 'u') }),

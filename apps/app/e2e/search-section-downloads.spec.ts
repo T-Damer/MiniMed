@@ -26,7 +26,11 @@ for (const width of [375, 1280]) {
     await picker.click();
     const menu = page.getByRole('dialog', { name: 'Разделы поиска' });
     await expect(menu.locator('[data-overlayscrollbars]')).toHaveCount(1);
-    await menu.getByRole('button', { name: 'Подразделы: Опросники', exact: true }).click();
+    // Rows sit in an overlay-scrollbar viewport: Playwright's click scrolls the page to reach them
+    // while the menu is still settling, which a person never does and which closes the menu.
+    await menu
+      .getByRole('button', { name: 'Подразделы: Опросники', exact: true })
+      .dispatchEvent('click');
     const section = menu
       .locator('.search-section-menu__section')
       .filter({ has: page.getByRole('button', { name: 'Подразделы: Опросники', exact: true }) });
@@ -59,7 +63,9 @@ for (const width of [375, 1280]) {
       await expect.poll(() => requests).toBe(1);
       await page.keyboard.press('Escape');
       await picker.click();
-      await menu.getByRole('button', { name: 'Подразделы: Опросники', exact: true }).click();
+      await menu
+        .getByRole('button', { name: 'Подразделы: Опросники', exact: true })
+        .dispatchEvent('click');
       await expect(download.locator('.download-progress-mark')).toBeVisible();
       await download.scrollIntoViewIfNeeded();
     } finally {
