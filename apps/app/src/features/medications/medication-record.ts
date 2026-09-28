@@ -147,6 +147,22 @@ function normalizedIdentity(value: string | null): string {
   return (value ?? '').toLocaleLowerCase('ru-RU').replaceAll('ё', 'е').replace(/\s+/gu, ' ').trim();
 }
 
+/**
+ * The product card's heading: trade name and INN, each once. Some sources fill both fields with
+ * the same text, and «Ибупрофен · Ибупрофен» only repeats itself.
+ */
+export function medicationProductHeading(
+  product: Pick<MedicationProduct, 'tradeName' | 'inn'>,
+): string {
+  const parts: string[] = [];
+  for (const part of [product.tradeName, product.inn]) {
+    const text = part.trim();
+    if (text && !parts.some((kept) => normalizedIdentity(kept) === normalizedIdentity(text)))
+      parts.push(text);
+  }
+  return parts.join(' · ');
+}
+
 export function safePackagingImageReference(value: unknown): string | null {
   const reference = stringValue(value);
   if (

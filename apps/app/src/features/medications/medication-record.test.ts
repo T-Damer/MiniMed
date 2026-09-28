@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { documentFromSummary, processMedicationSummariesInBatches } from './medication-loading';
 import {
   composeMedicationProducts,
+  medicationProductHeading,
   medicationReadingChoices,
   mergeAllmedSupplementalText,
   parseAllmedMedicationProduct,
@@ -707,5 +708,20 @@ describe('readableMedicationDocumentId', () => {
     })[0];
     if (!product) throw new Error('expected ESKLP product');
     expect(readableMedicationDocumentId(product)).toBe('esklp.mnn.paracetamol');
+  });
+});
+
+describe('medicationProductHeading', () => {
+  it('names the trade name and INN once each', () => {
+    expect(medicationProductHeading({ tradeName: 'Нурофен', inn: 'Ибупрофен' })).toBe(
+      'Нурофен · Ибупрофен',
+    );
+    expect(
+      medicationProductHeading({
+        tradeName: 'Ибупрофен 100 мг/5 мл',
+        inn: ' ибупрофен  100 мг/5 мл ',
+      }),
+    ).toBe('Ибупрофен 100 мг/5 мл');
+    expect(medicationProductHeading({ tradeName: 'Ибупрофен', inn: '' })).toBe('Ибупрофен');
   });
 });

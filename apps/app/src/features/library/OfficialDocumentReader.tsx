@@ -68,6 +68,7 @@ import {
 import {
   type MedicationProduct,
   type MedicationReadingMode,
+  medicationProductHeading,
   medicationReadingChoices,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
@@ -299,9 +300,7 @@ function MedicationProductPanel(props: {
 
   return (
     <section class="document-medication-product" aria-label="Карточка препарата">
-      <h2 class="document-medication-product__title">
-        {props.product.tradeName} · {props.product.inn}
-      </h2>
+      <h2 class="document-medication-product__title">{medicationProductHeading(props.product)}</h2>
       <div class="document-medication-product__reading">
         <SegmentedControl
           label="Версия текста"
