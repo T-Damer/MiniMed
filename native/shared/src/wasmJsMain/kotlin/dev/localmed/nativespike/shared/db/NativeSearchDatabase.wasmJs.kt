@@ -5,6 +5,7 @@ import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ChunkHit
 import dev.localmed.nativespike.shared.model.DocumentKind
 import dev.localmed.nativespike.shared.model.ExactSubjectHitText
+import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SectionRow
 
@@ -46,6 +47,10 @@ actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
     actual fun searchBranch(ftsQuery: String, limit: Int): List<BranchHit> = emptyList()
 
     actual fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText> = emptyList()
+
+    actual fun hydrateHits(chunkIds: List<String>): List<HydratedHit> = emptyList()
+
+    actual fun allDocumentIds(): List<String> = emptyList()
 
     actual fun sectionsForDocument(documentId: String): List<SectionRow> = SAMPLE_SECTIONS
 

@@ -4,6 +4,7 @@ import dev.localmed.nativespike.shared.model.AliasRecord
 import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ChunkHit
 import dev.localmed.nativespike.shared.model.ExactSubjectHitText
+import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SectionRow
 
@@ -51,4 +52,20 @@ expect class NativeSearchDatabase(dbFilePath: String) {
 
     /** Mirrors the fields `hitsContainExactSubject` (create-medical-core.ts) reads off a hit. */
     fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText>
+
+    /**
+     * Stage 2 sub-stage D's hydration phase: mirrors the second (chunk/section/document) JOIN
+     * `SqliteMedicalStore.search()`/`CapacitorMedicalStore.search()` run after their bm25-ranked
+     * rowid window, PLUS the specific document/chunk metadata fields the fusion/grouping/kind
+     * pipeline reads — extracted with SQL `json_extract`/`json_each`, not a Kotlin JSON parser (this
+     * module has no JSON library in `commonMain`; adding one for a handful of scalar/array fields
+     * was worse than letting SQLite do it, which it already can). `rank` is not set here — the
+     * caller fills it in from the `BranchHit` this chunk id came from.
+     */
+    fun hydrateHits(chunkIds: List<String>): List<HydratedHit>
+
+    /** Every document id in the corpus — mirrors `QueryDocumentIndex.availableIds`'s source data
+     * (`document-siblings.ts`'s `isSupersededSummaryDocument` needs the full id set, not just the
+     * ids already present in a query's own results, to know whether a `.full` sibling exists). */
+    fun allDocumentIds(): List<String>
 }

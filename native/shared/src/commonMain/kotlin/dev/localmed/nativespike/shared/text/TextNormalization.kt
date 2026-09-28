@@ -20,9 +20,12 @@ package dev.localmed.nativespike.shared.text
  *    arbitrary future input.
  *  - `normalizeSurfaceTextWithOffsets` (only needed for downstream highlight-position mapping, not
  *    for query normalization or alias matching)
- *  - `searchSubjectText` (navigation-preamble stripping, not used by lookup search)
  *  - the multi-branch query planner with alias-branch corroboration/dilution rules
  *    (`analysis.ts`, ~2200 lines) — stage 2 sub-stage B
+ *
+ * `searchSubjectText` (navigation-preamble stripping) IS ported below (stage 2 sub-stage D) — the
+ * fusion/grouping/ranking pipeline (`lexical/Fusion.kt`, `lexical/QueryGroupRanking.kt`) uses it to
+ * find a query's "subject" for exact-title/navigation-alias matching.
  *  - clinical intent detection (diagnosis vs. drug vs. regulatory query), medication suffix
  *    handling, definition-question detection, typo-correction.ts — explicitly out of scope for
  *    stage 2 (see docs/CURRENT_STATE.md)
@@ -236,4 +239,64 @@ fun isCloseToken(left: String, right: String): Boolean {
     if (left.length < MIN_FUZZY_TOKEN_LENGTH || right.length < MIN_FUZZY_TOKEN_LENGTH) return false
     val maxDistance = if (maxOf(left.length, right.length) >= LONG_FUZZY_TOKEN_LENGTH) 2 else 1
     return levenshteinDistanceBounded(left, right, maxDistance) <= maxDistance
+}
+
+// searchSubjectText's two TS regexes are both anchored at `^` and match one of a small, fixed set
+// of literal Russian navigation phrases — enumerated here as plain prefix strings (no Regex; same
+// Kotlin/Native Cyrillic-character-class caution as the rest of this file) rather than a general
+// pattern matcher, since that is exactly what the TS alternation is.
+private val SUBJECT_PREFIX_GROUP_A = listOf("описание болезни ", "описание заболевания ")
+private val SUBJECT_PREFIX_GROUP_B = listOf(
+    "документы по заболеванию ", "документы о заболевании ", "документы по болезни ",
+    "материалы по заболеванию ", "материалы о заболевании ", "материалы по болезни ",
+    "информация по заболеванию ", "информация о заболевании ", "информация по болезни ",
+)
+private val SUBJECT_PREFIX_VERBS = listOf("", "найти ", "покажи ", "показать ")
+private val SUBJECT_PREFIX_VERB_NOUNS = listOf(
+    "найти документы", "найти материалы", "покажи документы", "покажи материалы",
+    "показать документы", "показать материалы",
+)
+
+/** Mirrors `\s*:?\s+` right after a matched verb+noun prefix: optional whitespace, optional colon,
+ * then MANDATORY whitespace. Returns the index just past it, or null if it doesn't match there. */
+private fun trailingColonAndWhitespace(text: String, start: Int): Int? {
+    var i = start
+    val n = text.length
+    while (i < n && text[i].isWhitespace()) i += 1
+    if (i < n && text[i] == ':') i += 1
+    val afterColon = i
+    while (i < n && text[i].isWhitespace()) i += 1
+    return if (i > afterColon) i else null
+}
+
+/** Mirrors `searchSubjectText` (normalize.ts): strips a navigation preamble, not words inside a
+ * disease name or clinical narrative. */
+fun searchSubjectText(value: String): String {
+    val normalized = normalizeSurfaceText(value)
+    var subject = normalized
+    outer@ for (verb in SUBJECT_PREFIX_VERBS) {
+        for (rest in SUBJECT_PREFIX_GROUP_A) {
+            val prefix = verb + rest
+            if (subject.startsWith(prefix)) {
+                subject = subject.substring(prefix.length)
+                break@outer
+            }
+        }
+        for (rest in SUBJECT_PREFIX_GROUP_B) {
+            val prefix = verb + rest
+            if (subject.startsWith(prefix)) {
+                subject = subject.substring(prefix.length)
+                break@outer
+            }
+        }
+    }
+    for (verbNoun in SUBJECT_PREFIX_VERB_NOUNS) {
+        if (subject.startsWith(verbNoun)) {
+            val end = trailingColonAndWhitespace(subject, verbNoun.length)
+            if (end != null) subject = subject.substring(end)
+            break
+        }
+    }
+    val trimmed = subject.trim()
+    return trimmed.ifEmpty { normalized }
 }

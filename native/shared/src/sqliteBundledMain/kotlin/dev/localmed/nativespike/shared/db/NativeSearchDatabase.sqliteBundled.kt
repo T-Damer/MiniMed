@@ -8,6 +8,7 @@ import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ChunkHit
 import dev.localmed.nativespike.shared.model.DocumentKind
 import dev.localmed.nativespike.shared.model.ExactSubjectHitText
+import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SectionRow
 import kotlin.time.TimeSource
@@ -191,6 +192,87 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
         }
     }
 
+    actual fun hydrateHits(chunkIds: List<String>): List<HydratedHit> {
+        if (chunkIds.isEmpty()) return emptyList()
+        val placeholders = chunkIds.joinToString(",") { "?" }
+        // char(31) (ASCII unit separator) joins array-valued metadata fields so Kotlin can split
+        // them back into a List<String> without a JSON parser — see the expect fun's doc. Safe as a
+        // separator: it cannot appear in any of these string values (document titles, alias names,
+        // MeSH ids), unlike a comma or pipe.
+        val sql = """
+            SELECT
+                c.id AS chunk_id, c.document_version_id, c.section_id, c.original_text,
+                c.anchor AS chunk_anchor,
+                s.title AS section_title, s.section_type,
+                (SELECT group_concat(value, char(31)) FROM json_each(s.path_json)) AS section_path,
+                (SELECT group_concat(value, char(31)) FROM json_each(c.metadata_json, '${'$'}.terminologyConceptIds'))
+                    AS terminology_concept_ids,
+                d.id AS document_id, d.title AS document_title, d.short_title, d.source_type,
+                json_extract(d.metadata_json, '${'$'}.catalogFamily') AS catalog_family,
+                json_extract(d.metadata_json, '${'$'}.entityType') AS entity_type,
+                json_extract(d.metadata_json, '${'$'}.targetDocumentId') AS target_document_id,
+                json_extract(d.metadata_json, '${'$'}.contentMode') AS content_mode,
+                json_extract(d.metadata_json, '${'$'}.notLegalAdvice') AS not_legal_advice,
+                json_extract(d.metadata_json, '${'$'}.interactiveAssessmentId') AS interactive_assessment_id,
+                json_extract(d.metadata_json, '${'$'}.calculationRequired') AS calculation_required,
+                json_extract(d.metadata_json, '${'$'}.interactiveCalculatorId') AS interactive_calculator_id,
+                json_extract(d.metadata_json, '${'$'}.conceptId') AS concept_id,
+                (SELECT group_concat(value, char(31)) FROM json_each(d.metadata_json, '${'$'}.navigationAliases'))
+                    AS navigation_aliases,
+                (SELECT group_concat(value, char(31)) FROM json_each(d.metadata_json, '${'$'}.ageGroups'))
+                    AS age_groups
+            FROM chunks c
+            JOIN sections s ON s.id = c.section_id
+            JOIN document_versions dv ON dv.id = c.document_version_id
+            JOIN documents d ON d.id = dv.document_id
+            WHERE c.id IN ($placeholders)
+        """.trimIndent()
+        return requireConnection().prepare(sql).use { statement ->
+            chunkIds.forEachIndexed { index, id -> statement.bindText(index + 1, id) }
+            val results = mutableListOf<HydratedHit>()
+            while (statement.step()) {
+                results.add(
+                    HydratedHit(
+                        chunkId = statement.getText(0),
+                        documentVersionId = statement.getText(1),
+                        sectionId = statement.getText(2),
+                        originalText = statement.getText(3),
+                        anchor = statement.getText(4),
+                        sectionTitle = statement.getText(5),
+                        sectionType = statement.textOrNull(6),
+                        sectionPath = statement.splitList(7),
+                        terminologyConceptIds = statement.splitList(8),
+                        documentId = statement.getText(9),
+                        documentTitle = statement.getText(10),
+                        documentShortTitle = statement.textOrNull(11),
+                        sourceType = statement.getText(12),
+                        catalogFamily = statement.textOrNull(13),
+                        entityType = statement.textOrNull(14),
+                        targetDocumentId = statement.textOrNull(15),
+                        contentMode = statement.textOrNull(16),
+                        notLegalAdvice = statement.boolOrFalse(17),
+                        interactiveAssessmentId = statement.textOrNull(18),
+                        calculationRequired = statement.boolOrFalse(19),
+                        interactiveCalculatorId = statement.textOrNull(20),
+                        conceptId = statement.textOrNull(21),
+                        navigationAliases = statement.splitList(22),
+                        ageGroups = statement.splitList(23),
+                        rank = 0.0,
+                    ),
+                )
+            }
+            results
+        }
+    }
+
+    actual fun allDocumentIds(): List<String> {
+        return requireConnection().prepare("SELECT id FROM documents").use { statement ->
+            val results = mutableListOf<String>()
+            while (statement.step()) results.add(statement.getText(0))
+            results
+        }
+    }
+
     actual fun sectionsForDocument(documentId: String): List<SectionRow> {
         val sql = """
             SELECT s.id, s.title, s.depth, s.order_index, s.anchor
@@ -249,3 +331,20 @@ private inline fun <T> SQLiteStatement.use(block: (SQLiteStatement) -> T): T {
         close()
     }
 }
+
+/** Null-safe `getText` for an outer-joined or `json_extract`-absent (SQL NULL) column. */
+private fun SQLiteStatement.textOrNull(index: Int): String? = if (isNull(index)) null else getText(index)
+
+/** A `char(31)`-joined array column (see `hydrateHits`'s doc) back into a `List<String>`; NULL or
+ * empty means "no values", not a one-element list with an empty string. */
+private fun SQLiteStatement.splitList(index: Int): List<String> {
+    if (isNull(index)) return emptyList()
+    val text = getText(index)
+    if (text.isEmpty()) return emptyList()
+    return text.split('\u001F')
+}
+
+/** `json_extract(...)` of a JSON boolean surfaces as SQLite INTEGER 0/1 (NULL when the key is
+ * absent, which this treats as "not true" — matches `metadata?.notLegalAdvice === true` etc. in the
+ * TS source, where a missing key is also falsy). */
+private fun SQLiteStatement.boolOrFalse(index: Int): Boolean = !isNull(index) && getLong(index) != 0L
