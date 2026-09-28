@@ -4,6 +4,34 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.42] - 2026-09-28
+
+- Search home: the field comes first; the row shows «Все инструменты» and favourites only, with the
+  full grouped tool sheet behind it; query history behind a clock button; a «?» menu; a «Клинический
+  разбор» switch; a «Поиск» pill in the sticky row brings a scrolled-away field back; «Случайная
+  запись» opens a random document; «Возможность дня» rotates feature cards instead of the permanent
+  ECG card.
+- Startup: the first run shows only the setup screen with honest core download progress and a CT/MRI
+  example in the tour (the EPUB example is gone). Later the search page stays on screen while the core
+  opens, verifies or downloads, with the field locked and a small progress note; the knowledge base
+  shows the same status, and actions that need the core say so instead of failing.
+- Search quality: duplicate catalog targets collapse into one result; clinical-context queries prefer
+  clinical recommendations; age-only matches rank after subject matches; a fuzzy alias no longer adds
+  unrelated terms where an exact alias already covers the word; ambiguous diagnosis aliases expand the
+  query with less weight; medication names get a RapidFuzz-compatible typo fallback. On the 10-query
+  doctor-lookup set over the released corpus, recall@5 rose from 0.20 to 0.70 (MRR@5 0.60).
+- Medications: the product card opens on the short summary with a «Кратко ⇄ Инструкция» switch;
+  release forms are collapsed; registration details come last in small type.
+- «Словарь» separates abbreviation expansions and dictionary glosses from definitions. The knowledge
+  graph is laid out in a worker within a bounded area without overlapping nodes.
+- Experimental mode shows definition reference edition `2026.9.30` (31,488 entries: 8,585 clinical
+  definitions, 8,369 abbreviation expansions, 6,939 Wiktionary glosses, 7,595 names awaiting a
+  definition), from the `definition-reference-2026.9.30` data prerelease. Unreviewed.
+
+The discovery corpus (`core.db`) and companion packs are unchanged from 0.6.41. Terminology packs remain
+`terminology-ru-2026.9.16`. This is a debug-signed engineering prerelease; physical-device and
+clinical qualification remain outstanding.
+
 ## [0.6.41] - 2026-09-27
 
 - Search home: the welcome block now carries the ECG photo entry and collapses once typing starts;

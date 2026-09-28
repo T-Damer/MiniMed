@@ -1,7 +1,7 @@
 # Current state
 
-> Updated: 27 September 2026
-> Released version: `0.6.41` (public prerelease toward `1.0`)
+> Updated: 28 September 2026
+> Released version: `0.6.42` (public prerelease toward `1.0`)
 > Next planned step: native migration (see the release note below).
 
 This file records what exists now, its trust boundaries and the ordered next work. Keep it short:
@@ -17,7 +17,7 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Definition reference data — 2026-09-30 (local, unpublished)
+## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 
 - Fixed the ~596-record `Список сокращений` mislabeling bug (`scripts/extract_prepared_definitions.py`)
   and a trailing-punctuation over-splitting bug in the KR glossary/abbreviation dedup key; catalog
@@ -60,6 +60,28 @@ Detailed history, moved verbatim on 2026-09-24:
   progress or the error with «Повторить»; tools that need no core work at once, «Словарь» waits
   (`search-core-status.ts`, `SearchCoreStatusNote`). E2E boot-screen, core-reload, startup-shell and
   unified-downloads pass (the last two had failed since 0.6.40).
+
+## Release 0.6.42 — 2026-09-28
+
+- **App-only release over the 0.6.41 corpus.** `core.db` and the companion packs are unchanged; the
+  rebuilt candidate core (`bun run content:core:build`) is not shipped because doctor-lookup on it is
+  0.60/0.45 (recall@5/MRR@5) against 0.70/0.60 on the released core. A wider per-branch window and a
+  targeted identity backfill were measured and rejected
+  ([research/search-kr-pointers-vs-mkb-2026-09.md](research/search-kr-pointers-vs-mkb-2026-09.md)).
+- **Definition reference `2026.9.30`** is published as the `definition-reference-2026.9.30` data
+  prerelease (42 173 697-byte gzip, 192 323 584 bytes installed, 31 488 entries) and replaces
+  `2026.9.27` in `catalog.preview.json`; `minAppVersion` stays 0.6.41.
+- **Home, startup, search ranking, medication card, «Словарь» and graph** changes are listed in
+  `CHANGELOG.md` [0.6.42].
+- **Verification.** `bun run verify` and `benchmark:real:release` pass. Full serial Web E2E: 105
+  passed, 8 failed, 6 skipped of 119. The section-menu specs were stale after the new home and pass
+  once updated; `module-pointer` passes when rerun alone. `tool-hydration` (both variants) and
+  `search-section-downloads` (375/1280) fail the same way on a v0.6.41 build: the «Подключаем
+  калькулятор» pending state and the «Загрузка: Неонатология» download row never appear. The cause
+  is not diagnosed; these failures predate this release.
+- **Native spike.** `native/` holds a Kotlin Multiplatform + Compose Multiplatform search page over
+  the same `core.db` (ADR-0021) for a device speed comparison with this release's WebView; it is not
+  built by CI or shipped.
 
 ## Release 0.6.41 — 2026-09-27
 

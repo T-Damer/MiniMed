@@ -226,13 +226,12 @@ jobs:
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Changes:
-          - search home: welcome block with the ECG photo entry, favourite tools and user tool collections;
-          - the section menu no longer closes itself on open; clearer empty, ambiguous and pointer results;
-          - grouped downloads page with history; queued and transferring states are shown separately;
-          - experimental mode shows the draft definition reference (edition 2026.9.27, unreviewed);
-          - fixed web downloads of the optional terminology packs (served from the Pages mirror);
-          - ECG photo editor: guided steps, perspective correction, ST at the J point and paediatric age/sex norms;
-          - calculators and assessments open before the knowledge core; clearer message when another tab holds it.
+          - search home: field first, «Все инструменты» plus favourites, history, «?» menu, «Клинический разбор» switch, «Возможность дня»;
+          - the search page stays on screen, field locked, while the core opens or downloads; first run shows only the setup screen;
+          - search quality: duplicate targets collapse, recommendations first for clinical context, less fuzzy-alias noise;
+          - medications open on the short card with a «Кратко ⇄ Инструкция» switch; registration details last;
+          - «Словарь» separates abbreviations and glosses; the knowledge graph no longer overlaps nodes;
+          - experimental mode shows the draft definition reference edition 2026.9.30 (31,488 entries, unreviewed).
 
           Catalog packs are downloaded separately, with their preview/review status preserved.
           The browser application is under /app/. The local/GitHub download switch is DEV-only.

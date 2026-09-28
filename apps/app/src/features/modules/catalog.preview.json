@@ -98962,11 +98962,11 @@
     },
     {
       "id": "minimed.definition.reference.ru",
-      "version": "2026.9.27",
+      "version": "2026.9.30",
       "kind": "reference",
       "collection": "definition-reference",
       "title": "Словарь терминов, симптомов и синдромов",
-      "description": "8 474 исходных определения: определения с исходными формулировками и ссылками. Предварительная редакция, требующая проверки. Названий для дополнения: 7 595.",
+      "description": "8 585 клинических определений, 8 369 расшифровок сокращений, 6 939 лексических толкований: определения и расшифровки с исходными формулировками и ссылками. Предварительная редакция, требующая проверки. Названий для дополнения: 7 595.",
       "required": false,
       "releaseState": "preview",
       "specialties": [],
@@ -98982,11 +98982,11 @@
         "schemaVersion": 7,
         "coreCatalogVersion": "1"
       },
-      "sourceSetDigest": "sha256:e22c18d1e0d17814f83c013a669d64881e84b1c54bac14b44135d18f72e69af1",
+      "sourceSetDigest": "sha256:329cafda3028e99fb652d44b9744b0e03b3e669af2500949ef1354c247de4916",
       "dependencies": [],
       "sizes": {
-        "downloadBytes": 27003687,
-        "installedBytes": 127369216,
+        "downloadBytes": 42173697,
+        "installedBytes": 192323584,
         "sourceAssetsDownloadBytes": null,
         "precision": "exact"
       },
@@ -99004,21 +99004,21 @@
           "id": "reference-index",
           "kind": "index",
           "required": true,
-          "url": "https://github.com/T-Damer/MiniMed/releases/download/definition-reference-2026.9.27/minimed.definition.reference.2026.9.27.db.gz",
-          "sha256": "sha256:6c06275e61df8886f5c0493d9ae9f9f2fedc3ed0cb0c50cd883536ab38627b8c",
-          "sizeBytes": 27003687,
+          "url": "https://github.com/T-Damer/MiniMed/releases/download/definition-reference-2026.9.30/minimed.definition.reference.2026.9.30.db.gz",
+          "sha256": "sha256:320561625c649ba2762e6f51a2bc074c9f11ebc2deb1f3ec676ba62aa6410f34",
+          "sizeBytes": 42173697,
           "compression": "gzip",
-          "decodedSha256": "sha256:1be69ab9ae430788e7805a7b688f8f7bd04581802a205767799fde3a3ede1df7",
-          "decodedSizeBytes": 127369216,
-          "sourceSetDigest": "sha256:e22c18d1e0d17814f83c013a669d64881e84b1c54bac14b44135d18f72e69af1"
+          "decodedSha256": "sha256:f3d5c759ce8c4133640ae2656dfcee2c928a126685b3451a1aa5560db94b378d",
+          "decodedSizeBytes": 192323584,
+          "sourceSetDigest": "sha256:329cafda3028e99fb652d44b9744b0e03b3e669af2500949ef1354c247de4916"
         }
       ],
       "documents": [],
       "previewDocumentCount": 79,
       "definitionReference": {
         "contract": 1,
-        "editionId": "minimed.definition.reference.2026.9.27",
-        "entries": 16069
+        "editionId": "minimed.definition.reference.2026.9.30",
+        "entries": 31488
       }
     }
   ]
