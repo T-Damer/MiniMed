@@ -356,10 +356,32 @@ describe('portable personal-notes backup', () => {
       bytesBase64: 'AQID',
     });
     expect(backup.transcripts[0]?.speakerNames).toEqual({ 'speaker-1': 'Врач' });
-    expect(backup.toolCollections).toEqual(toolCollections);
+    // The version-1 tool list stored by an older build is exported migrated, nothing lost.
+    expect(backup.collections?.favorites.map((item) => [item.kind, item.id])).toEqual([
+      ['tool', 'minimed.assessment.pucai'],
+    ]);
+    expect(backup.collections?.collections[0]).toMatchObject({
+      id: 'collection-1',
+      name: 'Приём кардиолога',
+      items: [
+        { kind: 'tool', id: 'ecg-photo-caliper' },
+        { kind: 'tool', id: 'tool.removed' },
+      ],
+    });
+    // An older backup file names them toolCollections; it is read and migrated the same way.
+    const { parsePersonalNotesBackup } = await import('./personal-notes-backup');
+    const legacyFile = parsePersonalNotesBackup({
+      ...JSON.parse(JSON.stringify(backup)),
+      collections: undefined,
+      toolCollections,
+    });
+    expect(legacyFile.collections?.collections[0]?.items.map((item) => item.id)).toEqual([
+      'ecg-photo-caliper',
+      'tool.removed',
+    ]);
     env.local.setItem(
-      'minimed.tool-collections.v1',
-      JSON.stringify({ version: 1, favorites: [], collections: [] }),
+      'minimed.collections.v2',
+      JSON.stringify({ version: 2, favorites: [], collections: [] }),
     );
 
     env.local.setItem(
@@ -405,8 +427,8 @@ describe('portable personal-notes backup', () => {
     });
     expect(env.local.getItem('minimed.patient-note-drafts.v1')).toBeNull();
     expect(env.local.getItem('minimed.patient-note-revisions.v1')).toBeNull();
-    expect(JSON.parse(env.local.getItem('minimed.tool-collections.v1') ?? '{}')).toEqual(
-      toolCollections,
+    expect(JSON.parse(env.local.getItem('minimed.collections.v2') ?? '{}')).toEqual(
+      backup.collections,
     );
   });
 
@@ -484,7 +506,7 @@ describe('portable personal-notes backup', () => {
 
     expect(backup.scope).toEqual({ kind: 'card', cardId: 'card-1' });
     // Handover of one patient card never carries the doctor's own tool collections.
-    expect(backup.toolCollections).toBeUndefined();
+    expect(backup.collections).toBeUndefined();
     expect(backup.snapshot.cards.map((card) => card.id)).toEqual(['card-1']);
     expect(backup.snapshot.notes.map((note) => note.id)).toEqual(['note-1']);
     expect(backup.files.map((file) => file.id)).toEqual(['file-audio']);

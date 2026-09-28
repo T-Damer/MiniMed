@@ -10,22 +10,24 @@ import {
   openQuickTool,
   type QuickTool,
   type ResolvedToolRef,
+  resolveItemRefs,
   resolveToolRefs,
 } from '@/features/search/quick-tools';
 import {
-  ToolCollectionCreateForm,
-  ToolCollectionMenu,
-  ToolFavoriteButton,
+  ItemCollectionCreateForm,
+  ItemCollectionMenu,
+  ItemFavoriteButton,
+  toolItem,
 } from '@/features/search/ToolPinControls';
 import {
-  deleteToolCollection,
-  renameToolCollection,
-  setToolInCollection,
-  type ToolCollection,
-  toolCollectionNameError,
-  toolCollections,
-  updateToolCollections,
-} from '@/state/tool-collections';
+  collectionNameError,
+  deleteCollection,
+  type ItemCollection,
+  itemCollections,
+  renameCollection,
+  setItemInCollection,
+  updateItemCollections,
+} from '@/state/item-collections';
 
 import './search-quick-access.css';
 
@@ -72,7 +74,7 @@ function QuickToolRow(props: {
 }
 
 function CollectionRenameForm(props: {
-  readonly collection: ToolCollection;
+  readonly collection: ItemCollection;
   readonly onDone: () => void;
 }): JSX.Element {
   const [name, setName] = createSignal(props.collection.name);
@@ -82,12 +84,12 @@ function CollectionRenameForm(props: {
       class="tool-collection-form"
       onSubmit={(event) => {
         event.preventDefault();
-        const problem = toolCollectionNameError(toolCollections(), name(), props.collection.id);
+        const problem = collectionNameError(itemCollections(), name(), props.collection.id);
         if (problem) {
           setError(problem);
           return;
         }
-        updateToolCollections((state) => renameToolCollection(state, props.collection.id, name()));
+        updateItemCollections((state) => renameCollection(state, props.collection.id, name()));
         props.onDone();
       }}
       onKeyDown={(event) => {
@@ -138,9 +140,17 @@ export function SearchQuickAccess(props: {
   const [open, setOpen] = createSignal(false);
   const [expanded, setExpanded] = createSignal<string>();
   const [renaming, setRenaming] = createSignal<string>();
-  const [pendingDelete, setPendingDelete] = createSignal<ToolCollection>();
+  const [pendingDelete, setPendingDelete] = createSignal<ItemCollection>();
   const toolsById = createMemo(() => new Map(props.tools.map((tool) => [tool.id, tool])));
-  const favorites = createMemo(() => resolveToolRefs(toolCollections().favorites, toolsById()));
+  // The tool row and this sheet hold tools; favourite documents live in «Мои файлы».
+  const favorites = createMemo(() =>
+    resolveToolRefs(
+      itemCollections()
+        .favorites.filter((item) => item.kind === 'tool')
+        .map((item) => item.id),
+      toolsById(),
+    ),
+  );
   const chips = createMemo(() => favorites().flatMap((entry) => (entry.tool ? [entry.tool] : [])));
   const groups = createMemo(() => groupQuickTools(props.tools));
   const openFromSheet = (tool: QuickTool): void => {
@@ -209,9 +219,8 @@ export function SearchQuickAccess(props: {
                       entry={entry}
                       onOpen={openFromSheet}
                       trailing={
-                        <ToolFavoriteButton
-                          toolId={entry.id}
-                          toolTitle={entry.tool?.title ?? entry.id}
+                        <ItemFavoriteButton
+                          item={toolItem(entry.id, entry.tool?.title ?? entry.id)}
                         />
                       }
                     />
@@ -237,8 +246,8 @@ export function SearchQuickAccess(props: {
                         onOpen={openFromSheet}
                         trailing={
                           <>
-                            <ToolFavoriteButton toolId={tool.id} toolTitle={tool.title} />
-                            <ToolCollectionMenu toolId={tool.id} toolTitle={tool.title} />
+                            <ItemFavoriteButton item={toolItem(tool.id, tool.title)} />
+                            <ItemCollectionMenu item={toolItem(tool.id, tool.title)} />
                           </>
                         }
                       />
@@ -253,12 +262,10 @@ export function SearchQuickAccess(props: {
               Коллекции
             </h2>
             <ul class="search-quick-access__list">
-              <For each={toolCollections().collections}>
+              <For each={itemCollections().collections}>
                 {(collection) => {
                   const isExpanded = () => expanded() === collection.id;
-                  const entries = createMemo(() =>
-                    resolveToolRefs(collection.toolIds, toolsById()),
-                  );
+                  const entries = createMemo(() => resolveItemRefs(collection.items, toolsById()));
                   return (
                     <li class="tool-collection-row">
                       <Show
@@ -279,11 +286,11 @@ export function SearchQuickAccess(props: {
                           >
                             <FolderFigure
                               variant="list"
-                              hasDocument={collection.toolIds.length > 0}
+                              hasDocument={collection.items.length > 0}
                             />
                             <span class="tool-collection-row__name">{collection.name}</span>
                             <span class="tool-collection-row__count">
-                              {collection.toolIds.length}
+                              {collection.items.length}
                             </span>
                           </button>
                           <button
@@ -328,12 +335,13 @@ export function SearchQuickAccess(props: {
                                       aria-label={`Убрать «${entry.tool?.title ?? entry.id}» из «${collection.name}»`}
                                       title="Убрать из коллекции"
                                       onClick={() =>
-                                        updateToolCollections((state) =>
-                                          setToolInCollection(
+                                        updateItemCollections((state) =>
+                                          setItemInCollection(
                                             state,
                                             collection.id,
-                                            entry.id,
+                                            entry.ref,
                                             false,
+                                            new Date().toISOString(),
                                           ),
                                         )
                                       }
@@ -352,7 +360,7 @@ export function SearchQuickAccess(props: {
                 }}
               </For>
             </ul>
-            <ToolCollectionCreateForm onCreated={(id) => setExpanded(id)} />
+            <ItemCollectionCreateForm onCreated={(id) => setExpanded(id)} />
           </section>
         </div>
       </OverlayDialog>
@@ -369,7 +377,7 @@ export function SearchQuickAccess(props: {
         danger
         onConfirm={() => {
           const target = pendingDelete();
-          if (target) updateToolCollections((state) => deleteToolCollection(state, target.id));
+          if (target) updateItemCollections((state) => deleteCollection(state, target.id));
           setPendingDelete(undefined);
         }}
         onOpenChange={(value) => {

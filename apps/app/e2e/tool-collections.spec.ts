@@ -50,3 +50,40 @@ for (const width of [375, 1280]) {
     await page.screenshot({ path: test.info().outputPath('tool-from-collection.png') });
   });
 }
+
+test('favourites and collections saved by an older version survive the update', async ({
+  page,
+}) => {
+  const legacy = {
+    version: 1,
+    favorites: ['minimed.app.patients'],
+    collections: [
+      {
+        id: 'collection-legacy',
+        name: 'Приём кардиолога',
+        toolIds: ['minimed.app.calculators', 'tool.removed'],
+        createdAt: '2026-09-26T07:00:00.000Z',
+      },
+    ],
+  };
+  await mountBuiltApp(page, {
+    skipLargeCompanionPacks: true,
+    localStorage: { 'minimed.tool-collections.v1': JSON.stringify(legacy) },
+  });
+  const row = page.locator('.search-quick-access');
+  await expect(row.getByRole('button', { name: 'Пациенты', exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Все инструменты', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: 'Все инструменты' });
+  const collection = sheet.locator('.tool-collection-row', { hasText: 'Приём кардиолога' });
+  await expect(collection.locator('.tool-collection-row__count')).toHaveText('2');
+  await collection.locator('.tool-collection-row__toggle').click();
+  await expect(collection.locator('.quick-tool-row__title')).toHaveText([
+    'Калькуляторы',
+    'tool.removed',
+  ]);
+  // The old entry stays in place, so an older build can still read it.
+  expect(await page.evaluate(() => localStorage.getItem('minimed.tool-collections.v1'))).toBe(
+    JSON.stringify(legacy),
+  );
+});

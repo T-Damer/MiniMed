@@ -1,4 +1,10 @@
 import {
+  type ItemCollectionsState,
+  loadItemCollections,
+  parseItemCollections,
+  replaceItemCollections,
+} from '@/state/item-collections';
+import {
   loadNoteFilesForNotes,
   MAX_NOTE_FILE_BYTES,
   type NoteFile,
@@ -25,13 +31,6 @@ import {
   parsePatientNotesSnapshot,
   replacePatientNotesSnapshot,
 } from '@/state/patient-notes';
-
-import {
-  loadToolCollections,
-  parseToolCollections,
-  replaceToolCollections,
-  type ToolCollectionsState,
-} from '@/state/tool-collections';
 export const PERSONAL_NOTES_BACKUP_KIND = 'minimed-personal-notes-backup';
 export const PERSONAL_NOTES_BACKUP_SCHEMA_VERSION = 1;
 export const MAX_PERSONAL_NOTES_BACKUP_FILE_BYTES = 512 * 1024 * 1024;
@@ -63,8 +62,11 @@ export interface PersonalNotesBackup {
   readonly files: readonly PersonalNotesBackupFile[];
   readonly images: readonly NoteImage[];
   readonly transcripts: readonly NoteTranscript[];
-  /** Full backups also carry favourite tools and tool collections (optional for older files). */
-  readonly toolCollections?: ToolCollectionsState;
+  /**
+   * Full backups also carry favourites and collections (optional for older files). Older files
+   * name them `toolCollections` (tools only); they are read and migrated to this shape.
+   */
+  readonly collections?: ItemCollectionsState;
 }
 
 interface PersonalNotesState {
@@ -280,6 +282,7 @@ export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
     readonly files?: unknown;
     readonly images?: unknown;
     readonly transcripts?: unknown;
+    readonly collections?: unknown;
     readonly toolCollections?: unknown;
   };
   if (candidate.kind !== PERSONAL_NOTES_BACKUP_KIND) {
@@ -375,8 +378,13 @@ export function parsePersonalNotesBackup(value: unknown): PersonalNotesBackup {
     files,
     images,
     transcripts,
-    ...(scope.kind === 'all' && candidate.toolCollections !== undefined
-      ? { toolCollections: parseToolCollections(candidate.toolCollections) }
+    ...(scope.kind === 'all' && (candidate.collections ?? candidate.toolCollections) !== undefined
+      ? {
+          collections: parseItemCollections(
+            candidate.collections ?? candidate.toolCollections,
+            candidate.exportedAt,
+          ),
+        }
       : {}),
   };
 }
@@ -589,7 +597,7 @@ export async function exportPersonalNotesBackup(): Promise<PersonalNotesBackup> 
     files,
     images: state.images,
     transcripts: state.transcripts,
-    toolCollections: loadToolCollections(),
+    collections: loadItemCollections(),
   });
 }
 
@@ -644,7 +652,7 @@ export async function importPersonalNotesBackup(value: unknown): Promise<Persona
   try {
     await applyPersonalNotesState(next);
     // Local-storage only and applied after the notes succeed, so a notes rollback never races it.
-    if (backup.toolCollections) replaceToolCollections(backup.toolCollections);
+    if (backup.collections) replaceItemCollections(backup.collections);
     clearPatientNoteWorkingState(
       backup.scope.kind === 'card'
         ? [...new Set([...replacedNoteIds, ...importedNoteIds])]

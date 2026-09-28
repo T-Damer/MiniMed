@@ -1,5 +1,8 @@
 import type { AppGlyphName } from '@/components/AppGlyph';
+import { notesPath } from '@/features/notes/notes-routing';
 import type { SearchCatalogTool } from '@/features/search/searchCatalog';
+import { openDocumentOverlay } from '@/state/document-navigation';
+import type { ItemRef } from '@/state/item-collections';
 
 /**
  * Anything a doctor can pin: catalog calculators and questionnaires, plus app-level tools. Opening
@@ -85,6 +88,44 @@ export function resolveToolRefs(
   toolsById: ReadonlyMap<string, QuickTool>,
 ): readonly ResolvedToolRef[] {
   return ids.map((id) => ({ id, tool: toolsById.get(id) }));
+}
+
+export interface ResolvedItemRef extends ResolvedToolRef {
+  readonly ref: ItemRef;
+}
+
+/**
+ * Collection entries as openable rows. Tools resolve from the live catalog (undefined when gone);
+ * documents open by their stable id; personal notes open their record in the patient card.
+ */
+export function resolveItemRefs(
+  items: readonly ItemRef[],
+  toolsById: ReadonlyMap<string, QuickTool>,
+): readonly ResolvedItemRef[] {
+  return items.map((ref) => {
+    if (ref.kind === 'tool') return { ref, id: ref.id, tool: toolsById.get(ref.id) };
+    const title = ref.title ?? ref.id;
+    return {
+      ref,
+      id: ref.id,
+      tool:
+        ref.kind === 'document'
+          ? {
+              id: ref.id,
+              title,
+              kindLabel: 'Документ',
+              icon: 'file-text',
+              run: () => openDocumentOverlay(ref.id),
+            }
+          : {
+              id: ref.id,
+              title,
+              kindLabel: 'Личная запись',
+              icon: 'notes',
+              href: notesPath(ref.parentId, ref.parentId ? ref.id : undefined),
+            },
+    };
+  });
 }
 
 export function openQuickTool(tool: QuickTool): void {

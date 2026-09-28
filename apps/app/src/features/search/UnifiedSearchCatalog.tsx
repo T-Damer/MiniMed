@@ -6,7 +6,11 @@ import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import type { SearchCatalogTool } from '@/features/search/searchCatalog';
-import { ToolCollectionMenu, ToolFavoriteButton } from '@/features/search/ToolPinControls';
+import {
+  ItemCollectionMenu,
+  ItemFavoriteButton,
+  toolItem,
+} from '@/features/search/ToolPinControls';
 
 export function UnifiedSearchCatalog(props: {
   /** Absent while the medical core opens: tools stay listed, documents wait for the core. */
@@ -45,8 +49,8 @@ export function UnifiedSearchCatalog(props: {
                 </a>
                 {/* Siblings of the link, layered over its corner: buttons cannot nest in <a>. */}
                 <div class="unified-catalog__tool-pins">
-                  <ToolFavoriteButton toolId={entry.id} toolTitle={entry.title} />
-                  <ToolCollectionMenu toolId={entry.id} toolTitle={entry.title} />
+                  <ItemFavoriteButton item={toolItem(entry.id, entry.title)} />
+                  <ItemCollectionMenu item={toolItem(entry.id, entry.title)} />
                 </div>
               </div>
             )}

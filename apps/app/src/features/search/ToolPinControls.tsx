@@ -4,25 +4,31 @@ import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
 import { StarGlyph } from '@/components/StarGlyph';
 import {
-  collectionIdsContainingTool,
-  createToolCollection,
-  isFavoriteTool,
-  setToolInCollection,
-  toggleFavoriteTool,
-  toolCollectionNameError,
-  toolCollections,
-  updateToolCollections,
-} from '@/state/tool-collections';
+  collectionIdsContaining,
+  collectionNameError,
+  createCollection,
+  type ItemRefInput,
+  isFavoriteItem,
+  itemCollections,
+  setItemInCollection,
+  toggleFavoriteItem,
+  updateItemCollections,
+} from '@/state/item-collections';
 
 import './search-quick-access.css';
 
-/** Star toggle for one tool; shared by catalog cards and the quick-access list. */
-export function ToolFavoriteButton(props: {
-  readonly toolId: string;
-  readonly toolTitle: string;
+/** A tool as a collection item: tools resolve their live title from the catalog. */
+export function toolItem(toolId: string, title: string): ItemRefInput {
+  return { kind: 'tool', id: toolId, title };
+}
+
+/** Star toggle for one item; shared by catalog cards, the tool sheet and document pages. */
+export function ItemFavoriteButton(props: {
+  readonly item: ItemRefInput;
   readonly class?: string;
 }): JSX.Element {
-  const favorite = () => isFavoriteTool(toolCollections(), props.toolId);
+  const title = () => props.item.title ?? props.item.id;
+  const favorite = () => isFavoriteItem(itemCollections(), props.item);
   return (
     <button
       type="button"
@@ -30,15 +36,15 @@ export function ToolFavoriteButton(props: {
       classList={{ 'tool-pin__star--on': favorite() }}
       aria-pressed={favorite()}
       aria-label={
-        favorite()
-          ? `Убрать «${props.toolTitle}» из избранного`
-          : `Добавить «${props.toolTitle}» в избранное`
+        favorite() ? `Убрать «${title()}» из избранного` : `Добавить «${title()}» в избранное`
       }
       title={favorite() ? 'Убрать из избранного' : 'В избранное'}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
-        updateToolCollections((state) => toggleFavoriteTool(state, props.toolId));
+        updateItemCollections((state) =>
+          toggleFavoriteItem(state, props.item, new Date().toISOString()),
+        );
       }}
     >
       <StarGlyph filled={favorite()} class="tool-pin__glyph" />
@@ -46,25 +52,25 @@ export function ToolFavoriteButton(props: {
   );
 }
 
-/** Inline form that creates a collection; optionally puts a tool into it right away. */
-export function ToolCollectionCreateForm(props: {
-  readonly toolId?: string;
+/** Inline form that creates a collection; optionally puts an item into it right away. */
+export function ItemCollectionCreateForm(props: {
+  readonly item?: ItemRefInput;
   readonly onCreated?: (collectionId: string) => void;
 }): JSX.Element {
   const [name, setName] = createSignal('');
   const [error, setError] = createSignal<string>();
   const submit = (): void => {
-    const problem = toolCollectionNameError(toolCollections(), name());
+    const problem = collectionNameError(itemCollections(), name());
     if (problem) {
       setError(problem);
       return;
     }
     const id = crypto.randomUUID();
-    updateToolCollections((state) =>
-      createToolCollection(state, name(), {
+    updateItemCollections((state) =>
+      createCollection(state, name(), {
         id,
         createdAt: new Date().toISOString(),
-        ...(props.toolId ? { toolIds: [props.toolId] } : {}),
+        ...(props.item ? { items: [props.item] } : {}),
       }),
     );
     setName('');
@@ -108,20 +114,20 @@ export function ToolCollectionCreateForm(props: {
   );
 }
 
-/** Popover that adds one tool to any number of collections. */
-export function ToolCollectionMenu(props: {
-  readonly toolId: string;
-  readonly toolTitle: string;
+/** Popover that adds one item to any number of collections. */
+export function ItemCollectionMenu(props: {
+  readonly item: ItemRefInput;
   readonly class?: string;
 }): JSX.Element {
   const [open, setOpen] = createSignal(false);
-  const memberOf = createMemo(() => collectionIdsContainingTool(toolCollections(), props.toolId));
+  const title = () => props.item.title ?? props.item.id;
+  const memberOf = createMemo(() => collectionIdsContaining(itemCollections(), props.item));
   return (
     <Popover open={open()} onOpenChange={setOpen} placement="bottom-end" gutter={6} fitViewport>
       <Popover.Trigger
         class={`tool-pin__collections ${props.class ?? ''}`.trim()}
         classList={{ 'tool-pin__collections--on': memberOf().size > 0 }}
-        aria-label={`Коллекции для «${props.toolTitle}»`}
+        aria-label={`Коллекции для «${title()}»`}
         title="Добавить в коллекцию"
         onClick={(event: MouseEvent) => {
           event.preventDefault();
@@ -131,16 +137,16 @@ export function ToolCollectionMenu(props: {
         <AppGlyph name="folder-open" class="tool-pin__glyph" />
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Content class="tool-collection-menu" aria-label={`Коллекции: ${props.toolTitle}`}>
+        <Popover.Content class="tool-collection-menu" aria-label={`Коллекции: ${title()}`}>
           <p class="tool-collection-menu__heading">Добавить в коллекцию</p>
           <Show
-            when={toolCollections().collections.length > 0}
+            when={itemCollections().collections.length > 0}
             fallback={
               <p class="tool-collection-menu__empty">Коллекций пока нет — создайте первую ниже.</p>
             }
           >
             <ul class="tool-collection-menu__list">
-              <For each={toolCollections().collections}>
+              <For each={itemCollections().collections}>
                 {(collection) => (
                   <li class="tool-collection-menu__item">
                     <label class="tool-collection-menu__option">
@@ -150,20 +156,26 @@ export function ToolCollectionMenu(props: {
                         checked={memberOf().has(collection.id)}
                         onChange={(event) => {
                           const included = event.currentTarget.checked;
-                          updateToolCollections((state) =>
-                            setToolInCollection(state, collection.id, props.toolId, included),
+                          updateItemCollections((state) =>
+                            setItemInCollection(
+                              state,
+                              collection.id,
+                              props.item,
+                              included,
+                              new Date().toISOString(),
+                            ),
                           );
                         }}
                       />
                       <span class="tool-collection-menu__name">{collection.name}</span>
-                      <span class="tool-collection-menu__count">{collection.toolIds.length}</span>
+                      <span class="tool-collection-menu__count">{collection.items.length}</span>
                     </label>
                   </li>
                 )}
               </For>
             </ul>
           </Show>
-          <ToolCollectionCreateForm toolId={props.toolId} />
+          <ItemCollectionCreateForm item={props.item} />
         </Popover.Content>
       </Popover.Portal>
     </Popover>
