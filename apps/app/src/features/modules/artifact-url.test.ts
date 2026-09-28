@@ -24,6 +24,7 @@ describe('resolveContentModuleArtifactUrl', () => {
         'reference-krasotaimedicina-2026.9.28',
         'minimed.reference.krasotaimedicina.2026.9.28.db.gz',
       ],
+      ['reference-rls-mkb-2026.9.28', 'minimed.reference.rls-mkb.2026.9.28.db.gz'],
     ] as const) {
       const release = `https://github.com/T-Damer/MiniMed/releases/download/${tag}/${file}`;
       expect(resolveContentModuleArtifactUrl(release)).toBe(
