@@ -29,6 +29,13 @@ export interface RealCorpus {
   readonly documents: ReadonlyMap<string, MedicalDocumentSummary>;
   /** A catalog pointer stands for the document it points to (`kr.rf.714_2`). */
   readonly target: (documentId: string) => string;
+  /**
+   * The underlying multi-pack store `core` was built from. Not needed for ordinary quality/latency
+   * benchmarks (hence not exposed before) — `export-search-golden.ts` needs it to re-run one query
+   * branch's exact `ftsQuery` directly (`store.search`) and read `store.listAliases()`, mirroring
+   * `packages/core/src/create-medical-core.ts`'s own per-branch execution without reimplementing it.
+   */
+  readonly store: MultiMedicalStore;
 }
 
 export async function openRealCorpus(
@@ -81,6 +88,7 @@ export async function openRealCorpus(
     core,
     corpus: ['core.db', ...companions.map(([file]) => file)],
     documents,
+    store,
     target: (documentId) => {
       const pointed = documents.get(documentId)?.metadata?.['targetDocumentId'];
       return typeof pointed === 'string' ? pointed : documentId;

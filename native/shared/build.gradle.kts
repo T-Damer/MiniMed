@@ -108,6 +108,21 @@ kotlin {
             iosSimulatorArm64Test.dependsOn(this)
         }
         val wasmJsMain by getting
+        val wasmJsTest by getting
+
+        // One `readGoldenFixture()` actual shared by Android unit tests and desktop tests: both
+        // run on a plain JVM classloader (Android unit tests execute locally on the host JVM, not
+        // the device/emulator), so both can read `search-golden.json` the same way — as a
+        // classpath resource. See GoldenFixture.kt's header for what each platform family does.
+        val jvmClasspathTest by creating {
+            dependsOn(commonTest)
+        }
+        val desktopTest by getting {
+            dependsOn(jvmClasspathTest)
+        }
+        val androidUnitTest by getting {
+            dependsOn(jvmClasspathTest)
+        }
     }
 }
 
@@ -121,5 +136,27 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
+
+// One absolute path, fed to every non-wasm test process the same way (system property on the JVM
+// side, environment variable on iOS) — see GoldenFixture.kt and its actuals for why each platform
+// needs a different delivery mechanism but the same underlying file.
+val goldenFixturePath = layout.projectDirectory
+    .file("src/commonTest/resources/search-golden.json")
+    .asFile.absolutePath
+
+tasks.withType<Test>().configureEach {
+    systemProperty("GOLDEN_FIXTURE_PATH", goldenFixturePath)
+}
+
+tasks.matching { it.name == "iosSimulatorArm64Test" || it.name == "iosArm64Test" }.configureEach {
+    val simulatorTest = this as? org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest
+    // Plain: covers a real-device iosArm64Test (no simctl involved) and any direct-run path.
+    simulatorTest?.environment("GOLDEN_FIXTURE_PATH", goldenFixturePath)
+    // `xcrun simctl spawn` (what actually launches the test binary inside the Simulator) only
+    // forwards host environment variables prefixed `SIMCTL_CHILD_` into the spawned process — a
+    // plain `GOLDEN_FIXTURE_PATH` set on the host-side Gradle task never reaches the simulator's
+    // own process environment. Set both so the same code works whichever path Kotlin/Native uses.
+    simulatorTest?.environment("SIMCTL_CHILD_GOLDEN_FIXTURE_PATH", goldenFixturePath)
 }
 
