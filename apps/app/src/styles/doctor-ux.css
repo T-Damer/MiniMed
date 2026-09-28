@@ -143,8 +143,7 @@
   justify-content: center;
   padding: 2rem var(--page-inline-padding, 1rem) calc(4rem + var(--nav-safe-bottom, 0px));
   background:
-    linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%),
-    linear-gradient(180deg, var(--folder-light), var(--folder));
+    linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%), var(--route-desk-gradient);
 }
 
 .document-overlay-spinner {

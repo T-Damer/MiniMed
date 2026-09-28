@@ -22,6 +22,11 @@ body {
     var(--desk);
 }
 
+/* Until the app renders, the page keeps the native splash colour instead of the desk. */
+body:has(> #root:empty) {
+  background: var(--paper);
+}
+
 body::before {
   position: fixed;
   z-index: var(--z-debug);
@@ -455,7 +460,7 @@ main {
   min-height: 100dvh;
   place-items: center;
   padding: calc(1.25rem + var(--safe-top)) 1.25rem calc(1.25rem + var(--safe-bottom));
-  background: var(--paper-light);
+  background: var(--paper);
 }
 
 .paper-sheet,

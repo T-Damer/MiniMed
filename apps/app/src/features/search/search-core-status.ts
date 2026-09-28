@@ -48,6 +48,20 @@ export function searchCoreStatus(session: CoreSessionSnapshot): SearchCoreStatus
   return { kind: 'opening', slow: session.slow };
 }
 
+/** An open that finishes sooner than this shows only the field's placeholder. */
+export const SEARCH_CORE_NOTE_DELAY_MS = 400;
+
+/**
+ * Whether the note under the field is worth showing. A quick open finishes before the delay and
+ * the field's placeholder already says so; a note that flashes in and out only shifts the page.
+ */
+export function searchCoreStatusNoteVisible(
+  status: SearchCoreStatus,
+  delayPassed: boolean,
+): boolean {
+  return status.kind !== 'opening' || status.slow || delayPassed;
+}
+
 /** Share downloaded, 0–1, or null when there is nothing to measure. */
 export function searchCoreProgress(status: SearchCoreStatus): number | null {
   if (status.kind !== 'downloading' || status.total <= 0) return null;

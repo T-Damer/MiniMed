@@ -56,7 +56,12 @@ import { SearchSectionPicker } from '@/features/search/SearchSectionPicker';
 import { SearchSectionsOverview } from '@/features/search/SearchSectionsOverview';
 import { SearchGreeting, SearchWelcome } from '@/features/search/SearchWelcome';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
-import { type SearchCoreStatus, searchCoreStatusLabel } from '@/features/search/search-core-status';
+import {
+  SEARCH_CORE_NOTE_DELAY_MS,
+  type SearchCoreStatus,
+  searchCoreStatusLabel,
+  searchCoreStatusNoteVisible,
+} from '@/features/search/search-core-status';
 import {
   matchingCatalogTools,
   SEARCH_SECTIONS,
@@ -94,6 +99,16 @@ interface SearchHomeProps {
 }
 
 export function SearchHome(props: SearchHomeProps): JSX.Element {
+  const [coreNoteDelayPassed, setCoreNoteDelayPassed] = createSignal(false);
+  const coreNoteTimer = window.setTimeout(
+    () => setCoreNoteDelayPassed(true),
+    SEARCH_CORE_NOTE_DELAY_MS,
+  );
+  onCleanup(() => window.clearTimeout(coreNoteTimer));
+  const noteCoreStatus = (): SearchCoreStatus | undefined =>
+    props.coreStatus && searchCoreStatusNoteVisible(props.coreStatus, coreNoteDelayPassed())
+      ? props.coreStatus
+      : undefined;
   const [graphOpen, setGraphOpen] = createSignal(false);
   const [graphShowAll, setGraphShowAll] = createSignal(false);
   const [resultDocumentIds, setResultDocumentIds] = createSignal<readonly string[]>([]);
@@ -583,7 +598,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           scope={scope()}
           searchAllowed={props.baseCore !== undefined}
           fieldStatus={
-            <Show when={props.coreStatus}>
+            <Show when={noteCoreStatus()}>
               {(status) => (
                 <SearchCoreStatusNote
                   status={status()}

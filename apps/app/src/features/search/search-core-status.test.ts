@@ -6,6 +6,7 @@ import {
   searchCoreStatus,
   searchCoreStatusDetail,
   searchCoreStatusLabel,
+  searchCoreStatusNoteVisible,
 } from '@/features/search/search-core-status';
 
 const idle: CoreSessionSnapshot = {
@@ -82,5 +83,15 @@ describe('search core status', () => {
     expect(searchCoreStatus({ ...idle, downloadRequired: true })).toEqual({
       kind: 'download-required',
     });
+  });
+});
+
+describe('searchCoreStatusNoteVisible', () => {
+  it('keeps a quick open to the placeholder and explains longer or non-opening states', () => {
+    expect(searchCoreStatusNoteVisible({ kind: 'opening', slow: false }, false)).toBe(false);
+    expect(searchCoreStatusNoteVisible({ kind: 'opening', slow: false }, true)).toBe(true);
+    expect(searchCoreStatusNoteVisible({ kind: 'opening', slow: true }, false)).toBe(true);
+    expect(searchCoreStatusNoteVisible({ kind: 'other-tab' }, false)).toBe(true);
+    expect(searchCoreStatusNoteVisible({ kind: 'error', message: 'x' }, false)).toBe(true);
   });
 });

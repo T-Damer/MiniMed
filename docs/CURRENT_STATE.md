@@ -61,6 +61,18 @@ Detailed history, moved verbatim on 2026-09-24:
   (`search-core-status.ts`, `SearchCoreStatusNote`). E2E boot-screen, core-reload, startup-shell and
   unified-downloads pass (the last two had failed since 0.6.40).
 
+## Start-up and patients polish — 2026-09-28
+
+- Start-up keeps one ground from the Android splash to the first view: the post-splash window and
+  the WebView use `splashBackground` (light `#F3ECD9`, night `#2D2721`), the page before render and
+  the boot screen use the same surface, and the first view fades in once (0.2 s, none with reduced
+  motion). A quick core open shows only the field placeholder; the note under it appears after
+  400 ms. The native part needs verification on a physical device.
+- Patients: device-key and existing vaults open without a dialog (ADR-0016 unchanged); the dialog
+  appears only when the user must act (browser warning, «Открыть» for a plaintext vault, Keystore
+  error). The blurred sticky-header layer now paints behind every header control, and route desks
+  hold one viewport of folder tint instead of stretching with the content height.
+
 ## Release 0.6.43 — 2026-09-28
 
 - **Persistent APK signing.** Up to 0.6.42 every release was signed with an ephemeral CI debug key, so
@@ -509,6 +521,8 @@ and built output remains ignored private data with `rightsStatus: unresolved` an
    physical device.
 10. Medical news and research feed (ADR-0020, proposed; plan only): research sources, rate limits,
     CORS and Russian journal OAI-PMH/RSS coverage before choosing a first slice.
+11. A medication card reopened after a page reload loses the catalog's product context (trade name,
+    presentation and reading switch); restore it from the route rather than from in-memory state.
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.
 No cross-language runtime migration should start before shared golden fixtures demonstrate parity.

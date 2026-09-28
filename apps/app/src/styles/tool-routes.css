@@ -9,8 +9,7 @@
   padding: calc(clamp(1rem, 3vw, 1.5rem) + 2 * var(--safe-top)) clamp(0.875rem, 3vw, 1.5rem)
     calc(6.5rem + var(--nav-safe-bottom));
   background:
-    linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%),
-    linear-gradient(180deg, var(--folder-light), var(--folder));
+    linear-gradient(90deg, rgb(255 255 255 / 6%), transparent 17%), var(--route-desk-gradient);
 }
 
 .assessments-page.page-surface {

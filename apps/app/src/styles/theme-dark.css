@@ -184,8 +184,7 @@
   .model-status-view {
     color: var(--ink);
     background:
-      linear-gradient(90deg, rgb(255 255 255 / 3%), transparent 17%),
-      linear-gradient(180deg, var(--folder-light), var(--folder));
+      linear-gradient(90deg, rgb(255 255 255 / 3%), transparent 17%), var(--route-desk-gradient);
   }
 
   :where(.search-home, .page-surface, .model-status-view, .overlay-dialog, .reader-card)

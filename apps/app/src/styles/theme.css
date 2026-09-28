@@ -64,6 +64,11 @@
   --folder: #b9a06a;
   --folder-light: #cbb37c;
   --folder-dark: #8f7849;
+  /* Route desks: the folder tint spans one viewport and then holds its end colour, so it never
+     stretches or jumps when the route's content height changes. */
+  --route-desk-gradient:
+    linear-gradient(180deg, var(--folder-light), var(--folder)) 0 0 / 100% 100lvh no-repeat,
+    var(--folder);
   --desk: var(--theme-background);
   --desk-dark: #5c584f;
   --stamp: var(--theme-kicker);

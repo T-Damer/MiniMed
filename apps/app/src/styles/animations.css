@@ -85,3 +85,9 @@
     transform: translateY(0);
   }
 }
+
+@keyframes app-reveal-veil-out {
+  to {
+    opacity: 0;
+  }
+}

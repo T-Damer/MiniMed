@@ -19,6 +19,17 @@
       content="MiniMed — offline-first поиск по локальному корпусу клинических материалов."
     />
     <title>MiniMed — локальная медицинская картотека</title>
+    <!-- First frame before the stylesheet: the native splash colour, never a white flash. -->
+    <style>
+      html:not(:has(#root > *)) {
+        background: #f3ecd9;
+      }
+      @media (prefers-color-scheme: dark) {
+        html:not(:has(#root > *)) {
+          background: #2d2721;
+        }
+      }
+    </style>
   </head>
   <body>
     <noscript>Для запуска MiniMed нужен JavaScript.</noscript>

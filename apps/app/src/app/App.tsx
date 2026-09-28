@@ -44,6 +44,9 @@ import {
   type RouteWindowRequestDetail,
 } from '@/state/route-window-request';
 
+/** Matches the `app-reveal-veil-out` animation plus a frame of slack. */
+const APP_REVEAL_MS = 260;
+
 const loadAssessmentsView = () =>
   import('@/features/assessments/AssessmentsView').then(({ AssessmentsView: component }) => ({
     default: component,
@@ -147,6 +150,17 @@ export function App(): JSX.Element {
       navigation.view() !== 'assessments' &&
       !personalLibraryActive() &&
       !personalDocumentActive());
+  // The first view emerges once from the splash ground, when the boot surface gives way. A veil
+  // fades out over it: fading the view itself would make it a stacking context and drop its
+  // sticky header under the native status blur for the length of the animation.
+  const [revealing, setRevealing] = createSignal(false);
+  let revealTimer: number | undefined;
+  onCleanup(() => window.clearTimeout(revealTimer));
+  createEffect(() => {
+    if (revealTimer !== undefined || showingBootScreen()) return;
+    setRevealing(true);
+    revealTimer = window.setTimeout(() => setRevealing(false), APP_REVEAL_MS);
+  });
   onMount(() => {
     const refresh = () => {
       const hash = window.location.hash;
@@ -409,6 +423,9 @@ export function App(): JSX.Element {
             backToFiles={!expandedNavigation()}
           />
         ))}
+        <Show when={revealing()}>
+          <div class="app-reveal-veil" aria-hidden="true" />
+        </Show>
         <Show when={showingBootScreen()}>
           <BootScreen
             appLoading={!shellReady()}
