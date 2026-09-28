@@ -408,6 +408,7 @@ export function App(): JSX.Element {
             active={navigation.view() === 'modules'}
             onContentChanged={session.connectInstalledModules}
             onAvailableUpdates={session.setAvailableModuleCount}
+            knowledgeBaseEntry={!expandedNavigation()}
           />
         ))}
         {rootPane('assessments', () => (

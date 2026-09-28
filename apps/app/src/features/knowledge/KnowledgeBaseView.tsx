@@ -32,6 +32,8 @@ interface KnowledgeBaseViewProps {
   readonly active: boolean;
   readonly onContentChanged?: () => Promise<void>;
   readonly onAvailableUpdates?: (count: number) => void;
+  /** No «База знаний» tab in the navigation: «Мои файлы» offers it as a folder instead. */
+  readonly knowledgeBaseEntry?: boolean;
 }
 
 function routeFromLocation(): KnowledgeRoute {
@@ -94,7 +96,7 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
   return (
     <section class="knowledge-base-page page-surface page-grain">
       <Show when={route() === 'documents' && isUserLibraryCatalogRoute(documentsRoute())}>
-        <UserLibraryPage />
+        <UserLibraryPage knowledgeBaseEntry={props.knowledgeBaseEntry ?? false} />
       </Show>
       <Show when={!ready() && !isUserLibraryCatalogRoute(documentsRoute()) && props.coreStatus}>
         {(status) => (

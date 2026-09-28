@@ -110,6 +110,7 @@ import downloadSimpleFill from '@phosphor-icons/core/assets/fill/download-simple
 import gearSixFill from '@phosphor-icons/core/assets/fill/gear-six-fill.svg?raw';
 import imageSquareFill from '@phosphor-icons/core/assets/fill/image-square-fill.svg?raw';
 import pencilSimpleFill from '@phosphor-icons/core/assets/fill/pencil-simple-fill.svg?raw';
+import pushPinFill from '@phosphor-icons/core/assets/fill/push-pin-fill.svg?raw';
 import stopCircleFill from '@phosphor-icons/core/assets/fill/stop-circle-fill.svg?raw';
 import textAaFill from '@phosphor-icons/core/assets/fill/text-aa-fill.svg?raw';
 import type { JSX } from 'solid-js';
@@ -139,6 +140,7 @@ export type AppGlyphName =
   | 'book-open'
   | 'bookmark'
   | 'bookmark-fill'
+  | 'push-pin'
   | 'caret-down'
   | 'caret-left'
   | 'caret-right'
@@ -267,6 +269,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'book-open': svgBody(bookOpenBold),
   bookmark: svgBody(bookmarkSimpleBold),
   'bookmark-fill': svgBody(bookmarkSimpleFill),
+  'push-pin': svgBody(pushPinFill),
   'caret-down': svgBody(caretDownBold),
   'caret-left': svgBody(caretLeftBold),
   'caret-right': svgBody(caretRightBold),

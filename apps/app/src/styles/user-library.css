@@ -1506,6 +1506,18 @@
   background: #000;
 }
 
+.user-library-folder-card__pin {
+  display: inline-flex;
+  margin-inline-start: 0.3rem;
+  color: var(--theme-text-faint);
+  vertical-align: baseline;
+}
+
+.user-library-folder-card__pin-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
 .user-library-folder-card__lock {
   display: inline-block;
   width: 0.875rem;

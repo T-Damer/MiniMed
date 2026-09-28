@@ -82,6 +82,12 @@ interface DeleteTarget {
 }
 
 const PATIENTS_FOLDER_ID = 'patient-vault-entry';
+const KNOWLEDGE_BASE_FOLDER_ID = 'knowledge-base-entry';
+const KNOWLEDGE_BASE_HASH = '#/modules/documents';
+
+/** Root entries that open another section instead of holding files. */
+const isEntryFolder = (id: string): boolean =>
+  id === PATIENTS_FOLDER_ID || id === KNOWLEDGE_BASE_FOLDER_ID;
 
 type SortMode = 'time' | 'name' | 'type';
 
@@ -210,6 +216,7 @@ const USER_LIBRARY_FOLDER_GLYPHS: Readonly<Record<string, AppGlyphName>> = {
   [USER_LIBRARY_TEMPLATES_FOLDER_ID]: 'notepad',
   [USER_LIBRARY_NOTES_FOLDER_ID]: 'notes',
   [PATIENTS_FOLDER_ID]: 'users',
+  [KNOWLEDGE_BASE_FOLDER_ID]: 'modules',
 };
 
 /** Reference-stability guard: keeps virtualizer rows from re-measuring when a
@@ -390,7 +397,10 @@ function UserLibraryAttachmentPreview(props: {
   );
 }
 
-export function UserLibraryPage(): JSX.Element {
+export function UserLibraryPage(props: {
+  /** Show «База знаний» among the root folders (the navigation has no tab for it). */
+  readonly knowledgeBaseEntry: boolean;
+}): JSX.Element {
   const folderIdFromLocation = (): string | null => {
     const folderId = parseUserLibraryFolderRoute(window.location.hash.replace(/^#\/?/u, ''));
     return folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID ? null : folderId;
@@ -699,6 +709,19 @@ export function UserLibraryPage(): JSX.Element {
 
   const visibleFolders = createMemo(() => [
     ...folders().filter((folder) => folder.parentId === currentFolderId()),
+    // With separate tabs off, the knowledge base has no tab of its own: it opens from here.
+    ...(currentFolderId() === null && props.knowledgeBaseEntry
+      ? [
+          {
+            id: KNOWLEDGE_BASE_FOLDER_ID,
+            title: 'База знаний',
+            parentId: null,
+            isSystem: true,
+            createdAt: '',
+            updatedAt: '',
+          } satisfies UserLibraryFolder,
+        ]
+      : []),
     ...(currentFolderId() === null
       ? [
           {
@@ -1350,6 +1373,10 @@ export function UserLibraryPage(): JSX.Element {
       navigate(notesPatientsPath());
       return;
     }
+    if (folderId === KNOWLEDGE_BASE_FOLDER_ID) {
+      navigate(KNOWLEDGE_BASE_HASH);
+      return;
+    }
     if (folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID) {
       navigate(notesTemplatesPath());
       return;
@@ -1660,13 +1687,25 @@ export function UserLibraryPage(): JSX.Element {
     const attachmentCount = (): number =>
       fileCount() + folders().filter((item) => item.parentId === props.folder.id).length;
     const isPatients = () => props.folder.id === PATIENTS_FOLDER_ID;
+    const isEntry = () => isEntryFolder(props.folder.id);
     const folderDetails = () =>
       isPatients()
         ? vaultEncrypted()
           ? 'Зашифровано на устройстве'
           : 'Отдельное хранилище пациентов'
-        : getPluralMessage('attachment_count', attachmentCount());
-    const drops = isPatients()
+        : props.folder.id === KNOWLEDGE_BASE_FOLDER_ID
+          ? 'Документы и справочники'
+          : getPluralMessage('attachment_count', attachmentCount());
+    // Folders that cannot be deleted carry a pin, so the missing «Удалить» is no surprise.
+    const pinMark = (): JSX.Element => (
+      <Show when={isUserLibrarySystemFolder(props.folder)}>
+        <span class="user-library-folder-card__pin" title="Закреплена: эту папку нельзя удалить">
+          <AppGlyph name="push-pin" class="user-library-folder-card__pin-icon" />
+          <span class="sr-only">, закреплена</span>
+        </span>
+      </Show>
+    );
+    const drops = isEntry()
       ? {
           onDragOver: (event: DragEvent) => {
             event.preventDefault();
@@ -1690,7 +1729,7 @@ export function UserLibraryPage(): JSX.Element {
     return (
       <AppContextMenu
         class={`user-library-folder-menu user-library-folder-menu--${viewMode()}`}
-        actions={isPatients() ? [] : folderActions(props.folder)}
+        actions={isEntry() ? [] : folderActions(props.folder)}
         buttonLabel={`Действия с папкой «${props.folder.title}»`}
         hideButton
       >
@@ -1703,7 +1742,7 @@ export function UserLibraryPage(): JSX.Element {
             'user-library-folder-card--touch-dragging': draggingKey() === props.folder.id,
             'user-library-folder-card--system': isUserLibrarySystemFolder(props.folder),
           }}
-          data-user-library-drop-target={isPatients() ? '' : props.folder.id}
+          data-user-library-drop-target={isEntry() ? '' : props.folder.id}
           draggable={canUseNativeLibraryDrag() && !isUserLibrarySystemFolder(props.folder)}
           onPointerDown={(event) =>
             startTouchDrag(event, {
@@ -1775,6 +1814,7 @@ export function UserLibraryPage(): JSX.Element {
                       <Show when={isPatients() && vaultEncrypted()}>
                         <AppGlyph name="lock" class="user-library-folder-card__lock" />
                       </Show>
+                      {pinMark()}
                     </strong>
                     <small
                       class={`user-library-folder-card__details user-library-folder-card__details--${viewMode()}`}
@@ -1791,6 +1831,7 @@ export function UserLibraryPage(): JSX.Element {
                     <Show when={isPatients() && vaultEncrypted()}>
                       <AppGlyph name="lock" class="user-library-folder-card__lock" />
                     </Show>
+                    {pinMark()}
                   </strong>
                   <small class="user-library-card__meta" title={timesTitleFor(props.folder)}>
                     {folderDetails()}

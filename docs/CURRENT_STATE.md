@@ -76,6 +76,10 @@ Detailed history, moved verbatim on 2026-09-24:
   (`components/Carousel`) with equal-height cards, arrows, and autoplay that pauses on hover or
   focus, stops once the user swipes or presses an arrow, and is off with reduced motion. It opens
   on today's capability. All home blocks share one spacing step (`--home-gap`, 1 rem / 1.25 rem).
+- While the core opens, its status shows once: the note under the field (with progress) or, for
+  the first 400 ms of a quick open, the field placeholder. «Мои файлы» lists «База знаний» as a
+  root folder when the navigation has no tab for it (separate tabs off, or the core not ready);
+  folders that cannot be deleted carry a pin.
 
 ## Release 0.6.43 — 2026-09-28
 
