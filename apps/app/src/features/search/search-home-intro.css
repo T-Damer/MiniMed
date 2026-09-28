@@ -1,0 +1,151 @@
+/* Home spacing: one step between every block on the empty search page. */
+.search-home {
+  --home-gap: 1rem;
+}
+
+@media (min-width: 48rem) {
+  .search-home {
+    --home-gap: 1.25rem;
+  }
+}
+
+.search-heading {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 360ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 240ms ease-out;
+}
+
+.search-heading--hidden {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+/* The collapsing row needs a clipped child; the inset keeps focus rings and chip shadows visible. */
+.search-home-intro {
+  display: grid;
+  min-height: 0;
+  gap: var(--home-gap);
+  margin: -0.25rem;
+  padding: 0.25rem 0.25rem calc(var(--home-gap) + 0.25rem);
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-heading {
+    transition: none;
+  }
+}
+
+/* Capability cards: same shape as the ECG entry, so every carousel slide keeps one size. */
+.useful-features {
+  min-width: 0;
+}
+
+.home-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 0.9rem;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+}
+
+.home-feature__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.home-feature__kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--theme-kicker);
+  font-size: var(--type-micro);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-feature__kicker-icon,
+.home-feature__action-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+}
+
+.home-feature__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.home-feature__text {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.home-feature__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+
+.home-feature__action {
+  display: inline-flex;
+  min-height: 2.6rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--theme-accent);
+  border-radius: 0.55rem;
+  color: var(--theme-accent-contrast);
+  background: var(--theme-accent);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.home-feature__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.home-feature__action:focus-visible,
+.home-feature__link:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.home-feature__reason {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.home-feature__link {
+  color: var(--theme-link);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* Same breakpoint as the ECG entry. */
+@media (max-width: 600px) {
+  .home-feature {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

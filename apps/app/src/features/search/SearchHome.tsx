@@ -32,7 +32,6 @@ import { KnowledgeGraph } from '@/features/library/KnowledgeGraph';
 import { selectGraphNeighborhood } from '@/features/library/knowledge-graph-model';
 import { medicationDocumentGroups } from '@/features/medications/medicationGroups';
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
-import type { HomeFeature } from '@/features/search/FeatureOfDay';
 import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
 import {
@@ -49,12 +48,12 @@ import {
   type SearchScope,
 } from '@/features/search/ScopedMedicalCore';
 import { SearchCoreStatusNote } from '@/features/search/SearchCoreStatusNote';
+import { type HomeFeature, SearchHomeIntro } from '@/features/search/SearchHomeIntro';
 import { SearchNoResults } from '@/features/search/SearchNoResults';
 import { SearchQuickAccess } from '@/features/search/SearchQuickAccess';
 import { SearchResultModuleDownload } from '@/features/search/SearchResultModuleDownload';
 import { SearchSectionPicker } from '@/features/search/SearchSectionPicker';
 import { SearchSectionsOverview } from '@/features/search/SearchSectionsOverview';
-import { SearchGreeting, SearchWelcome } from '@/features/search/SearchWelcome';
 import { SearchWorkspace } from '@/features/search/SearchWorkspace';
 import {
   SEARCH_CORE_NOTE_DELAY_MS,
@@ -324,7 +323,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       });
     }
   };
-  /** Capabilities that take turns under the empty search field, one per day. */
+  /** «Полезные функции» above the empty search field, starting from today's capability. */
   const homeFeatures = createMemo((): readonly HomeFeature[] => [
     { id: 'ecg-photo', render: () => <EcgHomeEntry /> },
     {
@@ -638,9 +637,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           )}
           catalogOnly={catalogOnly()}
           showExamples
-          heading={<SearchGreeting />}
-          welcome={<SearchWelcome features={homeFeatures()} />}
-          quickAccess={<SearchQuickAccess tools={quickTools()} />}
+          heading={
+            <SearchHomeIntro
+              quickAccess={<SearchQuickAccess tools={quickTools()} />}
+              features={homeFeatures()}
+            />
+          }
           searchActions={
             <Show when={!catalogOnly() && scope() !== 'diagnosis' && experimentalModulesEnabled()}>
               <button

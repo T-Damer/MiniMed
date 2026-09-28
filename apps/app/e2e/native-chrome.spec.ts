@@ -117,6 +117,12 @@ for (const viewport of [
     await expect(pill).toHaveCount(0);
     await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 60_000 });
 
+    // A long page (results, many sections): the empty home alone may not scroll the field away.
+    await page.evaluate(() => {
+      const spacer = document.createElement('div');
+      spacer.style.height = '1000px';
+      document.querySelector('.search-home')?.append(spacer);
+    });
     const fieldBottom = await field.evaluate((element) => element.getBoundingClientRect().bottom);
     const rowBottom = await row.evaluate((element) => element.getBoundingClientRect().bottom);
     await page.evaluate(

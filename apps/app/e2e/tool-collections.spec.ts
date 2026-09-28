@@ -32,7 +32,7 @@ for (const width of [375, 1280]) {
 
     // The tool row folds away with the rest of the empty-field content while typing.
     await page.getByTestId('search-input').fill('пнев');
-    await expect(page.locator('.search-welcome')).toHaveClass(/search-welcome--hidden/u);
+    await expect(page.locator('.search-heading')).toHaveClass(/search-heading--hidden/u);
     await page.getByTestId('search-input').fill('');
     await expect(quickAccess).toBeVisible();
 

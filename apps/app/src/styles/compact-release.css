@@ -605,7 +605,7 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   max-width: 100%;
   min-inline-size: 0;
   gap: 0.3125rem;
-  margin-top: 1rem;
+  margin-top: var(--home-gap, 1rem);
   padding: 0;
   overflow: hidden;
 }

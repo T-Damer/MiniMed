@@ -72,6 +72,10 @@ Detailed history, moved verbatim on 2026-09-24:
   appears only when the user must act (browser warning, «Открыть» for a plaintext vault, Keystore
   error). The blurred sticky-header layer now paints behind every header control, and route desks
   hold one viewport of folder tint instead of stretching with the content height.
+- Home: no greeting. Above the field sit the tool row and «Полезные функции», a carousel
+  (`components/Carousel`) with equal-height cards, arrows, and autoplay that pauses on hover or
+  focus, stops once the user swipes or presses an arrow, and is off with reduced motion. It opens
+  on today's capability. All home blocks share one spacing step (`--home-gap`, 1 rem / 1.25 rem).
 
 ## Release 0.6.43 — 2026-09-28
 

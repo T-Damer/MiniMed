@@ -97,11 +97,8 @@ interface SearchWorkspaceProps {
   /** Greeting and shortcuts shown above an empty query; collapses once the user searches. */
   /** Receives the field's form, so the page can offer a way back to it once it scrolls away. */
   readonly onFieldElement?: (form: HTMLFormElement) => void;
-  /** Page heading above the field; hidden with the welcome block once a search starts. */
+  /** Empty-field content above the field (tools, capabilities); folds away once a search starts. */
   readonly heading?: JSX.Element;
-  readonly welcome?: JSX.Element;
-  /** Stays above the field while typing, unlike the welcome block. */
-  readonly quickAccess?: JSX.Element;
   /** Document ids of the current result groups, e.g. to centre the knowledge graph on them. */
   readonly onResultDocuments?: (documentIds: readonly string[]) => void;
   readonly filters?: SearchFilters;
@@ -846,7 +843,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         class="search-column case-folder"
         classList={{
           'has-search-content': query().length > 0,
-          'case-folder--with-welcome': Boolean(props.welcome),
+          'case-folder--with-welcome': Boolean(props.heading),
         }}
       >
         {/* The page heading lives in SearchHome; repeating a second hero here doubled the height
@@ -1010,20 +1007,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </Show>
         </form>
         {props.fieldStatus}
-        {/* Tools and capabilities sit under the field so the field is the first thing on screen;
-            they fold away as soon as a search starts, leaving results next to the field. */}
-        <Show when={props.welcome || props.quickAccess}>
-          <div
-            class="search-welcome"
-            classList={{ 'search-welcome--hidden': query().length > 0 || Boolean(response()) }}
-            inert={query().length > 0 || Boolean(response())}
-          >
-            <div class="search-welcome__inner">
-              {props.quickAccess}
-              {props.welcome}
-            </div>
-          </div>
-        </Show>
 
         <Show when={ambiguousMeanings().length > 0}>
           <SearchMeaningChoices

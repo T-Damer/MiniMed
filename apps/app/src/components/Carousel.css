@@ -1,0 +1,96 @@
+.carousel {
+  display: grid;
+  min-width: 0;
+  gap: 0.5rem;
+}
+
+.carousel__bar {
+  display: flex;
+  min-height: 2rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 0.25rem;
+}
+
+.carousel__label {
+  color: var(--theme-kicker);
+  font-size: var(--type-micro);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.carousel__position {
+  color: var(--theme-text-faint);
+  font-size: var(--type-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+.carousel__controls {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.carousel__arrow {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text);
+  background: var(--theme-surface-raised);
+  cursor: pointer;
+  transition:
+    background-color 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+.carousel__arrow:hover {
+  background: var(--theme-accent-soft);
+}
+
+.carousel__arrow:active {
+  transform: scale(0.94);
+}
+
+.carousel__arrow:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+
+.carousel__arrow-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* One slide per track width, no gap: the scroll position maps straight to a slide index. */
+.carousel__track {
+  display: grid;
+  grid-auto-columns: 100%;
+  grid-auto-flow: column;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.carousel__track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Grid rows stretch every slide, and the card inside it, to the tallest slide's height. */
+.carousel__slide {
+  display: grid;
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel__arrow {
+    transition: none;
+  }
+}

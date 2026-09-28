@@ -115,33 +115,103 @@ test('the tool row holds «Все инструменты» and only the tools th
 });
 
 for (const width of [375, 1280]) {
-  test(`one capability of the day takes turns under the empty field at ${width}px`, async ({
+  test(`tools and «Полезные функции» sit above the empty field at ${width}px`, async ({
     page,
-  }) => {
+  }, testInfo) => {
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-    const card = page.locator('.feature-of-day');
-    await expect(card.getByText('Возможность дня')).toBeVisible();
-    const position = card.locator('.feature-of-day__position');
-    const total = Number((await position.textContent())?.match(/из (\d+)/u)?.[1]);
+    const carousel = page.getByRole('region', { name: 'Полезные функции' });
+    await expect(carousel).toBeVisible();
+    // No greeting any more: tools, then capabilities, then the field.
+    await expect(page.getByRole('heading', { name: /^Добр(ое|ый|ой)/u })).toHaveCount(0);
+    const field = await page.getByTestId('search-input').boundingBox();
+    const tools = await page
+      .getByRole('button', { name: 'Все инструменты', exact: true })
+      .boundingBox();
+    const cards = await carousel.boundingBox();
+    expect(tools && cards && field && tools.y < cards.y && cards.y + cards.height <= field.y).toBe(
+      true,
+    );
+
+    // Every slide has the height of the tallest one.
+    const slides = carousel.locator('.carousel__slide');
+    const total = await slides.count();
     expect(total).toBeGreaterThanOrEqual(3);
+    const heights = await slides.evaluateAll((elements) =>
+      elements.map((element) => Math.round(element.getBoundingClientRect().height)),
+    );
+    expect(new Set(heights).size).toBe(1);
+
+    // Arrows walk through every capability and wrap; the visible slide follows the position.
+    const position = carousel.locator('.carousel__position');
+    // The slide in view once scrolling settles, as «position из total».
+    const settledSlide = () =>
+      carousel.evaluate((element) => {
+        const track = element.querySelector('.carousel__track') as HTMLElement;
+        const index = Math.round(track.scrollLeft / track.clientWidth);
+        const title = element.querySelectorAll('.carousel__slide')[index]?.querySelector('h2');
+        return { index, title: title?.textContent?.trim() ?? '' };
+      });
     const titles = new Set<string>();
     for (let step = 0; step < total; step += 1) {
-      titles.add((await card.getByRole('heading', { level: 2 }).textContent())?.trim() ?? '');
-      await card.getByRole('button', { name: 'Показать другую возможность' }).click();
+      const shown = Number((await position.textContent())?.split(' ')[0]);
+      await expect.poll(async () => (await settledSlide()).index).toBe(shown - 1);
+      titles.add((await settledSlide()).title);
+      await carousel.getByRole('button', { name: 'Следующая' }).click();
+      await expect(position).toHaveText(`${(shown % total) + 1} из ${total}`);
     }
-    // Every capability shows once per round, and the ECG entry keeps its photo buttons.
     expect(titles.size).toBe(total);
     expect([...titles]).toEqual(expect.arrayContaining(['ЭКГ по фото', 'Просмотр исследований']));
-    while (
-      (await card.getByRole('heading', { level: 2 }).textContent())?.trim() !== 'ЭКГ по фото'
-    ) {
-      await card.getByRole('button', { name: 'Показать другую возможность' }).click();
-    }
-    await expect(card.getByText('Сфотографировать')).toBeVisible();
-    // The card folds away with the rest of the empty-field content while typing.
+    await expect
+      .poll(() => carousel.locator('.carousel__track').evaluate((track) => track.scrollLeft))
+      .toBe(0);
+    await page.mouse.move(0, 0);
+    await page.screenshot({ path: testInfo.outputPath(`home-${width}.png`) });
+
+    // Everything above the field folds away while typing.
     await page.getByTestId('search-input').fill('пнев');
-    await expect(page.locator('.search-welcome')).toHaveClass(/search-welcome--hidden/u);
+    await expect(page.locator('.search-heading')).toHaveClass(/search-heading--hidden/u);
+  });
+
+  test(`«Полезные функции» autoplay stops once the user takes over at ${width}px`, async ({
+    page,
+  }) => {
+    await page.clock.install();
+    await page.setViewportSize({ width, height: 844 });
+    await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+    const carousel = page.getByRole('region', { name: 'Полезные функции' });
+    const position = carousel.locator('.carousel__position');
+    await expect(position).toBeVisible();
+    await page.mouse.move(0, 0);
+    const start = await position.textContent();
+    await page.clock.runFor(7_500);
+    await expect(position).not.toHaveText(start ?? '');
+
+    // Hover holds it; an arrow press stops it for good.
+    await carousel.hover();
+    const held = await position.textContent();
+    await page.clock.runFor(15_000);
+    await expect(position).toHaveText(held ?? '');
+    await carousel.getByRole('button', { name: 'Предыдущая' }).click();
+    const chosen = await position.textContent();
+    await page.mouse.move(0, 0);
+    await page.clock.runFor(15_000);
+    await expect(position).toHaveText(chosen ?? '');
+  });
+
+  test(`«Полезные функции» never autoplays with reduced motion at ${width}px`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.clock.install();
+    await page.setViewportSize({ width, height: 844 });
+    await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+    const position = page
+      .getByRole('region', { name: 'Полезные функции' })
+      .locator('.carousel__position');
+    await expect(position).toBeVisible();
+    await page.mouse.move(0, 0);
+    const start = await position.textContent();
+    await page.clock.runFor(30_000);
+    await expect(position).toHaveText(start ?? '');
   });
 }
 
