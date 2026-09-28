@@ -329,8 +329,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
         module.kind !== 'clinical' && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
     ),
   );
+  // A pack filed under «Заболевания и состояния» (collection «conditions») is not also a generic
+  // reference («Нормы и расчёты») pack, whatever its kind.
   const regularSectionModules = (section: string): readonly ContentModuleCatalogEntry[] =>
-    regularModules().filter((module) => module.kind === section || module.collection === section);
+    regularModules().filter(
+      (module) =>
+        module.collection === section ||
+        (module.kind === section && module.collection !== 'conditions'),
+    );
   const singleRegularSectionModule = (section: string): ContentModuleCatalogEntry | null => {
     const modules = regularSectionModules(section);
     return modules.length === 1 ? (modules[0] ?? null) : null;

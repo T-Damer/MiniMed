@@ -143,6 +143,7 @@ def test_package_writes_exact_gzip_membership_and_verifies_core_pointers(tmp_pat
     assert gzip.decompress(archive.read_bytes()) == database.read_bytes()
     entry = json.loads(Path(str(report["catalogEntry"])).read_text(encoding="utf-8"))
     assert entry["id"] == "minimed.reference.krasotaimedicina.ru"
+    assert entry["collection"] == "conditions"
     assert entry["releaseState"] == "preview"
     assert entry["compatibility"]["minAppVersion"] == "0.6.44"
     assert entry["compatibility"]["schemaVersion"] == 2

@@ -271,6 +271,7 @@ def test_package_writes_both_modules_and_verifies_cited_anchors(tmp_path: Path) 
     assert membership["citedAnchors"] == 1
     entry = json.loads(Path(str(code_report["catalogEntry"])).read_text(encoding="utf-8"))
     assert entry["id"] == "minimed.mkb.ru"
+    assert entry["collection"] == "conditions"
     assert entry["capabilities"]["structuredKnowledge"] is True
     assert entry["artifacts"][0]["url"].endswith(
         "/reference-rls-mkb-2026.9.28/minimed.reference.rls-mkb.2026.9.28.db.gz"
@@ -282,6 +283,7 @@ def test_package_writes_both_modules_and_verifies_cited_anchors(tmp_path: Path) 
         Path(str(packaging_report["catalogEntry"])).read_text(encoding="utf-8")
     )
     assert packaging_entry["id"] == "minimed.rls.packaging.ru"
+    assert packaging_entry["collection"] == "shared"
     assert packaging_entry["previewDocumentCount"] == 2
 
 

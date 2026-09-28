@@ -74,6 +74,7 @@ def package_krasotaimedicina_module(
             file_stem="minimed.reference.krasotaimedicina",
             title="Справочник заболеваний «Красота и медицина»",
             tags=("diseases", "krasotaimedicina", "requires-review", "experimental"),
+            collection="conditions",
         ),
         version=version,
         min_app_version=min_app_version,

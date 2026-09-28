@@ -264,6 +264,9 @@ class ModuleDescriptor:
     tags: tuple[str, ...]
     structured_knowledge: bool = False
     structured_tables: bool = False
+    # Catalog grouping: «conditions» files a pack under «Заболевания и состояния», not the
+    # generic reference («Нормы и расчёты») section.
+    collection: str = "shared"
 
 
 def package_module(
@@ -311,7 +314,7 @@ def package_module(
         "id": descriptor.module_id,
         "version": version,
         "kind": "reference",
-        "collection": "shared",
+        "collection": descriptor.collection,
         "title": descriptor.title,
         "description": description,
         "required": False,

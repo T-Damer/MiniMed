@@ -102,6 +102,7 @@ def package_rls_mkb_modules(
             title="МКБ-10 и привязки РЛС",
             tags=("icd-10", "mkb", "rls", "requires-review", "experimental"),
             structured_knowledge=True,
+            collection="conditions",
         ),
         version=version,
         min_app_version=min_app_version,
