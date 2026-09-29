@@ -962,6 +962,19 @@
   min-height: 0;
   overflow: visible;
   overflow-anchor: none;
+  transition: opacity 140ms ease-out;
+}
+
+/* A chapter jump shows the text only once neighbouring chapters stop shifting it. */
+.rich-document-renderer--navigating {
+  opacity: 0;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rich-document-renderer--epub {
+    transition: none;
+  }
 }
 
 /* epub.js compensates synchronously when it prepends or removes chapter frames. */

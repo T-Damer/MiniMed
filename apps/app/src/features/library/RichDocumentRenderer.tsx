@@ -7,6 +7,7 @@ import {
   flattenEpubNavigation,
   pageAnchorId,
   type UserDocumentOutlineItem,
+  waitForStablePosition,
 } from '@/features/library/user-document-reader-helpers';
 import { getUserLibraryFile, userLibraryFileCapability } from '@/state/user-library';
 import {
@@ -180,6 +181,13 @@ export function RichDocumentRenderer(props: {
               });
             };
             rendition.hooks.content.register(preventSelectedContextMenu);
+            // Wheel and touch over a chapter happen inside its iframe and never reach `window`.
+            let reportUserScroll: (() => void) | null = null;
+            rendition.hooks.content.register((contents: EpubContents) => {
+              const report = (): void => reportUserScroll?.();
+              contents.window.addEventListener('wheel', report, { passive: true });
+              contents.window.addEventListener('touchstart', report, { passive: true });
+            });
             const handleSelected = (cfiRange: string, contents: EpubContents): void => {
               const selection = contents.window.getSelection();
               if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
@@ -211,10 +219,28 @@ export function RichDocumentRenderer(props: {
             let navigationRequest = 0;
             const navigate = (href: string): void => {
               const request = ++navigationRequest;
+              const current = (): boolean => !disposed && request === navigationRequest;
+              // A reader who starts scrolling takes over; the alignment below must not fight them.
+              let userScrolled = false;
+              const markUserScroll = (): void => {
+                userScrolled = true;
+              };
+              // The continuous manager keeps rendering neighbouring chapters after display()
+              // resolves, which moves the target several times; hide the text until it settles.
+              host.classList.add('rich-document-renderer--navigating');
+              reportUserScroll = markUserScroll;
+              window.addEventListener('wheel', markUserScroll, { passive: true });
+              window.addEventListener('touchstart', markUserScroll, { passive: true });
+              const finish = (): void => {
+                if (reportUserScroll === markUserScroll) reportUserScroll = null;
+                window.removeEventListener('wheel', markUserScroll);
+                window.removeEventListener('touchstart', markUserScroll);
+                if (current()) host.classList.remove('rich-document-renderer--navigating');
+              };
               void rendition
                 .display(href)
-                .then(() => {
-                  if (disposed || request !== navigationRequest) return;
+                .then(async () => {
+                  if (!current()) return;
                   const section = book.spine.get(href);
                   if (!section) return;
                   const frame = Array.from(host.querySelectorAll('iframe')).find(
@@ -225,21 +251,26 @@ export function RichDocumentRenderer(props: {
                   const target = fragment
                     ? frame.contentDocument?.getElementById(decodeURIComponent(fragment))
                     : null;
+                  const documentTop = (): number =>
+                    window.scrollY +
+                    frame.getBoundingClientRect().top +
+                    (target?.getBoundingClientRect().top ?? 0);
+                  const settledTop = await waitForStablePosition(documentTop, () =>
+                    Boolean(current() && !userScrolled),
+                  );
+                  if (settledTop === null) return;
                   const chrome = host
                     .closest('.document-page')
                     ?.querySelector('.document-page__chrome');
                   window.scrollTo({
-                    top:
-                      window.scrollY +
-                      frame.getBoundingClientRect().top +
-                      (target?.getBoundingClientRect().top ?? 0) -
-                      Math.max(0, chrome?.getBoundingClientRect().bottom ?? 0),
+                    top: settledTop - Math.max(0, chrome?.getBoundingClientRect().bottom ?? 0),
                     behavior: 'instant',
                   });
                 })
                 .catch(() => {
-                  if (!disposed) toast.error('Не удалось перейти к выбранному разделу.');
-                });
+                  if (current()) toast.error('Не удалось перейти к выбранному разделу.');
+                })
+                .finally(finish);
             };
             const handleRelocated = (location: EpubLocation): void => {
               const href = location.start?.href;

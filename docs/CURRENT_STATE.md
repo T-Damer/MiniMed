@@ -26,6 +26,11 @@ Detailed history, moved verbatim on 2026-09-24:
   short/instruction switch. The saved product is validated before use; a queued catalog handoff
   still forces a fresh load, a restored one does not. `e2e/medication-reload.spec.ts` fails
   without the fix.
+- **EPUB chapter jumps.** In continuous mode `display()` resolves before epub.js finishes
+  rendering neighbouring chapters, so the chapter visibly passed through several positions
+  (≈4284 → 6521 → 4389 px). The reader now hides the text while the target's position is still
+  moving, aligns once it has been still for six frames (at most 1.5 s), then fades in. Wheel or
+  touch — also inside the chapter iframes — hands control back to the reader immediately.
 
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 
@@ -150,10 +155,15 @@ Detailed history, moved verbatim on 2026-09-24:
   appears only when the user must act (browser warning, «Открыть» for a plaintext vault, Keystore
   error). The blurred sticky-header layer now paints behind every header control, and route desks
   hold one viewport of folder tint instead of stretching with the content height.
-- Home: no greeting. Above the field sit the tool row and «Полезные функции», a carousel
-  (`components/Carousel`) with equal-height cards, arrows, and autoplay that pauses on hover or
-  focus, stops once the user swipes or presses an arrow, and is off with reduced motion. It opens
-  on today's capability. All home blocks share one spacing step (`--home-gap`, 1 rem / 1.25 rem).
+- Home: no greeting. The search field leads the page; the tool row and «Полезные функции» follow
+  it on a quieter surface and fold away once a search starts. The carousel (`components/Carousel`)
+  has equal-height cards, arrows on the card edges, position dots («Функция 2 из 4»), and autoplay
+  that pauses on hover or focus, stops once the user swipes, presses an arrow or a dot, and is off
+  with reduced motion; it opens on today's capability. Capability cards carry a second action as a
+  second button and «Как это работает» as a round «?» (`HelpIconLink`). The field holds only the
+  input, source picker, «Клинический разбор» and a round send button; clearing is a × inside the
+  field, and «Карта связей» sits in the top row beside «Случайная запись». All home blocks share
+  one spacing step (`--home-gap`, 1 rem / 1.25 rem).
 - While the core opens, its status shows once: the note under the field (with progress) or, for
   the first 400 ms of a quick open, the field placeholder. «Мои файлы» lists «База знаний» as a
   root folder when the navigation has no tab for it (separate tabs off, or the core not ready);
@@ -633,15 +643,12 @@ described above.
    physical device.
 10. Medical news and research feed (ADR-0020, proposed; plan only): research sources, rate limits,
     CORS and Russian journal OAI-PMH/RSS coverage before choosing a first slice.
-11. EPUB continuous mode: jumping to a chapter lands in several visible jumps (≈4284 → 6521 → 4389
-    px within ~300 ms) while epub.js renders neighbouring chapters; align the chapter once after
-    the layout settles.
-12. Catalog membership format: listing the RLS packaging module would grow `catalog.preview.json`
+11. Catalog membership format: listing the RLS packaging module would grow `catalog.preview.json`
     from 12.6 to ~16 MB, mostly repeated per-document fields. Move module membership to a compact
     or lazily loaded form, then list `minimed.rls.packaging.ru` and link medication profiles to it.
-13. zstd module artifacts: about 45% smaller than gzip for the RLS modules; the catalog schema
+12. zstd module artifacts: about 45% smaller than gzip for the RLS modules; the catalog schema
     already allows zstd, the installer needs a decoder.
-14. Core rebuild with medicine aliases (1,678 mapped trade names) and a non-FTS identity table for
+13. Core rebuild with medicine aliases (1,678 mapped trade names) and a non-FTS identity table for
     terms, scales and acts (`research/core-coverage-2026-09-28.md`), after the candidate core
     passes the doctor-lookup gate.
 

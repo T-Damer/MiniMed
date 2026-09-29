@@ -168,3 +168,42 @@ export function textMatchesDocumentQuery(text: string, query: string, similar = 
   if (similar) return matchesFuzzyQuery(trimmed, [text]);
   return findRangesInText(text, trimmed, 'exact').length > 0;
 }
+
+export interface StablePositionOptions {
+  /** Consecutive frames without movement before the position counts as settled. */
+  readonly stableFrames?: number;
+  readonly timeoutMs?: number;
+  readonly nextFrame?: () => Promise<void>;
+  readonly now?: () => number;
+}
+
+function nextAnimationFrame(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+}
+
+/**
+ * Samples a layout position once per frame until it stops moving (or the timeout passes) and
+ * returns the last value; null when `keepWaiting` turns false, e.g. a newer navigation or the
+ * reader's own scroll.
+ */
+export async function waitForStablePosition(
+  read: () => number,
+  keepWaiting: () => boolean,
+  options: StablePositionOptions = {},
+): Promise<number | null> {
+  const stableFrames = options.stableFrames ?? 6;
+  const timeoutMs = options.timeoutMs ?? 1500;
+  const nextFrame = options.nextFrame ?? nextAnimationFrame;
+  const now = options.now ?? (() => performance.now());
+  const deadline = now() + timeoutMs;
+  let last = read();
+  let unchanged = 0;
+  while (unchanged < stableFrames && now() < deadline) {
+    await nextFrame();
+    if (!keepWaiting()) return null;
+    const value = read();
+    unchanged = Math.abs(value - last) < 1 ? unchanged + 1 : 0;
+    last = value;
+  }
+  return keepWaiting() ? last : null;
+}

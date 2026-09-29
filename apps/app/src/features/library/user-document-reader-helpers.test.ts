@@ -8,6 +8,7 @@ import {
   flattenEpubNavigation,
   pageAnchorId,
   textMatchesDocumentQuery,
+  waitForStablePosition,
 } from '@/features/library/user-document-reader-helpers';
 
 describe('user-document-reader-helpers', () => {
@@ -151,5 +152,50 @@ describe('user-document-reader-helpers', () => {
   it('matches document query with similar words when enabled', () => {
     expect(textMatchesDocumentQuery('Гипертоническая болезнь', 'гиперт', true)).toBe(true);
     expect(textMatchesDocumentQuery('Диабет', 'гиперт', true)).toBe(false);
+  });
+});
+
+describe('waitForStablePosition', () => {
+  // A scripted layout: each frame reads the next position, like chapters rendering around a target.
+  function frames(positions: readonly number[]) {
+    let index = 0;
+    let clock = 0;
+    return {
+      read: () => positions[Math.min(index, positions.length - 1)] ?? 0,
+      nextFrame: async () => {
+        index += 1;
+        clock += 16;
+      },
+      now: () => clock,
+    };
+  }
+
+  it('waits through the shifts and returns the settled position', async () => {
+    const layout = frames([4284, 6521, 4389, 4389, 4389, 4389, 4389, 4389, 4389]);
+    await expect(waitForStablePosition(layout.read, () => true, layout)).resolves.toBe(4389);
+  });
+
+  it('gives up waiting at the timeout and returns the last position', async () => {
+    const moving = Array.from({ length: 200 }, (_, index) => index * 10);
+    const layout = frames(moving);
+    const settled = await waitForStablePosition(layout.read, () => true, {
+      ...layout,
+      timeoutMs: 160,
+    });
+    expect(settled).toBe(100);
+  });
+
+  it('returns null once the caller stops waiting', async () => {
+    const layout = frames([10, 20, 30, 30, 30, 30, 30, 30]);
+    let frame = 0;
+    const settled = await waitForStablePosition(
+      layout.read,
+      () => {
+        frame += 1;
+        return frame < 2;
+      },
+      layout,
+    );
+    expect(settled).toBeNull();
   });
 });
