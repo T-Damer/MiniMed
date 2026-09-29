@@ -312,10 +312,16 @@ describe('CapacitorMedicalStore', () => {
     expect(plugin.calls).toHaveLength(2);
     const candidateCall = plugin.calls.at(-2);
     const hydrationCall = plugin.calls.at(-1);
-    expect(candidateCall?.sql).toContain('SELECT chunks_fts.chunk_id AS chunk_id');
+    expect(candidateCall?.sql).toContain('window_fts.chunk_id AS chunk_id');
+    expect(candidateCall?.sql).toContain('PARTITION BY window_fts.document_version_id');
     expect(candidateCall?.sql).toContain('bm25(chunks_fts');
     expect(candidateCall?.sql).not.toContain('c.original_text');
-    expect(JSON.parse(candidateCall?.argsJson ?? '[]')).toEqual(['"тахипноэ"* OR "лихорадка"*', 5]);
+    expect(JSON.parse(candidateCall?.argsJson ?? '[]')).toEqual([
+      '"тахипноэ"* OR "лихорадка"*',
+      20,
+      3,
+      5,
+    ]);
     expect(hydrationCall?.sql).toContain('c.original_text');
     expect(hydrationCall?.sql).not.toContain('bm25(chunks_fts');
     expect(JSON.parse(hydrationCall?.argsJson ?? '[]')).toEqual([fixtureChunkId()]);
@@ -339,6 +345,8 @@ describe('CapacitorMedicalStore', () => {
       '"тахипноэ"*',
       'pediatrics',
       'children',
+      4,
+      3,
       1,
     ]);
 

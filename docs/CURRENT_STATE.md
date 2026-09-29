@@ -50,6 +50,11 @@ Detailed history, moved verbatim on 2026-09-24:
   29.2 → 17.5 MB; the `.db.zst` assets sit next to the `.db.gz` in the same releases and their
   GitHub digests match. `e2e/module-pointer.spec.ts` installs the MKB zstd file through a core
   pointer (1.7 min, local-only fixture). Terminology packs stay gzip.
+- **Per-document lexical window.** Lexical search ranks a 4× wider bm25 window and keeps at most
+  three chunks per document before cutting to the limit, so long books no longer crowd other
+  documents out of the window. Released core: doctor-lookup, lookup-quality, runtime and
+  real-corpus unchanged, p50 latency 161 → 140 ms. Candidate core: doctor-lookup R@5 0.60 → 0.70
+  ([research](research/search-kr-pointers-vs-mkb-2026-09.md)).
 
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 
@@ -182,6 +187,13 @@ Detailed history, moved verbatim on 2026-09-24:
   input, source picker, «Клинический разбор» and a round send button; clearing is a × inside the
   field, and «Карта связей» sits in the top row beside «Случайная запись». All home blocks share
   one spacing step (`--home-gap`, 1 rem / 1.25 rem).
+- Dialogs are paper sheets (`OverlayDialog`, `presentation="sheet"` by default): from the bottom
+  edge on phones with a grip, pulled down to close (`sheet-drag.ts`), a centred paper sheet on wide
+  screens; the scrim, Escape, the focus trap and safe-area insets are shared. Viewers and editors
+  (relation map, image lightboxes, print, drawing, ECG editor, first-run setup) keep
+  `presentation="screen"`. Confirmations use the same sheet as an `alertdialog`. Panels that open
+  from a button — search sections, collections, the home «?» — are popovers on wide screens and the
+  same sheet on phones (`SheetPopover`).
 - While the core opens, its status shows once: the note under the field (with progress) or, for
   the first 400 ms of a quick open, the field placeholder. «Мои файлы» lists «База знаний» as a
   root folder when the navigation has no tab for it (separate tabs off, or the core not ready);

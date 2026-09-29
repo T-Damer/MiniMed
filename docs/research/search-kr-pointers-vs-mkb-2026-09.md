@@ -133,3 +133,30 @@ window-confirmed" so it can't win purely on title match; (b) restricting the bac
 to the exact matched code/alias term rather than the full branch `ftsQuery`, so a backfilled candidate
 can only win on the identity match itself, not on incidental extra term overlap with the rest of the
 query.
+
+## Per-document lexical window (2026-09-29) — merged
+
+The lexical window was counted in chunks: a long book (`lit.ambulatory.*`) or a family of
+near-identical cards could fill the 100-chunk window before grouping, so the clinical pointer never
+reached `fuseBranchHits`. Both stores now rank a 4× wider bm25 window, keep each document version's
+best 3 chunks (`row_number() OVER (PARTITION BY document_version_id)`), then cut to the limit;
+hydration still reads only the final window.
+
+| | released R@5 / MRR@5 / forbidden-free | candidate test7 R@5 / MRR@5 / forbidden-free |
+| --- | --- | --- |
+| before | 0.70 / 0.60 / 1.0 | 0.60 / 0.45 / 0.9 |
+| 4× window, ≤3 chunks per document | 0.70 / 0.60 / 1.0 | **0.70** / 0.533 / 0.9 |
+| 4×, ≤2 | 0.70 / 0.525 / 1.0 | 0.70 / 0.55 / 0.9 |
+| 4×, ≤1 | 0.70 / 0.52 / 1.0 | 0.70 / 0.52 / 0.9 |
+
+On the released core `lookup-quality` (0 failures, 32 discovery misses), `benchmark:runtime`
+(R@5 0.923, MRR@5 0.885), `benchmark:all` (within tolerance) are unchanged; search latency p50
+160.8 → 140.1 ms, p95 299.9 → 330.0 ms (+10%).
+
+Measured and **not** merged: sending only the stem when both a word and its light stem are FTS
+terms (they double-count every inflected word, e.g. «ребёнка»/«ребенк», against an uninflected
+subject such as «гастроэнтерит»). It removes the candidate's forbidden 255-ФЗ hit (forbidden-free
+1.0) but lowers released MRR@5 to 0.533, because companion-pack cards that match only an age/sex
+qualifier («взрослого» → eGFR calculator) then rank above the clinical pointer. The remaining
+candidate gap is that qualifier-only matching, plus a wrong `k29` alias expansion for
+«гастроэнтерит».

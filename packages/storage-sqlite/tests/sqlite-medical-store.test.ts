@@ -303,7 +303,7 @@ describe('SqliteMedicalStore', () => {
 
     const sqlCalls = exec.mock.calls.map(([sql]) => sql);
     const candidateIndex = sqlCalls.findIndex((sql) =>
-      sql.includes('SELECT chunks_fts.chunk_id AS chunk_id'),
+      sql.includes('window_fts.chunk_id AS chunk_id'),
     );
     const hydrationIndex = sqlCalls.findIndex(
       (sql) => sql.includes('c.original_text') && sql.includes('WHERE c.id IN'),
@@ -312,6 +312,26 @@ describe('SqliteMedicalStore', () => {
     expect(hydrationIndex).toBe(candidateIndex + 1);
     expect(sqlCalls[candidateIndex]).not.toContain('c.original_text');
     expect(sqlCalls[hydrationIndex]).toContain('c.original_text');
+  });
+
+  it('keeps at most three chunks per document in the lexical window', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(CORE_SLICE_PACK);
+    // A frequent stem matches many chunks of the same long documents; before the cap they could
+    // fill the whole window and push every other document out before grouping.
+    const hits = await store.search({
+      ftsQuery: '"лечен"*',
+      terms: ['лечен'],
+      filters: {},
+      limit: 50,
+    });
+    const perDocument = new Map<string, number>();
+    for (const hit of hits) {
+      perDocument.set(hit.document.id, (perDocument.get(hit.document.id) ?? 0) + 1);
+    }
+    expect(perDocument.size).toBeGreaterThan(1);
+    expect(Math.max(...perDocument.values())).toBeLessThanOrEqual(3);
   });
 
   it('filters by a large documentIds list without exhausting bound parameters', async () => {

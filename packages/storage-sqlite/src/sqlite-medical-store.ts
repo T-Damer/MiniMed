@@ -442,6 +442,14 @@ export interface SqliteIntegrityReport {
   readonly embeddingCount: number;
 }
 
+/**
+ * The lexical window is counted in chunks, so one long book or a family of near-identical cards
+ * could fill it and push every other document out before grouping. Rank a wider bm25 window, keep
+ * each document's best chunks, then cut to the requested limit.
+ */
+const LEXICAL_OVERFETCH = 4;
+const LEXICAL_CHUNKS_PER_DOCUMENT = 3;
+
 export class SqliteMedicalStore implements MedicalStore {
   private initialized = false;
   private referenceDispatch: ReturnType<typeof createDefinitionReferenceDispatch> | undefined;
@@ -1156,19 +1164,27 @@ export class SqliteMedicalStore implements MedicalStore {
     // index (migration 010) resolves UNINDEXED columns through its source view per row.
     const candidateRows = queryRows(
       this.database,
-      `SELECT chunks_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank
+      `SELECT chunk_id, bm25_rank
        FROM (
-         SELECT chunks_fts.rowid AS fts_rowid,
-           bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
-         FROM chunks_fts
-         ${joins.join('\n         ')}
-         WHERE ${clauses.join(' AND ')}
-         ORDER BY bm25_rank
-         LIMIT ?
-       ) ranked
-       JOIN chunks_fts ON chunks_fts.rowid = ranked.fts_rowid
-       ORDER BY ranked.bm25_rank`,
-      [...bind, candidateLimit],
+         SELECT window_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank,
+           row_number() OVER (
+             PARTITION BY window_fts.document_version_id ORDER BY ranked.bm25_rank
+           ) AS document_order
+         FROM (
+           SELECT chunks_fts.rowid AS fts_rowid,
+             bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
+           FROM chunks_fts
+           ${joins.join('\n           ')}
+           WHERE ${clauses.join(' AND ')}
+           ORDER BY bm25_rank
+           LIMIT ?
+         ) ranked
+         JOIN chunks_fts window_fts ON window_fts.rowid = ranked.fts_rowid
+       )
+       WHERE document_order <= ?
+       ORDER BY bm25_rank
+       LIMIT ?`,
+      [...bind, candidateLimit * LEXICAL_OVERFETCH, LEXICAL_CHUNKS_PER_DOCUMENT, candidateLimit],
     );
     if (candidateRows.length === 0) return [];
 
