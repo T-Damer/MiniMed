@@ -130,6 +130,8 @@ jobs:
               for item in catalog['modules']
               if item['id'] == 'minimed.regulatory.pediatrics.ru'
           )
+          # Fresh `documents` are the whole membership; drop the compact table they replace.
+          module.pop('documentTable', None)
           module.update(
               {
                   'version': pack[1],

@@ -257,6 +257,8 @@ jobs:
               update = updates.get(target['id'])
               if not update:
                   continue
+              # Fresh `documents` are the whole membership; drop the compact table they replace.
+              target.pop('documentTable', None)
               target.update(update)
               target['compatibility']['minAppVersion'] = '0.3.3'
           (output / 'catalog.preview.json').write_text(
