@@ -1,11 +1,7 @@
 name: Medical terminology
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  pull_request:
-    paths:
-      - 'tools/ingest/**'
-      - 'schema/sql/**'
-      - '.github/workflows/terminology-source-check.yml'
   workflow_dispatch:
     inputs:
       year:

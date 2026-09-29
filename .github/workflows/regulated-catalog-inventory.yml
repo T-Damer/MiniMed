@@ -1,34 +1,7 @@
 name: Medication and law catalog inventory
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  pull_request:
-    branches: [main, agent/doctor-datasets-model-diagnostics, agent/bulk-clinical-catalog]
-    paths:
-      - .github/workflows/regulated-catalog-inventory.yml
-      - content/medication-module-taxonomy.yaml
-      - content/legal-module-taxonomy.yaml
-      - content/official-health-law-queries.yaml
-      - tools/ingest/src/localmed_ingest/medication_catalog.py
-      - tools/ingest/src/localmed_ingest/legal_catalog.py
-      - tools/ingest/src/localmed_ingest/regulated_catalog_cli.py
-      - tools/ingest/tests/test_regulated_catalogs.py
-      - tools/ingest/pyproject.toml
-      - tools/ingest/uv.lock
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/regulated-catalog-inventory.yml
-      - content/medication-module-taxonomy.yaml
-      - content/legal-module-taxonomy.yaml
-      - content/official-health-law-queries.yaml
-      - tools/ingest/src/localmed_ingest/medication_catalog.py
-      - tools/ingest/src/localmed_ingest/legal_catalog.py
-      - tools/ingest/src/localmed_ingest/regulated_catalog_cli.py
-      - tools/ingest/tests/test_regulated_catalogs.py
-      - tools/ingest/pyproject.toml
-      - tools/ingest/uv.lock
-  schedule:
-    - cron: '47 3 * * 2'
   workflow_dispatch:
     inputs:
       medication_catalog_url:

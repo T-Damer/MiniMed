@@ -1,25 +1,7 @@
 name: Validate Russian regulatory pilot
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  pull_request:
-    paths:
-      - "content/regulatory-rf-pilot/**"
-      - "content/regulatory-rf-pilot-sources.yaml"
-      - "tools/benchmarks/regulatory-rf-queries.json"
-      - "tools/benchmarks/src/run-regulatory.ts"
-      - "tools/benchmarks/package.json"
-      - "package.json"
-      - ".github/workflows/regulatory-rf-pilot.yml"
-  push:
-    branches: [main]
-    paths:
-      - "content/regulatory-rf-pilot/**"
-      - "content/regulatory-rf-pilot-sources.yaml"
-      - "tools/benchmarks/regulatory-rf-queries.json"
-      - "tools/benchmarks/src/run-regulatory.ts"
-      - "tools/benchmarks/package.json"
-      - "package.json"
-      - ".github/workflows/regulatory-rf-pilot.yml"
   workflow_dispatch:
 
 permissions:

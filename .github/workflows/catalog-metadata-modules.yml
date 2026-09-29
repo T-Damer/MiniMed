@@ -1,27 +1,7 @@
 name: Catalog metadata modules
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  pull_request:
-    branches: [main, agent/drug-law-catalogs]
-    paths:
-      - .github/workflows/catalog-metadata-modules.yml
-      - tools/ingest/src/localmed_ingest/catalog_module_builder.py
-      - tools/ingest/src/localmed_ingest/catalog_module_cli.py
-      - tools/ingest/tests/test_catalog_module_builder.py
-      - tools/ingest/pyproject.toml
-      - tools/ingest/uv.lock
-      - tools/ingest/tests/fixtures/clinical-catalog-sample.json
-      - content/clinical-module-taxonomy.yaml
-      - content/clinical-coverage-overrides.yaml
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/catalog-metadata-modules.yml
-      - tools/ingest/src/localmed_ingest/catalog_module_builder.py
-      - tools/ingest/src/localmed_ingest/catalog_module_cli.py
-      - tools/ingest/tests/test_catalog_module_builder.py
-      - tools/ingest/pyproject.toml
-      - tools/ingest/uv.lock
   workflow_dispatch:
     inputs:
       ledger_url:

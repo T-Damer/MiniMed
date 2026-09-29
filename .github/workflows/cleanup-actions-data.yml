@@ -1,8 +1,7 @@
 name: Cleanup Actions data
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  schedule:
-    - cron: '17 4 * * *'
   workflow_dispatch:
     inputs:
       dry_run:

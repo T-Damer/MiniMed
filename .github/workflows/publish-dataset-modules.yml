@@ -1,26 +1,7 @@
 name: Publish dataset modules
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - .github/workflows/publish-dataset-modules.yml
-      - apps/app/src/features/modules/catalog.preview.json
-      - content/regulatory-rf-pilot/**
-      - content/regulatory-rf-pilot-sources.yaml
-      - content/full-respiratory-rf-sources.yaml
-      - content/full-respiratory-rf-registry.yaml
-      - tools/ingest/**
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/publish-dataset-modules.yml
-      - apps/app/src/features/modules/catalog.preview.json
-      - content/regulatory-rf-pilot/**
-      - content/regulatory-rf-pilot-sources.yaml
-      - content/full-respiratory-rf-sources.yaml
-      - content/full-respiratory-rf-registry.yaml
-      - tools/ingest/**
   workflow_dispatch:
 
 permissions:

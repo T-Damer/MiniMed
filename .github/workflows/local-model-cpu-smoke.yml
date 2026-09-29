@@ -1,8 +1,7 @@
 name: Local model CPU smoke
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  schedule:
-    - cron: '23 3 * * 1'
   workflow_dispatch:
 
 permissions:

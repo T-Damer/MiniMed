@@ -1,19 +1,7 @@
 name: Terminology search and reader smoke
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  pull_request:
-    paths:
-      - 'packages/core/src/terminology-search.ts'
-      - 'packages/core/src/query-document-index.ts'
-      - 'packages/contracts/src/terminology.ts'
-      - 'packages/search-lexical/src/aliases.ts'
-      - 'packages/search-lexical/src/analysis.ts'
-      - 'apps/app/src/features/library/DocumentPageHost.tsx'
-      - 'apps/app/src/features/modules/module-pointer-install.ts'
-      - 'apps/app/e2e/terminology.spec.ts'
-      - 'tools/ingest/src/localmed_ingest/terminology_*.py'
-      - 'tools/ingest/tests/build_terminology_e2e.py'
-      - '.github/workflows/terminology-search-smoke.yml'
   workflow_dispatch:
 
 permissions:

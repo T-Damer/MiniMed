@@ -1,17 +1,8 @@
 name: Definition search and offline local model
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  pull_request:
-    branches: [agent/concept-first-knowledge-search]
-    paths:
-      - content/definition-pilot/**
-      - tools/benchmarks/definition-queries.json
-      - tools/benchmarks/local_reranker.py
-      - tools/benchmarks/local_model_smoke.py
-      - tools/benchmarks/test_local_reranker.py
-      - tools/benchmarks/src/local-*.ts
-      - tools/benchmarks/src/run-definition-quality.ts
-      - .github/workflows/search-definition-local-model.yml
+  workflow_dispatch:
 
 permissions:
   contents: read

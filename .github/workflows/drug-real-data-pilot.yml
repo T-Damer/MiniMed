@@ -1,18 +1,7 @@
 name: Validate real Russian drug pilot
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "content/pilot-rf/**"
-      - "tools/ingest/**"
-      - ".github/workflows/drug-real-data-pilot.yml"
-  push:
-    branches: [main]
-    paths:
-      - "content/pilot-rf/**"
-      - "tools/ingest/**"
-      - ".github/workflows/drug-real-data-pilot.yml"
   workflow_dispatch:
 
 permissions:

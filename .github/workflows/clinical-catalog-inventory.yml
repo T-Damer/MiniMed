@@ -1,32 +1,7 @@
 name: Clinical catalog inventory
 
+# Content builds run locally (user decision 2026-09-29); start this workflow by hand.
 on:
-  pull_request:
-    branches: [main, agent/doctor-datasets-model-diagnostics]
-    paths:
-      - .github/workflows/clinical-catalog-inventory.yml
-      - content/clinical-module-taxonomy.yaml
-      - content/clinical-coverage-overrides.yaml
-      - tools/ingest/src/localmed_ingest/clinical_catalog.py
-      - tools/ingest/src/localmed_ingest/clinical_catalog_cli.py
-      - tools/ingest/tests/test_clinical_catalog.py
-      - tools/ingest/tests/fixtures/clinical-catalog-sample.json
-      - tools/ingest/pyproject.toml
-      - tools/ingest/uv.lock
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/clinical-catalog-inventory.yml
-      - content/clinical-module-taxonomy.yaml
-      - content/clinical-coverage-overrides.yaml
-      - tools/ingest/src/localmed_ingest/clinical_catalog.py
-      - tools/ingest/src/localmed_ingest/clinical_catalog_cli.py
-      - tools/ingest/tests/test_clinical_catalog.py
-      - tools/ingest/tests/fixtures/clinical-catalog-sample.json
-      - tools/ingest/pyproject.toml
-      - tools/ingest/uv.lock
-  schedule:
-    - cron: '24 3 * * 1'
   workflow_dispatch:
     inputs:
       catalog_url:
