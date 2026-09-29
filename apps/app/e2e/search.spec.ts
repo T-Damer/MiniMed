@@ -162,9 +162,16 @@ for (const width of [375, 1280]) {
     }
     expect(titles.size).toBe(total);
     expect([...titles]).toEqual(expect.arrayContaining(['ЭКГ по фото', 'Просмотр исследований']));
+    // A full round returns to the slide the carousel opened on (today's capability, so not
+    // always the first): wait until the track rests exactly on the slide the counter names.
+    const resting = Number((await position.textContent())?.split(' ')[0]) - 1;
     await expect
-      .poll(() => carousel.locator('.carousel__track').evaluate((track) => track.scrollLeft))
-      .toBe(0);
+      .poll(() =>
+        carousel
+          .locator('.carousel__track')
+          .evaluate((track) => track.scrollLeft / track.clientWidth),
+      )
+      .toBe(resting);
     await page.mouse.move(0, 0);
     await page.screenshot({ path: testInfo.outputPath(`home-${width}.png`) });
 
@@ -682,11 +689,10 @@ test('shows the doctor-facing knowledge-base catalog', async ({ page }) => {
   const toolsCard = page.locator('article[aria-label="Открыть набор «Калькуляторы и опросники»"]');
   await expect(conditionsCard).toBeVisible();
   await expect(toolsCard).toBeVisible();
+  // The MKB and disease-article modules live in this section and are published (9d576bd0).
   await expect(
-    conditionsCard.getByRole('button', {
-      name: 'Раздел «Заболевания и состояния» недоступен для скачивания: Раздел пока не опубликован',
-    }),
-  ).toBeDisabled();
+    conditionsCard.getByRole('button', { name: 'Скачать раздел «Заболевания и состояния»' }),
+  ).toBeEnabled();
   await expect(toolsCard.locator('.recommendation-section-card__actions')).toBeVisible();
   const cardMetaBottomGaps = await Promise.all(
     [conditionsCard, referenceCard, toolsCard].map((card) =>

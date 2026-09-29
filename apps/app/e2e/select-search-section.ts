@@ -1,11 +1,19 @@
 import { expect, type Page } from '@playwright/test';
 
 export async function selectSearchSection(page: Page, label: string): Promise<void> {
-  await page.getByRole('button', { name: 'Раздел поиска', exact: true }).click();
-  await page
-    .locator('.search-section-menu__row')
-    .getByRole('button', { name: new RegExp(`^${label}(?: \\(|$)`, 'u') })
-    .click();
+  const picker = page.getByRole('button', { name: 'Раздел поиска', exact: true });
+  // A pointer click scrolls the row into view, and that scroll can close the menu before the
+  // choice lands; dispatch the click and confirm the picker shows the section before going on.
+  await expect(async () => {
+    if ((await page.locator('.search-section-menu__row').count()) === 0) await picker.click();
+    await page
+      .locator('.search-section-menu__row')
+      .getByRole('button', { name: new RegExp(`^${label}(?: \\(|$)`, 'u') })
+      .dispatchEvent('click', undefined, { timeout: 2000 });
+    await expect(picker.locator('.search-source-picker__label')).toContainText(label, {
+      timeout: 2000,
+    });
+  }).toPass({ timeout: 20_000 });
 }
 
 /** Clinical analysis is a switch next to the source picker, not a source of its own. */

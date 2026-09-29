@@ -77,6 +77,17 @@ test('EPUB chapters remain at their target after navigation and later scrolling'
   await bookCard.click();
   await chapter.click();
   await expect(mark).toHaveAttribute('fill', '#ef5350');
+  // Chapter navigation settles in a few jumps as the continuous view renders neighbours; measure
+  // the mark only once the chapter stays put on screen.
+  await expect
+    .poll(async () => {
+      const before = await targetTop();
+      await page.waitForTimeout(200);
+      const after = await targetTop();
+      return before !== null && before === after && after >= 0 && after < 250;
+    })
+    .toBe(true);
+  await expect(mark).toBeInViewport();
   const rect = await mark.boundingBox();
   if (!rect) throw new Error('Missing EPUB annotation');
   await page.mouse.click(rect.x + 4, rect.y + rect.height / 2);

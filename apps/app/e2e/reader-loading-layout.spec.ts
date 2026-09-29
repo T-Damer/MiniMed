@@ -12,6 +12,8 @@ for (const width of [390, 1280]) {
     await page.goto(`${E2E_ASSET_ORIGIN}/#/search`);
     await page.getByTestId('search-input').waitFor();
     await page.evaluate(() => {
+      // Sample on every DOM change, not once per frame: a cached document can finish loading
+      // within a single frame, and a frame sampler then never sees the loading layout.
       const sample = (): void => {
         const toggle = document.querySelector<HTMLButtonElement>(
           '.document-overlay-outline-toggle',
@@ -25,9 +27,12 @@ for (const width of [390, 1280]) {
             toggle.getBoundingClientRect().left,
           );
         }
-        requestAnimationFrame(sample);
       };
-      requestAnimationFrame(sample);
+      new MutationObserver(sample).observe(document.body, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
     });
     await page.evaluate(() => {
       location.hash = '#/modules/documents/d/a3IucmYuNzE0XzIucG5ldW1vbmlh';
