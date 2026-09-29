@@ -49,6 +49,7 @@
     "epubjs": "^0.3.93",
     "exceljs": "4.4.0",
     "filing": "0.1.2",
+    "fzstd": "0.1.1",
     "hast-util-to-html": "9.0.5",
     "jsqr": "1.4.0",
     "jszip": "3.10.1",

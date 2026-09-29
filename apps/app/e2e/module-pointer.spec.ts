@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { ContentModuleCatalogSchema } from '@localmed/contracts';
@@ -106,6 +107,46 @@ test('downloads the verified medication package with experiments enabled', async
   );
   await page.locator('.document-module-pointer__action').click();
   await expect(page).toHaveURL(documentRoute('esklp.mnn.албендазол'), { timeout: 60_000 });
+  await expect(page.locator('.document-text-chunk').first()).toBeVisible();
+  await expect(page.locator('.document-module-pointer__error')).toHaveCount(0);
+});
+
+test('installs a zstd module index through the decode worker', async ({ page }) => {
+  test.setTimeout(240_000);
+  const moduleId = 'minimed.mkb.ru';
+  const catalog = ContentModuleCatalogSchema.parse(
+    JSON.parse(
+      await readFile(resolve(ROOT, 'apps/app/src/features/modules/catalog.preview.json'), 'utf8'),
+    ),
+  );
+  const artifact = catalog.modules
+    .find((module) => module.id === moduleId)
+    ?.artifacts.find((item) => item.kind === 'index');
+  if (!artifact?.url || artifact.compression !== 'zstd') {
+    throw new Error('The MKB module is not published as zstd.');
+  }
+  const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
+  const localPath = resolve(ROOT, 'data/build/rls-mkb-module/release', fileName);
+  test.skip(!existsSync(localPath), 'The MKB zstd release file is local-only.');
+  const bytes = await readFile(localPath);
+  expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);
+  await page.route(
+    (url) => url.pathname.endsWith(`/${fileName}`),
+    (request) => request.fulfill({ body: bytes, contentType: 'application/zstd' }),
+  );
+  await mountBuiltApp(page, {
+    skipLargeCompanionPacks: true,
+    localStorage: {
+      'minimed.app-preferences.v1': JSON.stringify({ experimentalModulesEnabled: true }),
+    },
+  });
+  const documentRoute = (id: string) =>
+    `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(id).toString('base64url')}`;
+  await page.goto(
+    documentRoute('core.catalog.pointer.reference.rls.mkb.node.a00-0-d56dfcb8f1638d66'),
+  );
+  await page.locator('.document-module-pointer__action').click();
+  await expect(page).toHaveURL(documentRoute('rls.mkb.node.a00-0'), { timeout: 180_000 });
   await expect(page.locator('.document-text-chunk').first()).toBeVisible();
   await expect(page.locator('.document-module-pointer__error')).toHaveCount(0);
 });

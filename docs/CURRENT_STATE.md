@@ -40,6 +40,16 @@ Detailed history, moved verbatim on 2026-09-24:
   brand documents, 29.2 MB gzip) is in `catalog.preview.json` (now 7.4 MB) with the release asset
   `reference-rls-mkb-2026.9.28/minimed.reference.rls-packaging.2026.9.28.db.gz`, whose size and
   SHA-256 match the published GitHub asset; the Pages mirror list includes it.
+- **zstd module indexes.** The installer decodes zstd indexes in a Web Worker with `fzstd` 0.1.1
+  (24 KB, reviewed: no network, no eval). fzstd silently corrupts a 128 MiB window
+  (`--long=27`) and decodes 64 MiB exactly, so indexes are packed with `zstd -19 --long=26` and
+  windows above 64 MiB are refused; the decoded SHA-256 is verified as before.
+  `scripts/repack-module-index-zstd.ts` re-encodes a published gzip index, verifies it with the
+  app's decoder and updates the catalog. Four modules moved (267.6 → 167.3 MB): definition
+  reference 42.2 → 18.8, krasotaimedicina 142.7 → 100.6, MKB 53.5 → 30.4, RLS packaging
+  29.2 → 17.5 MB; the `.db.zst` assets sit next to the `.db.gz` in the same releases and their
+  GitHub digests match. `e2e/module-pointer.spec.ts` installs the MKB zstd file through a core
+  pointer (1.7 min, local-only fixture). Terminology packs stay gzip.
 
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 
@@ -111,8 +121,7 @@ Detailed history, moved verbatim on 2026-09-24:
     `Е11`/`К29.7`/`А00.0`, synonyms (`ЦВБ`, `внебольничная пневмония`) and titles at rank 1.
 - Distribution: one data prerelease `reference-rls-mkb-2026.9.28` with both assets; the Pages
   mirror needs that tag prefix and grows to about 900 MB of 1 GB. Both catalog entries together
-  add about 8.6 MB of membership to `catalog.preview.json`. The installer accepts only gzip; brotli -q 11
-  would be about 45% smaller (29.1 + 16.5 MB instead of 53.5 + 29.2 MB) but needs a decoder change. The app has no link yet from a profile's
+  add about 8.6 MB of membership to `catalog.preview.json`. Since 2026-09-29 both are published as zstd (30.4 + 17.5 MB). The app has no link yet from a profile's
   `packagingDocumentId` to the packaging document.
 
 ## Core coverage audit — 2026-09-28 (measurement only)
@@ -654,9 +663,7 @@ described above.
     CORS and Russian journal OAI-PMH/RSS coverage before choosing a first slice.
 11. Link RLS medication profiles (`packagingDocumentId`) to their packaging document; the app does
     not yet show `medication_profiles` knowledge entities anywhere.
-12. zstd module artifacts: about 45% smaller than gzip for the RLS modules; the catalog schema
-    already allows zstd, the installer needs a decoder.
-13. Core rebuild with medicine aliases (1,678 mapped trade names) and a non-FTS identity table for
+12. Core rebuild with medicine aliases (1,678 mapped trade names) and a non-FTS identity table for
     terms, scales and acts (`research/core-coverage-2026-09-28.md`), after the candidate core
     passes the doctor-lookup gate.
 

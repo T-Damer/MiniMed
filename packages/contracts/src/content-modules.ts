@@ -83,7 +83,7 @@ export const ContentModuleArtifactSchema = z.object({
     .default(null),
   sizeBytes: z.number().int().nonnegative().nullable().default(null),
   compression: ContentModuleCompressionSchema,
-  /** Installed SQLite identity, required for a gzip index. Transport identity stays above. */
+  /** Installed SQLite identity, required for a compressed index. Transport identity stays above. */
   decodedSha256: z
     .string()
     .regex(/^sha256:[a-f0-9]{64}$/u)
@@ -242,7 +242,7 @@ export function hasDownloadableModuleIndex(module: {
         artifact.required &&
         Boolean(artifact.url) &&
         Boolean(artifact.sha256) &&
-        (artifact.compression !== 'gzip' ||
+        (artifact.compression === 'none' ||
           (Boolean(artifact.decodedSha256) && Boolean(artifact.decodedSizeBytes))) &&
         artifact.sourceSetDigest === module.sourceSetDigest,
     ) &&

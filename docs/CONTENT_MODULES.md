@@ -75,6 +75,10 @@ never see the compact form. Scripts write catalogs only through `serializeConten
 0.6.44 ignore `documentTable` and read the remote catalog as having no membership, so they need the
 next release for pointer downloads from a refreshed catalog.
 
+A compressed index is gzip or zstd and always declares `decodedSha256`/`decodedSizeBytes`. zstd
+indexes are packed with `zstd -19 --long=26` (`scripts/repack-module-index-zstd.ts`): the app's
+decoder (fzstd) corrupts 128 MiB windows, so larger windows are refused before decoding.
+
 Source-build artifacts and edition manifests are immutable GitHub Release assets. The channel catalog
 may point to a new edition, but every edition URL is paired with exact size, SHA-256, document-version
 list, rights state, and `sourceSetDigest`. Updating the channel catalog does not modify an installed

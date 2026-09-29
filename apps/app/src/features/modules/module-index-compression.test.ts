@@ -36,3 +36,21 @@ describe('compressed module index', () => {
     await expect(decodeModuleIndex(artifact, compressed, controller.signal)).rejects.toThrow();
   });
 });
+
+describe('zstd compressed module index', () => {
+  it('decodes a zstd index to the declared size and rejects a wrong size', async () => {
+    const signal = new AbortController().signal;
+    const archive = Uint8Array.from(
+      Buffer.from('KLUv/WBABcUAAIBTUUxpdGUgZm9ybWF0IDMAAQBanH8uAQ==', 'base64'),
+    );
+    const zstd = {
+      ...artifact,
+      compression: 'zstd' as const,
+      url: 'https://example.test/index.db.zst',
+    };
+    expect(await decodeModuleIndex(zstd, archive, signal)).toEqual(bytes);
+    await expect(
+      decodeModuleIndex({ ...zstd, decodedSizeBytes: bytes.length + 1 }, archive, signal),
+    ).rejects.toThrow();
+  });
+});

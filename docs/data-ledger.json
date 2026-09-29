@@ -269,27 +269,27 @@
       "class": "RELEASED",
       "producer": "bun run content:module:rls-mkb",
       "consumers": [],
-      "release": "reference-rls-mkb-2026.9.28 (both .db.gz)",
-      "bytes": 606628711,
-      "modified": "2026-09-28"
+      "release": "reference-rls-mkb-2026.9.28 (both .db.gz and .db.zst; catalog uses .db.zst)",
+      "bytes": 654453382,
+      "modified": "2026-09-29"
     },
     {
       "path": "data/build/krasotaimedicina-module",
       "class": "RELEASED",
       "producer": "bun run content:module:krasotaimedicina",
       "consumers": [],
-      "release": "reference-krasotaimedicina-2026.9.28 (.db.gz)",
-      "bytes": 775451419,
-      "modified": "2026-09-28"
+      "release": "reference-krasotaimedicina-2026.9.28 (.db.gz; catalog now .db.zst)",
+      "bytes": 876088887,
+      "modified": "2026-09-29"
     },
     {
       "path": "data/build/definition-reference",
       "class": "RELEASED",
       "producer": "scripts/prepare-definition-reference.py",
       "consumers": ["apps/app/src/features/modules/local-definition-reference.ts (DEV)"],
-      "release": "definition-reference-2026.9.27, definition-reference-2026.9.30",
-      "bytes": 391123107,
-      "modified": "2026-09-27"
+      "release": "definition-reference-2026.9.27, definition-reference-2026.9.30 (catalog uses .db.zst)",
+      "bytes": 217639776,
+      "modified": "2026-09-29"
     },
     {
       "path": "data/build/grls-instructions-atc-*.db",

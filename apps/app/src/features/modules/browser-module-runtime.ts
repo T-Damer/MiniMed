@@ -224,10 +224,13 @@ class BrowserModuleDownloader implements ContentModuleArtifactDownloader {
     if (!artifact.url) throw new Error('Для набора не указан адрес загрузки.');
     if (
       artifact.compression !== 'none' &&
-      !(artifact.kind === 'index' && artifact.compression === 'gzip') &&
+      !(
+        artifact.kind === 'index' &&
+        (artifact.compression === 'gzip' || artifact.compression === 'zstd')
+      ) &&
       !(artifact.kind === 'source-assets' && artifact.compression === 'zip')
     ) {
-      throw new Error('Поддерживаются SQLite, gzip для SQLite и ZIP для изображений.');
+      throw new Error('Поддерживаются SQLite, gzip и zstd для SQLite и ZIP для изображений.');
     }
     const resolvedUrl = resolveContentModuleArtifactUrl(artifact.url);
     const cacheKey = artifact.sha256 ?? `${artifact.id}:${resolvedUrl}`;
