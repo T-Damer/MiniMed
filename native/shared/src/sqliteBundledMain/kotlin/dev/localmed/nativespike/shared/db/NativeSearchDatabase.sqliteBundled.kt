@@ -10,6 +10,7 @@ import dev.localmed.nativespike.shared.model.DocumentKind
 import dev.localmed.nativespike.shared.model.ExactSubjectHitText
 import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
+import dev.localmed.nativespike.shared.model.SearchDocumentSummary
 import dev.localmed.nativespike.shared.model.SectionRow
 import kotlin.time.TimeSource
 
@@ -270,6 +271,97 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
             val results = mutableListOf<String>()
             while (statement.step()) results.add(statement.getText(0))
             results
+        }
+    }
+
+    actual fun listSearchDocuments(): List<SearchDocumentSummary> {
+        val sql = """
+            SELECT id, title, short_title, source_type,
+                (SELECT group_concat(value, char(31)) FROM json_each(metadata_json, '${'$'}.declaredAliases'))
+                    AS declared_aliases,
+                (SELECT group_concat(value, char(31)) FROM json_each(metadata_json, '${'$'}.navigationAliases'))
+                    AS navigation_aliases
+            FROM documents
+        """.trimIndent()
+        return requireConnection().prepare(sql).use { statement ->
+            val results = ArrayList<SearchDocumentSummary>(20_000)
+            while (statement.step()) {
+                results.add(
+                    SearchDocumentSummary(
+                        id = statement.getText(0),
+                        title = statement.getText(1),
+                        shortTitle = statement.textOrNull(2),
+                        sourceType = statement.getText(3),
+                        declaredAliases = statement.splitList(4),
+                        navigationAliases = statement.splitList(5),
+                    ),
+                )
+            }
+            results
+        }
+    }
+
+    actual fun firstReadableChunk(documentId: String): HydratedHit? {
+        val sql = """
+            SELECT
+                c.id AS chunk_id, c.document_version_id, c.section_id, c.original_text,
+                c.anchor AS chunk_anchor,
+                s.title AS section_title, s.section_type,
+                (SELECT group_concat(value, char(31)) FROM json_each(s.path_json)) AS section_path,
+                (SELECT group_concat(value, char(31)) FROM json_each(c.metadata_json, '${'$'}.terminologyConceptIds'))
+                    AS terminology_concept_ids,
+                d.id AS document_id, d.title AS document_title, d.short_title, d.source_type,
+                json_extract(d.metadata_json, '${'$'}.catalogFamily') AS catalog_family,
+                json_extract(d.metadata_json, '${'$'}.entityType') AS entity_type,
+                json_extract(d.metadata_json, '${'$'}.targetDocumentId') AS target_document_id,
+                json_extract(d.metadata_json, '${'$'}.contentMode') AS content_mode,
+                json_extract(d.metadata_json, '${'$'}.notLegalAdvice') AS not_legal_advice,
+                json_extract(d.metadata_json, '${'$'}.interactiveAssessmentId') AS interactive_assessment_id,
+                json_extract(d.metadata_json, '${'$'}.calculationRequired') AS calculation_required,
+                json_extract(d.metadata_json, '${'$'}.interactiveCalculatorId') AS interactive_calculator_id,
+                json_extract(d.metadata_json, '${'$'}.conceptId') AS concept_id,
+                (SELECT group_concat(value, char(31)) FROM json_each(d.metadata_json, '${'$'}.navigationAliases'))
+                    AS navigation_aliases,
+                (SELECT group_concat(value, char(31)) FROM json_each(d.metadata_json, '${'$'}.ageGroups'))
+                    AS age_groups
+            FROM documents d
+            JOIN document_versions dv ON dv.id = d.current_version_id
+            JOIN sections s ON s.document_version_id = dv.id
+            JOIN chunks c ON c.section_id = s.id
+            WHERE d.id = ? AND length(trim(c.original_text)) > 0
+            ORDER BY s.order_index, c.order_index
+            LIMIT 1
+        """.trimIndent()
+        return requireConnection().prepare(sql).use { statement ->
+            statement.bindText(1, documentId)
+            if (!statement.step()) return@use null
+            HydratedHit(
+                chunkId = statement.getText(0),
+                documentVersionId = statement.getText(1),
+                sectionId = statement.getText(2),
+                originalText = statement.getText(3),
+                anchor = statement.getText(4),
+                sectionTitle = statement.getText(5),
+                sectionType = statement.textOrNull(6),
+                sectionPath = statement.splitList(7),
+                terminologyConceptIds = statement.splitList(8),
+                documentId = statement.getText(9),
+                documentTitle = statement.getText(10),
+                documentShortTitle = statement.textOrNull(11),
+                sourceType = statement.getText(12),
+                catalogFamily = statement.textOrNull(13),
+                entityType = statement.textOrNull(14),
+                targetDocumentId = statement.textOrNull(15),
+                contentMode = statement.textOrNull(16),
+                notLegalAdvice = statement.boolOrFalse(17),
+                interactiveAssessmentId = statement.textOrNull(18),
+                calculationRequired = statement.boolOrFalse(19),
+                interactiveCalculatorId = statement.textOrNull(20),
+                conceptId = statement.textOrNull(21),
+                navigationAliases = statement.splitList(22),
+                ageGroups = statement.splitList(23),
+                rank = 0.0,
+            )
         }
     }
 

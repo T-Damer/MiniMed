@@ -7,6 +7,7 @@ import dev.localmed.nativespike.shared.model.DocumentKind
 import dev.localmed.nativespike.shared.model.ExactSubjectHitText
 import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
+import dev.localmed.nativespike.shared.model.SearchDocumentSummary
 import dev.localmed.nativespike.shared.model.SectionRow
 
 /**
@@ -51,6 +52,10 @@ actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
     actual fun hydrateHits(chunkIds: List<String>): List<HydratedHit> = emptyList()
 
     actual fun allDocumentIds(): List<String> = emptyList()
+
+    actual fun listSearchDocuments(): List<SearchDocumentSummary> = emptyList()
+
+    actual fun firstReadableChunk(documentId: String): HydratedHit? = null
 
     actual fun sectionsForDocument(documentId: String): List<SectionRow> = SAMPLE_SECTIONS
 

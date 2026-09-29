@@ -5,6 +5,7 @@ import dev.localmed.nativespike.shared.model.AliasRecord
 import dev.localmed.nativespike.shared.model.DocumentDescriptor
 import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.RankedGroup
+import dev.localmed.nativespike.shared.model.RankedResult
 import dev.localmed.nativespike.shared.text.normalizeSurfaceText
 
 /**
@@ -16,15 +17,24 @@ import dev.localmed.nativespike.shared.text.normalizeSurfaceText
  * which is why the `documentKind`/`contentKind` tagging and audience/strict-identity re-sort are
  * included below, not just the `packages/core` pieces).
  *
- * Deliberately NOT ported for this pipeline (each is its own documented scope cut in the file it
- * would have lived in, repeated here as the single list of what's missing end-to-end):
- *  - `QueryDocumentIndex`-based exact-identity results (`buildExactIdentityResults`,
- *    `mergeExactIdentityResults`, `exactAliasIds`/`exactTitleIds`/`exactNavigationAliasIds`/
- *    `exactShortTitleIds`) — a document that ISN'T surfaced by any branch's own FTS search can
- *    never appear in this port's groups, even if its title/alias exactly names the query. Also
- *    means `fuseBranchHits`'s `exactAliasDocumentIds` parameter is always empty here.
+ * `QueryDocumentIndex` (`buildExactIdentityResults`/`mergeExactIdentityResults`/
+ * `exactAliasIds`/`exactTitleIds`/`exactNavigationAliasIds`/`exactShortTitleIds`) IS now ported
+ * (post-sub-stage-D-report revision, per the coordinator): a document an exact alias/title/
+ * navigation-alias names, that no branch's own FTS search happened to surface, is now added to
+ * results the same way `create-medical-core.ts` does, and `fuseBranchHits`'s `exactAliasDocumentIds`
+ * cutoff-survival parameter is real, not an empty placeholder. The caller builds one
+ * `QueryDocumentIndex` ONCE (`buildQueryDocumentIndex`, from `NativeSearchDatabase.listSearchDocuments()`)
+ * and passes it into every `runLookupPipeline` call — mirroring `create-medical-core.ts` caching
+ * `queryDocumentIndex` across searches, and matching the real WebView pipeline building this same
+ * index once at startup (stage 4's cold-start timing includes this on purpose, for the same reason).
+ *
+ * Still deliberately NOT ported for this pipeline (each is its own documented scope cut in the file
+ * it would have lived in, repeated here as the single list of what's missing end-to-end):
  *  - terminology matching (`TerminologySearchIndex`/`termIndex.match`/`.rank`) — explicitly out of
- *    scope for stage 2 (docs/CURRENT_STATE.md); `terminologyMatch` is always treated as absent.
+ *    scope for stage 2 (docs/CURRENT_STATE.md); `terminologyMatch` is always treated as absent, so
+ *    `termIndex.rank(groupedResults, terminologyMatch)` is treated as an identity passthrough (its
+ *    only other job — reordering by terminology relevance — needs a real terminology match, which
+ *    never happens here).
  *  - semantic/vector search (`fuseSemanticResults`) — never reached: `export-search-golden.ts`
  *    always requests `mode: 'lexical'`.
  *  - `selectedGroupPresentation` (medication trade-name title prefix) — display-only, does not
@@ -85,10 +95,27 @@ data class LookupGroupSummary(
 )
 
 /**
+ * Builds the `QueryDocumentIndex` once from the whole corpus (`NativeSearchDatabase.listSearchDocuments()`)
+ * — call this once per DB open (mirrors `create-medical-core.ts` building/caching `queryDocumentIndex`
+ * once), not per query. Exposed separately (not hidden inside `runLookupPipeline`) so stage 4's UI
+ * wiring can time it explicitly as part of cold start, the same way the real WebView pipeline's
+ * equivalent startup cost is measured.
+ */
+fun buildQueryDocumentIndex(db: NativeSearchDatabase): QueryDocumentIndex =
+    QueryDocumentIndex(db.listSearchDocuments())
+
+/**
  * Runs one query through the full stage 2 sub-stage D pipeline and returns the top-`groupLimit`
  * groups, in final order — directly comparable to `search-golden.json`'s `queries[].groups`.
+ * `documentIndex` should be built once (`buildQueryDocumentIndex`) and reused across queries.
  */
-fun runLookupPipeline(query: String, aliases: List<AliasRecord>, db: NativeSearchDatabase, groupLimit: Int): List<LookupGroupSummary> {
+fun runLookupPipeline(
+    query: String,
+    aliases: List<AliasRecord>,
+    db: NativeSearchDatabase,
+    documentIndex: QueryDocumentIndex,
+    groupLimit: Int,
+): List<LookupGroupSummary> {
     val builtPlan = buildLookupQueryPlan(query, aliases)
     val plan = resolveMedicationSpellingPlan(builtPlan, db, groupLimit)
     val limit = perBranchLimit(groupLimit)
@@ -98,15 +125,56 @@ fun runLookupPipeline(query: String, aliases: List<AliasRecord>, db: NativeSearc
     val documentsById = LinkedHashMap<String, DocumentDescriptor>()
     for (hit in allHits) documentsById.getOrPut(hit.documentId) { toDocumentDescriptor(hit) }
 
-    val fused = fuseBranchHits(branchResults, limit, query, emptySet())
-    val availableDocumentIds = db.allDocumentIds().toSet()
-    val results = filterSupersededSummaryResults(fused, availableDocumentIds)
+    // Mirrors create-medical-core.ts's exact*DocumentIds (terminology's contribution to
+    // exactAliasDocumentIds is always empty here — see file header).
+    val exactAliasDocumentIds = documentIndex.exactAliasIds(query)
+    val exactTitleDocumentIds = documentIndex.exactTitleIds(query)
+    val exactNavigationAliasDocumentIds = documentIndex.exactNavigationAliasIds(query)
+    val exactShortTitleDocumentIds = documentIndex.exactShortTitleIds(query)
+    val exactSecondaryIdentityDocumentIds = exactNavigationAliasDocumentIds + exactShortTitleDocumentIds
+    val exactIdentityDocumentIds = exactTitleDocumentIds + exactSecondaryIdentityDocumentIds
+    val spellingDocumentIds = (plan.medicationSpellingNames ?: emptyList())
+        .flatMap { name -> documentIndex.exactIdentityIds(name) }
+        .distinct()
+        .take(40)
+        .toSet()
+
+    val fused = fuseBranchHits(branchResults, limit, query, exactAliasDocumentIds)
+    val retainedDocumentIds = fused.map { it.documentId }.toSet()
+
+    fun addExactResults(documentIds: Set<String>): List<RankedResult> {
+        val missing = documentIds - retainedDocumentIds
+        if (missing.isEmpty()) return emptyList()
+        val results = buildExactIdentityResults(db, missing, plan.terms)
+        // Register newly-discovered documents (found only via exact identity, never via FTS) into
+        // the descriptor map too, so downstream kind/target/ranking logic can see them.
+        for (result in results) {
+            if (result.documentId !in documentsById) {
+                db.firstReadableChunk(result.documentId)?.let { documentsById[it.documentId] = toDocumentDescriptor(it) }
+            }
+        }
+        return results
+    }
+
+    val exactIdentityResults = addExactResults(exactIdentityDocumentIds)
+    val spellingResults = addExactResults(spellingDocumentIds)
+    val merged = mergeExactIdentityResults(fused, exactIdentityResults + spellingResults)
+    val results = filterSupersededSummaryResults(merged, documentIndex.availableIds)
 
     val normalizedQuery = normalizeSurfaceText(query)
     val preferredSectionType = requestedSectionType(normalizedQuery)
     var groups: List<RankedGroup> = groupResults(results, preferredSectionType)
     groups = rankSearchGroupsByQuery(groups, query, documentsById)
-    groups = filterSuffixFallbackGroups(groups, query, aliases)
+    groups = filterSuffixFallbackGroups(groups, query, aliases, exactIdentityDocumentIds + spellingDocumentIds)
+    // Mirrors `termIndex.rank(groupedResults, terminologyMatch).toSorted(exactTitle/exactSecondary/
+    // spelling tie-break)` — `termIndex.rank(...)` is an identity passthrough here (no terminology
+    // match, see file header), so only the tie-break sort applies. `sortedWith` is stable, matching
+    // `.toSorted()`, so ties keep `rankSearchGroupsByQuery`'s own order.
+    groups = groups.sortedWith(
+        compareByDescending<RankedGroup> { it.documentId in exactTitleDocumentIds }
+            .thenByDescending { it.documentId in exactSecondaryIdentityDocumentIds }
+            .thenByDescending { it.documentId in spellingDocumentIds },
+    )
     groups = collapseGroupsByTargetDocument(groups, documentsById)
     groups = groups.take(groupLimit)
 

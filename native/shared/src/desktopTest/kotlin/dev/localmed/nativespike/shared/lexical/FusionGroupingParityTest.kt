@@ -21,9 +21,10 @@ import kotlin.test.assertTrue
  * Reports both an exact top-20 match rate and a top-5 match rate (the coordinator's stated target:
  * >=95% identical top-5, every remaining discrepancy documented with a cause) — see this file's
  * printed report and `LookupPipeline.kt`'s header for the full list of documented scope cuts
- * (`QueryDocumentIndex` exact-identity results, terminology matching, semantic search,
- * `selectedGroupPresentation`, `hasImmediateFailureContext`, and several Regex-avoidance
- * approximations in `QueryGroupRanking.kt`/`ScopedRanking.kt`/`Grouping.kt`).
+ * (terminology matching, semantic search, `selectedGroupPresentation`, `hasImmediateFailureContext`).
+ * `QueryDocumentIndex` exact-identity results ARE ported (`buildQueryDocumentIndex`, built once
+ * below and reused across queries, mirroring the real pipeline caching it too) — an earlier revision
+ * of this port did not have it; see git history/the stage 2 sub-stage D report for the before/after.
  *
  * Duplicated in `iosTest`, not `commonTest`/`jvmClasspathTest`, for the same reasons as the other
  * SQL-backed parity tests in this module.
@@ -40,6 +41,8 @@ class FusionGroupingParityTest {
         try {
             val aliases = filterQueryAliases(sortAliasesLikeMultiMedicalStore(db.listAliases()))
             assertTrue(aliases.isNotEmpty(), "listAliases() returned no rows — is CORE_DB_PATH wired to the real core.db?")
+            val documentIndex = buildQueryDocumentIndex(db)
+            assertTrue(documentIndex.availableIds.isNotEmpty(), "listSearchDocuments() returned no rows")
 
             var total = 0
             var exactTop20 = 0
@@ -58,7 +61,7 @@ class FusionGroupingParityTest {
                 if (goldenGroups.isEmpty()) continue // nothing to compare for a query with no results
                 total += 1
 
-                val actualGroups = runLookupPipeline(query, aliases, db, groupLimit)
+                val actualGroups = runLookupPipeline(query, aliases, db, documentIndex, groupLimit)
 
                 val goldenIds = goldenGroups.map { it.getValue("documentId").jsonPrimitive.content }
                 val actualIds = actualGroups.map { it.documentId }

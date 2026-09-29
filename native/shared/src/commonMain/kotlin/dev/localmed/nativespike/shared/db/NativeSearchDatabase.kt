@@ -6,6 +6,7 @@ import dev.localmed.nativespike.shared.model.ChunkHit
 import dev.localmed.nativespike.shared.model.ExactSubjectHitText
 import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
+import dev.localmed.nativespike.shared.model.SearchDocumentSummary
 import dev.localmed.nativespike.shared.model.SectionRow
 
 /**
@@ -68,4 +69,23 @@ expect class NativeSearchDatabase(dbFilePath: String) {
      * (`document-siblings.ts`'s `isSupersededSummaryDocument` needs the full id set, not just the
      * ids already present in a query's own results, to know whether a `.full` sibling exists). */
     fun allDocumentIds(): List<String>
+
+    /**
+     * Every document's identity fields (title, short title, declared/navigation aliases) — the
+     * source data `QueryDocumentIndex` (packages/core/src/query-document-index.ts) builds its
+     * exact-identity lookup maps from, once at startup (`listSearchDocuments()` in the TS source),
+     * not per query. Loads the whole ~20k-document corpus in one query; stage 4's cold-start timing
+     * includes this on purpose — the real WebView pipeline also builds this index at startup, so
+     * skipping it here would make a native cold-start measurement dishonestly fast.
+     */
+    fun listSearchDocuments(): List<SearchDocumentSummary>
+
+    /**
+     * The first chunk (by section, then chunk order) of a document's current version with
+     * non-blank text — mirrors the fallback path in `buildExactIdentityResults`
+     * (create-medical-core.ts) for a document an exact alias/title/short-title match names but that
+     * no branch's own FTS search surfaced. `rank` is unset (0.0); exact-identity results always use
+     * a hardcoded score, not a lexical rank (see `lexical/ExactIdentity.kt`).
+     */
+    fun firstReadableChunk(documentId: String): HydratedHit?
 }

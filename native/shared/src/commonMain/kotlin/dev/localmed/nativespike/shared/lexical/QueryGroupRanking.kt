@@ -41,10 +41,15 @@ import dev.localmed.nativespike.shared.text.tokenize
  * a treatment-failure phrase. None of this migration's 151 golden queries are phrased that way
  * (verified against the golden-parity report), but a future query could be.
  *
- * `legalReferences`/`subjectPhraseBoost` are ported as substring/proximity scans, not `Regex` —
- * their TS patterns use `[а-я]*` Cyrillic character-class ranges, the shape flagged risky on
- * Kotlin/Native elsewhere in this port (see `text/TextNormalization.kt`'s header). Documented,
- * honest approximations of the TS regex's exact phrase-adjacency shape, not a full re-implementation.
+ * `legalReferences`/`subjectPhraseBoost` are ported as manual scanners, not `Regex` — their TS
+ * patterns use `[а-я]*` Cyrillic character-class ranges, the shape flagged risky on Kotlin/Native
+ * elsewhere in this port (see `text/TextNormalization.kt`'s header). These scanners reproduce the
+ * TS regexes' exact phrase-adjacency shape (`prefix[а-я]*\s+suffix`, `\s*[-–—]?\s*`, the optional
+ * middle group in the "проф.осмотр" alternative) rather than approximating with a loose `contains`
+ * — see `matchesWordGapPhrase`/`matchesProfilacticExamPhrase`/`legalReferences` below. An earlier
+ * version of this file used the looser approximation; tightened after the coordinator's stage 2
+ * sub-stage D review flagged it as the most likely source of the "группа здоровья"/"группа
+ * инвалидности"/"группа наблюдения" mismatches that review found.
  */
 
 private fun stemToken(token: String): String = lightStemRussian(token)
@@ -169,8 +174,12 @@ private fun legalReferences(value: String): Set<String> {
             i = j
             continue
         }
+        // Mirrors `\s*[-–—]?\s*` exactly: 0+ spaces, then at most ONE dash (already unified to
+        // plain '-' by normalizeSurfaceText), then 0+ spaces again — not a loop over both chars.
         var k = j
-        while (k < n && (normalized[k] == ' ' || normalized[k] == '-')) k += 1
+        while (k < n && normalized[k] == ' ') k += 1
+        if (k < n && normalized[k] == '-') k += 1
+        while (k < n && normalized[k] == ' ') k += 1
         val word = when {
             normalized.startsWith("фз", k) -> "фз"
             normalized.startsWith("н", k) -> "н"
@@ -197,31 +206,89 @@ private fun textCoverage(query: String, text: String): Double {
     return minOf(0.5, matched * 0.12)
 }
 
-private data class PhrasePair(val queryWords: List<String>, val textWords: List<String>, val value: Double)
-
-// `queryPattern[а-я]*\s+queryPattern2` in the TS source becomes "queryWord followed, within a
-// short span, by textWord" here — see file header.
-private val SUBJECT_PHRASE_PAIRS = listOf(
-    PhrasePair(listOf("групп"), listOf("групп", "здоров"), 0.55),
-    PhrasePair(listOf("инвалид"), listOf("инвалид"), 0.55),
-    PhrasePair(listOf("профосмотр", "профилактическ"), listOf("профосмотр", "профилактическ"), 0.65),
-    PhrasePair(listOf("санатор"), listOf("санатор"), 0.4),
-    PhrasePair(listOf("туберкул", "групп"), listOf("туберкул"), 0.4),
-    PhrasePair(listOf("перв", "помощ"), listOf("перв", "помощ"), 0.4),
-    PhrasePair(listOf("педиатр"), listOf("педиатр"), 0.35),
-)
-
 private fun containsAny(text: String, words: List<String>): Boolean = words.any { text.contains(it) }
 
-/** Mirrors `subjectPhraseBoost` (see file header for the approximation this makes). */
+/** Mirrors `[а-я]*\s+` right after `prefix` in the TS regexes below: 0+ Cyrillic letters, then
+ * 1+ whitespace (mandatory) — returns the index just past the whitespace run, or null if `prefix`
+ * isn't found or isn't followed by that shape anywhere. Tries every occurrence of `prefix`, like a
+ * global regex search would. */
+private fun findWordGapEnd(text: String, prefix: String, from: Int = 0): Pair<Int, Int>? {
+    var index = text.indexOf(prefix, from)
+    while (index >= 0) {
+        var i = index + prefix.length
+        while (i < text.length && text[i] in 'а'..'я') i += 1
+        val gapStart = i
+        while (i < text.length && text[i].isWhitespace()) i += 1
+        if (i > gapStart) return index to i
+        index = text.indexOf(prefix, index + 1)
+    }
+    return null
+}
+
+/** Mirrors `prefix[а-я]*\s+suffix` (e.g. `групп[а-я]*\s+здоров`, `перв[а-я]*\s+помощ`): `prefix`,
+ * then the shape `findWordGapEnd` matches, then `suffix` starting exactly there. */
+private fun matchesWordGapPhrase(text: String, prefix: String, suffix: String): Boolean {
+    var from = 0
+    while (true) {
+        val gap = findWordGapEnd(text, prefix, from) ?: return false
+        if (text.startsWith(suffix, gap.second)) return true
+        from = gap.first + 1
+    }
+}
+
+/** Mirrors `профосмотр|профилактическ[а-я]*\s+(?:медицинск[а-я]*\s+)?осмотр`. */
+private fun matchesProfilacticExamPhrase(text: String): Boolean {
+    if (text.contains("профосмотр")) return true
+    var from = 0
+    while (true) {
+        val gap = findWordGapEnd(text, "профилактическ", from) ?: return false
+        if (text.startsWith("осмотр", gap.second)) return true
+        val medGap = findWordGapEnd(text, "медицинск", gap.second)
+        // The optional "медицинск[а-я]*\s+" group must start exactly where the first gap ended —
+        // not just appear somewhere later in the text.
+        if (medGap != null && medGap.first == gap.second && text.startsWith("осмотр", medGap.second)) {
+            return true
+        }
+        from = gap.first + 1
+    }
+}
+
+/** Mirrors `туберкул[а-я]*.*групп|групп[а-я]*.*туберкул` (query side): with an unbounded `.*` gap
+ * and no other constraint, this reduces to "both words present, in either order" — i.e. both
+ * present at all, order irrelevant. Kept as a named function (not a bare `containsAny`) so the
+ * TS-regex provenance and this exact equivalence stays documented at the call site. */
+private fun matchesTuberculosisGroupPhrase(text: String): Boolean =
+    text.contains("туберкул") && text.contains("групп")
+
+/**
+ * Mirrors `subjectPhraseBoost` with exact phrase-adjacency matching (not a `contains`
+ * approximation) — manual scanners equivalent to the TS regexes' `[а-я]*\s+` shape, for the same
+ * Kotlin/Native Cyrillic-character-class-range caution as elsewhere in this port.
+ */
 private fun subjectPhraseBoost(query: String, text: String): Double {
     val normalizedQuery = normalizeSurfaceText(query)
     val normalizedText = normalizeSurfaceText(text)
     var boost = 0.0
-    for (pair in SUBJECT_PHRASE_PAIRS) {
-        if (containsAny(normalizedQuery, pair.queryWords) && containsAny(normalizedText, pair.textWords)) {
-            boost = maxOf(boost, pair.value)
-        }
+    if (matchesWordGapPhrase(normalizedQuery, "групп", "здоров") && matchesWordGapPhrase(normalizedText, "групп", "здоров")) {
+        boost = maxOf(boost, 0.55)
+    }
+    if (normalizedQuery.contains("инвалид") && normalizedText.contains("инвалид")) {
+        boost = maxOf(boost, 0.55)
+    }
+    if (matchesProfilacticExamPhrase(normalizedQuery) && matchesProfilacticExamPhrase(normalizedText)) {
+        boost = maxOf(boost, 0.65)
+    }
+    if (normalizedQuery.contains("санатор") && normalizedText.contains("санатор")) {
+        boost = maxOf(boost, 0.4)
+    }
+    if (matchesTuberculosisGroupPhrase(normalizedQuery) && normalizedText.contains("туберкул")) {
+        boost = maxOf(boost, 0.4)
+    }
+    if (matchesWordGapPhrase(normalizedQuery, "перв", "помощ") && matchesWordGapPhrase(normalizedText, "перв", "помощ")) {
+        boost = maxOf(boost, 0.4)
+    }
+    if (normalizedQuery.contains("педиатр") && normalizedText.contains("педиатр")) {
+        boost = maxOf(boost, 0.35)
     }
     return boost
 }
