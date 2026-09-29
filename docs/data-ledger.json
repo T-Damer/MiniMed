@@ -1,0 +1,1130 @@
+{
+  "schemaVersion": 1,
+  "thresholdBytes": 52428800,
+  "areas": [
+    "data/build",
+    "data/raw",
+    "data/intermediate",
+    "release-clinical",
+    "output",
+    "apps/app/public/content",
+    "model-mirror"
+  ],
+  "classes": {
+    "SOURCE": "Raw downloads/scrapes: expensive or impossible to recreate. Never a delete candidate.",
+    "RELEASED": "Published as a GitHub release asset or datasets branch; restorable by download.",
+    "REBUILDABLE": "Recreated from SOURCE/RELEASED inputs by a recorded command.",
+    "DUPLICATE": "Same bytes (or a superset) exist at another recorded location.",
+    "BACKUP": "Historical checkpoint kept for comparison; nothing reads it.",
+    "OBSOLETE": "Superseded or abandoned output; nothing reads it."
+  },
+  "entries": [
+    {
+      "path": "data/raw/grls-instructions-active",
+      "class": "SOURCE",
+      "producer": "GRLS instruction PDF batch downloads (docs/GRLS_INGESTION_HANDOFF.md)",
+      "consumers": [
+        "data/intermediate/grls-full-final",
+        "data/intermediate/grls-instructions-current-*"
+      ],
+      "note": "Rate-limited official downloads plus the download state ledger; the only local copy.",
+      "bytes": 13215609041,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/raw/krasotaimedicina",
+      "class": "SOURCE",
+      "producer": "bun run content:crawl:krasotaimedicina",
+      "consumers": [
+        "bun run content:prepare:krasotaimedicina",
+        "bun run content:module:krasotaimedicina",
+        "tools/ingest reference_images.py"
+      ],
+      "note": "Finished 2026-09-06 crawl (20 926 pages, raw HTML/image checksums). Recrawling takes days.",
+      "bytes": 4337187303,
+      "modified": "2026-09-06"
+    },
+    {
+      "path": "data/raw/official-clinical-documents",
+      "class": "SOURCE",
+      "producer": "bun run content:sync:clinical:all",
+      "consumers": ["bun run content:build:clinical:documents"],
+      "release": "clinical-2026.07.24-cbb0e01c1bce (category PDF ZIPs)",
+      "note": "Official PDFs; the category ZIPs on the release are the recovery copy.",
+      "bytes": 2048428319,
+      "modified": "2026-07-24"
+    },
+    {
+      "path": "data/raw/official-grls-registry",
+      "class": "SOURCE",
+      "producer": "bun run content:catalog:drugs (grls-sync)",
+      "consumers": ["data/build/official-grls-coverage-ledger.json"],
+      "bytes": 146660080,
+      "modified": "2026-07-24"
+    },
+    {
+      "path": "data/raw/vaccine-instructions-2026",
+      "class": "SOURCE",
+      "producer": "vaccine instruction PDF downloads",
+      "consumers": ["data/intermediate/vaccine/medication instruction builds"],
+      "bytes": 90394769,
+      "modified": "2026-09-09"
+    },
+    {
+      "path": "data/intermediate/rls-mkb",
+      "class": "SOURCE",
+      "producer": "bun run content:scrape:mkb (rls_mkb.py; network scrape, raw HTML is not kept)",
+      "consumers": ["bun run content:build:mkb", "bun run content:module:rls-mkb"],
+      "note": "details/*.json hold the scraped RLS pages with response checksums; data/raw/rls-mkb is only 28 MB. Treat as irreplaceable.",
+      "bytes": 1643733982,
+      "modified": "2026-08-14"
+    },
+    {
+      "path": "data/intermediate/allmed-medications",
+      "class": "SOURCE",
+      "producer": "medbase prepare-allmed-medications --input <Allmed snapshot>",
+      "consumers": ["apps/app/public/content/medications.db"],
+      "note": "The Allmed snapshot input is not on this machine, so this workspace is kept as a source.",
+      "bytes": 91667487,
+      "modified": "2026-08-29"
+    },
+    {
+      "path": "data/intermediate/allmed-reference-candidates.jsonl",
+      "class": "SOURCE",
+      "producer": "Allmed reference candidate extraction (docs/research/allmed-ui-data-contract-2026-09-27.md)",
+      "consumers": ["Allmed UI research"],
+      "note": "Input snapshot not on this machine.",
+      "bytes": 82052250,
+      "modified": "2026-07-29"
+    },
+    {
+      "path": "data/intermediate/grls-full-final",
+      "class": "REBUILDABLE",
+      "producer": "GRLS prepare over data/raw/grls-instructions-active (reuses OCR extractions)",
+      "consumers": ["tools/ingest/scripts/build_grls_atc_modules.py"],
+      "rebuild": "Re-run the GRLS prepare; without its .localmed extraction cache this is hours of OCR.",
+      "note": "Contains every batch workspace below (8 868 reused extractions).",
+      "bytes": 2337081373,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/intermediate/grls-full-v1",
+      "class": "DUPLICATE",
+      "producer": "GRLS prepare batch (non-OCR v1, OCR batches v2-v6)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Every Markdown file and .localmed extraction is present in grls-full-final; a 25-file byte sample per batch was identical."
+      },
+      "bytes": 1613988788,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/intermediate/grls-full-v2",
+      "class": "DUPLICATE",
+      "producer": "GRLS prepare batch (non-OCR v1, OCR batches v2-v6)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Every Markdown file and .localmed extraction is present in grls-full-final; a 25-file byte sample per batch was identical."
+      },
+      "bytes": 135843478,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/intermediate/grls-full-v3",
+      "class": "DUPLICATE",
+      "producer": "GRLS prepare batch (non-OCR v1, OCR batches v2-v6)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Every Markdown file and .localmed extraction is present in grls-full-final; a 25-file byte sample per batch was identical."
+      },
+      "bytes": 177250884,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/intermediate/grls-full-v4",
+      "class": "DUPLICATE",
+      "producer": "GRLS prepare batch (non-OCR v1, OCR batches v2-v6)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Every Markdown file and .localmed extraction is present in grls-full-final; a 25-file byte sample per batch was identical."
+      },
+      "bytes": 165236280,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/intermediate/grls-full-v5",
+      "class": "DUPLICATE",
+      "producer": "GRLS prepare batch (non-OCR v1, OCR batches v2-v6)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Every Markdown file and .localmed extraction is present in grls-full-final; a 25-file byte sample per batch was identical."
+      },
+      "bytes": 97000538,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/intermediate/grls-full-v6",
+      "class": "DUPLICATE",
+      "producer": "GRLS prepare batch (non-OCR v1, OCR batches v2-v6)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Every Markdown file and .localmed extraction is present in grls-full-final; a 25-file byte sample per batch was identical."
+      },
+      "bytes": 32618751,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/intermediate/grls-instructions-current-160-v2",
+      "class": "DUPLICATE",
+      "producer": "GRLS 160-instruction prepare",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "confirm",
+        "reason": "All 320 documents are also in grls-instructions-current-189-v2; kept as an earlier checkpoint in docs/GRLS_INGESTION_HANDOFF.md."
+      },
+      "bytes": 54149472,
+      "modified": "2026-09-01"
+    },
+    {
+      "path": "data/intermediate/grls-instructions-current-189-v2",
+      "class": "REBUILDABLE",
+      "producer": "GRLS 189-instruction prepare",
+      "consumers": ["data/build/grls-instructions-current-189-v2.db"],
+      "rebuild": "medbase prepare with --reuse-from (minutes; OCR reused)",
+      "bytes": 64486637,
+      "modified": "2026-09-01"
+    },
+    {
+      "path": "data/intermediate/krasotaimedicina-diseases",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:prepare:krasotaimedicina",
+      "consumers": ["data/build/diseases.db"],
+      "rebuild": "bun run content:prepare:krasotaimedicina (~2 min)",
+      "deleteCandidate": {
+        "tier": "confirm",
+        "reason": "Deterministic from data/raw/krasotaimedicina in ~2 min; needed only to rebuild diseases.db."
+      },
+      "bytes": 180800533,
+      "modified": "2026-09-04"
+    },
+    {
+      "path": "data/intermediate/krasotaimedicina-module",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:module:krasotaimedicina (prepare step)",
+      "consumers": ["data/build/krasotaimedicina-module"],
+      "rebuild": "first step of bun run content:module:krasotaimedicina (~2 min)",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Deterministic prepare from data/raw/krasotaimedicina; the pack is released."
+      },
+      "bytes": 182566319,
+      "modified": "2026-09-28"
+    },
+    {
+      "path": "data/intermediate/rls-mkb-module",
+      "class": "REBUILDABLE",
+      "producer": "medbase split-rls-mkb",
+      "consumers": ["data/build/rls-mkb-module"],
+      "rebuild": "bun run content:module:rls-mkb (split step ~5 min)",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Deterministic split of data/intermediate/rls-mkb; both packs are released."
+      },
+      "bytes": 138576376,
+      "modified": "2026-09-28"
+    },
+    {
+      "path": "data/intermediate/rls-packaging-module",
+      "class": "REBUILDABLE",
+      "producer": "medbase split-rls-mkb",
+      "consumers": ["data/build/rls-mkb-module"],
+      "rebuild": "bun run content:module:rls-mkb (split step ~5 min)",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Deterministic split of data/intermediate/rls-mkb; both packs are released."
+      },
+      "bytes": 92279249,
+      "modified": "2026-09-28"
+    },
+    {
+      "path": "data/intermediate/ambulatory-v1",
+      "class": "REBUILDABLE",
+      "producer": "scripts/anydoc_batch.py + scripts/vision_ocr_batch.py over Med/",
+      "consumers": ["scripts/ambulatory_pack.py"],
+      "rebuild": "bun run content:rebuild:ambulatory (OCR of the user's textbooks; slow)",
+      "bytes": 70813542,
+      "modified": "2026-08-09"
+    },
+    {
+      "path": "data/intermediate/ambulatory-pack",
+      "class": "REBUILDABLE",
+      "producer": "scripts/ambulatory_pack.py",
+      "consumers": ["data/build/ambulatory.db"],
+      "rebuild": "python3 scripts/ambulatory_pack.py (minutes)",
+      "bytes": 70816202,
+      "modified": "2026-08-09"
+    },
+    {
+      "path": "data/intermediate/medication-instructions-2026",
+      "class": "REBUILDABLE",
+      "producer": "medication instruction prepare (2026 selection)",
+      "consumers": ["data/build/medication-instructions-2026"],
+      "rebuild": "medbase prepare over the 2026 instruction registry",
+      "bytes": 79599288,
+      "modified": "2026-09-09"
+    },
+    {
+      "path": "data/build/release-clinical",
+      "class": "RELEASED",
+      "producer": "bun run content:package:clinical:snapshot",
+      "consumers": [
+        ".github/workflows/publish-clinical-snapshot.yml",
+        "packages/test-fixtures/scripts/build-core-slice.ts"
+      ],
+      "release": "clinical-2026.07.24-cbb0e01c1bce (ZIPs, catalog) + branch datasets/clinical-2026.07.24 (723 databases)",
+      "bytes": 3897697122,
+      "modified": "2026-07-24"
+    },
+    {
+      "path": "data/build/release-esklp",
+      "class": "RELEASED",
+      "producer": "medbase-regulated-catalog esklp (raw archive not local)",
+      "consumers": [
+        "bun run content:core:build (scripts/build-core.mjs)",
+        "tools/ingest/scripts/build_grls_atc_modules.py",
+        "apps/app/e2e/module-pointer.spec.ts"
+      ],
+      "release": "esklp-2026-08-28 (15/15 modules) + branch datasets/esklp-2026-08-28",
+      "note": "Only local ESKLP output; restore with gh release download esklp-2026-08-28.",
+      "bytes": 1992552448,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/official-clinical-documents-2026-07-27",
+      "class": "RELEASED",
+      "producer": "released clinical-json snapshot databases",
+      "consumers": [
+        "bun run content:core:build (scripts/build-core.mjs) (clinical-source-snapshot primary)"
+      ],
+      "release": "clinical-json-2026.07.27-13991c1feee5 (744/744) + branch datasets/clinical-json-2026.07.27-13991c1feee5",
+      "bytes": 2072457216,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/official-clinical-documents",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:build:clinical:documents",
+      "consumers": [
+        "bun run content:core:build (scripts/build-core.mjs) (clinical-medication-relations, snapshot fallback)"
+      ],
+      "rebuild": "bun run content:build:clinical:documents -- --all --allow-partial --force (hours, from data/raw/official-clinical-documents)",
+      "bytes": 3054238099,
+      "modified": "2026-07-24"
+    },
+    {
+      "path": "data/build/official-clinical-documents-merged",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) stage clinical-source-snapshot",
+      "consumers": [
+        "bun run content:core:build (scripts/build-core.mjs) (clinical-ledger-enriched)"
+      ],
+      "rebuild": "bun run content:core:build (scripts/build-core.mjs) (minutes; merges the two directories above)",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Pure merge of official-clinical-documents-2026-07-27 and official-clinical-documents; build-core recreates it."
+      },
+      "bytes": 2068365312,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/core-reference-merged.db",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) stage compose-reference",
+      "consumers": ["bun run content:core:build (scripts/build-core.mjs) (reference-pointers)"],
+      "rebuild": "bun run content:core:build (scripts/build-core.mjs) (~70 s)",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Compose of diseases.db + mkb.db; recreated by build-core in about a minute."
+      },
+      "bytes": 1927856128,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core-reference-pointers",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) stage reference-pointers",
+      "consumers": ["bun run content:core:build (scripts/build-core.mjs) (pointers-build)"],
+      "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
+      "bytes": 101959985,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core-pointers-base.db",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) stage pointers-build",
+      "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
+      "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
+      "bytes": 311394304,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core-medication-pointers-pinned.db",
+      "class": "REBUILDABLE",
+      "producer": "tools/ingest/scripts/pin_medication_pointers.py",
+      "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
+      "rebuild": "bun run content:core:build (scripts/build-core.mjs) (~14 s)",
+      "bytes": 64929792,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test7.db",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) stage finalize",
+      "consumers": [
+        "docs/research/core-coverage-2026-09-28.md",
+        "docs/research/search-kr-pointers-vs-mkb-2026-09.md"
+      ],
+      "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
+      "note": "Latest candidate core measured in research notes.",
+      "bytes": 452149248,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test7.no-pilot.db",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) stage finalize-clean",
+      "consumers": ["docs/research/core-coverage-2026-09-28.md"],
+      "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
+      "bytes": 451837952,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test1.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 691781632,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test1.no-pilot.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 691503104,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test2.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 446087168,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test2.no-pilot.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 445775872,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test3.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 446087168,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test3.no-pilot.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 445759488,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test4.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 450822144,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test4.no-pilot.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 450494464,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test5.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 450822144,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test5.no-pilot.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 450510848,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test6.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 452182016,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core.0.7.0-test6.no-pilot.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:core:build (scripts/build-core.mjs) (earlier iteration)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded candidate core; test7 is the measured one and build-core recreates any version."
+      },
+      "bytes": 451837952,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core-catalog-pointers-medication",
+      "class": "OBSOLETE",
+      "producer": "rejected build-core medication ledger attempt",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Not a build-core stage (medication track is pinned); see build-core.mjs comment."
+      },
+      "bytes": 106602273,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core-catalog-pointers-medication.db",
+      "class": "OBSOLETE",
+      "producer": "rejected build-core medication ledger attempt",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Not a build-core stage (medication track is pinned); 38 815 wrong-kind pointers."
+      },
+      "bytes": 292077568,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/core-opfs-pages.db",
+      "class": "DUPLICATE",
+      "producer": "migration 010 core composition (2026-09-07)",
+      "consumers": [],
+      "release": "v0.6.37-v0.6.44 MiniMed-*-core.db",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Byte-identical to apps/app/public/content/core.db (restored by content:restore:core) and to the released core asset."
+      },
+      "bytes": 422838272,
+      "modified": "2026-09-07"
+    },
+    {
+      "path": "data/build/core-before-ambiguity.db",
+      "class": "BACKUP",
+      "producer": "pre-ambiguity-fix core candidate (2026-09-05)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Historical core intermediate superseded by released cores (0.6.37+ on GitHub); not read by any script."
+      },
+      "bytes": 377892864,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/core-before-knowledge.db",
+      "class": "BACKUP",
+      "producer": "core before knowledge projection (2026-09-04)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Historical core intermediate superseded by released cores (0.6.37+ on GitHub); not read by any script."
+      },
+      "bytes": 247926784,
+      "modified": "2026-09-04"
+    },
+    {
+      "path": "data/build/core-knowledge-compact.db",
+      "class": "BACKUP",
+      "producer": "compact knowledge core experiment (2026-09-04)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Historical core intermediate superseded by released cores (0.6.37+ on GitHub); not read by any script."
+      },
+      "bytes": 323264512,
+      "modified": "2026-09-04"
+    },
+    {
+      "path": "data/build/core-search-compact.db",
+      "class": "BACKUP",
+      "producer": "search-compaction experiment (2026-09-05)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Historical core intermediate superseded by released cores (0.6.37+ on GitHub); not read by any script."
+      },
+      "bytes": 375574528,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/core-searchable-definitions.db",
+      "class": "BACKUP",
+      "producer": "searchable definitions core experiment (2026-09-04)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Historical core intermediate superseded by released cores (0.6.37+ on GitHub); not read by any script."
+      },
+      "bytes": 377892864,
+      "modified": "2026-09-04"
+    },
+    {
+      "path": "data/build/ux-icd-core-before-005.db",
+      "class": "BACKUP",
+      "producer": "core before migration 005 (2026-09-05)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Historical core intermediate superseded by released cores (0.6.37+ on GitHub); not read by any script."
+      },
+      "bytes": 377896960,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/ux-icd-core-005.db",
+      "class": "BACKUP",
+      "producer": "core after migration 005 (2026-09-05)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Historical core intermediate superseded by released cores (0.6.37+ on GitHub); not read by any script."
+      },
+      "bytes": 513912832,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/clinical-definitions-006-before.db",
+      "class": "BACKUP",
+      "producer": "core before migration 006; identical to ux-icd-core-005.db",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Historical core intermediate superseded by released cores (0.6.37+ on GitHub); not read by any script."
+      },
+      "bytes": 513912832,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/core-grls-label.db",
+      "class": "BACKUP",
+      "producer": "GRLS label core experiment (2026-09-05)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Historical core intermediate superseded by released cores (0.6.37+ on GitHub); not read by any script."
+      },
+      "bytes": 513986560,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/ux-icd-reference-pointers",
+      "class": "BACKUP",
+      "producer": "UX ICD pointer module experiment (2026-09-05)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Superseded by data/build/core-reference-pointers; not read by any script."
+      },
+      "bytes": 87996503,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/core-knowledge.db",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:core:knowledge",
+      "consumers": ["tools/benchmarks/src/run-rapidfuzz-medication-fallback.ts"],
+      "rebuild": "bun run content:core:knowledge (minutes)",
+      "deleteCandidate": {
+        "tier": "confirm",
+        "reason": "Compose over the released core; only an experiment benchmark reads it."
+      },
+      "bytes": 377896960,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/diseases.db",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:build:krasotaimedicina",
+      "consumers": [
+        "bun run content:core:build (scripts/build-core.mjs) (compose-reference)",
+        "bun run benchmark:full-corpus:diseases"
+      ],
+      "rebuild": "bun run content:rebuild:krasotaimedicina (15-55 min)",
+      "bytes": 928329728,
+      "modified": "2026-09-04"
+    },
+    {
+      "path": "data/build/mkb-diseases.db",
+      "class": "REBUILDABLE",
+      "producer": "medbase compose diseases.db + mkb.db",
+      "consumers": ["bun run benchmark:full-corpus:mkb-diseases"],
+      "rebuild": "medbase compose --input data/build/diseases.db --input data/build/mkb.db (~7 min)",
+      "deleteCandidate": {
+        "tier": "confirm",
+        "reason": "Compose recreated in ~7 min; only the full-corpus benchmark reads it."
+      },
+      "bytes": 2430963712,
+      "modified": "2026-09-04"
+    },
+    {
+      "path": "data/build/mkb.db",
+      "class": "RELEASED",
+      "producer": "bun run content:build:mkb + content:upgrade:mkb",
+      "consumers": [
+        "bun run content:core:build (scripts/build-core.mjs) (compose-reference)",
+        "bun run content:publish:mkb"
+      ],
+      "release": "v0.6.19 (mkb.db)",
+      "bytes": 1501626368,
+      "modified": "2026-08-15"
+    },
+    {
+      "path": "data/build/mkb-legacy.db",
+      "class": "OBSOLETE",
+      "producer": "bun run content:build:mkb before upgrade-mkb-reference",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Its SHA-256 equals data/build/mkb-report.json outputChecksum: the raw build that mkb.db upgraded; superseded."
+      },
+      "bytes": 1480282112,
+      "modified": "2026-08-15"
+    },
+    {
+      "path": "data/build/rls-mkb-module",
+      "class": "RELEASED",
+      "producer": "bun run content:module:rls-mkb",
+      "consumers": [],
+      "release": "reference-rls-mkb-2026.9.28 (both .db.gz)",
+      "bytes": 900184935,
+      "modified": "2026-09-28"
+    },
+    {
+      "path": "data/build/rls-mkb-module/mkb.compact.db",
+      "class": "REBUILDABLE",
+      "producer": "medbase build (before upgrade-mkb-reference)",
+      "consumers": [],
+      "rebuild": "bun run content:module:rls-mkb",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Intermediate before upgrade-mkb-reference; minimed.mkb.ru.db is the output."
+      },
+      "bytes": 293556224,
+      "modified": "2026-09-28"
+    },
+    {
+      "path": "data/build/krasotaimedicina-module",
+      "class": "RELEASED",
+      "producer": "bun run content:module:krasotaimedicina",
+      "consumers": [],
+      "release": "reference-krasotaimedicina-2026.9.28 (.db.gz)",
+      "bytes": 775451419,
+      "modified": "2026-09-28"
+    },
+    {
+      "path": "data/build/definition-reference",
+      "class": "RELEASED",
+      "producer": "scripts/prepare-definition-reference.py",
+      "consumers": ["apps/app/src/features/modules/local-definition-reference.ts (DEV)"],
+      "release": "definition-reference-2026.9.27, definition-reference-2026.9.30",
+      "bytes": 841575218,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/definition-reference/2026.9.28",
+      "class": "OBSOLETE",
+      "producer": "scripts/prepare-definition-reference.py",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Unreleased intermediate edition superseded by the released 2026.9.30."
+      },
+      "bytes": 215295352,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/definition-reference/2026.9.29",
+      "class": "OBSOLETE",
+      "producer": "scripts/prepare-definition-reference.py",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Unreleased intermediate edition superseded by the released 2026.9.30."
+      },
+      "bytes": 235156759,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/grls-instructions-atc-*.db",
+      "pattern": true,
+      "class": "REBUILDABLE",
+      "producer": "tools/ingest/scripts/build_grls_atc_modules.py",
+      "consumers": ["GRLS ATC module release (not published yet)"],
+      "rebuild": "python tools/ingest/scripts/build_grls_atc_modules.py (from grls-full-final + release-esklp)",
+      "bytes": 2140180480,
+      "modified": "2026-09-27"
+    },
+    {
+      "path": "data/build/grls-instructions-current-189-v2.db",
+      "class": "REBUILDABLE",
+      "producer": "medbase build data/intermediate/grls-instructions-current-189-v2",
+      "consumers": ["data/build/medications-unified.db (compose input, checksum recorded)"],
+      "rebuild": "medbase build --lexical-only (minutes)",
+      "bytes": 65335296,
+      "modified": "2026-09-01"
+    },
+    {
+      "path": "data/build/medications-unified.db",
+      "class": "REBUILDABLE",
+      "producer": "data/build/medications-unified-run.sh",
+      "consumers": ["docs/research/allmed-ui-data-contract-2026-09-27.md"],
+      "rebuild": "medbase compose of public medications.db + grls-189-v2.db + esklp-full.db (asset of v0.6.31)",
+      "bytes": 3028381696,
+      "modified": "2026-09-02"
+    },
+    {
+      "path": "data/build/medications-unified.pre-validation-fix.db",
+      "class": "DUPLICATE",
+      "producer": "medications-unified-run.sh checkpoint",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Byte-identical (SHA-256) to data/build/medications-unified.db."
+      },
+      "bytes": 3028381696,
+      "modified": "2026-09-02"
+    },
+    {
+      "path": "data/build/medications-compact.db",
+      "class": "OBSOLETE",
+      "producer": "migration 008 Allmed compaction measurement",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Measurement recorded in docs/state/implemented-0.6.39.md; never published."
+      },
+      "bytes": 456654848,
+      "modified": "2026-09-09"
+    },
+    {
+      "path": "data/build/medications-compact.db.gz",
+      "class": "OBSOLETE",
+      "producer": "migration 008 Allmed compaction measurement",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Transport measurement of the file above; never published."
+      },
+      "bytes": 106282289,
+      "modified": "2026-09-09"
+    },
+    {
+      "path": "data/build/medication-instructions-2026",
+      "class": "REBUILDABLE",
+      "producer": "medbase build + compress of data/intermediate/medication-instructions-2026",
+      "consumers": ["catalog-entry.preview.json (not merged into the app catalog)"],
+      "rebuild": "medbase build + scripts/compress-module-index.mjs (minutes)",
+      "bytes": 79689571,
+      "modified": "2026-09-09"
+    },
+    {
+      "path": "data/build/official-grls-coverage-ledger.json",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:catalog:drugs (medications step)",
+      "consumers": [
+        "tools/ingest/scripts/pin_medication_pointers.py",
+        "tools/benchmarks/src/run-core-coverage.ts",
+        "bun run content:catalog:drugs:modules"
+      ],
+      "rebuild": "medbase-regulated-catalog medications over data/raw/official-grls-registry (offline)",
+      "bytes": 180337550,
+      "modified": "2026-07-24"
+    },
+    {
+      "path": "data/build/official-grls-modules",
+      "class": "REBUILDABLE",
+      "producer": "bun run content:catalog:drugs:modules",
+      "consumers": ["docs/research/allmed-ui-data-contract-2026-09-27.md"],
+      "rebuild": "bun run content:catalog:drugs:modules (offline, minutes)",
+      "deleteCandidate": {
+        "tier": "confirm",
+        "reason": "Regenerated offline from the coverage ledger; no script reads it."
+      },
+      "bytes": 642777725,
+      "modified": "2026-07-30"
+    },
+    {
+      "path": "data/build/reference-images-static",
+      "class": "DUPLICATE",
+      "producer": "reference image pack build",
+      "consumers": ["bun run DEV copy to apps/app/public/content/reference-images"],
+      "release": "v0.6.34 reference-images.tar.gz + branch datasets/content-2026-09-06",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Same asset files as apps/app/public/content/reference-images (only build-report.json differs) and released."
+      },
+      "bytes": 482741117,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/reference-images-krasotaimedicina-2026-09-05",
+      "class": "REBUILDABLE",
+      "producer": "tools/ingest reference_images.py over data/raw/krasotaimedicina",
+      "consumers": [],
+      "rebuild": "python -m localmed_ingest.reference_images data/raw/krasotaimedicina <out> (minutes)",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Deterministic from the raw crawl assets; not published or read by any script."
+      },
+      "bytes": 496589460,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/ambulatory.db",
+      "class": "DUPLICATE",
+      "producer": "bun run content:build:ambulatory",
+      "consumers": ["bun run content:publish:ambulatory"],
+      "release": "v0.6.13 (ambulatory.db)",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Byte-identical to apps/app/public/content/ambulatory.db and released."
+      },
+      "bytes": 238510080,
+      "modified": "2026-08-09"
+    },
+    {
+      "path": "data/build/MiniMed-search-preview.apk",
+      "class": "OBSOLETE",
+      "producer": "native search preview APK (2026-09-08)",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Unreferenced preview APK; published APKs live on GitHub releases."
+      },
+      "bytes": 87494498,
+      "modified": "2026-09-08"
+    },
+    {
+      "path": "release-clinical",
+      "class": "DUPLICATE",
+      "producer": "bun run content:package:clinical:snapshot (default output root)",
+      "consumers": [],
+      "release": "clinical-2026.07.24-cbb0e01c1bce + branch datasets/clinical-2026.07.24",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Same 746 file names and sizes as data/build/release-clinical; released."
+      },
+      "bytes": 3897697122,
+      "modified": "2026-07-24"
+    },
+    {
+      "path": "output/release-0.6.34",
+      "class": "RELEASED",
+      "producer": "release staging",
+      "consumers": [],
+      "release": "v0.6.34 (20/22 assets)",
+      "note": "Kept by the AGENTS.md rule (newest releases, never fewer than 2).",
+      "bytes": 1689750578,
+      "modified": "2026-09-06"
+    },
+    {
+      "path": "output/release-0.6.35",
+      "class": "RELEASED",
+      "producer": "release staging and CI evidence",
+      "consumers": [],
+      "release": "v0.6.35 (assets)",
+      "note": "Kept by the AGENTS.md rule.",
+      "bytes": 1011381533,
+      "modified": "2026-09-07"
+    },
+    {
+      "path": "output/clinical-definitions-006-migration.db",
+      "class": "BACKUP",
+      "producer": "clinical definition migration 006 run",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Migration output with the size of the released 0.6.33-0.6.36 core; not read."
+      },
+      "bytes": 513986560,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "output/diagnostics-android-2026-09-06",
+      "class": "OBSOLETE",
+      "producer": "Android diagnostics capture",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "confirm",
+        "reason": "Old QA evidence, not referenced; keep only if the issue is still open."
+      },
+      "bytes": 93532619,
+      "modified": "2026-09-06"
+    },
+    {
+      "path": "output/ux-fixes",
+      "class": "OBSOLETE",
+      "producer": "UX fix screenshots",
+      "consumers": [],
+      "deleteCandidate": {
+        "tier": "confirm",
+        "reason": "Old QA evidence, not referenced."
+      },
+      "bytes": 85450202,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "output/playwright",
+      "class": "REBUILDABLE",
+      "producer": "Playwright runs",
+      "consumers": [],
+      "rebuild": "any E2E run",
+      "deleteCandidate": {
+        "tier": "safe",
+        "reason": "Test output regenerated by every run."
+      },
+      "bytes": 66599048,
+      "modified": "2026-09-29"
+    },
+    {
+      "path": "apps/app/public/content/core.db",
+      "class": "RELEASED",
+      "producer": "bun run content:restore:core",
+      "consumers": ["app DEV/build", ".github/workflows/*"],
+      "release": "v0.6.37-v0.6.44 MiniMed-*-core.db",
+      "note": "Never delete or replace by hand (AGENTS.md, docs/RELEASES.md).",
+      "bytes": 422838272,
+      "modified": "2026-09-07"
+    },
+    {
+      "path": "apps/app/public/content/mkb.db",
+      "class": "DUPLICATE",
+      "producer": "bun run content:publish:mkb",
+      "consumers": ["DEV built-in mkb companion (create-browser-core.ts)"],
+      "release": "v0.6.19 (mkb.db)",
+      "deleteCandidate": {
+        "tier": "confirm",
+        "reason": "Byte-identical to data/build/mkb.db and released; only the DEV companion reads it, now superseded by the minimed.mkb.ru module."
+      },
+      "bytes": 1501626368,
+      "modified": "2026-08-15"
+    },
+    {
+      "path": "apps/app/public/content/ambulatory.db",
+      "class": "RELEASED",
+      "producer": "bun run content:publish:ambulatory",
+      "consumers": ["DEV ambulatory companion"],
+      "release": "v0.6.13 (ambulatory.db)",
+      "bytes": 238510080,
+      "modified": "2026-08-09"
+    },
+    {
+      "path": "apps/app/public/content/medications.db",
+      "class": "REBUILDABLE",
+      "producer": "Allmed companion (prepare-allmed-medications + build)",
+      "consumers": [
+        "DEV medications companion",
+        "data/build/medications-unified.db (compose input)"
+      ],
+      "rebuild": "medbase prepare-allmed-medications + medbase build (Allmed snapshot needed)",
+      "bytes": 514322432,
+      "modified": "2026-09-01"
+    },
+    {
+      "path": "apps/app/public/content/reference-images",
+      "class": "RELEASED",
+      "producer": "reference image pack",
+      "consumers": ["DEV reference image assets"],
+      "release": "v0.6.34 reference-images.tar.gz + branch datasets/content-2026-09-06",
+      "bytes": 482740515,
+      "modified": "2026-09-07"
+    },
+    {
+      "path": "model-mirror/Giga-Embeddings-instruct-480M-0826-Q8_0.gguf",
+      "class": "REBUILDABLE",
+      "producer": "local Q8_0 conversion of GigaEmbeddings",
+      "consumers": ["GigaEmbeddings benchmark"],
+      "rebuild": "re-convert from the public Hugging Face weights",
+      "note": "No hosted immutable copy yet (docs/CURRENT_STATE.md).",
+      "bytes": 520209504,
+      "modified": "2026-08-25"
+    }
+  ]
+}

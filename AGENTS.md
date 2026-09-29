@@ -115,6 +115,8 @@ substitution, clinical promotion or rights assumptions. Historical source files 
 - `output/release-*`: keep the 3 newest while they total at most 4 GB, otherwise fewer, never fewer
   than 2. Release assets themselves live on GitHub. Machine-wide limits and `dev-disk` are in the
   global agent rules.
+- Local data ≥50 MiB is recorded in `docs/data-ledger.json` (rules: `docs/DATA_LEDGER.md`); run
+  `bun run data:ledger` after creating or removing such artifacts, and never delete data yourself.
 
 ## Formatting and checks
 
