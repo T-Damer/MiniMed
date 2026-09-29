@@ -5,6 +5,7 @@ import { z } from 'zod';
 import {
   type ContentModuleCatalog,
   ContentModuleCatalogSchema,
+  serializeContentModuleCatalog,
 } from '../packages/contracts/src/content-modules';
 
 const DocumentRow = z.object({
@@ -136,7 +137,6 @@ if (import.meta.main) {
       };
     }),
   };
-  ContentModuleCatalogSchema.parse(output);
-  writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`);
+  writeFileSync(outputPath, serializeContentModuleCatalog(output));
   console.log(`Verified artifact files: ${matched}`);
 }

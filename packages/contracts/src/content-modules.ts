@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import {
+  compactCatalogDocuments,
+  expandModuleDocumentTable,
+} from './content-module-document-table';
 import { DefinitionReferenceModuleSchema } from './definition-reference-api';
 import type { LocalMedError } from './errors';
 import type { Result } from './result';
@@ -116,108 +120,111 @@ export const CoreCatalogTopicStubSchema = z.object({
   relations: z.array(CoreCatalogRelationStubSchema).default([]),
 });
 
-export const ContentModuleCatalogEntrySchema = z
-  .object({
-    id: z.string().min(1),
-    version: z.string().min(1),
-    kind: ContentModuleKindSchema,
-    collection: z.string().min(1),
-    title: z.string().min(1),
-    description: z.string().min(1),
-    required: z.boolean(),
-    releaseState: ContentModuleReleaseStateSchema,
-    specialties: z.array(z.string().min(1)).default([]),
-    populations: z.array(z.string().min(1)).default([]),
-    tags: z.array(z.string().min(1)).default([]),
-    compatibility: ContentModuleCompatibilitySchema,
-    sourceSetDigest: z
-      .string()
-      .regex(/^sha256:[a-f0-9]{64}$/u)
-      .nullable()
-      .default(null),
-    dependencies: z.array(ContentModuleDependencySchema).default([]),
-    sizes: ContentModuleSizeSchema,
-    capabilities: ContentModuleCapabilitiesSchema,
-    artifacts: z.array(ContentModuleArtifactSchema).default([]),
-    documents: z.array(ContentModuleDocumentVersionSchema).default([]),
-    previewDocumentCount: z.number().int().nonnegative().default(0),
-    definitionReference: DefinitionReferenceModuleSchema.optional(),
-    tools: z.array(ToolCatalogEntrySchema).optional(),
-    toolKinds: z.array(z.enum(['calculator', 'assessment'])).optional(),
-    toolCount: z.number().int().nonnegative().optional(),
-  })
-  .superRefine((module, context) => {
-    if (
-      module.definitionReference &&
-      (module.kind !== 'reference' ||
-        module.required ||
-        module.compatibility.schemaVersion !== 7 ||
-        module.releaseState !== 'preview')
-    ) {
-      context.addIssue({
-        code: 'custom',
-        path: ['definitionReference'],
-        message: 'Reference capability requires an optional schema-7 preview edition.',
-      });
-    }
-    if (module.kind === 'core' && !module.required) {
-      context.addIssue({
-        code: 'custom',
-        path: ['required'],
-        message: 'Core modules must be required.',
-      });
-    }
-    if (module.dependencies.some((dependency) => dependency.moduleId === module.id)) {
-      context.addIssue({
-        code: 'custom',
-        path: ['dependencies'],
-        message: 'A module cannot depend on itself.',
-      });
-    }
-    for (const artifact of module.artifacts) {
-      if (!module.sourceSetDigest || artifact.sourceSetDigest !== module.sourceSetDigest) {
+export const ContentModuleCatalogEntrySchema = z.preprocess(
+  expandModuleDocumentTable,
+  z
+    .object({
+      id: z.string().min(1),
+      version: z.string().min(1),
+      kind: ContentModuleKindSchema,
+      collection: z.string().min(1),
+      title: z.string().min(1),
+      description: z.string().min(1),
+      required: z.boolean(),
+      releaseState: ContentModuleReleaseStateSchema,
+      specialties: z.array(z.string().min(1)).default([]),
+      populations: z.array(z.string().min(1)).default([]),
+      tags: z.array(z.string().min(1)).default([]),
+      compatibility: ContentModuleCompatibilitySchema,
+      sourceSetDigest: z
+        .string()
+        .regex(/^sha256:[a-f0-9]{64}$/u)
+        .nullable()
+        .default(null),
+      dependencies: z.array(ContentModuleDependencySchema).default([]),
+      sizes: ContentModuleSizeSchema,
+      capabilities: ContentModuleCapabilitiesSchema,
+      artifacts: z.array(ContentModuleArtifactSchema).default([]),
+      documents: z.array(ContentModuleDocumentVersionSchema).default([]),
+      previewDocumentCount: z.number().int().nonnegative().default(0),
+      definitionReference: DefinitionReferenceModuleSchema.optional(),
+      tools: z.array(ToolCatalogEntrySchema).optional(),
+      toolKinds: z.array(z.enum(['calculator', 'assessment'])).optional(),
+      toolCount: z.number().int().nonnegative().optional(),
+    })
+    .superRefine((module, context) => {
+      if (
+        module.definitionReference &&
+        (module.kind !== 'reference' ||
+          module.required ||
+          module.compatibility.schemaVersion !== 7 ||
+          module.releaseState !== 'preview')
+      ) {
         context.addIssue({
           code: 'custom',
-          path: ['artifacts'],
-          message: `Artifact ${artifact.id} does not match the module source set.`,
+          path: ['definitionReference'],
+          message: 'Reference capability requires an optional schema-7 preview edition.',
         });
       }
-    }
-    if (module.documents.length > 0 && !module.sourceSetDigest) {
-      context.addIssue({
-        code: 'custom',
-        path: ['sourceSetDigest'],
-        message: 'Modules with documents require an exact source-set digest.',
-      });
-    }
-    const artifactIds = new Set(module.artifacts.map((artifact) => artifact.id));
-    for (const document of module.documents) {
-      if (!artifactIds.has(document.indexArtifactId)) {
+      if (module.kind === 'core' && !module.required) {
         context.addIssue({
           code: 'custom',
-          path: ['documents'],
-          message: `Document ${document.documentVersionId} references a missing index artifact.`,
+          path: ['required'],
+          message: 'Core modules must be required.',
         });
       }
-      if (document.sourceAssetArtifactId && !artifactIds.has(document.sourceAssetArtifactId)) {
+      if (module.dependencies.some((dependency) => dependency.moduleId === module.id)) {
         context.addIssue({
           code: 'custom',
-          path: ['documents'],
-          message: `Document ${document.documentVersionId} references missing source assets.`,
+          path: ['dependencies'],
+          message: 'A module cannot depend on itself.',
         });
       }
-    }
-    if (module.releaseState === 'published') {
-      if (!hasDownloadableModuleIndex(module)) {
+      for (const artifact of module.artifacts) {
+        if (!module.sourceSetDigest || artifact.sourceSetDigest !== module.sourceSetDigest) {
+          context.addIssue({
+            code: 'custom',
+            path: ['artifacts'],
+            message: `Artifact ${artifact.id} does not match the module source set.`,
+          });
+        }
+      }
+      if (module.documents.length > 0 && !module.sourceSetDigest) {
         context.addIssue({
           code: 'custom',
-          path: ['artifacts'],
-          message:
-            'Published modules require an exact source set and a downloadable checksummed index.',
+          path: ['sourceSetDigest'],
+          message: 'Modules with documents require an exact source-set digest.',
         });
       }
-    }
-  });
+      const artifactIds = new Set(module.artifacts.map((artifact) => artifact.id));
+      for (const document of module.documents) {
+        if (!artifactIds.has(document.indexArtifactId)) {
+          context.addIssue({
+            code: 'custom',
+            path: ['documents'],
+            message: `Document ${document.documentVersionId} references a missing index artifact.`,
+          });
+        }
+        if (document.sourceAssetArtifactId && !artifactIds.has(document.sourceAssetArtifactId)) {
+          context.addIssue({
+            code: 'custom',
+            path: ['documents'],
+            message: `Document ${document.documentVersionId} references missing source assets.`,
+          });
+        }
+      }
+      if (module.releaseState === 'published') {
+        if (!hasDownloadableModuleIndex(module)) {
+          context.addIssue({
+            code: 'custom',
+            path: ['artifacts'],
+            message:
+              'Published modules require an exact source set and a downloadable checksummed index.',
+          });
+        }
+      }
+    }),
+);
 
 /** Release state alone does not prove that a prepared, verifiable index can be installed.
  * Keep local previews in discovery, but never advertise them as downloads.
@@ -370,3 +377,24 @@ export type ContentModuleCatalog = z.infer<typeof ContentModuleCatalogSchema>;
 export type CoreCatalogTopicStub = z.infer<typeof CoreCatalogTopicStubSchema>;
 export type InstalledContentModule = z.infer<typeof InstalledContentModuleSchema>;
 export type ContentModuleDownloadTask = z.infer<typeof ContentModuleDownloadTaskSchema>;
+
+/**
+ * The on-disk catalog text: compact document tables, no indentation. Throws unless the written
+ * text parses back to exactly the documents that were given.
+ */
+export function serializeContentModuleCatalog(catalog: unknown): string {
+  const compact = compactCatalogDocuments(catalog);
+  const text = `${JSON.stringify(compact)}\n`;
+  const written = ContentModuleCatalogSchema.parse(JSON.parse(text));
+  const given = (catalog as { readonly modules: readonly { readonly documents?: unknown }[] })
+    .modules;
+  written.modules.forEach((module, index) => {
+    const documents = given[index]?.documents;
+    if (!Array.isArray(documents) || documents.length === 0) return;
+    const expected = ContentModuleDocumentVersionSchema.array().parse(documents);
+    if (JSON.stringify(expected) !== JSON.stringify(module.documents)) {
+      throw new Error(`Compact membership of ${module.id} does not round-trip.`);
+    }
+  });
+  return text;
+}

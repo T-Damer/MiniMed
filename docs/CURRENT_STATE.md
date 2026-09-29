@@ -31,6 +31,11 @@ Detailed history, moved verbatim on 2026-09-24:
   (≈4284 → 6521 → 4389 px). The reader now hides the text while the target's position is still
   moving, aligns once it has been still for six frames (at most 1.5 s), then fades in. Wheel or
   touch — also inside the chapter iframes — hands control back to the reader immediately.
+- **Compact catalog membership.** `catalog.preview.json` shrank from 12.6 to 5.8 MB and
+  `catalog.terminology.json` from 5.5 to 2.1 MB: both are minified and store membership as a
+  compact `documentTable` that the schema expands into the same `documents` (the parsed catalogs
+  are deep-equal to the previous ones). All catalog writers use `serializeContentModuleCatalog`.
+  Installed 0.6.44 and older read a refreshed remote catalog without membership until updated.
 
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 
@@ -643,9 +648,9 @@ described above.
    physical device.
 10. Medical news and research feed (ADR-0020, proposed; plan only): research sources, rate limits,
     CORS and Russian journal OAI-PMH/RSS coverage before choosing a first slice.
-11. Catalog membership format: listing the RLS packaging module would grow `catalog.preview.json`
-    from 12.6 to ~16 MB, mostly repeated per-document fields. Move module membership to a compact
-    or lazily loaded form, then list `minimed.rls.packaging.ru` and link medication profiles to it.
+11. List `minimed.rls.packaging.ru` (the compact membership format now keeps the catalog small) and
+    link RLS medication profiles to their packaging document; the app does not yet show
+    `medication_profiles` knowledge entities anywhere.
 12. zstd module artifacts: about 45% smaller than gzip for the RLS modules; the catalog schema
     already allows zstd, the installer needs a decoder.
 13. Core rebuild with medicine aliases (1,678 mapped trade names) and a non-FTS identity table for

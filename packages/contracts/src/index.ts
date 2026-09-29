@@ -1,5 +1,6 @@
 export * from './calculator-schema';
 export * from './clinical-observations';
+export * from './content-module-document-table';
 export * from './content-modules';
 export * from './content-pack';
 export * from './core';

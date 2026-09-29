@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import {
   type ContentModuleCatalog,
   ContentModuleCatalogSchema,
+  serializeContentModuleCatalog,
 } from '../packages/contracts/src/content-modules';
 
 interface ClinicalSnapshotFragment {
@@ -38,6 +39,6 @@ if (import.meta.main) {
   const fragment = JSON.parse(readFileSync(fragmentPath, 'utf8')) as ClinicalSnapshotFragment;
   writeFileSync(
     outputPath,
-    `${JSON.stringify(mergeClinicalSnapshotCatalog(base, fragment), null, 2)}\n`,
+    serializeContentModuleCatalog(mergeClinicalSnapshotCatalog(base, fragment)),
   );
 }

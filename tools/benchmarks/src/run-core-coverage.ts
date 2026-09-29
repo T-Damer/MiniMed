@@ -16,6 +16,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
+import { type ContentModuleCatalogEntry, ContentModuleCatalogSchema } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
 import { MultiMedicalStore } from '@localmed/storage';
 
@@ -156,29 +157,9 @@ function sample<T>(items: readonly T[], count: number, stratumId: string): T[] {
 // ---------------------------------------------------------------------------------------------
 // Module catalog: can a pointer's target actually be downloaded?
 
-interface CatalogArtifact {
-  readonly id: string;
-  readonly kind: string;
-  readonly required: boolean;
-  readonly url?: string | null;
-  readonly sha256?: string | null;
-}
-interface CatalogModule {
-  readonly id: string;
-  readonly kind: string;
-  readonly releaseState: string;
-  readonly artifacts: readonly CatalogArtifact[];
-  readonly documents: readonly {
-    readonly documentId: string;
-    readonly indexArtifactId: string;
-    readonly title?: string;
-  }[];
-  readonly tools?: readonly { readonly id: string }[];
-}
-const catalog = JSON.parse(readFileSync(SOURCES.catalog, 'utf8')) as {
-  readonly modules: readonly CatalogModule[];
-};
-if (!Array.isArray(catalog.modules)) throw new Error('catalog.preview.json has no modules array.');
+type CatalogModule = ContentModuleCatalogEntry;
+// The catalog stores membership as compact document tables; the schema expands them.
+const catalog = ContentModuleCatalogSchema.parse(JSON.parse(readFileSync(SOURCES.catalog, 'utf8')));
 const modulesById = new Map<string, CatalogModule>(
   catalog.modules.map((entry) => [entry.id, entry] as const),
 );

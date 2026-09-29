@@ -5,6 +5,7 @@ import {
   AssessmentDefinitionSchema,
   CalculatorSchemaSchema,
   ContentModuleCatalogSchema,
+  serializeContentModuleCatalog,
   ToolCatalogEntrySchema,
   ToolDefinitionRecordSchema,
 } from '@localmed/contracts';
@@ -56,17 +57,7 @@ for (const source of sourceModules) {
   const module = catalog.modules.find((entry) => entry.id === source.id);
   if (rawModule && module) rawModule.tools = module.tools;
 }
-ContentModuleCatalogSchema.parse(rawCatalog);
-const formatted = execFileSync(
-  'bunx',
-  ['--no-install', 'biome', 'format', `--stdin-file-path=${catalogPath}`],
-  {
-    input: `${JSON.stringify(rawCatalog, null, 2)}\n`,
-    encoding: 'utf8',
-    maxBuffer: 16 * 1024 * 1024,
-  },
-);
-await writeFile(catalogPath, formatted);
+await writeFile(catalogPath, serializeContentModuleCatalog(rawCatalog));
 console.log(`Core tool catalog: ${seenIds.size} tools in ${sourceModules.length} modules.`);
 // Startup reads tools and the core descriptor from the small shell derived from this catalog.
 execFileSync('bun', ['scripts/build-module-catalog-shell.ts'], { stdio: 'inherit' });

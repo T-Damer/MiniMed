@@ -65,6 +65,16 @@ Until a dedicated server exists, `catalog.preview.json` on `main` is a mutable p
 for later edition downloads. The app bundles a validated catalog as an offline fallback; checking for a
 new edition is an explicit update action, never an ordinary offline-search dependency.
 
+The catalog files (`catalog.preview.json`, `catalog.terminology.json`) are written minified and
+store each module's membership as a compact `documentTable`: one shared `indexArtifactId` and rows
+`[documentId, versionId, sourceChecksumHex, title, overrides?]`, where a version id starting with
+`@` is appended to the document id and `overrides` carries a different status, index or
+source-assets artifact. The schema expands the table into `documents` in the same order, so readers
+never see the compact form. Scripts write catalogs only through `serializeContentModuleCatalog`
+(contracts), which refuses output whose membership does not parse back exactly. App versions up to
+0.6.44 ignore `documentTable` and read the remote catalog as having no membership, so they need the
+next release for pointer downloads from a refreshed catalog.
+
 Source-build artifacts and edition manifests are immutable GitHub Release assets. The channel catalog
 may point to a new edition, but every edition URL is paired with exact size, SHA-256, document-version
 list, rights state, and `sourceSetDigest`. Updating the channel catalog does not modify an installed

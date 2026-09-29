@@ -4,6 +4,7 @@ import {
   ContentModuleCatalogEntrySchema,
   ContentModuleCatalogSchema,
   hasDownloadableModuleIndex,
+  serializeContentModuleCatalog,
 } from '../src/content-modules';
 
 const digest = `sha256:${'a'.repeat(64)}`;
@@ -234,5 +235,101 @@ describe('downloadable index eligibility', () => {
         artifacts: [index, { ...source, required: false }],
       }),
     ).toBe(true);
+  });
+});
+
+describe('compact catalog membership', () => {
+  const index = {
+    id: 'minimed.mkb.ru-index',
+    kind: 'index' as const,
+    required: true,
+    compression: 'none' as const,
+    url: 'https://example.test/index.db',
+    sha256: artifactDigest,
+    sizeBytes: 128,
+    sourceSetDigest: digest,
+  };
+  const assets = { ...index, id: 'minimed.mkb.ru-assets', kind: 'source-assets' as const };
+  const documents = [
+    {
+      documentId: 'rls.mkb.a00',
+      documentVersionId: 'rls.mkb.a00@rls-1',
+      sourceChecksum: `sha256:${'c'.repeat(64)}`,
+      status: 'active' as const,
+      indexArtifactId: index.id,
+      sourceAssetArtifactId: null,
+      title: 'Холера',
+    },
+    {
+      documentId: 'rls.mkb.a01',
+      documentVersionId: 'other-version-id',
+      sourceChecksum: `sha256:${'d'.repeat(64)}`,
+      status: 'superseded' as const,
+      indexArtifactId: index.id,
+      sourceAssetArtifactId: assets.id,
+      title: null,
+    },
+  ];
+  const withDocuments = () =>
+    catalog([
+      { ...moduleFixture(), artifacts: [index, assets], documents, previewDocumentCount: 2 },
+    ]);
+
+  it('writes rows and parses back to the same documents in the same order', () => {
+    const text = serializeContentModuleCatalog(withDocuments());
+    const written = JSON.parse(text) as { modules: Record<string, unknown>[] };
+    expect(written.modules[0]).not.toHaveProperty('documents');
+    expect(written.modules[0]?.['documentTable']).toEqual({
+      indexArtifactId: index.id,
+      rows: [
+        ['rls.mkb.a00', '@rls-1', 'c'.repeat(64), 'Холера'],
+        [
+          'rls.mkb.a01',
+          'other-version-id',
+          'd'.repeat(64),
+          null,
+          { status: 'superseded', sourceAssetArtifactId: assets.id },
+        ],
+      ],
+    });
+    expect(ContentModuleCatalogSchema.parse(written).modules[0]?.documents).toEqual(documents);
+    expect(text.endsWith('\n')).toBe(true);
+    expect(text).not.toContain('\n  ');
+  });
+
+  it('lets a fresh documents array replace an older table', () => {
+    const compact = JSON.parse(serializeContentModuleCatalog(withDocuments())) as {
+      modules: Record<string, unknown>[];
+    };
+    const hydrated = {
+      ...compact,
+      modules: [{ ...compact.modules[0], documents: [documents[0]] }],
+    };
+    const reparsed = ContentModuleCatalogSchema.parse(
+      JSON.parse(serializeContentModuleCatalog(hydrated)),
+    );
+    expect(reparsed.modules[0]?.documents).toEqual([documents[0]]);
+  });
+
+  it('rejects a module that lists both forms or a malformed table', () => {
+    const module = { ...moduleFixture(), artifacts: [index] };
+    const table = {
+      indexArtifactId: index.id,
+      rows: [['rls.mkb.a00', '@v', 'c'.repeat(64), null]],
+    };
+    expect(
+      ContentModuleCatalogEntrySchema.safeParse({ ...module, documentTable: table }).success,
+    ).toBe(false);
+    const { documents: _documents, ...withoutDocuments } = module;
+    expect(
+      ContentModuleCatalogEntrySchema.safeParse({ ...withoutDocuments, documentTable: table })
+        .success,
+    ).toBe(true);
+    expect(
+      ContentModuleCatalogEntrySchema.safeParse({
+        ...withoutDocuments,
+        documentTable: { indexArtifactId: index.id, rows: [['rls.mkb.a00', '@v', 'short', null]] },
+      }).success,
+    ).toBe(false);
   });
 });

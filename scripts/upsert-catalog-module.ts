@@ -10,6 +10,7 @@ import { z } from 'zod';
 import {
   ContentModuleCatalogEntrySchema,
   ContentModuleCatalogSchema,
+  serializeContentModuleCatalog,
 } from '../packages/contracts/src/content-modules';
 
 export function upsertCatalogModule(catalog: unknown, entry: unknown): Record<string, unknown> {
@@ -37,6 +38,6 @@ if (import.meta.main) {
     JSON.parse(readFileSync(catalogPath, 'utf8')),
     JSON.parse(readFileSync(entryPath, 'utf8')),
   );
-  writeFileSync(catalogPath, `${JSON.stringify(next, null, 2)}\n`);
+  writeFileSync(catalogPath, serializeContentModuleCatalog(next));
   console.log(`Catalog ${catalogPath}: ${(next.modules as unknown[]).length} modules.`);
 }
