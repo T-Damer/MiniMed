@@ -1,5 +1,6 @@
 import type { JSX } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
+import { HelpIconLink } from '@/components/HelpIconLink';
 import { openCalculator } from './calculator-links';
 import { ECG_PHOTO_CALIPER_ID } from './calculator-registry';
 import { EcgPhotoPicker } from './EcgPhotoPicker';
@@ -10,11 +11,14 @@ import '@/styles/ecg-editor-flow.css';
 export function EcgHomeEntry(): JSX.Element {
   return (
     <section class="ecg-home" aria-labelledby="ecg-home-title">
-      <div class="ecg-home__copy">
+      <div class="ecg-home__head">
         <span class="ecg-home__kicker">
           <AppGlyph class="ecg-home__kicker-icon" name="heartbeat" />
           Фото ЭКГ
         </span>
+        <HelpIconLink href={`#/calculators/${ECG_PHOTO_CALIPER_ID}`} />
+      </div>
+      <div class="ecg-home__copy">
         <h2 class="ecg-home__title" id="ecg-home-title">
           ЭКГ по фото
         </h2>
@@ -31,9 +35,6 @@ export function EcgHomeEntry(): JSX.Element {
             openCalculator(ECG_PHOTO_CALIPER_ID);
           }}
         />
-        <a class="ecg-home__link" href={`#/calculators/${ECG_PHOTO_CALIPER_ID}`}>
-          Как это работает
-        </a>
       </div>
     </section>
   );

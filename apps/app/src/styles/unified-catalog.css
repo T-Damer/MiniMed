@@ -205,40 +205,6 @@
   outline: 2px solid var(--stamp);
   outline-offset: 2px;
 }
-.search-graph-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 2.0625rem;
-  width: 2.0625rem;
-  height: 2.0625rem;
-  padding: 0;
-  border: 1px solid var(--stamp);
-  border-radius: 999px;
-  color: var(--stamp);
-  background: transparent;
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-@media (hover: hover) and (pointer: fine) {
-  .search-graph-button:hover {
-    background: var(--stamp-faded);
-  }
-}
-.search-graph-button:focus-visible {
-  outline: 2px solid var(--stamp);
-  outline-offset: 2px;
-}
-.search-graph-button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.search-graph-button__icon.app-glyph {
-  width: 1rem;
-  height: 1rem;
-}
 .clinical-tags__tag {
   display: inline-grid;
   place-items: center;

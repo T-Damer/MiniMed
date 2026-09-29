@@ -166,7 +166,8 @@
   }
 
   .search-mode-help,
-  .search-random-record {
+  .search-random-record,
+  .search-graph-shortcut {
     border-color: var(--theme-border);
     color: var(--theme-text);
     background: var(--theme-surface-raised);
@@ -174,7 +175,8 @@
 
   @media (hover: hover) and (pointer: fine) {
     .search-mode-help:hover,
-    .search-random-record:hover:not(:disabled) {
+    .search-random-record:hover:not(:disabled),
+    .search-graph-shortcut:hover:not(:disabled) {
       background: var(--theme-accent-soft);
     }
   }

@@ -920,19 +920,6 @@ body {
     margin-left: auto;
   }
 
-  .search-button {
-    padding: 0.625rem 0.625rem 0.5625rem 0.8125rem;
-  }
-
-  .search-button span {
-    font-size: 0;
-  }
-
-  .search-button span::after {
-    content: "Найти";
-    font-size: var(--type-micro);
-  }
-
   .query-index__label {
     display: none;
   }

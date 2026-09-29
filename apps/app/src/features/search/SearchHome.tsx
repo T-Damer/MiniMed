@@ -343,7 +343,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           title="Просмотр исследований"
           text="DICOM и NIfTI открываются на устройстве: срезы, окна «мягкие ткани» и «кость». Попробуйте на примере КТ."
           action={{ label: 'Скачать пример КТ', icon: 'download', run: () => void addCtExample() }}
-          link={{ label: 'Мои файлы', href: '#/notes' }}
+          secondary={{ label: 'Мои файлы', icon: 'folder-open', href: '#/notes' }}
         />
       ),
     },
@@ -361,7 +361,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             run: () => void startConversation(),
             ...(conversationSession.recorder() ? { unavailableReason: 'Запись уже идёт' } : {}),
           }}
-          link={{ label: 'Пациенты', href: '#/notes/patients' }}
+          secondary={{ label: 'Пациенты', icon: 'users', href: '#/notes/patients' }}
         />
       ),
     },
@@ -586,6 +586,25 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           }}
           icon={<AppGlyph name="dice" class="search-random-record__icon" />}
         />
+        {/* A rare action: the relation map sits with the other page actions, not in the field. */}
+        <Show when={!catalogOnly() && scope() !== 'diagnosis' && experimentalModulesEnabled()}>
+          <Button
+            class="search-graph-shortcut"
+            variant="icon"
+            aria-label="Карта связей"
+            title={
+              catalogLoading() || visibleDocuments().length === 0
+                ? 'Откроется, когда база будет готова'
+                : 'Карта связей'
+            }
+            disabled={catalogLoading() || visibleDocuments().length === 0}
+            onClick={() => {
+              setGraphShowAll(false);
+              setGraphOpen(true);
+            }}
+            icon={<AppGlyph name="graph" class="search-graph-shortcut__icon" />}
+          />
+        </Show>
         <AppContextMenu hideButton class="search-help-menu" actions={helpActions}>
           <button
             class="search-mode-help"
@@ -645,32 +664,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           )}
           catalogOnly={catalogOnly()}
           showExamples
-          heading={
+          intro={
             <SearchHomeIntro
               quickAccess={<SearchQuickAccess tools={quickTools()} />}
               features={homeFeatures()}
             />
-          }
-          searchActions={
-            <Show when={!catalogOnly() && scope() !== 'diagnosis' && experimentalModulesEnabled()}>
-              <button
-                class="search-graph-button"
-                type="button"
-                aria-label="Карта связей"
-                title={
-                  catalogLoading() || visibleDocuments().length === 0
-                    ? 'Откроется, когда база будет готова'
-                    : 'Карта связей'
-                }
-                disabled={catalogLoading() || visibleDocuments().length === 0}
-                onClick={() => {
-                  setGraphShowAll(false);
-                  setGraphOpen(true);
-                }}
-              >
-                <AppGlyph name="graph" class="search-graph-button__icon" />
-              </button>
-            </Show>
           }
           catalog={
             <Show

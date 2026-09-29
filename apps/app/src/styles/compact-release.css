@@ -212,7 +212,8 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 }
 
 .search-mode-help,
-.search-random-record {
+.search-random-record,
+.search-graph-shortcut {
   position: relative;
   z-index: var(--z-raised);
   display: grid;
@@ -454,6 +455,8 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 .search-workspace-main .case-folder {
   margin-top: clamp(4rem, 20dvh, 11rem);
   padding: 0.5rem clamp(0.625rem, 1.5vw, 1.125rem) 1.625rem;
+  /* No archive-folder edge under the search column (the old narrow layout drew one). */
+  border-bottom: 0;
   background: none;
   box-shadow: none;
   transition: margin-top 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -486,23 +489,25 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
 }
 
 .search-workspace-main .query-sheet textarea {
-  min-height: 4.875rem;
+  /* One clean line that grows with the query: no notebook ruling or margin line in the field. */
+  min-height: 3.25rem;
   max-height: 16.25rem;
-  padding: 0.875rem 1rem 0.625rem 2.375rem;
-  background-color: var(--theme-search-surface);
+  /* The right inset leaves room for the clear button layered over the field. */
+  padding: 0.875rem 2.875rem 0.625rem 1rem;
+  background: var(--theme-search-surface);
   font-size: clamp(1rem, 1.5vw, 1.125rem);
   line-height: 1.4;
 }
 
 .search-workspace-main .query-sheet::before {
-  left: 1.5rem;
+  content: none;
 }
 
 .search-workspace-main .query-actions {
-  /* Painted above the sheet's margin line, which belongs to the writing area only. */
+  /* Painted above the field's clear button layer and the textarea's own surface. */
   position: relative;
   z-index: 1;
-  padding: 0.375rem 0.5rem 0.4375rem 2.25rem;
+  padding: 0.375rem 0.5rem 0.4375rem 0.625rem;
   background: var(--theme-search-surface-muted);
 }
 
@@ -1046,8 +1051,8 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   }
 
   .search-workspace-main .query-sheet textarea {
-    min-height: 4.5rem;
-    padding-left: 2rem;
+    min-height: 3.25rem;
+    padding-left: 0.875rem;
   }
 
   .search-workspace-main .query-actions {
@@ -1990,17 +1995,12 @@ fieldset.search-mode-picker {
 }
 
 .workspace .query-sheet textarea {
-  padding: 0.625rem 0.875rem 0.5rem 2.375rem;
+  /* No margin line in the field; the right inset keeps text clear of the × layered over it. */
+  padding: 0.625rem 2.875rem 0.5rem 1rem;
 }
 
 .workspace .query-actions {
   padding-top: 0.25rem;
-}
-
-.workspace .search-button {
-  min-height: 2rem;
-  padding: 0.3125rem 0.875rem;
-  border-radius: var(--theme-radius-control);
 }
 
 /* Stale results stay on screen while a refreshed search runs, dimmed so the update is visible. */
@@ -3706,6 +3706,50 @@ html.native-print-active #root {
   .search-field-pill {
     animation: none;
   }
+}
+
+/* The relation map follows the random record among the right-hand page actions. */
+.search-graph-shortcut {
+  min-width: 0;
+  min-height: 0;
+}
+
+.search-graph-shortcut__icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* Clear, layered over the field's top-right corner so the field stays one clean surface. */
+.query-sheet__clear {
+  position: absolute;
+  z-index: var(--z-raised);
+  top: 0.5rem;
+  right: 0.5rem;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.query-sheet__clear:hover {
+  color: var(--theme-text);
+  background: var(--theme-accent-soft);
+}
+
+.query-sheet__clear:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 1px;
+}
+
+.query-sheet__clear-icon {
+  width: 1rem;
+  height: 1rem;
 }
 
 /* Random record: the first of the right-hand actions in the search toolbar, beside help. */

@@ -114,26 +114,37 @@ test('the tool row holds «Все инструменты» and only the tools th
   await expect(page).toHaveURL(/#\/notes\/patients$/u);
 });
 
+/** The active position dot names the slide in view: «Функция 2 из 4» → 2. */
+async function activeFeature(page: Page): Promise<number> {
+  const label = await page
+    .getByRole('region', { name: 'Полезные функции' })
+    .locator('.carousel__dot--active')
+    .getAttribute('aria-label');
+  return Number(/(\d+) из/u.exec(label ?? '')?.[1]);
+}
+
 for (const width of [375, 1280]) {
-  test(`tools and «Полезные функции» sit above the empty field at ${width}px`, async ({
+  test(`the field leads the home; tools and «Полезные функции» follow it at ${width}px`, async ({
     page,
   }, testInfo) => {
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     const carousel = page.getByRole('region', { name: 'Полезные функции' });
     await expect(carousel).toBeVisible();
-    // No greeting any more: tools, then capabilities, then the field.
     await expect(page.getByRole('heading', { name: /^Добр(ое|ый|ой)/u })).toHaveCount(0);
-    const field = await page.getByTestId('search-input').boundingBox();
+    // Field first, then the tool row, then the capability cards.
+    const field = await page.locator('.query-sheet').boundingBox();
     const tools = await page
       .getByRole('button', { name: 'Все инструменты', exact: true })
       .boundingBox();
     const cards = await carousel.boundingBox();
-    expect(tools && cards && field && tools.y < cards.y && cards.y + cards.height <= field.y).toBe(
+    expect(field && tools && cards && field.y + field.height <= tools.y && tools.y < cards.y).toBe(
       true,
     );
+    // No header row: the carousel is named for assistive tech only, positions are dots.
+    await expect(carousel.getByText('Полезные функции')).toHaveCount(0);
 
-    // Every slide has the height of the tallest one.
+    // Every slide has the height of the tallest one; one dot per slide, the current one marked.
     const slides = carousel.locator('.carousel__slide');
     const total = await slides.count();
     expect(total).toBeGreaterThanOrEqual(3);
@@ -141,10 +152,14 @@ for (const width of [375, 1280]) {
       elements.map((element) => Math.round(element.getBoundingClientRect().height)),
     );
     expect(new Set(heights).size).toBe(1);
+    const dots = carousel.locator('.carousel__dot');
+    await expect(dots).toHaveCount(total);
+    await expect(carousel.locator('.carousel__dot--active')).toHaveAttribute(
+      'aria-current',
+      'true',
+    );
 
-    // Arrows walk through every capability and wrap; the visible slide follows the position.
-    const position = carousel.locator('.carousel__position');
-    // The slide in view once scrolling settles, as «position из total».
+    // Arrows walk through every capability and wrap; the visible slide follows the dots.
     const settledSlide = () =>
       carousel.evaluate((element) => {
         const track = element.querySelector('.carousel__track') as HTMLElement;
@@ -154,30 +169,103 @@ for (const width of [375, 1280]) {
       });
     const titles = new Set<string>();
     for (let step = 0; step < total; step += 1) {
-      const shown = Number((await position.textContent())?.split(' ')[0]);
+      const shown = await activeFeature(page);
       await expect.poll(async () => (await settledSlide()).index).toBe(shown - 1);
       titles.add((await settledSlide()).title);
       await carousel.getByRole('button', { name: 'Следующая' }).click();
-      await expect(position).toHaveText(`${(shown % total) + 1} из ${total}`);
+      await expect.poll(() => activeFeature(page)).toBe((shown % total) + 1);
     }
     expect(titles.size).toBe(total);
     expect([...titles]).toEqual(expect.arrayContaining(['ЭКГ по фото', 'Просмотр исследований']));
-    // A full round returns to the slide the carousel opened on (today's capability, so not
-    // always the first): wait until the track rests exactly on the slide the counter names.
-    const resting = Number((await position.textContent())?.split(' ')[0]) - 1;
+
+    // A dot jumps straight to its capability.
+    await carousel.getByRole('button', { name: `Функция 1 из ${total}` }).click();
+    await expect.poll(() => activeFeature(page)).toBe(1);
     await expect
       .poll(() =>
         carousel
           .locator('.carousel__track')
           .evaluate((track) => track.scrollLeft / track.clientWidth),
       )
-      .toBe(resting);
+      .toBe(0);
+
+    // «Как это работает» is a round «?»; a second action is a button beside the first.
+    await expect(carousel.getByRole('link', { name: 'Как это работает' })).toHaveCount(1);
+    await expect(carousel.getByText('Как это работает', { exact: true })).toHaveCount(0);
+    await expect(
+      carousel.locator('.home-feature__action--secondary', { hasText: 'Мои файлы' }),
+    ).toHaveCount(1);
     await page.mouse.move(0, 0);
     await page.screenshot({ path: testInfo.outputPath(`home-${width}.png`) });
 
-    // Everything above the field folds away while typing.
+    // Everything under the field folds away completely while typing.
     await page.getByTestId('search-input').fill('пнев');
     await expect(page.locator('.search-heading')).toHaveClass(/search-heading--hidden/u);
+    await expect
+      .poll(() =>
+        page
+          .locator('.search-heading')
+          .evaluate((element) => element.getBoundingClientRect().height),
+      )
+      .toBe(0);
+  });
+
+  test(`the field holds only input, source, clinical switch and send at ${width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize({ width, height: 844 });
+    await mountBuiltApp(page, { skipLargeCompanionPacks: true });
+    await waitForSearchReady(page);
+    const sheet = page.locator('.query-sheet');
+    const input = page.getByTestId('search-input');
+    // Rare actions live in the top row, not in the field.
+    await expect(sheet.getByRole('button', { name: 'Случайная запись' })).toHaveCount(0);
+    await expect(sheet.getByRole('button', { name: 'Карта связей' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Случайная запись' })).toBeVisible();
+    await expect(sheet.getByRole('button', { name: 'Раздел поиска', exact: true })).toBeVisible();
+    await expect(sheet.getByRole('switch', { name: 'Клинический разбор' })).toBeVisible();
+
+    // A clean one-line field: no notebook margin line, no empty second line before typing.
+    const sheetDecor = await sheet.evaluate(
+      (element) => getComputedStyle(element, '::before').content,
+    );
+    expect(sheetDecor).toBe('none');
+    const inputHeight = await input.evaluate((element) => element.getBoundingClientRect().height);
+    expect(inputHeight).toBeLessThan(60);
+
+    // Clearing is a × inside the field that appears with text.
+    const clear = sheet.getByRole('button', { name: 'Очистить запрос' });
+    await expect(clear).toHaveCount(0);
+    await input.fill('пневмония');
+    await expect(clear).toBeVisible();
+    // Everything under the field has folded away completely before the screenshot.
+    await expect
+      .poll(() =>
+        page
+          .locator('.search-heading')
+          .evaluate((element) => element.getBoundingClientRect().height),
+      )
+      .toBe(0);
+    const [clearBox, inputBox] = await Promise.all([clear.boundingBox(), input.boundingBox()]);
+    expect(
+      clearBox && inputBox && clearBox.x + clearBox.width <= inputBox.x + inputBox.width + 1,
+    ).toBe(true);
+    // Nothing under the folded field: not even the old archive-folder edge.
+    const folderEdge = await page
+      .locator('.search-column')
+      .evaluate((element) => getComputedStyle(element).borderBottomWidth);
+    expect(folderEdge).toBe('0px');
+    await page.screenshot({ path: testInfo.outputPath(`field-${width}.png`) });
+    await clear.click();
+    await expect(input).toHaveValue('');
+    await expect(clear).toHaveCount(0);
+
+    // Sending is one round button.
+    await input.fill('пневмония');
+    const send = sheet.getByRole('button', { name: 'Найти', exact: true });
+    await expect(send).toBeVisible();
+    await send.click();
+    await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 30_000 });
   });
 
   test(`«Полезные функции» autoplay stops once the user takes over at ${width}px`, async ({
@@ -187,23 +275,22 @@ for (const width of [375, 1280]) {
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     const carousel = page.getByRole('region', { name: 'Полезные функции' });
-    const position = carousel.locator('.carousel__position');
-    await expect(position).toBeVisible();
+    await expect(carousel.locator('.carousel__dot--active')).toBeVisible();
     await page.mouse.move(0, 0);
-    const start = await position.textContent();
+    const start = await activeFeature(page);
     await page.clock.runFor(7_500);
-    await expect(position).not.toHaveText(start ?? '');
+    await expect.poll(() => activeFeature(page)).not.toBe(start);
 
     // Hover holds it; an arrow press stops it for good.
     await carousel.hover();
-    const held = await position.textContent();
+    const held = await activeFeature(page);
     await page.clock.runFor(15_000);
-    await expect(position).toHaveText(held ?? '');
+    expect(await activeFeature(page)).toBe(held);
     await carousel.getByRole('button', { name: 'Предыдущая' }).click();
-    const chosen = await position.textContent();
+    const chosen = await activeFeature(page);
     await page.mouse.move(0, 0);
     await page.clock.runFor(15_000);
-    await expect(position).toHaveText(chosen ?? '');
+    expect(await activeFeature(page)).toBe(chosen);
   });
 
   test(`«Полезные функции» never autoplays with reduced motion at ${width}px`, async ({ page }) => {
@@ -211,14 +298,13 @@ for (const width of [375, 1280]) {
     await page.clock.install();
     await page.setViewportSize({ width, height: 844 });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-    const position = page
-      .getByRole('region', { name: 'Полезные функции' })
-      .locator('.carousel__position');
-    await expect(position).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: 'Полезные функции' }).locator('.carousel__dot--active'),
+    ).toBeVisible();
     await page.mouse.move(0, 0);
-    const start = await position.textContent();
+    const start = await activeFeature(page);
     await page.clock.runFor(30_000);
-    await expect(position).toHaveText(start ?? '');
+    expect(await activeFeature(page)).toBe(start);
   });
 }
 

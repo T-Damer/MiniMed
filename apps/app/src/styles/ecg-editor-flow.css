@@ -7,10 +7,11 @@
   gap: 0.75rem 1.25rem;
   margin: 0;
   padding: 1rem 1.1rem;
-  border: 1px solid var(--theme-border);
+  /* Secondary to the search field: the same quiet surface as the other home capability cards. */
+  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent);
   border-radius: 0.9rem;
   color: var(--theme-text);
-  background: var(--theme-surface-raised);
+  background: color-mix(in srgb, var(--theme-surface-raised) 62%, transparent);
 }
 .ecg-home__copy {
   display: flex;
@@ -49,10 +50,13 @@
   align-items: stretch;
   gap: 0.4rem;
 }
-.ecg-home__link {
-  color: var(--theme-link);
-  font-size: 0.8rem;
-  text-align: center;
+.ecg-home__head {
+  display: flex;
+  grid-column: 1 / -1;
+  min-height: 1.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .ecg-picker {

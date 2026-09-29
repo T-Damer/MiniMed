@@ -88,7 +88,6 @@ interface SearchWorkspaceProps {
   /** Compact status under the field, e.g. while the core opens, downloads or failed to open. */
   readonly fieldStatus?: JSX.Element;
   readonly modePicker?: JSX.Element;
-  readonly searchActions?: JSX.Element;
   readonly catalog?: JSX.Element;
   readonly catalogOnly?: boolean;
   readonly specialty?: string | undefined;
@@ -97,8 +96,8 @@ interface SearchWorkspaceProps {
   /** Greeting and shortcuts shown above an empty query; collapses once the user searches. */
   /** Receives the field's form, so the page can offer a way back to it once it scrolls away. */
   readonly onFieldElement?: (form: HTMLFormElement) => void;
-  /** Empty-field content above the field (tools, capabilities); folds away once a search starts. */
-  readonly heading?: JSX.Element;
+  /** Empty-field content under the field (tools, capabilities); folds away once a search starts. */
+  readonly intro?: JSX.Element;
   /** Document ids of the current result groups, e.g. to centre the knowledge graph on them. */
   readonly onResultDocuments?: (documentIds: readonly string[]) => void;
   readonly filters?: SearchFilters;
@@ -843,20 +842,9 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
         class="search-column case-folder"
         classList={{
           'has-search-content': query().length > 0,
-          'case-folder--with-welcome': Boolean(props.heading),
+          'case-folder--with-welcome': Boolean(props.intro),
         }}
       >
-        {/* The page heading lives in SearchHome; repeating a second hero here doubled the height
-            a doctor scrolls past before the first result. */}
-        <Show when={props.heading}>
-          <div
-            class="search-heading"
-            classList={{ 'search-heading--hidden': query().length > 0 || Boolean(response()) }}
-            inert={query().length > 0 || Boolean(response())}
-          >
-            {props.heading}
-          </div>
-        </Show>
         <form
           ref={(element) => props.onFieldElement?.(element)}
           class="query-sheet"
@@ -874,6 +862,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               if (!props.compact) resizeTextarea(element);
             }}
             id="clinical-query"
+            rows={1}
             data-testid="search-input"
             data-search-focus-target="true"
             aria-controls={toolPickerOpen() ? 'search-calculator-tools' : undefined}
@@ -902,6 +891,17 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
             autocapitalize="sentences"
             spellcheck={false}
           />
+          <Show when={query().length > 0}>
+            <button
+              class="query-sheet__clear"
+              type="button"
+              aria-label="Очистить запрос"
+              title="Очистить"
+              onClick={clearQuery}
+            >
+              <AppGlyph name="close" class="query-sheet__clear-icon" />
+            </button>
+          </Show>
           <Show when={expanded()}>
             <div class="query-actions">
               <Show when={query().length > 16_000}>
@@ -971,13 +971,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     </Popover.Content>
                   </Popover.Portal>
                 </Popover>
-                <Show when={query().length > 0}>
-                  <button class="text-button clear-query-button" type="button" onClick={clearQuery}>
-                    <AppGlyph name="trash" />
-                    <span>Очистить</span>
-                  </button>
-                </Show>
-                {props.searchActions}
                 <div
                   class="search-submit-reveal"
                   classList={{ visible: props.searchAllowed !== false }}
@@ -994,11 +987,15 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                       data-testid="search-submit"
                       data-haptic="medium"
                       type="submit"
+                      aria-label={loading() ? 'Ищем…' : 'Найти'}
+                      title={loading() ? 'Ищем…' : 'Найти (Enter)'}
                       tabindex={props.searchAllowed === false ? -1 : undefined}
                       disabled={loading() || props.searchAllowed === false}
                     >
-                      <span>{loading() ? 'Ищем…' : 'Найти сейчас'}</span>
-                      <b aria-hidden="true">↵</b>
+                      <AppGlyph
+                        name={loading() ? 'refresh' : 'arrow-up'}
+                        class={`search-button__icon${loading() ? ' search-button__icon--spinning' : ''}`}
+                      />
                     </button>
                   </div>
                 </div>
@@ -1007,6 +1004,17 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           </Show>
         </form>
         {props.fieldStatus}
+        {/* The field leads the page; tools and capabilities follow it and fold away once a
+            search starts, leaving results right under the field. */}
+        <Show when={props.intro}>
+          <div
+            class="search-heading"
+            classList={{ 'search-heading--hidden': query().length > 0 || Boolean(response()) }}
+            inert={query().length > 0 || Boolean(response())}
+          >
+            {props.intro}
+          </div>
+        </Show>
 
         <Show when={ambiguousMeanings().length > 0}>
           <SearchMeaningChoices

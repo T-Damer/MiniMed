@@ -11,7 +11,7 @@ export type HomeFeature = CarouselSlide;
 const USEFUL_FEATURES_AUTOPLAY_MS = 7000;
 
 /**
- * Above the empty search field: the tool row, then useful capabilities one card at a time. The
+ * Under the empty search field: the tool row, then useful capabilities one card at a time. The
  * carousel opens on today's capability so a returning doctor sees something new each day.
  */
 export function SearchHomeIntro(props: {
@@ -20,14 +20,17 @@ export function SearchHomeIntro(props: {
 }): JSX.Element {
   return (
     <div class="search-home-intro">
-      {props.quickAccess}
-      <Carousel
-        class="useful-features"
-        label="Полезные функции"
-        slides={props.features}
-        startIndex={featureOfDayIndex(props.features.length, new Date())}
-        autoplayMs={USEFUL_FEATURES_AUTOPLAY_MS}
-      />
+      <div class="search-home-intro__content">
+        {props.quickAccess}
+        <Carousel
+          class="useful-features"
+          label="Полезные функции"
+          itemLabel="Функция"
+          slides={props.features}
+          startIndex={featureOfDayIndex(props.features.length, new Date())}
+          autoplayMs={USEFUL_FEATURES_AUTOPLAY_MS}
+        />
+      </div>
     </div>
   );
 }

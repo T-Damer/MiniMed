@@ -23,14 +23,18 @@
   opacity: 0;
 }
 
-/* The collapsing row needs a clipped child; the inset keeps focus rings and chip shadows visible. */
+/* The collapsing row needs a clipped child with no padding of its own, so it folds to zero. */
 .search-home-intro {
-  display: grid;
   min-height: 0;
-  gap: var(--home-gap);
-  margin: -0.25rem;
-  padding: 0.25rem 0.25rem calc(var(--home-gap) + 0.25rem);
+  margin-inline: -0.25rem;
   overflow: hidden;
+}
+
+/* The inset keeps focus rings and chip shadows inside the clip. */
+.search-home-intro__content {
+  display: grid;
+  gap: var(--home-gap);
+  padding: calc(var(--home-gap) + 0.25rem) 0.25rem 0.25rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -51,10 +55,11 @@
   gap: 0.75rem 1.25rem;
   margin: 0;
   padding: 1rem 1.1rem;
-  border: 1px solid var(--theme-border);
+  /* Secondary to the search field: a quiet, shadowless surface. */
+  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent);
   border-radius: 0.9rem;
   color: var(--theme-text);
-  background: var(--theme-surface-raised);
+  background: color-mix(in srgb, var(--theme-surface-raised) 62%, transparent);
 }
 
 .home-feature__copy {
@@ -62,6 +67,16 @@
   min-width: 0;
   flex-direction: column;
   gap: 0.3rem;
+}
+
+/* Kicker and «?» span the whole card, so the «?» sits in the top-right corner at any width. */
+.home-feature__head {
+  display: flex;
+  grid-column: 1 / -1;
+  min-height: 1.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .home-feature__kicker {
@@ -95,11 +110,12 @@
   line-height: 1.45;
 }
 
+/* The first action and an optional second one sit side by side, like the ECG camera/gallery. */
 .home-feature__actions {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .home-feature__action {
@@ -119,28 +135,27 @@
   cursor: pointer;
 }
 
+.home-feature__action--secondary {
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+  background: var(--theme-surface);
+}
+
 .home-feature__action:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.home-feature__action:focus-visible,
-.home-feature__link:focus-visible {
+.home-feature__action:focus-visible {
   outline: 2px solid var(--theme-accent);
   outline-offset: 2px;
 }
 
 .home-feature__reason {
+  flex-basis: 100%;
   margin: 0;
   color: var(--theme-text-muted);
   font-size: 0.75rem;
-  text-align: center;
-}
-
-.home-feature__link {
-  color: var(--theme-link);
-  font-size: 0.8rem;
-  text-align: center;
 }
 
 /* Same breakpoint as the ECG entry. */

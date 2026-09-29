@@ -15,13 +15,16 @@ export interface CarouselSlide {
 }
 
 /**
- * One slide at a time on a native scroll-snap track: swipe, arrows, equal slide heights. Optional
+ * One slide at a time on a native scroll-snap track: swipe, arrows on the slide's edges, position
+ * dots underneath, equal slide heights. The label names the carousel for assistive tech. Optional
  * autoplay waits while the pointer or focus is inside, stops for good once the user takes over,
  * and never runs with reduced motion or on a hidden page.
  */
 export function Carousel(props: {
   readonly class?: string;
   readonly label: string;
+  /** What one slide is, for the position dots: «Функция 2 из 4». */
+  readonly itemLabel?: string;
   readonly slides: readonly CarouselSlide[];
   readonly startIndex?: number;
   readonly autoplayMs?: number;
@@ -49,6 +52,11 @@ export function Carousel(props: {
     setTakenOver(true);
     show(carouselStep(index(), count(), direction), true);
   };
+  const goTo = (position: number): void => {
+    setTakenOver(true);
+    show(position, true);
+  };
+  const itemLabel = (): string => props.itemLabel ?? 'Слайд';
 
   onMount(() => {
     if (!track) return;
@@ -84,67 +92,77 @@ export function Carousel(props: {
       onFocusIn={() => setHeld(true)}
       onFocusOut={() => setHeld(false)}
     >
-      <div class="carousel__bar">
-        <span class="carousel__label">{props.label}</span>
+      <div class="carousel__viewport">
+        <div
+          ref={track}
+          class="carousel__track"
+          onScroll={(event) => {
+            const element = event.currentTarget;
+            if (target !== undefined) {
+              if (Math.abs(element.scrollLeft - target * element.clientWidth) > 1) return;
+              target = undefined;
+            }
+            setIndex(carouselIndexAt(element.scrollLeft, element.clientWidth, count()));
+          }}
+          onPointerDown={() => {
+            target = undefined;
+            setTakenOver(true);
+          }}
+          onWheel={(event) => {
+            if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+            target = undefined;
+            setTakenOver(true);
+          }}
+        >
+          <For each={props.slides}>
+            {(slide, position) => (
+              // biome-ignore lint/a11y/useSemanticElements: WAI-ARIA carousel slides are role="group" containers, not form fieldsets.
+              <div
+                class="carousel__slide"
+                role="group"
+                aria-roledescription="слайд"
+                aria-label={`${itemLabel()} ${position() + 1} из ${count()}`}
+              >
+                {slide.render()}
+              </div>
+            )}
+          </For>
+        </div>
         <Show when={count() > 1}>
-          <span class="carousel__position" aria-live={takenOver() ? 'polite' : 'off'}>
-            {index() + 1} из {count()}
-          </span>
-          <div class="carousel__controls">
-            <button
-              type="button"
-              class="carousel__arrow"
-              aria-label="Предыдущая"
-              onClick={() => step(-1)}
-            >
-              <AppGlyph class="carousel__arrow-icon" name="caret-left" />
-            </button>
-            <button
-              type="button"
-              class="carousel__arrow"
-              aria-label="Следующая"
-              onClick={() => step(1)}
-            >
-              <AppGlyph class="carousel__arrow-icon" name="caret-right" />
-            </button>
-          </div>
+          <button
+            type="button"
+            class="carousel__arrow carousel__arrow--previous"
+            aria-label="Предыдущая"
+            onClick={() => step(-1)}
+          >
+            <AppGlyph class="carousel__arrow-icon" name="caret-left" />
+          </button>
+          <button
+            type="button"
+            class="carousel__arrow carousel__arrow--next"
+            aria-label="Следующая"
+            onClick={() => step(1)}
+          >
+            <AppGlyph class="carousel__arrow-icon" name="caret-right" />
+          </button>
         </Show>
       </div>
-      <div
-        ref={track}
-        class="carousel__track"
-        onScroll={(event) => {
-          const element = event.currentTarget;
-          if (target !== undefined) {
-            if (Math.abs(element.scrollLeft - target * element.clientWidth) > 1) return;
-            target = undefined;
-          }
-          setIndex(carouselIndexAt(element.scrollLeft, element.clientWidth, count()));
-        }}
-        onPointerDown={() => {
-          target = undefined;
-          setTakenOver(true);
-        }}
-        onWheel={(event) => {
-          if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
-          target = undefined;
-          setTakenOver(true);
-        }}
-      >
-        <For each={props.slides}>
-          {(slide, position) => (
-            // biome-ignore lint/a11y/useSemanticElements: WAI-ARIA carousel slides are role="group" containers, not form fieldsets.
-            <div
-              class="carousel__slide"
-              role="group"
-              aria-roledescription="слайд"
-              aria-label={`${position() + 1} из ${count()}`}
-            >
-              {slide.render()}
-            </div>
-          )}
-        </For>
-      </div>
+      <Show when={count() > 1}>
+        <div class="carousel__dots">
+          <For each={props.slides}>
+            {(_, position) => (
+              <button
+                type="button"
+                class="carousel__dot"
+                classList={{ 'carousel__dot--active': position() === index() }}
+                aria-label={`${itemLabel()} ${position() + 1} из ${count()}`}
+                aria-current={position() === index() ? 'true' : undefined}
+                onClick={() => goTo(position())}
+              />
+            )}
+          </For>
+        </div>
+      </Show>
     </section>
   );
 }
