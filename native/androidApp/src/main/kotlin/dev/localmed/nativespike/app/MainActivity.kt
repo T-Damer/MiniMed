@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import dev.localmed.nativespike.shared.db.NativeSearchDatabase
+import dev.localmed.nativespike.shared.search.LookupEngine
 import dev.localmed.nativespike.shared.ui.NativeSearchSpikeApp
 import dev.localmed.nativespike.shared.ui.NativeSpikeTheme
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +58,7 @@ private const val LOG_TAG = "MiniMedNativeSpike"
 
 private sealed interface CoreState {
     data object Loading : CoreState
-    data class Ready(val database: NativeSearchDatabase) : CoreState
+    data class Ready(val database: NativeSearchDatabase, val engine: LookupEngine) : CoreState
     data class Failed(val message: String) : CoreState
 }
 
@@ -101,9 +102,21 @@ class MainActivity : ComponentActivity() {
                         val database = withContext(Dispatchers.IO) {
                             NativeSearchDatabase(dbFile.absolutePath).apply { open() }
                         }
+                        val dbOpenAfterMs = SystemClock.elapsedRealtime() - activityStartedAtMs
+                        // Stage 4 (docs/CURRENT_STATE.md): building `LookupEngine`'s
+                        // `QueryDocumentIndex` (~20k documents) + alias vocabulary is real startup
+                        // cost the real WebView pipeline also pays once — logged as its own line so
+                        // it's never silently absorbed into "search-ready", per the coordinator's
+                        // instruction that a native cold-start number without this would be
+                        // dishonestly fast.
+                        val engine = withContext(Dispatchers.IO) { LookupEngine(database) }
                         val readyAfterMs = SystemClock.elapsedRealtime() - activityStartedAtMs
-                        Log.i(LOG_TAG, "search-ready tookMs=$readyAfterMs")
-                        state = CoreState.Ready(database)
+                        Log.i(
+                            LOG_TAG,
+                            "search-ready tookMs=$readyAfterMs dbOpenMs=$dbOpenAfterMs " +
+                                "indexBuildMs=${engine.indexBuildMs}",
+                        )
+                        state = CoreState.Ready(database, engine)
                     } catch (cause: Exception) {
                         Log.e(LOG_TAG, "core.db open failed", cause)
                         state = CoreState.Failed(cause.message ?: "Не удалось открыть core.db")
@@ -123,6 +136,7 @@ class MainActivity : ComponentActivity() {
                     is CoreState.Loading -> LoadingScreen()
                     is CoreState.Ready -> NativeSearchSpikeApp(
                         database = current.database,
+                        engine = current.engine,
                         externalQuery = benchQuery,
                         onOutcome = { query, outcome, tookMs ->
                             Log.i(

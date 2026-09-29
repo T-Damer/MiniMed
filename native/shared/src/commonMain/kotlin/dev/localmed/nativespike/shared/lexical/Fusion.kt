@@ -74,6 +74,13 @@ private class AggregatedHit(
     var bestLexicalScore: Double = 0.0,
 )
 
+/** UI-display-only truncation — see `RankedResult.previewText`'s doc for why this isn't a real
+ * snippet port. */
+private const val PREVIEW_TEXT_LENGTH = 240
+
+internal fun previewText(originalText: String): String =
+    if (originalText.length <= PREVIEW_TEXT_LENGTH) originalText else originalText.take(PREVIEW_TEXT_LENGTH) + "…"
+
 private fun toRankedResult(aggregate: AggregatedHit): RankedResult {
     val terms = aggregate.terms.toList()
     val matches = matchedTerms(aggregate.hit, terms)
@@ -87,6 +94,9 @@ private fun toRankedResult(aggregate: AggregatedHit): RankedResult {
         sectionPath = aggregate.hit.sectionPath,
         matchedTerms = matches,
         finalScore = aggregate.score,
+        anchor = aggregate.hit.anchor,
+        sectionId = aggregate.hit.sectionId,
+        previewText = previewText(aggregate.hit.originalText),
     )
 }
 

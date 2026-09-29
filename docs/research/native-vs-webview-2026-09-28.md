@@ -1,13 +1,19 @@
 # Native (KMP/Compose) vs. WebView (Capacitor) search page — Xiaomi 14, 2026-09-28
 
-Status: **complete for both apps.** The WebView OOM described below was root-caused and fixed by
-the coordinator on `main` (`ff006d84 fix(storage-capacitor): read the navigation catalog in
-1024-document pages` — `CapacitorMedicalStore.listNavigationDocuments` was returning the whole
-catalog, ~13M characters of metadata projection in one plugin response, in one shot; now paginated
-1024 documents at a time). WebView was rebuilt from that commit in a second worktree and
-re-measured — see "Post-fix measurements" below, which supersedes the earlier partial WebView
-numbers for query latency, scrolling and post-query memory. This file is written directly (not
-committed) per the coordinator's instruction.
+Status: **complete for both apps, including stage 4 (full pipeline).** The WebView OOM described
+below was root-caused and fixed by the coordinator on `main` (`ff006d84 fix(storage-capacitor):
+read the navigation catalog in 1024-document pages` — `CapacitorMedicalStore.listNavigationDocuments`
+was returning the whole catalog, ~13M characters of metadata projection in one plugin response, in
+one shot; now paginated 1024 documents at a time). WebView was rebuilt from that commit in a second
+worktree and re-measured — see "Post-fix measurements" below, which superseded the earlier partial
+WebView numbers for query latency, scrolling and post-query memory. **2026-09-29 update**: native's
+UI now runs the *full* ported lexical pipeline (stage 2A–2D: `buildLookupQueryPlan`, SQL branch
+execution, fusion/grouping/ranking, `QueryDocumentIndex`) instead of the stage-1 simplified
+single-branch matcher, and WebView was rebuilt again from current HEAD `main` (`4db077a4`) — see
+"Stage 4: full pipeline measurements" below, which does **not** supersede "Post-fix measurements"
+(that section's native numbers are the old simplified-matcher baseline, kept for the
+before/after comparison) but supersedes it as the *current* apples-to-apples native-vs-WebView
+comparison. This file is written directly (not committed) per the coordinator's instruction.
 
 ## What is being compared
 
@@ -439,6 +445,141 @@ comparison that matters here is native-vs-WebView, not either app against a 120 
 the buggy build — consistent with the fix: that build was holding a ~13M-character catalog
 response in memory even to reach "search ready", the paginated version doesn't.)
 
+## Stage 4: full pipeline measurements (2026-09-29)
+
+**What changed since "Post-fix measurements"**: `native/androidApp`'s UI now calls
+`LookupEngine.search()` (`native/shared/.../search/LookupEngine.kt`), which runs
+`runLookupPipelineGroups` — the complete stage 2A–2D port (alias/RapidFuzz-expanded lookup-query
+plan, two-phase bm25 SQL branch execution, hydration, fusion, grouping, `QueryDocumentIndex`
+exact-identity lookups) — instead of stage 1's deliberately simplified single-branch FTS5 matcher
+(`SearchEngine.kt`, left in the tree unreferenced). `LookupEngine`'s constructor builds
+`QueryDocumentIndex` and the alias vocabulary once, mirroring `create-medical-core.ts` caching the
+same structures for the real app; `MainActivity` builds this on `Dispatchers.IO` before declaring
+the app ready and logs the elapsed time as `indexBuildMs`, separately from first-frame time, so
+this real startup cost (paid once by the WebView pipeline too) is never silently absorbed into a
+falsely-fast native cold-start number.
+
+**WebView side**: rebuilt from current HEAD `main` (`4db077a4`, includes everything from the
+`ff006d84` pagination fix through `test(e2e): settle races...`) in a fresh `wt-headfix` worktree,
+same `applicationIdSuffix ".perf"` worktree-local patch, same `core.db` (sha256
+`d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a`, re-verified byte-identical).
+`bun run build:app` failed with `SyntaxError: Export named 'parseEnv' not found in module 'util'`
+— a Bun 1.2.3 `node:util` polyfill gap (missing Node 21.7+'s `util.parseEnv`), not a project-code
+regression (confirmed: `bun.lock` unchanged between the old and new commit). Per AGENTS.md's
+documented Node-fallback allowance, `tsc` and `vite build` were invoked directly via real Node
+(Homebrew, v26.7.0) in a sanitized env instead of through `bun run`; `cap sync android` and
+`./gradlew assembleDebug` (JDK 21 pinned, as for all Gradle work this session) were unaffected —
+`assembleDebug` never goes through Bun, and `cap sync` ran fine directly via Node too. Installed
+in place over the existing `.perf` build (same package/versionCode/versionName).
+
+Both apps ran their full 10-query × 5-rep sweep and 5×20-swipe scroll session with **zero OOMs and
+zero crashes** — the `ff006d84` pagination fix holds on current HEAD.
+
+### Cold start (5 runs each, ms)
+
+| App | TotalTime: median | TotalTime: p95 | TotalTime: all 5 runs |
+|---|---|---|---|
+| Native | 768 | 900 | 740, 900, 759, 859, 768 |
+| WebView | 777 | 853 | 700, 814, 853, 777, 721 |
+
+Native's own `search-ready` (wall-clock from `Activity.onCreate`, includes `dbOpenMs` +
+`indexBuildMs`): median 4254 ms, p95 4863 ms (all 5: 4020, 4441, 4101, 4863, 4254). Of that,
+`indexBuildMs` (building `QueryDocumentIndex` + the alias vocabulary over the whole ~20k-document
+corpus) is the large majority: median 3856.6 ms, p95 4338.9 ms; `dbOpenMs` median is only 429 ms.
+**Building the full-pipeline index is roughly 5–6× native's own first-frame TotalTime** — a real,
+substantial startup cost the stage-1 matcher never paid. WebView's `performance.mark`
+(`minimed:search-ready`) is confirmed present via CDP (3724.3 ms from the page's own
+`performance.timeOrigin`) but still not wall-clock-correlated to `am start`'s clock domain — the
+same documented gap as the prior pass, not resolved this time either.
+
+### Query latency, end-to-end (10 queries × 5 reps, n=50 each, zero missed, zero OOM)
+
+| App | Median (ms) | p95 (ms) | Min | Max |
+|---|---|---|---|---|
+| Native, full pipeline | 2114.6 | 2357.5 | 1890.2 | 2380.9 |
+| WebView | 707.6 | 972.1 | 629.2 | 2427.4 (cold-JIT outlier, rep 1 of query 1) |
+
+**This reverses the stage-1 conclusion.** Stage 1's simplified single-FTS5-query native matcher
+was ~4.5× *faster* than WebView (325.5 ms vs. 1481 ms median). The full ported pipeline is now
+~3× *slower* than WebView (2114.6 ms vs. 707.6 ms median). `LookupEngine`'s internal pipeline time
+(`pipelineInternalMedianMs` = 1964.6 ms, tracked across all 50 samples, not a one-off) accounts for
+almost all of the end-to-end number, so the cost is inside `runLookupPipelineGroups` itself —
+RapidFuzz alias/medication-spelling fuzzy matching over the whole alias vocabulary per query, plus
+multiple SQL branch executions (bm25 + hydration each) and Kotlin-side fusion/grouping/ranking —
+none of which existed in the stage-1 matcher. No attempt was made to optimize this hot path (e.g.
+RapidFuzz scans the full alias list with no early-exit/pre-filter); that is legitimate follow-up
+work if this port is kept, not a claim made here that it already performs adequately.
+
+### Scrolling (5 runs, 20 swipes each, strict >8.33 ms / 120 Hz budget — per this stage's explicit instruction, not Android's own looser jank threshold)
+
+| App | Janky % (all 5 runs) | p50 median | p90 median | p95 median | p99 median |
+|---|---|---|---|---|---|
+| Native | 100, 100, 100, 100, 100 | 21.8 ms | 39.3 ms | 43.2 ms | 57.8 ms |
+| WebView | 100, 100, 100, 100, 100 | 27.4 ms | 41.9 ms | 42.6 ms | 49.2 ms |
+
+Under this stricter budget both apps are "janky" on essentially every frame (expected: 8.33 ms is a
+demanding target for either a Compose or WebView software-composited scroll on an emulator). Native
+is modestly ahead at the median (~1.26× faster) but the gap is far smaller than the Android-own-
+threshold numbers in "Post-fix measurements" suggested (7.09% vs. 37.99% janky there) — that
+comparison used a looser, non-refresh-rate-aware definition of jank; this one uses the budget the
+coordinator explicitly asked for this stage.
+
+### Memory (TOTAL PSS) after the query + scroll session
+
+| App | PSS (KB) | vs. native |
+|---|---|---|
+| Native, full pipeline | 136,567 (~133 MB) | 1× |
+| WebView | 120,836 (~118 MB) | 0.88× |
+
+**This also reverses the stage-1 conclusion** (native was ~1.6× *smaller* then: 70,359 vs.
+114,349 KB). The full pipeline's `QueryDocumentIndex` (built from all ~20k documents) plus the
+complete alias vocabulary, held in memory for the whole process lifetime, is the likely cause; not
+root-caused further within this pass's time budget — stated as a real cost of the full port, not
+glossed over. Two earlier same-session readings (140,400 KB; 124,684 KB from a stale/backgrounded
+process) are consistent with a 120–140 MB band, not a one-off spike.
+
+### APK size (unchanged conclusion)
+
+| App | Bytes | vs. native |
+|---|---|---|
+| Native | 15,591,021 (~14.9 MB) | 1× |
+| WebView | 104,363,895 (~99.5 MB) | 6.7× |
+
+Native is still much smaller — the full pipeline port added Kotlin/JVM code, not new native
+dependencies or assets.
+
+### Honest conclusion for stage 4
+
+Porting the full lexical pipeline into the native spike was necessary for an honest comparison —
+the stage-1 matcher's single FTS5 query was never representative of what the real app actually
+does per search — but doing so **erased or reversed every native performance advantage** stage 1
+reported except APK size and (barely) cold start and scroll p50. Cold start is roughly tied.
+Query latency and post-session memory now favor WebView. This is not a reason to believe WebView
+"won": the native port's hot path has had zero optimization work (RapidFuzz over the full alias
+list per query is the obvious first target), and the comparison still is not fully like-for-like
+(WebView's own SQL runs through a different engine build via a Capacitor plugin bridge, per the
+original Methodology §4 caveat, unchanged). But the honest, current state is: **a straight port of
+the existing TypeScript pipeline into Kotlin, unoptimized, is not faster than the shipped WebView
+app on this emulator** — the coordinator's original framing ("if faster/smoother — keep it") does
+not yet have a "faster" result to point to for query latency or memory; only cold start and scroll
+p50 show a (modest) native edge.
+
+### Methodology notes specific to this stage
+
+- The same multi-word-Cyrillic `adb shell am broadcast` re-split bug documented in "Post-fix
+  measurements" was re-encountered (and re-fixed) while capturing an ad hoc post-session PSS
+  reading, this time from a manually-typed one-off command that passed `--es query "<text with
+  spaces>"` as separate shell argv elements instead of one pre-quoted string. This is not a bug
+  that gets fixed once in a script and stays fixed — any new invocation built the naive way will
+  hit it again.
+- The native app being process-alive but backgrounded (a different app in the foreground) silently
+  prevented its Compose `LaunchedEffect`/`withFrameNanos` callbacks from firing at all: a broadcast
+  sent while backgrounded reports `result=0` (success) but produces no bench log until the app is
+  brought back to the foreground. Worth knowing before trusting a "missed" count from an unattended
+  run.
+- Query latency and scrolling raw numbers: `native-vs-webview-2026-09-28.json` →
+  `stage4FullPipeline`.
+
 ## Caveats (read before drawing conclusions)
 
 - Both APKs are debug-signed; production R8/ProGuard behavior for the WebView app and true
@@ -480,3 +621,8 @@ response in memory even to reach "search ready", the paginated version doesn't.)
   `adb shell input swipe` was used for scrolling (real synthetic touch, works identically for both
   apps on the emulator), but note its sparse point-interpolation (Methodology §5) before trusting
   the frame-time percentiles too far.
+- **2026-09-29: read "Stage 4: full pipeline measurements" as the current native-vs-WebView
+  comparison, not this section or "Post-fix measurements".** Those two sections' native numbers
+  are the stage-1 simplified single-branch matcher, since superseded by the full pipeline port;
+  they remain here only as the explicit before/after baseline the "Stage 4" section's own
+  "Honest conclusion" paragraph compares against.

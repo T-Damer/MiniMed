@@ -32,6 +32,9 @@ fun buildExactIdentityResults(db: NativeSearchDatabase, documentIds: Set<String>
             sectionPath = hit.sectionPath,
             matchedTerms = matchedTerms(hit, terms),
             finalScore = 1.0,
+            anchor = hit.anchor,
+            sectionId = hit.sectionId,
+            previewText = previewText(hit.originalText),
         )
     }
 }

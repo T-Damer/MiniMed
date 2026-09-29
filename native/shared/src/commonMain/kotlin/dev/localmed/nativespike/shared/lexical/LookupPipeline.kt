@@ -106,16 +106,18 @@ fun buildQueryDocumentIndex(db: NativeSearchDatabase): QueryDocumentIndex =
 
 /**
  * Runs one query through the full stage 2 sub-stage D pipeline and returns the top-`groupLimit`
- * groups, in final order — directly comparable to `search-golden.json`'s `queries[].groups`.
+ * groups, in final order, WITH full per-result data (title, snippet preview, anchors) — the shape
+ * stage 4's UI wiring needs. `runLookupPipeline` (below) is a thin wrapper over this for the
+ * golden-parity tests, which only need the narrower `LookupGroupSummary` fields.
  * `documentIndex` should be built once (`buildQueryDocumentIndex`) and reused across queries.
  */
-fun runLookupPipeline(
+fun runLookupPipelineGroups(
     query: String,
     aliases: List<AliasRecord>,
     db: NativeSearchDatabase,
     documentIndex: QueryDocumentIndex,
     groupLimit: Int,
-): List<LookupGroupSummary> {
+): List<RankedGroup> {
     val builtPlan = buildLookupQueryPlan(query, aliases)
     val plan = resolveMedicationSpellingPlan(builtPlan, db, groupLimit)
     val limit = perBranchLimit(groupLimit)
@@ -184,15 +186,34 @@ fun runLookupPipeline(
     groups = rankSearchGroupsByAudience(groups, documentsById, requestedAudience)
     if (requestedAudience != null) groups = preferClinicalRecommendationForCaseQueries(groups)
     groups = preserveStrictIdentities(groups, query, documentsById)
-    groups = groups.map { it.copy(contentKind = searchResultContentKind(documentsById[it.documentId])) }
+    groups = groups.map {
+        it.copy(
+            contentKind = searchResultContentKind(documentsById[it.documentId]),
+            targetDocumentId = resolveTargetDocumentId(it.documentId, documentsById),
+        )
+    }
 
-    return groups.map { group ->
+    return groups
+}
+
+/**
+ * Thin wrapper over `runLookupPipelineGroups` for the golden-parity tests, which only compare
+ * `documentId`/`targetDocumentId`/`documentKind`/`contentKind`/`bestScore` — see
+ * `search-golden.json`'s `queries[].groups` shape.
+ */
+fun runLookupPipeline(
+    query: String,
+    aliases: List<AliasRecord>,
+    db: NativeSearchDatabase,
+    documentIndex: QueryDocumentIndex,
+    groupLimit: Int,
+): List<LookupGroupSummary> =
+    runLookupPipelineGroups(query, aliases, db, documentIndex, groupLimit).map { group ->
         LookupGroupSummary(
             documentId = group.documentId,
-            targetDocumentId = resolveTargetDocumentId(group.documentId, documentsById),
+            targetDocumentId = group.targetDocumentId,
             documentKind = group.documentKind,
             contentKind = group.contentKind,
             bestScore = group.bestScore,
         )
     }
-}

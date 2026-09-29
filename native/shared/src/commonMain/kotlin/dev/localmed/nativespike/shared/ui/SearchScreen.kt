@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.localmed.nativespike.shared.model.SearchOutcome
 import dev.localmed.nativespike.shared.model.SearchResultGroup
-import dev.localmed.nativespike.shared.search.SearchEngine
+import dev.localmed.nativespike.shared.search.LookupEngine
 import dev.localmed.nativespike.shared.text.formatFixed1
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -49,7 +49,7 @@ private val HOME_GAP = 16.dp
 
 @Composable
 fun SearchScreen(
-    engine: SearchEngine,
+    engine: LookupEngine,
     onOpenDocument: (documentId: String, documentTitle: String, sectionAnchor: String?) -> Unit,
     // Debug measurement hook only (see native/androidApp's MainActivity — HyperOS blocks
     // `adb shell input` entirely on the physical Xiaomi 14, and even on a plain emulator

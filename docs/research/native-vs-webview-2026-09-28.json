@@ -285,5 +285,147 @@
       "CDP was polling .result-card, which only exists inside the Welcome-overlay demo widget, not the real search page; real selector is .result-group-header, and the overlay must be dismissed via CDP click on .first-run-setup__start before driving queries",
       "adb shell am broadcast --es query \"<multi-word Cyrillic>\" via subprocess arg-list silently mis-split on spaces at the remote shell; fixed by sending the whole am broadcast invocation as one pre-quoted string to adb shell"
     ]
+  },
+  "stage4FullPipeline": {
+    "date": "2026-09-29",
+    "description": "Stage 4: native/androidApp's UI now calls the full ported pipeline (LookupEngine -> runLookupPipelineGroups, stage 2A-2D) instead of the stage-1 simplified single-branch SearchEngine matcher. QueryDocumentIndex + alias vocabulary are built once at startup (LookupEngine's init block), same as create-medical-core.ts does for the real WebView app, so cold start now honestly pays that cost on both sides.",
+    "nativeBuild": "same native/androidApp debug build (dev.localmed.nativespike.debug), LookupEngine wired into MainActivity/App.kt/SearchScreen.kt this stage",
+    "webviewBuild": "fresh worktree wt-headfix rebuilt from 4db077a4 (current HEAD main at measurement time), same package dev.localmed.search.perf / versionCode 56 / versionName 0.6.43-perf, installed in place (bun's build:app failed with a bun 1.2.3 node:util polyfill gap - \"Export named 'parseEnv' not found\" - unrelated to project code; built tsc/vite/cap steps directly with real Node per AGENTS.md's documented fallback allowance, gradlew unaffected since it never went through bun)",
+    "coreDbSha256": "d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a (byte-identical, re-verified, unchanged across the whole multi-stage session)",
+    "emulator": "same AVD minimed_spike_120hz, renderFrameRate re-confirmed 120.00001 before this pass",
+    "coldStart_5runs": {
+      "native": {
+        "totalTimeMs_allRuns": [
+          740,
+          900,
+          759,
+          859,
+          768
+        ],
+        "totalTimeMs_median": 768,
+        "totalTimeMs_p95": 900,
+        "searchReadyMs_allRuns": [
+          4020,
+          4441,
+          4101,
+          4863,
+          4254
+        ],
+        "searchReadyMs_median": 4254,
+        "searchReadyMs_p95": 4863,
+        "dbOpenMs_allRuns": [
+          429,
+          522,
+          384,
+          520,
+          392
+        ],
+        "dbOpenMs_median": 429,
+        "indexBuildMs_allRuns": [
+          3584.784,
+          3915.984,
+          3706.042,
+          4338.933,
+          3856.563
+        ],
+        "indexBuildMs_median": 3856.563,
+        "indexBuildMs_p95": 4338.933,
+        "note": "searchReadyMs = dbOpenMs + indexBuildMs + small overhead, measured wall-clock from Activity.onCreate; indexBuildMs (QueryDocumentIndex + alias vocabulary over the ~20k-document corpus) is the large majority of it, logged as its own line per the coordinator's instruction so it is never silently absorbed into a falsely-fast cold start number"
+      },
+      "webview": {
+        "totalTimeMs_allRuns": [
+          700,
+          814,
+          853,
+          777,
+          721
+        ],
+        "totalTimeMs_median": 777,
+        "totalTimeMs_p95": 853,
+        "searchReadyMark": "confirmed present via CDP (performance.getEntriesByName('minimed:search-ready')), value 3724.3ms from the page's own performance.timeOrigin; NOT wall-clock-correlated to the host's am start timestamp (different clock domains) - same documented gap as the prior pass, still not resolved"
+      }
+    },
+    "queryLatencyEndToEnd_10queries_x5reps": {
+      "native": {
+        "n": 50,
+        "missed": 0,
+        "medianMs": 2114.55,
+        "p95Ms": 2357.49,
+        "minMs": 1890.17,
+        "maxMs": 2380.88,
+        "pipelineInternalMedianMs": 1964.59,
+        "pipelineInternalP95Ms": 2216.2,
+        "note": "LookupEngine.search()'s sqlOnlyMs/totalMs are equal by design this stage (see LookupEngine.kt doc comment): the full pipeline runs several interleaved SQL round trips (bm25 + hydration per branch, exact-identity lookups) mixed with Kotlin fusion/grouping/ranking and RapidFuzz alias/medication-spelling matching, so a clean 'SQL-only' split is no longer a meaningful boundary the way the stage-1 single-FTS5-query matcher's was. All 50/50 broadcasts landed this run (no missed re-key edge case, unlike the stage-1 pass)."
+      },
+      "webview": {
+        "n": 50,
+        "missed": 0,
+        "medianMs": 707.6,
+        "p95Ms": 972.1,
+        "minMs": 629.2,
+        "maxMs": 2427.4,
+        "note": "Zero OOMs across all 50 submissions (the ff006d84 pagination fix holds on current HEAD). Max is the very first rep of the very first query post-cold-start (cold JIT/layout), consistent with the pattern noted in the earlier post-fix pass."
+      },
+      "honestComparison": "Native's full lexical pipeline is now SLOWER end-to-end than WebView's, median 2114.6ms vs 707.6ms (native ~3x slower), a reversal from the stage-1 'simplified matcher' comparison (325.5ms vs 1481ms, native ~4.5x faster) where native only ran one FTS5 query per search. The full port carries real per-query cost this spike had not paid before: RapidFuzz alias/medication-spelling fuzzy matching over the whole alias vocabulary, multiple SQL branch executions with bm25 + hydration each, and Kotlin-side fusion/grouping/ranking - none of that existed in the stage-1 matcher. This is not a JIT/interpreter artifact of one slow run: the pipelineInternalMedianMs of 1964.6ms tracks the end-to-end number closely across all 50 samples (see raw data), so the cost is inside runLookupPipelineGroups itself, not framework overhead around it. No attempt was made to optimize the port's hot path (e.g. RapidFuzz over all aliases per query with no early-exit/pre-filter) - that would be legitimate follow-up work if this port is to be kept, not a claim made here."
+    },
+    "scrolling_5runs_20swipes_strict8_33msBudget": {
+      "native": {
+        "jankyPctPerRun": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "jankyPctMedian": 100.0,
+        "p50PerRunMs": [
+          19.0,
+          27.2,
+          27.1,
+          21.8,
+          21.6
+        ],
+        "p50MedianMs": 21.76,
+        "p90MedianMs": 39.31,
+        "p95MedianMs": 43.18,
+        "p99MedianMs": 57.79
+      },
+      "webview": {
+        "jankyPctPerRun": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ],
+        "jankyPctMedian": 100.0,
+        "p50PerRunMs": [
+          30.7,
+          25.8,
+          27.4,
+          26.7,
+          29.7
+        ],
+        "p50MedianMs": 27.42,
+        "p90MedianMs": 41.89,
+        "p95MedianMs": 42.62,
+        "p99MedianMs": 49.25
+      },
+      "jankBasis": "strict >8.33ms (120Hz budget), per the coordinator's explicit instruction this stage - unlike the prior pass's Android-own-threshold numbers, both apps are ~100% 'janky' under this stricter budget at every run; native's p50 is modestly better (21.8ms vs 27.4ms, native ~1.26x faster) but the gap is far smaller than the stage-1 pass suggested"
+    },
+    "memoryAfterQueryPlusScrollSession": {
+      "nativeTotalPssKb": 136567,
+      "webviewTotalPssKb": 120836,
+      "note": "Native's full-pipeline PSS (~133 MB) is now HIGHER than WebView's (~118 MB), a reversal from the stage-1 comparison (70359 vs 114349 KB, native ~1.6x smaller). The QueryDocumentIndex (built from all ~20k documents) plus the full alias vocabulary held in memory for the process lifetime is the likely cause; not root-caused further within this pass's time budget - flagged as a real cost of the full port, not glossed over. Two earlier same-session readings (140400 KB pre-scroll-fix-retry, 124684 KB from a stale/backgrounded process) are consistent with this being in the 120-140 MB band, not a one-off spike."
+    },
+    "apkSize": {
+      "nativeBytes": 15591021,
+      "webviewBytes": 104363895,
+      "note": "Native's APK is still ~6.7x smaller than WebView's (unchanged conclusion from stage 1 - the full pipeline port added Kotlin/JVM code, not new native dependencies)"
+    },
+    "methodologyNotes": [
+      "Re-discovered and re-fixed the same multi-word-Cyrillic adb broadcast re-split bug documented in postFixMeasurements.methodologyBugsFixed while capturing an ad hoc post-session PSS reading (manually invoking `adb shell am broadcast ... --es query \"<text with spaces>\"` as separate shell argv elements instead of one pre-quoted string) - a reminder that this bug is specific to how the invocation is built each time, not something fixed once in a script and permanently safe from a differently-written one-off command.",
+      "The native app being merely process-alive but backgrounded (screen showing a different foreground app) silently prevented its Compose LaunchedEffect/withFrameNanos callbacks from ever firing, so a broadcast sent while backgrounded appeared to succeed (result=0) but produced no bench log at all until the app was brought back to the foreground - worth knowing for anyone re-running these scripts unattended."
+    ]
   }
 }
