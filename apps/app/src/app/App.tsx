@@ -23,6 +23,7 @@ import { useRootNavigation } from '@/app/use-root-navigation';
 import { AppGlyph } from '@/components/AppGlyph';
 import { FloatingWindowLayer } from '@/components/FloatingWindowLayer';
 import { ConversationRecorderHost } from '@/features/conversations/ConversationRecorder';
+import { DocumentCoreWait } from '@/features/library/DocumentCoreWait';
 import { medicalImageViewerActive } from '@/features/library/document-reading-mode';
 import {
   isUserLibraryCatalogRoute,
@@ -481,6 +482,23 @@ export function App(): JSX.Element {
                 reconnectContent={session.connectInstalledModules}
               />
             </Suspense>
+          </section>
+        </Show>
+        {/* A document link opened before the core is ready says why it waits, never a blank page. */}
+        <Show
+          when={
+            navigation.documentReadActive() &&
+            !session.ready() &&
+            !personalDocumentActive() &&
+            !showingBootScreen()
+          }
+        >
+          <section class="app-view app-view--document-read active" aria-hidden={false}>
+            <DocumentCoreWait
+              status={coreStatus()}
+              onRetry={() => window.location.reload()}
+              onDownload={session.downloadCore}
+            />
           </section>
         </Show>
       </main>
