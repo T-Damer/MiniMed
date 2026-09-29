@@ -73,10 +73,15 @@ expect class NativeSearchDatabase(dbFilePath: String) {
     /**
      * Every document's identity fields (title, short title, declared/navigation aliases) — the
      * source data `QueryDocumentIndex` (packages/core/src/query-document-index.ts) builds its
-     * exact-identity lookup maps from, once at startup (`listSearchDocuments()` in the TS source),
-     * not per query. Loads the whole ~20k-document corpus in one query; stage 4's cold-start timing
-     * includes this on purpose — the real WebView pipeline also builds this index at startup, so
-     * skipping it here would make a native cold-start measurement dishonestly fast.
+     * exact-identity lookup maps from, once per document-list version, not per query. Loads the
+     * whole ~20k-document corpus in one query.
+     *
+     * **Optimization-pass correction**: `create-medical-core.ts` does NOT build this at startup —
+     * it builds `queryDocumentIndex` lazily inside the first `search()` call (see
+     * `QueryDocumentIndex.kt`'s header for the exact line). `LookupEngine.kt` now builds this in the
+     * background right after construction instead of blocking first frame OR waiting for the first
+     * query, which is faster to a ready index than either TS's behavior or this port's own stage-4
+     * behavior (eager, blocking, at startup) — see that file's header.
      */
     fun listSearchDocuments(): List<SearchDocumentSummary>
 

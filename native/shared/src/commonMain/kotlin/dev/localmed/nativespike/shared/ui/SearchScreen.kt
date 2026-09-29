@@ -59,7 +59,10 @@ fun SearchScreen(
     // real keystroke would, so a debug build can be driven by a broadcast instead of typing.
     // `null` (every non-bench caller) preserves exactly the original typed-search behavior.
     externalQuery: String? = null,
-    onOutcome: ((query: String, outcome: SearchOutcome?, tookMs: Double) -> Unit)? = null,
+    // `stages`: per-stage timing map from LookupEngine.search's onStage callback, summed by stage
+    // name across all branches (see PipelineTiming.kt/LookupPipeline.kt) — used only by the debug
+    // bench path (see MainActivity), empty for any non-bench call.
+    onOutcome: ((query: String, outcome: SearchOutcome?, tookMs: Double, stages: Map<String, Double>) -> Unit)? = null,
 ) {
     var query by remember { mutableStateOf("") }
     var outcome by remember { mutableStateOf<SearchOutcome?>(null) }
@@ -79,9 +82,14 @@ fun SearchScreen(
         }
         isSearching = true
         val benchStart = if (query == externalQuery) kotlin.time.TimeSource.Monotonic.markNow() else null
+        val stageTimings: MutableMap<String, Double>? = if (benchStart != null) LinkedHashMap() else null
         delay(DEBOUNCE_MS)
         try {
-            val result = withContext(Dispatchers.Default) { engine.search(query) }
+            val result = withContext(Dispatchers.Default) {
+                engine.search(query) { stage, ms ->
+                    stageTimings?.let { it[stage] = (it[stage] ?: 0.0) + ms }
+                }
+            }
             outcome = result
             error = null
             if (benchStart != null) {
@@ -90,7 +98,10 @@ fun SearchScreen(
                 // measured/laid-out/drawn — see docs/research/native-vs-webview-2026-09-28.md.
                 androidx.compose.runtime.withFrameNanos { }
                 androidx.compose.runtime.withFrameNanos { }
-                onOutcome?.invoke(query, result, benchStart.elapsedNow().inWholeMicroseconds / 1000.0)
+                onOutcome?.invoke(
+                    query, result, benchStart.elapsedNow().inWholeMicroseconds / 1000.0,
+                    stageTimings.orEmpty(),
+                )
             }
         } catch (cause: Exception) {
             error = cause.message ?: "Ошибка поиска"

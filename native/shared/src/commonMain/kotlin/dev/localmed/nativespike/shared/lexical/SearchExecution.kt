@@ -113,11 +113,14 @@ fun resolveMedicationSpellingPlan(
     plan: MedicationLookupPlan,
     db: NativeSearchDatabase,
     searchLimit: Int,
+    onStage: ((String, Double) -> Unit)? = null,
 ): MedicationLookupPlan {
     val spelling = plan.medicationSpelling ?: return plan
     val baseBranches = spelling.withoutSpelling.branches
     val limit = perBranchLimit(searchLimit)
-    val baseChunkIds = baseBranches.flatMap { branch -> executeBranch(db, branch.ftsQuery, limit) }
+    val baseChunkIds = timedStage(onStage, "sql") {
+        baseBranches.flatMap { branch -> executeBranch(db, branch.ftsQuery, limit) }
+    }
         .map { it.chunkId }
         .distinct()
     val texts = db.textsForChunks(baseChunkIds)

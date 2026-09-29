@@ -13,7 +13,13 @@ single-branch matcher, and WebView was rebuilt again from current HEAD `main` (`
 "Stage 4: full pipeline measurements" below, which does **not** supersede "Post-fix measurements"
 (that section's native numbers are the old simplified-matcher baseline, kept for the
 before/after comparison) but supersedes it as the *current* apples-to-apples native-vs-WebView
-comparison. This file is written directly (not committed) per the coordinator's instruction.
+comparison. **2026-09-29, same day, second update**: one optimization pass (user decision, with an
+explicit stopping criterion) fixed a real per-query performance bug found by profiling — see
+"Optimization pass" below, which supersedes "Stage 4" as the current comparison. Decision: continue
+the port (native's median query latency is now faster than WebView's), stated alongside honest
+caveats (PSS is still higher for native; the host degraded significantly during this pass, so
+absolute numbers need re-verification on a clean environment). This file is written directly (not
+committed) per the coordinator's instruction.
 
 ## What is being compared
 
@@ -580,6 +586,206 @@ p50 show a (modest) native edge.
 - Query latency and scrolling raw numbers: `native-vs-webview-2026-09-28.json` →
   `stage4FullPipeline`.
 
+## Optimization pass (2026-09-29)
+
+User decision after the stage 4 report: one optimization pass with a stopping criterion — "if the
+native query is not faster than WebView by median AND PSS is not lower, honestly write 'keep
+WebView, port frozen'." Committed as `7ad1d8e9`.
+
+### 1. Profiling — where stage 4's time actually went
+
+Instrumented `runLookupPipelineGroups` and everything it calls with per-stage `System`-clock timing
+(`PipelineTiming.kt`'s `timedStage`, zero-cost when the callback is null), wired through
+`LookupEngine.search`'s debug bench path so the SAME code the app runs is what gets measured — not a
+separate microbenchmark. Ran the same 10 queries × 5 reps on the same emulator. Mean stage cost
+across all 50 (sums to within 1% of the independently-reported `searchFnMs`, confirming the
+instrumentation accounts for essentially all pipeline time):
+
+| Stage | Mean (ms) | Median (ms) | % of total |
+|---|---|---|---|
+| ranking (audience/strict-identity/tie-break/collapse/final map) | 339.2 | 334.3 | 51.1% |
+| fusion (`fuseBranchHits`) | 131.9 | 112.3 | 19.9% |
+| aliases (`AliasExpander.expand`) | 70.9 | 69.2 | 10.7% |
+| sql (bm25 per branch) | 66.1 | 35.8 | 9.9% |
+| hydration (per branch) | 49.1 | 45.5 | 7.4% |
+| spelling (medication-spelling matcher) | 3.1 | 0.7 | 0.5% |
+| plan (`buildBaseLookupQueryPlan`) | 2.0 | 1.4 | 0.3% |
+| exactIdentity (`QueryDocumentIndex` lookups + exact-identity hydration) | 1.1 | 0.6 | 0.2% |
+| normalize | 0.4 | 0.2 | 0.1% |
+| grouping (`groupResults`) | 0.4 | 0.3 | 0.1% |
+
+**This was measured AFTER fixing the rebuild-per-query bug below** (see item 2) — before that fix,
+`aliases` and `spelling` (then rebuilding their whole index from the ~44,214-row alias table on
+every call) dominated everything else combined. With that fixed, **`ranking` is now the largest
+single cost** (over half the pipeline), followed by `fusion` — neither was profiled or suspected
+before this pass; both are legitimate targets for further work, not touched this pass (time-boxed to
+one optimization pass per the coordinator's instruction).
+
+### 2. Optimizations applied
+
+- **Stopped rebuilding the alias fuzzy-match index and the medication-spelling index on every
+  query** (the dominant cost before this pass, per item 1's note above). `createAliasExpander`
+  (`Aliases.kt`) sorts and tokenizes the whole ~44,214-row alias table and builds a fuzzy-match head
+  index; `createMedicationSpellingMatcher` (`MedicationSpelling.kt`) does the same for the
+  ~21,610-row medication subset. Both were always accepted as OPTIONAL parameters by
+  `LookupPipeline.kt`/`MedicationLookupPlan.kt` (for golden-parity tests that intentionally rebuild a
+  small vocabulary per call) — but `LookupEngine.search` was never passing its own already-available
+  aliases through them, so the pipeline was throwing away and rebuilding this work on every single
+  keystroke-triggered search. Fixed: `LookupEngine` now builds both exactly once and passes them
+  through every call. Golden-parity tests are unaffected (they still call the same functions with
+  `null`, preserving their existing per-call-rebuild behavior — deliberately not changed, since
+  those tests don't need reuse and changing their call sites was unnecessary risk for zero benefit).
+- **Checked the real TS behavior this pass was assuming.** Stage 4's own code comments claimed "the
+  real WebView pipeline also builds `QueryDocumentIndex` at startup" — reading `create-medical-core.ts`
+  directly (around line 1184) shows this is false: `queryDocumentIndex`, and TS's own
+  `expandAliases`/medication-spelling `WeakMap` caches, are all built LAZILY, inside the first
+  `search()` call itself, not at app startup. WebView's cold start never pays this cost; its FIRST
+  QUERY does. Three stale comments making the opposite claim were corrected
+  (`QueryDocumentIndex.kt`, `NativeSearchDatabase.kt`, `LookupPipeline.kt`).
+- **Moved vocabulary + `QueryDocumentIndex` construction to a background coroutine**, kicked off
+  right after `LookupEngine`'s constructor returns rather than blocking it (previous stage 4
+  behavior) or lazily on the first query (TS's own behavior) — search is available immediately
+  after first frame; if a query arrives before the background build finishes, it awaits it, same as
+  TS's own first-query cost, but starting earlier so it is usually already done by the time a real
+  user finishes typing.
+- **A real crash found and fixed by actually running this on-device**: the first version of this
+  background warm-up ran the vocabulary build and the `QueryDocumentIndex` build as two SEPARATE
+  coroutines (`engineScope.async` × 2). `NativeSearchDatabase` opens exactly one `SQLiteConnection`
+  and documents itself as "single connection... single-threaded by design" — but `Dispatchers.
+  Default` is a thread pool, so those two coroutines landed on different worker threads and called
+  into the bundled SQLite JNI bridge at the same time. Reproduced on-device: a native `SIGSEGV` in a
+  `DefaultDispatcher-worker` thread inside `libsqliteJni.so`, every cold start. Fixed by moving both
+  builds into ONE background coroutine, run strictly sequentially (`LookupEngine.kt`'s header has
+  the full account). This is exactly the kind of bug that a JVM-only (desktop/Android-unit-test)
+  parity run can never catch — it only showed up running the real app on the real emulator.
+- **Memory ("compare memory of structures: string interning, primitive arrays instead of boxing",
+  per the coordinator's instruction)**:
+  - `QueryDocumentIndex` used to also keep `byId: Map<String, SearchDocumentSummary>` — a second,
+    full copy of all ~20k documents' title/shortTitle/sourceType/declaredAliases/navigationAliases,
+    retained for the process lifetime, purely to compute `availableIds` via `byId.keys`. Confirmed
+    nothing else ever read `byId`. Removed; `availableIds` is now collected directly during the same
+    pass that builds the identity-lookup maps.
+  - `androidx.sqlite`'s `getText` allocates a new `String` per row even for low-cardinality columns.
+    Added a manual per-query-result string-pooling helper (`String.pooled`, NOT `kotlin.text.intern()`
+    — that's JVM-only and would silently no-op on iOS/Kotlin-Native) and applied it to `category`/
+    `canonicalTerm` in `listAliases()` (tens of thousands of rows, a handful/many-repeated distinct
+    values) and `sourceType` in `listSearchDocuments()` (~20k rows, a handful of distinct values) —
+    both retained for the process lifetime via `LookupEngine.aliases`/its `QueryDocumentIndex`, so
+    every duplicate saved is real, permanent heap. NOT applied to `hydrateHits`/`firstReadableChunk`:
+    those run per query and their results are transient (GC'd once the response is built), so
+    pooling them would cost CPU without reducing any retained memory.
+  - Considered and NOT pursued: primitive (`IntArray`-keyed) alternatives to the `HashMap<Int, ...>`
+    token-length buckets in `Aliases.kt`'s `heads`/`MedicationSpelling.kt`'s `lengths` — their key
+    space is token lengths (roughly 1-30 distinct values), built once, so the Int-boxing overhead is
+    a few dozen boxed integers total, not a meaningful memory cost next to the ~20k-document/
+    ~44k-alias structures above. Flagged as considered, not silently skipped.
+
+### 3. Parity — unchanged after every fix
+
+Re-ran the full golden-parity suite after each change (not just once at the end). Final numbers,
+identical to before this pass:
+
+| Platform | Exact top-20 (id+kind+content+score) | Top-5 id match |
+|---|---|---|
+| Desktop (JVM) | 148/150 (98.7%) | 149/150 (99.3%) |
+| Android (`testDebugUnitTest`) | 18/18 unit tests pass | (same `FusionGroupingParityTest`, same numbers) |
+| iOS Simulator (`iosSimulatorArm64Test`) | 148/150 (98.7%) | 149/150 (99.3%) |
+
+`androidApp:assembleDebug`, `desktopApp:compileKotlin`, and `:shared:compileKotlinWasmJs` all build
+clean. The 2 mismatched queries are the same 2 documented since sub-stage D — nothing regressed or
+was newly introduced.
+
+### 4. Re-measurement — a real, unplanned environmental complication
+
+**The host machine degraded significantly between the stage 4 pass and this one**: disk at 98%
+capacity (18 GiB free of 926 GiB), very low free RAM (`vm_stat`: ~85 MB free pages) — confirmed via
+`df`/`vm_stat`, not assumed. Symptoms: `dbOpenMs` for the same 422 MB `core.db`, same emulator,
+went from stage 4's 384-522 ms to 1.7-3.4 s; a first attempt at this pass's cold-start measurement
+showed `vocabularyBuildMs` (sorting/tokenizing the same 44,214-row alias table CPU-bound work) at
+19.7-23.5 SECONDS, and WebView's own cold start went from stage 4's 700-853 ms to 3.0 s. This affects
+absolute numbers on BOTH apps, not a regression specific to either one.
+
+**Response**: rather than trust stale WebView numbers from a cleaner environment against fresh
+native numbers from a degraded one, every number in this section was re-measured for BOTH apps,
+back-to-back, in the SAME current (degraded) session — an environment-invariant relative comparison,
+even though the absolute values are inflated versus stage 4's and should not be read as this port's
+steady-state performance. A full host-level fix (freeing disk space) was out of scope for this
+agent to perform unilaterally on the user's machine.
+
+#### Query latency, end-to-end (10 queries × 5 reps)
+
+| App | n | Median (ms) | p95 (ms) | Min | Max |
+|---|---|---|---|---|---|
+| Native, optimized | 50/50 | 1070.1 | 1512.5 | 623.8 | 1862.8 |
+| WebView | 46/50 (4 timed out) | 1795.1 | 5610.2 | 714.3 | 7092.8 |
+
+**Native is faster: ~1.68× at the median, ~3.7× at p95** — a reversal from stage 4's own optimized-
+pass baseline (2114.6 ms native vs. 707.6 ms WebView, native ~3× *slower*) even before accounting
+for the shared environmental slowdown. WebView also missed 4/50 attempts to a CDP timeout under the
+degraded conditions; native completed all 50.
+
+#### Scrolling (5 runs, 20 swipes each, strict >8.33 ms / 120 Hz budget)
+
+| App | Janky % (all 5 runs) | p50 median | p90 median | p95 median | p99 median |
+|---|---|---|---|---|---|
+| Native, optimized | 100 (4 of 5 runs; 1 excluded — foregrounding artifact, 2 frames captured) | 36.6 ms | 54.5 ms | 59.4 ms | 65.1 ms |
+| WebView | 100, all 5 runs | 49.8 ms | 70.5 ms | 78.9 ms | 86.1 ms |
+
+Native ahead at every percentile (~1.36× faster median).
+
+#### Memory (TOTAL PSS) after the query + scroll session
+
+| App | PSS (KB) | vs. native |
+|---|---|---|
+| Native, optimized | 145,321 (~142 MB) | 1× |
+| WebView | 111,661 (~109 MB) | 0.77× |
+
+**PSS did NOT improve relative to WebView** — native is still higher (~1.3×), essentially unchanged
+from stage 4 (136,567 vs. 120,836 KB then). The `byId` removal and string-pooling fixes (item 2)
+measurably shrink what `QueryDocumentIndex`/`LookupEngine.aliases` retain, but not by enough to close
+this gap in one pass; `QueryDocumentIndex`'s four identity maps and the full `AliasRecord` list held
+for the process lifetime remain the likely largest remaining contributors, not root-caused further
+here.
+
+#### Cold start (5 runs) — read with the environmental caveat above
+
+| App | TotalTime median | TotalTime p95 | search-ready median (native: dbOpen only) |
+|---|---|---|---|
+| Native, optimized | 2662 ms | 2991 ms | 1880 ms |
+| WebView | 3059 ms (single sample) | — | mark present via CDP, not wall-clock-correlated (unresolved, same as stage 4) |
+
+Native's background vocabulary+index warm-up (not blocking the numbers above) completed at a median
+of 28,778 ms after activity start this pass — `vocabularyBuildMs` alone (19.7-23.5 s across the 5
+runs) is almost certainly inflated by the environmental degradation described above (a CPU-bound
+sort/tokenize over 44,214 rows should not take 20+ seconds on a healthy host), not by this pass's
+own logic — but it was NOT re-verified in a clean environment before this report, so it is stated as
+measured, flagged as suspect, and not smoothed over or excluded.
+
+#### APK size (unchanged)
+
+| App | Bytes |
+|---|---|
+| Native | 15,597,164 (~14.9 MB) |
+| WebView | 104,363,895 (~99.5 MB) |
+
+### 5. Stopping-criterion decision
+
+The coordinator's criterion: *if the native query is not faster than WebView by median AND PSS is
+not lower, honestly write "keep WebView, port frozen."* Native's median query latency (1070.1 ms) IS
+faster than WebView's (1795.1 ms) in this same-session, same-conditions comparison — so the freeze
+condition's first half is false, and the criterion as stated does not trigger a freeze, regardless
+of PSS. **Decision: continue the port; do not freeze.**
+
+This is stated plainly, not as an unqualified win: PSS is still higher for native, not lower (a real,
+disclosed tradeoff); the absolute numbers behind this decision were measured on a degraded host and
+should be re-verified on a clean one before being treated as a stable baseline for future stages;
+`ranking` and `fusion` are now the dominant remaining per-query costs and were not touched this pass;
+and native's cold-start background-warm-up time (`vocabularyBuildMs` in particular) needs its own
+clean-environment re-measurement before it can be trusted as a real number, separate from the
+query-latency comparison the stopping criterion is actually about.
+
+Raw numbers: `native-vs-webview-2026-09-28.json` → `optimizationPass`.
+
 ## Caveats (read before drawing conclusions)
 
 - Both APKs are debug-signed; production R8/ProGuard behavior for the WebView app and true
@@ -621,8 +827,9 @@ p50 show a (modest) native edge.
   `adb shell input swipe` was used for scrolling (real synthetic touch, works identically for both
   apps on the emulator), but note its sparse point-interpolation (Methodology §5) before trusting
   the frame-time percentiles too far.
-- **2026-09-29: read "Stage 4: full pipeline measurements" as the current native-vs-WebView
-  comparison, not this section or "Post-fix measurements".** Those two sections' native numbers
-  are the stage-1 simplified single-branch matcher, since superseded by the full pipeline port;
-  they remain here only as the explicit before/after baseline the "Stage 4" section's own
-  "Honest conclusion" paragraph compares against.
+- **2026-09-29: read "Optimization pass" as the current native-vs-WebView comparison**, not this
+  section, "Post-fix measurements", or "Stage 4: full pipeline measurements". Each earlier section's
+  native numbers are superseded (stage-1's simplified matcher, then stage 4's unoptimized full
+  pipeline); they remain here only as the explicit before/after chain "Optimization pass" compares
+  against. "Optimization pass" also carries its own environmental caveat (host degraded mid-session)
+  — read that section's own caveat, not just this bullet.

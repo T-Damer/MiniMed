@@ -427,5 +427,199 @@
       "Re-discovered and re-fixed the same multi-word-Cyrillic adb broadcast re-split bug documented in postFixMeasurements.methodologyBugsFixed while capturing an ad hoc post-session PSS reading (manually invoking `adb shell am broadcast ... --es query \"<text with spaces>\"` as separate shell argv elements instead of one pre-quoted string) - a reminder that this bug is specific to how the invocation is built each time, not something fixed once in a script and permanently safe from a differently-written one-off command.",
       "The native app being merely process-alive but backgrounded (screen showing a different foreground app) silently prevented its Compose LaunchedEffect/withFrameNanos callbacks from ever firing, so a broadcast sent while backgrounded appeared to succeed (result=0) but produced no bench log at all until the app was brought back to the foreground - worth knowing for anyone re-running these scripts unattended."
     ]
+  },
+  "optimizationPass": {
+    "date": "2026-09-29",
+    "commit": "7ad1d8e9 (stage 4, base for this pass)",
+    "description": "One optimization pass with a stopping criterion, per user decision: if native query latency is not faster than WebView by median AND PSS is not lower, freeze the port and keep WebView.",
+    "profiling_10queries_x5reps_meanStageMs": {
+      "ranking": {
+        "meanMs": 339.2,
+        "medianMs": 334.3,
+        "pctOfTotal": 51.1
+      },
+      "fusion": {
+        "meanMs": 131.9,
+        "medianMs": 112.3,
+        "pctOfTotal": 19.9
+      },
+      "aliases": {
+        "meanMs": 70.9,
+        "medianMs": 69.2,
+        "pctOfTotal": 10.7
+      },
+      "sql": {
+        "meanMs": 66.1,
+        "medianMs": 35.8,
+        "pctOfTotal": 9.9
+      },
+      "hydration": {
+        "meanMs": 49.1,
+        "medianMs": 45.5,
+        "pctOfTotal": 7.4
+      },
+      "spelling": {
+        "meanMs": 3.1,
+        "medianMs": 0.7,
+        "pctOfTotal": 0.5
+      },
+      "plan": {
+        "meanMs": 2.0,
+        "medianMs": 1.4,
+        "pctOfTotal": 0.3
+      },
+      "exactIdentity": {
+        "meanMs": 1.1,
+        "medianMs": 0.6,
+        "pctOfTotal": 0.2
+      },
+      "normalize": {
+        "meanMs": 0.4,
+        "medianMs": 0.2,
+        "pctOfTotal": 0.1
+      },
+      "grouping": {
+        "meanMs": 0.4,
+        "medianMs": 0.3,
+        "pctOfTotal": 0.1
+      },
+      "note": "Measured AFTER the alias/medication-spelling index rebuild-per-query bug was fixed. Before that fix, aliases+spelling dominated everything else combined (index rebuild over the whole 44,214-row alias table every query). ranking is now the largest single cost, followed by fusion - neither was suspected before this pass."
+    },
+    "optimizationsApplied": [
+      "Cache createAliasExpander/createMedicationSpellingMatcher once in LookupEngine instead of rebuilding from the whole ~44,214-row alias table on every query (the dominant pre-fix cost) - LookupPipeline.kt/MedicationLookupPlan.kt already accepted these as optional params (for golden-parity tests), LookupEngine just wasn't passing its own vocabulary through them",
+      "Verified against create-medical-core.ts (~line 1184): queryDocumentIndex and TS's own alias/medication-spelling WeakMap caches are built LAZILY on the first search() call, not at WebView startup - corrected 3 stale comments in the Kotlin port that claimed otherwise",
+      "Moved vocabulary + QueryDocumentIndex construction to a background coroutine kicked off right after LookupEngine construction, not blocking first frame or the first query",
+      "Found and fixed a real native SIGSEGV crash this background warm-up introduced: two concurrent coroutines both touching NativeSearchDatabase's single non-thread-safe SQLiteConnection at once (bundled SQLite JNI bridge). Fixed by serializing both builds onto one coroutine.",
+      "Removed QueryDocumentIndex's dead byId: Map<String, SearchDocumentSummary> (a full second copy of all ~20k documents, confirmed unused outside its own definition), computing availableIds directly instead",
+      "Added manual string-pooling (not kotlin.text.intern(), which is JVM-only) for low-cardinality DB columns retained for the process lifetime: category/canonicalTerm in listAliases(), sourceType in listSearchDocuments()",
+      "Considered, not pursued: primitive IntArray-keyed alternatives to Aliases.kt/MedicationSpelling.kt's small (~1-30 distinct keys) token-length HashMaps - negligible boxing overhead next to the ~20k-document/~44k-alias structures"
+    ],
+    "parityAfterOptimization": {
+      "desktop": {
+        "exactTop20": "148/150 (98.7%)",
+        "top5": "149/150 (99.3%)"
+      },
+      "android": {
+        "unitTests": "18/18 pass",
+        "note": "same FusionGroupingParityTest, same numbers as desktop"
+      },
+      "iosSimulatorArm64": {
+        "exactTop20": "148/150 (98.7%)",
+        "top5": "149/150 (99.3%)"
+      },
+      "unchanged": true,
+      "note": "Re-ran after every code change, not just once at the end. Same 2 documented mismatches as sub-stage D - nothing regressed or newly introduced."
+    },
+    "environmentalCaveat": {
+      "diskFreeGiB": 18,
+      "diskTotalGiB": 926,
+      "diskUsedPct": 98,
+      "freeRamPagesApproxMb": 85,
+      "symptom_dbOpenMs_stage4_vs_thisPass": "384-522ms -> 1.7-3.4s (same 422MB core.db, same emulator)",
+      "symptom_webviewColdStart_stage4_vs_thisPass": "700-853ms -> 3059ms",
+      "response": "Every number below was re-measured for BOTH apps back-to-back in the SAME current (degraded) session, for an environment-invariant relative comparison, rather than comparing fresh native numbers against stale (cleaner-environment) WebView numbers from stage 4. Absolute values here are inflated vs. stage 4's and should not be read as steady-state performance. Full host-level fix (freeing disk space) was out of scope for this agent to perform unilaterally."
+    },
+    "queryLatencyEndToEnd_10queries_x5reps": {
+      "native": {
+        "n": 50,
+        "missed": 0,
+        "medianMs": 1070.1,
+        "p95Ms": 1512.5,
+        "minMs": 623.8,
+        "maxMs": 1862.8
+      },
+      "webview": {
+        "n": 46,
+        "missed": 4,
+        "medianMs": 1795.1,
+        "p95Ms": 5610.2,
+        "minMs": 714.3,
+        "maxMs": 7092.8
+      },
+      "comparison": "Native ~1.68x faster at median, ~3.7x faster at p95 - a reversal from stage 4's own pass (native 2114.6ms vs webview 707.6ms, native ~3x SLOWER then)."
+    },
+    "scrolling_5runs_20swipes_strict8_33msBudget": {
+      "native": {
+        "jankyPctAllRuns": 100,
+        "note": "1 of 5 runs excluded from percentile aggregation - only 2 frames captured, a foregrounding-timing artifact, not representative",
+        "p50MedianMs": 36.6,
+        "p90MedianMs": 54.5,
+        "p95MedianMs": 59.4,
+        "p99MedianMs": 65.1
+      },
+      "webview": {
+        "jankyPctAllRuns": 100,
+        "p50MedianMs": 49.8,
+        "p90MedianMs": 70.5,
+        "p95MedianMs": 78.9,
+        "p99MedianMs": 86.1
+      },
+      "comparison": "Native ahead at every percentile, ~1.36x faster median."
+    },
+    "memoryAfterQueryPlusScrollSession": {
+      "nativeTotalPssKb": 145321,
+      "webviewTotalPssKb": 111661,
+      "note": "PSS did not improve relative to WebView (native still ~1.3x higher, essentially unchanged from stage 4's 136567 vs 120836 KB). The byId removal and string-pooling fixes measurably shrink retained memory but not enough to close this gap; QueryDocumentIndex's four identity maps and the full AliasRecord list held for the process lifetime remain the likely largest contributors, not root-caused further this pass."
+    },
+    "coldStart_5runs": {
+      "native": {
+        "totalTimeMsAllRuns": [
+          3005,
+          2662,
+          2578,
+          2991,
+          2599
+        ],
+        "totalTimeMsMedian": 2662,
+        "totalTimeMsP95": 2991,
+        "searchReadyMsMedian": 1880,
+        "backgroundIndexReadyMsAllRuns": [
+          31540,
+          29619,
+          28778,
+          27973,
+          25081
+        ],
+        "backgroundIndexReadyMsMedian": 28778,
+        "vocabularyBuildMsAllRuns": [
+          23514.875,
+          22686.833,
+          21765.726,
+          21675.396,
+          19735.918
+        ],
+        "vocabularyBuildMsMedian": 21765.726,
+        "indexBuildMsAllRuns": [
+          4639.806,
+          4982.76,
+          4859.375,
+          4563.713,
+          3480.601
+        ],
+        "indexBuildMsMedian": 4859.375,
+        "note": "vocabularyBuildMs (20-24s for a CPU-bound sort/tokenize over 44,214 alias rows) is almost certainly inflated by the environmental degradation described above, not by this pass's own logic - NOT re-verified in a clean environment before this report, stated as measured and flagged as suspect."
+      },
+      "webview": {
+        "totalTimeMs": 3059,
+        "note": "single sample this pass (vs stage 4's 5-run 700-853ms range) - also degraded vs stage 4, confirming the slowdown is environment-wide, not native-specific"
+      }
+    },
+    "apkSize": {
+      "nativeBytes": 15597164,
+      "webviewBytes": 104363895
+    },
+    "stoppingCriterionDecision": {
+      "criterion": "if native query is not faster than WebView by median AND PSS is not lower, honestly write 'keep WebView, port frozen'",
+      "nativeFasterByMedian": true,
+      "pssLower": false,
+      "decision": "CONTINUE the port; do not freeze",
+      "reasoning": "The freeze condition's first half (native not faster) is false, so the conjunction is false regardless of PSS - the criterion as stated does not trigger a freeze.",
+      "honestCaveats": [
+        "PSS is still higher for native, not lower - a real, disclosed tradeoff, not hidden by the 'continue' decision",
+        "Absolute numbers were measured on a degraded host (98% disk full, ~85MB free RAM) and should be re-verified on a clean host before being treated as a stable baseline",
+        "ranking (51.1% of pipeline time) and fusion (19.9%) are now the dominant remaining per-query costs and were not touched this pass",
+        "vocabularyBuildMs needs its own clean-environment re-measurement before being trusted as a real cold-start number"
+      ]
+    }
   }
 }

@@ -47,7 +47,7 @@ fun NativeSearchSpikeApp(
     // Passed straight through to SearchScreen — see its doc comment. Only the androidApp debug
     // bench harness ever sets these.
     externalQuery: String? = null,
-    onOutcome: ((query: String, outcome: SearchOutcome?, tookMs: Double) -> Unit)? = null,
+    onOutcome: ((query: String, outcome: SearchOutcome?, tookMs: Double, stages: Map<String, Double>) -> Unit)? = null,
 ) {
     val resolvedEngine = engine ?: remember(database) { LookupEngine(database) }
     var screen by remember { mutableStateOf<Screen>(Screen.Search) }

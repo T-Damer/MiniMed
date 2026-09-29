@@ -25,8 +25,10 @@ import dev.localmed.nativespike.shared.text.normalizeSurfaceText
  * cutoff-survival parameter is real, not an empty placeholder. The caller builds one
  * `QueryDocumentIndex` ONCE (`buildQueryDocumentIndex`, from `NativeSearchDatabase.listSearchDocuments()`)
  * and passes it into every `runLookupPipeline` call — mirroring `create-medical-core.ts` caching
- * `queryDocumentIndex` across searches, and matching the real WebView pipeline building this same
- * index once at startup (stage 4's cold-start timing includes this on purpose, for the same reason).
+ * `queryDocumentIndex` across searches. (Optimization pass correction: `create-medical-core.ts`
+ * builds this lazily inside the first `search()` call, not at WebView startup — see
+ * `QueryDocumentIndex.kt`'s header. `LookupEngine.kt` builds it in the background after
+ * construction, which starts earlier than TS's own lazy trigger without blocking first frame.)
  *
  * Still deliberately NOT ported for this pipeline (each is its own documented scope cut in the file
  * it would have lived in, repeated here as the single list of what's missing end-to-end):
@@ -61,10 +63,16 @@ private fun toDocumentDescriptor(hit: HydratedHit): DocumentDescriptor = Documen
     ageGroups = hit.ageGroups,
 )
 
-private fun executeAndHydrateBranch(db: NativeSearchDatabase, branch: dev.localmed.nativespike.shared.model.LexicalQueryBranchPlan, limit: Int): BranchExecutionResult {
-    val branchHits = executeBranch(db, branch.ftsQuery, limit)
+private fun executeAndHydrateBranch(
+    db: NativeSearchDatabase,
+    branch: dev.localmed.nativespike.shared.model.LexicalQueryBranchPlan,
+    limit: Int,
+    onStage: ((String, Double) -> Unit)? = null,
+): BranchExecutionResult {
+    val branchHits = timedStage(onStage, "sql") { executeBranch(db, branch.ftsQuery, limit) }
     val rankByChunk = branchHits.associate { it.chunkId to it.rank }
-    val hydratedByChunk = db.hydrateHits(branchHits.map { it.chunkId }).associateBy { it.chunkId }
+    val hydratedByChunk = timedStage(onStage, "hydration") { db.hydrateHits(branchHits.map { it.chunkId }) }
+        .associateBy { it.chunkId }
     val orderedHits = branchHits.mapNotNull { bh ->
         hydratedByChunk[bh.chunkId]?.copy(rank = rankByChunk.getValue(bh.chunkId))
     }
@@ -110,6 +118,16 @@ fun buildQueryDocumentIndex(db: NativeSearchDatabase): QueryDocumentIndex =
  * stage 4's UI wiring needs. `runLookupPipeline` (below) is a thin wrapper over this for the
  * golden-parity tests, which only need the narrower `LookupGroupSummary` fields.
  * `documentIndex` should be built once (`buildQueryDocumentIndex`) and reused across queries.
+ *
+ * **Optimization pass** (docs/research/native-vs-webview-2026-09-28.md, "Optimization pass"):
+ * `aliasExpander`/`medicationMatcher` are now optional pre-built vocabulary structures (from
+ * `createAliasExpander`/`createMedicationSpellingMatcher`, built ONCE by `LookupEngine`) — passing
+ * them avoids rebuilding the alias fuzzy-match head index and the medication-spelling index on
+ * every single query, which profiling (see the doc's stage-timing table) found was the majority of
+ * this pipeline's own cost. Omitting them preserves the exact old rebuild-per-call behavior (used
+ * by golden-parity tests, which pass small/fresh alias lists where rebuilding is cheap and where
+ * changing the test call sites was unnecessary risk for zero benefit). `onStage`, when non-null,
+ * receives `(stageName, ms)` for every timed phase — see `PipelineTiming.kt`.
  */
 fun runLookupPipelineGroups(
     query: String,
@@ -117,22 +135,32 @@ fun runLookupPipelineGroups(
     db: NativeSearchDatabase,
     documentIndex: QueryDocumentIndex,
     groupLimit: Int,
+    aliasExpander: AliasExpander? = null,
+    medicationMatcher: MedicationSpellingMatcher? = null,
+    onStage: ((String, Double) -> Unit)? = null,
 ): List<RankedGroup> {
-    val builtPlan = buildLookupQueryPlan(query, aliases)
-    val plan = resolveMedicationSpellingPlan(builtPlan, db, groupLimit)
+    timedStage(onStage, "normalize") { normalizeSurfaceText(query) }
+    val preparedExpansion = timedStage(onStage, "aliases") { aliasExpander?.expand(query) }
+    val builtPlan = buildLookupQueryPlan(query, aliases, preparedExpansion, medicationMatcher, onStage)
+    val plan = resolveMedicationSpellingPlan(builtPlan, db, groupLimit, onStage)
     val limit = perBranchLimit(groupLimit)
 
-    val branchResults = plan.branches.map { branch -> executeAndHydrateBranch(db, branch, limit) }
+    val branchResults = plan.branches.map { branch -> executeAndHydrateBranch(db, branch, limit, onStage) }
     val allHits = branchResults.flatMap { it.hits }
     val documentsById = LinkedHashMap<String, DocumentDescriptor>()
     for (hit in allHits) documentsById.getOrPut(hit.documentId) { toDocumentDescriptor(hit) }
 
-    // Mirrors create-medical-core.ts's exact*DocumentIds (terminology's contribution to
-    // exactAliasDocumentIds is always empty here — see file header).
-    val exactAliasDocumentIds = documentIndex.exactAliasIds(query)
-    val exactTitleDocumentIds = documentIndex.exactTitleIds(query)
-    val exactNavigationAliasDocumentIds = documentIndex.exactNavigationAliasIds(query)
-    val exactShortTitleDocumentIds = documentIndex.exactShortTitleIds(query)
+    val (exactAliasDocumentIds, exactTitleDocumentIds, exactNavigationAliasDocumentIds, exactShortTitleDocumentIds) =
+        timedStage(onStage, "exactIdentity") {
+            // Mirrors create-medical-core.ts's exact*DocumentIds (terminology's contribution to
+            // exactAliasDocumentIds is always empty here — see file header).
+            ExactIdentityIdSet(
+                documentIndex.exactAliasIds(query),
+                documentIndex.exactTitleIds(query),
+                documentIndex.exactNavigationAliasIds(query),
+                documentIndex.exactShortTitleIds(query),
+            )
+        }
     val exactSecondaryIdentityDocumentIds = exactNavigationAliasDocumentIds + exactShortTitleDocumentIds
     val exactIdentityDocumentIds = exactTitleDocumentIds + exactSecondaryIdentityDocumentIds
     val spellingDocumentIds = (plan.medicationSpellingNames ?: emptyList())
@@ -141,7 +169,7 @@ fun runLookupPipelineGroups(
         .take(40)
         .toSet()
 
-    val fused = fuseBranchHits(branchResults, limit, query, exactAliasDocumentIds)
+    val fused = timedStage(onStage, "fusion") { fuseBranchHits(branchResults, limit, query, exactAliasDocumentIds) }
     val retainedDocumentIds = fused.map { it.documentId }.toSet()
 
     fun addExactResults(documentIds: Set<String>): List<RankedResult> {
@@ -158,43 +186,53 @@ fun runLookupPipelineGroups(
         return results
     }
 
-    val exactIdentityResults = addExactResults(exactIdentityDocumentIds)
-    val spellingResults = addExactResults(spellingDocumentIds)
+    val (exactIdentityResults, spellingResults) = timedStage(onStage, "exactIdentity") {
+        addExactResults(exactIdentityDocumentIds) to addExactResults(spellingDocumentIds)
+    }
     val merged = mergeExactIdentityResults(fused, exactIdentityResults + spellingResults)
     val results = filterSupersededSummaryResults(merged, documentIndex.availableIds)
 
     val normalizedQuery = normalizeSurfaceText(query)
     val preferredSectionType = requestedSectionType(normalizedQuery)
-    var groups: List<RankedGroup> = groupResults(results, preferredSectionType)
-    groups = rankSearchGroupsByQuery(groups, query, documentsById)
-    groups = filterSuffixFallbackGroups(groups, query, aliases, exactIdentityDocumentIds + spellingDocumentIds)
-    // Mirrors `termIndex.rank(groupedResults, terminologyMatch).toSorted(exactTitle/exactSecondary/
-    // spelling tie-break)` — `termIndex.rank(...)` is an identity passthrough here (no terminology
-    // match, see file header), so only the tie-break sort applies. `sortedWith` is stable, matching
-    // `.toSorted()`, so ties keep `rankSearchGroupsByQuery`'s own order.
-    groups = groups.sortedWith(
-        compareByDescending<RankedGroup> { it.documentId in exactTitleDocumentIds }
-            .thenByDescending { it.documentId in exactSecondaryIdentityDocumentIds }
-            .thenByDescending { it.documentId in spellingDocumentIds },
-    )
-    groups = collapseGroupsByTargetDocument(groups, documentsById)
-    groups = groups.take(groupLimit)
-
-    // apps/app's ScopedMedicalCore layer (scope 'all') — see file header.
-    groups = filterMedicationDocuments(groups, query, documentsById)
-    val requestedAudience = inferRequestedAudience(query)
-    groups = rankSearchGroupsByAudience(groups, documentsById, requestedAudience)
-    if (requestedAudience != null) groups = preferClinicalRecommendationForCaseQueries(groups)
-    groups = preserveStrictIdentities(groups, query, documentsById)
-    groups = groups.map {
-        it.copy(
-            contentKind = searchResultContentKind(documentsById[it.documentId]),
-            targetDocumentId = resolveTargetDocumentId(it.documentId, documentsById),
+    var groups: List<RankedGroup> = timedStage(onStage, "grouping") { groupResults(results, preferredSectionType) }
+    groups = timedStage(onStage, "ranking") {
+        var g = rankSearchGroupsByQuery(groups, query, documentsById)
+        g = filterSuffixFallbackGroups(g, query, aliases, exactIdentityDocumentIds + spellingDocumentIds)
+        // Mirrors `termIndex.rank(groupedResults, terminologyMatch).toSorted(exactTitle/exactSecondary/
+        // spelling tie-break)` — `termIndex.rank(...)` is an identity passthrough here (no
+        // terminology match, see file header), so only the tie-break sort applies. `sortedWith` is
+        // stable, matching `.toSorted()`, so ties keep `rankSearchGroupsByQuery`'s own order.
+        g = g.sortedWith(
+            compareByDescending<RankedGroup> { it.documentId in exactTitleDocumentIds }
+                .thenByDescending { it.documentId in exactSecondaryIdentityDocumentIds }
+                .thenByDescending { it.documentId in spellingDocumentIds },
         )
+        g = collapseGroupsByTargetDocument(g, documentsById)
+        g = g.take(groupLimit)
+
+        // apps/app's ScopedMedicalCore layer (scope 'all') — see file header.
+        g = filterMedicationDocuments(g, query, documentsById)
+        val requestedAudience = inferRequestedAudience(query)
+        g = rankSearchGroupsByAudience(g, documentsById, requestedAudience)
+        if (requestedAudience != null) g = preferClinicalRecommendationForCaseQueries(g)
+        g = preserveStrictIdentities(g, query, documentsById)
+        g.map {
+            it.copy(
+                contentKind = searchResultContentKind(documentsById[it.documentId]),
+                targetDocumentId = resolveTargetDocumentId(it.documentId, documentsById),
+            )
+        }
     }
 
     return groups
 }
+
+private data class ExactIdentityIdSet(
+    val alias: Set<String>,
+    val title: Set<String>,
+    val navigationAlias: Set<String>,
+    val shortTitle: Set<String>,
+)
 
 /**
  * Thin wrapper over `runLookupPipelineGroups` for the golden-parity tests, which only compare
@@ -207,8 +245,10 @@ fun runLookupPipeline(
     db: NativeSearchDatabase,
     documentIndex: QueryDocumentIndex,
     groupLimit: Int,
+    aliasExpander: AliasExpander? = null,
+    medicationMatcher: MedicationSpellingMatcher? = null,
 ): List<LookupGroupSummary> =
-    runLookupPipelineGroups(query, aliases, db, documentIndex, groupLimit).map { group ->
+    runLookupPipelineGroups(query, aliases, db, documentIndex, groupLimit, aliasExpander, medicationMatcher).map { group ->
         LookupGroupSummary(
             documentId = group.documentId,
             targetDocumentId = group.targetDocumentId,

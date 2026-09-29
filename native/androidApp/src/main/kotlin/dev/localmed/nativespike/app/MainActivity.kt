@@ -33,6 +33,7 @@ import dev.localmed.nativespike.shared.search.LookupEngine
 import dev.localmed.nativespike.shared.ui.NativeSearchSpikeApp
 import dev.localmed.nativespike.shared.ui.NativeSpikeTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -103,20 +104,30 @@ class MainActivity : ComponentActivity() {
                             NativeSearchDatabase(dbFile.absolutePath).apply { open() }
                         }
                         val dbOpenAfterMs = SystemClock.elapsedRealtime() - activityStartedAtMs
-                        // Stage 4 (docs/CURRENT_STATE.md): building `LookupEngine`'s
-                        // `QueryDocumentIndex` (~20k documents) + alias vocabulary is real startup
-                        // cost the real WebView pipeline also pays once — logged as its own line so
-                        // it's never silently absorbed into "search-ready", per the coordinator's
-                        // instruction that a native cold-start number without this would be
-                        // dishonestly fast.
+                        // Optimization pass (docs/research/native-vs-webview-2026-09-28.md):
+                        // `LookupEngine`'s constructor no longer blocks on building its alias/
+                        // medication-spelling vocabulary or `QueryDocumentIndex` — both now build in
+                        // the background (see LookupEngine.kt's header for why, and how this compares
+                        // to the real TS pipeline's own lazy-on-first-query behavior). "search-ready"
+                        // now only reflects dbOpenMs + this cheap constructor call, not either
+                        // background build.
                         val engine = withContext(Dispatchers.IO) { LookupEngine(database) }
                         val readyAfterMs = SystemClock.elapsedRealtime() - activityStartedAtMs
-                        Log.i(
-                            LOG_TAG,
-                            "search-ready tookMs=$readyAfterMs dbOpenMs=$dbOpenAfterMs " +
-                                "indexBuildMs=${engine.indexBuildMs}",
-                        )
+                        Log.i(LOG_TAG, "search-ready tookMs=$readyAfterMs dbOpenMs=$dbOpenAfterMs")
                         state = CoreState.Ready(database, engine)
+                        // Fire-and-forget: log each background build's own completion time
+                        // separately, once it finishes, so neither "search-ready" above nor any
+                        // single query's own latency silently absorbs this real, one-time cost.
+                        launch(Dispatchers.Default) {
+                            engine.awaitReady()
+                            val readyForRealMs = SystemClock.elapsedRealtime() - activityStartedAtMs
+                            Log.i(
+                                LOG_TAG,
+                                "background-index-ready tookMs=$readyForRealMs " +
+                                    "vocabularyBuildMs=${engine.vocabularyBuildMs} " +
+                                    "indexBuildMs=${engine.indexBuildMs}",
+                            )
+                        }
                     } catch (cause: Exception) {
                         Log.e(LOG_TAG, "core.db open failed", cause)
                         state = CoreState.Failed(cause.message ?: "Не удалось открыть core.db")
@@ -138,12 +149,16 @@ class MainActivity : ComponentActivity() {
                         database = current.database,
                         engine = current.engine,
                         externalQuery = benchQuery,
-                        onOutcome = { query, outcome, tookMs ->
+                        onOutcome = { query, outcome, tookMs, stages ->
+                            // Optimization-pass stage-timing table: stages is a per-stage-name sum
+                            // across all branches for this one query (see PipelineTiming.kt) —
+                            // parsed by the bench harness into docs/research's before/after table.
+                            val stagesStr = stages.entries.joinToString(" ") { (name, ms) -> "$name=$ms" }
                             Log.i(
                                 BENCH_LOG_TAG,
                                 "query=\"$query\" sqlMs=${outcome?.timing?.sqlOnlyMs} " +
                                     "searchFnMs=${outcome?.timing?.totalMs} totalToFrameMs=$tookMs " +
-                                    "resultGroups=${outcome?.groups?.size ?: 0}",
+                                    "resultGroups=${outcome?.groups?.size ?: 0} stages=[$stagesStr]",
                             )
                         },
                     )

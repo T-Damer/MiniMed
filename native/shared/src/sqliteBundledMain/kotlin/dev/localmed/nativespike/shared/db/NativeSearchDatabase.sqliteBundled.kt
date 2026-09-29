@@ -118,15 +118,19 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
         // Mirrors `SqliteMedicalStore.listAliases()` (packages/storage-sqlite/src/sqlite-medical-store.ts):
         // `SELECT id, canonical_term, alias, category, weight FROM aliases NOT INDEXED ORDER BY alias`.
         val sql = "SELECT id, canonical_term, alias, category, weight FROM aliases NOT INDEXED ORDER BY alias"
+        // Pooled: `canonicalTerm` (many aliases share one canonical concept) and `category` (a
+        // handful of distinct values) — see `String.pooled`'s doc above.
+        val canonicalPool = HashMap<String, String>()
+        val categoryPool = HashMap<String, String>()
         return requireConnection().prepare(sql).use { statement ->
             val results = mutableListOf<AliasRecord>()
             while (statement.step()) {
                 results.add(
                     AliasRecord(
                         id = statement.getText(0),
-                        canonicalTerm = statement.getText(1),
+                        canonicalTerm = statement.getText(1).pooled(canonicalPool),
                         alias = statement.getText(2),
-                        category = if (statement.isNull(3)) null else statement.getText(3),
+                        category = if (statement.isNull(3)) null else statement.getText(3).pooled(categoryPool),
                         weight = statement.getDouble(4),
                     ),
                 )
@@ -283,6 +287,9 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
                     AS navigation_aliases
             FROM documents
         """.trimIndent()
+        // Pooled: `sourceType` is one of a handful of distinct values across ~20k documents — see
+        // `String.pooled`'s doc above.
+        val sourceTypePool = HashMap<String, String>()
         return requireConnection().prepare(sql).use { statement ->
             val results = ArrayList<SearchDocumentSummary>(20_000)
             while (statement.step()) {
@@ -291,7 +298,7 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
                         id = statement.getText(0),
                         title = statement.getText(1),
                         shortTitle = statement.textOrNull(2),
-                        sourceType = statement.getText(3),
+                        sourceType = statement.getText(3).pooled(sourceTypePool),
                         declaredAliases = statement.splitList(4),
                         navigationAliases = statement.splitList(5),
                     ),
@@ -426,6 +433,22 @@ private inline fun <T> SQLiteStatement.use(block: (SQLiteStatement) -> T): T {
 
 /** Null-safe `getText` for an outer-joined or `json_extract`-absent (SQL NULL) column. */
 private fun SQLiteStatement.textOrNull(index: Int): String? = if (isNull(index)) null else getText(index)
+
+/**
+ * Optimization-pass memory fix (docs/research/native-vs-webview-2026-09-28.md, "Optimization
+ * pass" — "compare memory of structures: string interning, primitive arrays instead of boxing"):
+ * `androidx.sqlite`'s `getText` allocates a NEW `String` (new backing `CharArray`) for every row,
+ * even when the column is low-cardinality (`aliases.category` is one of a handful of values across
+ * tens of thousands of rows; `documents.source_type` the same across ~20k documents). Both
+ * `listAliases()` and `listSearchDocuments()` retain their whole result list for the process
+ * lifetime (`LookupEngine.aliases`/its `QueryDocumentIndex`), so every duplicate string is real,
+ * permanent heap. A manual pool — not `kotlin.text.intern()`, which is JVM-only and would silently
+ * do nothing on iOS/Kotlin-Native — dedupes by value within one query's result set. Not applied to
+ * `hydrateHits`/`firstReadableChunk`: those run per query and their results are transient (GC'd
+ * once the query's response is built), so pooling them would cost CPU without reducing any RETAINED
+ * memory.
+ */
+private fun String.pooled(pool: MutableMap<String, String>): String = pool.getOrPut(this) { this }
 
 /** A `char(31)`-joined array column (see `hydrateHits`'s doc) back into a `List<String>`; NULL or
  * empty means "no values", not a one-element list with an empty string. */

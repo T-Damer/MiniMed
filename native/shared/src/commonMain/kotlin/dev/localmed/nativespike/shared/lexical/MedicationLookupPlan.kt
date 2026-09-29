@@ -16,20 +16,26 @@ import dev.localmed.nativespike.shared.model.QueryBranchKind
  * `aliasMatches` — the exact string shape a golden-parity mismatch traced back to this file during
  * sub-stage A (see that sub-stage's report: "ребенок → Рабелок (возможная опечатка)").
  *
- * Not cached across calls the way the TS source's `WeakMap`/module-level `matchers` cache is
- * (keyed by alias-array identity, purely a performance optimization for repeated calls with the
- * same vocabulary) — this port rebuilds the matcher per call; behaviorally identical, just not
- * memoized, consistent with the rest of this Kotlin port's stance on TS-side caching (see
- * `Aliases.kt`'s header on `expandAliases`'s own `WeakMap`).
+ * **Optimization-pass fix** (docs/research/native-vs-webview-2026-09-28.md, "Optimization pass"):
+ * this used to rebuild `createMedicationSpellingMatcher(aliases)` — which iterates every alias,
+ * normalizes both its `alias` and `canonicalTerm`, and builds `lengths`/`byLookup` indices — on
+ * EVERY call, mirroring neither the TS source's `WeakMap`/module-level `matchers` cache (a pure
+ * performance optimization for repeated calls with the same vocabulary) nor this port's own
+ * `LookupEngine`, which now builds the matcher once at startup. Pass `medicationMatcher` (built via
+ * `createMedicationSpellingMatcher` once, by the caller) to reuse it; omitting it preserves the old
+ * per-call-rebuild behavior exactly (used by callers — golden-parity tests — that intentionally
+ * build a fresh, small alias list per call, where rebuilding is cheap and correct either way).
  */
 fun buildLookupQueryPlan(
     query: String,
     aliases: List<AliasRecord>,
     preparedExpansion: AliasExpansion? = null,
+    medicationMatcher: MedicationSpellingMatcher? = null,
+    onStage: ((String, Double) -> Unit)? = null,
 ): MedicationLookupPlan {
-    val original = buildBaseLookupQueryPlan(query, aliases, preparedExpansion)
-    val matcher = createMedicationSpellingMatcher(aliases)
-    val candidates = matcher.match(query)
+    val original = timedStage(onStage, "plan") { buildBaseLookupQueryPlan(query, aliases, preparedExpansion) }
+    val matcher = medicationMatcher ?: createMedicationSpellingMatcher(aliases)
+    val candidates = timedStage(onStage, "spelling") { matcher.match(query) }
     if (candidates.isEmpty()) {
         return MedicationLookupPlan(
             branches = original.branches,
