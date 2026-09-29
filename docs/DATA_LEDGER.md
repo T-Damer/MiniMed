@@ -51,4 +51,8 @@ The per-artifact producer, consumers, release tag and rebuild command are in the
 - `output/release-*`: the AGENTS.md rule (newest releases, never fewer than 2) wins over the ledger.
 - Before deleting a RELEASED or DUPLICATE copy, verify that the other copy still exists (the report
   lists recorded artifacts that vanished).
+- While the project is active, keep at least one local copy of every RELEASED artifact that the
+  current catalog or app uses (owner decision 2026-09-29): GitHub is not the only copy, in case the
+  account or service becomes unavailable. A RELEASED path is a delete candidate only when it is no
+  longer referenced or another local copy exists.
 - Never hand-edit a generated database to "fix" the ledger; rebuild through the recorded command.
