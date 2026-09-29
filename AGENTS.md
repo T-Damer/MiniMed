@@ -115,8 +115,13 @@ substitution, clinical promotion or rights assumptions. Historical source files 
 - `output/release-*`: keep the 3 newest while they total at most 4 GB, otherwise fewer, never fewer
   than 2. Release assets themselves live on GitHub. Machine-wide limits and `dev-disk` are in the
   global agent rules.
+- Do not keep intermediate build data. A task that creates candidate cores, test or `no-pilot`
+  variants, merge/split stages, compaction experiments or pre-fix copies deletes them itself as soon
+  as the final artifact is verified or the result is written down; only sources, released artifacts
+  and current build inputs stay on disk.
 - Local data ≥50 MiB is recorded in `docs/data-ledger.json` (rules: `docs/DATA_LEDGER.md`); run
-  `bun run data:ledger` after creating or removing such artifacts, and never delete data yourself.
+  `bun run data:ledger` after creating or removing such artifacts. Anything else — sources, released
+  artifacts, data another task produced — is deleted only by the owner.
 
 ## Formatting and checks
 
