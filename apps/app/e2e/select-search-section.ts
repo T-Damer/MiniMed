@@ -16,10 +16,11 @@ export async function selectSearchSection(page: Page, label: string): Promise<vo
   }).toPass({ timeout: 20_000 });
 }
 
-/** Clinical analysis is a switch next to the source picker, not a source of its own. */
+/** Clinical analysis is an icon toggle next to the source picker, not a source of its own. */
 export async function setClinicalAnalysis(page: Page, on: boolean): Promise<void> {
-  const control = page.getByRole('switch', { name: 'Клинический разбор' });
-  if ((await control.getAttribute('aria-checked')) !== String(on)) await control.click();
+  const control = page.getByRole('button', { name: 'Клинический разбор', exact: true });
+  if ((await control.getAttribute('aria-pressed')) !== String(on)) await control.click();
+  await expect(control).toHaveAttribute('aria-pressed', String(on));
 }
 
 /** The empty home lists sections with counts; the counts appear once the catalog has loaded. */

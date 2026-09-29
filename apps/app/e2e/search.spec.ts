@@ -223,7 +223,8 @@ for (const width of [375, 1280]) {
     await expect(sheet.getByRole('button', { name: 'Карта связей' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Случайная запись' })).toBeVisible();
     await expect(sheet.getByRole('button', { name: 'Раздел поиска', exact: true })).toBeVisible();
-    await expect(sheet.getByRole('switch', { name: 'Клинический разбор' })).toBeVisible();
+    const clinical = sheet.getByRole('button', { name: 'Клинический разбор', exact: true });
+    await expect(clinical).toHaveAttribute('aria-pressed', 'false');
 
     // A clean one-line field: no notebook margin line, no empty second line before typing.
     const sheetDecor = await sheet.evaluate(
@@ -260,10 +261,24 @@ for (const width of [375, 1280]) {
     await expect(input).toHaveValue('');
     await expect(clear).toHaveCount(0);
 
-    // Sending is one round button.
+    // Sending is one round button, on the same row as the source picker and the brain toggle.
     await input.fill('пневмония');
     const send = sheet.getByRole('button', { name: 'Найти', exact: true });
     await expect(send).toBeVisible();
+    const rowCentres = await Promise.all(
+      [sheet.getByRole('button', { name: 'Раздел поиска', exact: true }), clinical, send].map(
+        async (control) => {
+          const box = await control.boundingBox();
+          return box ? box.y + box.height / 2 : Number.NaN;
+        },
+      ),
+    );
+    expect(Math.max(...rowCentres) - Math.min(...rowCentres)).toBeLessThan(6);
+    // The toggle states its state, and flips it back.
+    await clinical.click();
+    await expect(clinical).toHaveAttribute('aria-pressed', 'true');
+    await clinical.click();
+    await expect(clinical).toHaveAttribute('aria-pressed', 'false');
     await send.click();
     await expect(page.getByTestId('search-results')).toBeVisible({ timeout: 30_000 });
   });

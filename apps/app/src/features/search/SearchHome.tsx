@@ -18,7 +18,6 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
-import { Switch } from '@/components/Switch';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-packs';
@@ -730,18 +729,25 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                   setScope(next);
                 }}
               />
-              {/* biome-ignore lint/a11y/noLabelWithoutControl: Switch renders a <button>, a labelable element; the label makes its caption clickable. */}
-              <label class="search-clinical-switch">
-                <Switch
-                  class="search-clinical-switch__control"
-                  checked={clinicalAnalysis()}
-                  onChange={setClinicalAnalysis}
-                  aria-label="Клинический разбор"
+              {/* One compact row under the field: the clinical analysis is an icon toggle. */}
+              <button
+                type="button"
+                class="search-clinical-toggle"
+                classList={{ 'search-clinical-toggle--on': clinicalAnalysis() }}
+                aria-pressed={clinicalAnalysis()}
+                aria-label="Клинический разбор"
+                title={
+                  clinicalAnalysis()
+                    ? 'Клинический разбор включён: вопросы уточняют случай'
+                    : 'Клинический разбор выключен'
+                }
+                onClick={() => setClinicalAnalysis(!clinicalAnalysis())}
+              >
+                <AppGlyph
+                  name={clinicalAnalysis() ? 'brain-fill' : 'brain'}
+                  class="search-clinical-toggle__icon"
                 />
-                <span class="search-clinical-switch__label" aria-hidden="true">
-                  Клинический разбор
-                </span>
-              </label>
+              </button>
             </div>
           }
         />
