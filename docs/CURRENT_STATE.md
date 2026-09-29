@@ -2,7 +2,9 @@
 
 > Updated: 29 September 2026
 > Released version: `0.6.44` (public prerelease toward `1.0`)
-> Next planned step: native migration (see the release note below).
+> Next planned step: finish the pending WebView features and ship the last WebView release; the
+> native port (`native/`, Kotlin + Compose) is kept and resumes after that release (user decision,
+> 2026-09-29).
 
 This file records what exists now, its trust boundaries and the ordered next work. Keep it short:
 append dated measurements to `docs/state/` or `docs/research/`, and link them from here. The target
