@@ -4,6 +4,33 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.44] - 2026-09-29
+
+- Reference modules: the 6,068 krasotaimedicina.ru disease articles and the RLS MKB-10 reference
+  (9,835 codes with synonyms, hierarchy and code→medicine links) are downloadable experimental
+  modules, so ICD cards and articles such as «Пневмония» open full text instead of «Полный документ
+  пока недоступен». A pointer now opens any released module whose verified index lists its exact
+  target.
+- Search: ICD codes keep the typed chapter («F23.3» no longer finds I23.3; Cyrillic look-alikes
+  such as «Е11.9» work); on the core alone correct top-5 for dotted codes rose from 46% to 96.5%.
+- Fixed: the speech-model download failed with «Unsupported speech asset URL» since the
+  transformers.js 4 update; broad searches could run the Android WebView out of memory (the
+  navigation catalog is now read in pages).
+- Collections: bookmark any document, medication or note into «Избранные» or named collections
+  from the reader; the last target is remembered. Reader header gets an actions menu (print, save);
+  the bookmark sits before the title.
+- Home: tools and a «Полезные функции» carousel above the field, one spacing step, a single core
+  status; «Мои файлы» gains a «База знаний» entry and pins on folders that cannot be removed.
+- Start-up keeps the splash colour until the first view, which fades in once; patients open
+  without a flashing dialog; sticky headers no longer cover the «+» button; the background no
+  longer jumps with page height.
+- Toasts offer «Открыть» for things just added and for downloads the user started.
+- Fixed: text typed while a knowledge-base section opened was erased; readers now retry the
+  scroll to a source anchor until it is on screen.
+
+The discovery corpus (`core.db`) is unchanged. Debug-signed engineering prerelease signed with the
+persistent key (installs over 0.6.43); physical-device and clinical qualification remain outstanding.
+
 ## [0.6.43] - 2026-09-28
 
 - Android: prerelease APKs are signed with one persistent key, so later releases install over this

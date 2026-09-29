@@ -250,9 +250,12 @@ jobs:
           MiniMed ${RELEASE_VERSION} is a debug-signed engineering prerelease of the offline-first medical reference.
 
           Changes:
-          - signed with a persistent key: from this release on, new APKs install over the previous one and keep local data;
-          - updating from 0.6.42 or older still requires removing the old app once (export a notes backup first);
-          - search home: an empty query shows «Разделы» with worded counts instead of the endless catalog.
+          - downloadable reference modules: krasotaimedicina.ru disease articles and the RLS MKB-10 reference (experimental);
+          - ICD codes keep the typed chapter; Cyrillic look-alike letters work;
+          - fixed the speech-model download and an out-of-memory crash on broad searches;
+          - collections and bookmarks for documents, medications and notes; reader actions menu;
+          - calmer start-up, patients open without a flashing dialog, new home layout;
+          - installs over 0.6.43 (same signing key).
 
           Catalog packs are downloaded separately, with their preview/review status preserved.
           The browser application is under /app/. The local/GitHub download switch is DEV-only.
