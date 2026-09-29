@@ -105,6 +105,17 @@ substitution, clinical promotion or rights assumptions. Historical source files 
   them.
 - Never remove an original paragraph merely because it looks irrelevant to one query.
 
+## Worktrees and disk
+
+- Worktrees live under `.claude/worktrees/` or an agent scratchpad. Remove a worktree as soon as its
+  branch is merged into `main` (`git worktree remove`, `git worktree prune`), and remove measurement
+  or release worktrees when the measurement or release is done.
+- JavaScript dependencies stay on the repository-pinned Bun (its global cache is shared across
+  checkouts); do not add npm or yarn-classic installs.
+- `output/release-*`: keep the 3 newest while they total at most 4 GB, otherwise fewer, never fewer
+  than 2. Release assets themselves live on GitHub. Machine-wide limits and `dev-disk` are in the
+  global agent rules.
+
 ## Formatting and checks
 
 TypeScript uses Biome and strict TypeScript. Python uses Ruff formatting/lint, strict Pyright, and
