@@ -36,6 +36,10 @@ Detailed history, moved verbatim on 2026-09-24:
   compact `documentTable` that the schema expands into the same `documents` (the parsed catalogs
   are deep-equal to the previous ones). All catalog writers use `serializeContentModuleCatalog`.
   Installed 0.6.44 and older read a refreshed remote catalog without membership until updated.
+- **RLS packaging module listed.** `minimed.rls.packaging.ru` 2026.9.28 (preview, optional; 7 181
+  brand documents, 29.2 MB gzip) is in `catalog.preview.json` (now 7.4 MB) with the release asset
+  `reference-rls-mkb-2026.9.28/minimed.reference.rls-packaging.2026.9.28.db.gz`, whose size and
+  SHA-256 match the published GitHub asset; the Pages mirror list includes it.
 
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 
@@ -648,9 +652,8 @@ described above.
    physical device.
 10. Medical news and research feed (ADR-0020, proposed; plan only): research sources, rate limits,
     CORS and Russian journal OAI-PMH/RSS coverage before choosing a first slice.
-11. List `minimed.rls.packaging.ru` (the compact membership format now keeps the catalog small) and
-    link RLS medication profiles to their packaging document; the app does not yet show
-    `medication_profiles` knowledge entities anywhere.
+11. Link RLS medication profiles (`packagingDocumentId`) to their packaging document; the app does
+    not yet show `medication_profiles` knowledge entities anywhere.
 12. zstd module artifacts: about 45% smaller than gzip for the RLS modules; the catalog schema
     already allows zstd, the installer needs a decoder.
 13. Core rebuild with medicine aliases (1,678 mapped trade names) and a non-FTS identity table for
