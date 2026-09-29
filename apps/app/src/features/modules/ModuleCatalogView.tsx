@@ -230,8 +230,14 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     });
   };
 
+  // Opening a section syncs at once and again on the hashchange that follows; a query typed in
+  // between belongs to the same section and must survive the second pass.
+  let syncedSelectionKey: string | undefined;
   const syncSelectionFromLocation = (): void => {
     const selection = catalogSelectionFromLocation();
+    const selectionKey = JSON.stringify(selection);
+    if (selectionKey === syncedSelectionKey) return;
+    syncedSelectionKey = selectionKey;
     setRegularCollection(selection?.kind === 'collection' ? selection.id : '');
     setRecommendationCategory(selection?.kind === 'category' ? selection.id : '');
     setRecommendationBrowserOpen(
