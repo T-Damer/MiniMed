@@ -19,6 +19,14 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Unreleased — toward the last WebView release
+
+- **Medication card after a reload.** Opening a product from «Препараты» saves it with the
+  document's history entry, so a reload or back/forward keeps the trade name, presentation and the
+  short/instruction switch. The saved product is validated before use; a queued catalog handoff
+  still forces a fresh load, a restored one does not. `e2e/medication-reload.spec.ts` fails
+  without the fix.
+
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 
 - Fixed the ~596-record `Список сокращений` mislabeling bug (`scripts/extract_prepared_definitions.py`)
@@ -625,17 +633,15 @@ described above.
    physical device.
 10. Medical news and research feed (ADR-0020, proposed; plan only): research sources, rate limits,
     CORS and Russian journal OAI-PMH/RSS coverage before choosing a first slice.
-11. A medication card reopened after a page reload loses the catalog's product context (trade name,
-    presentation and reading switch); restore it from the route rather than from in-memory state.
-12. EPUB continuous mode: jumping to a chapter lands in several visible jumps (≈4284 → 6521 → 4389
+11. EPUB continuous mode: jumping to a chapter lands in several visible jumps (≈4284 → 6521 → 4389
     px within ~300 ms) while epub.js renders neighbouring chapters; align the chapter once after
     the layout settles.
-13. Catalog membership format: listing the RLS packaging module would grow `catalog.preview.json`
+12. Catalog membership format: listing the RLS packaging module would grow `catalog.preview.json`
     from 12.6 to ~16 MB, mostly repeated per-document fields. Move module membership to a compact
     or lazily loaded form, then list `minimed.rls.packaging.ru` and link medication profiles to it.
-14. zstd module artifacts: about 45% smaller than gzip for the RLS modules; the catalog schema
+13. zstd module artifacts: about 45% smaller than gzip for the RLS modules; the catalog schema
     already allows zstd, the installer needs a decoder.
-15. Core rebuild with medicine aliases (1,678 mapped trade names) and a non-FTS identity table for
+14. Core rebuild with medicine aliases (1,678 mapped trade names) and a non-FTS identity table for
     terms, scales and acts (`research/core-coverage-2026-09-28.md`), after the candidate core
     passes the doctor-lookup gate.
 

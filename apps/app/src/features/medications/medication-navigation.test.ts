@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   consumeMedicationProductContext,
+  medicationProductFromHistory,
   queueMedicationProductContext,
 } from '@/features/medications/medication-navigation';
 import type { MedicationProduct } from '@/features/medications/medication-record';
@@ -27,7 +28,14 @@ const product: MedicationProduct = {
   manufacturer: null,
   registrationDate: null,
   pharmacotherapeuticGroups: [],
-  presentations: [],
+  presentations: [
+    {
+      dosageForm: 'Суспензия для приёма внутрь',
+      strength: '100 мг/5 мл',
+      route: null,
+      packages: [{ description: 'Флакон 100 мл', prescriptionStatus: 'Без рецепта' }],
+    },
+  ],
 };
 
 describe('medication product navigation context', () => {
@@ -39,5 +47,35 @@ describe('medication product navigation context', () => {
     queueMedicationProductContext(product);
     expect(consumeMedicationProductContext('esklp.mnn.ibuprofen')).toBe(product);
     expect(consumeMedicationProductContext('esklp.mnn.ibuprofen')).toBeNull();
+  });
+});
+
+describe('medication product restored from history state', () => {
+  // A reload keeps history.state but drops the in-memory catalog handoff.
+  const saved = JSON.parse(
+    JSON.stringify({
+      view: 'modules',
+      medicationProduct: { documentId: 'esklp.mnn.ibuprofen', product },
+    }),
+  ) as unknown;
+
+  it('returns the product saved for the same document entry', () => {
+    expect(medicationProductFromHistory(saved, 'esklp.mnn.ibuprofen')).toEqual(product);
+  });
+
+  it('ignores a product saved for another document', () => {
+    expect(medicationProductFromHistory(saved, 'esklp.mnn.paracetamol')).toBeNull();
+  });
+
+  it('rejects missing or malformed saved state', () => {
+    expect(medicationProductFromHistory(null, 'esklp.mnn.ibuprofen')).toBeNull();
+    expect(medicationProductFromHistory({ view: 'modules' }, 'esklp.mnn.ibuprofen')).toBeNull();
+    const malformed = {
+      medicationProduct: {
+        documentId: 'esklp.mnn.ibuprofen',
+        product: { ...product, presentations: [{ dosageForm: 1 }] },
+      },
+    };
+    expect(medicationProductFromHistory(malformed, 'esklp.mnn.ibuprofen')).toBeNull();
   });
 });

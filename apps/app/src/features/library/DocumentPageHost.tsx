@@ -19,7 +19,10 @@ import {
   type ClinicalMedicationLink,
   parseClinicalMedicationLinks,
 } from '@/features/medications/clinical-medication-links';
-import { consumeMedicationProductContext } from '@/features/medications/medication-navigation';
+import {
+  consumeMedicationProductContext,
+  medicationProductFromHistory,
+} from '@/features/medications/medication-navigation';
 import {
   type MedicationProduct,
   type MedicationReadingMode,
@@ -183,7 +186,12 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
 
   const loadOfficial = async (parsed: DocumentReadRoute & { kind: 'official' }): Promise<void> => {
     const documentId = parsed.documentId;
-    const selectedMedicationProduct = consumeMedicationProductContext(documentId) ?? undefined;
+    const queuedMedicationProduct = consumeMedicationProductContext(documentId);
+    // After a reload the catalog handoff is gone; the product saved with this history entry remains.
+    const selectedMedicationProduct =
+      queuedMedicationProduct ??
+      medicationProductFromHistory(window.history.state, documentId) ??
+      undefined;
     setMedicationProduct(selectedMedicationProduct);
     setMedicationReadingMode(
       selectedMedicationProduct
@@ -199,7 +207,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         documentId,
         loadingDocumentId,
       ) &&
-      !selectedMedicationProduct
+      !queuedMedicationProduct
     ) {
       return;
     }
