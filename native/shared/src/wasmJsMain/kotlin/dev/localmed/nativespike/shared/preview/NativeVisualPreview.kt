@@ -19,6 +19,7 @@ import org.w3c.dom.url.URLSearchParams
 import kotlinx.coroutines.launch
 import dev.localmed.nativespike.shared.designsystem.NativeQueryProgress
 import dev.localmed.nativespike.shared.designsystem.NativeActionButton
+import dev.localmed.nativespike.shared.designsystem.NativeDimensions
 import dev.localmed.nativespike.shared.reader.nativeFilePickerAvailable
 import dev.localmed.nativespike.shared.reader.rememberNativeFilePicker
 import dev.localmed.nativespike.shared.reader.NativeReaderContent
@@ -66,14 +67,19 @@ fun NativeVisualPreview() {
         onDispose { unregister() }
     }
     val document = source
-    val chrome = remember(scene, document?.target, openedFile) { NativeReaderChrome() }
+    val chrome = remember(scene, document?.target) { NativeReaderChrome() }
+    val fileChrome = remember(openedFile) { NativeReaderChrome() }
     val fileDocument = openedFile is NativeReaderContent.Document
-    val navVisible = if (fileDocument) chrome.visible else openedFile == null && !scene.startsWith("design") &&
+    val routeNavVisible = !scene.startsWith("design") &&
         panel != NativeUserPanel.Collections && panel != NativeUserPanel.History &&
         (panel != null || toolRoute?.route != null || scene != "reader" || chrome.visible)
+    val navVisible = if (fileDocument) fileChrome.visible else openedFile == null && routeNavVisible
+    val navigationSpace = NativeDimensions.controlHeightLarge + NativeDimensions.space3
+    val emptyNavigationSpace = 0.dp
     NativeUserAppearance(user?.preferences ?: NativeUserPreferences()) {
         NativeSpikeTheme {
-            CompositionLocalProvider(LocalNativeOpenFile provides pickFile.takeIf { nativeFilePickerAvailable }, LocalNativeReaderChrome provides chrome, LocalNativeNavigationPadding provides if (navVisible) 68.dp else 0.dp) {
+            CompositionLocalProvider(LocalNativeOpenFile provides pickFile.takeIf { nativeFilePickerAvailable }, LocalNativeReaderChrome provides chrome,
+                LocalNativeNavigationPadding provides if (routeNavVisible) navigationSpace else emptyNavigationSpace) {
                 Box(Modifier.fillMaxSize()) {
                     Box(Modifier.fillMaxSize().focusProperties { canFocus = openedFile == null }.onPreviewKeyEvent { openedFile != null }
                         .then(if (openedFile != null) Modifier.clearAndSetSemantics { } else Modifier)) {
@@ -112,7 +118,14 @@ fun NativeVisualPreview() {
                         }
                     }
                     }
-                    openedFile?.let { file -> NativeOpenedFileScreen(file) { scope.launch { session.back() } } }
+                    openedFile?.let { file ->
+                        CompositionLocalProvider(
+                            LocalNativeReaderChrome provides fileChrome,
+                            LocalNativeNavigationPadding provides if (navVisible) navigationSpace else emptyNavigationSpace,
+                        ) {
+                            NativeOpenedFileScreen(file) { scope.launch { session.back() } }
+                        }
+                    }
                     if (navVisible) Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp)) {
                         NativeBottomNavigation(if (!fileDocument && panel == NativeUserPanel.Settings) 2 else 0,
                             onSearch = { scope.launch { if (session.showSearch()) scene = "search" } },

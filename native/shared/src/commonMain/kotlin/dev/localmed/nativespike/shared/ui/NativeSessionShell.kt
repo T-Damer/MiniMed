@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 import dev.localmed.nativespike.shared.reader.nativeFilePickerAvailable
 import dev.localmed.nativespike.shared.reader.rememberNativeFilePicker
 import dev.localmed.nativespike.shared.reader.NativeReaderContent
+import dev.localmed.nativespike.shared.designsystem.NativeDimensions
 
 /** Keeps the ready app composed while settings/history cover it, including its draft and reader. */
 @Composable
@@ -52,16 +53,19 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
         NativeSpikeTheme {
             val navigation = (state as? NativeCoreSessionState.Ready)?.core?.navigation?.collectAsState()?.value
             val readerTarget = navigation?.readers?.lastOrNull()?.target
-            val readerChrome = remember(session, readerTarget, openedFile) { NativeReaderChrome() }
+            val readerChrome = remember(session, readerTarget) { NativeReaderChrome() }
+            val fileChrome = remember(session, openedFile) { NativeReaderChrome() }
             val fileDocument = openedFile is NativeReaderContent.Document
-            val navigationVisible = (if (fileDocument) readerChrome.visible else openedFile == null &&
-                panel != NativeUserPanel.History && panel != NativeUserPanel.Collections &&
-                (panel != null || toolsSnapshot?.route != null || readerTarget == null || readerChrome.visible)) &&
-                WindowInsets.ime.getBottom(LocalDensity.current) == 0
+            val keyboardHidden = WindowInsets.ime.getBottom(LocalDensity.current) == 0
+            val routeNavigationVisible = panel != NativeUserPanel.History && panel != NativeUserPanel.Collections &&
+                (panel != null || toolsSnapshot?.route != null || readerTarget == null || readerChrome.visible) && keyboardHidden
+            val navigationVisible = if (fileDocument) fileChrome.visible && keyboardHidden else openedFile == null && routeNavigationVisible
+            val navigationSpace = NativeDimensions.controlHeightLarge + NativeDimensions.space3
+            val emptyNavigationSpace = 0.dp
             CompositionLocalProvider(
                 LocalNativeOpenFile provides pickFile.takeIf { nativeFilePickerAvailable },
-                LocalNativeReaderChrome provides if (readerTarget != null || fileDocument) readerChrome else null,
-                LocalNativeNavigationPadding provides if (navigationVisible) 68.dp else 0.dp,
+                LocalNativeReaderChrome provides if (readerTarget != null) readerChrome else null,
+                LocalNativeNavigationPadding provides if (routeNavigationVisible) navigationSpace else emptyNavigationSpace,
             ) {
             Box(Modifier.fillMaxSize()) {
                 Box(Modifier.fillMaxSize().focusProperties { canFocus = !covered }
@@ -86,7 +90,14 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
                     null -> Unit
                 }
                 }
-                openedFile?.let { file -> NativeOpenedFileScreen(file) { session.actionScope.launch { session.back() } } }
+                openedFile?.let { file ->
+                    CompositionLocalProvider(
+                        LocalNativeReaderChrome provides fileChrome,
+                        LocalNativeNavigationPadding provides if (navigationVisible) navigationSpace else emptyNavigationSpace,
+                    ) {
+                        NativeOpenedFileScreen(file) { session.actionScope.launch { session.back() } }
+                    }
+                }
                 if (navigationVisible) Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 10.dp)) {
                     NativeBottomNavigation(
                         selectedIndex = if (!fileDocument && panel == NativeUserPanel.Settings) 2 else 0,

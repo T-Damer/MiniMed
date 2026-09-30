@@ -71,7 +71,8 @@ internal fun NativeOpenedFileScreen(content: NativeReaderContent, onBack: () -> 
                     AnimatedVisibility(chrome.visible || state.findOpen,
                         enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
                         exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut()) {
-                        NativeDocumentReaderBar(state, content.title, onBack, glyphs, background = Color.Transparent) {
+                        NativeDocumentReaderBar(state, content.title, onBack, glyphs,
+                            modifier = Modifier.testTag("document-page__chrome"), background = Color.Transparent) {
                             NativeOpenFileButton()
                         }
                     }
@@ -84,6 +85,7 @@ internal fun NativeOpenedFileScreen(content: NativeReaderContent, onBack: () -> 
             val bottom = padding.calculateBottomPadding() + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             Box(Modifier.fillMaxSize()) {
                 NativeDocumentReaderList(state,
+                    modifier = Modifier.testTag("document-page__body"),
                     contentPadding = PaddingValues(top = paddedTop + NativeDimensions.space3, bottom = bottom + NativeDimensions.space3),
                     image = { source, alt, modifier -> NativeDataImage(source, alt, modifier) })
                 NativeDocumentReaderOverlays(state, glyphs, top = top, bottom = bottom)
