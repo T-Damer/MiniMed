@@ -60,12 +60,16 @@ class NativeCoreSession(
     val userState = NativeUserState(io)
     val collectionsState = NativeCollectionsState(io)
     val toolsState = NativeToolsState(io)
+    val startupSearch = NativeSearchUiState(dev.localmed.nativespike.shared.core.NativeSearchSnapshot())
     private val toolsMutex = Mutex()
     private var toolsBundle: NativeToolsBundle? = null
     private val mutableTools = MutableStateFlow<NativeToolCore?>(null)
     val tools = mutableTools.asStateFlow()
     private val mutableToolsQuery=MutableStateFlow("")
     val toolsQuery=mutableToolsQuery.asStateFlow()
+    private val mutableToolsKind = MutableStateFlow<NativeToolKind?>(null)
+    val toolsKind = mutableToolsKind.asStateFlow()
+    fun updateToolsKind(kind: NativeToolKind?) { mutableToolsKind.value = kind }
     private var toolsQueryLoaded=false
     fun updateToolsQuery(query: String) {
         if(query.length>20_000 || '\u0000' in query) {
@@ -89,9 +93,11 @@ class NativeCoreSession(
         catch(cause: NativeToolsFormatException) { uiErrors.report(NativeUiOperation.ToolsState,"Формат сохранённых инструментов повреждён или не поддерживается. Файл оставлен без изменений.");false }
         catch(cause: Exception) { uiErrors.report(NativeUiOperation.ToolsState,"Не удалось открыть инструменты. Повторите чтение.");false }
     }
-    suspend fun openTools(): Boolean {
+    suspend fun openTools(kind: NativeToolKind? = null): Boolean {
         if(!flushUi() || !loadTools()) return false
-        return uiErrors.execute(NativeUiOperation.ToolsState,"Не удалось сохранить переход к инструментам.") { toolsState.route(NativeToolRoute.Catalog) }
+        val opened = uiErrors.execute(NativeUiOperation.ToolsState,"Не удалось сохранить переход к инструментам.") { toolsState.route(NativeToolRoute.Catalog) }
+        if (opened) updateToolsKind(kind)
+        return opened
     }
     suspend fun openTool(id: String,entry: NativeToolEntry=NativeToolEntry.Search): Boolean {
         if(!flushUi() || !loadTools()) return false

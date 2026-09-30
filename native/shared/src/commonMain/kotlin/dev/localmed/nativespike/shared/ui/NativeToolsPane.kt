@@ -17,6 +17,7 @@ fun NativeToolsPane(session: NativeCoreSession) {
     val core by session.tools.collectAsState()
     val saved by session.toolsState.snapshot.collectAsState()
     val query by session.toolsQuery.collectAsState()
+    val kind by session.toolsKind.collectAsState()
     val errors by session.uiErrors.messages.collectAsState()
     val route=saved?.route ?: return
     val current=core ?: return
@@ -48,6 +49,7 @@ fun NativeToolsPane(session: NativeCoreSession) {
         Box(Modifier.weight(1f)) {
             when(route) {
                 NativeToolRoute.Catalog -> NativeToolsScreen(current,query,
+                    kind = kind, onKindChange = session::updateToolsKind,
                     onQueryChange=session::updateToolsQuery,
                     onOpenTool={session.actionScope.launch { session.openTool(it.id,NativeToolEntry.Catalog) }},onSaveItem=onSave,onBack=back)
                 is NativeToolRoute.Tool -> when(record?.definition) {

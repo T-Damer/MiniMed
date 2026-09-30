@@ -13,9 +13,8 @@ import dev.localmed.nativespike.shared.user.NativeItemRef
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun NativeToolsScreen(core: NativeToolCore,query: String,onQueryChange: (String) -> Unit,
+fun NativeToolsScreen(core: NativeToolCore,query: String,onQueryChange: (String) -> Unit,kind: NativeToolKind?,onKindChange: (NativeToolKind?) -> Unit,
     onOpenTool: (NativeToolRecord) -> Unit,onSaveItem: (NativeItemRef) -> Unit,onBack: () -> Unit) {
-    var kind by remember { mutableStateOf<NativeToolKind?>(null) }
     val matches = remember(core,query,kind) { core.searchTools(query,kind) }
     NativeToolScreenShell("Инструменты",onBack) { padding ->
         LazyColumn(Modifier.fillMaxSize().navigationBarsPadding(),contentPadding=PaddingValues(start=16.dp,end=16.dp,top=padding.calculateTopPadding()+16.dp,bottom=16.dp+padding.calculateBottomPadding()),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -23,8 +22,8 @@ fun NativeToolsScreen(core: NativeToolCore,query: String,onQueryChange: (String)
                 Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
                     NativePaperTextField(query,onQueryChange,"Найти инструмент",Modifier.fillMaxWidth())
                     FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                        NativePaperButton("Все",{kind=null},primary=kind==null)
-                        NativeToolKind.entries.forEach { value -> NativePaperButton(if(value==NativeToolKind.Calculator) "Калькуляторы" else "Шкалы и опросники",{kind=value},primary=kind==value,glyph=if(value==NativeToolKind.Calculator) NativeAppGlyphName.Calculator else NativeAppGlyphName.ListChecks) }
+                        NativePaperButton("Все",{onKindChange(null)},primary=kind==null)
+                        NativeToolKind.entries.forEach { value -> NativePaperButton(if(value==NativeToolKind.Calculator) "Калькуляторы" else "Шкалы и опросники",{onKindChange(value)},primary=kind==value,glyph=if(value==NativeToolKind.Calculator) NativeAppGlyphName.Calculator else NativeAppGlyphName.ListChecks) }
                     }
                     Text("Найдено: ${matches.size} · в базе инструментов: ${core.tools().size}",style=MaterialTheme.typography.labelMedium)
                     Text("Поиск по названиям и описаниям инструментов. Результат расчёта требует исходных данных и отдельного подтверждения.",color=MaterialTheme.colorScheme.onSurfaceVariant)

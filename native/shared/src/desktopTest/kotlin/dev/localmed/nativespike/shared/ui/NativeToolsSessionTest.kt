@@ -4,6 +4,8 @@ import dev.localmed.nativespike.shared.content.JVMContentIO
 import dev.localmed.nativespike.shared.content.NativeToolsBundle
 import dev.localmed.nativespike.shared.core.NativeContentIO
 import dev.localmed.nativespike.shared.tools.NativeToolDefinition
+import dev.localmed.nativespike.shared.tools.NativeToolKind
+import dev.localmed.nativespike.shared.tools.searchTools
 import dev.localmed.nativespike.shared.user.*
 import java.io.File
 import kotlinx.coroutines.runBlocking
@@ -13,6 +15,21 @@ class NativeToolsSessionTest {
     private val root = File(requireNotNull(System.getProperty("TEST_RESOURCE_DIR"))).canonicalFile.parentFile.parentFile.parentFile.parentFile.parentFile
     private fun profile() = File(root,"playwright/native-tools-state-${System.nanoTime()}").apply { mkdirs() }
     private fun bundle() = NativeToolsBundle(File(root,"native/shared/src/commonMain/composeResources/files/native-tool-data.json").readText())
+
+    @Test fun homeToolSectionOpensTheMatchingCatalogBeforeCoreReadiness() = runBlocking {
+        val profile = profile()
+        val session = NativeCoreSession(JVMContentIO(profile.absolutePath), { error("Core must not open") }, this, { bundle() })
+        try {
+            assertTrue(session.openTools(NativeToolKind.Assessment))
+            assertEquals(NativeToolKind.Assessment, session.toolsKind.value)
+            assertEquals(19, requireNotNull(session.tools.value).searchTools("", session.toolsKind.value).size)
+            assertTrue(session.openTools(NativeToolKind.Calculator))
+            assertEquals(50, requireNotNull(session.tools.value).searchTools("", session.toolsKind.value).size)
+            assertTrue(session.openTools())
+            assertNull(session.toolsKind.value)
+            assertEquals(69, requireNotNull(session.tools.value).searchTools("", session.toolsKind.value).size)
+        } finally { session.close(); check(profile.deleteRecursively()) }
+    }
 
     @Test fun toolsOpenBeforeCoreFavoriteAndCollectionsBackKeepDraftAndRestartResult() = runBlocking {
         val profile=profile();val io=JVMContentIO(profile.absolutePath)

@@ -51,7 +51,9 @@ fun NativeSearchSpikeApp(
     val errors = uiErrors ?: remember(core) { NativeUiErrors() }
     val failures by errors.messages.collectAsState()
     var searchSaveAttempt by remember(core) { mutableStateOf(0) }
-    val searchState = remember(core) { NativeSearchUiState(core.navigation.value.search) }
+    val searchState = remember(core) {
+        session?.startupSearch?.restoreWhenUntouched(core.navigation.value.search) ?: NativeSearchUiState(core.navigation.value.search)
+    }
     DisposableEffect(core, session) {
         val unregister = session?.registerReplayHandler { entry ->
             val query = entry.query
@@ -187,6 +189,7 @@ fun NativeSearchSpikeApp(
                         onOpenHistory = session?.let { { scope.launch { it.openPanel(NativeUserPanel.History) }; Unit } },
                         toolCore = toolCore,
                         onOpenTools = session?.let { { scope.launch { it.openTools() };Unit } },
+                        onOpenToolSection = session?.let { { kind -> scope.launch { it.openTools(kind) }; Unit } },
                         onOpenTool = session?.let { { record -> scope.launch { it.openTool(record.id) };Unit } },
                         onSaveTool = session?.let { { item -> scope.launch { it.openCollections(item) };Unit } },
                         onOpenCollections = session?.let { { scope.launch { it.openCollections() }; Unit } },

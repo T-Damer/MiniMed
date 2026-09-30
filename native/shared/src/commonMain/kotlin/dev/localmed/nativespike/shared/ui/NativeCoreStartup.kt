@@ -12,6 +12,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import dev.localmed.nativespike.shared.designsystem.NativeQueryProgress
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.core.NativeInstallProgress
@@ -41,23 +45,32 @@ fun NativeInstallProgressView(progress: NativeInstallProgress?) {
 }
 
 @Composable
-fun NativeCoreStartup(progress: NativeInstallProgress?, error: String?, onRetry: () -> Unit) {
-    NativeSpikeTheme {
-        Surface(color = MaterialTheme.colorScheme.surface, modifier = Modifier.fillMaxSize()) {
-            Column(Modifier.statusBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("MiniMed", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
-                if (error == null && progress == null) {
-                    Text("Загрузите базу источников. После установки поиск и чтение работают без интернета.",
-                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                    Button(onClick = onRetry) { Text("Загрузить базу") }
-                } else if (error == null) {
-                    NativeInstallProgressView(progress)
-                } else {
-                    Text("Не удалось подготовить базу", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                    Text(error, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-                    Button(onClick = onRetry) { Text("Повторить") }
-                }
-            }
-        }
-    }
+fun NativeCoreStartup(session: NativeCoreSession, progress: NativeInstallProgress?, error: String?) {
+    val tools by session.tools.collectAsState()
+    val messages by session.uiErrors.messages.collectAsState()
+    val idle = progress == null && error == null
+    val total = progress?.totalBytes
+    val fraction = if (total != null && total > 0) (progress.receivedBytes.toDouble() / total).coerceIn(0.0, 1.0).toFloat()
+        else if (idle || error != null) 0f else null
+    SearchScreen(
+        core = null,
+        state = session.startupSearch,
+        onOpenDocument = { _, _, _, _ -> },
+        onOpenSources = {},
+        onOpenIdentity = {},
+        toolCore = tools,
+        onOpenTools = { session.actionScope.launch { session.openTools() }; Unit },
+        onOpenToolSection = { kind -> session.actionScope.launch { session.openTools(kind) }; Unit },
+        onOpenTool = { record -> session.actionScope.launch { session.openTool(record.id) }; Unit },
+        onSaveTool = { item -> session.actionScope.launch { session.openCollections(item) }; Unit },
+        coreProgress = NativeQueryProgress(
+            title = when { error != null -> "База недоступна"; idle -> "База не установлена"; else -> nativeProgressLabel(progress) },
+            detail = if (idle) "Загрузите базу для поиска без интернета" else null,
+            fraction = fraction,
+        ),
+        coreError = error,
+        sourceError = messages[NativeUiOperation.ToolsState],
+        onRetryCore = if (idle || error != null) session::retry else null,
+        retryCoreLabel = if (idle) "Загрузить базу" else "Повторить чтение базы",
+    )
 }

@@ -11,6 +11,7 @@ import dev.localmed.nativespike.shared.model.NativeSearchSelection
 
 /** Kept by the app root while readers are open; durable results are recomputed from this query. */
 class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
+    private var edited = false
     var query by mutableStateOf(snapshot.query)
         private set
     var mode by mutableStateOf(snapshot.mode)
@@ -23,6 +24,8 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
     var loading by mutableStateOf(false)
     var error by mutableStateOf<String?>(null)
     var attempt by mutableStateOf(0)
+    var queuedQuery by mutableStateOf<String?>(null)
+        private set
     var completedSelection: NativeSearchSelection? = null
     var positionSelection: NativeSearchSelection = snapshot.selection
     var completedQuery: String? = null
@@ -34,7 +37,9 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
     fun updateQuery(value: String) {
         inputError = nativeSearchInputError(value)
         if (inputError == null && value != query) {
+            edited = true
             query = value
+            queuedQuery = null
             outcome = null
             completedQuery = null
             completedMode = null
@@ -43,8 +48,22 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
         }
     }
 
+    fun submit(waitingForCore: Boolean) {
+        if (query.isBlank() || inputError != null) return
+        queuedQuery = if (waitingForCore) query else null
+        attempt += 1
+    }
+
+    fun completeQueuedQuery(requestQuery: String) {
+        if (queuedQuery == requestQuery) queuedQuery = null
+    }
+
+    fun restoreWhenUntouched(saved: NativeSearchSnapshot): NativeSearchUiState =
+        if (edited || attempt > 0) this else NativeSearchUiState(saved)
+
     fun updateMode(value: NativeSearchMode) {
         if (mode == value) return
+        edited = true
         mode = value
         outcome = null
         completedQuery = null
@@ -55,6 +74,7 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
 
     fun updateSelection(value: NativeSearchSelection) {
         if(selection==value) return
+        edited = true
         selection=value;outcome=null;completedQuery=null;completedMode=null;completedSelection=null;error=null
     }
     fun acceptsRequest(requestQuery: String,requestMode: NativeSearchMode,requestSelection: NativeSearchSelection): Boolean =

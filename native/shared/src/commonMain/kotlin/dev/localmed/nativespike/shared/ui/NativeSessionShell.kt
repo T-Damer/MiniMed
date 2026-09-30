@@ -61,18 +61,8 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
                     .then(if (covered) Modifier.clearAndSetSemantics { } else Modifier)) {
                 when (val current = state) {
                     is NativeCoreSessionState.Ready -> ready(current)
-                    else -> Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
-                        Box(Modifier.weight(1f)) {
-                            when (current) {
-                                is NativeCoreSessionState.Opening -> NativeCoreStartup(current.progress, null, session::retry)
-                                is NativeCoreSessionState.Failed -> NativeCoreStartup(null, current.message, session::retry)
-                                else -> Unit
-                            }
-                        }
-                        TextButton(onClick={session.actionScope.launch { session.openTools() }}) { Text("Инструменты") }
-                        messages[NativeUiOperation.ToolsState]?.let { Text(it,color=MaterialTheme.colorScheme.onSurface) }
-                        TextButton(modifier = Modifier.navigationBarsPadding(), onClick = { session.actionScope.launch { session.openPanel(NativeUserPanel.Settings) } }) { Text("Настройки") }
-                    }
+                    is NativeCoreSessionState.Opening -> NativeCoreStartup(session, current.progress, null)
+                    is NativeCoreSessionState.Failed -> NativeCoreStartup(session, null, current.message)
                 }
                 }
                 if(toolsSnapshot?.route!=null) Box(Modifier.fillMaxSize()

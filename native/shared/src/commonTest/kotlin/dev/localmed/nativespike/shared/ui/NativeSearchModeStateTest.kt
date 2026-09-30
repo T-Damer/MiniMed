@@ -12,8 +12,47 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.test.assertSame
 
 class NativeSearchModeStateTest {
+    @Test fun readinessRestoresSavedSearchUnlessTheUserEditedOrSubmittedTheStartupField() {
+        val saved = NativeSearchSnapshot("сохранённый запрос", 7, 80, NativeSearchMode.CLINICAL)
+        val untouched = NativeSearchUiState(NativeSearchSnapshot())
+        assertEquals(saved, untouched.restoreWhenUntouched(saved).snapshot())
+        val edited = NativeSearchUiState(NativeSearchSnapshot())
+        edited.updateQuery("пневмония")
+        edited.submit(waitingForCore = true)
+        assertSame(edited, edited.restoreWhenUntouched(saved))
+        assertEquals("пневмония", edited.restoreWhenUntouched(saved).query)
+        edited.updateQuery("")
+        assertSame(edited, edited.restoreWhenUntouched(saved))
+        assertEquals("", edited.restoreWhenUntouched(saved).query)
+        val cleared = NativeSearchUiState(NativeSearchSnapshot())
+        cleared.updateQuery("черновик")
+        cleared.updateQuery("")
+        assertSame(cleared, cleared.restoreWhenUntouched(saved))
+    }
+    @Test fun queryQueuedBeforeCoreReadinessRemainsEditableAndDoesNotAttachToANewerDraft() {
+        val state = NativeSearchUiState(NativeSearchSnapshot())
+        state.submit(waitingForCore = true)
+        assertNull(state.queuedQuery)
+        assertEquals(0, state.attempt)
+        state.updateQuery("пневмония")
+        state.submit(waitingForCore = true)
+        assertEquals("пневмония", state.queuedQuery)
+        assertEquals("пневмония", state.snapshot().query)
+        state.updateQuery("цефтриаксон")
+        assertNull(state.queuedQuery)
+        state.submit(waitingForCore = true)
+        state.completeQueuedQuery("пневмония")
+        assertEquals("цефтриаксон", state.queuedQuery)
+        state.completeQueuedQuery("цефтриаксон")
+        assertNull(state.queuedQuery)
+        assertEquals(2, state.attempt)
+        state.submit(waitingForCore = false)
+        assertNull(state.queuedQuery)
+        assertEquals(3, state.attempt)
+    }
     @Test fun sameQueryModeSwitchRejectsLateExactNameHitsUntilLookupReturns() {
         val state = NativeSearchUiState(NativeSearchSnapshot("АО"))
         assertTrue(state.acceptsLookupIdentities("АО", NativeSearchMode.LOOKUP))

@@ -1,18 +1,13 @@
 package dev.localmed.nativespike.shared.ui
 
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,23 +18,20 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
-import dev.localmed.nativespike.shared.model.DocumentKind
+import dev.localmed.nativespike.shared.designsystem.NativeDesign
+import dev.localmed.nativespike.shared.designsystem.NativeDimensions
+import dev.localmed.nativespike.shared.designsystem.NativeIconButton
+import dev.localmed.nativespike.shared.designsystem.NativeStatusCard
+import dev.localmed.nativespike.shared.designsystem.NativeActionButton
+import dev.localmed.nativespike.shared.designsystem.NativeQueryProgress
+import dev.localmed.nativespike.shared.designsystem.textStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,20 +40,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import dev.localmed.nativespike.shared.model.SearchOutcome
 import dev.localmed.nativespike.shared.model.NativeSearchMode
-import dev.localmed.nativespike.shared.model.NativeSearchSelection
 import dev.localmed.nativespike.shared.model.NativeSearchScope
 import dev.localmed.nativespike.shared.tools.NativeToolCore
 import dev.localmed.nativespike.shared.tools.NativeToolRecord
+import dev.localmed.nativespike.shared.tools.NativeToolKind
 import dev.localmed.nativespike.shared.tools.searchTools
 import dev.localmed.nativespike.shared.user.NativeItemRef
 import dev.localmed.nativespike.shared.model.SearchResultGroup
@@ -74,15 +60,11 @@ import kotlinx.coroutines.isActive
 
 private const val DEBOUNCE_MS = 120L
 
-// --home-gap from apps/app/src/features/search/search-home-intro.css: 1rem (16dp) baseline, 1.25rem
-// (20dp) at the wider breakpoint. This spike targets phone width only, so 16dp throughout — see
-// docs/research/native-vs-webview-2026-09-28.md, "Web visual parity restyle".
-private val HOME_GAP = 16.dp
+private val HOME_GAP = NativeDimensions.space4
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 fun SearchScreen(
-    core: NativeSearchActions,
+    core: NativeSearchActions?,
     state: NativeSearchUiState,
     onOpenDocument: (documentId: String, documentTitle: String, sectionAnchor: String?, target: NativeDocumentTarget?) -> Unit,
     openingSource: Boolean = false,
@@ -94,10 +76,15 @@ fun SearchScreen(
     onOpenCollections: (() -> Unit)? = null,
     toolCore: NativeToolCore? = null,
     onOpenTools: (() -> Unit)? = null,
+    onOpenToolSection: ((NativeToolKind) -> Unit)? = null,
     onOpenTool: ((NativeToolRecord) -> Unit)? = null,
     onSaveTool: ((NativeItemRef) -> Unit)? = null,
     onCompletedSearch: ((String, SearchOutcome) -> Unit)? = null,
     onRetrySave: (() -> Unit)? = null,
+    coreProgress: NativeQueryProgress? = null,
+    coreError: String? = null,
+    onRetryCore: (() -> Unit)? = null,
+    retryCoreLabel: String = "Повторить чтение базы",
     // Debug measurement hook only (see native/androidApp's MainActivity — HyperOS blocks
     // `adb shell input` entirely on the physical Xiaomi 14, and even on a plain emulator
     // `adb shell input text` cannot type Cyrillic: it maps characters through the current
@@ -111,6 +98,15 @@ fun SearchScreen(
     // bench path (see MainActivity), empty for any non-bench call.
     onOutcome: ((query: String, outcome: SearchOutcome?, tookMs: Double, stages: Map<String, Double>) -> Unit)? = null,
 ) {
+    var homeData by remember { mutableStateOf<NativeHomeData?>(null) }
+    var homeError by remember { mutableStateOf<String?>(null) }
+    var homeAttempt by remember { mutableStateOf(0) }
+    LaunchedEffect(homeAttempt) {
+        homeError = null
+        try { homeData = bundledNativeHomeData() }
+        catch (cause: CancellationException) { throw cause }
+        catch (cause: Exception) { homeError = "Не удалось прочитать данные главной страницы." }
+    }
     val queryFocus = remember(core) { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(externalQuery) {
@@ -120,6 +116,7 @@ fun SearchScreen(
     var identitiesLoading by remember(core, state.query, state.mode,state.selection) { mutableStateOf(false) }
     var identitiesError by remember(core, state.query, state.mode,state.selection) { mutableStateOf<String?>(null) }
     LaunchedEffect(core, state.query, state.mode,state.selection, state.attempt) {
+        if (core == null) return@LaunchedEffect
         val requestQuery = state.query
         val requestMode = state.mode
         val requestSelection = state.selection
@@ -139,6 +136,7 @@ fun SearchScreen(
     }
 
     LaunchedEffect(core, state.query, state.mode,state.selection, state.attempt) {
+        if (core == null) return@LaunchedEffect
         val requestQuery = state.query
         val requestMode = state.mode
         val requestSelection = state.selection
@@ -196,62 +194,40 @@ fun SearchScreen(
         } finally {
             if (currentCoroutineContext().isActive && state.acceptsRequest(requestQuery,requestMode,requestSelection)) {
                 state.loading = false
+                state.completeQueuedQuery(requestQuery)
             }
         }
     }
 
     NativeChromeScaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = NativeDesign.colors.background,
         scrolled = state.listState.firstVisibleItemIndex > 0 || state.listState.firstVisibleItemScrollOffset > 0,
         topBarTintAlpha = .92f,
         desk = true,
         topBar = {
-            Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal=HOME_GAP,vertical=8.dp),verticalAlignment=Alignment.CenterVertically) {
-                onOpenHistory?.let { NativePaperIconButton(NativeAppGlyphName.History,it,"История поиска") }
+            Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal=HOME_GAP,vertical=NativeDimensions.space2),verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(NativeDimensions.space2)) {
+                onOpenHistory?.let { action -> NativeIconButton(NativeDesign.components.historyFab, "search-history-fab", "История поиска", action) { tint -> NativeAppGlyph(NativeAppGlyphName.History, Modifier.size(NativeDimensions.space5), tint) } }
                 Spacer(Modifier.weight(1f))
-                NativePaperIconButton(NativeAppGlyphName.Books,onOpenSources,"Источники")
-                onOpenTools?.let { NativePaperIconButton(NativeAppGlyphName.Calculator,it,"Инструменты",Modifier.padding(start=8.dp)) }
+                NativeIconButton(NativeDesign.components.routeIconButton, "route-icon-button", "Источники", onOpenSources, enabled = core != null) {
+                    NativeAppGlyph(NativeAppGlyphName.Books, Modifier.size(NativeDimensions.space5), it)
+                }
+                onOpenTools?.let { open -> NativeIconButton(NativeDesign.components.routeIconButton, "route-icon-button", "Инструменты", open) {
+                    NativeAppGlyph(NativeAppGlyphName.Calculator, Modifier.size(NativeDimensions.space5), it)
+                } }
             }
         },
     ) { padding ->
         val groups = state.outcome?.groups.orEmpty()
         LazyColumn(
             modifier = Modifier.fillMaxSize().navigationBarsPadding(), state = state.listState,
-            contentPadding = PaddingValues(start=HOME_GAP,end=HOME_GAP,top=padding.calculateTopPadding()+8.dp,bottom=8.dp+padding.calculateBottomPadding()),
-            verticalArrangement = Arrangement.spacedBy(1.dp),
+            contentPadding = PaddingValues(start=HOME_GAP,end=HOME_GAP,top=padding.calculateTopPadding()+NativeDimensions.space2,bottom=NativeDimensions.space2+padding.calculateBottomPadding()),
+            verticalArrangement = Arrangement.spacedBy(NativeDimensions.borderHairline),
         ) {
             item(key="search-controls") {
             Column(Modifier.fillMaxWidth()) {
-            Surface(color=MaterialTheme.colorScheme.errorContainer,shape=RoundedCornerShape(7.dp),
-                border=androidx.compose.foundation.BorderStroke(1.dp,MaterialTheme.colorScheme.primary),
-                modifier=Modifier.fillMaxWidth().padding(vertical=8.dp)) {
-                Column {
-                    Row(Modifier.fillMaxWidth().padding(start=16.dp,end=4.dp,top=10.dp,bottom=8.dp),verticalAlignment=Alignment.Top) {
-                        BasicTextField(value=state.query,onValueChange={state.updateQuery(it)},
-                            modifier=Modifier.weight(1f).heightIn(min=52.dp).focusRequester(queryFocus)
-                                .padding(top=4.dp,end=8.dp).semantics { contentDescription="Поисковый запрос" },
-                            singleLine=state.mode==NativeSearchMode.LOOKUP,maxLines=if(state.mode==NativeSearchMode.CLINICAL) 6 else 1,
-                            textStyle=MaterialTheme.typography.bodyLarge.copy(color=MaterialTheme.colorScheme.onSurface,lineHeight=22.4.sp),
-                            cursorBrush=SolidColor(MaterialTheme.colorScheme.primary),
-                            decorationBox={inner -> Box { if(state.query.isEmpty()) Text("Название, код МКБ, препарат или фраза из документа",
-                                style=MaterialTheme.typography.bodyLarge.copy(lineHeight=22.4.sp),color=MaterialTheme.colorScheme.onSurfaceVariant);inner() } })
-                        if(state.query.isNotEmpty()) androidx.compose.material3.IconButton(onClick={state.updateQuery("")}) {
-                            NativeAppGlyph(NativeAppGlyphName.Close,contentDescription="Очистить запрос")
-                        }
-                    }
-                    Row(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.secondaryContainer).padding(horizontal=8.dp,vertical=6.dp),
-                        verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                        NativeSearchScopePicker(state.selection.scope,Modifier.weight(1f)) { scope -> state.updateSelection(state.selection.copy(scope=scope)) }
-                        NativePaperIconButton(NativeAppGlyphName.Brain,
-                            {state.updateMode(if(state.mode==NativeSearchMode.LOOKUP) NativeSearchMode.CLINICAL else NativeSearchMode.LOOKUP)},
-                            if(state.mode==NativeSearchMode.CLINICAL) "Клинический режим включён. Переключить на поиск по названию" else "Поиск по названию. Включить клинический режим",
-                            primary=state.mode==NativeSearchMode.CLINICAL)
-                        NativePaperIconButton(if(state.loading || state.error!=null) NativeAppGlyphName.Refresh else NativeAppGlyphName.Search,
-                            {if(state.query.isNotBlank()) state.attempt+=1},if(state.loading) "Ищем" else "Найти или повторить поиск",
-                            enabled=state.query.isNotBlank() && !state.loading)
-                    }
-                }
-            }
+            NativeSearchControls(state, queryFocus, core != null, coreProgress)
+            coreError?.let { BasicText(it, style = NativeDesign.components.coreStatusDetail.text.textStyle()) }
+            onRetryCore?.let { retry -> NativeActionButton(retryCoreLabel, retry) }
             if (openingSource) Text("Открываем источник…", modifier = Modifier.padding(horizontal = HOME_GAP),
                 style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
             sourceError?.let { Text(it, modifier = Modifier.padding(horizontal = HOME_GAP),
@@ -263,7 +239,6 @@ fun SearchScreen(
                 TextButton(onClick = { state.attempt += 1 }) { Text("Повторить чтение названий", color = MaterialTheme.colorScheme.onSurface) }
             }
             if (state.mode == NativeSearchMode.LOOKUP) NativeIdentityRail(identities, openingSource, onOpenIdentity)
-            if (state.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = HOME_GAP), color = MaterialTheme.colorScheme.onSurface)
             if (state.error != null) {
                 Text(
                     state.error ?: "Не удалось выполнить поиск.",
@@ -281,6 +256,30 @@ fun SearchScreen(
             }
             }
             }
+                if (state.query.isBlank()) {
+                    homeError?.let { message -> item(key="home-error") {
+                        NativeStatusCard("Главная страница", message)
+                        NativeActionButton("Повторить чтение", { homeAttempt += 1 })
+                    } }
+                    homeData?.let { data -> item(key="search-home-intro") {
+                        NativeSearchHomeContent(data, toolCore, onOpenTools,
+                            onOpenSection = { section ->
+                                if (section.countEntity == "tool") {
+                                    onOpenToolSection?.invoke(if (section.id == "calculators") NativeToolKind.Calculator else NativeToolKind.Assessment)
+                                        ?: onOpenTools?.invoke()
+                                }
+                                else {
+                                    val scope = NativeSearchScope.entries.first { it.name.lowercase() == section.id }
+                                    state.updateMode(NativeSearchMode.LOOKUP)
+                                    state.updateSelection(state.selection.copy(scope=scope))
+                                }
+                            },
+                            onExample = { example -> state.updateQuery(example); state.submit(core == null) },
+                            scope = if (state.mode == NativeSearchMode.CLINICAL) NativeSearchScope.DIAGNOSIS else state.selection.scope,
+                            showIntro = state.query.isEmpty(),
+                        )
+                    } }
+                }
                 if(toolCore!=null && onOpenTool!=null && onSaveTool!=null && onOpenTools!=null && state.query.isNotBlank()) {
                     val matches=toolCore.searchTools(state.query)
                     if(matches.isNotEmpty()) item(key="tool-matches") { NativeToolMatchesRail(state.query,matches,onOpenTool,onSaveTool,onOpenTools) }
@@ -293,68 +292,8 @@ fun SearchScreen(
                     }) }
                 }
                 itemsIndexed(groups, key = { _,group -> group.documentId }) { index,group ->
-                    DocumentResultCard(group = group,index=index, onOpenDocument = onOpenDocument)
+                    NativeSearchResultCard(group = group,index=index, onOpenDocument = onOpenDocument)
                 }
-        }
-    }
-}
-
-/** Source-faithful paper group: all excerpts remain available behind the same disclosure. */
-@Composable
-private fun DocumentResultCard(group: SearchResultGroup,index: Int,
-    onOpenDocument: (String,String,String?,NativeDocumentTarget?)->Unit) {
-    var expanded by remember(group.documentId) { mutableStateOf(false) }
-    val kindGlyph=when(group.documentKind) {
-        DocumentKind.MEDICATION -> NativeAppGlyphName.Prescription
-        DocumentKind.CLINICAL_RECOMMENDATION -> NativeAppGlyphName.BookOpen
-        DocumentKind.LEGAL -> NativeAppGlyphName.Scales
-        DocumentKind.CALCULATOR -> NativeAppGlyphName.Calculator
-        DocumentKind.ASSESSMENT -> NativeAppGlyphName.ListChecks
-        else -> NativeAppGlyphName.Notes
-    }
-    NativePaperSurface(Modifier.fillMaxWidth().padding(vertical=6.dp),raised=false) {
-        Column {
-            Row(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.secondaryContainer)
-                .clickable { onOpenDocument(group.documentId,group.documentTitle,group.items.firstOrNull()?.anchor,group.items.firstOrNull()?.target) }
-                .padding(horizontal=12.dp,vertical=8.dp),verticalAlignment=Alignment.Top) {
-                Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
-                    Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                        NativeAppGlyph(kindGlyph,Modifier.size(16.dp),MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text(group.documentKind.label,style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Text(group.documentTitle,style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.onSurface)
-                    group.items.firstOrNull()?.sectionPath?.let { Text(it,style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant) }
-                }
-                Text((index+1).toString().padStart(2,'0'),style=MaterialTheme.typography.headlineLarge,
-                    color=MaterialTheme.colorScheme.onSurface.copy(alpha=.10f),fontSize=64.sp,lineHeight=58.sp,
-                    modifier=Modifier.padding(start=8.dp).clearAndSetSemantics { })
-            }
-            group.items.take(if(expanded) group.items.size else 1).forEach { item ->
-                Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable { onOpenDocument(group.documentId,group.documentTitle,item.anchor,item.target) }
-                    .padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
-                    Text(item.sectionPath.uppercase(),style=MaterialTheme.typography.labelSmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(highlightedSnippet(item.snippet,item.highlightedRanges),style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurface)
-                }
-            }
-            val more=group.items.size-1
-            val fragmentLabel=if(more%100 in 11..14) "фрагментов" else when(more%10) { 1 -> "фрагмент";2,3,4 -> "фрагмента";else -> "фрагментов" }
-            if(more>0) NativePaperButton(
-                if(expanded) "Свернуть фрагменты" else "Ещё $more $fragmentLabel",
-                {expanded=!expanded},Modifier.fillMaxWidth(),glyph=if(expanded) NativeAppGlyphName.CaretUp else NativeAppGlyphName.CaretDown)
-        }
-    }
-}
-
-/** Thin Compose wrapper around the pure, unit-tested `snippetSegments` (text/SnippetSegments.kt). */
-private fun highlightedSnippet(raw: String, ranges: List<dev.localmed.nativespike.shared.text.TextRange>) = buildAnnotatedString {
-    for (segment in dev.localmed.nativespike.shared.text.snippetSegments(raw, ranges)) {
-        if (segment.highlighted) {
-            withStyle(style = androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold)) {
-                append(segment.text)
-            }
-        } else {
-            append(segment.text)
         }
     }
 }
