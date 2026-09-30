@@ -31,3 +31,5 @@ Compare components, not whole screens. A component carries the web BEM block nam
 padding, corner radius, font size and weight, colours — from `getComputedStyle`/bounding boxes on
 the web and the Compose semantics/layout tree natively, with small tolerances. A mismatch reads as
 «`paper-card`: padding 16 vs 12», not as a pixel diff.
+
+Coordination between agents (ownership, claims, requests) lives in `STATE.md` at the repository root.

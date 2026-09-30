@@ -14,6 +14,8 @@ backend.
 - `docs/CURRENT_STATE.md` records the implemented state and ordered next tasks.
 - When the two differ, preserve the architecture invariant and update `CURRENT_STATE.md` rather than
   pretending a planned capability already exists.
+- `STATE.md` (repository root) is the live sync file between concurrently working agents: read it
+  before starting and before committing, claim tasks there, and edit only paths you own.
 
 ## Dependency direction
 
