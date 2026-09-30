@@ -1,8 +1,9 @@
 package dev.localmed.nativespike.shared.ui
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import dev.localmed.nativespike.shared.designsystem.NativeDesign
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -174,7 +175,7 @@ fun NativeSearchSpikeApp(
     }
 
     NativeSpikeTheme {
-        Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(NativeDesign.colors.background)) {
             if (reader == null) {
                 val catalog = navigation.catalog
                 if (catalog == null) {

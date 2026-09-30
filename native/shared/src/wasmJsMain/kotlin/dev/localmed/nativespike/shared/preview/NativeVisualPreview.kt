@@ -83,7 +83,7 @@ fun NativeVisualPreview() {
             CompositionLocalProvider(LocalNativeOpenFile provides pickFile.takeIf { nativeFilePickerAvailable }, LocalNativeReaderChrome provides chrome,
                 LocalNativeNavigationPadding provides if (routeNavVisible) navigationSpace else emptyNavigationSpace) {
                 Box(Modifier.fillMaxSize()) {
-                    Box(Modifier.fillMaxSize().focusProperties { canFocus = openedFile == null }.onPreviewKeyEvent { openedFile != null }
+                    Box(Modifier.fillMaxSize().focusProperties { canFocus = openedFile == null }.onPreviewKeyEvent { openedFile != null }.blockCoveredPointers(openedFile != null)
                         .then(if (openedFile != null) Modifier.clearAndSetSemantics { } else Modifier)) {
                     // Design-system gallery (claude-coordinator): ?scene=design[&theme=dark][&loading=1][&q=query]
                     if (scene == "design") NativeDesignGallery(loading = parameters["loading"] == "1", initialQuery = URLSearchParams(window.location.search.toJsString()).get("q").orEmpty())

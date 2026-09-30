@@ -26,12 +26,10 @@ import dev.localmed.nativespike.shared.designsystem.NativeDesign
 import dev.localmed.nativespike.shared.designsystem.NativeDimensions
 import dev.localmed.nativespike.shared.designsystem.NativeIconButton
 import dev.localmed.nativespike.shared.designsystem.NativeStatusCard
+import dev.localmed.nativespike.shared.designsystem.NativeSecondaryButton
 import dev.localmed.nativespike.shared.designsystem.NativeActionButton
 import dev.localmed.nativespike.shared.designsystem.NativeQueryProgress
 import dev.localmed.nativespike.shared.designsystem.textStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -229,31 +227,28 @@ fun SearchScreen(
             NativeSearchControls(state, queryFocus, core != null, coreProgress)
             coreError?.let { BasicText(it, style = NativeDesign.components.coreStatusDetail.text.textStyle()) }
             onRetryCore?.let { retry -> NativeActionButton(retryCoreLabel, retry) }
-            if (openingSource) Text("Открываем источник…", modifier = Modifier.padding(horizontal = HOME_GAP),
-                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
-            sourceError?.let { Text(it, modifier = Modifier.padding(horizontal = HOME_GAP),
-                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) }
-            onRetrySave?.let { retry -> TextButton(onClick = retry, modifier = Modifier.padding(horizontal = HOME_GAP)) { Text("Повторить сохранение", color = MaterialTheme.colorScheme.onSurface) } }
-            state.inputError?.let { Text(it, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = HOME_GAP)) }
+            if (openingSource) BasicText("Открываем источник…", modifier = Modifier.padding(horizontal = HOME_GAP),
+                style = NativeDesign.components.coreStatusDetail.text.textStyle())
+            sourceError?.let { BasicText(it, modifier = Modifier.padding(horizontal = HOME_GAP),
+                style = NativeDesign.components.coreStatusDetail.text.textStyle()) }
+            onRetrySave?.let { retry -> NativeSecondaryButton("Повторить сохранение", retry, Modifier.padding(horizontal = HOME_GAP)) }
+            state.inputError?.let { BasicText(it, style = NativeDesign.components.coreStatusDetail.text.textStyle(), modifier = Modifier.padding(horizontal = HOME_GAP)) }
             identitiesError?.let {
-                Text(it, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(horizontal = HOME_GAP))
-                TextButton(onClick = { state.attempt += 1 }) { Text("Повторить чтение названий", color = MaterialTheme.colorScheme.onSurface) }
+                BasicText(it, style = NativeDesign.components.coreStatusDetail.text.textStyle(), modifier = Modifier.padding(horizontal = HOME_GAP))
+                NativeSecondaryButton("Повторить чтение названий", { state.attempt += 1 })
             }
             if (state.mode == NativeSearchMode.LOOKUP) NativeIdentityRail(identities, openingSource, onOpenIdentity)
             if (state.error != null) {
-                Text(
+                BasicText(
                     state.error ?: "Не удалось выполнить поиск.",
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = NativeDesign.components.coreStatusDetail.text.textStyle(),
                     modifier = Modifier.padding(HOME_GAP),
                 )
-                TextButton(onClick = { state.attempt += 1 }, modifier = Modifier.padding(horizontal = HOME_GAP)) {
-                    Text("Повторить поиск", color = MaterialTheme.colorScheme.onSurface)
-                }
+                NativeSecondaryButton("Повторить поиск", { state.attempt += 1 }, Modifier.padding(horizontal = HOME_GAP))
             }
 
             if (!state.loading && !identitiesLoading && state.error == null && identitiesError == null && state.completedQuery != null && groups.isEmpty() && identities.isEmpty()) {
-                Text("По этому запросу источники не найдены.", style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(HOME_GAP))
+                BasicText("По этому запросу источники не найдены.", style = NativeDesign.components.coreStatusDetail.text.textStyle(), modifier = Modifier.padding(HOME_GAP))
             }
             }
             }

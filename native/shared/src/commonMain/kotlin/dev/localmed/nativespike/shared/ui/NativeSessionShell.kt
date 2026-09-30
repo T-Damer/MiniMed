@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.CompositionLocalProvider
@@ -22,6 +19,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalDensity
@@ -69,7 +68,7 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
             ) {
             Box(Modifier.fillMaxSize()) {
                 Box(Modifier.fillMaxSize().focusProperties { canFocus = !covered }
-                    .onPreviewKeyEvent { covered }
+                    .onPreviewKeyEvent { covered }.blockCoveredPointers(covered)
                     .then(if (covered) Modifier.clearAndSetSemantics { } else Modifier)) {
                 when (val current = state) {
                     is NativeCoreSessionState.Ready -> ready(current)
@@ -78,10 +77,10 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
                 }
                 }
                 if(toolsSnapshot?.route!=null) Box(Modifier.fillMaxSize()
-                    .focusProperties { canFocus = panel==null && openedFile == null }.onPreviewKeyEvent { panel!=null || openedFile != null }
+                    .focusProperties { canFocus = panel==null && openedFile == null }.onPreviewKeyEvent { panel!=null || openedFile != null }.blockCoveredPointers(panel != null || openedFile != null)
                     .then(if(panel!=null || openedFile != null) Modifier.clearAndSetSemantics { } else Modifier)) { NativeToolsPane(session) }
                 Box(Modifier.fillMaxSize().focusProperties { canFocus = openedFile == null }
-                    .onPreviewKeyEvent { openedFile != null }
+                    .onPreviewKeyEvent { openedFile != null }.blockCoveredPointers(openedFile != null)
                     .then(if (openedFile != null) Modifier.clearAndSetSemantics { } else Modifier)) {
                 when (panel) {
                     NativeUserPanel.Settings -> NativeSettingsScreen(session, user)
@@ -109,5 +108,12 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
             }
             }
         }
+    }
+}
+
+/** A non-interactive file notice must not pass gestures to the retained page underneath. */
+internal fun Modifier.blockCoveredPointers(covered: Boolean): Modifier = if (!covered) this else pointerInput(Unit) {
+    awaitPointerEventScope {
+        while (true) awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
     }
 }
