@@ -24,6 +24,18 @@ screen was matched by eye.
 4. **Screens** — rebuilt from components, search first, then tools, readers, sources and
    collections.
 
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `bun run native:design sync [--build]` | capture the web reference, regenerate tokens and component styles |
+| `bun run native:design check` | token/style drift checks plus `NativeComponentParityTest` |
+| `bun run native:design compare [--build]` | web vs native home screenshots side by side, light and dark, in `playwright/design-compare/` |
+
+`--build` rebuilds the WebView first; otherwise the existing `apps/app/dist` is used. Captures are
+repeatable: reduced motion stops the carousel and transitions, and database downloads are held so
+the core status stays at its first message (`scripts/lib/built-app-preview.ts`).
+
 ## Web reference
 
 `bun run build:app && bun scripts/extract-web-component-reference.ts` serves the built WebView,

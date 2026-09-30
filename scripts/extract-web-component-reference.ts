@@ -10,14 +10,16 @@
  */
 
 import { writeFileSync } from 'node:fs';
-import { createServer } from 'node:net';
 import { resolve } from 'node:path';
-import { type Subprocess, spawn } from 'bun';
-import { chromium, type Page } from 'playwright';
+import type { Page } from 'playwright';
+import {
+  REFERENCE_VIEWPORT,
+  REPOSITORY_ROOT,
+  referencePage,
+  withBuiltApp,
+} from './lib/built-app-preview';
 
-const ROOT = resolve(import.meta.dirname, '..');
 const OUTPUT = 'native/shared/src/commonTest/resources/web-component-reference.json';
-const VIEWPORT = { width: 375, height: 812 };
 
 interface Screen {
   readonly id: string;
@@ -43,32 +45,6 @@ const SCREENS: readonly Screen[] = [
     },
   },
 ];
-
-async function freePort(): Promise<number> {
-  return new Promise((resolvePort, reject) => {
-    const server = createServer();
-    server.on('error', reject);
-    server.listen(0, '127.0.0.1', () => {
-      const address = server.address();
-      server.close(() => {
-        if (address && typeof address === 'object') resolvePort(address.port);
-        else reject(new Error('No port.'));
-      });
-    });
-  });
-}
-
-async function waitForServer(origin: string): Promise<void> {
-  for (let attempt = 0; attempt < 100; attempt += 1) {
-    const ready = await fetch(origin).then(
-      (response) => response.ok,
-      () => false,
-    );
-    if (ready) return;
-    await Bun.sleep(200);
-  }
-  throw new Error(`The preview server at ${origin} did not start.`);
-}
 
 async function openScreen(page: Page, origin: string, screen: Screen): Promise<void> {
   await page.goto(`${origin}/${screen.hash}`, { waitUntil: 'domcontentloaded' });
@@ -204,60 +180,34 @@ async function captureBlocks(
   );
 }
 
-let server: Subprocess | undefined;
-try {
-  const port = await freePort();
-  const origin = `http://127.0.0.1:${port}`;
-  server = spawn(
-    ['bunx', 'vite', 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'],
-    {
-      cwd: resolve(ROOT, 'apps/app'),
-      stdout: 'ignore',
-      stderr: 'ignore',
-    },
-  );
-  await waitForServer(origin);
-  const browser = await chromium.launch();
-  try {
-    const result: Record<string, unknown> = {};
-    for (const colorScheme of ['light', 'dark'] as const) {
-      const context = await browser.newContext({
-        viewport: VIEWPORT,
-        deviceScaleFactor: 1,
-        colorScheme,
-      });
-      await context.addInitScript(() => {
-        localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
-      });
-      const page = await context.newPage();
-      for (const screen of SCREENS) {
-        await openScreen(page, origin, screen);
-        if (process.argv.includes('--list')) {
-          if (colorScheme === 'light') result[screen.id] = await listBlocks(page);
-        } else {
-          const theme = (result[colorScheme] ??= {}) as Record<string, unknown>;
-          theme[screen.id] = await captureBlocks(page, BLOCKS[screen.id] ?? {});
-        }
+await withBuiltApp(async (origin, browser) => {
+  const result: Record<string, unknown> = {};
+  const listOnly = process.argv.includes('--list');
+  for (const colorScheme of ['light', 'dark'] as const) {
+    const { context, page } = await referencePage(browser, colorScheme);
+    for (const screen of SCREENS) {
+      await openScreen(page, origin, screen);
+      if (listOnly) {
+        if (colorScheme === 'light') result[screen.id] = await listBlocks(page);
+      } else {
+        const theme = (result[colorScheme] ??= {}) as Record<string, unknown>;
+        theme[screen.id] = await captureBlocks(page, BLOCKS[screen.id] ?? {});
       }
-      await context.close();
     }
-    if (process.argv.includes('--list')) {
-      for (const [screen, counts] of Object.entries(result)) {
-        console.log(`== ${screen}`);
-        console.log(
-          Object.entries(counts as Record<string, number>)
-            .map(([name, count]) => `${name}×${count}`)
-            .join('  '),
-        );
-      }
-    } else {
-      const reference = { viewport: VIEWPORT, unit: '1 CSS px = 1 dp', themes: result };
-      writeFileSync(resolve(ROOT, OUTPUT), `${JSON.stringify(reference, null, 2)}\n`);
-      console.log(`Wrote ${OUTPUT}.`);
-    }
-  } finally {
-    await browser.close();
+    await context.close();
   }
-} finally {
-  server?.kill();
-}
+  if (listOnly) {
+    for (const [screen, counts] of Object.entries(result)) {
+      console.log(`== ${screen}`);
+      console.log(
+        Object.entries(counts as Record<string, number>)
+          .map(([name, count]) => `${name}×${count}`)
+          .join('  '),
+      );
+    }
+    return;
+  }
+  const reference = { viewport: REFERENCE_VIEWPORT, unit: '1 CSS px = 1 dp', themes: result };
+  writeFileSync(resolve(REPOSITORY_ROOT, OUTPUT), `${JSON.stringify(reference, null, 2)}\n`);
+  console.log(`Wrote ${OUTPUT}.`);
+});

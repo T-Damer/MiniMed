@@ -134,6 +134,7 @@
     "benchmark:all": "bun tools/benchmarks/src/run-real-corpus.ts --path=core --corpus=core --check",
     "native:source:check": "bun scripts/check-native-bridge.mjs && bun scripts/generate-native-design-tokens.ts --check && bun scripts/generate-native-component-styles.ts --check",
     "native:tokens": "bun scripts/generate-native-design-tokens.ts",
+    "native:design": "bun scripts/native-design.ts",
     "native:catalog": "bun scripts/prepare-native-catalog.ts",
     "native:icons:prepare": "bun scripts/prepare-native-icons.ts",
     "native:icons:check": "bun scripts/prepare-native-icons.ts --check",
