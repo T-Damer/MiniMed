@@ -5,6 +5,8 @@
   "exports": {
     "./e2e/*": "./e2e/*.ts",
     "./content/core-report": "./public/content/core-report.json",
+    "./features/assessments/*": "./src/features/assessments/*.ts",
+    "./features/calculators/*": "./src/features/calculators/*.ts",
     "./features/search/ScopedMedicalCore": "./src/features/search/ScopedMedicalCore.ts",
     "./features/network/mirrored-release-tags": "./src/features/network/mirrored-release-tags.ts"
   },

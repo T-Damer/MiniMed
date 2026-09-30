@@ -1,4 +1,5 @@
-import { AssessmentDefinitionSchema, type ToolDefinitionRecord } from '@localmed/contracts';
+import type { ToolDefinitionRecord } from '@localmed/contracts';
+import { assessmentDefinitionFromRecord } from '@/features/assessments/assessment-definition';
 import type { AssessmentDefinition } from '@/features/assessments/assessment-types';
 import { TOOL_CATALOG } from '@/features/modules/module-catalog-shell';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
@@ -129,41 +130,7 @@ export function getAssessmentCatalog(): readonly AssessmentCatalogEntry[] {
 
 export function registerDownloadedAssessment(record: ToolDefinitionRecord): void {
   if (record.kind !== 'assessment') return;
-  const parsed = AssessmentDefinitionSchema.parse(record.definition);
-  if (parsed.id !== record.id) throw new Error(`Assessment payload does not match ${record.id}.`);
-  const { interpretations, license, questions, ...rest } = parsed;
-  const definition: AssessmentDefinition = {
-    ...rest,
-    schemaVersion: 2,
-    version: record.version,
-    evaluation: parsed.evaluation,
-    observationMappings: parsed.observationMappings,
-    license: {
-      kind: license.kind,
-      notice: license.notice,
-      ...(license.sourceUrl ? { sourceUrl: license.sourceUrl } : {}),
-    },
-    questions: questions.map((question) => ({
-      id: question.id,
-      prompt: question.prompt,
-      scaleId: question.scaleId,
-      ...(question.reverse === true ? { reverse: true as const } : {}),
-      ...(question.responseOptions ? { responseOptions: question.responseOptions } : {}),
-    })),
-    ...(interpretations
-      ? {
-          interpretations: interpretations.map((band) => ({
-            minScore: band.minScore,
-            maxScore: band.maxScore,
-            headline: band.headline,
-            message: band.message,
-            ...(band.scaleId ? { scaleId: band.scaleId } : {}),
-            ...(band.when ? { when: band.when } : {}),
-          })),
-        }
-      : {}),
-    sourceLinks: record.sources,
-  };
+  const definition = assessmentDefinitionFromRecord(record);
   downloadedAssessments.set(record.id, definition);
   definitionPromises.delete(record.id);
 }

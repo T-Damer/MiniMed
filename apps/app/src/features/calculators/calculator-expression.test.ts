@@ -157,6 +157,18 @@ describe('calculator expression parser/evaluator', () => {
     const text = renderExpressionWithValues(node, { ratio: 1.2857142857142858, alpha: -0.241 });
     expect(text).toBe('min(1.28571, 1) ^ -0.241');
   });
+
+  it('preserves exponent and integer zeros when rounding a readable trace', () => {
+    const node = parseCalculatorExpression('x');
+    for (const [x, expected] of [
+      [1.234567e-10, '1.23457e-10'],
+      [1e-20, '1e-20'],
+      [99999.96, '100000'],
+      [0.0078125, '0.0078125'],
+    ] as const) {
+      expect(renderExpressionWithValues(node, { x })).toBe(expected);
+    }
+  });
 });
 
 describe('date functions (addDays/daysBetween/today)', () => {

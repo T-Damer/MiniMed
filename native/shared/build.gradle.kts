@@ -192,8 +192,19 @@ val prepareNativeCatalog by tasks.registering(Exec::class) {
     inputs.files(repository.resolve("scripts/prepare-native-catalog.ts"), repository.resolve("native/catalog-gzip-transports.json"), repository.resolve("apps/app/src/features/modules/catalog.preview.json"))
     outputs.file(projectDir.resolve("src/commonMain/composeResources/files/native-module-catalog.json"))
 }
+val prepareNativeTools by tasks.registering(Exec::class) {
+    val repository = rootProject.projectDir.parentFile
+    workingDir(repository)
+    commandLine("bun", "scripts/prepare-native-tools.ts")
+    setEnvironment(mapOf("HOME" to System.getProperty("user.home"), "PATH" to "/Users/d/.bun/bin:/Users/d/.local/bin:/opt/homebrew/bin:/usr/bin:/bin", "TMPDIR" to repository.resolve("playwright").absolutePath, "LANG" to "en_US.UTF-8"))
+    inputs.files(repository.resolve("scripts/prepare-native-tools.ts"), repository.resolve("apps/app/src/features/calculators/tool-module-test-helpers.ts"))
+    inputs.files(fileTree(repository.resolve("content/tool-modules")) { include("*.json") })
+    inputs.files(fileTree(repository.resolve("packages/contracts/src")) { include("**/*.ts") })
+    inputs.files(repository.resolve("apps/app/src/features/calculators/who-growth-reference-data.ts"), repository.resolve("apps/app/src/features/calculators/aap-pediatric-bp-reference-data.ts"), repository.resolve("apps/app/src/features/calculators/calculator-models.ts"))
+    outputs.file(projectDir.resolve("src/commonMain/composeResources/files/native-tool-data.json"))
+}
 tasks.configureEach {
-    if (name == "generateComposeResClass" || name.startsWith("prepareComposeResourcesTaskFor") || name.startsWith("copyNonXmlValueResourcesFor") || name.startsWith("convertXmlValueResourcesFor")) dependsOn(prepareNativeCatalog)
+    if (name == "generateComposeResClass" || name.startsWith("prepareComposeResourcesTaskFor") || name.startsWith("copyNonXmlValueResourcesFor") || name.startsWith("convertXmlValueResourcesFor")) dependsOn(prepareNativeCatalog, prepareNativeTools)
 }
 
 // Runtime verification output is kept outside source/build caches.

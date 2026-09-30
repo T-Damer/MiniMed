@@ -47,6 +47,8 @@
     "@localmed/storage": "workspace:*"
   },
   "exports": {
-    "./real-corpus": "./src/real-corpus.ts"
+    "./real-corpus": "./src/real-corpus.ts",
+    "./bun-sqlite-medical-store": "./src/bun-sqlite-medical-store.ts",
+    "./observe-store-search": "./src/observe-store-search.ts"
   }
 }

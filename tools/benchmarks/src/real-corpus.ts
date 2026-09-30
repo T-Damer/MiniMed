@@ -3,13 +3,11 @@
 // and demo corpora; no benchmark depends on content that is not shipped to users.
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-
+import { createBunFileMedicalStore } from '@localmed/benchmarks/bun-sqlite-medical-store';
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
 import type { QueryEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
-
-import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 
 export const REPOSITORY_ROOT = resolve(import.meta.dirname, '../../..');
 const CONTENT = resolve(REPOSITORY_ROOT, 'apps/app/public/content');
@@ -31,9 +29,8 @@ export interface RealCorpus {
   readonly target: (documentId: string) => string;
   /**
    * The underlying multi-pack store `core` was built from. Not needed for ordinary quality/latency
-   * benchmarks (hence not exposed before) — `export-search-golden.ts` needs it to re-run one query
-   * branch's exact `ftsQuery` directly (`store.search`) and read `store.listAliases()`, mirroring
-   * `packages/core/src/create-medical-core.ts`'s own per-branch execution without reimplementing it.
+   * benchmarks — native oracle exporters observe its actual branch calls and aliases without
+   * reimplementing the production query pipeline.
    */
   readonly store: MultiMedicalStore;
 }
@@ -50,6 +47,11 @@ export async function openRealCorpus(
      * come from apps/app/public/content (this only substitutes core.db itself).
      */
     readonly corePath?: string | undefined;
+    /** Explicit verified installed artifacts, mounted before the core builds its vocabulary. */
+    readonly installedModules?: readonly {
+      readonly moduleId: string;
+      readonly path: string;
+    }[];
   } = {},
 ): Promise<RealCorpus> {
   const corePath = options.corePath ? resolve(options.corePath) : resolve(CONTENT, 'core.db');
@@ -73,6 +75,14 @@ export async function openRealCorpus(
         searchWeight,
       })),
     )),
+    ...(await Promise.all(
+      (options.installedModules ?? []).map(async ({ moduleId, path }) => ({
+        moduleId,
+        store: await createBunFileMedicalStore(resolve(path)),
+        required: true,
+        searchWeight: 1,
+      })),
+    )),
   ]);
   const core = createMedicalCore({
     store,
@@ -86,7 +96,11 @@ export async function openRealCorpus(
   const documents = new Map(listed.value.map((document) => [document.id, document]));
   return {
     core,
-    corpus: ['core.db', ...companions.map(([file]) => file)],
+    corpus: [
+      'core.db',
+      ...companions.map(([file]) => file),
+      ...(options.installedModules ?? []).map(({ moduleId }) => moduleId),
+    ],
     documents,
     store,
     target: (documentId) => {

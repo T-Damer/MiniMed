@@ -579,7 +579,11 @@ function formatValue(value: CalculatorValue): string {
   if (typeof value === 'string') return `"${value}"`;
   return Number.isInteger(value)
     ? String(value)
-    : value.toPrecision(6).replace(/0+$/u, '').replace(/\.$/u, '');
+    : // Only fractional mantissa zeros are cosmetic; integer and exponent zeros carry value.
+      value
+        .toPrecision(6)
+        .replace(/(\.\d*?)0+(?=e|$)/u, '$1')
+        .replace(/\.(?=e|$)/u, '');
 }
 
 /** Renders an expression with variable names replaced by their current scope values, for a readable trace. */

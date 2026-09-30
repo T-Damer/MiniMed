@@ -25,6 +25,7 @@
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "paths": {
+      "@/*": ["apps/app/src/*"],
       "@localmed/contracts/*": ["packages/contracts/src/*"],
       "@localmed/contracts": ["packages/contracts/src/index.ts"],
       "@localmed/domain": ["packages/domain/src/index.ts"],

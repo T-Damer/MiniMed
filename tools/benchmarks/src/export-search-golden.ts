@@ -32,6 +32,7 @@ import { createHash } from 'node:crypto';
 import { createReadStream, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ScopedMedicalCore } from '@localmed/app/features/search/ScopedMedicalCore';
+import { findObservedBranch, observeStoreSearch } from '@localmed/benchmarks/observe-store-search';
 import { openRealCorpus, REPOSITORY_ROOT } from '@localmed/benchmarks/real-corpus';
 import { normalizeSurfaceText } from '@localmed/search-lexical';
 
@@ -196,18 +197,7 @@ async function main() {
   const commit = execSync('git rev-parse HEAD', { cwd: REPOSITORY_ROOT }).toString().trim();
 
   const queries = analysisMode === 'clinical' ? buildClinicalQuerySet() : buildQuerySet();
-  const searchCalls: {
-    request: Parameters<typeof store.search>[0];
-    hits?: Awaited<ReturnType<typeof store.search>>;
-  }[] = [];
-  const search = store.search.bind(store);
-  store.search = async (request) => {
-    const call: (typeof searchCalls)[number] = { request };
-    searchCalls.push(call);
-    const hits = await search(request);
-    call.hits = hits;
-    return hits;
-  };
+  const searchCalls = observeStoreSearch(store);
   const rows = [];
   for (const { sourceId, query } of queries) {
     searchCalls.length = 0;
@@ -228,17 +218,7 @@ async function main() {
     // Observe the real execution. Replaying with a smaller limit changes the SQL candidate window.
     const branchHits = await Promise.all(
       value.diagnostics.branches.map(async (branch) => {
-        const matching = searchCalls.filter(
-          (call) =>
-            call.request.ftsQuery === branch.ftsQuery &&
-            call.hits?.length === branch.candidateCount,
-        );
-        const hits = matching[0]?.hits;
-        if (!hits) throw new Error(`Missing production branch execution: ${sourceId}/${branch.id}`);
-        const identities = (items: typeof hits) =>
-          JSON.stringify(items.map((hit) => [hit.chunk.id, hit.rank]));
-        if (matching.some((call) => call.hits && identities(call.hits) !== identities(hits)))
-          throw new Error(`Ambiguous production branch execution: ${sourceId}/${branch.id}`);
+        const { hits } = findObservedBranch(searchCalls, branch.ftsQuery, branch.candidateCount);
         return {
           id: branch.id,
           label: branch.label,

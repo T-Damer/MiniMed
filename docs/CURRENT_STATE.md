@@ -139,6 +139,11 @@ Detailed history, moved verbatim on 2026-09-24:
 - Qualification and concrete limits: [state/native-first-slice-2026-09-30.md](state/native-first-slice-2026-09-30.md).
 - Exact identity/migration qualification: [state/native-identities-2026-09-30.md](state/native-identities-2026-09-30.md).
 - Clinical/user-state qualification: [state/native-clinical-user-2026-09-30.md](state/native-clinical-user-2026-09-30.md).
+- Mounted/scoped retrieval has a production-generated 94-case oracle over the exact immutable
+  regulatory pack and current core; 50 calculators and 19 assessments have 3,014 real-engine cases.
+  These fixtures prepare the next native gates and do not claim native feature completion.
+  Production calculator traces now trim fractional mantissa zeros only: scientific exponents and
+  rounded integer zeros preserve their value. The expression/all-schema checks pass 1,399 tests.
 
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 
