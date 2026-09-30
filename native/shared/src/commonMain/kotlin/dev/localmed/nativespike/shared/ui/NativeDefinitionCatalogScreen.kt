@@ -57,7 +57,7 @@ fun NativeDefinitionCatalogScreen(
     core: NativeMedicalCore, target: NativeDefinitionEditionTarget, title: String,
     snapshot: NativeCatalogSnapshot, uiErrors: NativeUiErrors, actionScope: CoroutineScope,
     openingSource: Boolean, sourceError: String?, onBack: () -> Unit, onShowSearch: () -> Unit,
-    onOpenDefinition: (NativeDefinitionTarget) -> Unit,
+    onOpenDefinition: (NativeDefinitionTarget) -> Unit, onContentInstalled: () -> Unit,
     registerNavigationFlush: ((suspend () -> Boolean) -> (() -> Unit))? = null,
 ) {
     val progress by core.installProgress.collectAsState()
@@ -201,6 +201,7 @@ fun NativeDefinitionCatalogScreen(
                                 actionScope.launch {
                                     try {
                                         val loaded = core.installDefinitionEdition(target)
+                                        onContentInstalled()
                                         if (onCurrentRoute()) resolution = loaded
                                     } catch (cause: CancellationException) { throw cause }
                                     catch (cause: Exception) { if (onCurrentRoute()) loadError = "Не удалось загрузить справочник. Повторите попытку." }

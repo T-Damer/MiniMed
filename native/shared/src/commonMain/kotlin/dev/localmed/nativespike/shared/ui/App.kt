@@ -60,11 +60,7 @@ fun NativeSearchSpikeApp(
             val mode = if (entry.analysisMode == NativeHistoryAnalysisMode.Clinical) NativeSearchMode.CLINICAL else NativeSearchMode.LOOKUP
             core.showSearch()
             core.saveSearchSnapshot(dev.localmed.nativespike.shared.core.NativeSearchSnapshot(query, mode = mode,selection=entry.selection))
-            searchState.updateMode(mode)
-            searchState.updateSelection(entry.selection)
-            searchState.updateQuery(query)
-            searchState.completedQuery = null
-            searchState.attempt += 1
+            searchState.restoreFromHistory(dev.localmed.nativespike.shared.core.NativeSearchSnapshot(query, mode = mode, selection = entry.selection))
         }
         onDispose { unregister?.invoke() }
     }
@@ -201,11 +197,11 @@ fun NativeSearchSpikeApp(
                         onShowSearch = { navigate { core.showSearch() } },
                         onOpenModule = { offer -> navigate { core.openCatalog(offer.id, offer.version) } },
                         onOpenDocument = { document -> openSource(document.target.documentId, document.target.anchor, document.target) },
-                        onOpenDefinition = openDefinition, registerNavigationFlush = session?.let { it::registerNavigationFlush })
+                        onOpenDefinition = openDefinition, onContentInstalled = searchState::invalidateResults, registerNavigationFlush = session?.let { it::registerNavigationFlush })
                 }
             } else {
                 NativeReaderPane(core, reader, errors, scope, onBack = back,
-                    onContentInstalled = { searchState.completedQuery = null },
+                    onContentInstalled = searchState::invalidateResults,
                     onSaveItem = session?.let { { title -> scope.launch { it.openReaderCollections(title) }; Unit } },
                     registerNavigationFlush = session?.let { it::registerNavigationFlush })
             }

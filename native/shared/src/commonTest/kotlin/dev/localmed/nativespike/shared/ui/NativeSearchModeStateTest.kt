@@ -15,6 +15,61 @@ import kotlin.test.assertTrue
 import kotlin.test.assertSame
 
 class NativeSearchModeStateTest {
+    @Test fun installedContentInvalidatesAllSectionResultsWithoutLosingTheirDraftsOrPositions() {
+        val initial = NativeSearchSnapshot("приказ", 3, 20, selection = NativeSearchSelection(NativeSearchScope.LEGAL))
+        val state = NativeSearchUiState(initial)
+        state.outcome = SearchOutcome(emptyList(), SearchTiming(0.0, 0.0), NativeSearchMode.LOOKUP)
+        state.completedQuery = state.query
+        state.completedMode = state.mode
+        state.completedSelection = state.selection
+        state.selectSection(NativeSearchScope.ALL)
+        state.updateQuery("пневмония")
+        state.invalidateResults()
+        assertEquals("пневмония", state.query)
+        state.selectSection(NativeSearchScope.LEGAL)
+        assertEquals(initial, state.snapshot())
+        assertNull(state.outcome)
+        assertNull(state.completedQuery)
+    }
+
+    @Test fun historyReplayPreservesTheOutgoingSectionAndReplacesAnOlderDestinationDraft() {
+        val guideline = NativeSearchSnapshot("пневмония", 8, 30, selection = NativeSearchSelection(NativeSearchScope.GUIDELINES))
+        val state = NativeSearchUiState(guideline)
+        state.selectSection(NativeSearchScope.LEGAL)
+        state.updateQuery("старый приказ")
+        state.selectSection(NativeSearchScope.GUIDELINES)
+        state.updateQuery("новая пневмония")
+        val outgoing = state.snapshot()
+        val history = NativeSearchSnapshot("новый приказ", selection = NativeSearchSelection(NativeSearchScope.LEGAL))
+        state.restoreFromHistory(history)
+        assertEquals(history, state.snapshot())
+        assertNull(state.outcome)
+        assertEquals(1, state.attempt)
+        state.selectSection(NativeSearchScope.GUIDELINES)
+        assertEquals(outgoing, state.snapshot())
+        state.selectSection(NativeSearchScope.LEGAL)
+        assertEquals("новый приказ", state.query)
+    }
+
+    @Test fun disablingClinicalRestoresTheChosenSourceSectionAndItsDraft() {
+        val original = NativeSearchSnapshot("приказ", 3, 20, selection = NativeSearchSelection(NativeSearchScope.LEGAL))
+        val state = NativeSearchUiState(original)
+        state.toggleClinical(true)
+        assertEquals(NativeSearchScope.LEGAL, state.sourceScope)
+        assertEquals("", state.query)
+        state.updateQuery("клиническое описание")
+        state.toggleClinical(false)
+        assertEquals(original, state.snapshot())
+        state.toggleClinical(true)
+        assertEquals("клиническое описание", state.query)
+        state.selectSection(NativeSearchScope.GUIDELINES)
+        assertEquals(NativeSearchMode.LOOKUP, state.mode)
+        state.toggleClinical(true)
+        assertEquals(NativeSearchScope.GUIDELINES, state.sourceScope)
+        state.toggleClinical(false)
+        assertEquals(NativeSearchScope.GUIDELINES, state.selection.scope)
+    }
+
     @Test fun sectionsRestoreTheirOwnQueryFiltersResultsAndViewport() {
         val initial = NativeSearchSnapshot("энцефалит", 8, 70, selection = NativeSearchSelection(
             NativeSearchScope.GUIDELINES, NativeSearchFilters(ageGroups = listOf("children"), specialties = listOf("neurology"))))

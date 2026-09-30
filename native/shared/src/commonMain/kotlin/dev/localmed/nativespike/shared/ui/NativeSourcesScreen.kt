@@ -55,6 +55,7 @@ fun NativeSourcesScreen(
     onOpenModule: (NativeModuleOffer) -> Unit,
     onOpenDocument: (NativeCatalogDocument) -> Unit,
     onOpenDefinition: (NativeDefinitionTarget) -> Unit,
+    onContentInstalled: () -> Unit,
     registerNavigationFlush: ((suspend () -> Boolean) -> (() -> Unit))? = null,
 ) {
     var offers by remember(core, snapshot.moduleId, snapshot.moduleVersion) { mutableStateOf<List<NativeModuleOffer>?>(null) }
@@ -74,7 +75,7 @@ fun NativeSourcesScreen(
     val selected = offers?.singleOrNull { it.id == snapshot.moduleId && it.version == snapshot.moduleVersion }
     selected?.definitionEditionTarget?.let { target ->
         NativeDefinitionCatalogScreen(core, target, selected.title, snapshot, uiErrors, actionScope,
-            openingSource, sourceError, onBack, onShowSearch, onOpenDefinition, registerNavigationFlush)
+            openingSource, sourceError, onBack, onShowSearch, onOpenDefinition, onContentInstalled, registerNavigationFlush)
         return
     }
     var saveAttempt by remember { mutableStateOf(0) }

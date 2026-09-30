@@ -279,7 +279,7 @@ fun SearchScreen(
                         )
                     } }
                 }
-                if(toolCore!=null && onOpenTool!=null && onSaveTool!=null && onOpenTools!=null && state.query.isNotBlank()) {
+                if(toolCore!=null && onOpenTool!=null && onSaveTool!=null && onOpenTools!=null && state.query.isNotBlank() && state.mode == NativeSearchMode.LOOKUP && state.selection.scope in listOf(NativeSearchScope.ALL, NativeSearchScope.DIAGNOSIS)) {
                     val matches=toolCore.searchTools(state.query)
                     if(matches.isNotEmpty()) item(key="tool-matches") { NativeToolMatchesRail(state.query,matches,onOpenTool,onSaveTool,onOpenTools) }
                 }

@@ -23,6 +23,8 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
         private set
     var selection by mutableStateOf(snapshot.selection)
         private set
+    var sourceScope by mutableStateOf(snapshot.selection.scope.takeUnless { it == NativeSearchScope.DIAGNOSIS } ?: NativeSearchScope.ALL)
+        private set
     var inputError by mutableStateOf<String?>(null)
         private set
     var outcome by mutableStateOf<SearchOutcome?>(null)
@@ -85,20 +87,21 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
     }
     /** Section memory is local to this session; only the active snapshot is persisted. */
     fun selectSection(scope: NativeSearchScope, resetSpecialties: Boolean = false) {
-        switchSection(scope.takeUnless { it == NativeSearchScope.DIAGNOSIS } ?: NativeSearchScope.ALL,
-            NativeSearchMode.LOOKUP, resetSpecialties)
+        sourceScope = scope.takeUnless { it == NativeSearchScope.DIAGNOSIS } ?: NativeSearchScope.ALL
+        switchSection(sourceScope, NativeSearchMode.LOOKUP, resetSpecialties)
     }
 
     fun toggleClinical(enabled: Boolean) {
-        switchSection(if (enabled) NativeSearchScope.DIAGNOSIS else NativeSearchScope.ALL,
+        if (enabled == (mode == NativeSearchMode.CLINICAL)) return
+        if (enabled) sourceScope = sectionKey()
+        switchSection(if (enabled) NativeSearchScope.DIAGNOSIS else sourceScope,
             if (enabled) NativeSearchMode.CLINICAL else NativeSearchMode.LOOKUP)
     }
 
     private fun switchSection(key: NativeSearchScope, targetMode: NativeSearchMode, resetSpecialties: Boolean = false) {
         val previous = sectionKey()
         if (previous == key && !resetSpecialties) return
-        val finished = completedQuery == query && completedMode == mode && completedSelection == selection
-        sections[previous] = SectionState(snapshot(), outcome.takeIf { finished })
+        rememberSection()
         val saved = sections[key]
         val clinicalToggle = (previous == NativeSearchScope.ALL && key == NativeSearchScope.DIAGNOSIS) ||
             (previous == NativeSearchScope.DIAGNOSIS && key == NativeSearchScope.ALL)
@@ -107,11 +110,37 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
             selection = NativeSearchSelection(if (key == NativeSearchScope.DIAGNOSIS) NativeSearchScope.ALL else key))
         val targetSelection = if (resetSpecialties) restored.selection.copy(
             filters = restored.selection.filters.copy(specialties = emptyList())) else restored.selection
+        applySection(restored.copy(mode = targetMode, selection = targetSelection),
+            saved?.outcome.takeIf { targetSelection == restored.selection })
+    }
+
+    fun restoreFromHistory(snapshot: NativeSearchSnapshot) {
+        rememberSection()
+        applySection(snapshot, null)
+        sourceScope = snapshot.selection.scope.takeUnless { it == NativeSearchScope.DIAGNOSIS } ?: NativeSearchScope.ALL
+        attempt += 1
+    }
+
+    fun invalidateResults() {
+        sections.entries.forEach { it.setValue(it.value.copy(outcome = null)) }
+        outcome = null
+        completedQuery = null
+        completedMode = null
+        completedSelection = null
+        attempt += 1
+    }
+
+    private fun rememberSection() {
+        val finished = completedQuery == query && completedMode == mode && completedSelection == selection
+        sections[sectionKey()] = SectionState(snapshot(), outcome.takeIf { finished })
+    }
+
+    private fun applySection(restored: NativeSearchSnapshot, result: SearchOutcome?) {
         edited = true
         query = restored.query
-        mode = targetMode
-        selection = targetSelection
-        outcome = saved?.outcome.takeIf { targetSelection == restored.selection }
+        mode = restored.mode
+        selection = restored.selection
+        outcome = result
         completedQuery = query.takeIf { outcome != null }
         completedMode = mode.takeIf { outcome != null }
         completedSelection = selection.takeIf { outcome != null }
