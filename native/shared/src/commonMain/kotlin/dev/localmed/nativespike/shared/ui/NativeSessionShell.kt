@@ -56,7 +56,7 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
             val fileChrome = remember(session, openedFile) { NativeReaderChrome() }
             val fileDocument = openedFile is NativeReaderContent.Document
             val keyboardHidden = WindowInsets.ime.getBottom(LocalDensity.current) == 0
-            val routeNavigationVisible = panel != NativeUserPanel.History && panel != NativeUserPanel.Collections &&
+            val routeNavigationVisible = panel != NativeUserPanel.History &&
                 (panel != null || toolsSnapshot?.route != null || readerTarget == null || readerChrome.visible) && keyboardHidden
             val navigationVisible = if (fileDocument) fileChrome.visible && keyboardHidden else openedFile == null && routeNavigationVisible
             val navigationSpace = NativeDimensions.controlHeightLarge + NativeDimensions.space3
@@ -97,9 +97,9 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
                         NativeOpenedFileScreen(file) { session.actionScope.launch { session.back() } }
                     }
                 }
-                if (navigationVisible) Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 10.dp)) {
+                if (navigationVisible) Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = NativeDimensions.assessmentFloatingOffset)) {
                     NativeBottomNavigation(
-                        selectedIndex = if (!fileDocument && panel == NativeUserPanel.Settings) 2 else 0,
+                        selectedIndex = if (fileDocument) 0 else when (panel) { NativeUserPanel.Settings -> 2; NativeUserPanel.Collections -> 1; else -> 0 },
                         onSearch = { session.actionScope.launch { session.showSearch() } },
                         onCollections = { session.actionScope.launch { session.openCollections() } },
                         onSettings = { session.actionScope.launch { session.openPanel(NativeUserPanel.Settings) } },

@@ -73,7 +73,7 @@ fun NativeVisualPreview() {
     val fileChrome = remember(openedFile) { NativeReaderChrome() }
     val fileDocument = openedFile is NativeReaderContent.Document
     val routeNavVisible = !scene.startsWith("design") &&
-        panel != NativeUserPanel.Collections && panel != NativeUserPanel.History &&
+        panel != NativeUserPanel.History &&
         (panel != null || toolRoute?.route != null || scene != "reader" || chrome.visible)
     val navVisible = if (fileDocument) fileChrome.visible else openedFile == null && routeNavVisible
     val navigationSpace = NativeDimensions.controlHeightLarge + NativeDimensions.space3
@@ -131,7 +131,7 @@ fun NativeVisualPreview() {
                         }
                     }
                     if (navVisible) Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp)) {
-                        NativeBottomNavigation(if (!fileDocument && panel == NativeUserPanel.Settings) 2 else 0,
+                        NativeBottomNavigation(if (fileDocument) 0 else when (panel) { NativeUserPanel.Settings -> 2; NativeUserPanel.Collections -> 1; else -> 0 },
                             onSearch = { scope.launch { if (session.showSearch()) scene = "search" } },
                             onCollections = { scope.launch { session.openCollections() } },
                             onSettings = { scope.launch { session.openPanel(NativeUserPanel.Settings) } })

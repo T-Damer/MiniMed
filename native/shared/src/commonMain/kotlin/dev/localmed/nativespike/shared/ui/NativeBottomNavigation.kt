@@ -16,7 +16,7 @@ internal val LocalNativeNavigationPadding = compositionLocalOf { 0.dp }
 internal fun NativeBottomNavigation(selectedIndex: Int, onSearch: () -> Unit, onCollections: () -> Unit, onSettings: () -> Unit) {
         val items = listOf(
             Triple(NativeAppGlyphName.Search, "Поиск", onSearch),
-            Triple(NativeAppGlyphName.FolderOpen, "Избранное и коллекции", onCollections),
+            Triple(NativeAppGlyphName.FolderOpen, "Ваши файлы", onCollections),
             Triple(NativeAppGlyphName.System, "Настройки", onSettings),
         )
     NativeBottomNav(items.map { (glyph, description, _) -> NativeNavItem(description) { tint ->
