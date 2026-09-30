@@ -21,6 +21,7 @@ import dev.localmed.nativespike.shared.designsystem.NativeQueryProgress
 import dev.localmed.nativespike.shared.designsystem.NativeActionButton
 import dev.localmed.nativespike.shared.reader.nativeFilePickerAvailable
 import dev.localmed.nativespike.shared.reader.rememberNativeFilePicker
+import dev.localmed.nativespike.shared.reader.NativeReaderContent
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -65,8 +66,10 @@ fun NativeVisualPreview() {
         onDispose { unregister() }
     }
     val document = source
-    val chrome = remember(scene, document?.target) { NativeReaderChrome() }
-    val navVisible = openedFile == null && !scene.startsWith("design") && panel != NativeUserPanel.Collections && panel != NativeUserPanel.History &&
+    val chrome = remember(scene, document?.target, openedFile) { NativeReaderChrome() }
+    val fileDocument = openedFile is NativeReaderContent.Document
+    val navVisible = if (fileDocument) chrome.visible else openedFile == null && !scene.startsWith("design") &&
+        panel != NativeUserPanel.Collections && panel != NativeUserPanel.History &&
         (panel != null || toolRoute?.route != null || scene != "reader" || chrome.visible)
     NativeUserAppearance(user?.preferences ?: NativeUserPreferences()) {
         NativeSpikeTheme {
@@ -111,7 +114,7 @@ fun NativeVisualPreview() {
                     }
                     openedFile?.let { file -> NativeOpenedFileScreen(file) { scope.launch { session.back() } } }
                     if (navVisible) Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp)) {
-                        NativeBottomNavigation(if (panel == NativeUserPanel.Settings) 2 else 0,
+                        NativeBottomNavigation(if (!fileDocument && panel == NativeUserPanel.Settings) 2 else 0,
                             onSearch = { scope.launch { if (session.showSearch()) scene = "search" } },
                             onCollections = { scope.launch { session.openCollections() } },
                             onSettings = { scope.launch { session.openPanel(NativeUserPanel.Settings) } })

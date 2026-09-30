@@ -38,6 +38,21 @@ class NativeOpenedFileSessionTest {
             assertEquals("сохранённый черновик", session.startupSearch.query)
             assertTrue(session.openFile(NativeFilePick.Failed("Файл недоступен")))
             assertEquals("Файл недоступен", (session.openedFile.value as NativeReaderContent.Unsupported).reason)
+            for (destination in listOf<suspend () -> Unit>(
+                { session.openPanel(NativeUserPanel.Settings) },
+                { session.openCollections() },
+                { session.showSearch(); Unit },
+            )) {
+                canSave = true
+                assertTrue(session.openFile(file))
+                canSave = false
+                destination()
+                assertTrue(session.openedFile.value is NativeReaderContent.Document)
+                canSave = true
+                destination()
+                assertEquals(null, session.openedFile.value)
+                assertEquals("сохранённый черновик", session.startupSearch.query)
+            }
         } finally {
             session.close()
             if (profile.exists()) check(profile.deleteRecursively())

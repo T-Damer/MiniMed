@@ -201,7 +201,12 @@ class NativeCoreSession(
     }
 
     suspend fun openPanel(panel: NativeUserPanel) {
-        if (flushUi()) mutablePanel.value = panel
+        if (!backMutex.tryLock()) return
+        try {
+            if (!flushUi()) return
+            mutableOpenedFile.value = null
+            mutablePanel.value = panel
+        } finally { backMutex.unlock() }
     }
 
     /** A transient reader, independent of core readiness; never writes to the private library/vault. */
@@ -230,6 +235,7 @@ class NativeCoreSession(
                 if (toolsState.snapshot.value?.route != null) toolsState.route(null)
                 mutablePanel.value = null
                 mutableCollectionItem.value = null
+                mutableOpenedFile.value = null
             }
         } finally { backMutex.unlock() }
     }
@@ -251,9 +257,13 @@ class NativeCoreSession(
     }
 
     suspend fun openCollections(item: NativeItemRef? = null) {
-        if (!flushUi()) return
-        mutableCollectionItem.value = item
-        mutablePanel.value = NativeUserPanel.Collections
+        if (!backMutex.tryLock()) return
+        try {
+            if (!flushUi()) return
+            mutableOpenedFile.value = null
+            mutableCollectionItem.value = item
+            mutablePanel.value = NativeUserPanel.Collections
+        } finally { backMutex.unlock() }
     }
 
     suspend fun openReaderCollections(title: String) {
