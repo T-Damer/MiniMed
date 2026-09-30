@@ -293,7 +293,16 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           if (target.ok && target.value.sections.some((section) => section.chunks.length > 0)) {
             openDocumentOverlay(
               pointer.targetDocumentId,
-              modulePointerTargetAnchor(pointerMetadata, initialAnchor()),
+              modulePointerTargetAnchor(
+                pointerMetadata,
+                initialAnchor(),
+                requested.ok
+                  ? {
+                      pointer: requested.value,
+                      target: target.value,
+                    }
+                  : undefined,
+              ),
               { preferSummary: true },
             );
             return;
@@ -446,7 +455,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const requestModulePointerInstall = async (): Promise<void> => {
     const resolution = modulePointer();
     if (resolution?.state !== 'available' || modulePointerPending()) return;
-    const targetAnchor = modulePointerTargetAnchor(document()?.metadata, initialAnchor());
+    const pointerDocument = document();
     const pointerDocumentId = route()?.documentId;
     const openingRoute = route();
     const expectedIdentity =
@@ -482,6 +491,11 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       }
       if (!current()) return;
       assertIdentityDocumentTarget(target.value, expectedIdentity);
+      const targetAnchor = modulePointerTargetAnchor(
+        pointerDocument?.metadata,
+        initialAnchor(),
+        pointerDocument ? { pointer: pointerDocument, target: target.value } : undefined,
+      );
       if (pointerDocumentId === resolution.pointer.targetDocumentId) {
         setDocument(target.value);
         setPendingTitle(undefined);

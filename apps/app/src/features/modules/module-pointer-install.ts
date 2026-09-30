@@ -84,6 +84,16 @@ export function parseModulePointerMetadata(
 export function modulePointerTargetAnchor(
   metadata: Readonly<Record<string, unknown>> | undefined,
   anchor: string | null,
+  source?: {
+    readonly pointer: {
+      readonly versionId: string;
+      readonly sections: readonly {
+        readonly anchor: string;
+        readonly chunks: readonly { readonly anchor: string }[];
+      }[];
+    };
+    readonly target: Pick<MedicalDocumentSummary, 'id' | 'versionId' | 'sourceChecksum'>;
+  },
 ): string | null {
   if (!anchor) return null;
   const mentions = metadata?.['terminologyMentionAnchors'];
@@ -93,11 +103,33 @@ export function modulePointerTargetAnchor(
   }
   // Discovery definitions are readable locally, but their anchors are not detail-pack anchors.
   if (metadata?.['pointerKind'] === 'terminology') return null;
-  if (metadata?.['definitionPreviewAnchor'] !== anchor) return anchor;
-  const definition = metadata['canonicalDefinition'];
-  if (!definition || typeof definition !== 'object' || !('sourceAnchor' in definition))
-    return anchor;
-  return typeof definition.sourceAnchor === 'string' ? definition.sourceAnchor : anchor;
+  if (metadata?.['definitionPreviewAnchor'] === anchor) {
+    const definition = metadata['canonicalDefinition'];
+    if (
+      definition &&
+      typeof definition === 'object' &&
+      'sourceAnchor' in definition &&
+      typeof definition.sourceAnchor === 'string'
+    )
+      return definition.sourceAnchor;
+  }
+  // Classification discovery sections are synthesized locally, not source paragraphs.
+  // Open the proven original from its beginning rather than inventing a source anchor.
+  if (
+    source &&
+    metadata?.['contentMode'] === 'module-pointer' &&
+    metadata['targetDocumentId'] === source.target.id &&
+    metadata['sourceDocumentId'] === source.target.id &&
+    metadata['sourceDocumentVersionId'] === source.target.versionId &&
+    metadata['sourceChecksum'] === source.target.sourceChecksum &&
+    anchor.startsWith(`${source.pointer.versionId}/`) &&
+    source.pointer.sections.some(
+      (section) =>
+        section.anchor === anchor || section.chunks.some((chunk) => chunk.anchor === anchor),
+    )
+  )
+    return null;
+  return anchor;
 }
 
 function moduleContainsTarget(

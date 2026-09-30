@@ -389,3 +389,50 @@ it('maps a term occurrence to its exact source anchor without changing unrelated
 it('does not treat a local discovery definition anchor as a detail-package source anchor', () => {
   expect(modulePointerTargetAnchor({ pointerKind: 'terminology' }, 'core#definition')).toBeNull();
 });
+
+it('opens the verified original at its start for a synthetic classification excerpt only', () => {
+  const anchor = 'core.pointer.A00@2026.9.30/классификационный-контекст#chunk-0bf390fe';
+  const target = {
+    id: 'reference.rls.A00',
+    versionId: 'reference.rls.A00@2026.9.30',
+    sourceChecksum: CHECKSUM,
+  };
+  const metadata = {
+    contentMode: 'module-pointer',
+    targetDocumentId: target.id,
+    sourceDocumentId: target.id,
+    sourceDocumentVersionId: target.versionId,
+    sourceChecksum: CHECKSUM,
+  };
+  const source = {
+    pointer: {
+      versionId: 'core.pointer.A00@2026.9.30',
+      sections: [{ anchor: 'local-section', chunks: [{ anchor }] }],
+    },
+    target,
+  };
+  expect(modulePointerTargetAnchor(metadata, anchor, source)).toBeNull();
+  expect(modulePointerTargetAnchor(metadata, 'foreign@1/section', source)).toBe(
+    'foreign@1/section',
+  );
+  expect(modulePointerTargetAnchor(metadata, `${source.pointer.versionId}/unknown`, source)).toBe(
+    `${source.pointer.versionId}/unknown`,
+  );
+  expect(
+    modulePointerTargetAnchor({ ...metadata, sourceChecksum: 'sha256:other' }, anchor, source),
+  ).toBe(anchor);
+  expect(
+    modulePointerTargetAnchor(
+      { ...metadata, sourceDocumentVersionId: 'other@edition' },
+      anchor,
+      source,
+    ),
+  ).toBe(anchor);
+  expect(
+    modulePointerTargetAnchor(
+      { ...metadata, terminologyMentionAnchors: { [anchor]: 'original@1/paragraph' } },
+      anchor,
+      source,
+    ),
+  ).toBe('original@1/paragraph');
+});
