@@ -63,9 +63,10 @@ expect class NativeSearchDatabase(dbFilePath: String) {
 
     fun chunksForSection(sectionId: String): List<ReaderChunk>
 
-    /** BM25 window: 4x overfetch, at most three chunks per document version, then limit.
+    /** BM25 window: 4x bounded overfetch, then limit. Lookup diversifies to three chunks per
+     * document version; explicit clinical retrieval keeps the complete bounded window.
      * Optional exact document membership supports query-aligned identity hydration. */
-    fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String> = emptyList()): List<BranchHit>
+    fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String> = emptyList(), diversifyDocuments: Boolean = true): List<BranchHit>
 
     /** Mirrors the fields `hitsContainExactSubject` (create-medical-core.ts) reads off a hit. */
     fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText>

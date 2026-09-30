@@ -23,6 +23,8 @@ import dev.localmed.nativespike.shared.core.NativeDocumentResolution
 import dev.localmed.nativespike.shared.core.NativeDocumentTarget
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.model.SearchOutcome
+import dev.localmed.nativespike.shared.model.NativeSearchMode
+import dev.localmed.nativespike.shared.user.NativeHistoryAnalysisMode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -46,19 +48,32 @@ fun NativeSearchSpikeApp(
     val failures by errors.messages.collectAsState()
     var searchSaveAttempt by remember(core) { mutableStateOf(0) }
     val searchState = remember(core) { NativeSearchUiState(core.navigation.value.search) }
+    DisposableEffect(core, session) {
+        val unregister = session?.registerReplayHandler { entry ->
+            val query = entry.query
+            val mode = if (entry.analysisMode == NativeHistoryAnalysisMode.Clinical) NativeSearchMode.CLINICAL else NativeSearchMode.LOOKUP
+            core.showSearch()
+            core.saveSearchSnapshot(dev.localmed.nativespike.shared.core.NativeSearchSnapshot(query, mode = mode))
+            searchState.updateMode(mode)
+            searchState.updateQuery(query)
+            searchState.completedQuery = null
+            searchState.attempt += 1
+        }
+        onDispose { unregister?.invoke() }
+    }
     val reader = navigation.readers.lastOrNull()
     var opening by remember(core) { mutableStateOf(false) }
     var openingError by remember(core) { mutableStateOf<String?>(null) }
 
     LaunchedEffect(core, searchSaveAttempt) {
-        var savedQuery: String? = null
+        var savedSearch: Pair<String, NativeSearchMode>? = null
         snapshotFlow { searchState.snapshot() }.distinctUntilChanged().collectLatest { snapshot ->
             // Query changes are durable immediately; only frequent scroll updates are debounced.
-            if (savedQuery == snapshot.query) delay(120)
+            if (savedSearch == (snapshot.query to snapshot.mode)) delay(120)
             errors.execute(NativeUiOperation.SearchPosition, "Не удалось сохранить запрос или позицию поиска.") {
                 core.saveSearchSnapshot(snapshot)
             }
-            savedQuery = snapshot.query
+            savedSearch = snapshot.query to snapshot.mode
         }
     }
     val navigate = { action: suspend () -> Unit ->
@@ -73,11 +88,11 @@ fun NativeSearchSpikeApp(
         onDispose { unregister?.invoke() }
     }
     val routeError = listOfNotNull(openingError, failures[NativeUiOperation.Navigation], failures[NativeUiOperation.SearchPosition]).distinct().joinToString("\n").ifBlank { null }
-    fun sameOrigin(origin: NativeCatalogSnapshot?, originQuery: String): Boolean {
+    fun sameOrigin(origin: NativeCatalogSnapshot?, originQuery: String, originMode: NativeSearchMode): Boolean {
         val current = core.navigation.value
         return current.readers.isEmpty() && (origin == null) == (current.catalog == null) &&
             origin?.moduleId == current.catalog?.moduleId && origin?.moduleVersion == current.catalog?.moduleVersion &&
-            (origin != null || current.search.query == originQuery)
+            (origin != null || (current.search.query == originQuery && current.search.mode == originMode && searchState.mode == originMode && searchState.query == originQuery))
     }
     val openSource = { id: String, anchor: String?, expected: NativeDocumentTarget? ->
         if (!opening) {
@@ -85,10 +100,11 @@ fun NativeSearchSpikeApp(
             openingError = null
             val origin = core.navigation.value.catalog
             val originQuery = core.navigation.value.search.query
+            val originMode = core.navigation.value.search.mode
             scope.launch {
                 try {
                     val source = core.resolveDocument(id, anchor, expected)
-                    if (sameOrigin(origin, originQuery)) {
+                    if (sameOrigin(origin, originQuery, originMode)) {
                         when (source) {
                             is NativeDocumentResolution.Readable -> core.openDocument(source.document.target)
                             is NativeDocumentResolution.Download -> core.openDocument(source.target)
@@ -96,7 +112,7 @@ fun NativeSearchSpikeApp(
                         }
                     }
                 } catch (cause: CancellationException) { throw cause }
-                catch (cause: Exception) { if (sameOrigin(origin, originQuery)) openingError = "Не удалось открыть источник. Повторите попытку." }
+                catch (cause: Exception) { if (sameOrigin(origin, originQuery, originMode)) openingError = "Не удалось открыть источник. Повторите попытку." }
                 finally { opening = false }
             }
         }
@@ -108,15 +124,16 @@ fun NativeSearchSpikeApp(
             openingError = null
             val origin = core.navigation.value.catalog
             val originQuery = core.navigation.value.search.query
+            val originMode = core.navigation.value.search.mode
             scope.launch {
                 try {
                     val source = core.resolveDefinition(target)
-                    if (sameOrigin(origin, originQuery)) {
+                    if (sameOrigin(origin, originQuery, originMode)) {
                         if (source is NativeDefinitionResolution.Unavailable) openingError = source.reason
                         else core.openDefinition(target)
                     }
                 } catch (cause: CancellationException) { throw cause }
-                catch (cause: Exception) { if (sameOrigin(origin, originQuery)) openingError = "Не удалось открыть запись источника. Повторите попытку." }
+                catch (cause: Exception) { if (sameOrigin(origin, originQuery, originMode)) openingError = "Не удалось открыть запись источника. Повторите попытку." }
                 finally { opening = false }
             }
         }
@@ -141,6 +158,9 @@ fun NativeSearchSpikeApp(
                     SearchScreen(core, searchState, openingSource = opening, sourceError = routeError,
                         onRetrySave = if (failures[NativeUiOperation.SearchPosition] != null) ({ searchSaveAttempt += 1 }) else null,
                         onOpenSources = { navigate { core.openCatalog() } }, onOpenIdentity = openIdentity,
+                        onOpenSettings = session?.let { { scope.launch { it.openPanel(NativeUserPanel.Settings) }; Unit } },
+                        onOpenHistory = session?.let { { scope.launch { it.openPanel(NativeUserPanel.History) }; Unit } },
+                        onCompletedSearch = session?.let { { query, outcome -> scope.launch { it.recordSearch(query, outcome.groups.size, outcome.mode) }; Unit } },
                         onOpenDocument = { id, _, anchor -> openSource(id, anchor, null) },
                         externalQuery = externalQuery, onOutcome = onOutcome)
                 } else {

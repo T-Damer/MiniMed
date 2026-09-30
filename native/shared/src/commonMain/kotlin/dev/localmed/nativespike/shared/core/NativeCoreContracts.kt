@@ -1,6 +1,7 @@
 package dev.localmed.nativespike.shared.core
 
 import kotlinx.serialization.Serializable
+import dev.localmed.nativespike.shared.model.NativeSearchMode
 
 const val NATIVE_SEARCH_QUERY_MAX_LENGTH = 20_000
 const val NATIVE_CATALOG_FILTER_MAX_LENGTH = 2_048
@@ -20,6 +21,7 @@ data class NativeSearchSnapshot(
     val query: String = "",
     val firstVisibleItemIndex: Int = 0,
     val firstVisibleItemOffset: Int = 0,
+    val mode: NativeSearchMode = NativeSearchMode.LOOKUP,
 )
 
 @Serializable

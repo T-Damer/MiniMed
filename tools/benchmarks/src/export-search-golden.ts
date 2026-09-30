@@ -8,11 +8,8 @@
  *   - the query plan (branches: id, weight, terms, ftsQuery) — from the real search response's
  *     `diagnostics.branches` (packages/core/src/create-medical-core.ts), not a reimplementation;
  *   - matched aliases and terms — same `diagnostics` object;
- *   - each branch's own raw FTS5 hits (chunk id + bm25 rank), top-N — obtained by re-running that
- *     branch's *exact* `ftsQuery` directly against the store (`MedicalStore.search`), the same call
- *     `create-medical-core.ts` makes internally (see its `runBranchSearches`); this script does not
- *     reimplement branch execution, it reuses the real one twice (once inside the normal search
- *     call for the final groups, once directly per branch for hit-level detail);
+ *   - each branch's actual store hits (chunk id + rank), top-N — observed during the production
+ *     call, including its terms, filters, candidate limit and mode-specific diversification;
  *   - final groups and source passages (targets, scores, chunk/version/section identities, anchors,
  *     query-aligned excerpts and highlight offsets).
  *
@@ -199,8 +196,21 @@ async function main() {
   const commit = execSync('git rev-parse HEAD', { cwd: REPOSITORY_ROOT }).toString().trim();
 
   const queries = analysisMode === 'clinical' ? buildClinicalQuerySet() : buildQuerySet();
+  const searchCalls: {
+    request: Parameters<typeof store.search>[0];
+    hits?: Awaited<ReturnType<typeof store.search>>;
+  }[] = [];
+  const search = store.search.bind(store);
+  store.search = async (request) => {
+    const call: (typeof searchCalls)[number] = { request };
+    searchCalls.push(call);
+    const hits = await search(request);
+    call.hits = hits;
+    return hits;
+  };
   const rows = [];
   for (const { sourceId, query } of queries) {
+    searchCalls.length = 0;
     const response = await scoped.search({
       query,
       mode: 'lexical',
@@ -215,17 +225,20 @@ async function main() {
     }
     const { value } = response;
 
-    // Re-run each branch's own exact ftsQuery directly against the store for hit-level detail
-    // (chunk id + bm25 rank) — the same call create-medical-core.ts's runBranchSearches makes,
-    // just re-executed here so this script can record it without packages/core exposing it.
+    // Observe the real execution. Replaying with a smaller limit changes the SQL candidate window.
     const branchHits = await Promise.all(
       value.diagnostics.branches.map(async (branch) => {
-        const hits = await store.search({
-          ftsQuery: branch.ftsQuery,
-          terms: value.diagnostics.terms,
-          filters: {},
-          limit: HITS_PER_BRANCH,
-        });
+        const matching = searchCalls.filter(
+          (call) =>
+            call.request.ftsQuery === branch.ftsQuery &&
+            call.hits?.length === branch.candidateCount,
+        );
+        const hits = matching[0]?.hits;
+        if (!hits) throw new Error(`Missing production branch execution: ${sourceId}/${branch.id}`);
+        const identities = (items: typeof hits) =>
+          JSON.stringify(items.map((hit) => [hit.chunk.id, hit.rank]));
+        if (matching.some((call) => call.hits && identities(call.hits) !== identities(hits)))
+          throw new Error(`Ambiguous production branch execution: ${sourceId}/${branch.id}`);
         return {
           id: branch.id,
           label: branch.label,

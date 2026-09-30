@@ -12,7 +12,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -30,7 +29,9 @@ import dev.localmed.nativespike.shared.content.bundledNativeCatalog
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.ui.NativeCoreSession
 import dev.localmed.nativespike.shared.ui.NativeCoreSessionState
-import dev.localmed.nativespike.shared.ui.NativeCoreStartup
+import dev.localmed.nativespike.shared.ui.NativeSessionShell
+import dev.localmed.nativespike.shared.ui.nativeUserDarkTheme
+import dev.localmed.nativespike.shared.user.NativeThemePreference
 import dev.localmed.nativespike.shared.ui.NativeSearchSpikeApp
 import dev.localmed.nativespike.shared.ui.NativeUiOperation
 import java.io.File
@@ -68,7 +69,7 @@ class MainActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val core = (owner.session.state.value as? NativeCoreSessionState.Ready)?.core
-                if (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null)) owner.scope.launch { owner.session.back() }
+                if (owner.session.panel.value != null || (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null))) owner.scope.launch { owner.session.back() }
                 else moveTaskToBack(true)
             }
         })
@@ -76,8 +77,10 @@ class MainActivity : ComponentActivity() {
             val state by owner.session.state.collectAsState()
             val readyCore = (state as? NativeCoreSessionState.Ready)?.core
             val navigation = if (readyCore != null) readyCore.navigation.collectAsState().value else null
-            val paperRoute = readyCore == null || navigation?.readers?.isNotEmpty() == true || navigation?.catalog != null
-            val darkSystem = isSystemInDarkTheme()
+            val panel by owner.session.panel.collectAsState()
+            val user by owner.session.userState.snapshot.collectAsState()
+            val paperRoute = panel != null || readyCore == null || navigation?.readers?.isNotEmpty() == true || navigation?.catalog != null
+            val darkSystem = nativeUserDarkTheme(user?.preferences?.theme ?: NativeThemePreference.System)
             SideEffect {
                 val controller = WindowCompat.getInsetsController(window, window.decorView)
                 // Search uses the grey background in both themes; opaque paper is light only in light mode.
@@ -106,10 +109,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
-            when (val current = state) {
-                is NativeCoreSessionState.Opening -> NativeCoreStartup(current.progress, null, owner.session::retry)
-                is NativeCoreSessionState.Failed -> NativeCoreStartup(null, current.message, owner.session::retry)
-                is NativeCoreSessionState.Ready -> NativeSearchSpikeApp(
+            NativeSessionShell(owner.session) { current ->
+                NativeSearchSpikeApp(
                     core = current.core,
                     actionScope = owner.scope,
                     uiErrors = owner.session.uiErrors, session = owner.session,

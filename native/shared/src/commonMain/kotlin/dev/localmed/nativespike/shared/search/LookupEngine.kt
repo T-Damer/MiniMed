@@ -10,12 +10,15 @@ import dev.localmed.nativespike.shared.lexical.createMedicationSpellingMatcher
 import dev.localmed.nativespike.shared.lexical.filterQueryAliases
 import dev.localmed.nativespike.shared.lexical.runLookupPipelineGroups
 import dev.localmed.nativespike.shared.lexical.sortAliasesLikeMultiMedicalStore
+import dev.localmed.nativespike.shared.lexical.analyzeClinicalQuery
 import dev.localmed.nativespike.shared.model.AliasRecord
+import dev.localmed.nativespike.shared.model.ClinicalQueryPlan
 import dev.localmed.nativespike.shared.model.DocumentKind
 import dev.localmed.nativespike.shared.model.SearchOutcome
 import dev.localmed.nativespike.shared.model.SearchResultGroup
 import dev.localmed.nativespike.shared.model.SearchResultItem
 import dev.localmed.nativespike.shared.model.SearchTiming
+import dev.localmed.nativespike.shared.model.NativeSearchMode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -128,21 +131,36 @@ class LookupEngine(private val database: NativeSearchDatabase, private val datab
         documentIndexDeferred.await()
     }
 
+    /** Pure analysis reuses the one qualified vocabulary; it never reads or opens another DB. */
+    suspend fun analyzeClinicalQuery(query: String,includeSuggestions: Boolean=true): ClinicalQueryPlan {
+        val vocabulary=vocabularyDeferred.await()
+        return analyzeClinicalQuery(query,vocabulary.aliases,includeSuggestions,vocabulary.aliasExpander.expand(query))
+    }
+
     /**
      * `onStage`, when non-null, receives `(stageName, ms)` for every timed phase of this query —
      * see `PipelineTiming.kt`/the pipeline files it's threaded through. Used by the debug bench path
      * (`MainActivity`) to build the stage-timing table in "Optimization pass"; `null` for every
      * ordinary UI-driven search (zero overhead — see `timedStage`'s doc).
      */
-    suspend fun search(query: String, onStage: ((String, Double) -> Unit)? = null): SearchOutcome? {
+    suspend fun search(query: String, onStage: ((String, Double) -> Unit)? = null): SearchOutcome? =
+        search(query, NativeSearchMode.LOOKUP, onStage)
+
+    suspend fun search(query: String, mode: NativeSearchMode, onStage: ((String, Double) -> Unit)? = null): SearchOutcome? {
         if (query.isBlank()) return null
         val vocabulary = vocabularyDeferred.await()
         val documentIndex = documentIndexDeferred.await()
         return databaseGate.withLock {
         val started = TimeSource.Monotonic.markNow()
+        var sqlMs = 0.0
+        val collectStage: (String, Double) -> Unit = { stage, elapsed ->
+            if (stage == "sql") sqlMs += elapsed
+            onStage?.invoke(stage, elapsed)
+        }
+        val clinicalPlan = if (mode == NativeSearchMode.CLINICAL) analyzeClinicalQuery(query, vocabulary.aliases, true, vocabulary.aliasExpander.expand(query)) else null
         val groups = runLookupPipelineGroups(
             query, vocabulary.aliases, database, documentIndex, GROUP_LIMIT,
-            vocabulary.aliasExpander, vocabulary.medicationMatcher, onStage,
+            vocabulary.aliasExpander, vocabulary.medicationMatcher, collectStage, clinicalPlan,
         )
         val totalMs = started.elapsedNow().inWholeMicroseconds / 1000.0
 
@@ -163,7 +181,8 @@ class LookupEngine(private val database: NativeSearchDatabase, private val datab
                 },
             )
         }
-        SearchOutcome(groups = uiGroups, timing = SearchTiming(sqlOnlyMs = totalMs, totalMs = totalMs))
+        SearchOutcome(groups = uiGroups, timing = SearchTiming(sqlOnlyMs = sqlMs, totalMs = totalMs), mode = mode,
+            analysis = clinicalPlan?.analysis, sourceGroups = groups)
         }
     }
 }

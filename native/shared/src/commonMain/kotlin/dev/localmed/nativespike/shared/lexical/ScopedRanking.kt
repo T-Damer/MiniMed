@@ -2,31 +2,21 @@ package dev.localmed.nativespike.shared.lexical
 
 import dev.localmed.nativespike.shared.model.DocumentDescriptor
 import dev.localmed.nativespike.shared.model.RankedGroup
+import dev.localmed.nativespike.shared.model.QueryAnalysis
+import dev.localmed.nativespike.shared.model.QueryFact
+import dev.localmed.nativespike.shared.model.QueryFactKind
+import dev.localmed.nativespike.shared.model.QueryFactPolarity
+import dev.localmed.nativespike.shared.model.SearchIntentKind
+import dev.localmed.nativespike.shared.model.RankedResult
 import dev.localmed.nativespike.shared.text.lightStemRussian
 import dev.localmed.nativespike.shared.text.normalizeSurfaceText
 import dev.localmed.nativespike.shared.text.searchSubjectText
 import dev.localmed.nativespike.shared.text.tokenize
 
-/**
- * A Kotlin port of the `apps/app/src/features/search/ScopedMedicalCore.ts` layer that runs AFTER
- * `packages/core`'s own `groups` — stage 2 sub-stage D of the migration (docs/CURRENT_STATE.md).
- * `export-search-golden.ts` calls `ScopedMedicalCore` (scope `'all'`), not `MedicalCore` directly,
- * so this layer's re-sorting and `documentKind`/`contentKind` tagging IS part of what golden's
- * `groups` field reflects — found while tracing where `documentKind`/`contentKind` actually get set
- * (they are not `packages/core` fields at all).
- *
- * Scope `'all'` has no entry in `SOURCE_TYPES_BY_SCOPE`, so `ScopedMedicalCore.search()`'s
- * document-id filtering, `keepExplicitMedicationMatches` (scope `'medications'`-only), and
- * `rankDiagnosisGroups` (scope `'diagnosis'`-only) never run for this export — not ported, they are
- * provably unreachable for `scope: 'all'`, read directly off the TS source's own branching.
- *
- * `filterMedicationDocuments`: for lookup-mode analysis (`facts: []`, no `intent`), `excludeByIntent`
- * is always `true` and `requireSameResult` is always `false` (same "always-empty analysis" argument
- * as `QueryGroupRanking.kt`'s header) — so only the "drop a medication-kind group whose title does
- * not name a query term" branch is reachable; that is what `filterMedicationDocuments` below ports,
- * not the full function (`medicationContextMatchScore`/`containsStructuredMedicationFact`/etc. are
- * all inside the unreachable `requireSameResult` branch).
- */
+/** Post-core ranking mirrors ScopedMedicalCore for the qualified 'all' scope in both modes.
+ * Clinical medication presentation facts must coexist in a source passage. Lookup has no clinical
+ * facts and requires a typed medication name. Other scope filters and diagnosis-only ranking are
+ * separate qualification stages. */
 
 /** Mirrors `searchResultDocumentKind`. */
 fun searchResultDocumentKind(document: DocumentDescriptor): String {
@@ -195,17 +185,41 @@ private fun isMedicationSearchDocument(document: DocumentDescriptor): Boolean {
     return document.catalogFamily == "medication" || document.entityType == "medication"
 }
 
-/**
- * Mirrors the reachable branch of `filterMedicationDocuments` for lookup-mode analysis — see file
- * header. Drops a medication-kind group unless its title names a stemmed word (length >= 4) from
- * the original query.
- */
-fun filterMedicationDocuments(groups: List<RankedGroup>, originalQuery: String, documentsById: Map<String, DocumentDescriptor>): List<RankedGroup> {
-    val queryStems = stemmedTokens(originalQuery).toSet()
-    fun titleNamedInQuery(title: String): Boolean = stemmedTokens(title).any { it.length >= 4 && it in queryStems }
-    return groups.filter { group ->
-        val document = documentsById[group.documentId] ?: return@filter true
-        if (!isMedicationSearchDocument(document)) return@filter true
-        titleNamedInQuery(group.title)
+private val INTERCHANGEABLE_LIQUID_FORM_STEMS=listOf("суспензия","сироп","спироп").flatMap(::stemmedTokens).toSet()
+private fun containsStructuredMedicationFact(textStems: Set<String>,fact: QueryFact): Boolean {
+    val required=stemmedTokens(fact.normalizedValue)
+    if(fact.kind==QueryFactKind.DOSE_FORM && required.any { it in INTERCHANGEABLE_LIQUID_FORM_STEMS })
+        return INTERCHANGEABLE_LIQUID_FORM_STEMS.any { it in textStems }
+    return required.isNotEmpty() && required.all { it in textStems }
+}
+private fun medicationContextMatchScore(result: RankedResult,title: String?,medications: List<QueryFact>,structured: List<QueryFact>): Int {
+    val text=(listOfNotNull(title,result.snippet,result.documentTitle)+result.sectionPath+result.matchedTerms).joinToString(" ")
+    val textStems=stemmedTokens(text).toSet()
+    if(medications.none { fact -> val required=stemmedTokens(fact.value);required.isNotEmpty() && required.all { it in textStems } } ||
+        !structured.all { containsStructuredMedicationFact(textStems,it) }) return 0
+    val normalized=normalizeSurfaceText(text);val section=normalizeSurfaceText(result.sectionPath.joinToString(" "))
+    return 1+structured.count { normalized.contains(normalizeSurfaceText(it.normalizedValue)) }+
+        2*structured.count { section.contains(normalizeSurfaceText(it.normalizedValue)) }
+}
+
+/** Medication context must coexist in one source passage, matching ScopedMedicalCore's all scope. */
+fun filterMedicationDocuments(groups: List<RankedGroup>, originalQuery: String, documentsById: Map<String, DocumentDescriptor>, analysis: QueryAnalysis? = null): List<RankedGroup> {
+    val medications=analysis?.facts.orEmpty().filter { it.kind==QueryFactKind.MEDICATION && it.polarity==QueryFactPolarity.POSITIVE }
+    val context=analysis?.clinicalContext
+    val structured=(context?.doseForm.orEmpty()+context?.route.orEmpty()+context?.strength.orEmpty()).filter { it.polarity==QueryFactPolarity.POSITIVE }
+    val intent=analysis?.intent?.primary
+    val excludeByIntent=medications.isEmpty() && intent!=SearchIntentKind.MEDICATION && intent!=SearchIntentKind.MIXED
+    val requireSameResult=medications.isNotEmpty() && structured.isNotEmpty()
+    if(!excludeByIntent && !requireSameResult) return groups
+    val queryStems=stemmedTokens(originalQuery).toSet()
+    return groups.mapNotNull { group ->
+        val document=documentsById[group.documentId]
+        if(document==null || !isMedicationSearchDocument(document)) return@mapNotNull group
+        if(excludeByIntent) return@mapNotNull group.takeIf { stemmedTokens(it.title).any { stem -> stem.length>=4 && stem in queryStems } }
+        if(!requireSameResult) return@mapNotNull group
+        val pointer=document.sourceType=="core_catalog_pointer" && document.catalogFamily=="medication"
+        val results=group.results.map { it to medicationContextMatchScore(it,if(pointer) null else group.title,medications,structured) }
+            .filter { it.second>0 }.sortedWith(compareByDescending<Pair<RankedResult,Int>> { it.second }.thenByDescending { it.first.finalScore }).map { it.first }
+        results.firstOrNull()?.let { group.copy(bestScore=it.finalScore,results=results) }
     }
 }

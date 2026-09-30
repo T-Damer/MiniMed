@@ -1,6 +1,5 @@
 package dev.localmed.nativespike.shared.ui
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -119,6 +118,6 @@ private val WebTypography = Typography(
 
 @Composable
 fun NativeSpikeTheme(content: @Composable () -> Unit) {
-    val colors = if (isSystemInDarkTheme()) DarkColors else LightColors
+    val colors = if (nativeUserDarkTheme(LocalNativeTheme.current)) DarkColors else LightColors
     MaterialTheme(colorScheme = colors, typography = WebTypography, content = content)
 }

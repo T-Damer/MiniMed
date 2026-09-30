@@ -4,16 +4,13 @@ package dev.localmed.nativespike.shared
 
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.window.ComposeUIViewController
 import dev.localmed.nativespike.shared.core.IOSNativeContentIO
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.content.bundledNativeCatalog
 import dev.localmed.nativespike.shared.ui.NativeCoreSession
-import dev.localmed.nativespike.shared.ui.NativeCoreSessionState
-import dev.localmed.nativespike.shared.ui.NativeCoreStartup
+import dev.localmed.nativespike.shared.ui.NativeSessionShell
 import dev.localmed.nativespike.shared.ui.NativeSearchSpikeApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +35,6 @@ fun nativeViewController(): UIViewController = ComposeUIViewController {
         IOSNativeContentIO("${directory.path ?: error("Локальное хранилище недоступно")}/MiniMed")
     }
     val session = remember { NativeCoreSession(io, ::bundledNativeCatalog, scope) }
-    val state by session.state.collectAsState()
     LaunchedEffect(session) {
         if (NativeMedicalCore.hasCachedCore(io)) session.retry()
     }
@@ -53,9 +49,7 @@ fun nativeViewController(): UIViewController = ComposeUIViewController {
             }
         }
     }
-    when (val current = state) {
-        is NativeCoreSessionState.Opening -> NativeCoreStartup(current.progress, null, session::retry)
-        is NativeCoreSessionState.Failed -> NativeCoreStartup(null, current.message, session::retry)
-        is NativeCoreSessionState.Ready -> NativeSearchSpikeApp(core = current.core, actionScope = scope, uiErrors = session.uiErrors, session = session)
+    NativeSessionShell(session) { current ->
+        NativeSearchSpikeApp(core = current.core, actionScope = scope, uiErrors = session.uiErrors, session = session)
     }
 }

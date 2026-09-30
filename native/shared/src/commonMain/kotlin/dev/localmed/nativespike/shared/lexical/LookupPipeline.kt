@@ -2,48 +2,21 @@ package dev.localmed.nativespike.shared.lexical
 
 import dev.localmed.nativespike.shared.db.NativeSearchDatabase
 import dev.localmed.nativespike.shared.model.AliasRecord
+import dev.localmed.nativespike.shared.model.ClinicalQueryPlan
+import dev.localmed.nativespike.shared.model.MedicationLookupPlan
 import dev.localmed.nativespike.shared.model.DocumentDescriptor
 import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.RankedGroup
 import dev.localmed.nativespike.shared.model.RankedResult
 import dev.localmed.nativespike.shared.text.normalizeSurfaceText
 
-/**
- * The end-to-end stage 2 sub-stage D orchestration (docs/CURRENT_STATE.md): ties together the
- * lookup plan (sub-stage B), SQL branch execution (sub-stage C), and fusion/grouping/ranking (this
- * sub-stage) into the same sequence `create-medical-core.ts`'s `search()` +
- * `ScopedMedicalCore.search()` run, for `scope: 'all'`, `mode: 'lexical'`, `analysisMode: 'lookup'`
- * — exactly what `export-search-golden.ts` calls (`ScopedMedicalCore`, not `MedicalCore` directly,
- * which is why the `documentKind`/`contentKind` tagging and audience/strict-identity re-sort are
- * included below, not just the `packages/core` pieces).
- *
- * `QueryDocumentIndex` (`buildExactIdentityResults`/`mergeExactIdentityResults`/
- * `exactAliasIds`/`exactTitleIds`/`exactNavigationAliasIds`/`exactShortTitleIds`) IS now ported
- * (post-sub-stage-D-report revision, per the coordinator): a document an exact alias/title/
- * navigation-alias names, that no branch's own FTS search happened to surface, is now added to
- * results the same way `create-medical-core.ts` does, and `fuseBranchHits`'s `exactAliasDocumentIds`
- * cutoff-survival parameter is real, not an empty placeholder. The caller builds one
- * `QueryDocumentIndex` ONCE (`buildQueryDocumentIndex`, from `NativeSearchDatabase.listSearchDocuments()`)
- * and passes it into every `runLookupPipeline` call — mirroring `create-medical-core.ts` caching
- * `queryDocumentIndex` across searches. (Optimization pass correction: `create-medical-core.ts`
- * builds this lazily inside the first `search()` call, not at WebView startup — see
- * `QueryDocumentIndex.kt`'s header. `LookupEngine.kt` builds it in the background after
- * construction, which starts earlier than TS's own lazy trigger without blocking first frame.)
- *
- * Still deliberately NOT ported for this pipeline (each is its own documented scope cut in the file
- * it would have lived in, repeated here as the single list of what's missing end-to-end):
- *  - terminology matching (`TerminologySearchIndex`/`termIndex.match`/`.rank`) — explicitly out of
- *    scope for stage 2 (docs/CURRENT_STATE.md); `terminologyMatch` is always treated as absent, so
- *    `termIndex.rank(groupedResults, terminologyMatch)` is treated as an identity passthrough (its
- *    only other job — reordering by terminology relevance — needs a real terminology match, which
- *    never happens here).
- *  - semantic/vector search (`fuseSemanticResults`) — never reached: `export-search-golden.ts`
- *    always requests `mode: 'lexical'`.
- *  - `hasImmediateFailureContext`/`hasDelayedMedicationFailureContext` inside `titleTermBoost` —
- *    see `QueryGroupRanking.kt`'s header.
- *  - `keepExplicitMedicationMatches`/document-id scope filtering/`rankDiagnosisGroups` — all
- *    unreachable for `scope: 'all'` (see `ScopedRanking.kt`'s header).
- */
+/** One core-only lexical pipeline for lookup and clinical plans, with scope 'all'.
+ * Branch execution, source hydration, fusion and document grouping mirror create-medical-core.ts;
+ * audience, medication context and strict identities mirror ScopedMedicalCore.ts.
+ * Lookup retains medication spelling and three-fragment document diversification. Clinical uses
+ * its typed facts/context and the full bounded candidate window. Both reuse the same cached index.
+ * Terminology matching, semantic retrieval, installed-module search and other scopes remain
+ * separate qualification stages; neither lexical mode claims those capabilities. */
 
 private fun toDocumentDescriptor(hit: HydratedHit): DocumentDescriptor = DocumentDescriptor(
     id = hit.documentId,
@@ -66,8 +39,9 @@ private fun executeAndHydrateBranch(
     branch: dev.localmed.nativespike.shared.model.LexicalQueryBranchPlan,
     limit: Int,
     onStage: ((String, Double) -> Unit)? = null,
+    diversifyDocuments: Boolean = true,
 ): BranchExecutionResult {
-    val branchHits = timedStage(onStage, "sql") { executeBranch(db, branch.ftsQuery, limit) }
+    val branchHits = timedStage(onStage, "sql") { executeBranch(db, branch.ftsQuery, limit, diversifyDocuments) }
     val rankByChunk = branchHits.associate { it.chunkId to it.rank }
     val hydratedByChunk = timedStage(onStage, "hydration") { db.hydrateHits(branchHits.map { it.chunkId }) }
         .associateBy { it.chunkId }
@@ -136,14 +110,18 @@ fun runLookupPipelineGroups(
     aliasExpander: AliasExpander? = null,
     medicationMatcher: MedicationSpellingMatcher? = null,
     onStage: ((String, Double) -> Unit)? = null,
+    clinicalPlan: ClinicalQueryPlan? = null,
 ): List<RankedGroup> {
     timedStage(onStage, "normalize") { normalizeSurfaceText(query) }
-    val preparedExpansion = timedStage(onStage, "aliases") { aliasExpander?.expand(query) }
-    val builtPlan = buildLookupQueryPlan(query, aliases, preparedExpansion, medicationMatcher, onStage)
-    val plan = resolveMedicationSpellingPlan(builtPlan, db, groupLimit, onStage)
+    val plan = if (clinicalPlan == null) {
+        val preparedExpansion = timedStage(onStage, "aliases") { aliasExpander?.expand(query) }
+        val builtPlan = buildLookupQueryPlan(query, aliases, preparedExpansion, medicationMatcher, onStage)
+        resolveMedicationSpellingPlan(builtPlan, db, groupLimit, onStage)
+    } else MedicationLookupPlan(clinicalPlan.branches, clinicalPlan.aliasMatches, clinicalPlan.terms,
+        clinicalPlan.ftsQuery, clinicalPlan.analysis.warnings, null, null)
     val limit = perBranchLimit(groupLimit)
 
-    val branchResults = plan.branches.map { branch -> executeAndHydrateBranch(db, branch, limit, onStage) }
+    val branchResults = plan.branches.map { branch -> executeAndHydrateBranch(db, branch, limit, onStage, clinicalPlan == null) }
     val allHits = branchResults.flatMap { it.hits }
     val documentsById = LinkedHashMap<String, DocumentDescriptor>()
     for (hit in allHits) documentsById.getOrPut(hit.documentId) { toDocumentDescriptor(hit) }
@@ -197,7 +175,7 @@ fun runLookupPipelineGroups(
     val preferredSectionType = requestedSectionType(normalizedQuery)
     var groups: List<RankedGroup> = timedStage(onStage, "grouping") { groupResults(results, preferredSectionType, normalizedQuery, plan.terms, aliases) }
     groups = timedStage(onStage, "ranking") {
-        var g = rankSearchGroupsByQuery(groups, query, documentsById)
+        var g = rankSearchGroupsByQuery(groups, query, documentsById, clinicalPlan?.analysis)
         g = filterSuffixFallbackGroups(g, query, aliases, exactIdentityDocumentIds + spellingDocumentIds)
         // Mirrors `termIndex.rank(groupedResults, terminologyMatch).toSorted(exactTitle/exactSecondary/
         // spelling tie-break)` — `termIndex.rank(...)` is an identity passthrough here (no
@@ -212,7 +190,7 @@ fun runLookupPipelineGroups(
         g = g.take(groupLimit)
 
         // apps/app's ScopedMedicalCore layer (scope 'all') — see file header.
-        g = filterMedicationDocuments(g, query, documentsById)
+        g = filterMedicationDocuments(g, query, documentsById, clinicalPlan?.analysis)
         val requestedAudience = inferRequestedAudience(query)
         g = rankSearchGroupsByAudience(g, documentsById, requestedAudience)
         if (requestedAudience != null) g = preferClinicalRecommendationForCaseQueries(g)

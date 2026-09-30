@@ -1,6 +1,11 @@
 package dev.localmed.nativespike.shared.model
 
 import dev.localmed.nativespike.shared.text.TextRange
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+
+@Serializable
+enum class NativeSearchMode { @SerialName("lookup") LOOKUP, @SerialName("clinical") CLINICAL }
 
 /** Presentation kinds and labels match the web result-card contract. */
 enum class DocumentKind(val label: String) {
@@ -81,7 +86,8 @@ data class ReaderChunk(
     val anchor: String,
 )
 
-/** Timing split reported alongside every search, per the spike's measurement requirements. */
+/** SQL branch execution excludes hydration, planning, warmup and waiting for the shared DB gate.
+ * totalMs measures the complete query pipeline after warmup and acquisition of that gate. */
 data class SearchTiming(
     val sqlOnlyMs: Double,
     val totalMs: Double,
@@ -90,4 +96,7 @@ data class SearchTiming(
 data class SearchOutcome(
     val groups: List<SearchResultGroup>,
     val timing: SearchTiming,
+    val mode: NativeSearchMode = NativeSearchMode.LOOKUP,
+    val analysis: QueryAnalysis? = null,
+    val sourceGroups: List<RankedGroup> = emptyList(),
 )

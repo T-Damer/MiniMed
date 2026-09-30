@@ -9,6 +9,8 @@ import dev.localmed.nativespike.shared.content.optionalString
 import dev.localmed.nativespike.shared.content.validateTarget
 import dev.localmed.nativespike.shared.db.NativeSearchDatabase
 import dev.localmed.nativespike.shared.model.SearchOutcome
+import dev.localmed.nativespike.shared.model.NativeSearchMode
+import dev.localmed.nativespike.shared.model.ClinicalQueryPlan
 import dev.localmed.nativespike.shared.search.LookupEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -65,8 +67,17 @@ class NativeMedicalCore private constructor(
     val indexBuildMs: Double get()=engine.indexBuildMs
     private fun requireOpen() { check(!closed.value) { "Native core is closed" } }
     suspend fun awaitReady() { requireOpen();engine.awaitReady() }
-    suspend fun search(query: String,onStage: ((String,Double)->Unit)?=null): SearchOutcome? {
-        requireOpen();require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid search query size" };return withContext(Dispatchers.Default) { engine.search(query,onStage) }
+    suspend fun analyzeClinicalQuery(query: String,includeSuggestions: Boolean=true): ClinicalQueryPlan = withContext(Dispatchers.Default) {
+        requireOpen();require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid clinical query size" }
+        val plan=engine.analyzeClinicalQuery(query,includeSuggestions)
+        currentCoroutineContext().ensureActive();requireOpen();plan
+    }
+    suspend fun search(query: String,onStage: ((String,Double)->Unit)?=null): SearchOutcome? = search(query,NativeSearchMode.LOOKUP,onStage)
+    suspend fun search(query: String,mode: NativeSearchMode,onStage: ((String,Double)->Unit)?=null): SearchOutcome? {
+        requireOpen();require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid search query size" };return withContext(Dispatchers.Default) {
+            val outcome=engine.search(query,mode,onStage)
+            currentCoroutineContext().ensureActive();requireOpen();outcome
+        }
     }
 
     suspend fun moduleOffers(): List<NativeModuleOffer> = withContext(Dispatchers.Default) {

@@ -56,6 +56,10 @@ Additional evidence: `native-definition-search-verification.json`,
 `native-reference-ui-full-results/`, `native-android-definition-verification.json`,
 `native-reference-long-restored-offline.png` and `native-reference-ios-compile.log` in `playwright/`.
 
-Clinical/hybrid search, remaining application features and production personal-data migration
-are subsequent gates. The 85 lexical-clinical oracle cases are prepared; fixture generation alone
-is not native runtime qualification.
+The Android follow-up also uses the actual Russian keyboard and verifies all seven complete
+Unicode pages against the released pack, including offline restoration at offset 24,576.
+Evidence: `native-android-reference-pages-verification.json` in `playwright/`.
+
+Clinical lexical search and independent native settings/history are now qualified in
+[native-clinical-user-2026-09-30.md](native-clinical-user-2026-09-30.md). Mounted scopes, hybrid
+retrieval, remaining application features and production personal-data migration remain open.

@@ -88,8 +88,8 @@ fun perBranchLimit(searchLimit: Int): Int = maxOf(searchLimit * 5, 50)
  * through `MultiMedicalStore`, not the raw single-pack store. `db.searchBranch`'s own bm25-order is
  * preserved (RRF is a strictly monotonic function of position), only the `rank` *value* changes.
  */
-fun executeBranch(db: NativeSearchDatabase, ftsQuery: String, limit: Int): List<BranchHit> =
-    db.searchBranch(ftsQuery, limit).mapIndexed { index, hit ->
+fun executeBranch(db: NativeSearchDatabase, ftsQuery: String, limit: Int, diversifyDocuments: Boolean = true): List<BranchHit> =
+    db.searchBranch(ftsQuery, limit, diversifyDocuments = diversifyDocuments).mapIndexed { index, hit ->
         hit.copy(rank = CORE_MOUNT_SEARCH_WEIGHT / (RECIPROCAL_RANK_FUSION_K + index + 1))
     }
 

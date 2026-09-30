@@ -3,6 +3,13 @@ package dev.localmed.nativespike.shared.ui
 import dev.localmed.nativespike.shared.core.NativeContentIO
 import dev.localmed.nativespike.shared.core.NativeInstallProgress
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
+import dev.localmed.nativespike.shared.user.NativeUserState
+import dev.localmed.nativespike.shared.user.NativeUserStateFormatException
+import dev.localmed.nativespike.shared.user.NativeHistoryEntry
+import dev.localmed.nativespike.shared.user.NATIVE_HISTORY_LIMIT
+import dev.localmed.nativespike.shared.user.nativeCompletedSearch
+import dev.localmed.nativespike.shared.user.NativeHistoryAnalysisMode
+import dev.localmed.nativespike.shared.model.NativeSearchMode
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +31,8 @@ sealed interface NativeCoreSessionState {
     data class Failed(val message: String) : NativeCoreSessionState
 }
 
+enum class NativeUserPanel { Settings, History }
+
 /** Host-owned lifecycle; rotation reuses this owner rather than opening another database. */
 class NativeCoreSession(
     private val io: NativeContentIO,
@@ -33,6 +42,82 @@ class NativeCoreSession(
     private val mutableState = MutableStateFlow<NativeCoreSessionState>(NativeCoreSessionState.Opening())
     val state: StateFlow<NativeCoreSessionState> = mutableState.asStateFlow()
     val uiErrors = NativeUiErrors()
+    val userState = NativeUserState(io)
+    private val mutablePanel = MutableStateFlow<NativeUserPanel?>(null)
+    val panel: StateFlow<NativeUserPanel?> = mutablePanel.asStateFlow()
+    val actionScope: CoroutineScope get() = scope
+    private var replayHandler: (suspend (NativeHistoryEntry) -> Unit)? = null
+    private var pendingHistory = emptyList<NativeHistoryEntry>()
+    private val mutableHistoryPending = MutableStateFlow(false)
+    val historyPending: StateFlow<Boolean> = mutableHistoryPending.asStateFlow()
+
+    suspend fun recordSearch(query: String, count: Int, mode: NativeSearchMode) {
+        val entry = nativeCompletedSearch(query, count, if (mode == NativeSearchMode.CLINICAL) NativeHistoryAnalysisMode.Clinical else NativeHistoryAnalysisMode.Lookup)
+        pendingHistory = (listOf(entry) + pendingHistory.filter { it.query != entry.query || it.scope != entry.scope || it.analysisMode != entry.analysisMode }).take(NATIVE_HISTORY_LIMIT)
+        mutableHistoryPending.value = true
+        savePendingHistory(entry)
+    }
+
+    private suspend fun savePendingHistory(entry: NativeHistoryEntry) {
+        val saved = uiErrors.execute(NativeUiOperation.UserHistory,
+            "Не удалось сохранить завершённый поиск в историю. Повторите сохранение.") {
+            userState.load()
+            userState.recordCompletedSearch(entry)
+        }
+        if (saved) pendingHistory = pendingHistory.filterNot { it.id == entry.id }
+        mutableHistoryPending.value = pendingHistory.isNotEmpty()
+    }
+
+    suspend fun retryHistory() {
+        for (entry in pendingHistory.asReversed()) {
+            if (pendingHistory.any { it.id == entry.id }) savePendingHistory(entry)
+        }
+    }
+    suspend fun clearHistory() {
+        userState.clearHistory()
+        pendingHistory = emptyList()
+        mutableHistoryPending.value = false
+    }
+    suspend fun deleteHistory(id: String) {
+        val deleted = userState.snapshot.value?.history?.find { it.id == id }
+        userState.deleteHistory(id)
+        pendingHistory = pendingHistory.filterNot { deleted != null && it.query == deleted.query && it.scope == deleted.scope && it.analysisMode == deleted.analysisMode }
+        mutableHistoryPending.value = pendingHistory.isNotEmpty()
+    }
+
+    fun registerReplayHandler(handler: suspend (NativeHistoryEntry) -> Unit): () -> Unit {
+        replayHandler = handler
+        return { if (replayHandler === handler) replayHandler = null }
+    }
+
+    suspend fun loadUserState(): Boolean {
+        if (userState.snapshot.value != null) return true
+        return try {
+            userState.load()
+            uiErrors.clear(NativeUiOperation.UserState)
+            true
+        } catch (cause: CancellationException) { throw cause }
+        catch (cause: NativeUserStateFormatException) {
+            uiErrors.report(NativeUiOperation.UserState, "Формат настроек и истории повреждён или не поддерживается. Файл оставлен без изменений.")
+            false
+        } catch (cause: Exception) {
+            uiErrors.report(NativeUiOperation.UserState, "Не удалось прочитать настройки и историю. Файл сохранён; повторите чтение.")
+            false
+        }
+    }
+
+    suspend fun openPanel(panel: NativeUserPanel) {
+        if (flushUi()) mutablePanel.value = panel
+    }
+
+    suspend fun replay(entry: NativeHistoryEntry): Boolean {
+        val handler = replayHandler ?: return false
+        if (!flushUi()) return false
+        return uiErrors.execute(NativeUiOperation.Navigation, "Не удалось повторить поиск. Повторите действие.") {
+            handler(entry)
+            mutablePanel.value = null
+        }
+    }
     private val closeFinished = CompletableDeferred<Unit>()
     private var opening: Job? = null
     private val closed = MutableStateFlow(false)
@@ -51,8 +136,9 @@ class NativeCoreSession(
     suspend fun back(): Boolean {
         if (!backMutex.tryLock()) return false
         try {
-            val core = (state.value as? NativeCoreSessionState.Ready)?.core ?: return false
             if (!flushUi()) return false
+            if (mutablePanel.value != null) { mutablePanel.value = null; return true }
+            val core = (state.value as? NativeCoreSessionState.Ready)?.core ?: return false
             return uiErrors.execute(NativeUiOperation.Navigation, "Не удалось сохранить переход. Повторите действие.") { core.back() }
         } finally { backMutex.unlock() }
     }
@@ -89,6 +175,7 @@ class NativeCoreSession(
         withContext(NonCancellable) {
             try {
                 opening?.cancelAndJoin()
+                userState.awaitWrites()
                 (mutableState.value as? NativeCoreSessionState.Ready)?.core?.close()
                 closeFinished.complete(Unit)
             } catch (cause: Throwable) {

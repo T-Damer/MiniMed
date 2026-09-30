@@ -1,7 +1,6 @@
 package dev.localmed.nativespike.desktopapp
 
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -23,7 +22,7 @@ import dev.localmed.nativespike.shared.content.bundledNativeCatalog
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.ui.NativeCoreSession
 import dev.localmed.nativespike.shared.ui.NativeCoreSessionState
-import dev.localmed.nativespike.shared.ui.NativeCoreStartup
+import dev.localmed.nativespike.shared.ui.NativeSessionShell
 import dev.localmed.nativespike.shared.ui.NativeSearchSpikeApp
 import dev.localmed.nativespike.shared.ui.NativeUiOperation
 import java.io.File
@@ -37,7 +36,6 @@ fun main() = application {
         JVMContentIO(root)
     }
     val session = remember { NativeCoreSession(io, { bundledNativeCatalog() }, scope) }
-    val state by session.state.collectAsState()
     var closing by remember { mutableStateOf(false) }
     LaunchedEffect(session) { if (NativeMedicalCore.hasCachedCore(io)) session.retry() }
     val windowState = rememberWindowState(size = DpSize(480.dp, 900.dp), position = WindowPosition(Alignment.Center))
@@ -55,15 +53,13 @@ fun main() = application {
         title = "MiniMed Native", state = windowState,
         onPreviewKeyEvent = { event ->
             val core = (session.state.value as? NativeCoreSessionState.Ready)?.core
-            if (event.type == KeyEventType.KeyDown && event.key == Key.Escape && core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null)) {
+            if (event.type == KeyEventType.KeyDown && event.key == Key.Escape && (session.panel.value != null || (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null)))) {
                 scope.launch { session.back() }; true
             } else false
         },
     ) {
-        when (val current = state) {
-            is NativeCoreSessionState.Opening -> NativeCoreStartup(current.progress, null, session::retry)
-            is NativeCoreSessionState.Failed -> NativeCoreStartup(null, current.message, session::retry)
-            is NativeCoreSessionState.Ready -> NativeSearchSpikeApp(current.core, actionScope = scope, uiErrors = session.uiErrors, session = session)
+        NativeSessionShell(session) { current ->
+            NativeSearchSpikeApp(current.core, actionScope = scope, uiErrors = session.uiErrors, session = session)
         }
     }
 }

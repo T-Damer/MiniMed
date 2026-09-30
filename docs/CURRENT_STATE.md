@@ -115,15 +115,30 @@ Detailed history, moved verbatim on 2026-09-24:
   page seven offline and returns to the same reference query. Android verifies visible original
   text hashes, all three ambiguous senses, missing-definition status and a second block page.
   Fixed grey-background action contrast, clipped long-name actions, final-card navigation and
-  reader focus loss while switching blocks/pages. Updated iOS sources and Swift host compile/link;
-  the runtime limitation above remains.
-- Next: clinical search-mode and application-feature parity.
-  The current reader preserves original
-  markup verbatim; rich tables/media/PDF, clinical scopes, assessments and personal features are
-  still subsequent work. Production Android identity and existing personal data must be preserved
+  reader focus loss while switching blocks/pages. Android also exercises real Russian keyboard
+  input and all seven pages of the same 26,155-codepoint block, preserving page seven offline.
+  Updated iOS sources and Swift host compile/link; the runtime limitation above remains.
+- Explicit native clinical mode now matches all 85 production lexical cases: 152 facts,
+  356 branches and 2,863 complete ordered source passages, including scores, highlights and anchors.
+  The 151 lookup queries and 206 SQL branches remain unchanged. Clinical mode uses the current core
+  only; it does not imply mounted-module or hybrid retrieval. SQL timing now measures SQL stages.
+  The combined Desktop suite passes 108 tests without skips; Android lint and Android/Desktop/Wasm
+  builds pass. Current iOS Kotlin/test sources, device framework and Swift host compile/link.
+- Native theme/text-size settings and a bounded completed-search history persist atomically and
+  remain independent of medical content. History distinguishes lookup and clinical modes, replays
+  through the real core and deduplicates successful searches. Failed writes retain pending changes;
+  malformed private state is preserved and reported. Actual Desktop and Android emulator checks
+  cover settings/restart, replay, deletion, confirmed/cancelled clearing, clinical source opening and
+  offline restoration. Production personal-data migration and physical-device qualification remain
+  separate gates.
+- Next: search across verified installed modules and explicit source scopes, followed by the
+  schema-defined calculators/assessments and remaining application-feature parity. The current
+  reader preserves original markup verbatim; rich tables/media/PDF and personal features remain
+  subsequent work. Production Android identity and existing personal data must be preserved
   by a qualified migration before replacing the released app.
 - Qualification and concrete limits: [state/native-first-slice-2026-09-30.md](state/native-first-slice-2026-09-30.md).
 - Exact identity/migration qualification: [state/native-identities-2026-09-30.md](state/native-identities-2026-09-30.md).
+- Clinical/user-state qualification: [state/native-clinical-user-2026-09-30.md](state/native-clinical-user-2026-09-30.md).
 
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 

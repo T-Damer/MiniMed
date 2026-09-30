@@ -2,55 +2,17 @@ package dev.localmed.nativespike.shared.lexical
 
 import dev.localmed.nativespike.shared.model.DocumentDescriptor
 import dev.localmed.nativespike.shared.model.RankedGroup
+import dev.localmed.nativespike.shared.model.QueryAnalysis
+import dev.localmed.nativespike.shared.model.QueryFactKind
+import dev.localmed.nativespike.shared.model.QueryFactPolarity
+import dev.localmed.nativespike.shared.model.SearchIntentKind
 import dev.localmed.nativespike.shared.text.lightStemRussian
 import dev.localmed.nativespike.shared.text.normalizeSurfaceText
 import dev.localmed.nativespike.shared.text.searchSubjectText
 import dev.localmed.nativespike.shared.text.tokenize
 
-/**
- * A Kotlin port of `packages/core/src/query-group-ranking.ts` — stage 2 sub-stage D, REDUCED for
- * `analysisMode: 'lookup'` (the only mode `search-golden.json` was exported with; `analysisMode:
- * 'clinical'` stays out of scope per docs/CURRENT_STATE.md). `buildLookupQueryPlan`'s `analysis`
- * always has `facts: []`, no `intent`, no `clinicalContext` — tracing every consumer of those
- * fields in `rankSearchGroupsByQuery` through that emptiness shows several branches are dead code
- * for lookup mode specifically (not a shortcut — the natural consequence of correctly porting what
- * lookup mode's analysis actually contains):
- *  - `failedTreatmentStems`/`negativeTerms`/`rankingExcludedTerms` are always empty (need
- *    `clinicalContext`/`facts`, both empty/absent);
- *  - `failedTreatmentSubject` is always false (`.every()` over a non-empty array against an empty
- *    `Set` is always false);
- *  - `clinicalNarrative` is always false (`clinicalPositiveFacts` needs `clinicalContext` or
- *    `facts`, both empty);
- *  - `evidenceTerms`/`positiveFindings`/`clinicalEvidenceCoverages` are always `[]` (gated on
- *    `clinicalNarrative`) — the `8 * clinicalEvidenceCoverage` score term is always 0;
- *  - `positiveFindingCoverage`/`failedTreatmentContextCoverage` per group are always 0;
- *  - `namedMedication` is always false (`analysis.facts.some(...)` on `[]`), so
- *    `medicationDocumentBoost`'s score term is always 0 (its gate is
- *    `clinicalNarrative || !namedMedication`, i.e. `false || true` = always skip).
- * What remains live for lookup mode: `query = searchSubjectText(originalQuery)` (always, since
- * `failedTreatmentSubject` is always false), `exactTitle`/`exactAlias`/`sourcePhrase` sort keys,
- * `queryGroupRelevanceBoost`, `titleTermBoost` (gated only on sourceType/notLegalAdvice, not on
- * clinical fields), `exactTitleMatchBoost`. `medicationDocumentBoost`'s body is therefore NOT
- * ported (unreachable in lookup mode) — see the header note above for why that is provably true,
- * not an assumption.
- *
- * `hasImmediateFailureContext`/`hasDelayedMedicationFailureContext` (still technically reachable
- * inside `titleTermBoost`'s per-term skip check, independent of `clinicalNarrative`) are NOT
- * ported — treated as always-false. This is a real, bounded simplification: `titleTermBoost` would
- * wrongly award a boost for a query phrased as "<drug> не помог" naming a title term right next to
- * a treatment-failure phrase. None of this migration's 151 golden queries are phrased that way
- * (verified against the golden-parity report), but a future query could be.
- *
- * `legalReferences`/`subjectPhraseBoost` are ported as manual scanners, not `Regex` — their TS
- * patterns use `[а-я]*` Cyrillic character-class ranges, the shape flagged risky on Kotlin/Native
- * elsewhere in this port (see `text/TextNormalization.kt`'s header). These scanners reproduce the
- * TS regexes' exact phrase-adjacency shape (`prefix[а-я]*\s+suffix`, `\s*[-–—]?\s*`, the optional
- * middle group in the "проф.осмотр" alternative) rather than approximating with a loose `contains`
- * — see `matchesWordGapPhrase`/`matchesProfilacticExamPhrase`/`legalReferences` below. An earlier
- * version of this file used the looser approximation; tightened after the coordinator's stage 2
- * sub-stage D review flagged it as the most likely source of the "группа здоровья"/"группа
- * инвалидности"/"группа наблюдения" mismatches that review found.
- */
+/** Source-backed lookup and clinical group ranking mirror core/query-group-ranking.ts.
+ * Clinical facts affect candidate ordering only; source text and passage scores are retained. */
 
 private fun stemToken(token: String): String = lightStemRussian(token)
 
@@ -147,12 +109,12 @@ fun exactTitleMatchBoost(query: String, title: String): Double {
     return if (headedByQuery) 4.5 else 3.5
 }
 
-/** Mirrors `titleTermBoost`, minus `failedTreatmentTerms`/`hasImmediateFailureContext` (see file
- * header — both always contribute nothing for lookup-mode analysis / are not ported). */
-fun titleTermBoost(query: String, title: String, candidateTerms: List<Set<String>>): Double {
+/** Mirrors titleTermBoost, excluding a named unsuccessful treatment from positive evidence. */
+fun titleTermBoost(query: String, title: String, candidateTerms: List<Set<String>>, failedTreatmentTerms: Set<String> = emptySet()): Double {
     val queryTerms = tokenize(query).filter { isTitleQueryTerm(it) }.distinct()
     val titleTerms = tokenize(title)
     return queryTerms.sumOf { queryTerm ->
+        if (stemToken(queryTerm) in failedTreatmentTerms || hasImmediateFailureContext(query, queryTerm)) return@sumOf 0.0
         val titleIndex = titleTerms.indexOfFirst { !isFormOrStrengthToken(it) && tokensMatch(queryTerm, it) }
         if (titleIndex < 0) return@sumOf 0.0
         val documentFrequency = candidateTerms.count { terms -> terms.any { !isFormOrStrengthToken(it) && tokensMatch(queryTerm, it) } }
@@ -371,59 +333,121 @@ fun collapseGroupsByTargetDocument(groups: List<RankedGroup>, documentsById: Map
     }
 }
 
-/**
- * Mirrors `rankSearchGroupsByQuery`, reduced for lookup-mode analysis — see file header for the
- * full derivation of which branches are dead code and why.
- */
-fun rankSearchGroupsByQuery(groups: List<RankedGroup>, originalQuery: String, documentsById: Map<String, DocumentDescriptor>): List<RankedGroup> {
-    val extractedSubject = searchSubjectText(originalQuery)
-    val subjectSearch = extractedSubject != normalizeSurfaceText(originalQuery)
-    val query = extractedSubject // always: failedTreatmentSubject is always false (see file header)
-    val phrase = normalizeSurfaceText(query)
-    val hasSourcePhrase = tokenize(phrase).size >= if (subjectSearch) 2 else 3
-    val candidateTerms = groups.map { tokenize(groupRankingText(it)).toSet() }
-    val queryPopulation = explicitAgePopulation(originalQuery)
-    return groups.mapIndexed { index, group ->
-        val document = documentsById[group.documentId]
-        val exactTitle = matchesExactDocumentTitle(query, group)
-        val exactAlias = matchesNavigationAlias(query, document)
-        val sourcePhrase = hasSourcePhrase && (
-            (subjectSearch && findNormalizedPhraseIndex(normalizeSurfaceText(group.title), phrase) >= 0) ||
-                group.results.any { normalizeSurfaceText(it.snippet).contains(phrase) }
-            )
-        val subjectTerms = if (queryPopulation != null || tokenize(query).any { stemToken(it) in PATIENT_CONTEXT_STEMS }) {
-            tokenize(query).filter {
-                isTitleQueryTerm(it) && !isFormOrStrengthToken(it) &&
-                    (queryPopulation == null ||
-                        (stemToken(it) !in CHILD_POPULATION_STEMS && stemToken(it) !in ADULT_POPULATION_STEMS))
-            }
-        } else emptyList()
-        val subjectMatch = subjectTerms.isNotEmpty() &&
-            tokenize((listOf(group.title) + group.results.map { it.snippet }).joinToString(" "))
-                .any { word -> subjectTerms.any { tokensMatch(it, word) } }
-        val sourcePopulation = if (queryPopulation == null) null else explicitAgePopulation(group.title)
-        // Unspecified/combined source ages stay compatible; an unrelated title never gains a tier.
-        val populationRank = if (queryPopulation == null || !subjectMatch) 0
-            else if (sourcePopulation != null && sourcePopulation != queryPopulation) 1 else 2
-        val titleBoost = if (document?.sourceType == "regulatory_act_summary" || document?.notLegalAdvice == true) {
-            0.0
-        } else {
-            titleTermBoost(query, group.title, candidateTerms)
-        }
-        val score = group.bestScore +
-            queryGroupRelevanceBoost(query, groupRankingText(group)) +
-            titleBoost +
-            exactTitleMatchBoost(query, group.title)
-        Triple(group, index, Ranking(exactTitle, exactAlias, populationRank, sourcePhrase, subjectMatch, score))
-    }.sortedWith(
-        compareByDescending<Triple<RankedGroup, Int, Ranking>> { it.third.exactTitle }
-            .thenByDescending { it.third.exactAlias }
-            .thenByDescending { it.third.populationRank }
-            .thenByDescending { it.third.sourcePhrase }
-            .thenByDescending { it.third.subjectMatch }
-            .thenByDescending { it.third.score }
-            .thenBy { it.second },
-    ).map { it.first }
+private val DIRECT_FAILURE_AFTER = clinicalRegex("""^\s*(?:не\s+(?:помог\p{L}*|сработ\p{L}*|подейств\p{L}*|перенос\p{L}*)|неэффектив\p{L}*)""")
+private val DIRECT_FAILURE_BEFORE = listOf(
+    clinicalRegex("""(?:нет|без|отсутств\p{L}*)\s+(?:клиническ\p{L}*\s+)?(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:от|на|после)\s*$"""),
+    clinicalRegex("""(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*)\s+(?:от|на|после)\s*$"""),
+)
+private val DELAYED_FAILURE = listOf(
+    clinicalRegex("""(?:эффект\p{L}*|улучшен\p{L}*|ответ\p{L}*)\s+(?:нет|отсутств\p{L}*|не\s+наблюда\p{L}*)"""),
+    clinicalRegex("""(?:ухудш\p{L}*|без\s+улучшен\p{L}*|неэффектив\p{L}*)"""),
+)
+internal fun hasImmediateFailureContext(query: String, term: String): Boolean {
+    val text=normalizeSurfaceText(query);val normalized=normalizeSurfaceText(term)
+    if(normalized.isEmpty()) return false
+    var from=0
+    while(from<text.length) {
+        val index=text.indexOf(normalized,from);if(index<0) return false
+        val before=text.substring(maxOf(0,index-72),index)
+        val end=index+normalized.length;val after=text.substring(end,minOf(text.length,end+72))
+        if(DIRECT_FAILURE_AFTER.containsMatchIn(after) || DIRECT_FAILURE_BEFORE.any { it.containsMatchIn(before) }) return true
+        from=end
+    }
+    return false
+}
+private fun hasDelayedMedicationFailureContext(query: String, medication: String): Boolean {
+    if(hasImmediateFailureContext(query,medication)) return true
+    val text=normalizeSurfaceText(query);val normalized=normalizeSurfaceText(medication)
+    if(normalized.isEmpty()) return false
+    var from=0
+    while(from<text.length) {
+        val index=text.indexOf(normalized,from);if(index<0) return false
+        val end=index+normalized.length;val after=text.substring(end,minOf(text.length,end+112))
+        if(DELAYED_FAILURE.any { it.containsMatchIn(after) }) return true
+        from=end
+    }
+    return false
+}
+private fun failedTreatmentStems(query: String, analysis: QueryAnalysis?): Set<String> =
+    analysis?.clinicalContext?.currentMedicines.orEmpty().filter {
+        hasDelayedMedicationFailureContext(query,it.value) || hasDelayedMedicationFailureContext(query,it.normalizedValue)
+    }.flatMap { tokenize("${it.value} ${it.normalizedValue}").map(::stemToken) }.toSet()
+
+internal fun coverageTier(coverage: Double): Int = when { coverage<=0 -> 0;coverage>=1 -> 3;coverage>=0.5 -> 2;else -> 1 }
+private fun failedTreatmentContextCoverage(failed: Set<String>, group: RankedGroup, document: DocumentDescriptor?): Double {
+    if(failed.isEmpty() || document?.sourceType !in setOf("clinical_recommendation","clinical_recommendation_summary")) return 0.0
+    val words=tokenize((listOf(group.title)+group.results.map { it.snippet }).joinToString(" ")).map(::stemToken)
+    if(words.isEmpty()) return 0.0
+    return failed.count { term -> words.any { tokensMatch(term,it) } }.toDouble()/failed.size
+}
+private val INSTRUCTION_QUERY=clinicalRegex("""(?:инструкц|показани|противопоказани|побочн|способ[а-я]*\s+применени|дозировк|как\s+(?:принимать|применять|вводить))""")
+private val REGISTRY_QUERY=clinicalRegex("""(?:грлс|регистрационн[а-я]*\s+(?:номер|карточк|запис)|регистрац[а-я]*\s+препарат)""")
+private fun medicationDocumentBoost(query: String, document: DocumentDescriptor?, title: String): Double {
+    if(document==null) return 0.0
+    val normalized=normalizeSurfaceText(query);val titleTerms=tokenize(title).map(::stemToken).toSet()
+    if(tokenize(normalized).none { isTitleQueryTerm(it) && !isFormOrStrengthToken(it) && stemToken(it) in titleTerms }) return 0.0
+    val instruction=INSTRUCTION_QUERY.containsMatchIn(normalized);val registry=REGISTRY_QUERY.containsMatchIn(normalized)
+    return when(document.sourceType) {
+        "official_drug_instruction" -> if(instruction) 8.0 else 0.0
+        "official_registry_summary" -> if(registry) 8.0 else 0.0
+        "core_catalog_pointer" -> if(document.catalogFamily=="medication" && !instruction && !registry) 8.0 else 0.0
+        else -> 0.0
+    }
 }
 
-private data class Ranking(val exactTitle: Boolean, val exactAlias: Boolean, val populationRank: Int, val sourcePhrase: Boolean, val subjectMatch: Boolean, val score: Double)
+/** Same bounded candidate ordering as TS, with lookup facts absent and clinical facts explicit. */
+fun rankSearchGroupsByQuery(groups: List<RankedGroup>, originalQuery: String, documentsById: Map<String, DocumentDescriptor>, analysis: QueryAnalysis? = null): List<RankedGroup> {
+    val failedTreatmentTerms=failedTreatmentStems(originalQuery,analysis)
+    val extractedSubject=searchSubjectText(originalQuery)
+    val subjectStems=tokenize(extractedSubject).map(::stemToken)
+    val failedTreatmentSubject=subjectStems.isNotEmpty() && subjectStems.all { it in failedTreatmentTerms }
+    val subjectSearch=!failedTreatmentSubject && extractedSubject!=normalizeSurfaceText(originalQuery)
+    val query=if(failedTreatmentSubject) normalizeSurfaceText(originalQuery) else extractedSubject
+    val namedMedication=analysis?.facts?.any { it.kind==QueryFactKind.MEDICATION && it.polarity==QueryFactPolarity.POSITIVE } == true
+    val weightRanges=analysis?.clinicalContext?.weight.orEmpty().map { it.range }
+    val positiveFacts=analysis?.clinicalContext?.positiveFindings.orEmpty().filter { it.range !in weightRanges }
+    val clinicalNarrative=analysis?.intent?.primary!=SearchIntentKind.MEDICATION && positiveFacts.isNotEmpty()
+    val negativeTerms=analysis?.facts.orEmpty().filter { it.polarity==QueryFactPolarity.NEGATIVE }.flatMap { tokenize(it.normalizedValue).map(::stemToken) }.toSet()
+    val excluded=negativeTerms+if(clinicalNarrative) failedTreatmentTerms else emptySet()
+    val positiveQuery=if(excluded.isNotEmpty()) tokenize(query).filter { stemToken(it) !in excluded }.joinToString(" ") else query
+    val evidenceTerms=if(clinicalNarrative) tokenize(query).filter {
+        isTitleQueryTerm(it) && it !in GENERIC_QUERY_TERMS && stemToken(it) !in negativeTerms && stemToken(it) !in failedTreatmentTerms
+    }.distinct() else emptyList()
+    val positiveFindings=if(clinicalNarrative) positiveFacts.map { fact ->
+        val variants=mutableListOf(tokenize(fact.value),tokenize(fact.normalizedValue))
+        if(fact.kind in setOf(QueryFactKind.MEASUREMENT,QueryFactKind.TEMPERATURE)) variants.add(tokenize(fact.label))
+        variants.filter { it.isNotEmpty() }
+    }.filter { it.isNotEmpty() } else emptyList()
+    val phrase=normalizeSurfaceText(query)
+    val hasSourcePhrase=tokenize(phrase).size>=if(subjectSearch) 2 else 3
+    val candidateTerms=groups.map { tokenize(groupRankingText(it)).toSet() }
+    val queryPopulation=if(analysis==null) explicitAgePopulation(originalQuery) else null
+    val subjectTerms=if(clinicalNarrative || failedTreatmentTerms.isNotEmpty() ||
+        (queryPopulation==null && tokenize(positiveQuery).none { stemToken(it) in PATIENT_CONTEXT_STEMS })) emptyList() else
+        tokenize(positiveQuery).filter { isTitleQueryTerm(it) && !isFormOrStrengthToken(it) &&
+            (queryPopulation==null || (stemToken(it) !in CHILD_POPULATION_STEMS && stemToken(it) !in ADULT_POPULATION_STEMS)) }
+    return groups.mapIndexed { index,group ->
+        val document=documentsById[group.documentId]
+        val words=tokenize((listOf(group.title)+group.results.map { it.snippet }).joinToString(" "))
+        val subjectMatch=subjectTerms.isNotEmpty() && words.any { word -> subjectTerms.any { tokensMatch(it,word) } }
+        val sourcePopulation=if(queryPopulation==null) null else explicitAgePopulation(group.title)
+        val populationRank=if(queryPopulation==null || !subjectMatch) 0 else if(sourcePopulation!=null && sourcePopulation!=queryPopulation) 1 else 2
+        val findingCoverage=if(positiveFindings.isEmpty()) 0.0 else positiveFindings.count { variants -> variants.any { terms -> terms.all { term -> words.any { tokensMatch(term,it) } } } }.toDouble()/positiveFindings.size
+        val evidenceCoverage=if(evidenceTerms.size<3) 0.0 else group.results.maxOfOrNull { result ->
+            val snippetWords=tokenize(result.snippet)
+            evidenceTerms.count { term -> snippetWords.any { tokensMatch(term,it) } }.toDouble()/evidenceTerms.size
+        } ?: 0.0
+        val sourcePhrase=hasSourcePhrase && ((subjectSearch && findNormalizedPhraseIndex(normalizeSurfaceText(group.title),phrase)>=0) || group.results.any { normalizeSurfaceText(it.snippet).contains(phrase) })
+        val titleBoost=if(document?.sourceType=="regulatory_act_summary" || document?.notLegalAdvice==true) 0.0 else titleTermBoost(positiveQuery,group.title,candidateTerms,failedTreatmentTerms)
+        val score=group.bestScore+8*evidenceCoverage+queryGroupRelevanceBoost(positiveQuery,groupRankingText(group))+titleBoost+
+            exactTitleMatchBoost(positiveQuery,group.title)+if(clinicalNarrative || !namedMedication) 0.0 else medicationDocumentBoost(query,document,group.title)
+        Triple(group,index,Ranking(matchesExactDocumentTitle(query,group),matchesNavigationAlias(query,document),populationRank,sourcePhrase,subjectMatch,
+            coverageTier(findingCoverage),coverageTier(failedTreatmentContextCoverage(failedTreatmentTerms,group,document)),coverageTier(evidenceCoverage),score))
+    }.sortedWith(compareByDescending<Triple<RankedGroup,Int,Ranking>> { it.third.exactTitle }
+        .thenByDescending { it.third.exactAlias }.thenByDescending { it.third.populationRank }
+        .thenByDescending { it.third.sourcePhrase }.thenByDescending { it.third.subjectMatch }
+        .thenByDescending { it.third.findingTier }.thenByDescending { it.third.failedTreatmentTier }.thenByDescending { it.third.evidenceTier }
+        .thenByDescending { it.third.score }.thenBy { it.second }).map { it.first }
+}
+private data class Ranking(val exactTitle: Boolean,val exactAlias: Boolean,val populationRank: Int,val sourcePhrase: Boolean,val subjectMatch: Boolean,
+    val findingTier: Int,val failedTreatmentTier: Int,val evidenceTier: Int,val score: Double)

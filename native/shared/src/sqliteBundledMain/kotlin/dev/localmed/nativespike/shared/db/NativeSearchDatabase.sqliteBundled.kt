@@ -231,7 +231,7 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
         }
     }
 
-    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>): List<BranchHit> {
+    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>, diversifyDocuments: Boolean): List<BranchHit> {
         val candidateLimit = minOf(500, limit)
         val documentFilter = if (documentIds.isEmpty()) "" else
             " AND chunks_fts.document_id IN (${documentIds.joinToString(",") { "?" }})"
@@ -261,7 +261,7 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
             documentIds.forEachIndexed { index, id -> statement.bindText(index + 2, id) }
             val bound = documentIds.size + 2
             statement.bindLong(bound, (candidateLimit * 4).toLong())
-            statement.bindLong(bound + 1, 3)
+            statement.bindLong(bound + 1, if (diversifyDocuments) 3 else candidateLimit.toLong())
             statement.bindLong(bound + 2, candidateLimit.toLong())
             val results = mutableListOf<BranchHit>()
             while (statement.step()) {

@@ -65,7 +65,7 @@ actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
 
     actual fun listAliases(): List<AliasRecord> = emptyList()
 
-    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>): List<BranchHit> = emptyList()
+    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>, diversifyDocuments: Boolean): List<BranchHit> = emptyList()
 
     actual fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText> = emptyList()
 

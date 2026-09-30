@@ -14,7 +14,7 @@ import dev.localmed.nativespike.shared.text.searchSubjectText
  * SQL hits into a single per-chunk ranked list.
  *
  * Ranked passages retain query-aligned snippets, highlights, and exact reader identities. Semantic
- * and terminology matching remain outside this lookup-only port.
+ * and terminology matching remain outside these lexical modes.
  */
 
 /** Mirrors `matchedTerms`. */
@@ -95,12 +95,7 @@ private fun toRankedResult(aggregate: AggregatedHit): RankedResult {
  * input shape `fuseBranchHits` takes. */
 data class BranchExecutionResult(val branch: LexicalQueryBranchPlan, val hits: List<HydratedHit>)
 
-/**
- * Mirrors `fuseBranchHits`. `exactAliasDocumentIds`: documents whose hits must survive the `limit`
- * cutoff even when they rank below it (the real pipeline sources this from `QueryDocumentIndex`,
- * not ported here — see `LookupPipeline.kt`'s header for why; this port always passes an empty set,
- * a documented, honest simplification, not a silent behavior change disguised as a default).
- */
+/** Fuse bounded branch hits, preserving exact source identities through the chunk cutoff. */
 fun fuseBranchHits(
     branchHits: List<BranchExecutionResult>,
     limit: Int,

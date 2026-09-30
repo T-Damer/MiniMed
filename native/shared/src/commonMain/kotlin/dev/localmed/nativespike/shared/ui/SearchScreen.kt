@@ -17,6 +17,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -29,6 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,6 +41,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.localmed.nativespike.shared.model.SearchOutcome
+import dev.localmed.nativespike.shared.model.NativeSearchMode
 import dev.localmed.nativespike.shared.model.SearchResultGroup
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.core.NativeCoreIdentityHit
@@ -60,6 +66,9 @@ fun SearchScreen(
     sourceError: String? = null,
     onOpenSources: () -> Unit,
     onOpenIdentity: (NativeCoreIdentityHit) -> Unit,
+    onOpenSettings: (() -> Unit)? = null,
+    onOpenHistory: (() -> Unit)? = null,
+    onCompletedSearch: ((String, SearchOutcome) -> Unit)? = null,
     onRetrySave: (() -> Unit)? = null,
     // Debug measurement hook only (see native/androidApp's MainActivity — HyperOS blocks
     // `adb shell input` entirely on the physical Xiaomi 14, and even on a plain emulator
@@ -74,43 +83,50 @@ fun SearchScreen(
     // bench path (see MainActivity), empty for any non-bench call.
     onOutcome: ((query: String, outcome: SearchOutcome?, tookMs: Double, stages: Map<String, Double>) -> Unit)? = null,
 ) {
+    val queryFocus = remember(core) { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(externalQuery) {
         if (externalQuery != null) state.updateQuery(externalQuery)
     }
-    var identities by remember(core, state.query) { mutableStateOf<List<NativeCoreIdentityHit>>(emptyList()) }
-    var identitiesLoading by remember(core, state.query) { mutableStateOf(false) }
-    var identitiesError by remember(core, state.query) { mutableStateOf<String?>(null) }
-    LaunchedEffect(core, state.query, state.attempt) {
+    var identities by remember(core, state.query, state.mode) { mutableStateOf<List<NativeCoreIdentityHit>>(emptyList()) }
+    var identitiesLoading by remember(core, state.query, state.mode) { mutableStateOf(false) }
+    var identitiesError by remember(core, state.query, state.mode) { mutableStateOf<String?>(null) }
+    LaunchedEffect(core, state.query, state.mode, state.attempt) {
         val requestQuery = state.query
-        if (requestQuery.isBlank()) return@LaunchedEffect
+        val requestMode = state.mode
+        if (requestQuery.isBlank() || requestMode != NativeSearchMode.LOOKUP) return@LaunchedEffect
         identitiesLoading = true
         identitiesError = null
         try {
             delay(DEBOUNCE_MS)
             val hits = core.lookupIdentities(requestQuery)
-            if (currentCoroutineContext().isActive && state.query == requestQuery) identities = hits
+            if (currentCoroutineContext().isActive && state.acceptsLookupIdentities(requestQuery, requestMode)) identities = hits
         } catch (cause: CancellationException) { throw cause }
         catch (cause: Exception) {
-            if (currentCoroutineContext().isActive && state.query == requestQuery) identitiesError = "Не удалось прочитать точные названия из источников. Повторите запрос."
+            if (currentCoroutineContext().isActive && state.acceptsLookupIdentities(requestQuery, requestMode)) identitiesError = "Не удалось прочитать точные названия из источников. Повторите запрос."
         } finally {
-            if (currentCoroutineContext().isActive && state.query == requestQuery) identitiesLoading = false
+            if (currentCoroutineContext().isActive && state.acceptsLookupIdentities(requestQuery, requestMode)) identitiesLoading = false
         }
     }
 
-    LaunchedEffect(core, state.query, state.attempt) {
+    LaunchedEffect(core, state.query, state.mode, state.attempt) {
         val requestQuery = state.query
-        if (state.positionQuery != requestQuery) {
-            state.positionQuery = requestQuery
+        val requestMode = state.mode
+        if (state.positionQuery != requestQuery || state.positionMode != requestMode) {
             state.listState.scrollToItem(0)
+            if (state.query != requestQuery || state.mode != requestMode) return@LaunchedEffect
+            state.positionQuery = requestQuery
+            state.positionMode = requestMode
         }
         if (requestQuery.isBlank()) {
             state.outcome = null
             state.loading = false
             state.error = null
             state.completedQuery = null
+            state.completedMode = null
             return@LaunchedEffect
         }
-        if (state.completedQuery == requestQuery && state.outcome != null) return@LaunchedEffect
+        if (state.completedQuery == requestQuery && state.completedMode == requestMode && state.outcome != null) return@LaunchedEffect
         state.loading = true
         state.error = null
         state.outcome = null
@@ -118,19 +134,22 @@ fun SearchScreen(
         val stageTimings: MutableMap<String, Double>? = if (benchStart != null) LinkedHashMap() else null
         delay(DEBOUNCE_MS)
         try {
-            val result = core.search(requestQuery) { stage, ms ->
+            val result = core.search(requestQuery, requestMode) { stage, ms ->
                     stageTimings?.let { it[stage] = (it[stage] ?: 0.0) + ms }
             }
-            if (!currentCoroutineContext().isActive || state.query != requestQuery) return@LaunchedEffect
+            if (!currentCoroutineContext().isActive || state.query != requestQuery || state.mode != requestMode) return@LaunchedEffect
             state.outcome = result
             state.completedQuery = requestQuery
+            state.completedMode = requestMode
             state.error = null
+            if (result != null) onCompletedSearch?.invoke(requestQuery, result)
             if (benchStart != null) {
                 // Two frame waits: the first is where Compose schedules recomposition for the
                 // new `outcome`, the second guarantees that recomposition has actually been
                 // measured/laid-out/drawn — see docs/research/native-vs-webview-2026-09-28.md.
                 androidx.compose.runtime.withFrameNanos { }
                 androidx.compose.runtime.withFrameNanos { }
+                if (!currentCoroutineContext().isActive || state.query != requestQuery || state.mode != requestMode) return@LaunchedEffect
                 onOutcome?.invoke(
                     requestQuery, result, benchStart.elapsedNow().inWholeMicroseconds / 1000.0,
                     stageTimings.orEmpty(),
@@ -139,11 +158,11 @@ fun SearchScreen(
         } catch (cause: CancellationException) {
             throw cause
         } catch (cause: Exception) {
-            if (currentCoroutineContext().isActive && state.query == requestQuery) {
+            if (currentCoroutineContext().isActive && state.query == requestQuery && state.mode == requestMode) {
                 state.error = "Не удалось выполнить поиск. Повторите запрос."
             }
         } finally {
-            if (currentCoroutineContext().isActive && state.query == requestQuery) {
+            if (currentCoroutineContext().isActive && state.query == requestQuery && state.mode == requestMode) {
                 state.loading = false
             }
         }
@@ -160,6 +179,10 @@ fun SearchScreen(
                             Text("Источники", color = MaterialTheme.colorScheme.onBackground)
                         }
                     }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        onOpenHistory?.let { action -> TextButton(onClick = action) { Text("История", color = MaterialTheme.colorScheme.onBackground) } }
+                        onOpenSettings?.let { action -> TextButton(onClick = action) { Text("Настройки", color = MaterialTheme.colorScheme.onBackground) } }
+                    }
                 }
             }
         },
@@ -174,9 +197,10 @@ fun SearchScreen(
                     TextField(
                         value = state.query,
                         onValueChange = { state.updateQuery(it) },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().focusRequester(queryFocus),
                         placeholder = { Text("Название, код МКБ, препарат или фраза из документа", style = MaterialTheme.typography.bodyMedium) },
-                        singleLine = true,
+                        singleLine = state.mode == NativeSearchMode.LOOKUP,
+                        maxLines = if (state.mode == NativeSearchMode.CLINICAL) 6 else 1,
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
                             unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
@@ -185,6 +209,18 @@ fun SearchScreen(
                         ),
                         textStyle = MaterialTheme.typography.bodyLarge,
                     )
+                }
+            }
+
+            Row(Modifier.fillMaxWidth().padding(horizontal = HOME_GAP)) {
+                NativeSearchMode.entries.forEach { mode ->
+                    Row(Modifier.weight(1f)) {
+                        RadioButton(selected = state.mode == mode, onClick = { state.updateMode(mode) },
+                            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.onBackground, unselectedColor = MaterialTheme.colorScheme.onBackground))
+                        TextButton(onClick = { state.updateMode(mode) }) {
+                            Text(if (mode == NativeSearchMode.LOOKUP) "По названию" else "Клинический запрос", color = MaterialTheme.colorScheme.onBackground)
+                        }
+                    }
                 }
             }
 
@@ -198,7 +234,7 @@ fun SearchScreen(
                 Text(it, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(horizontal = HOME_GAP))
                 TextButton(onClick = { state.attempt += 1 }) { Text("Повторить чтение названий", color = MaterialTheme.colorScheme.onBackground) }
             }
-            NativeIdentityRail(identities, openingSource, onOpenIdentity)
+            if (state.mode == NativeSearchMode.LOOKUP) NativeIdentityRail(identities, openingSource, onOpenIdentity)
             if (state.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = HOME_GAP), color = MaterialTheme.colorScheme.onBackground)
             if (state.error != null) {
                 Text(
@@ -222,6 +258,13 @@ fun SearchScreen(
                 contentPadding = PaddingValues(horizontal = HOME_GAP, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp), // web's .result-card list uses hairline dividers, not gaps
             ) {
+                if (state.mode == NativeSearchMode.CLINICAL) state.outcome?.analysis?.let { analysis ->
+                    item(key = "clinical-analysis") { NativeClinicalAnalysisPanel(analysis, onSuggestion = { suggestion ->
+                        state.updateQuery(state.query.trimEnd() + (if (state.query.isBlank()) "" else "\n") + suggestion.insertion)
+                        queryFocus.requestFocus()
+                        keyboard?.show()
+                    }) }
+                }
                 items(groups, key = { it.documentId }) { group ->
                     DocumentResultCard(group = group, onOpenDocument = onOpenDocument)
                 }
