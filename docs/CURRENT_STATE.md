@@ -143,10 +143,10 @@ Detailed history, moved verbatim on 2026-09-24:
   Android emulator checks exercise real keyboard input, calculation, assessment, upgrade/restart and
   package-only offline restart. Patient-result saving remains hidden until the vault is implemented.
 - Native readers now have a compact primary Back row and a source menu retaining full title,
-  edition, provenance, saving and retry actions. Compose route chrome draws a masked blur/grain
-  backdrop over the scrolling body beneath transparent system bars. Reader controls still hide down
-  and return up together with bottom navigation. Android frames verify an earlier reader/tools APK;
-  subsequent paper styling and generated tokens still need current device qualification.
+  edition, provenance, saving and retry actions. Reader controls hide down and return up together
+  with bottom navigation. Shared chrome currently uses the coordinator's opaque strip/fade (`22ac0aa0`);
+  this chat's earlier transparent blur/grain request awaits reconciliation in `STATE.md`. Android file
+  reading now has current phone light/dark and dark tablet checks; PDF chrome remains separate.
 - `bun run native:visual:dev` serves actual shared Compose screens at `127.0.0.1:4174` with continuous
   compilation and browser reload. Its labelled preview uses one public, checksum-linked reader
   fixture and disposable in-memory user state; it does not expose SQLite or claim native FTS.
@@ -168,8 +168,9 @@ Detailed history, moved verbatim on 2026-09-24:
   extra table cells and validated image/table metadata. Reproduce with
   `bun scripts/nativePrepareSourceText.ts` after placing the checksum-verified regulatory module at
   `playwright/native-verified-regulatory.db`, then run `NativeSourceTextGoldenTest` on Desktop.
-  This qualifies parser data and block mapping; reader screen consumption, neighbouring captions,
-  media decoding and inline navigation still need their own checks.
+  This qualifies parser data and block mapping. The coordinator connected the adapter to the shared
+  official-source reader and checked it on Android; neighbouring captions, media decoding and inline
+  navigation still need their own checks.
 - The main native app now exposes «Открыть файл» beside search and in collections, including before
   the medical core is ready. The system picker opens the shared Markdown/HTML/text/PDF reader in
   a transient, in-memory layer; Back preserves the underlying screen and search draft, and cancellation
@@ -182,12 +183,42 @@ Detailed history, moved verbatim on 2026-09-24:
   Actual Wasm import checks pass Markdown/HTML/TXT in search and startup, phone/tablet, light/dark;
   Back loses accessibility nodes with `Node 16 not found`, and ordinary search edits similarly fail
   with `Node 39 not found`. The matching upstream fix is in Compose 1.11.1; the current 1.9.3 Android
-  SDK ceiling prevents an unchecked version bump. Reader chrome and browser Back parity remain open.
+  SDK ceiling prevents an unchecked version bump. PDF chrome and browser Back parity remain open.
+- Personal Markdown/HTML/text reading now assembles the shared document-reader parts inside
+  `NativeChromeScaffold`: controls take the status inset once, Back uses the shared primary glyph,
+  and the bottom navigation follows scroll direction. The scaffold's current opaque/fade treatment
+  is recorded above; the earlier matrix APK still demonstrates the preceding grain treatment.
+  Find, outline, text size, embedded images and explicit external-link handling remain shared reader
+  behavior. Choosing Search, Settings or Collections closes the transient file only after a successful
+  navigation flush; failure retains the file and draft. Another file gets its own list and chrome
+  state; its controls and navigation padding do not change the covered source reader's state.
+  Desktop checks pass 45 file/navigation/tools/user-state/search-mode/collections/clinical/component tests; Desktop,
+  Android, Wasm and iOS source compilation and generated source/token checks pass. Actual Android
+  picker/down/up/Back checks preserve the covered source viewport and hidden controls; gestures on
+  unsupported-file notices also retain exact underlying text/bounds. PDF and notices retain safe
+  viewport padding until their shared reader branches expose the same chrome/inset contract.
+- Startup/progress and search retry/error copy now use generated design-system parts. Settings render
+  the Web sheets, choices and range control for the two real persisted native preferences (theme and
+  text scale). Files render shared search, breadcrumbs, folder grid/list, saved references, empty state
+  and collection dialogs. Clinical query analysis now uses the same DS paper, disclosure and choice
+  chips, preserving the original deterministic facts, polarities, warnings and calculation copy.
+  Picking a local file remains transient; durable files, other Web settings and
+  the encrypted patient vault are not implemented. File-folder navigation survives other destinations;
+  reselecting Files clears the filter and returns to root only after successful navigation flush.
+  Android checks cover both phone themes, actual 140% text, settled 820×1180 tablet settings, collection
+  create/rename/delete, picker cancellation and file Back. Current artifacts live in ignored
+  `playwright/native-pages-qa/` and `playwright/native-files-navigation-qa/` (APK932972c0: grid/list,
+  folder/filter retention, reselect to root and breadcrumbs). APKc1d730ab clinical checks prove two
+  visible age/temperature facts, disclosure/reset on query change, source opening and Back in both
+  phone themes (`playwright/native-clinical-ui-qa/`). Those cases do not exercise warnings, suggestions
+  or calculations; UIAutomator does not expose the disclosure's spoken stateDescription. The current
+  component box-parity suite passes too. Final APK0e654729 checks also prove that selecting Files
+  from its reader preserves exact origin folder/filter bounds, while reselecting Files returns to root
+  (`playwright/native-final-file-return-qa/`). No physical-device or iOS runtime qualification is claimed.
 - Next: finish design-system screen parity, then personal files/patient-vault parity, the two separate
   unit-conversion/photo-ECG tools, rich
-  original rendering, and remaining application features. The current
-  source reader still needs the qualified block adapter connected; personal features remain
-  subsequent work. Production Android identity and existing personal data must be preserved
+  original rendering, and remaining application features. The personal library and patient vault
+  remain subsequent work. Production Android identity and existing personal data must be preserved
   by a qualified migration before replacing the released app.
 - Qualification and concrete limits: [state/native-first-slice-2026-09-30.md](state/native-first-slice-2026-09-30.md).
 - Exact identity/migration qualification: [state/native-identities-2026-09-30.md](state/native-identities-2026-09-30.md).
