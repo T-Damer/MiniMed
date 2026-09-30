@@ -66,7 +66,8 @@ roadmap ideas.
   not leave a lingering hover wash on controls.
 - Native safe-area and sticky-chrome behavior is defined in
   [NATIVE_STICKY_CHROME.md](NATIVE_STICKY_CHROME.md). Transparent route chrome uses masked
-  blur/grain beneath its controls; opaque document-reader chrome paints the status-bar area itself.
+  blur/grain beneath its controls; WebView document-reader chrome paints the status-bar area itself.
+  Compose readers use the shared transparent blur/grain scaffold and compact primary Back controls.
   Never reintroduce feature-specific safe-area offsets.
 - The CT/MRI viewer status bar uses `--medical-image-status-bar-color`, matching the toolbar safe-area
   fill; its dark surface requires light icons, and leaving the viewer restores the system default.

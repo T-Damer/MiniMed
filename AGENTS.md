@@ -169,9 +169,11 @@ were not tested.
 
 - Read `docs/NATIVE_STICKY_CHROME.md` before changing safe-area, sticky-header, backdrop blur/grain,
   document-reader chrome, or scroll-direction visibility behavior.
-- Transparent route chrome and opaque reader chrome are different modes. Do not share safe-area
-  padding or backdrop treatment between them.
+- WebView transparent route chrome and opaque reader chrome are different modes. Do not share
+  safe-area padding or backdrop treatment between them. Compose native routes and readers use the
+  shared transparent blur/grain scaffold defined in the chrome contract.
 - Do not add feature-specific `--safe-top` padding or negative safe-area margins to
   `.route-sticky-chrome--transparent`; the shared shell contract owns that geometry.
-- Preserve the reader rule: scrolling down hides controls, scrolling up reveals them, and the opaque
-  reader header continues to paint behind the native status bar.
+- Preserve the reader rule: scrolling down hides controls and scrolling up reveals them. The WebView
+  reader paints its opaque status-bar fill; Compose renders the scrolling-source backdrop beneath
+  transparent system bars, including while reader controls are hidden.

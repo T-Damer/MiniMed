@@ -131,17 +131,42 @@ Detailed history, moved verbatim on 2026-09-24:
   cover settings/restart, replay, deletion, confirmed/cancelled clearing, clinical source opening and
   offline restoration. Production personal-data migration and physical-device qualification remain
   separate gates.
-- Next: search across verified installed modules and explicit source scopes, followed by the
-  schema-defined calculators/assessments and remaining application-feature parity. The current
+- Native mounted retrieval now preserves 94 actual scoped requests over verified module editions,
+  including source identities and complete ordered passages. Six document scopes are exposed in the
+  UI; query/mode/scope/filter guards and scoped history prevent stale results or replay changes.
+  Initial search warmup admits the installed composition once; completion signals no longer retain
+  an obsolete full index. Single-document identities avoid allocating ambiguous-name sets.
+- The native catalog opens all 69 schema-defined calculators/assessments. Its engines match 3,014
+  production cases with explicitly bounded numerical interoperability checks, and catalog discovery
+  matches 407 actual ordered queries. Inputs, stages, answers and results persist atomically in a
+  separate validated private file. Tool Back restores its actual search/catalog/collection entry.
+  Android emulator checks exercise real keyboard input, calculation, assessment, upgrade/restart and
+  package-only offline restart. Patient-result saving remains hidden until the vault is implemented.
+- Native readers now have a compact primary Back row and a source menu retaining full title,
+  edition, provenance, saving and retry actions. Compose route chrome draws a masked blur/grain
+  backdrop over the scrolling body beneath transparent system bars. Reader controls still hide down
+  and return up together with bottom navigation. Android frames verify an earlier reader/tools APK;
+  subsequent paper styling and generated tokens still need current device qualification.
+- `bun run native:visual:dev` serves actual shared Compose screens at `127.0.0.1:4174` with continuous
+  compilation and browser reload. Its labelled preview uses one public, checksum-linked reader
+  fixture and disposable in-memory user state; it does not expose SQLite or claim native FTS.
+  Six same-page resized light/dark comparisons against actual WebView found missing home sections,
+  query typography and layout differences. The frozen WebView and generated design-system
+  components are the reference; screen migration is the immediate next task.
+- Next: finish design-system screen parity, then personal files/patient-vault parity, the two separate
+  unit-conversion/photo-ECG tools, rich
+  original rendering, and remaining application features. The current
   reader preserves original markup verbatim; rich tables/media/PDF and personal features remain
   subsequent work. Production Android identity and existing personal data must be preserved
   by a qualified migration before replacing the released app.
 - Qualification and concrete limits: [state/native-first-slice-2026-09-30.md](state/native-first-slice-2026-09-30.md).
 - Exact identity/migration qualification: [state/native-identities-2026-09-30.md](state/native-identities-2026-09-30.md).
 - Clinical/user-state qualification: [state/native-clinical-user-2026-09-30.md](state/native-clinical-user-2026-09-30.md).
+- Mounted/tools/chrome continuation: [state/native-tools-chrome-2026-09-30.md](state/native-tools-chrome-2026-09-30.md).
 - Mounted/scoped retrieval has a production-generated 94-case oracle over the exact immutable
   regulatory pack and current core; 50 calculators and 19 assessments have 3,014 real-engine cases.
-  These fixtures prepare the next native gates and do not claim native feature completion.
+  Mounted retrieval and tool engines pass the qualified native gates above; full feature parity
+  remains open.
   Production calculator traces now trim fractional mantissa zeros only: scientific exponents and
   rounded integer zeros preserve their value. The expression/all-schema checks pass 1,399 tests.
 

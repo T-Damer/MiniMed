@@ -23,7 +23,7 @@ The shared implementation is in `styles/mobile-shell.css`, `styles/modules.css`,
 `components/sticky-surface.ts`. Feature styles may define layout and ordinary padding, but not native
 safe-area geometry.
 
-## Opaque document-reader chrome
+## WebView document-reader chrome
 
 Official and personal document readers do not use backdrop blur.
 
@@ -38,6 +38,24 @@ Official and personal document readers do not use backdrop blur.
 
 This behavior is controlled by `use-root-navigation.ts`, `.app-chrome-hidden`, and the reader styles.
 Do not add blur to document readers and do not offset their whole header below `--safe-top`.
+
+## Compose native chrome (user decision, 2026-09-30)
+
+Native Compose routes use `NativeChromeScaffold`. Android system-bar scrims are transparent; the
+application draws the material beneath the status icons. This also applies to native source readers.
+
+- Record the scrollable body separately from the controls. Blur only the visible top strip, add
+  stable grain, and fade the lower edge. Never blur the complete body or capture the controls into
+  their own backdrop.
+- Apply the measured header height as scroll-content padding, rather than padding the viewport.
+  Source text must actually scroll behind the status bar. Apply the status inset once inside the
+  controls, and the navigation inset once at the bottom.
+- Reader controls use one compact row: a primary-colour Back button, a bounded title and the
+  source menu. Full titles, editions, provenance, source saving and retry actions remain in the menu.
+- Preserve downward-scroll hiding and upward-scroll revealing. When controls are hidden, the
+  status-bar strip still renders the backdrop over the scrolling source.
+
+The WebView reader contract above remains separate from the native Compose implementation.
 
 ## Required checks
 
