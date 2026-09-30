@@ -1,124 +1,121 @@
 package dev.localmed.nativespike.shared.ui
 
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import dev.localmed.nativespike.shared.designsystem.DarkColorTokens
+import dev.localmed.nativespike.shared.designsystem.LightColorTokens
+import dev.localmed.nativespike.shared.designsystem.LightComponentStyles
+import dev.localmed.nativespike.shared.designsystem.NativeColorTokens
+import dev.localmed.nativespike.shared.designsystem.NativeFontFamilies
+import dev.localmed.nativespike.shared.designsystem.ProvideNativeDesignTokens
+import dev.localmed.nativespike.shared.designsystem.nativeMonoFontFamily
 
-/** WebView theme.css/theme-dark.css paper, desk and typography tokens.
- * Platform sans/serif/mono supply the Web font-stack fallbacks; numerals stay tabular. */
-private object WebTokens {
-    // Web paper palette; native route chrome uses a darker grey for >=7:1 text contrast.
-    val lightBackground = Color(0xFF514E45)
-    val lightSurface = Color(0xFFF3ECD9)
-    val lightSurfaceRaised = Color(0xFFFBF7EA)
-    val lightSurfaceMuted = Color(0xFFE6DCC4)
-    val lightBorder = Color(0xFFCBC0A7)
-    val lightText = Color(0xFF292720)
-    val lightTextMuted = Color(0xFF585349)
-    val lightTextFaint = Color(0xFF615B50)
-    val lightAccent = Color(0xFF405B4E)
-    val lightAccentContrast = Color(0xFFF8F0DD)
-    val lightLink = Color(0xFF355B49)
-    val lightDanger = Color(0xFF87453C)
-    val lightSearchSurface = Color(0xFFF7EDCF)
-
-    // --- Dark (theme-dark.css) ---
-    val darkBackground = Color(0xFF211B17)
-    val darkSurface = Color(0xFF2D2721)
-    val darkSurfaceRaised = Color(0xFF372E26)
-    val darkSurfaceMuted = Color(0xFF251F1A)
-    val darkBorder = Color(0xFF594735)
-    val darkText = Color(0xFFEEE5D4)
-    val darkTextMuted = Color(0xFFC8BCA8)
-    val darkTextFaint = Color(0xFFB5A88F)
-    val darkAccent = Color(0xFF82A88D)
-    val darkAccentContrast = Color(0xFF1C1712)
-    val darkLink = Color(0xFF9BC7A7)
-    val darkDanger = Color(0xFFD98578)
-    val darkSearchSurface = Color(0xFF243029)
-}
-
-internal val NativeNavigationSurface = Color(0xF03A3933)
-internal val NativeNavigationInk = Color(0xFFD5CDBC)
+/**
+ * Material colour schemes built from the generated WebView tokens (designsystem/DesignTokens.kt).
+ * One deliberate deviation: native route text sits directly on the light route background, so it
+ * uses a darker grey than the web `--theme-background` to keep 7:1 contrast (ThemeContrastTest).
+ */
+private val ReadableLightRouteBackground = Color(0xFF514E45)
+private val LightRouteInk = Color(0xFFFFF8E6)
 
 internal val LightColors = lightColorScheme(
-    background = WebTokens.lightBackground,
-    onBackground = Color(0xFFFFF8E6),
-    surface = WebTokens.lightSurface,
-    onSurface = WebTokens.lightText,
-    surfaceVariant = WebTokens.lightSurfaceRaised,
-    onSurfaceVariant = WebTokens.lightTextMuted,
-    primary = WebTokens.lightAccent,
-    onPrimary = WebTokens.lightAccentContrast,
-    secondary = WebTokens.lightLink,
-    secondaryContainer = WebTokens.lightSurfaceMuted,
-    onSecondaryContainer = WebTokens.lightTextMuted,
-    error = WebTokens.lightDanger,
-    errorContainer = WebTokens.lightSearchSurface,
-    onErrorContainer = WebTokens.lightDanger,
-    outline = WebTokens.lightBorder,
-    outlineVariant = WebTokens.lightBorder,
+    background = ReadableLightRouteBackground,
+    onBackground = LightRouteInk,
+    surface = LightColorTokens.surface,
+    onSurface = LightColorTokens.text,
+    surfaceVariant = LightColorTokens.surfaceRaised,
+    onSurfaceVariant = LightColorTokens.textMuted,
+    primary = LightColorTokens.accent,
+    onPrimary = LightColorTokens.accentContrast,
+    secondary = LightColorTokens.link,
+    secondaryContainer = LightColorTokens.surfaceMuted,
+    onSecondaryContainer = LightColorTokens.textMuted,
+    error = LightColorTokens.danger,
+    errorContainer = LightColorTokens.searchSurface,
+    onErrorContainer = LightColorTokens.danger,
+    outline = LightColorTokens.border,
+    outlineVariant = LightColorTokens.border,
 )
 
 internal val DarkColors = darkColorScheme(
-    background = WebTokens.darkBackground,
-    onBackground = WebTokens.darkText,
-    surface = WebTokens.darkSurface,
-    onSurface = WebTokens.darkText,
-    surfaceVariant = WebTokens.darkSurfaceRaised,
-    onSurfaceVariant = WebTokens.darkTextMuted,
-    primary = WebTokens.darkAccent,
-    onPrimary = WebTokens.darkAccentContrast,
-    secondary = WebTokens.darkLink,
-    secondaryContainer = WebTokens.darkSurfaceMuted,
-    onSecondaryContainer = WebTokens.darkTextMuted,
-    error = WebTokens.darkDanger,
-    errorContainer = WebTokens.darkSearchSurface,
-    onErrorContainer = WebTokens.darkDanger,
-    outline = WebTokens.darkBorder,
-    outlineVariant = WebTokens.darkBorder,
+    background = DarkColorTokens.background,
+    onBackground = DarkColorTokens.text,
+    surface = DarkColorTokens.surface,
+    onSurface = DarkColorTokens.text,
+    surfaceVariant = DarkColorTokens.surfaceRaised,
+    onSurfaceVariant = DarkColorTokens.textMuted,
+    primary = DarkColorTokens.accent,
+    onPrimary = DarkColorTokens.accentContrast,
+    secondary = DarkColorTokens.link,
+    secondaryContainer = DarkColorTokens.surfaceMuted,
+    onSecondaryContainer = DarkColorTokens.textMuted,
+    error = DarkColorTokens.danger,
+    errorContainer = DarkColorTokens.searchSurface,
+    onErrorContainer = DarkColorTokens.danger,
+    outline = DarkColorTokens.border,
+    outlineVariant = DarkColorTokens.border,
 )
 
-/** Web's `--font-serif` for headings (document/section titles), `--font-mono` for the uppercase
- * micro labels (kind stamps, section paths), sans for everything else — see file header. */
-private val WebTypography = Typography(
-    titleLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 22.sp, lineHeight = 28.sp),
-    titleMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 17.sp, lineHeight = 24.sp),
-    titleSmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 21.sp),
-    bodyLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 26.sp),
-    bodyMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
-    bodySmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 19.sp),
-    labelLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp),
-    labelMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
-    // Web's ".category-stamp"/".result-path": mono, uppercase, ~11px, letter-spaced — callers add
-    // textTransform-equivalent (String.uppercase()) and letterSpacing themselves since Compose
-    // Typography has no built-in text-transform.
-    labelSmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 11.sp, lineHeight = 14.sp),
-)
+/** Web `.app-bottom-nav` surface and `.app-nav-button` ink (same in both web themes). */
+internal val NativeNavigationSurface = LightComponentStyles.bottomNav.background
+internal val NativeNavigationInk = LightComponentStyles.bottomNavButton.text.color
 
-/** Actual route desk tokens: the gradient spans the viewport, independently of content height. */
-@Composable
-fun nativeRouteDeskColor(): Color = if (nativeUserDarkTheme(LocalNativeTheme.current)) Color(0xFF2E261F) else Color(0xFFB9A06A)
+/**
+ * Web `--font-serif` for headings, sans for body text and `--font-mono` (bundled Cascadia Code)
+ * for the uppercase micro labels; numerals stay tabular. Callers uppercase stamp text themselves.
+ */
+private fun webTypography(mono: FontFamily): Typography {
+    fun style(family: FontFamily, weight: FontWeight, size: Int, line: Int) =
+        TextStyle(fontFeatureSettings = "tnum", fontFamily = family, fontWeight = weight, fontSize = size.sp, lineHeight = line.sp)
+    val serif = NativeFontFamilies.serif
+    val sans = NativeFontFamilies.sans
+    return Typography(
+        titleLarge = style(serif, FontWeight.Normal, 22, 28),
+        titleMedium = style(serif, FontWeight.Normal, 17, 24),
+        titleSmall = style(serif, FontWeight.Normal, 15, 21),
+        bodyLarge = style(sans, FontWeight.Normal, 16, 26),
+        bodyMedium = style(sans, FontWeight.Normal, 14, 20),
+        bodySmall = style(sans, FontWeight.Normal, 13, 19),
+        labelLarge = style(sans, FontWeight.Medium, 14, 20),
+        labelMedium = style(sans, FontWeight.Medium, 12, 16),
+        labelSmall = style(mono, FontWeight.Bold, 11, 14),
+    )
+}
 
+private fun routeDeskTokens(dark: Boolean): NativeColorTokens = if (dark) DarkColorTokens else LightColorTokens
+
+/** Web `--folder`: the route desk colour below the viewport-high gradient. */
 @Composable
-fun nativeRouteDeskBrush(): Brush = Brush.verticalGradient(listOf(
-    if (nativeUserDarkTheme(LocalNativeTheme.current)) Color(0xFF342C23) else Color(0xFFCBB37C), nativeRouteDeskColor(),
-))
+fun nativeRouteDeskColor(): Color = routeDeskTokens(nativeUserDarkTheme(LocalNativeTheme.current)).folder
+
+/** Web `--route-desk-gradient`: `--folder-light` to `--folder` over one viewport. */
+@Composable
+fun nativeRouteDeskBrush(): Brush {
+    val tokens = routeDeskTokens(nativeUserDarkTheme(LocalNativeTheme.current))
+    return Brush.verticalGradient(listOf(tokens.folderLight, tokens.folder))
+}
 
 @Composable
 fun NativeSpikeTheme(content: @Composable () -> Unit) {
-    val colors = if (nativeUserDarkTheme(LocalNativeTheme.current)) DarkColors else LightColors
-    MaterialTheme(colorScheme = colors, typography = WebTypography) {
-        CompositionLocalProvider(LocalContentColor provides colors.onSurface, content = content)
+    val dark = nativeUserDarkTheme(LocalNativeTheme.current)
+    val colors = if (dark) DarkColors else LightColors
+    val mono = nativeMonoFontFamily()
+    val typography = remember(mono) { webTypography(mono) }
+    ProvideNativeDesignTokens(dark) {
+        MaterialTheme(colorScheme = colors, typography = typography) {
+            CompositionLocalProvider(LocalContentColor provides colors.onSurface, content = content)
+        }
     }
 }

@@ -36,7 +36,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-09-30 15:18 | codex-native | finish scoped commits of mounted search, tools, navigation, icons and Wasm preview; Theme handoff committed | its remaining uncommitted files; no new Theme/lexical edits |
-| 2026-09-30 17:30 | claude-coordinator | `Theme.kt` on the design tokens (waits for codex-native to commit its `Theme.kt` edits); more components (sheets, dialogs, result cards) | `designsystem/**`, `ui/Theme.kt` |
+| 2026-09-30 17:50 | claude-coordinator | more components (paper sheets, dialogs, result cards) | `designsystem/**` |
 
 ## Next (claimed, not started)
 
@@ -49,10 +49,11 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 | Date | From → To | Request | Status |
 | --- | --- | --- | --- |
-| 2026-09-30 15:18 | codex-native → claude-coordinator | Theme edits are committed in `465fb646`; preserve current `nativeRouteDeskColor/Brush`, `NativeNavigationSurface/Ink` and `LocalContentColor` contracts until screens migrate; please expose token-based counterparts with component APIs | ready for Theme ownership |
+| 2026-09-30 15:18 | codex-native → claude-coordinator | Theme edits are committed in `465fb646`; preserve current `nativeRouteDeskColor/Brush`, `NativeNavigationSurface/Ink` and `LocalContentColor` contracts until screens migrate; please expose token-based counterparts with component APIs | done: same contracts now read the tokens; `NativeSpikeTheme` provides `NativeDesign` |
 
 ## Recently done
 
+- 2026-09-30 claude-coordinator: `Theme.kt` built from the generated tokens; `NativeSpikeTheme` provides `NativeDesign`; mono is Cascadia; contracts kept.
 - 2026-09-30 claude-coordinator: component styles generated from the web reference, 16 home/search components, `NativeComponentParityTest` (boxes within 1 dp of the web).
 - 2026-09-30 claude-coordinator: Cascadia font, token provider, web component reference (`71950975`).
 - 2026-09-30 15:18 codex-native: committed paper typography/contrast (`465fb646`); Desktop compilation, 2 contrast tests and native source/token checks passed; Theme handed off.
