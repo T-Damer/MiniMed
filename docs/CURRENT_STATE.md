@@ -162,10 +162,18 @@ Detailed history, moved verbatim on 2026-09-24:
   Desktop/Wasm/Android/iOS source compilation pass; these checks do not qualify current Android
   visual parity. Wasm serif rendering, responsive geometry and admitted-source counters still
   require the coordinator's component/core contracts. Feature-card engines remain unavailable.
+- Official-source text now maps to shared reader blocks without changing its stored chunk or anchor.
+  A frozen oracle from the actual Web functions passes 115 cases: 75 released public chunks and
+  40 explicitly labelled test boundaries, including list continuation, source spans, Unicode spaces,
+  extra table cells and validated image/table metadata. Reproduce with
+  `bun scripts/nativePrepareSourceText.ts` after placing the checksum-verified regulatory module at
+  `playwright/native-verified-regulatory.db`, then run `NativeSourceTextGoldenTest` on Desktop.
+  This qualifies parser data and block mapping; reader screen consumption, neighbouring captions,
+  media decoding and inline navigation still need their own checks.
 - Next: finish design-system screen parity, then personal files/patient-vault parity, the two separate
   unit-conversion/photo-ECG tools, rich
   original rendering, and remaining application features. The current
-  reader preserves original markup verbatim; rich tables/media/PDF and personal features remain
+  source reader still needs the qualified block adapter connected; personal features remain
   subsequent work. Production Android identity and existing personal data must be preserved
   by a qualified migration before replacing the released app.
 - Qualification and concrete limits: [state/native-first-slice-2026-09-30.md](state/native-first-slice-2026-09-30.md).
