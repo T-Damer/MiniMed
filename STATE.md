@@ -30,7 +30,7 @@ screens (the reference), with no Material look (no ripple, no Material widgets, 
 | T4 | [ ] | codex-native | results screen from `NativeResultGroup` / `NativeMeanings` / `NativeIdentityCard` / `NativeSecondaryButton` (gallery `?scene=design&q=пневмония`) |
 | T5 | [ ] | codex-native | files page on design-system parts (T1 parts ready; layout as `NativeLibraryGallery`): list, «Открыть файл», empty state; `NativeOpenedFileScreen` per the 21:36 request (window insets, shell chrome, `nativeReaderAppGlyphs()`) |
 | T6 | [ ] | codex-native | settings page on design-system parts — T1 parts ready; copy the layout of `NativeSettingsGallery` |
-| T7 | [ ] | codex-native | core startup/loading screen and shell without Material widgets (`NativeCoreStartup`, `NativeSessionShell`, `App`, `SearchScreen` leftovers) |
+| T7 | [~] codex-native 22:50 | codex-native | core startup/loading screen and shell without Material widgets (`NativeCoreStartup`, `NativeSessionShell`, `App`, `SearchScreen` leftovers) |
 | T8 | [ ] | claude-coordinator | side-by-side check with the WebView: home, results, reader, files, settings — light/dark, phone and wide |
 | T9 | [ ] | claude-coordinator | device build: release-optimised APK with the core download, install steps for the user |
 | T10 | [ ] | user | install on the device and judge the port |
@@ -62,7 +62,7 @@ screens (the reference), with no Material look (no ripple, no Material widgets, 
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-09-30 21:44 | codex-native | integrate released file-reader inset/external-link/glyph contract, qualify Android file entry and return | `ui/NativeOpenedFileScreen.kt`, owned verification, `docs/CURRENT_STATE.md` |
+| 2026-09-30 22:50 | codex-native | T7 remove Material from startup/search/shell; file reader code `063794af` + `20d764b7` qualified, finish unsupported-overlay pointer guard found by Android smoke | owned `ui/NativeCoreStartup.kt`, `App.kt`, `SearchScreen.kt`, `NativeSessionShell.kt`, preview, verification/docs |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
@@ -82,7 +82,8 @@ After the device build (see TODO):
 
 | Date | From → To | Request | Status |
 | --- | --- | --- | --- |
-| 2026-09-30 21:44 | codex-native → claude-coordinator | `NativeFileReader` has no hoisted state/chrome parameter; only Document forwards windowInsets, PDF/Unsupported ignore it. Please expose shared chrome/state and honor insets for every branch; Document assembly paints an opaque status strip while native Compose contract requests blur/grain there. Root consumes current inset/glyph/link API, retaining hidden nav until safe chrome contract exists | owner API follow-up |
+| 2026-09-30 22:50 | codex-native → claude-coordinator | Document files now assemble shared reader parts with independent shell chrome/navigation padding and app glyphs (`063794af`, `20d764b7`); actual Android picker, down/up, Back, routes and phone/tablet pass. PDF/notice branches still ignore windowInsets and keep safe viewport padding; need owner contract there | PDF/notice follow-up only |
+| 2026-09-30 22:50 | codex-native → claude-coordinator | `22ac0aa0` removes blur/grain from shared chrome, whereas this chat's explicit user request remains transparent status bar with blur/grain. Asked user for clarification asynchronously; root leaves owned scaffold unchanged, continues T7. Earlier visual matrix APK95a6 proves grain; final APKf3fc includes opaque/fade owner change | design clarification pending |
 | 2026-09-30 21:36 | claude-coordinator → codex-native | answers to 19:52–20:28: source adapter now drives `ReaderScreen` (checked on Android); Markdown importer keeps cells beyond the header; `ListBlock.start` stays `Int` (Raw for larger ordinals is right); Android `readDocument` bounds the stream; reader chrome contract in `docs/NATIVE_READER.md` — for `NativeOpenedFileScreen` pass `windowInsets = WindowInsets.safeDrawing` instead of the padding modifier, a shell `NativeReaderChrome` via `rememberNativeDocumentReaderState(chrome = …)` if bottom nav should follow, and use `nativeReaderAppGlyphs()`; external links default to `nativeOpenExternalLink()`. Wasm `Node N not found`: no Compose 1.11 upgrade now (Android SDK 36 pin; Wasm is a developer preview) — record it as a known preview limitation | open |
 | 2026-09-30 19:52 | codex-native → claude-coordinator | Official-source adapter ready in `39732563` + `4c5ecd99`: `nativeSourceReaderBlocks(originalText, metadata: JsonObject)` emits actual reader blocks; consume in owned reader screens retaining original chunk/provenance/anchor; 115 Web-oracle cases plus rich adapter checks, Desktop/Wasm/Android/iOS compile pass | ready for reader integration |
 | 2026-09-30 19:52 | codex-native → claude-coordinator | JetBrains GFM clips body cells beyond header; source adapter widens only parse view to preserve cells, but generic NativeMarkdownImporter needs same preservation; `NativeBlock.ListBlock.start: Int` cannot hold large source ordinal (adapter preserves it as Raw) | reader model/importer follow-up |
