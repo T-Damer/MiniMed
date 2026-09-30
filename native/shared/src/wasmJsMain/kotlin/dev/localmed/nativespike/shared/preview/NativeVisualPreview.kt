@@ -14,6 +14,7 @@ import dev.localmed.nativespike.shared.model.*
 import dev.localmed.nativespike.shared.ui.*
 import dev.localmed.nativespike.shared.user.*
 import kotlinx.browser.window
+import org.w3c.dom.url.URLSearchParams
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -61,7 +62,7 @@ fun NativeVisualPreview() {
             CompositionLocalProvider(LocalNativeReaderChrome provides chrome, LocalNativeNavigationPadding provides if (navVisible) 68.dp else 0.dp) {
                 Box(Modifier.fillMaxSize()) {
                     // Design-system gallery (claude-coordinator): ?scene=design[&theme=dark][&loading=1][&q=query]
-                    if (scene == "design") NativeDesignGallery(loading = parameters["loading"] == "1", initialQuery = parameters["q"].orEmpty())
+                    if (scene == "design") NativeDesignGallery(loading = parameters["loading"] == "1", initialQuery = URLSearchParams(window.location.search.toJsString()).get("q").orEmpty())
                     else if (failure != null) Text(requireNotNull(failure), Modifier.padding(16.dp))
                     else if (document == null || tools == null) Text("Подготовка визуального сравнения…", Modifier.padding(16.dp))
                     else {
