@@ -1,6 +1,11 @@
+@file:OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
+
 package dev.localmed.nativespike.shared.user
 
 import dev.localmed.nativespike.shared.core.NativeContentIO
+import dev.localmed.nativespike.shared.model.NativeSearchSelection
+import dev.localmed.nativespike.shared.model.validateSearchSelection
+import kotlinx.serialization.EncodeDefault
 import dev.localmed.nativespike.shared.core.NATIVE_SEARCH_QUERY_MAX_LENGTH
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +39,7 @@ val NATIVE_TEXT_SCALE_LEVELS = listOf(90, 100, 110, 125, 140)
     val scope: NativeHistoryScope,
     val analysisMode: NativeHistoryAnalysisMode,
     val modeUsed: NativeHistoryRetrievalMode,
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val selection: NativeSearchSelection = NativeSearchSelection(),
 )
 
 @Serializable data class NativeUserSnapshot(
@@ -70,10 +76,10 @@ class NativeUserState(private val io: NativeContentIO) {
 
     @OptIn(ExperimentalTime::class)
     suspend fun recordCompletedSearch(entry: NativeHistoryEntry) = mutate { current ->
-        val sameQuery = current.history.find { it.query == entry.query && it.scope == entry.scope && it.analysisMode == entry.analysisMode }
+        val sameQuery = current.history.find { it.query == entry.query && it.scope == entry.scope && it.analysisMode == entry.analysisMode && it.selection == entry.selection }
         if (sameQuery != null && Instant.parse(sameQuery.createdAt) > Instant.parse(entry.createdAt)) current
         else current.copy(history = (listOf(entry) + current.history.filter {
-                it.query != entry.query || it.scope != entry.scope || it.analysisMode != entry.analysisMode
+                it.query != entry.query || it.scope != entry.scope || it.analysisMode != entry.analysisMode || it.selection != entry.selection
             }).sortedByDescending { Instant.parse(it.createdAt) }.take(NATIVE_HISTORY_LIMIT))
     }
 
@@ -99,16 +105,17 @@ class NativeUserState(private val io: NativeContentIO) {
         value.history.forEach {
             require(it.id.isNotBlank() && it.createdAt.isNotBlank() && it.resultCount >= 0)
             Instant.parse(it.createdAt)
+            validateSearchSelection(it.selection)
             require(it.query.isNotBlank() && it.query.length <= NATIVE_SEARCH_QUERY_MAX_LENGTH && '\u0000' !in it.query)
         }
     }
 }
 
 @OptIn(ExperimentalTime::class)
-fun nativeCompletedSearch(query: String, resultCount: Int, mode: NativeHistoryAnalysisMode): NativeHistoryEntry {
+fun nativeCompletedSearch(query: String, resultCount: Int, mode: NativeHistoryAnalysisMode, selection: NativeSearchSelection = NativeSearchSelection()): NativeHistoryEntry {
     val trimmed = query.trim()
     require(trimmed.isNotEmpty() && trimmed.length <= NATIVE_SEARCH_QUERY_MAX_LENGTH && '\u0000' !in trimmed && resultCount >= 0)
     val instant = Clock.System.now().toString()
     return NativeHistoryEntry("$instant-${kotlin.random.Random.nextLong().toString(16)}", trimmed, instant, resultCount,
-        NativeHistoryScope.Core, mode, NativeHistoryRetrievalMode.Lexical)
+        NativeHistoryScope.Core, mode, NativeHistoryRetrievalMode.Lexical,selection)
 }

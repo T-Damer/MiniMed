@@ -2,6 +2,9 @@ package dev.localmed.nativespike.shared.user
 
 import dev.localmed.nativespike.shared.content.JVMContentIO
 import dev.localmed.nativespike.shared.core.NativeContentIO
+import dev.localmed.nativespike.shared.model.NativeSearchSelection
+import dev.localmed.nativespike.shared.model.NativeSearchScope
+import dev.localmed.nativespike.shared.model.NativeSearchFilters
 import dev.localmed.nativespike.shared.model.NativeSearchMode
 import dev.localmed.nativespike.shared.ui.NativeCoreSession
 import dev.localmed.nativespike.shared.ui.NativeUiOperation
@@ -231,4 +234,38 @@ class NativeUserStateTest {
         } finally { check(profile.deleteRecursively()) }
     }
 
+    @Test fun scopedHistoryDeduplicatesOnlyExactSelectionAndReplaysAfterRestart() = runBlocking {
+        val profile=profile();val real=JVMContentIO(profile.absolutePath);var fail=false
+        val io=object: NativeContentIO by real {
+            override suspend fun writeTextAtomic(path: String,text: String) {
+                if(fail) error("OS write failed")
+                real.writeTextAtomic(path,text)
+            }
+        }
+        val guidelines=NativeSearchSelection(NativeSearchScope.GUIDELINES,NativeSearchFilters(ageGroups=listOf("children")))
+        val drugs=NativeSearchSelection(NativeSearchScope.MEDICATIONS)
+        try {
+            val state=NativeUserState(io).also { it.load() }
+            state.recordCompletedSearch(nativeCompletedSearch("энцефалит",2,NativeHistoryAnalysisMode.Lookup,guidelines))
+            state.recordCompletedSearch(nativeCompletedSearch("энцефалит",3,NativeHistoryAnalysisMode.Lookup,drugs))
+            state.recordCompletedSearch(nativeCompletedSearch("энцефалит",4,NativeHistoryAnalysisMode.Lookup,guidelines))
+            assertEquals(2,state.snapshot.value?.history?.size)
+            val restored=NativeUserState(io).also { it.load() }
+            assertEquals(listOf(guidelines,drugs),restored.snapshot.value?.history?.map { it.selection })
+            val entry=requireNotNull(restored.snapshot.value).history.first()
+            fail=true
+            assertFailsWith<IllegalStateException> { restored.deleteHistory(entry.id) }
+            assertEquals(state.snapshot.value,restored.snapshot.value)
+            fail=false
+            val session=NativeCoreSession(io,{error("Core must not open")},this)
+            try {
+                var replayed: NativeHistoryEntry?=null
+                session.registerReplayHandler { replayed=it }
+                session.openPanel(NativeUserPanel.History)
+                assertTrue(session.replay(entry))
+                assertEquals(guidelines,replayed?.selection)
+                assertNull(session.panel.value)
+            } finally { session.close() }
+        } finally { check(profile.deleteRecursively()) }
+    }
 }
