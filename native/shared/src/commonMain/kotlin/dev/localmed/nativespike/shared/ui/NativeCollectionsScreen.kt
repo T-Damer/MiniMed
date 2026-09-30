@@ -198,7 +198,7 @@ fun NativeCollectionsScreen(session: NativeCoreSession) {
                                 NativePaperSheet { NativeSectionHeading(if (query.isBlank()) "Здесь пока нет сохранённых элементов" else "Ничего не найдено",
                                     description = if (query.isBlank()) "Откройте файл с устройства или сохраните источник и инструмент в избранное." else null) }
                             }
-                            items(folders.chunked(if (grid) 2 else 1), key = { row -> row.first()?.id ?: "favorites" }) { row ->
+                            items(folders.chunked(if (grid) 2 else 1), key = { row -> row.first()?.let { "collection:${it.id}" } ?: "favorites" }) { row ->
                                 Row(horizontalArrangement = Arrangement.spacedBy(NativeDimensions.space2)) {
                                     row.forEach { collection -> NativeFolderCard(collection?.name ?: "Избранное", "Элементов: ${collection?.items?.size ?: state.favorites.size}",
                                         { session.library.openFolder(collection?.id) }, Modifier.weight(1f).testTag("user-library-folder-card"), icon = nativeCollectionGlyph(NativeAppGlyphName.FolderOpen)) }
