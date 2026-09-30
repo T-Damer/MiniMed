@@ -24,6 +24,15 @@ screen was matched by eye.
 4. **Screens** — rebuilt from components, search first, then tools, readers, sources and
    collections.
 
+## Web reference
+
+`bun run build:app && bun scripts/extract-web-component-reference.ts` serves the built WebView,
+opens it at 375 × 812 in light and dark, and writes the computed styles and boxes of the key BEM
+blocks to `native/shared/src/commonTest/resources/web-component-reference.json`
+(`--list` prints the blocks visible on each screen). Components are written against these numbers
+— many values, such as the query sheet's 12 px radius and its own shadow, live in component CSS,
+not in the shared tokens — and the parity check compares against the same file.
+
 ## Parity checks
 
 Compare components, not whole screens. A component carries the web BEM block name as its Compose
