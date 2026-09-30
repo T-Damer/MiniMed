@@ -15,6 +15,22 @@ import kotlin.test.assertTrue
 import kotlin.test.assertSame
 
 class NativeSearchModeStateTest {
+    @Test fun sectionSwitchKeepsTheScrollableControlTreeAndDefersOnlyItsViewport() {
+        val initial = NativeSearchSnapshot("пневмония", 8, 40)
+        val state = NativeSearchUiState(initial)
+        val list = state.listState
+        state.selectSection(NativeSearchScope.LEGAL)
+        assertSame(list, state.listState)
+        assertEquals(0, state.takePendingPosition()?.firstVisibleItemIndex)
+        state.selectSection(NativeSearchScope.ALL)
+        assertSame(list, state.listState)
+        assertEquals(initial, state.snapshot())
+        assertEquals(initial, state.takePendingPosition())
+        state.selectSection(NativeSearchScope.LEGAL)
+        state.updateQuery("изменённый черновик")
+        assertNull(state.takePendingPosition())
+    }
+
     @Test fun installedContentInvalidatesAllSectionResultsWithoutLosingTheirDraftsOrPositions() {
         val initial = NativeSearchSnapshot("приказ", 3, 20, selection = NativeSearchSelection(NativeSearchScope.LEGAL))
         val state = NativeSearchUiState(initial)

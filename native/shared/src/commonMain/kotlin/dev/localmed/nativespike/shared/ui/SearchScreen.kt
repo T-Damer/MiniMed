@@ -140,8 +140,9 @@ fun SearchScreen(
         val requestQuery = state.query
         val requestMode = state.mode
         val requestSelection = state.selection
-        if (state.positionQuery != requestQuery || state.positionMode != requestMode || state.positionSelection != requestSelection) {
-            state.listState.scrollToItem(0)
+        val restoredPosition = state.takePendingPosition()
+        if (restoredPosition != null || state.positionQuery != requestQuery || state.positionMode != requestMode || state.positionSelection != requestSelection) {
+            state.listState.scrollToItem(restoredPosition?.firstVisibleItemIndex ?: 0, restoredPosition?.firstVisibleItemOffset ?: 0)
             if (!state.acceptsRequest(requestQuery,requestMode,requestSelection)) return@LaunchedEffect
             state.positionQuery = requestQuery
             state.positionMode = requestMode

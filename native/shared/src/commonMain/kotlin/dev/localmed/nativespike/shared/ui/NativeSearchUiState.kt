@@ -39,8 +39,8 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
     var completedMode: NativeSearchMode? = null
     var positionQuery: String = snapshot.query
     var positionMode: NativeSearchMode = snapshot.mode
-    var listState by mutableStateOf(LazyListState(snapshot.firstVisibleItemIndex.coerceAtLeast(0), snapshot.firstVisibleItemOffset.coerceAtLeast(0)))
-        private set
+    val listState = LazyListState(snapshot.firstVisibleItemIndex.coerceAtLeast(0), snapshot.firstVisibleItemOffset.coerceAtLeast(0))
+    private var pendingPosition: NativeSearchSnapshot? = null
 
     fun updateQuery(value: String) {
         inputError = nativeSearchInputError(value)
@@ -147,7 +147,7 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
         positionQuery = query
         positionMode = mode
         positionSelection = selection
-        listState = LazyListState(restored.firstVisibleItemIndex, restored.firstVisibleItemOffset)
+        pendingPosition = restored
         inputError = null
         error = null
         queuedQuery = null
@@ -159,7 +159,14 @@ class NativeSearchUiState(snapshot: NativeSearchSnapshot) {
     fun acceptsLookupIdentities(requestQuery: String, requestMode: NativeSearchMode,requestSelection: NativeSearchSelection = NativeSearchSelection()): Boolean =
         requestMode == NativeSearchMode.LOOKUP && acceptsRequest(requestQuery,requestMode,requestSelection)
 
+    fun takePendingPosition(): NativeSearchSnapshot? {
+        val requested = pendingPosition
+        pendingPosition = null
+        return requested?.takeIf { acceptsRequest(it.query, it.mode, it.selection) }
+    }
+
     fun snapshot(): NativeSearchSnapshot {
+        pendingPosition?.takeIf { acceptsRequest(it.query, it.mode, it.selection) }?.let { return it }
         val resetPosition = positionQuery != query || positionMode != mode || positionSelection != selection
         return NativeSearchSnapshot(query, if (resetPosition) 0 else listState.firstVisibleItemIndex,
             if (resetPosition) 0 else listState.firstVisibleItemScrollOffset, mode,selection)
