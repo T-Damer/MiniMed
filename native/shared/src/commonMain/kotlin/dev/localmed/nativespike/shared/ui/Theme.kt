@@ -2,36 +2,23 @@ package dev.localmed.nativespike.shared.ui
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-/**
- * Color and type tokens ported from the web app's own theme, not a generic Material palette —
- * see `apps/app/src/styles/theme.css` (light) / `theme-dark.css` (dark) for the source of truth;
- * hex values below are copied verbatim from those files' `--theme-*` custom properties (checked
- * 2026-09-30). This is a values-only port: the web theme has ~80 tokens (spacing, motion, grain
- * textures, route-desk gradients, etc.) this spike does not need or reproduce — only color and the
- * serif/sans type split, enough to make the two apps visually comparable for the "same UI
- * complexity" scroll/frame remeasurement in docs/research/native-vs-webview-2026-09-28.md.
- *
- * Fonts: the web theme's `--font-serif` is `Georgia, "Times New Roman", Times, serif` and
- * `--font-mono` is a bundled Cascadia Code (`"MiniMed Digits"`/`"MiniMed Code"`, via `@font-face`
- * in theme.css). Neither font file is embedded in this spike (no license/bundling work was done
- * for a measurement spike), so this uses `FontFamily.Serif` (resolves to the platform's own serif
- * — Noto Serif on Android, Times/Georgia-class faces on desktop/iOS) for headings, and
- * `FontFamily.Monospace` (platform monospace, not Cascadia Code specifically) for the
- * uppercase/tabular labels the web theme uses mono for. Body/UI text uses `FontFamily.Default`
- * (sans), matching the web theme's own root `font-family: Arial, Helvetica, sans-serif`.
- */
+/** WebView theme.css/theme-dark.css paper, desk and typography tokens.
+ * Platform sans/serif/mono supply the Web font-stack fallbacks; numerals stay tabular. */
 private object WebTokens {
-    // --- Light (theme.css) ---
-    val lightBackground = Color(0xFF777266)
+    // Web paper palette; native route chrome uses a darker grey for >=7:1 text contrast.
+    val lightBackground = Color(0xFF514E45)
     val lightSurface = Color(0xFFF3ECD9)
     val lightSurfaceRaised = Color(0xFFFBF7EA)
     val lightSurfaceMuted = Color(0xFFE6DCC4)
@@ -60,6 +47,9 @@ private object WebTokens {
     val darkDanger = Color(0xFFD98578)
     val darkSearchSurface = Color(0xFF243029)
 }
+
+internal val NativeNavigationSurface = Color(0xF03A3933)
+internal val NativeNavigationInk = Color(0xFFD5CDBC)
 
 internal val LightColors = lightColorScheme(
     background = WebTokens.lightBackground,
@@ -105,9 +95,9 @@ private val WebTypography = Typography(
     titleLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 22.sp, lineHeight = 28.sp),
     titleMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 17.sp, lineHeight = 24.sp),
     titleSmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 21.sp),
-    bodyLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 22.sp),
-    bodyMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
-    bodySmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 19.sp),
+    bodyLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 26.sp),
+    bodyMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
+    bodySmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 19.sp),
     labelLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp),
     labelMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
     // Web's ".category-stamp"/".result-path": mono, uppercase, ~11px, letter-spaced — callers add
@@ -116,8 +106,19 @@ private val WebTypography = Typography(
     labelSmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 11.sp, lineHeight = 14.sp),
 )
 
+/** Actual route desk tokens: the gradient spans the viewport, independently of content height. */
+@Composable
+fun nativeRouteDeskColor(): Color = if (nativeUserDarkTheme(LocalNativeTheme.current)) Color(0xFF2E261F) else Color(0xFFB9A06A)
+
+@Composable
+fun nativeRouteDeskBrush(): Brush = Brush.verticalGradient(listOf(
+    if (nativeUserDarkTheme(LocalNativeTheme.current)) Color(0xFF342C23) else Color(0xFFCBB37C), nativeRouteDeskColor(),
+))
+
 @Composable
 fun NativeSpikeTheme(content: @Composable () -> Unit) {
     val colors = if (nativeUserDarkTheme(LocalNativeTheme.current)) DarkColors else LightColors
-    MaterialTheme(colorScheme = colors, typography = WebTypography, content = content)
+    MaterialTheme(colorScheme = colors, typography = WebTypography) {
+        CompositionLocalProvider(LocalContentColor provides colors.onSurface, content = content)
+    }
 }

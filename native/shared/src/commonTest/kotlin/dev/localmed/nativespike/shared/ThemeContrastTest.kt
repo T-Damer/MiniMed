@@ -30,6 +30,14 @@ class ThemeContrastTest {
         }
     }
 
+    @Test fun routeNavigationHasStrongContrastInBothThemes() {
+        for (scheme in listOf(LightColors, DarkColors)) {
+            val foreground = luminance(scheme.onBackground)
+            val background = luminance(scheme.background)
+            assertTrue((maxOf(foreground, background) + 0.05) / (minOf(foreground, background) + 0.05) >= 7.0)
+        }
+    }
+
     private fun luminance(color: Color): Double {
         fun linear(value: Float): Double =
             if (value <= 0.04045f) value / 12.92 else ((value + 0.055) / 1.055).pow(2.4)
