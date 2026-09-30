@@ -261,7 +261,7 @@ class NativeCoreSession(
         if (!backMutex.tryLock()) return
         try {
             if (!flushUi()) return
-            if (item == null && mutablePanel.value == NativeUserPanel.Collections) library.showRoot()
+            if (item == null && mutablePanel.value == NativeUserPanel.Collections && mutableOpenedFile.value == null) library.showRoot()
             mutableOpenedFile.value = null
             mutableCollectionItem.value = item
             mutablePanel.value = NativeUserPanel.Collections

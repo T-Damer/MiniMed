@@ -55,6 +55,14 @@ class NativeOpenedFileSessionTest {
             assertEquals("сохранённый черновик", session.startupSearch.query)
             assertTrue(session.openFile(NativeFilePick.Failed("Файл недоступен")))
             assertEquals("Файл недоступен", (session.openedFile.value as NativeReaderContent.Unsupported).reason)
+            session.openCollections()
+            session.library.openFolder("public-collection")
+            session.library.query = "сохранённый фильтр"
+            assertTrue(session.openFile(file))
+            session.openCollections()
+            assertEquals(null, session.openedFile.value)
+            assertEquals("public-collection", session.library.selectedId)
+            assertEquals("сохранённый фильтр", session.library.query)
             for (destination in listOf<suspend () -> Unit>(
                 { session.openPanel(NativeUserPanel.Settings) },
                 { session.openCollections() },
