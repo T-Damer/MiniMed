@@ -12,6 +12,28 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 - Only edit paths you own. For a change in someone else's path, add a row to **Requests** and wait.
 - Keep entries one line each and dated (YYYY-MM-DD HH:MM, local time). Delete what is no longer true.
 - Commit only files you wrote; `git fetch` and rebase onto `origin/main` before pushing.
+- The **TODO** list below is the shared plan for the current goal. Mark your own items: `[~]` with
+  agent and time when you start, `[x]` with the commit when it is in `main`, `[!]` with a reason when
+  blocked. Add an item instead of starting unlisted work for the goal.
+
+## TODO — device build (user goal, 2026-09-30 22:15)
+
+A build for the user's own Android device to judge whether the native port is worth it: working
+search and basic pages — home/search, results, reader, files, settings — that look like the WebView
+screens (the reference), with no Material look (no ripple, no Material widgets, calm chrome).
+
+| # | Status | Owner | Item |
+| --- | --- | --- | --- |
+| T1 | [~] claude 22:25 | claude-coordinator | design-system parts the pages miss, from the WebView settings/files references: list row (icon, title, detail, trailing value/chevron/switch), switch, segmented choice, popup menu, text field, section header |
+| T2 | [ ] | claude-coordinator | reader source menu and definition reader on design-system parts (drop Material `DropdownMenu`/`Text`) |
+| T3 | [x] 22:25 | claude-coordinator | Material audit (imports of Material widgets per screen file): `NativeUserScreens` 5, `NativeReaderHeader` 4, `NativeCoreStartup` 4, `NativeCollectionsScreen` 4, `NativeDefinitionReaderScreen` 3, `NativeDefinitionBlockSelector` 3, `NativeClinicalAnalysisPanel` 3, `SearchScreen` 2, `NativeSourcesScreen` 2, `NativeSessionShell` 2, `NativeDefinitionCatalogScreen` 2, `NativeReaderStatus` 1, `NativePaperControls` 1, `NativeDefinitionSourceDetails` 1, `App` 1 |
+| T4 | [ ] | codex-native | results screen from `NativeResultGroup` / `NativeMeanings` / `NativeIdentityCard` / `NativeSecondaryButton` (gallery `?scene=design&q=пневмония`) |
+| T5 | [ ] | codex-native | files page on design-system parts: list, «Открыть файл», empty state; `NativeOpenedFileScreen` per the 21:36 request (window insets, shell chrome, `nativeReaderAppGlyphs()`) |
+| T6 | [ ] | codex-native | settings page on design-system parts (after T1) |
+| T7 | [ ] | codex-native | core startup/loading screen and shell without Material widgets (`NativeCoreStartup`, `NativeSessionShell`, `App`, `SearchScreen` leftovers) |
+| T8 | [ ] | claude-coordinator | side-by-side check with the WebView: home, results, reader, files, settings — light/dark, phone and wide |
+| T9 | [ ] | claude-coordinator | device build: release-optimised APK with the core download, install steps for the user |
+| T10 | [ ] | user | install on the device and judge the port |
 
 ## Agents
 
@@ -45,15 +67,10 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 ## Next (claimed, not started)
 
-Goal set by the user (2026-09-30 22:15): a build for the user's own Android device to judge the port.
-It needs working search and basic pages — search/home, results, reader, files, settings — that look
-like the WebView (reference: the WebView screens), with no Material look.
+After the device build (see TODO):
 
 | Order | Agent | Task |
 | --- | --- | --- |
-| D1 | codex-native | results screen from `NativeResultGroup`/`NativeMeanings`/`NativeIdentityCard` (request 18:30); files page and settings page on design-system parts, no Material widgets (`Text`/`Surface`/`Button`/`DropdownMenu`) in them |
-| D2 | claude-coordinator | Material audit of all screens with a per-screen list; design-system parts the pages still miss (list rows, switches, segmented choice, popup menu, text field); definition reader on shared parts |
-| D3 | claude-coordinator | device build: release-optimised APK with the core download, handed to the user with install steps |
 | 0 | claude-coordinator | reader R2–R5 after R1 (see `docs/NATIVE_READER.md`) |
 | 1 | claude-coordinator | port the per-document lexical window (TS `26a69921`) to Kotlin; refresh the search golden fixtures |
 | 2 | codex-native | migrate tools, sources and collections screens to design-system components after requested card/field APIs land |
