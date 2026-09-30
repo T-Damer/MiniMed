@@ -27,10 +27,10 @@ screens (the reference), with no Material look (no ripple, no Material widgets, 
 | T1 | [x] 798a8aff | claude-coordinator | design-system parts for settings and files, captured from the WebView and rebuilt as gallery pages `?scene=design-settings` / `design-files`: `NativePageHeader`, `NativeGroupTitle`, `NativePaperSheet`, `NativeSectionHeading`, `NativeSettingSwitch`, `NativeRangeSetting`, `NativeChoiceGroup`, `NativeDisclosure`, `NativeFeatureTile`, `NativePrimaryButton`, `NativeTextLink`, `NativeSearchField`, `NativeBreadcrumbs`, `NativeIconToggle`, `NativeFolderCard`, round back/sort/add buttons (see `docs/NATIVE_DESIGN_SYSTEM.md`) |
 | T2 | [~] claude 22:42 | claude-coordinator | popup menu part; reader source menu and definition reader on design-system parts (drop Material `DropdownMenu`/`Text`) |
 | T3 | [x] 22:25 | claude-coordinator | Material audit (imports of Material widgets per screen file): `NativeUserScreens` 5, `NativeReaderHeader` 4, `NativeCoreStartup` 4, `NativeCollectionsScreen` 4, `NativeDefinitionReaderScreen` 3, `NativeDefinitionBlockSelector` 3, `NativeClinicalAnalysisPanel` 3, `SearchScreen` 2, `NativeSourcesScreen` 2, `NativeSessionShell` 2, `NativeDefinitionCatalogScreen` 2, `NativeReaderStatus` 1, `NativePaperControls` 1, `NativeDefinitionSourceDetails` 1, `App` 1 |
-| T4 | [ ] | codex-native | results screen from `NativeResultGroup` / `NativeMeanings` / `NativeIdentityCard` / `NativeSecondaryButton` (gallery `?scene=design&q=пневмония`) |
+| T4 | [!] exact meanings API missing; result/identity cards already e85eb137 | codex-native | results screen from `NativeResultGroup` / `NativeMeanings` / `NativeIdentityCard` / `NativeSecondaryButton` (gallery `?scene=design&q=пневмония`) |
 | T5 | [~] codex-native 23:04 | codex-native | files page on design-system parts (T1 parts ready; layout as `NativeLibraryGallery`): list, «Открыть файл», empty state; `NativeOpenedFileScreen` per the 21:36 request (window insets, shell chrome, `nativeReaderAppGlyphs()`) |
 | T6 | [~] codex-native 23:04 | codex-native | settings page on design-system parts — T1 parts ready; copy the layout of `NativeSettingsGallery` |
-| T7 | [~] codex-native 22:50 | codex-native | core startup/loading screen and shell without Material widgets (`NativeCoreStartup`, `NativeSessionShell`, `App`, `SearchScreen` leftovers) |
+| T7 | [x] 9ce0c00f | codex-native | core startup/loading screen and shell without Material widgets (`NativeCoreStartup`, `NativeSessionShell`, `App`, `SearchScreen` leftovers) |
 | T8 | [ ] | claude-coordinator | side-by-side check with the WebView: home, results, reader, files, settings — light/dark, phone and wide |
 | T9 | [ ] | claude-coordinator | device build: release-optimised APK with the core download, install steps for the user |
 | T10 | [ ] | user | install on the device and judge the port |
@@ -62,7 +62,7 @@ screens (the reference), with no Material look (no ripple, no Material widgets, 
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-09-30 23:04 | codex-native | T7 code `9ce0c00f` passes 31 tests/all platform sources; Android error-overlay pointer regression check pending. T5 files entry/list and T6 supported settings on ready DS parts; preserve working collection routes and real persisted preferences, no pretend features | owned user/files screens, session/shell/navigation/preview, verification/docs |
+| 2026-09-30 23:04 | codex-native | T7 Android error-overlay gesture check passes. T5 code `3b20cb7a`, T6 code `d4a3cc9c` pass Desktop36 tests/all platform sources; Android light/dark/large-font/tablet and files CRUD/picker QA in progress; files stay transient, only real native preferences exposed | owned user/files screens, session/shell/navigation/preview, verification/docs |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
@@ -111,6 +111,8 @@ After the device build (see TODO):
 | 2026-09-30 18:56 | codex-native → claude-coordinator | Reader screen files are clean and all earlier changes committed; `ReaderScreen`, `NativeReaderPane/Header/Chrome/Rows/Status`, `NativeDefinitionReader*` handed over; official source text remains mine, 111 frozen Web cases prepared including table/image/provenance boundaries | reader UI handoff done; R1 model now available, source mapping starts |
 
 ## Recently done
+
+- 2026-09-30 23:20 codex-native: T7 actual APK96981f9a proves unsupported-file overlay down/up/Back retains exact covered source text, bounds and hidden controls (`playwright/native-t7-qa/report.json`); settings `d4a3cc9c` and files `3b20cb7a` replace Material with DS sheets/choices/range/folders/search/breadcrumbs/dialogs; 36 Desktop tests and all platform sources/source checks pass, APKc986c393 Android page QA running.
 
 - 2026-09-30 23:04 codex-native: startup/search/shell Material imports removed (`9ce0c00f`); progress and retries use generated DS parts, covered pages consume pointers. Desktop31 tests, Desktop/Android/Wasm/iOS source and token checks pass; APK96981f9a Android gesture regression check in progress.
 
