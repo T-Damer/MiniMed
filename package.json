@@ -135,6 +135,8 @@
     "native:source:check": "bun scripts/check-native-bridge.mjs && bun scripts/generate-native-design-tokens.ts --check && bun scripts/generate-native-component-styles.ts --check",
     "native:tokens": "bun scripts/generate-native-design-tokens.ts",
     "native:catalog": "bun scripts/prepare-native-catalog.ts",
+    "native:icons:prepare": "bun scripts/prepare-native-icons.ts",
+    "native:icons:check": "bun scripts/prepare-native-icons.ts --check",
     "models:publish": "bash scripts/publish-model-assets.sh",
     "benchmark:runtime": "bun tools/benchmarks/src/run-runtime-retrieval.ts",
     "benchmark:search-latency": "bun tools/benchmarks/src/run-search-latency.ts",

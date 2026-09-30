@@ -204,13 +204,24 @@ val prepareNativeTools by tasks.registering(Exec::class) {
     commandLine("bun", "scripts/prepare-native-tools.ts")
     setEnvironment(mapOf("HOME" to System.getProperty("user.home"), "PATH" to "/Users/d/.bun/bin:/Users/d/.local/bin:/opt/homebrew/bin:/usr/bin:/bin", "TMPDIR" to repository.resolve("playwright").absolutePath, "LANG" to "en_US.UTF-8"))
     inputs.files(repository.resolve("scripts/prepare-native-tools.ts"), repository.resolve("apps/app/src/features/calculators/tool-module-test-helpers.ts"))
+    inputs.files(repository.resolve("apps/app/src/features/modules/module-catalog-shell.ts"), repository.resolve("apps/app/src/features/modules/catalog.shell.json"))
     inputs.files(fileTree(repository.resolve("content/tool-modules")) { include("*.json") })
     inputs.files(fileTree(repository.resolve("packages/contracts/src")) { include("**/*.ts") })
     inputs.files(repository.resolve("apps/app/src/features/calculators/who-growth-reference-data.ts"), repository.resolve("apps/app/src/features/calculators/aap-pediatric-bp-reference-data.ts"), repository.resolve("apps/app/src/features/calculators/calculator-models.ts"))
     outputs.file(projectDir.resolve("src/commonMain/composeResources/files/native-tool-data.json"))
 }
+val prepareNativeIcons by tasks.registering(Exec::class) {
+    val repository = rootProject.projectDir.parentFile
+    workingDir(repository)
+    commandLine("bun", "scripts/prepare-native-icons.ts")
+    setEnvironment(mapOf("HOME" to System.getProperty("user.home"), "PATH" to "/Users/d/.bun/bin:/Users/d/.local/bin:/opt/homebrew/bin:/usr/bin:/bin", "TMPDIR" to repository.resolve("playwright").absolutePath, "LANG" to "en_US.UTF-8"))
+    inputs.files(repository.resolve("scripts/prepare-native-icons.ts"), repository.resolve("apps/app/src/components/AppGlyph.tsx"))
+    inputs.files(fileTree(repository.resolve("node_modules/@phosphor-icons/core")) { include("assets/bold/*.svg", "assets/fill/*.svg", "LICENSE") })
+    outputs.files(projectDir.resolve("src/commonMain/kotlin/dev/localmed/nativespike/shared/ui/NativeAppGlyphName.kt"), projectDir.resolve("src/commonMain/composeResources/files/phosphor-icons-LICENSE.txt"))
+}
 tasks.configureEach {
-    if (name == "generateComposeResClass" || name.startsWith("prepareComposeResourcesTaskFor") || name.startsWith("copyNonXmlValueResourcesFor") || name.startsWith("convertXmlValueResourcesFor")) dependsOn(prepareNativeCatalog, prepareNativeTools)
+    if (name.startsWith("compile") && name.contains("Kotlin")) dependsOn(prepareNativeIcons)
+    if (name == "generateComposeResClass" || name.startsWith("prepareComposeResourcesTaskFor") || name.startsWith("copyNonXmlValueResourcesFor") || name.startsWith("convertXmlValueResourcesFor")) dependsOn(prepareNativeCatalog, prepareNativeTools, prepareNativeIcons)
 }
 
 // Runtime verification output is kept outside source/build caches.
