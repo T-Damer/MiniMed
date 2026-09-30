@@ -206,7 +206,12 @@ fun SearchScreen(
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal=HOME_GAP,vertical=NativeDimensions.space2),verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(NativeDimensions.space2)) {
                 onOpenHistory?.let { action -> NativeIconButton(NativeDesign.components.historyFab, "search-history-fab", "История поиска", action) { tint -> NativeAppGlyph(NativeAppGlyphName.History, Modifier.size(NativeDimensions.space5), tint) } }
                 Spacer(Modifier.weight(1f))
-                NativeOpenFileButton()
+                // Same round header control as its neighbours (web route buttons).
+                LocalNativeOpenFile.current?.let { open ->
+                    NativeIconButton(NativeDesign.components.routeIconButton, "route-icon-button", "Открыть файл", open) {
+                        NativeAppGlyph(NativeAppGlyphName.FolderOpen, Modifier.size(NativeDimensions.space5), it)
+                    }
+                }
                 NativeIconButton(NativeDesign.components.routeIconButton, "route-icon-button", "Источники", onOpenSources, enabled = core != null) {
                     NativeAppGlyph(NativeAppGlyphName.Books, Modifier.size(NativeDimensions.space5), it)
                 }

@@ -10,7 +10,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
@@ -45,7 +46,7 @@ fun Modifier.nativeBoxFrame(style: NativeBoxStyle): Modifier {
         style.minHeight != null -> heightIn(min = style.minHeight)
         else -> this
     }
-    if (style.opacity < 1f) modifier = modifier.alpha(style.opacity)
+    if (style.opacity < 1f) modifier = modifier.nativeAlpha(style.opacity)
     // CSS paints the first listed shadow on top; Compose draws later modifiers above earlier ones.
     for (layer in style.shadows.filter { !it.inset }.asReversed()) {
         modifier = modifier.dropShadow(shape, layer.toShadow())
@@ -59,6 +60,13 @@ fun Modifier.nativeBoxFrame(style: NativeBoxStyle): Modifier {
     }
     return modifier
 }
+
+/**
+ * CSS `opacity` without an offscreen layer: each drawing is faded in place, so shadows outside the
+ * box are not cut off at its edges (a layer-based alpha clips them into visible squares).
+ */
+fun Modifier.nativeAlpha(alpha: Float): Modifier =
+    if (alpha >= 1f) this else graphicsLayer { this.alpha = alpha; compositingStrategy = CompositingStrategy.ModulateAlpha }
 
 /** CSS `border-style: dashed`: dashes about three strokes long, as Blink draws them. */
 private fun Modifier.dashedBorder(style: NativeBoxStyle): Modifier = drawBehind {

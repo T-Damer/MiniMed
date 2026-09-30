@@ -55,8 +55,6 @@ data class NativeBoxStyle(
 
 @Immutable
 data class NativeComponentStyles(
-    /** Web `.search-random-record`. */
-    val routeIconButton: NativeBoxStyle,
     /** Web `.search-history-fab`. */
     val historyFab: NativeBoxStyle,
     /** Web `.query-sheet`. */
@@ -127,6 +125,8 @@ data class NativeComponentStyles(
     val bottomNavButtonActive: NativeBoxStyle,
     /** Web `.search-clinical-toggle`. */
     val clinicalToggleOn: NativeBoxStyle,
+    /** Web `.search-mode-help`. */
+    val routeIconButton: NativeBoxStyle,
     /** Web `.query-sheet__clear`. */
     val queryClear: NativeBoxStyle,
     /** Web `.search-button`. */
@@ -368,21 +368,6 @@ data class NativeComponentStyles(
 )
 
 val LightComponentStyles = NativeComponentStyles(
-    routeIconButton = NativeBoxStyle(
-        width = 40.dp, height = 40.dp, minHeight = null,
-        padding = NativePadding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
-        corner = 0.dp, circle = true,
-        borderWidth = 1.dp, borderColor = Color(0x57483B22), borderDashed = false,
-        background = Color(0x8CFFF9E7), opacity = 0.55f,
-        bottomBorderWidth = 1.dp, bottomBorderColor = Color(0x57483B22),
-        rowGap = 7.2.dp, columnGap = 7.2.dp,
-        shadows = listOf(
-            NativeShadowLayer(inset = true, x = 0.dp, y = 0.8.dp, blur = 0.dp, spread = 0.dp, color = Color(0x1AFFFFFF)),
-            NativeShadowLayer(inset = false, x = 0.dp, y = 2.24.dp, blur = 0.dp, spread = 0.dp, color = Color(0x47514632)),
-            NativeShadowLayer(inset = false, x = 0.dp, y = 4.dp, blur = 8.dp, spread = 0.dp, color = Color(0x38000000)),
-        ),
-        text = NativeTextSpec(role = NativeFontRole.Serif, size = 18.sp, weight = FontWeight(700), lineHeight = TextUnit.Unspecified, letterSpacing = 0.sp, uppercase = false, color = Color(0xFF514632)),
-    ),
     historyFab = NativeBoxStyle(
         width = 40.dp, height = 40.dp, minHeight = null,
         padding = NativePadding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
@@ -781,6 +766,17 @@ val LightComponentStyles = NativeComponentStyles(
             NativeShadowLayer(inset = false, x = 0.dp, y = 4.dp, blur = 12.dp, spread = 0.dp, color = Color(0x2E292319)),
         ),
         text = NativeTextSpec(role = NativeFontRole.Sans, size = 16.sp, weight = FontWeight(400), lineHeight = TextUnit.Unspecified, letterSpacing = 0.sp, uppercase = false, color = Color(0xFFF8F0DD)),
+    ),
+    routeIconButton = NativeBoxStyle(
+        width = 40.dp, height = 40.dp, minHeight = null,
+        padding = NativePadding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
+        corner = 0.dp, circle = true,
+        borderWidth = 1.dp, borderColor = Color(0x57483B22), borderDashed = false,
+        background = Color(0x8CFFF9E7), opacity = 1f,
+        bottomBorderWidth = 1.dp, bottomBorderColor = Color(0x57483B22),
+        rowGap = 0.dp, columnGap = 0.dp,
+        shadows = emptyList(),
+        text = NativeTextSpec(role = NativeFontRole.Serif, size = 18.sp, weight = FontWeight(400), lineHeight = TextUnit.Unspecified, letterSpacing = 0.sp, uppercase = false, color = Color(0xFF514632)),
     ),
     queryClear = NativeBoxStyle(
         width = 32.dp, height = 32.dp, minHeight = null,
@@ -2148,21 +2144,6 @@ val LightComponentStyles = NativeComponentStyles(
 )
 
 val DarkComponentStyles = NativeComponentStyles(
-    routeIconButton = NativeBoxStyle(
-        width = 40.dp, height = 40.dp, minHeight = null,
-        padding = NativePadding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
-        corner = 0.dp, circle = true,
-        borderWidth = 1.dp, borderColor = Color(0x57483B22), borderDashed = false,
-        background = Color(0x8CFFF9E7), opacity = 0.55f,
-        bottomBorderWidth = 1.dp, bottomBorderColor = Color(0x57483B22),
-        rowGap = 7.2.dp, columnGap = 7.2.dp,
-        shadows = listOf(
-            NativeShadowLayer(inset = true, x = 0.dp, y = 0.8.dp, blur = 0.dp, spread = 0.dp, color = Color(0x1AFFFFFF)),
-            NativeShadowLayer(inset = false, x = 0.dp, y = 2.24.dp, blur = 0.dp, spread = 0.dp, color = Color(0x47514632)),
-            NativeShadowLayer(inset = false, x = 0.dp, y = 4.dp, blur = 8.dp, spread = 0.dp, color = Color(0x38000000)),
-        ),
-        text = NativeTextSpec(role = NativeFontRole.Serif, size = 18.sp, weight = FontWeight(700), lineHeight = TextUnit.Unspecified, letterSpacing = 0.sp, uppercase = false, color = Color(0xFF514632)),
-    ),
     historyFab = NativeBoxStyle(
         width = 40.dp, height = 40.dp, minHeight = null,
         padding = NativePadding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
@@ -2564,6 +2545,17 @@ val DarkComponentStyles = NativeComponentStyles(
             NativeShadowLayer(inset = false, x = 0.dp, y = 8.dp, blur = 16.dp, spread = 0.dp, color = Color(0x3D000000)),
         ),
         text = NativeTextSpec(role = NativeFontRole.Sans, size = 16.sp, weight = FontWeight(400), lineHeight = TextUnit.Unspecified, letterSpacing = 0.sp, uppercase = false, color = Color(0xFF1C1712)),
+    ),
+    routeIconButton = NativeBoxStyle(
+        width = 40.dp, height = 40.dp, minHeight = null,
+        padding = NativePadding(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 0.dp),
+        corner = 0.dp, circle = true,
+        borderWidth = 1.dp, borderColor = Color(0x57483B22), borderDashed = false,
+        background = Color(0x8CFFF9E7), opacity = 1f,
+        bottomBorderWidth = 1.dp, bottomBorderColor = Color(0x57483B22),
+        rowGap = 0.dp, columnGap = 0.dp,
+        shadows = emptyList(),
+        text = NativeTextSpec(role = NativeFontRole.Serif, size = 18.sp, weight = FontWeight(400), lineHeight = TextUnit.Unspecified, letterSpacing = 0.sp, uppercase = false, color = Color(0xFF514632)),
     ),
     queryClear = NativeBoxStyle(
         width = 32.dp, height = 32.dp, minHeight = null,

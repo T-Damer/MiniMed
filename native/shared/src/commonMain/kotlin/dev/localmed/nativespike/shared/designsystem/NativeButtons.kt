@@ -11,7 +11,6 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -40,7 +39,7 @@ fun NativeIconButton(
     Box(
         modifier
             .testTag(tag)
-            .alpha(if (enabled) 1f else DISABLED_ALPHA)
+            .nativeAlpha(if (enabled) 1f else DISABLED_ALPHA)
             .semantics { this.contentDescription = contentDescription }
             .nativePressBox(style, enabled) { source -> clickable(source, null, enabled = enabled, role = Role.Button, onClick = onClick) },
         contentAlignment = Alignment.Center,
@@ -82,7 +81,7 @@ fun NativeActionButton(
     Row(
         modifier
             .testTag(if (primary) "feature-action-primary" else "feature-action-secondary")
-            .alpha(if (enabled) 1f else DISABLED_ALPHA)
+            .nativeAlpha(if (enabled) 1f else DISABLED_ALPHA)
             .nativePressBox(style, enabled, strong = primary) { source -> clickable(source, null, enabled = enabled, role = Role.Button, onClick = onClick) },
         horizontalArrangement = Arrangement.spacedBy(style.columnGap, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,

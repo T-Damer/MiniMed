@@ -124,7 +124,6 @@ async function listBlocks(page: Page): Promise<Record<string, number>> {
 /** BEM block → selector of its first visible instance, per screen. */
 const BLOCKS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   home: {
-    'route-icon-button': '.search-random-record',
     'history-fab': '.search-history-fab',
     'query-sheet': '.query-sheet',
     'query-input': '[data-testid="search-input"]',
@@ -289,6 +288,8 @@ const BLOCKS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'folder-card-pin': '.user-library-folder-card__pin',
   },
   'home-typing': {
+    // Help is always enabled; the random-record button is disabled until counts resolve.
+    'route-icon-button': '.search-mode-help',
     'query-clear': '.query-sheet__clear',
     'search-button': '.search-button',
     'results-skeleton-row': '.search-results-skeleton__row',

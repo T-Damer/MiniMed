@@ -7,41 +7,6 @@
   "themes": {
     "light": {
       "home": {
-        "route-icon-button": {
-          "selector": ".search-random-record",
-          "box": {
-            "x": 229,
-            "y": 16,
-            "width": 40,
-            "height": 40
-          },
-          "style": {
-            "display": "grid",
-            "gap": "7.2px",
-            "padding-top": "0px",
-            "padding-right": "0px",
-            "padding-bottom": "0px",
-            "padding-left": "0px",
-            "border-top-width": "1px",
-            "border-top-color": "rgba(72, 59, 34, 0.34)",
-            "border-top-style": "solid",
-            "border-bottom-width": "1px",
-            "border-bottom-color": "rgba(72, 59, 34, 0.34)",
-            "border-top-left-radius": "50%",
-            "background-color": "rgba(255, 249, 231, 0.55)",
-            "background-image": "none",
-            "box-shadow": "rgba(255, 255, 255, 0.1) 0px 0.8px 0px 0px inset, color(srgb 0.317647 0.27451 0.196078 / 0.28) 0px 2.24px 0px 0px, rgba(0, 0, 0, 0.22) 0px 4px 8px 0px",
-            "opacity": "0.55",
-            "color": "rgb(81, 70, 50)",
-            "font-family": "Georgia, \"Times New Roman\", Times, serif",
-            "font-size": "18px",
-            "font-weight": "700",
-            "line-height": "normal",
-            "letter-spacing": "normal",
-            "text-transform": "none",
-            "font-variant-numeric": "tabular-nums slashed-zero"
-          }
-        },
         "history-fab": {
           "selector": ".search-history-fab",
           "box": {
@@ -395,7 +360,7 @@
         "feature-card": {
           "selector": ".home-feature",
           "box": {
-            "x": -345,
+            "x": -700,
             "y": 344.9,
             "width": 355,
             "height": 216.8
@@ -430,7 +395,7 @@
         "feature-actions": {
           "selector": ".home-feature__actions",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 502.7,
             "width": 317.8,
             "height": 41.6
@@ -465,7 +430,7 @@
         "feature-kicker": {
           "selector": ".home-feature__kicker",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 368.3,
             "width": 79.4,
             "height": 16
@@ -500,7 +465,7 @@
         "feature-title": {
           "selector": ".home-feature__title",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 403,
             "width": 317.8,
             "height": 23
@@ -535,7 +500,7 @@
         "feature-text": {
           "selector": ".home-feature__text",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 430.8,
             "width": 317.8,
             "height": 59.1
@@ -570,7 +535,7 @@
         "feature-action-primary": {
           "selector": ".home-feature__action:not(.home-feature__action--secondary)",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 502.7,
             "width": 175.8,
             "height": 41.6
@@ -605,7 +570,7 @@
         "feature-action-secondary": {
           "selector": ".home-feature__action--secondary",
           "box": {
-            "x": -142.6,
+            "x": -497.6,
             "y": 502.7,
             "width": 128.5,
             "height": 41.6
@@ -640,7 +605,7 @@
         "help-icon-link": {
           "selector": ".help-icon-link",
           "box": {
-            "x": -391.6,
+            "x": -746.6,
             "y": 362.3,
             "width": 28,
             "height": 28
@@ -745,7 +710,7 @@
         "carousel-dot-active": {
           "selector": ".carousel__dot--active",
           "box": {
-            "x": 182.5,
+            "x": 202.5,
             "y": 567.7,
             "width": 30,
             "height": 20
@@ -1271,6 +1236,41 @@
         }
       },
       "home-typing": {
+        "route-icon-button": {
+          "selector": ".search-mode-help",
+          "box": {
+            "x": 325,
+            "y": 16,
+            "width": 40,
+            "height": 40
+          },
+          "style": {
+            "display": "grid",
+            "gap": "normal",
+            "padding-top": "0px",
+            "padding-right": "0px",
+            "padding-bottom": "0px",
+            "padding-left": "0px",
+            "border-top-width": "1px",
+            "border-top-color": "rgba(72, 59, 34, 0.34)",
+            "border-top-style": "solid",
+            "border-bottom-width": "1px",
+            "border-bottom-color": "rgba(72, 59, 34, 0.34)",
+            "border-top-left-radius": "50%",
+            "background-color": "rgba(255, 249, 231, 0.55)",
+            "background-image": "none",
+            "box-shadow": "none",
+            "opacity": "1",
+            "color": "rgb(81, 70, 50)",
+            "font-family": "Georgia, \"Times New Roman\", Times, serif",
+            "font-size": "18px",
+            "font-weight": "400",
+            "line-height": "normal",
+            "letter-spacing": "normal",
+            "text-transform": "none",
+            "font-variant-numeric": "tabular-nums slashed-zero"
+          }
+        },
         "query-clear": {
           "selector": ".query-sheet__clear",
           "box": {
@@ -5448,41 +5448,6 @@
     },
     "dark": {
       "home": {
-        "route-icon-button": {
-          "selector": ".search-random-record",
-          "box": {
-            "x": 229,
-            "y": 16,
-            "width": 40,
-            "height": 40
-          },
-          "style": {
-            "display": "grid",
-            "gap": "7.2px",
-            "padding-top": "0px",
-            "padding-right": "0px",
-            "padding-bottom": "0px",
-            "padding-left": "0px",
-            "border-top-width": "1px",
-            "border-top-color": "rgba(72, 59, 34, 0.34)",
-            "border-top-style": "solid",
-            "border-bottom-width": "1px",
-            "border-bottom-color": "rgba(72, 59, 34, 0.34)",
-            "border-top-left-radius": "50%",
-            "background-color": "rgba(255, 249, 231, 0.55)",
-            "background-image": "none",
-            "box-shadow": "rgba(255, 255, 255, 0.1) 0px 0.8px 0px 0px inset, color(srgb 0.317647 0.27451 0.196078 / 0.28) 0px 2.24px 0px 0px, rgba(0, 0, 0, 0.22) 0px 4px 8px 0px",
-            "opacity": "0.55",
-            "color": "rgb(81, 70, 50)",
-            "font-family": "Georgia, \"Times New Roman\", Times, serif",
-            "font-size": "18px",
-            "font-weight": "700",
-            "line-height": "normal",
-            "letter-spacing": "normal",
-            "text-transform": "none",
-            "font-variant-numeric": "tabular-nums slashed-zero"
-          }
-        },
         "history-fab": {
           "selector": ".search-history-fab",
           "box": {
@@ -5836,7 +5801,7 @@
         "feature-card": {
           "selector": ".home-feature",
           "box": {
-            "x": -345,
+            "x": -700,
             "y": 344.9,
             "width": 355,
             "height": 216.8
@@ -5871,7 +5836,7 @@
         "feature-actions": {
           "selector": ".home-feature__actions",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 502.7,
             "width": 317.8,
             "height": 41.6
@@ -5906,7 +5871,7 @@
         "feature-kicker": {
           "selector": ".home-feature__kicker",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 368.3,
             "width": 79.4,
             "height": 16
@@ -5941,7 +5906,7 @@
         "feature-title": {
           "selector": ".home-feature__title",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 403,
             "width": 317.8,
             "height": 23
@@ -5976,7 +5941,7 @@
         "feature-text": {
           "selector": ".home-feature__text",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 430.8,
             "width": 317.8,
             "height": 59.1
@@ -6011,7 +5976,7 @@
         "feature-action-primary": {
           "selector": ".home-feature__action:not(.home-feature__action--secondary)",
           "box": {
-            "x": -326.4,
+            "x": -681.4,
             "y": 502.7,
             "width": 175.8,
             "height": 41.6
@@ -6046,7 +6011,7 @@
         "feature-action-secondary": {
           "selector": ".home-feature__action--secondary",
           "box": {
-            "x": -142.6,
+            "x": -497.6,
             "y": 502.7,
             "width": 128.5,
             "height": 41.6
@@ -6081,7 +6046,7 @@
         "help-icon-link": {
           "selector": ".help-icon-link",
           "box": {
-            "x": -391.6,
+            "x": -746.6,
             "y": 362.3,
             "width": 28,
             "height": 28
@@ -6186,7 +6151,7 @@
         "carousel-dot-active": {
           "selector": ".carousel__dot--active",
           "box": {
-            "x": 182.5,
+            "x": 202.5,
             "y": 567.7,
             "width": 30,
             "height": 20
@@ -6712,6 +6677,41 @@
         }
       },
       "home-typing": {
+        "route-icon-button": {
+          "selector": ".search-mode-help",
+          "box": {
+            "x": 325,
+            "y": 16,
+            "width": 40,
+            "height": 40
+          },
+          "style": {
+            "display": "grid",
+            "gap": "normal",
+            "padding-top": "0px",
+            "padding-right": "0px",
+            "padding-bottom": "0px",
+            "padding-left": "0px",
+            "border-top-width": "1px",
+            "border-top-color": "rgba(72, 59, 34, 0.34)",
+            "border-top-style": "solid",
+            "border-bottom-width": "1px",
+            "border-bottom-color": "rgba(72, 59, 34, 0.34)",
+            "border-top-left-radius": "50%",
+            "background-color": "rgba(255, 249, 231, 0.55)",
+            "background-image": "none",
+            "box-shadow": "none",
+            "opacity": "1",
+            "color": "rgb(81, 70, 50)",
+            "font-family": "Georgia, \"Times New Roman\", Times, serif",
+            "font-size": "18px",
+            "font-weight": "400",
+            "line-height": "normal",
+            "letter-spacing": "normal",
+            "text-transform": "none",
+            "font-variant-numeric": "tabular-nums slashed-zero"
+          }
+        },
         "query-clear": {
           "selector": ".query-sheet__clear",
           "box": {
