@@ -157,10 +157,10 @@ const { values } = parseArgs({
   options: { database: { type: 'string' }, report: { type: 'string' } },
 });
 const databasePath = values.database
-  ? resolve(values.database)
+  ? resolve(root, values.database)
   : resolve(root, 'data/build/rf-regulatory-pilot.db');
 const reportPath = values.report
-  ? resolve(values.report)
+  ? resolve(root, values.report)
   : resolve(root, 'data/build/rf-regulatory-pilot-benchmark.json');
 const queryPaths = [
   'tools/benchmarks/regulatory-rf-queries.json',

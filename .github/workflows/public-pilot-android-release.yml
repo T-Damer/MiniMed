@@ -66,7 +66,7 @@ jobs:
           bun run verify
           bun run benchmark:queries:coverage
           bun run benchmark:queries:contracts
-          bun run benchmark:regulatory --database=apps/app/public/content/regulatory.db
+          bun run benchmark:regulatory --database=apps/app/public/content/regulatory.db --report=playwright/regulatory-release-benchmark.json
           bun run build:app
           bun run native:sync:android
 
