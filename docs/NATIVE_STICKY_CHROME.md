@@ -39,14 +39,15 @@ Official and personal document readers do not use backdrop blur.
 This behavior is controlled by `use-root-navigation.ts`, `.app-chrome-hidden`, and the reader styles.
 Do not add blur to document readers and do not offset their whole header below `--safe-top`.
 
-## Compose native chrome (user decision, 2026-09-30)
+## Compose native chrome (user decisions, 2026-09-30)
 
 Native Compose routes use `NativeChromeScaffold`. Android system-bar scrims are transparent; the
 application draws the material beneath the status icons. This also applies to native source readers.
 
-- Record the scrollable body separately from the controls. Blur only the visible top strip, add
-  stable grain, and fade the lower edge. Never blur the complete body or capture the controls into
-  their own backdrop.
+- No blur and no grain (user decision, evening 2026-09-30: they looked muddy and re-rendered the
+  whole scene every frame). Once the scene scrolls, an opaque strip in the route's own colour (the
+  top of the desk gradient, or the route surface) sits behind the controls and the status bar and
+  fades out over 12 dp below them.
 - Apply the measured header height as scroll-content padding, rather than padding the viewport.
   Source text must actually scroll behind the status bar. Apply the status inset once inside the
   controls, and the navigation inset once at the bottom.
@@ -62,7 +63,8 @@ The WebView reader contract above remains separate from the native Compose imple
 `apps/app/e2e/native-chrome.spec.ts` must verify:
 
 - transparent controls remain below a simulated safe area without duplicate padding;
-- blur/grain covers the status bar and the full sticky element, with a masked lower edge;
+- the WebView blur/grain covers the status bar and the full sticky element, with a masked lower edge
+  (WebView only; native uses the opaque strip above);
 - reader chrome starts at the viewport top, has an opaque fill, and pads controls below the safe area;
 - reader controls hide on downward scroll and return on upward scroll;
 - routes without transparent sticky chrome do not show the status-bar blur.

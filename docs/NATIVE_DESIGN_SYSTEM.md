@@ -82,6 +82,16 @@ reference key:
 Icons are slots (`icon: @Composable (tint) -> Unit`), so the design system does not depend on the
 screens' glyph set. Screens must wrap their content in `ProvideNativeDesignTokens(dark)`.
 
+## App frame and press feedback
+
+- `NativeAppFrame` (applied by `NativeSpikeTheme`): below 760 dp the app fills the window; above it
+  the page is `min(width − 32 dp, 1152 dp)`, centred, with the desk on both sides, as the web root
+  page width. Nested frames do nothing.
+- Press feedback (user decision 2026-09-30): no Material ripple anywhere (`LocalRippleConfiguration`
+  is null). Raised controls use `Modifier.nativePressBox(style)`: while held they sink 1.6 dp and
+  their outer shadows give way to a pressed-in shadow, as the web `:active` rule; rows, cards and
+  other plain clickables get `NativePressShade`, a faint shade while pressed.
+
 ## Where native deliberately differs from the web
 
 - **Core status in the field.** The web shows a separate `.search-core-status` card. Native

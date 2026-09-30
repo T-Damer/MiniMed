@@ -171,7 +171,8 @@ were not tested.
   document-reader chrome, or scroll-direction visibility behavior.
 - WebView transparent route chrome and opaque reader chrome are different modes. Do not share
   safe-area padding or backdrop treatment between them. Compose native routes and readers use the
-  shared transparent blur/grain scaffold defined in the chrome contract.
+  shared chrome scaffold defined in the chrome contract: an opaque strip with a soft fade, no blur
+  or grain (user decision 2026-09-30).
 - Do not add feature-specific `--safe-top` padding or negative safe-area margins to
   `.route-sticky-chrome--transparent`; the shared shell contract owns that geometry.
 - Preserve the reader rule: scrolling down hides controls and scrolling up reveals them. The WebView

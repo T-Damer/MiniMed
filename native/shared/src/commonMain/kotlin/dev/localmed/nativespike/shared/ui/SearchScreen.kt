@@ -203,7 +203,6 @@ fun SearchScreen(
     NativeChromeScaffold(
         containerColor = NativeDesign.colors.background,
         scrolled = state.listState.firstVisibleItemIndex > 0 || state.listState.firstVisibleItemScrollOffset > 0,
-        topBarTintAlpha = .92f,
         desk = true,
         topBar = {
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal=HOME_GAP,vertical=NativeDimensions.space2),verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(NativeDimensions.space2)) {

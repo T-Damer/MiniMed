@@ -1,6 +1,7 @@
 package dev.localmed.nativespike.shared.designsystem
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -40,10 +41,8 @@ fun NativeIconButton(
         modifier
             .testTag(tag)
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
-            .nativeBoxFrame(style)
             .semantics { this.contentDescription = contentDescription }
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .nativePadding(style),
+            .nativePressBox(style, enabled) { source -> clickable(source, null, enabled = enabled, role = Role.Button, onClick = onClick) },
         contentAlignment = Alignment.Center,
     ) { icon(style.text.color) }
 }
@@ -62,10 +61,8 @@ fun NativeClinicalToggle(
     Box(
         modifier
             .testTag(if (checked) "clinical-toggle-on" else "clinical-toggle")
-            .nativeBoxFrame(style)
             .semantics { contentDescription = label }
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
-            .nativePadding(style),
+            .nativePressBox(style) { source -> toggleable(value = checked, interactionSource = source, indication = null, role = Role.Switch, onValueChange = onCheckedChange) },
         contentAlignment = Alignment.Center,
     ) { icon(style.text.color, checked) }
 }
@@ -86,9 +83,7 @@ fun NativeActionButton(
         modifier
             .testTag(if (primary) "feature-action-primary" else "feature-action-secondary")
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
-            .nativeBoxFrame(style)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .nativePadding(style),
+            .nativePressBox(style, enabled, strong = primary) { source -> clickable(source, null, enabled = enabled, role = Role.Button, onClick = onClick) },
         horizontalArrangement = Arrangement.spacedBy(style.columnGap, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -119,9 +114,7 @@ fun NativeSourcePicker(
     Row(
         modifier
             .testTag("source-picker")
-            .nativeBoxFrame(style)
-            .clickable(role = Role.DropdownList, onClick = onClick)
-            .nativePadding(style),
+            .nativePressBox(style) { source -> clickable(source, null, role = Role.DropdownList, onClick = onClick) },
         horizontalArrangement = Arrangement.spacedBy(style.columnGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -141,7 +134,7 @@ fun NativeChip(
 ) {
     val style = NativeDesign.components.quickAccessChip
     Row(
-        modifier.testTag("quick-access-chip").nativeBoxFrame(style).clickable(role = Role.Button, onClick = onClick).nativePadding(style),
+        modifier.testTag("quick-access-chip").nativePressBox(style) { source -> clickable(source, null, role = Role.Button, onClick = onClick) },
         horizontalArrangement = Arrangement.spacedBy(style.columnGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {

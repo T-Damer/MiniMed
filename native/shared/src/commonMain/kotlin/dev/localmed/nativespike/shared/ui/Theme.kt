@@ -19,6 +19,10 @@ import dev.localmed.nativespike.shared.designsystem.LightColorTokens
 import dev.localmed.nativespike.shared.designsystem.LightComponentStyles
 import dev.localmed.nativespike.shared.designsystem.NativeColorTokens
 import dev.localmed.nativespike.shared.designsystem.NativeFontFamilies
+import dev.localmed.nativespike.shared.designsystem.NativeAppFrame
+import dev.localmed.nativespike.shared.designsystem.NativePressShade
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.material3.LocalRippleConfiguration
 import dev.localmed.nativespike.shared.designsystem.ProvideNativeDesignTokens
 import dev.localmed.nativespike.shared.designsystem.nativeMonoFontFamily
 
@@ -100,6 +104,10 @@ private fun routeDeskTokens(dark: Boolean): NativeColorTokens = if (dark) DarkCo
 @Composable
 fun nativeRouteDeskColor(): Color = routeDeskTokens(nativeUserDarkTheme(LocalNativeTheme.current)).folder
 
+/** The top colour of the route desk gradient, for chrome that sits over it. */
+@Composable
+fun nativeRouteDeskTopColor(): Color = routeDeskTokens(nativeUserDarkTheme(LocalNativeTheme.current)).folderLight
+
 /** Web `--route-desk-gradient`: `--folder-light` to `--folder` over one viewport. */
 @Composable
 fun nativeRouteDeskBrush(): Brush {
@@ -107,6 +115,7 @@ fun nativeRouteDeskBrush(): Brush {
     return Brush.verticalGradient(listOf(tokens.folderLight, tokens.folder))
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun NativeSpikeTheme(content: @Composable () -> Unit) {
     val dark = nativeUserDarkTheme(LocalNativeTheme.current)
@@ -115,7 +124,16 @@ fun NativeSpikeTheme(content: @Composable () -> Unit) {
     val typography = remember(mono) { webTypography(mono) }
     ProvideNativeDesignTokens(dark) {
         MaterialTheme(colorScheme = colors, typography = typography) {
-            CompositionLocalProvider(LocalContentColor provides colors.onSurface, content = content)
+            // No Material ripple anywhere: raised controls sink when pressed (nativePressBox),
+            // everything else shades faintly (NativePressShade).
+            CompositionLocalProvider(
+                LocalContentColor provides colors.onSurface,
+                LocalIndication provides NativePressShade,
+                LocalRippleConfiguration provides null,
+            ) {
+                // One centred page on wide windows, desk on both sides (web page width).
+                NativeAppFrame(nativeRouteDeskBrush(), content)
+            }
         }
     }
 }

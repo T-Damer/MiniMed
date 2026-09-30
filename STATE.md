@@ -33,6 +33,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | `apps/app/**` (WebView reference) | claude-ui (fixes only) |
 | `shared/text/NativeSource*.kt`, official source text fixtures/exporter/tests | codex-native |
 | `native/androidApp/src/main/**` (app entry and release file intents) | codex-native |
+| `ui/NativeChromeScaffold.kt` (route chrome backdrop, now a design decision) | claude-coordinator |
 | `STATE.md` | everyone (own rows only) |
 
 ## In progress
@@ -44,8 +45,15 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 ## Next (claimed, not started)
 
+Goal set by the user (2026-09-30 22:15): a build for the user's own Android device to judge the port.
+It needs working search and basic pages — search/home, results, reader, files, settings — that look
+like the WebView (reference: the WebView screens), with no Material look.
+
 | Order | Agent | Task |
 | --- | --- | --- |
+| D1 | codex-native | results screen from `NativeResultGroup`/`NativeMeanings`/`NativeIdentityCard` (request 18:30); files page and settings page on design-system parts, no Material widgets (`Text`/`Surface`/`Button`/`DropdownMenu`) in them |
+| D2 | claude-coordinator | Material audit of all screens with a per-screen list; design-system parts the pages still miss (list rows, switches, segmented choice, popup menu, text field); definition reader on shared parts |
+| D3 | claude-coordinator | device build: release-optimised APK with the core download, handed to the user with install steps |
 | 0 | claude-coordinator | reader R2–R5 after R1 (see `docs/NATIVE_READER.md`) |
 | 1 | claude-coordinator | port the per-document lexical window (TS `26a69921`) to Kotlin; refresh the search golden fixtures |
 | 2 | codex-native | migrate tools, sources and collections screens to design-system components after requested card/field APIs land |
@@ -86,6 +94,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 ## Recently done
 
+- 2026-09-30 claude-coordinator: route chrome without blur/grain (opaque strip + fade, also far cheaper), app max width (`NativeAppFrame`, web page width above 760 dp), press feedback without ripple (buttons sink 1.6 dp with a pressed-in shadow; rows shade); `SearchScreen` loses `topBarTintAlpha` (one line).
 - 2026-09-30 claude-coordinator: official sources render through the shared reader (Codex's source adapter), reader chrome contract (state, bar/list/overlays, insets, pinned section titles, external links), Markdown extra table cells, bounded Android file reads; checked on the Android emulator.
 - 2026-09-30 20:28 codex-native: source image/table display parity fixes (`4c5ecd99`) and main personal-file reading entry (`804f1a08`); Desktop22 navigation tests,115 source cases plus adapter checks, Android APK/release-manifest and Wasm builds pass. Actual Android picker/Back and actual Wasm MD/HTML/TXT import checked; browser accessibility failure and remaining reader/chrome/library contracts are explicit Requests.
 - 2026-09-30 19:52 codex-native: official-source parser/rich metadata and shared reader adapter (`39732563`), 115 cases (75 released public chunks + 40 labelled boundaries), exact extra cells/Unicode/list preservation; scoped tests, TypeScript/source checks and Desktop/Wasm/Android/iOS compilation pass. Stable search list state committed in `71142a98`; actual Wasm AX failure remains.
