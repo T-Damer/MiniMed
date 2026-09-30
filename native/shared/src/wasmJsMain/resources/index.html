@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>MiniMed — native visual preview</title>
+<link rel="icon" href="data:,">
 <style>
-.native-preview { margin:0; height:100vh; background:#fbf7ea; }
-.native-preview__toolbar { box-sizing:border-box; height:44px; display:flex; align-items:center; gap:8px; padding:6px 10px; font:12px Arial,sans-serif; color:#292720; }
-.native-preview__viewport { height:calc(100vh - 44px); }
+.native-preview { margin:0; height:100dvh; overflow:hidden; display:flex; flex-direction:column; background:#fbf7ea; }
+.native-preview__toolbar { box-sizing:border-box; flex:none; height:44px; display:flex; align-items:center; gap:8px; padding:6px 10px; font:12px Arial,sans-serif; color:#292720; }
+.native-preview__viewport { flex:1; min-height:0; min-width:0; overflow:hidden; }
 </style>
 </head>
 <body class="native-preview">

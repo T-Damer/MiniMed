@@ -16,6 +16,8 @@ import dev.localmed.nativespike.shared.user.*
 import kotlinx.browser.window
 import org.w3c.dom.url.URLSearchParams
 import kotlinx.coroutines.launch
+import dev.localmed.nativespike.shared.designsystem.NativeQueryProgress
+import dev.localmed.nativespike.shared.designsystem.NativeActionButton
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import minimed_native_spike.shared.generated.resources.Res
@@ -28,6 +30,7 @@ fun NativeVisualPreview() {
         val parts = it.split('=', limit = 2); if (parts.size == 2) parts[0] to parts[1] else null
     }.toMap() }
     var scene by remember { mutableStateOf(parameters["scene"] ?: "search") }
+    var fixtureReady by remember { mutableStateOf(scene != "startup") }
     val session = remember { NativeCoreSession(PreviewContentIO(), { error("Preview has no SQL catalog") }, scope, ::bundledNativeTools) }
     val user by session.userState.snapshot.collectAsState()
     val panel by session.panel.collectAsState()
@@ -71,14 +74,21 @@ fun NativeVisualPreview() {
                             val position = readerPosition ?: NativeReaderRoute.Document(document.target)
                             ReaderScreen(document, position, onSavePosition = { readerPosition = it; true }, onBack = { scene = "search" },
                                 onSaveItem = { scope.launch { session.openCollections(NativeItemRef(NativeItemKind.Document, document.target.documentId, title = document.title, reader = readerPosition ?: position)) } })
-                        } else SearchScreen(actions, searchState,
+                        } else {
+                        SearchScreen(actions.takeIf { fixtureReady }, searchState,
+                            coreProgress = if (fixtureReady) null else NativeQueryProgress("Открываем базу источников", "Публичный fixture; база SQL не открывается"),
                             onOpenDocument = { _, _, anchor, _ -> readerPosition = NativeReaderRoute.Document(document.target.copy(anchor = anchor)); scene = "reader" },
                             onOpenSources = { scene = "reader" }, onOpenIdentity = { scene = "reader" },
                             onOpenHistory = { scope.launch { session.openPanel(NativeUserPanel.History) } },
                             toolCore = tools, onOpenTools = { scope.launch { session.openTools() } },
+                            onOpenToolSection = { kind -> scope.launch { session.openTools(kind) }; Unit },
                             onOpenTool = { record -> scope.launch { session.openTool(record.id) } },
                             onSaveTool = { item -> scope.launch { session.openCollections(item) } },
                             onCompletedSearch = { query, outcome -> scope.launch { session.recordSearch(query, outcome.groups.size, outcome.mode, outcome.selection) } })
+                        if (!fixtureReady) Box(Modifier.align(Alignment.BottomCenter).padding(bottom = LocalNativeNavigationPadding.current)) {
+                            NativeActionButton("Fixture готов: выполнить запрос", { fixtureReady = true })
+                        }
+                        }
                         if (toolRoute?.route != null) NativeToolsPane(session)
                         when (panel) {
                             NativeUserPanel.Settings -> NativeSettingsScreen(session, user)
