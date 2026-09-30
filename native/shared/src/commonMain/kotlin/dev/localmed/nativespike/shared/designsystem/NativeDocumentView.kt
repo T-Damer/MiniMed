@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
@@ -70,21 +69,15 @@ data class NativeDocumentActions(
 )
 
 /**
- * The document's blocks as lazy list items, keyed by position, so a screen can put them after its
- * own header in one list and scroll to an outline anchor by index. Level-2 headings are sticky
- * section titles, as in the web reader.
+ * The document's blocks as lazy list items, one per block and keyed by position, so a screen can
+ * put its own items first and scroll to a block by index ([listIndexOf]). Section titles are
+ * ordinary items; [NativeDocumentReaderOverlays] pins the current one under the reader bar.
  */
 fun LazyListScope.nativeDocumentItems(document: NativeDocument, actions: NativeDocumentActions) {
     document.blocks.forEachIndexed { index, block ->
         val spacing = spacingBefore(block, document.blocks.getOrNull(index - 1), actions.textScale)
-        if (block is NativeBlock.Heading && block.level == 2) {
-            // The space above a sticky title scrolls away; only the title itself sticks.
-            item(key = "space-$index", contentType = "space") { Spacer(Modifier.height(spacing)) }
-            stickyHeader(key = "block-$index", contentType = "section-title") { NativeDocumentBlock(block, actions, index) }
-        } else {
-            item(key = "block-$index", contentType = block::class.simpleName) {
-                NativeDocumentBlock(block, actions, index, Modifier.padding(top = spacing))
-            }
+        item(key = "block-$index", contentType = block::class.simpleName) {
+            NativeDocumentBlock(block, actions, index, Modifier.padding(top = spacing))
         }
     }
 }
@@ -93,23 +86,12 @@ fun LazyListScope.nativeDocumentItems(document: NativeDocument, actions: NativeD
 fun NativeDocument.blockIndexOf(anchor: String): Int =
     blocks.indexOfFirst { it is NativeBlock.Heading && it.anchor == anchor }
 
-/**
- * The lazy list index of block [blockIndex] as [nativeDocumentItems] lays it out (each section
- * title has a spacer item before it), plus [itemsBefore] items the screen put ahead of the blocks.
- */
-fun NativeDocument.listIndexOf(blockIndex: Int, itemsBefore: Int = 0): Int =
-    itemsBefore + blockIndex + blocks.take(blockIndex + 1).count { it is NativeBlock.Heading && it.level == 2 }
+/** The lazy list index of block [blockIndex] when [itemsBefore] screen items precede the blocks. */
+fun NativeDocument.listIndexOf(blockIndex: Int, itemsBefore: Int = 0): Int = itemsBefore + blockIndex.coerceIn(0, blocks.lastIndex.coerceAtLeast(0))
 
-/** The block shown by lazy list item [listIndex] of [nativeDocumentItems] (a spacer maps to its title). */
-fun NativeDocument.blockIndexAt(listIndex: Int, itemsBefore: Int = 0): Int {
-    var item = itemsBefore
-    blocks.forEachIndexed { index, block ->
-        if (block is NativeBlock.Heading && block.level == 2) item++
-        if (item >= listIndex) return index
-        item++
-    }
-    return blocks.lastIndex
-}
+/** The block shown by lazy list item [listIndex], or -1 for the screen's own leading items. */
+fun NativeDocument.blockIndexAt(listIndex: Int, itemsBefore: Int = 0): Int =
+    if (listIndex < itemsBefore) -1 else (listIndex - itemsBefore).coerceAtMost(blocks.lastIndex)
 
 private fun spacingBefore(block: NativeBlock, previous: NativeBlock?, scale: Int) = when {
     previous == null -> 0.dp

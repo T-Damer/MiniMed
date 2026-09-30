@@ -70,7 +70,8 @@ document links; images with captions; text scale 90–140 %; two-page spreads fo
   scripts, styles, forms, frames and media are dropped, nothing is loaded.
 - `reader/NativeFilePicker.kt` (`expect`): `rememberNativeFilePicker` — Android Storage Access
   Framework, desktop AWT dialog, browser `<input type=file>`; iOS not yet (`nativeFilePickerAvailable`
-  is false). Files over 256 MB are refused before reading. `readDocument(context, uri)` (Android)
+  is false). Files over 256 MB are refused: by the reported size and, on Android, while reading the
+  stream. `readDocument(context, uri)` (Android)
   reads a URI handed over by «open with».
 - `NativePdfPages` (`expect`): Android `PdfRenderer` in a private cache copy deleted on close, pages
   rendered lazily at twice the view width on one thread, pinch zoom to 4× with panning, page
@@ -81,6 +82,30 @@ document links; images with captions; text scale 90–140 %; two-page spreads fo
 - Android debug build: launcher entry «Reader lab» (`androidApp/src/debug`) — the reader with «open
   file», and the «open with» target for PDF, Markdown, HTML and text. Checked on the emulator with a
   PDF, a Markdown file and a Windows-1251 HTML file.
+
+## Reader chrome contract and official sources
+
+- `NativeDocumentReaderState` (`rememberNativeDocumentReaderState(document, itemsBefore, list,
+  chrome)`) holds position, chrome visibility, find, outline and text size. Pass the shell's chrome
+  (`rememberNativeReaderChrome`, a `NativeReaderChromeState`) so bottom navigation hides and returns
+  with the reader bar.
+- Parts for screens with their own scaffold: `NativeDocumentReaderBar` (transparent over a blur
+  backdrop), `NativeDocumentReaderList` (text scrolls under the bar and status bar),
+  `NativeDocumentReaderOverlays` (pinned section title at the bar's bottom edge, reading menu,
+  scroll-top, outline). `NativeDocumentReader` and `NativeFileReader` assemble them with an opaque
+  paper bar and take `windowInsets` instead of padding the whole reader.
+- The current level-2 section title is drawn over the list (Compose sticky headers ignore the list's
+  top padding): it appears once the real title has passed the line, the next title pushes it up,
+  and it is hidden from accessibility as a visual copy. Jumps inside a section leave its height
+  clear.
+- External links: `nativeOpenExternalLink()` opens `http`, `https` and `mailto` in the system app;
+  other schemes do nothing; `#anchor` links jump inside the document.
+- Official sources (`ui/ReaderScreen.kt`): `nativeSourceReaderDocument` turns sections and chunks
+  into blocks through `nativeSourceReaderBlocks` (codex-native's Web source-text port), keeping
+  per block the exact original chunk, so saved positions stay chunk ids; an excerpt that opens its
+  section starts at the section title. A saved position inside a multi-block chunk restores to the
+  chunk's start. Checked on the Android emulator: search result → reader, scroll hide/show with
+  bottom navigation, outline jump, pinned titles, restore after restart.
 
 Not yet: find inside PDF (Android 15 page text), EPUB, iOS picker and PDFKit, images next to a
 Markdown/HTML file, find highlights inside lists and quotes, reading position restore for files.

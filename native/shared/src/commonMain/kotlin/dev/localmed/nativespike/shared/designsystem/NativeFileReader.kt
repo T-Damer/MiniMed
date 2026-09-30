@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,7 +44,8 @@ fun NativeFileReader(
     onBack: () -> Unit,
     glyphs: NativeReaderGlyphs,
     modifier: Modifier = Modifier,
-    onExternalLink: (String) -> Unit = {},
+    windowInsets: WindowInsets = WindowInsets(0),
+    onExternalLink: (String) -> Unit = nativeOpenExternalLink(),
     tools: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
 ) {
     when (content) {
@@ -53,6 +55,7 @@ fun NativeFileReader(
             onBack,
             glyphs,
             modifier,
+            windowInsets = windowInsets,
             onExternalLink = onExternalLink,
             image = { source, alt, frame -> NativeDataImage(source, alt, frame) },
             tools = tools,

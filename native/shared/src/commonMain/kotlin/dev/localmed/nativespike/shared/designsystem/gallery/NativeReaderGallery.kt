@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.designsystem.NativeDocumentReader
 import dev.localmed.nativespike.shared.designsystem.NativeFileReader
 import dev.localmed.nativespike.shared.designsystem.NativeReaderTool
+import dev.localmed.nativespike.shared.designsystem.rememberNativeDocumentReaderState
 import dev.localmed.nativespike.shared.designsystem.NativeReaderGlyphs
 import dev.localmed.nativespike.shared.reader.NativeFileImport
 import dev.localmed.nativespike.shared.reader.NativeFilePick
@@ -49,7 +50,14 @@ fun NativeReaderGallery(markdown: String = SAMPLE_MARKDOWN, initialFind: String 
     if (file != null) {
         NativeFileReader(file, onBack = { opened = null }, glyphs = glyphs, tools = openTool)
     } else {
-        NativeDocumentReader("Пример документа Markdown", document, onBack = {}, glyphs = glyphs, initialFind = initialFind, tools = openTool)
+        NativeDocumentReader(
+            "Пример документа Markdown",
+            document,
+            onBack = {},
+            glyphs = glyphs,
+            state = rememberNativeDocumentReaderState(document, initialFind = initialFind),
+            tools = openTool,
+        )
     }
 }
 

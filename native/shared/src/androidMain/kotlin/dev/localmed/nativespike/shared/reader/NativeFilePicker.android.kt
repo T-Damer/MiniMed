@@ -89,8 +89,24 @@ fun readDocument(context: Context, uri: Uri): NativeOpenedFile {
         }
     }
     if (size > NATIVE_MAX_OPENED_FILE_BYTES) throw IllegalStateException("Файл больше 256 МБ.")
-    val bytes = resolver.openInputStream(uri)?.use { it.readBytes() } ?: throw IllegalStateException("Файл недоступен.")
+    // The provider's SIZE may be missing or wrong: the stream itself is bounded too.
+    val bytes = resolver.openInputStream(uri)?.use { it.readBounded(NATIVE_MAX_OPENED_FILE_BYTES) } ?: throw IllegalStateException("Файл недоступен.")
     return NativeOpenedFile(name, resolver.getType(uri), bytes)
+}
+
+/** Reads at most [limit] bytes; a longer stream is refused before it is held in memory. */
+internal fun java.io.InputStream.readBounded(limit: Long): ByteArray {
+    val out = java.io.ByteArrayOutputStream()
+    val buffer = ByteArray(64 * 1024)
+    var total = 0L
+    while (true) {
+        val read = read(buffer)
+        if (read < 0) break
+        total += read
+        if (total > limit) throw IllegalStateException("Файл больше 256 МБ.")
+        out.write(buffer, 0, read)
+    }
+    return out.toByteArray()
 }
 
 actual val nativePdfSupported: Boolean = true

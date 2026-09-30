@@ -155,4 +155,15 @@ class NativeMarkdownImporterTest {
             blocks[1],
         )
     }
+
+    @Test
+    fun tableCellsBeyondTheHeaderAreKept() {
+        val table = assertIs<NativeBlock.Table>(
+            NativeMarkdownImporter.import("| A | B |\n| --- | --- |\n| 1 | 2 | лишняя *ячейка* | `a|b` |\n| 3 |").blocks.single(),
+        )
+        assertEquals(listOf("1", "2", "лишняя ячейка", "a|b"), table.rows[1].cells.map { it.inlines.plainText() })
+        assertEquals(listOf(Text("лишняя "), NativeInline.Emphasis(listOf(Text("ячейка")))), table.rows[1].cells[2].inlines)
+        assertEquals(listOf("3"), table.rows[2].cells.map { it.inlines.plainText() })
+        assertEquals(listOf("a", "b \\| c", "`x|y`"), NativeMarkdownImporter.splitRow("| a | b \\| c | `x|y` |"))
+    }
 }

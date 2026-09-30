@@ -115,11 +115,15 @@ object NativeMarkdownImporter {
             }
             val rows = node.children.filter { it.type == GFMElementTypes.HEADER || it.type == GFMElementTypes.ROW }.map { row ->
                 val header = row.type == GFMElementTypes.HEADER
-                NativeTableRow(
-                    row.children.filter { it.type == GFMTokenTypes.CELL }.mapIndexed { column, cell ->
-                        NativeTableCell(inlines(cell.children).trimmed(), header, aligns.getOrNull(column))
-                    },
-                )
+                val parsed = row.children.filter { it.type == GFMTokenTypes.CELL }.mapIndexed { column, cell ->
+                    NativeTableCell(inlines(cell.children).trimmed(), header, aligns.getOrNull(column))
+                }
+                // GFM drops cells beyond the header's columns; the source text keeps them.
+                val written = splitRow(text(row))
+                val extra = written.drop(parsed.size).map { cell ->
+                    NativeTableCell((import(cell).blocks.firstOrNull() as? NativeBlock.Paragraph)?.inlines.orEmpty(), header)
+                }
+                NativeTableRow(parsed + extra)
             }
             return NativeBlock.Table(rows)
         }
@@ -185,6 +189,38 @@ object NativeMarkdownImporter {
         }
 
         private fun text(node: ASTNode): String = source.substring(node.startOffset, node.endOffset)
+    }
+
+    /** A table row's cells as written: pipes split cells except escaped ones and those in code. */
+    internal fun splitRow(row: String): List<String> {
+        val cells = mutableListOf<String>()
+        val cell = StringBuilder()
+        var code = false
+        var index = 0
+        val line = row.trim()
+        while (index < line.length) {
+            val char = line[index]
+            when {
+                char == '\\' && index + 1 < line.length -> {
+                    cell.append(char).append(line[index + 1])
+                    index++
+                }
+                char == '`' -> {
+                    code = !code
+                    cell.append(char)
+                }
+                char == '|' && !code -> {
+                    cells += cell.toString()
+                    cell.clear()
+                }
+                else -> cell.append(char)
+            }
+            index++
+        }
+        cells += cell.toString()
+        if (line.startsWith('|')) cells.removeAt(0)
+        if (line.endsWith('|') && !line.endsWith("\\|") && cells.isNotEmpty()) cells.removeAt(cells.lastIndex)
+        return cells.map { it.trim() }
     }
 
     private fun linkDefinitions(root: ASTNode, source: String): Map<String, String> {
