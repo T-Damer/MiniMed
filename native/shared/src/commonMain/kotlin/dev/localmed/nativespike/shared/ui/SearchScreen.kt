@@ -37,7 +37,10 @@ import dev.localmed.nativespike.shared.model.SearchResultGroup
 import dev.localmed.nativespike.shared.search.LookupEngine
 import dev.localmed.nativespike.shared.text.formatFixed1
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 
 private const val DEBOUNCE_MS = 120L
@@ -74,6 +77,7 @@ fun SearchScreen(
     }
 
     LaunchedEffect(query) {
+        val requestQuery = query
         if (query.isBlank()) {
             outcome = null
             isSearching = false
@@ -81,12 +85,13 @@ fun SearchScreen(
             return@LaunchedEffect
         }
         isSearching = true
+        error = null
         val benchStart = if (query == externalQuery) kotlin.time.TimeSource.Monotonic.markNow() else null
         val stageTimings: MutableMap<String, Double>? = if (benchStart != null) LinkedHashMap() else null
         delay(DEBOUNCE_MS)
         try {
             val result = withContext(Dispatchers.Default) {
-                engine.search(query) { stage, ms ->
+                engine.search(requestQuery) { stage, ms ->
                     stageTimings?.let { it[stage] = (it[stage] ?: 0.0) + ms }
                 }
             }
@@ -99,14 +104,20 @@ fun SearchScreen(
                 androidx.compose.runtime.withFrameNanos { }
                 androidx.compose.runtime.withFrameNanos { }
                 onOutcome?.invoke(
-                    query, result, benchStart.elapsedNow().inWholeMicroseconds / 1000.0,
+                    requestQuery, result, benchStart.elapsedNow().inWholeMicroseconds / 1000.0,
                     stageTimings.orEmpty(),
                 )
             }
+        } catch (cause: CancellationException) {
+            throw cause
         } catch (cause: Exception) {
-            error = cause.message ?: "Ошибка поиска"
+            if (currentCoroutineContext().isActive && query == requestQuery) {
+                error = cause.message ?: "Ошибка поиска"
+            }
         } finally {
-            isSearching = false
+            if (currentCoroutineContext().isActive && query == requestQuery) {
+                isSearching = false
+            }
         }
     }
 
@@ -123,7 +134,7 @@ fun SearchScreen(
                     Text(
                         "Kotlin Multiplatform + Compose · core.db напрямую",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onBackground,
                     )
                 }
             }
@@ -175,7 +186,7 @@ fun SearchScreen(
                         Text(
                             "Клинический разбор",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -186,14 +197,14 @@ fun SearchScreen(
                 Text(
                     "SQL: ${formatFixed1(timing.sqlOnlyMs)} мс · Итого: ${formatFixed1(timing.totalMs)} мс",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(horizontal = HOME_GAP),
                 )
             }
             if (error != null) {
                 Text(
                     "Ошибка: $error",
-                    color = MaterialTheme.colorScheme.error,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(HOME_GAP),
                 )
             }
@@ -246,13 +257,13 @@ private fun DocumentResultCard(
                     Text(
                         item.sectionPath.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 0.5.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        highlightedSnippet(item.snippet),
+                        highlightedSnippet(item.snippet, item.highlightedRanges),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(top = 4.dp),
@@ -282,8 +293,8 @@ private fun CategoryStamp(label: String) {
 }
 
 /** Thin Compose wrapper around the pure, unit-tested `snippetSegments` (text/SnippetSegments.kt). */
-private fun highlightedSnippet(raw: String) = buildAnnotatedString {
-    for (segment in dev.localmed.nativespike.shared.text.snippetSegments(raw)) {
+private fun highlightedSnippet(raw: String, ranges: List<dev.localmed.nativespike.shared.text.TextRange>) = buildAnnotatedString {
+    for (segment in dev.localmed.nativespike.shared.text.snippetSegments(raw, ranges)) {
         if (segment.highlighted) {
             withStyle(style = androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Bold)) {
                 append(segment.text)

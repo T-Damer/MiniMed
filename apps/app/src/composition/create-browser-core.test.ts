@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import bundledCoreReport from '@localmed/app/content/core-report';
 import type { MedicalStore } from '@localmed/storage';
 import { CapacitorMedicalStore, LocalMedDatabase } from '@localmed/storage-capacitor';
 import { SQLITE_WASM_DESERIALIZE_MAX_BYTES, SqliteMedicalStore } from '@localmed/storage-sqlite';
@@ -14,7 +15,6 @@ import {
 } from '@/composition/create-browser-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import { downloadFileWithRetry, hasRetainedFileDownload } from '@/features/network/download-retry';
-import bundledCoreReport from '../../public/content/core-report.json';
 
 vi.mock('@localmed/storage-capacitor', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@localmed/storage-capacitor')>()),
@@ -42,10 +42,11 @@ afterEach(() => {
 });
 
 describe('Android core first launch', () => {
-  it('keeps the Android download paired with the source encoding of the repacked browser corpus', () => {
-    expect(ANDROID_CORE_DOWNLOAD.checksum).toBe(
-      bundledCoreReport.sqlitePageLayoutMigration.inputChecksum,
-    );
+  it('keeps the Android download URL paired with its exact qualified encoding', () => {
+    expect(ANDROID_CORE_DOWNLOAD).toEqual({
+      url: bundledCoreReport.distributions.android.url,
+      checksum: bundledCoreReport.distributions.android.checksum,
+    });
   });
   it('waits for the download action, forwards progress, and reuses an installed core offline', async () => {
     vi.spyOn(Capacitor, 'getPlatform').mockReturnValue('android');

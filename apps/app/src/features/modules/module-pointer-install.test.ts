@@ -4,14 +4,17 @@ import type {
   ContentModuleDownloadTask,
   InstalledContentModule,
 } from '@localmed/contracts';
+import { ContentModuleCatalogEntrySchema } from '@localmed/contracts';
 import { describe, expect, it, vi } from 'vitest';
-
 import {
+  assertIdentityDocumentTarget,
+  catalogContainsIdentityDocumentTarget,
   installModulePointer,
   type ModulePointerDescriptor,
   type ModulePointerRuntime,
   modulePointerTargetAnchor,
   parseModulePointerMetadata,
+  resolveCatalogDocumentPointer,
   resolveModulePointer,
   selectModuleForPointer,
 } from '@/features/modules/module-pointer-install';
@@ -118,6 +121,128 @@ function task(state: ContentModuleDownloadTask['state']): ContentModuleDownloadT
 }
 
 describe('module-pointer-install', () => {
+  it('resolves an absent document only through exact verified catalog membership', () => {
+    expect(
+      resolveCatalogDocumentPointer(
+        'target.document',
+        catalog([moduleEntry('primary', ['target.document'])]),
+        [],
+      )?.state,
+    ).toBe('available');
+    expect(
+      resolveCatalogDocumentPointer(
+        'unknown',
+        catalog([moduleEntry('primary', ['target.document'])]),
+        [],
+      ),
+    ).toBeNull();
+    expect(
+      resolveCatalogDocumentPointer(
+        'target.document',
+        catalog([{ ...moduleEntry('primary', ['target.document']), artifacts: [] }]),
+        [],
+      )?.state,
+    ).toBe('unavailable');
+    expect(
+      resolveCatalogDocumentPointer(
+        'target.document',
+        catalog([moduleEntry('primary', ['target.document'], 'planned')]),
+        [],
+      )?.state,
+    ).toBe('unavailable');
+  });
+
+  it('validates the exact source identity release, version, checksum and index', () => {
+    const target = {
+      type: 'document' as const,
+      moduleId: 'primary',
+      moduleVersion: '1.0.0',
+      documentId: 'target.document',
+      documentVersionId: 'target.document@1',
+      sourceChecksum: CHECKSUM,
+      anchor: 'source-anchor',
+    };
+    const modules = catalog([moduleEntry('primary', ['target.document'])]);
+    expect(catalogContainsIdentityDocumentTarget(target, modules)).toBe(true);
+    const splitMembership = moduleEntry('primary', ['target.document']);
+    const [indexArtifact] = splitMembership.artifacts;
+    const [membership] = splitMembership.documents;
+    if (!indexArtifact || !membership) throw new Error('Expected fixture membership and artifact');
+    const sourceAsset = {
+      ...indexArtifact,
+      id: 'source',
+      kind: 'source-assets' as const,
+      required: false,
+    };
+    const misleading = {
+      ...splitMembership,
+      artifacts: [...splitMembership.artifacts, sourceAsset],
+      documents: [
+        { ...membership, indexArtifactId: 'source' },
+        {
+          ...membership,
+          documentVersionId: 'other-edition',
+          sourceChecksum: `sha256:${'b'.repeat(64)}`,
+        },
+      ],
+    };
+    expect(
+      catalogContainsIdentityDocumentTarget(
+        target,
+        catalog([ContentModuleCatalogEntrySchema.parse(misleading)]),
+      ),
+    ).toBe(false);
+    const otherEdition = moduleEntry('other', ['target.document']);
+    otherEdition.documents = otherEdition.documents.map((document) => ({
+      ...document,
+      documentVersionId: 'other-version',
+      sourceChecksum: `sha256:${'b'.repeat(64)}`,
+    }));
+    const overlapping = catalog([otherEdition, ...modules.modules]);
+    expect(resolveCatalogDocumentPointer('target.document', overlapping, [])?.module?.id).toBe(
+      'other',
+    );
+    expect(
+      resolveCatalogDocumentPointer('target.document', overlapping, [], target)?.module?.id,
+    ).toBe('primary');
+    expect(
+      resolveCatalogDocumentPointer('target.document', catalog([otherEdition]), [], target),
+    ).toBeNull();
+    const actual = {
+      id: target.documentId,
+      versionId: target.documentVersionId,
+      sourceChecksum: target.sourceChecksum,
+    };
+    expect(() => assertIdentityDocumentTarget(actual, target)).not.toThrow();
+    expect(() => assertIdentityDocumentTarget({ ...actual, versionId: 'other' }, target)).toThrow(
+      'другой редакции',
+    );
+    expect(() =>
+      assertIdentityDocumentTarget(
+        { ...actual, sourceChecksum: `sha256:${'b'.repeat(64)}` },
+        target,
+      ),
+    ).toThrow('другой редакции');
+    expect(
+      catalogContainsIdentityDocumentTarget({ ...target, moduleVersion: '2.0.0' }, modules),
+    ).toBe(false);
+    expect(
+      catalogContainsIdentityDocumentTarget({ ...target, documentVersionId: 'other' }, modules),
+    ).toBe(false);
+    expect(
+      catalogContainsIdentityDocumentTarget(
+        { ...target, sourceChecksum: `sha256:${'b'.repeat(64)}` },
+        modules,
+      ),
+    ).toBe(false);
+    expect(
+      catalogContainsIdentityDocumentTarget(
+        target,
+        catalog([{ ...moduleEntry('primary', ['target.document']), artifacts: [] }]),
+      ),
+    ).toBe(false);
+  });
+
   it('parses and normalizes a core module pointer', () => {
     expect(
       parseModulePointerMetadata({

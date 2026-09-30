@@ -25,6 +25,13 @@ describe('resolveContentModuleArtifactUrl', () => {
         'minimed.reference.krasotaimedicina.2026.9.28.db.gz',
       ],
       ['reference-rls-mkb-2026.9.28', 'minimed.reference.rls-mkb.2026.9.28.db.gz'],
+      ['definition-reference-2026.9.30', 'minimed.definition.reference.2026.9.30.db.zst'],
+      [
+        'reference-krasotaimedicina-2026.9.28',
+        'minimed.reference.krasotaimedicina.2026.9.28.db.zst',
+      ],
+      ['reference-rls-mkb-2026.9.30', 'minimed.reference.rls-mkb.2026.9.30.db.zst'],
+      ['reference-rls-mkb-2026.9.28', 'minimed.reference.rls-packaging.2026.9.28.db.zst'],
     ] as const) {
       const release = `https://github.com/T-Damer/MiniMed/releases/download/${tag}/${file}`;
       expect(resolveContentModuleArtifactUrl(release)).toBe(

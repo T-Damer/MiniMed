@@ -9,7 +9,7 @@
     "expectedRegistrationNumber": "ЛП-№(003017)-(РГ-RU)",
     "expectedContentMode": "source_linked_summary",
     "expectedAuthorityTier": "official-registry",
-    "expectedSectionTypes": ["other"],
+    "expectedSectionTypes": ["registration"],
     "expectedAnchorPrefixes": [
       "drug.rf.amoxicillin-clavulanate.suspension-400-57@registry-2025-04-14/регистрационная-запись"
     ],
@@ -25,7 +25,7 @@
     "expectedRegistrationNumber": "ЛП-№(001367)-(РГ-RU)",
     "expectedContentMode": "source_linked_summary",
     "expectedAuthorityTier": "official-registry",
-    "expectedSectionTypes": ["other"],
+    "expectedSectionTypes": ["registration"],
     "expectedAnchorPrefixes": [
       "drug.rf.azithromycin.suspension-200mg-5ml@registry-2026-07-03/регистрационная-запись"
     ],
@@ -41,7 +41,7 @@
     "expectedRegistrationNumber": "ЛП-№(005496)-(РГ-RU)",
     "expectedContentMode": "source_linked_summary",
     "expectedAuthorityTier": "official-registry",
-    "expectedSectionTypes": ["other"],
+    "expectedSectionTypes": ["registration"],
     "expectedAnchorPrefixes": [
       "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07/регистрационная-запись"
     ],
@@ -57,7 +57,7 @@
     "expectedRegistrationNumber": "ЛП-№(005496)-(РГ-RU)",
     "expectedContentMode": "source_linked_summary",
     "expectedAuthorityTier": "official-registry",
-    "expectedSectionTypes": ["other"],
+    "expectedSectionTypes": ["registration"],
     "expectedAnchorPrefixes": [
       "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07/регистрационная-запись"
     ],
@@ -74,7 +74,7 @@
     "expectedRegistrationNumber": "ЛП-№(013359)-(РГ-RU)",
     "expectedContentMode": "source_linked_summary",
     "expectedAuthorityTier": "official-registry",
-    "expectedSectionTypes": ["other"],
+    "expectedSectionTypes": ["registration"],
     "expectedAnchorPrefixes": [
       "drug.rf.amoxicillin.tablets-500@registry-2026-03-19/регистрационная-запись"
     ],
@@ -90,7 +90,7 @@
     "expectedRegistrationNumber": "ЛП-№(006579)-(РГ-RU)",
     "expectedContentMode": "source_linked_summary",
     "expectedAuthorityTier": "official-registry",
-    "expectedSectionTypes": ["other"],
+    "expectedSectionTypes": ["registration"],
     "expectedAnchorPrefixes": [
       "drug.rf.ibuprofen.pediatric-suspension@registry-2024-11-11/регистрационная-запись"
     ],
@@ -138,7 +138,7 @@
     "expectedRegistrationNumber": "ЛП-№(002417)-(РГ-RU)",
     "expectedContentMode": "source_linked_summary",
     "expectedAuthorityTier": "official-registry",
-    "expectedSectionTypes": ["other"],
+    "expectedSectionTypes": ["registration"],
     "expectedAnchorPrefixes": [
       "drug.rf.oseltamivir.capsules-30mg@registry-2026-07-08/регистрационная-запись"
     ],

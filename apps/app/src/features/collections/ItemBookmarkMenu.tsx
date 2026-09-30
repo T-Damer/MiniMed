@@ -1,7 +1,7 @@
-import { Popover } from '@kobalte/core/popover';
 import { createEffect, createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { SheetPopover } from '@/components/SheetPopover';
 import { ItemCollectionCreateForm } from '@/features/search/ToolPinControls';
 import {
   FAVORITES_TARGET,
@@ -59,73 +59,72 @@ export function ItemBookmarkMenu(props: {
   };
   const now = () => new Date().toISOString();
   return (
-    <Popover open={open()} onOpenChange={setOpen} placement="bottom-end" gutter={6} fitViewport>
-      <Popover.Trigger
-        class={`item-bookmark ${props.class ?? ''}`.trim()}
-        classList={{ 'item-bookmark--saved': saved() }}
-        aria-label={saved() ? `Сохранено: «${title()}»` : `Сохранить «${title()}»`}
-        title={saved() ? 'Сохранено — изменить' : 'Сохранить'}
-      >
+    <SheetPopover
+      open={open()}
+      onOpenChange={setOpen}
+      title={`Сохранить: ${title()}`}
+      placement="bottom-end"
+      triggerClass={`item-bookmark ${props.class ?? ''}`.trim()}
+      triggerClassList={{ 'item-bookmark--saved': saved() }}
+      triggerLabel={saved() ? `Сохранено: «${title()}»` : `Сохранить «${title()}»`}
+      triggerTitle={saved() ? 'Сохранено — изменить' : 'Сохранить'}
+      trigger={
         <AppGlyph name={saved() ? 'bookmark-fill' : 'bookmark'} class="item-bookmark__icon" />
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content class="tool-collection-menu" aria-label={`Сохранить: ${title()}`}>
-          <p class="tool-collection-menu__heading">Сохранить в</p>
-          <ul class="tool-collection-menu__list">
+      }
+      contentClass="tool-collection-menu"
+    >
+      <p class="tool-collection-menu__heading">Сохранить в</p>
+      <ul class="tool-collection-menu__list">
+        <li class="tool-collection-menu__item">
+          <label class="tool-collection-menu__option">
+            <input
+              class="tool-collection-menu__checkbox"
+              type="checkbox"
+              checked={favorite()}
+              onChange={(event) => {
+                const include = event.currentTarget.checked;
+                if (include !== favorite())
+                  updateItemCollections((state) => toggleFavoriteItem(state, props.item, now()));
+                if (include) remember(FAVORITES_TARGET);
+              }}
+            />
+            <span class="tool-collection-menu__name">Избранные</span>
+            <Show when={lastTarget() === FAVORITES_TARGET}>
+              <span class="item-bookmark__last">в прошлый раз</span>
+            </Show>
+          </label>
+        </li>
+        <For each={collections()}>
+          {(collection) => (
             <li class="tool-collection-menu__item">
               <label class="tool-collection-menu__option">
                 <input
                   class="tool-collection-menu__checkbox"
                   type="checkbox"
-                  checked={favorite()}
+                  checked={memberOf().has(collection.id)}
                   onChange={(event) => {
-                    const include = event.currentTarget.checked;
-                    if (include !== favorite())
-                      updateItemCollections((state) =>
-                        toggleFavoriteItem(state, props.item, now()),
-                      );
-                    if (include) remember(FAVORITES_TARGET);
+                    const included = event.currentTarget.checked;
+                    updateItemCollections((state) =>
+                      setItemInCollection(state, collection.id, props.item, included, now()),
+                    );
+                    if (included) remember(collection.id);
                   }}
                 />
-                <span class="tool-collection-menu__name">Избранные</span>
-                <Show when={lastTarget() === FAVORITES_TARGET}>
+                <span class="tool-collection-menu__name">{collection.name}</span>
+                <Show
+                  when={lastTarget() === collection.id}
+                  fallback={
+                    <span class="tool-collection-menu__count">{collection.items.length}</span>
+                  }
+                >
                   <span class="item-bookmark__last">в прошлый раз</span>
                 </Show>
               </label>
             </li>
-            <For each={collections()}>
-              {(collection) => (
-                <li class="tool-collection-menu__item">
-                  <label class="tool-collection-menu__option">
-                    <input
-                      class="tool-collection-menu__checkbox"
-                      type="checkbox"
-                      checked={memberOf().has(collection.id)}
-                      onChange={(event) => {
-                        const included = event.currentTarget.checked;
-                        updateItemCollections((state) =>
-                          setItemInCollection(state, collection.id, props.item, included, now()),
-                        );
-                        if (included) remember(collection.id);
-                      }}
-                    />
-                    <span class="tool-collection-menu__name">{collection.name}</span>
-                    <Show
-                      when={lastTarget() === collection.id}
-                      fallback={
-                        <span class="tool-collection-menu__count">{collection.items.length}</span>
-                      }
-                    >
-                      <span class="item-bookmark__last">в прошлый раз</span>
-                    </Show>
-                  </label>
-                </li>
-              )}
-            </For>
-          </ul>
-          <ItemCollectionCreateForm item={props.item} onCreated={(id) => remember(id)} />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover>
+          )}
+        </For>
+      </ul>
+      <ItemCollectionCreateForm item={props.item} onCreated={(id) => remember(id)} />
+    </SheetPopover>
   );
 }

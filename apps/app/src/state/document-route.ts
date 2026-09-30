@@ -1,3 +1,4 @@
+import { type CoreIdentityHit, CoreIdentityTargetSchema } from '@localmed/contracts';
 import {
   decodeOverlayToken,
   encodeOverlayToken,
@@ -12,6 +13,35 @@ export interface OfficialDocumentReadRoute {
   readonly kind: 'official';
   readonly documentId: string;
   readonly section?: string;
+  readonly expectedIdentity?: ExactDocumentIdentity;
+}
+
+export type ExactDocumentIdentity = Extract<
+  CoreIdentityHit['target'],
+  { readonly type: 'document' }
+>;
+
+function parseOfficialRoute(value: string): OfficialDocumentReadRoute | null {
+  const [path, search] = value.split('?');
+  const decoded = decodeOverlayToken(path?.split('/')[0] ?? '');
+  if (!decoded) return null;
+  const encodedIdentity = new URLSearchParams(search).get('exact');
+  let expectedIdentity: ExactDocumentIdentity | undefined;
+  if (encodedIdentity !== null) {
+    try {
+      const parsed = CoreIdentityTargetSchema.safeParse(JSON.parse(encodedIdentity));
+      if (
+        !parsed.success ||
+        parsed.data.type !== 'document' ||
+        parsed.data.documentId !== decoded.documentId
+      )
+        return null;
+      expectedIdentity = parsed.data;
+    } catch {
+      return null;
+    }
+  }
+  return { kind: 'official', ...decoded, ...(expectedIdentity ? { expectedIdentity } : {}) };
 }
 
 export interface UserDocumentReadRoute {
@@ -56,12 +86,7 @@ function parseUserDocumentRoute(route: string): UserDocumentReadRoute | null {
 export function parseDocumentReadRoute(hash: string): DocumentReadRoute | null {
   const route = hash.replace(/^#\/?/u, '');
   if (route.startsWith(OFFICIAL_DOCUMENT_ROUTE_PREFIX)) {
-    const token = route.slice(OFFICIAL_DOCUMENT_ROUTE_PREFIX.length).split('/')[0] ?? '';
-    const decoded = decodeOverlayToken(token);
-    if (!decoded) return null;
-    return decoded.section
-      ? { kind: 'official', documentId: decoded.documentId, section: decoded.section }
-      : { kind: 'official', documentId: decoded.documentId };
+    return parseOfficialRoute(route.slice(OFFICIAL_DOCUMENT_ROUTE_PREFIX.length));
   }
   const userRoute = parseUserDocumentRoute(route);
   if (userRoute) return userRoute;
@@ -81,17 +106,21 @@ export function parseDocumentReadRoute(hash: string): DocumentReadRoute | null {
     return { kind: 'user', documentId, pageIndex };
   }
 
-  const token = rest.split('/')[0] ?? '';
-  const decoded = decodeOverlayToken(token);
-  if (!decoded) return null;
-  return decoded.section
-    ? { kind: 'official', documentId: decoded.documentId, section: decoded.section }
-    : { kind: 'official', documentId: decoded.documentId };
+  return parseOfficialRoute(rest);
 }
 
-export function buildOfficialDocumentHash(documentId: string, section?: string): string {
+export function buildOfficialDocumentHash(
+  documentId: string,
+  section?: string,
+  expectedIdentity?: ExactDocumentIdentity,
+): string {
   const token = encodeOverlayToken(section ? { documentId, section } : { documentId });
-  return `#/${OFFICIAL_DOCUMENT_ROUTE_PREFIX}${token}`;
+  if (!expectedIdentity) return `#/${OFFICIAL_DOCUMENT_ROUTE_PREFIX}${token}`;
+  const identity = CoreIdentityTargetSchema.parse(expectedIdentity);
+  if (identity.type !== 'document' || identity.documentId !== documentId)
+    throw new Error('Exact source identity does not match the document route.');
+  const search = new URLSearchParams({ exact: JSON.stringify(identity) });
+  return `#/${OFFICIAL_DOCUMENT_ROUTE_PREFIX}${token}?${search}`;
 }
 
 export function buildUserDocumentHash(documentId: string, pageIndex?: number): string {
@@ -110,9 +139,7 @@ export function migrateLegacyDocumentHash(): boolean {
       ? parsed.pageIndex === undefined
         ? buildUserDocumentHash(parsed.documentId)
         : buildUserDocumentHash(parsed.documentId, parsed.pageIndex)
-      : parsed.section === undefined
-        ? buildOfficialDocumentHash(parsed.documentId)
-        : buildOfficialDocumentHash(parsed.documentId, parsed.section);
+      : buildOfficialDocumentHash(parsed.documentId, parsed.section, parsed.expectedIdentity);
   window.history.replaceState(window.history.state, '', nextHash);
   return true;
 }

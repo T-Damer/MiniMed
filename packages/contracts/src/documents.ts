@@ -8,6 +8,8 @@ export interface MedicalDocumentSummary {
   readonly ageGroups?: readonly string[];
   readonly metadata?: Readonly<Record<string, unknown>>;
   readonly versionId: string;
+  /** Raw source identity supplied by the document version, when the adapter exposes it. */
+  readonly sourceChecksum?: string;
   readonly versionLabel: string;
   readonly effectiveFrom: string | null;
 }

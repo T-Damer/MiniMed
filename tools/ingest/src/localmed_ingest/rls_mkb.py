@@ -850,6 +850,18 @@ def _detail_markdown(
     source_metadata = cast(dict[str, object], metadata["metadata"])
     if classification_path:
         source_metadata["classificationPath"] = [dict(node) for node in classification_path]
+    if compact_medicines:
+        source_metadata["rlsMedicationPackaging"] = [
+            {
+                "medicationEntityId": brand_id,
+                "name": medicine.name,
+                "packagingDocumentId": packaging_document_id(brand_id),
+                "sourceUrl": medicine.url,
+            }
+            for medicine in detail.medicines
+            if medicine.presentations
+            for brand_id in [_medication_id("medication.brand", _search_alias(medicine.name))]
+        ]
     source_metadata.update(extra_metadata or {})
     front_matter = yaml.safe_dump(
         metadata,

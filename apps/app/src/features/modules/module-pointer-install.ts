@@ -2,7 +2,9 @@ import type {
   ContentModuleCatalog,
   ContentModuleCatalogEntry,
   ContentModuleDownloadTask,
+  CoreIdentityHit,
   InstalledContentModule,
+  MedicalDocumentSummary,
 } from '@localmed/contracts';
 
 import { isModuleReleased } from '@/features/modules/local-packaged-modules';
@@ -101,10 +103,14 @@ export function modulePointerTargetAnchor(
 function moduleContainsTarget(
   module: ContentModuleCatalogEntry,
   targetDocumentId: string,
+  expectedIdentity?: Extract<CoreIdentityHit['target'], { readonly type: 'document' }>,
 ): boolean {
   return module.documents.some(
     (document) =>
       document.documentId === targetDocumentId &&
+      (!expectedIdentity ||
+        (document.documentVersionId === expectedIdentity.documentVersionId &&
+          document.sourceChecksum === expectedIdentity.sourceChecksum)) &&
       module.artifacts.some(
         (artifact) =>
           artifact.id === document.indexArtifactId &&
@@ -173,6 +179,69 @@ export function resolveModulePointer(
     return { state: 'installed', pointer, module, message: null };
   }
   return { state: 'available', pointer, module, message: null };
+}
+
+/** Exact source identity must belong to the declared release and its verified index. */
+export function catalogContainsIdentityDocumentTarget(
+  target: Extract<CoreIdentityHit['target'], { readonly type: 'document' }>,
+  catalog: ContentModuleCatalog,
+  installed: readonly InstalledContentModule[] = [],
+): boolean {
+  return catalog.modules.some(
+    (module) =>
+      module.id === target.moduleId &&
+      module.version === target.moduleVersion &&
+      (isModuleReleased(module) || Boolean(installedModuleVersion(module, installed))) &&
+      moduleContainsTarget(module, target.documentId, target),
+  );
+}
+
+export function assertIdentityDocumentTarget(
+  document: Pick<MedicalDocumentSummary, 'id' | 'versionId' | 'sourceChecksum'>,
+  target: Extract<CoreIdentityHit['target'], { readonly type: 'document' }> | undefined,
+): void {
+  if (
+    target &&
+    (document.id !== target.documentId ||
+      document.versionId !== target.documentVersionId ||
+      document.sourceChecksum !== target.sourceChecksum)
+  ) {
+    throw new Error('Установленный документ другой редакции. Обновите набор в базе знаний.');
+  }
+}
+
+/** Direct source links can name a detail document that has no discovery pointer. */
+export function resolveCatalogDocumentPointer(
+  documentId: string,
+  catalog: ContentModuleCatalog,
+  installed: readonly InstalledContentModule[],
+  expectedIdentity?: Extract<CoreIdentityHit['target'], { readonly type: 'document' }>,
+): ModulePointerResolution | null {
+  if (
+    expectedIdentity &&
+    (expectedIdentity.documentId !== documentId ||
+      !catalogContainsIdentityDocumentTarget(expectedIdentity, catalog, installed))
+  )
+    return null;
+  const modules = catalog.modules.filter(
+    (module) =>
+      (!expectedIdentity ||
+        (module.id === expectedIdentity.moduleId &&
+          module.version === expectedIdentity.moduleVersion)) &&
+      module.documents.some((document) => document.documentId === documentId),
+  );
+  const primary = modules[0];
+  if (!primary) return null;
+  return resolveModulePointer(
+    {
+      contentMode: 'module-pointer',
+      targetDocumentId: documentId,
+      primaryModuleId: primary.id,
+      moduleIds: modules.map((module) => module.id),
+    },
+    expectedIdentity ? { ...catalog, modules } : catalog,
+    installed,
+  );
 }
 
 export async function installModulePointer(

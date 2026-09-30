@@ -1,3 +1,4 @@
+import type { CoreIdentityHit } from '@localmed/contracts';
 import type { StorageHealth } from '@localmed/storage';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -113,16 +114,38 @@ describe('WorkerOpfsMedicalStore', () => {
       worker.onmessage?.({ data: { id, result: projection.rows } } as MessageEvent);
       await expect(pending).resolves.toEqual(projection.rows);
     }
+    const identities: CoreIdentityHit[] = ['meaning-one', 'meaning-two'].map((entityId) => ({
+      name: 'НА',
+      title: 'НА',
+      kind: 'abbreviation',
+      coverage: 'source-backed',
+      target: {
+        type: 'definition',
+        moduleId: 'definition-reference',
+        moduleVersion: '2026.9.30',
+        editionId: 'source-edition',
+        entityId,
+      },
+    }));
+    const identityPromise = store.lookupCoreIdentities('НА');
+    expect(postMessage).toHaveBeenCalledWith({
+      id: 6,
+      type: 'call',
+      method: 'lookupCoreIdentities',
+      args: ['НА'],
+    });
+    worker.onmessage?.({ data: { id: 6, result: identities } } as MessageEvent);
+    await expect(identityPromise).resolves.toEqual(identities);
     expect(Worker).toHaveBeenCalledOnce();
 
     const closePromise = store.close();
     expect(postMessage).toHaveBeenCalledWith({
-      id: 6,
+      id: 7,
       type: 'call',
       method: 'close',
       args: [],
     });
-    worker.onmessage?.({ data: { id: 6, result: undefined } } as MessageEvent);
+    worker.onmessage?.({ data: { id: 7, result: undefined } } as MessageEvent);
     await closePromise;
     expect(terminate).toHaveBeenCalledOnce();
   });

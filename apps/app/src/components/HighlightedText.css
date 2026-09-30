@@ -1,0 +1,6 @@
+.highlighted-text__match {
+  color: var(--theme-match-text);
+  background: var(--theme-match-background);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}

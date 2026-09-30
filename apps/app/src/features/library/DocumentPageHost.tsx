@@ -33,10 +33,12 @@ import {
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import {
+  assertIdentityDocumentTarget,
   installModulePointer,
   type ModulePointerResolution,
   modulePointerTargetAnchor,
   parseModulePointerMetadata,
+  resolveCatalogDocumentPointer,
   resolveModulePointer,
 } from '@/features/modules/module-pointer-install';
 import {
@@ -143,6 +145,11 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   );
   let loadingDocumentId: string | null = null;
   let loadedOfficialRequestId: string | null = null;
+  let officialLoadGeneration = 0;
+  let requestedIdentityKey = '';
+  onCleanup(() => {
+    officialLoadGeneration += 1;
+  });
 
   const syncTrail = (parsed: DocumentReadRoute): DocumentTrail => {
     let current = loadDocumentTrail();
@@ -154,6 +161,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         id: parsed.documentId,
         title: parsed.kind === 'user' ? 'Личный документ' : 'Документ',
         ...(parsed.kind === 'official' && parsed.section ? { section: parsed.section } : {}),
+        ...(parsed.kind === 'official' && parsed.expectedIdentity
+          ? { expectedIdentity: parsed.expectedIdentity }
+          : {}),
         ...(parsed.kind === 'user' && parsed.pageIndex !== undefined
           ? { pageIndex: parsed.pageIndex }
           : {}),
@@ -186,6 +196,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
 
   const loadOfficial = async (parsed: DocumentReadRoute & { kind: 'official' }): Promise<void> => {
     const documentId = parsed.documentId;
+    const expectedIdentity = parsed.expectedIdentity;
+    const identityKey = JSON.stringify(expectedIdentity ?? null);
     const queuedMedicationProduct = consumeMedicationProductContext(documentId);
     // After a reload the catalog handoff is gone; the product saved with this history entry remains.
     const selectedMedicationProduct =
@@ -207,16 +219,22 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         documentId,
         loadingDocumentId,
       ) &&
-      !queuedMedicationProduct
+      !queuedMedicationProduct &&
+      requestedIdentityKey === identityKey
     ) {
       return;
     }
 
     loadingDocumentId = documentId;
+    requestedIdentityKey = identityKey;
+    const generation = ++officialLoadGeneration;
+    const current = () => generation === officialLoadGeneration;
     loadedOfficialRequestId = null;
     setOpenError(null);
     setModulePointer(null);
     setModulePointerInstallError(null);
+    setModulePointerPending(false);
+    setModulePointerProgress(null);
     setSupplementalPanels([]);
     setClinicalMedicationLinks([]);
     setDocument(undefined);
@@ -230,23 +248,24 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     }
 
     const preferSummaryId = consumePreferSummaryDocumentId();
-    const preferSummary = preferSummaryId === documentId;
+    const preferSummary = !!expectedIdentity || preferSummaryId === documentId;
 
     try {
       // Read the selected document before queuing catalog SQL on the same worker/native owner.
       // Merely awaiting it first is insufficient when the catalog request was already dispatched.
       const requested = await core.getDocument(documentId);
-      if (loadingDocumentId !== documentId) return;
+      if (!current()) return;
       if (requested.ok) {
+        assertIdentityDocumentTarget(requested.value, expectedIdentity);
         setDocument(requested.value);
         setPendingTitle(undefined);
       }
       if (requested.ok && globalThis.document.visibilityState === 'visible') {
         await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-        if (loadingDocumentId !== documentId) return;
+        if (!current()) return;
       }
       let listed = await listDocuments(core);
-      if (loadingDocumentId !== documentId) return;
+      if (!current()) return;
       setAvailableDocuments(listed);
       const availableIds = new Set(listed.map((item) => item.id));
       const readableId = preferSummary
@@ -255,9 +274,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       const pointerSummary = listed.find((item) => item.id === documentId);
       const pointerMetadata = requested.ok ? requested.value.metadata : pointerSummary?.metadata;
       const pointer = parseModulePointerMetadata(pointerMetadata);
-      if (pointer) {
+      if (pointer && !expectedIdentity) {
         const runtime =
           peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
+        if (!current()) return;
         const resolution = resolveModulePointer(
           pointer,
           runtime.getCatalog(),
@@ -269,7 +289,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           (availableIds.has(pointer.targetDocumentId) || resolution.state === 'installed')
         ) {
           const target = await core.getDocument(pointer.targetDocumentId);
-          if (loadingDocumentId !== documentId) return;
+          if (!current()) return;
           if (target.ok && target.value.sections.some((section) => section.chunks.length > 0)) {
             openDocumentOverlay(
               pointer.targetDocumentId,
@@ -296,6 +316,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       let result = readableId === documentId ? requested : await core.getDocument(readableId);
       if (!result.ok && props.reconnectContent) {
         await props.reconnectContent();
+        if (!current()) return;
         const refreshedCore = props.getCore();
         if (!refreshedCore) {
           setOpenError('Локальный поиск ещё не готов.');
@@ -307,11 +328,39 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           : resolveReadableDocumentId(documentId, availableIds);
         result = await refreshedCore.getDocument(refreshedId);
       }
-      if (loadingDocumentId !== documentId) return;
+      if (!current()) return;
       if (!result.ok) {
+        if (result.error.code !== 'CONTENT_NOT_FOUND') {
+          setOpenError(userFacingOpenError(result.error.message));
+          return;
+        }
+        const runtime =
+          peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
+        if (!current()) return;
+        const resolution = resolveCatalogDocumentPointer(
+          documentId,
+          runtime.getCatalog(),
+          runtime.listInstalled(),
+          expectedIdentity,
+        );
+        if (resolution) {
+          setModulePointer(resolution);
+          const member = runtime
+            .getCatalog()
+            .modules.flatMap((module) => module.documents)
+            .find((member) => member.documentId === documentId);
+          setPendingTitle(member?.title ?? 'Документ из дополнительного набора');
+          if (resolution.state === 'installed') {
+            setModulePointerInstallError(
+              'Набор установлен, но полный документ недоступен. Повторите подключение в разделе скачивания.',
+            );
+          }
+          return;
+        }
         setOpenError(userFacingOpenError(result.error.message));
         return;
       }
+      assertIdentityDocumentTarget(result.value, expectedIdentity);
       setDocument(result.value);
       loadedOfficialRequestId = documentId;
       setPendingTitle(undefined);
@@ -320,7 +369,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         const fullSummaries = await core.listDocuments();
         if (!fullSummaries.ok) throw new Error(fullSummaries.error.message);
         const refreshedSummaries = fullSummaries.value;
-        if (loadingDocumentId !== documentId) return;
+        if (!current()) return;
         listed = refreshedSummaries;
         setAvailableDocuments(listed);
         setClinicalMedicationLinks(
@@ -328,14 +377,14 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
             ? parseClinicalMedicationLinks(listed, selectedMedicationProduct.mnnDocumentId)
             : [],
         );
-        setSupplementalPanels(
-          await loadTradeNameSupplements(
-            core,
-            listed,
-            result.value.id,
-            selectedMedicationProduct?.tradeName,
-          ),
+        const supplements = await loadTradeNameSupplements(
+          core,
+          listed,
+          result.value.id,
+          selectedMedicationProduct?.tradeName,
         );
+        if (!current()) return;
+        setSupplementalPanels(supplements);
       }
       let currentTrail = trail();
       if (currentTrail) {
@@ -343,10 +392,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         setTrail(currentTrail);
       }
     } catch (cause) {
-      if (loadingDocumentId !== documentId) return;
+      if (!current()) return;
       setOpenError(cause instanceof Error ? cause.message : 'Не удалось открыть документ.');
     } finally {
-      if (loadingDocumentId === documentId) {
+      if (current()) {
         loadingDocumentId = null;
       }
     }
@@ -397,15 +446,24 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const requestModulePointerInstall = async (): Promise<void> => {
     const resolution = modulePointer();
     if (resolution?.state !== 'available' || modulePointerPending()) return;
+    const targetAnchor = modulePointerTargetAnchor(document()?.metadata, initialAnchor());
+    const pointerDocumentId = route()?.documentId;
+    const openingRoute = route();
+    const expectedIdentity =
+      openingRoute?.kind === 'official' ? openingRoute.expectedIdentity : undefined;
+    const generation = officialLoadGeneration;
+    const current = () =>
+      generation === officialLoadGeneration && route()?.documentId === pointerDocumentId;
     const runtime =
       peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
-    const targetAnchor = modulePointerTargetAnchor(document()?.metadata, initialAnchor());
-    const pointerDocumentId = document()?.id;
+    if (!current()) return;
     setModulePointerPending(true);
     setModulePointerProgress(null);
     setModulePointerInstallError(null);
     try {
-      await installModulePointer(runtime, resolution, setModulePointerProgress);
+      await installModulePointer(runtime, resolution, (progress) => {
+        if (current()) setModulePointerProgress(progress);
+      });
       if (!props.reconnectContent) {
         throw new Error('Набор загружен, но локальный поиск не удалось обновить.');
       }
@@ -413,6 +471,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       const refreshedCore = props.getCore();
       if (!refreshedCore) throw new Error('Локальный поиск ещё не готов.');
       const listed = await listDocuments(refreshedCore);
+      if (!current()) return;
       setAvailableDocuments(listed);
       if (!listed.some((item) => item.id === resolution.pointer.targetDocumentId)) {
         throw new Error('Набор загружен, но целевой документ не подключился к поиску.');
@@ -421,17 +480,32 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       if (!target.ok || !target.value.sections.some((section) => section.chunks.length > 0)) {
         throw new Error('Набор загружен, но полный документ не удалось прочитать.');
       }
-      if (document()?.id !== pointerDocumentId) return;
+      if (!current()) return;
+      assertIdentityDocumentTarget(target.value, expectedIdentity);
+      if (pointerDocumentId === resolution.pointer.targetDocumentId) {
+        setDocument(target.value);
+        setPendingTitle(undefined);
+        setModulePointer(null);
+        loadedOfficialRequestId = target.value.id;
+        const currentTrail = trail();
+        if (currentTrail)
+          setTrail(updateCurrentCrumbTitle(currentTrail, displayDocumentTitle(target.value)));
+        return;
+      }
       openDocumentOverlay(resolution.pointer.targetDocumentId, targetAnchor, {
         preferSummary: true,
+        ...(expectedIdentity ? { expectedIdentity } : {}),
       });
     } catch (cause) {
-      setModulePointerInstallError(
-        cause instanceof Error ? cause.message : 'Не удалось загрузить набор документа.',
-      );
+      if (current())
+        setModulePointerInstallError(
+          cause instanceof Error ? cause.message : 'Не удалось загрузить набор документа.',
+        );
     } finally {
-      setModulePointerPending(false);
-      setModulePointerProgress(null);
+      if (current()) {
+        setModulePointerPending(false);
+        setModulePointerProgress(null);
+      }
     }
   };
 
@@ -532,6 +606,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const parsed = parseDocumentReadRoute(window.location.hash);
     setRoute(parsed);
     if (!parsed) {
+      officialLoadGeneration += 1;
+      requestedIdentityKey = '';
       loadingDocumentId = null;
       loadedOfficialRequestId = null;
       setDocument(undefined);
@@ -542,6 +618,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       setOpenError(null);
       setModulePointer(null);
       setModulePointerInstallError(null);
+      setModulePointerPending(false);
+      setModulePointerProgress(null);
       clearDocumentTrail();
       setTrail(null);
       return;
@@ -551,6 +629,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       void loadOfficial(parsed);
       return;
     }
+    officialLoadGeneration += 1;
+    requestedIdentityKey = '';
     setDocument(undefined);
     setSupplementalPanels([]);
     setClinicalMedicationLinks([]);

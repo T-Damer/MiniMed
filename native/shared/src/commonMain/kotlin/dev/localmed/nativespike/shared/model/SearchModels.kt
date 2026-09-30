@@ -1,17 +1,33 @@
 package dev.localmed.nativespike.shared.model
 
-/** Mirrors `documents.source_type` closely enough to show the same kind badge the web app shows. */
+import dev.localmed.nativespike.shared.text.TextRange
+
+/** Presentation kinds and labels match the web result-card contract. */
 enum class DocumentKind(val label: String) {
-    CLINICAL_RECOMMENDATION("Клин. рекомендации"),
-    OFFICIAL_REGISTRY("Реестр"),
-    CATALOG_POINTER("Справочник"),
+    CLINICAL_RECOMMENDATION("Клиническая рекомендация"),
+    MEDICATION("Препарат"),
+    LEGAL("Нормативный акт"),
+    REFERENCE("Норма / справочник"),
+    ASSESSMENT("Опросник"),
+    CALCULATOR("Калькулятор"),
     UNKNOWN("Документ");
 
     companion object {
+        fun fromClassifiedKind(kind: String?): DocumentKind = when (kind) {
+            "clinical-recommendation" -> CLINICAL_RECOMMENDATION
+            "medication" -> MEDICATION
+            "legal" -> LEGAL
+            "reference" -> REFERENCE
+            "assessment" -> ASSESSMENT
+            "calculator" -> CALCULATOR
+            else -> UNKNOWN
+        }
+
+        /** Raw SQL measurement path lacks catalog metadata; the lookup UI uses classified kinds. */
         fun fromSourceType(sourceType: String): DocumentKind = when (sourceType) {
             "clinical_recommendation_summary" -> CLINICAL_RECOMMENDATION
-            "official_registry_summary" -> OFFICIAL_REGISTRY
-            "core_catalog_pointer" -> CATALOG_POINTER
+            "official_registry_summary" -> MEDICATION
+            "core_catalog_pointer" -> REFERENCE
             else -> UNKNOWN
         }
     }
@@ -37,6 +53,7 @@ data class SearchResultItem(
     val sectionPath: String,
     val anchor: String,
     val snippet: String,
+    val highlightedRanges: List<TextRange> = emptyList(),
 )
 
 /** A document card in the result list: title, kind badge, its best-matching sections. */

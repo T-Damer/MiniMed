@@ -1,5 +1,6 @@
 package dev.localmed.nativespike.shared.lexical
 
+import dev.localmed.nativespike.shared.text.buildQueryAlignedSnippet
 import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.LexicalQueryBranchPlan
 import dev.localmed.nativespike.shared.model.QueryBranchKind
@@ -12,14 +13,8 @@ import dev.localmed.nativespike.shared.text.searchSubjectText
  * — stage 2 sub-stage D of the migration (docs/CURRENT_STATE.md). Combines one query's per-branch
  * SQL hits into a single per-chunk ranked list.
  *
- * NOT ported: real snippet building (`buildQueryAlignedSnippet`/`presentationRowTerms`/`buildSnippet`)
- * and `conceptIdFromMetadata`/`terminologyConceptIds` filtering — display-only fields that do not
- * feed `finalScore`, group order, `documentKind`, or `contentKind` (this migration's only compared
- * fields; verified by reading every consumer of `SearchResult` in `create-medical-core.ts` and
- * `query-group-ranking.ts`). `matchedTerms` IS ported (below) because `groupRankingText`
- * (`QueryGroupRanking.kt`) folds it into the text `queryGroupRelevanceBoost` scores — it is
- * computed the same way the TS source does (title + section path + chunk original text), just
- * without ever materializing a truncated/highlighted snippet string.
+ * Ranked passages retain query-aligned snippets, highlights, and exact reader identities. Semantic
+ * and terminology matching remain outside this lookup-only port.
  */
 
 /** Mirrors `matchedTerms`. */
@@ -74,16 +69,10 @@ private class AggregatedHit(
     var bestLexicalScore: Double = 0.0,
 )
 
-/** UI-display-only truncation — see `RankedResult.previewText`'s doc for why this isn't a real
- * snippet port. */
-private const val PREVIEW_TEXT_LENGTH = 240
-
-internal fun previewText(originalText: String): String =
-    if (originalText.length <= PREVIEW_TEXT_LENGTH) originalText else originalText.take(PREVIEW_TEXT_LENGTH) + "…"
-
 private fun toRankedResult(aggregate: AggregatedHit): RankedResult {
     val terms = aggregate.terms.toList()
     val matches = matchedTerms(aggregate.hit, terms)
+    val excerpt = buildQueryAlignedSnippet(aggregate.hit.originalText, matches.ifEmpty { terms })
     return RankedResult(
         chunkId = aggregate.hit.chunkId,
         documentId = aggregate.hit.documentId,
@@ -96,7 +85,9 @@ private fun toRankedResult(aggregate: AggregatedHit): RankedResult {
         finalScore = aggregate.score,
         anchor = aggregate.hit.anchor,
         sectionId = aggregate.hit.sectionId,
-        previewText = previewText(aggregate.hit.originalText),
+        documentVersionId = aggregate.hit.documentVersionId,
+        snippet = excerpt.text,
+        highlightedRanges = excerpt.ranges,
     )
 }
 

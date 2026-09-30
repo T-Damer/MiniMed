@@ -1,5 +1,6 @@
 import type { TextRange } from '@localmed/contracts';
 import { For, type JSX } from 'solid-js';
+import '@/components/HighlightedText.css';
 
 import {
   exactQueryRanges,
@@ -57,7 +58,13 @@ function localRanges(
 export function HighlightedText(props: HighlightedTextProps): JSX.Element {
   return (
     <For each={segments(props.text, props.ranges)}>
-      {(segment) => (segment.highlighted ? <mark>{segment.text}</mark> : segment.text)}
+      {(segment) =>
+        segment.highlighted ? (
+          <mark class="highlighted-text__match">{segment.text}</mark>
+        ) : (
+          segment.text
+        )
+      }
     </For>
   );
 }
@@ -91,7 +98,7 @@ export function QueryHighlightedText(props: {
         const start = segment.start ?? 0;
         return (
           <mark
-            class={matchClass()}
+            class={`highlighted-text__match ${matchClass()}`}
             classList={{
               [`${matchClass()}--current`]:
                 props.activeStart !== undefined && start + rangeOffset() === props.activeStart,

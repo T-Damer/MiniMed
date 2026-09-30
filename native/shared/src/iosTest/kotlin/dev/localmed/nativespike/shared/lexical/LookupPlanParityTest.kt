@@ -155,6 +155,8 @@ class LookupPlanParityTest {
             termsMismatches.forEach(::println)
         }
 
+        assertTrue(aliasMismatches.isEmpty() && branchMismatches.isEmpty() && termsMismatches.isEmpty(),
+            "Lookup plan parity differs from the exported web plan")
         assertTrue(total > 100, "expected >100 golden queries, got $total")
     }
 }

@@ -8,6 +8,7 @@ const localModelSmokeOrigin = process.env.LOCAL_MODEL_SMOKE_ORIGIN;
 
 export default defineConfig({
   testDir: './apps/app/e2e',
+  outputDir: './playwright/test-results',
   // Full discovery-core startup/search is slower than the former small pilot fixture.
   timeout: 90_000,
   expect: { timeout: 25_000 },

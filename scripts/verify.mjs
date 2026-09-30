@@ -12,6 +12,11 @@ const phases = [
   { label: 'bundled-core', command: bun, args: ['run', 'content:restore:core'] },
   { label: 'content', command: bun, args: ['run', 'content:build'] },
   { label: 'icons', command: bun, args: ['run', 'icons:check'] },
+  {
+    label: 'module-mirrors',
+    command: bun,
+    args: ['scripts/list-mirrored-release-assets.test.mjs'],
+  },
   { label: 'format-and-lint', command: bun, args: ['run', 'check'] },
   { label: 'typescript', command: bun, args: ['run', 'typecheck'] },
   { label: 'unit-tests', command: bun, args: ['run', 'test:unit'] },

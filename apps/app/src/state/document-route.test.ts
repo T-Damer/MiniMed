@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   buildOfficialDocumentHash,
   buildUserDocumentHash,
+  type ExactDocumentIdentity,
   isDocumentReadRoute,
   migrateLegacyDocumentHash,
   migrateLegacyOverlaySearch,
@@ -96,6 +97,43 @@ describe('document-route', () => {
       documentId: 'user-doc-1',
       pageIndex: 3,
     });
+  });
+
+  it('preserves strict source identity in copied routes and rejects malformed constraints', () => {
+    const expectedIdentity: ExactDocumentIdentity = {
+      type: 'document',
+      moduleId: 'module',
+      moduleVersion: '1',
+      documentId: 'doc-1',
+      documentVersionId: 'doc-1@1',
+      sourceChecksum: `sha256:${'a'.repeat(64)}`,
+      anchor: 'source-anchor',
+    };
+    const hash = buildOfficialDocumentHash('doc-1', 'source-anchor', expectedIdentity);
+    expect(parseDocumentReadRoute(hash)).toEqual({
+      kind: 'official',
+      documentId: 'doc-1',
+      section: 'source-anchor',
+      expectedIdentity,
+    });
+    const base = buildOfficialDocumentHash('doc-1');
+    for (const invalid of [
+      'not-json',
+      JSON.stringify({ ...expectedIdentity, documentId: 'different-document' }),
+      JSON.stringify({ ...expectedIdentity, sourceChecksum: 'invalid' }),
+      JSON.stringify({
+        type: 'definition',
+        moduleId: 'module',
+        moduleVersion: '1',
+        editionId: 'edition',
+        entityId: 'entity',
+      }),
+    ]) {
+      expect(parseDocumentReadRoute(`${base}?exact=${encodeURIComponent(invalid)}`)).toBeNull();
+    }
+    expect(() =>
+      buildOfficialDocumentHash('different-document', undefined, expectedIdentity),
+    ).toThrow('does not match');
   });
 
   it('builds official and user hashes under the documents namespace', () => {

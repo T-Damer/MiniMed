@@ -91,6 +91,7 @@ class SqlBranchExecutionParityTest {
                 mismatches.forEach(::println)
             }
 
+            assertTrue(mismatches.isEmpty(), "SQL branch parity differs: ${mismatches.joinToString("\n")}")
             assertTrue(totalBranches > 100, "expected >100 branches compared, got $totalBranches")
         } finally {
             db.close()

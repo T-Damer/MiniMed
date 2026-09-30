@@ -1,9 +1,12 @@
 import {
   type ContentPackSeed,
   ContentPackSeedSchema,
+  type CoreIdentityHit,
+  CoreIdentityHitSchema,
   type DefinitionReferenceReply,
   type DefinitionReferenceRequest,
   type EmbeddingProfile,
+  normalizeCoreIdentityName,
   type SearchFilters,
   type ToolDefinitionRecord,
   ToolDefinitionRecordSchema,
@@ -445,7 +448,8 @@ export interface SqliteIntegrityReport {
 /**
  * The lexical window is counted in chunks, so one long book or a family of near-identical cards
  * could fill it and push every other document out before grouping. Rank a wider bm25 window, keep
- * each document's best chunks, then cut to the requested limit.
+ * each document's best chunks for lookup, then cut to the requested limit. Clinical branches
+ * retain the same bounded window without the document quota so context sections survive.
  */
 const LEXICAL_OVERFETCH = 4;
 const LEXICAL_CHUNKS_PER_DOCUMENT = 3;
@@ -816,6 +820,30 @@ export class SqliteMedicalStore implements MedicalStore {
     };
   }
 
+  public async lookupCoreIdentities(query: string): Promise<readonly CoreIdentityHit[]> {
+    this.assertInitialized();
+    if (!this.database.selectValue("SELECT 1 FROM sqlite_master WHERE name = 'core_identities'"))
+      return [];
+    return queryRows(
+      this.database,
+      `
+      SELECT n.name, t.title, t.kind, t.coverage, t.target_json
+      FROM core_identities n JOIN core_identity_targets t
+        ON t.target_id = n.target_id AND t.module_id = n.module_id
+      WHERE n.normalized_name = ? ORDER BY t.title, t.module_id, t.target_id
+    `,
+      [normalizeCoreIdentityName(query)],
+    ).map((row) =>
+      CoreIdentityHitSchema.parse({
+        name: readString(row, 'name'),
+        title: readString(row, 'title'),
+        kind: readString(row, 'kind'),
+        coverage: readString(row, 'coverage'),
+        target: JSON.parse(readString(row, 'target_json')),
+      }),
+    );
+  }
+
   public async listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
     this.assertInitialized();
     return queryRows(
@@ -1184,7 +1212,12 @@ export class SqliteMedicalStore implements MedicalStore {
        WHERE document_order <= ?
        ORDER BY bm25_rank
        LIMIT ?`,
-      [...bind, candidateLimit * LEXICAL_OVERFETCH, LEXICAL_CHUNKS_PER_DOCUMENT, candidateLimit],
+      [
+        ...bind,
+        candidateLimit * LEXICAL_OVERFETCH,
+        request.diversifyDocuments === false ? candidateLimit : LEXICAL_CHUNKS_PER_DOCUMENT,
+        candidateLimit,
+      ],
     );
     if (candidateRows.length === 0) return [];
 

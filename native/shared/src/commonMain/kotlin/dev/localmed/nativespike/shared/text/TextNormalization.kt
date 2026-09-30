@@ -11,17 +11,8 @@ package dev.localmed.nativespike.shared.text
  *  - bounded Levenshtein distance and `isCloseToken` (mirrors normalize.ts's own — distinct from
  *    `rapidfuzz.ts`'s OSA/Levenshtein, ported separately in `lexical/RapidFuzz.kt`)
  *
- * Deliberately NOT ported (documented for the spike report, not silently dropped):
- *  - Unicode NFKC normalization (`value.normalize('NFKC')` in the TS source) — no NFKC
- *    implementation is available in Kotlin's common stdlib without per-platform work
- *    (`java.text.Normalizer` on the JVM has no Kotlin/Native or Kotlin/Wasm equivalent here).
- *    None of the 142 golden queries contain decomposed/compatibility Unicode forms that would
- *    make this visible, so it does not affect the golden-parity numbers, but it is a real gap for
- *    arbitrary future input.
- *  - `normalizeSurfaceTextWithOffsets` (only needed for downstream highlight-position mapping, not
- *    for query normalization or alias matching)
- *  - the multi-branch query planner with alias-branch corroboration/dilution rules
- *    (`analysis.ts`, ~2200 lines) — stage 2 sub-stage B
+ * Unicode NFKC uses the platform normalizer; query-aligned excerpts use the offset-preserving
+ * companion in NormalizedOffsets.kt. The multi-branch planner lives in lexical/LookupPlan.kt.
  *
  * `searchSubjectText` (navigation-preamble stripping) IS ported below (stage 2 sub-stage D) — the
  * fusion/grouping/ranking pipeline (`lexical/Fusion.kt`, `lexical/QueryGroupRanking.kt`) uses it to
@@ -48,7 +39,6 @@ private val RUSSIAN_SUFFIXES = listOf(
 ).sortedByDescending { it.length }
 
 private val DASH_VARIANTS = Regex("[‐‑‒–—−]")
-private val WHITESPACE = Regex("\\s+")
 
 // Character-class checks below are plain Char-range comparisons, not Regex — found the hard way
 // via iosSimulatorArm64Test: Kotlin/Native's Regex engine did not match the Cyrillic `а-я` range
@@ -126,12 +116,18 @@ fun normalizeIcd10Lookalikes(value: String): String {
     return result.toString()
 }
 
-/** Mirrors `normalizeSurfaceText` (normalize.ts) except for Unicode NFKC folding (see file header). */
+/** Mirrors `normalizeSurfaceText` (normalize.ts). */
 fun normalizeSurfaceText(value: String): String {
-    val lowered = value.lowercase().replace('ё', 'е')
+    val lowered = compatibilityNormalize(value).lowercase().replace('ё', 'е')
     val dashUnified = DASH_VARIANTS.replace(lowered, "-")
     val clamped = clampCharset(dashUnified)
-    val collapsed = WHITESPACE.replace(clamped, " ").trim()
+    val collapsed = buildString {
+        for (character in clamped) {
+            if (character.isWhitespace()) {
+                if (isNotEmpty() && last() != ' ') append(' ')
+            } else append(character)
+        }
+    }.trimEnd(' ')
     return normalizeIcd10Lookalikes(collapsed)
 }
 

@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { parseArgs } from 'node:util';
 
 import type { MedicalDocumentSummary, SearchResultGroup } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
@@ -152,6 +153,15 @@ function anchorMatches(actual: string, expectedPrefix: string): boolean {
 }
 
 const root = resolve(import.meta.dirname, '../../..');
+const { values } = parseArgs({
+  options: { database: { type: 'string' }, report: { type: 'string' } },
+});
+const databasePath = values.database
+  ? resolve(values.database)
+  : resolve(root, 'data/build/rf-regulatory-pilot.db');
+const reportPath = values.report
+  ? resolve(values.report)
+  : resolve(root, 'data/build/rf-regulatory-pilot-benchmark.json');
 const queryPaths = [
   'tools/benchmarks/regulatory-rf-queries.json',
   'tools/benchmarks/regulatory-rf-major-queries.json',
@@ -167,9 +177,7 @@ const top1QueryIds = new Set(
   queries.filter((query) => query.requireTop1 === true).map((query) => query.id),
 );
 
-const databaseBytes = new Uint8Array(
-  readFileSync(resolve(root, 'data/build/rf-regulatory-pilot.db')),
-);
+const databaseBytes = new Uint8Array(readFileSync(databasePath));
 const store = await SqliteMedicalStore.createFromBytes(databaseBytes);
 const core = createMedicalCore({
   store,
@@ -317,12 +325,8 @@ const report = {
   rows,
 };
 
-mkdirSync(resolve(root, 'data/build'), { recursive: true });
-writeFileSync(
-  resolve(root, 'data/build/rf-regulatory-pilot-benchmark.json'),
-  `${JSON.stringify(report, null, 2)}\n`,
-  'utf8',
-);
+mkdirSync(dirname(reportPath), { recursive: true });
+writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
 console.log(JSON.stringify(report, null, 2));
 
 const failures: string[] = [];

@@ -1,12 +1,76 @@
 import type { MedicalDocumentSummary, SearchResult, SearchResultGroup } from '@localmed/contracts';
-import { analyzeClinicalQuery } from '@localmed/search-lexical';
-import { describe, expect, it } from 'vitest';
-
 import {
   collapseGroupsByTargetDocument,
   queryGroupRelevanceBoost,
   rankSearchGroupsByQuery,
-} from './query-group-ranking';
+} from '@localmed/core';
+import { analyzeClinicalQuery } from '@localmed/search-lexical';
+import { describe, expect, it } from 'vitest';
+
+it('ranks the lookup subject above matches limited to patient age or sex', () => {
+  for (const query of ['менингит у ребенка', 'энцефалит у взрослого', 'мужчина 60 лет пневмония']) {
+    const subject = query.includes('менингит')
+      ? 'Менингит'
+      : query.includes('энцефалит')
+        ? 'Энцефалит'
+        : 'Пневмония';
+    const ranked = rankSearchGroupsByQuery(
+      [
+        group('qualifier', 'Уход за ребенком и взрослым мужчиной', 100, [
+          result('qualifier', 'Уход за ребенком и взрослым мужчиной', 'Уход за ребенком.', [
+            subject,
+          ]),
+        ]),
+        group('subject', subject, 0.1),
+      ],
+      query,
+    );
+    expect(ranked[0]?.documentId).toBe('subject');
+  }
+});
+
+it('keeps explicit opposite-age sources below actual lookup subjects without penalizing neutral scope', () => {
+  for (const [qualifier, matching, opposite] of [
+    ['ребенка', 'детей', 'взрослых'],
+    ['детей', 'детей', 'взрослых'],
+    ['взрослого', 'взрослых', 'детей'],
+  ]) {
+    const query = `Вирусный энцефалит у ${qualifier}`;
+    const groups = [
+      group('opposite', `Вирусный энцефалит у ${opposite}`, 100, [
+        result('opposite', 'Рекомендации', query, ['энцефалит', qualifier ?? '']),
+      ]),
+      group('wrong-topic', `Травмы у ${matching}`, 200, [
+        result('wrong-topic', 'Травмы', `Осмотр ${qualifier}`, ['вирусный', 'энцефалит']),
+      ]),
+      group('matching', `Вирусный энцефалит у ${matching}`, 0.1),
+      group('generic', 'Вирусный энцефалит', 0.5),
+      group('combined', 'Вирусный энцефалит у детей и взрослых', 0.3),
+    ];
+    const ranked = rankSearchGroupsByQuery(groups, query).map((entry) => entry.documentId);
+    for (const compatible of ['generic', 'combined', 'matching']) {
+      expect(ranked.indexOf(compatible)).toBeLessThan(ranked.indexOf('opposite'));
+    }
+    expect(ranked.indexOf('opposite')).toBeLessThan(ranked.indexOf('wrong-topic'));
+    // Neither an unspecified nor a combined query declares a competing population.
+    for (const neutralQuery of ['энцефалит', 'энцефалит у детей и взрослых']) {
+      expect(
+        rankSearchGroupsByQuery(groups.slice(0, 1).concat(groups.slice(2)), neutralQuery)[0]
+          ?.documentId,
+      ).toBe('opposite');
+    }
+  }
+});
+
+it('does not apply lookup population priority to clinical analysis', () => {
+  const query = 'Вирусный энцефалит у ребенка';
+  const groups = [
+    group('adult', 'Вирусный энцефалит у взрослых', 100),
+    group('child', 'Вирусный энцефалит у детей', 0.1),
+  ];
+  const { analysis } = analyzeClinicalQuery(query, []);
+  expect(rankSearchGroupsByQuery(groups, query, [], analysis)[0]?.documentId).toBe('adult');
+});
 
 it('makes navigation aliases strict identities without promoting broad declared aliases', () => {
   const documents = [

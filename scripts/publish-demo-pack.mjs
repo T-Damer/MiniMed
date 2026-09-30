@@ -31,9 +31,8 @@ const publishedPackExists = await access(targetDatabase).then(
   () => false,
 );
 
-// The published pack is owned by CI's "Automated content database rebuild"
-// workflow, which compiles the full pilot corpus. The local fixtures build is a
-// small verification pack and must never silently replace the richer one.
+// The published pack is built locally and released with verified checksums. The small fixture
+// pack must never silently replace the richer corpus.
 if (publishedPackExists && !force) {
   const publishedReport = await readReport(targetReportPath);
   if (
@@ -51,7 +50,7 @@ if (publishedPackExists && !force) {
   }
   if (candidateReport.documents < publishedReport.documents) {
     console.warn(
-      `Skipped publishing: the compiled pack has ${candidateReport.documents} documents while the published CI-built pack has ${publishedReport.documents}. Re-run with --force to overwrite it anyway.`,
+      `Skipped publishing: the compiled pack has ${candidateReport.documents} documents while the published pack has ${publishedReport.documents}. Re-run with --force to overwrite it anyway.`,
     );
     process.exit(0);
   }

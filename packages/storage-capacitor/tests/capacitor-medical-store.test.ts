@@ -325,6 +325,20 @@ describe('CapacitorMedicalStore', () => {
     expect(hydrationCall?.sql).toContain('c.original_text');
     expect(hydrationCall?.sql).not.toContain('bm25(chunks_fts');
     expect(JSON.parse(hydrationCall?.argsJson ?? '[]')).toEqual([fixtureChunkId()]);
+
+    await store.search({
+      ftsQuery: '"тахипноэ"* OR "лихорадка"*',
+      terms: ['тахипноэ', 'лихорадка'],
+      filters: {},
+      limit: 5,
+      diversifyDocuments: false,
+    });
+    expect(JSON.parse(plugin.calls.at(-2)?.argsJson ?? '[]')).toEqual([
+      '"тахипноэ"* OR "лихорадка"*',
+      20,
+      5,
+      5,
+    ]);
   });
 
   it('pushes specialty and age-group filters into native SQL and vector search', async () => {

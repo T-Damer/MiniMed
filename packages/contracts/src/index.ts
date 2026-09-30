@@ -1,3 +1,4 @@
+export * from '@localmed/contracts/core-identities';
 export * from './calculator-schema';
 export * from './clinical-observations';
 export * from './content-module-document-table';

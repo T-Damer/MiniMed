@@ -13,9 +13,11 @@
  *     `create-medical-core.ts` makes internally (see its `runBranchSearches`); this script does not
  *     reimplement branch execution, it reuses the real one twice (once inside the normal search
  *     call for the final groups, once directly per branch for hit-level detail);
- *   - the final top-20 groups (documentId, resolved targetDocumentId, kind, rounded bestScore).
+ *   - final groups and source passages (targets, scores, chunk/version/section identities, anchors,
+ *     query-aligned excerpts and highlight offsets).
  *
  * Run: bun tools/benchmarks/src/export-search-golden.ts [--corpus=core|all] [--core=path/to/core.db]
+ *      [--output=playwright/search-golden.json]
  * `--corpus=core` (the default) mounts core.db alone — the native/ spike and the emulator
  * measurements only ever open core.db, so parity must be checked against the same data, not the
  * app's full multi-pack corpus. `--corpus=all` mounts core.db + every companion pack (mkb,
@@ -28,11 +30,9 @@ import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-
+import { ScopedMedicalCore } from '@localmed/app/features/search/ScopedMedicalCore';
+import { openRealCorpus, REPOSITORY_ROOT } from '@localmed/benchmarks/real-corpus';
 import { normalizeSurfaceText } from '@localmed/search-lexical';
-
-import { ScopedMedicalCore } from '../../../apps/app/src/features/search/ScopedMedicalCore';
-import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
 
 const HITS_PER_BRANCH = 10;
 const GROUP_LIMIT = 20;
@@ -137,7 +137,7 @@ function buildQuerySet(): QuerySource[] {
 async function main() {
   const args = process.argv.slice(2);
   for (const arg of args) {
-    if (!/^(?:--corpus=(?:core|all)|--core=.+)$/u.test(arg)) {
+    if (!/^(?:--corpus=(?:core|all)|--core=.+|--output=.+)$/u.test(arg)) {
       throw new Error(`Unknown argument ${arg}`);
     }
   }
@@ -214,6 +214,16 @@ async function main() {
         documentKind: group.documentKind ?? null,
         contentKind: group.contentKind ?? null,
         bestScore: Math.round(group.bestScore * 1_000_000) / 1_000_000,
+        results: group.results.map((result) => ({
+          chunkId: result.chunkId,
+          documentVersionId: result.documentVersionId,
+          sectionId: result.sectionId,
+          anchor: result.anchor,
+          snippet: result.snippet,
+          highlightedRanges: result.highlightedRanges,
+          matchedTerms: result.matchedTerms,
+          finalScore: Math.round(result.finalScore * 1_000_000) / 1_000_000,
+        })),
       })),
     });
   }
@@ -237,7 +247,11 @@ async function main() {
   // filenames so the multi-pack variant, if ever generated, can never silently clobber the
   // core-only one the Kotlin port is checked against.
   const fileName = corpusScope === 'all' ? 'search-golden.all.json' : 'search-golden.json';
-  const outPath = resolve(REPOSITORY_ROOT, `native/shared/src/commonTest/resources/${fileName}`);
+  const outputOverride = args.find((arg) => arg.startsWith('--output='))?.slice('--output='.length);
+  const outPath = resolve(
+    REPOSITORY_ROOT,
+    outputOverride ?? `native/shared/src/commonTest/resources/${fileName}`,
+  );
   mkdirSync(resolve(outPath, '..'), { recursive: true });
   writeFileSync(outPath, `${JSON.stringify(output, null, 2)}\n`);
   console.log(`Wrote ${rows.length} golden queries to ${outPath}`);

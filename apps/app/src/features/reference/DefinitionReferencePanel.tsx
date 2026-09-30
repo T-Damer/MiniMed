@@ -8,7 +8,16 @@ import type {
   DefinitionReferenceText,
   MedicalCore,
 } from '@localmed/contracts';
-import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  on,
+  onCleanup,
+  Show,
+} from 'solid-js';
 import { Disclosure } from '@/components/Disclosure';
 import { MODULE_CATALOG } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
@@ -26,7 +35,7 @@ import {
 import { PackageDownloadRow } from '@/features/setup/PackageDownloadRow';
 import { subscribeAppPreferences } from '@/state/app-preferences';
 import '@/features/setup/setup.css';
-import './reference.css';
+import '@/features/reference/reference.css';
 
 /** One expansion of an abbreviation and the source documents that give it. */
 interface AbbreviationExpansion {
@@ -54,7 +63,13 @@ function sourceTitle(metadata: Readonly<Record<string, unknown>> | null): string
 export function DefinitionReferencePanel(props: {
   readonly core: MedicalCore;
   readonly onContentChanged: () => Promise<void>;
-  readonly catalog?: ContentModuleCatalog;
+  readonly catalog?: ContentModuleCatalog | undefined;
+  readonly initialCard?: {
+    readonly id: string;
+    readonly moduleId: string;
+    readonly moduleVersion: string;
+    readonly editionId: string;
+  };
 }): JSX.Element {
   const runtime = getContentModuleRuntime(props.catalog ?? MODULE_CATALOG);
   const [revision, setRevision] = createSignal(0);
@@ -81,7 +96,16 @@ export function DefinitionReferencePanel(props: {
   });
   const candidates = createMemo(() => {
     revision();
-    return runtime.getCatalog().modules.filter((module) => module.definitionReference);
+    return runtime.getCatalog().modules.filter((module) => {
+      const initial = props.initialCard;
+      return (
+        module.definitionReference &&
+        (!initial ||
+          (module.id === initial.moduleId &&
+            module.version === initial.moduleVersion &&
+            module.definitionReference.editionId === initial.editionId))
+      );
+    });
   });
   const available = createMemo(() => {
     revision();
@@ -209,7 +233,7 @@ export function DefinitionReferencePanel(props: {
     setText(result.block);
     setSource(origin.source);
   };
-  const open = (hit: DefinitionReferenceHit) =>
+  const open = (hit: Pick<DefinitionReferenceHit, 'id'>) =>
     run(async (token, scope) => {
       const result = await request({ ...scope, op: 'card', id: hit.id });
       const blocks = await request({ ...scope, op: 'blocks', id: hit.id });
@@ -227,6 +251,14 @@ export function DefinitionReferencePanel(props: {
       );
       if (first) await readText(token, scope, hit.id, first);
     });
+  createEffect(
+    on(
+      () => [props.core, connected(), props.initialCard] as const,
+      ([, ready, initial]) => {
+        if (ready && initial) void open({ id: initial.id });
+      },
+    ),
+  );
   /** Every expansion of one spelling, each with the documents and sections that give it. */
   const openAbbreviation = (group: ReferenceHitGroup) =>
     run(async (token, scope) => {

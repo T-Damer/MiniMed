@@ -1,0 +1,113 @@
+/*
+ * Paper sheets: every dialog that is not a full-screen viewer. The app's paper tone and grain,
+ * a light header instead of the dark bar, a soft shadow; from the bottom edge on phones.
+ */
+.overlay-dialog.overlay-dialog--sheet {
+  position: relative;
+  isolation: isolate;
+  width: min(44rem, 100%);
+  border: 1px solid var(--theme-border);
+  border-radius: 1rem;
+  color: var(--theme-text);
+  background: var(--paper-light);
+  box-shadow: 0 1.25rem 3rem rgb(29 27 22 / 22%);
+  transform: translateY(var(--sheet-drag, 0));
+}
+
+/* The paper grain lies under the content, across the whole sheet, and never takes a tap. */
+.overlay-dialog.overlay-dialog--sheet::before {
+  position: absolute;
+  z-index: var(--z-behind);
+  inset: 0;
+  content: "";
+  background-image: var(--page-grain-image);
+  background-size: 12.5rem 12.5rem;
+  mix-blend-mode: multiply;
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.overlay-dialog-header.overlay-dialog-header--sheet {
+  border-bottom-color: var(--theme-border);
+  color: var(--theme-text);
+  background: transparent;
+}
+
+.overlay-dialog__subtitle.overlay-dialog__subtitle--sheet {
+  color: var(--theme-text-muted);
+}
+
+.overlay-dialog__close-button.overlay-dialog__close-button--sheet {
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+  background: var(--theme-surface);
+}
+
+/* The grip shows where to pull; it exists only on phones, where pulling closes the sheet. */
+.overlay-dialog__grip {
+  display: none;
+}
+
+.overlay-dialog__grip-bar {
+  display: block;
+  width: 2.5rem;
+  height: 0.3125rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-text-muted) 45%, transparent);
+}
+
+@media (max-width: 760px) {
+  .overlay-backdrop.overlay-backdrop--sheet {
+    align-items: end;
+    padding: 0;
+    padding-top: calc(var(--safe-top, 0px) + 2.5rem);
+  }
+
+  .overlay-dialog.overlay-dialog--sheet {
+    width: 100%;
+    min-height: 0;
+    max-height: calc(100dvh - var(--safe-top, 0px) - 2.5rem);
+    align-self: end;
+    border-width: 1px 0 0;
+    border-radius: 1.125rem 1.125rem 0 0;
+    box-shadow: 0 -0.5rem 2rem rgb(29 27 22 / 22%);
+    animation: overlay-sheet-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .overlay-dialog.overlay-dialog--dragging {
+    transition: none;
+  }
+
+  .overlay-dialog__grip {
+    display: grid;
+    flex: none;
+    place-items: center;
+    padding: 0.5rem 0 0.125rem;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .overlay-dialog-header.overlay-dialog-header--sheet {
+    padding-top: 0.5rem;
+    touch-action: none;
+  }
+
+  /* The last line of content clears the home indicator. */
+  .overlay-dialog-body.overlay-dialog-body--sheet {
+    padding-bottom: calc(1rem + var(--safe-bottom, 0px));
+  }
+}
+
+@keyframes overlay-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay-dialog.overlay-dialog--sheet {
+    animation: none;
+    transition: none;
+  }
+}

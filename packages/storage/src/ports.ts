@@ -1,5 +1,6 @@
 import type {
   ContentPackSeed,
+  CoreIdentityHit,
   DefinitionReferenceReply,
   DefinitionReferenceRequest,
   EmbeddingProfile,
@@ -27,6 +28,8 @@ export interface LexicalSearchRequest {
   readonly terms: readonly string[];
   readonly filters: SearchFilters;
   readonly limit: number;
+  /** Defaults to true for lookup; clinical branches retain their bounded context candidates. */
+  readonly diversifyDocuments?: boolean;
 }
 
 export interface LexicalHit {
@@ -62,6 +65,7 @@ export interface DocumentIdentity {
 }
 
 export interface MedicalStore {
+  lookupCoreIdentities?(query: string): Promise<readonly CoreIdentityHit[]>;
   reference?(request: DefinitionReferenceRequest): Promise<DefinitionReferenceReply>;
   initialize(seed?: ContentPackSeed): Promise<StorageHealth>;
   getHealth(): Promise<StorageHealth>;

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+from pydantic import TypeAdapter
 
 from .allmed_images import build_allmed_image_pack
 from .allmed_reference import (
@@ -150,6 +151,9 @@ def build_core_reference_pointers_command(
     module_title: Annotated[str, typer.Option("--module-title")],
     built_at: Annotated[str | None, typer.Option("--built-at")] = None,
     force: Annotated[bool, typer.Option("--force")] = False,
+    target_modules: Annotated[
+        Path | None, typer.Option("--target-modules", exists=True, dir_okay=False)
+    ] = None,
 ) -> None:
     """Build compact core pointers from a MiniMed reference-pack SQLite database."""
     report = build_core_reference_pointers(
@@ -160,6 +164,11 @@ def build_core_reference_pointers_command(
         version=version,
         built_at=built_at,
         force=force,
+        target_modules=TypeAdapter(dict[str, list[str]]).validate_json(
+            target_modules.read_text(encoding="utf-8")
+        )
+        if target_modules is not None
+        else None,
     )
     typer.echo(json.dumps(report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
 

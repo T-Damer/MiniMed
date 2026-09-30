@@ -2,6 +2,12 @@
   "name": "@localmed/app",
   "private": true,
   "type": "module",
+  "exports": {
+    "./e2e/*": "./e2e/*.ts",
+    "./content/core-report": "./public/content/core-report.json",
+    "./features/search/ScopedMedicalCore": "./src/features/search/ScopedMedicalCore.ts",
+    "./features/network/mirrored-release-tags": "./src/features/network/mirrored-release-tags.ts"
+  },
   "scripts": {
     "dev": "bun ../../scripts/restore-core.mjs && VITE_USE_LOCAL_MODULE_ARTIFACTS=${VITE_USE_LOCAL_MODULE_ARTIFACTS:-true} vite",
     "build": "bun ../../scripts/restore-core.mjs && tsc -p tsconfig.json && vite build",

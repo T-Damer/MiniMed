@@ -29,7 +29,7 @@
   --theme-border: #cbc0a7;
   --theme-text: #292720;
   --theme-text-muted: #585349;
-  --theme-text-faint: #817a6d;
+  --theme-text-faint: #615b50;
   --theme-accent: #405b4e;
   --theme-accent-contrast: #f8f0dd;
   --theme-accent-soft: rgb(64 91 78 / 12%);
@@ -46,6 +46,8 @@
   --theme-personal-contrast: #f6eef5;
   --theme-warning: #75560f;
   --theme-warning-soft: #f2dfa3;
+  --theme-match-background: #d9cd7a;
+  --theme-match-text: #292720;
   --theme-info: #315f7a;
   --theme-info-soft: #dbeaf3;
   --theme-note: #f2e6c2;

@@ -8,7 +8,6 @@ import type {
   SearchFilters,
   SearchResponse,
   SearchResult,
-  SearchResultCategory,
   SearchResultGroup,
   SearchSuggestion,
 } from '@localmed/contracts';
@@ -29,11 +28,7 @@ import {
 import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { CATEGORY_VISUALS, ClinicalGlyph } from '@/components/ClinicalGlyph';
-import { ClinicalTags } from '@/components/ClinicalTags';
 import { DocumentText } from '@/components/DocumentText';
-import { HighlightedText } from '@/components/HighlightedText';
-import { IcdText } from '@/components/IcdText';
 import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { QueryEmptyState } from '@/components/QueryEmptyState';
 import { saveCalculatorLaunchDraft } from '@/features/calculators/calculator-launch-draft';
@@ -59,6 +54,7 @@ import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import { CalculatorSuggestionCard } from '@/features/search/CalculatorSuggestionCard';
+import { CoreIdentityMatches } from '@/features/search/CoreIdentityMatches';
 import {
   type CalculatorSchemaWithSearch,
   resolveCalculatorSuggestion,
@@ -71,7 +67,7 @@ import {
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
-import { RESULT_KIND_VISUALS } from '@/features/search/searchResultKindVisuals';
+import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import {
@@ -83,6 +79,8 @@ import {
 interface SearchWorkspaceProps {
   /** Absent while the medical core opens; the field stays disabled until it arrives. */
   readonly core?: MedicalCore | undefined;
+  readonly referenceCore?: MedicalCore | undefined;
+  readonly onContentChanged?: () => Promise<void>;
   readonly scope: SearchScope;
   readonly searchAllowed?: boolean;
   /** Compact status under the field, e.g. while the core opens, downloads or failed to open. */
@@ -155,51 +153,6 @@ const EXAMPLES_BY_SCOPE: Readonly<Record<SearchScope, readonly string[]>> = {
 };
 
 const SEARCH_QUERY_EMPTY_ERROR = 'Search query has no searchable terms.';
-
-const CATEGORY_LABELS: Readonly<Record<SearchResultCategory, string>> = {
-  overview: 'Обзор',
-  'clinical-picture': 'Клиника',
-  'differential-diagnosis': 'Дифференциальный поиск',
-  diagnostics: 'Диагностика',
-  treatment: 'Лечение',
-  routing: 'Маршрутизация',
-  'follow-up': 'Наблюдение',
-  other: 'Прочее',
-};
-
-const CATEGORY_PATH_ALIASES: Readonly<Record<SearchResultCategory, readonly string[]>> = {
-  overview: ['обзор', 'определение', 'классификация', 'введение'],
-  'clinical-picture': ['клиника', 'клиническая картина', 'клинические проявления'],
-  'differential-diagnosis': ['дифференциальный', 'дифференциальная диагностика'],
-  diagnostics: ['диагностика', 'обследование'],
-  treatment: ['лечение', 'терапия'],
-  routing: ['маршрутизация', 'госпитализация', 'направление'],
-  'follow-up': ['наблюдение', 'реабилитация', 'профилактика', 'диспансеризация'],
-  other: [],
-};
-
-function normalizePathSegment(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
-function isCategoryPathSegment(category: SearchResultCategory, segment: string): boolean {
-  const normalized = normalizePathSegment(segment);
-  const label = normalizePathSegment(CATEGORY_LABELS[category]);
-  if (normalized === label || normalized.includes(label) || label.includes(normalized)) {
-    return true;
-  }
-  return CATEGORY_PATH_ALIASES[category].some(
-    (alias) => normalized === alias || normalized.includes(alias) || alias.includes(normalized),
-  );
-}
-
-function supplementalSectionPath(
-  category: SearchResultCategory,
-  sectionPath: readonly string[],
-): string | null {
-  const extra = sectionPath.filter((segment) => !isCategoryPathSegment(category, segment));
-  return extra.length > 0 ? extra.join(' / ') : null;
-}
 
 const SEARCH_MODE_LABELS: Readonly<Record<SearchResponse['modeUsed'], string>> = {
   lexical: 'FTS5',
@@ -401,6 +354,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     () => response()?.groups.reduce((total, group) => total + group.results.length, 0) ?? 0,
   );
   const visibleGroups = createMemo(() => response()?.groups ?? []);
+  const visibleIdentities = createMemo(() =>
+    (response()?.identities ?? []).filter((hit) => {
+      const target = hit.target;
+      if (target.type !== 'document') return true;
+      const local = contextDocumentsById().get(target.documentId);
+      return (
+        local?.versionId !== target.documentVersionId ||
+        local.sourceChecksum !== target.sourceChecksum ||
+        !visibleGroups().some((group) => group.documentId === target.documentId)
+      );
+    }),
+  );
 
   const calculatorSchemas = createMemo(() => {
     calculatorPacksRevision();
@@ -1251,6 +1216,20 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               </Show>
 
               <Show when={props.scope !== 'personal'}>
+                <Show when={visibleIdentities().length ? props.referenceCore : undefined}>
+                  {(referenceCore) => (
+                    <CoreIdentityMatches
+                      hits={visibleIdentities()}
+                      core={referenceCore()}
+                      onContentChanged={
+                        props.onContentChanged ??
+                        (async () => {
+                          window.dispatchEvent(new Event(CONTENT_CHANGED_EVENT));
+                        })
+                      }
+                    />
+                  )}
+                </Show>
                 <div
                   class="results-list"
                   classList={{ 'results-refreshing': loading() }}
@@ -1258,111 +1237,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                 >
                   <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400}>
                     {(group, groupIndex) => {
-                      const kind = () => RESULT_KIND_VISUALS[group.documentKind ?? 'reference'];
-                      const contentLabel = () =>
-                        group.terminologyMatch === 'term'
-                          ? 'Медицинский термин'
-                          : group.terminologyMatch === 'term-mention'
-                            ? 'Вхождение термина в источнике'
-                            : group.terminologyMatch === 'related-term'
-                              ? 'Смежное понятие MeSH — не клинический вывод'
-                              : group.contentKind === 'summary'
-                                ? 'Краткий обзор'
-                                : group.contentKind === 'pointer'
-                                  ? 'Карточка источника'
-                                  : 'Полный текст';
                       return (
-                        <section class="result-group">
-                          <button
-                            type="button"
-                            class="result-group-header"
-                            onClick={() => openDocumentInArchive(group.documentId)}
-                          >
-                            <span class="result-group-header__index" aria-hidden="true">
-                              {String(groupIndex + 1).padStart(2, '0')}
-                            </span>
-                            <span class="result-group-header__kind" aria-hidden="true">
-                              <AppGlyph name={kind().icon} class="result-group-header__kind-icon" />
-                              <span class="result-group-header__kind-label">{kind().label}</span>
-                            </span>
-                            <span class="result-group-header__body">
-                              <span class="sr-only">{kind().label}. </span>
-                              <span class="result-group-header__content-kind">
-                                {contentLabel()}
-                              </span>
-                              <strong class="result-group-header__title">
-                                <IcdText text={group.title} />
-                              </strong>
-                              <ClinicalTags
-                                title={group.title}
-                                specialties={
-                                  contextDocumentsById().get(group.documentId)?.specialties ?? []
-                                }
-                              />
-                              <span class="result-group-header__note result-minimal-note">
-                                {group.results[0]?.sectionPath.join(' / ') ??
-                                  'Релевантный источник'}
-                              </span>
-                            </span>
-                          </button>
-                          {props.groupAction?.(group)}
-                          <div class="result-group__snippets">
-                            <For
-                              each={
-                                group.documentKind === 'medication'
-                                  ? group.results.slice(0, 3)
-                                  : group.results
-                              }
-                            >
-                              {(result) => {
-                                const visual = CATEGORY_VISUALS[result.category];
-                                const pathSuffix = supplementalSectionPath(
-                                  result.category,
-                                  result.sectionPath,
-                                );
-                                return (
-                                  <article
-                                    class="result-card"
-                                    classList={{
-                                      selected: context()?.focusChunkId === result.chunkId,
-                                    }}
-                                  >
-                                    <button
-                                      class="result-open"
-                                      type="button"
-                                      data-testid="search-result"
-                                      onClick={() => void openResult(result)}
-                                    >
-                                      <span class="result-category-line">
-                                        <span
-                                          class={`result-category-icon tone-${visual.tone}`}
-                                          aria-hidden="true"
-                                        >
-                                          <ClinicalGlyph name={visual.icon} />
-                                        </span>
-                                        {/* “Прочее” names no section; the path suffix says more. */}
-                                        <Show when={result.category !== 'other'}>
-                                          <span class={`category-stamp tone-${visual.tone}`}>
-                                            {CATEGORY_LABELS[result.category]}
-                                          </span>
-                                        </Show>
-                                        <Show when={pathSuffix}>
-                                          <span class="result-path">{pathSuffix}</span>
-                                        </Show>
-                                      </span>
-                                      <p class="result-snippet">
-                                        <HighlightedText
-                                          text={result.snippet}
-                                          ranges={result.highlightedRanges}
-                                        />
-                                      </p>
-                                    </button>
-                                  </article>
-                                );
-                              }}
-                            </For>
-                          </div>
-                        </section>
+                        <SearchResultGroupCard
+                          group={group}
+                          index={groupIndex}
+                          specialties={
+                            contextDocumentsById().get(group.documentId)?.specialties ?? []
+                          }
+                          selectedChunkId={context()?.focusChunkId}
+                          action={props.groupAction?.(group)}
+                          onOpenDocument={openDocumentInArchive}
+                          onOpenResult={(result) => void openResult(result)}
+                        />
                       );
                     }}
                   </LayoutVirtualizedGrid>
@@ -1371,7 +1257,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
               <Show
                 when={
-                  !loading() && visibleGroups().length === 0 && props.scope !== 'personal'
+                  !loading() &&
+                  visibleGroups().length === 0 &&
+                  !response()?.identities?.length &&
+                  props.scope !== 'personal'
                     ? props.emptyResults
                     : undefined
                 }

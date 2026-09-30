@@ -45,5 +45,8 @@
     "@localmed/search-semantic": "workspace:*",
     "yaml": "2.9.0",
     "@localmed/storage": "workspace:*"
+  },
+  "exports": {
+    "./real-corpus": "./src/real-corpus.ts"
   }
 }

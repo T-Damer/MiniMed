@@ -1,10 +1,14 @@
-import { expect, type Locator, type Page, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN, hasLocalCompanionPack, mountBuiltApp } from './mount-built-app';
+import {
+  E2E_ASSET_ORIGIN,
+  hasLocalCompanionPack,
+  mountBuiltApp,
+} from '@localmed/app/e2e/mount-built-app';
 import {
   selectSearchSection,
   setClinicalAnalysis,
   waitForHomeSections,
-} from './select-search-section';
+} from '@localmed/app/e2e/select-search-section';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 // These assertions qualify full-corpus results on CI; latency is measured by benchmarks.
 const query = 'пневмония';
@@ -78,7 +82,7 @@ test('the help menu opens the feature tour and the search guide', async ({ page 
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   await expect(page.getByRole('button', { name: 'Показать историю поиска' })).toBeVisible();
   await page.getByRole('button', { name: 'Справка', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Что умеет MiniMed' }).click();
+  await page.getByRole('button', { name: 'Что умеет MiniMed' }).click();
   await expect(page.getByRole('dialog', { name: 'Что умеет MiniMed' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: 'Что умеет MiniMed' })).toHaveCount(0);
@@ -92,7 +96,7 @@ test('the help menu opens the feature tour and the search guide', async ({ page 
     })
     .toBe(true);
   await page.getByRole('button', { name: 'Справка', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Как работает поиск' }).click();
+  await page.getByRole('button', { name: 'Как работает поиск' }).click();
   await expect(page.getByRole('dialog', { name: 'Как работает поиск' })).toBeVisible();
 });
 
@@ -537,7 +541,7 @@ test('finds medication names in free search with the full companion', async ({ p
   await mountBuiltApp(page, { includeMedicationCompanionPack: true });
 
   await page.getByTestId('search-input').fill('цефтриаксон');
-  await expect(page.locator('.result-group').first()).toContainText(/Цефтриаксон/u, {
+  await expect(page.locator('.result-group').first()).toContainText(/цефтриаксон/iu, {
     timeout: 10_000,
   });
   await expect(
@@ -667,7 +671,8 @@ test('toggles the document outline on desktop and highlights exact reader matche
   await expect(overlay.getByText(/\d+\s*\/\s*\d+/)).toBeVisible();
 });
 
-test('renders the complete virtualized document list', async ({ page }) => {
+test('renders the complete virtualized document list', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 375, height: 812 });
   await mountBuiltApp(page);
   await page.getByTestId('search-input').fill(query);
   await page.getByTestId('search-submit').click();
@@ -675,6 +680,82 @@ test('renders the complete virtualized document list', async ({ page }) => {
   const groups = page.locator('.result-group');
   await expect.poll(() => groups.count(), { timeout: 60_000 }).toBeGreaterThan(0);
   await expect(page.getByRole('button', { name: /Показать ещё/u })).toHaveCount(0);
+  const expandable = groups.filter({ has: page.locator('.result-group__more') }).first();
+  await expect(expandable).toBeVisible();
+  const excerpts = expandable.getByTestId('search-result').filter({ visible: true });
+  await expect(excerpts).toHaveCount(1);
+  const toggle = expandable.getByRole('button', { name: /^Ещё \d+ фрагмент/u });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await expect.poll(() => excerpts.count()).toBeGreaterThan(1);
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await expect(expandable.locator('.ui-disclosure__panel')).toHaveAttribute('inert', '');
+  const kind = expandable.locator('.result-group-header__kind');
+  await expect(kind).toHaveCSS('opacity', '1');
+  await expect(kind).toHaveCSS('position', 'static');
+  for (const width of [375, 1280]) {
+    await page.setViewportSize({ width, height: 812 });
+    for (const colorScheme of ['light', 'dark'] as const) {
+      await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' });
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await expect(groups.first()).toBeVisible();
+      await page.mouse.move(0, 0);
+      await expect
+        .poll(async () =>
+          page
+            .locator(
+              '.result-group-header__title, .result-group-header__kind, .result-group-header__content-kind, .result-group-header__note, .result-snippet, .result-path, .category-stamp, .result-group__more .ui-disclosure__title, .choice-chip__label, .choice-chip__detail, .highlighted-text__match',
+            )
+            .evaluateAll((nodes) => {
+              const canvas = new OffscreenCanvas(1, 1);
+              const context = canvas.getContext('2d');
+              if (!context) throw new Error('Canvas is required to resolve CSS colors.');
+              const rgba = (color: string): number[] => {
+                context.clearRect(0, 0, 1, 1);
+                context.fillStyle = color;
+                context.fillRect(0, 0, 1, 1);
+                return [...context.getImageData(0, 0, 1, 1).data];
+              };
+              const blend = (front: number[], back: number[]): number[] =>
+                front.slice(0, 3).map((value, index) => {
+                  const alpha = (front[3] ?? 255) / 255;
+                  return value * alpha + (back[index] ?? 0) * (1 - alpha);
+                });
+              const luminance = (color: number[]): number =>
+                color.slice(0, 3).reduce((sum, value, index) => {
+                  const channel = value / 255;
+                  return (
+                    sum +
+                    (channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4) *
+                      ([0.2126, 0.7152, 0.0722][index] ?? 0)
+                  );
+                }, 0);
+              return nodes.flatMap((node) => {
+                if (!node.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }))
+                  return [];
+                const ancestors: Element[] = [];
+                for (let parent: Element | null = node; parent; parent = parent.parentElement)
+                  ancestors.unshift(parent);
+                const background = ancestors.reduce(
+                  (color, parent) => blend(rgba(getComputedStyle(parent).backgroundColor), color),
+                  [255, 255, 255],
+                );
+                const foreground = blend(rgba(getComputedStyle(node).color), background);
+                const levels = [luminance(foreground), luminance(background)].sort((a, b) => a - b);
+                const ratio = ((levels[1] ?? 0) + 0.05) / ((levels[0] ?? 0) + 0.05);
+                return ratio < 4.5 ? [{ class: node.className, ratio }] : [];
+              });
+            }),
+        )
+        .toEqual([]);
+      await page.screenshot({
+        path: testInfo.outputPath(`results-${width}-${colorScheme}.png`),
+        animations: 'disabled',
+      });
+    }
+  }
 });
 
 test('preserves the active search while navigating between mounted routes', async ({ page }) => {

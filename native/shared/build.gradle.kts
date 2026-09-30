@@ -152,7 +152,7 @@ android {
 // at the *same* released core.db `export-search-golden.ts` reads (its sha256 is recorded inside
 // search-golden.json) — golden-parity tests load the real `aliases` table from it, not a copy.
 val testResourceDir = layout.projectDirectory.dir("src/commonTest/resources").asFile.absolutePath
-val coreDbPath = rootProject.projectDir.resolve("../apps/app/public/content/core.db").absolutePath
+val coreDbPath = providers.environmentVariable("NATIVE_CORE_DB_PATH").orElse(rootProject.projectDir.resolve("../apps/app/public/content/core.db").absolutePath).get()
 
 tasks.withType<Test>().configureEach {
     systemProperty("TEST_RESOURCE_DIR", testResourceDir)
@@ -172,3 +172,9 @@ tasks.matching { it.name == "iosSimulatorArm64Test" || it.name == "iosArm64Test"
     simulatorTest?.environment("SIMCTL_CHILD_CORE_DB_PATH", coreDbPath)
 }
 
+
+// Verification output stays in the repository's ignored artifact directory on every platform.
+tasks.withType<org.gradle.api.tasks.testing.AbstractTestTask>().configureEach {
+    reports.junitXml.outputLocation.set(rootProject.layout.projectDirectory.dir("../playwright/native-test-results/$name"))
+    reports.html.outputLocation.set(rootProject.layout.projectDirectory.dir("../playwright/native-test-reports/$name"))
+}

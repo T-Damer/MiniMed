@@ -1,14 +1,14 @@
+import { createMedicalCore } from '@localmed/core';
 import type { LexicalHit, LexicalSearchRequest } from '@localmed/storage';
 import { InMemoryMedicalStore } from '@localmed/storage';
 import { CORE_SLICE_PACK } from '@localmed/test-fixtures';
 import { expect, it, vi } from 'vitest';
 
-import { createMedicalCore } from '../src/create-medical-core';
-
 class ObservedStore extends InMemoryMedicalStore {
   public aliasReads = 0;
   public searchCalls = 0;
   public maxConcurrentSearches = 0;
+  public searchRequests: LexicalSearchRequest[] = [];
   private concurrentSearches = 0;
 
   public override async listAliases() {
@@ -18,6 +18,7 @@ class ObservedStore extends InMemoryMedicalStore {
 
   public override async search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {
     this.searchCalls += 1;
+    this.searchRequests.push(request);
     this.concurrentSearches += 1;
     this.maxConcurrentSearches = Math.max(this.maxConcurrentSearches, this.concurrentSearches);
     await new Promise((resolve) => setTimeout(resolve, 5));
@@ -50,6 +51,7 @@ it('uses one lexical branch for source lookup without interpreting a clinical ca
     if (!result.ok) return;
     expect(result.value.groups.length).toBeGreaterThan(0);
     expect(store.searchCalls).toBe(1);
+    expect(store.searchRequests.every((request) => request.diversifyDocuments === true)).toBe(true);
     expect(documentReads).toHaveBeenCalledTimes(readsBeforeSearch);
     expect(result.value.analysis.facts).toEqual([]);
     expect(result.value.analysis.suggestions).toEqual([]);
@@ -113,24 +115,31 @@ it('keeps exact subject titles through the merged chunk cutoff for document rank
   }
 });
 
-it('caches aliases and runs independent lexical branches concurrently', async () => {
-  const store = new ObservedStore();
-  const core = createMedicalCore({ store, seed: CORE_SLICE_PACK, platform: 'test' });
-  await core.initialize();
+it.each([undefined, 'clinical'] as const)(
+  'caches aliases and retains bounded clinical branch context in mode %s',
+  async (analysisMode) => {
+    const store = new ObservedStore();
+    const core = createMedicalCore({ store, seed: CORE_SLICE_PACK, platform: 'test' });
+    await core.initialize();
 
-  const query = 'ребенок 3 года температура 39 кашель одышка анализ крови';
-  await core.analyzeQuery({ query, includeSuggestions: false });
-  const result = await core.search({
-    query,
-    mode: 'lexical',
-    filters: {},
-    limit: 5,
-    includeSuggestions: false,
-  });
+    const query = 'ребенок 3 года температура 39 кашель одышка анализ крови';
+    await core.analyzeQuery({ query, includeSuggestions: false });
+    const result = await core.search({
+      query,
+      mode: 'lexical',
+      analysisMode,
+      filters: {},
+      limit: 5,
+      includeSuggestions: false,
+    });
 
-  expect(result.ok).toBe(true);
-  expect(store.aliasReads).toBe(1);
-  expect(store.searchCalls).toBeGreaterThan(1);
-  expect(store.maxConcurrentSearches).toBeGreaterThan(1);
-  await core.close();
-});
+    expect(result.ok).toBe(true);
+    expect(store.aliasReads).toBe(1);
+    expect(store.searchCalls).toBeGreaterThan(1);
+    expect(store.maxConcurrentSearches).toBeGreaterThan(1);
+    expect(store.searchRequests.every((request) => request.diversifyDocuments === false)).toBe(
+      true,
+    );
+    await core.close();
+  },
+);

@@ -11,6 +11,7 @@ from typer.testing import CliRunner
 from localmed_ingest.builder import build_content_pack
 from localmed_ingest.catalog_module_builder import build_core_reference_pointers
 from localmed_ingest.cli import app
+from localmed_ingest.core_knowledge import project_core_knowledge
 
 
 def _write_reference_database(path: Path, *, malformed_metadata: bool = False) -> None:
@@ -310,6 +311,113 @@ def test_builds_compact_reference_pointers_with_classification_and_routing(tmp_p
         path.relative_to(output): path.read_bytes() for path in output.rglob("*") if path.is_file()
     }
     assert first_output == second_output
+
+
+def test_global_alias_expansions_are_preserved_without_article_identity_claims(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "reference.db"
+    output = tmp_path / "pointers"
+    _write_reference_database(source)
+    build_core_reference_pointers(
+        source,
+        output,
+        module_id="minimed.mkb.ru",
+        module_title="МКБ и справочные материалы",
+        version="2026.09.30",
+        built_at="2026-09-30T00:00:00Z",
+    )
+    module_dir = output / "minimed.mkb.ru"
+    inventory = yaml.safe_load((module_dir / "aliases.yaml").read_text(encoding="utf-8"))["aliases"]
+    assert [
+        (item["canonicalTerm"], item["category"], item["weight"])
+        for item in inventory
+        if item["alias"] == "Эпистаксис"
+    ] == [
+        ("Атопический дерматит", "diagnosis", 1.0),
+        ("R04.0 Носовое кровотечение, МКБ-10", "diagnosis", 1.0),
+    ]
+    for file in module_dir.glob("*.md"):
+        _, raw_front, body = file.read_text(encoding="utf-8").split("---", 2)
+        metadata = yaml.safe_load(raw_front)["metadata"]
+        assert "declaredAliases" not in metadata
+        assert "sourceAliases" not in metadata
+        assert "# Синонимы" not in body
+        assert "Эпистаксис" not in body
+        if metadata["targetDocumentId"] == "krasotaimedicina.disease.test":
+            assert metadata["globalQueryAliases"] == [
+                {
+                    "sourceAliasId": "alias.r04",
+                    "canonicalTerm": "R04.0",
+                    "alias": "Эпистаксис",
+                    "category": "diagnosis",
+                    "weight": 1.0,
+                    "sourceKind": "global-query-expansion",
+                }
+            ]
+            assert "Атопический дерматит — краткое определение." in body
+            assert metadata["canonicalDefinition"]["sourceAnchor"] == (
+                "krasotaimedicina.disease.test/summary#chunk"
+            )
+
+    database = tmp_path / "built.db"
+    build_content_pack(module_dir, database, include_embeddings=False)
+    with sqlite3.connect(database) as connection:
+        actual = connection.execute(
+            "SELECT id, canonical_term, alias, category, weight FROM aliases ORDER BY id"
+        ).fetchall()
+        assert actual == [
+            (item["id"], item["canonicalTerm"], item["alias"], item["category"], item["weight"])
+            for item in inventory
+        ]
+        assert connection.execute(
+            "SELECT COUNT(*) FROM chunks WHERE instr(original_text, 'Эпистаксис') > 0"
+        ).fetchone() == (0,)
+        project_core_knowledge(connection)
+        assert connection.execute(
+            "SELECT COUNT(*) FROM knowledge_names WHERE name = 'Эпистаксис'"
+        ).fetchone() == (0,)
+        assert connection.execute(
+            "SELECT COUNT(*) FROM aliases WHERE alias = 'Эпистаксис'"
+        ).fetchone() == (2,)
+
+
+def test_reference_routes_require_exact_target_membership(tmp_path: Path) -> None:
+    source = tmp_path / "reference.db"
+    output = tmp_path / "pointers"
+    _write_reference_database(source)
+    with sqlite3.connect(source) as connection:
+        targets = {
+            row[0]: [
+                "minimed.reference.krasotaimedicina.ru"
+                if row[0].startswith("krasotaimedicina.")
+                else "minimed.mkb.ru"
+            ]
+            for row in connection.execute("SELECT id FROM documents")
+        }
+    with pytest.raises(ValueError, match="not assigned to a catalog module"):
+        build_core_reference_pointers(
+            source,
+            output,
+            target_modules={},
+            module_id="minimed.core.reference.ru",
+            module_title="Указатели",
+            version="2026.09.30",
+        )
+    assert not output.exists()
+    build_core_reference_pointers(
+        source,
+        output,
+        target_modules=targets,
+        module_id="minimed.core.reference.ru",
+        module_title="Указатели",
+        version="2026.09.30",
+    )
+    for file in (output / "minimed.core.reference.ru").glob("*.md"):
+        front = yaml.safe_load(file.read_text(encoding="utf-8").split("---", 2)[1])
+        metadata = front["metadata"]
+        assert metadata["moduleIds"] == targets[metadata["targetDocumentId"]]
+        assert metadata["primaryModuleId"] == metadata["moduleIds"][0]
 
 
 def test_build_core_reference_pointers_command_and_boundary_validation(tmp_path: Path) -> None:

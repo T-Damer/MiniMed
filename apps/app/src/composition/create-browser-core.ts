@@ -50,8 +50,8 @@ const OPFS_PACK_FETCH_TIMEOUT_MS = 180_000;
 // Android downloads a separately published encoding of the same corpus. Its checksum belongs
 // to this immutable URL, not to the browser bundle's SQLite page layout.
 export const ANDROID_CORE_DOWNLOAD = {
-  url: 'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/content-2026-09-06/core.db',
-  checksum: 'sha256:0b2d0705af4108b4c6d84f2ce5ee627b9e5978858dc03ddc2d0f16d677571e25',
+  url: 'https://github.com/T-Damer/MiniMed/releases/download/core-0.6.45/MiniMed-0.6.45-core.db',
+  checksum: 'sha256:13f238f7fefe1b19eefa19ac9de0ea89fabff34ed96e98d987277f15ab03025f',
 } as const;
 const SQLITE_HEADER = new TextEncoder().encode('SQLite format 3\u0000');
 // sqlite-wasm deserializes the whole file into the WASM heap. Local-dev companions such as

@@ -1,27 +1,25 @@
 package dev.localmed.nativespike.shared.lexical
 
 import dev.localmed.nativespike.shared.db.NativeSearchDatabase
+import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.RankedResult
+import dev.localmed.nativespike.shared.text.buildQueryAlignedSnippet
 
-/**
- * A Kotlin port of `buildExactIdentityResults`/`exactIdentityResult` (create-medical-core.ts) —
- * documents an exact title/navigation-alias/short-title (or, for a medication-spelling suggestion,
- * exact identity) match names, added to results even when no branch's own FTS search surfaced them.
- *
- * Simplified relative to the TS source: `exactIdentityResult` hardcodes `score: 1` (and
- * `bestLexicalScore: 1`) regardless of *which* chunk backs the result — so the TS source's first
- * attempt (re-running each base branch's `ftsQuery` restricted to just the missing document ids, to
- * find a chunk that actually matches the search terms) and its fallback (the document's first
- * non-blank chunk, read directly) produce the *same* `finalScore` either way; only the displayed
- * snippet/section would differ, which this port doesn't keep (see `Fusion.kt`'s header on why
- * `snippet` is dropped entirely). This port therefore always uses the fallback path
- * (`NativeSearchDatabase.firstReadableChunk`) — same `finalScore`, `documentId`, `sectionType` (and
- * therefore same `bestScore`/grouping/`documentKind` behavior downstream), fewer SQL round trips.
- */
-fun buildExactIdentityResults(db: NativeSearchDatabase, documentIds: Set<String>, terms: List<String>): List<RankedResult> {
+/** Exact identities first use query-matching passages, then the first readable section. */
+fun buildExactIdentityResults(db: NativeSearchDatabase, documentIds: Set<String>, terms: List<String>, ftsQueries: List<String>): List<RankedResult> {
     if (documentIds.isEmpty()) return emptyList()
+    val found = linkedMapOf<String, HydratedHit>()
+    for (ftsQuery in ftsQueries) {
+        val remaining = documentIds - found.keys
+        if (remaining.isEmpty()) break
+        val hits = db.searchBranch(ftsQuery, minOf(500, remaining.size * 8), remaining.toList())
+        val hydrated = db.hydrateHits(hits.map { it.chunkId }).associateBy { it.chunkId }
+        for (hit in hits) hydrated[hit.chunkId]?.let { if (it.documentId !in found) found[it.documentId] = it }
+    }
     return documentIds.mapNotNull { documentId ->
-        val hit = db.firstReadableChunk(documentId) ?: return@mapNotNull null
+        val hit = found[documentId] ?: db.firstReadableChunk(documentId) ?: return@mapNotNull null
+        val matches = matchedTerms(hit, terms)
+        val excerpt = buildQueryAlignedSnippet(hit.originalText, matches.ifEmpty { terms })
         RankedResult(
             chunkId = hit.chunkId,
             documentId = hit.documentId,
@@ -30,11 +28,13 @@ fun buildExactIdentityResults(db: NativeSearchDatabase, documentIds: Set<String>
             sectionType = hit.sectionType,
             category = resultCategory(hit.sectionType),
             sectionPath = hit.sectionPath,
-            matchedTerms = matchedTerms(hit, terms),
+            matchedTerms = matches,
             finalScore = 1.0,
             anchor = hit.anchor,
             sectionId = hit.sectionId,
-            previewText = previewText(hit.originalText),
+            documentVersionId = hit.documentVersionId,
+            snippet = excerpt.text,
+            highlightedRanges = excerpt.ranges,
         )
     }
 }

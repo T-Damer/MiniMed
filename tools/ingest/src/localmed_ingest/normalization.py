@@ -113,8 +113,7 @@ def light_stem_russian(token: str) -> str:
 
 
 def normalize_for_index(value: str) -> str:
-    forms: dict[str, None] = {}
-    for token in tokenize(normalize_surface_text(value)):
-        forms[token] = None
-        forms[light_stem_russian(token)] = None
-    return " ".join(forms)
+    tokens = tokenize(normalize_surface_text(value))
+    surface_forms = set(tokens)
+    stems = dict.fromkeys(light_stem_russian(token) for token in tokens)
+    return " ".join([*tokens, *(stem for stem in stems if stem not in surface_forms)])

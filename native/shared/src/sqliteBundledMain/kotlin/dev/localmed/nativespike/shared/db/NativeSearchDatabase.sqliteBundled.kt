@@ -139,27 +139,38 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
         }
     }
 
-    actual fun searchBranch(ftsQuery: String, limit: Int): List<BranchHit> {
-        // Mirrors SqliteMedicalStore.search()/CapacitorMedicalStore.search()'s bm25-ranking phase
-        // exactly (same weight vector, same rowid-window query). No filters/hydration join here —
-        // see lexical/SearchExecution.kt's header for why that second phase isn't needed for this
-        // spike's parity target.
+    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>): List<BranchHit> {
+        val candidateLimit = minOf(500, limit)
+        val documentFilter = if (documentIds.isEmpty()) "" else
+            " AND chunks_fts.document_id IN (${documentIds.joinToString(",") { "?" }})"
         val sql = """
-            SELECT chunks_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank
+            SELECT chunk_id, bm25_rank
             FROM (
-                SELECT chunks_fts.rowid AS fts_rowid,
-                    bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
-                FROM chunks_fts
-                WHERE chunks_fts MATCH ?
-                ORDER BY bm25_rank
-                LIMIT ?
-            ) ranked
-            JOIN chunks_fts ON chunks_fts.rowid = ranked.fts_rowid
-            ORDER BY ranked.bm25_rank
+                SELECT window_fts.chunk_id AS chunk_id, ranked.bm25_rank AS bm25_rank,
+                    row_number() OVER (
+                        PARTITION BY window_fts.document_version_id ORDER BY ranked.bm25_rank
+                    ) AS document_order
+                FROM (
+                    SELECT chunks_fts.rowid AS fts_rowid,
+                        bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
+                    FROM chunks_fts
+                    WHERE chunks_fts MATCH ?$documentFilter
+                    ORDER BY bm25_rank
+                    LIMIT ?
+                ) ranked
+                JOIN chunks_fts window_fts ON window_fts.rowid = ranked.fts_rowid
+            )
+            WHERE document_order <= ?
+            ORDER BY bm25_rank
+            LIMIT ?
         """.trimIndent()
         return requireConnection().prepare(sql).use { statement ->
             statement.bindText(1, ftsQuery)
-            statement.bindLong(2, limit.toLong())
+            documentIds.forEachIndexed { index, id -> statement.bindText(index + 2, id) }
+            val bound = documentIds.size + 2
+            statement.bindLong(bound, (candidateLimit * 4).toLong())
+            statement.bindLong(bound + 1, 3)
+            statement.bindLong(bound + 2, candidateLimit.toLong())
             val results = mutableListOf<BranchHit>()
             while (statement.step()) {
                 val rawRank = statement.getDouble(1)

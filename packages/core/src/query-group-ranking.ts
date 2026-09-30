@@ -221,11 +221,38 @@ function exactTitleMatchBoost(query: string, title: string): number {
   return headedByQuery ? 4.5 : 3.5;
 }
 
+const PATIENT_CONTEXT_STEMS = new Set(
+  [
+    'ребенок',
+    'ребенк',
+    'дети',
+    'детский',
+    'взрослый',
+    'мужчина',
+    'женщина',
+    'мужской',
+    'женский',
+  ].map(stemToken),
+);
+
+const CHILD_POPULATION_STEMS = new Set(
+  ['ребенок', 'ребенк', 'дети', 'детей', 'детям', 'детьми', 'детях', 'детский'].map(stemToken),
+);
+const ADULT_POPULATION_STEMS = new Set(
+  ['взрослый', 'взрослых', 'взрослым', 'взрослыми', 'взрослые'].map(stemToken),
+);
+
+function explicitAgePopulation(text: string): 'child' | 'adult' | undefined {
+  const stems = tokenize(text).map(stemToken);
+  const child = stems.some((stem) => CHILD_POPULATION_STEMS.has(stem));
+  const adult = stems.some((stem) => ADULT_POPULATION_STEMS.has(stem));
+  return child === adult ? undefined : child ? 'child' : 'adult';
+}
+
 const TITLE_CONTEXT_STEMS = new Set(
   [
     ...[...GENERIC_QUERY_TERMS],
-    'детский',
-    'ребенк',
+    ...PATIENT_CONTEXT_STEMS,
     'вес',
     'год',
     'лет',
@@ -575,6 +602,26 @@ export function rankSearchGroupsByQuery(
   const phrase = normalizeSurfaceText(query);
   const hasSourcePhrase = tokenize(phrase).length >= (subjectSearch ? 2 : 3);
   const candidateTerms = groups.map((group) => new Set(tokenize(groupRankingText(group))));
+  // Lookup has no clinical intent/facts. A population named in the source title is evidence of
+  // scope; broad aliases and mentions of children in an adult excerpt do not change that scope.
+  const queryPopulation =
+    !analysis || (!analysis.intent && analysis.facts.length === 0 && !analysis.clinicalContext)
+      ? explicitAgePopulation(originalQuery)
+      : undefined;
+  const subjectTerms =
+    clinicalNarrative ||
+    failedTreatmentTerms.size > 0 ||
+    (!queryPopulation &&
+      !tokenize(positiveQuery).some((term) => PATIENT_CONTEXT_STEMS.has(stemToken(term))))
+      ? []
+      : tokenize(positiveQuery).filter(
+          (term) =>
+            isTitleQueryTerm(term) &&
+            !isFormOrStrengthToken(term) &&
+            (!queryPopulation ||
+              (!CHILD_POPULATION_STEMS.has(stemToken(term)) &&
+                !ADULT_POPULATION_STEMS.has(stemToken(term)))),
+        );
   const findingWords =
     positiveFindings.length > 0
       ? groups.map((group) =>
@@ -598,51 +645,69 @@ export function rankSearchGroupsByQuery(
       : [];
   const documentsById = new Map(documents.map((document) => [document.id, document]));
   return groups
-    .map((group, index) => ({
-      group,
-      index,
-      exactTitle: matchesExactDocumentTitle(query, group),
-      exactAlias: matchesNavigationAlias(query, documentsById.get(group.documentId)),
-      positiveFindingCoverage:
-        positiveFindings.length === 0
-          ? 0
-          : positiveFindings.filter((variants) =>
-              variants.some((terms) =>
-                terms.every((term) =>
-                  (findingWords[index] ?? []).some((word) => tokensMatch(term, word)),
-                ),
-              ),
-            ).length / positiveFindings.length,
-      sourcePhrase:
-        hasSourcePhrase &&
-        ((subjectSearch &&
-          findNormalizedPhraseIndex(normalizeSurfaceText(group.title), phrase) >= 0) ||
-          group.results.some((result) => normalizeSurfaceText(result.snippet).includes(phrase))),
-      clinicalEvidenceCoverage: clinicalEvidenceCoverages[index] ?? 0,
-      failedTreatmentContextCoverage: failedTreatmentContextCoverage(
-        failedTreatmentTerms,
+    .map((group, index) => {
+      const subjectMatch =
+        subjectTerms.length > 0 &&
+        tokenize([group.title, ...group.results.map((result) => result.snippet)].join(' ')).some(
+          (word) => subjectTerms.some((term) => tokensMatch(term, word)),
+        );
+      const sourcePopulation = queryPopulation ? explicitAgePopulation(group.title) : undefined;
+      return {
         group,
-        documentsById.get(group.documentId),
-      ),
-      score:
-        group.bestScore +
-        8 * (clinicalEvidenceCoverages[index] ?? 0) +
-        queryGroupRelevanceBoost(positiveQuery, groupRankingText(group)) +
-        // Drug-name title boosts must not outweigh legal references and subject sections.
-        (documentsById.get(group.documentId)?.sourceType === 'regulatory_act_summary' ||
-        documentsById.get(group.documentId)?.metadata?.['notLegalAdvice'] === true
-          ? 0
-          : titleTermBoost(positiveQuery, group.title, candidateTerms, failedTreatmentTerms)) +
-        exactTitleMatchBoost(positiveQuery, group.title) +
-        (clinicalNarrative || !namedMedication
-          ? 0
-          : medicationDocumentBoost(query, documentsById.get(group.documentId), group.title)),
-    }))
+        index,
+        exactTitle: matchesExactDocumentTitle(query, group),
+        exactAlias: matchesNavigationAlias(query, documentsById.get(group.documentId)),
+        subjectMatch,
+        // Unspecified/combined source ages stay compatible; an unrelated title never gains a tier.
+        populationRank:
+          !queryPopulation || !subjectMatch
+            ? 0
+            : sourcePopulation && sourcePopulation !== queryPopulation
+              ? 1
+              : 2,
+        positiveFindingCoverage:
+          positiveFindings.length === 0
+            ? 0
+            : positiveFindings.filter((variants) =>
+                variants.some((terms) =>
+                  terms.every((term) =>
+                    (findingWords[index] ?? []).some((word) => tokensMatch(term, word)),
+                  ),
+                ),
+              ).length / positiveFindings.length,
+        sourcePhrase:
+          hasSourcePhrase &&
+          ((subjectSearch &&
+            findNormalizedPhraseIndex(normalizeSurfaceText(group.title), phrase) >= 0) ||
+            group.results.some((result) => normalizeSurfaceText(result.snippet).includes(phrase))),
+        clinicalEvidenceCoverage: clinicalEvidenceCoverages[index] ?? 0,
+        failedTreatmentContextCoverage: failedTreatmentContextCoverage(
+          failedTreatmentTerms,
+          group,
+          documentsById.get(group.documentId),
+        ),
+        score:
+          group.bestScore +
+          8 * (clinicalEvidenceCoverages[index] ?? 0) +
+          queryGroupRelevanceBoost(positiveQuery, groupRankingText(group)) +
+          // Drug-name title boosts must not outweigh legal references and subject sections.
+          (documentsById.get(group.documentId)?.sourceType === 'regulatory_act_summary' ||
+          documentsById.get(group.documentId)?.metadata?.['notLegalAdvice'] === true
+            ? 0
+            : titleTermBoost(positiveQuery, group.title, candidateTerms, failedTreatmentTerms)) +
+          exactTitleMatchBoost(positiveQuery, group.title) +
+          (clinicalNarrative || !namedMedication
+            ? 0
+            : medicationDocumentBoost(query, documentsById.get(group.documentId), group.title)),
+      };
+    })
     .toSorted(
       (left, right) =>
         Number(right.exactTitle) - Number(left.exactTitle) ||
         Number(right.exactAlias) - Number(left.exactAlias) ||
+        right.populationRank - left.populationRank ||
         Number(right.sourcePhrase) - Number(left.sourcePhrase) ||
+        Number(right.subjectMatch) - Number(left.subjectMatch) ||
         coverageTier(right.positiveFindingCoverage) - coverageTier(left.positiveFindingCoverage) ||
         coverageTier(right.failedTreatmentContextCoverage) -
           coverageTier(left.failedTreatmentContextCoverage) ||

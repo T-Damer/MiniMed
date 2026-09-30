@@ -101,6 +101,18 @@ const reportPath = resolve(buildDir, 'core-build-report.json');
 const SCHEMA_VERSION = 2;
 const VERSION = process.env.CORE_BUILD_VERSION ?? '0.7.0-dev';
 const BUILT_AT = process.env.CORE_BUILT_AT ?? new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+const identityInputs = {
+  identityCatalog: resolve(root, 'apps/app/src/features/modules/catalog.preview.json'),
+  identityDefinitions: resolve(
+    buildDir,
+    'definition-reference/2026.9.30/minimed.definition.reference.2026.9.30.db.gz',
+  ),
+  identityDocuments: ['reference', 'regulatory', 'ambulatory'].map((name) =>
+    resolve(root, `apps/app/public/content/${name}.db`),
+  ),
+  identityBuilder: resolve(root, 'tools/ingest/src/localmed_ingest/core_identity_index.py'),
+  identityMigration: resolve(root, 'schema/sql/011_core_identities.sql'),
+};
 
 const args = process.argv.slice(2);
 const force = args.includes('--force');
@@ -191,6 +203,34 @@ function run(command, commandArgs, { label }) {
   if (result.status !== 0) {
     throw new Error(`${label} failed (exit ${result.status}) after ${wallMs}ms`);
   }
+  return wallMs;
+}
+
+async function addCoreIdentities(database, editionManifest) {
+  const wallMs = run(
+    'uv',
+    [
+      'run',
+      '--project',
+      'tools/ingest',
+      'python',
+      '-m',
+      'localmed_ingest.core_identity_index',
+      '--core',
+      database,
+      '--catalog',
+      identityInputs.identityCatalog,
+      '--definitions',
+      identityInputs.identityDefinitions,
+      ...identityInputs.identityDocuments.flatMap((path) => ['--document-source', path]),
+      '--report',
+      `${database}.identity-report.json`,
+    ],
+    { label: 'index exact source names without adding clinical FTS rows' },
+  );
+  const manifest = JSON.parse(await readFile(editionManifest, 'utf8'));
+  manifest.databaseSha256 = await hashPath(database);
+  await writeFile(editionManifest, `${JSON.stringify(manifest, null, 2)}\n`);
   return wallMs;
 }
 
@@ -289,7 +329,13 @@ function catalogPointerTrack(family, ledgerFile, deps = []) {
       name: `catalog-pointers-${family}-build`,
       deps: [`catalog-pointers-${family}`],
       async inputs() {
-        return { pointerDir };
+        return {
+          pointerDir,
+          compiler: resolve(root, 'tools/ingest/src/localmed_ingest/builder.py'),
+          parser: resolve(root, 'tools/ingest/src/localmed_ingest/markdown_parser.py'),
+          normalization: resolve(root, 'tools/ingest/src/localmed_ingest/normalization.py'),
+          settings: { lexicalOnly: true },
+        };
       },
       async outputs() {
         return [dbPath];
@@ -312,6 +358,7 @@ function catalogPointerTrack(family, ledgerFile, deps = []) {
             `data/build/core-catalog-pointers-${family}.db`,
             '--report',
             `data/build/core-catalog-pointers-${family}-report.json`,
+            '--lexical-only',
           ],
           { label: `compile ${family} catalog pointer markdown into SQLite` },
         );
@@ -681,12 +728,45 @@ const stages = [
     name: 'reference-pointers',
     deps: ['compose-reference'],
     async inputs() {
-      return { merged: resolve(buildDir, 'core-reference-merged.db') };
+      return {
+        merged: resolve(buildDir, 'core-reference-merged.db'),
+        catalog: resolve(root, 'apps/app/src/features/modules/catalog.preview.json'),
+        builder: resolve(root, 'tools/ingest/src/localmed_ingest/catalog_module_builder.py'),
+      };
     },
     async outputs() {
       return [resolve(buildDir, 'core-reference-pointers')];
     },
     async execute() {
+      const { ContentModuleCatalogSchema } = await import('@localmed/contracts');
+      const catalog = ContentModuleCatalogSchema.parse(
+        JSON.parse(
+          await readFile(
+            resolve(root, 'apps/app/src/features/modules/catalog.preview.json'),
+            'utf8',
+          ),
+        ),
+      );
+      /** @type {Record<string, string[]>} */
+      const targetModules = {};
+      for (const module of catalog.modules) {
+        if (!['minimed.mkb.ru', 'minimed.reference.krasotaimedicina.ru'].includes(module.id))
+          continue;
+        if (
+          !['published', 'preview'].includes(module.releaseState) ||
+          !module.artifacts.some((artifact) => artifact.kind === 'index' && artifact.required)
+        ) {
+          throw new Error(`Reference module ${module.id} has no released index artifact.`);
+        }
+        for (const document of module.documents) {
+          targetModules[document.documentId] ??= [];
+          targetModules[document.documentId].push(module.id);
+        }
+      }
+      await writeFile(
+        resolve(buildDir, 'core-reference-target-modules.json'),
+        JSON.stringify(targetModules),
+      );
       return run(
         'uv',
         [
@@ -701,6 +781,8 @@ const stages = [
           'data/build/core-reference-pointers',
           '--module-id',
           'minimed.core.reference.ru',
+          '--target-modules',
+          'data/build/core-reference-target-modules.json',
           '--module-title',
           'Указатель МКБ-10 / клинических источников',
           '--version',
@@ -717,7 +799,13 @@ const stages = [
     name: 'pointers-build',
     deps: ['reference-pointers'],
     async inputs() {
-      return { pointerRoot: resolve(buildDir, 'core-reference-pointers') };
+      return {
+        pointerRoot: resolve(buildDir, 'core-reference-pointers'),
+        compiler: resolve(root, 'tools/ingest/src/localmed_ingest/builder.py'),
+        parser: resolve(root, 'tools/ingest/src/localmed_ingest/markdown_parser.py'),
+        normalization: resolve(root, 'tools/ingest/src/localmed_ingest/normalization.py'),
+        settings: { lexicalOnly: true },
+      };
     },
     async outputs() {
       return [resolve(buildDir, 'core-pointers-base.db')];
@@ -741,6 +829,7 @@ const stages = [
           'data/build/core-pointers-base.db',
           '--report',
           'data/build/core-pointers-base-report.json',
+          '--lexical-only',
         ],
         { label: 'compile pointer markdown into SQLite' },
       );
@@ -750,13 +839,29 @@ const stages = [
     name: 'public-pilot-build',
     deps: [],
     async inputs() {
-      return { pilotRoot };
+      return {
+        pilotRoot,
+        compiler: resolve(root, 'tools/ingest/src/localmed_ingest/builder.py'),
+        parser: resolve(root, 'tools/ingest/src/localmed_ingest/markdown_parser.py'),
+        normalization: resolve(root, 'tools/ingest/src/localmed_ingest/normalization.py'),
+        issuedIdentities: resolve(
+          root,
+          'tools/ingest/src/localmed_ingest/registry_identity_migration_012.py',
+        ),
+        registryClarification: resolve(
+          root,
+          'tools/ingest/src/localmed_ingest/registry_copy_migration_007.py',
+        ),
+      };
     },
     async outputs() {
-      return [resolve(buildDir, 'rf-public-pilot.db')];
+      return [
+        resolve(buildDir, 'rf-public-pilot.db'),
+        resolve(buildDir, 'registry-identities-012-report.json'),
+      ];
     },
     async execute() {
-      return run(
+      const buildMs = run(
         'uv',
         [
           'run',
@@ -772,6 +877,27 @@ const stages = [
           'data/build/rf-public-pilot-report.json',
         ],
         { label: 'build the 15-document public pilot pack (content:build:pilot)' },
+      );
+      return (
+        buildMs +
+        run(
+          'uv',
+          [
+            'run',
+            '--project',
+            'tools/ingest',
+            'python',
+            '-m',
+            'localmed_ingest.registry_identity_migration_012',
+            '--candidate-database',
+            'data/build/rf-public-pilot.db',
+            '--prepared',
+            'content/pilot-rf',
+            '--report',
+            'data/build/registry-identities-012-report.json',
+          ],
+          { label: 'restore the eight issued registry paragraph identities (migration 012)' },
+        )
       );
     },
   },
@@ -821,6 +947,79 @@ const stages = [
     },
   },
   {
+    name: 'medication-alias-pack',
+    deps: ['medication-pointers-pinned'],
+    async inputs() {
+      return {
+        pointers: resolve(buildDir, 'core-medication-pointers-pinned.db'),
+        allmed: resolve(root, 'apps/app/public/content/medications.db'),
+        grls: resolve(buildDir, 'official-grls-coverage-ledger.json'),
+        generator: resolve(root, 'tools/ingest/src/localmed_ingest/medication_aliases.py'),
+        builder: resolve(root, 'tools/ingest/scripts/build_pilot_vocabulary_pack.py'),
+        settings: { version: VERSION, schemaVersion: SCHEMA_VERSION },
+      };
+    },
+    async outputs() {
+      return [
+        resolve(buildDir, 'medication-source-aliases.yaml'),
+        resolve(buildDir, 'medication-source-aliases-report.json'),
+        resolve(buildDir, 'medication-source-aliases.db'),
+      ];
+    },
+    async execute() {
+      const projectionMs = run(
+        'uv',
+        [
+          'run',
+          '--project',
+          'tools/ingest',
+          'python',
+          '-m',
+          'localmed_ingest.medication_aliases',
+          '--core',
+          'data/build/core-medication-pointers-pinned.db',
+          '--allmed',
+          'apps/app/public/content/medications.db',
+          '--grls',
+          'data/build/official-grls-coverage-ledger.json',
+          '--output',
+          'data/build/medication-source-aliases.yaml',
+          '--report',
+          'data/build/medication-source-aliases-report.json',
+        ],
+        { label: 'project source-listed medicine names onto exact existing INN pointers' },
+      );
+      return (
+        projectionMs +
+        run(
+          'uv',
+          [
+            'run',
+            '--project',
+            'tools/ingest',
+            'python',
+            'tools/ingest/scripts/build_pilot_vocabulary_pack.py',
+            '--aliases',
+            'data/build/medication-source-aliases.yaml',
+            '--output',
+            'data/build/medication-source-aliases.db',
+            '--report',
+            'data/build/medication-source-aliases-pack-report.json',
+            '--edition-id',
+            'minimed.core.medication.source-aliases',
+            '--edition-version',
+            VERSION,
+            '--title',
+            'Поисковые имена лекарств из исходных каталогов',
+            '--built-at',
+            BUILT_AT,
+          ],
+          { label: 'build the medicine alias-only compose input without adding FTS documents' },
+        )
+      );
+    },
+  },
+  {
     name: 'finalize',
     deps: [
       'pointers-build',
@@ -828,6 +1027,7 @@ const stages = [
       'medication-pointers-pinned',
       'public-pilot-build',
       'pilot-vocabulary-pack',
+      'medication-alias-pack',
     ],
     async inputs() {
       return {
@@ -836,13 +1036,19 @@ const stages = [
         medication: resolve(buildDir, 'core-medication-pointers-pinned.db'),
         pilot: resolve(buildDir, 'rf-public-pilot.db'),
         vocabulary: resolve(buildDir, 'pilot-vocabulary.db'),
+        medicationAliases: resolve(buildDir, 'medication-source-aliases.db'),
+        ...identityInputs,
       };
     },
     async outputs() {
-      return [resolve(buildDir, `core.${VERSION}.db`)];
+      return [
+        resolve(buildDir, `core.${VERSION}.db`),
+        resolve(buildDir, `core.${VERSION}.manifest.json`),
+        resolve(buildDir, `core.${VERSION}.db.identity-report.json`),
+      ];
     },
     async execute() {
-      return run(
+      const wallMs = run(
         'uv',
         [
           'run',
@@ -860,6 +1066,8 @@ const stages = [
           'data/build/rf-public-pilot.db',
           '--input',
           'data/build/pilot-vocabulary.db',
+          '--input',
+          'data/build/medication-source-aliases.db',
           '--output',
           `data/build/core.${VERSION}.db`,
           '--edition-manifest',
@@ -881,6 +1089,13 @@ const stages = [
             'finalize layout (16 KiB pages, external-content FTS -- docs/research/core-db-size-2026-09-24.md) and VACUUM',
         },
       );
+      return (
+        wallMs +
+        (await addCoreIdentities(
+          resolve(buildDir, `core.${VERSION}.db`),
+          resolve(buildDir, `core.${VERSION}.manifest.json`),
+        ))
+      );
     },
   },
   {
@@ -892,7 +1107,13 @@ const stages = [
     name: 'public-pilot-clean-build',
     deps: [],
     async inputs() {
-      return { pilotRoot, dropOrs };
+      return {
+        pilotRoot,
+        dropOrs,
+        compiler: resolve(root, 'tools/ingest/src/localmed_ingest/builder.py'),
+        parser: resolve(root, 'tools/ingest/src/localmed_ingest/markdown_parser.py'),
+        normalization: resolve(root, 'tools/ingest/src/localmed_ingest/normalization.py'),
+      };
     },
     async outputs() {
       return keptPilotFiles().length ? [resolve(buildDir, 'rf-public-pilot-clean.db')] : [];
@@ -942,11 +1163,17 @@ const stages = [
         medication: resolve(buildDir, 'core-medication-pointers-pinned.db'),
         cleanPilot: keptPilotFiles().length ? resolve(buildDir, 'rf-public-pilot-clean.db') : null,
         vocabulary: resolve(buildDir, 'pilot-vocabulary.db'),
+        medicationAliases: resolve(buildDir, 'medication-source-aliases.db'),
         dropOrs,
+        ...identityInputs,
       };
     },
     async outputs() {
-      return [resolve(buildDir, `core.${VERSION}.no-pilot.db`)];
+      return [
+        resolve(buildDir, `core.${VERSION}.no-pilot.db`),
+        resolve(buildDir, `core.${VERSION}.no-pilot.manifest.json`),
+        resolve(buildDir, `core.${VERSION}.no-pilot.db.identity-report.json`),
+      ];
     },
     async execute() {
       const composeArgs = [
@@ -963,6 +1190,8 @@ const stages = [
         'data/build/core-medication-pointers-pinned.db',
         '--input',
         'data/build/pilot-vocabulary.db',
+        '--input',
+        'data/build/medication-source-aliases.db',
       ];
       if (keptPilotFiles().length) {
         composeArgs.push('--input', 'data/build/rf-public-pilot-clean.db');
@@ -984,9 +1213,16 @@ const stages = [
         String(SCHEMA_VERSION),
         '--compact',
       );
-      return run('uv', composeArgs, {
+      const wallMs = run('uv', composeArgs, {
         label: 'finalize layout without the 14-or-15 public-pilot documents',
       });
+      return (
+        wallMs +
+        (await addCoreIdentities(
+          resolve(buildDir, `core.${VERSION}.no-pilot.db`),
+          resolve(buildDir, `core.${VERSION}.no-pilot.manifest.json`),
+        ))
+      );
     },
   },
   {

@@ -85,6 +85,7 @@ export function EcgPhotoCaliper(): JSX.Element {
         open={open()}
         title={TITLES[editor.step() - 1] ?? TITLES[0]}
         class="ecg-editor"
+        presentation="screen"
         headerClass="ecg-editor__header"
         bodyClass="ecg-editor__body"
         onClose={() => setOpen(false)}

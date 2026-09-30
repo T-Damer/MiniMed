@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { buildOfficialDocumentHash } from '@/state/document-route';
+import {
+  buildOfficialDocumentHash,
+  type ExactDocumentIdentity,
+  parseDocumentReadRoute,
+} from '@/state/document-route';
 import {
   appendDocumentCrumb,
   beginDocumentTrail,
@@ -54,6 +58,24 @@ describe('document-trail', () => {
     expect(originLabelForView('modules', '#/modules/documents/user/user-doc-1')).toBe(
       'Ваши документы',
     );
+  });
+
+  it('rebuilds and persists exact-source crumbs from a copied or reloaded route', () => {
+    const expectedIdentity: ExactDocumentIdentity = {
+      type: 'document',
+      moduleId: 'module',
+      moduleVersion: '1',
+      documentId: 'doc-1',
+      documentVersionId: 'doc-1@1',
+      sourceChecksum: `sha256:${'a'.repeat(64)}`,
+      anchor: 'source-anchor',
+    };
+    const hash = buildOfficialDocumentHash('doc-1', 'source-anchor', expectedIdentity);
+    const route = parseDocumentReadRoute(hash);
+    if (!route) throw new Error('Expected valid exact-source route');
+    const trail = rebuildTrailForPastedRoute(route);
+    expect(trail.crumbs[0]?.href).toBe(hash);
+    expect(loadDocumentTrail()?.crumbs[0]?.href).toBe(hash);
   });
 
   it('begins a trail from the current location', () => {

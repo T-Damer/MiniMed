@@ -30,6 +30,7 @@ import {
   ReaderTitleRow,
 } from '@/features/collections/ReaderItemActions';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
+import { DocumentModulePointer } from '@/features/library/DocumentModulePointer';
 import {
   displayDocumentSubtitle,
   displayDocumentTitle,
@@ -57,6 +58,7 @@ import {
   documentRenderBlockSearchText,
   resolveDocumentChunkItems,
 } from '@/features/library/document-rich-block-data';
+import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPackagingPanel';
 import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
 import { getReferenceImageResolver } from '@/features/library/reference-image-assets';
 import type { ClinicalMedicationLink } from '@/features/medications/clinical-medication-links';
@@ -72,7 +74,7 @@ import {
   medicationReadingChoices,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
-import { formatFullTextDownloadLabel, formatModuleBytes } from '@/features/modules/module-display';
+import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
 import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
 import { buildDocumentSectionLink, openDocumentOverlay } from '@/state/document-navigation';
@@ -695,14 +697,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       Boolean(fullTextDocumentId()),
     );
 
-  const modulePointerButtonLabel = (): string => {
-    if (!props.modulePointerPending) return 'Скачать набор';
-    if (props.modulePointerProgress !== null && props.modulePointerProgress !== undefined) {
-      return `${Math.min(100, Math.round(props.modulePointerProgress * 100))}%`;
-    }
-    return 'Загружаем набор…';
-  };
-
   const pageTitle = (): string =>
     props.document
       ? displayDocumentTitle(props.document)
@@ -782,16 +776,24 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       showLayout={Boolean(props.document) && !props.openError}
       outlineEnabled={!props.document || orderedSections().length > 1}
       loadingBody={
-        <Show when={!props.document && !props.openError}>
-          <div
-            class="document-page__loading"
-            role="status"
-            aria-live="polite"
-            aria-label="Загрузка страницы"
-          >
-            <span class="document-page__loading-spinner" aria-hidden="true" />
-          </div>
-        </Show>
+        <>
+          <Show when={!props.document && !props.openError && props.modulePointer}>
+            <article class="document-overlay-paper">
+              <h1 class="document-overlay-paper__title">{pageTitle()}</h1>
+              <DocumentModulePointer {...props} />
+            </article>
+          </Show>
+          <Show when={!props.document && !props.openError && !props.modulePointer}>
+            <div
+              class="document-page__loading"
+              role="status"
+              aria-live="polite"
+              aria-label="Загрузка страницы"
+            >
+              <span class="document-page__loading-spinner" aria-hidden="true" />
+            </div>
+          </Show>
+        </>
       }
       outlineSearchSlot={
         <Show when={props.document}>
@@ -904,69 +906,7 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       Это краткая выжимка. Полная рекомендация загрузится и откроется здесь.
                     </p>
                   </Show>
-                  <Show when={props.modulePointer}>
-                    {(resolution) => (
-                      <section
-                        class="document-module-pointer"
-                        aria-labelledby="document-module-pointer-title"
-                      >
-                        <p class="document-module-pointer__eyebrow">Дополнительный набор</p>
-                        <h2
-                          id="document-module-pointer-title"
-                          class="document-module-pointer__title"
-                        >
-                          {resolution().state === 'unavailable'
-                            ? 'Полный документ пока недоступен'
-                            : resolution().state === 'installed'
-                              ? 'Подключение полного документа'
-                              : 'Полный документ доступен после загрузки'}
-                        </h2>
-                        <Show when={resolution().module}>
-                          {(module) => (
-                            <p class="document-module-pointer__details">
-                              {module().title} · {formatModuleBytes(module().sizes.downloadBytes)}
-                            </p>
-                          )}
-                        </Show>
-                        <Show when={resolution().message}>
-                          {(message) => (
-                            <p class="document-module-pointer__message" role="status">
-                              {message()}
-                            </p>
-                          )}
-                        </Show>
-                        <Show when={props.modulePointerInstallError}>
-                          {(message) => (
-                            <p class="document-module-pointer__error" role="alert">
-                              {message()}
-                            </p>
-                          )}
-                        </Show>
-                        <Show
-                          when={
-                            resolution().state === 'available' &&
-                            Boolean(props.onInstallModulePointer)
-                          }
-                        >
-                          <Button
-                            type="button"
-                            variant="primary"
-                            class="document-module-pointer__action"
-                            disabled={props.modulePointerPending}
-                            onClick={() => void props.onInstallModulePointer?.()}
-                            icon={
-                              <AppGlyph
-                                name={props.modulePointerPending ? 'refresh' : 'download'}
-                                class="document-module-pointer__action-icon"
-                              />
-                            }
-                          >
-                            {modulePointerButtonLabel()}
-                          </Button>
-                        </Show>
-                      </section>
-                    )}
-                  </Show>
+                  <DocumentModulePointer {...props} />
                   <div class="document-overlay-paper__actions">
                     <Show when={interactiveTool()}>
                       {(tool) => (
@@ -1030,6 +970,8 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     </Show>
                   </div>
                 </header>
+
+                <RlsMedicationPackagingPanel document={documentValue()} />
 
                 <Show when={props.medicationProduct}>
                   {(product) => (

@@ -1,8 +1,12 @@
-import { createEffect, type JSX, onCleanup, Show } from 'solid-js';
+import { createEffect, createSignal, type JSX, onCleanup, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { lockBodyScroll } from '@/components/body-scroll-lock';
+import { NARROW_VIEWPORT_QUERY } from '@/components/narrow-viewport';
+import { sheetDragOffset, sheetDragShouldClose } from '@/components/sheet-drag';
 import { setDarkHeaderStatusBar } from '@/state/native-system-ui';
+
+import '@/components/overlay-sheet.css';
 
 interface OverlayDialogProps {
   readonly open: boolean;
@@ -16,6 +20,15 @@ interface OverlayDialogProps {
   readonly tracksHistory?: boolean;
   /** When false, the dialog has no close button and ignores Escape and backdrop taps. */
   readonly dismissible?: boolean;
+  /**
+   * `sheet` (default): a paper sheet — from the bottom edge on phones, centred on wide screens —
+   * that can be pulled down to close. `screen`: viewers and editors that need the whole screen.
+   */
+  readonly presentation?: 'sheet' | 'screen';
+  /** `alertdialog` for a confirmation that needs an explicit answer. */
+  readonly role?: 'dialog' | 'alertdialog';
+  /** Id of the element that describes the dialog, for assistive tech. */
+  readonly describedBy?: string;
   readonly headerStart?: JSX.Element;
   readonly headerEnd?: JSX.Element;
   readonly onClose: () => void;
@@ -45,6 +58,12 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   const titleId = props.labelledBy ?? `overlay-dialog-title-${++nextOverlayDialogId}`;
   const tracksHistory = () => props.tracksHistory !== false;
   const dismissible = () => props.dismissible !== false;
+  const presentation = () => props.presentation ?? 'sheet';
+  const [dragOffset, setDragOffset] = createSignal(0);
+  const [dragging, setDragging] = createSignal(false);
+  let drag:
+    | { readonly startY: number; readonly startTime: number; readonly id: number }
+    | undefined;
 
   const closeDialog = (): void => {
     if (historyEntryPushed) {
@@ -53,6 +72,40 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
       return;
     }
     props.onClose();
+  };
+
+  // Pull-to-close: only a dismissible sheet at phone width, and never from a control in the header.
+  const startDrag = (event: PointerEvent): void => {
+    if (!event.isPrimary || event.button !== 0) return;
+    if (presentation() !== 'sheet' || !dismissible()) return;
+    if (!window.matchMedia(NARROW_VIEWPORT_QUERY).matches) return;
+    if (
+      event.target instanceof Element &&
+      event.target.closest('button, a, input, select, textarea')
+    )
+      return;
+    drag = { startY: event.clientY, startTime: event.timeStamp, id: event.pointerId };
+    (event.currentTarget as Element).setPointerCapture(event.pointerId);
+    setDragging(true);
+  };
+  const moveDrag = (event: PointerEvent): void => {
+    if (!drag || event.pointerId !== drag.id) return;
+    setDragOffset(sheetDragOffset(drag.startY, event.clientY));
+  };
+  const endDrag = (event: PointerEvent): void => {
+    if (!drag || event.pointerId !== drag.id) return;
+    const offset = sheetDragOffset(drag.startY, event.clientY);
+    const close = sheetDragShouldClose(offset, event.timeStamp - drag.startTime);
+    drag = undefined;
+    setDragging(false);
+    setDragOffset(0);
+    if (event.type !== 'pointercancel' && close) closeDialog();
+  };
+  const dragHandlers = {
+    onPointerDown: startDrag,
+    onPointerMove: moveDrag,
+    onPointerUp: endDrag,
+    onPointerCancel: endDrag,
   };
 
   const isTopmostDialog = (): boolean => {
@@ -77,6 +130,7 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     setDarkHeaderStatusBar(true);
     const releaseScroll = lockBodyScroll();
     const handleKeyDown = (event: KeyboardEvent): void => {
+      if (!isTopmostDialog()) return;
       if (event.key === 'Escape') {
         // Only a media viewer layered over THIS dialog consumes Escape (zoom reset);
         // unrelated viewers elsewhere must not disable closing this dialog.
@@ -120,6 +174,9 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     window.addEventListener('popstate', handlePopState);
     queueMicrotask(() => panel?.focus());
     onCleanup(() => {
+      drag = undefined;
+      setDragging(false);
+      setDragOffset(0);
       setDarkHeaderStatusBar(false);
       releaseScroll();
       window.removeEventListener('keydown', handleKeyDown);
@@ -136,37 +193,55 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     <Show when={props.open}>
       <Portal>
         <div
-          class="overlay-backdrop"
+          class={`overlay-backdrop overlay-backdrop--${presentation()}`}
           role="presentation"
           onPointerDown={(event) => {
             if (event.target === event.currentTarget && dismissible()) closeDialog();
           }}
         >
+          {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: the role is always dialog or alertdialog, and both take aria-modal. */}
           <section
             ref={(element) => {
               panel = element;
             }}
-            class={`overlay-dialog ${props.class ?? ''}`}
-            role="dialog"
+            class={`overlay-dialog overlay-dialog--${presentation()} ${props.class ?? ''}`}
+            classList={{ 'overlay-dialog--dragging': dragging() }}
+            style={dragOffset() > 0 ? { '--sheet-drag': `${dragOffset()}px` } : undefined}
+            role={props.role ?? 'dialog'}
             aria-modal="true"
             aria-labelledby={titleId}
+            aria-describedby={props.describedBy}
             tabindex={-1}
           >
-            <header class={`overlay-dialog-header ${props.headerClass ?? ''}`}>
+            <Show when={presentation() === 'sheet' && dismissible()}>
+              <div class="overlay-dialog__grip" aria-hidden="true" {...dragHandlers}>
+                <span class="overlay-dialog__grip-bar" />
+              </div>
+            </Show>
+            <header
+              class={`overlay-dialog-header overlay-dialog-header--${presentation()} ${props.headerClass ?? ''}`}
+              {...(presentation() === 'sheet' ? dragHandlers : {})}
+            >
               {props.headerStart}
               <div class="overlay-dialog-title">
                 <h2 class="overlay-dialog__heading" id={titleId}>
                   {props.title}
                 </h2>
                 <Show when={props.subtitle}>
-                  {(subtitle) => <p class="overlay-dialog__subtitle">{subtitle()}</p>}
+                  {(subtitle) => (
+                    <p
+                      class={`overlay-dialog__subtitle overlay-dialog__subtitle--${presentation()}`}
+                    >
+                      {subtitle()}
+                    </p>
+                  )}
                 </Show>
               </div>
               {props.headerEnd}
               <Show when={dismissible()}>
                 <button
                   type="button"
-                  class="overlay-dialog__close-button"
+                  class={`overlay-dialog__close-button overlay-dialog__close-button--${presentation()}`}
                   aria-label="Закрыть"
                   title="Закрыть"
                   onClick={closeDialog}
@@ -175,7 +250,11 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
                 </button>
               </Show>
             </header>
-            <div class={`overlay-dialog-body ${props.bodyClass ?? ''}`}>{props.children}</div>
+            <div
+              class={`overlay-dialog-body overlay-dialog-body--${presentation()} ${props.bodyClass ?? ''}`}
+            >
+              {props.children}
+            </div>
           </section>
         </div>
       </Portal>

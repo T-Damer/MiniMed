@@ -332,6 +332,20 @@ describe('SqliteMedicalStore', () => {
     }
     expect(perDocument.size).toBeGreaterThan(1);
     expect(Math.max(...perDocument.values())).toBeLessThanOrEqual(3);
+
+    const clinicalHits = await store.search({
+      ftsQuery: '"лечен"*',
+      terms: ['лечен'],
+      filters: {},
+      limit: 50,
+      diversifyDocuments: false,
+    });
+    const clinicalPerDocument = new Map<string, number>();
+    for (const hit of clinicalHits) {
+      clinicalPerDocument.set(hit.document.id, (clinicalPerDocument.get(hit.document.id) ?? 0) + 1);
+    }
+    expect(Math.max(...clinicalPerDocument.values())).toBeGreaterThan(3);
+    expect(clinicalHits.length).toBeLessThanOrEqual(50);
   });
 
   it('filters by a large documentIds list without exhausting bound parameters', async () => {

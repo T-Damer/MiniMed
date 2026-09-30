@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.sp
  * Color and type tokens ported from the web app's own theme, not a generic Material palette —
  * see `apps/app/src/styles/theme.css` (light) / `theme-dark.css` (dark) for the source of truth;
  * hex values below are copied verbatim from those files' `--theme-*` custom properties (checked
- * 2026-09-28). This is a values-only port: the web theme has ~80 tokens (spacing, motion, grain
+ * 2026-09-30). This is a values-only port: the web theme has ~80 tokens (spacing, motion, grain
  * textures, route-desk gradients, etc.) this spike does not need or reproduce — only color and the
  * serif/sans type split, enough to make the two apps visually comparable for the "same UI
  * complexity" scroll/frame remeasurement in docs/research/native-vs-webview-2026-09-28.md.
@@ -39,7 +39,7 @@ private object WebTokens {
     val lightBorder = Color(0xFFCBC0A7)
     val lightText = Color(0xFF292720)
     val lightTextMuted = Color(0xFF585349)
-    val lightTextFaint = Color(0xFF817A6D)
+    val lightTextFaint = Color(0xFF615B50)
     val lightAccent = Color(0xFF405B4E)
     val lightAccentContrast = Color(0xFFF8F0DD)
     val lightLink = Color(0xFF355B49)
@@ -52,9 +52,9 @@ private object WebTokens {
     val darkSurfaceRaised = Color(0xFF372E26)
     val darkSurfaceMuted = Color(0xFF251F1A)
     val darkBorder = Color(0xFF594735)
-    val darkText = Color(0xFFDFC7A8)
-    val darkTextMuted = Color(0xFFB89B78)
-    val darkTextFaint = Color(0xFFB69776)
+    val darkText = Color(0xFFEEE5D4)
+    val darkTextMuted = Color(0xFFC8BCA8)
+    val darkTextFaint = Color(0xFFB5A88F)
     val darkAccent = Color(0xFF82A88D)
     val darkAccentContrast = Color(0xFF1C1712)
     val darkLink = Color(0xFF9BC7A7)
@@ -62,9 +62,9 @@ private object WebTokens {
     val darkSearchSurface = Color(0xFF243029)
 }
 
-private val LightColors = lightColorScheme(
+internal val LightColors = lightColorScheme(
     background = WebTokens.lightBackground,
-    onBackground = WebTokens.lightAccentContrast,
+    onBackground = Color(0xFFFFF8E6),
     surface = WebTokens.lightSurface,
     onSurface = WebTokens.lightText,
     surfaceVariant = WebTokens.lightSurfaceRaised,
@@ -81,7 +81,7 @@ private val LightColors = lightColorScheme(
     outlineVariant = WebTokens.lightBorder,
 )
 
-private val DarkColors = darkColorScheme(
+internal val DarkColors = darkColorScheme(
     background = WebTokens.darkBackground,
     onBackground = WebTokens.darkText,
     surface = WebTokens.darkSurface,
@@ -103,18 +103,18 @@ private val DarkColors = darkColorScheme(
 /** Web's `--font-serif` for headings (document/section titles), `--font-mono` for the uppercase
  * micro labels (kind stamps, section paths), sans for everything else — see file header. */
 private val WebTypography = Typography(
-    titleLarge = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 22.sp, lineHeight = 28.sp),
-    titleMedium = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 17.sp, lineHeight = 24.sp),
-    titleSmall = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 21.sp),
-    bodyLarge = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 22.sp),
-    bodyMedium = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
-    bodySmall = TextStyle(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 19.sp),
-    labelLarge = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp),
-    labelMedium = TextStyle(fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
+    titleLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 22.sp, lineHeight = 28.sp),
+    titleMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 17.sp, lineHeight = 24.sp),
+    titleSmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 21.sp),
+    bodyLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 15.sp, lineHeight = 22.sp),
+    bodyMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
+    bodySmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 19.sp),
+    labelLarge = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 14.sp, lineHeight = 20.sp),
+    labelMedium = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Default, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp),
     // Web's ".category-stamp"/".result-path": mono, uppercase, ~11px, letter-spaced — callers add
     // textTransform-equivalent (String.uppercase()) and letterSpacing themselves since Compose
     // Typography has no built-in text-transform.
-    labelSmall = TextStyle(fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 11.sp, lineHeight = 14.sp),
+    labelSmall = TextStyle(fontFeatureSettings = "tnum", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 11.sp, lineHeight = 14.sp),
 )
 
 @Composable

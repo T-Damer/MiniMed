@@ -60,6 +60,7 @@ def build_pilot_vocabulary_pack(
     edition_version: str,
     schema_version: int,
     built_at: str,
+    title: str = "Пилотный словарь разговорной лексики",
 ) -> dict[str, object]:
     aliases_path = aliases_path.resolve()
     output = output.resolve()
@@ -99,7 +100,7 @@ def build_pilot_vocabulary_pack(
                 edition_id,
                 edition_version,
                 schema_version,
-                "Пилотный словарь разговорной лексики",
+                title,
                 built_at,
             ),
         )
@@ -143,6 +144,7 @@ def main() -> None:
     parser.add_argument("--edition-version", required=True)
     parser.add_argument("--schema-version", type=int, default=2)
     parser.add_argument("--built-at", required=True)
+    parser.add_argument("--title", default="Пилотный словарь разговорной лексики")
     args = parser.parse_args()
     report = build_pilot_vocabulary_pack(
         args.aliases,
@@ -151,6 +153,7 @@ def main() -> None:
         edition_version=args.edition_version,
         schema_version=args.schema_version,
         built_at=args.built_at,
+        title=args.title,
     )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(

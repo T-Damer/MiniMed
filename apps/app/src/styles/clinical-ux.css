@@ -50,7 +50,7 @@
 }
 
 .tone-neutral {
-  color: var(--theme-graph-stroke);
+  color: var(--theme-text-muted);
 }
 
 .document-folder-main {

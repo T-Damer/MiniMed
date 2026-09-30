@@ -208,6 +208,7 @@ export function DocumentLibrary(props: DocumentLibraryProps): JSX.Element {
             title="Карта связей"
             subtitle={documentCountLabel(graphSelection().total)}
             class="knowledge-graph-dialog"
+            presentation="screen"
             onClose={() => setMode('list')}
           >
             <KnowledgeGraph

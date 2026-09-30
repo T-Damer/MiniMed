@@ -1,3 +1,4 @@
+import type { CoreIdentityHit } from '@localmed/contracts/core-identities';
 import { z } from 'zod';
 import type { TerminologyMatchKind } from './terminology';
 
@@ -316,6 +317,8 @@ export interface QueryCorrection {
 }
 
 export interface SearchResponse {
+  /** Exact source names outside clinical FTS; each target must be resolved before opening. */
+  readonly identities?: readonly CoreIdentityHit[];
   readonly requestId: string;
   readonly normalizedQuery: string;
   readonly elapsedMs: number;

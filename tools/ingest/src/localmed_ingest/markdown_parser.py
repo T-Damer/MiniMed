@@ -14,6 +14,7 @@ from .normalization import normalize_for_index, normalize_surface_text
 
 _GRLS_INSTRUCTION_SOURCE_TYPE = "official_drug_instruction"
 _GRLS_REGISTRY_CARD_SOURCE_TYPE = "official_registry_summary"
+_YAML_SAFE_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
 
 HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 SOURCE_MARKER_PATTERN = re.compile(r"^<!--\s*localmed:source\s+(.+?)\s*-->$")
@@ -66,7 +67,7 @@ def parse_front_matter(text: str) -> tuple[SourceMetadata, str]:
     end = text.find("\n---\n", 4)
     if end < 0:
         raise ValueError("Markdown source has an unterminated front matter block.")
-    raw_metadata = yaml.safe_load(text[4:end])
+    raw_metadata = yaml.load(text[4:end], Loader=_YAML_SAFE_LOADER)
     if not isinstance(raw_metadata, dict):
         raise ValueError("Front matter must be a mapping.")
     return SourceMetadata.model_validate(raw_metadata), text[end + 5 :]
@@ -242,6 +243,7 @@ def infer_section_type(title: str) -> str:
         ("реабилита", "rehabilitation"),
         ("наблюден", "rehabilitation"),
         ("общая информа", "definition"),
+        ("краткое описание", "definition"),
     ]
     return next((section_type for marker, section_type in rules if marker in normalized), "other")
 

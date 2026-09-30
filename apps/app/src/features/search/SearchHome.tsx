@@ -3,21 +3,18 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  For,
   type JSX,
   onCleanup,
   onMount,
   Show,
 } from 'solid-js';
 import { toast } from 'solid-sonner';
-import {
-  AppContextMenu,
-  type AppContextMenuAction,
-  requestContextMenu,
-} from '@/components/AppContextMenu';
-import { AppGlyph } from '@/components/AppGlyph';
+import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { notifyWithOpen } from '@/components/notify';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { SheetPopover } from '@/components/SheetPopover';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-packs';
@@ -81,6 +78,8 @@ import {
   loadIgnoredAppUpdates,
 } from '@/state/ignored-app-updates';
 import { appendSearchHistory, replaySearch, type SearchHistoryEntry } from '@/state/search-history';
+
+import '@/features/search/search-help-sheet.css';
 
 interface SearchHomeProps {
   /** Absent while the core opens, downloads or waits for another tab; the page stays usable. */
@@ -432,7 +431,14 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [helpOpen, setHelpOpen] = createSignal(false);
   const [tourOpen, setTourOpen] = createSignal(false);
   // One array for the component's lifetime: a literal in JSX would rebuild the open menu's items.
-  const helpActions: readonly AppContextMenuAction[] = [
+  const [helpMenuOpen, setHelpMenuOpen] = createSignal(false);
+  /** The «?» panel: where to learn the app and the search. */
+  const helpActions: readonly {
+    readonly id: string;
+    readonly label: string;
+    readonly icon: AppGlyphName;
+    readonly onSelect: () => void;
+  }[] = [
     {
       id: 'feature-tour',
       label: 'Что умеет MiniMed',
@@ -604,22 +610,42 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             icon={<AppGlyph name="graph" class="search-graph-shortcut__icon" />}
           />
         </Show>
-        <AppContextMenu hideButton class="search-help-menu" actions={helpActions}>
-          <button
-            class="search-mode-help"
-            type="button"
-            aria-label="Справка"
-            title="Справка"
-            onClick={requestContextMenu}
-          >
-            ?
-          </button>
-        </AppContextMenu>
+        <SheetPopover
+          open={helpMenuOpen()}
+          onOpenChange={setHelpMenuOpen}
+          title="Справка"
+          placement="bottom-end"
+          triggerClass="search-mode-help"
+          triggerLabel="Справка"
+          triggerTitle="Справка"
+          trigger="?"
+          contentClass="search-help-sheet"
+        >
+          <div class="search-help-sheet__list">
+            <For each={helpActions}>
+              {(action) => (
+                <button
+                  type="button"
+                  class="search-help-sheet__item"
+                  onClick={() => {
+                    setHelpMenuOpen(false);
+                    action.onSelect();
+                  }}
+                >
+                  <AppGlyph name={action.icon} class="search-help-sheet__icon" />
+                  {action.label}
+                </button>
+              )}
+            </For>
+          </div>
+        </SheetPopover>
       </div>
 
       <div class="search-workspace-main">
         <SearchWorkspace
           core={scopedCore()}
+          referenceCore={props.baseCore}
+          onContentChanged={props.onContentChanged}
           scope={scope()}
           searchAllowed={props.baseCore !== undefined}
           fieldStatus={
@@ -770,6 +796,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           open
           title="Карта связей"
           class="knowledge-graph-dialog"
+          presentation="screen"
           onClose={() => setGraphOpen(false)}
         >
           <KnowledgeGraph

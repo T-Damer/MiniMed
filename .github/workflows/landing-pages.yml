@@ -82,19 +82,19 @@ jobs:
             test "$(stat -c '%s' "$dir/$file")" = "$bytes"
             echo "$digest  $dir/$file" | sha256sum --check -
           done < "$RUNNER_TEMP/mirrored-assets.tsv"
-      - name: Build regulatory and reference databases
+      - name: Verify the locally built companion databases
         run: |
-          mkdir -p apps/app/public/content
-          uv run --project tools/ingest medbase lint --input content/regulatory-rf-pilot
-          uv run --project tools/ingest medbase build \
-            --input content/regulatory-rf-pilot \
-            --output apps/app/public/content/regulatory.db \
-            --report apps/app/public/content/regulatory-report.json
-          uv run --project tools/ingest medbase lint --input content/reference-rf-pilot
-          uv run --project tools/ingest medbase build \
-            --input content/reference-rf-pilot \
-            --output apps/app/public/content/reference.db \
-            --report apps/app/public/content/reference-report.json
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+
+          for name in ('regulatory', 'reference'):
+              root = Path('apps/app/public/content')
+              database = root / f'{name}.db'
+              report = json.loads((root / f'{name}-report.json').read_text())
+              assert f'sha256:{hashlib.sha256(database.read_bytes()).hexdigest()}' == report['outputChecksum']
+          PY
       - name: Build landing and browser application
         run: |
           bun run build:landing

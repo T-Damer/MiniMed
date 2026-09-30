@@ -77,7 +77,7 @@
     "expectedSourceType": "official_registry_summary",
     "expectedContentMode": "source_linked_summary",
     "expectedAuthorityTier": "official-registry",
-    "expectedSectionTypes": ["other"],
+    "expectedSectionTypes": ["registration"],
     "expectedAnchorPrefixes": [
       "drug.rf.ceftriaxone.injection-1g@registry-2026-07-07/регистрационная-запись"
     ],
@@ -91,7 +91,7 @@
     "expectedSourceType": "official_registry_summary",
     "expectedContentMode": "source_linked_summary",
     "expectedAuthorityTier": "official-registry",
-    "expectedSectionTypes": ["other"],
+    "expectedSectionTypes": ["registration"],
     "expectedAnchorPrefixes": [
       "drug.rf.ibuprofen.pediatric-suspension@registry-2024-11-11/регистрационная-запись"
     ],

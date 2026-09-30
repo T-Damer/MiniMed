@@ -1,5 +1,6 @@
 import type {
   ContentPackSeed,
+  CoreIdentityHit,
   DefinitionReferenceReply,
   DefinitionReferenceRequest,
   EmbeddingProfile,
@@ -221,6 +222,10 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
 
   public listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
     return this.call('listDocumentIdentities', []);
+  }
+
+  public lookupCoreIdentities(query: string): Promise<readonly CoreIdentityHit[]> {
+    return this.call('lookupCoreIdentities', [query]);
   }
 
   public listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {

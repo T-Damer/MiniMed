@@ -66,8 +66,22 @@ private val TITLE_FORM_STEMS = setOf(
     "веществ", "доз", "внутримышечн", "внутривенн", "мг", "мл", "шт",
 )
 
+private val PATIENT_CONTEXT_STEMS = setOf(
+    "ребенок", "ребенк", "дети", "детский", "взрослый", "мужчина", "женщина", "мужской", "женский",
+).map(::stemToken).toSet()
+
+private val CHILD_POPULATION_STEMS = setOf("ребенок", "ребенк", "дети", "детей", "детям", "детьми", "детях", "детский").map(::stemToken).toSet()
+private val ADULT_POPULATION_STEMS = setOf("взрослый", "взрослых", "взрослым", "взрослыми", "взрослые").map(::stemToken).toSet()
+
+private fun explicitAgePopulation(text: String): String? {
+    val stems = tokenize(text).map(::stemToken)
+    val child = stems.any { it in CHILD_POPULATION_STEMS }
+    val adult = stems.any { it in ADULT_POPULATION_STEMS }
+    return if (child == adult) null else if (child) "child" else "adult"
+}
+
 private val TITLE_CONTEXT_STEMS: Set<String> = (
-    GENERIC_QUERY_TERMS + setOf(
+    GENERIC_QUERY_TERMS + PATIENT_CONTEXT_STEMS + setOf(
         "детский", "ребенк", "вес", "год", "лет", "первый", "второй", "третий", "заболевание",
         "инфекция", "мочевой", "мочевых", "путь", "путей",
     )
@@ -202,8 +216,10 @@ private fun legalReferences(value: String): Set<String> {
 private fun textCoverage(query: String, text: String): Double {
     val queryTerms = tokenize(query).filter { it.length >= 4 && it !in GENERIC_QUERY_TERMS }.toSet()
     val textTerms = tokenize(text)
-    val matched = queryTerms.count { queryTerm -> textTerms.any { it.startsWith(queryTerm) || queryTerm.startsWith(it) } }
-    return minOf(0.5, matched * 0.12)
+    val matchedTextTerms = queryTerms.mapNotNull { queryTerm ->
+        textTerms.firstOrNull { it.startsWith(queryTerm) || queryTerm.startsWith(it) }
+    }.toSet()
+    return minOf(0.5, matchedTextTerms.size * 0.12)
 }
 
 private fun containsAny(text: String, words: List<String>): Boolean = words.any { text.contains(it) }
@@ -366,19 +382,29 @@ fun rankSearchGroupsByQuery(groups: List<RankedGroup>, originalQuery: String, do
     val phrase = normalizeSurfaceText(query)
     val hasSourcePhrase = tokenize(phrase).size >= if (subjectSearch) 2 else 3
     val candidateTerms = groups.map { tokenize(groupRankingText(it)).toSet() }
+    val queryPopulation = explicitAgePopulation(originalQuery)
     return groups.mapIndexed { index, group ->
         val document = documentsById[group.documentId]
         val exactTitle = matchesExactDocumentTitle(query, group)
         val exactAlias = matchesNavigationAlias(query, document)
-        // `result.snippet` is not ported (see Fusion.kt's header) — approximated here with each
-        // result's section path + matched terms, the closest substitute this port keeps.
         val sourcePhrase = hasSourcePhrase && (
             (subjectSearch && findNormalizedPhraseIndex(normalizeSurfaceText(group.title), phrase) >= 0) ||
-                group.results.any { result ->
-                    normalizeSurfaceText("${result.sectionPath.joinToString(" ")} ${result.matchedTerms.joinToString(" ")}")
-                        .contains(phrase)
-                }
+                group.results.any { normalizeSurfaceText(it.snippet).contains(phrase) }
             )
+        val subjectTerms = if (queryPopulation != null || tokenize(query).any { stemToken(it) in PATIENT_CONTEXT_STEMS }) {
+            tokenize(query).filter {
+                isTitleQueryTerm(it) && !isFormOrStrengthToken(it) &&
+                    (queryPopulation == null ||
+                        (stemToken(it) !in CHILD_POPULATION_STEMS && stemToken(it) !in ADULT_POPULATION_STEMS))
+            }
+        } else emptyList()
+        val subjectMatch = subjectTerms.isNotEmpty() &&
+            tokenize((listOf(group.title) + group.results.map { it.snippet }).joinToString(" "))
+                .any { word -> subjectTerms.any { tokensMatch(it, word) } }
+        val sourcePopulation = if (queryPopulation == null) null else explicitAgePopulation(group.title)
+        // Unspecified/combined source ages stay compatible; an unrelated title never gains a tier.
+        val populationRank = if (queryPopulation == null || !subjectMatch) 0
+            else if (sourcePopulation != null && sourcePopulation != queryPopulation) 1 else 2
         val titleBoost = if (document?.sourceType == "regulatory_act_summary" || document?.notLegalAdvice == true) {
             0.0
         } else {
@@ -388,14 +414,16 @@ fun rankSearchGroupsByQuery(groups: List<RankedGroup>, originalQuery: String, do
             queryGroupRelevanceBoost(query, groupRankingText(group)) +
             titleBoost +
             exactTitleMatchBoost(query, group.title)
-        Triple(group, index, Ranking(exactTitle, exactAlias, sourcePhrase, score))
+        Triple(group, index, Ranking(exactTitle, exactAlias, populationRank, sourcePhrase, subjectMatch, score))
     }.sortedWith(
         compareByDescending<Triple<RankedGroup, Int, Ranking>> { it.third.exactTitle }
             .thenByDescending { it.third.exactAlias }
+            .thenByDescending { it.third.populationRank }
             .thenByDescending { it.third.sourcePhrase }
+            .thenByDescending { it.third.subjectMatch }
             .thenByDescending { it.third.score }
             .thenBy { it.second },
     ).map { it.first }
 }
 
-private data class Ranking(val exactTitle: Boolean, val exactAlias: Boolean, val sourcePhrase: Boolean, val score: Double)
+private data class Ranking(val exactTitle: Boolean, val exactAlias: Boolean, val populationRank: Int, val sourcePhrase: Boolean, val subjectMatch: Boolean, val score: Double)

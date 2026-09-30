@@ -138,7 +138,7 @@ export function PatientVaultUnlock(props: {
       <OverlayDialog
         open={!attempting() && !opened()}
         title={dialog.title}
-        class="patient-vault-dialog overlay-dialog--compact"
+        class="patient-vault-dialog"
         tracksHistory={false}
         onClose={dialog.onClose}
       >

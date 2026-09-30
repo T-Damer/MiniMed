@@ -4,12 +4,17 @@ import hashlib
 import sqlite3
 from pathlib import Path
 
+import pytest
+import yaml
+
 from localmed_ingest.builder import (
     apply_icd10_search_projection,
     build_content_pack,
     load_content_pack,
+    read_yaml_mapping,
 )
-from localmed_ingest.markdown_parser import parse_markdown_document
+from localmed_ingest.markdown_parser import parse_front_matter, parse_markdown_document
+from localmed_ingest.models import SourceMetadata
 from localmed_ingest.normalization import light_stem_russian, normalize_for_index
 
 
@@ -17,9 +22,56 @@ def fixture_dir() -> Path:
     return Path(__file__).resolve().parents[3] / "content/fixtures"
 
 
+def test_safe_yaml_loader_preserves_metadata_and_rejects_python_tags(tmp_path: Path) -> None:
+    text = (fixture_dir() / "pneumonia.md").read_text(encoding="utf-8")
+    end = text.index("\n---\n", 4)
+    metadata, body = parse_front_matter(text)
+    assert metadata == SourceMetadata.model_validate(yaml.safe_load(text[4:end]))
+    assert body == text[end + 5 :]
+    path = tmp_path / "metadata.yaml"
+    path.write_text(text[4:end], encoding="utf-8")
+    assert read_yaml_mapping(path) == yaml.safe_load(text[4:end])
+    unsafe = "!!python/name:builtins.str"
+    path.write_text(unsafe, encoding="utf-8")
+    with pytest.raises(yaml.constructor.ConstructorError):
+        read_yaml_mapping(path)
+    with pytest.raises(yaml.constructor.ConstructorError):
+        parse_front_matter(f"---\n{unsafe}\n---\nOriginal body")
+
+
 def test_normalization_matches_runtime_expectations() -> None:
     assert light_stem_russian("пневмонией") == "пневмони"
     assert "ребенок" in normalize_for_index("Ребёнок температурит")
+
+
+def test_normalized_fts_preserves_source_phrases_and_stem_lookup() -> None:
+    with sqlite3.connect(":memory:") as connection:
+        connection.execute("CREATE VIRTUAL TABLE source_fts USING fts5(text)")
+        connection.execute(
+            "INSERT INTO source_fts VALUES (?)",
+            (
+                normalize_for_index(
+                    "Заболевание нижних дыхательных путей. Кашель кашель с пневмонией."
+                ),
+            ),
+        )
+        for query in ['"заболевание нижних дыхательных путей"', '"кашель кашель"', "пневмони"]:
+            assert connection.execute(
+                "SELECT count(*) FROM source_fts WHERE source_fts MATCH ?", (query,)
+            ).fetchone() == (1,)
+
+
+def test_reference_brief_description_is_a_definition(tmp_path: Path) -> None:
+    source = tmp_path / "reference.md"
+    source.write_text(
+        "---\nid: reference.test\ntitle: Бронхиолит\nversion_label: '1'\n"
+        "source_type: medical_reference\nstatus: current\n---\n\n"
+        "# Краткое описание\n\nЗаболевание нижних дыхательных путей.\n",
+        encoding="utf-8",
+    )
+    document = parse_markdown_document(source, "2026-09-30T00:00:00Z")
+    assert document.sections[0].section_type == "definition"
+    assert document.sections[0].chunks[0].original_text == "Заболевание нижних дыхательных путей."
 
 
 def test_markdown_parser_builds_stable_anchors() -> None:

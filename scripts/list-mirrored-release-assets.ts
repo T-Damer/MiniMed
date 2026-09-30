@@ -5,7 +5,7 @@
  */
 import { readFileSync } from 'node:fs';
 
-import { MIRRORED_DATA_RELEASE_TAG } from '../apps/app/src/features/network/mirrored-release-tags';
+import { MIRRORED_DATA_RELEASE_TAG } from '@localmed/app/features/network/mirrored-release-tags';
 
 const RELEASE_URL =
   /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/([^/]+)\/([^/?#]+)$/u;
@@ -34,7 +34,7 @@ for (const path of [
       const match = RELEASE_URL.exec(artifact.url ?? '');
       const tag = match?.[1];
       const file = match?.[2];
-      if (!tag || !file || !MIRRORED_DATA_RELEASE_TAG.test(tag) || !file.endsWith('.db.gz'))
+      if (!tag || !file || !MIRRORED_DATA_RELEASE_TAG.test(tag) || !/\.db\.(?:gz|zst)$/u.test(file))
         continue;
       const digest = /^sha256:([0-9a-f]{64})$/u.exec(artifact.sha256 ?? '')?.[1];
       if (!digest || !artifact.sizeBytes)

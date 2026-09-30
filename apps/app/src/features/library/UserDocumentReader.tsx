@@ -1591,6 +1591,7 @@ export function UserDocumentReader(props: UserDocumentReaderProps): JSX.Element 
         open={imageLightboxOpen()}
         title={meta()?.title ?? 'Изображение'}
         class="user-doc-image-lightbox"
+        presentation="screen"
         onClose={() => setImageLightboxOpen(false)}
       >
         <Show when={imageUrl()}>

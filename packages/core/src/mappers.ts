@@ -25,6 +25,7 @@ export function toDocumentSummary(record: DocumentRecord): MedicalDocumentSummar
     ageGroups: metadataStrings(record.metadata, 'ageGroups'),
     metadata: record.metadata,
     versionId: record.version.id,
+    sourceChecksum: record.version.sourceChecksum,
     versionLabel: record.version.versionLabel,
     effectiveFrom: record.version.effectiveFrom,
   };

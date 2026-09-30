@@ -51,6 +51,7 @@ export function AssessmentImageCarousel(props: {
         open={Boolean(expanded())}
         title={expanded()?.alt ?? 'Изображение'}
         class="assessment-image-carousel__lightbox"
+        presentation="screen"
         bodyClass="assessment-image-carousel__lightbox-body"
         onClose={() => setExpanded(undefined)}
       >

@@ -71,7 +71,7 @@ export function resolveContentModuleArtifactUrl(url: string): string {
         // Large medication databases live in LFS; media URLs expose bytes with browser CORS.
         return `https://media.githubusercontent.com/media/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
       }
-      if (MIRRORED_DATA_RELEASE_TAG.test(releaseTag) && fileName.endsWith('.db.gz')) {
+      if (MIRRORED_DATA_RELEASE_TAG.test(releaseTag) && /\.db\.(?:gz|zst)$/u.test(fileName)) {
         return releaseAssetMirrorUrl(releaseTag, fileName);
       }
       if (

@@ -15,16 +15,8 @@ import dev.localmed.nativespike.shared.text.normalizeSurfaceText
  * that decides whether a sub-stage B medication-spelling suggestion is kept or reverted (deferred
  * there, resolved here).
  *
- * NOT ported: the full two-phase rowid-window -> hydration JOIN both TS stores use. Their second
- * phase (re-querying `chunks`/`sections`/`documents` by id and re-sorting into the first phase's
- * order) exists to build a complete `LexicalHit` — chunk/section/document records plus post-filter
- * checks — for the *caller* (fusion/grouping, sub-stage D). `export-search-golden.ts`'s `topHits`
- * (sub-stage C's parity target) only records `{chunkId, rank, position}` from that same
- * `store.search()` call with no filters (`filters: {}` always), so the first phase's own
- * bm25-ranked order already *is* the final order — a second hydration JOIN would reproduce the same
- * `chunkId`/order, just carrying data this parity check doesn't compare. `textsForChunks`
- * (`NativeSearchDatabase`) is a separate, narrower hydration used only by `hitsContainExactSubject`
- * below, which needs real chunk text.
+ * The bounded SQL window returns chunk identities; LookupPipeline hydrates them in rank order
+ * before fusion. textsForChunks supplies the literal wording used by hitsContainExactSubject.
  *
  * IMPORTANT correction found during stage 2 sub-stage D (fusion/grouping): `create-medical-core.ts`
  * never calls `SqliteMedicalStore`/`CapacitorMedicalStore.search()` directly — `options.store` is a

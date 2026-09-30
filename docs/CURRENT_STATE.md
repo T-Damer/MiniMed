@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 29 September 2026
+> Updated: 30 September 2026
 > Released version: `0.6.44` (public prerelease toward `1.0`)
 > Next planned step: finish the pending WebView features and ship the last WebView release; the
 > native port (`native/`, Kotlin + Compose) is kept and resumes after that release (user decision,
@@ -21,6 +21,26 @@ Detailed history, moved verbatim on 2026-09-24:
 
 ## Unreleased — toward the last WebView release
 
+- **Core rebuild qualification.** Audited medication aliases, exact definition/document identities,
+  RLS packaging links and light/dark contrast fixes are implemented. The no-pilot rebuild failed
+  the existing clinical regression gate, so the 15 pilot documents remain until source replacements
+  qualify. Phrase indexing and classification-alias attribution are corrected; numbered migration
+  012 restores eight issued paragraph identifiers. The final `13f238f…` core passes the unchanged
+  clinical thresholds and exact source audit. Nine stale expected section labels now describe the
+  existing registration schema; targets, anchors and thresholds are unchanged. Native lookup agrees
+  on the released core's golden queries. Age-qualified lookup preserves doctor-lookup R@5/MRR@5
+  0.70/0.60 by keeping explicitly opposite source populations behind matching or general sources;
+  clinical ranking is unchanged. The paired application release is next. See the continuation record below.
+- **Continued Claude's UI/data queue.** S2 paper sheets are retained; cancelled drags spring
+  back, reopening clears drag state, and only the topmost dialog handles Escape/Tab. S3 result
+  cards show one compact excerpt and disclose the others with the shared `Disclosure` animation;
+  source-kind badges are readable in ordinary flow. Details and the remaining release blockers:
+  [state/claude-continuation-2026-09-30.md](state/claude-continuation-2026-09-30.md).
+- **Lookup patient qualifiers.** In ordinary age/sex-qualified lookup, a literal subject match
+  precedes a match limited to «ребёнок», «взрослый» or sex. Explicit failed-treatment and clinical
+  finding ranking keep their existing rules. Candidate test7 doctor-lookup reaches R@5/MRR@5
+  0.70/0.60 (was 0.70/0.533), with zero forbidden hits; the released core stays 0.70/0.60.
+  This is a ten-case regression gate, not clinical qualification or a published core rebuild.
 - **Medication card after a reload.** Opening a product from «Препараты» saves it with the
   document's history entry, so a reload or back/forward keeps the trade name, presentation and the
   short/instruction switch. The saved product is validated before use; a queued catalog handoff
@@ -118,7 +138,7 @@ Detailed history, moved verbatim on 2026-09-24:
     294 768 640 bytes installed, 53 529 648-byte gzip (the local-dev `mkb.db` was 1 501 626 368).
     Document versions, the code/synonym/limitation sections and every chunk outside the medicine
     section keep their ids and anchors; all 9 836 core pointers and their 17 013 cited
-    classification anchors resolve.
+  classification anchors resolve.
   - `minimed.rls.packaging.ru` 2026.9.28 (optional): 7 181 brand documents with 7 185 source tables
     (260 022 rows, unchanged), linked by `medicationEntityId` ↔ profile `packagingDocumentId`;
     221 089 792 bytes installed, 29 206 386-byte gzip.
@@ -126,8 +146,11 @@ Detailed history, moved verbatim on 2026-09-24:
     `Е11`/`К29.7`/`А00.0`, synonyms (`ЦВБ`, `внебольничная пневмония`) and titles at rank 1.
 - Distribution: one data prerelease `reference-rls-mkb-2026.9.28` with both assets; the Pages
   mirror needs that tag prefix and grows to about 900 MB of 1 GB. Both catalog entries together
-  add about 8.6 MB of membership to `catalog.preview.json`. Since 2026-09-29 both are published as zstd (30.4 + 17.5 MB). The app has no link yet from a profile's
-  `packagingDocumentId` to the packaging document.
+  add about 8.6 MB of membership to `catalog.preview.json`. Since 2026-09-29 both are published as
+  zstd (30.4 + 17.5 MB). Edition 2026.9.30 of the MKB module is published with 50 137 exact
+  source-listed packaging links (306 647 040 bytes installed, 30 738 701-byte zstd). The app opens
+  their verified packaging target and preserves its source anchor across installation and reload.
+  Packaging edition 2026.9.28 is reused unchanged; the MKB source text and identities are unchanged.
 
 ## Core coverage audit — 2026-09-28 (measurement only)
 

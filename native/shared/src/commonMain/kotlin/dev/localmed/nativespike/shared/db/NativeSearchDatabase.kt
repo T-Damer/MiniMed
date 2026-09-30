@@ -42,14 +42,9 @@ expect class NativeSearchDatabase(dbFilePath: String) {
 
     fun chunksForSection(sectionId: String): List<ReaderChunk>
 
-    /**
-     * Mirrors `SqliteMedicalStore.search()`/`CapacitorMedicalStore.search()`'s bm25-ranking phase —
-     * stage 2 sub-stage C of the migration (docs/CURRENT_STATE.md): a two-phase rowid-window ->
-     * hydration pattern (here, no hydration is needed — see `lexical/SearchExecution.kt`'s header
-     * for why). Same bm25 weight vector both TS stores use: `bm25(chunks_fts, 0,0,0,0,0,8,4,1)`.
-     * No filters (`request.filters` is always `{}` in the golden export this is checked against).
-     */
-    fun searchBranch(ftsQuery: String, limit: Int): List<BranchHit>
+    /** BM25 window: 4x overfetch, at most three chunks per document version, then limit.
+     * Optional exact document membership supports query-aligned identity hydration. */
+    fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String> = emptyList()): List<BranchHit>
 
     /** Mirrors the fields `hitsContainExactSubject` (create-medical-core.ts) reads off a hit. */
     fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText>

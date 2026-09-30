@@ -590,6 +590,7 @@ export function NoteDrawingEditor(props: {
     <OverlayDialog
       open
       title={props.title ?? 'Схема'}
+      presentation="screen"
       subtitle="Excalidraw сохраняется как редактируемое офлайн-вложение"
       class={`note-drawing-dialog${fullscreen() ? ' note-drawing-dialog--fullscreen' : ''}`}
       bodyClass="note-drawing-dialog__body"

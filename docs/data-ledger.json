@@ -197,8 +197,8 @@
       "producer": "bun run content:core:build (scripts/build-core.mjs) stage reference-pointers",
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (pointers-build)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
-      "bytes": 101959985,
-      "modified": "2026-09-27"
+      "bytes": 91705612,
+      "modified": "2026-09-30"
     },
     {
       "path": "data/build/core-pointers-base.db",
@@ -206,8 +206,8 @@
       "producer": "bun run content:core:build (scripts/build-core.mjs) stage pointers-build",
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
-      "bytes": 311394304,
-      "modified": "2026-09-27"
+      "bytes": 267395072,
+      "modified": "2026-09-30"
     },
     {
       "path": "data/build/core-medication-pointers-pinned.db",
@@ -368,8 +368,8 @@
       "consumers": ["app DEV/build", ".github/workflows/*"],
       "release": "v0.6.37-v0.6.44 MiniMed-*-core.db",
       "note": "Never delete or replace by hand (AGENTS.md, docs/RELEASES.md).",
-      "bytes": 422838272,
-      "modified": "2026-09-07"
+      "bytes": 440942592,
+      "modified": "2026-09-30"
     },
     {
       "path": "apps/app/public/content/mkb.db",
@@ -423,6 +423,76 @@
       "note": "No hosted immutable copy yet (docs/CURRENT_STATE.md).",
       "bytes": 520209504,
       "modified": "2026-08-25"
+    },
+    {
+      "path": "output/release-rls-mkb-2026.9.30",
+      "class": "RELEASED",
+      "producer": "Deterministic RLS MKB split, lexical build, professional-reference upgrade and code-only package_module 2026.9.30",
+      "consumers": [
+        "Current catalog MKB reference module and source-listed packaging reader links"
+      ],
+      "rebuild": "bun run content:module:rls-mkb",
+      "note": "All original document/source identities, section/chunk anchors, text/spans and raw checksums match 2026.9.28; source-listed packaging links added. Packaging 2026.9.28 is reused unchanged.",
+      "bytes": 397137179,
+      "modified": "2026-09-29",
+      "release": "reference-rls-mkb-2026.9.30"
+    },
+    {
+      "path": "data/build/core-reference-merged.db",
+      "class": "REBUILDABLE",
+      "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
+      "consumers": ["Core rebuild and release qualification"],
+      "rebuild": "CORE_BUILD_VERSION=0.6.45 bun run content:core:build -- --stage=finalize-clean",
+      "note": "Current qualified 0.6.45 build input/output. Clinical gate passes with all 15 pilot documents retained; exact historical source identities preserved by migrations 011/012.",
+      "bytes": 1927856128,
+      "modified": "2026-09-29"
+    },
+    {
+      "path": "data/build/official-clinical-documents-merged",
+      "class": "REBUILDABLE",
+      "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
+      "consumers": ["Core rebuild and release qualification"],
+      "rebuild": "CORE_BUILD_VERSION=0.6.45 bun run content:core:build -- --stage=finalize-clean",
+      "note": "Current qualified 0.6.45 build input/output. Clinical gate passes with all 15 pilot documents retained; exact historical source identities preserved by migrations 011/012.",
+      "bytes": 2068365312,
+      "modified": "2026-09-05"
+    },
+    {
+      "path": "data/build/core.0.6.45.db",
+      "class": "REBUILDABLE",
+      "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
+      "consumers": ["Core rebuild and release qualification"],
+      "rebuild": "CORE_BUILD_VERSION=0.6.45 bun run content:core:build -- --stage=finalize-clean",
+      "note": "Current qualified 0.6.45 build input/output. Clinical gate passes with all 15 pilot documents retained; exact historical source identities preserved by migrations 011/012.",
+      "bytes": 440942592,
+      "modified": "2026-09-30"
+    },
+    {
+      "path": "output/release-core-0.6.45",
+      "class": "RELEASED",
+      "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
+      "consumers": [
+        "Browser bundled core",
+        "Paired Android0.6.45 core",
+        "Native search parity",
+        "Offline rollback"
+      ],
+      "rebuild": "CORE_BUILD_VERSION=0.6.45 bun run content:core:build -- --stage=finalize-clean",
+      "note": "Current qualified 0.6.45 build input/output. Clinical gate passes with all 15 pilot documents retained; exact historical source identities preserved by migrations 011/012.",
+      "bytes": 524658294,
+      "modified": "2026-09-30",
+      "release": "core-0.6.45"
+    },
+    {
+      "path": "output/release-core-0.6.44",
+      "class": "RELEASED",
+      "producer": "Original bundled core restored from HEAD before this task",
+      "consumers": ["Stable rollback and fixed-corpus comparison"],
+      "release": "v0.6.44",
+      "rebuild": "git show <0.6.44 commit>:content/bundled/core.db.gz | gzip -d > core.db",
+      "note": "Checksum sha256:d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a; original source bytes preserved.",
+      "bytes": 422838272,
+      "modified": "2026-09-29"
     }
   ]
 }

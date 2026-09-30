@@ -133,7 +133,7 @@ export function ConversationAttachDialog(props: {
       open
       title={props.recording.status === 'interrupted' ? 'Запись прервалась' : 'Запись сохранена'}
       subtitle={`${conversationTitle(props.recording)} · на этом устройстве`}
-      class="conversation-dialog overlay-dialog--compact"
+      class="conversation-dialog"
       bodyClass="conversation-dialog__body"
       onClose={props.onClose}
     >

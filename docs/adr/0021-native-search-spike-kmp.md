@@ -179,3 +179,75 @@ build and tests" — summary:
   Web is the one target that is not there: no real data access is possible with this dependency,
   and even the UI-only shell does not demonstrably run yet. "Web, Android, iOS, desktop from one
   codebase" is accurate for Android/iOS/desktop today and aspirational, not delivered, for web.
+
+## Update, 2026-09-30: lookup qualification and real desktop reader checks
+
+The lookup pipeline now ports the source lookup branch instead of the initial single-branch
+approximation described above. This qualifies the measured lookup path for the subsequent native
+product port, which starts after the final WebView release. Clinical analysis and the complete
+native product remain separate work.
+
+The regenerated fixture uses the final source-ID-restored `core.0.6.45.db`, SHA-256
+`13f238f7fefe1b19eefa19ac9de0ea89fabff34ed96e98d987277f15ab03025f`. Its 151 committed queries
+return 2,905 groups and 6,156 passages. The desktop gate asserts all 151 ordered group lists and
+all 151 ordered passage lists: document kind, scores, chunk/document/version/section IDs, source
+anchors, actual snippets, matched terms and UTF-16 highlight ranges. Scores use a `1e-6` numeric
+tolerance; order and source fields require equality. All 151 final query plans and all 206 SQL
+branch hit sequences also match. The tests fail on any mismatch; they no longer merely count the
+queries or accept the earlier 148/150 group agreement. The final fixture SHA-256 is
+`22725017037a50155f6d3b48782acda861d4bb8a9078a01a5fd324f2cadd3f84`.
+
+The port includes query-aligned source snippets, presentation-row selection, known HTML cleanup,
+NFKC offset mapping, ICD normalization, spelling branches and the bounded lookup candidate window
+(4x overfetch, at most three chunks per document version). A title or an actual excerpt must
+corroborate the query subject; `matchedTerms` and section paths cannot substitute for source text.
+The ordinary age-qualified lookup additionally respects explicitly opposing child/adult scope in
+source titles. Generic or combined-age titles remain neutral, and clinical analysis keeps its
+existing ranking. This restores the 10-case doctor lookup MRR from .55 to its .60 baseline, with
+recall@5 .70 and forbidden-free rate 1. The 85-query clinical benchmark still passes its unchanged
+baseline. Focused TypeScript ranking tests pass 41/41.
+
+The final desktop suite passes 38 tests, including strict pipeline parity, 1,741 RapidFuzz cases,
+query-aligned snippets, population guards and the real `LookupEngine.search` presentation adapter.
+The raw alias-expansion diagnostic remains 150/151 because that stage excludes the medication
+spelling suggestions added by the full lookup plan; the full plan's alias/branch/term gate is
+151/151. These are distinct stage measurements, not a relaxed full-pipeline assertion.
+
+Actual desktop search and reader screens were inspected in the current dark system theme through
+an owned `.app` bundle built with the existing Compose `createDistributable` task. A command-only
+`compose.desktop.packaging.checkJdkVendor=false` allowed the installed Homebrew JDK to produce this
+temporary bundle. It was removed after inspection. Source snippets visibly highlight the queried
+phrase, and selecting a passage opens the original reader at its source section. Clinical and
+medication pointers keep the pipeline's classified kind instead of being relabelled from the raw
+`core_catalog_pointer` source type. Their labels now match the six-kind web presentation contract.
+The UI adapter test verifies those kinds and reader anchors against actual pipeline results.
+
+These visual checks used the immutable historical `0.6.44` release core, SHA-256
+`d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a`; its bytes remained unchanged
+after opening and closing the app. They do not claim that the screenshots use the upcoming release
+fixture. Evidence is in `playwright/native-kind-clinical-dark.png`,
+`playwright/native-kind-medication-dark.png`, `playwright/native-reader-dark.png` and
+`playwright/native-desktop-visual-verification.json`. Both themes pass the text-role contrast test
+at 4.5:1 or higher; only the current dark theme was visually inspected. Rapid replacement of the
+first query showed the current query's results without a false error. The UI exposes no loading
+indicator, so this check does not establish an internal loading-state transition or the exact
+index-initialization phase when replacement occurred.
+
+After the final ranking and presentation changes, Android shared Kotlin, desktop app Kotlin,
+Wasm shared Kotlin, iOS device and simulator shared Kotlin, and iOS simulator test Kotlin all
+compile. Strict runtime parity was executed on desktop. This machine currently has no installed
+iOS simulator runtime (only watchOS 26.5), so the earlier 2026-09-28 iOS execution remains historical
+evidence; no current iOS runtime pass is claimed. Android runtime parity was not rerun in this
+qualification. Wasm still has a stub database and no newly verified working product runtime.
+Final counters, source guards and command results are recorded in
+`playwright/native-lookup-parity-verification.json` and `playwright/native-age-final-targets.log`.
+
+The next native slice still needs a UI-independent core/ports boundary, verified app-private core
+bootstrap, catalog/cache decoding, exact module target membership and readable-document checks,
+durable install/rollback state, and reader navigation/position restoration. The current spike
+accepts an externally supplied database, keeps navigation in composition memory and reads the
+reader directly through `NativeSearchDatabase`. It does not yet replace the WebView's download
+manager, source selection, user storage, personal files, assessments, calculators, diaries, ECG
+or model flows. The 151-query parity gate also does not establish equivalence for clinical
+analysis or every possible lookup phrasing; the existing unported treatment-failure title-boost
+handling remains a documented lookup edge outside this fixture.

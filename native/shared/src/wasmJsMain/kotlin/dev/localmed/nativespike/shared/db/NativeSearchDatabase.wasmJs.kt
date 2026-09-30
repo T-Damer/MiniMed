@@ -45,7 +45,7 @@ actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
 
     actual fun listAliases(): List<AliasRecord> = emptyList()
 
-    actual fun searchBranch(ftsQuery: String, limit: Int): List<BranchHit> = emptyList()
+    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>): List<BranchHit> = emptyList()
 
     actual fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText> = emptyList()
 
@@ -70,7 +70,7 @@ actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
                 chunkId = "demo.chunk.1",
                 documentId = "demo.document.1",
                 documentTitle = "Демонстрационный документ (веб-заглушка, не core.db)",
-                documentKind = DocumentKind.CATALOG_POINTER,
+                documentKind = DocumentKind.REFERENCE,
                 sectionId = "demo.section.1",
                 sectionPath = "Пример раздела",
                 anchor = "demo.document.1#demo.section.1",

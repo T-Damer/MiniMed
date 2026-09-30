@@ -198,6 +198,18 @@ def test_split_keeps_cited_identities_and_moves_packaging_rows(tmp_path: Path) -
         f"'$.medicationEntityId') = '{brand_id}'",
     )
     assert document_id == profile["packagingDocumentId"]
+    [(raw_code_metadata,)] = _rows(
+        code, "SELECT metadata_json FROM documents WHERE id = 'rls.mkb.node.i67-9'"
+    )
+    links = json.loads(str(raw_code_metadata))["rlsMedicationPackaging"]
+    [link] = [item for item in links if item["medicationEntityId"] == brand_id]
+    assert link == {
+        "medicationEntityId": brand_id,
+        "name": "Абактал®",
+        "packagingDocumentId": document_id,
+        "sourceUrl": "https://www.rlsnet.ru/drugs/example-one",
+    }
+
     metadata = json.loads(str(raw_metadata))
     assert metadata["mkbCodes"] == ["I67.9"]
     assert metadata["rightsStatus"] == "unknown"

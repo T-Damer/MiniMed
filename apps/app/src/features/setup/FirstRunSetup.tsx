@@ -84,6 +84,7 @@ export function FirstRunSetup(props: {
       open
       title="Добро пожаловать в MiniMed"
       class="first-run-setup"
+      presentation="screen"
       headerClass="first-run-setup__header"
       bodyClass="first-run-setup__body"
       tracksHistory={false}

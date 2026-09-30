@@ -1176,7 +1176,19 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 aliasesResult.value,
                 parsed.data.includeSuggestions,
               );
-        if (plan.branches.length === 0) {
+        const identities =
+          parsed.data.analysisMode === 'lookup' &&
+          !parsed.data.filters.specialties?.length &&
+          !parsed.data.filters.ageGroups?.length &&
+          !parsed.data.filters.sectionTypes?.length
+            ? ((await options.store.lookupCoreIdentities?.(parsed.data.query)) ?? []).filter(
+                (hit) =>
+                  !parsed.data.filters.documentIds?.length ||
+                  (hit.target.type === 'document' &&
+                    parsed.data.filters.documentIds.includes(hit.target.documentId)),
+              )
+            : [];
+        if (plan.branches.length === 0 && identities.length === 0) {
           return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
         }
 
@@ -1208,6 +1220,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 terms: branch.terms,
                 filters,
                 limit: perBranchLimit,
+                diversifyDocuments: parsed.data.analysisMode === 'lookup',
               });
               return {
                 branch,
@@ -1409,6 +1422,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         );
         return ok({
           requestId: requestId(),
+          identities,
           normalizedQuery: plan.analysis.normalizedQuery,
           elapsedMs: performance.now() - startedAt,
           modeUsed,

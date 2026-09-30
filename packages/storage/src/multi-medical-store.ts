@@ -1,5 +1,6 @@
 import {
   type ContentPackSeed,
+  type CoreIdentityHit,
   type DefinitionReferenceReply,
   type DefinitionReferenceRequest,
   DefinitionReferenceRequestSchema,
@@ -231,6 +232,16 @@ export class MultiMedicalStore implements MedicalStore {
     )
       .flat()
       .toSorted((left, right) => left.title.localeCompare(right.title));
+  }
+
+  public async lookupCoreIdentities(query: string): Promise<readonly CoreIdentityHit[]> {
+    this.assertInitialized();
+    const hits = (
+      await Promise.all(
+        this.activeMounts().map(({ store }) => store.lookupCoreIdentities?.(query) ?? []),
+      )
+    ).flat();
+    return [...new Map(hits.map((hit) => [JSON.stringify(hit.target), hit])).values()];
   }
 
   public async listSearchDocuments(): Promise<readonly SearchDocumentDescriptor[]> {

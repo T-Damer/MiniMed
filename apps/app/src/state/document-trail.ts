@@ -4,6 +4,7 @@ import {
   buildOfficialDocumentHash,
   buildUserDocumentHash,
   type DocumentReadRoute,
+  type ExactDocumentIdentity,
   isDocumentReadRoute,
 } from '@/state/document-route';
 
@@ -118,11 +119,10 @@ function crumbHref(
   id: string,
   section?: string,
   pageIndex?: number,
+  expectedIdentity?: ExactDocumentIdentity,
 ): string {
   if (kind === 'official') {
-    return section === undefined
-      ? buildOfficialDocumentHash(id)
-      : buildOfficialDocumentHash(id, section);
+    return buildOfficialDocumentHash(id, section, expectedIdentity);
   }
   return pageIndex === undefined ? buildUserDocumentHash(id) : buildUserDocumentHash(id, pageIndex);
 }
@@ -170,13 +170,20 @@ export interface AppendDocumentCrumbInput {
   readonly title: string;
   readonly section?: string;
   readonly pageIndex?: number;
+  readonly expectedIdentity?: ExactDocumentIdentity;
 }
 
 export function appendDocumentCrumb(
   trail: DocumentTrail,
   crumb: AppendDocumentCrumbInput,
 ): DocumentTrail {
-  const href = crumbHref(crumb.kind, crumb.id, crumb.section, crumb.pageIndex);
+  const href = crumbHref(
+    crumb.kind,
+    crumb.id,
+    crumb.section,
+    crumb.pageIndex,
+    crumb.expectedIdentity,
+  );
   const fullCrumb: DocumentTrailCrumb = {
     kind: crumb.kind,
     id: crumb.id,
@@ -252,9 +259,7 @@ export function rebuildTrailForPastedRoute(route: DocumentReadRoute): DocumentTr
         title,
         href:
           route.kind === 'official'
-            ? route.section === undefined
-              ? buildOfficialDocumentHash(route.documentId)
-              : buildOfficialDocumentHash(route.documentId, route.section)
+            ? buildOfficialDocumentHash(route.documentId, route.section, route.expectedIdentity)
             : route.pageIndex === undefined
               ? buildUserDocumentHash(route.documentId)
               : buildUserDocumentHash(route.documentId, route.pageIndex),

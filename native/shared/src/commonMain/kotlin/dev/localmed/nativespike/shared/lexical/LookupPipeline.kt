@@ -39,8 +39,6 @@ import dev.localmed.nativespike.shared.text.normalizeSurfaceText
  *    never happens here).
  *  - semantic/vector search (`fuseSemanticResults`) — never reached: `export-search-golden.ts`
  *    always requests `mode: 'lexical'`.
- *  - `selectedGroupPresentation` (medication trade-name title prefix) — display-only, does not
- *    change `bestScore`/order/`documentKind`/`contentKind` (see `Grouping.kt`'s header).
  *  - `hasImmediateFailureContext`/`hasDelayedMedicationFailureContext` inside `titleTermBoost` —
  *    see `QueryGroupRanking.kt`'s header.
  *  - `keepExplicitMedicationMatches`/document-id scope filtering/`rankDiagnosisGroups` — all
@@ -114,9 +112,9 @@ fun buildQueryDocumentIndex(db: NativeSearchDatabase): QueryDocumentIndex =
 
 /**
  * Runs one query through the full stage 2 sub-stage D pipeline and returns the top-`groupLimit`
- * groups, in final order, WITH full per-result data (title, snippet preview, anchors) — the shape
+ * groups, in final order, WITH full per-result source data (title, snippet, highlights, anchors) — the shape
  * stage 4's UI wiring needs. `runLookupPipeline` (below) is a thin wrapper over this for the
- * golden-parity tests, which only need the narrower `LookupGroupSummary` fields.
+ * strict golden-parity tests and UI consume the same source passage fields.
  * `documentIndex` should be built once (`buildQueryDocumentIndex`) and reused across queries.
  *
  * **Optimization pass** (docs/research/native-vs-webview-2026-09-28.md, "Optimization pass"):
@@ -172,10 +170,10 @@ fun runLookupPipelineGroups(
     val fused = timedStage(onStage, "fusion") { fuseBranchHits(branchResults, limit, query, exactAliasDocumentIds) }
     val retainedDocumentIds = fused.map { it.documentId }.toSet()
 
-    fun addExactResults(documentIds: Set<String>): List<RankedResult> {
+    fun addExactResults(documentIds: Set<String>, ftsQueries: List<String>): List<RankedResult> {
         val missing = documentIds - retainedDocumentIds
         if (missing.isEmpty()) return emptyList()
-        val results = buildExactIdentityResults(db, missing, plan.terms)
+        val results = buildExactIdentityResults(db, missing, plan.terms, ftsQueries)
         // Register newly-discovered documents (found only via exact identity, never via FTS) into
         // the descriptor map too, so downstream kind/target/ranking logic can see them.
         for (result in results) {
@@ -187,14 +185,17 @@ fun runLookupPipelineGroups(
     }
 
     val (exactIdentityResults, spellingResults) = timedStage(onStage, "exactIdentity") {
-        addExactResults(exactIdentityDocumentIds) to addExactResults(spellingDocumentIds)
+        val baseBranches = plan.medicationSpelling?.withoutSpelling?.branches ?: plan.branches
+        val spellingBranches = plan.branches.filter { it.id.startsWith("medication-spelling-") }
+        addExactResults(exactIdentityDocumentIds, baseBranches.take(1).map { it.ftsQuery }) to
+            addExactResults(spellingDocumentIds, spellingBranches.map { it.ftsQuery })
     }
     val merged = mergeExactIdentityResults(fused, exactIdentityResults + spellingResults)
     val results = filterSupersededSummaryResults(merged, documentIndex.availableIds)
 
     val normalizedQuery = normalizeSurfaceText(query)
     val preferredSectionType = requestedSectionType(normalizedQuery)
-    var groups: List<RankedGroup> = timedStage(onStage, "grouping") { groupResults(results, preferredSectionType) }
+    var groups: List<RankedGroup> = timedStage(onStage, "grouping") { groupResults(results, preferredSectionType, normalizedQuery, plan.terms, aliases) }
     groups = timedStage(onStage, "ranking") {
         var g = rankSearchGroupsByQuery(groups, query, documentsById)
         g = filterSuffixFallbackGroups(g, query, aliases, exactIdentityDocumentIds + spellingDocumentIds)
@@ -235,9 +236,8 @@ private data class ExactIdentityIdSet(
 )
 
 /**
- * Thin wrapper over `runLookupPipelineGroups` for the golden-parity tests, which only compare
- * `documentId`/`targetDocumentId`/`documentKind`/`contentKind`/`bestScore` — see
- * `search-golden.json`'s `queries[].groups` shape.
+ * Summary wrapper for callers that only need document targets, kinds, and scores. Strict golden
+ * tests use runLookupPipelineGroups to compare the source passages as well.
  */
 fun runLookupPipeline(
     query: String,

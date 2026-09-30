@@ -1384,7 +1384,7 @@ main {
 .result-path {
   display: block;
   overflow: hidden;
-  color: #71654c;
+  color: var(--theme-text-muted);
   font-family: var(--font-mono);
   font-size: var(--type-micro);
   letter-spacing: 0.03em;

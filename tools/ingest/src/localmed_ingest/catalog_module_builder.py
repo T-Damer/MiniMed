@@ -1186,17 +1186,16 @@ def _map_reference_aliases(
 def _reference_core_pointer_document(
     document: _ReferenceSourceDocument,
     source_aliases: list[_ReferenceSourceAlias],
-    module_id: str,
+    module_ids: list[str],
 ) -> tuple[str, str, str, list[dict[str, object]]]:
     pointer_id = _core_pointer_id(document.document_id, "reference")
-    declared_aliases = [source_alias.alias for source_alias in source_aliases]
     metadata: dict[str, object] = {
         "contentMode": "module-pointer",
         "catalogFamily": "reference",
         "entityType": document.entity_type,
         "targetDocumentId": document.document_id,
-        "primaryModuleId": module_id,
-        "moduleIds": [module_id],
+        "primaryModuleId": module_ids[0],
+        "moduleIds": module_ids,
         "sourceDocumentId": document.document_id,
         "sourceDocumentVersionId": document.version_id,
         "sourceType": document.source_type,
@@ -1212,7 +1211,6 @@ def _reference_core_pointer_document(
         "sourceExtractedAt": document.extracted_at,
         "rightsStatus": document.rights_status,
         "requiresReview": document.requires_review,
-        "declaredAliases": declared_aliases,
         "referenceCoverage": "clinical-definition"
         if document.definition is not None
         else "classification-only",
@@ -1232,17 +1230,16 @@ def _reference_core_pointer_document(
             for node in document.classification_path
         ]
     if source_aliases:
-        metadata["sourceAliases"] = [
+        # The inventory maps global query expansions through titles and classification codes.
+        # It supplies neither article synonyms nor evidence attributable to this target's text.
+        metadata["globalQueryAliases"] = [
             {
                 "sourceAliasId": source_alias.alias_id,
                 "canonicalTerm": source_alias.canonical_term,
                 "alias": source_alias.alias,
                 "category": source_alias.category,
                 "weight": source_alias.weight,
-                "sourceDocumentId": document.document_id,
-                "sourceDocumentVersionId": document.version_id,
-                "sourceChecksum": document.source_checksum,
-                "sourceKind": "synonyms",
+                "sourceKind": "global-query-expansion",
             }
             for source_alias in source_aliases
         ]
@@ -1282,19 +1279,6 @@ def _reference_core_pointer_document(
                     f"- {node.code} {node.title}",
                 ]
             )
-        body.append("")
-    if source_aliases:
-        body.extend(
-            [
-                "# Синонимы",
-                "",
-                _source_marker(
-                    document.document_id,
-                    "synonyms",
-                ),
-            ]
-        )
-        body.extend(f"- {source_alias.alias}" for source_alias in source_aliases)
         body.append("")
     if document.definition is not None:
         body.extend(
@@ -2042,6 +2026,7 @@ def build_core_reference_pointers(
     version: str,
     built_at: str | None = None,
     force: bool = False,
+    target_modules: Mapping[str, list[str]] | None = None,
 ) -> CatalogModuleBuildReport:
     """Build compact core pointers from a reference-pack SQLite database."""
     source = source_sqlite.resolve()
@@ -2057,11 +2042,22 @@ def build_core_reference_pointers(
     if not documents:
         raise ValueError("Reference SQLite source contains no supported documents.")
     aliases_by_document, warnings = _map_reference_aliases(documents, source_aliases)
+    if target_modules is not None:
+        for document in documents:
+            module_ids = target_modules.get(document.document_id)
+            if not module_ids:
+                raise ValueError(
+                    f"Reference target {document.document_id} is not assigned to a catalog module."
+                )
+            if len(set(module_ids)) != len(module_ids):
+                raise ValueError(f"Duplicate modules for reference target {document.document_id}.")
+            for value in module_ids:
+                _required_reference_text(value, "module_id", document.document_id)
     pointers = [
         _reference_core_pointer_document(
             document,
             aliases_by_document.get(document.document_id, []),
-            module_id,
+            target_modules[document.document_id] if target_modules is not None else [module_id],
         )
         for document in documents
     ]

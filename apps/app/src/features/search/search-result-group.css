@@ -1,0 +1,12 @@
+.result-group__more {
+  --ui-disclosure-header-height: 2.75rem;
+  --ui-disclosure-header-padding: 0.375rem 0.75rem;
+  --ui-disclosure-header-inset: 0px;
+  --ui-disclosure-content-padding: 0;
+  --ui-disclosure-title-size: 0.75rem;
+  background: var(--theme-surface);
+}
+
+.result-card.result-card--selected {
+  background: var(--theme-accent-soft);
+}

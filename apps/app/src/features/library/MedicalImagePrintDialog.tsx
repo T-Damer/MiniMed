@@ -453,6 +453,7 @@ export function MedicalImagePrintDialog(props: MedicalImagePrintDialogProps): JS
       <OverlayDialog
         open={props.open}
         title="Печать снимков"
+        presentation="screen"
         subtitle={`${props.title} · выбрано ${String(frames().length || selectedSlices().length)} кадр.`}
         class="medical-image-print-dialog"
         bodyClass="medical-image-print-dialog__body"

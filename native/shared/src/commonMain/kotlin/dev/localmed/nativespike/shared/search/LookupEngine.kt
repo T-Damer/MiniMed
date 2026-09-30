@@ -136,14 +136,15 @@ class LookupEngine(private val database: NativeSearchDatabase) {
             SearchResultGroup(
                 documentId = group.documentId,
                 documentTitle = group.title,
-                documentKind = DocumentKind.fromSourceType(group.results.firstOrNull()?.sourceType ?: ""),
+                documentKind = DocumentKind.fromClassifiedKind(group.documentKind),
                 items = group.results.take(ITEMS_PER_GROUP).map { result ->
                     SearchResultItem(
                         chunkId = result.chunkId,
                         sectionId = result.sectionId,
                         sectionPath = result.sectionPath.joinToString(" › "),
                         anchor = result.anchor,
-                        snippet = result.previewText,
+                        snippet = result.snippet,
+                        highlightedRanges = result.highlightedRanges,
                     )
                 },
             )

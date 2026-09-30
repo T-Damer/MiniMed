@@ -1,6 +1,6 @@
+import { mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
+import { selectSearchSection, waitForHomeSections } from '@localmed/app/e2e/select-search-section';
 import { expect, test } from '@playwright/test';
-import { mountBuiltApp } from './mount-built-app';
-import { selectSearchSection, waitForHomeSections } from './select-search-section';
 
 for (const width of [375, 1280]) {
   test(`unified selector, tool history, folders and long catalog at ${width}px`, async ({
@@ -20,9 +20,14 @@ for (const width of [375, 1280]) {
     await expect(
       page.locator('.search-section-menu__row .search-section-menu__option'),
     ).toHaveCount(7);
-    const menuBox = await page.locator('.search-section-menu').boundingBox();
-    expect(menuBox).not.toBeNull();
-    if (menuBox) expect(menuBox.y + menuBox.height).toBeLessThanOrEqual(height);
+    const menuSurface =
+      width === 375 ? page.locator('.overlay-dialog--sheet') : page.locator('.search-section-menu');
+    await expect
+      .poll(async () => {
+        const box = await menuSurface.boundingBox();
+        return box !== null && box.y >= 0 && box.y + box.height <= height + 1;
+      })
+      .toBe(true);
     await page.screenshot({ path: test.info().outputPath('section-menu.png') });
     const menuSearch = page.getByRole('searchbox', { name: 'Найти раздел или подраздел' });
     await menuSearch.fill('фармакология');

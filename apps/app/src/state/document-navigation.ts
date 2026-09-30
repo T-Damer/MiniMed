@@ -1,4 +1,4 @@
-import { buildOfficialDocumentHash } from '@/state/document-route';
+import { buildOfficialDocumentHash, type ExactDocumentIdentity } from '@/state/document-route';
 import { appendDocumentCrumb, beginDocumentTrail, loadDocumentTrail } from '@/state/document-trail';
 
 export const OPEN_DOCUMENT_EVENT = 'minimed:open-document';
@@ -9,12 +9,16 @@ export interface OpenDocumentRequest {
   readonly anchor?: string | null;
   /** When true, keep summary cards instead of auto-opening installed full-text siblings. */
   readonly preferSummary?: boolean;
+  readonly expectedIdentity?: ExactDocumentIdentity;
 }
 
 export function openDocumentOverlay(
   documentId: string,
   anchor: string | null = null,
-  options: { readonly preferSummary?: boolean } = {},
+  options: {
+    readonly preferSummary?: boolean;
+    readonly expectedIdentity?: ExactDocumentIdentity;
+  } = {},
 ): void {
   if (options.preferSummary) {
     sessionStorage.setItem(PREFER_SUMMARY_KEY, documentId);
@@ -31,11 +35,14 @@ export function openDocumentOverlay(
     id: documentId,
     title: 'Открываем документ',
     ...(anchor ? { section: anchor } : {}),
+    ...(options.expectedIdentity ? { expectedIdentity: options.expectedIdentity } : {}),
   });
 
-  window.location.hash = anchor
-    ? buildOfficialDocumentHash(documentId, anchor)
-    : buildOfficialDocumentHash(documentId);
+  window.location.hash = buildOfficialDocumentHash(
+    documentId,
+    anchor ?? undefined,
+    options.expectedIdentity,
+  );
 }
 
 export function consumePreferSummaryDocumentId(): string | null {

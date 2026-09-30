@@ -34,3 +34,17 @@ fun snippetSegments(raw: String): List<SnippetSegment> {
     }
     return segments
 }
+
+/** Query-aligned excerpts carry explicit offsets; literal source brackets remain literal. */
+fun snippetSegments(text: String, ranges: List<TextRange>): List<SnippetSegment> {
+    val segments = mutableListOf<SnippetSegment>()
+    var cursor = 0
+    for (range in ranges) {
+        require(range.start >= cursor && range.end >= range.start && range.end <= text.length)
+        if (range.start > cursor) segments.add(SnippetSegment(text.substring(cursor, range.start), false))
+        segments.add(SnippetSegment(text.substring(range.start, range.end), true))
+        cursor = range.end
+    }
+    if (cursor < text.length) segments.add(SnippetSegment(text.substring(cursor), false))
+    return segments
+}

@@ -34,10 +34,11 @@ _ICD10_CODE_PATTERN = re.compile(
     r"(?<![A-ZА-Я0-9])(?P<code>[A-ZА-Я]?\s*\d{2}(?:[.\-\s]\s*\d+|\d+)?)(?![A-ZА-Я0-9])",
     re.IGNORECASE,
 )
+_YAML_SAFE_LOADER = getattr(yaml, "CSafeLoader", yaml.SafeLoader)
 
 
 def read_yaml_mapping(path: Path) -> dict[str, object]:
-    value = yaml.safe_load(path.read_text(encoding="utf-8"))
+    value = yaml.load(path.read_text(encoding="utf-8"), Loader=_YAML_SAFE_LOADER)
     if not isinstance(value, dict):
         raise ValueError(f"Expected YAML mapping: {path}")
     return value

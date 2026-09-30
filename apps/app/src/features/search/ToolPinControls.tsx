@@ -1,7 +1,7 @@
-import { Popover } from '@kobalte/core/popover';
 import { createMemo, createSignal, For, type JSX, Show } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
+import { SheetPopover } from '@/components/SheetPopover';
 import { StarGlyph } from '@/components/StarGlyph';
 import {
   collectionIdsContaining,
@@ -114,7 +114,7 @@ export function ItemCollectionCreateForm(props: {
   );
 }
 
-/** Popover that adds one item to any number of collections. */
+/** Panel (a popover, or a sheet on phones) that adds one item to any number of collections. */
 export function ItemCollectionMenu(props: {
   readonly item: ItemRefInput;
   readonly class?: string;
@@ -123,61 +123,57 @@ export function ItemCollectionMenu(props: {
   const title = () => props.item.title ?? props.item.id;
   const memberOf = createMemo(() => collectionIdsContaining(itemCollections(), props.item));
   return (
-    <Popover open={open()} onOpenChange={setOpen} placement="bottom-end" gutter={6} fitViewport>
-      <Popover.Trigger
-        class={`tool-pin__collections ${props.class ?? ''}`.trim()}
-        classList={{ 'tool-pin__collections--on': memberOf().size > 0 }}
-        aria-label={`Коллекции для «${title()}»`}
-        title="Добавить в коллекцию"
-        onClick={(event: MouseEvent) => {
-          event.preventDefault();
-          event.stopPropagation();
-        }}
+    <SheetPopover
+      open={open()}
+      onOpenChange={setOpen}
+      title={`Коллекции: ${title()}`}
+      placement="bottom-end"
+      triggerClass={`tool-pin__collections ${props.class ?? ''}`.trim()}
+      triggerClassList={{ 'tool-pin__collections--on': memberOf().size > 0 }}
+      triggerLabel={`Коллекции для «${title()}»`}
+      triggerTitle="Добавить в коллекцию"
+      stopTriggerClick
+      trigger={<AppGlyph name="folder-open" class="tool-pin__glyph" />}
+      contentClass="tool-collection-menu"
+    >
+      <p class="tool-collection-menu__heading">Добавить в коллекцию</p>
+      <Show
+        when={itemCollections().collections.length > 0}
+        fallback={
+          <p class="tool-collection-menu__empty">Коллекций пока нет — создайте первую ниже.</p>
+        }
       >
-        <AppGlyph name="folder-open" class="tool-pin__glyph" />
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content class="tool-collection-menu" aria-label={`Коллекции: ${title()}`}>
-          <p class="tool-collection-menu__heading">Добавить в коллекцию</p>
-          <Show
-            when={itemCollections().collections.length > 0}
-            fallback={
-              <p class="tool-collection-menu__empty">Коллекций пока нет — создайте первую ниже.</p>
-            }
-          >
-            <ul class="tool-collection-menu__list">
-              <For each={itemCollections().collections}>
-                {(collection) => (
-                  <li class="tool-collection-menu__item">
-                    <label class="tool-collection-menu__option">
-                      <input
-                        class="tool-collection-menu__checkbox"
-                        type="checkbox"
-                        checked={memberOf().has(collection.id)}
-                        onChange={(event) => {
-                          const included = event.currentTarget.checked;
-                          updateItemCollections((state) =>
-                            setItemInCollection(
-                              state,
-                              collection.id,
-                              props.item,
-                              included,
-                              new Date().toISOString(),
-                            ),
-                          );
-                        }}
-                      />
-                      <span class="tool-collection-menu__name">{collection.name}</span>
-                      <span class="tool-collection-menu__count">{collection.items.length}</span>
-                    </label>
-                  </li>
-                )}
-              </For>
-            </ul>
-          </Show>
-          <ItemCollectionCreateForm item={props.item} />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover>
+        <ul class="tool-collection-menu__list">
+          <For each={itemCollections().collections}>
+            {(collection) => (
+              <li class="tool-collection-menu__item">
+                <label class="tool-collection-menu__option">
+                  <input
+                    class="tool-collection-menu__checkbox"
+                    type="checkbox"
+                    checked={memberOf().has(collection.id)}
+                    onChange={(event) => {
+                      const included = event.currentTarget.checked;
+                      updateItemCollections((state) =>
+                        setItemInCollection(
+                          state,
+                          collection.id,
+                          props.item,
+                          included,
+                          new Date().toISOString(),
+                        ),
+                      );
+                    }}
+                  />
+                  <span class="tool-collection-menu__name">{collection.name}</span>
+                  <span class="tool-collection-menu__count">{collection.items.length}</span>
+                </label>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+      <ItemCollectionCreateForm item={props.item} />
+    </SheetPopover>
   );
 }
