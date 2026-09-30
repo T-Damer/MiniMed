@@ -270,8 +270,7 @@ fun SearchScreen(
                                 }
                                 else {
                                     val scope = NativeSearchScope.entries.first { it.name.lowercase() == section.id }
-                                    state.updateMode(NativeSearchMode.LOOKUP)
-                                    state.updateSelection(state.selection.copy(scope=scope))
+                                    state.selectSection(scope, resetSpecialties = true)
                                 }
                             },
                             onExample = { example -> state.updateQuery(example); state.submit(core == null) },

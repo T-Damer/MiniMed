@@ -56,10 +56,10 @@ internal fun NativeSearchControls(state: NativeSearchUiState, focus: FocusReques
         )
         NativeQueryFooter(progress) {
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(components.queryActions.columnGap), verticalAlignment = Alignment.CenterVertically) {
-            NativeSearchScopePicker(state.selection.scope, Modifier.weight(1f, fill = false)) { scope -> state.updateSelection(state.selection.copy(scope = scope)) }
+            NativeSearchScopePicker(state.selection.scope, Modifier.weight(1f, fill = false)) { scope -> state.selectSection(scope) }
             NativeClinicalToggle(
                 checked = state.mode == NativeSearchMode.CLINICAL,
-                onCheckedChange = { state.updateMode(if (it) NativeSearchMode.CLINICAL else NativeSearchMode.LOOKUP) },
+                onCheckedChange = { state.toggleClinical(it) },
                 label = "Клинический разбор",
             ) { tint, _ -> NativeAppGlyph(NativeAppGlyphName.Brain, Modifier.size(NativeDimensions.space5), tint) }
             }

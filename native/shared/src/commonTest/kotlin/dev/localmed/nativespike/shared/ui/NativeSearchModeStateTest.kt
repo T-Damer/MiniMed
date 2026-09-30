@@ -15,6 +15,57 @@ import kotlin.test.assertTrue
 import kotlin.test.assertSame
 
 class NativeSearchModeStateTest {
+    @Test fun sectionsRestoreTheirOwnQueryFiltersResultsAndViewport() {
+        val initial = NativeSearchSnapshot("энцефалит", 8, 70, selection = NativeSearchSelection(
+            NativeSearchScope.GUIDELINES, NativeSearchFilters(ageGroups = listOf("children"), specialties = listOf("neurology"))))
+        val state = NativeSearchUiState(initial)
+        val result = SearchOutcome(emptyList(), SearchTiming(0.0, 0.0), NativeSearchMode.LOOKUP)
+        state.outcome = result
+        state.completedQuery = state.query
+        state.completedMode = state.mode
+        state.completedSelection = state.selection
+        state.selectSection(NativeSearchScope.MEDICATIONS)
+        assertEquals("", state.query)
+        assertNull(state.outcome)
+        assertEquals(0, state.snapshot().firstVisibleItemIndex)
+        assertFalse(state.acceptsRequest(initial.query, initial.mode, initial.selection))
+        state.updateQuery("цефтриаксон")
+        state.selectSection(NativeSearchScope.GUIDELINES)
+        assertEquals(initial, state.snapshot())
+        assertSame(result, state.outcome)
+        assertEquals(initial.query, state.completedQuery)
+        state.selectSection(NativeSearchScope.MEDICATIONS)
+        assertEquals("цефтриаксон", state.query)
+        state.selectSection(NativeSearchScope.GUIDELINES, resetSpecialties = true)
+        assertEquals(emptyList(), state.selection.filters.specialties)
+        assertEquals(listOf("children"), state.selection.filters.ageGroups)
+        assertNull(state.outcome)
+    }
+
+    @Test fun clinicalToggleCarriesOnlyTheInitialAllSourcesDraftThenRestoresIndependentDrafts() {
+        val state = NativeSearchUiState(NativeSearchSnapshot("пневмония"))
+        state.toggleClinical(true)
+        assertEquals("пневмония", state.query)
+        assertEquals(NativeSearchMode.CLINICAL, state.mode)
+        state.updateQuery("ребёнок 5 лет, кашель")
+        state.toggleClinical(false)
+        assertEquals("пневмония", state.query)
+        state.toggleClinical(true)
+        assertEquals("ребёнок 5 лет, кашель", state.query)
+        state.selectSection(NativeSearchScope.LEGAL)
+        assertEquals(NativeSearchMode.LOOKUP, state.mode)
+        assertEquals("", state.query)
+        state.submit(waitingForCore = true)
+        assertNull(state.queuedQuery)
+        state.updateQuery("приказ")
+        state.submit(waitingForCore = true)
+        state.selectSection(NativeSearchScope.CONDITIONS)
+        assertNull(state.queuedQuery)
+        state.toggleClinical(true)
+        assertEquals("ребёнок 5 лет, кашель", state.query)
+        assertEquals(NativeSearchScope.ALL, state.selection.scope)
+    }
+
     @Test fun readinessRestoresSavedSearchUnlessTheUserEditedOrSubmittedTheStartupField() {
         val saved = NativeSearchSnapshot("сохранённый запрос", 7, 80, NativeSearchMode.CLINICAL)
         val untouched = NativeSearchUiState(NativeSearchSnapshot())
