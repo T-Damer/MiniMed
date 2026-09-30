@@ -11,6 +11,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.innerShadow
 import androidx.compose.ui.graphics.Shape
@@ -45,8 +51,24 @@ fun Modifier.nativeBoxFrame(style: NativeBoxStyle): Modifier {
     for (layer in style.shadows.filter { it.inset }.asReversed()) {
         modifier = modifier.innerShadow(shape, layer.toShadow())
     }
-    if (style.borderWidth.value > 0f) modifier = modifier.border(style.borderWidth, style.borderColor, shape)
+    if (style.borderWidth.value > 0f) {
+        modifier = if (style.borderDashed) modifier.dashedBorder(style) else modifier.border(style.borderWidth, style.borderColor, shape)
+    }
     return modifier
+}
+
+/** CSS `border-style: dashed`: dashes about three strokes long, as Blink draws them. */
+private fun Modifier.dashedBorder(style: NativeBoxStyle): Modifier = drawBehind {
+    val stroke = style.borderWidth.toPx()
+    val inset = stroke / 2
+    val corner = if (style.circle) size.minDimension / 2 else style.corner.toPx()
+    drawRoundRect(
+        color = style.borderColor,
+        topLeft = Offset(inset, inset),
+        size = Size(size.width - stroke, size.height - stroke),
+        cornerRadius = CornerRadius((corner - inset).coerceAtLeast(0f)),
+        style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(stroke * 3, stroke * 3))),
+    )
 }
 
 /**

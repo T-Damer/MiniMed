@@ -64,14 +64,27 @@ reference key:
 | `NativeIconButton(style = components.routeIconButton / historyFab / helpIconLink / carouselArrow / queryClear / searchButton)` | round icon controls |
 | `NativeClinicalToggle` | `.search-clinical-toggle` (off/on) |
 | `NativeActionButton(primary)` | `.home-feature__action` / `--secondary` |
-| `NativeSourcePicker`, `NativeChip` | `.search-source-picker`, `.search-quick-access__all` |
-| `NativeQuerySheet`, `NativeQueryInput`, `NativeQueryActions` | `.query-sheet`, search input, `.query-actions` |
-| `NativeFeatureCard`, `NativeStatusCard` | `.home-feature`, `.search-core-status` |
+| `NativeSourcePicker`, `NativeChip` (dashed border) | `.search-source-picker`, `.search-quick-access__all` |
+| `NativeQuerySheet`, `NativeQueryInput`, `NativeQueryFooter(progress)` | `.query-sheet`, search input, `.query-actions` |
+| `NativeFeatureCard(primary, secondary)`, `NativeStatusCard` | `.home-feature`, `.search-core-status` |
 | `NativeSectionList`, `NativeSectionRow` | `.search-sections__list`, `__row` |
-| `NativeBottomNav`, `NativeBottomNavButton`, `NativeCarouselDots` | `.app-bottom-nav`, `.app-nav-button`, `.carousel__dots` |
+| `NativeBottomNav(items, selected, onSelect)` | `.app-bottom-nav` with `__bubble` |
+| `NativeCarouselDots` | `.carousel__dots` |
+| `NativeFlexRow` | `display: flex` with `flex: 1 1 auto` children |
 
 Icons are slots (`icon: @Composable (tint) -> Unit`), so the design system does not depend on the
 screens' glyph set. Screens must wrap their content in `ProvideNativeDesignTokens(dark)`.
+
+## Where native deliberately differs from the web
+
+- **Core status in the field.** The web shows a separate `.search-core-status` card. Native
+  `NativeQueryFooter(progress)` replaces the source picker and toggle with the status and the send
+  button with a round progress; the field stays editable, and a query submitted before the core is
+  ready runs as soon as it is (the screen shows «Ищем…» meanwhile).
+- **Bottom navigation.** The bubble, its overshoot/stretch motion and the drag-to-switch gesture
+  follow the web `use-bottom-nav.ts`; native adds a haptic tick per destination during the drag.
+- **Card actions** follow web `flex: 1 1 auto` and never wrap; a label that still does not fit
+  shrinks to 11 sp.
 
 ## Parity checks
 

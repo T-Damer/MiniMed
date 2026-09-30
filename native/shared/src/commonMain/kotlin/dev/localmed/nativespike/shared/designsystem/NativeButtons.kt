@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,6 +16,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 
 private const val DISABLED_ALPHA = 0.55f
 
@@ -90,9 +93,18 @@ fun NativeActionButton(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         icon?.invoke(style.text.color)
-        BasicText(style.text.display(text), style = style.text.textStyle())
+        // Equal-width row buttons shrink a long label a little before ellipsizing it.
+        BasicText(
+            style.text.display(text),
+            modifier = Modifier.weight(1f, fill = false),
+            style = style.text.textStyle(),
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = MIN_ACTION_LABEL_SIZE, maxFontSize = style.text.size),
+        )
     }
 }
+
+private val MIN_ACTION_LABEL_SIZE = 11.sp
 
 /** Web `.search-source-picker`: the source scope chip under the query field. */
 @Composable

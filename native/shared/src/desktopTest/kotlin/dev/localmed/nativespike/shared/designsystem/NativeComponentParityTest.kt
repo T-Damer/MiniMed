@@ -61,11 +61,15 @@ class NativeComponentParityTest {
                         NativeSectionRow("Клинические рекомендации", "считаем…", first = false, onClick = {}, icon = icon())
                     }
                     NativeCarouselDots(4, 0, {}, { "Функция ${it + 1} из 4" })
-                    NativeBottomNav {
-                        NativeBottomNavButton(true, "Поиск", {}, icon = icon())
-                        NativeBottomNavButton(false, "Мои файлы", {}, icon = icon())
-                        NativeBottomNavButton(false, "Настройки", {}, icon = icon())
-                    }
+                    NativeBottomNav(
+                        items = listOf(
+                            NativeNavItem("Поиск", icon()),
+                            NativeNavItem("Мои файлы", icon()),
+                            NativeNavItem("Настройки", icon()),
+                        ),
+                        selected = 0,
+                        onSelect = {},
+                    )
                 }
             }
         }
@@ -85,6 +89,7 @@ class NativeComponentParityTest {
             Triple("carousel-dot", true, true),
             Triple("bottom-nav-button-active", true, true),
             Triple("bottom-nav", true, true),
+            Triple("bottom-nav-bubble", true, true),
         )
         val mismatches = checks.mapNotNull { (block, width, height) ->
             val node = onAllNodesWithTag(block, useUnmergedTree = true).fetchSemanticsNodes().firstOrNull()

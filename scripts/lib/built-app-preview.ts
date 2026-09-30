@@ -68,6 +68,7 @@ export async function withBuiltApp<T>(
 export async function referencePage(
   browser: Browser,
   colorScheme: 'light' | 'dark',
+  options: { readonly holdDatabases?: boolean } = {},
 ): Promise<{ readonly context: BrowserContext; readonly page: Page }> {
   const context = await browser.newContext({
     viewport: REFERENCE_VIEWPORT,
@@ -75,8 +76,11 @@ export async function referencePage(
     colorScheme,
     reducedMotion: 'reduce',
   });
-  // Never answered, so the page keeps showing the first «connecting» status.
-  await context.route('**/content/*.db', () => undefined);
+  if (options.holdDatabases ?? true) {
+    // Never answered, so the page keeps showing the first «connecting» status. A page that needs a
+    // ready core must use its own context: the held download keeps the OPFS pool busy.
+    await context.route('**/content/*.db', () => undefined);
+  }
   await context.addInitScript(() => {
     localStorage.setItem('minimed:package-setup-dismissed:v1', '1');
   });

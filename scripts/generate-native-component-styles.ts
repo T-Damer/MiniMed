@@ -18,6 +18,7 @@ const OUTPUT =
   'native/shared/src/commonMain/kotlin/dev/localmed/nativespike/shared/designsystem/NativeComponentStyles.kt';
 
 const FIXED_SIZE = new Set([
+  'bottom-nav-bubble',
   'route-icon-button',
   'history-fab',
   'clinical-toggle',
@@ -174,7 +175,7 @@ function boxStyle(block: string, captured: Captured): string {
     `        width = ${width}, height = ${height}, minHeight = ${minHeight},`,
     `        padding = NativePadding(start = ${px(s['padding-left'] ?? '0px')}.dp, top = ${px(s['padding-top'] ?? '0px')}.dp, end = ${px(s['padding-right'] ?? '0px')}.dp, bottom = ${px(s['padding-bottom'] ?? '0px')}.dp),`,
     `        corner = ${circle ? '0.dp' : `${px(radius)}.dp`}, circle = ${circle},`,
-    `        borderWidth = ${px(s['border-top-width'] ?? '0px')}.dp, borderColor = ${kotlinColor(s['border-top-color'] ?? 'rgba(0, 0, 0, 0)')},`,
+    `        borderWidth = ${px(s['border-top-width'] ?? '0px')}.dp, borderColor = ${kotlinColor(s['border-top-color'] ?? 'rgba(0, 0, 0, 0)')}, borderDashed = ${s['border-top-style'] === 'dashed'},`,
     `        background = ${kotlinColor(s['background-color'] ?? 'rgba(0, 0, 0, 0)')},`,
     `        bottomBorderWidth = ${px(s['border-bottom-width'] ?? '0px')}.dp, bottomBorderColor = ${kotlinColor(s['border-bottom-color'] ?? 'rgba(0, 0, 0, 0)')},`,
     `        rowGap = ${gaps(s.gap ?? 'normal')[0]}.dp, columnGap = ${gaps(s.gap ?? 'normal')[1]}.dp,`,
@@ -258,6 +259,8 @@ data class NativeBoxStyle(
     val circle: Boolean,
     val borderWidth: Dp,
     val borderColor: Color,
+    /** CSS \`border-style: dashed\`. */
+    val borderDashed: Boolean,
     val background: Color,
     /** Separator drawn under the block (list items). */
     val bottomBorderWidth: Dp,

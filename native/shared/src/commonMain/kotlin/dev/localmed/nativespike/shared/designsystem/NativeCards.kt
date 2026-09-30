@@ -4,14 +4,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -20,17 +18,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 
-/** Web `.home-feature`: kicker with an optional help control, title, text and actions. */
-@OptIn(ExperimentalLayoutApi::class)
+/** One button of a card: primary or secondary is decided by its position. */
+@Immutable
+data class NativeCardAction(
+    val text: String,
+    val onClick: () -> Unit,
+    val icon: (@Composable (tint: Color) -> Unit)? = null,
+)
+
+/**
+ * Web `.home-feature`: kicker with an optional help control, title, text and up to two actions.
+ * The actions always share one row as web `flex: 1 1 auto` (`.ecg-picker__option--stretch`): each
+ * grows from its natural width, and a label that still does not fit shrinks instead of wrapping.
+ */
 @Composable
 fun NativeFeatureCard(
     kicker: String,
     title: String,
     text: String,
+    primary: NativeCardAction,
     modifier: Modifier = Modifier,
+    secondary: NativeCardAction? = null,
     kickerIcon: (@Composable (tint: Color) -> Unit)? = null,
     help: (@Composable () -> Unit)? = null,
-    actions: @Composable RowScope.() -> Unit,
 ) {
     val components = NativeDesign.components
     val card = components.featureCard
@@ -42,7 +52,7 @@ fun NativeFeatureCard(
             val kickerStyle = components.featureKicker
             Row(
                 Modifier.weight(1f).testTag("feature-kicker"),
-                horizontalArrangement = Arrangement.spacedBy(kickerStyle.columnGap),
+                horizontalArrangement = Arrangement.spacedBy(kickerStyle.columnGap.coerceAtLeast(NativeDimensions.space1)),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 kickerIcon?.invoke(kickerStyle.text.color)
@@ -60,10 +70,12 @@ fun NativeFeatureCard(
             Modifier.testTag("feature-text"),
             style = components.featureText.text.textStyle(),
         )
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(card.columnGap / 2),
-            verticalArrangement = Arrangement.spacedBy(card.columnGap / 2),
-        ) { actions() }
+        NativeFlexRow(components.featureActions.columnGap, Modifier.fillMaxWidth().testTag("feature-actions")) {
+            NativeActionButton(primary.text, primary.onClick, primary = true, icon = primary.icon)
+            if (secondary != null) {
+                NativeActionButton(secondary.text, secondary.onClick, primary = false, icon = secondary.icon)
+            }
+        }
     }
 }
 

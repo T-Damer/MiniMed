@@ -26,6 +26,8 @@ interface Screen {
   readonly hash: string;
   /** Prepares the state to capture, e.g. types a query. */
   readonly prepare?: (page: Page) => Promise<void>;
+  /** Loads the databases for real (typing needs a ready core); captures no loading status. */
+  readonly readyCore?: boolean;
 }
 
 const SCREENS: readonly Screen[] = [
@@ -40,8 +42,12 @@ const SCREENS: readonly Screen[] = [
   {
     id: 'home-typing',
     hash: '#/search',
+    readyCore: true,
     prepare: async (page) => {
-      await page.getByTestId('search-input').fill('пневмония');
+      const input = page.getByTestId('search-input');
+      // The field enables once the 420 MB core is copied into OPFS for this fresh profile.
+      await input.and(page.locator(':enabled')).waitFor({ timeout: 180_000 });
+      await input.fill('пневмония');
     },
   },
 ];
@@ -85,6 +91,7 @@ const BLOCKS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'quick-access-chip': '.search-quick-access__all',
     'quick-access-hint': '.search-quick-access__hint',
     'feature-card': '.home-feature',
+    'feature-actions': '.home-feature__actions',
     'feature-kicker': '.home-feature__kicker',
     'feature-title': '.home-feature__title',
     'feature-text': '.home-feature__text',
@@ -104,6 +111,7 @@ const BLOCKS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'section-name': '.search-sections__name',
     'section-count': '.search-sections__count',
     'bottom-nav': '.app-bottom-nav',
+    'bottom-nav-bubble': '.app-bottom-nav__bubble',
     'bottom-nav-button': '.app-nav-button:not(.app-nav-button--active)',
     'bottom-nav-button-active': '.app-nav-button--active',
   },
@@ -126,6 +134,7 @@ const STYLE_PROPERTIES = [
   'padding-left',
   'border-top-width',
   'border-top-color',
+  'border-top-style',
   'border-bottom-width',
   'border-bottom-color',
   'border-top-left-radius',
@@ -185,16 +194,19 @@ await withBuiltApp(async (origin, browser) => {
   const listOnly = process.argv.includes('--list');
   for (const colorScheme of ['light', 'dark'] as const) {
     const { context, page } = await referencePage(browser, colorScheme);
+    const ready = await referencePage(browser, colorScheme, { holdDatabases: false });
     for (const screen of SCREENS) {
-      await openScreen(page, origin, screen);
+      const target = screen.readyCore ? ready.page : page;
+      await openScreen(target, origin, screen);
       if (listOnly) {
-        if (colorScheme === 'light') result[screen.id] = await listBlocks(page);
+        if (colorScheme === 'light') result[screen.id] = await listBlocks(target);
       } else {
         const theme = (result[colorScheme] ??= {}) as Record<string, unknown>;
-        theme[screen.id] = await captureBlocks(page, BLOCKS[screen.id] ?? {});
+        theme[screen.id] = await captureBlocks(target, BLOCKS[screen.id] ?? {});
       }
     }
     await context.close();
+    await ready.context.close();
   }
   if (listOnly) {
     for (const [screen, counts] of Object.entries(result)) {
