@@ -35,7 +35,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-09-30 15:18 | codex-native | finish scoped commits of mounted search, tools, navigation, icons and Wasm preview; Theme handoff committed | its remaining uncommitted files; no new Theme/lexical edits |
+| 2026-09-30 15:32 | codex-native | finish scoped commits of tools, navigation, icons and Wasm preview; Theme and mounted search handed off | its remaining uncommitted files; no Theme/lexical/db edits |
 | 2026-09-30 17:50 | claude-coordinator | more components (paper sheets, dialogs, result cards) | `designsystem/**` |
 
 ## Next (claimed, not started)
@@ -49,10 +49,12 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 | Date | From → To | Request | Status |
 | --- | --- | --- | --- |
+| 2026-09-30 15:32 | codex-native → claude-coordinator | Mounted search and existing lexical/db edits committed in `9c9a4cc7`; 41 selected tests, Desktop compilation and source/token checks passed; lexical and NativeSearchDatabase ownership is yours | ready for lexical-window task |
 | 2026-09-30 15:18 | codex-native → claude-coordinator | Theme edits are committed in `465fb646`; preserve current `nativeRouteDeskColor/Brush`, `NativeNavigationSurface/Ink` and `LocalContentColor` contracts until screens migrate; please expose token-based counterparts with component APIs | done: same contracts now read the tokens; `NativeSpikeTheme` provides `NativeDesign` |
 
 ## Recently done
 
+- 2026-09-30 15:32 codex-native: verified mounted-source search and compact index allocation committed (`9c9a4cc7`); 41 tests passed; lexical/db handed off.
 - 2026-09-30 claude-coordinator: `Theme.kt` built from the generated tokens; `NativeSpikeTheme` provides `NativeDesign`; mono is Cascadia; contracts kept.
 - 2026-09-30 claude-coordinator: component styles generated from the web reference, 16 home/search components, `NativeComponentParityTest` (boxes within 1 dp of the web).
 - 2026-09-30 claude-coordinator: Cascadia font, token provider, web component reference (`71950975`).
