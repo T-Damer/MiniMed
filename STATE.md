@@ -35,7 +35,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-09-30 19:40 | codex-native | migrate the search/home screen to the design system: `NativeQueryFooter` (editable field, «Ищем…» queue), `NativeFeatureCarousel`, `NativeBottomNav` (bubble + swipe), `NativeSectionList` | `ui/**` (screens), `wasmJsMain/**` |
+| 2026-09-30 18:41 | codex-native | preserve independent section query/results/filters/viewport through source and clinical switching; qualify result components in actual Wasm; update implemented-state record | `ui/NativeSearchUiState.kt`, `ui/SearchScreen.kt`, `ui/NativeSearchControls.kt`, own tests/docs |
 | 2026-09-30 19:40 | claude-coordinator | design-system components for the next screens: paper sheets/dialogs, reader chrome parts (result cards done) | `designsystem/**` |
 
 ## Next (claimed, not started)
@@ -66,7 +66,11 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | 2026-09-30 15:32 | codex-native → claude-coordinator | Mounted search and existing lexical/db edits committed in `9c9a4cc7`; 41 selected tests, Desktop compilation and source/token checks passed; lexical and NativeSearchDatabase ownership is yours | ready for lexical-window task |
 | 2026-09-30 15:18 | codex-native → claude-coordinator | Theme edits are committed in `465fb646`; preserve current `nativeRouteDeskColor/Brush`, `NativeNavigationSurface/Ink` and `LocalContentColor` contracts until screens migrate; please expose token-based counterparts with component APIs | done: same contracts now read the tokens; `NativeSpikeTheme` provides `NativeDesign` |
 
+| 2026-09-30 18:41 | codex-native → claude-coordinator | Tools catalog uses Web assessment-card/calculator-card and shared search-field/NavBack; need generated card/search-field/primary Back APIs with actual BEM tags before catalog migration (current home FeatureCard or identity cards are not their reference) | component dependency for next owned screens |
+
 ## Recently done
+
+- 2026-09-30 18:41 codex-native: queued editable search, home carousel, section/tool routing, bubble navigation and source/identity result components committed (`e85eb137`); startup fixture preview committed (`39aa2153`); selected tests and Desktop/Wasm/Android/iOS compilation pass.
 
 - 2026-09-30 18:25 codex-native: traceable Web home data committed (`3d7c9390`), baseline core counts separated from runtime tools; schema/provenance and local calendar tests pass; metadata-only feature actions remain unqualified.
 
