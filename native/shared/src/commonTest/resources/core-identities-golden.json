@@ -1,0 +1,3174 @@
+{
+  "contract": 1,
+  "coreSha256": "13f238f7fefe1b19eefa19ac9de0ea89fabff34ed96e98d987277f15ab03025f",
+  "cases": [
+    {
+      "query": "(3)",
+      "normalized": "(3)",
+      "hits": [
+        {
+          "name": "(3)",
+          "title": "(3)",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.aa85ce969d0bda3cad62355b",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "(А), или (В), (С), (D)",
+      "normalized": "(а), или (в), (с), (d)",
+      "hits": [
+        {
+          "name": "(А), или (В), (С), (D)",
+          "title": "(А), или (В), (С), (D)",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.73b8fe8988e36146e3775b3a",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "(УУР",
+      "normalized": "(уур",
+      "hits": [
+        {
+          "name": "(УУР",
+          "title": "(УУР",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.7f4b70fd73841fa6ad049b46",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "(УУР",
+          "title": "(УУР",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.a14c89dd38efc6d5537faf38",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "(англ.",
+      "normalized": "(англ.",
+      "hits": [
+        {
+          "name": "(англ.",
+          "title": "(англ.",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.546f88f1b4b4d85e9fa311b9",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "-3 балла",
+      "normalized": "-3 балла",
+      "hits": [
+        {
+          "name": "-3 балла",
+          "title": "-3 балла",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.0bc2ab0e1432c91c3c4e1ab4",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "-НН",
+      "normalized": "-нн",
+      "hits": [
+        {
+          "name": "-НН",
+          "title": "-НН",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.ce7fb4c94d232fbbd510bfea",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "-гидроксилаза (P450c21, CYP21A2)",
+      "normalized": "-гидроксилаза (p450c21, cyp21a2)",
+      "hits": [
+        {
+          "name": "-гидроксилаза (P450c21, CYP21A2)",
+          "title": "-гидроксилаза (P450c21, CYP21A2)",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.477380b75a7eb6f70a87f056",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "-ит",
+      "normalized": "-ит",
+      "hits": [
+        {
+          "name": "-ит",
+          "title": "-ит",
+          "kind": "term",
+          "coverage": "gloss",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwikt.2e4f91170d92a5d7fe3da712",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "-оз",
+      "normalized": "-оз",
+      "hits": [
+        {
+          "name": "-оз",
+          "title": "-оз",
+          "kind": "term",
+          "coverage": "gloss",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwikt.10ff328561556f3a38c2aa9d",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": ".NO",
+      "normalized": ".no",
+      "hits": [
+        {
+          "name": ".NO",
+          "title": ".NO",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.9d02ca3c23c3235c4a9cce72",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "1",
+      "normalized": "1",
+      "hits": [
+        {
+          "name": "1",
+          "title": "1",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.5c0cc454aefbc57c0b4ff6fa",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "1,25(OH)2D",
+      "normalized": "1,25(oh)2d",
+      "hits": [
+        {
+          "name": "1,25(OH)2D",
+          "title": "1,25(OH)2D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.24f3f251932dd89489105d50",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "1,25(ОН)2D",
+      "normalized": "1,25(он)2d",
+      "hits": [
+        {
+          "name": "1,25(ОН)2D",
+          "title": "1,25(ОН)2D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.529efcda11fc222d9346aac9",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "1,25(ОН)2D",
+          "title": "1,25(ОН)2D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.c0d9d1cea0c0fe2cf8d4fe57",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "1-НН",
+      "normalized": "1-нн",
+      "hits": [
+        {
+          "name": "1-НН",
+          "title": "1-НН",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.d7bf46d8da792454646001f9",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "13C-уреазный дыхательный тест",
+      "normalized": "13c-уреазный дыхательный тест",
+      "hits": [
+        {
+          "name": "13C-уреазный дыхательный тест",
+          "title": "13C-уреазный дыхательный тест",
+          "kind": "tool",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.7877429",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "16-факторный личностный опросник",
+      "normalized": "16-факторный личностный опросник",
+      "hits": [
+        {
+          "name": "16-факторный личностный опросник",
+          "title": "16-факторный личностный опросник",
+          "kind": "scale",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.809823",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "18F-ФДГ",
+      "normalized": "18f-фдг",
+      "hits": [
+        {
+          "name": "18F-ФДГ",
+          "title": "18F-ФДГ",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.5921ab2b212c6f7ff2eac3e6",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "18F-ФДГ",
+          "title": "18F-ФДГ",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.6f270a705c66556999cdf15c",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "25(OH)D",
+      "normalized": "25(oh)d",
+      "hits": [
+        {
+          "name": "25(OH)D",
+          "title": "25(OH)D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.5456c1544744103056c2757b",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "25(OH)D",
+          "title": "25(OH)D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.9f2f92f494e20005c58742a9",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "25(OH)D",
+          "title": "25(OH)D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.b59d28a628c905eb7ef8d4a3",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "25(ОН)D",
+      "normalized": "25(он)d",
+      "hits": [
+        {
+          "name": "25(ОН)D",
+          "title": "25(ОН)D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.2c24ca02fb15d8126ea4c02b",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "25(ОН)D",
+          "title": "25(ОН)D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.6de0a7d35299831e2412c3a8",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "25(ОН)D",
+          "title": "25(ОН)D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.9e034de6929659214eb9b096",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "3",
+      "normalized": "3",
+      "hits": [
+        {
+          "name": "3",
+          "title": "3",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.03ebf24689af36c1b5c56d6b",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "3",
+          "title": "3",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.c852f414f8a641d9ff0323c8",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "3",
+          "title": "3",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.e25e161d7d03d4ccce8c9b54",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "3DCRT",
+      "normalized": "3dcrt",
+      "hits": [
+        {
+          "name": "3DCRT",
+          "title": "3DCRT",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.975781314500c32351f95783",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "3DCRT",
+          "title": "3DCRT",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.e1bee2fa725caa79bb6ac4ca",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "5-АСК",
+      "normalized": "5-аск",
+      "hits": [
+        {
+          "name": "5-АСК",
+          "title": "5-АСК",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.48a5a4230cf8c6d511cd66fe",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "5-АСК",
+          "title": "5-АСК",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.a0a7209f3b8681559bae82d7",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "ACC",
+      "normalized": "acc",
+      "hits": [
+        {
+          "name": "ACC",
+          "title": "ACC",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.389cb0801e7551e0ed25ddb6",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "ACC",
+          "title": "ACC",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.4640ee1a80520681cb482225",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "ACC",
+          "title": "ACC",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.db64ff0fff4b3d188d709a81",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "ACMG",
+      "normalized": "acmg",
+      "hits": [
+        {
+          "name": "ACMG",
+          "title": "ACMG",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.2a585d18fa6aac4a04a47434",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "ACMG",
+          "title": "ACMG",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.be4fb0b2af83e4c5e02c7faa",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "ACOG",
+      "normalized": "acog",
+      "hits": [
+        {
+          "name": "ACOG",
+          "title": "ACOG",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.8ddaf891f833e5353b4d5dc8",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "ACOG",
+          "title": "ACOG",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.f25a2525967b2a0fd779fd62",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "ACR",
+      "normalized": "acr",
+      "hits": [
+        {
+          "name": "ACR",
+          "title": "ACR",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.55bfa1abbe7805543f817a95",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "ACR",
+          "title": "ACR",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.6f84ef3c6181ab01dc36e19f",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "ACR",
+          "title": "ACR",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.8e25e2fae8908d84f04b565a",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "ACR",
+          "title": "ACR",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.bea0450814550439b3437779",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "AD",
+      "normalized": "ad",
+      "hits": [
+        {
+          "name": "AD",
+          "title": "AD",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.36f7859c50a4d2e392fcff48",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "AD",
+          "title": "AD",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.6d70a1a23a8ced3ab9343626",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "ADAMTS13",
+      "normalized": "adamts13",
+      "hits": [
+        {
+          "name": "ADAMTS13",
+          "title": "ADAMTS13",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.6290398f6a01192071335287",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "ADAMTS13",
+          "title": "ADAMTS13",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.0cb7c7a9a6bfa1a32517ed3e",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "ADAMTS13",
+          "title": "ADAMTS13",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.aef8c53ced427d4d5e963c3d",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "AHA",
+      "normalized": "aha",
+      "hits": [
+        {
+          "name": "AHA",
+          "title": "AHA",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.8287e3d27a7fd79710dc4149",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "AHA",
+          "title": "AHA",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.f30e475b73fe795006bd07cd",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "ASPEN синдром",
+      "normalized": "aspen синдром",
+      "hits": [
+        {
+          "name": "ASPEN синдром",
+          "title": "ASPEN синдром",
+          "kind": "syndrome",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.8941b68e7b21d0f3355bbf88",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Anosmia",
+      "normalized": "anosmia",
+      "hits": [
+        {
+          "name": "Anosmia",
+          "title": "Аносмия",
+          "kind": "symptom",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.anosmia",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Aphasia",
+      "normalized": "aphasia",
+      "hits": [
+        {
+          "name": "Aphasia",
+          "title": "Афазия",
+          "kind": "symptom",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.aphasia",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Apraxia",
+      "normalized": "apraxia",
+      "hits": [
+        {
+          "name": "Apraxia",
+          "title": "Апраксия",
+          "kind": "symptom",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.apraxia",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "DIDMOAD-синдром",
+      "normalized": "didmoad-синдром",
+      "hits": [
+        {
+          "name": "DIDMOAD-синдром",
+          "title": "DIDMOAD-синдром",
+          "kind": "syndrome",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.2974376",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Dementia",
+      "normalized": "dementia",
+      "hits": [
+        {
+          "name": "Dementia",
+          "title": "Деменция",
+          "kind": "syndrome",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.dementia",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Dysphagia",
+      "normalized": "dysphagia",
+      "hits": [
+        {
+          "name": "Dysphagia",
+          "title": "Дисфагия",
+          "kind": "symptom",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.dysphagia",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "F-шкала",
+      "normalized": "f-шкала",
+      "hits": [
+        {
+          "name": "F-шкала",
+          "title": "F-шкала",
+          "kind": "scale",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.4328175",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "FAMMM-синдром",
+      "normalized": "fammm-синдром",
+      "hits": [
+        {
+          "name": "FAMMM-синдром",
+          "title": "FAMMM-синдром",
+          "kind": "syndrome",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.015c21a825cf2ccb9f7ef8d0",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Gusher-синдром",
+      "normalized": "gusher-синдром",
+      "hits": [
+        {
+          "name": "Gusher-синдром",
+          "title": "Gusher-синдром",
+          "kind": "syndrome",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.6147753",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "HDR-синдром",
+      "normalized": "hdr-синдром",
+      "hits": [
+        {
+          "name": "HDR-синдром",
+          "title": "HDR-синдром",
+          "kind": "syndrome",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.1395092",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "HELLP-синдром",
+      "normalized": "hellp-синдром",
+      "hits": [
+        {
+          "name": "HELLP-синдром",
+          "title": "HELLP-синдром",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.7cafeefe07496de591211db6",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "HELLP-синдром",
+          "title": "HELLP-синдром",
+          "kind": "syndrome",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.be3da58a5ac9ce1fd5be30c7",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "HELLP-синдром",
+          "title": "HELLP-синдром",
+          "kind": "syndrome",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.e6d3c4be5a6016b6691548c4",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "HELLP-синдром",
+          "title": "HELLP-синдром",
+          "kind": "syndrome",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.4514433",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Hyposmia",
+      "normalized": "hyposmia",
+      "hits": [
+        {
+          "name": "Hyposmia",
+          "title": "Гипосмия",
+          "kind": "symptom",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.hyposmia",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "International Prostate Symptom Score (IPSS) Международный индекс симптомов при заболеваниях простаты",
+      "normalized": "international prostate symptom score (ipss) международный индекс симптомов при заболеваниях простаты",
+      "hits": [
+        {
+          "name": "International Prostate Symptom Score (IPSS) Международный индекс симптомов при заболеваниях простаты",
+          "title": "International Prostate Symptom Score (IPSS) Международный индекс симптомов при заболеваниях простаты",
+          "kind": "scale",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.47e85db4be250b56d84078e8",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Jaspers",
+      "normalized": "jaspers",
+      "hits": [
+        {
+          "name": "Jaspers",
+          "title": "Критерии помрачения сознания по Ясперсу",
+          "kind": "criterion_set",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.jaspers-consciousness",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "Jaspers",
+          "title": "Триада Ясперса для реактивных состояний",
+          "kind": "criterion_set",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.jaspers-reactive",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "PAEI",
+      "normalized": "paei",
+      "hits": [
+        {
+          "name": "PAEI",
+          "title": "PAEI — профиль рабочего и управленческого стиля",
+          "kind": "medical_reference",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.reference.pediatrics.ru",
+            "moduleVersion": "0.1.0-preview.2",
+            "documentId": "reference.minimed.assessment.paei",
+            "documentVersionId": "reference.minimed.assessment.paei@minimed-assessments-2026-08-02",
+            "sourceChecksum": "sha256:6906175f3f85ad5bbec12e50ca6325066234d74f1a0e2ad8fcc37a858a1611ae",
+            "anchor": "reference.minimed.assessment.paei@minimed-assessments-2026-08-02/что-оценивает-опросник#chunk-ce313da3"
+          }
+        }
+      ]
+    },
+    {
+      "query": "PAEI — профиль рабочего и управленческого стиля",
+      "normalized": "paei — профиль рабочего и управленческого стиля",
+      "hits": [
+        {
+          "name": "PAEI — профиль рабочего и управленческого стиля",
+          "title": "PAEI — профиль рабочего и управленческого стиля",
+          "kind": "medical_reference",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.reference.pediatrics.ru",
+            "moduleVersion": "0.1.0-preview.2",
+            "documentId": "reference.minimed.assessment.paei",
+            "documentVersionId": "reference.minimed.assessment.paei@minimed-assessments-2026-08-02",
+            "sourceChecksum": "sha256:6906175f3f85ad5bbec12e50ca6325066234d74f1a0e2ad8fcc37a858a1611ae",
+            "anchor": "reference.minimed.assessment.paei@minimed-assessments-2026-08-02/что-оценивает-опросник#chunk-ce313da3"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Parosmia",
+      "normalized": "parosmia",
+      "hits": [
+        {
+          "name": "Parosmia",
+          "title": "Паросмия",
+          "kind": "symptom",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.parosmia",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Phantosmia",
+      "normalized": "phantosmia",
+      "hits": [
+        {
+          "name": "Phantosmia",
+          "title": "Фантосмия",
+          "kind": "symptom",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.phantosmia",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Tinnitus",
+      "normalized": "tinnitus",
+      "hits": [
+        {
+          "name": "Tinnitus",
+          "title": "Тиннитус",
+          "kind": "symptom",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.tinnitus",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "АД у взрослых — ВОЗ",
+      "normalized": "ад у взрослых — воз",
+      "hits": [
+        {
+          "name": "АД у взрослых — ВОЗ",
+          "title": "Артериальное давление у взрослых — диагностический порог ВОЗ",
+          "kind": "medical_reference",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.reference.pediatrics.ru",
+            "moduleVersion": "0.1.0-preview.2",
+            "documentId": "reference.who.adult-blood-pressure",
+            "documentVersionId": "reference.who.adult-blood-pressure@who-bp-reviewed-2026-08-01",
+            "sourceChecksum": "sha256:4fc1c8f2186f7f46c5abdbd754bee4fcfe379613909c7d9fdf2b8a379f51b9d1",
+            "anchor": "reference.who.adult-blood-pressure@who-bp-reviewed-2026-08-01/что-означают-два-значения-давления#chunk-6d3bbbb3"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Аллергологическое тестирование",
+      "normalized": "аллергологическое тестирование",
+      "hits": [
+        {
+          "name": "Аллергологическое тестирование",
+          "title": "Аллергологическое тестирование",
+          "kind": "tool",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.3705277",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Анатомо-терапевтическо-химическая классификация",
+      "normalized": "анатомо-терапевтическо-химическая классификация",
+      "hits": [
+        {
+          "name": "Анатомо-терапевтическо-химическая классификация",
+          "title": "Анатомо-терапевтическо-химическая классификация",
+          "kind": "classification",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.148633",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Артериальное давление у взрослых — диагностический порог ВОЗ",
+      "normalized": "артериальное давление у взрослых — диагностический порог воз",
+      "hits": [
+        {
+          "name": "Артериальное давление у взрослых — диагностический порог ВОЗ",
+          "title": "Артериальное давление у взрослых — диагностический порог ВОЗ",
+          "kind": "medical_reference",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.reference.pediatrics.ru",
+            "moduleVersion": "0.1.0-preview.2",
+            "documentId": "reference.who.adult-blood-pressure",
+            "documentVersionId": "reference.who.adult-blood-pressure@who-bp-reviewed-2026-08-01",
+            "sourceChecksum": "sha256:4fc1c8f2186f7f46c5abdbd754bee4fcfe379613909c7d9fdf2b8a379f51b9d1",
+            "anchor": "reference.who.adult-blood-pressure@who-bp-reviewed-2026-08-01/что-означают-два-значения-давления#chunk-6d3bbbb3"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Батарея тестов Вильямса",
+      "normalized": "батарея тестов вильямса",
+      "hits": [
+        {
+          "name": "Батарея тестов Вильямса",
+          "title": "Батарея тестов Вильямса",
+          "kind": "tool",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.8086631",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Бристольская шкала формы кала",
+      "normalized": "бристольская шкала формы кала",
+      "hits": [
+        {
+          "name": "Бристольская шкала формы кала",
+          "title": "Бристольская шкала формы кала",
+          "kind": "scale",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.2400793",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Быстрый тест на антиген COVID-19",
+      "normalized": "быстрый тест на антиген covid-19",
+      "hits": [
+        {
+          "name": "Быстрый тест на антиген COVID-19",
+          "title": "Быстрый тест на антиген COVID-19",
+          "kind": "tool",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.8848659",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Быстрый уреазный тест",
+      "normalized": "быстрый уреазный тест",
+      "hits": [
+        {
+          "name": "Быстрый уреазный тест",
+          "title": "Быстрый уреазный тест",
+          "kind": "tool",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.4221383",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Висконсинский тест сортировки карточек",
+      "normalized": "висконсинский тест сортировки карточек",
+      "hits": [
+        {
+          "name": "Висконсинский тест сортировки карточек",
+          "title": "Висконсинский тест сортировки карточек",
+          "kind": "tool",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.5237354",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Внутренняя согласованность шкалы",
+      "normalized": "внутренняя согласованность шкалы",
+      "hits": [
+        {
+          "name": "Внутренняя согласованность шкалы",
+          "title": "Внутренняя согласованность шкалы",
+          "kind": "scale",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.419682",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "В–клеточная лимфома высокой степени злокачественности (DHL) с перестройкой генов c-MYC и/или BCL2/BCL6",
+      "normalized": "в–клеточная лимфома высокой степени злокачественности (dhl) с перестройкой генов c-myc и/или bcl2/bcl6",
+      "hits": [
+        {
+          "name": "В–клеточная лимфома высокой степени злокачественности (DHL) с перестройкой генов c-MYC и/или BCL2/BCL6",
+          "title": "В–клеточная лимфома высокой степени злокачественности (DHL) с перестройкой генов c-MYC и/или BCL2/BCL6",
+          "kind": "classification",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.e744a198d503135639ef6dd7",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Генеалогический ДНК-тест",
+      "normalized": "генеалогический днк-тест",
+      "hits": [
+        {
+          "name": "Генеалогический ДНК-тест",
+          "title": "Генеалогический ДНК-тест",
+          "kind": "tool",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.5211801",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Гериатрическая шкала депрессии",
+      "normalized": "гериатрическая шкала депрессии",
+      "hits": [
+        {
+          "name": "Гериатрическая шкала депрессии",
+          "title": "Гериатрическая шкала депрессии",
+          "kind": "scale",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.10003964",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Глюкозотолерантный тест",
+      "normalized": "глюкозотолерантный тест",
+      "hits": [
+        {
+          "name": "Глюкозотолерантный тест",
+          "title": "Глюкозотолерантный тест",
+          "kind": "tool",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.290675",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Госпитальная шкала тревожности и депрессии",
+      "normalized": "госпитальная шкала тревожности и депрессии",
+      "hits": [
+        {
+          "name": "Госпитальная шкала тревожности и депрессии",
+          "title": "Госпитальная шкала тревожности и депрессии",
+          "kind": "scale",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.10788195",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Диагностические опросники самооценки (диагностические тесты)",
+      "normalized": "диагностические опросники самооценки (диагностические тесты)",
+      "hits": [
+        {
+          "name": "Диагностические опросники самооценки (диагностические тесты)",
+          "title": "Диагностические опросники самооценки (диагностические тесты)",
+          "kind": "scale",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.2851972",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Диспансерное наблюдение детей — 192н",
+      "normalized": "диспансерное наблюдение детей — 192н",
+      "hits": [
+        {
+          "name": "Диспансерное наблюдение детей — 192н",
+          "title": "Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н",
+          "kind": "regulatory_act_summary",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.regulatory.pediatrics.ru",
+            "moduleVersion": "0.3.4-preview.1",
+            "documentId": "regulatory.rf.minzdrav.192n-2025",
+            "documentVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+            "sourceChecksum": "sha256:8e1457dc8097588decf630b3f719271e0503f1a39c0837eac52d448ddf3a4dd6",
+            "anchor": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/общая-информация#chunk-7fbc89b9"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Диспансерное наблюдение несовершеннолетних — приказ № 302н (утратил силу)",
+      "normalized": "диспансерное наблюдение несовершеннолетних — приказ no 302н (утратил силу)",
+      "hits": [
+        {
+          "name": "Диспансерное наблюдение несовершеннолетних — приказ № 302н (утратил силу)",
+          "title": "Диспансерное наблюдение несовершеннолетних — приказ № 302н (утратил силу)",
+          "kind": "regulatory_act_summary",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.regulatory.pediatrics.ru",
+            "moduleVersion": "0.3.4-preview.1",
+            "documentId": "regulatory.rf.minzdrav.302n-2019",
+            "documentVersionId": "regulatory.rf.minzdrav.302n-2019@302n-2020-11-19",
+            "sourceChecksum": "sha256:77fb1510c84a3bc954bd4933ddab59974dc8491569977d7650ee78ea38e808ca",
+            "anchor": "regulatory.rf.minzdrav.302n-2019@302n-2020-11-19/статус-документа#chunk-0fca381e"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Закон Белла — Мажанди",
+      "normalized": "закон белла — мажанди",
+      "hits": [
+        {
+          "name": "Закон Белла — Мажанди",
+          "title": "Закон Белла — Мажанди",
+          "kind": "law",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.8560379",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Закон Вольфа (медицина)",
+      "normalized": "закон вольфа (медицина)",
+      "hits": [
+        {
+          "name": "Закон Вольфа (медицина)",
+          "title": "Закон Вольфа (медицина)",
+          "kind": "law",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.5293063",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Закон Мореля о четырёх поколениях",
+      "normalized": "закон мореля о четырех поколениях",
+      "hits": [
+        {
+          "name": "Закон Мореля о четырёх поколениях",
+          "title": "Закон Мореля о четырёх поколениях",
+          "kind": "law",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.2266969",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Закон Фиттса",
+      "normalized": "закон фиттса",
+      "hits": [
+        {
+          "name": "Закон Фиттса",
+          "title": "Закон Фиттса",
+          "kind": "law",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.2487247",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Закон Франка — Старлинга",
+      "normalized": "закон франка — старлинга",
+      "hits": [
+        {
+          "name": "Закон Франка — Старлинга",
+          "title": "Закон Франка — Старлинга",
+          "kind": "law",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.8361620",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Закон Хая",
+      "normalized": "закон хая",
+      "hits": [
+        {
+          "name": "Закон Хая",
+          "title": "Закон Хая",
+          "kind": "law",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.a266e135d02cd3f2a0154bae",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "Закон Хая",
+          "title": "Закон Хая",
+          "kind": "law",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.7330083",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Закон квадрата — куба",
+      "normalized": "закон квадрата — куба",
+      "hits": [
+        {
+          "name": "Закон квадрата — куба",
+          "title": "Закон квадрата — куба",
+          "kind": "law",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.1422979",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "ИМТ — взрослые и дети",
+      "normalized": "имт — взрослые и дети",
+      "hits": [
+        {
+          "name": "ИМТ — взрослые и дети",
+          "title": "Индекс массы тела у взрослых и детей — классификация ВОЗ",
+          "kind": "medical_reference",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.reference.pediatrics.ru",
+            "moduleVersion": "0.1.0-preview.2",
+            "documentId": "reference.who.bmi-classification",
+            "documentVersionId": "reference.who.bmi-classification@who-bmi-reviewed-2026-08-01",
+            "sourceChecksum": "sha256:d03d25af8425cf12c4987c1d3806101f129f97dad171ca6f7a0b5f593b68b7ff",
+            "anchor": "reference.who.bmi-classification@who-bmi-reviewed-2026-08-01/формула-индекса-массы-тела#chunk-94b39aec"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Индекс массы тела у взрослых и детей — классификация ВОЗ",
+      "normalized": "индекс массы тела у взрослых и детей — классификация воз",
+      "hits": [
+        {
+          "name": "Индекс массы тела у взрослых и детей — классификация ВОЗ",
+          "title": "Индекс массы тела у взрослых и детей — классификация ВОЗ",
+          "kind": "medical_reference",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.reference.pediatrics.ru",
+            "moduleVersion": "0.1.0-preview.2",
+            "documentId": "reference.who.bmi-classification",
+            "documentVersionId": "reference.who.bmi-classification@who-bmi-reviewed-2026-08-01",
+            "sourceChecksum": "sha256:d03d25af8425cf12c4987c1d3806101f129f97dad171ca6f7a0b5f593b68b7ff",
+            "anchor": "reference.who.bmi-classification@who-bmi-reviewed-2026-08-01/формула-индекса-массы-тела#chunk-94b39aec"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Исторический порядок — 302н",
+      "normalized": "исторический порядок — 302н",
+      "hits": [
+        {
+          "name": "Исторический порядок — 302н",
+          "title": "Диспансерное наблюдение несовершеннолетних — приказ № 302н (утратил силу)",
+          "kind": "regulatory_act_summary",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.regulatory.pediatrics.ru",
+            "moduleVersion": "0.3.4-preview.1",
+            "documentId": "regulatory.rf.minzdrav.302n-2019",
+            "documentVersionId": "regulatory.rf.minzdrav.302n-2019@302n-2020-11-19",
+            "sourceChecksum": "sha256:77fb1510c84a3bc954bd4933ddab59974dc8491569977d7650ee78ea38e808ca",
+            "anchor": "regulatory.rf.minzdrav.302n-2019@302n-2020-11-19/статус-документа#chunk-0fca381e"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Китайская классификация психических расстройств",
+      "normalized": "китайская классификация психических расстройств",
+      "hits": [
+        {
+          "name": "Китайская классификация психических расстройств",
+          "title": "Китайская классификация психических расстройств",
+          "kind": "classification",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.6289444",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Классификация TIRADS (Thyroid Imaging Reporting and Data System)",
+      "normalized": "классификация tirads (thyroid imaging reporting and data system)",
+      "hits": [
+        {
+          "name": "Классификация TIRADS (Thyroid Imaging Reporting and Data System)",
+          "title": "Классификация TIRADS (Thyroid Imaging Reporting and Data System)",
+          "kind": "classification",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.fb2bae675c953de31ff1b7a4",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Классификация Чайлда — Пью",
+      "normalized": "классификация чайлда — пью",
+      "hits": [
+        {
+          "name": "Классификация Чайлда — Пью",
+          "title": "Классификация Чайлда — Пью",
+          "kind": "classification",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.6480877",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Классификация акцентуаций",
+      "normalized": "классификация акцентуаций",
+      "hits": [
+        {
+          "name": "Классификация акцентуаций",
+          "title": "Классификация акцентуаций",
+          "kind": "classification",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.952823",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Классификация олигофрений",
+      "normalized": "классификация олигофрений",
+      "hits": [
+        {
+          "name": "Классификация олигофрений",
+          "title": "Классификация олигофрений",
+          "kind": "classification",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.1377441",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Классификация патогенности",
+      "normalized": "классификация патогенности",
+      "hits": [
+        {
+          "name": "Классификация патогенности",
+          "title": "Классификация патогенности",
+          "kind": "classification",
+          "coverage": "needs-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwiki.definition.2227927",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Командные роли",
+      "normalized": "командные роли",
+      "hits": [
+        {
+          "name": "Командные роли",
+          "title": "Командные роли — авторский профиль в духе Белбина",
+          "kind": "medical_reference",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.reference.pediatrics.ru",
+            "moduleVersion": "0.1.0-preview.2",
+            "documentId": "reference.minimed.assessment.team-roles",
+            "documentVersionId": "reference.minimed.assessment.team-roles@minimed-assessments-2026-08-02",
+            "sourceChecksum": "sha256:10583351d8a16afef84aa4e143a1b44a5428b1842fb70f63a2daa689caea060d",
+            "anchor": "reference.minimed.assessment.team-roles@minimed-assessments-2026-08-02/что-оценивает-опросник#chunk-caf48ef7"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Командные роли — авторский профиль в духе Белбина",
+      "normalized": "командные роли — авторский профиль в духе белбина",
+      "hits": [
+        {
+          "name": "Командные роли — авторский профиль в духе Белбина",
+          "title": "Командные роли — авторский профиль в духе Белбина",
+          "kind": "medical_reference",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.reference.pediatrics.ru",
+            "moduleVersion": "0.1.0-preview.2",
+            "documentId": "reference.minimed.assessment.team-roles",
+            "documentVersionId": "reference.minimed.assessment.team-roles@minimed-assessments-2026-08-02",
+            "sourceChecksum": "sha256:10583351d8a16afef84aa4e143a1b44a5428b1842fb70f63a2daa689caea060d",
+            "anchor": "reference.minimed.assessment.team-roles@minimed-assessments-2026-08-02/что-оценивает-опросник#chunk-caf48ef7"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Критерии Dawes-Redman (Доуза-Редмана)",
+      "normalized": "критерии dawes-redman (доуза-редмана)",
+      "hits": [
+        {
+          "name": "Критерии Dawes-Redman (Доуза-Редмана)",
+          "title": "Критерии Dawes-Redman (Доуза-Редмана)",
+          "kind": "criterion_set",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.2218df886745213e100de46e",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Критерии Ясперса",
+      "normalized": "критерии ясперса",
+      "hits": [
+        {
+          "name": "Критерии Ясперса",
+          "title": "Критерии помрачения сознания по Ясперсу",
+          "kind": "criterion_set",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.jaspers-consciousness",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "Критерии Ясперса",
+          "title": "Триада Ясперса для реактивных состояний",
+          "kind": "criterion_set",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.jaspers-reactive",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Критерии помрачения сознания по Ясперсу",
+      "normalized": "критерии помрачения сознания по ясперсу",
+      "hits": [
+        {
+          "name": "Критерии помрачения сознания по Ясперсу",
+          "title": "Критерии помрачения сознания по Ясперсу",
+          "kind": "criterion_set",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.jaspers-consciousness",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Критерии психогений",
+      "normalized": "критерии психогений",
+      "hits": [
+        {
+          "name": "Критерии психогений",
+          "title": "Триада Ясперса для реактивных состояний",
+          "kind": "criterion_set",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.jaspers-reactive",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н",
+      "normalized": "порядок диспансерного наблюдения несовершеннолетних — приказ no 192н",
+      "hits": [
+        {
+          "name": "Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н",
+          "title": "Порядок диспансерного наблюдения несовершеннолетних — приказ № 192н",
+          "kind": "regulatory_act_summary",
+          "coverage": "source-document",
+          "target": {
+            "type": "document",
+            "moduleId": "minimed.regulatory.pediatrics.ru",
+            "moduleVersion": "0.3.4-preview.1",
+            "documentId": "regulatory.rf.minzdrav.192n-2025",
+            "documentVersionId": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11",
+            "sourceChecksum": "sha256:8e1457dc8097588decf630b3f719271e0503f1a39c0837eac52d448ddf3a4dd6",
+            "anchor": "regulatory.rf.minzdrav.192n-2025@192n-2025-04-11/общая-информация#chunk-7fbc89b9"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Признаки помрачения сознания",
+      "normalized": "признаки помрачения сознания",
+      "hits": [
+        {
+          "name": "Признаки помрачения сознания",
+          "title": "Критерии помрачения сознания по Ясперсу",
+          "kind": "criterion_set",
+          "coverage": "definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "draft.definition.jaspers-consciousness",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "…",
+      "normalized": "...",
+      "hits": [
+        {
+          "name": "…",
+          "title": "…",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.1e9289a1ae6a91f58ad254ae",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "…",
+          "title": "…",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.4dde97d300ecd499c03df9f1",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "…",
+          "title": "…",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.70080bda03ecc6de3eff74ea",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "…",
+          "title": "…",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.8f2dd9784fece059dd39e7aa",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "…",
+          "title": "…",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.be4b71c364cd99381df35506",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "…",
+          "title": "…",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.c5b904d8a69fb878fdbb7984",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "…",
+          "title": "…",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.c787aec3c30b017a0f90e148",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  (3)\t",
+      "normalized": "(3)",
+      "hits": [
+        {
+          "name": "(3)",
+          "title": "(3)",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.aa85ce969d0bda3cad62355b",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  (А), ИЛИ (В), (С), (D)\t",
+      "normalized": "(а), или (в), (с), (d)",
+      "hits": [
+        {
+          "name": "(А), или (В), (С), (D)",
+          "title": "(А), или (В), (С), (D)",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.73b8fe8988e36146e3775b3a",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  (УУР\t",
+      "normalized": "(уур",
+      "hits": [
+        {
+          "name": "(УУР",
+          "title": "(УУР",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.7f4b70fd73841fa6ad049b46",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        },
+        {
+          "name": "(УУР",
+          "title": "(УУР",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.a14c89dd38efc6d5537faf38",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  (АНГЛ.\t",
+      "normalized": "(англ.",
+      "hits": [
+        {
+          "name": "(англ.",
+          "title": "(англ.",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.546f88f1b4b4d85e9fa311b9",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  -3 БАЛЛА\t",
+      "normalized": "-3 балла",
+      "hits": [
+        {
+          "name": "-3 балла",
+          "title": "-3 балла",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.0bc2ab0e1432c91c3c4e1ab4",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  -НН\t",
+      "normalized": "-нн",
+      "hits": [
+        {
+          "name": "-НН",
+          "title": "-НН",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.ce7fb4c94d232fbbd510bfea",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  -ГИДРОКСИЛАЗА (P450C21, CYP21A2)\t",
+      "normalized": "-гидроксилаза (p450c21, cyp21a2)",
+      "hits": [
+        {
+          "name": "-гидроксилаза (P450c21, CYP21A2)",
+          "title": "-гидроксилаза (P450c21, CYP21A2)",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "prepared.definition.477380b75a7eb6f70a87f056",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  -ИТ\t",
+      "normalized": "-ит",
+      "hits": [
+        {
+          "name": "-ит",
+          "title": "-ит",
+          "kind": "term",
+          "coverage": "gloss",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwikt.2e4f91170d92a5d7fe3da712",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  -ОЗ\t",
+      "normalized": "-оз",
+      "hits": [
+        {
+          "name": "-оз",
+          "title": "-оз",
+          "kind": "term",
+          "coverage": "gloss",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "ruwikt.10ff328561556f3a38c2aa9d",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  .NO\t",
+      "normalized": ".no",
+      "hits": [
+        {
+          "name": ".NO",
+          "title": ".NO",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.9d02ca3c23c3235c4a9cce72",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  1\t",
+      "normalized": "1",
+      "hits": [
+        {
+          "name": "1",
+          "title": "1",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.5c0cc454aefbc57c0b4ff6fa",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "  1,25(OH)2D\t",
+      "normalized": "1,25(oh)2d",
+      "hits": [
+        {
+          "name": "1,25(OH)2D",
+          "title": "1,25(OH)2D",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.24f3f251932dd89489105d50",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    {
+      "query": "Менингит или энцефалит у ребёнка",
+      "normalized": "менингит или энцефалит у ребенка",
+      "hits": []
+    },
+    { "query": "менингит у ребенка", "normalized": "менингит у ребенка", "hits": [] },
+    {
+      "query": "клещевой энцефалит у ребенка",
+      "normalized": "клещевой энцефалит у ребенка",
+      "hits": []
+    },
+    {
+      "query": "бронхит или пневмония у ребёнка 5 лет",
+      "normalized": "бронхит или пневмония у ребенка 5 лет",
+      "hits": []
+    },
+    {
+      "query": "ангина или фарингит у ребенка",
+      "normalized": "ангина или фарингит у ребенка",
+      "hits": []
+    },
+    { "query": "гастроэнтерит у ребёнка", "normalized": "гастроэнтерит у ребенка", "hits": [] },
+    {
+      "query": "понос или рвота у ребенка 2 лет",
+      "normalized": "понос или рвота у ребенка 2 лет",
+      "hits": []
+    },
+    {
+      "query": "ОРВИ или бронхит у взрослого",
+      "normalized": "орви или бронхит у взрослого",
+      "hits": []
+    },
+    { "query": "лихорадка кашель тахипноэ", "normalized": "лихорадка кашель тахипноэ", "hits": [] },
+    { "query": "аугментин пневмония", "normalized": "аугментин пневмония", "hits": [] },
+    { "query": "J18.9", "normalized": "j18.9", "hits": [] },
+    { "query": "J189", "normalized": "j189", "hits": [] },
+    { "query": "F23.3", "normalized": "f23.3", "hits": [] },
+    { "query": "L11.0", "normalized": "l11.0", "hits": [] },
+    { "query": "Е11.9", "normalized": "е11.9", "hits": [] },
+    { "query": "I10", "normalized": "i10", "hits": [] },
+    { "query": "67.9", "normalized": "67.9", "hits": [] },
+    { "query": "E11", "normalized": "e11", "hits": [] },
+    { "query": "K35.8", "normalized": "k35.8", "hits": [] },
+    { "query": "мужчина 60 лет пневмония", "normalized": "мужчина 60 лет пневмония", "hits": [] },
+    {
+      "query": "пиелонефрит или цистит у женщины",
+      "normalized": "пиелонефрит или цистит у женщины",
+      "hits": []
+    },
+    {
+      "query": "ребенок часто дышит и температурит",
+      "normalized": "ребенок часто дышит и температурит",
+      "hits": []
+    },
+    { "query": "сатурация одышка кашель", "normalized": "сатурация одышка кашель", "hits": [] },
+    {
+      "query": "амоксициллин клавулановая кислота",
+      "normalized": "амоксициллин клавулановая кислота",
+      "hits": []
+    },
+    {
+      "query": "общий анализ крови маркеры воспаления",
+      "normalized": "общий анализ крови маркеры воспаления",
+      "hits": []
+    },
+    {
+      "query": "затруднение дыхания не может пить",
+      "normalized": "затруднение дыхания не может пить",
+      "hits": []
+    },
+    {
+      "query": "частота дыхания температура сатурация",
+      "normalized": "частота дыхания температура сатурация",
+      "hits": []
+    },
+    {
+      "query": "заболевание нижних дыхательных путей",
+      "normalized": "заболевание нижних дыхательных путей",
+      "hits": []
+    },
+    {
+      "query": "маршрутизация тяжесть дыхательных нарушений",
+      "normalized": "маршрутизация тяжесть дыхательных нарушений",
+      "hits": []
+    },
+    {
+      "query": "правая подвздошная область рвота",
+      "normalized": "правая подвздошная область рвота",
+      "hits": []
+    },
+    {
+      "query": "Боль справа внизу живота, тошнота и рвота",
+      "normalized": "боль справа внизу живота, тошнота и рвота",
+      "hits": []
+    },
+    {
+      "query": "боль в животе снижение аппетита",
+      "normalized": "боль в животе снижение аппетита",
+      "hits": []
+    },
+    {
+      "query": "своевременная оценка хирургом",
+      "normalized": "своевременная оценка хирургом",
+      "hits": []
+    },
+    {
+      "query": "миграция боли стул мочеиспускание",
+      "normalized": "миграция боли стул мочеиспускание",
+      "hits": []
+    },
+    {
+      "query": "острая абдоминальная боль мезаденит",
+      "normalized": "острая абдоминальная боль мезаденит",
+      "hits": []
+    },
+    {
+      "query": "аппендицит клиническая картина",
+      "normalized": "аппендицит клиническая картина",
+      "hits": []
+    },
+    {
+      "query": "субфебрильная температура рвота",
+      "normalized": "субфебрильная температура рвота",
+      "hits": []
+    },
+    {
+      "query": "гастроэнтерит инфекция мочевых путей мезаденит",
+      "normalized": "гастроэнтерит инфекция мочевых путей мезаденит",
+      "hits": []
+    },
+    {
+      "query": "локализация и миграция боли",
+      "normalized": "локализация и миграция боли",
+      "hits": []
+    },
+    {
+      "query": "лихорадка без очага дизурия",
+      "normalized": "лихорадка без очага дизурия",
+      "hits": []
+    },
+    {
+      "query": "оам бактериальная культура мочи",
+      "normalized": "оам бактериальная культура мочи",
+      "hits": []
+    },
+    { "query": "рези при мочеиспускании", "normalized": "рези при мочеиспускании", "hits": [] },
+    {
+      "query": "болезненное мочеиспускание поясница",
+      "normalized": "болезненное мочеиспускание поясница",
+      "hits": []
+    },
+    {
+      "query": "бактериальная культура мочи",
+      "normalized": "бактериальная культура мочи",
+      "hits": []
+    },
+    {
+      "query": "антибактериальная терапия ответ на лечение",
+      "normalized": "антибактериальная терапия ответ на лечение",
+      "hits": []
+    },
+    {
+      "query": "маленький ребенок неспецифичные проявления",
+      "normalized": "маленький ребенок неспецифичные проявления",
+      "hits": []
+    },
+    { "query": "образец мочи до терапии", "normalized": "образец мочи до терапии", "hits": [] },
+    {
+      "query": "факторы риска повторная оценка",
+      "normalized": "факторы риска повторная оценка",
+      "hits": []
+    },
+    {
+      "query": "учащенное мочеиспускание боль в пояснице",
+      "normalized": "учащенное мочеиспускание боль в пояснице",
+      "hits": []
+    },
+    {
+      "query": "От чего помогает парацетамол и в каких случаях его назначают?",
+      "normalized": "от чего помогает парацетамол и в каких случаях его назначают?",
+      "hits": []
+    },
+    {
+      "query": "Как работает парацетамол, за счет чего он снижает температуру?",
+      "normalized": "как работает парацетамол, за счет чего он снижает температуру?",
+      "hits": []
+    },
+    {
+      "query": "На какие рецепторы влияет ибупрофен? Я забыл точный механизм.",
+      "normalized": "на какие рецепторы влияет ибупрофен? я забыл точный механизм.",
+      "hits": []
+    },
+    {
+      "query": "Когда назначают ибупрофен: только температура или еще боль и воспаление?",
+      "normalized": "когда назначают ибупрофен: только температура или еще боль и воспаление?",
+      "hits": []
+    },
+    {
+      "query": "Ребенку дали парацетамол, но температура почти не снизилась. Что делать дальше?",
+      "normalized": "ребенку дали парацетамол, но температура почти не снизилась. что делать дальше?",
+      "hits": []
+    },
+    {
+      "query": "У взрослого парацетамол не сбил температуру. Какие варианты жаропонижающей терапии рассмотреть?",
+      "normalized": "у взрослого парацетамол не сбил температуру. какие варианты жаропонижающей терапии рассмотреть?",
+      "hits": []
+    },
+    {
+      "query": "Ибупрофен ребенку: какие основные противопоказания и когда его лучше не давать?",
+      "normalized": "ибупрофен ребенку: какие основные противопоказания и когда его лучше не давать?",
+      "hits": []
+    },
+    {
+      "query": "Ребенок мог получить слишком много парацетамола за сутки. Что считать передозировкой и куда его направлять?",
+      "normalized": "ребенок мог получить слишком много парацетамола за сутки. что считать передозировкой и куда его направлять?",
+      "hits": []
+    },
+    {
+      "query": "У ребенка белые прыщики на слизистой рта. Как называется этот симптом и что различать?",
+      "normalized": "у ребенка белые прыщики на слизистой рта. как называется этот симптом и что различать?",
+      "hits": []
+    },
+    {
+      "query": "Белые точки на слизистой щек, температура, кашель, потом сыпь с лица вниз — как называется признак?",
+      "normalized": "белые точки на слизистой щек, температура, кашель, потом сыпь с лица вниз — как называется признак?",
+      "hits": []
+    },
+    {
+      "query": "Грудничок свистит при дыхании, хуже ест и втягивает межреберья. Что искать в первую очередь?",
+      "normalized": "грудничок свистит при дыхании, хуже ест и втягивает межреберья. что искать в первую очередь?",
+      "hits": []
+    },
+    {
+      "query": "Часто болеющий ребенок без хронической патологии — какая группа здоровья?",
+      "normalized": "часто болеющий ребенок без хронической патологии — какая группа здоровья?",
+      "hits": []
+    },
+    {
+      "query": "У взрослого пациента ХОБЛ, какая группа здоровья по диспансеризации?",
+      "normalized": "у взрослого пациента хобл, какая группа здоровья по диспансеризации?",
+      "hits": []
+    },
+    {
+      "query": "У взрослого диабет 2 типа. Какая группа инвалидности ему положена?",
+      "normalized": "у взрослого диабет 2 типа. какая группа инвалидности ему положена?",
+      "hits": []
+    },
+    {
+      "query": "У ребенка диабет. Ему присваивают I–III группу или категорию ребенок-инвалид?",
+      "normalized": "у ребенка диабет. ему присваивают i–iii группу или категорию ребенок-инвалид?",
+      "hits": []
+    },
+    {
+      "query": "Какую санаторно-курортную карту оформлять ребенку — 072/у или 076/у?",
+      "normalized": "какую санаторно-курортную карту оформлять ребенку — 072/у или 076/у?",
+      "hits": []
+    },
+    {
+      "query": "Ребенок контактировал дома с больным туберкулезом. Какая группа наблюдения?",
+      "normalized": "ребенок контактировал дома с больным туберкулезом. какая группа наблюдения?",
+      "hits": []
+    },
+    {
+      "query": "Цефтриксон ребенку 3 лет вес 20кг при пневмонии как второй антибиотик",
+      "normalized": "цефтриксон ребенку 3 лет вес 20кг при пневмонии как второй антибиотик",
+      "hits": []
+    },
+    {
+      "query": "чем лечить пневмонию у ребенка если амоксициллин не помог",
+      "normalized": "чем лечить пневмонию у ребенка если амоксициллин не помог",
+      "hits": []
+    },
+    {
+      "query": "когда госпитализировать ребенка с пневмонией сатурация 89",
+      "normalized": "когда госпитализировать ребенка с пневмонией сатурация 89",
+      "hits": []
+    },
+    {
+      "query": "ИМВП девочка 6 лет какие обследования",
+      "normalized": "имвп девочка 6 лет какие обследования",
+      "hits": []
+    },
+    {
+      "query": "ребенок 2 года понос и рвота чем отпаивать",
+      "normalized": "ребенок 2 года понос и рвота чем отпаивать",
+      "hits": []
+    },
+    {
+      "query": "сыпь не бледнеет при надавливании ребенок вялый что делать",
+      "normalized": "сыпь не бледнеет при надавливании ребенок вялый что делать",
+      "hits": []
+    },
+    {
+      "query": "грудничок свистящее дыхание рсв бронхиолит нужен ли антибиотик",
+      "normalized": "грудничок свистящее дыхание рсв бронхиолит нужен ли антибиотик",
+      "hits": []
+    },
+    {
+      "query": "цефтриаксон 1 г порошок для инъекций зарегистрирован в РФ",
+      "normalized": "цефтриаксон 1 г порошок для инъекций зарегистрирован в рф",
+      "hits": []
+    },
+    {
+      "query": "нурофен детский сироп 100 мг 5 мл",
+      "normalized": "нурофен детский сироп 100 мг 5 мл",
+      "hits": []
+    },
+    {
+      "query": "корь у ребенка пятна коплика когда появляется сыпь",
+      "normalized": "корь у ребенка пятна коплика когда появляется сыпь",
+      "hits": []
+    },
+    {
+      "query": "Девочка 6 лет, больно писать, часто ходит в туалет и появилось недержание",
+      "normalized": "девочка 6 лет, больно писать, часто ходит в туалет и появилось недержание",
+      "hits": []
+    },
+    {
+      "query": "Ребенок с лихорадкой, рвотой и болью в боку, возможен пиелонефрит",
+      "normalized": "ребенок с лихорадкой, рвотой и болью в боку, возможен пиелонефрит",
+      "hits": []
+    },
+    {
+      "query": "Диагностика: температура без ясного очага у грудничка, нужен общий анализ и посев мочи",
+      "normalized": "диагностика: температура без ясного очага у грудничка, нужен общий анализ и посев мочи",
+      "hits": []
+    },
+    {
+      "query": "Помогают ли маркеры воспаления отличить пиелонефрит и заменяют ли они исследование мочи",
+      "normalized": "помогают ли маркеры воспаления отличить пиелонефрит и заменяют ли они исследование мочи",
+      "hits": []
+    },
+    {
+      "query": "Лечение фебрильной инфекции мочевых путей: откладывать ли антибиотик до посева",
+      "normalized": "лечение фебрильной инфекции мочевых путей: откладывать ли антибиотик до посева",
+      "hits": []
+    },
+    {
+      "query": "Маршрутизация: ребенок 4 месяцев с фебрильной ИМП, рвотой и не может пить",
+      "normalized": "маршрутизация: ребенок 4 месяцев с фебрильной имп, рвотой и не может пить",
+      "hits": []
+    },
+    {
+      "query": "Клиническая картина бронхита: кашель после ОРВИ, рассеянные хрипы и умеренная температура",
+      "normalized": "клиническая картина бронхита: кашель после орви, рассеянные хрипы и умеренная температура",
+      "hits": []
+    },
+    {
+      "query": "Доказывает ли цветная мокрота бактериальную природу острого бронхита",
+      "normalized": "доказывает ли цветная мокрота бактериальную природу острого бронхита",
+      "hits": []
+    },
+    {
+      "query": "Диагностика типичного бронхита у ребенка: нужны ли анализы и рентгенография",
+      "normalized": "диагностика типичного бронхита у ребенка: нужны ли анализы и рентгенография",
+      "hits": []
+    },
+    {
+      "query": "Лечение неосложненного вирусного бронхита: нужны ли антибиотики",
+      "normalized": "лечение неосложненного вирусного бронхита: нужны ли антибиотики",
+      "hits": []
+    },
+    {
+      "query": "Ведение бронхита: питье, контроль температуры и наблюдение за дыханием",
+      "normalized": "ведение бронхита: питье, контроль температуры и наблюдение за дыханием",
+      "hits": []
+    },
+    {
+      "query": "Маршрутизация при бронхите: нарастает одышка, втяжение грудной клетки и цианоз",
+      "normalized": "маршрутизация при бронхите: нарастает одышка, втяжение грудной клетки и цианоз",
+      "hits": []
+    },
+    {
+      "query": "Грудничок после насморка кашляет, свистит и втягивает межреберья",
+      "normalized": "грудничок после насморка кашляет, свистит и втягивает межреберья",
+      "hits": []
+    },
+    {
+      "query": "Недоношенный младенец, первым проявлением после ОРВИ стало апноэ",
+      "normalized": "недоношенный младенец, первым проявлением после орви стало апноэ",
+      "hits": []
+    },
+    {
+      "query": "Диагностика первого эпизода свистящих хрипов у ребенка до двух лет",
+      "normalized": "диагностика первого эпизода свистящих хрипов у ребенка до двух лет",
+      "hits": []
+    },
+    {
+      "query": "Лечение бронхиолита: жидкость, проходимость носа и респираторная поддержка",
+      "normalized": "лечение бронхиолита: жидкость, проходимость носа и респираторная поддержка",
+      "hits": []
+    },
+    {
+      "query": "Госпитализация при бронхиолите: апноэ, обезвоживание и затрудненное кормление",
+      "normalized": "госпитализация при бронхиолите: апноэ, обезвоживание и затрудненное кормление",
+      "hits": []
+    },
+    {
+      "query": "Критерии выписки при бронхиолите: сатурация выше 94, нет дистресса и ребенок пьет",
+      "normalized": "критерии выписки при бронхиолите: сатурация выше 94, нет дистресса и ребенок пьет",
+      "hits": []
+    },
+    {
+      "query": "Лихорадка, кашель, насморк и конъюнктивит, затем сыпь пошла с лица вниз",
+      "normalized": "лихорадка, кашель, насморк и конъюнктивит, затем сыпь пошла с лица вниз",
+      "hits": []
+    },
+    {
+      "query": "Пятна Бельского-Филатова-Коплика на слизистой щек у ребенка",
+      "normalized": "пятна бельского-филатова-коплика на слизистой щек у ребенка",
+      "hits": []
+    },
+    {
+      "query": "Диагностика кори: вакцинация, контакт, последовательность сыпи и лабораторное подтверждение",
+      "normalized": "диагностика кори: вакцинация, контакт, последовательность сыпи и лабораторное подтверждение",
+      "hits": []
+    },
+    {
+      "query": "Лечение кори: поддерживающая помощь и когда нужны антибиотики",
+      "normalized": "лечение кори: поддерживающая помощь и когда нужны антибиотики",
+      "hits": []
+    },
+    {
+      "query": "Маршрутизация при подозрении на корь: изоляция и эпидемиологические мероприятия",
+      "normalized": "маршрутизация при подозрении на корь: изоляция и эпидемиологические мероприятия",
+      "hits": []
+    },
+    {
+      "query": "Корь с судорогами, нарушением сознания и дыхательной недостаточностью, нужна интенсивная помощь",
+      "normalized": "корь с судорогами, нарушением сознания и дыхательной недостаточностью, нужна интенсивная помощь",
+      "hits": []
+    },
+    {
+      "query": "Рвота, водянистая диарея, лихорадка и снижение аппетита у ребенка",
+      "normalized": "рвота, водянистая диарея, лихорадка и снижение аппетита у ребенка",
+      "hits": []
+    },
+    {
+      "query": "После рвоты и диареи ребенок вялый, мало пьет и редко мочится",
+      "normalized": "после рвоты и диареи ребенок вялый, мало пьет и редко мочится",
+      "hits": []
+    },
+    {
+      "query": "Диагностика гастроэнтерита: кровь в стуле и локальная боль требуют другого поиска",
+      "normalized": "диагностика гастроэнтерита: кровь в стуле и локальная боль требуют другого поиска",
+      "hits": []
+    },
+    {
+      "query": "Лечение ротавируса: низкоосмолярный раствор для регидратации маленькими порциями",
+      "normalized": "лечение ротавируса: низкоосмолярный раствор для регидратации маленькими порциями",
+      "hits": []
+    },
+    {
+      "query": "Нужны ли антибактериальные препараты при ротавирусном гастроэнтерите",
+      "normalized": "нужны ли антибактериальные препараты при ротавирусном гастроэнтерите",
+      "hits": []
+    },
+    {
+      "query": "Госпитализация: тяжелое обезвоживание, неукротимая рвота, ребенок не может пить и есть признаки шока",
+      "normalized": "госпитализация: тяжелое обезвоживание, неукротимая рвота, ребенок не может пить и есть признаки шока",
+      "hits": []
+    },
+    {
+      "query": "Младенец вялый, отказывается от еды, монотонно кричит и выбухает родничок",
+      "normalized": "младенец вялый, отказывается от еды, монотонно кричит и выбухает родничок",
+      "hits": []
+    },
+    {
+      "query": "Лихорадка и геморрагическая сыпь, которая не бледнеет при надавливании",
+      "normalized": "лихорадка и геморрагическая сыпь, которая не бледнеет при надавливании",
+      "hits": []
+    },
+    {
+      "query": "Диагностика менингококковой инфекции: оценка шока и лабораторное подтверждение не должны задерживать помощь",
+      "normalized": "диагностика менингококковой инфекции: оценка шока и лабораторное подтверждение не должны задерживать помощь",
+      "hits": []
+    },
+    {
+      "query": "Лечение генерализованной менингококковой инфекции до полного лабораторного подтверждения",
+      "normalized": "лечение генерализованной менингококковой инфекции до полного лабораторного подтверждения",
+      "hits": []
+    },
+    {
+      "query": "Подозрение на генерализованную менингококковую инфекцию, нужна экстренная госпитализация",
+      "normalized": "подозрение на генерализованную менингококковую инфекцию, нужна экстренная госпитализация",
+      "hits": []
+    },
+    {
+      "query": "Менингококковая инфекция: признаки шока, судороги и быстрое ухудшение, требуется интенсивная терапия",
+      "normalized": "менингококковая инфекция: признаки шока, судороги и быстрое ухудшение, требуется интенсивная терапия",
+      "hits": []
+    },
+    {
+      "query": "Температура держится четвертый день, кашель, тахипноэ и втяжение грудной клетки",
+      "normalized": "температура держится четвертый день, кашель, тахипноэ и втяжение грудной клетки",
+      "hits": []
+    },
+    {
+      "query": "Пневмония у ребенка: сатурация ниже 94 а менее 90 означает значимую гипоксемию",
+      "normalized": "пневмония у ребенка: сатурация ниже 94 а менее 90 означает значимую гипоксемию",
+      "hits": []
+    },
+    {
+      "query": "Диагностика пневмонии: пульсоксиметрия, визуализация по показаниям и нужна ли повторная рентгенография",
+      "normalized": "диагностика пневмонии: пульсоксиметрия, визуализация по показаниям и нужна ли повторная рентгенография",
+      "hits": []
+    },
+    {
+      "query": "Лечение внебольничной пневмонии у амбулаторного ребенка: амоксициллин как препарат выбора",
+      "normalized": "лечение внебольничной пневмонии у амбулаторного ребенка: амоксициллин как препарат выбора",
+      "hits": []
+    },
+    {
+      "query": "Нет ответа на стартовый антибиотик через 48–72 часа при пневмонии, нужна повторная оценка",
+      "normalized": "нет ответа на стартовый антибиотик через 48–72 часа при пневмонии, нужна повторная оценка",
+      "hits": []
+    },
+    {
+      "query": "Госпитализация при пневмонии: ребенок 2 месяцев, цианоз и сатурация 88 процентов",
+      "normalized": "госпитализация при пневмонии: ребенок 2 месяцев, цианоз и сатурация 88 процентов",
+      "hits": []
+    },
+    {
+      "query": "Грудничок после насморка свистит при дыхании, хуже ест и втягивает межреберья",
+      "normalized": "грудничок после насморка свистит при дыхании, хуже ест и втягивает межреберья",
+      "hits": []
+    },
+    {
+      "query": "После ОРВИ у грудничка периодически бывают паузы дыхания на несколько секунд",
+      "normalized": "после орви у грудничка периодически бывают паузы дыхания на несколько секунд",
+      "hits": []
+    },
+    {
+      "query": "Ребенку 5 лет, четвертый день высокая температура и кашель, дышит часто, заметны втяжения грудной клетки",
+      "normalized": "ребенку 5 лет, четвертый день высокая температура и кашель, дышит часто, заметны втяжения грудной клетки",
+      "hits": []
+    },
+    {
+      "query": "Кашель уже неделю, при кашле болит в грудной клетке и держится температура",
+      "normalized": "кашель уже неделю, при кашле болит в грудной клетке и держится температура",
+      "hits": []
+    },
+    {
+      "query": "У ребенка 6 лет кашель и температура, губы посинели, сатурация 88 процентов — когда нужна госпитализация",
+      "normalized": "у ребенка 6 лет кашель и температура, губы посинели, сатурация 88 процентов — когда нужна госпитализация",
+      "hits": []
+    },
+    {
+      "query": "После ОРВИ у школьника сохраняется кашель, рассеянные хрипы и небольшая температура",
+      "normalized": "после орви у школьника сохраняется кашель, рассеянные хрипы и небольшая температура",
+      "hits": []
+    },
+    {
+      "query": "У ребенка кашель и желто-зеленая мокрота — доказывает ли цвет мокроты бактериальную причину",
+      "normalized": "у ребенка кашель и желто-зеленая мокрота — доказывает ли цвет мокроты бактериальную причину",
+      "hits": []
+    },
+    {
+      "query": "У ребенка полутора лет впервые появились свистящие хрипы после насморка — нужны ли анализы и снимок",
+      "normalized": "у ребенка полутора лет впервые появились свистящие хрипы после насморка — нужны ли анализы и снимок",
+      "hits": []
+    },
+    {
+      "query": "Грудничок после насморка кашляет и свистит, ест хуже — нужен ли ему антибиотик",
+      "normalized": "грудничок после насморка кашляет и свистит, ест хуже — нужен ли ему антибиотик",
+      "hits": []
+    },
+    {
+      "query": "Ребенок с кашлем и высокой температурой получает амоксициллин второй день, улучшения нет — что пересмотреть",
+      "normalized": "ребенок с кашлем и высокой температурой получает амоксициллин второй день, улучшения нет — что пересмотреть",
+      "hits": []
+    },
+    {
+      "query": "У ребенка высокая температура, вялость и сыпь на ногах не исчезает при надавливании — что делать срочно",
+      "normalized": "у ребенка высокая температура, вялость и сыпь на ногах не исчезает при надавливании — что делать срочно",
+      "hits": []
+    },
+    {
+      "query": "Грудничок вялый, отказывается от еды, температура 39 и выбухает родничок",
+      "normalized": "грудничок вялый, отказывается от еды, температура 39 и выбухает родничок",
+      "hits": []
+    },
+    {
+      "query": "Младенец необычно монотонно кричит, не берет грудь и стал вялым на фоне температуры",
+      "normalized": "младенец необычно монотонно кричит, не берет грудь и стал вялым на фоне температуры",
+      "hits": []
+    },
+    {
+      "query": "У ребенка 10 лет температура 39, сильная головная боль, рвота и трудно наклонить голову вперед",
+      "normalized": "у ребенка 10 лет температура 39, сильная головная боль, рвота и трудно наклонить голову вперед",
+      "hits": []
+    },
+    {
+      "query": "Ребенок стал заторможенным, плохо отвечает, температура высокая и появилась геморрагическая сыпь",
+      "normalized": "ребенок стал заторможенным, плохо отвечает, температура высокая и появилась геморрагическая сыпь",
+      "hits": []
+    },
+    {
+      "query": "Сначала были температура, кашель, насморк и конъюнктивит, потом сыпь появилась на лице и стала спускаться вниз",
+      "normalized": "сначала были температура, кашель, насморк и конъюнктивит, потом сыпь появилась на лице и стала спускаться вниз",
+      "hits": []
+    },
+    {
+      "query": "На слизистой щек появились мелкие белые точки, одновременно температура, кашель и красные глаза, позже пошла сыпь",
+      "normalized": "на слизистой щек появились мелкие белые точки, одновременно температура, кашель и красные глаза, позже пошла сыпь",
+      "hits": []
+    },
+    {
+      "query": "Непривитый ребенок контактировал с заболевшим в школе, затем появились температура, кашель и сыпь с лица — как подтвердить причину",
+      "normalized": "непривитый ребенок контактировал с заболевшим в школе, затем появились температура, кашель и сыпь с лица — как подтвердить причину",
+      "hits": []
+    },
+    {
+      "query": "У ребенка лихорадка, кашель, конъюнктивит и сыпь; в классе были похожие случаи — как его изолировать и куда направлять",
+      "normalized": "у ребенка лихорадка, кашель, конъюнктивит и сыпь; в классе были похожие случаи — как его изолировать и куда направлять",
+      "hits": []
+    },
+    {
+      "query": "У ребенка внезапно начались рвота, частый водянистый стул, температура и пропал аппетит",
+      "normalized": "у ребенка внезапно начались рвота, частый водянистый стул, температура и пропал аппетит",
+      "hits": []
+    },
+    {
+      "query": "После рвоты и жидкого стула ребенок стал вялым, почти не пьет и редко мочится",
+      "normalized": "после рвоты и жидкого стула ребенок стал вялым, почти не пьет и редко мочится",
+      "hits": []
+    },
+    {
+      "query": "Ребенку 2 года, его рвет и водянистый стул — чем и как лучше отпаивать маленькими порциями",
+      "normalized": "ребенку 2 года, его рвет и водянистый стул — чем и как лучше отпаивать маленькими порциями",
+      "hits": []
+    },
+    {
+      "query": "Многократная рвота и понос, ребенок не может пить, холодные конечности и становится заторможенным — куда направлять",
+      "normalized": "многократная рвота и понос, ребенок не может пить, холодные конечности и становится заторможенным — куда направлять",
+      "hits": []
+    },
+    {
+      "query": "У ребенка водянистый стул и температура без крови в кале — нужны ли антибактериальные препараты",
+      "normalized": "у ребенка водянистый стул и температура без крови в кале — нужны ли антибактериальные препараты",
+      "hits": []
+    },
+    {
+      "query": "У девочки моча стала мутной и с неприятным запахом, ей больно писать и она часто ходит в туалет",
+      "normalized": "у девочки моча стала мутной и с неприятным запахом, ей больно писать и она часто ходит в туалет",
+      "hits": []
+    },
+    {
+      "query": "Ребенок 6 лет резко хочет в туалет, не успевает добежать и снова начал писаться днем, появилась температура",
+      "normalized": "ребенок 6 лет резко хочет в туалет, не успевает добежать и снова начал писаться днем, появилась температура",
+      "hits": []
+    },
+    {
+      "query": "У ребенка высокая температура, рвота и боль сбоку ближе к пояснице, мочится реже обычного",
+      "normalized": "у ребенка высокая температура, рвота и боль сбоку ближе к пояснице, мочится реже обычного",
+      "hits": []
+    },
+    {
+      "query": "У грудничка температура без понятного очага — нужно ли брать общий анализ и посев мочи",
+      "normalized": "у грудничка температура без понятного очага — нужно ли брать общий анализ и посев мочи",
+      "hits": []
+    },
+    {
+      "query": "Ребенку 4 месяца, высокая температура, рвота, плохо пьет и моча стала резко пахнуть — нужен ли стационар",
+      "normalized": "ребенку 4 месяца, высокая температура, рвота, плохо пьет и моча стала резко пахнуть — нужен ли стационар",
+      "hits": []
+    },
+    {
+      "query": "У ребенка температура, кашель и сыпь; пока неясно, бледнеет ли она при надавливании и откуда началась",
+      "normalized": "у ребенка температура, кашель и сыпь; пока неясно, бледнеет ли она при надавливании и откуда началась",
+      "hits": []
+    },
+    {
+      "query": "Ребенку 18 месяцев, после насморка кашляет, свистит и втягивает грудную клетку, температура небольшая",
+      "normalized": "ребенку 18 месяцев, после насморка кашляет, свистит и втягивает грудную клетку, температура небольшая",
+      "hits": []
+    },
+    {
+      "query": "У ребенка четвертый день температура и кашель, но пока без четких локальных симптомов и без результатов обследования",
+      "normalized": "у ребенка четвертый день температура и кашель, но пока без четких локальных симптомов и без результатов обследования",
+      "hits": []
+    },
+    {
+      "query": "У ребенка высокая температура, рвота и вялость, но пока нет данных о стуле, моче и сыпи",
+      "normalized": "у ребенка высокая температура, рвота и вялость, но пока нет данных о стуле, моче и сыпи",
+      "hits": []
+    },
+    { "query": "Ａ００", "normalized": "a00", "hits": [] },
+    {
+      "query": "Ёж",
+      "normalized": "еж",
+      "hits": [
+        {
+          "name": "ЕЖ",
+          "title": "ЕЖ",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "target": {
+            "type": "definition",
+            "moduleId": "minimed.definition.reference.ru",
+            "moduleVersion": "2026.9.30",
+            "entityId": "clinical-abbrev.82739e740145552eb9c5ca29",
+            "editionId": "minimed.definition.reference.2026.9.30"
+          }
+        }
+      ]
+    },
+    { "query": "PHQ–9", "normalized": "phq–9", "hits": [] },
+    {
+      "query": "minimed-negative-identity-2026-09-30",
+      "normalized": "minimed-negative-identity-2026-09-30",
+      "hits": []
+    }
+  ]
+}

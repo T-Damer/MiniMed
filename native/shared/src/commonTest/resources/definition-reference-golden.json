@@ -1,0 +1,3141 @@
+{
+  "contract": 1,
+  "moduleId": "minimed.definition.reference.ru",
+  "moduleVersion": "2026.9.30",
+  "editionId": "minimed.definition.reference.2026.9.30",
+  "packSha256": "f3d5c759ce8c4133640ae2656dfcee2c928a126685b3451a1aa5560db94b378d",
+  "searches": [
+    {
+      "query": "ПГГ",
+      "hits": [
+        {
+          "id": "clinical-abbrev.0008e211212c0e00682b1193",
+          "title": "ПГГ",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "ЭГДС",
+      "hits": [
+        {
+          "id": "clinical-abbrev.02c449b19eee1efa44a34ac1",
+          "title": "ЭГДС",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "textKind": "source-excerpt",
+          "blockCount": 37,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "clinical-abbrev.943cfd7fc9f505fdb10b1b45",
+          "title": "ЭГДС",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "textKind": "source-excerpt",
+          "blockCount": 11,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "clinical-abbrev.ac978488d6b22185674c5f36",
+          "title": "ЭГДС",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "clinical-abbrev.acd8a61a1c7d8354fb8b54c1",
+          "title": "ЭГДС",
+          "kind": "abbreviation",
+          "coverage": "abbreviation",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Аногенитальные (венерические) бородавки",
+      "hits": [
+        {
+          "id": "clinical-glossary.005d646ae8cda7ac66d65fef",
+          "title": "Аногенитальные (венерические) бородавки",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "clinical-glossary.3da1113d3c42dd913e37852a",
+          "title": "Аногенитальные (венерические) бородавки",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Аффективная иллюзия",
+      "hits": [
+        {
+          "id": "draft.definition.affective-illusion",
+          "title": "Аффективная иллюзия",
+          "kind": "symptom",
+          "coverage": "definition",
+          "textKind": "editorial-paraphrase",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Аменция",
+      "hits": [
+        {
+          "id": "draft.definition.amentia",
+          "title": "Аменция",
+          "kind": "syndrome",
+          "coverage": "definition",
+          "textKind": "editorial-paraphrase",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "ruwikt.597595c7397a7eb5c2755d5c",
+          "title": "аменция",
+          "kind": "term",
+          "coverage": "gloss",
+          "textKind": "source-gloss",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "ruwiki.definition.56046",
+          "title": "Аменция",
+          "kind": "term",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Атрофия",
+      "hits": [
+        {
+          "id": "draft.definition.atrophy",
+          "title": "Атрофия",
+          "kind": "term",
+          "coverage": "definition",
+          "textKind": "editorial-paraphrase",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "ruwikt.29bb0bd9ddbc218e6c922dfa",
+          "title": "атрофия",
+          "kind": "term",
+          "coverage": "gloss",
+          "textKind": "source-gloss",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Критерии помрачения сознания по Ясперсу",
+      "hits": [
+        {
+          "id": "draft.definition.jaspers-consciousness",
+          "title": "Критерии помрачения сознания по Ясперсу",
+          "kind": "criterion_set",
+          "coverage": "definition",
+          "textKind": "editorial-paraphrase",
+          "blockCount": 6,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Синдром Котара",
+      "hits": [
+        {
+          "id": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441",
+          "title": "Синдром Котара",
+          "kind": "syndrome",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 4,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "ruwiki.definition.264659",
+          "title": "Синдром Котара",
+          "kind": "syndrome",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Симптоматика и динамика острых эндогенных психозов (ОЭП)",
+      "hits": [
+        {
+          "id": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e",
+          "title": "Симптоматика и динамика острых эндогенных психозов (ОЭП)",
+          "kind": "symptom",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 25,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Приступы ми-гренозной ГБ обычно впервые",
+      "hits": [
+        {
+          "id": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd",
+          "title": "Приступы ми-гренозной ГБ обычно впервые",
+          "kind": "term",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 4,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Индекс массы тела",
+      "hits": [
+        {
+          "id": "prepared.definition.0db06a6cc3706e05ae31822f",
+          "title": "Индекс массы тела",
+          "kind": "scale",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "prepared.definition.7df5a6788710d1400758eb40",
+          "title": "Индекс массы тела",
+          "kind": "scale",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "prepared.definition.80e01d3697cc8aaba723a514",
+          "title": "Индекс массы тела",
+          "kind": "scale",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "prepared.definition.b4909167f647f4e09b30975f",
+          "title": "Индекс массы тела",
+          "kind": "scale",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "prepared.definition.e4220b6f91fc2821616b6a53",
+          "title": "Индекс массы тела",
+          "kind": "scale",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Критерии Dawes-Redman (Доуза-Редмана)",
+      "hits": [
+        {
+          "id": "prepared.definition.2218df886745213e100de46e",
+          "title": "Критерии Dawes-Redman (Доуза-Редмана)",
+          "kind": "criterion_set",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Миопия высокой степени",
+      "hits": [
+        {
+          "id": "prepared.definition.5cd0599b3237a91fb3aa9679",
+          "title": "Миопия высокой степени",
+          "kind": "classification",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Закон Хая",
+      "hits": [
+        {
+          "id": "prepared.definition.a266e135d02cd3f2a0154bae",
+          "title": "Закон Хая",
+          "kind": "law",
+          "coverage": "explicit-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        },
+        {
+          "id": "ruwiki.definition.7330083",
+          "title": "Закон Хая",
+          "kind": "law",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Врождённые пороки сердца",
+      "hits": [
+        {
+          "id": "ruwiki.definition.1000324",
+          "title": "Врождённые пороки сердца",
+          "kind": "term",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Гериатрическая шкала депрессии",
+      "hits": [
+        {
+          "id": "ruwiki.definition.10003964",
+          "title": "Гериатрическая шкала депрессии",
+          "kind": "scale",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Симптом воздушной подушки",
+      "hits": [
+        {
+          "id": "ruwiki.definition.1008081",
+          "title": "Симптом воздушной подушки",
+          "kind": "symptom",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Синдром Мирес — Ирлен",
+      "hits": [
+        {
+          "id": "ruwiki.definition.10102321",
+          "title": "Синдром Мирес — Ирлен",
+          "kind": "syndrome",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Тест внимания d2",
+      "hits": [
+        {
+          "id": "ruwiki.definition.11108506",
+          "title": "Тест внимания d2",
+          "kind": "tool",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Классификация олигофрений",
+      "hits": [
+        {
+          "id": "ruwiki.definition.1377441",
+          "title": "Классификация олигофрений",
+          "kind": "classification",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "Закон квадрата — куба",
+      "hits": [
+        {
+          "id": "ruwiki.definition.1422979",
+          "title": "Закон квадрата — куба",
+          "kind": "law",
+          "coverage": "needs-definition",
+          "textKind": "source-excerpt",
+          "blockCount": 1,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    {
+      "query": "кокцидиоид",
+      "hits": [
+        {
+          "id": "ruwikt.000451c8610fecff03c2a03b",
+          "title": "кокцидиоид",
+          "kind": "term",
+          "coverage": "gloss",
+          "textKind": "source-gloss",
+          "blockCount": 2,
+          "reviewStatus": "requires-review",
+          "identityStatus": "source-local-proposed",
+          "match": "name"
+        }
+      ]
+    },
+    { "query": "minimed-negative-definition-2026-09-30", "hits": [] }
+  ],
+  "cards": [
+    {
+      "card": {
+        "id": "clinical-abbrev.0008e211212c0e00682b1193",
+        "title": "ПГГ",
+        "kind": "abbreviation",
+        "coverage": "abbreviation",
+        "textKind": "source-excerpt",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "clinical-abbrev.0008e211212c0e00682b1193.reference.000000",
+            "chunkId": "reference.block.96a9215fe6c0b3016e82d8d99ea1b8e3e80a41f722a0e45eab072ae00bccce86",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 38
+          },
+          {
+            "linkId": "clinical-abbrev.0008e211212c0e00682b1193.reference.000001",
+            "chunkId": "reference.block.86647bba78726b974a80787b6ed25b231ab11ae2b3f9960d594b15247ec3fe86",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 184
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "clinical-abbrev.0008e211212c0e00682b1193.reference.000000",
+            "chunkId": "reference.block.96a9215fe6c0b3016e82d8d99ea1b8e3e80a41f722a0e45eab072ae00bccce86",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 38
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "b7979f4a3bb0789742c6e7d65ac61a74497df7fa7fb1367e77156aa6a9d3f611",
+              "nextOffset": null,
+              "totalCharacters": 38,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "73ed80b5d3ac07394ae6be34d5bd095dfbcd132738d6783f1bc03c07f8636e52"
+            }
+          ],
+          "wholeTextSha256": "b7979f4a3bb0789742c6e7d65ac61a74497df7fa7fb1367e77156aa6a9d3f611",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.0008e211212c0e00682b1193.reference.000001",
+            "chunkId": "reference.block.86647bba78726b974a80787b6ed25b231ab11ae2b3f9960d594b15247ec3fe86",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 184
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "6de521f4f257c3e602b1891fb8b8ddc3d2a02bc07d1d4d8000f48eb9735fb409",
+              "nextOffset": null,
+              "totalCharacters": 184,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "df980fd458fd6027ede84fb4ad0c388abb64ba2b1b396c79791f0ae1fd31acbd"
+            }
+          ],
+          "wholeTextSha256": "6de521f4f257c3e602b1891fb8b8ddc3d2a02bc07d1d4d8000f48eb9735fb409",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "clinical-abbrev.02c449b19eee1efa44a34ac1",
+        "title": "ЭГДС",
+        "kind": "abbreviation",
+        "coverage": "abbreviation",
+        "textKind": "source-excerpt",
+        "blockCount": 37,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000000",
+            "chunkId": "reference.block.ab232d3885bd41579454f58ed5aacf698d6ff89fee9b50da13e2801baea0bcbb",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000001",
+            "chunkId": "reference.block.cac10d0e4d9d14c73d77aaa1464b6a30deb2b4e3675145c161e0f5b67ad8da5a",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000002",
+            "chunkId": "reference.block.ce5c441c80f999552331bfbb7ec2deb9e4652c4ad11c5cbd2cae4791e658bcea",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000003",
+            "chunkId": "reference.block.7383b67e5fd4023aa08519f8b3fd94bf64d750446439cdbf1be8b9900a39651c",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000004",
+            "chunkId": "reference.block.0f1556fab3a2b4e5eb84d37d413085cbae3ffcb6a6b3519429ea0f798d61f15f",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000005",
+            "chunkId": "reference.block.381850ff69fe74f7b75db270d7fdedef1c0e90d845551b477bd834450b395568",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000006",
+            "chunkId": "reference.block.d99b4f49952b566826abecee094acab6f9fbf01931b62681544627c8ea47072c",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000007",
+            "chunkId": "reference.block.db69a061305b3afef3624f71460d4acc1f54bd3304229e7eacd9f175e238acee",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          }
+        ],
+        "next": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000007"
+      },
+      "second": {
+        "blocks": [
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000008",
+            "chunkId": "reference.block.ab6dd933b3fc53351e883fbf8ba868b12f30f2c5a037babf86c51ea984b5a65b",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000009",
+            "chunkId": "reference.block.a138bcc8d7d38f0521af610f0722c36ecb5627bb215e546c77394913dbac681d",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 27
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000010",
+            "chunkId": "reference.block.a651513f9e591f1bd01e3dc992f1cf6f9637be7d8706bd7520e47f570d7b83a1",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000011",
+            "chunkId": "reference.block.3b71f4b68a55dbc2f5b6e4befede52d7a64bc2cbd90048c8482493cfe3fd1386",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000012",
+            "chunkId": "reference.block.3e99669b0214c309f890a54945095fb7b3d8827af09d91063b88ef8bd32eab8e",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000013",
+            "chunkId": "reference.block.7ffa6fc03659a9d63c92c3066fe0c28015355359f8a082c64ddd746cb4699ff5",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000014",
+            "chunkId": "reference.block.e9b233a0ad95098b29cee59da04548dcd0de2058df9e8f0fca03ee1facd08a15",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000015",
+            "chunkId": "reference.block.fbb2c62af6b2126d066bd794e9c50e46fed08953bf5fe66e56631a6070b1e11f",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          }
+        ],
+        "next": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000015"
+      },
+      "blocks": [
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000000",
+            "chunkId": "reference.block.ab232d3885bd41579454f58ed5aacf698d6ff89fee9b50da13e2801baea0bcbb",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "e541ced6289c1cedf0e8fac473539142d8daf0bd172ae08175917d850c791c93"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000001",
+            "chunkId": "reference.block.cac10d0e4d9d14c73d77aaa1464b6a30deb2b4e3675145c161e0f5b67ad8da5a",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "2102164421a4bbdc8c58f97a171b1a7953aedf6adea9f49a18365f36226a57e0"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000002",
+            "chunkId": "reference.block.ce5c441c80f999552331bfbb7ec2deb9e4652c4ad11c5cbd2cae4791e658bcea",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "e42f76073141a507a242bed4a85d4ca79d56b9f2a4c800787c2046daa33e1cb7"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000003",
+            "chunkId": "reference.block.7383b67e5fd4023aa08519f8b3fd94bf64d750446439cdbf1be8b9900a39651c",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "17f435776473cd8a7dcd501ec0370edaf05b59374399760cbada249f25a2cf40"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000004",
+            "chunkId": "reference.block.0f1556fab3a2b4e5eb84d37d413085cbae3ffcb6a6b3519429ea0f798d61f15f",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "8225aae7a4f35605d53e57e449f8e6395640d0b57f576803a8dcc0bf55744fc1"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000005",
+            "chunkId": "reference.block.381850ff69fe74f7b75db270d7fdedef1c0e90d845551b477bd834450b395568",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "7641fe5757faf054e40221847b6a76ca45567b0ac9d19538fa38f379498799b1"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000006",
+            "chunkId": "reference.block.d99b4f49952b566826abecee094acab6f9fbf01931b62681544627c8ea47072c",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "4f439f71e7fe457d953ed36da527c5888f212b557c000cc051108f6ea7274fee"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000007",
+            "chunkId": "reference.block.db69a061305b3afef3624f71460d4acc1f54bd3304229e7eacd9f175e238acee",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "0e3e08e1708e05f4bb4b5a2caf30e239d11fb3c0d76319613eb92c112a894068"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000008",
+            "chunkId": "reference.block.ab6dd933b3fc53351e883fbf8ba868b12f30f2c5a037babf86c51ea984b5a65b",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "bb9f82e009dbf27e5106072a682d07edcb9edda6e32f49818c5086135cccd087"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000009",
+            "chunkId": "reference.block.a138bcc8d7d38f0521af610f0722c36ecb5627bb215e546c77394913dbac681d",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 27
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "8464317f1a72a4b22ac898c6892dcfa5985b97a0aad8c4a339b5aeefdd9e68e5",
+              "nextOffset": null,
+              "totalCharacters": 27,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "4003a665508c4b80a5d721357cb51a9584c23c3cc0e678c0e18256d60a64a90f"
+            }
+          ],
+          "wholeTextSha256": "8464317f1a72a4b22ac898c6892dcfa5985b97a0aad8c4a339b5aeefdd9e68e5",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000010",
+            "chunkId": "reference.block.a651513f9e591f1bd01e3dc992f1cf6f9637be7d8706bd7520e47f570d7b83a1",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "4ac36d84448c2c042306b5d8a94be0d1a1c225fa6b76d0a23940c57ce8fe71c2"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000011",
+            "chunkId": "reference.block.3b71f4b68a55dbc2f5b6e4befede52d7a64bc2cbd90048c8482493cfe3fd1386",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "702a733e5f47736a982a6fc0a27511fb4ad1fef3a128f11f3032c8dc9028aad9"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000012",
+            "chunkId": "reference.block.3e99669b0214c309f890a54945095fb7b3d8827af09d91063b88ef8bd32eab8e",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "6b1b02f89a701649e764933b17131d03a8a5014a3f3a9c3f76bbec2a2b79159b"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000013",
+            "chunkId": "reference.block.7ffa6fc03659a9d63c92c3066fe0c28015355359f8a082c64ddd746cb4699ff5",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "b108d8748134a672a9fba1c8f32acb1ec02e4c6fb9fdef894b08faf5a9b52e98"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000014",
+            "chunkId": "reference.block.e9b233a0ad95098b29cee59da04548dcd0de2058df9e8f0fca03ee1facd08a15",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "383c4f0ad1d44383cac18c37b2ba7eeaeee4aa13d3f6443b29ba275b580cb8fd"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-abbrev.02c449b19eee1efa44a34ac1.reference.000015",
+            "chunkId": "reference.block.fbb2c62af6b2126d066bd794e9c50e46fed08953bf5fe66e56631a6070b1e11f",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 26
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+              "nextOffset": null,
+              "totalCharacters": 26,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "66129bc4766e29a1b7a149b8f8220d56f1a642a559694b8e88c3bd04690fb241"
+            }
+          ],
+          "wholeTextSha256": "7ae3b526f14f8b4e4aae41e9a92f1ad5bfd01219b48b5e66f77eef114d538d77",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "clinical-glossary.005d646ae8cda7ac66d65fef",
+        "title": "Аногенитальные (венерические) бородавки",
+        "kind": "term",
+        "coverage": "explicit-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "clinical-glossary.005d646ae8cda7ac66d65fef.reference.000000",
+            "chunkId": "reference.block.c3ebba89cff1462daa866e0d1f8dd145e9880b3c30ecaba4cda15585a7c50b01",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 107
+          },
+          {
+            "linkId": "clinical-glossary.005d646ae8cda7ac66d65fef.reference.000001",
+            "chunkId": "reference.block.48ef51b56f84464ac0bf36a6791eee9d3b9bd59d4b9e743cc9a2c79900087f26",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 223
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "clinical-glossary.005d646ae8cda7ac66d65fef.reference.000000",
+            "chunkId": "reference.block.c3ebba89cff1462daa866e0d1f8dd145e9880b3c30ecaba4cda15585a7c50b01",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 107
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "31650892250222886084a9af6481de1bb08d7e9288bd02fee0de5d8bc19ce2ab",
+              "nextOffset": null,
+              "totalCharacters": 107,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "86fd67ba7006bf8ac160a43d151d73b1ba20eebb6f66e1ea33944042efdd30f8"
+            }
+          ],
+          "wholeTextSha256": "31650892250222886084a9af6481de1bb08d7e9288bd02fee0de5d8bc19ce2ab",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "clinical-glossary.005d646ae8cda7ac66d65fef.reference.000001",
+            "chunkId": "reference.block.48ef51b56f84464ac0bf36a6791eee9d3b9bd59d4b9e743cc9a2c79900087f26",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 223
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "7d619df931745eeb3fcd7968a71ccc9aafd495975296d3855a6484b81c2c69a6",
+              "nextOffset": null,
+              "totalCharacters": 223,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "df980fd458fd6027ede84fb4ad0c388abb64ba2b1b396c79791f0ae1fd31acbd"
+            }
+          ],
+          "wholeTextSha256": "7d619df931745eeb3fcd7968a71ccc9aafd495975296d3855a6484b81c2c69a6",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "draft.definition.affective-illusion",
+        "title": "Аффективная иллюзия",
+        "kind": "symptom",
+        "coverage": "definition",
+        "textKind": "editorial-paraphrase",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "draft.definition.affective-illusion.reference.000000",
+            "chunkId": "reference.block.d3576096c1958efd84243b4b59d61ac608566511b907094ed6f440b3834e3d5a",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "definition",
+            "characters": 113
+          },
+          {
+            "linkId": "draft.definition.affective-illusion.reference.000001",
+            "chunkId": "reference.block.0aa1a9b0f304e704873e08b3fdb95211da31ece80d1e96414ca9d4caa8e49f59",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "annotation",
+            "characters": 11
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "draft.definition.affective-illusion.reference.000000",
+            "chunkId": "reference.block.d3576096c1958efd84243b4b59d61ac608566511b907094ed6f440b3834e3d5a",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "definition",
+            "characters": 113
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "2c207a70d13489bf8118f000d3e9fe5e568cd08b6855007877255c0be409b3a5",
+              "nextOffset": null,
+              "totalCharacters": 113,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "f42bc75e4ed9b9dddda9c2a07f1159090c7d8627dc5eefbf4b91ef057907b115"
+            }
+          ],
+          "wholeTextSha256": "2c207a70d13489bf8118f000d3e9fe5e568cd08b6855007877255c0be409b3a5",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        },
+        {
+          "block": {
+            "linkId": "draft.definition.affective-illusion.reference.000001",
+            "chunkId": "reference.block.0aa1a9b0f304e704873e08b3fdb95211da31ece80d1e96414ca9d4caa8e49f59",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "annotation",
+            "characters": 11
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "c275a7593429639563e6599ebbac55412bdb7d6a76ca799cf4eada09fa80f18f",
+              "nextOffset": null,
+              "totalCharacters": 11,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "aa09f1b6244f91ae72728f36cff3c48ea6063ddfd081b73c4772ebcb75428244"
+            }
+          ],
+          "wholeTextSha256": "c275a7593429639563e6599ebbac55412bdb7d6a76ca799cf4eada09fa80f18f",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "draft.definition.amentia",
+        "title": "Аменция",
+        "kind": "syndrome",
+        "coverage": "definition",
+        "textKind": "editorial-paraphrase",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "draft.definition.amentia.reference.000000",
+            "chunkId": "reference.block.775a3fbc326564ad081e10a9cd897ba783ef1fdbaf8945535ec8396f3d992f84",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "definition",
+            "characters": 119
+          },
+          {
+            "linkId": "draft.definition.amentia.reference.000001",
+            "chunkId": "reference.block.0aa1a9b0f304e704873e08b3fdb95211da31ece80d1e96414ca9d4caa8e49f59",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "annotation",
+            "characters": 11
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "draft.definition.amentia.reference.000000",
+            "chunkId": "reference.block.775a3fbc326564ad081e10a9cd897ba783ef1fdbaf8945535ec8396f3d992f84",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "definition",
+            "characters": 119
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "1dd0a547c5db5ab1f3fa31397d2f28c7812801dd40299d34b854a77004f1de4d",
+              "nextOffset": null,
+              "totalCharacters": 119,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "e6e7af26d73977d731e21e52fd1a3890837cf21833fe68628e1d0ab5ec36dfbd"
+            }
+          ],
+          "wholeTextSha256": "1dd0a547c5db5ab1f3fa31397d2f28c7812801dd40299d34b854a77004f1de4d",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        },
+        {
+          "block": {
+            "linkId": "draft.definition.amentia.reference.000001",
+            "chunkId": "reference.block.0aa1a9b0f304e704873e08b3fdb95211da31ece80d1e96414ca9d4caa8e49f59",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "annotation",
+            "characters": 11
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "c275a7593429639563e6599ebbac55412bdb7d6a76ca799cf4eada09fa80f18f",
+              "nextOffset": null,
+              "totalCharacters": 11,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "aa09f1b6244f91ae72728f36cff3c48ea6063ddfd081b73c4772ebcb75428244"
+            }
+          ],
+          "wholeTextSha256": "c275a7593429639563e6599ebbac55412bdb7d6a76ca799cf4eada09fa80f18f",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "draft.definition.atrophy",
+        "title": "Атрофия",
+        "kind": "term",
+        "coverage": "definition",
+        "textKind": "editorial-paraphrase",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "draft.definition.atrophy.reference.000000",
+            "chunkId": "reference.block.e8698c58a9fad6ffaa9c680cb9b59037a2186063813309c1a8d1f7219d74f74e",
+            "sourceId": "reference.source.71f3973764e5304c03b850f19d3269ca46c149342b821ea87588fb707e6b183d",
+            "role": "definition",
+            "characters": 51
+          },
+          {
+            "linkId": "draft.definition.atrophy.reference.000001",
+            "chunkId": "reference.block.1d08ace522e7159879029e44258d69b7d41029415fcb90a643a1c28c5ee460cf",
+            "sourceId": "reference.source.71f3973764e5304c03b850f19d3269ca46c149342b821ea87588fb707e6b183d",
+            "role": "annotation",
+            "characters": 11
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "draft.definition.atrophy.reference.000000",
+            "chunkId": "reference.block.e8698c58a9fad6ffaa9c680cb9b59037a2186063813309c1a8d1f7219d74f74e",
+            "sourceId": "reference.source.71f3973764e5304c03b850f19d3269ca46c149342b821ea87588fb707e6b183d",
+            "role": "definition",
+            "characters": 51
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "60ea31e4ddc1506650cd402375d1034741748a8e99758d9e3a0cca0482949f31",
+              "nextOffset": null,
+              "totalCharacters": 51,
+              "sourceId": "reference.source.71f3973764e5304c03b850f19d3269ca46c149342b821ea87588fb707e6b183d",
+              "provenanceSha256": "bc76c6107298d93d1684d6ae631b1086b034fe40ee3596dd610b9295e7478ae2"
+            }
+          ],
+          "wholeTextSha256": "60ea31e4ddc1506650cd402375d1034741748a8e99758d9e3a0cca0482949f31",
+          "sourceMetadataSha256": "ea35a5f74c669704425f6405872ef110e631d1c1f740adf1330718902fa6394c"
+        },
+        {
+          "block": {
+            "linkId": "draft.definition.atrophy.reference.000001",
+            "chunkId": "reference.block.1d08ace522e7159879029e44258d69b7d41029415fcb90a643a1c28c5ee460cf",
+            "sourceId": "reference.source.71f3973764e5304c03b850f19d3269ca46c149342b821ea87588fb707e6b183d",
+            "role": "annotation",
+            "characters": 11
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "c275a7593429639563e6599ebbac55412bdb7d6a76ca799cf4eada09fa80f18f",
+              "nextOffset": null,
+              "totalCharacters": 11,
+              "sourceId": "reference.source.71f3973764e5304c03b850f19d3269ca46c149342b821ea87588fb707e6b183d",
+              "provenanceSha256": "aa09f1b6244f91ae72728f36cff3c48ea6063ddfd081b73c4772ebcb75428244"
+            }
+          ],
+          "wholeTextSha256": "c275a7593429639563e6599ebbac55412bdb7d6a76ca799cf4eada09fa80f18f",
+          "sourceMetadataSha256": "ea35a5f74c669704425f6405872ef110e631d1c1f740adf1330718902fa6394c"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "draft.definition.jaspers-consciousness",
+        "title": "Критерии помрачения сознания по Ясперсу",
+        "kind": "criterion_set",
+        "coverage": "definition",
+        "textKind": "editorial-paraphrase",
+        "blockCount": 6,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000000",
+            "chunkId": "reference.block.07134e1de86d8ee7b163d87ce20e41f4461a0ce820a84a0b808cfe86393361cd",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "definition",
+            "characters": 64
+          },
+          {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000001",
+            "chunkId": "reference.block.8eac244a3161edd77de9abe76d3b1321a59d15c621a6ba13eebdec6acd22c2a9",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "item",
+            "characters": 89
+          },
+          {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000002",
+            "chunkId": "reference.block.7f1c5a42920c75bcb935ca26c46cd09c8f3cac8f03d0d4c2157fff5eb146b560",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "item",
+            "characters": 53
+          },
+          {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000003",
+            "chunkId": "reference.block.feef417c4852433045c2bce9ddfe1b76639b2e52bbd3944e3602e42e0248b3a3",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "item",
+            "characters": 45
+          },
+          {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000004",
+            "chunkId": "reference.block.48c1b3837cee8615e6868e0d4367250bd1156c3e8821bac918a5a5264e9689e3",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "item",
+            "characters": 92
+          },
+          {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000005",
+            "chunkId": "reference.block.d627fc34fb0ef959b1814053079230c5cc0b0bc099fbdfe9c724063ef14d5747",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "annotation",
+            "characters": 142
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000000",
+            "chunkId": "reference.block.07134e1de86d8ee7b163d87ce20e41f4461a0ce820a84a0b808cfe86393361cd",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "definition",
+            "characters": 64
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "e2951617ddbc003a374c158857174c40cc255b7de4e54ba066f7c7cea4bea606",
+              "nextOffset": null,
+              "totalCharacters": 64,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "094cd3587e1733135b02e2bdcb1d4772234ba4307e6909ff20cdac7d1217ed00"
+            }
+          ],
+          "wholeTextSha256": "e2951617ddbc003a374c158857174c40cc255b7de4e54ba066f7c7cea4bea606",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        },
+        {
+          "block": {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000001",
+            "chunkId": "reference.block.8eac244a3161edd77de9abe76d3b1321a59d15c621a6ba13eebdec6acd22c2a9",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "item",
+            "characters": 89
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "f341caf2e5a8c03d215f8c0dc72e7b6841f82a92057a5ebe6418a90ed790b527",
+              "nextOffset": null,
+              "totalCharacters": 89,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "30a88643857bc3a68145121219509d4474e2b23c616306732dc438a5b95e01c3"
+            }
+          ],
+          "wholeTextSha256": "f341caf2e5a8c03d215f8c0dc72e7b6841f82a92057a5ebe6418a90ed790b527",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        },
+        {
+          "block": {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000002",
+            "chunkId": "reference.block.7f1c5a42920c75bcb935ca26c46cd09c8f3cac8f03d0d4c2157fff5eb146b560",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "item",
+            "characters": 53
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "f1b1a386e2efbfb02d7fc758925928cce29fac58ae8b7df8ffe8271a0c135f1b",
+              "nextOffset": null,
+              "totalCharacters": 53,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "492cd109835dcc942dc74104c45f81fd5a10c6fb882e21009e287f7fa835e80c"
+            }
+          ],
+          "wholeTextSha256": "f1b1a386e2efbfb02d7fc758925928cce29fac58ae8b7df8ffe8271a0c135f1b",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        },
+        {
+          "block": {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000003",
+            "chunkId": "reference.block.feef417c4852433045c2bce9ddfe1b76639b2e52bbd3944e3602e42e0248b3a3",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "item",
+            "characters": 45
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "3e418cf4db06e64cf9b2e6d669e074e356841f1886c78b9a588763a0c5b07131",
+              "nextOffset": null,
+              "totalCharacters": 45,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "c547cba0b06855084956ce726588ebfdff20672b804869b57a03bef52f008d7d"
+            }
+          ],
+          "wholeTextSha256": "3e418cf4db06e64cf9b2e6d669e074e356841f1886c78b9a588763a0c5b07131",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        },
+        {
+          "block": {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000004",
+            "chunkId": "reference.block.48c1b3837cee8615e6868e0d4367250bd1156c3e8821bac918a5a5264e9689e3",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "item",
+            "characters": 92
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "4959cb1dd0383ea5be9601060b31b76873fe9def69e03ecc7ff3f258058f0a07",
+              "nextOffset": null,
+              "totalCharacters": 92,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "dc2981ebc3fff57000555e992f55ddf4f73b32c198c611b118627a0092864b3e"
+            }
+          ],
+          "wholeTextSha256": "4959cb1dd0383ea5be9601060b31b76873fe9def69e03ecc7ff3f258058f0a07",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        },
+        {
+          "block": {
+            "linkId": "draft.definition.jaspers-consciousness.reference.000005",
+            "chunkId": "reference.block.d627fc34fb0ef959b1814053079230c5cc0b0bc099fbdfe9c724063ef14d5747",
+            "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+            "role": "annotation",
+            "characters": 142
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "e370b4c1433be0b580c4f3aca392d2c156610ed3c576ed7f5b31f98695c95848",
+              "nextOffset": null,
+              "totalCharacters": 142,
+              "sourceId": "reference.source.b51bbd6c1980edbb078db6d135e36349f467b8c4df06aface189e6856071adb3",
+              "provenanceSha256": "aa09f1b6244f91ae72728f36cff3c48ea6063ddfd081b73c4772ebcb75428244"
+            }
+          ],
+          "wholeTextSha256": "e370b4c1433be0b580c4f3aca392d2c156610ed3c576ed7f5b31f98695c95848",
+          "sourceMetadataSha256": "b1f82c95e86c50b6e37e651418ff00d7218c0a8759f3156bf043ef4490c8204e"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441",
+        "title": "Синдром Котара",
+        "kind": "syndrome",
+        "coverage": "explicit-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 4,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441.reference.000000",
+            "chunkId": "reference.block.90d2c3d959c176d4f0f1fc1c3569e0d2c9fdb04cc3f8a474bee197e154dd7344",
+            "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+            "role": "definition",
+            "characters": 189
+          },
+          {
+            "linkId": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441.reference.000001",
+            "chunkId": "reference.block.2f474615e317673c5bf86fcbb4cf931734219ce9a7bfc5c66ff22b1d1f1f2894",
+            "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+            "role": "context",
+            "characters": 26155
+          },
+          {
+            "linkId": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441.reference.000002",
+            "chunkId": "reference.block.4ddb8a11719113dd59781375f82482f682560bb55db61587c5c0f463a2e2d07e",
+            "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+            "role": "context",
+            "characters": 1
+          },
+          {
+            "linkId": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441.reference.000003",
+            "chunkId": "reference.block.3f123be68dbaff61f4eb616f4433a9181d5817d6f009a9a44a6793f050171c89",
+            "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+            "role": "annotation",
+            "characters": 146
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441.reference.000000",
+            "chunkId": "reference.block.90d2c3d959c176d4f0f1fc1c3569e0d2c9fdb04cc3f8a474bee197e154dd7344",
+            "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+            "role": "definition",
+            "characters": 189
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "387396a003fc50306402f689cb00282f7fffae65a3a704590b211bb3b88ae15f",
+              "nextOffset": null,
+              "totalCharacters": 189,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "cce6945447e5dde79f48adfdb1ed1866f8ae42c2e65a4da448a683952051f9ac"
+            }
+          ],
+          "wholeTextSha256": "387396a003fc50306402f689cb00282f7fffae65a3a704590b211bb3b88ae15f",
+          "sourceMetadataSha256": "fee01edac6ca709f6a73dbe95f1915fd7323eb4c0e327e5a2d66cc8c053fc38e"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441.reference.000001",
+            "chunkId": "reference.block.2f474615e317673c5bf86fcbb4cf931734219ce9a7bfc5c66ff22b1d1f1f2894",
+            "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+            "role": "context",
+            "characters": 26155
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "2a2e547afb6031c379eda4d32f07fb92c4746b997765514fe44dddb5d0ac0e1b",
+              "nextOffset": 4096,
+              "totalCharacters": 26155,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "56c4a93d6ddd1022620687a43083e8e715e7464c6d47fb1fbff515dad51475ec"
+            },
+            {
+              "offset": 4096,
+              "textSha256": "08951921b47164639ce594aee7c2453da121c28222f9c768327a729585073ede",
+              "nextOffset": 8192,
+              "totalCharacters": 26155,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "56c4a93d6ddd1022620687a43083e8e715e7464c6d47fb1fbff515dad51475ec"
+            },
+            {
+              "offset": 8192,
+              "textSha256": "08b404c36e3dbbfdee1236c3eb52bad4ddb73d8c9c836ba95db04f9ef157ceaf",
+              "nextOffset": 12288,
+              "totalCharacters": 26155,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "56c4a93d6ddd1022620687a43083e8e715e7464c6d47fb1fbff515dad51475ec"
+            },
+            {
+              "offset": 12288,
+              "textSha256": "388d8ed270e9533c8b91988f321f9a5b9b594d0c076da74b99431de1fc8bdaba",
+              "nextOffset": 16384,
+              "totalCharacters": 26155,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "56c4a93d6ddd1022620687a43083e8e715e7464c6d47fb1fbff515dad51475ec"
+            },
+            {
+              "offset": 16384,
+              "textSha256": "9aa335857e6b11eb9f9fcc1f576029e2f8236e1556588e6710ab54e3eaeb3647",
+              "nextOffset": 20480,
+              "totalCharacters": 26155,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "56c4a93d6ddd1022620687a43083e8e715e7464c6d47fb1fbff515dad51475ec"
+            },
+            {
+              "offset": 20480,
+              "textSha256": "53267a9313d502c1167180b5be4ff4f0035dbfa44b51112ee52391b9e89eefce",
+              "nextOffset": 24576,
+              "totalCharacters": 26155,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "56c4a93d6ddd1022620687a43083e8e715e7464c6d47fb1fbff515dad51475ec"
+            },
+            {
+              "offset": 24576,
+              "textSha256": "b29982665751e6d7256039b276f953cd57d26bbd46c8689acda0c192030ba88e",
+              "nextOffset": null,
+              "totalCharacters": 26155,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "56c4a93d6ddd1022620687a43083e8e715e7464c6d47fb1fbff515dad51475ec"
+            }
+          ],
+          "wholeTextSha256": "659c881b8ff3a83ce65edd1fe28efca8302acd6fea74ecb01528ea12537b0ae0",
+          "sourceMetadataSha256": "fee01edac6ca709f6a73dbe95f1915fd7323eb4c0e327e5a2d66cc8c053fc38e"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441.reference.000002",
+            "chunkId": "reference.block.4ddb8a11719113dd59781375f82482f682560bb55db61587c5c0f463a2e2d07e",
+            "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+            "role": "context",
+            "characters": 1
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "8db71ed28b0f2f1432561e8d8a0dc3878f2da540c53a2ab82335b6f716da2ef3",
+              "nextOffset": null,
+              "totalCharacters": 1,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "8551ac55eb73d49202ec83cc46b4616270cba90f0cd02d2e6c3037dfb0c9d85d"
+            }
+          ],
+          "wholeTextSha256": "8db71ed28b0f2f1432561e8d8a0dc3878f2da540c53a2ab82335b6f716da2ef3",
+          "sourceMetadataSha256": "fee01edac6ca709f6a73dbe95f1915fd7323eb4c0e327e5a2d66cc8c053fc38e"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.14094.entry.4b083206cd8c1eaa04eb5441.reference.000003",
+            "chunkId": "reference.block.3f123be68dbaff61f4eb616f4433a9181d5817d6f009a9a44a6793f050171c89",
+            "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+            "role": "annotation",
+            "characters": 146
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "0231b2df0c7c3b3a1d5ce9639c2fc07471ca3cefe3550bfabc64886ba134b883",
+              "nextOffset": null,
+              "totalCharacters": 146,
+              "sourceId": "reference.source.e0a73c8ee191742405672f3a1b7d17dde985734ab6b33cbf0290b0180ee21eb6",
+              "provenanceSha256": "348a61fd5a7880adaf005076154b8ebd5096443d46b32e77dd0e5d6d51af6ae3"
+            }
+          ],
+          "wholeTextSha256": "0231b2df0c7c3b3a1d5ce9639c2fc07471ca3cefe3550bfabc64886ba134b883",
+          "sourceMetadataSha256": "fee01edac6ca709f6a73dbe95f1915fd7323eb4c0e327e5a2d66cc8c053fc38e"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e",
+        "title": "Симптоматика и динамика острых эндогенных психозов (ОЭП)",
+        "kind": "symptom",
+        "coverage": "explicit-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 25,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000000",
+            "chunkId": "reference.block.2dfa6687696e846b8794f05854180f674ab309fb7b12ef00ea33b0d693423245",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "definition",
+            "characters": 617
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000001",
+            "chunkId": "reference.block.3abcd22dccfa135be280d44ded000e9e3e53d82722b78bb7fa87c6651d585e9b",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 715
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000002",
+            "chunkId": "reference.block.0446349944f43deba55c871c7572c73e20dce1771d995ab9b167fde7d4d97abf",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 141
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000003",
+            "chunkId": "reference.block.3c7829071b0f589c80066f9ef57aa2b1f69b6909b093ee7b95486100cdac362d",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 328
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000004",
+            "chunkId": "reference.block.71f7db5baf2a49508e1c2fad5987f049d5878fc76304d31ecc536197b9439daf",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 347
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000005",
+            "chunkId": "reference.block.2062d05217d772ef550400a91c3cfc45c7f1c7cca7e847cb643adda84ed9efc4",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 223
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000006",
+            "chunkId": "reference.block.68037c1ebf0841011318cf4b3d18b003e43b440b0cfc3ba6d8f15a7d081595c7",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 25
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000007",
+            "chunkId": "reference.block.6cb416c7985e8f627f3349f4834e535825a83f5b26104ccab524c50ac2c37d73",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 95
+          }
+        ],
+        "next": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000007"
+      },
+      "second": {
+        "blocks": [
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000008",
+            "chunkId": "reference.block.548d2356aa16994201ba4c7ca0e016ea73fdd8242e9773db61e6519ca5019e15",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 77
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000009",
+            "chunkId": "reference.block.f39ff220f200d1d7083aecff8f5afccd9db82691b3c06e04d9024833c32cc421",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 126
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000010",
+            "chunkId": "reference.block.716d84d18afe7227ec3d0e9faec7b77cb9cfe93d8472600c52004df2b0a26f98",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 155
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000011",
+            "chunkId": "reference.block.174ab604ab2e9010bc49c94aba0e18fb3a434319110fcf5090b2e593210f075f",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 479
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000012",
+            "chunkId": "reference.block.a6d753a5face839db1764070c276601f7e1c0f00f6a383ccda705f1733fef2e6",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 374
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000013",
+            "chunkId": "reference.block.47919cf0f60a6ad6beb2b6a5ca2d17f60f152882b359f77f1144433227e43f03",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 334
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000014",
+            "chunkId": "reference.block.592559e5cc854a8e1dd28b0ec9403f54670fdfae291d9641bc416205dfb3b464",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 9
+          },
+          {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000015",
+            "chunkId": "reference.block.52d72127b0f4fab54cb8188c2ead6efa0c8cc19d33508a297fd099d2575a3391",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 68
+          }
+        ],
+        "next": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000015"
+      },
+      "blocks": [
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000000",
+            "chunkId": "reference.block.2dfa6687696e846b8794f05854180f674ab309fb7b12ef00ea33b0d693423245",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "definition",
+            "characters": 617
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "5634a55e93302a20d9cbe77e6504e90c211b215fe9ca5ba7b5274c6e5de3960c",
+              "nextOffset": null,
+              "totalCharacters": 617,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "b9c7f2cfc0a8a67b1ddf12c030dbfed836b858b116b73558115eab049de56226"
+            }
+          ],
+          "wholeTextSha256": "5634a55e93302a20d9cbe77e6504e90c211b215fe9ca5ba7b5274c6e5de3960c",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000001",
+            "chunkId": "reference.block.3abcd22dccfa135be280d44ded000e9e3e53d82722b78bb7fa87c6651d585e9b",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 715
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "668b97fb2012aa4730a431a7be238fb3c26c1f621d2fe74bea104bacc39281b0",
+              "nextOffset": null,
+              "totalCharacters": 715,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "053564a2538ff0287f4b66b10677f8958262b5beded2a3c1bcf10af987fd2532"
+            }
+          ],
+          "wholeTextSha256": "668b97fb2012aa4730a431a7be238fb3c26c1f621d2fe74bea104bacc39281b0",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000002",
+            "chunkId": "reference.block.0446349944f43deba55c871c7572c73e20dce1771d995ab9b167fde7d4d97abf",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 141
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "d73e7d1ecd9a7ca0edba20731766d459663a922d5dc713f38fae1733d8d12e2b",
+              "nextOffset": null,
+              "totalCharacters": 141,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "af16d33ede0f137d7881dc1cf95c37b6e61ddd76648465971efa753452862599"
+            }
+          ],
+          "wholeTextSha256": "d73e7d1ecd9a7ca0edba20731766d459663a922d5dc713f38fae1733d8d12e2b",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000003",
+            "chunkId": "reference.block.3c7829071b0f589c80066f9ef57aa2b1f69b6909b093ee7b95486100cdac362d",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 328
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "9d834417ad2a1b8897d660c1b786766de9aab50c34910f712b71f748e045b5ed",
+              "nextOffset": null,
+              "totalCharacters": 328,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "841cd60c5bc17626233967b9534c0dcdb0aa935e40ffe87159f08b7f5a7e43ad"
+            }
+          ],
+          "wholeTextSha256": "9d834417ad2a1b8897d660c1b786766de9aab50c34910f712b71f748e045b5ed",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000004",
+            "chunkId": "reference.block.71f7db5baf2a49508e1c2fad5987f049d5878fc76304d31ecc536197b9439daf",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 347
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "54e64fa3b26843d07b919226d1475176aaba48401aab60c3e1ad3ff05c39b2e1",
+              "nextOffset": null,
+              "totalCharacters": 347,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "5a0a08214c068a0d676a52641c75e44d91d5502911f9c40a022d570db5e25d01"
+            }
+          ],
+          "wholeTextSha256": "54e64fa3b26843d07b919226d1475176aaba48401aab60c3e1ad3ff05c39b2e1",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000005",
+            "chunkId": "reference.block.2062d05217d772ef550400a91c3cfc45c7f1c7cca7e847cb643adda84ed9efc4",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 223
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "ee5ffae93c0ce881c48f2aeeaf440f2f1368615396b5e005913fab8171ebbd56",
+              "nextOffset": null,
+              "totalCharacters": 223,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "f56abca6b319cacbe4b18efd2ab7bc98eeeaee70b907d0550624457bacf4dcb1"
+            }
+          ],
+          "wholeTextSha256": "ee5ffae93c0ce881c48f2aeeaf440f2f1368615396b5e005913fab8171ebbd56",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000006",
+            "chunkId": "reference.block.68037c1ebf0841011318cf4b3d18b003e43b440b0cfc3ba6d8f15a7d081595c7",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 25
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "b7fa99e0fb238905a10960d643e43f812bbe2d085c123b5af294cebce58dec96",
+              "nextOffset": null,
+              "totalCharacters": 25,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "b9d6247d6e20ef1eaa79b6a7ed1ae6d4e4942ce0f0da094103cf8356b9982ff4"
+            }
+          ],
+          "wholeTextSha256": "b7fa99e0fb238905a10960d643e43f812bbe2d085c123b5af294cebce58dec96",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000007",
+            "chunkId": "reference.block.6cb416c7985e8f627f3349f4834e535825a83f5b26104ccab524c50ac2c37d73",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 95
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "67212409ef862af6600ef61542e8e9ad6ad1e50ff4ae06f259daf6d2570b6943",
+              "nextOffset": null,
+              "totalCharacters": 95,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "679db003dfd70bc793e93029ce51abd7d34134ac29a6e195ff51a62c7536cc6f"
+            }
+          ],
+          "wholeTextSha256": "67212409ef862af6600ef61542e8e9ad6ad1e50ff4ae06f259daf6d2570b6943",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000008",
+            "chunkId": "reference.block.548d2356aa16994201ba4c7ca0e016ea73fdd8242e9773db61e6519ca5019e15",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 77
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "13d1fc22cbf8e3ae1d53fa86ef09244750d2c72b9cc137e59dba03b56bb70553",
+              "nextOffset": null,
+              "totalCharacters": 77,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "70b1e1edfe61c9645c522baafca939f72937c918af153a024b9b3d499abd5872"
+            }
+          ],
+          "wholeTextSha256": "13d1fc22cbf8e3ae1d53fa86ef09244750d2c72b9cc137e59dba03b56bb70553",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000009",
+            "chunkId": "reference.block.f39ff220f200d1d7083aecff8f5afccd9db82691b3c06e04d9024833c32cc421",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 126
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "adae2cbe81e980bddb0d14007b86a2f3b19d1d25e6e14cc277fd6ed33d43b34d",
+              "nextOffset": null,
+              "totalCharacters": 126,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "12aa4f34dad33a554da4a799b12c96ec3b43d354ecdecadc7a945ce67f7744a5"
+            }
+          ],
+          "wholeTextSha256": "adae2cbe81e980bddb0d14007b86a2f3b19d1d25e6e14cc277fd6ed33d43b34d",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000010",
+            "chunkId": "reference.block.716d84d18afe7227ec3d0e9faec7b77cb9cfe93d8472600c52004df2b0a26f98",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 155
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "1b59dd51f474fa5af5a381e9d333e91e931d688212e1ea970ef95b27f0a90d29",
+              "nextOffset": null,
+              "totalCharacters": 155,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "93a0977fe37b24c1744040f8d706ac437a65d4f06fa2d5b08d6cda18f426ca2e"
+            }
+          ],
+          "wholeTextSha256": "1b59dd51f474fa5af5a381e9d333e91e931d688212e1ea970ef95b27f0a90d29",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000011",
+            "chunkId": "reference.block.174ab604ab2e9010bc49c94aba0e18fb3a434319110fcf5090b2e593210f075f",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 479
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "188df2f0ca6d77cd8cda9a0a6b66249e72782ede9a499f3b0393feaf52d0738e",
+              "nextOffset": null,
+              "totalCharacters": 479,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "a583e41dc7014e85c1ccbe0646213ad398032dbe2065ca862196699ac34bb77b"
+            }
+          ],
+          "wholeTextSha256": "188df2f0ca6d77cd8cda9a0a6b66249e72782ede9a499f3b0393feaf52d0738e",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000012",
+            "chunkId": "reference.block.a6d753a5face839db1764070c276601f7e1c0f00f6a383ccda705f1733fef2e6",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 374
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "f29996c7b4bf3d8d2291252f44f832f06f203b33c29e4efe9088ef2ff27e02fd",
+              "nextOffset": null,
+              "totalCharacters": 374,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "a6daaa6d7f93581905f55a465e16ff5c047149cca40ee88696cba8b23216ced3"
+            }
+          ],
+          "wholeTextSha256": "f29996c7b4bf3d8d2291252f44f832f06f203b33c29e4efe9088ef2ff27e02fd",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000013",
+            "chunkId": "reference.block.47919cf0f60a6ad6beb2b6a5ca2d17f60f152882b359f77f1144433227e43f03",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 334
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "cfd0acfadacb137e5245665f03e64d7aabcc6595a816dca58cbeda47f2584a13",
+              "nextOffset": null,
+              "totalCharacters": 334,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "5af31379c5b343c947df11e4cacb44b37ae5eeb03286fab092130d8103f7af45"
+            }
+          ],
+          "wholeTextSha256": "cfd0acfadacb137e5245665f03e64d7aabcc6595a816dca58cbeda47f2584a13",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000014",
+            "chunkId": "reference.block.592559e5cc854a8e1dd28b0ec9403f54670fdfae291d9641bc416205dfb3b464",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 9
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "3b3f0848611a45a9897ea46a5abd4232b0ae5684edc4ff771865cbea8b15a230",
+              "nextOffset": null,
+              "totalCharacters": 9,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "d00c593fb7bc05a0560562fb1cc7ec4036308a9202cb8eb5c9f8ea92c3a86f0b"
+            }
+          ],
+          "wholeTextSha256": "3b3f0848611a45a9897ea46a5abd4232b0ae5684edc4ff771865cbea8b15a230",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.1027-4898.16424.entry.b17ed9011c6b920955e79b5e.reference.000015",
+            "chunkId": "reference.block.52d72127b0f4fab54cb8188c2ead6efa0c8cc19d33508a297fd099d2575a3391",
+            "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+            "role": "context",
+            "characters": 68
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "cfa4ef09b3be47dc4d842989b298379abaf8286ef5eb4ed3786204c748664a6d",
+              "nextOffset": null,
+              "totalCharacters": 68,
+              "sourceId": "reference.source.57c09ec6f12348e8c46179ddef953dfd68d1b11c2f78ef3c933cd86f57221292",
+              "provenanceSha256": "11f631658af016d7303d04d876ddcf33ac65f9d6a3c066fac025d61abe6c7c4a"
+            }
+          ],
+          "wholeTextSha256": "cfa4ef09b3be47dc4d842989b298379abaf8286ef5eb4ed3786204c748664a6d",
+          "sourceMetadataSha256": "c9dc7eb69c946044ec1ee80dceee8177c700e5d552a3356281eda2725f5f0b67"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd",
+        "title": "Приступы ми-гренозной ГБ обычно впервые",
+        "kind": "term",
+        "coverage": "explicit-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 4,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd.reference.000000",
+            "chunkId": "reference.block.a393db7f348b9217ab3f7df386539354e1791bf632653dba1d562c8208741260",
+            "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+            "role": "definition",
+            "characters": 79
+          },
+          {
+            "linkId": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd.reference.000001",
+            "chunkId": "reference.block.7d0afc1f5abf8f3e1ab0de88d78463d824463f14c2f7bedf338cb973edfdccad",
+            "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+            "role": "context",
+            "characters": 37162
+          },
+          {
+            "linkId": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd.reference.000002",
+            "chunkId": "reference.block.9e3625cb2f1737a6fbd62fba9d663c2401fdbbd1abf4e76738cb20c1530cca89",
+            "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+            "role": "context",
+            "characters": 1
+          },
+          {
+            "linkId": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd.reference.000003",
+            "chunkId": "reference.block.692b021ae12f13b2a8b9c5d52236fffab005dd566b99f775229fee228502b6e0",
+            "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+            "role": "annotation",
+            "characters": 139
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd.reference.000000",
+            "chunkId": "reference.block.a393db7f348b9217ab3f7df386539354e1791bf632653dba1d562c8208741260",
+            "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+            "role": "definition",
+            "characters": 79
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "39ff575a1ca03ba1014eb14ef039cc8069e803b9255d6b33886cc5472598a578",
+              "nextOffset": null,
+              "totalCharacters": 79,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "1a7b38f37c2394ee3a588cfb14f2d96e33088402ee1d743873aa57e075855601"
+            }
+          ],
+          "wholeTextSha256": "39ff575a1ca03ba1014eb14ef039cc8069e803b9255d6b33886cc5472598a578",
+          "sourceMetadataSha256": "3ff330c1154e5de0aa857784b64f386a1e61fd21fe969a0a9cf499c229113a93"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd.reference.000001",
+            "chunkId": "reference.block.7d0afc1f5abf8f3e1ab0de88d78463d824463f14c2f7bedf338cb973edfdccad",
+            "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+            "role": "context",
+            "characters": 37162
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "54c5675f201fbc5c1dec9ee9cdbad831b2dfd4eaeefbfcba11ce8163f6623056",
+              "nextOffset": 4096,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            },
+            {
+              "offset": 4096,
+              "textSha256": "5b3028f483cdb9f2a7921a6e5c568d53bd721c3e1e32419ca7abfff6243b44df",
+              "nextOffset": 8192,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            },
+            {
+              "offset": 8192,
+              "textSha256": "c526d4423b38eddc086182c6cdbc5563e43805ed7959fe4404817c9b4f9199cb",
+              "nextOffset": 12288,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            },
+            {
+              "offset": 12288,
+              "textSha256": "cd96430f1b210a3d07d538befd41b5eba9beb2d65243ffc0e195cd4f544dc5eb",
+              "nextOffset": 16384,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            },
+            {
+              "offset": 16384,
+              "textSha256": "144fca29d723fcf3f77814d424a339f74d21575e4600b3bbe9ad7d179077f684",
+              "nextOffset": 20480,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            },
+            {
+              "offset": 20480,
+              "textSha256": "516d8c87800402f9e6c00d27158e633df61304648cd953a39efd2feaeab28fe1",
+              "nextOffset": 24576,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            },
+            {
+              "offset": 24576,
+              "textSha256": "2713c911de5e262d2f8001914f2fb62ebee63089d122bf64f1a4794565512c84",
+              "nextOffset": 28672,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            },
+            {
+              "offset": 28672,
+              "textSha256": "a179b7e9d63612035420f0f22dfffb860e4367b209e7ceb3ec4768bbbeb3a2ee",
+              "nextOffset": 32768,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            },
+            {
+              "offset": 32768,
+              "textSha256": "6c72d22eda7bf0331397b22ae4aedd27999cd471bf1b01bad316252c6a173fb0",
+              "nextOffset": 36864,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            },
+            {
+              "offset": 36864,
+              "textSha256": "099e1612a4d91afb3deeff52ba49f705074df20b67d8085c62afd34032357913",
+              "nextOffset": null,
+              "totalCharacters": 37162,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "fe12c92b6622a6fd6c866d3af7a2e2f7144d8b48e27c978bc9f50d1a7e730734"
+            }
+          ],
+          "wholeTextSha256": "2f8b8caf56b5632ca8ce7ee20c088596e444d052f6c2a7d345f0de96dcc3c797",
+          "sourceMetadataSha256": "3ff330c1154e5de0aa857784b64f386a1e61fd21fe969a0a9cf499c229113a93"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd.reference.000002",
+            "chunkId": "reference.block.9e3625cb2f1737a6fbd62fba9d663c2401fdbbd1abf4e76738cb20c1530cca89",
+            "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+            "role": "context",
+            "characters": 1
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "8db71ed28b0f2f1432561e8d8a0dc3878f2da540c53a2ab82335b6f716da2ef3",
+              "nextOffset": null,
+              "totalCharacters": 1,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "cde9e853dcbf1ce9bb3c9f731bdfc3af8c0b7a5977ad90bd352bba84eae9d332"
+            }
+          ],
+          "wholeTextSha256": "8db71ed28b0f2f1432561e8d8a0dc3878f2da540c53a2ab82335b6f716da2ef3",
+          "sourceMetadataSha256": "3ff330c1154e5de0aa857784b64f386a1e61fd21fe969a0a9cf499c229113a93"
+        },
+        {
+          "block": {
+            "linkId": "journal.reference.rfd.1431.entry.28784d52b8cbb36f3c99aecd.reference.000003",
+            "chunkId": "reference.block.692b021ae12f13b2a8b9c5d52236fffab005dd566b99f775229fee228502b6e0",
+            "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+            "role": "annotation",
+            "characters": 139
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "5ef2f88dd67619ed6649e050a52e0346efef5045212f5a00d30d155a17984653",
+              "nextOffset": null,
+              "totalCharacters": 139,
+              "sourceId": "reference.source.d5af9720bb49b4fe5144e70625f68ca9f757001af986c27d1b34c90956de9c56",
+              "provenanceSha256": "ccc5cca02af82539378fe592eba273d173a3ece938b324633a5efe717f82e573"
+            }
+          ],
+          "wholeTextSha256": "5ef2f88dd67619ed6649e050a52e0346efef5045212f5a00d30d155a17984653",
+          "sourceMetadataSha256": "3ff330c1154e5de0aa857784b64f386a1e61fd21fe969a0a9cf499c229113a93"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "prepared.definition.0db06a6cc3706e05ae31822f",
+        "title": "Индекс массы тела",
+        "kind": "scale",
+        "coverage": "explicit-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "prepared.definition.0db06a6cc3706e05ae31822f.reference.000000",
+            "chunkId": "reference.block.9474438729e2a4b31af67e83ec31b2e530d3bb963f1b0facb33ac7bf7aeadbcb",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 204
+          },
+          {
+            "linkId": "prepared.definition.0db06a6cc3706e05ae31822f.reference.000001",
+            "chunkId": "reference.block.e02d6748a3045adc52fe3c35563709896ee40da3cf73a877a21e6d037f1ee8a8",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 139
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "prepared.definition.0db06a6cc3706e05ae31822f.reference.000000",
+            "chunkId": "reference.block.9474438729e2a4b31af67e83ec31b2e530d3bb963f1b0facb33ac7bf7aeadbcb",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 204
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "e9ced67217b1604f248aeb628dda5920021b710db7cb5a179ecaf75646f8b2f5",
+              "nextOffset": null,
+              "totalCharacters": 204,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "50acce29836eede02e0a62f19bfb7f2f2435c84314bb1d48ddb6d0ff2b55c213"
+            }
+          ],
+          "wholeTextSha256": "e9ced67217b1604f248aeb628dda5920021b710db7cb5a179ecaf75646f8b2f5",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "prepared.definition.0db06a6cc3706e05ae31822f.reference.000001",
+            "chunkId": "reference.block.e02d6748a3045adc52fe3c35563709896ee40da3cf73a877a21e6d037f1ee8a8",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 139
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "9146d5e5541ededdb1d88b4fbc53e26fccb90560cd629e237d5d9c09a6cae914",
+              "nextOffset": null,
+              "totalCharacters": 139,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "9b8e644412b9bd54d58a369bada44e9722a03c5435ecf97704e318580cbfdbd0"
+            }
+          ],
+          "wholeTextSha256": "9146d5e5541ededdb1d88b4fbc53e26fccb90560cd629e237d5d9c09a6cae914",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "prepared.definition.2218df886745213e100de46e",
+        "title": "Критерии Dawes-Redman (Доуза-Редмана)",
+        "kind": "criterion_set",
+        "coverage": "explicit-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "prepared.definition.2218df886745213e100de46e.reference.000000",
+            "chunkId": "reference.block.137822c28993e8d6bafda6b8c9b7df3d5cd9391a8d34558373a7c39ecd06cc7b",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 216
+          },
+          {
+            "linkId": "prepared.definition.2218df886745213e100de46e.reference.000001",
+            "chunkId": "reference.block.e02d6748a3045adc52fe3c35563709896ee40da3cf73a877a21e6d037f1ee8a8",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 139
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "prepared.definition.2218df886745213e100de46e.reference.000000",
+            "chunkId": "reference.block.137822c28993e8d6bafda6b8c9b7df3d5cd9391a8d34558373a7c39ecd06cc7b",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 216
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "66328c220c865dd6405ec030e0829dd331136e5484a85cb513f2bada5f3ecce5",
+              "nextOffset": null,
+              "totalCharacters": 216,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "fc7708238185b266deb600daaf03f27400f9f0cfce15149226868850497048fe"
+            }
+          ],
+          "wholeTextSha256": "66328c220c865dd6405ec030e0829dd331136e5484a85cb513f2bada5f3ecce5",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "prepared.definition.2218df886745213e100de46e.reference.000001",
+            "chunkId": "reference.block.e02d6748a3045adc52fe3c35563709896ee40da3cf73a877a21e6d037f1ee8a8",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 139
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "9146d5e5541ededdb1d88b4fbc53e26fccb90560cd629e237d5d9c09a6cae914",
+              "nextOffset": null,
+              "totalCharacters": 139,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "9b8e644412b9bd54d58a369bada44e9722a03c5435ecf97704e318580cbfdbd0"
+            }
+          ],
+          "wholeTextSha256": "9146d5e5541ededdb1d88b4fbc53e26fccb90560cd629e237d5d9c09a6cae914",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "prepared.definition.5cd0599b3237a91fb3aa9679",
+        "title": "Миопия высокой степени",
+        "kind": "classification",
+        "coverage": "explicit-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "prepared.definition.5cd0599b3237a91fb3aa9679.reference.000000",
+            "chunkId": "reference.block.2372e977d658f0554791a788a6f2d2328ad00d32873aa11123db899c0de9b8c9",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 532
+          },
+          {
+            "linkId": "prepared.definition.5cd0599b3237a91fb3aa9679.reference.000001",
+            "chunkId": "reference.block.0d83628e78be11cd79c16a79f21bd9b79f1bf58b5d318afc720260dee697eb61",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 159
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "prepared.definition.5cd0599b3237a91fb3aa9679.reference.000000",
+            "chunkId": "reference.block.2372e977d658f0554791a788a6f2d2328ad00d32873aa11123db899c0de9b8c9",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 532
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "fa1524d387bcf3d5f2833d995621c8d47e947b61e2d92d387c50494790fd1b89",
+              "nextOffset": null,
+              "totalCharacters": 532,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "eec4e3d23d5c4c4e276f46218e982aaf4bd0cb2f5b191142d441e4f68dfb6a39"
+            }
+          ],
+          "wholeTextSha256": "fa1524d387bcf3d5f2833d995621c8d47e947b61e2d92d387c50494790fd1b89",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "prepared.definition.5cd0599b3237a91fb3aa9679.reference.000001",
+            "chunkId": "reference.block.0d83628e78be11cd79c16a79f21bd9b79f1bf58b5d318afc720260dee697eb61",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 159
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "764f9ee28e47c5c6dd54da04689164494099504cb8948b07047fe79fcfecc69b",
+              "nextOffset": null,
+              "totalCharacters": 159,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "9b8e644412b9bd54d58a369bada44e9722a03c5435ecf97704e318580cbfdbd0"
+            }
+          ],
+          "wholeTextSha256": "764f9ee28e47c5c6dd54da04689164494099504cb8948b07047fe79fcfecc69b",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "prepared.definition.a266e135d02cd3f2a0154bae",
+        "title": "Закон Хая",
+        "kind": "law",
+        "coverage": "explicit-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "prepared.definition.a266e135d02cd3f2a0154bae.reference.000000",
+            "chunkId": "reference.block.2723fbb3c420fa02b4fadc312ab2fc7b9d92f6fe8ebb35526d90ece5759987c7",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 303
+          },
+          {
+            "linkId": "prepared.definition.a266e135d02cd3f2a0154bae.reference.000001",
+            "chunkId": "reference.block.e02d6748a3045adc52fe3c35563709896ee40da3cf73a877a21e6d037f1ee8a8",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 139
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "prepared.definition.a266e135d02cd3f2a0154bae.reference.000000",
+            "chunkId": "reference.block.2723fbb3c420fa02b4fadc312ab2fc7b9d92f6fe8ebb35526d90ece5759987c7",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "definition",
+            "characters": 303
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "fdac5955d65aab4a734246eb0587ada670de6ae6db2993f26cd9f1ce4ebf3950",
+              "nextOffset": null,
+              "totalCharacters": 303,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "4c3b90f0c3b94166912e9fa423f8154c3df486c5df619e0281cec9e0d7745cc1"
+            }
+          ],
+          "wholeTextSha256": "fdac5955d65aab4a734246eb0587ada670de6ae6db2993f26cd9f1ce4ebf3950",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        },
+        {
+          "block": {
+            "linkId": "prepared.definition.a266e135d02cd3f2a0154bae.reference.000001",
+            "chunkId": "reference.block.e02d6748a3045adc52fe3c35563709896ee40da3cf73a877a21e6d037f1ee8a8",
+            "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+            "role": "annotation",
+            "characters": 139
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "9146d5e5541ededdb1d88b4fbc53e26fccb90560cd629e237d5d9c09a6cae914",
+              "nextOffset": null,
+              "totalCharacters": 139,
+              "sourceId": "reference.source.02a8938caf3070c687bf1576fc066043441e8f5eddf4872400638cf2b34066ca",
+              "provenanceSha256": "9b8e644412b9bd54d58a369bada44e9722a03c5435ecf97704e318580cbfdbd0"
+            }
+          ],
+          "wholeTextSha256": "9146d5e5541ededdb1d88b4fbc53e26fccb90560cd629e237d5d9c09a6cae914",
+          "sourceMetadataSha256": "2c5a7b1aaeb8baddae7c146cd8c13e946ea6b0e6cb031fe66a3ec1460ad6b8ae"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "ruwiki.definition.1000324",
+        "title": "Врождённые пороки сердца",
+        "kind": "term",
+        "coverage": "needs-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 1,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "ruwiki.definition.1000324.reference.000000",
+            "chunkId": "reference.block.eba269222cadcb1c5ad51dbadd5f3e4dc6296e51e006bd375858b417f6f2e64e",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 415
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "ruwiki.definition.1000324.reference.000000",
+            "chunkId": "reference.block.eba269222cadcb1c5ad51dbadd5f3e4dc6296e51e006bd375858b417f6f2e64e",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 415
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "accae29c255919738243d3da1344d9313437a47f6f18705e5d0347cbd7196ad1",
+              "nextOffset": null,
+              "totalCharacters": 415,
+              "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+              "provenanceSha256": "d1e608e9b000da4fd2df736fba0b6d41ae08e4cac4163d37426c6999b8d6e67f"
+            }
+          ],
+          "wholeTextSha256": "accae29c255919738243d3da1344d9313437a47f6f18705e5d0347cbd7196ad1",
+          "sourceMetadataSha256": "3adce960f19fa597d4686b142f6e61794b432b84087ada2801250ff4407b1dcb"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "ruwiki.definition.10003964",
+        "title": "Гериатрическая шкала депрессии",
+        "kind": "scale",
+        "coverage": "needs-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 1,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "ruwiki.definition.10003964.reference.000000",
+            "chunkId": "reference.block.ae0c901bcb02389ff9675aebb6a578b36999f0557e643c160244d5090826f535",
+            "sourceId": "reference.source.f197b696ec28ca98c42e15d2cc65b1b95fb116fecd96a1f3a14b0bd02fe921c9",
+            "role": "annotation",
+            "characters": 388
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "ruwiki.definition.10003964.reference.000000",
+            "chunkId": "reference.block.ae0c901bcb02389ff9675aebb6a578b36999f0557e643c160244d5090826f535",
+            "sourceId": "reference.source.f197b696ec28ca98c42e15d2cc65b1b95fb116fecd96a1f3a14b0bd02fe921c9",
+            "role": "annotation",
+            "characters": 388
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "0a12a1a9b902c019ed44943db26aff5d5253278613a6fad5c4c82c4342466cb2",
+              "nextOffset": null,
+              "totalCharacters": 388,
+              "sourceId": "reference.source.f197b696ec28ca98c42e15d2cc65b1b95fb116fecd96a1f3a14b0bd02fe921c9",
+              "provenanceSha256": "4bfaba71a860bc97848325afb6450fd11e5e6cfa3fc21218c4c2fd42ad3423a0"
+            }
+          ],
+          "wholeTextSha256": "0a12a1a9b902c019ed44943db26aff5d5253278613a6fad5c4c82c4342466cb2",
+          "sourceMetadataSha256": "93822775f1945e0d6667743c507a29086902c9cc0f11616f95e4a00514111f1a"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "ruwiki.definition.1008081",
+        "title": "Симптом воздушной подушки",
+        "kind": "symptom",
+        "coverage": "needs-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 1,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "ruwiki.definition.1008081.reference.000000",
+            "chunkId": "reference.block.79748b7a0c7cf79ce8d832b68179d402e90d063c50ba789916d6c7089b992084",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 421
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "ruwiki.definition.1008081.reference.000000",
+            "chunkId": "reference.block.79748b7a0c7cf79ce8d832b68179d402e90d063c50ba789916d6c7089b992084",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 421
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "cfc499485c651cccf15d54eba7987e917762d815229283753694726a065bbac2",
+              "nextOffset": null,
+              "totalCharacters": 421,
+              "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+              "provenanceSha256": "5ec88c8b571ac4f8a400a104ea3fdb3c57fca652143137a9d5a8760ec6564198"
+            }
+          ],
+          "wholeTextSha256": "cfc499485c651cccf15d54eba7987e917762d815229283753694726a065bbac2",
+          "sourceMetadataSha256": "3adce960f19fa597d4686b142f6e61794b432b84087ada2801250ff4407b1dcb"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "ruwiki.definition.10102321",
+        "title": "Синдром Мирес — Ирлен",
+        "kind": "syndrome",
+        "coverage": "needs-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 1,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "ruwiki.definition.10102321.reference.000000",
+            "chunkId": "reference.block.05bce8a46ec18586eab00276f789f92689b26410e097a5c825f1de23388044bf",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 396
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "ruwiki.definition.10102321.reference.000000",
+            "chunkId": "reference.block.05bce8a46ec18586eab00276f789f92689b26410e097a5c825f1de23388044bf",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 396
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "fdf975711c2b010b9baa6cc55bb85c090dc7bc1bdf01b160499318c7a548b272",
+              "nextOffset": null,
+              "totalCharacters": 396,
+              "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+              "provenanceSha256": "729ba31b5e5e23a65d1415374e329dc5ab7b972e9c6ab228c3f3ef7703f1f7db"
+            }
+          ],
+          "wholeTextSha256": "fdf975711c2b010b9baa6cc55bb85c090dc7bc1bdf01b160499318c7a548b272",
+          "sourceMetadataSha256": "3adce960f19fa597d4686b142f6e61794b432b84087ada2801250ff4407b1dcb"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "ruwiki.definition.11108506",
+        "title": "Тест внимания d2",
+        "kind": "tool",
+        "coverage": "needs-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 1,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "ruwiki.definition.11108506.reference.000000",
+            "chunkId": "reference.block.91ddf44cfee355036f85798f4b96bbfffcf683a5e9978e9351f50620a264d873",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 358
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "ruwiki.definition.11108506.reference.000000",
+            "chunkId": "reference.block.91ddf44cfee355036f85798f4b96bbfffcf683a5e9978e9351f50620a264d873",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 358
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "61158b44bfcac60b195de0086b297e45a844a8ba4dad2c10d3df192630de8116",
+              "nextOffset": null,
+              "totalCharacters": 358,
+              "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+              "provenanceSha256": "9c7a5343b11dee8ca8f755f8bbbe560919f50f0342985284b35e2bea30314a06"
+            }
+          ],
+          "wholeTextSha256": "61158b44bfcac60b195de0086b297e45a844a8ba4dad2c10d3df192630de8116",
+          "sourceMetadataSha256": "3adce960f19fa597d4686b142f6e61794b432b84087ada2801250ff4407b1dcb"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "ruwiki.definition.1377441",
+        "title": "Классификация олигофрений",
+        "kind": "classification",
+        "coverage": "needs-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 1,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "ruwiki.definition.1377441.reference.000000",
+            "chunkId": "reference.block.409de74cb0cd0e9640cb0106c7fb63d396d5c888d2d48e863e74753c7bf69acb",
+            "sourceId": "reference.source.f197b696ec28ca98c42e15d2cc65b1b95fb116fecd96a1f3a14b0bd02fe921c9",
+            "role": "annotation",
+            "characters": 362
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "ruwiki.definition.1377441.reference.000000",
+            "chunkId": "reference.block.409de74cb0cd0e9640cb0106c7fb63d396d5c888d2d48e863e74753c7bf69acb",
+            "sourceId": "reference.source.f197b696ec28ca98c42e15d2cc65b1b95fb116fecd96a1f3a14b0bd02fe921c9",
+            "role": "annotation",
+            "characters": 362
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "b08da97da09e9d96c927e072ac3a49e92ab97ae70460baa305e1be1dce6ee287",
+              "nextOffset": null,
+              "totalCharacters": 362,
+              "sourceId": "reference.source.f197b696ec28ca98c42e15d2cc65b1b95fb116fecd96a1f3a14b0bd02fe921c9",
+              "provenanceSha256": "87d5527b01af54d24a271b73977afce7007c11de4185b9ec70b00e3d66b836c6"
+            }
+          ],
+          "wholeTextSha256": "b08da97da09e9d96c927e072ac3a49e92ab97ae70460baa305e1be1dce6ee287",
+          "sourceMetadataSha256": "93822775f1945e0d6667743c507a29086902c9cc0f11616f95e4a00514111f1a"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "ruwiki.definition.1422979",
+        "title": "Закон квадрата — куба",
+        "kind": "law",
+        "coverage": "needs-definition",
+        "textKind": "source-excerpt",
+        "blockCount": 1,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "ruwiki.definition.1422979.reference.000000",
+            "chunkId": "reference.block.a623cb47aa37b1a6288b704762b963414af08acc9048093943ff50048e727d30",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 395
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "ruwiki.definition.1422979.reference.000000",
+            "chunkId": "reference.block.a623cb47aa37b1a6288b704762b963414af08acc9048093943ff50048e727d30",
+            "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+            "role": "annotation",
+            "characters": 395
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "05ff7ad07f97541059a49e18b9899c562b8bb183cd09b202cb4452217354beb7",
+              "nextOffset": null,
+              "totalCharacters": 395,
+              "sourceId": "reference.source.3f69cf82d0398784b6d68dd7a680d5d5e52b94ef873945cafdf4b284cbe8a2ca",
+              "provenanceSha256": "dcb05d178905b8fddb51dd1d4f73434979737b1d7b9db088741add2a75562a03"
+            }
+          ],
+          "wholeTextSha256": "05ff7ad07f97541059a49e18b9899c562b8bb183cd09b202cb4452217354beb7",
+          "sourceMetadataSha256": "3adce960f19fa597d4686b142f6e61794b432b84087ada2801250ff4407b1dcb"
+        }
+      ]
+    },
+    {
+      "card": {
+        "id": "ruwikt.000451c8610fecff03c2a03b",
+        "title": "кокцидиоид",
+        "kind": "term",
+        "coverage": "gloss",
+        "textKind": "source-gloss",
+        "blockCount": 2,
+        "reviewStatus": "requires-review",
+        "identityStatus": "source-local-proposed",
+        "match": "name"
+      },
+      "first": {
+        "blocks": [
+          {
+            "linkId": "ruwikt.000451c8610fecff03c2a03b.reference.000000",
+            "chunkId": "reference.block.cd366f16d4a90729415401e6657cf90199243daa1c90a6061594deea96dd049d",
+            "sourceId": "reference.source.5982b0ef0d928b6342b486842ad638a5bbe4feb4aee109e03c7c22caf1a52a44",
+            "role": "definition",
+            "characters": 60
+          },
+          {
+            "linkId": "ruwikt.000451c8610fecff03c2a03b.reference.000001",
+            "chunkId": "reference.block.463c7b37e5ea1ac63e60775bbde46aaa861bc2768eb4a983831b9d49bae6ebb3",
+            "sourceId": "reference.source.5982b0ef0d928b6342b486842ad638a5bbe4feb4aee109e03c7c22caf1a52a44",
+            "role": "annotation",
+            "characters": 41
+          }
+        ],
+        "next": null
+      },
+      "second": null,
+      "blocks": [
+        {
+          "block": {
+            "linkId": "ruwikt.000451c8610fecff03c2a03b.reference.000000",
+            "chunkId": "reference.block.cd366f16d4a90729415401e6657cf90199243daa1c90a6061594deea96dd049d",
+            "sourceId": "reference.source.5982b0ef0d928b6342b486842ad638a5bbe4feb4aee109e03c7c22caf1a52a44",
+            "role": "definition",
+            "characters": 60
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "8f328539d8850b65b23014093a91a20271b98630308edc74d7485821de028d37",
+              "nextOffset": null,
+              "totalCharacters": 60,
+              "sourceId": "reference.source.5982b0ef0d928b6342b486842ad638a5bbe4feb4aee109e03c7c22caf1a52a44",
+              "provenanceSha256": "ade2994c504f8f4acfd3fd39cf10d395286c35e24c2a29286769622589196ddd"
+            }
+          ],
+          "wholeTextSha256": "8f328539d8850b65b23014093a91a20271b98630308edc74d7485821de028d37",
+          "sourceMetadataSha256": "a64d1c325d8f1422f86cdeda42f1ca2bf7a0b5a53645fa64598996bf01249365"
+        },
+        {
+          "block": {
+            "linkId": "ruwikt.000451c8610fecff03c2a03b.reference.000001",
+            "chunkId": "reference.block.463c7b37e5ea1ac63e60775bbde46aaa861bc2768eb4a983831b9d49bae6ebb3",
+            "sourceId": "reference.source.5982b0ef0d928b6342b486842ad638a5bbe4feb4aee109e03c7c22caf1a52a44",
+            "role": "annotation",
+            "characters": 41
+          },
+          "pages": [
+            {
+              "offset": 0,
+              "textSha256": "a86ef7beebc988f661c2068542beb97d5904095a0c98c43b7b0756743df83174",
+              "nextOffset": null,
+              "totalCharacters": 41,
+              "sourceId": "reference.source.5982b0ef0d928b6342b486842ad638a5bbe4feb4aee109e03c7c22caf1a52a44",
+              "provenanceSha256": "182ff1817749ddbbf52d75da171d3c0da085fd4939e4054b4ac8e7d27ac7bf98"
+            }
+          ],
+          "wholeTextSha256": "a86ef7beebc988f661c2068542beb97d5904095a0c98c43b7b0756743df83174",
+          "sourceMetadataSha256": "a64d1c325d8f1422f86cdeda42f1ca2bf7a0b5a53645fa64598996bf01249365"
+        }
+      ]
+    }
+  ]
+}

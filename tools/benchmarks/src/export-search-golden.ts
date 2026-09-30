@@ -16,7 +16,8 @@
  *   - final groups and source passages (targets, scores, chunk/version/section identities, anchors,
  *     query-aligned excerpts and highlight offsets).
  *
- * Run: bun tools/benchmarks/src/export-search-golden.ts [--corpus=core|all] [--core=path/to/core.db]
+ * Run: bun tools/benchmarks/src/export-search-golden.ts [--corpus=core|all] [--analysis-mode=lookup|clinical]
+ *      [--core=path/to/core.db]
  *      [--output=playwright/search-golden.json]
  * `--corpus=core` (the default) mounts core.db alone — the native/ spike and the emulator
  * measurements only ever open core.db, so parity must be checked against the same data, not the
@@ -24,11 +25,14 @@
  * medications, ambulatory, regulatory, reference), same as `run-real-corpus.ts --corpus=all` and
  * the real app; writes to a separate `search-golden.all.json` so it never silently overwrites the
  * core-only file `native/shared` actually consumes.
+ * `--analysis-mode=clinical` captures the same 85 public regression cases and parsed facts in
+ * clinical-golden.json. It records the lexical clinical pipeline; hybrid/semantic qualification
+ * remains a separate gate and the qualified lookup fixture is never overwritten.
  */
 
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createReadStream, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ScopedMedicalCore } from '@localmed/app/features/search/ScopedMedicalCore';
 import { openRealCorpus, REPOSITORY_ROOT } from '@localmed/benchmarks/real-corpus';
@@ -132,12 +136,41 @@ function buildQuerySet(): QuerySource[] {
   return deduped.slice(0, MAX_QUERIES);
 }
 
+/** Same 85 public cases as run-real-corpus; lexical output isolates the clinical port's stages. */
+function buildClinicalQuerySet(): QuerySource[] {
+  const demo: {
+    queries: readonly { id: string; query: string; status: string }[];
+    cases: readonly { id: string; query: string }[];
+  } = JSON.parse(
+    readFileSync(
+      resolve(REPOSITORY_ROOT, 'tools/benchmarks/real-corpus-demo-queries.json'),
+      'utf8',
+    ),
+  );
+  return [
+    ...readQueryFile('pilot-rf-queries.json', 'pilot-rf'),
+    ...readQueryFile('pilot-rf-drug-queries.json', 'pilot-rf-drug'),
+    ...readQueryFile('doctor-workflow-queries.json', 'doctor-workflow'),
+    ...demo.queries
+      .filter((item) => item.status !== 'excluded')
+      .map((item) => ({
+        sourceId: `real-corpus-demo.${item.id}`,
+        query: item.query,
+      })),
+    ...demo.cases.map((item) => ({ sourceId: `clinical-case.${item.id}`, query: item.query })),
+  ];
+}
+
 // ---------------------------------------------------------------------------------------------
 
 async function main() {
   const args = process.argv.slice(2);
   for (const arg of args) {
-    if (!/^(?:--corpus=(?:core|all)|--core=.+|--output=.+)$/u.test(arg)) {
+    if (
+      !/^(?:--corpus=(?:core|all)|--analysis-mode=(?:lookup|clinical)|--core=.+|--output=.+)$/u.test(
+        arg,
+      )
+    ) {
       throw new Error(`Unknown argument ${arg}`);
     }
   }
@@ -147,6 +180,9 @@ async function main() {
   const corpusScope = (args.find((arg) => arg.startsWith('--corpus='))?.slice('--corpus='.length) ??
     'core') as 'core' | 'all';
   const corePathOverride = args.find((arg) => arg.startsWith('--core='))?.slice('--core='.length);
+  const analysisMode = (args
+    .find((arg) => arg.startsWith('--analysis-mode='))
+    ?.slice('--analysis-mode='.length) ?? 'lookup') as 'lookup' | 'clinical';
   const { core, store, corpus, target } = await openRealCorpus({
     corePath: corePathOverride,
     companions: corpusScope === 'all',
@@ -157,16 +193,18 @@ async function main() {
     REPOSITORY_ROOT,
     corePathOverride ?? 'apps/app/public/content/core.db',
   );
-  const coreDbSha256 = createHash('sha256').update(readFileSync(coreDbPath)).digest('hex');
+  const coreHash = createHash('sha256');
+  for await (const bytes of createReadStream(coreDbPath)) coreHash.update(bytes);
+  const coreDbSha256 = coreHash.digest('hex');
   const commit = execSync('git rev-parse HEAD', { cwd: REPOSITORY_ROOT }).toString().trim();
 
-  const queries = buildQuerySet();
+  const queries = analysisMode === 'clinical' ? buildClinicalQuerySet() : buildQuerySet();
   const rows = [];
   for (const { sourceId, query } of queries) {
     const response = await scoped.search({
       query,
       mode: 'lexical',
-      analysisMode: 'lookup',
+      analysisMode,
       filters: {},
       limit: GROUP_LIMIT,
       includeSuggestions: false,
@@ -205,6 +243,7 @@ async function main() {
       sourceId,
       query,
       normalizedQuery: value.normalizedQuery,
+      ...(analysisMode === 'clinical' ? { analysis: value.analysis } : {}),
       aliasMatches: value.diagnostics.aliasMatches,
       terms: value.diagnostics.terms,
       branches: branchHits,
@@ -235,7 +274,7 @@ async function main() {
     coreDbSha256,
     coreDbPath: corePathOverride ?? 'apps/app/public/content/core.db',
     corpus,
-    analysisMode: 'lookup' as const,
+    analysisMode,
     groupLimit: GROUP_LIMIT,
     hitsPerBranch: HITS_PER_BRANCH,
     queryCount: rows.length,
@@ -246,7 +285,8 @@ async function main() {
   // actually open) vs. search-golden.all.json (corpus=all, companion packs included) — two
   // filenames so the multi-pack variant, if ever generated, can never silently clobber the
   // core-only one the Kotlin port is checked against.
-  const fileName = corpusScope === 'all' ? 'search-golden.all.json' : 'search-golden.json';
+  const prefix = analysisMode === 'clinical' ? 'clinical-golden' : 'search-golden';
+  const fileName = `${prefix}${corpusScope === 'all' ? '.all' : ''}.json`;
   const outputOverride = args.find((arg) => arg.startsWith('--output='))?.slice('--output='.length);
   const outPath = resolve(
     REPOSITORY_ROOT,
