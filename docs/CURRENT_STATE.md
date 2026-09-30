@@ -107,7 +107,17 @@ Detailed history, moved verbatim on 2026-09-24:
 - The searchable 782-module inventory preserves filters and positions through Back and offline
   restart; the Android emulator exercises actual keyboard input, the immutable regulatory install,
   original reading and down/up chrome with application-only network denial.
-- Next: installed-reference search, then remaining search-mode and application-feature parity.
+- Installed-reference search resolves an exact catalog edition, installs through the existing
+  verified owner and preserves its query/results position. All 23 production reference searches
+  match complete ordered cards, including limits and bounded description/negation behavior.
+  The combined Desktop suite passes 86 tests without skips; Android lint and Android/Desktop/Wasm
+  builds pass. Actual Desktop reading reaches all 17 blocks and seven Unicode pages, restores
+  page seven offline and returns to the same reference query. Android verifies visible original
+  text hashes, all three ambiguous senses, missing-definition status and a second block page.
+  Fixed grey-background action contrast, clipped long-name actions, final-card navigation and
+  reader focus loss while switching blocks/pages. Updated iOS sources and Swift host compile/link;
+  the runtime limitation above remains.
+- Next: clinical search-mode and application-feature parity.
   The current reader preserves original
   markup verbatim; rich tables/media/PDF, clinical scopes, assessments and personal features are
   still subsequent work. Production Android identity and existing personal data must be preserved
@@ -130,16 +140,16 @@ Detailed history, moved verbatim on 2026-09-24:
   `research/definition-gap-priority-2026-09-27.json`; a 454-pair same-title review queue has no
   auto-merge. Separately, `catalog_module_builder._map_reference_aliases` no longer collapses a
   polysemous MKB-code alias (e.g. ОНМК, ХСН) to one arbitrary document — 9 218 of 12 432 raw
-  diagnosis-category aliases were affected; fixed and tested, `core.db` not yet rebuilt (see
+  diagnosis-category aliases were affected; fixed and tested before the qualified 0.6.45 rebuild (see
   `research/diagnosis-alias-ambiguity-2026-09-27.md` for scope and the missing-merge-step blocker).
   Details: [research/definition-reference-2026-09-29.md](research/definition-reference-2026-09-29.md).
   The missing-merge-step blocker is now resolved and scripted (`bun run content:core:build`,
   `scripts/build-core.mjs`): three independent pointer tracks (reference/clinical/medication)
-  reproduce the released core.db's exact document counts (15,904/744; medication's ledger has
-  grown past the released 3,324). `core.db` not yet rebuilt/published; see
+  reproduced the earlier core.db's exact document counts (15,904/744; medication's ledger had
+  grown past its 3,324). The qualified rebuild is now published as core-0.6.45 above; see
   `research/core-build-reconstruction-2026-09-27.md` (pipeline, profiling, gated pilot removal).
 
-## Krasota i Meditsina disease module — built 2026-09-28, not yet released
+## Krasota i Meditsina disease module — built and published 2026.9.28
 
 - User decision (2026-09-28, see `REFERENCE_SOURCE_POLICY.md`): the krasotaimedicina.ru snapshot
   is distributed as an experimental module despite unresolved source rights; documents keep
@@ -162,7 +172,7 @@ Detailed history, moved verbatim on 2026-09-24:
   module, so no split); installation holds both in memory before the OPFS copy, which is
   unqualified on Android. Article images still point to the source site.
 
-## RLS MKB-10 modules — built 2026-09-28, not yet released
+## RLS MKB-10 modules — initial published edition 2026.9.28
 
 - User decision (2026-09-28, see `REFERENCE_SOURCE_POLICY.md`): the 2026-08-14 RLS MKB snapshot is
   distributed as two experimental modules; documents keep `rightsStatus: unknown`, their `rights`
@@ -198,7 +208,8 @@ Detailed history, moved verbatim on 2026-09-24:
   correct@5. ICD codes reach only 46% because the released pointers do not index sub-codes and the
   legacy fallback assumes chapter I; the candidate rebuild reaches 97.5–99.5%. All 15,904 MKB and
   krasotaimedicina pointers were dead ends at measurement time; the 6,068 krasotaimedicina ones
-  resolve from 0.6.44 (module c6b63b6b, membership fallback 044ef7a7), the 9,835 MKB ones still do not. Terms reach 16%,
+  resolve from 0.6.44 (module c6b63b6b, membership fallback 044ef7a7). The MKB module and its
+  qualified 2026.9.30 packaging links are now published above. The original audit found terms at 16%,
   normative acts 0% (90% with the bundled `regulatory.db`), and tools 100% through the client-side
   catalog. Findings and the size/risk proposal:
   [research/core-coverage-2026-09-28.md](research/core-coverage-2026-09-28.md).

@@ -271,6 +271,26 @@ class NativeMedicalCore private constructor(
     suspend fun lookupIdentities(query: String): List<NativeCoreIdentityHit> = withContext(Dispatchers.Default) {
         requireOpen();require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid identity query size" };databaseGate.withLock { requireOpen();database.lookupIdentities(query) }
     }
+    suspend fun resolveDefinitionEdition(target: NativeDefinitionEditionTarget): NativeDefinitionEditionResolution = withContext(Dispatchers.Default) {
+        validateDefinitionEdition(target);requireOpen()
+        val module=catalog.exactDefinitionEdition(target) ?: return@withContext NativeDefinitionEditionResolution.Unavailable("Точная редакция справочника отсутствует в каталоге")
+        val artifact=try { module.index() } catch(cause: IllegalArgumentException) { return@withContext NativeDefinitionEditionResolution.Unavailable(cause.message ?: "Справочник несовместим") } catch(cause: IllegalStateException) { return@withContext NativeDefinitionEditionResolution.Unavailable(cause.message ?: "Справочник недоступен") }
+        val db=mount(module) ?: return@withContext NativeDefinitionEditionResolution.Download(target,module.title,artifact.sizeBytes)
+        databaseGate.withLock { requireOpen();NativeDefinitionEditionResolution.Installed(target,db.definitionStatus() ?: error("Missing reference capability")) }
+    }
+    suspend fun installDefinitionEdition(target: NativeDefinitionEditionTarget): NativeDefinitionEditionResolution {
+        validateDefinitionEdition(target);requireOpen()
+        val module=catalog.exactDefinitionEdition(target) ?: error("Exact reference edition is unavailable")
+        return installModule(target,module,{}, { resolveDefinitionEdition(target) })
+    }
+    suspend fun searchDefinitions(target: NativeDefinitionEditionTarget,query: String,requested: Int=20): List<NativeDefinitionCard> = withContext(Dispatchers.Default) {
+        validateDefinitionEdition(target);requireOpen()
+        if(requested<1 || query.length>NATIVE_DEFINITION_QUERY_MAX_LENGTH || query.contains('\u0000')) return@withContext emptyList()
+        val module=catalog.exactDefinitionEdition(target) ?: error("Exact reference edition is unavailable")
+        val db=mount(module) ?: error("Reference edition is not installed")
+        databaseGate.withLock { requireOpen();db.definitionSearch(target.editionId,query,requested) }
+    }
+
     suspend fun resolveDefinition(target: NativeDefinitionTarget): NativeDefinitionResolution = withContext(Dispatchers.Default) {
         validateDefinitionTarget(target);requireOpen()
         val module=catalog.exactDefinition(target) ?: return@withContext NativeDefinitionResolution.Unavailable("Точная редакция справочника отсутствует в каталоге")

@@ -46,6 +46,7 @@ data class NativeModuleOffer(
     val downloadBytes: Long?,
     val unsupportedReason: String?,
     val definitionEntryCount: Int? = null,
+    val definitionEditionTarget: NativeDefinitionEditionTarget? = null,
 )
 
 data class NativeCatalogDocument(

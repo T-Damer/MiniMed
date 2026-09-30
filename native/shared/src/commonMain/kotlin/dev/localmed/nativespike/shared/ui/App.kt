@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import dev.localmed.nativespike.shared.core.NativeCoreIdentityHit
 import dev.localmed.nativespike.shared.core.NativeCoreIdentityTarget
 import dev.localmed.nativespike.shared.core.NativeDefinitionResolution
+import dev.localmed.nativespike.shared.core.NativeDefinitionTarget
 import dev.localmed.nativespike.shared.core.NativeCatalogSnapshot
 import dev.localmed.nativespike.shared.core.NativeDocumentResolution
 import dev.localmed.nativespike.shared.core.NativeDocumentTarget
@@ -101,29 +102,33 @@ fun NativeSearchSpikeApp(
         }
     }
 
+    val openDefinition = { target: NativeDefinitionTarget ->
+        if (!opening) {
+            opening = true
+            openingError = null
+            val origin = core.navigation.value.catalog
+            val originQuery = core.navigation.value.search.query
+            scope.launch {
+                try {
+                    val source = core.resolveDefinition(target)
+                    if (sameOrigin(origin, originQuery)) {
+                        if (source is NativeDefinitionResolution.Unavailable) openingError = source.reason
+                        else core.openDefinition(target)
+                    }
+                } catch (cause: CancellationException) { throw cause }
+                catch (cause: Exception) { if (sameOrigin(origin, originQuery)) openingError = "Не удалось открыть запись источника. Повторите попытку." }
+                finally { opening = false }
+            }
+        }
+        Unit
+    }
     val openIdentity = { hit: NativeCoreIdentityHit ->
         when (val target = hit.target) {
             is NativeCoreIdentityTarget.Document -> {
                 val exact = target.documentTarget()
                 openSource(exact.documentId, exact.anchor, exact)
             }
-            is NativeCoreIdentityTarget.Definition -> if (!opening) {
-                opening = true
-                openingError = null
-                val origin = core.navigation.value.catalog
-                val originQuery = core.navigation.value.search.query
-                scope.launch {
-                    try {
-                        val source = core.resolveDefinition(target)
-                        if (sameOrigin(origin, originQuery)) {
-                            if (source is NativeDefinitionResolution.Unavailable) openingError = source.reason
-                            else core.openDefinition(target)
-                        }
-                    } catch (cause: CancellationException) { throw cause }
-                    catch (cause: Exception) { if (sameOrigin(origin, originQuery)) openingError = "Не удалось открыть запись источника. Повторите попытку." }
-                    finally { opening = false }
-                }
-            }
+            is NativeCoreIdentityTarget.Definition -> openDefinition(target)
         }
         Unit
     }
@@ -139,11 +144,11 @@ fun NativeSearchSpikeApp(
                         onOpenDocument = { id, _, anchor -> openSource(id, anchor, null) },
                         externalQuery = externalQuery, onOutcome = onOutcome)
                 } else {
-                    NativeSourcesScreen(core, catalog, errors, opening, routeError, onBack = back,
+                    NativeSourcesScreen(core, catalog, errors, scope, opening, routeError, onBack = back,
                         onShowSearch = { navigate { core.showSearch() } },
                         onOpenModule = { offer -> navigate { core.openCatalog(offer.id, offer.version) } },
                         onOpenDocument = { document -> openSource(document.target.documentId, document.target.anchor, document.target) },
-                        registerNavigationFlush = session?.let { it::registerNavigationFlush })
+                        onOpenDefinition = openDefinition, registerNavigationFlush = session?.let { it::registerNavigationFlush })
                 }
             } else {
                 NativeReaderPane(core, reader, errors, scope, onBack = back,

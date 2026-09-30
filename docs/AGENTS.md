@@ -101,8 +101,10 @@ roadmap ideas.
 
 - `1.0`: complete/qualified corpus, reliable content lifecycle, measured Russian clinical scenarios,
   and a safe local personal overlay.
-- `1.1` idea: portable Rust `MedicalCore` plus a stable JSON CLI. Do not begin a broad runtime rewrite
-  before 1.0 or before golden cross-language fixtures exist.
+- Native port: follow [ADR-0022](adr/0022-native-application-port.md), the accepted Kotlin/Compose
+  target. Preserve the working browser and qualify each native slice against immutable production
+  goldens. Keep full feature and personal-data migration gates explicit; the native prototype is
+  not a production package replacement. A new portable JSON CLI remains an unimplemented idea.
 
 Update `CURRENT_STATE.md` only for implemented or measured changes. Update `TECHNICAL_PLAN.md` only
 when the target architecture or release gates change. Do not duplicate long implementation details

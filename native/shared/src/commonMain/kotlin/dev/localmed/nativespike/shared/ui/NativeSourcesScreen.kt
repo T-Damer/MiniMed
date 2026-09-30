@@ -34,10 +34,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.core.NativeCatalogDocument
 import dev.localmed.nativespike.shared.core.NativeCatalogSnapshot
+import dev.localmed.nativespike.shared.core.NativeDefinitionTarget
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.core.NativeModuleOffer
 import dev.localmed.nativespike.shared.text.formatFixed1
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -45,29 +47,47 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun NativeSourcesScreen(
-    core: NativeMedicalCore, snapshot: NativeCatalogSnapshot, uiErrors: NativeUiErrors,
+    core: NativeMedicalCore, snapshot: NativeCatalogSnapshot, uiErrors: NativeUiErrors, actionScope: CoroutineScope,
     openingSource: Boolean, sourceError: String?,
     onBack: () -> Unit, onShowSearch: () -> Unit,
     onOpenModule: (NativeModuleOffer) -> Unit,
     onOpenDocument: (NativeCatalogDocument) -> Unit,
+    onOpenDefinition: (NativeDefinitionTarget) -> Unit,
     registerNavigationFlush: ((suspend () -> Boolean) -> (() -> Unit))? = null,
 ) {
     var offers by remember(core, snapshot.moduleId, snapshot.moduleVersion) { mutableStateOf<List<NativeModuleOffer>?>(null) }
     var documents by remember(core, snapshot.moduleId, snapshot.moduleVersion) { mutableStateOf<List<NativeCatalogDocument>?>(null) }
     var error by remember(core, snapshot.moduleId, snapshot.moduleVersion) { mutableStateOf<String?>(null) }
     var attempt by remember { mutableStateOf(0) }
+    LaunchedEffect(core, snapshot.moduleId, snapshot.moduleVersion, attempt) {
+        error = null
+        try {
+            offers = core.moduleOffers().sortedWith(compareBy<NativeModuleOffer> { it.unsupportedReason != null }.thenBy { it.title })
+            if (snapshot.moduleId != null && offers.orEmpty().none { it.id == snapshot.moduleId && it.version == snapshot.moduleVersion }) {
+                error = "Эта редакция набора отсутствует в текущем каталоге."
+            } else documents = snapshot.moduleId?.let { core.moduleDocuments(it, requireNotNull(snapshot.moduleVersion)) }
+        } catch (cause: CancellationException) { throw cause }
+        catch (cause: Exception) { error = "Не удалось открыть каталог источников. Повторите попытку." }
+    }
+    val selected = offers?.singleOrNull { it.id == snapshot.moduleId && it.version == snapshot.moduleVersion }
+    selected?.definitionEditionTarget?.let { target ->
+        NativeDefinitionCatalogScreen(core, target, selected.title, snapshot, uiErrors, actionScope,
+            openingSource, sourceError, onBack, onShowSearch, onOpenDefinition, registerNavigationFlush)
+        return
+    }
     var saveAttempt by remember { mutableStateOf(0) }
     var filterQuery by remember(core, snapshot.moduleId, snapshot.moduleVersion) { mutableStateOf(snapshot.filterQuery) }
     var positionFilter by remember(core, snapshot.moduleId, snapshot.moduleVersion) { mutableStateOf(snapshot.filterQuery) }
     var filterInputError by remember(core, snapshot.moduleId, snapshot.moduleVersion) { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val failures by uiErrors.messages.collectAsState()
+    var positioned by remember(core, snapshot.moduleId, snapshot.moduleVersion) { mutableStateOf(false) }
     val listState = remember(core, snapshot.moduleId, snapshot.moduleVersion) {
         LazyListState(snapshot.firstVisibleItemIndex, snapshot.firstVisibleItemOffset)
     }
     fun currentSnapshot() = snapshot.copy(filterQuery = filterQuery,
-        firstVisibleItemIndex = if (positionFilter == filterQuery) listState.firstVisibleItemIndex else 0,
-        firstVisibleItemOffset = if (positionFilter == filterQuery) listState.firstVisibleItemScrollOffset else 0)
+        firstVisibleItemIndex = if (positionFilter != filterQuery) 0 else if (positioned) listState.firstVisibleItemIndex else snapshot.firstVisibleItemIndex,
+        firstVisibleItemOffset = if (positionFilter != filterQuery) 0 else if (positioned) listState.firstVisibleItemScrollOffset else snapshot.firstVisibleItemOffset)
     DisposableEffect(core, snapshot.moduleId, snapshot.moduleVersion, registerNavigationFlush) {
         val unregister = registerNavigationFlush?.invoke {
             uiErrors.execute(NativeUiOperation.CatalogPosition, "Не удалось сохранить фильтр или позицию в каталоге.") { core.saveCatalogSnapshot(currentSnapshot()) }
@@ -85,19 +105,11 @@ fun NativeSourcesScreen(
         if (positionFilter != filterQuery) {
             listState.scrollToItem(0)
             positionFilter = filterQuery
+            positioned = true
         }
     }
-    LaunchedEffect(core, snapshot.moduleId, snapshot.moduleVersion, attempt) {
-        error = null
-        try {
-            offers = core.moduleOffers().sortedWith(compareBy<NativeModuleOffer> { it.unsupportedReason != null }.thenBy { it.title })
-            if (snapshot.moduleId != null && offers.orEmpty().none { it.id == snapshot.moduleId && it.version == snapshot.moduleVersion }) {
-                error = "Эта редакция набора отсутствует в текущем каталоге."
-            } else documents = snapshot.moduleId?.let { core.moduleDocuments(it, requireNotNull(snapshot.moduleVersion)) }
-        } catch (cause: CancellationException) { throw cause }
-        catch (cause: Exception) { error = "Не удалось открыть каталог источников. Повторите попытку." }
-    }
-    LaunchedEffect(core, snapshot.moduleId, snapshot.moduleVersion, saveAttempt) {
+    LaunchedEffect(core, snapshot.moduleId, snapshot.moduleVersion, saveAttempt, offers != null) {
+        if (offers == null) return@LaunchedEffect
         var savedFilter: String? = null
         snapshotFlow { currentSnapshot() }
             .distinctUntilChanged().collectLatest { current ->
@@ -108,17 +120,22 @@ fun NativeSourcesScreen(
                 savedFilter = current.filterQuery
             }
     }
+    LaunchedEffect(core, snapshot.moduleId, snapshot.moduleVersion, offers != null, documents != null) {
+        if (!positioned && offers != null && (snapshot.moduleId == null || documents != null)) {
+            listState.scrollToItem(snapshot.firstVisibleItemIndex, snapshot.firstVisibleItemOffset)
+            positioned = true
+        }
+    }
     val indexedOffers = remember(offers) { offers.orEmpty().map { it to nativeCatalogFilterText(it.title, it.id) } }
     val indexedDocuments = remember(documents) { documents.orEmpty().map { it to nativeCatalogFilterText(it.title, it.target.documentId) } }
     val terms = remember(filterQuery) { nativeCatalogFilterTerms(filterQuery) }
     val visibleOffers = remember(indexedOffers, terms) { indexedOffers.filter { nativeCatalogFilterMatches(it.second, terms) }.map { it.first } }
     val visibleDocuments = remember(indexedDocuments, terms) { indexedDocuments.filter { nativeCatalogFilterMatches(it.second, terms) }.map { it.first } }
-    val selected = offers?.singleOrNull { it.id == snapshot.moduleId && it.version == snapshot.moduleVersion }
     Scaffold(containerColor = MaterialTheme.colorScheme.surface, topBar = {
         Surface(color = MaterialTheme.colorScheme.surface) {
             Column(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = { leaveCatalog(onBack) }) { Text("Назад") }
+                    TextButton(onClick = { if (registerNavigationFlush != null) onBack() else leaveCatalog(onBack) }) { Text("Назад") }
                     TextButton(onClick = { leaveCatalog(onShowSearch) }) { Text("Поиск") }
                 }
                 Text(selected?.title ?: "Источники", modifier = Modifier.padding(bottom = 12.dp),

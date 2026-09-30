@@ -192,14 +192,14 @@ fun SearchScreen(
                 style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onBackground)
             sourceError?.let { Text(it, modifier = Modifier.padding(horizontal = HOME_GAP),
                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onBackground) }
-            onRetrySave?.let { retry -> TextButton(onClick = retry, modifier = Modifier.padding(horizontal = HOME_GAP)) { Text("Повторить сохранение") } }
+            onRetrySave?.let { retry -> TextButton(onClick = retry, modifier = Modifier.padding(horizontal = HOME_GAP)) { Text("Повторить сохранение", color = MaterialTheme.colorScheme.onBackground) } }
             state.inputError?.let { Text(it, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(horizontal = HOME_GAP)) }
             identitiesError?.let {
                 Text(it, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(horizontal = HOME_GAP))
-                TextButton(onClick = { state.attempt += 1 }) { Text("Повторить чтение названий") }
+                TextButton(onClick = { state.attempt += 1 }) { Text("Повторить чтение названий", color = MaterialTheme.colorScheme.onBackground) }
             }
             NativeIdentityRail(identities, openingSource, onOpenIdentity)
-            if (state.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = HOME_GAP))
+            if (state.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = HOME_GAP), color = MaterialTheme.colorScheme.onBackground)
             if (state.error != null) {
                 Text(
                     state.error ?: "Не удалось выполнить поиск.",
@@ -207,7 +207,7 @@ fun SearchScreen(
                     modifier = Modifier.padding(HOME_GAP),
                 )
                 TextButton(onClick = { state.attempt += 1 }, modifier = Modifier.padding(horizontal = HOME_GAP)) {
-                    Text("Повторить поиск")
+                    Text("Повторить поиск", color = MaterialTheme.colorScheme.onBackground)
                 }
             }
 

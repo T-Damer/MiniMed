@@ -53,6 +53,7 @@ class JVMContentIO(privateRoot: String) : NativeContentIO {
             for (redirect in 0..5) {
                 currentCoroutineContext().ensureActive()
                 connection = next.openConnection() as HttpURLConnection
+                // ponytail: blocking reads cancel at the next read boundary, with this 15s timeout ceiling.
                 connection.connectTimeout=15000;connection.readTimeout=15000;connection.instanceFollowRedirects=false
                 val code=connection.responseCode
                 if (code in listOf(301,302,303,307,308)) {

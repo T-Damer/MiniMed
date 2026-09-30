@@ -12,7 +12,10 @@ class ThemeContrastTest {
     fun sourceTextAndSmallLabelsKeepReadableContrastInBothThemes() {
         for (scheme in listOf(LightColors, DarkColors)) {
             for ((foreground, background) in listOf(
+                // Search rail navigation, retries and progress sit on the grey route background.
                 scheme.onBackground to scheme.background,
+                // Reader/catalog actions use the distinct opaque paper surface.
+                scheme.primary to scheme.surface,
                 scheme.onSurface to scheme.surface,
                 scheme.onSurface to scheme.surfaceVariant,
                 scheme.onSurfaceVariant to scheme.surfaceVariant,

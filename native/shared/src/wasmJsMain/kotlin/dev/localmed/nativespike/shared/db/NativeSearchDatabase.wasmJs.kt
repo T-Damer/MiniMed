@@ -35,6 +35,7 @@ import dev.localmed.nativespike.shared.model.SectionRow
  */
 actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
     actual fun lookupIdentities(query: String): List<NativeCoreIdentityHit> = error("Native content storage is unavailable on Wasm")
+    actual fun definitionSearch(editionId: String,query: String,requested: Int): List<NativeDefinitionCard> = error("Native content storage is unavailable on Wasm")
     actual fun definitionStatus(): NativeDefinitionStatus? = error("Native content storage is unavailable on Wasm")
     actual fun definitionCard(editionId: String, entityId: String): NativeDefinitionCard? = error("Native content storage is unavailable on Wasm")
     actual fun definitionBlocks(editionId: String, entityId: String, after: String): NativeDefinitionBlockPage = error("Native content storage is unavailable on Wasm")

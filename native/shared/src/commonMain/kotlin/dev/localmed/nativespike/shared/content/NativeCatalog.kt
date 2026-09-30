@@ -1,5 +1,8 @@
 package dev.localmed.nativespike.shared.content
 
+import dev.localmed.nativespike.shared.core.NativeDefinitionEditionTarget
+import dev.localmed.nativespike.shared.core.validateDefinitionEdition
+import dev.localmed.nativespike.shared.core.editionTarget
 import dev.localmed.nativespike.shared.core.NativeDefinitionTarget
 import dev.localmed.nativespike.shared.core.validateDefinitionTarget
 import dev.localmed.nativespike.shared.core.referenceIdentity
@@ -55,7 +58,7 @@ internal data class NativeModule(val id: String, val version: String, val title:
             reason = cause.message ?: "Unavailable source module"; null
         }
         return NativeModuleOffer(id, version, title, raw.string("kind"), releaseState,
-            members.map { it.documentId }.distinct().size, members.size, artifact?.sizeBytes, reason, runCatching { definitionDescriptor()?.second }.getOrNull())
+            members.map { it.documentId }.distinct().size, members.size, artifact?.sizeBytes, reason, runCatching { definitionDescriptor()?.second }.getOrNull(),runCatching { definitionDescriptor()?.let { NativeDefinitionEditionTarget(id,version,it.first) } }.getOrNull())
     }
     fun documents(): List<NativeCatalogDocument> = members.map { NativeCatalogDocument(it.target(this, null), it.title, it.status) }
     fun definitionDescriptor(): Pair<String,Int>? {
@@ -99,6 +102,10 @@ internal data class NativeModule(val id: String, val version: String, val title:
 internal class NativeCatalog private constructor(val modules: List<NativeModule>) {
     fun exactDefinition(target: NativeDefinitionTarget): NativeModule? {
         validateDefinitionTarget(target)
+        return exactDefinitionEdition(target.editionTarget())
+    }
+    fun exactDefinitionEdition(target: NativeDefinitionEditionTarget): NativeModule? {
+        validateDefinitionEdition(target)
         return modules.singleOrNull { it.id==target.moduleId && it.version==target.moduleVersion && it.definitionDescriptor()?.first==target.editionId }
     }
     fun exact(target: NativeDocumentTarget): NativeModule? {

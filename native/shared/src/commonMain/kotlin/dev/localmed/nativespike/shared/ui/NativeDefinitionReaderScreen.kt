@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
@@ -37,10 +35,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.core.NativeDefinitionCard
-import dev.localmed.nativespike.shared.core.NativeDefinitionBlock
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.core.NativeReaderRoute
 import kotlinx.coroutines.delay
@@ -58,6 +54,8 @@ fun NativeDefinitionReaderScreen(
 ) {
     val state = remember(core, route.target) { NativeDefinitionReaderState(route) }
     val listState = remember(core, route.target) { LazyListState(route.firstVisibleItemIndex, route.firstVisibleItemOffset) }
+    var positioned by remember(core, route.target) { mutableStateOf(false) }
+    var pendingTextPosition by remember(core, route.target) { mutableStateOf(false) }
     val chrome = rememberNativeReaderChrome(route.target)
     val scope = rememberCoroutineScope()
     var blocksAttempt by remember(route.target) { mutableStateOf(0) }
@@ -66,7 +64,19 @@ fun NativeDefinitionReaderScreen(
     var sourceVisible by remember(route.target) { mutableStateOf(false) }
     LaunchedEffect(core, route.target, blocksAttempt) { state.loadInitialBlocks(core) }
     LaunchedEffect(core, route.target, state.selected?.linkId, state.offset, textAttempt) { state.loadText(core) }
-    fun currentSnapshot() = state.position(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset)
+    LaunchedEffect(core, route.target, state.text != null, pendingTextPosition) {
+        if (!positioned && state.text != null) {
+            listState.scrollToItem(route.firstVisibleItemIndex, route.firstVisibleItemOffset)
+            positioned = true
+        }
+        if (state.text != null && pendingTextPosition) {
+            listState.scrollToItem(2)
+            pendingTextPosition = false
+        }
+    }
+    fun currentSnapshot() = state.position(
+        if (pendingTextPosition) 2 else if (positioned) listState.firstVisibleItemIndex else route.firstVisibleItemIndex,
+        if (pendingTextPosition) 0 else if (positioned) listState.firstVisibleItemScrollOffset else route.firstVisibleItemOffset)
     DisposableEffect(core, route.target, registerNavigationFlush) {
         val unregister = registerNavigationFlush?.invoke { currentSnapshot()?.let { onSavePosition(it) } ?: true }
         onDispose { unregister?.invoke() }
@@ -104,16 +114,8 @@ fun NativeDefinitionReaderScreen(
             if (!state.blocksLoaded) {
                 if (state.blocksLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
                 else TextButton(onClick = { blocksAttempt += 1 }) { Text("Повторить чтение блоков") }
-            } else if (state.selected == null) {
-                Text(nativeIdentityCoverageLabel(card.coverage), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
-                if (state.blocks.isEmpty()) Text("В этой записи нет связанных исходных блоков.", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
-                DefinitionBlockSelector(state, card, onSelect = { state.select(it) }, onMore = { scope.launch { state.loadMoreBlocks(core) } })
-            } else if (state.text == null) {
-                DefinitionBlockSelector(state, card, onSelect = { state.select(it) }, onMore = { scope.launch { state.loadMoreBlocks(core) } })
-                if (state.textLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
-                else TextButton(onClick = { textAttempt += 1 }) { Text("Повторить чтение текста") }
             } else {
-                val page = requireNotNull(state.text)
+                val page = state.text
                 LazyColumn(state = listState, modifier = Modifier.fillMaxSize().nestedScroll(chrome.connection), contentPadding = PaddingValues(bottom = 24.dp)) {
                     item("record") {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -124,32 +126,38 @@ fun NativeDefinitionReaderScreen(
                         }
                     }
                     item("blocks") {
-                        DefinitionBlockSelector(state, card, onSelect = { block ->
+                        NativeDefinitionBlockSelector(state, card, onPrevious = { state.previousBlock(); pendingTextPosition = true }, onNext = { scope.launch { state.nextBlock(core); pendingTextPosition = true } }, onSelect = { block ->
                             state.select(block)
-                            scope.launch { listState.scrollToItem(2) }
+                            pendingTextPosition = true
                         }, onMore = { scope.launch { state.loadMoreBlocks(core) } })
                     }
                     item("text") {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (state.selected == null) Text("В этой записи нет доступного исходного блока.", color = MaterialTheme.colorScheme.onSurface)
+                            else if (page == null) {
+                                if (state.textLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
+                                else TextButton(onClick = { textAttempt += 1 }) { Text("Повторить чтение текста") }
+                            } else {
                             Text(nativeDefinitionBlockLabel(requireNotNull(state.selected).role, card), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
                             Text(nativeDefinitionPageRange(state.offset, page.totalCharacters, page.nextOffset),
                                 style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            if (page.text.isEmpty() && state.offset > 0) TextButton(onClick = { state.moveTo(0) }) { Text("К началу блока") }
+                            if (page.text.isEmpty() && state.offset > 0) TextButton(onClick = { state.moveTo(0); pendingTextPosition = true }) { Text("К началу блока") }
                             SelectionContainer { Text(page.text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) }
+                            }
                         }
                     }
                     item("paging") {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            TextButton(modifier = Modifier.weight(1f), enabled = page.previousOffset != null, onClick = {
-                                page.previousOffset?.let { state.moveTo(it); scope.launch { listState.scrollToItem(2) } }
+                            TextButton(modifier = Modifier.weight(1f), enabled = page?.previousOffset != null, onClick = {
+                                page?.previousOffset?.let { state.moveTo(it); pendingTextPosition = true }
                             }) { Text("Предыдущий фрагмент") }
-                            TextButton(modifier = Modifier.weight(1f), enabled = page.nextOffset != null, onClick = {
-                                page.nextOffset?.let { state.moveTo(it); scope.launch { listState.scrollToItem(2) } }
+                            TextButton(modifier = Modifier.weight(1f), enabled = page?.nextOffset != null, onClick = {
+                                page?.nextOffset?.let { state.moveTo(it); pendingTextPosition = true }
                             }) { Text("Следующий фрагмент") }
                         }
                     }
                     item("source") {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (page != null) Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                             TextButton(onClick = { sourceVisible = !sourceVisible }) { Text(if (sourceVisible) "Скрыть сведения об источнике" else "Источник и положение фрагмента") }
                             if (sourceVisible) NativeDefinitionSourceDetails(state.source, page)
@@ -159,26 +167,5 @@ fun NativeDefinitionReaderScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun DefinitionBlockSelector(
-    state: NativeDefinitionReaderState, card: NativeDefinitionCard,
-    onSelect: (NativeDefinitionBlock) -> Unit, onMore: () -> Unit,
-) {
-    Column(Modifier.fillMaxWidth()) {
-        LazyRow(contentPadding = PaddingValues(horizontal = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(state.blocks, key = { it.linkId }) { block ->
-                TextButton(modifier = Modifier.semantics { selected = state.selected?.linkId == block.linkId }, onClick = { onSelect(block) }) {
-                    Column {
-                        Text(nativeDefinitionBlockLabel(block.role, card))
-                        Text("Символов: ${block.characters}", style = MaterialTheme.typography.labelSmall)
-                    }
-                }
-            }
-        }
-        if (state.blocksLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
-        else if (state.nextBlocks != null) TextButton(onClick = onMore) { Text("Ещё исходные блоки") }
     }
 }

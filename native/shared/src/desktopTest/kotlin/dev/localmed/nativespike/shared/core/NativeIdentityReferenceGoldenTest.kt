@@ -28,6 +28,30 @@ private fun resource(name: String)=contentJson.parseToJsonElement(File(System.ge
 
 class NativeIdentityReferenceGoldenTest {
     @Test
+    fun all23CurrentEditionSearchesMatchFullOrderedProductionCards() {
+        val fixture=resource("definition-reference-golden.json")
+        val file=File(System.getProperty("NATIVE_REFERENCE_DB_PATH"))
+        assertEquals(fixture["packSha256"]!!.jsonPrimitive.content.removePrefix("sha256:"),digestFile(file))
+        val edition=fixture["editionId"]!!.jsonPrimitive.content
+        val db=NativeSearchDatabase(file.path)
+        try {
+            db.open()
+            val rows=fixture["searches"]!!.jsonArray
+            assertEquals(23,rows.size)
+            rows.forEachIndexed { index,value ->
+                val row=value.jsonObject;val query=row["query"]!!.jsonPrimitive.content
+                val expected=contentJson.decodeFromJsonElement<List<NativeDefinitionCard>>(row["hits"]!!)
+                assertEquals(expected,db.definitionSearch(edition,query,20),"Reference search case $index")
+                assertEquals(expected.take(1),db.definitionSearch(edition,query,1),"Reference limit case $index")
+                assertEquals(expected,db.definitionSearch(edition,query,200),"Reference capped limit case $index")
+            }
+            for(query in listOf("", "\u0000", "x".repeat(2049), "найди термин")) assertTrue(db.definitionSearch(edition,query,20).isEmpty())
+            assertTrue(db.definitionSearch(edition,rows.first().jsonObject["query"]!!.jsonPrimitive.content,0).isEmpty())
+            assertTrue(db.definitionSearch("minimed.definition.reference.2026.9.27",rows.first().jsonObject["query"]!!.jsonPrimitive.content,20).isEmpty())
+        } finally { db.close() }
+    }
+
+    @Test
     fun all259ExactIdentitiesPreservePunctuationStopWordsAndAmbiguity() {
         val fixture=resource("core-identities-golden.json")
         val file=File(System.getProperty("CORE_DB_PATH"))

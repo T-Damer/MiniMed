@@ -33,6 +33,29 @@ Evidence lives in ignored `playwright/`: `native-identity-reader-verification.js
 `native-identity-ui-full-results/`, `native-identity-ui-targets.log`,
 `native-android-schema2-upgrade-verification.json` and `native-identity-ios-compile.log`.
 
-Full reference description search, clinical/hybrid search, application features and production
-personal-data migration are subsequent gates. The 23 reference-search and 85 lexical-clinical
-oracles are prepared; fixture generation alone is not native runtime qualification.
+The subsequent reference-search slice is qualified against all 23 complete ordered production
+cards at requested limits 1, 20 and 200 (capped at 20). Description candidates remain bounded and
+passage-local; opposing polarity and duplicate source links cannot create a combined match.
+Whole-edition consent/install/offline restoration and wrong-edition rejection have executable
+checks. The combined Desktop suite now passes 86 tests without skips, including unchanged lookup,
+exact identity, original text and SQL oracles. Android lint and Android/Desktop/Wasm builds pass;
+updated iOS Kotlin/test sources, device framework and actual Swift host compile/link.
+
+Actual Desktop UI reaches block 17 and all seven pages of a 26,155-codepoint original block,
+restores offset 24,576 after an offline process restart and returns to the same reference search.
+On Android, the visible complete original page checksum matches the released pack; all three
+ambiguous senses remain reachable, missing-definition status is explicit and all nine blocks
+load across the second cursor page. These are owned emulator/Desktop profiles, not physical
+Android or iOS runtime qualification.
+
+Grey-background actions use the readable route foreground. Long-name cards keep their opening
+action visible; the final identity card can align at the leading edge. A stable reader list keeps
+focused controls mounted while text changes, and restores the text viewport after loading.
+
+Additional evidence: `native-definition-search-verification.json`,
+`native-reference-ui-full-results/`, `native-android-definition-verification.json`,
+`native-reference-long-restored-offline.png` and `native-reference-ios-compile.log` in `playwright/`.
+
+Clinical/hybrid search, remaining application features and production personal-data migration
+are subsequent gates. The 85 lexical-clinical oracle cases are prepared; fixture generation alone
+is not native runtime qualification.

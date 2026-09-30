@@ -32,6 +32,7 @@ expect class NativeSearchDatabase(dbFilePath: String) {
     fun close()
 
     fun lookupIdentities(query: String): List<NativeCoreIdentityHit>
+    fun definitionSearch(editionId: String,query: String,requested: Int): List<NativeDefinitionCard>
     fun definitionStatus(): NativeDefinitionStatus?
     fun definitionCard(editionId: String, entityId: String): NativeDefinitionCard?
     fun definitionBlocks(editionId: String, entityId: String, after: String): NativeDefinitionBlockPage

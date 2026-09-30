@@ -81,6 +81,7 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
             }
         }
     }
+    actual fun definitionSearch(editionId: String,query: String,requested: Int): List<NativeDefinitionCard> = reference().search(editionId,query,requested)
     actual fun definitionStatus(): NativeDefinitionStatus? = reference().status()
     actual fun definitionCard(editionId: String,entityId: String): NativeDefinitionCard? = reference().card(editionId,entityId)
     actual fun definitionBlocks(editionId: String,entityId: String,after: String): NativeDefinitionBlockPage = reference().blocks(editionId,entityId,after)

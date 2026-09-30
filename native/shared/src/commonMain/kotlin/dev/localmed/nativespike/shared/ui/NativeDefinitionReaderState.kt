@@ -100,6 +100,18 @@ class NativeDefinitionReaderState(val route: NativeReaderRoute.Definition) {
         textError = null
     }
 
+    fun previousBlock() {
+        val index = blocks.indexOfFirst { it.linkId == selected?.linkId }
+        blocks.getOrNull(index - 1)?.let(::select)
+    }
+
+    suspend fun nextBlock(core: NativeMedicalCore) {
+        val index = blocks.indexOfFirst { it.linkId == selected?.linkId }
+        if (index < 0) return
+        if (index + 1 == blocks.size && nextBlocks != null) loadMoreBlocks(core)
+        blocks.getOrNull(index + 1)?.let(::select)
+    }
+
     suspend fun loadText(core: NativeMedicalCore) {
         val block = selected ?: return
         val requestedOffset = offset

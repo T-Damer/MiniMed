@@ -33,8 +33,7 @@ private const val ITEMS_PER_GROUP = 3
 /**
  * Stage 4 (docs/CURRENT_STATE.md): the full ported pipeline (stage 2 sub-stages A-D —
  * `buildLookupQueryPlan`, SQL branch execution, fusion/grouping/ranking, `QueryDocumentIndex`)
- * wired into the spike UI, replacing `SearchEngine`'s deliberately simplified single-branch
- * matcher (kept in the tree, unreferenced, for anyone who wants the pre-stage-2 baseline).
+ * wired into the native UI.
  *
  * **Optimization pass** (docs/research/native-vs-webview-2026-09-28.md, "Optimization pass"):
  * stage 4's first measurement found this pipeline building THREE vocabulary/index structures ON

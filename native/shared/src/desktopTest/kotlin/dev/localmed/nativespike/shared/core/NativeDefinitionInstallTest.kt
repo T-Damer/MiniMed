@@ -43,6 +43,8 @@ private object ReferenceFixture {
             copy('sections',' WHERE document_version_id IN (SELECT id FROM document_versions WHERE document_id IN (SELECT document_id FROM definition_reference_links WHERE entity_id=?))',(entity,))
             copy('chunks',' WHERE document_version_id IN (SELECT id FROM document_versions WHERE document_id IN (SELECT document_id FROM definition_reference_links WHERE entity_id=?))',(entity,))
             copy('knowledge_entities',' WHERE id=?',(entity,))
+            copy('knowledge_names',' WHERE entity_id=?',(entity,))
+            copy('knowledge_fts',' WHERE entity_id=?',(entity,))
             copy('knowledge_document_links',' WHERE entity_id=?',(entity,))
             copy('definition_reference_entity_keys',' WHERE entity_id=?',(entity,))
             copy('definition_reference_chunk_keys',' WHERE chunk_id IN ('+links+')',(entity,))
@@ -52,7 +54,9 @@ private object ReferenceFixture {
             encoded=json.dumps(manifest,ensure_ascii=False,separators=(',',':'))
             fixture.execute("INSERT INTO app_metadata(key,value) VALUES('definition_reference',?)",(encoded,))
             fixture.execute('UPDATE content_packs SET checksum=?',('sha256:'+hashlib.sha256(encoded.encode()).hexdigest(),))
-            rebuild_chunks_fts_index(fixture);fixture.commit()
+            rebuild_chunks_fts_index(fixture)
+            fixture.execute("INSERT INTO definition_reference_fts(definition_reference_fts) VALUES ('rebuild')")
+            fixture.commit()
             assert not fixture.execute('PRAGMA foreign_key_check').fetchall()
             assert fixture.execute('PRAGMA integrity_check').fetchone()[0]=='ok'
             inventory=[{'documentId':r[0],'documentVersionId':r[1],'sourceChecksum':r[2]} for r in fixture.execute('SELECT document_id,id,source_checksum FROM document_versions ORDER BY document_id,id')]
@@ -61,7 +65,7 @@ private object ReferenceFixture {
         """.trimIndent()
         val id=File(SliceFixtures.directory,"reference-subset-entity.txt")
         val process=ProcessBuilder("uv","run","--project","tools/ingest","python","-c",script,System.getProperty("NATIVE_REFERENCE_DB_PATH"),file.path,id.path).directory(SliceFixtures.repository)
-        process.environment().clear();process.environment().putAll(mapOf("HOME" to System.getProperty("user.home"),"PATH" to "/Users/d/.bun/bin:/Users/d/.local/bin:/opt/homebrew/bin:/usr/bin:/bin","TMPDIR" to "/tmp","LANG" to "en_US.UTF-8"))
+        process.environment().clear();process.environment().putAll(mapOf("HOME" to System.getProperty("user.home"),"PATH" to "/Users/d/.bun/bin:/Users/d/.local/bin:/opt/homebrew/bin:/usr/bin:/bin","TMPDIR" to File(SliceFixtures.repository,"playwright").path,"LANG" to "en_US.UTF-8"))
         process.redirectErrorStream(true);process.redirectOutput(File(SliceFixtures.directory,"reference-subset.log"))
         check(process.start().waitFor()==0) { "Verbatim reference subset failed; see playwright/native-core-fixtures/reference-subset.log" }
         val descriptor=contentJson.parseToJsonElement(id.readText()).jsonObject
@@ -81,6 +85,28 @@ private object ReferenceFixture {
 }
 
 class NativeDefinitionInstallTest {
+    @Test
+    fun wholeEditionConsentInstallSearchAndOfflineRestoreNeedsNoInventedEntity(): Unit = runBlocking {
+        val catalog=ReferenceFixture.catalog();val edition=ReferenceFixture.target().editionTarget()
+        val io=FixtureIO(SliceFixtures.root("definition-edition-install"),mapOf("https://fixture.invalid/core.db" to SliceFixtures.core,"https://fixture.invalid/reference.db" to ReferenceFixture.file))
+        var core=NativeMedicalCore.openWithArtifact(io,catalog,SliceFixtures.artifact(SliceFixtures.core))
+        assertEquals(edition,core.moduleOffers().single().definitionEditionTarget)
+        assertIs<NativeDefinitionEditionResolution.Download>(core.resolveDefinitionEdition(edition))
+        assertIs<NativeDefinitionEditionResolution.Unavailable>(core.resolveDefinitionEdition(edition.copy(moduleVersion="2026.9.27")))
+        assertFailsWith<IllegalStateException> { core.searchDefinitions(edition,"term") }
+        val installed=assertIs<NativeDefinitionEditionResolution.Installed>(core.installDefinitionEdition(edition))
+        assertEquals(1,installed.status.entries)
+        assertTrue(core.navigation.value.readers.isEmpty())
+        val card=assertIs<NativeDefinitionResolution.Readable>(core.resolveDefinition(ReferenceFixture.target())).card
+        assertEquals(listOf(card.copy(match="name")),core.searchDefinitions(edition,card.title))
+        assertTrue(core.searchDefinitions(edition,card.title,0).isEmpty())
+        core.close();io.offline=true
+        core=NativeMedicalCore.openWithArtifact(io,catalog,SliceFixtures.artifact(SliceFixtures.core))
+        assertIs<NativeDefinitionEditionResolution.Installed>(core.resolveDefinitionEdition(edition))
+        assertEquals(listOf(card.copy(match="name")),core.searchDefinitions(edition,card.title))
+        assertTrue(core.navigation.value.readers.isEmpty());core.close()
+    }
+
     @Test
     fun exactDefinitionDownloadVerifiedInstallPagedSourceAndMixedTrailRestoreOffline(): Unit = runBlocking {
         val catalog=ReferenceFixture.catalog();val target=ReferenceFixture.target()
@@ -122,9 +148,10 @@ class NativeDefinitionInstallTest {
         val io=FixtureIO(SliceFixtures.root("definition-wrong-edition"),mapOf("https://fixture.invalid/core.db" to SliceFixtures.core,"https://fixture.invalid/reference.db" to ReferenceFixture.file))
         val core=NativeMedicalCore.openWithArtifact(io,catalog,SliceFixtures.artifact(SliceFixtures.core))
         assertIs<NativeDefinitionResolution.Download>(core.openDefinition(target))
-        assertFailsWith<IllegalStateException> { core.installDefinition(target) }
+        assertFailsWith<IllegalStateException> { core.installDefinitionEdition(target.editionTarget()) }
         assertIs<NativeDefinitionResolution.Download>(core.resolveDefinition(target))
-        assertEquals(target,core.installFailure.value!!.target)
+        assertIs<NativeDefinitionEditionResolution.Download>(core.resolveDefinitionEdition(target.editionTarget()))
+        assertEquals(target.editionTarget(),core.installFailure.value!!.target)
         assertTrue(File(io.root,"content").listFiles()!!.none { it.name==SliceFixtures.digest(ReferenceFixture.file).removePrefix("sha256:")+".db" })
         core.close()
     }
