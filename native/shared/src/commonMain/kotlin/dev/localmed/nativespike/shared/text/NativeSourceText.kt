@@ -97,9 +97,10 @@ fun parseNativeSourceText(value: String, sourceSpans: JsonElement? = null): List
 fun nativeSourceReaderBlocks(originalText: String, metadata: JsonObject): List<NativeBlock> {
     fun paragraph(text: String) = NativeBlock.Paragraph(listOf(NativeInline.Text(text)))
     fun rich(block: NativeSourceRichBlock): List<NativeBlock> = when (block) {
-        is NativeSourceRichBlock.Image -> listOf(NativeBlock.Image(block.dataUrl, block.alt, block.title))
+        is NativeSourceRichBlock.Image -> listOf(NativeBlock.Image(block.dataUrl, block.alt, block.title.ifEmpty { null }))
         is NativeSourceRichBlock.Table -> listOfNotNull(block.caption.takeIf(String::isNotEmpty)?.let(::paragraph)) + NativeBlock.Table(block.rows.map { row ->
-            NativeTableRow(row.cells.map { cell -> NativeTableCell(listOf(NativeInline.Text(cell.text)) + cell.images.map { NativeInline.Image(it.dataUrl, it.alt) },
+            // Web rich cells display their text only; embedded-image metadata stays in the original chunk.
+            NativeTableRow(row.cells.map { cell -> NativeTableCell(listOf(NativeInline.Text(cell.text)),
                 cell.header, when (cell.align) { "left" -> NativeCellAlign.Start; "center" -> NativeCellAlign.Center; "right" -> NativeCellAlign.End; else -> null }, cell.rowSpan, cell.colSpan) })
         })
     }

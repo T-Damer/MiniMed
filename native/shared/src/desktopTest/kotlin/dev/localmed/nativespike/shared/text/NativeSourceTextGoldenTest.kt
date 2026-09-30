@@ -10,6 +10,17 @@ import kotlin.test.assertTrue
 class NativeSourceTextGoldenTest {
     private val json = Json { ignoreUnknownKeys = true; classDiscriminator = "kind" }
 
+    @Test fun richReaderAdapterKeepsWebCaptionsAndDoesNotAddEmbeddedImageAltToCells() {
+        val image = """{"kind":"image","dataUrl":"data:image/png;base64,AAAA","alt":"Схема"}"""
+        val picture = nativeSourceReaderBlocks("", json.parseToJsonElement("""{"renderBlock":$image}""").jsonObject).single() as NativeBlock.Image
+        assertEquals(null, picture.title)
+        assertEquals("Схема", picture.alt)
+        val metadata = """{"renderBlock":{"kind":"table","caption":"**Подпись**","rows":[{"cells":[{"text":"**A**","header":true,"rowSpan":1,"colSpan":1,"images":[$image]}]}]}}"""
+        val blocks = nativeSourceReaderBlocks("", json.parseToJsonElement(metadata).jsonObject)
+        assertEquals(listOf(NativeInline.Text("**Подпись**")), (blocks.first() as NativeBlock.Paragraph).inlines)
+        assertEquals(listOf(NativeInline.Text("**A**")), (blocks.last() as NativeBlock.Table).rows.single().cells.single().inlines)
+    }
+
     @Test fun releasedSourceChunksAndWebBoundariesPreserveExactPresentation() {
         val resource = requireNotNull(javaClass.getResource("/native-source-text-golden.json"))
         val fixture = json.parseToJsonElement(resource.readText()).jsonObject
