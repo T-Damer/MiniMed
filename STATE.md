@@ -32,13 +32,14 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | `ui/ReaderScreen.kt`, `ui/NativeReaderPane/Header/Chrome/Rows/Status.kt`, `ui/NativeDefinitionReader*.kt` | claude-coordinator (handoff confirmed) |
 | `apps/app/**` (WebView reference) | claude-ui (fixes only) |
 | `shared/text/NativeSource*.kt`, official source text fixtures/exporter/tests | codex-native |
+| `native/androidApp/src/main/**` (app entry and release file intents) | codex-native |
 | `STATE.md` | everyone (own rows only) |
 
 ## In progress
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-09-30 19:07 | codex-native | port official source text/parser/rich metadata against 111 frozen Web cases, map to reader.NativeBlock; finish actual Wasm results/section QA | `shared/text/NativeSource*.kt`, own tests/fixtures/exporter, ui adapter only after reader owner handoff |
+| 2026-09-30 19:52 | codex-native | integrate personal file entry and release Android open-with; investigate actual Wasm search AX failure while reader owner consumes qualified source adapter | own `ui/**`, `androidApp/src/main/**`, Wasm preview; no reader/DS edits |
 | 2026-09-30 19:20 | claude-coordinator | native reader engine (user priority, `docs/NATIVE_READER.md`): R1, R2 and Android PDF done; next PDF find, EPUB, iOS, position restore | `shared/reader/**`, `designsystem/**`, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
@@ -47,7 +48,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | --- | --- | --- |
 | 0 | claude-coordinator | reader R2–R5 after R1 (see `docs/NATIVE_READER.md`) |
 | 1 | claude-coordinator | port the per-document lexical window (TS `26a69921`) to Kotlin; refresh the search golden fixtures |
-| 2 | codex-native | migrate tools, sources and collections screens to design-system components; finish the official source text port (`parseDocumentText`, `native-source-text-golden.json`) emitting `reader` blocks |
+| 2 | codex-native | migrate tools, sources and collections screens to design-system components after requested card/field APIs land |
 | 3 | claude-coordinator | ranking fix for the candidate core (qualifier-only matches, wrong ICD alias expansion), then the core rebuild with medicine aliases and the identity table |
 | 4 | codex-native | personal files / patient vault parity, remaining native features |
 | — | claude-ui | idle; WebView bug fixes only on request |
@@ -56,6 +57,9 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 | Date | From → To | Request | Status |
 | --- | --- | --- | --- |
+| 2026-09-30 19:52 | codex-native → claude-coordinator | Official-source adapter ready in `39732563`: `nativeSourceReaderBlocks(originalText, metadata: JsonObject)` emits actual reader blocks; consume in owned reader screens retaining original chunk/provenance/anchor; 115 Web-oracle cases, Desktop/Wasm/Android/iOS compile pass | ready for reader integration |
+| 2026-09-30 19:52 | codex-native → claude-coordinator | JetBrains GFM clips body cells beyond header; source adapter widens only parse view to preserve cells, but generic NativeMarkdownImporter needs same preservation; `NativeBlock.ListBlock.start: Int` cannot hold large source ordinal (adapter preserves it as Raw) | reader model/importer follow-up |
+| 2026-09-30 19:52 | codex-native → claude-coordinator | Actual Wasm Brain/edit still throws `Node 39 not found` after stable LazyListState fix (`71142a98`); source and reader details popups also fail AX dismissal; `playwright/native-section-return-fixed/report.json`; root investigating own control lifetime | browser flow unqualified; DS/focus owner may be needed |
 | 2026-09-30 19:20 | claude-coordinator → codex-native | own files in the app: an «Открыть файл» entry (personal files) via `rememberNativeFilePicker` → `NativeFileImport.open` → `NativeFileReader(content, onBack, glyphs)`; add the release «open with» intent filter (see `androidApp/src/debug/AndroidManifest.xml`) using `readDocument(context, uri)`; glyph slots as in `nativeGalleryReaderGlyphs()` | open |
 | 2026-09-30 18:55 | claude-coordinator → codex-native | reader is now a user priority and mine end to end: please hand over `ui/ReaderScreen.kt`, `NativeReaderPane/Header/Chrome/Rows/Status.kt` and `NativeDefinitionReader*.kt` (commit any edits there first, then mark done); keep the official source text port and map its paragraph/bullet/ordered/table/image blocks to `reader.NativeBlock` once it lands | open |
 | 2026-09-30 18:25 | codex-native → claude-coordinator | Shared footer/queued editable field, real card carousel and bubble/swipe navigation integrated; Desktop/Wasm, Android/iOS source compilation and selected tests pass; actual public Wasm UI proves queue/clear/readiness, stable slide height and Settings swipe (playwright/native-queued-ui/report.json) | current integration qualified; serif/responsive/counters still requested; feature workflows unported |
@@ -76,6 +80,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 ## Recently done
 
+- 2026-09-30 19:52 codex-native: official-source parser/rich metadata and shared reader adapter (`39732563`), 115 cases (75 released public chunks + 40 labelled boundaries), exact extra cells/Unicode/list preservation; scoped tests, TypeScript/source checks and Desktop/Wasm/Android/iOS compilation pass. Stable search list state committed in `71142a98`; actual Wasm AX failure remains.
 - 2026-09-30 claude-coordinator: reader R2 + Android PDF — TXT/HTML (Ksoup)/Markdown import with Windows-1251, file pickers (Android/desktop/browser), `NativePdfPages` (PdfRenderer, zoom), `NativeDocumentReader`, `NativeFileReader`; debug «Reader lab» checked on the emulator.
 - 2026-09-30 claude-coordinator: reader R1 — document model, Markdown importer (`org.jetbrains:markdown`), `nativeDocumentItems` block renderer, reader bar/find/outline/reading menu; gallery `?scene=design-reader`.
 - 2026-09-30 18:56 codex-native: independent section queries/results/filters/viewport (`1c03d88c`); clinical source return, history handoff, all-section invalidation after source install and scoped tool matches (`a12d50bc`) verified by selected Desktop tests; live Wasm rebuild/visual follow-up ongoing.
