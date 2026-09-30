@@ -23,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,15 +31,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.localmed.nativespike.shared.core.NativeReaderSnapshot
+import dev.localmed.nativespike.shared.core.NativeReaderRoute
 import dev.localmed.nativespike.shared.core.NativeSourceDocument
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -48,43 +46,40 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun ReaderScreen(
     document: NativeSourceDocument,
-    snapshot: NativeReaderSnapshot,
-    onSavePosition: suspend (NativeReaderSnapshot) -> Unit,
+    snapshot: NativeReaderRoute.Document,
+    onSavePosition: suspend (NativeReaderRoute.Document) -> Boolean,
     error: String? = null,
     saveFailed: Boolean = false,
     onBack: () -> Unit,
+    registerNavigationFlush: ((suspend () -> Boolean) -> (() -> Unit))? = null,
 ) {
     val rows = remember(document) { nativeReaderRows(document) }
     val listState = rememberLazyListState()
     var positioned by remember(document.target) { mutableStateOf(false) }
-    var controlsVisible by remember(document.target) { mutableStateOf(true) }
     var saveAttempt by remember(document.target) { mutableStateOf(0) }
-    val chromeScroll = remember(document.target) {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                // Layout changes caused by hiding the header are not user scrolls.
-                if (source == NestedScrollSource.UserInput && available.y != 0f) {
-                    controlsVisible = available.y > 0f
-                }
-                return Offset.Zero
-            }
-        }
-    }
+    val chrome = rememberNativeReaderChrome(document.target)
 
     LaunchedEffect(document.target) {
         listState.scrollToItem(nativeReaderStartIndex(rows, snapshot), snapshot.offsetPx.coerceAtLeast(0))
         positioned = true
     }
+    fun currentSnapshot(): NativeReaderRoute.Document {
+        val index = listState.firstVisibleItemIndex
+        val row = rows.getOrNull(index)
+        val chunk = (row as? NativeReaderRow.Source)?.chunk
+            ?: rows.drop(index).firstNotNullOfOrNull { (it as? NativeReaderRow.Source)?.chunk }
+        return NativeReaderRoute.Document(snapshot.target, chunk?.id, if (row is NativeReaderRow.Source) listState.firstVisibleItemScrollOffset else 0)
+    }
+    DisposableEffect(document.target, registerNavigationFlush) {
+        val unregister = registerNavigationFlush?.invoke { if (positioned) onSavePosition(currentSnapshot()) else true }
+        onDispose { unregister?.invoke() }
+    }
     LaunchedEffect(document.target, positioned, saveAttempt) {
         if (!positioned) return@LaunchedEffect
-        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
-            .distinctUntilChanged().collectLatest { (index, offset) ->
-                delay(120)
-                val row = rows.getOrNull(index)
-                val chunk = (row as? NativeReaderRow.Source)?.chunk
-                    ?: rows.drop(index).firstNotNullOfOrNull { (it as? NativeReaderRow.Source)?.chunk }
-                onSavePosition(NativeReaderSnapshot(snapshot.target, chunk?.id, if (row is NativeReaderRow.Source) offset else 0))
-            }
+        snapshotFlow { currentSnapshot() }.distinctUntilChanged().collectLatest {
+            delay(120)
+            onSavePosition(it)
+        }
     }
 
     Scaffold(
@@ -94,7 +89,7 @@ fun ReaderScreen(
                 Column(Modifier.fillMaxWidth()) {
                     // Opaque paper paints behind the status bar even while controls are hidden.
                     Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-                    if (controlsVisible || error != null) Row(Modifier.fillMaxWidth().padding(8.dp)) {
+                    if (chrome.visible || error != null) Row(Modifier.fillMaxWidth().padding(8.dp)) {
                         IconButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = "Назад" }) {
                             Text("←", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
                         }
@@ -113,7 +108,7 @@ fun ReaderScreen(
             }
         },
     ) { padding ->
-        LazyColumn(state = listState, modifier = Modifier.fillMaxSize().nestedScroll(chromeScroll).background(MaterialTheme.colorScheme.surface).padding(padding),
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize().nestedScroll(chrome.connection).background(MaterialTheme.colorScheme.surface).padding(padding),
             contentPadding = PaddingValues(bottom = 24.dp)) {
             for (row in rows) when (row) {
                 is NativeReaderRow.Header -> stickyHeader(key = row.key) {

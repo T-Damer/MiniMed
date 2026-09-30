@@ -99,12 +99,21 @@ Detailed history, moved verbatim on 2026-09-24:
 - Device/simulator iOS Kotlin and simulator test sources compile; the device framework and actual
   Swift host link. Full Xcode application packaging and runtime tests remain blocked by the absent
   iOS simulator runtime. No simulator or physical iOS runtime pass is claimed.
-- Next: exact source identities and current-edition definition cards/readers, searchable inventory,
-  then remaining search-mode and application-feature parity. The current reader preserves original
+- Exact source identities and current-edition definition cards/readers now pass 80 Desktop tests,
+  including 259 exact-name cases and complete hashes for 22 cards/73 blocks/88 text pages. The
+  previous 151 lookup queries and 206 SQL branches remain unchanged. An actual Android APK
+  upgrade preserves its schema-1 installed registry, query, catalog filter and exact reader position
+  in schema 2. Source-local review and missing-definition status stay explicit.
+- The searchable 782-module inventory preserves filters and positions through Back and offline
+  restart; the Android emulator exercises actual keyboard input, the immutable regulatory install,
+  original reading and down/up chrome with application-only network denial.
+- Next: installed-reference search, then remaining search-mode and application-feature parity.
+  The current reader preserves original
   markup verbatim; rich tables/media/PDF, clinical scopes, assessments and personal features are
   still subsequent work. Production Android identity and existing personal data must be preserved
   by a qualified migration before replacing the released app.
 - Qualification and concrete limits: [state/native-first-slice-2026-09-30.md](state/native-first-slice-2026-09-30.md).
+- Exact identity/migration qualification: [state/native-identities-2026-09-30.md](state/native-identities-2026-09-30.md).
 
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 

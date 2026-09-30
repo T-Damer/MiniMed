@@ -2,6 +2,9 @@ package dev.localmed.nativespike.shared.core
 
 import kotlinx.serialization.Serializable
 
+const val NATIVE_SEARCH_QUERY_MAX_LENGTH = 20_000
+const val NATIVE_CATALOG_FILTER_MAX_LENGTH = 2_048
+
 @Serializable
 data class NativeDocumentTarget(
     val documentId: String,
@@ -10,7 +13,7 @@ data class NativeDocumentTarget(
     val anchor: String? = null,
     val moduleId: String? = null,
     val moduleVersion: String? = null,
-)
+) : NativeReaderTarget
 
 @Serializable
 data class NativeSearchSnapshot(
@@ -20,18 +23,15 @@ data class NativeSearchSnapshot(
 )
 
 @Serializable
-data class NativeReaderSnapshot(
-    val target: NativeDocumentTarget,
-    val chunkId: String? = null,
-    val offsetPx: Int = 0,
-)
-
-@Serializable
 data class NativeCatalogSnapshot(
     val moduleId: String? = null,
     val moduleVersion: String? = null,
     val firstVisibleItemIndex: Int = 0,
     val firstVisibleItemOffset: Int = 0,
+    val filterQuery: String = "",
+    val overviewFilterQuery: String = "",
+    val overviewFirstVisibleItemIndex: Int = 0,
+    val overviewFirstVisibleItemOffset: Int = 0,
 )
 
 /** Catalog membership is an inventory; readability is verified separately when opening. */
@@ -45,6 +45,7 @@ data class NativeModuleOffer(
     val documentVersionCount: Int,
     val downloadBytes: Long?,
     val unsupportedReason: String?,
+    val definitionEntryCount: Int? = null,
 )
 
 data class NativeCatalogDocument(
@@ -56,7 +57,7 @@ data class NativeCatalogDocument(
 @Serializable
 data class NativeNavigationSnapshot(
     val search: NativeSearchSnapshot = NativeSearchSnapshot(),
-    val readers: List<NativeReaderSnapshot> = emptyList(),
+    val readers: List<NativeReaderRoute> = emptyList(),
     val catalog: NativeCatalogSnapshot? = null,
 )
 
@@ -104,7 +105,7 @@ sealed interface NativeDocumentResolution {
     data class Unavailable(val reason: String) : NativeDocumentResolution
 }
 
-data class NativeInstallFailure(val target: NativeDocumentTarget, val message: String)
+data class NativeInstallFailure(val target: NativeReaderTarget, val message: String)
 
 data class NativeInstallProgress(val stage: String, val receivedBytes: Long = 0, val totalBytes: Long? = null)
 

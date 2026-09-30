@@ -29,7 +29,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 
-private object SliceFixtures {
+internal object SliceFixtures {
     val repository=File(System.getProperty("NATIVE_SLICE_ROOT")).canonicalFile
     val directory=File(repository,"playwright/native-core-fixtures").also { it.mkdirs() }
     val core=File(directory,"core.db")
@@ -114,7 +114,7 @@ private object SliceFixtures {
     }
 }
 
-private class FixtureIO(val root: File,private val files: Map<String,File>): NativeContentIO by JVMContentIO(root.path) {
+internal class FixtureIO(val root: File,private val files: Map<String,File>): NativeContentIO by JVMContentIO(root.path) {
     var downloads=0
     var offline=false
     var blockStateWrite=false
@@ -148,13 +148,13 @@ class NativeCoreSliceTest {
         val source=NativeSearchDatabase(SliceFixtures.module.path)
         try { source.open();assertEquals(SliceFixtures.textDigest(source.readSourceDocument(target.documentId)!!.sections.toString()),SliceFixtures.textDigest(read.sections.toString())) } finally { source.close() }
         val chunk=read.sections.first().chunks.first()
-        core.saveReaderSnapshot(NativeReaderSnapshot(target,chunk.id,17));core.close();core.close()
+        core.saveReaderSnapshot(NativeReaderRoute.Document(target,chunk.id,17));core.close();core.close()
         io.offline=true
         core=NativeMedicalCore.openWithArtifact(io,catalog,SliceFixtures.artifact(SliceFixtures.core))
-        assertIs<NativeDocumentResolution.Readable>(core.restoreReader())
-        assertEquals(17,core.navigation.value.readers.single().offsetPx)
+        assertIs<NativeDocumentResolution.Readable>(assertIs<NativeReaderResolution.Document>(core.restoreReader()).resolution)
+        assertEquals(17,assertIs<NativeReaderRoute.Document>(core.navigation.value.readers.single()).offsetPx)
         assertEquals(NativeSearchSnapshot("приказ 302н",4,12),core.navigation.value.search)
-        core.back();core.saveReaderSnapshot(NativeReaderSnapshot(target,chunk.id,99))
+        core.back();core.saveReaderSnapshot(NativeReaderRoute.Document(target,chunk.id,99))
         assertTrue(core.navigation.value.readers.isEmpty());assertEquals(2,io.downloads)
         core.close()
     }
@@ -165,7 +165,7 @@ class NativeCoreSliceTest {
         val core=NativeMedicalCore.openWithArtifact(io,catalog,SliceFixtures.artifact(SliceFixtures.core))
         assertIs<NativeDocumentResolution.Download>(core.openDocument(target))
         assertFailsWith<IllegalStateException> { core.install(target) }
-        assertIs<NativeDocumentResolution.Download>(core.restoreReader())
+        assertIs<NativeDocumentResolution.Download>(assertIs<NativeReaderResolution.Document>(core.restoreReader()).resolution)
         assertEquals(target,core.installFailure.value?.target)
         assertIs<NativeDocumentResolution.Unavailable>(core.resolveDocument(target.documentId,expectedTarget=target.copy(documentVersionId="other-edition")))
         core.close()
@@ -231,7 +231,7 @@ class NativeCoreSliceTest {
         val installed=File(io.root,"content/${SliceFixtures.digest(SliceFixtures.module).removePrefix("sha256:")}.db")
         SliceFixtures.core.copyTo(installed,overwrite=true)
         core=NativeMedicalCore.openWithArtifact(io,catalog,SliceFixtures.artifact(SliceFixtures.core))
-        assertIs<NativeDocumentResolution.Download>(core.restoreReader())
+        assertIs<NativeDocumentResolution.Download>(assertIs<NativeReaderResolution.Document>(core.restoreReader()).resolution)
         assertIs<NativeDocumentResolution.Readable>(core.install(target))
         assertEquals(target,core.navigation.value.readers.single().target)
         core.close()

@@ -4,6 +4,17 @@ import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteStatement
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.driver.bundled.SQLITE_OPEN_READONLY
+import dev.localmed.nativespike.shared.core.NativeCoreIdentityHit
+import dev.localmed.nativespike.shared.core.NativeDefinitionBlockPage
+import dev.localmed.nativespike.shared.core.NativeDefinitionCard
+import dev.localmed.nativespike.shared.core.NativeDefinitionSource
+import dev.localmed.nativespike.shared.core.NativeDefinitionStatus
+import dev.localmed.nativespike.shared.core.NativeDefinitionTextPage
+import dev.localmed.nativespike.shared.core.NativeCoreIdentityTarget
+import dev.localmed.nativespike.shared.core.normalizeNativeIdentityName
+import dev.localmed.nativespike.shared.core.validateIdentityHit
+import dev.localmed.nativespike.shared.content.contentJson
+import kotlinx.serialization.decodeFromString
 import dev.localmed.nativespike.shared.core.NativeDocumentTarget
 import dev.localmed.nativespike.shared.core.NativeSourceDocument
 import dev.localmed.nativespike.shared.core.NativeSourceSection
@@ -37,6 +48,8 @@ import kotlin.time.TimeSource
  */
 actual class NativeSearchDatabase actual constructor(private val dbFilePath: String) {
     private var connection: SQLiteConnection? = null
+    private var definition: NativeDefinitionSql? = null
+    private fun reference() = definition ?: NativeDefinitionSql(requireConnection()).also { definition=it }
 
     private fun requireConnection(): SQLiteConnection =
         connection ?: error("NativeSearchDatabase.open() was not called before use")
@@ -53,7 +66,26 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
     actual fun close() {
         connection?.close()
         connection = null
+        definition = null
     }
+
+    actual fun lookupIdentities(query: String): List<NativeCoreIdentityHit> {
+        val db=requireConnection()
+        db.prepare("SELECT 1 FROM sqlite_master WHERE name='core_identities'").use { if(!it.step()) return emptyList() }
+        return db.prepare("""SELECT n.name,t.title,t.kind,t.coverage,t.target_json
+            FROM core_identities n JOIN core_identity_targets t ON t.target_id=n.target_id AND t.module_id=n.module_id
+            WHERE n.normalized_name=? ORDER BY t.title,t.module_id,t.target_id""").use { row ->
+            row.bindText(1,normalizeNativeIdentityName(query))
+            buildList {
+                while(row.step()) add(validateIdentityHit(NativeCoreIdentityHit(row.getText(0),row.getText(1),row.getText(2),row.getText(3),contentJson.decodeFromString<NativeCoreIdentityTarget>(row.getText(4)))))
+            }
+        }
+    }
+    actual fun definitionStatus(): NativeDefinitionStatus? = reference().status()
+    actual fun definitionCard(editionId: String,entityId: String): NativeDefinitionCard? = reference().card(editionId,entityId)
+    actual fun definitionBlocks(editionId: String,entityId: String,after: String): NativeDefinitionBlockPage = reference().blocks(editionId,entityId,after)
+    actual fun definitionText(editionId: String,entityId: String,chunkId: String,offset: Int): NativeDefinitionTextPage? = reference().text(editionId,entityId,chunkId,offset)
+    actual fun definitionSource(editionId: String,sourceId: String): NativeDefinitionSource? = reference().source(editionId,sourceId)
 
     actual fun validateContent(schemaVersion: Int, targets: List<NativeDocumentTarget>) {
         val db = requireConnection()

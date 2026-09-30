@@ -36,7 +36,7 @@ import kotlinx.serialization.json.jsonPrimitive
 @Serializable
 internal data class NativeInstalledModule(val moduleId: String, val moduleVersion: String, val sourceSetDigest: String, val artifact: NativeArtifact, val path: String)
 @Serializable
-internal data class NativeContentState(val schemaVersion: Int = 1, val installed: List<NativeInstalledModule> = emptyList(), val navigation: NativeNavigationSnapshot = NativeNavigationSnapshot())
+internal data class NativeContentState(val schemaVersion: Int, val installed: List<NativeInstalledModule> = emptyList(), val navigation: NativeNavigationSnapshot = NativeNavigationSnapshot())
 
 /** UI-independent owner of lookup, source reads and private content lifecycle. */
 class NativeMedicalCore private constructor(
@@ -66,7 +66,7 @@ class NativeMedicalCore private constructor(
     private fun requireOpen() { check(!closed.value) { "Native core is closed" } }
     suspend fun awaitReady() { requireOpen();engine.awaitReady() }
     suspend fun search(query: String,onStage: ((String,Double)->Unit)?=null): SearchOutcome? {
-        requireOpen();return withContext(Dispatchers.Default) { engine.search(query,onStage) }
+        requireOpen();require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid search query size" };return withContext(Dispatchers.Default) { engine.search(query,onStage) }
     }
 
     suspend fun moduleOffers(): List<NativeModuleOffer> = withContext(Dispatchers.Default) {
@@ -80,14 +80,24 @@ class NativeMedicalCore private constructor(
             ?: throw IllegalArgumentException("Exact catalog edition is absent")
     private fun validateCatalogSnapshot(snapshot: NativeCatalogSnapshot) {
         require((snapshot.moduleId == null) == (snapshot.moduleVersion == null)) { "Incomplete catalog route" }
-        require(snapshot.firstVisibleItemIndex >= 0 && snapshot.firstVisibleItemOffset >= 0)
+        require(snapshot.firstVisibleItemIndex >= 0 && snapshot.firstVisibleItemOffset >= 0 && snapshot.overviewFirstVisibleItemIndex >= 0 && snapshot.overviewFirstVisibleItemOffset >= 0)
+        require(listOf(snapshot.filterQuery,snapshot.overviewFilterQuery).all { it.length <= NATIVE_CATALOG_FILTER_MAX_LENGTH && !it.contains('\u0000') })
         if (snapshot.moduleId != null) catalogModule(snapshot.moduleId, snapshot.moduleVersion!!)
     }
     suspend fun openCatalog(moduleId: String? = null, moduleVersion: String? = null) {
-        val snapshot = NativeCatalogSnapshot(moduleId, moduleVersion)
-        validateCatalogSnapshot(snapshot)
+        require((moduleId == null) == (moduleVersion == null)) { "Incomplete catalog route" }
         stateGate.withLock {
-            requireOpen();commit(persisted.copy(navigation = persisted.navigation.copy(catalog = snapshot, readers = emptyList())))
+            requireOpen()
+            val current=persisted.navigation.catalog
+            val overview=when {
+                current == null -> null
+                current.moduleId == null -> current
+                else -> NativeCatalogSnapshot(filterQuery=current.overviewFilterQuery,firstVisibleItemIndex=current.overviewFirstVisibleItemIndex,firstVisibleItemOffset=current.overviewFirstVisibleItemOffset)
+            }
+            val snapshot=if(moduleId == null) overview ?: NativeCatalogSnapshot() else NativeCatalogSnapshot(moduleId,moduleVersion,
+                overviewFilterQuery=overview?.filterQuery ?: "",overviewFirstVisibleItemIndex=overview?.firstVisibleItemIndex ?: 0,overviewFirstVisibleItemOffset=overview?.firstVisibleItemOffset ?: 0)
+            validateCatalogSnapshot(snapshot)
+            commit(persisted.copy(navigation = persisted.navigation.copy(catalog = snapshot, readers = emptyList())))
         }
     }
     suspend fun saveCatalogSnapshot(snapshot: NativeCatalogSnapshot) {
@@ -182,7 +192,7 @@ class NativeMedicalCore private constructor(
             try { io.verify(record.path,artifact.decodedSha256,artifact.decodedSizeBytes) } catch (cause: NativeContentVerificationException) { return@withLock null }
             val opened=NativeSearchDatabase(io.databasePath(record.path))
             try {
-                opened.open();opened.validateContent(module.schemaVersion,module.members.map { it.target(module,null) })
+                opened.open();validateModule(opened,module)
                 mounted[key]=opened;opened
             } catch(cause: Throwable) { opened.close();throw cause }
         }
@@ -193,15 +203,31 @@ class NativeMedicalCore private constructor(
         if(resolution !is NativeDocumentResolution.Unavailable) stateGate.withLock {
             requireOpen();currentCoroutineContext().ensureActive()
             val readers=persisted.navigation.readers
-            val next=if(readers.lastOrNull()?.target==target) readers else (readers+NativeReaderSnapshot(target)).takeLast(32)
+            val next=if(readers.lastOrNull()?.target==target) readers else (readers+NativeReaderRoute.Document(target)).takeLast(32)
             commit(persisted.copy(navigation=persisted.navigation.copy(readers=next)))
         }
         return resolution
     }
 
+    private fun validateModule(db: NativeSearchDatabase,module: NativeModule) {
+        db.validateContent(module.schemaVersion,module.members.map { it.target(module,null) })
+        module.definitionDescriptor()?.let { (edition,entries) ->
+            val status=db.definitionStatus() ?: error("Missing reference capability")
+            check(status.editionId==edition && status.entries==entries) { "Reference catalog edition mismatch" }
+        }
+    }
+
     suspend fun install(target: NativeDocumentTarget): NativeDocumentResolution {
         requireOpen();validateTarget(target)
         val module=catalog.exact(target) ?: error("Exact source membership is unavailable")
+        return installModule(target,module,{ db ->
+            val doc=db.readSourceDocument(target.documentId,target.documentVersionId) ?: error("Missing installed source")
+            check(checkedDocument(doc,target) is NativeDocumentResolution.Readable) { "Installed source identity or anchor mismatch" }
+        },{ readTarget(target) })
+    }
+
+    private suspend fun <T> installModule(target: NativeReaderTarget,module: NativeModule,validate: (NativeSearchDatabase)->Unit,resolve: suspend ()->T): T {
+        requireOpen()
         val artifact=module.index()
         val destination=contentPath(artifact)
         val alreadyPresent=io.exists(destination)
@@ -218,9 +244,8 @@ class NativeMedicalCore private constructor(
             return installGate.withLock {
                 checkToken(token)
                 val path=installer.prepare(artifact,token,{ progress -> if(generation.value==token && !closed.value) progressState.value=progress }) { db ->
-                    db.validateContent(module.schemaVersion,module.members.map { it.target(module,null) })
-                    val doc=db.readSourceDocument(target.documentId,target.documentVersionId) ?: error("Missing installed source")
-                    check(checkedDocument(doc,target) is NativeDocumentResolution.Readable) { "Installed source identity or anchor mismatch" }
+                    validateModule(db,module)
+                    validate(db)
                 }
                 checkToken(token)
                 stateGate.withLock {
@@ -230,7 +255,7 @@ class NativeMedicalCore private constructor(
                     commit(persisted.copy(installed=next),token)
                 }
                 checkToken(token)
-                readTarget(target)
+                resolve()
             }
         } catch (cause: Throwable) {
             if (cause !is CancellationException && generation.value==token && !closed.value) failureState.value=NativeInstallFailure(target,"Не удалось проверить и установить источник. Повторите загрузку.")
@@ -243,15 +268,58 @@ class NativeMedicalCore private constructor(
         }
     }
 
+    suspend fun lookupIdentities(query: String): List<NativeCoreIdentityHit> = withContext(Dispatchers.Default) {
+        requireOpen();require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid identity query size" };databaseGate.withLock { requireOpen();database.lookupIdentities(query) }
+    }
+    suspend fun resolveDefinition(target: NativeDefinitionTarget): NativeDefinitionResolution = withContext(Dispatchers.Default) {
+        validateDefinitionTarget(target);requireOpen()
+        val module=catalog.exactDefinition(target) ?: return@withContext NativeDefinitionResolution.Unavailable("Точная редакция справочника отсутствует в каталоге")
+        val artifact=try { module.index() } catch(cause: IllegalArgumentException) { return@withContext NativeDefinitionResolution.Unavailable(cause.message ?: "Справочник несовместим") } catch(cause: IllegalStateException) { return@withContext NativeDefinitionResolution.Unavailable(cause.message ?: "Справочник недоступен") }
+        val db=mount(module) ?: return@withContext NativeDefinitionResolution.Download(target,module.title,artifact.sizeBytes)
+        databaseGate.withLock {
+            requireOpen()
+            val card=db.definitionCard(target.editionId,target.entityId) ?: return@withLock NativeDefinitionResolution.Unavailable("Идентичность отсутствует в этой редакции справочника")
+            NativeDefinitionResolution.Readable(target,card)
+        }
+    }
+    suspend fun openDefinition(target: NativeDefinitionTarget): NativeDefinitionResolution {
+        val resolution=resolveDefinition(target)
+        if(resolution !is NativeDefinitionResolution.Unavailable) stateGate.withLock {
+            requireOpen();currentCoroutineContext().ensureActive()
+            val readers=persisted.navigation.readers
+            val next=if(readers.lastOrNull()?.target==target) readers else (readers+NativeReaderRoute.Definition(target)).takeLast(32)
+            commit(persisted.copy(navigation=persisted.navigation.copy(readers=next)))
+        }
+        return resolution
+    }
+    suspend fun installDefinition(target: NativeDefinitionTarget): NativeDefinitionResolution {
+        validateDefinitionTarget(target);requireOpen()
+        val module=catalog.exactDefinition(target) ?: error("Exact reference edition is unavailable")
+        return installModule(target,module,{ db -> check(db.definitionCard(target.editionId,target.entityId)!=null) { "Missing exact reference identity" } },{ resolveDefinition(target) })
+    }
+    private suspend fun <T> readDefinition(target: NativeDefinitionTarget,read: (NativeSearchDatabase)->T): T = withContext(Dispatchers.Default) {
+        validateDefinitionTarget(target);requireOpen()
+        val module=catalog.exactDefinition(target) ?: error("Exact reference edition is unavailable")
+        val db=mount(module) ?: error("Reference edition is not installed")
+        databaseGate.withLock {
+            requireOpen();check(db.definitionCard(target.editionId,target.entityId)!=null) { "Missing exact reference identity" };read(db)
+        }
+    }
+    suspend fun definitionStatus(target: NativeDefinitionTarget): NativeDefinitionStatus = readDefinition(target) { it.definitionStatus() ?: error("Missing reference capability") }
+    suspend fun definitionCard(target: NativeDefinitionTarget): NativeDefinitionCard? = readDefinition(target) { it.definitionCard(target.editionId,target.entityId) }
+    suspend fun definitionBlocks(target: NativeDefinitionTarget,after: String=""): NativeDefinitionBlockPage = readDefinition(target) { it.definitionBlocks(target.editionId,target.entityId,after) }
+    suspend fun definitionText(target: NativeDefinitionTarget,chunkId: String,offset: Int=0): NativeDefinitionTextPage? = readDefinition(target) { it.definitionText(target.editionId,target.entityId,chunkId,offset) }
+    suspend fun definitionSource(target: NativeDefinitionTarget,sourceId: String): NativeDefinitionSource? = readDefinition(target) { it.definitionSource(target.editionId,sourceId) }
+
     private suspend fun checkToken(token: Long) {
         currentCoroutineContext().ensureActive();requireOpen();if(generation.value!=token) throw CancellationException("Content operation was superseded")
     }
     suspend fun saveSearchSnapshot(snapshot: NativeSearchSnapshot) {
-        require(snapshot.firstVisibleItemIndex>=0 && snapshot.firstVisibleItemOffset>=0)
+        require(snapshot.firstVisibleItemIndex>=0 && snapshot.firstVisibleItemOffset>=0 && snapshot.query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !snapshot.query.contains('\u0000'))
         stateGate.withLock { requireOpen();commit(persisted.copy(navigation=persisted.navigation.copy(search=snapshot))) }
     }
-    suspend fun saveReaderSnapshot(snapshot: NativeReaderSnapshot) {
-        validateTarget(snapshot.target);require(snapshot.offsetPx>=0)
+    suspend fun saveReaderSnapshot(snapshot: NativeReaderRoute) {
+        validateReaderRoute(snapshot)
         stateGate.withLock {
             requireOpen()
             if(persisted.navigation.readers.lastOrNull()?.target!=snapshot.target) return@withLock
@@ -263,13 +331,18 @@ class NativeMedicalCore private constructor(
         val navigation = persisted.navigation
         val next = when {
             navigation.readers.isNotEmpty() -> navigation.copy(readers = navigation.readers.dropLast(1))
-            navigation.catalog?.moduleId != null -> navigation.copy(catalog = NativeCatalogSnapshot())
+            navigation.catalog?.moduleId != null -> navigation.copy(catalog = NativeCatalogSnapshot(filterQuery=navigation.catalog.overviewFilterQuery,firstVisibleItemIndex=navigation.catalog.overviewFirstVisibleItemIndex,firstVisibleItemOffset=navigation.catalog.overviewFirstVisibleItemOffset))
             navigation.catalog != null -> navigation.copy(catalog = null)
             else -> navigation
         }
         commit(persisted.copy(navigation = next));persisted.navigation
     }
-    suspend fun restoreReader(): NativeDocumentResolution? = navigation.value.readers.lastOrNull()?.let { readTarget(it.target) }
+    suspend fun restoreReader(): NativeReaderResolution? = navigation.value.readers.lastOrNull()?.let {
+        when(it) {
+            is NativeReaderRoute.Document -> NativeReaderResolution.Document(readTarget(it.target))
+            is NativeReaderRoute.Definition -> NativeReaderResolution.Definition(resolveDefinition(it.target))
+        }
+    }
 
     private suspend fun commit(next: NativeContentState,token: Long?=null) {
         val before=persisted
@@ -325,15 +398,7 @@ class NativeMedicalCore private constructor(
             var created: NativeMedicalCore? = null
             try { return withContext(Dispatchers.Default) {
             val catalog=NativeCatalog.parse(catalogJson)
-            val state=if(io.exists(STATE_PATH)) contentJson.decodeFromString<NativeContentState>(io.readText(STATE_PATH)) else NativeContentState()
-            require(state.schemaVersion==1)
-            require(state.installed.map { it.moduleId to it.moduleVersion }.distinct().size==state.installed.size)
-            state.navigation.catalog?.let { route ->
-                require((route.moduleId == null) == (route.moduleVersion == null) && route.firstVisibleItemIndex >= 0 && route.firstVisibleItemOffset >= 0)
-                require(route.moduleId == null || (route.moduleId.isNotBlank() && route.moduleVersion!!.isNotBlank())) { "Invalid saved catalog route" }
-            }
-            state.navigation.readers.forEach { validateTarget(it.target);require(it.offsetPx>=0) }
-            require(state.navigation.readers.size<=32 && state.navigation.search.firstVisibleItemIndex>=0 && state.navigation.search.firstVisibleItemOffset>=0)
+            val state=loadNativeContentState(io,STATE_PATH)
             val path=NativeContentInstaller(io).prepare(artifact,0,onProgress) { it.validateContent(2) }
             currentCoroutineContext().ensureActive()
             val database=NativeSearchDatabase(io.databasePath(path))

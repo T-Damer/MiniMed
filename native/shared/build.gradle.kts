@@ -158,6 +158,7 @@ val coreDbPath = providers.environmentVariable("NATIVE_CORE_DB_PATH").orElse(roo
 tasks.withType<Test>().configureEach {
     systemProperty("TEST_RESOURCE_DIR", testResourceDir)
     systemProperty("CORE_DB_PATH", coreDbPath)
+    systemProperty("NATIVE_REFERENCE_DB_PATH", providers.environmentVariable("NATIVE_REFERENCE_DB_PATH").orElse(rootProject.projectDir.resolve("../playwright/native-current-reference.db").absolutePath).get())
 }
 
 tasks.matching { it.name == "iosSimulatorArm64Test" || it.name == "iosArm64Test" }.configureEach {

@@ -11,8 +11,14 @@ the data and deterministic-search work is [DATA_SEARCH_COMPLETION_GOAL.md](DATA_
 
 ## Architecture
 
+User decision, 2026-09-29/30: after the last WebView release, the Android/iOS/Desktop application
+is ported to Kotlin Multiplatform + Compose. The browser remains SolidJS. Both implementations
+keep the dependency direction and immutable content contracts below; native release gates are
+recorded in [ADR-0022](adr/0022-native-application-port.md). Implemented slices and unqualified
+features belong in CURRENT_STATE.md.
+
 ```text
-SolidJS UI
+SolidJS browser UI / Compose native UI
   → MedicalCore
     → storage and optional retrieval-model ports
       → SQLite WASM/native adapters
@@ -55,7 +61,7 @@ is installed. Unknown or revoked redistribution rights exclude source content fr
 
 ## Browser runtime
 
-The browser is the primary target. It uses:
+The existing browser target uses:
 
 - SolidJS and Vite;
 - `MedicalCore` typed contracts;

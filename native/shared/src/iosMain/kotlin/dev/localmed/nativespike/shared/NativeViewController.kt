@@ -56,6 +56,6 @@ fun nativeViewController(): UIViewController = ComposeUIViewController {
     when (val current = state) {
         is NativeCoreSessionState.Opening -> NativeCoreStartup(current.progress, null, session::retry)
         is NativeCoreSessionState.Failed -> NativeCoreStartup(null, current.message, session::retry)
-        is NativeCoreSessionState.Ready -> NativeSearchSpikeApp(core = current.core, actionScope = scope, uiErrors = session.uiErrors)
+        is NativeCoreSessionState.Ready -> NativeSearchSpikeApp(core = current.core, actionScope = scope, uiErrors = session.uiErrors, session = session)
     }
 }

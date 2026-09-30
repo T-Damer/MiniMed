@@ -1,5 +1,11 @@
 package dev.localmed.nativespike.shared.db
 
+import dev.localmed.nativespike.shared.core.NativeCoreIdentityHit
+import dev.localmed.nativespike.shared.core.NativeDefinitionBlockPage
+import dev.localmed.nativespike.shared.core.NativeDefinitionCard
+import dev.localmed.nativespike.shared.core.NativeDefinitionSource
+import dev.localmed.nativespike.shared.core.NativeDefinitionStatus
+import dev.localmed.nativespike.shared.core.NativeDefinitionTextPage
 import dev.localmed.nativespike.shared.core.NativeDocumentTarget
 import dev.localmed.nativespike.shared.core.NativeSourceDocument
 import dev.localmed.nativespike.shared.model.AliasRecord
@@ -28,6 +34,13 @@ import dev.localmed.nativespike.shared.model.SectionRow
  * there is nothing to open.
  */
 actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
+    actual fun lookupIdentities(query: String): List<NativeCoreIdentityHit> = error("Native content storage is unavailable on Wasm")
+    actual fun definitionStatus(): NativeDefinitionStatus? = error("Native content storage is unavailable on Wasm")
+    actual fun definitionCard(editionId: String, entityId: String): NativeDefinitionCard? = error("Native content storage is unavailable on Wasm")
+    actual fun definitionBlocks(editionId: String, entityId: String, after: String): NativeDefinitionBlockPage = error("Native content storage is unavailable on Wasm")
+    actual fun definitionText(editionId: String, entityId: String, chunkId: String, offset: Int): NativeDefinitionTextPage? = error("Native content storage is unavailable on Wasm")
+    actual fun definitionSource(editionId: String, sourceId: String): NativeDefinitionSource? = error("Native content storage is unavailable on Wasm")
+
     actual fun open() {
         // Nothing to open — see the class-level warning above.
     }

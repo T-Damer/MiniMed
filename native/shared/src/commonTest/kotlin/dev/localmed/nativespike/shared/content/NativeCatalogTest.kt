@@ -68,7 +68,11 @@ class NativeCatalogTest {
         assertEquals(module.members.map { it.title },module.documents().map { it.title })
         kotlin.test.assertTrue(module.documents().all { it.title==null })
         assertEquals("A00 Холера, МКБ-10",catalog.modules.single { it.id=="minimed.mkb.ru" }.documents().single { it.target.documentId=="rls.mkb.node.a00" }.title)
-        kotlin.test.assertTrue(catalog.modules.filter { it.schemaVersion!=2 }.all { it.offer().unsupportedReason!=null })
+        kotlin.test.assertTrue(catalog.modules.filter { it.schemaVersion !in setOf(2,7) }.all { it.offer().unsupportedReason!=null })
+        val reference=catalog.modules.single { it.id=="minimed.definition.reference.ru" }.offer()
+        assertEquals(31488,reference.definitionEntryCount)
+        assertEquals(0,reference.documentCount)
+        assertNull(reference.unsupportedReason)
         kotlin.test.assertTrue(catalog.modules.any { it.offer().unsupportedReason!=null })
     }
 

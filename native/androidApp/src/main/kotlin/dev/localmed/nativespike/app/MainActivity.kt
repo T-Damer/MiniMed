@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val core = (owner.session.state.value as? NativeCoreSessionState.Ready)?.core
-                if (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null)) owner.scope.launch { owner.session.uiErrors.execute(NativeUiOperation.Navigation, "Не удалось сохранить переход. Повторите действие.") { core.back() } }
+                if (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null)) owner.scope.launch { owner.session.back() }
                 else moveTaskToBack(true)
             }
         })
@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity() {
                 is NativeCoreSessionState.Ready -> NativeSearchSpikeApp(
                     core = current.core,
                     actionScope = owner.scope,
-                    uiErrors = owner.session.uiErrors,
+                    uiErrors = owner.session.uiErrors, session = owner.session,
                     externalQuery = if (BuildConfig.DEBUG) benchQuery else null,
                     onOutcome = if (BuildConfig.DEBUG) { _, outcome, tookMs, stages ->
                         val timings = stages.entries.joinToString(" ") { (name, ms) -> "$name=$ms" }

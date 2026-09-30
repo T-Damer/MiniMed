@@ -24,6 +24,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -34,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import dev.localmed.nativespike.shared.model.SearchOutcome
 import dev.localmed.nativespike.shared.model.SearchResultGroup
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
+import dev.localmed.nativespike.shared.core.NativeCoreIdentityHit
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -54,6 +59,7 @@ fun SearchScreen(
     openingSource: Boolean = false,
     sourceError: String? = null,
     onOpenSources: () -> Unit,
+    onOpenIdentity: (NativeCoreIdentityHit) -> Unit,
     onRetrySave: (() -> Unit)? = null,
     // Debug measurement hook only (see native/androidApp's MainActivity — HyperOS blocks
     // `adb shell input` entirely on the physical Xiaomi 14, and even on a plain emulator
@@ -69,7 +75,26 @@ fun SearchScreen(
     onOutcome: ((query: String, outcome: SearchOutcome?, tookMs: Double, stages: Map<String, Double>) -> Unit)? = null,
 ) {
     LaunchedEffect(externalQuery) {
-        if (externalQuery != null) state.query = externalQuery
+        if (externalQuery != null) state.updateQuery(externalQuery)
+    }
+    var identities by remember(core, state.query) { mutableStateOf<List<NativeCoreIdentityHit>>(emptyList()) }
+    var identitiesLoading by remember(core, state.query) { mutableStateOf(false) }
+    var identitiesError by remember(core, state.query) { mutableStateOf<String?>(null) }
+    LaunchedEffect(core, state.query, state.attempt) {
+        val requestQuery = state.query
+        if (requestQuery.isBlank()) return@LaunchedEffect
+        identitiesLoading = true
+        identitiesError = null
+        try {
+            delay(DEBOUNCE_MS)
+            val hits = core.lookupIdentities(requestQuery)
+            if (currentCoroutineContext().isActive && state.query == requestQuery) identities = hits
+        } catch (cause: CancellationException) { throw cause }
+        catch (cause: Exception) {
+            if (currentCoroutineContext().isActive && state.query == requestQuery) identitiesError = "Не удалось прочитать точные названия из источников. Повторите запрос."
+        } finally {
+            if (currentCoroutineContext().isActive && state.query == requestQuery) identitiesLoading = false
+        }
     }
 
     LaunchedEffect(core, state.query, state.attempt) {
@@ -115,7 +140,7 @@ fun SearchScreen(
             throw cause
         } catch (cause: Exception) {
             if (currentCoroutineContext().isActive && state.query == requestQuery) {
-                state.error = cause.message ?: "Не удалось выполнить поиск. Повторите запрос."
+                state.error = "Не удалось выполнить поиск. Повторите запрос."
             }
         } finally {
             if (currentCoroutineContext().isActive && state.query == requestQuery) {
@@ -148,7 +173,7 @@ fun SearchScreen(
                 Column {
                     TextField(
                         value = state.query,
-                        onValueChange = { state.query = it },
+                        onValueChange = { state.updateQuery(it) },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Название, код МКБ, препарат или фраза из документа", style = MaterialTheme.typography.bodyMedium) },
                         singleLine = true,
@@ -168,6 +193,12 @@ fun SearchScreen(
             sourceError?.let { Text(it, modifier = Modifier.padding(horizontal = HOME_GAP),
                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onBackground) }
             onRetrySave?.let { retry -> TextButton(onClick = retry, modifier = Modifier.padding(horizontal = HOME_GAP)) { Text("Повторить сохранение") } }
+            state.inputError?.let { Text(it, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(horizontal = HOME_GAP)) }
+            identitiesError?.let {
+                Text(it, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(horizontal = HOME_GAP))
+                TextButton(onClick = { state.attempt += 1 }) { Text("Повторить чтение названий") }
+            }
+            NativeIdentityRail(identities, openingSource, onOpenIdentity)
             if (state.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = HOME_GAP))
             if (state.error != null) {
                 Text(
@@ -181,7 +212,7 @@ fun SearchScreen(
             }
 
             val groups = state.outcome?.groups.orEmpty()
-            if (!state.loading && state.error == null && state.completedQuery != null && groups.isEmpty()) {
+            if (!state.loading && !identitiesLoading && state.error == null && identitiesError == null && state.completedQuery != null && groups.isEmpty() && identities.isEmpty()) {
                 Text("По этому запросу источники не найдены.", style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(HOME_GAP))
             }

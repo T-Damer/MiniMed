@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
 
 sealed interface NativeCoreSessionState {
     data class Opening(val progress: NativeInstallProgress? = null) : NativeCoreSessionState
@@ -36,6 +37,25 @@ class NativeCoreSession(
     private var opening: Job? = null
     private val closed = MutableStateFlow(false)
     private val generation = MutableStateFlow(0)
+    private var navigationFlush: (suspend () -> Boolean)? = null
+    private val backMutex = Mutex()
+
+    /** The current composed route supplies its viewport; stale disposals cannot clear a newer route. */
+    fun registerNavigationFlush(flush: suspend () -> Boolean): () -> Unit {
+        navigationFlush = flush
+        return { if (navigationFlush === flush) navigationFlush = null }
+    }
+
+    suspend fun flushUi(): Boolean = navigationFlush?.invoke() ?: true
+
+    suspend fun back(): Boolean {
+        if (!backMutex.tryLock()) return false
+        try {
+            val core = (state.value as? NativeCoreSessionState.Ready)?.core ?: return false
+            if (!flushUi()) return false
+            return uiErrors.execute(NativeUiOperation.Navigation, "Не удалось сохранить переход. Повторите действие.") { core.back() }
+        } finally { backMutex.unlock() }
+    }
 
     fun retry() {
         if (closed.value || opening?.isActive == true || mutableState.value is NativeCoreSessionState.Ready) return

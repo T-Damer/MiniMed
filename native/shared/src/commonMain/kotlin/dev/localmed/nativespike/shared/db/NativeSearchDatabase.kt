@@ -1,5 +1,11 @@
 package dev.localmed.nativespike.shared.db
 
+import dev.localmed.nativespike.shared.core.NativeCoreIdentityHit
+import dev.localmed.nativespike.shared.core.NativeDefinitionBlockPage
+import dev.localmed.nativespike.shared.core.NativeDefinitionCard
+import dev.localmed.nativespike.shared.core.NativeDefinitionSource
+import dev.localmed.nativespike.shared.core.NativeDefinitionStatus
+import dev.localmed.nativespike.shared.core.NativeDefinitionTextPage
 import dev.localmed.nativespike.shared.core.NativeDocumentTarget
 import dev.localmed.nativespike.shared.core.NativeSourceDocument
 import dev.localmed.nativespike.shared.model.AliasRecord
@@ -24,6 +30,14 @@ expect class NativeSearchDatabase(dbFilePath: String) {
     fun open()
 
     fun close()
+
+    fun lookupIdentities(query: String): List<NativeCoreIdentityHit>
+    fun definitionStatus(): NativeDefinitionStatus?
+    fun definitionCard(editionId: String, entityId: String): NativeDefinitionCard?
+    fun definitionBlocks(editionId: String, entityId: String, after: String): NativeDefinitionBlockPage
+    fun definitionText(editionId: String, entityId: String, chunkId: String, offset: Int): NativeDefinitionTextPage?
+    fun definitionSource(editionId: String, sourceId: String): NativeDefinitionSource?
+
 
     fun readSourceDocument(documentId: String, versionId: String? = null): NativeSourceDocument?
 

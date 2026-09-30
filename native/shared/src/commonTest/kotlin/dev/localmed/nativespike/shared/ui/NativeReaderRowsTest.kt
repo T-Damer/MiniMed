@@ -1,7 +1,7 @@
 package dev.localmed.nativespike.shared.ui
 
 import dev.localmed.nativespike.shared.core.NativeDocumentTarget
-import dev.localmed.nativespike.shared.core.NativeReaderSnapshot
+import dev.localmed.nativespike.shared.core.NativeReaderRoute
 import dev.localmed.nativespike.shared.core.NativeSourceChunk
 import dev.localmed.nativespike.shared.core.NativeSourceDocument
 import dev.localmed.nativespike.shared.core.NativeSourceSection
@@ -26,10 +26,10 @@ class NativeReaderRowsTest {
 
     @Test fun excerptUsesExactChunkOrSectionAnchorAndSavedChunkWinsOnRestart() {
         val rows = nativeReaderRows(document)
-        assertEquals(3, nativeReaderStartIndex(rows, NativeReaderSnapshot(target)))
-        assertEquals(2, nativeReaderStartIndex(rows, NativeReaderSnapshot(target.copy(anchor = "second-section"))))
-        assertEquals(1, nativeReaderStartIndex(rows, NativeReaderSnapshot(target, first.id, 42)))
-        assertEquals(3, nativeReaderStartIndex(rows, NativeReaderSnapshot(target, "removed-chunk")))
-        assertEquals(0, nativeReaderStartIndex(rows, NativeReaderSnapshot(target.copy(anchor = "absent-anchor"))))
+        assertEquals(3, nativeReaderStartIndex(rows, NativeReaderRoute.Document(target)))
+        assertEquals(2, nativeReaderStartIndex(rows, NativeReaderRoute.Document(target.copy(anchor = "second-section"))))
+        assertEquals(1, nativeReaderStartIndex(rows, NativeReaderRoute.Document(target, first.id, 42)))
+        assertEquals(3, nativeReaderStartIndex(rows, NativeReaderRoute.Document(target, "removed-chunk")))
+        assertEquals(0, nativeReaderStartIndex(rows, NativeReaderRoute.Document(target.copy(anchor = "absent-anchor"))))
     }
 }

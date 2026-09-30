@@ -46,6 +46,7 @@ fun main() = application {
             if (!closing) {
                 closing = true
                 scope.launch {
+                    if (!session.flushUi()) { closing = false; return@launch }
                     val closed = session.uiErrors.execute(NativeUiOperation.Navigation, "Не удалось закрыть источники. Повторите закрытие.") { session.close() }
                     if (closed) exitApplication() else closing = false
                 }
@@ -55,14 +56,14 @@ fun main() = application {
         onPreviewKeyEvent = { event ->
             val core = (session.state.value as? NativeCoreSessionState.Ready)?.core
             if (event.type == KeyEventType.KeyDown && event.key == Key.Escape && core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null)) {
-                scope.launch { session.uiErrors.execute(NativeUiOperation.Navigation, "Не удалось сохранить переход. Повторите действие.") { core.back() } }; true
+                scope.launch { session.back() }; true
             } else false
         },
     ) {
         when (val current = state) {
             is NativeCoreSessionState.Opening -> NativeCoreStartup(current.progress, null, session::retry)
             is NativeCoreSessionState.Failed -> NativeCoreStartup(null, current.message, session::retry)
-            is NativeCoreSessionState.Ready -> NativeSearchSpikeApp(current.core, actionScope = scope, uiErrors = session.uiErrors)
+            is NativeCoreSessionState.Ready -> NativeSearchSpikeApp(current.core, actionScope = scope, uiErrors = session.uiErrors, session = session)
         }
     }
 }

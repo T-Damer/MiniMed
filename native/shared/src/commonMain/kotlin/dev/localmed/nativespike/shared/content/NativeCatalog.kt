@@ -1,5 +1,8 @@
 package dev.localmed.nativespike.shared.content
 
+import dev.localmed.nativespike.shared.core.NativeDefinitionTarget
+import dev.localmed.nativespike.shared.core.validateDefinitionTarget
+import dev.localmed.nativespike.shared.core.referenceIdentity
 import dev.localmed.nativespike.shared.core.NativeDocumentTarget
 import dev.localmed.nativespike.shared.core.NativeModuleOffer
 import dev.localmed.nativespike.shared.core.NativeCatalogDocument
@@ -52,12 +55,20 @@ internal data class NativeModule(val id: String, val version: String, val title:
             reason = cause.message ?: "Unavailable source module"; null
         }
         return NativeModuleOffer(id, version, title, raw.string("kind"), releaseState,
-            members.map { it.documentId }.distinct().size, members.size, artifact?.sizeBytes, reason)
+            members.map { it.documentId }.distinct().size, members.size, artifact?.sizeBytes, reason, runCatching { definitionDescriptor()?.second }.getOrNull())
     }
     fun documents(): List<NativeCatalogDocument> = members.map { NativeCatalogDocument(it.target(this, null), it.title, it.status) }
+    fun definitionDescriptor(): Pair<String,Int>? {
+        val value=raw["definitionReference"] ?: return null
+        val descriptor=value.jsonObject
+        require(schemaVersion==7 && descriptor.integer("contract")==1) { "Unsupported reference capability" }
+        val edition=referenceIdentity(descriptor.string("editionId"))
+        val entries=descriptor.integer("entries");require(entries in 1..100000) { "Invalid reference inventory" }
+        return edition to entries
+    }
     fun index(): NativeArtifact {
         require(releaseState in setOf("published", "preview")) { "Module is not released" }
-        require(schemaVersion == 2) { "This source schema is not supported" }
+        require(schemaVersion == 2 || (schemaVersion==7 && definitionDescriptor()!=null)) { "This source schema is not supported" }
         val compatibility = raw["compatibility"]!!.jsonObject
         fun version(value: String): List<Int> = value.substringBefore('-').split('.').map { it.toInt() }
         fun compare(left: String, right: String): Int {
@@ -80,12 +91,16 @@ internal data class NativeModule(val id: String, val version: String, val title:
         val decodedSize = if (codec == "none") size else index["decodedSizeBytes"]?.jsonPrimitive?.longOrNull ?: error("Missing decoded size")
         require(checksumPattern.matches(decodedSha) && decodedSize > 0)
         val artifact = NativeArtifact(index.string("id"),url,sha,size,codec,decodedSha,decodedSize)
-        require(members.isNotEmpty() && members.all { it.indexArtifactId == artifact.id }) { "Missing exact index membership" }
+        require(if(schemaVersion==7) members.isEmpty() && definitionDescriptor()!=null else members.isNotEmpty() && members.all { it.indexArtifactId == artifact.id }) { "Missing exact index membership" }
         return artifact
     }
 }
 
 internal class NativeCatalog private constructor(val modules: List<NativeModule>) {
+    fun exactDefinition(target: NativeDefinitionTarget): NativeModule? {
+        validateDefinitionTarget(target)
+        return modules.singleOrNull { it.id==target.moduleId && it.version==target.moduleVersion && it.definitionDescriptor()?.first==target.editionId }
+    }
     fun exact(target: NativeDocumentTarget): NativeModule? {
         validateTarget(target)
         return modules.singleOrNull { m -> m.id == target.moduleId && m.version == target.moduleVersion && m.members.any { it.documentId == target.documentId && it.versionId == target.documentVersionId && it.sourceChecksum == target.sourceChecksum } }
