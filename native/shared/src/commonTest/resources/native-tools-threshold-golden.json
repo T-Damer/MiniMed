@@ -1,0 +1,1291 @@
+{
+  "schemaVersion": 1,
+  "today": "2026-09-30",
+  "timezone": "UTC",
+  "purpose": "Actual source WHO bands, VBAC display/domain boundaries and Gail source age/hazard domain; no invented clinical verdict thresholds.",
+  "cases": [
+    {
+      "toolId": "minimed.calculator.pediatric-anthropometry-who",
+      "caseName": "WHO:-3:-1e-7",
+      "inputs": {
+        "date_of_birth": "2024-06-15",
+        "biological_sex": "female",
+        "measure_position": "auto",
+        "measurement_date": "2026-09-30",
+        "arm_circumference_cm": 11.913690209330714
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "minimed.calculator.pediatric-anthropometry-who",
+        "formula": "ВОЗ LMS z = ((x/M)^L − 1) / (S·L); для BMI, веса и окружности плеча применена корректировка ВОЗ за пределами ±3 SD.",
+        "outputs": [
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "kind": "number",
+            "display": "27.50",
+            "unit": "мес",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "kind": "number",
+            "display": "-3.00",
+            "unit": "SD",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "kind": "number",
+            "display": "0.1",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "who-reference",
+            "message": "Показываются отдельные ВОЗ z-score и перцентили только для заполненных показателей в поддерживаемом диапазоне."
+          },
+          {
+            "code": "no-global-verdict",
+            "message": "Единого общего вывода «норма/не норма» для всех антропометрических показателей нет; интерпретируйте результат вместе с динамикой и клиническим контекстом."
+          },
+          {
+            "code": "no-fenton",
+            "message": "Нормы Fenton для недоношенных в этом калькуляторе не рассчитываются."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "ВОЗ z-score и перцентиль рассчитаны отдельно для каждого заполненного показателя; единого общего verdict для разных индикаторов нет.",
+          "sourceIds": [
+            "who-cgs-0-5",
+            "who-growth-reference-5-19"
+          ]
+        },
+        "trace": [
+          {
+            "id": "age_days",
+            "label": "Возраст",
+            "expression": "daysBetween(\"2024-06-15\", \"2026-09-30\")",
+            "unit": "дни"
+          },
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "expression": "837 / 30.4375",
+            "unit": "мес"
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "expression": "optional(present(11.9137) == 1 * 837 >= 91 * 837 <= 1826 == 1, whoLmsZ(\"who0-muac\", \"female\", 837, 11.9137))",
+            "unit": "SD"
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "expression": "optional(present(-3) == 1, whoPercentile(-3))",
+            "unit": "%"
+          }
+        ]
+      },
+      "whoBand": "Ниже −3 SD: выраженное снижение относительно возрастной нормы."
+    },
+    {
+      "toolId": "minimed.calculator.pediatric-anthropometry-who",
+      "caseName": "WHO:-3:1e-7",
+      "inputs": {
+        "date_of_birth": "2024-06-15",
+        "biological_sex": "female",
+        "measure_position": "auto",
+        "measurement_date": "2026-09-30",
+        "arm_circumference_cm": 11.913690409330712
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "minimed.calculator.pediatric-anthropometry-who",
+        "formula": "ВОЗ LMS z = ((x/M)^L − 1) / (S·L); для BMI, веса и окружности плеча применена корректировка ВОЗ за пределами ±3 SD.",
+        "outputs": [
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "kind": "number",
+            "display": "27.50",
+            "unit": "мес",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "kind": "number",
+            "display": "-3.00",
+            "unit": "SD",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "kind": "number",
+            "display": "0.1",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "who-reference",
+            "message": "Показываются отдельные ВОЗ z-score и перцентили только для заполненных показателей в поддерживаемом диапазоне."
+          },
+          {
+            "code": "no-global-verdict",
+            "message": "Единого общего вывода «норма/не норма» для всех антропометрических показателей нет; интерпретируйте результат вместе с динамикой и клиническим контекстом."
+          },
+          {
+            "code": "no-fenton",
+            "message": "Нормы Fenton для недоношенных в этом калькуляторе не рассчитываются."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "ВОЗ z-score и перцентиль рассчитаны отдельно для каждого заполненного показателя; единого общего verdict для разных индикаторов нет.",
+          "sourceIds": [
+            "who-cgs-0-5",
+            "who-growth-reference-5-19"
+          ]
+        },
+        "trace": [
+          {
+            "id": "age_days",
+            "label": "Возраст",
+            "expression": "daysBetween(\"2024-06-15\", \"2026-09-30\")",
+            "unit": "дни"
+          },
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "expression": "837 / 30.4375",
+            "unit": "мес"
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "expression": "optional(present(11.9137) == 1 * 837 >= 91 * 837 <= 1826 == 1, whoLmsZ(\"who0-muac\", \"female\", 837, 11.9137))",
+            "unit": "SD"
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "expression": "optional(present(-3) == 1, whoPercentile(-3))",
+            "unit": "%"
+          }
+        ]
+      },
+      "whoBand": "От −3 до −2 SD: снижение относительно возрастной нормы."
+    },
+    {
+      "toolId": "minimed.calculator.pediatric-anthropometry-who",
+      "caseName": "WHO:-2:-1e-7",
+      "inputs": {
+        "date_of_birth": "2024-06-15",
+        "biological_sex": "female",
+        "measure_position": "auto",
+        "measurement_date": "2026-09-30",
+        "arm_circumference_cm": 12.891743220471298
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "minimed.calculator.pediatric-anthropometry-who",
+        "formula": "ВОЗ LMS z = ((x/M)^L − 1) / (S·L); для BMI, веса и окружности плеча применена корректировка ВОЗ за пределами ±3 SD.",
+        "outputs": [
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "kind": "number",
+            "display": "27.50",
+            "unit": "мес",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "kind": "number",
+            "display": "-2.00",
+            "unit": "SD",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "kind": "number",
+            "display": "2.3",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "who-reference",
+            "message": "Показываются отдельные ВОЗ z-score и перцентили только для заполненных показателей в поддерживаемом диапазоне."
+          },
+          {
+            "code": "no-global-verdict",
+            "message": "Единого общего вывода «норма/не норма» для всех антропометрических показателей нет; интерпретируйте результат вместе с динамикой и клиническим контекстом."
+          },
+          {
+            "code": "no-fenton",
+            "message": "Нормы Fenton для недоношенных в этом калькуляторе не рассчитываются."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "ВОЗ z-score и перцентиль рассчитаны отдельно для каждого заполненного показателя; единого общего verdict для разных индикаторов нет.",
+          "sourceIds": [
+            "who-cgs-0-5",
+            "who-growth-reference-5-19"
+          ]
+        },
+        "trace": [
+          {
+            "id": "age_days",
+            "label": "Возраст",
+            "expression": "daysBetween(\"2024-06-15\", \"2026-09-30\")",
+            "unit": "дни"
+          },
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "expression": "837 / 30.4375",
+            "unit": "мес"
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "expression": "optional(present(12.8917) == 1 * 837 >= 91 * 837 <= 1826 == 1, whoLmsZ(\"who0-muac\", \"female\", 837, 12.8917))",
+            "unit": "SD"
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "expression": "optional(present(-2) == 1, whoPercentile(-2))",
+            "unit": "%"
+          }
+        ]
+      },
+      "whoBand": "От −3 до −2 SD: снижение относительно возрастной нормы."
+    },
+    {
+      "toolId": "minimed.calculator.pediatric-anthropometry-who",
+      "caseName": "WHO:-2:1e-7",
+      "inputs": {
+        "date_of_birth": "2024-06-15",
+        "biological_sex": "female",
+        "measure_position": "auto",
+        "measurement_date": "2026-09-30",
+        "arm_circumference_cm": 12.891743420471297
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "minimed.calculator.pediatric-anthropometry-who",
+        "formula": "ВОЗ LMS z = ((x/M)^L − 1) / (S·L); для BMI, веса и окружности плеча применена корректировка ВОЗ за пределами ±3 SD.",
+        "outputs": [
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "kind": "number",
+            "display": "27.50",
+            "unit": "мес",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "kind": "number",
+            "display": "-2.00",
+            "unit": "SD",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "kind": "number",
+            "display": "2.3",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "who-reference",
+            "message": "Показываются отдельные ВОЗ z-score и перцентили только для заполненных показателей в поддерживаемом диапазоне."
+          },
+          {
+            "code": "no-global-verdict",
+            "message": "Единого общего вывода «норма/не норма» для всех антропометрических показателей нет; интерпретируйте результат вместе с динамикой и клиническим контекстом."
+          },
+          {
+            "code": "no-fenton",
+            "message": "Нормы Fenton для недоношенных в этом калькуляторе не рассчитываются."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "ВОЗ z-score и перцентиль рассчитаны отдельно для каждого заполненного показателя; единого общего verdict для разных индикаторов нет.",
+          "sourceIds": [
+            "who-cgs-0-5",
+            "who-growth-reference-5-19"
+          ]
+        },
+        "trace": [
+          {
+            "id": "age_days",
+            "label": "Возраст",
+            "expression": "daysBetween(\"2024-06-15\", \"2026-09-30\")",
+            "unit": "дни"
+          },
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "expression": "837 / 30.4375",
+            "unit": "мес"
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "expression": "optional(present(12.8917) == 1 * 837 >= 91 * 837 <= 1826 == 1, whoLmsZ(\"who0-muac\", \"female\", 837, 12.8917))",
+            "unit": "SD"
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "expression": "optional(present(-2) == 1, whoPercentile(-2))",
+            "unit": "%"
+          }
+        ]
+      },
+      "whoBand": "От −2 до +2 SD: в диапазоне возрастной нормы по этому индикатору."
+    },
+    {
+      "toolId": "minimed.calculator.pediatric-anthropometry-who",
+      "caseName": "WHO:2:-1e-7",
+      "inputs": {
+        "date_of_birth": "2024-06-15",
+        "biological_sex": "female",
+        "measure_position": "auto",
+        "measurement_date": "2026-09-30",
+        "arm_circumference_cm": 17.875559842516104
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "minimed.calculator.pediatric-anthropometry-who",
+        "formula": "ВОЗ LMS z = ((x/M)^L − 1) / (S·L); для BMI, веса и окружности плеча применена корректировка ВОЗ за пределами ±3 SD.",
+        "outputs": [
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "kind": "number",
+            "display": "27.50",
+            "unit": "мес",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "kind": "number",
+            "display": "2.00",
+            "unit": "SD",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "kind": "number",
+            "display": "97.7",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "who-reference",
+            "message": "Показываются отдельные ВОЗ z-score и перцентили только для заполненных показателей в поддерживаемом диапазоне."
+          },
+          {
+            "code": "no-global-verdict",
+            "message": "Единого общего вывода «норма/не норма» для всех антропометрических показателей нет; интерпретируйте результат вместе с динамикой и клиническим контекстом."
+          },
+          {
+            "code": "no-fenton",
+            "message": "Нормы Fenton для недоношенных в этом калькуляторе не рассчитываются."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "ВОЗ z-score и перцентиль рассчитаны отдельно для каждого заполненного показателя; единого общего verdict для разных индикаторов нет.",
+          "sourceIds": [
+            "who-cgs-0-5",
+            "who-growth-reference-5-19"
+          ]
+        },
+        "trace": [
+          {
+            "id": "age_days",
+            "label": "Возраст",
+            "expression": "daysBetween(\"2024-06-15\", \"2026-09-30\")",
+            "unit": "дни"
+          },
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "expression": "837 / 30.4375",
+            "unit": "мес"
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "expression": "optional(present(17.8756) == 1 * 837 >= 91 * 837 <= 1826 == 1, whoLmsZ(\"who0-muac\", \"female\", 837, 17.8756))",
+            "unit": "SD"
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "expression": "optional(present(2) == 1, whoPercentile(2))",
+            "unit": "%"
+          }
+        ]
+      },
+      "whoBand": "От −2 до +2 SD: в диапазоне возрастной нормы по этому индикатору."
+    },
+    {
+      "toolId": "minimed.calculator.pediatric-anthropometry-who",
+      "caseName": "WHO:2:1e-7",
+      "inputs": {
+        "date_of_birth": "2024-06-15",
+        "biological_sex": "female",
+        "measure_position": "auto",
+        "measurement_date": "2026-09-30",
+        "arm_circumference_cm": 17.875560042516106
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "minimed.calculator.pediatric-anthropometry-who",
+        "formula": "ВОЗ LMS z = ((x/M)^L − 1) / (S·L); для BMI, веса и окружности плеча применена корректировка ВОЗ за пределами ±3 SD.",
+        "outputs": [
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "kind": "number",
+            "display": "27.50",
+            "unit": "мес",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "kind": "number",
+            "display": "2.00",
+            "unit": "SD",
+            "displayPrecision": 2
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "kind": "number",
+            "display": "97.7",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "who-reference",
+            "message": "Показываются отдельные ВОЗ z-score и перцентили только для заполненных показателей в поддерживаемом диапазоне."
+          },
+          {
+            "code": "no-global-verdict",
+            "message": "Единого общего вывода «норма/не норма» для всех антропометрических показателей нет; интерпретируйте результат вместе с динамикой и клиническим контекстом."
+          },
+          {
+            "code": "no-fenton",
+            "message": "Нормы Fenton для недоношенных в этом калькуляторе не рассчитываются."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "ВОЗ z-score и перцентиль рассчитаны отдельно для каждого заполненного показателя; единого общего verdict для разных индикаторов нет.",
+          "sourceIds": [
+            "who-cgs-0-5",
+            "who-growth-reference-5-19"
+          ]
+        },
+        "trace": [
+          {
+            "id": "age_days",
+            "label": "Возраст",
+            "expression": "daysBetween(\"2024-06-15\", \"2026-09-30\")",
+            "unit": "дни"
+          },
+          {
+            "id": "age_months",
+            "label": "Возраст",
+            "expression": "837 / 30.4375",
+            "unit": "мес"
+          },
+          {
+            "id": "who0_muac_z",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, z-score",
+            "expression": "optional(present(17.8756) == 1 * 837 >= 91 * 837 <= 1826 == 1, whoLmsZ(\"who0-muac\", \"female\", 837, 17.8756))",
+            "unit": "SD"
+          },
+          {
+            "id": "who0_muac_percentile",
+            "label": "ВОЗ 0–5: окружность плеча к возрасту, перцентиль",
+            "expression": "optional(present(2) == 1, whoPercentile(2))",
+            "unit": "%"
+          }
+        ]
+      },
+      "whoBand": "Выше +2 SD: выше возрастного диапазона; нужна клиническая оценка."
+    },
+    {
+      "toolId": "obstetric-vbac-antepartum",
+      "caseName": "VBAC:age:17.9999999",
+      "inputs": {
+        "ageYears": 17.9999999,
+        "bmi": 37.5,
+        "race": "other",
+        "anyPriorVaginal": "no",
+        "priorVbac": "no",
+        "indication": "nonrecurring"
+      },
+      "visible": {
+        "ok": false,
+        "error": "Возраст: значение меньше допустимого минимума 18."
+      }
+    },
+    {
+      "toolId": "obstetric-vbac-antepartum",
+      "caseName": "VBAC:age:18",
+      "inputs": {
+        "ageYears": 18,
+        "bmi": 37.5,
+        "race": "other",
+        "anyPriorVaginal": "no",
+        "priorVbac": "no",
+        "indication": "nonrecurring"
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "obstetric-vbac-antepartum",
+        "formula": "Grobman 2007: p = exp(w) / (1 + exp(w)), логит w включает возраст, ИМТ, анамнез вагинальных родов и показание к кесареву",
+        "outputs": [
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "kind": "number",
+            "display": "69.3",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "vbac-model",
+            "message": "Модель оценивает вероятность успеха только у уже отобранных кандидатов на TOLAC и не заменяет клиническую оценку."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "obstetric-vbac-antepartum-grobman-2007"
+          ]
+        },
+        "trace": [
+          {
+            "id": "africanAmerican",
+            "label": "Коэффициент African-American",
+            "expression": "cond(\"other\" == \"african-american\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "hispanic",
+            "label": "Коэффициент Hispanic",
+            "expression": "cond(\"other\" == \"hispanic\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "priorVaginal",
+            "label": "Коэффициент предыдущих вагинальных родов",
+            "expression": "cond(\"no\" == \"yes\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "priorVbacValue",
+            "label": "Коэффициент предыдущего VBAC",
+            "expression": "cond(\"no\" == \"yes\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "recurringIndication",
+            "label": "Коэффициент повторяющегося показания",
+            "expression": "cond(\"nonrecurring\" == \"recurring\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "logit",
+            "label": "Логит модели",
+            "expression": "3.766 - 0.039 * 18 - 0.06 * 37.5 - 0.671 * 0 - 0.68 * 0 + 0.888 * 0 + 1.003 * 0 - 0.632 * 0",
+            "unit": "логит"
+          },
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "expression": "100 * exp(0.814) / 1 + exp(0.814)",
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "toolId": "obstetric-vbac-antepartum",
+      "caseName": "VBAC:age:50",
+      "inputs": {
+        "ageYears": 50,
+        "bmi": 37.5,
+        "race": "other",
+        "anyPriorVaginal": "no",
+        "priorVbac": "no",
+        "indication": "nonrecurring"
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "obstetric-vbac-antepartum",
+        "formula": "Grobman 2007: p = exp(w) / (1 + exp(w)), логит w включает возраст, ИМТ, анамнез вагинальных родов и показание к кесареву",
+        "outputs": [
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "kind": "number",
+            "display": "39.3",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "vbac-model",
+            "message": "Модель оценивает вероятность успеха только у уже отобранных кандидатов на TOLAC и не заменяет клиническую оценку."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "obstetric-vbac-antepartum-grobman-2007"
+          ]
+        },
+        "trace": [
+          {
+            "id": "africanAmerican",
+            "label": "Коэффициент African-American",
+            "expression": "cond(\"other\" == \"african-american\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "hispanic",
+            "label": "Коэффициент Hispanic",
+            "expression": "cond(\"other\" == \"hispanic\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "priorVaginal",
+            "label": "Коэффициент предыдущих вагинальных родов",
+            "expression": "cond(\"no\" == \"yes\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "priorVbacValue",
+            "label": "Коэффициент предыдущего VBAC",
+            "expression": "cond(\"no\" == \"yes\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "recurringIndication",
+            "label": "Коэффициент повторяющегося показания",
+            "expression": "cond(\"nonrecurring\" == \"recurring\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "logit",
+            "label": "Логит модели",
+            "expression": "3.766 - 0.039 * 50 - 0.06 * 37.5 - 0.671 * 0 - 0.68 * 0 + 0.888 * 0 + 1.003 * 0 - 0.632 * 0",
+            "unit": "логит"
+          },
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "expression": "100 * exp(-0.434) / 1 + exp(-0.434)",
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "toolId": "obstetric-vbac-antepartum",
+      "caseName": "VBAC:age:50.0000001",
+      "inputs": {
+        "ageYears": 50.0000001,
+        "bmi": 37.5,
+        "race": "other",
+        "anyPriorVaginal": "no",
+        "priorVbac": "no",
+        "indication": "nonrecurring"
+      },
+      "visible": {
+        "ok": false,
+        "error": "Возраст: значение больше допустимого максимума 50."
+      }
+    },
+    {
+      "toolId": "obstetric-vbac-antepartum",
+      "caseName": "VBAC:display:-0.000001",
+      "inputs": {
+        "ageYears": 34,
+        "bmi": 47.38970246598592,
+        "race": "other",
+        "anyPriorVaginal": "no",
+        "priorVbac": "no",
+        "indication": "nonrecurring"
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "obstetric-vbac-antepartum",
+        "formula": "Grobman 2007: p = exp(w) / (1 + exp(w)), логит w включает возраст, ИМТ, анамнез вагинальных родов и показание к кесареву",
+        "outputs": [
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "kind": "number",
+            "display": "40.1",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "vbac-model",
+            "message": "Модель оценивает вероятность успеха только у уже отобранных кандидатов на TOLAC и не заменяет клиническую оценку."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "obstetric-vbac-antepartum-grobman-2007"
+          ]
+        },
+        "trace": [
+          {
+            "id": "africanAmerican",
+            "label": "Коэффициент African-American",
+            "expression": "cond(\"other\" == \"african-american\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "hispanic",
+            "label": "Коэффициент Hispanic",
+            "expression": "cond(\"other\" == \"hispanic\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "priorVaginal",
+            "label": "Коэффициент предыдущих вагинальных родов",
+            "expression": "cond(\"no\" == \"yes\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "priorVbacValue",
+            "label": "Коэффициент предыдущего VBAC",
+            "expression": "cond(\"no\" == \"yes\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "recurringIndication",
+            "label": "Коэффициент повторяющегося показания",
+            "expression": "cond(\"nonrecurring\" == \"recurring\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "logit",
+            "label": "Логит модели",
+            "expression": "3.766 - 0.039 * 34 - 0.06 * 47.3897 - 0.671 * 0 - 0.68 * 0 + 0.888 * 0 + 1.003 * 0 - 0.632 * 0",
+            "unit": "логит"
+          },
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "expression": "100 * exp(-0.403382) / 1 + exp(-0.403382)",
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "toolId": "obstetric-vbac-antepartum",
+      "caseName": "VBAC:display:0.000001",
+      "inputs": {
+        "ageYears": 34,
+        "bmi": 47.389704465985915,
+        "race": "other",
+        "anyPriorVaginal": "no",
+        "priorVbac": "no",
+        "indication": "nonrecurring"
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "obstetric-vbac-antepartum",
+        "formula": "Grobman 2007: p = exp(w) / (1 + exp(w)), логит w включает возраст, ИМТ, анамнез вагинальных родов и показание к кесареву",
+        "outputs": [
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "kind": "number",
+            "display": "40.0",
+            "unit": "%",
+            "displayPrecision": 1
+          }
+        ],
+        "warnings": [
+          {
+            "code": "vbac-model",
+            "message": "Модель оценивает вероятность успеха только у уже отобранных кандидатов на TOLAC и не заменяет клиническую оценку."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "obstetric-vbac-antepartum-grobman-2007"
+          ]
+        },
+        "trace": [
+          {
+            "id": "africanAmerican",
+            "label": "Коэффициент African-American",
+            "expression": "cond(\"other\" == \"african-american\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "hispanic",
+            "label": "Коэффициент Hispanic",
+            "expression": "cond(\"other\" == \"hispanic\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "priorVaginal",
+            "label": "Коэффициент предыдущих вагинальных родов",
+            "expression": "cond(\"no\" == \"yes\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "priorVbacValue",
+            "label": "Коэффициент предыдущего VBAC",
+            "expression": "cond(\"no\" == \"yes\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "recurringIndication",
+            "label": "Коэффициент повторяющегося показания",
+            "expression": "cond(\"nonrecurring\" == \"recurring\", 1, 0)",
+            "unit": "коэфф."
+          },
+          {
+            "id": "logit",
+            "label": "Логит модели",
+            "expression": "3.766 - 0.039 * 34 - 0.06 * 47.3897 - 0.671 * 0 - 0.68 * 0 + 0.888 * 0 + 1.003 * 0 - 0.632 * 0",
+            "unit": "логит"
+          },
+          {
+            "id": "successProbability",
+            "label": "Расчётная вероятность успешного VBAC",
+            "expression": "100 * exp(-0.403382) / 1 + exp(-0.403382)",
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "toolId": "gynecology-breast-cancer-risk",
+      "caseName": "Gail:age:19",
+      "inputs": {
+        "ageYears": 19,
+        "race": "white",
+        "biopsiesCategory": 0,
+        "menarcheCategory": 0,
+        "firstBirthCategory": 0,
+        "relativesCategory": 0,
+        "atypicalHyperplasia": 0
+      },
+      "visible": {
+        "ok": false,
+        "error": "Возраст: значение меньше допустимого минимума 20."
+      }
+    },
+    {
+      "toolId": "gynecology-breast-cancer-risk",
+      "caseName": "Gail:age:20",
+      "inputs": {
+        "ageYears": 20,
+        "race": "white",
+        "biopsiesCategory": 0,
+        "menarcheCategory": 0,
+        "firstBirthCategory": 0,
+        "relativesCategory": 0,
+        "atypicalHyperplasia": 0
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "gynecology-breast-cancer-risk",
+        "formula": "NCI Breast Cancer Risk Assessment Tool: относительный риск × возрастные базовые частоты SEER/NCHS с конкурирующей смертностью",
+        "outputs": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "kind": "number",
+            "display": "0.00",
+            "unit": "%",
+            "displayPrecision": 2
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "kind": "number",
+            "display": "5.07",
+            "unit": "%",
+            "displayPrecision": 2
+          }
+        ],
+        "warnings": [
+          {
+            "code": "bcrat-population",
+            "message": "Это справочная оценка по NCI BCRAT/Gail; она не заменяет онкогенетическую консультацию и индивидуальный план скрининга."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "gynecology-breast-cancer-risk-bcrat",
+            "gynecology-breast-cancer-risk-r-package-2-0"
+          ]
+        },
+        "trace": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "expression": "gailRisk(20, 5, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "expression": "gailRisk(20, 90, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "toolId": "gynecology-breast-cancer-risk",
+      "caseName": "Gail:age:49",
+      "inputs": {
+        "ageYears": 49,
+        "race": "white",
+        "biopsiesCategory": 0,
+        "menarcheCategory": 0,
+        "firstBirthCategory": 0,
+        "relativesCategory": 0,
+        "atypicalHyperplasia": 0
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "gynecology-breast-cancer-risk",
+        "formula": "NCI Breast Cancer Risk Assessment Tool: относительный риск × возрастные базовые частоты SEER/NCHS с конкурирующей смертностью",
+        "outputs": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "kind": "number",
+            "display": "0.45",
+            "unit": "%",
+            "displayPrecision": 2
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "kind": "number",
+            "display": "4.45",
+            "unit": "%",
+            "displayPrecision": 2
+          }
+        ],
+        "warnings": [
+          {
+            "code": "bcrat-population",
+            "message": "Это справочная оценка по NCI BCRAT/Gail; она не заменяет онкогенетическую консультацию и индивидуальный план скрининга."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "gynecology-breast-cancer-risk-bcrat",
+            "gynecology-breast-cancer-risk-r-package-2-0"
+          ]
+        },
+        "trace": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "expression": "gailRisk(49, 5, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "expression": "gailRisk(49, 90, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "toolId": "gynecology-breast-cancer-risk",
+      "caseName": "Gail:age:50",
+      "inputs": {
+        "ageYears": 50,
+        "race": "white",
+        "biopsiesCategory": 0,
+        "menarcheCategory": 0,
+        "firstBirthCategory": 0,
+        "relativesCategory": 0,
+        "atypicalHyperplasia": 0
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "gynecology-breast-cancer-risk",
+        "formula": "NCI Breast Cancer Risk Assessment Tool: относительный риск × возрастные базовые частоты SEER/NCHS с конкурирующей смертностью",
+        "outputs": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "kind": "number",
+            "display": "0.46",
+            "unit": "%",
+            "displayPrecision": 2
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "kind": "number",
+            "display": "4.38",
+            "unit": "%",
+            "displayPrecision": 2
+          }
+        ],
+        "warnings": [
+          {
+            "code": "bcrat-population",
+            "message": "Это справочная оценка по NCI BCRAT/Gail; она не заменяет онкогенетическую консультацию и индивидуальный план скрининга."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "gynecology-breast-cancer-risk-bcrat",
+            "gynecology-breast-cancer-risk-r-package-2-0"
+          ]
+        },
+        "trace": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "expression": "gailRisk(50, 5, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "expression": "gailRisk(50, 90, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "toolId": "gynecology-breast-cancer-risk",
+      "caseName": "Gail:age:51",
+      "inputs": {
+        "ageYears": 51,
+        "race": "white",
+        "biopsiesCategory": 0,
+        "menarcheCategory": 0,
+        "firstBirthCategory": 0,
+        "relativesCategory": 0,
+        "atypicalHyperplasia": 0
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "gynecology-breast-cancer-risk",
+        "formula": "NCI Breast Cancer Risk Assessment Tool: относительный риск × возрастные базовые частоты SEER/NCHS с конкурирующей смертностью",
+        "outputs": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "kind": "number",
+            "display": "0.48",
+            "unit": "%",
+            "displayPrecision": 2
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "kind": "number",
+            "display": "4.31",
+            "unit": "%",
+            "displayPrecision": 2
+          }
+        ],
+        "warnings": [
+          {
+            "code": "bcrat-population",
+            "message": "Это справочная оценка по NCI BCRAT/Gail; она не заменяет онкогенетическую консультацию и индивидуальный план скрининга."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "gynecology-breast-cancer-risk-bcrat",
+            "gynecology-breast-cancer-risk-r-package-2-0"
+          ]
+        },
+        "trace": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "expression": "gailRisk(51, 5, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "expression": "gailRisk(51, 90, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "toolId": "gynecology-breast-cancer-risk",
+      "caseName": "Gail:age:89",
+      "inputs": {
+        "ageYears": 89,
+        "race": "white",
+        "biopsiesCategory": 0,
+        "menarcheCategory": 0,
+        "firstBirthCategory": 0,
+        "relativesCategory": 0,
+        "atypicalHyperplasia": 0
+      },
+      "visible": {
+        "ok": true,
+        "calculatorId": "gynecology-breast-cancer-risk",
+        "formula": "NCI Breast Cancer Risk Assessment Tool: относительный риск × возрастные базовые частоты SEER/NCHS с конкурирующей смертностью",
+        "outputs": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "kind": "number",
+            "display": "0.16",
+            "unit": "%",
+            "displayPrecision": 2
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "kind": "number",
+            "display": "0.16",
+            "unit": "%",
+            "displayPrecision": 2
+          }
+        ],
+        "warnings": [
+          {
+            "code": "bcrat-population",
+            "message": "Это справочная оценка по NCI BCRAT/Gail; она не заменяет онкогенетическую консультацию и индивидуальный план скрининга."
+          }
+        ],
+        "evaluation": {
+          "status": "unavailable",
+          "missingContext": [],
+          "reason": "Проверенный референсный диапазон не заявлен в текущей версии инструмента.",
+          "sourceIds": [
+            "gynecology-breast-cancer-risk-bcrat",
+            "gynecology-breast-cancer-risk-r-package-2-0"
+          ]
+        },
+        "trace": [
+          {
+            "id": "fiveYearRisk",
+            "label": "Риск инвазивного рака за 5 лет",
+            "expression": "gailRisk(89, 5, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          },
+          {
+            "id": "lifetimeRisk",
+            "label": "Риск до 90 лет",
+            "expression": "gailRisk(89, 90, \"white\", 0, 0, 0, 0, 0)",
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "toolId": "gynecology-breast-cancer-risk",
+      "caseName": "Gail:age:90",
+      "inputs": {
+        "ageYears": 90,
+        "race": "white",
+        "biopsiesCategory": 0,
+        "menarcheCategory": 0,
+        "firstBirthCategory": 0,
+        "relativesCategory": 0,
+        "atypicalHyperplasia": 0
+      },
+      "visible": {
+        "ok": false,
+        "error": "Возраст: значение больше допустимого максимума 89."
+      }
+    }
+  ]
+}

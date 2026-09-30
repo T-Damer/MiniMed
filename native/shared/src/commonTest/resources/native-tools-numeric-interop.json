@@ -1,0 +1,1068 @@
+{
+  "schemaVersion": 1,
+  "contract": "Exact default; only these measured implementation-approximated numeric leaves may differ within their maximum ULP. Categories, source thresholds, text, displays and assessments remain exact.",
+  "references": [
+    "https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-exponentiate",
+    "https://tc39.es/ecma262/multipage/overview.html#sec-hosts-and-implementations"
+  ],
+  "causes": [
+    "WHO fractional power may differ one primitive ULP; curve subtraction amplifies adjusted z-score to eight ULP.",
+    "Gail exponential hazard integration differs at most two ULP.",
+    "VBAC exponential logistic transform differs at most one ULP."
+  ],
+  "leaves": [
+    {
+      "id": "obstetric-vbac-antepartum",
+      "case": "sweep:indication:recurring",
+      "path": "result.outputs[0].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "obstetric-vbac-antepartum",
+      "case": "sweep:indication:recurring",
+      "path": "result.trace[6].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "obstetric-vbac-admission",
+      "case": "sweep:bmi:15",
+      "path": "result.outputs[0].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "obstetric-vbac-admission",
+      "case": "sweep:bmi:15",
+      "path": "result.trace[8].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "obstetric-vbac-admission",
+      "case": "sweep:anyPriorVaginal:yes",
+      "path": "result.outputs[0].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "obstetric-vbac-admission",
+      "case": "sweep:anyPriorVaginal:yes",
+      "path": "result.trace[8].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "obstetric-vbac-admission",
+      "case": "sweep:gaWeeks:34",
+      "path": "result.outputs[0].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "obstetric-vbac-admission",
+      "case": "sweep:gaWeeks:34",
+      "path": "result.trace[8].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "obstetric-vbac-admission",
+      "case": "sweep:dilation:10",
+      "path": "result.outputs[0].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "obstetric-vbac-admission",
+      "case": "sweep:dilation:10",
+      "path": "result.trace[8].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "baseline-required",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "baseline-required",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:ageYears:55",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:ageYears:55",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:race:white",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:race:white",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:race:other",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:race:other",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:biopsiesCategory:0",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:biopsiesCategory:0",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:biopsiesCategory:1",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:biopsiesCategory:1",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:biopsiesCategory:2",
+      "path": "result.outputs[1].value",
+      "maxUlp": 2
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:biopsiesCategory:2",
+      "path": "result.trace[1].value",
+      "maxUlp": 2
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:menarcheCategory:0",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:menarcheCategory:0",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:firstBirthCategory:0",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:firstBirthCategory:0",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:firstBirthCategory:2",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:firstBirthCategory:2",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:firstBirthCategory:3",
+      "path": "result.outputs[1].value",
+      "maxUlp": 2
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:firstBirthCategory:3",
+      "path": "result.trace[1].value",
+      "maxUlp": 2
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:relativesCategory:0",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:relativesCategory:0",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:relativesCategory:1",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:relativesCategory:1",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:atypicalHyperplasia:0",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:atypicalHyperplasia:0",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:atypicalHyperplasia:1",
+      "path": "result.outputs[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "gynecology-breast-cancer-risk",
+      "case": "sweep:atypicalHyperplasia:1",
+      "path": "result.trace[1].value",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[4].value",
+      "maxUlp": 4
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[0].data[14].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[0].data[25].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[0].data[29].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[0].data[31].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[0].data[39].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[0].data[47].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[0].data[58].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[1].data[1].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[1].data[37].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[1].data[45].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[1].data[54].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[1].data[56].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[1].data[57].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[3].data[31].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[4].data[9].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[4].data[10].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[4].data[12].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[4].data[19].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[11].chart.datasets[4].data[36].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[0].data[9].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[0].data[11].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[0].data[12].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[0].data[13].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[0].data[16].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[0].data[23].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[0].data[35].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[0].data[40].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[0].data[51].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[1].data[0].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[1].data[19].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[1].data[45].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[3].data[3].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[3].data[37].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[3].data[56].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[4].data[3].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[4].data[6].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[4].data[7].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[4].data[53].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.outputs[12].chart.datasets[4].data[60].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "all-min",
+      "path": "result.trace[7].value",
+      "maxUlp": 4
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[0].data[14].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[0].data[25].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[0].data[29].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[0].data[31].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[0].data[39].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[0].data[47].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[0].data[58].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[1].data[1].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[1].data[37].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[1].data[45].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[1].data[54].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[1].data[56].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[1].data[57].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[3].data[31].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[4].data[9].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[4].data[10].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[4].data[12].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[4].data[19].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:100",
+      "path": "result.outputs[3].chart.datasets[4].data[36].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[0].data[14].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[0].data[25].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[0].data[29].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[0].data[31].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[0].data[39].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[0].data[47].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[0].data[58].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[1].data[1].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[1].data[37].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[1].data[45].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[1].data[54].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[1].data[56].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[1].data[57].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[3].data[31].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[4].data[9].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[4].data[10].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[4].data[12].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[4].data[19].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:125050",
+      "path": "result.outputs[3].chart.datasets[4].data[36].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[0].data[14].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[0].data[25].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[0].data[29].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[0].data[31].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[0].data[39].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[0].data[47].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[0].data[58].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[1].data[1].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[1].data[37].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[1].data[45].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[1].data[54].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[1].data[56].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[1].data[57].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[3].data[31].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[4].data[9].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[4].data[10].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[4].data[12].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[4].data[19].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:weight_g:250000",
+      "path": "result.outputs[3].chart.datasets[4].data[36].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[1].value",
+      "maxUlp": 8
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[0].data[19].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[0].data[21].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[0].data[25].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[0].data[49].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[1].data[2].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[1].data[9].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[1].data[22].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[1].data[27].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[1].data[56].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[3].data[57].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.outputs[3].chart.datasets[4].data[22].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:5",
+      "path": "result.trace[2].value",
+      "maxUlp": 8
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[0].data[19].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[0].data[21].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[0].data[25].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[0].data[49].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[1].data[2].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[1].data[9].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[1].data[22].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[1].data[27].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[1].data[56].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[3].data[57].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:22.5",
+      "path": "result.outputs[3].chart.datasets[4].data[22].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[0].data[19].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[0].data[21].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[0].data[25].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[0].data[49].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[1].data[2].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[1].data[9].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[1].data[22].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[1].data[27].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[1].data[56].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[3].data[57].y",
+      "maxUlp": 1
+    },
+    {
+      "id": "minimed.calculator.pediatric-anthropometry-who",
+      "case": "sweep:arm_circumference_cm:40",
+      "path": "result.outputs[3].chart.datasets[4].data[22].y",
+      "maxUlp": 1
+    }
+  ],
+  "sourceModels": [
+    {
+      "path": "apps/app/src/features/calculators/who-growth-reference-data.ts",
+      "sha256": "18710ee6e4bde1e2bdcf22a6bd81ca163f0c9daa0d5ad10e9b8ce044c132bbde"
+    },
+    {
+      "path": "apps/app/src/features/calculators/aap-pediatric-bp-reference-data.ts",
+      "sha256": "c12d1862cc90f6491bd9832de4f87938ed9f52ed1ed52c665d04d39ee1cf981b"
+    },
+    {
+      "path": "apps/app/src/features/calculators/calculator-models.ts",
+      "sha256": "fd381e80f71cddf24b4f16bfedd19b9052dea674d119b9c8eb183dde79951e40"
+    }
+  ],
+  "oracleSha256": "8ecd536c43d5ee3312fbed8784b0c8ccbde5b67c0df89185a57c35a807f4fd84"
+}

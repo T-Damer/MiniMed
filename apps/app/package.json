@@ -5,9 +5,16 @@
   "exports": {
     "./e2e/*": "./e2e/*.ts",
     "./content/core-report": "./public/content/core-report.json",
+    "./state/item-collections": "./src/state/item-collections.ts",
+    "./state/patient-domain": "./src/state/patient-domain.ts",
     "./features/assessments/*": "./src/features/assessments/*.ts",
     "./features/calculators/*": "./src/features/calculators/*.ts",
     "./features/search/ScopedMedicalCore": "./src/features/search/ScopedMedicalCore.ts",
+    "./features/search/calculator-suggestion": "./src/features/search/calculator-suggestion.ts",
+    "./features/modules/module-catalog-shell": "./src/features/modules/module-catalog-shell.ts",
+    "./features/library/document-medication-links": "./src/features/library/document-medication-links.ts",
+    "./features/library/document-markdown-tables": "./src/features/library/document-markdown-tables.ts",
+    "./features/library/document-rich-block-data": "./src/features/library/document-rich-block-data.ts",
     "./features/network/mirrored-release-tags": "./src/features/network/mirrored-release-tags.ts"
   },
   "scripts": {

@@ -87,7 +87,9 @@
         "content/definition-drafts/**/*.json",
         "content/definition-gap-fills/*.json",
         "content/reference-authoring/*.json",
-        "tools/benchmarks/fixtures/definition-descriptions-*.json"
+        "tools/benchmarks/fixtures/definition-descriptions-*.json",
+        "native/shared/src/commonTest/resources/native-tool-discovery-golden.json",
+        "native/shared/src/commonTest/resources/native-tools-threshold-golden.json"
       ],
       "formatter": {
         "enabled": false

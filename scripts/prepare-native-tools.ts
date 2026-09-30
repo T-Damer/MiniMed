@@ -5,6 +5,7 @@ import {
   loadToolModuleRecords,
   TOOL_MODULE_FILES,
 } from '@localmed/app/features/calculators/tool-module-test-helpers';
+import { TOOL_CATALOG } from '@localmed/app/features/modules/module-catalog-shell';
 import { AssessmentDefinitionSchema, CalculatorSchemaSchema } from '@localmed/contracts';
 import ts from 'typescript';
 
@@ -76,6 +77,20 @@ async function table(path: string, name = 'TABLES') {
 
 const output = {
   schemaVersion: 1,
+  catalogOrder: [
+    ...new Set([
+      ...TOOL_CATALOG.map((record) => record.id).filter((id) =>
+        records.some((record) => record.id === id),
+      ),
+      ...records.map((record) => record.id),
+    ]),
+  ],
+  catalogSource: {
+    path: 'apps/app/src/features/modules/catalog.shell.json',
+    sha256: createHash('sha256')
+      .update(await readFile(resolve(root, 'apps/app/src/features/modules/catalog.shell.json')))
+      .digest('hex'),
+  },
   modules: await Promise.all(
     files.map(async (path) => {
       const bytes = await readFile(resolve(root, path));
