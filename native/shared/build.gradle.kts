@@ -66,16 +66,12 @@ kotlin {
                 api(compose.ui)
                 api(compose.components.resources)
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                // Parses `search-golden.json`/`rapidfuzz-parity.fixture.json` in the stage-2
-                // golden-parity tests (docs/CURRENT_STATE.md) — coordinator-approved for
-                // commonTest only, pinned to a release line compatible with the 2.2.10 Kotlin
-                // compiler plugin declared in the root build.gradle.kts.
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             }
         }
         // One `NativeSearchDatabase` actual shared by Android, desktop and iOS: androidx.sqlite's
@@ -89,7 +85,11 @@ kotlin {
                 implementation("androidx.sqlite:sqlite-bundled:2.6.2")
             }
         }
+        val jvmContentMain by creating {
+            dependsOn(commonMain)
+        }
         val androidMain by getting {
+            dependsOn(jvmContentMain)
             dependsOn(sqliteBundledMain)
             dependencies {
                 api("androidx.activity:activity-compose:1.11.0")
@@ -97,6 +97,7 @@ kotlin {
             }
         }
         val desktopMain by getting {
+            dependsOn(jvmContentMain)
             dependsOn(sqliteBundledMain)
         }
         val iosArm64Main by getting
@@ -164,12 +165,14 @@ tasks.matching { it.name == "iosSimulatorArm64Test" || it.name == "iosArm64Test"
     // Plain: covers a real-device iosArm64Test (no simctl involved) and any direct-run path.
     simulatorTest?.environment("TEST_RESOURCE_DIR", testResourceDir)
     simulatorTest?.environment("CORE_DB_PATH", coreDbPath)
+    simulatorTest?.environment("MINIMED_TEST_ARTIFACT_DIR", rootProject.projectDir.resolve("../playwright").absolutePath)
     // `xcrun simctl spawn` (what actually launches the test binary inside the Simulator) only
     // forwards host environment variables prefixed `SIMCTL_CHILD_` into the spawned process — a
     // plain var set on the host-side Gradle task never reaches the simulator's own process
     // environment. Set both so the same code works whichever path Kotlin/Native uses.
     simulatorTest?.environment("SIMCTL_CHILD_TEST_RESOURCE_DIR", testResourceDir)
     simulatorTest?.environment("SIMCTL_CHILD_CORE_DB_PATH", coreDbPath)
+    simulatorTest?.environment("SIMCTL_CHILD_MINIMED_TEST_ARTIFACT_DIR", rootProject.projectDir.resolve("../playwright").absolutePath)
 }
 
 
@@ -177,4 +180,26 @@ tasks.matching { it.name == "iosSimulatorArm64Test" || it.name == "iosArm64Test"
 tasks.withType<org.gradle.api.tasks.testing.AbstractTestTask>().configureEach {
     reports.junitXml.outputLocation.set(rootProject.layout.projectDirectory.dir("../playwright/native-test-results/$name"))
     reports.html.outputLocation.set(rootProject.layout.projectDirectory.dir("../playwright/native-test-reports/$name"))
+}
+
+// One generated catalog projection, prepared before resource discovery/packaging.
+val prepareNativeCatalog by tasks.registering(Exec::class) {
+    val repository = rootProject.projectDir.parentFile
+    workingDir(repository)
+    commandLine("bun", "scripts/prepare-native-catalog.ts")
+    setEnvironment(mapOf("HOME" to System.getProperty("user.home"), "PATH" to "/Users/d/.bun/bin:/Users/d/.local/bin:/opt/homebrew/bin:/usr/bin:/bin", "TMPDIR" to "/tmp", "LANG" to "en_US.UTF-8"))
+    inputs.files(repository.resolve("scripts/prepare-native-catalog.ts"), repository.resolve("native/catalog-gzip-transports.json"), repository.resolve("apps/app/src/features/modules/catalog.preview.json"))
+    outputs.file(projectDir.resolve("src/commonMain/composeResources/files/native-module-catalog.json"))
+}
+tasks.configureEach {
+    if (name == "generateComposeResClass" || name.startsWith("prepareComposeResourcesTaskFor") || name.startsWith("copyNonXmlValueResourcesFor") || name.startsWith("convertXmlValueResourcesFor")) dependsOn(prepareNativeCatalog)
+}
+
+// Runtime verification output is kept outside source/build caches.
+tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
+    val verification = rootProject.projectDir.parentFile.resolve("playwright/native-tests/$name")
+    systemProperty("NATIVE_SLICE_ROOT", rootProject.projectDir.parentFile.absolutePath)
+    reports.junitXml.outputLocation.set(verification.resolve("xml"))
+    reports.html.outputLocation.set(verification.resolve("html"))
+    binaryResultsDirectory.set(verification.resolve("binary"))
 }

@@ -1,5 +1,7 @@
 package dev.localmed.nativespike.shared.db
 
+import dev.localmed.nativespike.shared.core.NativeDocumentTarget
+import dev.localmed.nativespike.shared.core.NativeSourceDocument
 import dev.localmed.nativespike.shared.model.AliasRecord
 import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ChunkHit
@@ -22,6 +24,10 @@ expect class NativeSearchDatabase(dbFilePath: String) {
     fun open()
 
     fun close()
+
+    fun readSourceDocument(documentId: String, versionId: String? = null): NativeSourceDocument?
+
+    fun validateContent(schemaVersion: Int, targets: List<NativeDocumentTarget> = emptyList())
 
     /** FTS5 MATCH against `chunks_fts` joined with `documents`, ordered by bm25. */
     fun searchChunks(matchExpression: String, limit: Int): List<ChunkHit>

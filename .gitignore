@@ -4,6 +4,7 @@ dist/
 coverage/
 playwright-report/
 /playwright/
+/native/shared/src/commonMain/composeResources/files/native-module-catalog.json
 test-results/
 .playwright-cli/
 .playwright-mcp/

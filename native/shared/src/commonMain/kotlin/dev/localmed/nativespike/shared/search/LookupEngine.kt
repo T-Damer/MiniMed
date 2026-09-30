@@ -17,10 +17,14 @@ import dev.localmed.nativespike.shared.model.SearchResultGroup
 import dev.localmed.nativespike.shared.model.SearchResultItem
 import dev.localmed.nativespike.shared.model.SearchTiming
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.time.TimeSource
 
 private const val GROUP_LIMIT = 20
@@ -71,7 +75,7 @@ private const val ITEMS_PER_GROUP = 3
  * build's DB reads are entirely finished, so `search()` awaiting both before touching the database
  * itself can never overlap with this warm-up's own DB access either.
  */
-class LookupEngine(private val database: NativeSearchDatabase) {
+class LookupEngine(private val database: NativeSearchDatabase, private val databaseGate: Mutex = Mutex()) {
     private val engineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private class Vocabulary(
@@ -91,9 +95,9 @@ class LookupEngine(private val database: NativeSearchDatabase) {
     private val vocabularyDeferred = CompletableDeferred<Vocabulary>()
     private val documentIndexDeferred = CompletableDeferred<QueryDocumentIndex>()
 
-    init {
-        // One coroutine, strictly sequential DB access — see this class's crash-fix note above.
-        engineScope.launch {
+    private val warmup = engineScope.launch {
+        try {
+        databaseGate.withLock {
             val startedVocabulary = TimeSource.Monotonic.markNow()
             val aliases = filterQueryAliases(sortAliasesLikeMultiMedicalStore(database.listAliases()))
             val aliasExpander = createAliasExpander(aliases)
@@ -106,6 +110,16 @@ class LookupEngine(private val database: NativeSearchDatabase) {
             indexBuildMs = startedIndex.elapsedNow().inWholeMicroseconds / 1000.0
             documentIndexDeferred.complete(index)
         }
+        } catch (cause: Throwable) {
+            vocabularyDeferred.completeExceptionally(cause)
+            documentIndexDeferred.completeExceptionally(cause)
+            if (cause is CancellationException) throw cause
+        }
+    }
+
+    suspend fun close() {
+        warmup.cancelAndJoin()
+        engineScope.coroutineContext[ kotlinx.coroutines.Job ]?.cancelAndJoin()
     }
 
     /** Lets a caller (e.g. `MainActivity`, for cold-start logging) observe background-build
@@ -125,6 +139,7 @@ class LookupEngine(private val database: NativeSearchDatabase) {
         if (query.isBlank()) return null
         val vocabulary = vocabularyDeferred.await()
         val documentIndex = documentIndexDeferred.await()
+        return databaseGate.withLock {
         val started = TimeSource.Monotonic.markNow()
         val groups = runLookupPipelineGroups(
             query, vocabulary.aliases, database, documentIndex, GROUP_LIMIT,
@@ -149,6 +164,7 @@ class LookupEngine(private val database: NativeSearchDatabase) {
                 },
             )
         }
-        return SearchOutcome(groups = uiGroups, timing = SearchTiming(sqlOnlyMs = totalMs, totalMs = totalMs))
+        SearchOutcome(groups = uiGroups, timing = SearchTiming(sqlOnlyMs = totalMs, totalMs = totalMs))
+        }
     }
 }

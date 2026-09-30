@@ -1,10 +1,10 @@
 # Current state
 
 > Updated: 30 September 2026
-> Released version: `0.6.44` (public prerelease toward `1.0`)
-> Next planned step: finish the pending WebView features and ship the last WebView release; the
-> native port (`native/`, Kotlin + Compose) is kept and resumes after that release (user decision,
-> 2026-09-29).
+> Released version: `0.6.45` (public prerelease toward `1.0`)
+> Next planned step: continue the native port (`native/`, Kotlin + Compose) after the published
+> last WebView release (user decision, 2026-09-29). Physical Android qualification remains pending
+> because the connected device rejected installation through USB.
 
 This file records what exists now, its trust boundaries and the ordered next work. Keep it short:
 append dated measurements to `docs/state/` or `docs/research/`, and link them from here. The target
@@ -19,7 +19,15 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
-## Unreleased — toward the last WebView release
+## Release 0.6.45 — 2026-09-30
+
+- **Published application and corpus.** The signed Android APK, core `13f238f…`, and RLS MKB
+  2026.9.30 are published. GitHub CI and Android release checks pass; APK certificate and SHA-256
+  match the declared prerelease identity. The published Pages app downloads its actual core and
+  returns four source groups for the public pneumonia lookup. On Xiaomi 14, Android rejected
+  `adb install --user 0 -r` with `INSTALL_FAILED_USER_RESTRICTED`; no physical runtime pass is
+  claimed and existing user data was not cleared. The native product port continues; its current
+  lookup spike is not a complete replacement for the WebView application.
 
 - **Core rebuild qualification.** Audited medication aliases, exact definition/document identities,
   RLS packaging links and light/dark contrast fixes are implemented. The no-pilot rebuild failed
@@ -30,7 +38,7 @@ Detailed history, moved verbatim on 2026-09-24:
   existing registration schema; targets, anchors and thresholds are unchanged. Native lookup agrees
   on the released core's golden queries. Age-qualified lookup preserves doctor-lookup R@5/MRR@5
   0.70/0.60 by keeping explicitly opposite source populations behind matching or general sources;
-  clinical ranking is unchanged. The paired application release is next. See the continuation record below.
+  clinical ranking is unchanged. The paired application release is published. See the continuation record below.
 - **Continued Claude's UI/data queue.** S2 paper sheets are retained; cancelled drags spring
   back, reopening clears drag state, and only the topmost dialog handles Escape/Tab. S3 result
   cards show one compact excerpt and disclose the others with the shared `Disclosure` animation;
@@ -75,6 +83,28 @@ Detailed history, moved verbatim on 2026-09-24:
   documents out of the window. Released core: doctor-lookup, lookup-quality, runtime and
   real-corpus unchanged, p50 latency 161 → 140 ms. Candidate core: doctor-lookup R@5 0.60 → 0.70
   ([research](research/search-kr-pointers-vs-mkb-2026-09.md)).
+
+## Native application port — 2026-09-30
+
+- The first product slice owns actual private content storage, consent/download/verification,
+  lookup, the 782-module inventory, exact module membership and original-document reading.
+  Android and Desktop use the same UI-independent core and bundled SQLite adapter; iOS has a
+  real Foundation/CoreCrypto/zlib adapter and Swift host. No WebView or hosted backend is involved.
+- Desktop qualification passes 60 tests, including unchanged 151-query lookup and 206 SQL-branch
+  parity. Actual published core download matches `13f238f…`; the immutable 401,408-byte regulatory
+  module matches `61b82c9…`. Installation, visible offline failure/retry, original reading,
+  historical status, down/up reader chrome and exact reading/search positions across offline
+  process restart were exercised. The Android 36 emulator downloaded the same core and performed
+  real native lookup. A physical device pass is still pending.
+- Device/simulator iOS Kotlin and simulator test sources compile; the device framework and actual
+  Swift host link. Full Xcode application packaging and runtime tests remain blocked by the absent
+  iOS simulator runtime. No simulator or physical iOS runtime pass is claimed.
+- Next: exact source identities and current-edition definition cards/readers, searchable inventory,
+  then remaining search-mode and application-feature parity. The current reader preserves original
+  markup verbatim; rich tables/media/PDF, clinical scopes, assessments and personal features are
+  still subsequent work. Production Android identity and existing personal data must be preserved
+  by a qualified migration before replacing the released app.
+- Qualification and concrete limits: [state/native-first-slice-2026-09-30.md](state/native-first-slice-2026-09-30.md).
 
 ## Definition reference data — edition 2026.9.30 (published 2026-09-28)
 
@@ -646,6 +676,10 @@ released), the native Android transcriber, and the Android high-refresh display 
 
 ## Ordered next work toward 1.0
 
+User decision, 2026-09-29/30: after publishing the last WebView release, finish the native
+application port first. The qualified first slice and its next dependencies are recorded above;
+the content and 1.0 qualification queue below remains open. Completed identity-index/core and
+RLS packaging-link work is recorded in release 0.6.45 rather than kept as a future task.
 
 The private, resumable `krasotaimedicina.ru` discovery crawl uses Crawlee Python with a persistent
 request queue, robots enforcement, bounded same-host paths, raw HTML/image checksums, and per-page
@@ -665,7 +699,7 @@ described above.
    IDs/hierarchy, synonyms, eponyms, abbreviations, sourced concept explanations, and exact
    source-mention links from instructions to local concept cards. Do not create a second glossary
    database or treat an RLS MKB medicine mention as dosing/treatment authority.
-2. Verify the 0.6.10 prerelease on a physical Android device, including system-bar insets, native Back,
+2. Verify the published 0.6.45 prerelease and native replacement on a physical Android device, including system-bar insets, native Back,
    locally scheduled
    notifications, note-image persistence, and the published Pages `/app/`.
 3. Build and qualify the missing dose/indication corpus from source-backed rules, including
@@ -696,11 +730,6 @@ described above.
    physical device.
 10. Medical news and research feed (ADR-0020, proposed; plan only): research sources, rate limits,
     CORS and Russian journal OAI-PMH/RSS coverage before choosing a first slice.
-11. Link RLS medication profiles (`packagingDocumentId`) to their packaging document; the app does
-    not yet show `medication_profiles` knowledge entities anywhere.
-12. Core rebuild with medicine aliases (1,678 mapped trade names) and a non-FTS identity table for
-    terms, scales and acts (`research/core-coverage-2026-09-28.md`), after the candidate core
-    passes the doctor-lookup gate.
 
 A portable Rust `MedicalCore` and stable JSON CLI are recorded as a `1.1` idea, not a 1.0 release gate.
 No cross-language runtime migration should start before shared golden fixtures demonstrate parity.

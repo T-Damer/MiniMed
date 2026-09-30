@@ -1,122 +1,143 @@
 package dev.localmed.nativespike.shared.ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.localmed.nativespike.shared.db.NativeSearchDatabase
-import dev.localmed.nativespike.shared.model.ReaderChunk
-import dev.localmed.nativespike.shared.model.SectionRow
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import dev.localmed.nativespike.shared.core.NativeReaderSnapshot
+import dev.localmed.nativespike.shared.core.NativeSourceDocument
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 
-/** Flattened reader row: a section header followed by its paragraph chunks, in document order —
- * this is what actually scrolls, so a "long document" fling test measures this list. */
-private sealed interface ReaderRow {
-    data class Header(val section: SectionRow) : ReaderRow
-    data class Paragraph(val chunk: ReaderChunk) : ReaderRow
-}
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReaderScreen(
-    database: NativeSearchDatabase,
-    documentId: String,
-    documentTitle: String,
-    initialSectionAnchor: String?,
+    document: NativeSourceDocument,
+    snapshot: NativeReaderSnapshot,
+    onSavePosition: suspend (NativeReaderSnapshot) -> Unit,
+    error: String? = null,
+    saveFailed: Boolean = false,
     onBack: () -> Unit,
-    // Hoistable so a debug bench harness can drive a programmatic scroll (LazyListState.scrollBy)
-    // without touch-input injection — see native/androidApp's BenchScreen.kt. Normal callers don't
-    // pass this and get an internally-remembered state exactly as before.
-    listState: LazyListState = rememberLazyListState(),
 ) {
-    var rows by remember(documentId) { mutableStateOf<List<ReaderRow>>(emptyList()) }
-
-    LaunchedEffect(documentId) {
-        val loaded = withContext(Dispatchers.Default) {
-            val sections = database.sectionsForDocument(documentId)
-            sections.flatMap { section ->
-                listOf(ReaderRow.Header(section)) +
-                    database.chunksForSection(section.id).map { ReaderRow.Paragraph(it) }
+    val rows = remember(document) { nativeReaderRows(document) }
+    val listState = rememberLazyListState()
+    var positioned by remember(document.target) { mutableStateOf(false) }
+    var controlsVisible by remember(document.target) { mutableStateOf(true) }
+    var saveAttempt by remember(document.target) { mutableStateOf(0) }
+    val chromeScroll = remember(document.target) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                // Layout changes caused by hiding the header are not user scrolls.
+                if (source == NestedScrollSource.UserInput && available.y != 0f) {
+                    controlsVisible = available.y > 0f
+                }
+                return Offset.Zero
             }
-        }
-        rows = loaded
-        val targetIndex = initialSectionAnchor?.let { anchor ->
-            loaded.indexOfFirst { it is ReaderRow.Header && it.section.anchor == anchor }
-        }
-        if (targetIndex != null && targetIndex >= 0) {
-            listState.scrollToItem(targetIndex)
         }
     }
 
-    // Web reader typography (apps/app/src/styles/global.css `.document-text__paragraph`): serif,
-    // ~16-19px, line-height 1.72 — a generous "book page" measure, not compact UI text.
+    LaunchedEffect(document.target) {
+        listState.scrollToItem(nativeReaderStartIndex(rows, snapshot), snapshot.offsetPx.coerceAtLeast(0))
+        positioned = true
+    }
+    LaunchedEffect(document.target, positioned, saveAttempt) {
+        if (!positioned) return@LaunchedEffect
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .distinctUntilChanged().collectLatest { (index, offset) ->
+                delay(120)
+                val row = rows.getOrNull(index)
+                val chunk = (row as? NativeReaderRow.Source)?.chunk
+                    ?: rows.drop(index).firstNotNullOfOrNull { (it as? NativeReaderRow.Source)?.chunk }
+                onSavePosition(NativeReaderSnapshot(snapshot.target, chunk?.id, if (row is NativeReaderRow.Source) offset else 0))
+            }
+    }
+
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface, // --theme-surface, matches the reader's paper background
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             Surface(color = MaterialTheme.colorScheme.surface) {
-                Row(Modifier.fillMaxWidth().padding(8.dp)) {
-                    IconButton(onClick = onBack) {
-                        Text("←", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Column(Modifier.fillMaxWidth()) {
+                    // Opaque paper paints behind the status bar even while controls are hidden.
+                    Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+                    if (controlsVisible || error != null) Row(Modifier.fillMaxWidth().padding(8.dp)) {
+                        IconButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = "Назад" }) {
+                            Text("←", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                        }
+                        Column(Modifier.weight(1f).padding(start = 8.dp, top = 8.dp)) {
+                            Text(document.title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
+                            Text(document.versionLabel, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            val dates = listOfNotNull(document.effectiveFrom, document.effectiveTo).joinToString(" — ")
+                            if (dates.isNotBlank()) Text(dates, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (document.status != "active") Text("Статус источника: ${nativeCatalogStatus(document.status)}",
+                                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            error?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) }
+                            if (saveFailed) TextButton(onClick = { saveAttempt += 1 }) { Text("Повторить сохранение") }
+                        }
                     }
-                    Text(
-                        documentTitle,
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(start = 8.dp, top = 12.dp),
-                    )
                 }
             }
         },
     ) { padding ->
-        ReaderList(rows = rows, listState = listState, modifier = Modifier.fillMaxSize().padding(padding))
-    }
-}
-
-@Composable
-private fun ReaderList(rows: List<ReaderRow>, listState: LazyListState, modifier: Modifier = Modifier) {
-    LazyColumn(
-        modifier = modifier.background(MaterialTheme.colorScheme.surface),
-        state = listState,
-        contentPadding = PaddingValues(bottom = 24.dp),
-    ) {
-        items(rows) { row ->
-            when (row) {
-                is ReaderRow.Header -> Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 18.dp, bottom = 10.dp)) {
-                    Text(
-                        row.section.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    HorizontalDivider(Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.outline)
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize().nestedScroll(chromeScroll).background(MaterialTheme.colorScheme.surface).padding(padding),
+            contentPadding = PaddingValues(bottom = 24.dp)) {
+            for (row in rows) when (row) {
+                is NativeReaderRow.Header -> stickyHeader(key = row.key) {
+                    Surface(color = MaterialTheme.colorScheme.surface) {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)) {
+                            Text(row.section.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                            HorizontalDivider(Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.outline)
+                        }
+                    }
                 }
-                is ReaderRow.Paragraph -> Text(
-                    row.chunk.text,
-                    style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 27.sp),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 7.dp),
-                )
+                is NativeReaderRow.Source -> item(key = row.key) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 7.dp)) {
+                        // Preserve all source characters, including tables and unsupported markup.
+                        SelectionContainer {
+                            Text(row.chunk.originalText, style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 27.sp),
+                                color = MaterialTheme.colorScheme.onSurface)
+                        }
+                        row.chunk.pageStart?.let { page ->
+                            val end = row.chunk.pageEnd
+                            Text(if (end != null && end != page) "Страницы $page–$end" else "Страница $page",
+                                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
             }
         }
     }

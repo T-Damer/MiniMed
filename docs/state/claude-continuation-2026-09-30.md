@@ -59,9 +59,12 @@ document-version/source-checksum set matches SQLite. Integrity is `ok`, with no 
   whitespace normalization. The source documents remain intact.
 - Global classification labels now retain their source provenance instead of becoming an article's
   own clinical synonyms. This changes the corpus-derived discovery dataset composition; the
-  final sample has 1 083 strict identities and 417 discovery cases. Strict Top-1 and identity
-  recall are 1.00; discovery alias recall is 0.947. Fixed benchmark targets and thresholds remain
-  unchanged.
+  qualified sample has 1 469 strict identities and 31 discovery cases among 1 500 queries over
+  29 366 eligible surfaces. Strict Top-1, strict identity recall and discovery alias recall are
+  1.00; body-only intrusion is 0.00333 overall (0 for strict identities, 0.16129 for discovery).
+  These corpus-derived populations differ from the earlier candidate, so their scores are not a
+  fixed-dataset before/after comparison. Fixed clinical benchmark targets and thresholds remain
+  unchanged. Evidence: `playwright/lookup-qualified-core-report.json`.
 - All 31 508 identity targets have verified catalog membership; the 20 document targets resolve
   to their exact local version, raw checksum and anchor. The definition database's decoded SHA
   matches its advertised zstd index. A gzip download needs its own verified artifact descriptor;
@@ -91,12 +94,19 @@ qualification or a claim that the native application port is complete.
 2. Release gates pass: 7 183 TypeScript and 875 Python tests, lint/type checks/builds, the fixed
    85-query clinical gate, seven exact-source/packaging browser scenarios and both-theme contrast.
    Native has 38 desktop tests and strict parity over 151 queries, 2 905 groups, 6 156 passages and
-   206 SQL branches; Android/Wasm/iOS compile. The paired signed APK and physical Android check remain.
+   206 SQL branches; Android/Wasm/iOS compile. The paired signed APK is published as `v0.6.45`;
+   GitHub CI and Android release workflows pass. Its SHA-256 is
+   `7b29a49b033bb63221680ee823db24ea97f0d6c4a2fe2111e0129be97daa9430`, and its signing certificate
+   matches the declared prerelease identity. The live Pages app loads the published core and
+   returns four source groups for the public pneumonia lookup. The connected Xiaomi rejected
+   installation with `INSTALL_FAILED_USER_RESTRICTED`; physical Android qualification remains
+   pending, without clearing data or bypassing device policy.
 3. The source alias «Гастроэнтерит» → `K29.5` remains in the source review queue: it occurs verbatim in the RLS alias input
    and its reference-pointer projection. The ranking fix removes unrelated qualifier-only hits;
    it does not correct that source assertion or approve it as a clinical identity. Preserve the
    raw source and its provenance during review.
-4. Complete the last WebView release and physical Android checks, then resume `native/`.
+4. The last WebView release is published; resume `native/` and complete physical Android checks
+   when the device permits installation.
    Lookup rules and golden fixtures are aligned with the qualified release core. The existing
    native spike is retained; it is not a completed application port.
 

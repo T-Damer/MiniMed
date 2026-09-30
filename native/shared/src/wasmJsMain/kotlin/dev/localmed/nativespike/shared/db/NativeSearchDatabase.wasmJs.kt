@@ -1,5 +1,7 @@
 package dev.localmed.nativespike.shared.db
 
+import dev.localmed.nativespike.shared.core.NativeDocumentTarget
+import dev.localmed.nativespike.shared.core.NativeSourceDocument
 import dev.localmed.nativespike.shared.model.AliasRecord
 import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ChunkHit
@@ -29,6 +31,10 @@ actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
     actual fun open() {
         // Nothing to open — see the class-level warning above.
     }
+
+    actual fun readSourceDocument(documentId: String, versionId: String?): NativeSourceDocument? = error("Native content storage is unavailable on Wasm")
+
+    actual fun validateContent(schemaVersion: Int, targets: List<NativeDocumentTarget>): Unit = error("Native content storage is unavailable on Wasm")
 
     actual fun close() {
         // Nothing to close.

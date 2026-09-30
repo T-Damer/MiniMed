@@ -1,5 +1,6 @@
 package dev.localmed.nativespike.app
 
+import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -8,187 +9,117 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import dev.localmed.nativespike.shared.db.NativeSearchDatabase
-import dev.localmed.nativespike.shared.search.LookupEngine
+import androidx.core.view.WindowCompat
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider
+import dev.localmed.nativespike.shared.content.JVMContentIO
+import dev.localmed.nativespike.shared.content.bundledNativeCatalog
+import dev.localmed.nativespike.shared.core.NativeMedicalCore
+import dev.localmed.nativespike.shared.ui.NativeCoreSession
+import dev.localmed.nativespike.shared.ui.NativeCoreSessionState
+import dev.localmed.nativespike.shared.ui.NativeCoreStartup
 import dev.localmed.nativespike.shared.ui.NativeSearchSpikeApp
-import dev.localmed.nativespike.shared.ui.NativeSpikeTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import dev.localmed.nativespike.shared.ui.NativeUiOperation
 import java.io.File
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
-/**
- * Debug measurement backdoor, spike-only: HyperOS blocks `adb shell input` outright on the
- * physical Xiaomi 14 (INJECT_EVENTS denied), and even on a plain emulator `adb shell input text`
- * cannot type Cyrillic (InputShellCommand.sendText throws — no KeyCharacterMap entries for
- * Cyrillic on a stock US layout). The exact WebView-side equivalent (also not real typing) is
- * driving the DOM search input via Chrome DevTools Protocol — see
- * docs/research/native-vs-webview-2026-09-28.md. Trigger from the host:
- *   adb shell am broadcast -a dev.localmed.nativespike.BENCH_QUERY --es query "<text>"
- * `RECEIVER_EXPORTED` only because `adb shell am broadcast` runs as the shell UID, external to
- * the app — acceptable for a local, non-published measurement spike; never appropriate for a
- * shipped app.
- */
 private const val BENCH_QUERY_ACTION = "dev.localmed.nativespike.BENCH_QUERY"
 private const val BENCH_LOG_TAG = "MiniMedNativeSpikeBench"
 
-/** Local "core opened, first query possible" readiness log, comparable to the web app's
- * `performance.mark('minimed:search-ready')` (apps/app/src/app/use-app-session.ts). Grep logcat
- * for this tag during cold-start measurement. */
-private const val LOG_TAG = "MiniMedNativeSpike"
+/** One private prototype session survives rotation; production WebView data is never opened. */
+class NativeSessionOwner(application: Application) : AndroidViewModel(application) {
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val io = JVMContentIO(File(application.filesDir, "minimed-native").absolutePath)
+    val session = NativeCoreSession(io, { bundledNativeCatalog() }, scope)
 
-private sealed interface CoreState {
-    data object Loading : CoreState
-    data class Ready(val database: NativeSearchDatabase, val engine: LookupEngine) : CoreState
-    data class Failed(val message: String) : CoreState
+    init { if (NativeMedicalCore.hasCachedCore(io)) session.retry() }
+
+    override fun onCleared() {
+        scope.launch(NonCancellable) {
+            try { session.close() } finally { scope.cancel() }
+        }
+    }
 }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val activityStartedAtMs = SystemClock.elapsedRealtime()
-
+        enableEdgeToEdge()
+        val owner = ViewModelProvider(this)[NativeSessionOwner::class.java]
+        val startedAtMs = SystemClock.elapsedRealtime()
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val core = (owner.session.state.value as? NativeCoreSessionState.Ready)?.core
+                if (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null)) owner.scope.launch { owner.session.uiErrors.execute(NativeUiOperation.Navigation, "Не удалось сохранить переход. Повторите действие.") { core.back() } }
+                else moveTaskToBack(true)
+            }
+        })
         setContent {
-            NativeSpikeTheme {
-                var state by remember { mutableStateOf<CoreState>(CoreState.Loading) }
-                var benchQuery by remember { mutableStateOf<String?>(null) }
-
-                DisposableEffect(Unit) {
-                    val receiver = object : BroadcastReceiver() {
-                        override fun onReceive(context: Context, intent: Intent) {
-                            benchQuery = intent.getStringExtra("query")
-                        }
-                    }
-                    ContextCompat.registerReceiver(
-                        this@MainActivity,
-                        receiver,
-                        IntentFilter(BENCH_QUERY_ACTION),
-                        ContextCompat.RECEIVER_EXPORTED,
-                    )
-                    onDispose { unregisterReceiver(receiver) }
-                }
-
-                LaunchedEffect(Unit) {
-                    val dbFile = File(filesDir, "core.db")
-                    if (!dbFile.exists()) {
-                        state = CoreState.Failed(
-                            "core.db не найден в ${dbFile.absolutePath}.\n" +
-                                "adb push apps/app/public/content/core.db /data/local/tmp/core.db\n" +
-                                "adb shell run-as dev.localmed.nativespike.debug cp " +
-                                "/data/local/tmp/core.db /data/data/dev.localmed.nativespike.debug/files/core.db",
-                        )
-                        return@LaunchedEffect
-                    }
-                    try {
-                        val database = withContext(Dispatchers.IO) {
-                            NativeSearchDatabase(dbFile.absolutePath).apply { open() }
-                        }
-                        val dbOpenAfterMs = SystemClock.elapsedRealtime() - activityStartedAtMs
-                        // Optimization pass (docs/research/native-vs-webview-2026-09-28.md):
-                        // `LookupEngine`'s constructor no longer blocks on building its alias/
-                        // medication-spelling vocabulary or `QueryDocumentIndex` — both now build in
-                        // the background (see LookupEngine.kt's header for why, and how this compares
-                        // to the real TS pipeline's own lazy-on-first-query behavior). "search-ready"
-                        // now only reflects dbOpenMs + this cheap constructor call, not either
-                        // background build.
-                        val engine = withContext(Dispatchers.IO) { LookupEngine(database) }
-                        val readyAfterMs = SystemClock.elapsedRealtime() - activityStartedAtMs
-                        Log.i(LOG_TAG, "search-ready tookMs=$readyAfterMs dbOpenMs=$dbOpenAfterMs")
-                        state = CoreState.Ready(database, engine)
-                        // Fire-and-forget: log each background build's own completion time
-                        // separately, once it finishes, so neither "search-ready" above nor any
-                        // single query's own latency silently absorbs this real, one-time cost.
-                        launch(Dispatchers.Default) {
-                            engine.awaitReady()
-                            val readyForRealMs = SystemClock.elapsedRealtime() - activityStartedAtMs
-                            Log.i(
-                                LOG_TAG,
-                                "background-index-ready tookMs=$readyForRealMs " +
-                                    "vocabularyBuildMs=${engine.vocabularyBuildMs} " +
-                                    "indexBuildMs=${engine.indexBuildMs}",
-                            )
-                        }
-                    } catch (cause: Exception) {
-                        Log.e(LOG_TAG, "core.db open failed", cause)
-                        state = CoreState.Failed(cause.message ?: "Не удалось открыть core.db")
+            val state by owner.session.state.collectAsState()
+            val readyCore = (state as? NativeCoreSessionState.Ready)?.core
+            val navigation = if (readyCore != null) readyCore.navigation.collectAsState().value else null
+            val paperRoute = readyCore == null || navigation?.readers?.isNotEmpty() == true || navigation?.catalog != null
+            val darkSystem = isSystemInDarkTheme()
+            SideEffect {
+                val controller = WindowCompat.getInsetsController(window, window.decorView)
+                // Search uses the grey background in both themes; opaque paper is light only in light mode.
+                controller.isAppearanceLightStatusBars = paperRoute && !darkSystem
+                controller.isAppearanceLightNavigationBars = paperRoute && !darkSystem
+            }
+            var benchQuery by remember { mutableStateOf<String?>(null) }
+            // Exported query injection and timing hooks exist only in the debug measurement build.
+            if (BuildConfig.DEBUG) DisposableEffect(Unit) {
+                val receiver = object : BroadcastReceiver() {
+                    override fun onReceive(context: Context, intent: Intent) {
+                        benchQuery = intent.getStringExtra("query")
                     }
                 }
-
-                // reportFullyDrawn() gives `adb shell am start -W` a second, later timestamp
-                // beyond the first-frame "Displayed" line — the closest native equivalent of the
-                // web app's explicit search-ready performance mark.
-                LaunchedEffect(state) {
-                    if (state is CoreState.Ready || state is CoreState.Failed) {
-                        reportFullyDrawn()
+                ContextCompat.registerReceiver(this@MainActivity, receiver, IntentFilter(BENCH_QUERY_ACTION), ContextCompat.RECEIVER_EXPORTED)
+                onDispose { unregisterReceiver(receiver) }
+            }
+            LaunchedEffect(state) {
+                if (state is NativeCoreSessionState.Ready) {
+                    reportFullyDrawn()
+                    if (BuildConfig.DEBUG) {
+                        val core = (state as NativeCoreSessionState.Ready).core
+                        Log.i("MiniMedNativeSpike", "search-ready tookMs=${SystemClock.elapsedRealtime() - startedAtMs}")
+                        core.awaitReady()
+                        Log.i("MiniMedNativeSpike", "background-index-ready vocabularyBuildMs=${core.vocabularyBuildMs} indexBuildMs=${core.indexBuildMs}")
                     }
-                }
-
-                when (val current = state) {
-                    is CoreState.Loading -> LoadingScreen()
-                    is CoreState.Ready -> NativeSearchSpikeApp(
-                        database = current.database,
-                        engine = current.engine,
-                        externalQuery = benchQuery,
-                        onOutcome = { query, outcome, tookMs, stages ->
-                            // Optimization-pass stage-timing table: stages is a per-stage-name sum
-                            // across all branches for this one query (see PipelineTiming.kt) —
-                            // parsed by the bench harness into docs/research's before/after table.
-                            val stagesStr = stages.entries.joinToString(" ") { (name, ms) -> "$name=$ms" }
-                            Log.i(
-                                BENCH_LOG_TAG,
-                                "query=\"$query\" sqlMs=${outcome?.timing?.sqlOnlyMs} " +
-                                    "searchFnMs=${outcome?.timing?.totalMs} totalToFrameMs=$tookMs " +
-                                    "resultGroups=${outcome?.groups?.size ?: 0} stages=[$stagesStr]",
-                            )
-                        },
-                    )
-                    is CoreState.Failed -> ErrorScreen(current.message)
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun LoadingScreen() {
-    Surface(Modifier.fillMaxSize()) {
-        Column(
-            Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            CircularProgressIndicator()
-            Text("Открываю core.db…", modifier = Modifier.padding(top = 16.dp))
-        }
-    }
-}
-
-@Composable
-private fun ErrorScreen(message: String) {
-    Surface(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center) {
-            Text("Ошибка", style = MaterialTheme.typography.titleLarge)
-            Text(message, modifier = Modifier.padding(top = 12.dp))
+            when (val current = state) {
+                is NativeCoreSessionState.Opening -> NativeCoreStartup(current.progress, null, owner.session::retry)
+                is NativeCoreSessionState.Failed -> NativeCoreStartup(null, current.message, owner.session::retry)
+                is NativeCoreSessionState.Ready -> NativeSearchSpikeApp(
+                    core = current.core,
+                    actionScope = owner.scope,
+                    uiErrors = owner.session.uiErrors,
+                    externalQuery = if (BuildConfig.DEBUG) benchQuery else null,
+                    onOutcome = if (BuildConfig.DEBUG) { _, outcome, tookMs, stages ->
+                        val timings = stages.entries.joinToString(" ") { (name, ms) -> "$name=$ms" }
+                        Log.i(BENCH_LOG_TAG, "sqlMs=${outcome?.timing?.sqlOnlyMs} searchFnMs=${outcome?.timing?.totalMs} totalToFrameMs=$tookMs resultGroups=${outcome?.groups?.size ?: 0} stages=[$timings]")
+                    } else null,
+                )
+            }
         }
     }
 }

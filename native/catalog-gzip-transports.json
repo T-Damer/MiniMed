@@ -1,0 +1,62 @@
+[
+  {
+    "moduleId": "minimed.definition.reference.ru",
+    "moduleVersion": "2026.9.30",
+    "indexArtifactId": "reference-index",
+    "sourceSetDigest": "sha256:329cafda3028e99fb652d44b9744b0e03b3e669af2500949ef1354c247de4916",
+    "transport": {
+      "url": "https://github.com/T-Damer/MiniMed/releases/download/definition-reference-2026.9.30/minimed.definition.reference.2026.9.30.db.gz",
+      "sha256": "sha256:320561625c649ba2762e6f51a2bc074c9f11ebc2deb1f3ec676ba62aa6410f34",
+      "sizeBytes": 42173697,
+      "compression": "gzip",
+      "decodedSha256": "sha256:f3d5c759ce8c4133640ae2656dfcee2c928a126685b3451a1aa5560db94b378d",
+      "decodedSizeBytes": 192323584,
+      "sourceSetDigest": "sha256:329cafda3028e99fb652d44b9744b0e03b3e669af2500949ef1354c247de4916"
+    }
+  },
+  {
+    "moduleId": "minimed.reference.krasotaimedicina.ru",
+    "moduleVersion": "2026.9.28",
+    "indexArtifactId": "minimed.reference.krasotaimedicina.ru-index-2026.9.28",
+    "sourceSetDigest": "sha256:a74446ff9188de92e475b9d0d06dae2c78a65c0af7a7d1063c75fa8e8044be7f",
+    "transport": {
+      "url": "https://github.com/T-Damer/MiniMed/releases/download/reference-krasotaimedicina-2026.9.28/minimed.reference.krasotaimedicina.2026.9.28.db.gz",
+      "sha256": "sha256:9456c2fd097ab3da0ec34f34a4a5d8d5a10569b0383bd77ac7d9644c3e5cc1b7",
+      "sizeBytes": 142650749,
+      "compression": "gzip",
+      "decodedSha256": "sha256:6694020e238251bd4ec6d530f7b5f045ef028a86ec3a381553d635077cd3206c",
+      "decodedSizeBytes": 629829632,
+      "sourceSetDigest": "sha256:a74446ff9188de92e475b9d0d06dae2c78a65c0af7a7d1063c75fa8e8044be7f"
+    }
+  },
+  {
+    "moduleId": "minimed.mkb.ru",
+    "moduleVersion": "2026.9.30",
+    "indexArtifactId": "minimed.mkb.ru-index-2026.9.30",
+    "sourceSetDigest": "sha256:4df821fff8955d8dac6150065f08b6e66f60af852f1597504de6b00470f00505",
+    "transport": {
+      "url": "https://github.com/T-Damer/MiniMed/releases/download/reference-rls-mkb-2026.9.30/minimed.reference.rls-mkb.2026.9.30.db.gz",
+      "sha256": "sha256:cd547cb6f32424ebf8babd755673b3b25c042e9c44f7246165c4c15b067b390f",
+      "sizeBytes": 55197321,
+      "compression": "gzip",
+      "decodedSha256": "sha256:019265e7f3e6e13b5527b1d8e346978692f67b76dae0d9ad56ee85382fc3a87f",
+      "decodedSizeBytes": 306647040,
+      "sourceSetDigest": "sha256:4df821fff8955d8dac6150065f08b6e66f60af852f1597504de6b00470f00505"
+    }
+  },
+  {
+    "moduleId": "minimed.rls.packaging.ru",
+    "moduleVersion": "2026.9.28",
+    "indexArtifactId": "minimed.rls.packaging.ru-index-2026.9.28",
+    "sourceSetDigest": "sha256:2f3f7a77562e97ae5d501b89ec1394fb82abe2817998485646896c0f38526610",
+    "transport": {
+      "url": "https://github.com/T-Damer/MiniMed/releases/download/reference-rls-mkb-2026.9.28/minimed.reference.rls-packaging.2026.9.28.db.gz",
+      "sha256": "sha256:536db9206634523c4dc8bf32e891d6f20d6fb50dd551c7160c81e0d51678f1b4",
+      "sizeBytes": 29206386,
+      "compression": "gzip",
+      "decodedSha256": "sha256:a2ad02edc50adae1b0c57b67e62b0a2d6aefa6fda30d26e3b71d972fab3e7dfb",
+      "decodedSizeBytes": 221089792,
+      "sourceSetDigest": "sha256:2f3f7a77562e97ae5d501b89ec1394fb82abe2817998485646896c0f38526610"
+    }
+  }
+]

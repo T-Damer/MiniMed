@@ -11,20 +11,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -34,14 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.localmed.nativespike.shared.model.SearchOutcome
 import dev.localmed.nativespike.shared.model.SearchResultGroup
-import dev.localmed.nativespike.shared.search.LookupEngine
-import dev.localmed.nativespike.shared.text.formatFixed1
-import kotlinx.coroutines.Dispatchers
+import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.withContext
 
 private const val DEBOUNCE_MS = 120L
 
@@ -52,8 +48,13 @@ private val HOME_GAP = 16.dp
 
 @Composable
 fun SearchScreen(
-    engine: LookupEngine,
+    core: NativeMedicalCore,
+    state: NativeSearchUiState,
     onOpenDocument: (documentId: String, documentTitle: String, sectionAnchor: String?) -> Unit,
+    openingSource: Boolean = false,
+    sourceError: String? = null,
+    onOpenSources: () -> Unit,
+    onRetrySave: (() -> Unit)? = null,
     // Debug measurement hook only (see native/androidApp's MainActivity — HyperOS blocks
     // `adb shell input` entirely on the physical Xiaomi 14, and even on a plain emulator
     // `adb shell input text` cannot type Cyrillic: it maps characters through the current
@@ -67,36 +68,38 @@ fun SearchScreen(
     // bench path (see MainActivity), empty for any non-bench call.
     onOutcome: ((query: String, outcome: SearchOutcome?, tookMs: Double, stages: Map<String, Double>) -> Unit)? = null,
 ) {
-    var query by remember { mutableStateOf("") }
-    var outcome by remember { mutableStateOf<SearchOutcome?>(null) }
-    var isSearching by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-
     LaunchedEffect(externalQuery) {
-        if (externalQuery != null) query = externalQuery
+        if (externalQuery != null) state.query = externalQuery
     }
 
-    LaunchedEffect(query) {
-        val requestQuery = query
-        if (query.isBlank()) {
-            outcome = null
-            isSearching = false
-            error = null
+    LaunchedEffect(core, state.query, state.attempt) {
+        val requestQuery = state.query
+        if (state.positionQuery != requestQuery) {
+            state.positionQuery = requestQuery
+            state.listState.scrollToItem(0)
+        }
+        if (requestQuery.isBlank()) {
+            state.outcome = null
+            state.loading = false
+            state.error = null
+            state.completedQuery = null
             return@LaunchedEffect
         }
-        isSearching = true
-        error = null
-        val benchStart = if (query == externalQuery) kotlin.time.TimeSource.Monotonic.markNow() else null
+        if (state.completedQuery == requestQuery && state.outcome != null) return@LaunchedEffect
+        state.loading = true
+        state.error = null
+        state.outcome = null
+        val benchStart = if (requestQuery == externalQuery) kotlin.time.TimeSource.Monotonic.markNow() else null
         val stageTimings: MutableMap<String, Double>? = if (benchStart != null) LinkedHashMap() else null
         delay(DEBOUNCE_MS)
         try {
-            val result = withContext(Dispatchers.Default) {
-                engine.search(requestQuery) { stage, ms ->
+            val result = core.search(requestQuery) { stage, ms ->
                     stageTimings?.let { it[stage] = (it[stage] ?: 0.0) + ms }
-                }
             }
-            outcome = result
-            error = null
+            if (!currentCoroutineContext().isActive || state.query != requestQuery) return@LaunchedEffect
+            state.outcome = result
+            state.completedQuery = requestQuery
+            state.error = null
             if (benchStart != null) {
                 // Two frame waits: the first is where Compose schedules recomposition for the
                 // new `outcome`, the second guarantees that recomposition has actually been
@@ -111,12 +114,12 @@ fun SearchScreen(
         } catch (cause: CancellationException) {
             throw cause
         } catch (cause: Exception) {
-            if (currentCoroutineContext().isActive && query == requestQuery) {
-                error = cause.message ?: "Ошибка поиска"
+            if (currentCoroutineContext().isActive && state.query == requestQuery) {
+                state.error = cause.message ?: "Не удалось выполнить поиск. Повторите запрос."
             }
         } finally {
-            if (currentCoroutineContext().isActive && query == requestQuery) {
-                isSearching = false
+            if (currentCoroutineContext().isActive && state.query == requestQuery) {
+                state.loading = false
             }
         }
     }
@@ -125,27 +128,18 @@ fun SearchScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Surface(color = MaterialTheme.colorScheme.background) {
-                Column(Modifier.fillMaxWidth().padding(horizontal = HOME_GAP, vertical = 10.dp)) {
-                    Text(
-                        "LocalMed Native (spike)",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
-                    Text(
-                        "Kotlin Multiplatform + Compose · core.db напрямую",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                    )
+                Column(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = HOME_GAP, vertical = 10.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("MiniMed", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
+                        TextButton(onClick = onOpenSources) {
+                            Text("Источники", color = MaterialTheme.colorScheme.onBackground)
+                        }
+                    }
                 }
             }
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(padding)) {
-            // Web's ".search-field-pill": a rounded card on --theme-search-surface holding the
-            // field plus a source-scope row and a "clinical analysis" toggle — see
-            // apps/app/src/features/search/search-quick-access.css. Visual only below: this spike
-            // has one lexical branch (no scope/clinical-mode logic), matching the coordinator's
-            // "can be without logic" instruction — these two rows never change search behavior.
             Surface(
                 color = MaterialTheme.colorScheme.errorContainer, // mapped to --theme-search-surface — see Theme.kt
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
@@ -153,8 +147,8 @@ fun SearchScreen(
             ) {
                 Column {
                     TextField(
-                        value = query,
-                        onValueChange = { query = it },
+                        value = state.query,
+                        onValueChange = { state.query = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text("Название, код МКБ, препарат или фраза из документа", style = MaterialTheme.typography.bodyMedium) },
                         singleLine = true,
@@ -166,52 +160,34 @@ fun SearchScreen(
                         ),
                         textStyle = MaterialTheme.typography.bodyLarge,
                     )
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(50),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                        ) {
-                            Text(
-                                "Все источники",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                            )
-                        }
-                        androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
-                        Text(
-                            "Клинический разбор",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
                 }
             }
 
-            val timing = outcome?.timing
-            if (timing != null) {
+            if (openingSource) Text("Открываем источник…", modifier = Modifier.padding(horizontal = HOME_GAP),
+                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onBackground)
+            sourceError?.let { Text(it, modifier = Modifier.padding(horizontal = HOME_GAP),
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onBackground) }
+            onRetrySave?.let { retry -> TextButton(onClick = retry, modifier = Modifier.padding(horizontal = HOME_GAP)) { Text("Повторить сохранение") } }
+            if (state.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(horizontal = HOME_GAP))
+            if (state.error != null) {
                 Text(
-                    "SQL: ${formatFixed1(timing.sqlOnlyMs)} мс · Итого: ${formatFixed1(timing.totalMs)} мс",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(horizontal = HOME_GAP),
-                )
-            }
-            if (error != null) {
-                Text(
-                    "Ошибка: $error",
+                    state.error ?: "Не удалось выполнить поиск.",
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(HOME_GAP),
                 )
+                TextButton(onClick = { state.attempt += 1 }, modifier = Modifier.padding(horizontal = HOME_GAP)) {
+                    Text("Повторить поиск")
+                }
             }
 
-            val groups = outcome?.groups.orEmpty()
+            val groups = state.outcome?.groups.orEmpty()
+            if (!state.loading && state.error == null && state.completedQuery != null && groups.isEmpty()) {
+                Text("По этому запросу источники не найдены.", style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(HOME_GAP))
+            }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
+                state = state.listState,
                 contentPadding = PaddingValues(horizontal = HOME_GAP, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(1.dp), // web's .result-card list uses hairline dividers, not gaps
             ) {

@@ -3,6 +3,11 @@ package dev.localmed.nativespike.shared.db
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.SQLiteStatement
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
+import androidx.sqlite.driver.bundled.SQLITE_OPEN_READONLY
+import dev.localmed.nativespike.shared.core.NativeDocumentTarget
+import dev.localmed.nativespike.shared.core.NativeSourceDocument
+import dev.localmed.nativespike.shared.core.NativeSourceSection
+import dev.localmed.nativespike.shared.core.NativeSourceChunk
 import dev.localmed.nativespike.shared.model.AliasRecord
 import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ChunkHit
@@ -38,7 +43,7 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
 
     actual fun open() {
         val driver = BundledSQLiteDriver()
-        val opened = driver.open(dbFilePath)
+        val opened = driver.open(dbFilePath, SQLITE_OPEN_READONLY)
         connection = opened
         // Warm-up query: mirrors the web app's "core opened, first query possible" readiness
         // signal rather than just "file handle acquired".
@@ -48,6 +53,60 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
     actual fun close() {
         connection?.close()
         connection = null
+    }
+
+    actual fun validateContent(schemaVersion: Int, targets: List<NativeDocumentTarget>) {
+        val db = requireConnection()
+        db.prepare("PRAGMA integrity_check").use { check(it.step() && it.getText(0) == "ok") { "Invalid SQLite integrity" } }
+        db.prepare("PRAGMA foreign_key_check").use { check(!it.step()) { "Invalid SQLite foreign keys" } }
+        db.prepare("SELECT schema_version FROM content_packs").use { statement ->
+            check(statement.step() && statement.getLong(0).toInt() == schemaVersion) { "Incompatible pack schema" }
+        }
+        db.prepare("SELECT source_checksum FROM document_versions WHERE document_id=? AND id=?").use { statement ->
+            targets.forEach { target ->
+                statement.bindText(1,target.documentId);statement.bindText(2,target.documentVersionId)
+                check(statement.step() && statement.getText(0).let { if (it.startsWith("sha256:")) it else "sha256:$it" } == target.sourceChecksum) { "Pack source membership mismatch" }
+                statement.reset();statement.clearBindings()
+                if (target.anchor != null) db.prepare("SELECT anchor FROM chunks WHERE document_version_id=? AND anchor=? UNION ALL SELECT anchor FROM sections WHERE document_version_id=? AND anchor=? LIMIT 1").use { anchor ->
+                    anchor.bindText(1,target.documentVersionId);anchor.bindText(2,target.anchor);anchor.bindText(3,target.documentVersionId);anchor.bindText(4,target.anchor)
+                    check(anchor.step()) { "Missing source anchor" }
+                }
+            }
+        }
+    }
+
+    actual fun readSourceDocument(documentId: String, versionId: String?): NativeSourceDocument? {
+        val sql = """SELECT d.title,d.source_type,d.metadata_json,v.id,v.source_checksum,v.version_label,v.effective_from,v.effective_to,d.status
+            FROM documents d JOIN document_versions v ON v.document_id=d.id
+            WHERE d.id=? AND v.id=COALESCE(?,d.current_version_id)"""
+        val header = requireConnection().prepare(sql).use { statement ->
+            statement.bindText(1, documentId)
+            if (versionId == null) statement.bindNull(2) else statement.bindText(2, versionId)
+            if (!statement.step()) return null
+            NativeSourceDocument(
+                NativeDocumentTarget(documentId, statement.getText(3), statement.getText(4).let { if (it.startsWith("sha256:")) it else "sha256:$it" }),
+                statement.getText(0), statement.getText(1), statement.getText(2), statement.getText(5),
+                if (statement.isNull(6)) null else statement.getText(6), if (statement.isNull(7)) null else statement.getText(7), emptyList(),statement.getText(8),
+            )
+        }
+        val sections = requireConnection().prepare("SELECT id,title,anchor,depth,order_index,parent_section_id,section_type,path_json,page_start,page_end FROM sections WHERE document_version_id=? ORDER BY order_index,id").use { statement ->
+            statement.bindText(1, header.target.documentVersionId)
+            buildList {
+                while (statement.step()) {
+                    val id = statement.getText(0)
+                    val chunks = requireConnection().prepare("SELECT id,anchor,original_text,order_index,metadata_json,page_start,page_end,char_start,char_end FROM chunks WHERE section_id=? AND document_version_id=? ORDER BY order_index,id").use { chunk ->
+                        chunk.bindText(1, id); chunk.bindText(2, header.target.documentVersionId)
+                        buildList {
+                            while (chunk.step()) add(NativeSourceChunk(chunk.getText(0),chunk.getText(1),chunk.getText(2),chunk.getLong(3).toInt(),chunk.getText(4),
+                                if (chunk.isNull(5)) null else chunk.getLong(5).toInt(),if (chunk.isNull(6)) null else chunk.getLong(6).toInt(),
+                                if (chunk.isNull(7)) null else chunk.getLong(7).toInt(),if (chunk.isNull(8)) null else chunk.getLong(8).toInt()))
+                        }
+                    }
+                    add(NativeSourceSection(id,statement.getText(1),statement.getText(2),statement.getLong(3).toInt(),statement.getLong(4).toInt(),chunks,if(statement.isNull(5)) null else statement.getText(5),if(statement.isNull(6)) null else statement.getText(6),statement.getText(7),if(statement.isNull(8)) null else statement.getLong(8).toInt(),if(statement.isNull(9)) null else statement.getLong(9).toInt()))
+                }
+            }
+        }
+        return header.copy(sections = sections)
     }
 
     actual fun searchChunks(matchExpression: String, limit: Int): List<ChunkHit> {

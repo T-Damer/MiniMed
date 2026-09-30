@@ -1,22 +1,25 @@
 package dev.localmed.nativespike.shared
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ComposeViewport
-import dev.localmed.nativespike.shared.db.NativeSearchDatabase
-import dev.localmed.nativespike.shared.ui.NativeSearchSpikeApp
+import dev.localmed.nativespike.shared.ui.NativeSpikeTheme
 import kotlinx.browser.document
 
-/** Kotlin/Wasm browser entry point. Proves the commonMain Compose UI renders via Compose
- * Multiplatform for Web — see NativeSearchDatabase.wasmJs.kt for why this is a data STUB, not a
- * real core.db-backed build. */
+/** Browser compilation surface; no supported SQLite content adapter exists for Wasm yet. */
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    val database = NativeSearchDatabase("") // path is ignored by the wasmJs stub actual
-    database.open()
     ComposeViewport(document.body!!) {
-        NativeSearchSpikeApp(
-            database = database,
-            demoNotice = "ВЕБ-ДЕМО: без настоящей базы core.db (нет SQLite-движка в браузере, см. ADR-0021). Показаны фиксированные тестовые данные.",
-        )
+        NativeSpikeTheme {
+            Surface(Modifier.fillMaxSize()) {
+                Text("Браузерная версия нативного интерфейса пока не поддерживает локальную базу источников.", modifier = Modifier.padding(24.dp), style = MaterialTheme.typography.bodyLarge)
+            }
+        }
     }
 }
