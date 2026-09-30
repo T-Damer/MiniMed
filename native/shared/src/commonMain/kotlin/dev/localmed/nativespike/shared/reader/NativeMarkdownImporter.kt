@@ -17,7 +17,7 @@ import org.intellij.markdown.parser.MarkdownParser
  */
 object NativeMarkdownImporter {
     fun import(markdown: String): NativeDocument {
-        val root = MarkdownParser(GFMFlavourDescriptor()).buildMarkdownTreeFromString(markdown)
+        val root = MarkdownParser(GFMFlavourDescriptor(), assertionsEnabled = false).buildMarkdownTreeFromString(markdown as CharSequence)
         val builder = Builder(markdown, linkDefinitions(root, markdown))
         val blocks = builder.blocks(root.children)
         return NativeDocument(blocks, builder.outline)

@@ -60,6 +60,31 @@ document links; images with captions; text scale 90–140 %; two-page spreads fo
   `NativeFindBar`, `NativeOutlinePanel`, `NativeReadingMenu` (90–140 %), `NativeScrollTopButton`.
 - Design gallery scene `?scene=design-reader` (`&find=…`), rendered by `NativeDesignGalleryTest`.
 
+## Ready (R2, R3 on Android)
+
+- `reader/NativeFileImport.kt`: format by magic bytes, then extension, then reported type; text up
+  to 32 MB; decoding by byte-order mark, declared HTML charset, strict UTF-8, else Windows-1251;
+  `NativePlainTextImporter` (paragraphs at blank lines, line breaks kept).
+- `reader/NativeHtmlImporter.kt` (Ksoup 0.2.5): headings (anchor = `id` or slug), paragraphs, lists,
+  quotes, `pre`, tables with `colspan`/`rowspan`/alignment, figures, inline markup and links;
+  scripts, styles, forms, frames and media are dropped, nothing is loaded.
+- `reader/NativeFilePicker.kt` (`expect`): `rememberNativeFilePicker` — Android Storage Access
+  Framework, desktop AWT dialog, browser `<input type=file>`; iOS not yet (`nativeFilePickerAvailable`
+  is false). Files over 256 MB are refused before reading. `readDocument(context, uri)` (Android)
+  reads a URI handed over by «open with».
+- `NativePdfPages` (`expect`): Android `PdfRenderer` in a private cache copy deleted on close, pages
+  rendered lazily at twice the view width on one thread, pinch zoom to 4× with panning, page
+  indicator; damaged or password-protected files show a notice. Desktop, iOS and Wasm show a notice.
+- `designsystem/NativeDocumentReader.kt` (reader screen from parts: bar above the list so section
+  titles stick under it, outline drawer, find, text size, scroll-top) and `NativeFileReader.kt`
+  (document, PDF or an explanation; `data:` images).
+- Android debug build: launcher entry «Reader lab» (`androidApp/src/debug`) — the reader with «open
+  file», and the «open with» target for PDF, Markdown, HTML and text. Checked on the emulator with a
+  PDF, a Markdown file and a Windows-1251 HTML file.
+
+Not yet: find inside PDF (Android 15 page text), EPUB, iOS picker and PDFKit, images next to a
+Markdown/HTML file, find highlights inside lists and quotes, reading position restore for files.
+
 ## Phases
 
 1. **R1 — model and Markdown.** Document model, Markdown importer with tests, block renderer, reader

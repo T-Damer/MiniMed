@@ -69,6 +69,8 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
                 // Reader: Markdown parsing (CommonMark + GFM), docs/NATIVE_READER.md.
                 implementation("org.jetbrains:markdown:0.7.16")
+                // Reader: HTML/XHTML parsing for own files and EPUB (0.2.5: the last build on Kotlin 2.2).
+                implementation("com.fleeksoft.ksoup:ksoup:0.2.5")
             }
         }
         val commonTest by getting {
