@@ -19,7 +19,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | --- | --- | --- |
 | claude-coordinator | Claude Code (desktop) | coordination, design system, native search core, commits for Claude sessions |
 | codex-native | Codex (ChatGPT app) | native screens, navigation, app state, visual preview, icons |
-| claude-ui | Claude Code session «Улучшения приложения» | WebView UI (frozen reference; fixes only) |
+| claude-ui | Claude Code session «Улучшения приложения» | WebView UI (frozen reference; fixes only); idle, S3 dropped (result cards go straight to native) |
 
 ## Ownership (native)
 
@@ -53,6 +53,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 ## Recently done
 
+- 2026-09-30 claude-ui: S2 paper sheets shipped in 0.6.45 (`a083a90c`); CI green after it; no WebView edits pending.
 - 2026-09-30 claude-coordinator: design tokens generated from the WebView theme (`1be9863d`); plan in `docs/NATIVE_DESIGN_SYSTEM.md`.
 
 ## Waiting for the user
