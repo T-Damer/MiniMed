@@ -31,6 +31,7 @@ screen was matched by eye.
 | `bun run native:design sync [--build]` | capture the web reference, regenerate tokens and component styles |
 | `bun run native:design check` | token/style drift checks plus `NativeComponentParityTest` |
 | `bun run native:design compare [--build]` | web vs native home screenshots side by side, light and dark, in `playwright/design-compare/` |
+| `bun run native:design preview` | builds the Wasm preview and serves it on `http://127.0.0.1:4175` — `?scene=design` is the interactive design gallery (`&theme=dark`, `&loading=1`), `?scene=search` the real screens |
 
 `--build` rebuilds the WebView first; otherwise the existing `apps/app/dist` is used. Captures are
 repeatable: reduced motion stops the carousel and transitions, and database downloads are held so
@@ -69,6 +70,7 @@ reference key:
 | `NativeFeatureCard(primary, secondary)`, `NativeStatusCard` | `.home-feature`, `.search-core-status` |
 | `NativeSectionList`, `NativeSectionRow` | `.search-sections__list`, `__row` |
 | `NativeBottomNav(items, selected, onSelect)` | `.app-bottom-nav` with `__bubble` |
+| `NativeFeatureCarousel(features)` | `.carousel.useful-features`: equal heights, arrows, dots, 7 s autoplay until the user takes over |
 | `NativeCarouselDots` | `.carousel__dots` |
 | `NativeFlexRow` | `display: flex` with `flex: 1 1 auto` children |
 
@@ -85,6 +87,9 @@ screens' glyph set. Screens must wrap their content in `ProvideNativeDesignToken
   follow the web `use-bottom-nav.ts`; native adds a haptic tick per destination during the drag.
 - **Card actions** follow web `flex: 1 1 auto` and never wrap; a label that still does not fit
   shrinks to 11 sp.
+- **Dark theme bubble** is plain light paper (the theme text colour) with no highlight or accent rim,
+  and the selected icon on it is dark.
+- **Suggestion cards** in the carousel all take the tallest card's height, actions at the bottom.
 
 ## Parity checks
 

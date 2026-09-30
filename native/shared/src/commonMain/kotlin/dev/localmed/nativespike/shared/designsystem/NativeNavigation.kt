@@ -189,8 +189,12 @@ fun NativeBottomNav(
             }
             .nativePadding(nav),
     ) {
-        val bubble = components.bottomNavBubble
+        val dark = NativeDesign.tokens.dark
+        // Native design (user decision): in the dark theme the bubble is plain light paper without
+        // the web highlight or its accent rim, and the selected icon turns dark on it.
+        val bubble = if (dark) components.bottomNavBubble.copy(borderWidth = 0.dp) else components.bottomNavBubble
         val raised = NativeDesign.colors.surfaceRaised
+        val darkBubble = NativeDesign.colors.text
         Box(
             Modifier
                 .testTag("bottom-nav-bubble")
@@ -202,6 +206,10 @@ fun NativeBottomNav(
                 }
                 .nativeBoxFrame(bubble)
                 .drawBehind {
+                    if (dark) {
+                        drawRect(darkBubble)
+                        return@drawBehind
+                    }
                     // Web: radial highlight at 35% 18% over a 145° raised-paper gradient.
                     drawRect(
                         Brush.linearGradient(
@@ -228,6 +236,7 @@ fun NativeBottomNav(
                     selected = index == (dragIndex ?: selected),
                     contentDescription = item.contentDescription,
                     onClick = { currentOnSelect(index) },
+                    selectedTint = if (dark) NativeDesign.colors.accentContrast else null,
                     icon = item.icon,
                 )
             }
@@ -241,10 +250,12 @@ private fun NativeBottomNavButton(
     selected: Boolean,
     contentDescription: String,
     onClick: () -> Unit,
+    selectedTint: Color?,
     icon: @Composable (tint: Color) -> Unit,
 ) {
     val components = NativeDesign.components
     val style = if (selected) components.bottomNavButtonActive else components.bottomNavButton
+    val tint = if (selected && selectedTint != null) selectedTint else style.text.color
     Box(
         Modifier
             .testTag(if (selected) "bottom-nav-button-active" else "bottom-nav-button")
@@ -253,7 +264,7 @@ private fun NativeBottomNavButton(
             .selectable(selected = selected, role = Role.Tab, onClick = onClick)
             .nativePadding(style),
         contentAlignment = Alignment.Center,
-    ) { icon(style.text.color) }
+    ) { icon(tint) }
 }
 
 /**

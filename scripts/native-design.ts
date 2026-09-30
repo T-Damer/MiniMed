@@ -4,6 +4,7 @@
  *   bun run native:design sync [--build]   capture the web reference, regenerate tokens and styles
  *   bun run native:design check            drift checks plus the component parity test
  *   bun run native:design compare          web vs native screenshots side by side (light/dark)
+ *   bun run native:design preview          build the Wasm preview and serve it on 127.0.0.1
  *
  * `--build` rebuilds the WebView first; otherwise the existing `apps/app/dist` is used.
  * Screenshots land in `playwright/design-compare/` (ignored by git).
@@ -101,11 +102,39 @@ async function compare(): Promise<void> {
   });
 }
 
+/** Builds the Wasm preview distribution and serves it until interrupted (PORT, default 4175). */
+async function preview(): Promise<void> {
+  gradle('build the Wasm preview', ':shared:wasmJsBrowserDistribution');
+  const root = resolve(REPOSITORY_ROOT, 'native/shared/build/dist/wasmJs/productionExecutable');
+  const port = Number(process.env.PORT ?? 4175);
+  Bun.serve({
+    hostname: '127.0.0.1',
+    port,
+    fetch(request) {
+      const pathname = decodeURIComponent(new URL(request.url).pathname);
+      const path = resolve(root, `.${pathname === '/' ? '/index.html' : pathname}`);
+      if (!path.startsWith(`${root}/`)) return new Response('Not found', { status: 404 });
+      const file = Bun.file(path);
+      // Rebuilds keep the name shared.js; never let the browser reuse an older bundle.
+      return file.size > 0
+        ? new Response(file, { headers: { 'Cache-Control': 'no-store' } })
+        : new Response('Not found', { status: 404 });
+    },
+  });
+  console.log(
+    `Design gallery: http://127.0.0.1:${port}/?scene=design (add &theme=dark, &loading=1)`,
+  );
+  console.log(`Native screens: http://127.0.0.1:${port}/?scene=search`);
+}
+
 const command = process.argv[2];
 if (command === 'sync') sync();
 else if (command === 'check') check();
 else if (command === 'compare') await compare();
+else if (command === 'preview') await preview();
 else {
-  console.error('Usage: bun run native:design <sync [--build] | check | compare [--build]>');
+  console.error(
+    'Usage: bun run native:design <sync [--build] | check | compare [--build] | preview>',
+  );
   process.exit(1);
 }

@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicText
@@ -44,10 +46,8 @@ fun NativeFeatureCard(
 ) {
     val components = NativeDesign.components
     val card = components.featureCard
-    Column(
-        modifier.fillMaxWidth().testTag("feature-card").nativeBox(card),
-        verticalArrangement = Arrangement.spacedBy(card.rowGap),
-    ) {
+    Column(modifier.fillMaxWidth().testTag("feature-card").nativeBox(card)) {
+        Column(verticalArrangement = Arrangement.spacedBy(card.rowGap)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             val kickerStyle = components.featureKicker
             Row(
@@ -70,6 +70,10 @@ fun NativeFeatureCard(
             Modifier.testTag("feature-text"),
             style = components.featureText.text.textStyle(),
         )
+        }
+        // In a carousel every card takes the tallest card's height; the actions stay at the bottom.
+        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(card.rowGap))
         NativeFlexRow(components.featureActions.columnGap, Modifier.fillMaxWidth().testTag("feature-actions")) {
             NativeActionButton(primary.text, primary.onClick, primary = true, icon = primary.icon)
             if (secondary != null) {

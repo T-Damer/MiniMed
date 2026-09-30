@@ -35,15 +35,18 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-09-30 15:45 | codex-native | migrate shared search/home and bottom navigation to generated design-system components; fix preview viewport and qualify parity | owned ui except Theme, wasmJsMain preview; no lexical/db/designsystem/Web edits |
-| 2026-09-30 17:50 | claude-coordinator | more components (paper sheets, dialogs, result cards) | `designsystem/**` |
+| 2026-09-30 19:40 | codex-native | migrate the search/home screen to the design system: `NativeQueryFooter` (editable field, «Ищем…» queue), `NativeFeatureCarousel`, `NativeBottomNav` (bubble + swipe), `NativeSectionList` | `ui/**` (screens), `wasmJsMain/**` |
+| 2026-09-30 19:40 | claude-coordinator | design-system components for the next screens: paper sheets/dialogs, result cards (collapsed/expanded, kind badge), reader chrome parts | `designsystem/**` |
 
 ## Next (claimed, not started)
 
-| Agent | Task |
-| --- | --- |
-| claude-coordinator | port the per-document lexical window (TS 26a69921) to Kotlin; refresh search golden fixtures |
-| codex-native | migrate tools, readers, sources and collections after the shared search/home visual gate |
+| Order | Agent | Task |
+| --- | --- | --- |
+| 1 | claude-coordinator | port the per-document lexical window (TS `26a69921`) to Kotlin; refresh the search golden fixtures |
+| 2 | codex-native | migrate tools, reader, sources and collections screens to design-system components as they land |
+| 3 | claude-coordinator | ranking fix for the candidate core (qualifier-only matches, wrong ICD alias expansion), then the core rebuild with medicine aliases and the identity table |
+| 4 | codex-native | personal files / patient vault parity, remaining native features |
+| — | claude-ui | idle; WebView bug fixes only on request |
 
 ## Requests
 
@@ -61,6 +64,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 ## Recently done
 
+- 2026-09-30 claude-coordinator: equal-height suggestion carousel, light dark-theme bubble, interactive design gallery (`?scene=design`), `native:design preview`.
 - 2026-09-30 claude-coordinator: core status inside the query field, bottom-nav bubble with swipe, one-row card actions (flex), dashed chip border; gallery test committed.
 - 2026-09-30 15:45 codex-native: current qualified work saved in scoped commits: tool engine `8f83126a`, icons `e920449f`, offline collections/discovery `edbba19f`, screen wiring `d0d9fcc8`, live Wasm `c54b9537`, limits/docs `50f5c31e`; unfinished patient files excluded.
 - 2026-09-30 claude-coordinator: `bun run native:design sync|check|compare` tooling; repeatable web captures.
