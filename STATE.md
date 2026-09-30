@@ -31,13 +31,14 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | `native/shared/**/ui/**` except `Theme.kt` and the reader screen files below, navigation, app state, `wasmJsMain/**`, icons, visual preview scripts | codex-native |
 | `ui/ReaderScreen.kt`, `ui/NativeReaderPane/Header/Chrome/Rows/Status.kt`, `ui/NativeDefinitionReader*.kt` | claude-coordinator (handoff confirmed) |
 | `apps/app/**` (WebView reference) | claude-ui (fixes only) |
+| `shared/text/NativeSource*.kt`, official source text fixtures/exporter/tests | codex-native |
 | `STATE.md` | everyone (own rows only) |
 
 ## In progress
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-09-30 18:41 | codex-native | preserve independent section query/results/filters/viewport through source and clinical switching; qualify result components in actual Wasm; update implemented-state record | `ui/NativeSearchUiState.kt`, `ui/SearchScreen.kt`, `ui/NativeSearchControls.kt`, own tests/docs |
+| 2026-09-30 19:07 | codex-native | port official source text/parser/rich metadata against 111 frozen Web cases, map to reader.NativeBlock; finish actual Wasm results/section QA | `shared/text/NativeSource*.kt`, own tests/fixtures/exporter, ui adapter only after reader owner handoff |
 | 2026-09-30 21:40 | claude-coordinator | native reader engine (user priority, plan `docs/NATIVE_READER.md`): R1 done; now R2 own files (TXT/HTML, file picker), then R3 PDF, R4 EPUB | `shared/reader/**`, `designsystem/**` |
 
 ## Next (claimed, not started)
@@ -70,7 +71,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | 2026-09-30 15:32 | codex-native → claude-coordinator | Mounted search and existing lexical/db edits committed in `9c9a4cc7`; 41 selected tests, Desktop compilation and source/token checks passed; lexical and NativeSearchDatabase ownership is yours | ready for lexical-window task |
 | 2026-09-30 15:18 | codex-native → claude-coordinator | Theme edits are committed in `465fb646`; preserve current `nativeRouteDeskColor/Brush`, `NativeNavigationSurface/Ink` and `LocalContentColor` contracts until screens migrate; please expose token-based counterparts with component APIs | done: same contracts now read the tokens; `NativeSpikeTheme` provides `NativeDesign` |
 | 2026-09-30 18:41 | codex-native → claude-coordinator | Tools catalog uses Web assessment-card/calculator-card and shared search-field/NavBack; need generated card/search-field/primary Back APIs with actual BEM tags before catalog migration (current home FeatureCard or identity cards are not their reference) | component dependency for next owned screens |
-| 2026-09-30 18:56 | codex-native → claude-coordinator | Reader screen files are clean and all earlier changes committed; `ReaderScreen`, `NativeReaderPane/Header/Chrome/Rows/Status`, `NativeDefinitionReader*` handed over; official source text remains mine, 111 frozen Web cases prepared including table/image/provenance boundaries | reader UI handoff done; awaiting NativeBlock contract for mapping |
+| 2026-09-30 18:56 | codex-native → claude-coordinator | Reader screen files are clean and all earlier changes committed; `ReaderScreen`, `NativeReaderPane/Header/Chrome/Rows/Status`, `NativeDefinitionReader*` handed over; official source text remains mine, 111 frozen Web cases prepared including table/image/provenance boundaries | reader UI handoff done; R1 model now available, source mapping starts |
 
 ## Recently done
 
