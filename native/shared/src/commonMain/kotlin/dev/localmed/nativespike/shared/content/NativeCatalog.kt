@@ -29,6 +29,9 @@ internal fun JsonObject.optionalString(name: String): String? = (get(name) as? J
 internal fun JsonObject.integer(name: String): Int = (get(name) as? JsonPrimitive)?.intOrNull ?: error("Invalid $name")
 internal fun normalizedChecksum(value: String): String = (if (value.startsWith("sha256:")) value else "sha256:$value").also { require(checksumPattern.matches(it)) { "Invalid source checksum" } }
 internal fun validateTarget(target: NativeDocumentTarget) {
+    require(listOf(target.documentId,target.documentVersionId).all { it.length<=2048 && !it.contains('\u0000') } &&
+        listOfNotNull(target.moduleId,target.moduleVersion).all { it.length<=2048 && !it.contains('\u0000') } &&
+        (target.anchor==null || (target.anchor.length<=16384 && !target.anchor.contains('\u0000')))) { "Invalid source target size" }
     require(target.documentId.isNotBlank() && target.documentVersionId.isNotBlank() && checksumPattern.matches(target.sourceChecksum)) { "Invalid source target" }
     require((target.moduleId == null) == (target.moduleVersion == null)) { "Incomplete module target" }
     require(target.moduleId == null || (target.moduleId.isNotBlank() && target.moduleVersion!!.isNotBlank())) { "Invalid module target" }
@@ -117,6 +120,9 @@ internal class NativeCatalog private constructor(val modules: List<NativeModule>
         val declared = moduleIds.flatMap { id -> candidates.filter { it.id == id } }
         if (declared.isEmpty() && candidates.flatMap { it.members.filter { member -> member.documentId == documentId } }.map { it.versionId to it.sourceChecksum }.distinct().size > 1) return null
         val ordered = declared.ifEmpty { candidates }
+        // A module hint names a source family, not an edition; only an exact target selects one.
+        if (ordered.groupBy { it.id }.values.any { editions -> editions.map { it.version }.distinct().size > 1 }) return null
+        if (ordered.flatMap { it.members.filter { member -> member.documentId == documentId } }.map { it.versionId to it.sourceChecksum }.distinct().size > 1) return null
         for (module in ordered) {
             val members = module.members.filter { it.documentId == documentId }
             if (members.size == 1) return members.single().target(module,anchor)
@@ -152,7 +158,7 @@ internal class NativeCatalog private constructor(val modules: List<NativeModule>
                 require(members.map { it.documentId to it.versionId }.distinct().size == members.size) { "Duplicate source membership" }
                 NativeModule(m.string("id"),m.string("version"),m.string("title"),m["compatibility"]!!.jsonObject.integer("schemaVersion"),m.optionalString("sourceSetDigest"),m.string("releaseState"),m,members)
             }
-            require(modules.map { it.id }.distinct().size == modules.size) { "Duplicate catalog module" }
+            require(modules.map { it.id to it.version }.distinct().size == modules.size) { "Duplicate catalog module" }
             return NativeCatalog(modules)
         }
     }

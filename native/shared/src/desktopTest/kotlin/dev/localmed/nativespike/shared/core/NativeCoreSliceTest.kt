@@ -36,7 +36,11 @@ internal object SliceFixtures {
     val module=File(repository,"apps/app/public/content/modules/minimed-regulatory-pediatrics-0.3.4-preview.1.db")
     init {
         val prepared=File(directory,"prepared").also { it.mkdirs() }
-        for((source,target) in listOf("order-192n-dispensary-observation.md" to "order-192n.md","manifest.yaml" to "manifest.yaml","aliases.yaml" to "aliases.yaml")) File(repository,"content/regulatory-rf-pilot/$source").copyTo(File(prepared,target),overwrite=true)
+        // Rebuild fixture authoring inputs so an older fixture file cannot remain in the corpus.
+        prepared.listFiles()?.forEach { it.delete() }
+        for((source,target) in listOf("order-127n-tuberculosis-observation-groups.md" to "order-127n.md","manifest.yaml" to "manifest.yaml","aliases.yaml" to "aliases.yaml")) File(repository,"content/regulatory-rf-pilot/$source").copyTo(File(prepared,target),overwrite=true)
+        // A source-built tiny core is a separate pack; installed packs cannot share active IDs.
+        File(prepared,"manifest.yaml").let { it.writeText(it.readText().replace("id: minimed.rf-regulatory-pilot","id: minimed.test.core.ru")) }
         val process=ProcessBuilder("uv","run","--project","tools/ingest","medbase","build","--input",prepared.path,"--output",core.path,"--report",File(directory,"build-report.json").path)
         process.directory(repository);process.environment().clear();process.environment().putAll(mapOf("HOME" to System.getProperty("user.home"),"PATH" to "/Users/d/.bun/bin:/Users/d/.local/bin:/opt/homebrew/bin:/usr/bin:/bin","TMPDIR" to "/tmp","LANG" to "en_US.UTF-8"))
         process.redirectErrorStream(true);process.redirectOutput(File(directory,"build.log"));check(process.start().waitFor()==0) { "Source fixture builder failed; see playwright/native-core-fixtures/build.log" }
@@ -282,7 +286,7 @@ class NativeCoreSliceTest {
     fun concurrentReadsLookupAndCloseUseOneDatabaseGate(): Unit = runBlocking {
         val io=FixtureIO(SliceFixtures.root("database-gate"),mapOf("https://fixture.invalid/core.db" to SliceFixtures.core))
         val core=NativeMedicalCore.openWithArtifact(io,SliceFixtures.catalog(),SliceFixtures.artifact(SliceFixtures.core))
-        (0 until 12).map { i -> async { if(i%2==0) core.search("192н") else assertIs<NativeDocumentResolution.Readable>(core.resolveDocument("regulatory.rf.minzdrav.192n-2025")) } }.awaitAll()
+        (0 until 12).map { i -> async { if(i%2==0) core.search("127н") else assertIs<NativeDocumentResolution.Readable>(core.resolveDocument("regulatory.rf.minzdrav.127n-2019-tuberculosis")) } }.awaitAll()
         core.close();assertFailsWith<IllegalStateException> { core.search("192н") }
     }
     @Test

@@ -13,7 +13,7 @@ import kotlinx.coroutines.withContext
 
 internal class NativeContentInstaller(private val io: NativeContentIO) {
     /** Validation completes before content-addressed activation. No live DB gate is held for I/O. */
-    suspend fun prepare(artifact: NativeArtifact, token: Long, progress: (NativeInstallProgress) -> Unit, validate: (NativeSearchDatabase) -> Unit): String = withContext(Dispatchers.Default) {
+    suspend fun prepare(artifact: NativeArtifact, token: Long, progress: (NativeInstallProgress) -> Unit, validate: suspend (NativeSearchDatabase) -> Unit): String = withContext(Dispatchers.Default) {
         require(checksumPattern.matches(artifact.sha256) && checksumPattern.matches(artifact.decodedSha256))
         require(artifact.sizeBytes>0 && artifact.decodedSizeBytes>0 && artifact.compression in setOf("none","gzip"))
         val destination="content/${artifact.decodedSha256.removePrefix("sha256:")}.db"
@@ -46,7 +46,7 @@ internal class NativeContentInstaller(private val io: NativeContentIO) {
             withContext(NonCancellable) { io.delete(archive);io.delete(decoded) }
         }
     }
-    private fun validateFile(path: String, validate: (NativeSearchDatabase) -> Unit) {
+    private suspend fun validateFile(path: String, validate: suspend (NativeSearchDatabase) -> Unit) {
         val database=NativeSearchDatabase(io.databasePath(path))
         try { database.open();validate(database) } finally { database.close() }
     }

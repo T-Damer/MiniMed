@@ -16,6 +16,8 @@ import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SearchDocumentSummary
 import dev.localmed.nativespike.shared.model.SectionRow
+import dev.localmed.nativespike.shared.model.NativeSearchFilters
+import dev.localmed.nativespike.shared.model.SearchVersionIdentity
 
 /**
  * Raw SQL access to `core.db`. Declared `expect` so platform actuals can plug in whatever SQLite
@@ -58,6 +60,8 @@ expect class NativeSearchDatabase(dbFilePath: String) {
      * `lexical/Aliases.kt`'s `createAliasExpander` to build its in-memory vocabulary snapshot from,
      * mirroring `MultiMedicalStore.listAliases()` (packages/storage/src/multi-medical-store.ts). */
     fun listAliases(): List<AliasRecord>
+    fun contentPackIds(): List<String>
+    fun documentVersionIdentities(): List<SearchVersionIdentity>
 
     fun sectionsForDocument(documentId: String): List<SectionRow>
 
@@ -66,7 +70,7 @@ expect class NativeSearchDatabase(dbFilePath: String) {
     /** BM25 window: 4x bounded overfetch, then limit. Lookup diversifies to three chunks per
      * document version; explicit clinical retrieval keeps the complete bounded window.
      * Optional exact document membership supports query-aligned identity hydration. */
-    fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String> = emptyList(), diversifyDocuments: Boolean = true): List<BranchHit>
+    fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String> = emptyList(), diversifyDocuments: Boolean = true, filters: NativeSearchFilters = NativeSearchFilters()): List<BranchHit>
 
     /** Mirrors the fields `hitsContainExactSubject` (create-medical-core.ts) reads off a hit. */
     fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText>
@@ -109,5 +113,5 @@ expect class NativeSearchDatabase(dbFilePath: String) {
      * no branch's own FTS search surfaced. `rank` is unset (0.0); exact-identity results always use
      * a hardcoded score, not a lexical rank (see `lexical/ExactIdentity.kt`).
      */
-    fun firstReadableChunk(documentId: String): HydratedHit?
+    fun firstReadableChunk(documentId: String, filters: NativeSearchFilters = NativeSearchFilters()): HydratedHit?
 }

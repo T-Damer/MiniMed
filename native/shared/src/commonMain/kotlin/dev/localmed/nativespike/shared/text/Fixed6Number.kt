@@ -5,19 +5,54 @@ package dev.localmed.nativespike.shared.text
  * most 1074 small integer multiplications; this bounded work runs only for a parsed weight. */
 internal fun fixed6NumberString(value: Double): String {
     require(value.isFinite()) { "Expected a finite parsed number" }
-    if (value == 0.0) return "0"
-    val negative = value < 0
-    val magnitude = if (negative) -value else value
-    val rounded = if (magnitude >= 1e21) magnitude else {
-        val (digits, scale) = exactDecimal(magnitude)
-        val aligned = digits.padStart(scale + 1, '0')
-        val keep = aligned.length - scale + 6
-        val prefix = aligned.take(keep).padEnd(keep, '0')
-        val coefficient = if ((aligned.getOrNull(keep) ?: '0') >= '5') incrementDecimal(prefix) else prefix
-        (coefficient.dropLast(6) + "." + coefficient.takeLast(6)).toDouble()
+    return jsNumberToString(jsNumberToFixed(value,6).toDouble())
+}
+
+/** JavaScript decimal formatting for source tool schemas; no locale or platform printer. */
+internal fun jsNumberToString(value: Double): String = when {
+    value.isNaN() -> "NaN"
+    value == Double.POSITIVE_INFINITY -> "Infinity"
+    value == Double.NEGATIVE_INFINITY -> "-Infinity"
+    value == 0.0 -> "0"
+    value < 0 -> "-"+shortestNumber(-value)
+    else -> shortestNumber(value)
+}
+
+internal fun jsNumberToFixed(value: Double,fractionDigits: Int): String {
+    require(fractionDigits in 0..10) { "Unsupported source display precision" }
+    if (!value.isFinite() || kotlin.math.abs(value)>=1e21) return jsNumberToString(value)
+    val (digits,scale)=exactDecimal(kotlin.math.abs(value))
+    val aligned=digits.padStart(scale+1,'0')
+    val keep=aligned.length-scale+fractionDigits
+    val prefix=aligned.take(keep).padEnd(keep,'0')
+    val coefficient=if((aligned.getOrNull(keep) ?: '0')>='5') incrementDecimal(prefix) else prefix
+    val body=if(fractionDigits==0) coefficient else coefficient.dropLast(fractionDigits)+"."+coefficient.takeLast(fractionDigits)
+    return (if(value<0) "-" else "")+body
+}
+
+/** Retains the six significant digits, including trailing zeros; callers apply source trace trim. */
+internal fun jsNumberToPrecision6(value: Double): String {
+    if (!value.isFinite()) return jsNumberToString(value)
+    if(value==0.0) return "0.00000"
+    val (digits,scale)=exactDecimal(kotlin.math.abs(value))
+    val prefix=digits.take(6).padEnd(6,'0')
+    var coefficient=if((digits.getOrNull(6) ?: '0')>='5') incrementDecimal(prefix) else prefix
+    var exponent=digits.length-scale-1
+    if(coefficient.length>6) { coefficient=coefficient.dropLast(1);exponent++ }
+    val body=when {
+        exponent < -6 || exponent>=6 -> coefficient.take(1)+"."+coefficient.drop(1)+"e"+(if(exponent>=0) "+" else "")+exponent
+        exponent>=0 -> coefficient.take(exponent+1)+(if(exponent<5) "."+coefficient.drop(exponent+1) else "")
+        else -> "0."+"0".repeat(-exponent-1)+coefficient
     }
-    if (rounded == 0.0) return "0"
-    return (if (negative) "-" else "") + shortestNumber(rounded)
+    return (if(value<0) "-" else "")+body
+}
+
+/** Math.round ties toward positive infinity and preserves a negative zero result. */
+internal fun jsMathRound(value: Double): Double {
+    if(!value.isFinite() || value==0.0) return value
+    val lower=kotlin.math.floor(value)
+    val result=if(value-lower<0.5) lower else lower+1
+    return if(result==0.0 && value<0) -0.0 else result
 }
 
 /** coefficient * 10^-scale represents the actual IEEE value, not its printed approximation. */

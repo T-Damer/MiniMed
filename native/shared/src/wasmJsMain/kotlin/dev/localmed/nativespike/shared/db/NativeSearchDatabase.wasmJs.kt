@@ -17,6 +17,8 @@ import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SearchDocumentSummary
 import dev.localmed.nativespike.shared.model.SectionRow
+import dev.localmed.nativespike.shared.model.NativeSearchFilters
+import dev.localmed.nativespike.shared.model.SearchVersionIdentity
 
 /**
  * STUB, NOT A REAL DATABASE. `androidx.sqlite-bundled` publishes no `wasmJs`/`js` variant
@@ -64,8 +66,10 @@ actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
     actual fun canonicalTermsForAliases(tokens: List<String>): List<String> = emptyList()
 
     actual fun listAliases(): List<AliasRecord> = emptyList()
+    actual fun contentPackIds(): List<String> = emptyList()
+    actual fun documentVersionIdentities(): List<SearchVersionIdentity> = emptyList()
 
-    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>, diversifyDocuments: Boolean): List<BranchHit> = emptyList()
+    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>, diversifyDocuments: Boolean, filters: NativeSearchFilters): List<BranchHit> = emptyList()
 
     actual fun textsForChunks(chunkIds: List<String>): List<ExactSubjectHitText> = emptyList()
 
@@ -75,7 +79,7 @@ actual class NativeSearchDatabase actual constructor(dbFilePath: String) {
 
     actual fun listSearchDocuments(): List<SearchDocumentSummary> = emptyList()
 
-    actual fun firstReadableChunk(documentId: String): HydratedHit? = null
+    actual fun firstReadableChunk(documentId: String, filters: NativeSearchFilters): HydratedHit? = null
 
     actual fun sectionsForDocument(documentId: String): List<SectionRow> = SAMPLE_SECTIONS
 

@@ -86,6 +86,39 @@ private object ReferenceFixture {
 
 class NativeDefinitionInstallTest {
     @Test
+    fun exactSavedDefinitionPositionIsOneCommitAndSurvivesWriteFailureAndOfflineRestart(): Unit=runBlocking {
+        val catalog=ReferenceFixture.catalog();val target=ReferenceFixture.target()
+        val base=FixtureIO(SliceFixtures.root("atomic-definition-reader"),mapOf("https://fixture.invalid/core.db" to SliceFixtures.core,"https://fixture.invalid/reference.db" to ReferenceFixture.file))
+        var failNext=false
+        val io=object: NativeContentIO by base {
+            override suspend fun writeTextAtomic(path: String,text: String) {
+                if(failNext) { failNext=false;throw java.io.IOException("Injected private state write failure") }
+                base.writeTextAtomic(path,text)
+            }
+        }
+        var core=NativeMedicalCore.openWithArtifact(io,catalog,SliceFixtures.artifact(SliceFixtures.core))
+        try {
+            core.installDefinition(target)
+            val block=core.definitionBlocks(target).blocks.first()
+            val saved=NativeReaderRoute.Definition(target,block.linkId,0,2,19)
+            assertIs<NativeDefinitionResolution.Readable>(assertIs<NativeReaderResolution.Definition>(core.openReader(saved)).resolution)
+            assertEquals(listOf(saved),core.navigation.value.readers)
+            val replacement=saved.copy(firstVisibleItemOffset=41)
+            core.openReader(replacement);assertEquals(listOf(replacement),core.navigation.value.readers)
+            val before=core.navigation.value
+            assertIs<NativeDefinitionResolution.Unavailable>(assertIs<NativeReaderResolution.Definition>(core.openReader(saved.copy(target=target.copy(moduleVersion="2026.9.27")))).resolution)
+            assertEquals(before,core.navigation.value)
+            failNext=true
+            assertFailsWith<java.io.IOException> { core.openReader(saved) }
+            assertEquals(before,core.navigation.value)
+            core.close();base.offline=true
+            core=NativeMedicalCore.openWithArtifact(io,catalog,SliceFixtures.artifact(SliceFixtures.core))
+            assertEquals(before,core.navigation.value)
+            assertIs<NativeDefinitionResolution.Readable>(assertIs<NativeReaderResolution.Definition>(core.restoreReader()).resolution)
+        } finally { core.close() }
+    }
+
+    @Test
     fun wholeEditionConsentInstallSearchAndOfflineRestoreNeedsNoInventedEntity(): Unit = runBlocking {
         val catalog=ReferenceFixture.catalog();val edition=ReferenceFixture.target().editionTarget()
         val io=FixtureIO(SliceFixtures.root("definition-edition-install"),mapOf("https://fixture.invalid/core.db" to SliceFixtures.core,"https://fixture.invalid/reference.db" to ReferenceFixture.file))

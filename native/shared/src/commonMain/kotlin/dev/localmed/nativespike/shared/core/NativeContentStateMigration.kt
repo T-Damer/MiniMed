@@ -8,6 +8,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import dev.localmed.nativespike.shared.model.validateSearchSelection
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.intOrNull
@@ -23,6 +24,7 @@ private data class NavigationV1(val search: NativeSearchSnapshot=NativeSearchSna
 private data class StateV1(val schemaVersion: Int=1, val installed: List<NativeInstalledModule> = emptyList(), val navigation: NavigationV1=NavigationV1())
 
 internal fun validateContentState(state: NativeContentState) {
+    validateSearchSelection(state.navigation.search.selection)
     require(state.schemaVersion==2) { "Unsupported private state schema" }
     require(state.installed.map { it.moduleId to it.moduleVersion }.distinct().size==state.installed.size) { "Duplicate installed edition" }
     state.installed.forEach { record ->

@@ -38,10 +38,21 @@ import dev.localmed.nativespike.shared.text.searchSubjectText
 class QueryDocumentIndex(documents: List<SearchDocumentSummary>) {
     val availableIds: Set<String>
 
-    private val aliases = HashMap<String, MutableSet<String>>()
-    private val titles = HashMap<String, MutableSet<String>>()
-    private val navigationAliases = HashMap<String, MutableSet<String>>()
-    private val shortTitles = HashMap<String, MutableSet<String>>()
+    /** Most identities name one document; allocate an ordered set only for real ambiguity. */
+    private class IdentityIds(private val first: String) {
+        private var multiple: LinkedHashSet<String>? = null
+        fun add(id: String) {
+            if (id == first) return
+            val current = multiple
+            if (current == null) multiple = linkedSetOf(first, id) else current.add(id)
+        }
+        fun values(): Set<String> = multiple ?: setOf(first)
+    }
+
+    private val aliases = HashMap<String, IdentityIds>()
+    private val titles = HashMap<String, IdentityIds>()
+    private val navigationAliases = HashMap<String, IdentityIds>()
+    private val shortTitles = HashMap<String, IdentityIds>()
 
     init {
         val ids = HashSet<String>(documents.size * 2)
@@ -51,22 +62,26 @@ class QueryDocumentIndex(documents: List<SearchDocumentSummary>) {
             if (!document.shortTitle.isNullOrEmpty()) addIdentity(document.shortTitle, document.id, shortTitles)
             for (name in document.declaredAliases) addIdentity(name, document.id, aliases)
             for (name in document.navigationAliases) {
-                addIdentity(name, document.id, aliases)
-                addIdentity(name, document.id, navigationAliases)
+                val normalized = normalizeSurfaceText(name)
+                addNormalizedIdentity(normalized, document.id, aliases)
+                addNormalizedIdentity(normalized, document.id, navigationAliases)
             }
         }
         availableIds = ids
     }
 
-    private fun addIdentity(value: String, documentId: String, index: MutableMap<String, MutableSet<String>>) {
-        val normalized = normalizeSurfaceText(value)
-        index.getOrPut(normalized) { LinkedHashSet() }.add(documentId)
+    private fun addIdentity(value: String, documentId: String, index: MutableMap<String, IdentityIds>) {
+        addNormalizedIdentity(normalizeSurfaceText(value), documentId, index)
     }
 
-    fun exactAliasIds(query: String): Set<String> = aliases[searchSubjectText(query)] ?: emptySet()
-    fun exactTitleIds(query: String): Set<String> = titles[searchSubjectText(query)] ?: emptySet()
-    fun exactNavigationAliasIds(query: String): Set<String> = navigationAliases[searchSubjectText(query)] ?: emptySet()
-    fun exactShortTitleIds(query: String): Set<String> = shortTitles[searchSubjectText(query)] ?: emptySet()
+    private fun addNormalizedIdentity(normalized: String, documentId: String, index: MutableMap<String, IdentityIds>) {
+        index.getOrPut(normalized) { IdentityIds(documentId) }.add(documentId)
+    }
+
+    fun exactAliasIds(query: String): Set<String> = aliases[searchSubjectText(query)]?.values() ?: emptySet()
+    fun exactTitleIds(query: String): Set<String> = titles[searchSubjectText(query)]?.values() ?: emptySet()
+    fun exactNavigationAliasIds(query: String): Set<String> = navigationAliases[searchSubjectText(query)]?.values() ?: emptySet()
+    fun exactShortTitleIds(query: String): Set<String> = shortTitles[searchSubjectText(query)]?.values() ?: emptySet()
     fun exactIdentityIds(query: String): Set<String> =
         exactTitleIds(query) + exactNavigationAliasIds(query) + exactShortTitleIds(query)
 }

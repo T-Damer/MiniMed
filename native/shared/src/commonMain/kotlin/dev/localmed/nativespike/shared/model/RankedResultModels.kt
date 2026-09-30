@@ -1,6 +1,7 @@
 package dev.localmed.nativespike.shared.model
 
 import dev.localmed.nativespike.shared.text.TextRange
+import dev.localmed.nativespike.shared.core.NativeDocumentTarget
 
 /** Ranked source passage, retaining reader identity and query-aligned excerpt evidence. */
 data class RankedResult(
@@ -18,6 +19,8 @@ data class RankedResult(
     val documentVersionId: String = "",
     val snippet: String = "",
     val highlightedRanges: List<TextRange> = emptyList(),
+    val target: NativeDocumentTarget? = null,
+    val sourceTarget: NativeDocumentTarget? = null,
 )
 
 /** Mirrors `SearchResultGroup` (packages/contracts/src/search.ts), same narrowing as `RankedResult`. */

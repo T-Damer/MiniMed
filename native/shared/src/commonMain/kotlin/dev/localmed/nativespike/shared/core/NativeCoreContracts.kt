@@ -2,6 +2,7 @@ package dev.localmed.nativespike.shared.core
 
 import kotlinx.serialization.Serializable
 import dev.localmed.nativespike.shared.model.NativeSearchMode
+import dev.localmed.nativespike.shared.model.NativeSearchSelection
 
 const val NATIVE_SEARCH_QUERY_MAX_LENGTH = 20_000
 const val NATIVE_CATALOG_FILTER_MAX_LENGTH = 2_048
@@ -22,6 +23,7 @@ data class NativeSearchSnapshot(
     val firstVisibleItemIndex: Int = 0,
     val firstVisibleItemOffset: Int = 0,
     val mode: NativeSearchMode = NativeSearchMode.LOOKUP,
+    val selection: NativeSearchSelection = NativeSearchSelection(),
 )
 
 @Serializable
@@ -64,6 +66,7 @@ data class NativeNavigationSnapshot(
     val catalog: NativeCatalogSnapshot? = null,
 )
 
+@Serializable
 data class NativeSourceChunk(
     val id: String,
     val anchor: String,
@@ -76,6 +79,7 @@ data class NativeSourceChunk(
     val charEnd: Int?,
 )
 
+@Serializable
 data class NativeSourceSection(
     val id: String,
     val title: String,
@@ -90,6 +94,7 @@ data class NativeSourceSection(
     val pageEnd: Int? = null,
 )
 
+@Serializable
 data class NativeSourceDocument(
     val target: NativeDocumentTarget,
     val title: String,

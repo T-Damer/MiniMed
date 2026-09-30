@@ -8,15 +8,19 @@ import dev.localmed.nativespike.shared.model.DocumentDescriptor
 import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.RankedGroup
 import dev.localmed.nativespike.shared.model.RankedResult
+import dev.localmed.nativespike.shared.model.NativeSearchSelection
+import dev.localmed.nativespike.shared.model.NativeSearchFilters
+import dev.localmed.nativespike.shared.model.NativeSearchScope
+import dev.localmed.nativespike.shared.search.NativeSearchComposition
 import dev.localmed.nativespike.shared.text.normalizeSurfaceText
 
-/** One core-only lexical pipeline for lookup and clinical plans, with scope 'all'.
+/** One lexical pipeline over an admitted document generation for lookup and clinical plans.
  * Branch execution, source hydration, fusion and document grouping mirror create-medical-core.ts;
  * audience, medication context and strict identities mirror ScopedMedicalCore.ts.
  * Lookup retains medication spelling and three-fragment document diversification. Clinical uses
  * its typed facts/context and the full bounded candidate window. Both reuse the same cached index.
- * Terminology matching, semantic retrieval, installed-module search and other scopes remain
- * separate qualification stages; neither lexical mode claims those capabilities. */
+ * Installed document sources share the same bounded branches and typed scope/filter admission.
+ * Definition editions use their separate reader; semantic and hybrid retrieval are not provided. */
 
 private fun toDocumentDescriptor(hit: HydratedHit): DocumentDescriptor = DocumentDescriptor(
     id = hit.documentId,
@@ -40,10 +44,12 @@ private fun executeAndHydrateBranch(
     limit: Int,
     onStage: ((String, Double) -> Unit)? = null,
     diversifyDocuments: Boolean = true,
+    composition: NativeSearchComposition? = null,
+    filters: NativeSearchFilters = NativeSearchFilters(),
 ): BranchExecutionResult {
-    val branchHits = timedStage(onStage, "sql") { executeBranch(db, branch.ftsQuery, limit, diversifyDocuments) }
+    val branchHits = timedStage(onStage, "sql") { composition?.search(branch.ftsQuery,limit,filters,diversifyDocuments) ?: executeBranch(db, branch.ftsQuery, limit, diversifyDocuments,filters) }
     val rankByChunk = branchHits.associate { it.chunkId to it.rank }
-    val hydratedByChunk = timedStage(onStage, "hydration") { db.hydrateHits(branchHits.map { it.chunkId }) }
+    val hydratedByChunk = timedStage(onStage, "hydration") { composition?.hydrate(branchHits) ?: db.hydrateHits(branchHits.map { it.chunkId }) }
         .associateBy { it.chunkId }
     val orderedHits = branchHits.mapNotNull { bh ->
         hydratedByChunk[bh.chunkId]?.copy(rank = rankByChunk.getValue(bh.chunkId))
@@ -89,7 +95,7 @@ fun buildQueryDocumentIndex(db: NativeSearchDatabase): QueryDocumentIndex =
  * groups, in final order, WITH full per-result source data (title, snippet, highlights, anchors) — the shape
  * stage 4's UI wiring needs. `runLookupPipeline` (below) is a thin wrapper over this for the
  * strict golden-parity tests and UI consume the same source passage fields.
- * `documentIndex` should be built once (`buildQueryDocumentIndex`) and reused across queries.
+ * `documentIndex` is reused across queries and rebuilt only for an admitted corpus generation.
  *
  * **Optimization pass** (docs/research/native-vs-webview-2026-09-28.md, "Optimization pass"):
  * `aliasExpander`/`medicationMatcher` are now optional pre-built vocabulary structures (from
@@ -111,19 +117,23 @@ fun runLookupPipelineGroups(
     medicationMatcher: MedicationSpellingMatcher? = null,
     onStage: ((String, Double) -> Unit)? = null,
     clinicalPlan: ClinicalQueryPlan? = null,
+    composition: NativeSearchComposition? = null,
+    selection: NativeSearchSelection = NativeSearchSelection(),
 ): List<RankedGroup> {
+    val filters=composition?.filters(selection) ?: selection.filters
     timedStage(onStage, "normalize") { normalizeSurfaceText(query) }
     val plan = if (clinicalPlan == null) {
         val preparedExpansion = timedStage(onStage, "aliases") { aliasExpander?.expand(query) }
         val builtPlan = buildLookupQueryPlan(query, aliases, preparedExpansion, medicationMatcher, onStage)
-        resolveMedicationSpellingPlan(builtPlan, db, groupLimit, onStage)
+        resolveMedicationSpellingPlan(builtPlan, db, groupLimit, onStage,composition,filters)
     } else MedicationLookupPlan(clinicalPlan.branches, clinicalPlan.aliasMatches, clinicalPlan.terms,
         clinicalPlan.ftsQuery, clinicalPlan.analysis.warnings, null, null)
     val limit = perBranchLimit(groupLimit)
 
-    val branchResults = plan.branches.map { branch -> executeAndHydrateBranch(db, branch, limit, onStage, clinicalPlan == null) }
+    val branchResults = plan.branches.map { branch -> executeAndHydrateBranch(db, branch, limit, onStage, clinicalPlan == null,composition,filters) }
     val allHits = branchResults.flatMap { it.hits }
     val documentsById = LinkedHashMap<String, DocumentDescriptor>()
+    composition?.documents?.forEach { document -> document.descriptor?.let { documentsById[document.id]=it } }
     for (hit in allHits) documentsById.getOrPut(hit.documentId) { toDocumentDescriptor(hit) }
 
     val (exactAliasDocumentIds, exactTitleDocumentIds, exactNavigationAliasDocumentIds, exactShortTitleDocumentIds) =
@@ -151,12 +161,12 @@ fun runLookupPipelineGroups(
     fun addExactResults(documentIds: Set<String>, ftsQueries: List<String>): List<RankedResult> {
         val missing = documentIds - retainedDocumentIds
         if (missing.isEmpty()) return emptyList()
-        val results = buildExactIdentityResults(db, missing, plan.terms, ftsQueries)
+        val results = buildExactIdentityResults(db, missing, plan.terms, ftsQueries,composition,filters)
         // Register newly-discovered documents (found only via exact identity, never via FTS) into
         // the descriptor map too, so downstream kind/target/ranking logic can see them.
         for (result in results) {
             if (result.documentId !in documentsById) {
-                db.firstReadableChunk(result.documentId)?.let { documentsById[it.documentId] = toDocumentDescriptor(it) }
+                (if(composition==null) db.firstReadableChunk(result.documentId,filters) else composition.firstReadable(result.documentId,filters))?.let { documentsById[it.documentId] = toDocumentDescriptor(it) }
             }
         }
         return results
@@ -190,10 +200,12 @@ fun runLookupPipelineGroups(
         g = g.take(groupLimit)
 
         // apps/app's ScopedMedicalCore layer (scope 'all') — see file header.
-        g = filterMedicationDocuments(g, query, documentsById, clinicalPlan?.analysis)
+        if(selection.scope==NativeSearchScope.MEDICATIONS) g=keepExplicitMedicationMatches(g,clinicalPlan?.analysis)
+        g = filterMedicationDocuments(g, query, documentsById, clinicalPlan?.analysis,selection.scope)
         val requestedAudience = inferRequestedAudience(query)
         g = rankSearchGroupsByAudience(g, documentsById, requestedAudience)
-        if (requestedAudience != null) g = preferClinicalRecommendationForCaseQueries(g)
+        if(selection.scope==NativeSearchScope.DIAGNOSIS) g=rankDiagnosisGroups(g)
+        else if (requestedAudience != null) g = preferClinicalRecommendationForCaseQueries(g)
         g = preserveStrictIdentities(g, query, documentsById)
         g.map {
             it.copy(

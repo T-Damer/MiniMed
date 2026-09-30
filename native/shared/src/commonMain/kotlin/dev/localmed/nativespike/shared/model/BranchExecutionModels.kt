@@ -6,7 +6,7 @@ package dev.localmed.nativespike.shared.model
  * (packages/storage-sqlite, packages/storage-capacitor) produce per hit, in final rank order.
  * `rank`: `rawBm25 < 0 ? -rawBm25 : 1 / (1 + rawBm25)` — the same transform both TS stores apply.
  */
-data class BranchHit(val chunkId: String, val rank: Double)
+data class BranchHit(val chunkId: String, val rank: Double,val mountId: String? = null)
 
 /** The document/section/chunk text `hitsContainExactSubject` (create-medical-core.ts) reads —
  * deliberately narrower than a full hydrated hit (no metadata/anchors/etc — nothing else that
@@ -15,4 +15,5 @@ data class ExactSubjectHitText(
     val documentTitle: String,
     val sectionTitle: String,
     val originalText: String,
+    val chunkId: String? = null,
 )

@@ -4,6 +4,8 @@ import dev.localmed.nativespike.shared.db.NativeSearchDatabase
 import dev.localmed.nativespike.shared.model.BranchHit
 import dev.localmed.nativespike.shared.model.ExactSubjectHitText
 import dev.localmed.nativespike.shared.model.MedicationLookupPlan
+import dev.localmed.nativespike.shared.model.NativeSearchFilters
+import dev.localmed.nativespike.shared.search.NativeSearchComposition
 import dev.localmed.nativespike.shared.text.isTokenChar
 import dev.localmed.nativespike.shared.text.normalizeSurfaceText
 
@@ -88,8 +90,8 @@ fun perBranchLimit(searchLimit: Int): Int = maxOf(searchLimit * 5, 50)
  * through `MultiMedicalStore`, not the raw single-pack store. `db.searchBranch`'s own bm25-order is
  * preserved (RRF is a strictly monotonic function of position), only the `rank` *value* changes.
  */
-fun executeBranch(db: NativeSearchDatabase, ftsQuery: String, limit: Int, diversifyDocuments: Boolean = true): List<BranchHit> =
-    db.searchBranch(ftsQuery, limit, diversifyDocuments = diversifyDocuments).mapIndexed { index, hit ->
+fun executeBranch(db: NativeSearchDatabase, ftsQuery: String, limit: Int, diversifyDocuments: Boolean = true,filters: NativeSearchFilters = NativeSearchFilters()): List<BranchHit> =
+    db.searchBranch(ftsQuery, limit, diversifyDocuments = diversifyDocuments,filters=filters).mapIndexed { index, hit ->
         hit.copy(rank = CORE_MOUNT_SEARCH_WEIGHT / (RECIPROCAL_RANK_FUSION_K + index + 1))
     }
 
@@ -106,16 +108,18 @@ fun resolveMedicationSpellingPlan(
     db: NativeSearchDatabase,
     searchLimit: Int,
     onStage: ((String, Double) -> Unit)? = null,
+    composition: NativeSearchComposition? = null,
+    filters: NativeSearchFilters = NativeSearchFilters(),
 ): MedicationLookupPlan {
     val spelling = plan.medicationSpelling ?: return plan
     val baseBranches = spelling.withoutSpelling.branches
     val limit = perBranchLimit(searchLimit)
     val baseChunkIds = timedStage(onStage, "sql") {
-        baseBranches.flatMap { branch -> executeBranch(db, branch.ftsQuery, limit) }
+        baseBranches.flatMap { branch -> composition?.search(branch.ftsQuery,limit,filters,true) ?: executeBranch(db, branch.ftsQuery, limit,filters=filters) }
     }
         .map { it.chunkId }
         .distinct()
-    val texts = db.textsForChunks(baseChunkIds)
+    val texts = composition?.texts(baseChunkIds) ?: db.textsForChunks(baseChunkIds)
     return if (hitsContainExactSubject(texts, spelling.subject)) {
         val base = spelling.withoutSpelling
         MedicationLookupPlan(

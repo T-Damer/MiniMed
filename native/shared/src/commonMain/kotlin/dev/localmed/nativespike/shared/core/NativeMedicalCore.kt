@@ -11,6 +11,10 @@ import dev.localmed.nativespike.shared.db.NativeSearchDatabase
 import dev.localmed.nativespike.shared.model.SearchOutcome
 import dev.localmed.nativespike.shared.model.NativeSearchMode
 import dev.localmed.nativespike.shared.model.ClinicalQueryPlan
+import dev.localmed.nativespike.shared.model.NativeSearchSelection
+import dev.localmed.nativespike.shared.model.validateSearchSelection
+import dev.localmed.nativespike.shared.search.NativeSearchComposition
+import dev.localmed.nativespike.shared.search.NativeSearchMount
 import dev.localmed.nativespike.shared.search.LookupEngine
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -54,12 +58,13 @@ class NativeMedicalCore private constructor(
     private val closeFinished=CompletableDeferred<Unit>()
     private val generation=MutableStateFlow(0L)
     private var activeInstall: Job? = null
-    private val engine=LookupEngine(database,databaseGate)
+    private var searchGeneration=0L
     private val mounted=mutableMapOf<String,NativeSearchDatabase>()
     private val installer=NativeContentInstaller(io)
     private val navigationState=MutableStateFlow(persisted.navigation)
     private val progressState=MutableStateFlow<NativeInstallProgress?>(null)
     private val failureState=MutableStateFlow<NativeInstallFailure?>(null)
+    private val engine=LookupEngine(database,databaseGate) { activeSearchMounts() }
     val navigation: StateFlow<NativeNavigationSnapshot> = navigationState.asStateFlow()
     val installProgress: StateFlow<NativeInstallProgress?> = progressState.asStateFlow()
     val installFailure: StateFlow<NativeInstallFailure?> = failureState.asStateFlow()
@@ -69,15 +74,41 @@ class NativeMedicalCore private constructor(
     suspend fun awaitReady() { requireOpen();engine.awaitReady() }
     suspend fun analyzeClinicalQuery(query: String,includeSuggestions: Boolean=true): ClinicalQueryPlan = withContext(Dispatchers.Default) {
         requireOpen();require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid clinical query size" }
+        refreshSearchComposition()
         val plan=engine.analyzeClinicalQuery(query,includeSuggestions)
         currentCoroutineContext().ensureActive();requireOpen();plan
     }
     suspend fun search(query: String,onStage: ((String,Double)->Unit)?=null): SearchOutcome? = search(query,NativeSearchMode.LOOKUP,onStage)
     suspend fun search(query: String,mode: NativeSearchMode,onStage: ((String,Double)->Unit)?=null): SearchOutcome? {
+        return search(query,mode,NativeSearchSelection(),onStage)
+    }
+    suspend fun search(query: String,mode: NativeSearchMode,selection: NativeSearchSelection,onStage: ((String,Double)->Unit)?=null): SearchOutcome? {
+        validateSearchSelection(selection)
         requireOpen();require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid search query size" };return withContext(Dispatchers.Default) {
-            val outcome=engine.search(query,mode,onStage)
+            refreshSearchComposition()
+            val outcome=engine.search(query,mode,selection,onStage)
             currentCoroutineContext().ensureActive();requireOpen();outcome
         }
+    }
+
+    /** Registry order records successful activation, independently of edition naming. */
+    private suspend fun activeSearchMounts(excludeModule: String? = null): Pair<Long,List<NativeSearchMount>> {
+        val (revision,records)=stateGate.withLock {
+            requireOpen();searchGeneration to persisted.installed.asReversed().distinctBy { it.moduleId }.asReversed()
+        }
+        val mounts=mutableListOf(NativeSearchMount(database,"minimed.core.ru",weight=1.1))
+        for(record in records) {
+            if(record.moduleId==excludeModule) continue
+            val module=catalogModule(record.moduleId,record.moduleVersion)
+            if(module.definitionDescriptor()!=null) continue
+            val db=mount(module) ?: continue
+            mounts+=NativeSearchMount(db,module.id,module.version,expectedSources=module.members.map { it.target(module,null) })
+        }
+        return revision to mounts
+    }
+    private suspend fun refreshSearchComposition() {
+        val (revision,mounts)=activeSearchMounts()
+        engine.refreshComposition(mounts,revision)
     }
 
     suspend fun moduleOffers(): List<NativeModuleOffer> = withContext(Dispatchers.Default) {
@@ -254,9 +285,12 @@ class NativeMedicalCore private constructor(
         try {
             return installGate.withLock {
                 checkToken(token)
+                val active=if(module.definitionDescriptor()==null) activeSearchMounts(module.id).second else null
                 val path=installer.prepare(artifact,token,{ progress -> if(generation.value==token && !closed.value) progressState.value=progress }) { db ->
-                    validateModule(db,module)
-                    validate(db)
+                    databaseGate.withLock {
+                        checkToken(token);validateModule(db,module);validate(db)
+                        if(active!=null) NativeSearchComposition(active+NativeSearchMount(db,module.id,module.version,expectedSources=module.members.map { it.target(module,null) }))
+                    }
                 }
                 checkToken(token)
                 stateGate.withLock {
@@ -264,6 +298,7 @@ class NativeMedicalCore private constructor(
                     val record=NativeInstalledModule(module.id,module.version,module.sourceSetDigest!!,artifact,path)
                     val next=persisted.installed.filterNot { it.moduleId==module.id && it.moduleVersion==module.version }+record
                     commit(persisted.copy(installed=next),token)
+                    if(module.definitionDescriptor()==null) searchGeneration++
                 }
                 checkToken(token)
                 resolve()
@@ -279,8 +314,14 @@ class NativeMedicalCore private constructor(
         }
     }
 
-    suspend fun lookupIdentities(query: String): List<NativeCoreIdentityHit> = withContext(Dispatchers.Default) {
-        requireOpen();require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid identity query size" };databaseGate.withLock { requireOpen();database.lookupIdentities(query) }
+    suspend fun lookupIdentities(query: String,selection: NativeSearchSelection = NativeSearchSelection()): List<NativeCoreIdentityHit> = withContext(Dispatchers.Default) {
+        requireOpen();validateSearchSelection(selection);require(query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !query.contains('\u0000')) { "Invalid identity query size" }
+        if(selection.filters.specialties.isNotEmpty() || selection.filters.ageGroups.isNotEmpty() || selection.filters.sectionTypes.isNotEmpty()) return@withContext emptyList()
+        refreshSearchComposition()
+        val allowed=engine.identityFilters(selection).documentIds.toSet()
+        databaseGate.withLock {
+            requireOpen();database.lookupIdentities(query).filter { hit -> allowed.isEmpty() || (hit.target is NativeCoreIdentityTarget.Document && hit.target.documentId in allowed) }
+        }
     }
     suspend fun resolveDefinitionEdition(target: NativeDefinitionEditionTarget): NativeDefinitionEditionResolution = withContext(Dispatchers.Default) {
         validateDefinitionEdition(target);requireOpen()
@@ -346,6 +387,7 @@ class NativeMedicalCore private constructor(
         currentCoroutineContext().ensureActive();requireOpen();if(generation.value!=token) throw CancellationException("Content operation was superseded")
     }
     suspend fun saveSearchSnapshot(snapshot: NativeSearchSnapshot) {
+        validateSearchSelection(snapshot.selection)
         require(snapshot.firstVisibleItemIndex>=0 && snapshot.firstVisibleItemOffset>=0 && snapshot.query.length<=NATIVE_SEARCH_QUERY_MAX_LENGTH && !snapshot.query.contains('\u0000'))
         stateGate.withLock { requireOpen();commit(persisted.copy(navigation=persisted.navigation.copy(search=snapshot))) }
     }
@@ -368,6 +410,26 @@ class NativeMedicalCore private constructor(
         }
         commit(persisted.copy(navigation = next));persisted.navigation
     }
+    /** Reopens an explicit saved position in one durable commit after exact source resolution. */
+    suspend fun openReader(route: NativeReaderRoute): NativeReaderResolution {
+        validateReaderRoute(route);requireOpen()
+        val resolution=when(route) {
+            is NativeReaderRoute.Document -> NativeReaderResolution.Document(readTarget(route.target))
+            is NativeReaderRoute.Definition -> NativeReaderResolution.Definition(resolveDefinition(route.target))
+        }
+        val unavailable=when(resolution) {
+            is NativeReaderResolution.Document -> resolution.resolution is NativeDocumentResolution.Unavailable
+            is NativeReaderResolution.Definition -> resolution.resolution is NativeDefinitionResolution.Unavailable
+        }
+        if(!unavailable) stateGate.withLock {
+            requireOpen();currentCoroutineContext().ensureActive()
+            val readers=persisted.navigation.readers
+            val next=if(readers.lastOrNull()?.target==route.target) readers.dropLast(1)+route else (readers+route).takeLast(32)
+            commit(persisted.copy(navigation=persisted.navigation.copy(readers=next)))
+        }
+        return resolution
+    }
+
     suspend fun restoreReader(): NativeReaderResolution? = navigation.value.readers.lastOrNull()?.let {
         when(it) {
             is NativeReaderRoute.Document -> NativeReaderResolution.Document(readTarget(it.target))

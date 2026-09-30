@@ -15,6 +15,7 @@ import dev.localmed.nativespike.shared.core.normalizeNativeIdentityName
 import dev.localmed.nativespike.shared.core.validateIdentityHit
 import dev.localmed.nativespike.shared.content.contentJson
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import dev.localmed.nativespike.shared.core.NativeDocumentTarget
 import dev.localmed.nativespike.shared.core.NativeSourceDocument
 import dev.localmed.nativespike.shared.core.NativeSourceSection
@@ -28,6 +29,9 @@ import dev.localmed.nativespike.shared.model.HydratedHit
 import dev.localmed.nativespike.shared.model.ReaderChunk
 import dev.localmed.nativespike.shared.model.SearchDocumentSummary
 import dev.localmed.nativespike.shared.model.SectionRow
+import dev.localmed.nativespike.shared.model.NativeSearchFilters
+import dev.localmed.nativespike.shared.model.SearchVersionIdentity
+import dev.localmed.nativespike.shared.model.DocumentDescriptor
 import kotlin.time.TimeSource
 
 // androidx.sqlite mirrors the underlying C API convention: bind*(index) is 1-based (SQL
@@ -231,10 +235,30 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
         }
     }
 
-    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>, diversifyDocuments: Boolean): List<BranchHit> {
+    actual fun contentPackIds(): List<String> = requireConnection().prepare("SELECT id FROM content_packs").use { s -> buildList { while(s.step()) add(s.getText(0)) } }
+    actual fun documentVersionIdentities(): List<SearchVersionIdentity> = requireConnection().prepare("SELECT document_id,id,source_checksum FROM document_versions").use { s ->
+        buildList { while(s.step()) add(SearchVersionIdentity(s.getText(0),s.getText(1),s.getText(2).let { if(it.startsWith("sha256:")) it else "sha256:$it" })) }
+    }
+
+    private fun filterClauses(filters: NativeSearchFilters): Pair<String,List<String>> {
+        val clauses=mutableListOf<String>();val bind=mutableListOf<String>()
+        fun add(values: List<String>,clause: String) { if(values.isNotEmpty()) { clauses+=clause;bind+=contentJson.encodeToString(values) } }
+        add(filters.documentIds,"d.id IN (SELECT value FROM json_each(?))")
+        add(filters.sectionTypes,"s.section_type IN (SELECT value FROM json_each(?))")
+        add(filters.specialties,"EXISTS (SELECT 1 FROM json_each(d.specialty_json) x WHERE x.value IN (SELECT value FROM json_each(?)))")
+        add(filters.ageGroups,"EXISTS (SELECT 1 FROM json_each(COALESCE(json_extract(d.metadata_json, '$.ageGroups'), '[]')) x WHERE x.value IN (SELECT value FROM json_each(?)))")
+        return clauses.joinToString("") { " AND $it" } to bind
+    }
+
+    actual fun searchBranch(ftsQuery: String, limit: Int, documentIds: List<String>, diversifyDocuments: Boolean, filters: NativeSearchFilters): List<BranchHit> {
         val candidateLimit = minOf(500, limit)
-        val documentFilter = if (documentIds.isEmpty()) "" else
-            " AND chunks_fts.document_id IN (${documentIds.joinToString(",") { "?" }})"
+        val allowed=filters.documentIds.toSet()
+        val selected=if(documentIds.isEmpty()) filters else filters.copy(documentIds=if(allowed.isEmpty()) documentIds else documentIds.filter { it in allowed }.ifEmpty { listOf("__minimed_empty_search_scope__") })
+        val (documentFilter,bind)=filterClauses(selected)
+        val joins=buildString {
+            if(selected.documentIds.isNotEmpty() || selected.specialties.isNotEmpty() || selected.ageGroups.isNotEmpty()) append("JOIN documents d ON d.id=chunks_fts.document_id ")
+            if(selected.sectionTypes.isNotEmpty()) append("JOIN chunks c ON c.id=chunks_fts.chunk_id JOIN sections s ON s.id=c.section_id ")
+        }
         val sql = """
             SELECT chunk_id, bm25_rank
             FROM (
@@ -246,6 +270,7 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
                     SELECT chunks_fts.rowid AS fts_rowid,
                         bm25(chunks_fts, 0, 0, 0, 0, 0, 8.0, 4.0, 1.0) AS bm25_rank
                     FROM chunks_fts
+                    $joins
                     WHERE chunks_fts MATCH ?$documentFilter
                     ORDER BY bm25_rank
                     LIMIT ?
@@ -258,8 +283,8 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
         """.trimIndent()
         return requireConnection().prepare(sql).use { statement ->
             statement.bindText(1, ftsQuery)
-            documentIds.forEachIndexed { index, id -> statement.bindText(index + 2, id) }
-            val bound = documentIds.size + 2
+            bind.forEachIndexed { index, value -> statement.bindText(index + 2,value) }
+            val bound = bind.size + 2
             statement.bindLong(bound, (candidateLimit * 4).toLong())
             statement.bindLong(bound + 1, if (diversifyDocuments) 3 else candidateLimit.toLong())
             statement.bindLong(bound + 2, candidateLimit.toLong())
@@ -277,7 +302,7 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
         if (chunkIds.isEmpty()) return emptyList()
         val placeholders = chunkIds.joinToString(",") { "?" }
         val sql = """
-            SELECT d.title AS document_title, s.title AS section_title, c.original_text AS original_text
+            SELECT d.title AS document_title, s.title AS section_title, c.original_text AS original_text, c.id AS chunk_id
             FROM chunks c
             JOIN sections s ON s.id = c.section_id
             JOIN document_versions dv ON dv.id = c.document_version_id
@@ -293,6 +318,7 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
                         documentTitle = statement.getText(0),
                         sectionTitle = statement.getText(1),
                         originalText = statement.getText(2),
+                        chunkId = statement.getText(3),
                     ),
                 )
             }
@@ -383,12 +409,19 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
 
     actual fun listSearchDocuments(): List<SearchDocumentSummary> {
         val sql = """
-            SELECT id, title, short_title, source_type,
+            SELECT d.id, d.title, d.short_title, d.source_type,
                 (SELECT group_concat(value, char(31)) FROM json_each(metadata_json, '${'$'}.declaredAliases'))
                     AS declared_aliases,
                 (SELECT group_concat(value, char(31)) FROM json_each(metadata_json, '${'$'}.navigationAliases'))
-                    AS navigation_aliases
-            FROM documents
+                    AS navigation_aliases,
+                json_extract(metadata_json, '$.catalogFamily'),json_extract(metadata_json, '$.entityType'),
+                json_extract(metadata_json, '$.targetDocumentId'),json_extract(metadata_json, '$.contentMode'),
+                json_extract(metadata_json, '$.notLegalAdvice'),json_extract(metadata_json, '$.interactiveAssessmentId'),
+                json_extract(metadata_json, '$.calculationRequired'),json_extract(metadata_json, '$.interactiveCalculatorId'),
+                (SELECT group_concat(value,char(31)) FROM json_each(metadata_json,'$.ageGroups')),
+                json_extract(metadata_json,'$.terminology') IS NOT NULL AND json_extract(metadata_json,'$.terminology')!=0 AND json_extract(metadata_json,'$.terminology')!=''
+            FROM documents d
+            ORDER BY d.title COLLATE NOCASE,d.id
         """.trimIndent()
         // Pooled: `sourceType` is one of a handful of distinct values across ~20k documents — see
         // `String.pooled`'s doc above.
@@ -404,6 +437,10 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
                         sourceType = statement.getText(3).pooled(sourceTypePool),
                         declaredAliases = statement.splitList(4),
                         navigationAliases = statement.splitList(5),
+                        descriptor = DocumentDescriptor(statement.getText(0),statement.getText(3),statement.getText(1),
+                            statement.textOrNull(6),statement.textOrNull(7),statement.textOrNull(8),statement.textOrNull(9),
+                            statement.boolOrFalse(10),statement.textOrNull(11),statement.boolOrFalse(12),statement.textOrNull(13),statement.splitList(5),statement.splitList(14)),
+                        terminology = statement.boolOrFalse(15),
                     ),
                 )
             }
@@ -411,7 +448,8 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
         }
     }
 
-    actual fun firstReadableChunk(documentId: String): HydratedHit? {
+    actual fun firstReadableChunk(documentId: String,filters: NativeSearchFilters): HydratedHit? {
+        val (clauses,bind)=filterClauses(filters)
         val sql = """
             SELECT
                 c.id AS chunk_id, c.document_version_id, c.section_id, c.original_text,
@@ -438,12 +476,13 @@ actual class NativeSearchDatabase actual constructor(private val dbFilePath: Str
             JOIN document_versions dv ON dv.id = d.current_version_id
             JOIN sections s ON s.document_version_id = dv.id
             JOIN chunks c ON c.section_id = s.id
-            WHERE d.id = ? AND length(trim(c.original_text)) > 0
+            WHERE d.id = ? AND length(trim(c.original_text)) > 0 $clauses
             ORDER BY s.order_index, c.order_index
             LIMIT 1
         """.trimIndent()
         return requireConnection().prepare(sql).use { statement ->
             statement.bindText(1, documentId)
+            bind.forEachIndexed { index,value -> statement.bindText(index+2,value) }
             if (!statement.step()) return@use null
             HydratedHit(
                 chunkId = statement.getText(0),

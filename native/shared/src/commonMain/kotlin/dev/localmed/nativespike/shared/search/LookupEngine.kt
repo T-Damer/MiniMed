@@ -19,6 +19,8 @@ import dev.localmed.nativespike.shared.model.SearchResultGroup
 import dev.localmed.nativespike.shared.model.SearchResultItem
 import dev.localmed.nativespike.shared.model.SearchTiming
 import dev.localmed.nativespike.shared.model.NativeSearchMode
+import dev.localmed.nativespike.shared.model.NativeSearchSelection
+import dev.localmed.nativespike.shared.model.validateSearchSelection
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -77,7 +79,11 @@ private const val ITEMS_PER_GROUP = 3
  * build's DB reads are entirely finished, so `search()` awaiting both before touching the database
  * itself can never overlap with this warm-up's own DB access either.
  */
-class LookupEngine(private val database: NativeSearchDatabase, private val databaseGate: Mutex = Mutex()) {
+class LookupEngine(
+    private val database: NativeSearchDatabase,
+    private val databaseGate: Mutex = Mutex(),
+    private val initialMounts: (suspend () -> Pair<Long, List<NativeSearchMount>>)? = null,
+) {
     private val engineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private class Vocabulary(
@@ -94,23 +100,34 @@ class LookupEngine(private val database: NativeSearchDatabase, private val datab
     var indexBuildMs: Double = 0.0
         private set
 
-    private val vocabularyDeferred = CompletableDeferred<Vocabulary>()
-    private val documentIndexDeferred = CompletableDeferred<QueryDocumentIndex>()
+    // Completion signals must not retain superseded corpus-sized indexes.
+    private val vocabularyDeferred = CompletableDeferred<Unit>()
+    private val documentIndexDeferred = CompletableDeferred<Unit>()
+    private var composition: NativeSearchComposition? = null
+    private var currentVocabulary: Vocabulary? = null
+    private var currentIndex: QueryDocumentIndex? = null
+    private var admittedGeneration: Long = -1
 
     private val warmup = engineScope.launch {
         try {
+        val (revision, mounts) = initialMounts?.invoke()
+            ?: (0L to listOf(NativeSearchMount(database,"minimed.core.ru",weight=1.1)))
         databaseGate.withLock {
             val startedVocabulary = TimeSource.Monotonic.markNow()
-            val aliases = filterQueryAliases(sortAliasesLikeMultiMedicalStore(database.listAliases()))
+            val initial=NativeSearchComposition(mounts)
+            val aliases = filterQueryAliases(sortAliasesLikeMultiMedicalStore(initial.aliases))
             val aliasExpander = createAliasExpander(aliases)
             val medicationMatcher = createMedicationSpellingMatcher(aliases)
             vocabularyBuildMs = startedVocabulary.elapsedNow().inWholeMicroseconds / 1000.0
-            vocabularyDeferred.complete(Vocabulary(aliases, aliasExpander, medicationMatcher))
+            val vocabulary=Vocabulary(aliases,aliasExpander,medicationMatcher)
+            currentVocabulary=vocabulary;composition=initial;admittedGeneration=revision
+            vocabularyDeferred.complete(Unit)
 
             val startedIndex = TimeSource.Monotonic.markNow()
-            val index = buildQueryDocumentIndex(database)
+            val index = QueryDocumentIndex(initial.documents)
+            currentIndex=index
             indexBuildMs = startedIndex.elapsedNow().inWholeMicroseconds / 1000.0
-            documentIndexDeferred.complete(index)
+            documentIndexDeferred.complete(Unit)
         }
         } catch (cause: Throwable) {
             vocabularyDeferred.completeExceptionally(cause)
@@ -133,8 +150,31 @@ class LookupEngine(private val database: NativeSearchDatabase, private val datab
 
     /** Pure analysis reuses the one qualified vocabulary; it never reads or opens another DB. */
     suspend fun analyzeClinicalQuery(query: String,includeSuggestions: Boolean=true): ClinicalQueryPlan {
-        val vocabulary=vocabularyDeferred.await()
-        return analyzeClinicalQuery(query,vocabulary.aliases,includeSuggestions,vocabulary.aliasExpander.expand(query))
+        awaitReady()
+        return databaseGate.withLock {
+            val vocabulary=currentVocabulary!!
+            analyzeClinicalQuery(query,vocabulary.aliases,includeSuggestions,vocabulary.aliasExpander.expand(query))
+        }
+    }
+
+    /** Called only for a verified installed-registry generation; navigation writes never rebuild. */
+    internal suspend fun refreshComposition(mounts: List<NativeSearchMount>,generation: Long) {
+        awaitReady()
+        databaseGate.withLock {
+            if(generation<=admittedGeneration) return@withLock
+            // The registry already committed this verified generation. No query can use the
+            // previous one under this gate; release its caches before allocating replacements.
+            // On failure the generation stays unadmitted, so the next request retries it.
+            composition=null;currentVocabulary=null;currentIndex=null
+            val next=NativeSearchComposition(mounts)
+            val aliases=filterQueryAliases(sortAliasesLikeMultiMedicalStore(next.aliases))
+            val vocabulary=Vocabulary(aliases,createAliasExpander(aliases),createMedicationSpellingMatcher(aliases))
+            val index=QueryDocumentIndex(next.documents)
+            composition=next;currentVocabulary=vocabulary;currentIndex=index;admittedGeneration=generation
+        }
+    }
+    internal suspend fun identityFilters(selection: NativeSearchSelection): dev.localmed.nativespike.shared.model.NativeSearchFilters {
+        awaitReady();return databaseGate.withLock { composition!!.filters(selection) }
     }
 
     /**
@@ -147,10 +187,16 @@ class LookupEngine(private val database: NativeSearchDatabase, private val datab
         search(query, NativeSearchMode.LOOKUP, onStage)
 
     suspend fun search(query: String, mode: NativeSearchMode, onStage: ((String, Double) -> Unit)? = null): SearchOutcome? {
+        return search(query,mode,NativeSearchSelection(),onStage)
+    }
+    suspend fun search(query: String,mode: NativeSearchMode,selection: NativeSearchSelection,onStage: ((String,Double)->Unit)?=null): SearchOutcome? {
+        validateSearchSelection(selection)
         if (query.isBlank()) return null
-        val vocabulary = vocabularyDeferred.await()
-        val documentIndex = documentIndexDeferred.await()
+        awaitReady()
         return databaseGate.withLock {
+        val vocabulary=currentVocabulary!!
+        val documentIndex=currentIndex!!
+        val corpus=composition!!
         val started = TimeSource.Monotonic.markNow()
         var sqlMs = 0.0
         val collectStage: (String, Double) -> Unit = { stage, elapsed ->
@@ -158,10 +204,10 @@ class LookupEngine(private val database: NativeSearchDatabase, private val datab
             onStage?.invoke(stage, elapsed)
         }
         val clinicalPlan = if (mode == NativeSearchMode.CLINICAL) analyzeClinicalQuery(query, vocabulary.aliases, true, vocabulary.aliasExpander.expand(query)) else null
-        val groups = runLookupPipelineGroups(
+        val groups = corpus.withSourceTargets(runLookupPipelineGroups(
             query, vocabulary.aliases, database, documentIndex, GROUP_LIMIT,
-            vocabulary.aliasExpander, vocabulary.medicationMatcher, collectStage, clinicalPlan,
-        )
+            vocabulary.aliasExpander, vocabulary.medicationMatcher, collectStage, clinicalPlan,corpus,selection,
+        ))
         val totalMs = started.elapsedNow().inWholeMicroseconds / 1000.0
 
         val uiGroups = groups.map { group ->
@@ -177,12 +223,13 @@ class LookupEngine(private val database: NativeSearchDatabase, private val datab
                         anchor = result.anchor,
                         snippet = result.snippet,
                         highlightedRanges = result.highlightedRanges,
+                        target = result.target,
                     )
                 },
             )
         }
         SearchOutcome(groups = uiGroups, timing = SearchTiming(sqlOnlyMs = sqlMs, totalMs = totalMs), mode = mode,
-            analysis = clinicalPlan?.analysis, sourceGroups = groups)
+            analysis = clinicalPlan?.analysis, sourceGroups = groups,selection=selection)
         }
     }
 }

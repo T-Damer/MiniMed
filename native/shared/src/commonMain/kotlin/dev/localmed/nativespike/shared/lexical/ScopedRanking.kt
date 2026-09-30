@@ -8,6 +8,7 @@ import dev.localmed.nativespike.shared.model.QueryFactKind
 import dev.localmed.nativespike.shared.model.QueryFactPolarity
 import dev.localmed.nativespike.shared.model.SearchIntentKind
 import dev.localmed.nativespike.shared.model.RankedResult
+import dev.localmed.nativespike.shared.model.NativeSearchScope
 import dev.localmed.nativespike.shared.text.lightStemRussian
 import dev.localmed.nativespike.shared.text.normalizeSurfaceText
 import dev.localmed.nativespike.shared.text.searchSubjectText
@@ -203,12 +204,12 @@ private fun medicationContextMatchScore(result: RankedResult,title: String?,medi
 }
 
 /** Medication context must coexist in one source passage, matching ScopedMedicalCore's all scope. */
-fun filterMedicationDocuments(groups: List<RankedGroup>, originalQuery: String, documentsById: Map<String, DocumentDescriptor>, analysis: QueryAnalysis? = null): List<RankedGroup> {
+fun filterMedicationDocuments(groups: List<RankedGroup>, originalQuery: String, documentsById: Map<String, DocumentDescriptor>, analysis: QueryAnalysis? = null,scope: NativeSearchScope = NativeSearchScope.ALL): List<RankedGroup> {
     val medications=analysis?.facts.orEmpty().filter { it.kind==QueryFactKind.MEDICATION && it.polarity==QueryFactPolarity.POSITIVE }
     val context=analysis?.clinicalContext
     val structured=(context?.doseForm.orEmpty()+context?.route.orEmpty()+context?.strength.orEmpty()).filter { it.polarity==QueryFactPolarity.POSITIVE }
     val intent=analysis?.intent?.primary
-    val excludeByIntent=medications.isEmpty() && intent!=SearchIntentKind.MEDICATION && intent!=SearchIntentKind.MIXED
+    val excludeByIntent=scope!=NativeSearchScope.MEDICATIONS && medications.isEmpty() && intent!=SearchIntentKind.MEDICATION && intent!=SearchIntentKind.MIXED
     val requireSameResult=medications.isNotEmpty() && structured.isNotEmpty()
     if(!excludeByIntent && !requireSameResult) return groups
     val queryStems=stemmedTokens(originalQuery).toSet()

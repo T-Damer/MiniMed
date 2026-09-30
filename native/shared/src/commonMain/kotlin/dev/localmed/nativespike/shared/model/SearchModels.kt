@@ -1,6 +1,7 @@
 package dev.localmed.nativespike.shared.model
 
 import dev.localmed.nativespike.shared.text.TextRange
+import dev.localmed.nativespike.shared.core.NativeDocumentTarget
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 
@@ -59,6 +60,7 @@ data class SearchResultItem(
     val anchor: String,
     val snippet: String,
     val highlightedRanges: List<TextRange> = emptyList(),
+    val target: NativeDocumentTarget? = null,
 )
 
 /** A document card in the result list: title, kind badge, its best-matching sections. */
@@ -99,4 +101,5 @@ data class SearchOutcome(
     val mode: NativeSearchMode = NativeSearchMode.LOOKUP,
     val analysis: QueryAnalysis? = null,
     val sourceGroups: List<RankedGroup> = emptyList(),
+    val selection: NativeSearchSelection = NativeSearchSelection(),
 )

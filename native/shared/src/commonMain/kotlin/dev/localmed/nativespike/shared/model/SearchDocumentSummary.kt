@@ -9,4 +9,8 @@ data class SearchDocumentSummary(
     val sourceType: String,
     val declaredAliases: List<String>,
     val navigationAliases: List<String>,
+    val descriptor: DocumentDescriptor? = null,
+    val terminology: Boolean = false,
 )
+
+data class SearchVersionIdentity(val documentId: String,val versionId: String,val sourceChecksum: String)
