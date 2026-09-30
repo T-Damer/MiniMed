@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "coreSha256": "13f238f7fefe1b19eefa19ac9de0ea89fabff34ed96e98d987277f15ab03025f",
+  "sections": [
+    {
+      "id": "conditions",
+      "label": "МКБ, симптомы и состояния",
+      "icon": "notes",
+      "countNoun": [
+        "запись",
+        "записи",
+        "записей"
+      ],
+      "navigationDocumentCount": 15903,
+      "countEntity": "navigation-document",
+      "countProvider": "released-core",
+      "membershipSha256": "be0453802d62c787725d0ca437967911c47e594698098e2994dc2489ab1ffdb1"
+    },
+    {
+      "id": "guidelines",
+      "label": "Клинические рекомендации",
+      "icon": "book-open",
+      "countNoun": [
+        "рекомендация",
+        "рекомендации",
+        "рекомендаций"
+      ],
+      "navigationDocumentCount": 751,
+      "countEntity": "navigation-document",
+      "countProvider": "released-core",
+      "membershipSha256": "59fa4a62cdbe573c4b2cb3e3344845cec43c8528b47806770481e91dfb07ade7"
+    },
+    {
+      "id": "medications",
+      "label": "Препараты",
+      "icon": "prescription",
+      "countNoun": [
+        "действующее вещество",
+        "действующих вещества",
+        "действующих веществ"
+      ],
+      "navigationDocumentCount": 3332,
+      "countEntity": "navigation-document",
+      "countProvider": "released-core",
+      "membershipSha256": "a8d544b0b037fba83b04908239828e94ae062cc1477e3b0be9f9bd951588ad0b"
+    },
+    {
+      "id": "legal",
+      "label": "Нормативные документы",
+      "icon": "scales",
+      "countNoun": [
+        "документ",
+        "документа",
+        "документов"
+      ],
+      "navigationDocumentCount": 0,
+      "countEntity": "navigation-document",
+      "countProvider": "released-core",
+      "membershipSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "id": "assessments",
+      "label": "Опросники",
+      "icon": "list-checks",
+      "countNoun": [
+        "опросник",
+        "опросника",
+        "опросников"
+      ],
+      "navigationDocumentCount": null,
+      "countEntity": "tool",
+      "countProvider": "native-tool-runtime",
+      "membershipSha256": null
+    },
+    {
+      "id": "calculators",
+      "label": "Калькуляторы",
+      "icon": "calculator",
+      "countNoun": [
+        "калькулятор",
+        "калькулятора",
+        "калькуляторов"
+      ],
+      "navigationDocumentCount": null,
+      "countEntity": "tool",
+      "countProvider": "native-tool-runtime",
+      "membershipSha256": null
+    }
+  ],
+  "examplesByScope": {
+    "conditions": [
+      "J18",
+      "Головная боль",
+      "Отёк"
+    ],
+    "calculators": [],
+    "assessments": [],
+    "diagnosis": [
+      "Ребёнок часто дышит и температурит второй день",
+      "Боль справа внизу живота, тошнота и рвота",
+      "Лихорадка без очага и рези при мочеиспускании"
+    ],
+    "guidelines": [
+      "Внебольничная пневмония у детей: диагностика и лечение",
+      "Клинические рекомендации по острому аппендициту",
+      "Тактика при анафилактическом шоке"
+    ],
+    "medications": [
+      "Цефтриаксон: показания и противопоказания",
+      "Ибупрофен: официальная инструкция",
+      "Осельтамивир: лекарственные формы и ограничения"
+    ],
+    "legal": [
+      "Порядок оказания медицинской помощи детям",
+      "Информированное добровольное согласие",
+      "Правила выписки рецептов на лекарственные препараты"
+    ],
+    "all": [
+      "Внебольничная пневмония у детей",
+      "Цефтриаксон: официальная инструкция",
+      "Порядок оказания медицинской помощи"
+    ],
+    "personal": [
+      "Напоминание о контрольном осмотре",
+      "Мои записи о пневмонии",
+      "Загруженная книга: лечение отита"
+    ]
+  },
+  "features": [
+    {
+      "id": "ecg-photo",
+      "icon": "heartbeat",
+      "kicker": "Фото ЭКГ",
+      "title": "ЭКГ по фото",
+      "text": "RR, ЧСС, PR, QRS, QT и QTc по снимку ленты. Разметку вы проверяете по шагам, фото не покидает устройство.",
+      "actions": [
+        {
+          "label": "Сфотографировать",
+          "icon": "camera",
+          "webHref": null,
+          "webAction": "onFile={(file) => {\n            handOffEcgPhoto(file);\n            openCalculator(ECG_PHOTO_CALIPER_ID);\n          }}",
+          "webAvailabilityCondition": null,
+          "metadataOnly": true
+        },
+        {
+          "label": "Из галереи",
+          "icon": "image",
+          "webHref": null,
+          "webAction": "onFile={(file) => {\n            handOffEcgPhoto(file);\n            openCalculator(ECG_PHOTO_CALIPER_ID);\n          }}",
+          "webAvailabilityCondition": null,
+          "metadataOnly": true
+        }
+      ],
+      "webVisibility": "always",
+      "nativeAvailability": "unqualified",
+      "provenance": [
+        {
+          "path": "apps/app/src/features/calculators/EcgHomeEntry.tsx",
+          "sha256": "143c1820dfb75211326bf548c080087617c1d70eb71d82502d9ca9fdb2b4a3bc",
+          "lineStart": 1,
+          "lineEnd": 42
+        },
+        {
+          "path": "apps/app/src/features/calculators/EcgPhotoPicker.tsx",
+          "sha256": "f61637bee4e884ea027d83a016b30fff0a5a92a8c21566e503505e8c663e60a8",
+          "lineStart": 1,
+          "lineEnd": 54
+        }
+      ]
+    },
+    {
+      "id": "imaging",
+      "icon": "image",
+      "kicker": "КТ и МРТ",
+      "title": "Просмотр исследований",
+      "text": "DICOM и NIfTI открываются на устройстве: срезы, окна «мягкие ткани» и «кость». Попробуйте на примере КТ.",
+      "actions": [
+        {
+          "label": "Скачать пример КТ",
+          "icon": "download",
+          "webHref": null,
+          "webAction": "() => void addCtExample()",
+          "webAvailabilityCondition": null,
+          "metadataOnly": true
+        },
+        {
+          "label": "Мои файлы",
+          "icon": "folder-open",
+          "webHref": "#/notes",
+          "webAction": null,
+          "webAvailabilityCondition": null,
+          "metadataOnly": true
+        }
+      ],
+      "webVisibility": "always",
+      "nativeAvailability": "unqualified",
+      "provenance": [
+        {
+          "path": "apps/app/src/features/search/SearchHome.tsx",
+          "sha256": "54031bf799b7d7a5ac18594ba5c6f9c06e110e6f08ebaea18774aff2623b65b9",
+          "lineStart": 335,
+          "lineEnd": 347
+        }
+      ]
+    },
+    {
+      "id": "conversation",
+      "icon": "microphone",
+      "kicker": "Приём",
+      "title": "Запись беседы",
+      "text": "Запишите разговор на приёме и прикрепите запись к карточке пациента. Запись хранится только на устройстве.",
+      "actions": [
+        {
+          "label": "Начать запись",
+          "icon": "microphone",
+          "webHref": null,
+          "webAction": "() => void startConversation()",
+          "webAvailabilityCondition": "(conversationSession.recorder() ? { unavailableReason: 'Запись уже идёт' } : {})",
+          "metadataOnly": true
+        },
+        {
+          "label": "Пациенты",
+          "icon": "users",
+          "webHref": "#/notes/patients",
+          "webAction": null,
+          "webAvailabilityCondition": null,
+          "metadataOnly": true
+        }
+      ],
+      "webVisibility": "always",
+      "nativeAvailability": "unqualified",
+      "provenance": [
+        {
+          "path": "apps/app/src/features/search/SearchHome.tsx",
+          "sha256": "54031bf799b7d7a5ac18594ba5c6f9c06e110e6f08ebaea18774aff2623b65b9",
+          "lineStart": 348,
+          "lineEnd": 365
+        }
+      ]
+    },
+    {
+      "id": "graph",
+      "icon": "graph",
+      "kicker": "Карта связей",
+      "title": "Связи между источниками",
+      "text": "Диагнозы, коды МКБ, рекомендации и препараты на одной карте: видно, что с чем связано.",
+      "actions": [
+        {
+          "label": "Открыть карту",
+          "icon": "graph",
+          "webHref": null,
+          "webAction": "() => {\n                    setGraphShowAll(false);\n                    setGraphOpen(true);\n                  }",
+          "webAvailabilityCondition": "(corpusUnavailable()\n                    ? { unavailableReason: corpusUnavailable() as string }\n                    : {})",
+          "metadataOnly": true
+        }
+      ],
+      "webVisibility": "experimental-modules-enabled",
+      "nativeAvailability": "unqualified",
+      "provenance": [
+        {
+          "path": "apps/app/src/features/search/SearchHome.tsx",
+          "sha256": "54031bf799b7d7a5ac18594ba5c6f9c06e110e6f08ebaea18774aff2623b65b9",
+          "lineStart": 369,
+          "lineEnd": 390
+        }
+      ]
+    }
+  ],
+  "carousel": {
+    "label": "Полезные функции",
+    "itemLabel": "Функция",
+    "autoplayMs": 7000,
+    "initialIndexRule": "export function featureOfDayIndex(count: number, date: Date): number {\n  if (count <= 0) return 0;\n  const day = Math.floor(\n    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86_400_000,\n  );\n  return ((day % count) + count) % count;\n}"
+  },
+  "sourceProvenance": [
+    {
+      "path": "apps/app/src/features/search/searchCatalog.ts",
+      "sha256": "fe27311cc161d94ee24b183974c89c7f2f623c65840a216805e9a2b623df4335",
+      "lineStart": 1,
+      "lineEnd": 283
+    },
+    {
+      "path": "apps/app/src/features/search/SearchWorkspace.tsx",
+      "sha256": "222529c5cdbf43a431973bf3b33b84b22ad308cfa8f5f453bc14556d04db4b53",
+      "lineStart": 1,
+      "lineEnd": 1359
+    },
+    {
+      "path": "apps/app/src/features/search/SearchHome.tsx",
+      "sha256": "54031bf799b7d7a5ac18594ba5c6f9c06e110e6f08ebaea18774aff2623b65b9",
+      "lineStart": 1,
+      "lineEnd": 845
+    },
+    {
+      "path": "apps/app/src/features/calculators/EcgHomeEntry.tsx",
+      "sha256": "143c1820dfb75211326bf548c080087617c1d70eb71d82502d9ca9fdb2b4a3bc",
+      "lineStart": 1,
+      "lineEnd": 42
+    },
+    {
+      "path": "apps/app/src/features/calculators/EcgPhotoPicker.tsx",
+      "sha256": "f61637bee4e884ea027d83a016b30fff0a5a92a8c21566e503505e8c663e60a8",
+      "lineStart": 1,
+      "lineEnd": 54
+    },
+    {
+      "path": "apps/app/src/features/search/SearchHomeIntro.tsx",
+      "sha256": "b524a8e1bee59a3b8537d70cd8da43b54c678b7f87153ab78429161fa8a5bd9d",
+      "lineStart": 1,
+      "lineEnd": 37
+    },
+    {
+      "path": "apps/app/src/features/search/feature-of-day.ts",
+      "sha256": "0f359d04d924fef951d773780171e8eccb67739c1636a19179b08524e6aacf5a",
+      "lineStart": 1,
+      "lineEnd": 12
+    },
+    {
+      "path": "apps/app/src/features/search/ScopedMedicalCore.ts",
+      "sha256": "18705dda333344daf6d0b7e49f1b98ec7d568dbbd7a1456ce4acd3d5bab813e7",
+      "lineStart": 1,
+      "lineEnd": 695
+    },
+    {
+      "path": "packages/core/src/document-siblings.ts",
+      "sha256": "18acf1b3b7b8e52acb63a585ef36edfa6c4e7ef34cd61dbad04de2b2b9188015",
+      "lineStart": 1,
+      "lineEnd": 70
+    },
+    {
+      "path": "apps/app/src/features/library/document-display.ts",
+      "sha256": "90458131c0cfc57b17772109bf62d44177fd55b62b6a8498b43c65d7ed2a48ee",
+      "lineStart": 1,
+      "lineEnd": 196
+    },
+    {
+      "path": "packages/storage-sqlite/src/sqlite-medical-store.ts",
+      "sha256": "bc5fa21ab30bde5035d25ccebd782537e7e4ccd4a4b3c0bbdf3cac681561eafe",
+      "lineStart": 1,
+      "lineEnd": 1336
+    },
+    {
+      "path": "packages/core/src/mappers.ts",
+      "sha256": "4d74e70401ba3d533995f02850a084524c2e89f632316a6320f386651c5ad02c",
+      "lineStart": 1,
+      "lineEnd": 90
+    },
+    {
+      "path": "apps/app/src/features/search/sections-overview.ts",
+      "sha256": "02cb4577989050918976cc6d29b142eeb49e53143995ee149e30946899add3fa",
+      "lineStart": 1,
+      "lineEnd": 45
+    }
+  ]
+}
