@@ -1,26 +1,21 @@
 package dev.localmed.nativespike.shared.ui
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicText
+import dev.localmed.nativespike.shared.designsystem.NativeDesign
+import dev.localmed.nativespike.shared.designsystem.NativeSecondaryButton
+import dev.localmed.nativespike.shared.designsystem.textStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,82 +26,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import dev.localmed.nativespike.shared.user.NativeThemePreference
 import dev.localmed.nativespike.shared.user.NativeHistoryAnalysisMode
-import dev.localmed.nativespike.shared.user.NATIVE_TEXT_SCALE_LEVELS
 import dev.localmed.nativespike.shared.user.NativeUserSnapshot
 import kotlinx.coroutines.launch
 
 @Composable
-private fun NativeUserError(session: NativeCoreSession) {
+internal fun NativeUserError(session: NativeCoreSession) {
     val errors by session.uiErrors.messages.collectAsState()
     val pending by session.historyPending.collectAsState()
     val snapshot by session.userState.snapshot.collectAsState()
     errors[NativeUiOperation.UserState]?.let { message ->
-        Text(message, color = MaterialTheme.colorScheme.error)
-        if (snapshot == null && !pending) TextButton(onClick = { session.actionScope.launch { session.loadUserState() } }) {
-                Text("Повторить чтение")
-            }
+        BasicText(message, style = NativeDesign.components.coreStatusDetail.text.textStyle())
+        if (snapshot == null && !pending) NativeSecondaryButton("Повторить чтение", { session.actionScope.launch { session.loadUserState() } })
     }
     listOf(NativeUiOperation.UserPreferences, NativeUiOperation.UserHistory).forEach { operation ->
-        errors[operation]?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        errors[operation]?.let { BasicText(it, style = NativeDesign.components.coreStatusDetail.text.textStyle()) }
     }
-    if (pending) TextButton(onClick = { session.actionScope.launch { session.retryHistory() } }) { Text("Повторить сохранение истории") }
-    errors[NativeUiOperation.Navigation]?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-}
-
-@Composable
-fun NativeSettingsScreen(session: NativeCoreSession, snapshot: NativeUserSnapshot?) {
-    var saving by remember(session) { mutableStateOf(false) }
-    val save = { operation: suspend () -> Unit ->
-        if (!saving && snapshot != null) {
-            saving = true
-            session.actionScope.launch {
-                try {
-                    session.uiErrors.execute(NativeUiOperation.UserPreferences, "Не удалось сохранить настройку. Выберите значение ещё раз.") {
-                        operation()
-                    }
-                } finally { saving = false }
-            }
-        }
-        Unit
-    }
-    val navigationBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    NativeChromeScaffold(containerColor = MaterialTheme.colorScheme.surface, desk = true, topBar = {
-        Row(Modifier.fillMaxWidth().statusBarsPadding().heightIn(min = 56.dp).padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            NativePaperIconButton(NativeAppGlyphName.ArrowLeft, { session.actionScope.launch { session.back() } }, "Назад", primary = true)
-            Text("Настройки", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 2, overflow = TextOverflow.Ellipsis)
-        }
-    }) { padding ->
-        NativePaperSurface(Modifier.fillMaxSize().padding(horizontal = 10.dp)) {
-            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = padding.calculateTopPadding(), bottom = 24.dp + navigationBottom + padding.calculateBottomPadding()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                item { Column(Modifier.padding(horizontal = 16.dp)) { NativeUserError(session) } }
-                if (snapshot != null) {
-                    item { Text("Тема", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium) }
-                    items(NativeThemePreference.entries) { theme ->
-                        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                            RadioButton(selected = snapshot.preferences.theme == theme, enabled = !saving,
-                                onClick = { save { session.userState.setTheme(theme) } })
-                            Text(when (theme) { NativeThemePreference.System -> "Системная"; NativeThemePreference.Light -> "Светлая"; NativeThemePreference.Dark -> "Тёмная" }, modifier = Modifier.clickable(enabled = !saving) { save { session.userState.setTheme(theme) } }.padding(vertical = 12.dp), style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
-                    item { Text("Размер текста", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium) }
-                    item { Text("Применяется поверх системного размера шрифта.", modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                    items(NATIVE_TEXT_SCALE_LEVELS) { scale ->
-                        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                            RadioButton(selected = snapshot.preferences.textScalePercent == scale, enabled = !saving,
-                                onClick = { save { session.userState.setTextScalePercent(scale) } })
-                            Text("$scale %", modifier = Modifier.clickable(enabled = !saving) { save { session.userState.setTextScalePercent(scale) } }.padding(vertical = 12.dp), style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
-                }
-            }
-        }
-    }
+    if (pending) NativeSecondaryButton("Повторить сохранение истории", { session.actionScope.launch { session.retryHistory() } })
+    errors[NativeUiOperation.Navigation]?.let { BasicText(it, style = NativeDesign.components.coreStatusDetail.text.textStyle()) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
