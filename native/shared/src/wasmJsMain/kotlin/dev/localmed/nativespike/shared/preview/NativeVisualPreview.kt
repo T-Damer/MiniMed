@@ -19,6 +19,11 @@ import org.w3c.dom.url.URLSearchParams
 import kotlinx.coroutines.launch
 import dev.localmed.nativespike.shared.designsystem.NativeQueryProgress
 import dev.localmed.nativespike.shared.designsystem.NativeActionButton
+import dev.localmed.nativespike.shared.reader.nativeFilePickerAvailable
+import dev.localmed.nativespike.shared.reader.rememberNativeFilePicker
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import minimed_native_spike.shared.generated.resources.Res
@@ -35,6 +40,8 @@ fun NativeVisualPreview() {
     val session = remember { NativeCoreSession(PreviewContentIO(), { error("Preview has no SQL catalog") }, scope, ::bundledNativeTools) }
     val user by session.userState.snapshot.collectAsState()
     val panel by session.panel.collectAsState()
+    val openedFile by session.openedFile.collectAsState()
+    val pickFile = rememberNativeFilePicker { result -> scope.launch { session.openFile(result) } }
     val toolRoute by session.toolsState.snapshot.collectAsState()
     val tools by session.tools.collectAsState()
     var source by remember { mutableStateOf<NativeSourceDocument?>(null) }
@@ -59,12 +66,14 @@ fun NativeVisualPreview() {
     }
     val document = source
     val chrome = remember(scene, document?.target) { NativeReaderChrome() }
-    val navVisible = !scene.startsWith("design") && panel != NativeUserPanel.Collections && panel != NativeUserPanel.History &&
+    val navVisible = openedFile == null && !scene.startsWith("design") && panel != NativeUserPanel.Collections && panel != NativeUserPanel.History &&
         (panel != null || toolRoute?.route != null || scene != "reader" || chrome.visible)
     NativeUserAppearance(user?.preferences ?: NativeUserPreferences()) {
         NativeSpikeTheme {
-            CompositionLocalProvider(LocalNativeReaderChrome provides chrome, LocalNativeNavigationPadding provides if (navVisible) 68.dp else 0.dp) {
+            CompositionLocalProvider(LocalNativeOpenFile provides pickFile.takeIf { nativeFilePickerAvailable }, LocalNativeReaderChrome provides chrome, LocalNativeNavigationPadding provides if (navVisible) 68.dp else 0.dp) {
                 Box(Modifier.fillMaxSize()) {
+                    Box(Modifier.fillMaxSize().focusProperties { canFocus = openedFile == null }.onPreviewKeyEvent { openedFile != null }
+                        .then(if (openedFile != null) Modifier.clearAndSetSemantics { } else Modifier)) {
                     // Design-system gallery (claude-coordinator): ?scene=design[&theme=dark][&loading=1][&q=query]
                     if (scene == "design") NativeDesignGallery(loading = parameters["loading"] == "1", initialQuery = URLSearchParams(window.location.search.toJsString()).get("q").orEmpty())
                     else if (scene == "design-reader") NativeReaderGallery(initialFind = URLSearchParams(window.location.search.toJsString()).get("find").orEmpty())
@@ -99,6 +108,8 @@ fun NativeVisualPreview() {
                             null -> Unit
                         }
                     }
+                    }
+                    openedFile?.let { file -> NativeOpenedFileScreen(file) { scope.launch { session.back() } } }
                     if (navVisible) Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp)) {
                         NativeBottomNavigation(if (panel == NativeUserPanel.Settings) 2 else 0,
                             onSearch = { scope.launch { if (session.showSearch()) scene = "search" } },

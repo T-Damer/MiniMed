@@ -37,6 +37,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import dev.localmed.nativespike.shared.reader.NativeFilePick
+import dev.localmed.nativespike.shared.reader.NativeFileImport
+import dev.localmed.nativespike.shared.reader.NativeReaderContent
 import kotlinx.coroutines.sync.Mutex
 
 sealed interface NativeCoreSessionState {
@@ -133,6 +137,8 @@ class NativeCoreSession(
     private var collectionItemHandler: (suspend (NativeItemRef) -> String?)? = null
     private val mutablePanel = MutableStateFlow<NativeUserPanel?>(null)
     val panel: StateFlow<NativeUserPanel?> = mutablePanel.asStateFlow()
+    private val mutableOpenedFile = MutableStateFlow<NativeReaderContent?>(null)
+    val openedFile: StateFlow<NativeReaderContent?> = mutableOpenedFile.asStateFlow()
     val actionScope: CoroutineScope get() = scope
     private var replayHandler: (suspend (NativeHistoryEntry) -> Unit)? = null
     private var pendingHistory = emptyList<NativeHistoryEntry>()
@@ -196,6 +202,23 @@ class NativeCoreSession(
 
     suspend fun openPanel(panel: NativeUserPanel) {
         if (flushUi()) mutablePanel.value = panel
+    }
+
+    /** A transient reader, independent of core readiness; never writes to the private library/vault. */
+    suspend fun openFile(result: NativeFilePick): Boolean {
+        if (result == NativeFilePick.Cancelled || !backMutex.tryLock()) return false
+        try {
+            if (!flushUi()) return false
+            mutableOpenedFile.value = when (result) {
+                is NativeFilePick.Picked -> try {
+                    withContext(Dispatchers.Default) { NativeFileImport.open(result.file) }
+                } catch (cause: CancellationException) { throw cause }
+                catch (cause: Exception) { NativeReaderContent.Unsupported("Файл не открыт", "Не удалось прочитать документ. Откройте файл ещё раз.") }
+                is NativeFilePick.Failed -> NativeReaderContent.Unsupported("Файл не открыт", result.message)
+                NativeFilePick.Cancelled -> return false
+            }
+            return true
+        } finally { backMutex.unlock() }
     }
 
     suspend fun showSearch(): Boolean {
@@ -304,6 +327,7 @@ class NativeCoreSession(
         if (!backMutex.tryLock()) return false
         try {
             if (!flushUi()) return false
+            if (mutableOpenedFile.value != null) { mutableOpenedFile.value = null; return true }
             if (mutablePanel.value != null) { mutablePanel.value = null; return true }
             toolsState.snapshot.value?.route?.let { route ->
                 val entry=(route as? NativeToolRoute.Tool)?.entry

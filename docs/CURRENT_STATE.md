@@ -170,6 +170,13 @@ Detailed history, moved verbatim on 2026-09-24:
   `playwright/native-verified-regulatory.db`, then run `NativeSourceTextGoldenTest` on Desktop.
   This qualifies parser data and block mapping; reader screen consumption, neighbouring captions,
   media decoding and inline navigation still need their own checks.
+- The main native app now exposes «Открыть файл» beside search and in collections, including before
+  the medical core is ready. The system picker opens the shared Markdown/HTML/text/PDF reader in
+  a transient, in-memory layer; Back preserves the underlying screen and search draft, and cancellation
+  preserves the current file. Android's main activity accepts local `content:`/`file:` VIEW intents.
+  This is a file-reading entry, not a durable personal library or encrypted patient vault.
+  A Desktop flow checks cancelled/failed picks, failed navigation saves and return without a core;
+  current Android/browser runtime and reader chrome parity require separate qualification.
 - Next: finish design-system screen parity, then personal files/patient-vault parity, the two separate
   unit-conversion/photo-ECG tools, rich
   original rendering, and remaining application features. The current

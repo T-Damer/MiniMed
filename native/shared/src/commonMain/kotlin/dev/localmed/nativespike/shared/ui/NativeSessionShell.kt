@@ -28,6 +28,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.user.NativeUserPreferences
 import kotlinx.coroutines.launch
+import dev.localmed.nativespike.shared.reader.nativeFilePickerAvailable
+import dev.localmed.nativespike.shared.reader.rememberNativeFilePicker
 
 /** Keeps the ready app composed while settings/history cover it, including its draft and reader. */
 @Composable
@@ -35,10 +37,12 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
     val state by session.state.collectAsState()
     val user by session.userState.snapshot.collectAsState()
     val panel by session.panel.collectAsState()
+    val openedFile by session.openedFile.collectAsState()
+    val pickFile = rememberNativeFilePicker { result -> session.actionScope.launch { session.openFile(result) } }
     val toolsSnapshot by session.toolsState.snapshot.collectAsState()
     val toolCore by session.tools.collectAsState()
     val messages by session.uiErrors.messages.collectAsState()
-    val covered=panel!=null || toolsSnapshot?.route!=null
+    val covered=panel!=null || toolsSnapshot?.route!=null || openedFile != null
     val focus = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     LaunchedEffect(session) { session.loadUserState();session.loadTools() }
@@ -48,10 +52,11 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
             val navigation = (state as? NativeCoreSessionState.Ready)?.core?.navigation?.collectAsState()?.value
             val readerTarget = navigation?.readers?.lastOrNull()?.target
             val readerChrome = remember(session, readerTarget) { NativeReaderChrome() }
-            val navigationVisible = panel != NativeUserPanel.History && panel != NativeUserPanel.Collections &&
+            val navigationVisible = openedFile == null && panel != NativeUserPanel.History && panel != NativeUserPanel.Collections &&
                 (panel != null || toolsSnapshot?.route != null || readerTarget == null || readerChrome.visible) &&
                 WindowInsets.ime.getBottom(LocalDensity.current) == 0
             CompositionLocalProvider(
+                LocalNativeOpenFile provides pickFile.takeIf { nativeFilePickerAvailable },
                 LocalNativeReaderChrome provides if (readerTarget != null) readerChrome else null,
                 LocalNativeNavigationPadding provides if (navigationVisible) 68.dp else 0.dp,
             ) {
@@ -66,14 +71,19 @@ fun NativeSessionShell(session: NativeCoreSession, ready: @Composable (NativeCor
                 }
                 }
                 if(toolsSnapshot?.route!=null) Box(Modifier.fillMaxSize()
-                    .focusProperties { canFocus = panel==null }.onPreviewKeyEvent { panel!=null }
-                    .then(if(panel!=null) Modifier.clearAndSetSemantics { } else Modifier)) { NativeToolsPane(session) }
+                    .focusProperties { canFocus = panel==null && openedFile == null }.onPreviewKeyEvent { panel!=null || openedFile != null }
+                    .then(if(panel!=null || openedFile != null) Modifier.clearAndSetSemantics { } else Modifier)) { NativeToolsPane(session) }
+                Box(Modifier.fillMaxSize().focusProperties { canFocus = openedFile == null }
+                    .onPreviewKeyEvent { openedFile != null }
+                    .then(if (openedFile != null) Modifier.clearAndSetSemantics { } else Modifier)) {
                 when (panel) {
                     NativeUserPanel.Settings -> NativeSettingsScreen(session, user)
                     NativeUserPanel.History -> NativeHistoryDrawer(session, user)
                     NativeUserPanel.Collections -> NativeCollectionsScreen(session)
                     null -> Unit
                 }
+                }
+                openedFile?.let { file -> NativeOpenedFileScreen(file) { session.actionScope.launch { session.back() } } }
                 if (navigationVisible) Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 10.dp)) {
                     NativeBottomNavigation(
                         selectedIndex = if (panel == NativeUserPanel.Settings) 2 else 0,

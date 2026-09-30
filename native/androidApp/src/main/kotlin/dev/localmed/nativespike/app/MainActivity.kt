@@ -44,6 +44,10 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withContext
+import dev.localmed.nativespike.shared.reader.NativeFilePick
+import dev.localmed.nativespike.shared.reader.readDocument
 
 private const val BENCH_QUERY_ACTION = "dev.localmed.nativespike.BENCH_QUERY"
 private const val BENCH_LOG_TAG = "MiniMedNativeSpikeBench"
@@ -64,6 +68,26 @@ class NativeSessionOwner(application: Application) : AndroidViewModel(applicatio
 }
 
 class MainActivity : ComponentActivity() {
+    private val owner by lazy { ViewModelProvider(this)[NativeSessionOwner::class.java] }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        openFileIntent(intent)
+    }
+
+    private fun openFileIntent(incoming: Intent?) {
+        if (incoming?.action != Intent.ACTION_VIEW) return
+        val uri = incoming.data?.takeIf { it.scheme == "content" || it.scheme == "file" } ?: return
+        owner.scope.launch {
+            val result = try {
+                NativeFilePick.Picked(withContext(Dispatchers.IO) { readDocument(this@MainActivity, uri) })
+            } catch (cause: CancellationException) { throw cause }
+            catch (cause: Exception) { NativeFilePick.Failed("Не удалось открыть файл. Выберите его ещё раз через «Открыть файл».") }
+            owner.session.openFile(result)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
@@ -71,12 +95,12 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle=SystemBarStyle.auto(android.graphics.Color.TRANSPARENT,android.graphics.Color.TRANSPARENT),
         )
         if(Build.VERSION.SDK_INT>=29) window.isStatusBarContrastEnforced=false
-        val owner = ViewModelProvider(this)[NativeSessionOwner::class.java]
+        if (savedInstanceState == null) openFileIntent(intent)
         val startedAtMs = SystemClock.elapsedRealtime()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val core = (owner.session.state.value as? NativeCoreSessionState.Ready)?.core
-                if (owner.session.panel.value != null || owner.session.toolsState.snapshot.value?.route != null || (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null))) owner.scope.launch { owner.session.back() }
+                if (owner.session.openedFile.value != null || owner.session.panel.value != null || owner.session.toolsState.snapshot.value?.route != null || (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null))) owner.scope.launch { owner.session.back() }
                 else moveTaskToBack(true)
             }
         })

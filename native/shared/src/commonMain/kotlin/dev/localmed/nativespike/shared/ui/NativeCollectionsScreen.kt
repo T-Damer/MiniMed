@@ -82,6 +82,7 @@ fun NativeCollectionsScreen(session: NativeCoreSession) {
                 NativePaperIconButton(NativeAppGlyphName.ArrowLeft, { session.actionScope.launch { session.back() } }, "Назад", primary = true)
                 Text(if (selectedItem == null) "Избранное и коллекции" else "Сохранить элемент", style = MaterialTheme.typography.titleMedium,
                     maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f).padding(top = 8.dp))
+                if (selectedItem == null) NativeOpenFileButton()
             }
             LazyColumn(Modifier.fillMaxWidth().weight(1f, fill = false), contentPadding = PaddingValues(top = 12.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
