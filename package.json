@@ -137,6 +137,8 @@
     "native:catalog": "bun scripts/prepare-native-catalog.ts",
     "native:icons:prepare": "bun scripts/prepare-native-icons.ts",
     "native:icons:check": "bun scripts/prepare-native-icons.ts --check",
+    "native:visual:dev": "bun scripts/nativeVisualDev.ts",
+    "native:visual:prepare": "bun scripts/prepare-native-visual-fixtures.ts",
     "models:publish": "bash scripts/publish-model-assets.sh",
     "benchmark:runtime": "bun tools/benchmarks/src/run-runtime-retrieval.ts",
     "benchmark:search-latency": "bun tools/benchmarks/src/run-search-latency.ts",
