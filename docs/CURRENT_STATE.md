@@ -175,8 +175,14 @@ Detailed history, moved verbatim on 2026-09-24:
   a transient, in-memory layer; Back preserves the underlying screen and search draft, and cancellation
   preserves the current file. Android's main activity accepts local `content:`/`file:` VIEW intents.
   This is a file-reading entry, not a durable personal library or encrypted patient vault.
-  A Desktop flow checks cancelled/failed picks, failed navigation saves and return without a core;
-  current Android/browser runtime and reader chrome parity require separate qualification.
+  Desktop flows check cancelled/failed picks, failed navigation saves and return without a core;
+  22 selected search/tool/navigation tests pass. Android emulator checks cover the actual system
+  picker, visible original text/list/table and native Back restoring the same query. The release
+  merged manifest includes the local VIEW filters; current physical devices remain unqualified.
+  Actual Wasm import checks pass Markdown/HTML/TXT in search and startup, phone/tablet, light/dark;
+  Back loses accessibility nodes with `Node 16 not found`, and ordinary search edits similarly fail
+  with `Node 39 not found`. The matching upstream fix is in Compose 1.11.1; the current 1.9.3 Android
+  SDK ceiling prevents an unchecked version bump. Reader chrome and browser Back parity remain open.
 - Next: finish design-system screen parity, then personal files/patient-vault parity, the two separate
   unit-conversion/photo-ECG tools, rich
   original rendering, and remaining application features. The current
