@@ -153,6 +153,15 @@ Detailed history, moved verbatim on 2026-09-24:
   Six same-page resized light/dark comparisons against actual WebView found missing home sections,
   query typography and layout differences. The frozen WebView and generated design-system
   components are the reference; screen migration is the immediate next task.
+- Native home/search now consumes the shared generated query sheet/footer, equal-height feature
+  carousel, section list, bubble navigation and source/identity result cards. The query remains
+  editable before core readiness; explicit submission shows «Ищем…» and runs after readiness.
+  Source and clinical sections retain independent queries, filters, completed results and viewport
+  in the current session; only the active validated search snapshot is durable. Public Wasm checks
+  cover queue/edit/clear/readiness, carousel controls and Settings swipe. Selected tests and
+  Desktop/Wasm/Android/iOS source compilation pass; these checks do not qualify current Android
+  visual parity. Wasm serif rendering, responsive geometry and admitted-source counters still
+  require the coordinator's component/core contracts. Feature-card engines remain unavailable.
 - Next: finish design-system screen parity, then personal files/patient-vault parity, the two separate
   unit-conversion/photo-ECG tools, rich
   original rendering, and remaining application features. The current
