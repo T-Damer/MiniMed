@@ -18,6 +18,26 @@ const OUTPUT =
   'native/shared/src/commonMain/kotlin/dev/localmed/nativespike/shared/designsystem/NativeComponentStyles.kt';
 
 const FIXED_SIZE = new Set([
+  'page-icon',
+  'switch',
+  'switch-track',
+  'switch-track-on',
+  'switch-thumb',
+  'switch-thumb-on',
+  'ui-feature-card-icon',
+  'disclosure-chevron',
+  'choice-input',
+  'back-button',
+  'sort-button',
+  'add-button',
+  'view-toggle-thumb',
+  'view-toggle-button',
+  'view-toggle-button-on',
+  'folder-card-figure',
+  'folder-card-icon',
+  'folder-card-pin',
+  'settings-section-icon',
+  'settings-row-label-icon',
   'reader-back',
   'reader-outline-toggle',
   'reader-find-toggle',
@@ -44,6 +64,11 @@ const FIXED_SIZE = new Set([
   'search-button',
 ]);
 const FIXED_HEIGHT = new Set([
+  'button-primary',
+  'disclosure-header',
+  'search-field',
+  'breadcrumbs',
+  'view-toggle',
   'button-secondary',
   'more-header',
   'source-picker',

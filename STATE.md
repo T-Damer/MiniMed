@@ -24,12 +24,12 @@ screens (the reference), with no Material look (no ripple, no Material widgets, 
 
 | # | Status | Owner | Item |
 | --- | --- | --- | --- |
-| T1 | [~] claude 22:25 | claude-coordinator | design-system parts the pages miss, from the WebView settings/files references: list row (icon, title, detail, trailing value/chevron/switch), switch, segmented choice, popup menu, text field, section header |
-| T2 | [ ] | claude-coordinator | reader source menu and definition reader on design-system parts (drop Material `DropdownMenu`/`Text`) |
+| T1 | [x] (this commit) | claude-coordinator | design-system parts for settings and files, captured from the WebView and rebuilt as gallery pages `?scene=design-settings` / `design-files`: `NativePageHeader`, `NativeGroupTitle`, `NativePaperSheet`, `NativeSectionHeading`, `NativeSettingSwitch`, `NativeRangeSetting`, `NativeChoiceGroup`, `NativeDisclosure`, `NativeFeatureTile`, `NativePrimaryButton`, `NativeTextLink`, `NativeSearchField`, `NativeBreadcrumbs`, `NativeIconToggle`, `NativeFolderCard`, round back/sort/add buttons (see `docs/NATIVE_DESIGN_SYSTEM.md`) |
+| T2 | [~] claude 22:42 | claude-coordinator | popup menu part; reader source menu and definition reader on design-system parts (drop Material `DropdownMenu`/`Text`) |
 | T3 | [x] 22:25 | claude-coordinator | Material audit (imports of Material widgets per screen file): `NativeUserScreens` 5, `NativeReaderHeader` 4, `NativeCoreStartup` 4, `NativeCollectionsScreen` 4, `NativeDefinitionReaderScreen` 3, `NativeDefinitionBlockSelector` 3, `NativeClinicalAnalysisPanel` 3, `SearchScreen` 2, `NativeSourcesScreen` 2, `NativeSessionShell` 2, `NativeDefinitionCatalogScreen` 2, `NativeReaderStatus` 1, `NativePaperControls` 1, `NativeDefinitionSourceDetails` 1, `App` 1 |
 | T4 | [ ] | codex-native | results screen from `NativeResultGroup` / `NativeMeanings` / `NativeIdentityCard` / `NativeSecondaryButton` (gallery `?scene=design&q=пневмония`) |
-| T5 | [ ] | codex-native | files page on design-system parts: list, «Открыть файл», empty state; `NativeOpenedFileScreen` per the 21:36 request (window insets, shell chrome, `nativeReaderAppGlyphs()`) |
-| T6 | [ ] | codex-native | settings page on design-system parts (after T1) |
+| T5 | [ ] | codex-native | files page on design-system parts (T1 parts ready; layout as `NativeLibraryGallery`): list, «Открыть файл», empty state; `NativeOpenedFileScreen` per the 21:36 request (window insets, shell chrome, `nativeReaderAppGlyphs()`) |
+| T6 | [ ] | codex-native | settings page on design-system parts — T1 parts ready; copy the layout of `NativeSettingsGallery` |
 | T7 | [ ] | codex-native | core startup/loading screen and shell without Material widgets (`NativeCoreStartup`, `NativeSessionShell`, `App`, `SearchScreen` leftovers) |
 | T8 | [ ] | claude-coordinator | side-by-side check with the WebView: home, results, reader, files, settings — light/dark, phone and wide |
 | T9 | [ ] | claude-coordinator | device build: release-optimised APK with the core download, install steps for the user |

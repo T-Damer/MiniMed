@@ -11,6 +11,8 @@ import dev.localmed.nativespike.shared.content.bundledNativeTools
 import dev.localmed.nativespike.shared.core.*
 import dev.localmed.nativespike.shared.designsystem.gallery.NativeDesignGallery
 import dev.localmed.nativespike.shared.designsystem.gallery.NativeReaderGallery
+import dev.localmed.nativespike.shared.designsystem.gallery.NativeSettingsGallery
+import dev.localmed.nativespike.shared.designsystem.gallery.NativeLibraryGallery
 import dev.localmed.nativespike.shared.model.*
 import dev.localmed.nativespike.shared.ui.*
 import dev.localmed.nativespike.shared.user.*
@@ -85,6 +87,8 @@ fun NativeVisualPreview() {
                         .then(if (openedFile != null) Modifier.clearAndSetSemantics { } else Modifier)) {
                     // Design-system gallery (claude-coordinator): ?scene=design[&theme=dark][&loading=1][&q=query]
                     if (scene == "design") NativeDesignGallery(loading = parameters["loading"] == "1", initialQuery = URLSearchParams(window.location.search.toJsString()).get("q").orEmpty())
+                    else if (scene == "design-settings") NativeSettingsGallery()
+                    else if (scene == "design-files") NativeLibraryGallery()
                     else if (scene == "design-reader") NativeReaderGallery(initialFind = URLSearchParams(window.location.search.toJsString()).get("find").orEmpty())
                     else if (failure != null) Text(requireNotNull(failure), Modifier.padding(16.dp))
                     else if (document == null || tools == null) Text("Подготовка визуального сравнения…", Modifier.padding(16.dp))

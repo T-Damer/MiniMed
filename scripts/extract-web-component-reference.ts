@@ -79,6 +79,22 @@ const SCREENS: readonly Screen[] = [
       await page.locator('.document-overlay-section').first().waitFor({ timeout: 60_000 });
     },
   },
+  {
+    id: 'settings',
+    hash: '#/search',
+    prepare: async (page) => {
+      await page.locator('.app-nav-button').nth(2).click();
+      await page.locator('.settings-row').first().waitFor();
+    },
+  },
+  {
+    id: 'files',
+    hash: '#/search',
+    prepare: async (page) => {
+      await page.locator('.app-nav-button').nth(1).click();
+      await page.locator('.user-library-folder-card').first().waitFor();
+    },
+  },
 ];
 
 async function openScreen(page: Page, origin: string, screen: Screen): Promise<void> {
@@ -208,6 +224,69 @@ const BLOCKS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'reader-image-picture': '.document-reference-image__image',
     'reader-image-caption': '.document-reference-image__caption',
     'scroll-top-button': '.scroll-top-button',
+  },
+  settings: {
+    'page-title-row': '.page__title-row',
+    'page-icon': '.page__icon',
+    'page-title': '.settings-page__title',
+    'page-description': '.page__description',
+    'paper-sheet': '.settings-section--interface',
+    'settings-group-title': '.settings-page__group-title',
+    'settings-group-description': '.settings-page__group-description',
+    'settings-section-heading': '.settings-section__heading',
+    'settings-section-icon': '.settings-section__icon',
+    'settings-section-title': '.settings-section__title',
+    'settings-section-description': '.settings-section__description',
+    'settings-row': '.settings-row',
+    'settings-row-label': '.settings-row__label',
+    'settings-row-label-icon': '.settings-row__label-icon',
+    'settings-row-helper': '.settings-row__helper',
+    switch: '.ui-switch:not(.ui-switch--on)',
+    'switch-track': '.ui-switch:not(.ui-switch--on) .ui-switch__track',
+    'switch-thumb': '.ui-switch:not(.ui-switch--on) .ui-switch__thumb',
+    'switch-track-on': '.ui-switch--on .ui-switch__track',
+    'switch-thumb-on': '.ui-switch--on .ui-switch__thumb',
+    'range-label': '.range-input__label',
+    'range-value': '.range-input__value',
+    'ui-feature-card': '.ui-feature-card',
+    'ui-feature-card-icon': '.ui-feature-card__icon',
+    'ui-feature-card-title': '.ui-feature-card__title',
+    'ui-feature-card-status': '.ui-feature-card__status',
+    'ui-feature-card-summary': '.ui-feature-card__summary',
+    'button-primary': '.ui-button--primary',
+    'disclosure-header': '.ui-feature-card .ui-disclosure__header',
+    'disclosure-title': '.ui-feature-card .ui-disclosure__title',
+    'disclosure-chevron': '.ui-feature-card .ui-disclosure__chevron',
+    'choice-legend': '.ui-choice-group__legend',
+    'choice-option': '.ui-choice-group__option',
+    'choice-input': '.ui-choice-group__input',
+    'choice-label': '.ui-choice-group__label',
+    'choice-hint': '.ui-choice-group__option-hint',
+    'settings-link': '.settings-page__link',
+  },
+  files: {
+    'back-button': '.knowledge-back-button',
+    'search-field': '.archive-search__control',
+    'search-field-icon': '.archive-search__icon',
+    'search-field-input': '.archive-search__input',
+    breadcrumbs: '.user-library-breadcrumbs',
+    'breadcrumb-active': '.user-library-breadcrumbs__button--active',
+    'breadcrumb-label': '.user-library-breadcrumbs__label',
+    'sort-button': '.user-library-sort__trigger',
+    'view-toggle': '.user-library-view-toggle',
+    'view-toggle-thumb': '.user-library-view-toggle__thumb',
+    'view-toggle-button':
+      '.user-library-view-toggle__button:not(.user-library-view-toggle__button--on)',
+    'view-toggle-button-on': '.user-library-view-toggle__button--on',
+    'add-button': '.user-library-page__add-button',
+    'folder-card': '.user-library-folder-card',
+    'folder-card-figure': '.user-library-folder-card__figure',
+    'folder-card-back': '.user-library-folder-card__back',
+    'folder-card-front': '.user-library-folder-card__front',
+    'folder-card-icon': '.user-library-folder-card__system-icon',
+    'folder-card-title': '.user-library-folder-card__title',
+    'folder-card-details': '.user-library-folder-card__details',
+    'folder-card-pin': '.user-library-folder-card__pin',
   },
   'home-typing': {
     'query-clear': '.query-sheet__clear',

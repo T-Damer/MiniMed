@@ -14,6 +14,9 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.designsystem.gallery.NativeDesignGallery
 import dev.localmed.nativespike.shared.designsystem.gallery.NativeReaderGallery
+import dev.localmed.nativespike.shared.designsystem.gallery.NativeLibraryGallery
+import dev.localmed.nativespike.shared.designsystem.gallery.NativeSettingsGallery
+import androidx.compose.foundation.background
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.Test
@@ -58,6 +61,29 @@ class NativeDesignGalleryTest {
                 }
                 val image = onRoot().captureToImage().toAwtImage()
                 val out = File(System.getProperty("user.dir"), "../../playwright/native-reader-gallery-$variant.png")
+                out.parentFile.mkdirs()
+                ImageIO.write(image, "png", out)
+            }
+        }
+    }
+
+    @Test
+    fun writePagesGallery() {
+        val pages = listOf<Triple<String, Int, @androidx.compose.runtime.Composable () -> Unit>>(
+            Triple("settings", 2460, { NativeSettingsGallery() }),
+            Triple("files", 960, { NativeLibraryGallery() }),
+        )
+        for ((page, height, content) in pages) for (dark in listOf(false, true)) {
+            runDesktopComposeUiTest(width = 375, height = height) {
+                setContent {
+                    CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                        ProvideNativeDesignTokens(dark) {
+                            Box(Modifier.size(375.dp, height.dp).background(if (dark) DarkColorTokens.folder else LightColorTokens.folderLight)) { content() }
+                        }
+                    }
+                }
+                val image = onRoot().captureToImage().toAwtImage()
+                val out = File(System.getProperty("user.dir"), "../../playwright/native-page-$page-${if (dark) "dark" else "light"}.png")
                 out.parentFile.mkdirs()
                 ImageIO.write(image, "png", out)
             }
