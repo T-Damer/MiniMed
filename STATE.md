@@ -29,11 +29,12 @@ screens (the reference), with no Material look (no ripple, no Material widgets, 
 | T3 | [x] 22:25 | claude-coordinator | Material audit (imports of Material widgets per screen file): `NativeUserScreens` 5, `NativeReaderHeader` 4, `NativeCoreStartup` 4, `NativeCollectionsScreen` 4, `NativeDefinitionReaderScreen` 3, `NativeDefinitionBlockSelector` 3, `NativeClinicalAnalysisPanel` 3, `SearchScreen` 2, `NativeSourcesScreen` 2, `NativeSessionShell` 2, `NativeDefinitionCatalogScreen` 2, `NativeReaderStatus` 1, `NativePaperControls` 1, `NativeDefinitionSourceDetails` 1, `App` 1 |
 | T4 | [!] exact meanings API missing; result/identity cards already e85eb137 | codex-native | results screen from `NativeResultGroup` / `NativeMeanings` / `NativeIdentityCard` / `NativeSecondaryButton` (gallery `?scene=design&q=пневмония`) |
 | T5 | [~] codex-native 23:04 | codex-native | files page on design-system parts (T1 parts ready; layout as `NativeLibraryGallery`): list, «Открыть файл», empty state; `NativeOpenedFileScreen` per the 21:36 request (window insets, shell chrome, `nativeReaderAppGlyphs()`) |
-| T6 | [~] codex-native 23:04 | codex-native | settings page on design-system parts — T1 parts ready; copy the layout of `NativeSettingsGallery` |
+| T6 | [x] d4a3cc9c | codex-native | settings page on design-system parts — T1 parts ready; copy the layout of `NativeSettingsGallery` |
 | T7 | [x] 9ce0c00f | codex-native | core startup/loading screen and shell without Material widgets (`NativeCoreStartup`, `NativeSessionShell`, `App`, `SearchScreen` leftovers) |
 | T8 | [ ] | claude-coordinator | side-by-side check with the WebView: home, results, reader, files, settings — light/dark, phone and wide |
 | T9 | [ ] | claude-coordinator | device build: release-optimised APK with the core download, install steps for the user |
 | T10 | [ ] | user | install on the device and judge the port |
+| T11 | [~] codex-native 23:36 | codex-native | remaining clinical-search analysis panel on DS paper/disclosure/chips, preserving deterministic facts/warnings/calculation copy |
 
 ## Agents
 
@@ -62,7 +63,7 @@ screens (the reference), with no Material look (no ripple, no Material widgets, 
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-09-30 23:04 | codex-native | T7 Android error-overlay gesture check passes. T5 code `3b20cb7a`, T6 code `d4a3cc9c` pass Desktop36 tests/all platform sources; Android light/dark/large-font/tablet and files CRUD/picker QA in progress; files stay transient, only real native preferences exposed | owned user/files screens, session/shell/navigation/preview, verification/docs |
+| 2026-09-30 23:04 | codex-native | T5/T6 Android phone themes/tablet/140% and real collection CRUD/picker pass (APKc986); final Files grid/list/folder-retention smoke (APK9329) pending. T11 clinical analysis Material removal now claimed, preserve exact analysis data; T4 meanings still requires core API | owned user/files screens, session/shell/navigation/preview, `ui/NativeClinicalAnalysisPanel.kt`, verification/docs |
 | 2026-09-30 21:36 | claude-coordinator | native reader (user priority, `docs/NATIVE_READER.md`): official sources on shared blocks and chrome contract done; next definition reader on shared parts, PDF find, EPUB, iOS picker/PDFKit, file positions | `shared/reader/**`, `designsystem/**`, reader `ui/**` files, `androidApp/src/debug/**` |
 
 ## Next (claimed, not started)
