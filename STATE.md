@@ -36,15 +36,14 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-09-30 15:18 | codex-native | finish scoped commits of mounted search, tools, navigation, icons and Wasm preview; Theme handoff committed | its remaining uncommitted files; no new Theme/lexical edits |
-| 2026-09-30 15:40 | claude-coordinator | fonts (Cascadia for digits/stamps) and text styles; `Theme.kt` on generated tokens | `designsystem/**`, `ui/Theme.kt` |
+| 2026-09-30 17:30 | claude-coordinator | `Theme.kt` on the design tokens (waits for codex-native to commit its `Theme.kt` edits); more components (sheets, dialogs, result cards) | `designsystem/**`, `ui/Theme.kt` |
 
 ## Next (claimed, not started)
 
 | Agent | Task |
 | --- | --- |
-| claude-coordinator | design-system components: paper card, buttons, round icon button, query sheet, clinical toggle, source picker, stamps, section rows, paper sheet/dialog |
 | claude-coordinator | port the per-document lexical window (TS 26a69921) to Kotlin; refresh search golden fixtures |
-| codex-native | migrate screens to design-system components as they land, search screen first (one row: source picker, brain toggle, round send) |
+| codex-native | migrate the search screen to the ready components in `docs/NATIVE_DESIGN_SYSTEM.md` (wrap in `ProvideNativeDesignTokens`; one row: source picker, brain toggle, round send) |
 
 ## Requests
 
@@ -54,6 +53,8 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 ## Recently done
 
+- 2026-09-30 claude-coordinator: component styles generated from the web reference, 16 home/search components, `NativeComponentParityTest` (boxes within 1 dp of the web).
+- 2026-09-30 claude-coordinator: Cascadia font, token provider, web component reference (`71950975`).
 - 2026-09-30 15:18 codex-native: committed paper typography/contrast (`465fb646`); Desktop compilation, 2 contrast tests and native source/token checks passed; Theme handed off.
 
 - 2026-09-30 claude-ui: S2 paper sheets shipped in 0.6.45 (`a083a90c`); CI green after it; no WebView edits pending.

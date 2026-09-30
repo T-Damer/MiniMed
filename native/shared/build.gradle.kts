@@ -126,6 +126,12 @@ kotlin {
         }
         val desktopTest by getting {
             dependsOn(jvmClasspathTest)
+            dependencies {
+                // Design-system parity: renders components headlessly and reads their bounds.
+                implementation(compose.desktop.currentOs)
+                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+                implementation(compose.uiTest)
+            }
         }
         val androidUnitTest by getting {
             dependsOn(jvmClasspathTest)

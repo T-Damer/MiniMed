@@ -29,6 +29,13 @@ interface Screen {
 const SCREENS: readonly Screen[] = [
   { id: 'home', hash: '#/search' },
   {
+    id: 'home-clinical',
+    hash: '#/search',
+    prepare: async (page) => {
+      await page.locator('.search-clinical-toggle').click();
+    },
+  },
+  {
     id: 'home-typing',
     hash: '#/search',
     prepare: async (page) => {
@@ -113,6 +120,9 @@ const BLOCKS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'carousel-dot-active': '.carousel__dot--active',
     'sections-title': '.search-sections__title',
     'sections-list': '.search-sections__list',
+    'section-item': '.search-sections__item',
+    'section-item-next': '.search-sections__item + .search-sections__item',
+    'query-actions': '.query-actions',
     'section-row': '.search-sections__row',
     'section-icon-frame': '.search-sections__icon-frame',
     'section-name': '.search-sections__name',
@@ -120,6 +130,9 @@ const BLOCKS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'bottom-nav': '.app-bottom-nav',
     'bottom-nav-button': '.app-nav-button:not(.app-nav-button--active)',
     'bottom-nav-button-active': '.app-nav-button--active',
+  },
+  'home-clinical': {
+    'clinical-toggle-on': '.search-clinical-toggle',
   },
   'home-typing': {
     'query-clear': '.query-sheet__clear',
@@ -137,6 +150,8 @@ const STYLE_PROPERTIES = [
   'padding-left',
   'border-top-width',
   'border-top-color',
+  'border-bottom-width',
+  'border-bottom-color',
   'border-top-left-radius',
   'background-color',
   'background-image',

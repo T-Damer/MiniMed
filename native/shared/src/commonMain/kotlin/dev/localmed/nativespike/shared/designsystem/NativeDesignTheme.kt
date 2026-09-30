@@ -12,10 +12,21 @@ data class NativeDesignTokens(
     val dark: Boolean,
     val colors: NativeColorTokens,
     val shadows: NativeShadowTokens,
+    val components: NativeComponentStyles,
 )
 
-val LightDesignTokens = NativeDesignTokens(dark = false, colors = LightColorTokens, shadows = LightShadowTokens)
-val DarkDesignTokens = NativeDesignTokens(dark = true, colors = DarkColorTokens, shadows = DarkShadowTokens)
+val LightDesignTokens = NativeDesignTokens(
+    dark = false,
+    colors = LightColorTokens,
+    shadows = LightShadowTokens,
+    components = LightComponentStyles,
+)
+val DarkDesignTokens = NativeDesignTokens(
+    dark = true,
+    colors = DarkColorTokens,
+    shadows = DarkShadowTokens,
+    components = DarkComponentStyles,
+)
 
 val LocalNativeDesignTokens = staticCompositionLocalOf { LightDesignTokens }
 
@@ -34,4 +45,6 @@ object NativeDesign {
         @Composable @ReadOnlyComposable get() = LocalNativeDesignTokens.current.colors
     val shadows: NativeShadowTokens
         @Composable @ReadOnlyComposable get() = LocalNativeDesignTokens.current.shadows
+    val components: NativeComponentStyles
+        @Composable @ReadOnlyComposable get() = LocalNativeDesignTokens.current.components
 }

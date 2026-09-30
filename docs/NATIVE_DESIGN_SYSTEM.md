@@ -33,12 +33,42 @@ blocks to `native/shared/src/commonTest/resources/web-component-reference.json`
 — many values, such as the query sheet's 12 px radius and its own shadow, live in component CSS,
 not in the shared tokens — and the parity check compares against the same file.
 
+## Component styles
+
+`bun scripts/generate-native-component-styles.ts` turns the web reference into
+`designsystem/NativeComponentStyles.kt`: per BEM block and theme, padding, corner, border,
+background, shadow layers, gaps and text (`NativeDesign.components.<block>`). Icon buttons and
+dots keep their fixed web size; buttons and rows keep the web `min-height`. Components add only
+layout, behaviour and semantics. Painting goes through `Modifier.nativeBoxFrame(style)` →
+interaction (`clickable`/`toggleable`) → `nativePadding(style)`, so the whole box is the touch target
+and the ripple is clipped while shadows are not; `nativePadding` adds the border width because a CSS
+border takes layout space. `native:source:check` fails when either generated file drifts.
+
+Ready components (package `dev.localmed.nativespike.shared.designsystem`), each tagged with its
+reference key:
+
+| Component | Web block |
+| --- | --- |
+| `NativeIconButton(style = components.routeIconButton / historyFab / helpIconLink / carouselArrow / queryClear / searchButton)` | round icon controls |
+| `NativeClinicalToggle` | `.search-clinical-toggle` (off/on) |
+| `NativeActionButton(primary)` | `.home-feature__action` / `--secondary` |
+| `NativeSourcePicker`, `NativeChip` | `.search-source-picker`, `.search-quick-access__all` |
+| `NativeQuerySheet`, `NativeQueryInput`, `NativeQueryActions` | `.query-sheet`, search input, `.query-actions` |
+| `NativeFeatureCard`, `NativeStatusCard` | `.home-feature`, `.search-core-status` |
+| `NativeSectionList`, `NativeSectionRow` | `.search-sections__list`, `__row` |
+| `NativeBottomNav`, `NativeBottomNavButton`, `NativeCarouselDots` | `.app-bottom-nav`, `.app-nav-button`, `.carousel__dots` |
+
+Icons are slots (`icon: @Composable (tint) -> Unit`), so the design system does not depend on the
+screens' glyph set. Screens must wrap their content in `ProvideNativeDesignTokens(dark)`.
+
 ## Parity checks
 
 Compare components, not whole screens. A component carries the web BEM block name as its Compose
 `testTag`; the check renders it with the same data in both worlds and compares numbers — size,
 padding, corner radius, font size and weight, colours — from `getComputedStyle`/bounding boxes on
 the web and the Compose semantics/layout tree natively, with small tolerances. A mismatch reads as
-«`paper-card`: padding 16 vs 12», not as a pixel diff.
+«`paper-card`: padding 16 vs 12», not as a pixel diff. `NativeComponentParityTest` (desktopTest) does
+this for the home/search components within 1 dp; it caught touch targets that excluded padding and
+the CSS border-box difference.
 
 Coordination between agents (ownership, claims, requests) lives in `STATE.md` at the repository root.
