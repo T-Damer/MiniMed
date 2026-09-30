@@ -9,7 +9,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.runDesktopComposeUiTest
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.designsystem.gallery.NativeDesignGallery
@@ -19,27 +19,38 @@ import kotlin.test.Test
 
 /**
  * Renders the design-system gallery at the web reference size (375 × 812 dp, density 1) in light,
- * dark and core-loading states into playwright/, for `bun run native:design compare`.
+ * dark, core-loading and results states into playwright/, for `bun run native:design compare`.
  */
 @OptIn(ExperimentalTestApi::class)
 class NativeDesignGalleryTest {
     @Test
     fun writeHomeGallery() {
-        for ((dark, loading) in listOf(false to false, true to false, false to true)) {
-            runComposeUiTest {
+        for ((variant, dark, loading) in VARIANTS) {
+            // Results render taller, to review every card without scrolling.
+            val height = if (variant.endsWith("results")) 1500 else 812
+            runDesktopComposeUiTest(width = 375, height = height) {
                 setContent {
                     CompositionLocalProvider(LocalDensity provides Density(1f)) {
                         ProvideNativeDesignTokens(dark) {
-                            Box(Modifier.size(375.dp, 812.dp)) { NativeDesignGallery(loading = loading, autoplay = false) }
+                            Box(Modifier.size(375.dp, height.dp)) { NativeDesignGallery(loading = loading, autoplay = false, initialQuery = if (variant.endsWith("results")) "пневмония" else "") }
                         }
                     }
                 }
-                val name = (if (dark) "dark" else "light") + if (loading) "-loading" else ""
                 val image = onRoot().captureToImage().toAwtImage()
-                val out = File(System.getProperty("user.dir"), "../../playwright/native-design-gallery-$name.png")
+                val out = File(System.getProperty("user.dir"), "../../playwright/native-design-gallery-$variant.png")
                 out.parentFile.mkdirs()
                 ImageIO.write(image, "png", out)
             }
         }
+    }
+
+    private companion object {
+        val VARIANTS = listOf(
+            Triple("light", false, false),
+            Triple("dark", true, false),
+            Triple("light-loading", false, true),
+            Triple("light-results", false, false),
+            Triple("dark-results", true, false),
+        )
     }
 }

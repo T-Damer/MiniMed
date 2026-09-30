@@ -31,7 +31,7 @@ screen was matched by eye.
 | `bun run native:design sync [--build]` | capture the web reference, regenerate tokens and component styles |
 | `bun run native:design check` | token/style drift checks plus `NativeComponentParityTest` |
 | `bun run native:design compare [--build]` | web vs native home screenshots side by side, light and dark, in `playwright/design-compare/` |
-| `bun run native:design preview` | builds the Wasm preview and serves it on `http://127.0.0.1:4175` — `?scene=design` is the interactive design gallery (`&theme=dark`, `&loading=1`), `?scene=search` the real screens |
+| `bun run native:design preview` | builds the Wasm preview and serves it on `http://127.0.0.1:4175` — `?scene=design` is the interactive design gallery (`&theme=dark`, `&loading=1`, `&q=пневмония` opens sample results; submitting a query there does too), `?scene=search` the real screens |
 
 `--build` rebuilds the WebView first; otherwise the existing `apps/app/dist` is used. Captures are
 repeatable: reduced motion stops the carousel and transitions, and database downloads are held so
@@ -73,6 +73,9 @@ reference key:
 | `NativeFeatureCarousel(features)` | `.carousel.useful-features`: equal heights, arrows, dots, 7 s autoplay until the user takes over |
 | `NativeCarouselDots` | `.carousel__dots` |
 | `NativeFlexRow` | `display: flex` with `flex: 1 1 auto` children |
+| `NativeChoiceChip(accent)`, `NativeMeanings` | `.choice-chip` (`--accent` is the download chip), `.search-meanings__phrase` |
+| `NativeSecondaryButton`, `NativeIdentityCard` | `.ui-button--secondary`, `.core-identity-matches__card` |
+| `NativeResultGroup(snippets, action, tags)` | `.result-group`: header with faint index, kind badge, serif title, tags, note; accent action; fragments with category stamp, path and highlights; «Ещё N» disclosure |
 
 Icons are slots (`icon: @Composable (tint) -> Unit`), so the design system does not depend on the
 screens' glyph set. Screens must wrap their content in `ProvideNativeDesignTokens(dark)`.
@@ -90,6 +93,13 @@ screens' glyph set. Screens must wrap their content in `ProvideNativeDesignToken
 - **Dark theme bubble** is plain light paper (the theme text colour) with no highlight or accent rim,
   and the selected icon on it is dark.
 - **Suggestion cards** in the carousel all take the tallest card's height, actions at the bottom.
+- **Result fragments** start collapsed to the first one; the rest expand in place with a short
+  height/fade animation and the chevron turns.
+
+Text follows CSS line boxes: `NativeTextSpec.textStyle()` gives every line the full `line-height`
+with the half-leading split evenly (`LineHeightStyle.Trim.None`), so text blocks measure as on the
+web. A line shorter than its font (the 68 px result index in a 51 px line) is laid out in a box one
+line tall, as the web lets it overflow.
 
 ## Parity checks
 
@@ -98,7 +108,7 @@ Compare components, not whole screens. A component carries the web BEM block nam
 padding, corner radius, font size and weight, colours — from `getComputedStyle`/bounding boxes on
 the web and the Compose semantics/layout tree natively, with small tolerances. A mismatch reads as
 «`paper-card`: padding 16 vs 12», not as a pixel diff. `NativeComponentParityTest` (desktopTest) does
-this for the home/search components within 1 dp; it caught touch targets that excluded padding and
+this for the home/search and result components within 1 dp; it caught touch targets that excluded padding and
 the CSS border-box difference.
 
 Coordination between agents (ownership, claims, requests) lives in `STATE.md` at the repository root.

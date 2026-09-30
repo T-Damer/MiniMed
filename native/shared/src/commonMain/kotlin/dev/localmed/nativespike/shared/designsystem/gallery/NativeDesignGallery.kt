@@ -37,6 +37,14 @@ import dev.localmed.nativespike.shared.designsystem.NativeQueryFooter
 import dev.localmed.nativespike.shared.designsystem.NativeQueryInput
 import dev.localmed.nativespike.shared.designsystem.NativeQueryProgress
 import dev.localmed.nativespike.shared.designsystem.NativeQuerySheet
+import dev.localmed.nativespike.shared.designsystem.NativeChoiceChip
+import dev.localmed.nativespike.shared.designsystem.NativeIdentityCard
+import dev.localmed.nativespike.shared.designsystem.NativeMeanings
+import dev.localmed.nativespike.shared.designsystem.NativeResultAction
+import dev.localmed.nativespike.shared.designsystem.NativeResultGroup
+import dev.localmed.nativespike.shared.designsystem.NativeResultSnippet
+import dev.localmed.nativespike.shared.designsystem.NativeResultTag
+import dev.localmed.nativespike.shared.designsystem.NativeSecondaryButton
 import dev.localmed.nativespike.shared.designsystem.NativeSectionList
 import dev.localmed.nativespike.shared.designsystem.NativeSectionRow
 import dev.localmed.nativespike.shared.designsystem.NativeSourcePicker
@@ -44,15 +52,17 @@ import dev.localmed.nativespike.shared.ui.NativeAppGlyph
 import dev.localmed.nativespike.shared.ui.NativeAppGlyphName
 
 /**
- * The home screen assembled only from design-system components, interactive, for review in the
- * Wasm preview (`?scene=design`) and for `native:design compare`. Developer tool, not a product
- * screen; it borrows the shared glyph set for its icon slots.
+ * The home and results screens assembled only from design-system components, interactive, for
+ * review in the Wasm preview (`?scene=design`, `&q=…` opens results) and for `native:design
+ * compare`. Submitting a query shows sample results; clearing it returns home. Developer tool, not
+ * a product screen; it borrows the shared glyph set for its icon slots.
  */
 @Composable
-fun NativeDesignGallery(loading: Boolean = false, autoplay: Boolean = true) {
+fun NativeDesignGallery(loading: Boolean = false, autoplay: Boolean = true, initialQuery: String = "") {
     val colors = NativeDesign.colors
     val components = NativeDesign.components
-    var query by remember { mutableStateOf("") }
+    var query by remember { mutableStateOf(initialQuery) }
+    var submitted by remember { mutableStateOf(initialQuery.isNotBlank()) }
     var clinical by remember { mutableStateOf(false) }
     var page by remember { mutableIntStateOf(0) }
     val glyph = { name: NativeAppGlyphName, size: Int ->
@@ -101,7 +111,15 @@ fun NativeDesignGallery(loading: Boolean = false, autoplay: Boolean = true) {
                 }
             }
             NativeQuerySheet {
-                NativeQueryInput(query, { query = it }, "Название, код МКБ, препарат или фраза из документа", {})
+                NativeQueryInput(
+                    query,
+                    {
+                        query = it
+                        if (it.isBlank()) submitted = false
+                    },
+                    "Название, код МКБ, препарат или фраза из документа",
+                    { submitted = query.isNotBlank() },
+                )
                 NativeQueryFooter(
                     progress = when {
                         loading && query.isNotBlank() -> NativeQueryProgress("Ищем…", "Запрос выполнится, как только база подключится")
@@ -115,20 +133,24 @@ fun NativeDesignGallery(loading: Boolean = false, autoplay: Boolean = true) {
                     })
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                NativeChip("Все инструменты", {}, icon = glyph(NativeAppGlyphName.Modules, 14))
-            }
-            NativeFeatureCarousel(
-                features = features,
-                positionLabel = { index, count -> "Функция ${index + 1} из $count" },
-                previousLabel = "Предыдущая функция",
-                nextLabel = "Следующая функция",
-                autoplayMillis = if (autoplay) dev.localmed.nativespike.shared.designsystem.NATIVE_FEATURES_AUTOPLAY_MS else null,
-            ) { tint, next -> NativeAppGlyph(if (next) NativeAppGlyphName.CaretRight else NativeAppGlyphName.CaretLeft, Modifier.size(14.dp), tint) }
-            NativeSectionList("Разделы") {
-                NativeSectionRow("МКБ, симптомы и состояния", "считаем…", true, {}, icon = glyph(NativeAppGlyphName.Notepad, 20), caret = glyph(NativeAppGlyphName.CaretRight, 16))
-                NativeSectionRow("Клинические рекомендации", "считаем…", false, {}, icon = glyph(NativeAppGlyphName.BookOpen, 20), caret = glyph(NativeAppGlyphName.CaretRight, 16))
-                NativeSectionRow("Препараты", "считаем…", false, {}, icon = glyph(NativeAppGlyphName.Prescription, 20), caret = glyph(NativeAppGlyphName.CaretRight, 16))
+            if (submitted && !loading) {
+                GalleryResults(glyph)
+            } else {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    NativeChip("Все инструменты", {}, icon = glyph(NativeAppGlyphName.Modules, 14))
+                }
+                NativeFeatureCarousel(
+                    features = features,
+                    positionLabel = { index, count -> "Функция ${index + 1} из $count" },
+                    previousLabel = "Предыдущая функция",
+                    nextLabel = "Следующая функция",
+                    autoplayMillis = if (autoplay) dev.localmed.nativespike.shared.designsystem.NATIVE_FEATURES_AUTOPLAY_MS else null,
+                ) { tint, next -> NativeAppGlyph(if (next) NativeAppGlyphName.CaretRight else NativeAppGlyphName.CaretLeft, Modifier.size(14.dp), tint) }
+                NativeSectionList("Разделы") {
+                    NativeSectionRow("МКБ, симптомы и состояния", "считаем…", true, {}, icon = glyph(NativeAppGlyphName.Notepad, 20), caret = glyph(NativeAppGlyphName.CaretRight, 16))
+                    NativeSectionRow("Клинические рекомендации", "считаем…", false, {}, icon = glyph(NativeAppGlyphName.BookOpen, 20), caret = glyph(NativeAppGlyphName.CaretRight, 16))
+                    NativeSectionRow("Препараты", "считаем…", false, {}, icon = glyph(NativeAppGlyphName.Prescription, 20), caret = glyph(NativeAppGlyphName.CaretRight, 16))
+                }
             }
         }
         NativeBottomNav(
@@ -144,3 +166,64 @@ fun NativeDesignGallery(loading: Boolean = false, autoplay: Boolean = true) {
       }
     }
 }
+
+private typealias GalleryGlyph = (NativeAppGlyphName, Int) -> @Composable (Color) -> Unit
+
+/** Sample results for «пневмония», shaped like the WebView's first screen of results. */
+@Composable
+private fun GalleryResults(glyph: GalleryGlyph) {
+    NativeMeanings {
+        NativeChoiceChip("Пневмония", {}, detail = "Состояние · J18", icon = glyph(NativeAppGlyphName.Notepad, 16))
+        NativeChoiceChip("Пневмония у детей", {}, detail = "Уточнить запрос", icon = glyph(NativeAppGlyphName.Search, 16))
+    }
+    NativeIdentityCard("Пневмония", note = "J18 · МКБ-10, болезни органов дыхания") {
+        NativeSecondaryButton("Открыть карточку", {}, icon = glyph(NativeAppGlyphName.FileText, 18))
+    }
+    NativeResultGroup(
+        index = 1,
+        kindLabel = "Норма / справочник",
+        kindIcon = glyph(NativeAppGlyphName.Notepad, 18),
+        contentKind = "Карточка источника",
+        title = "Пневмония",
+        tags = listOf(NativeResultTag("Классификация", glyph(NativeAppGlyphName.Microscope, 14))),
+        note = "Классификационный контекст",
+        action = NativeResultAction(
+            "Скачать полный текст",
+            "Справочник заболеваний «Красота и медицина» · 96 МБ",
+            {},
+            glyph(NativeAppGlyphName.Download, 16),
+        ),
+        snippets = listOf(
+            snippet("Обзор", "Классификационный контекст", "- J09-J18 Грипп и пневмония".let { it to marks(it, "J18", "пневмония") }, {}, glyph(NativeAppGlyphName.FileText, 16)),
+            snippet("Обзор", "Болезни органов дыхания", "J18 Пневмония без уточнения возбудителя".let { it to marks(it, "J18", "Пневмония") }, {}, glyph(NativeAppGlyphName.FileText, 16)),
+        ),
+        onOpen = {},
+        moreTitle = { "Ещё $it фрагмент" },
+    )
+    NativeResultGroup(
+        index = 2,
+        kindLabel = "Клинические рекомендации",
+        kindIcon = glyph(NativeAppGlyphName.BookOpen, 18),
+        contentKind = "Руководство",
+        title = "Внебольничная пневмония у взрослых",
+        note = "Минздрав России · 2024",
+        snippets = listOf(
+            snippet("Диагностика", "2. Диагностика", "Рентгенография органов грудной клетки рекомендована всем пациентам с подозрением на пневмонию.".let { it to marks(it, "пневмонию") }, {}, glyph(NativeAppGlyphName.Microscope, 16)),
+            snippet("Лечение", "3. Лечение", "Антибактериальная терапия пневмонии начинается сразу после установления диагноза.".let { it to marks(it, "пневмонии") }, {}, glyph(NativeAppGlyphName.Pill, 16)),
+            snippet("Профилактика", "5. Профилактика", "Вакцинация против пневмококковой инфекции снижает риск пневмонии.".let { it to marks(it, "пневмонии") }, {}, glyph(NativeAppGlyphName.Check, 16)),
+        ),
+        onOpen = {},
+        moreTitle = { "Ещё $it фрагмента" },
+    )
+}
+
+private fun marks(text: String, vararg words: String): List<IntRange> =
+    words.map { word -> text.indexOf(word).let { it until it + word.length } }
+
+private fun snippet(
+    stamp: String,
+    path: String,
+    marked: Pair<String, List<IntRange>>,
+    onOpen: () -> Unit,
+    icon: @Composable (Color) -> Unit,
+) = NativeResultSnippet(stamp, path, marked.first, marked.second, onOpen, icon)

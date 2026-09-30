@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
@@ -22,6 +23,7 @@ import androidx.compose.ui.draw.innerShadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.DpOffset
 
 fun NativeBoxStyle.shape(): Shape = if (circle) CircleShape else RoundedCornerShape(corner)
@@ -43,6 +45,7 @@ fun Modifier.nativeBoxFrame(style: NativeBoxStyle): Modifier {
         style.minHeight != null -> heightIn(min = style.minHeight)
         else -> this
     }
+    if (style.opacity < 1f) modifier = modifier.alpha(style.opacity)
     // CSS paints the first listed shadow on top; Compose draws later modifiers above earlier ones.
     for (layer in style.shadows.filter { !it.inset }.asReversed()) {
         modifier = modifier.dropShadow(shape, layer.toShadow())
@@ -99,6 +102,8 @@ fun NativeTextSpec.textStyle(): TextStyle = TextStyle(
     letterSpacing = letterSpacing,
     color = color,
     fontFeatureSettings = "tnum",
+    // CSS line boxes: the whole line-height on every line, half-leading split evenly.
+    lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None),
 )
 
 /** Applies the block's `text-transform: uppercase`. */

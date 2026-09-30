@@ -91,6 +91,61 @@ class NativeComponentParityTest {
             Triple("bottom-nav", true, true),
             Triple("bottom-nav-bubble", true, true),
         )
+        assertBoxes(checks)
+    }
+
+    @Test
+    fun resultComponentsMatchTheWebBoxes() = runComposeUiTest {
+        setContent {
+            ProvideNativeDesignTokens(dark = false) {
+                Column(Modifier.width(355.dp)) {
+                    NativeMeanings {
+                        NativeChoiceChip("Пневмония", {}, detail = "J18 · состояние", icon = icon())
+                    }
+                    NativeIdentityCard("Пневмония", note = "Совпадение по названию") {
+                        NativeSecondaryButton("Открыть карточку", {}, icon = icon())
+                    }
+                    NativeResultGroup(
+                        index = 1,
+                        kindLabel = "Клинические рекомендации",
+                        kindIcon = { Box(Modifier.size(20.dp)) },
+                        contentKind = "Руководство",
+                        title = "Пневмония",
+                        tags = listOf(NativeResultTag("Взрослые", icon())),
+                        note = "Минздрав России, 2024",
+                        action = NativeResultAction("Скачать раздел", "Клинические рекомендации", {}, icon()),
+                        snippets = listOf(
+                            NativeResultSnippet("Лечение", "Раздел 3", "Пневмония лечится антибиотиками.", listOf(0..8), {}, icon()),
+                            NativeResultSnippet("Диагноз", "Раздел 2", "Рентгенография грудной клетки.", emptyList(), {}, icon()),
+                        ),
+                        onOpen = {},
+                        moreTitle = { "Ещё $it фрагмент" },
+                    )
+                }
+            }
+        }
+        assertBoxes(
+            listOf(
+                Triple("choice-chip", false, true),
+                Triple("choice-chip-icon", true, true),
+                Triple("download-chip-icon", true, true),
+                Triple("button-secondary", false, true),
+                Triple("result-header", false, true),
+                Triple("result-kind", false, true),
+                Triple("result-index", false, true),
+                Triple("clinical-tag", true, true),
+                Triple("result-card", false, true),
+                Triple("result-category-icon", true, true),
+                Triple("category-stamp", false, true),
+                Triple("result-path", false, true),
+                Triple("more-header", false, true),
+                Triple("more-chevron", true, true),
+            ),
+        )
+    }
+
+    /** Compares each (block, width?, height?) with the web box within [TOLERANCE_DP]. */
+    private fun androidx.compose.ui.test.ComposeUiTest.assertBoxes(checks: List<Triple<String, Boolean, Boolean>>) {
         val mismatches = checks.mapNotNull { (block, width, height) ->
             val node = onAllNodesWithTag(block, useUnmergedTree = true).fetchSemanticsNodes().firstOrNull()
                 ?: return@mapNotNull "$block: not rendered"

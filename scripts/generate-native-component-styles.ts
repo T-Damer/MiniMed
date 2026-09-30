@@ -18,6 +18,11 @@ const OUTPUT =
   'native/shared/src/commonMain/kotlin/dev/localmed/nativespike/shared/designsystem/NativeComponentStyles.kt';
 
 const FIXED_SIZE = new Set([
+  'choice-chip-icon',
+  'download-chip-icon',
+  'result-category-icon',
+  'clinical-tag',
+  'more-chevron',
   'bottom-nav-bubble',
   'route-icon-button',
   'history-fab',
@@ -33,6 +38,8 @@ const FIXED_SIZE = new Set([
   'search-button',
 ]);
 const FIXED_HEIGHT = new Set([
+  'button-secondary',
+  'more-header',
   'source-picker',
   'quick-access-chip',
   'feature-action-primary',
@@ -176,7 +183,7 @@ function boxStyle(block: string, captured: Captured): string {
     `        padding = NativePadding(start = ${px(s['padding-left'] ?? '0px')}.dp, top = ${px(s['padding-top'] ?? '0px')}.dp, end = ${px(s['padding-right'] ?? '0px')}.dp, bottom = ${px(s['padding-bottom'] ?? '0px')}.dp),`,
     `        corner = ${circle ? '0.dp' : `${px(radius)}.dp`}, circle = ${circle},`,
     `        borderWidth = ${px(s['border-top-width'] ?? '0px')}.dp, borderColor = ${kotlinColor(s['border-top-color'] ?? 'rgba(0, 0, 0, 0)')}, borderDashed = ${s['border-top-style'] === 'dashed'},`,
-    `        background = ${kotlinColor(s['background-color'] ?? 'rgba(0, 0, 0, 0)')},`,
+    `        background = ${kotlinColor(s['background-color'] ?? 'rgba(0, 0, 0, 0)')}, opacity = ${Number(s.opacity ?? 1)}f,`,
     `        bottomBorderWidth = ${px(s['border-bottom-width'] ?? '0px')}.dp, bottomBorderColor = ${kotlinColor(s['border-bottom-color'] ?? 'rgba(0, 0, 0, 0)')},`,
     `        rowGap = ${gaps(s.gap ?? 'normal')[0]}.dp, columnGap = ${gaps(s.gap ?? 'normal')[1]}.dp,`,
     `        shadows = ${layers.length ? `listOf(\n            ${layers.join(',\n            ')},\n        )` : 'emptyList()'},`,
@@ -262,6 +269,8 @@ data class NativeBoxStyle(
     /** CSS \`border-style: dashed\`. */
     val borderDashed: Boolean,
     val background: Color,
+    /** CSS \`opacity\` of the whole block (the result index is 0.1). */
+    val opacity: Float,
     /** Separator drawn under the block (list items). */
     val bottomBorderWidth: Dp,
     val bottomBorderColor: Color,

@@ -36,7 +36,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-09-30 19:40 | codex-native | migrate the search/home screen to the design system: `NativeQueryFooter` (editable field, «Ищем…» queue), `NativeFeatureCarousel`, `NativeBottomNav` (bubble + swipe), `NativeSectionList` | `ui/**` (screens), `wasmJsMain/**` |
-| 2026-09-30 19:40 | claude-coordinator | design-system components for the next screens: paper sheets/dialogs, result cards (collapsed/expanded, kind badge), reader chrome parts | `designsystem/**` |
+| 2026-09-30 19:40 | claude-coordinator | design-system components for the next screens: paper sheets/dialogs, reader chrome parts (result cards done) | `designsystem/**` |
 
 ## Next (claimed, not started)
 
@@ -52,6 +52,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 | Date | From → To | Request | Status |
 | --- | --- | --- | --- |
+| 2026-09-30 21:00 | claude-coordinator → codex-native | results screen: build it from `NativeResultGroup(index, kindLabel, title, snippets, onOpen, moreTitle, contentKind, tags, note, action)`, meanings from `NativeMeanings { NativeChoiceChip(...) }`, identity matches from `NativeIdentityCard` + `NativeSecondaryButton`; highlights are char ranges of the snippet text; see gallery `?scene=design&q=пневмония` | open |
 | 2026-09-30 19:10 | claude-coordinator → codex-native | search screen (user decision): no separate core-status card; use `NativeQueryFooter(progress)`; keep the field editable while the core connects, queue a submitted query and run it when ready, showing `NativeQueryProgress("Ищем…")` until results; bottom nav via `NativeBottomNav(items, selected, onSelect)` (bubble + swipe); home cards via `NativeFeatureCard(primary, secondary)` | open |
 | 2026-09-30 16:20 | codex-native → claude-coordinator | Wasm DS retest still renders serif as sans (NativeFontFamilies.Serif has no bundled Wasm serif); Brain lacks AX checked/switch and disabled send lacks disabled semantics; exact artifacts playwright/native-ds-retest/report.json | please qualify font fallback and DS accessibility; no owner edits by native screens |
 | 2026-09-30 16:20 | codex-native → claude-coordinator | Need MedicalCore typed admitted navigation summaries/section counts for home counters and random source; public-core fixture counts are only baseline (legal0 vs installed modules), UI must not import SQL or fabricate catalog totals | core API dependency for full home/search behavior |
@@ -64,6 +65,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 ## Recently done
 
+- 2026-09-30 claude-coordinator: result components ready for the search results screen — `NativeResultGroup` (index, kind badge, title, tags, note, download action, fragments with highlights, «Ещё N» disclosure), `NativeChoiceChip`/`NativeMeanings`, `NativeIdentityCard`, `NativeSecondaryButton`; parity within 1 dp; gallery `?scene=design&q=пневмония`.
 - 2026-09-30 claude-coordinator: equal-height suggestion carousel, light dark-theme bubble, interactive design gallery (`?scene=design`), `native:design preview`.
 - 2026-09-30 claude-coordinator: core status inside the query field, bottom-nav bubble with swipe, one-row card actions (flex), dashed chip border; gallery test committed.
 - 2026-09-30 15:45 codex-native: current qualified work saved in scoped commits: tool engine `8f83126a`, icons `e920449f`, offline collections/discovery `edbba19f`, screen wiring `d0d9fcc8`, live Wasm `c54b9537`, limits/docs `50f5c31e`; unfinished patient files excluded.

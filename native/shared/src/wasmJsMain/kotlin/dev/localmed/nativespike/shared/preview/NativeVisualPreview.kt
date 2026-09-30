@@ -60,8 +60,8 @@ fun NativeVisualPreview() {
         NativeSpikeTheme {
             CompositionLocalProvider(LocalNativeReaderChrome provides chrome, LocalNativeNavigationPadding provides if (navVisible) 68.dp else 0.dp) {
                 Box(Modifier.fillMaxSize()) {
-                    // Design-system gallery (claude-coordinator): ?scene=design[&theme=dark][&loading=1]
-                    if (scene == "design") NativeDesignGallery(loading = parameters["loading"] == "1")
+                    // Design-system gallery (claude-coordinator): ?scene=design[&theme=dark][&loading=1][&q=query]
+                    if (scene == "design") NativeDesignGallery(loading = parameters["loading"] == "1", initialQuery = parameters["q"].orEmpty())
                     else if (failure != null) Text(requireNotNull(failure), Modifier.padding(16.dp))
                     else if (document == null || tools == null) Text("Подготовка визуального сравнения…", Modifier.padding(16.dp))
                     else {

@@ -50,6 +50,21 @@ const SCREENS: readonly Screen[] = [
       await input.fill('пневмония');
     },
   },
+  {
+    id: 'results',
+    hash: '#/search',
+    readyCore: true,
+    prepare: async (page) => {
+      const input = page.getByTestId('search-input');
+      await input.and(page.locator(':enabled')).waitFor({ timeout: 180_000 });
+      await input.fill('пневмония');
+      await input.press('Enter');
+      await page
+        .locator('.result-group, [data-testid="result-group"]')
+        .first()
+        .waitFor({ timeout: 60_000 });
+    },
+  },
 ];
 
 async function openScreen(page: Page, origin: string, screen: Screen): Promise<void> {
@@ -117,6 +132,44 @@ const BLOCKS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   },
   'home-clinical': {
     'clinical-toggle-on': '.search-clinical-toggle',
+  },
+  results: {
+    'meanings-phrase': '.search-meanings__phrase',
+    'choice-chip': '.choice-chip',
+    'choice-chip-icon': '.choice-chip__icon',
+    'choice-chip-label': '.choice-chip__label',
+    'choice-chip-detail': '.choice-chip__detail',
+    'identity-card': '.core-identity-matches__card',
+    'identity-title': '.core-identity-matches__title',
+    'identity-note': '.core-identity-matches__note',
+    'button-secondary': '.ui-button--secondary',
+    'result-group': '.result-group',
+    'result-header': '.result-group-header',
+    'result-index': '.result-group-header__index',
+    'result-kind': '.result-group-header__kind',
+    'result-kind-label': '.result-group-header__kind-label',
+    'result-content-kind': '.result-group-header__content-kind',
+    'result-title': '.result-group-header__title',
+    'clinical-tag': '.clinical-tags__tag',
+    'result-card': '.result-card',
+    'result-path': '.result-path',
+    'result-snippet': '.result-snippet',
+    'result-open': '.result-open',
+    'result-more': '.result-group__more',
+    'result-note': '.result-group-header__note',
+    'result-header-body': '.result-group-header__body',
+    'result-action': '.result-group__action',
+    'result-snippets': '.result-group__snippets',
+    'download-chip': '.search-download-chip',
+    'download-chip-icon': '.search-download-chip .choice-chip__icon',
+    'download-chip-label': '.search-download-chip .choice-chip__label',
+    'download-chip-detail': '.search-download-chip .choice-chip__detail',
+    'result-category-icon': '.result-category-icon',
+    'category-stamp': '.category-stamp',
+    highlight: '.highlighted-text__match',
+    'more-header': '.result-group__more .ui-disclosure__header',
+    'more-title': '.result-group__more .ui-disclosure__title',
+    'more-chevron': '.result-group__more .ui-disclosure__chevron',
   },
   'home-typing': {
     'query-clear': '.query-sheet__clear',
@@ -201,7 +254,8 @@ await withBuiltApp(async (origin, browser) => {
       if (listOnly) {
         if (colorScheme === 'light') result[screen.id] = await listBlocks(target);
       } else {
-        const theme = (result[colorScheme] ??= {}) as Record<string, unknown>;
+        result[colorScheme] ??= {};
+        const theme = result[colorScheme] as Record<string, unknown>;
         theme[screen.id] = await captureBlocks(target, BLOCKS[screen.id] ?? {});
       }
     }
