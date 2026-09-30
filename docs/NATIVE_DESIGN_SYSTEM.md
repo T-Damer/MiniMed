@@ -31,7 +31,7 @@ screen was matched by eye.
 | `bun run native:design sync [--build]` | capture the web reference, regenerate tokens and component styles |
 | `bun run native:design check` | token/style drift checks plus `NativeComponentParityTest` |
 | `bun run native:design compare [--build]` | web vs native home screenshots side by side, light and dark, in `playwright/design-compare/` |
-| `bun run native:design preview` | builds the Wasm preview and serves it on `http://127.0.0.1:4175` — `?scene=design` is the interactive design gallery (`&theme=dark`, `&loading=1`, `&q=пневмония` opens sample results; submitting a query there does too), `?scene=search` the real screens |
+| `bun run native:design preview` | builds the Wasm preview and serves it on `http://127.0.0.1:4175` — `?scene=design` is the interactive design gallery (`&theme=dark`, `&loading=1`, `&q=пневмония` opens sample results; submitting a query there does too), `?scene=design-reader` the reader over a Markdown sample (`&find=…`), `?scene=search` the real screens |
 
 `--build` rebuilds the WebView first; otherwise the existing `apps/app/dist` is used. Captures are
 repeatable: reduced motion stops the carousel and transitions, and database downloads are held so
@@ -75,6 +75,8 @@ reference key:
 | `NativeFlexRow` | `display: flex` with `flex: 1 1 auto` children |
 | `NativeChoiceChip(accent)`, `NativeMeanings` | `.choice-chip` (`--accent` is the download chip), `.search-meanings__phrase` |
 | `NativeSecondaryButton`, `NativeIdentityCard` | `.ui-button--secondary`, `.core-identity-matches__card` |
+| `nativeDocumentItems(document, actions)`, `NativeDocumentBlock` | reader paper, `.document-overlay-section__title`, paragraphs, `.safe-markdown` blocks (docs/NATIVE_READER.md) |
+| `NativeReaderTopBar`, `NativeReaderTool`, `NativeFindBar`, `NativeOutlinePanel`, `NativeReadingMenu`, `NativeScrollTopButton` | `.document-page__chrome`, `.document-find`, `.document-overlay-outline`, reading settings, `.scroll-top-button` |
 | `NativeResultGroup(snippets, action, tags)` | `.result-group`: header with faint index, kind badge, serif title, tags, note; accent action; fragments with category stamp, path and highlights; «Ещё N» disclosure |
 
 Icons are slots (`icon: @Composable (tint) -> Unit`), so the design system does not depend on the

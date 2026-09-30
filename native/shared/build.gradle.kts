@@ -67,6 +67,8 @@ kotlin {
                 api(compose.components.resources)
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+                // Reader: Markdown parsing (CommonMark + GFM), docs/NATIVE_READER.md.
+                implementation("org.jetbrains:markdown:0.7.16")
             }
         }
         val commonTest by getting {

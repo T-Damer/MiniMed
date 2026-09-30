@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.content.bundledNativeTools
 import dev.localmed.nativespike.shared.core.*
 import dev.localmed.nativespike.shared.designsystem.gallery.NativeDesignGallery
+import dev.localmed.nativespike.shared.designsystem.gallery.NativeReaderGallery
 import dev.localmed.nativespike.shared.model.*
 import dev.localmed.nativespike.shared.ui.*
 import dev.localmed.nativespike.shared.user.*
@@ -58,7 +59,7 @@ fun NativeVisualPreview() {
     }
     val document = source
     val chrome = remember(scene, document?.target) { NativeReaderChrome() }
-    val navVisible = scene != "design" && panel != NativeUserPanel.Collections && panel != NativeUserPanel.History &&
+    val navVisible = !scene.startsWith("design") && panel != NativeUserPanel.Collections && panel != NativeUserPanel.History &&
         (panel != null || toolRoute?.route != null || scene != "reader" || chrome.visible)
     NativeUserAppearance(user?.preferences ?: NativeUserPreferences()) {
         NativeSpikeTheme {
@@ -66,6 +67,7 @@ fun NativeVisualPreview() {
                 Box(Modifier.fillMaxSize()) {
                     // Design-system gallery (claude-coordinator): ?scene=design[&theme=dark][&loading=1][&q=query]
                     if (scene == "design") NativeDesignGallery(loading = parameters["loading"] == "1", initialQuery = URLSearchParams(window.location.search.toJsString()).get("q").orEmpty())
+                    else if (scene == "design-reader") NativeReaderGallery(initialFind = URLSearchParams(window.location.search.toJsString()).get("find").orEmpty())
                     else if (failure != null) Text(requireNotNull(failure), Modifier.padding(16.dp))
                     else if (document == null || tools == null) Text("Подготовка визуального сравнения…", Modifier.padding(16.dp))
                     else {

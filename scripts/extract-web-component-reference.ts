@@ -65,6 +65,20 @@ const SCREENS: readonly Screen[] = [
         .waitFor({ timeout: 60_000 });
     },
   },
+  {
+    id: 'reader',
+    hash: '#/search',
+    readyCore: true,
+    prepare: async (page) => {
+      const input = page.getByTestId('search-input');
+      await input.and(page.locator(':enabled')).waitFor({ timeout: 180_000 });
+      await input.fill('пневмония');
+      await input.press('Enter');
+      await page.locator('.result-open').first().click();
+      await page.locator('.reader-header__open-document').click();
+      await page.locator('.document-overlay-section').first().waitFor({ timeout: 60_000 });
+    },
+  },
 ];
 
 async function openScreen(page: Page, origin: string, screen: Screen): Promise<void> {
@@ -170,6 +184,30 @@ const BLOCKS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
     'more-header': '.result-group__more .ui-disclosure__header',
     'more-title': '.result-group__more .ui-disclosure__title',
     'more-chevron': '.result-group__more .ui-disclosure__chevron',
+  },
+  reader: {
+    'reader-chrome': '.document-page__chrome',
+    'reader-back': '.document-page__back',
+    'reader-outline-toggle': '.document-overlay-outline-toggle',
+    'reader-crumbs': '.document-crumbs',
+    'reader-crumb-link': '.document-crumbs__link',
+    'reader-crumb-separator': '.document-crumbs__separator',
+    'reader-crumb-current': '.document-crumbs__current-text',
+    'reader-find-toggle': '.document-find__toggle',
+    'reader-actions-button': '.reader-actions__button',
+    'reader-paper': '.document-overlay-paper',
+    'reader-section': '.document-overlay-section',
+    'reader-section-title': '.document-overlay-section__title--h2',
+    'reader-paragraph': '.document-overlay-section__paragraph',
+    'reader-list': '.document-text-list',
+    'reader-list-item': '.document-text-list__item',
+    'reader-inline-link': '.document-inline-link',
+    'reader-inline-link-icon': '.document-inline-link__icon',
+    'reader-inline-link-label': '.document-inline-link__label',
+    'reader-image': '.document-reference-image',
+    'reader-image-picture': '.document-reference-image__image',
+    'reader-image-caption': '.document-reference-image__caption',
+    'scroll-top-button': '.scroll-top-button',
   },
   'home-typing': {
     'query-clear': '.query-sheet__clear',

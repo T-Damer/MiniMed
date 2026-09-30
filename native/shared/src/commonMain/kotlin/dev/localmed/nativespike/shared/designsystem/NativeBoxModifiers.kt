@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.DpOffset
 
 fun NativeBoxStyle.shape(): Shape = if (circle) CircleShape else RoundedCornerShape(corner)
 
-private fun NativeShadowLayer.toShadow(): Shadow =
+internal fun NativeShadowLayer.toShadow(): Shadow =
     Shadow(radius = blur, color = color, spread = spread, offset = DpOffset(x, y))
 
 /**

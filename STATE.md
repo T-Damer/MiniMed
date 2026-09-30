@@ -38,7 +38,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
 | 2026-09-30 18:41 | codex-native | preserve independent section query/results/filters/viewport through source and clinical switching; qualify result components in actual Wasm; update implemented-state record | `ui/NativeSearchUiState.kt`, `ui/SearchScreen.kt`, `ui/NativeSearchControls.kt`, own tests/docs |
-| 2026-09-30 21:40 | claude-coordinator | native reader engine (user priority, plan `docs/NATIVE_READER.md`): R1 document model + Markdown importer + block renderer + reader chrome parts, then R2 own files (TXT/HTML), R3 PDF, R4 EPUB | `shared/reader/**` (new), `designsystem/**` |
+| 2026-09-30 21:40 | claude-coordinator | native reader engine (user priority, plan `docs/NATIVE_READER.md`): R1 done; now R2 own files (TXT/HTML, file picker), then R3 PDF, R4 EPUB | `shared/reader/**`, `designsystem/**` |
 
 ## Next (claimed, not started)
 
@@ -74,6 +74,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 ## Recently done
 
+- 2026-09-30 claude-coordinator: reader R1 — document model, Markdown importer (`org.jetbrains:markdown`), `nativeDocumentItems` block renderer, reader bar/find/outline/reading menu; gallery `?scene=design-reader`.
 - 2026-09-30 18:56 codex-native: independent section queries/results/filters/viewport (`1c03d88c`); clinical source return, history handoff, all-section invalidation after source install and scoped tool matches (`a12d50bc`) verified by selected Desktop tests; live Wasm rebuild/visual follow-up ongoing.
 
 - 2026-09-30 18:41 codex-native: queued editable search, home carousel, section/tool routing, bubble navigation and source/identity result components committed (`e85eb137`); startup fixture preview committed (`39aa2153`); selected tests and Desktop/Wasm/Android/iOS compilation pass.

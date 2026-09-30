@@ -13,6 +13,7 @@ import androidx.compose.ui.test.runDesktopComposeUiTest
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.designsystem.gallery.NativeDesignGallery
+import dev.localmed.nativespike.shared.designsystem.gallery.NativeReaderGallery
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.test.Test
@@ -38,6 +39,25 @@ class NativeDesignGalleryTest {
                 }
                 val image = onRoot().captureToImage().toAwtImage()
                 val out = File(System.getProperty("user.dir"), "../../playwright/native-design-gallery-$variant.png")
+                out.parentFile.mkdirs()
+                ImageIO.write(image, "png", out)
+            }
+        }
+    }
+
+    @Test
+    fun writeReaderGallery() {
+        for ((variant, dark, find) in listOf(Triple("light", false, ""), Triple("dark", true, ""), Triple("light-find", false, "строк"))) {
+            runDesktopComposeUiTest(width = 375, height = 1400) {
+                setContent {
+                    CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                        ProvideNativeDesignTokens(dark) {
+                            Box(Modifier.size(375.dp, 1400.dp)) { NativeReaderGallery(initialFind = find) }
+                        }
+                    }
+                }
+                val image = onRoot().captureToImage().toAwtImage()
+                val out = File(System.getProperty("user.dir"), "../../playwright/native-reader-gallery-$variant.png")
                 out.parentFile.mkdirs()
                 ImageIO.write(image, "png", out)
             }

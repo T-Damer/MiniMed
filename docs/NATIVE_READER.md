@@ -42,6 +42,24 @@ with back, outline, breadcrumbs, find and reading settings; chrome hides on scro
 on scroll up (`docs/NATIVE_STICKY_CHROME.md`); sections with serif headings and a rule; inline
 document links; images with captions; text scale 90–140 %; two-page spreads for PDF.
 
+## Ready (R1)
+
+- `reader/NativeDocument.kt`: blocks (heading with web `md-` anchors, paragraph, list with task
+  boxes, quote and GitHub alerts, code, display math, table with alignment and spans, image, rule,
+  raw, page mark), inlines, outline, `plainText()` for find.
+- `reader/NativeMarkdownImporter.kt`: GFM Markdown with `==mark==`, `$math$`, reference links; raw
+  HTML is not interpreted (`<br>` breaks the line, tags are dropped, their text kept). Tests in
+  `NativeMarkdownImporterTest`.
+- `designsystem/NativeDocumentView.kt`: `LazyListScope.nativeDocumentItems(document, actions)` —
+  level-2 headings are sticky section titles; text scale; links through `actions.onLink`; images
+  through the screen's `actions.image` slot (alt text otherwise); find hits per block (tables map
+  them to cells; lists and quotes do not mark them yet). Tables follow CSS automatic layout and scroll
+  sideways only when their words alone overflow the page.
+- `designsystem/NativeReaderParts.kt`: `NativeReaderTopBar` (primary Back, bounded title, tools),
+  `NativeReaderTool`, `NativeReaderChromeState` (hide on scroll down, show on scroll up),
+  `NativeFindBar`, `NativeOutlinePanel`, `NativeReadingMenu` (90–140 %), `NativeScrollTopButton`.
+- Design gallery scene `?scene=design-reader` (`&find=…`), rendered by `NativeDesignGalleryTest`.
+
 ## Phases
 
 1. **R1 — model and Markdown.** Document model, Markdown importer with tests, block renderer, reader

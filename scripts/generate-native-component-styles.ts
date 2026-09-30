@@ -18,6 +18,12 @@ const OUTPUT =
   'native/shared/src/commonMain/kotlin/dev/localmed/nativespike/shared/designsystem/NativeComponentStyles.kt';
 
 const FIXED_SIZE = new Set([
+  'reader-back',
+  'reader-outline-toggle',
+  'reader-find-toggle',
+  'reader-actions-button',
+  'reader-inline-link-icon',
+  'scroll-top-button',
   'choice-chip-icon',
   'download-chip-icon',
   'result-category-icon',
