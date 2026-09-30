@@ -62,6 +62,7 @@ class NativeCoreSession(
     val state: StateFlow<NativeCoreSessionState> = mutableState.asStateFlow()
     val uiErrors = NativeUiErrors()
     val userState = NativeUserState(io)
+    internal val library = NativeLibraryUiState()
     val collectionsState = NativeCollectionsState(io)
     val toolsState = NativeToolsState(io)
     val startupSearch = NativeSearchUiState(dev.localmed.nativespike.shared.core.NativeSearchSnapshot())
@@ -260,6 +261,7 @@ class NativeCoreSession(
         if (!backMutex.tryLock()) return
         try {
             if (!flushUi()) return
+            if (item == null && mutablePanel.value == NativeUserPanel.Collections) library.showRoot()
             mutableOpenedFile.value = null
             mutableCollectionItem.value = item
             mutablePanel.value = NativeUserPanel.Collections

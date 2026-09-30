@@ -36,17 +36,37 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.launch
 
+/** Session navigation restores the last folder; reselecting Files returns to its root. */
+internal class NativeLibraryUiState {
+    var favorites by mutableStateOf(false)
+    var selectedId by mutableStateOf<String?>(null)
+    var query by mutableStateOf("")
+    var grid by mutableStateOf(true)
+    val list = androidx.compose.foundation.lazy.LazyListState()
+
+    fun showRoot() {
+        favorites = false; selectedId = null; query = ""
+        list.requestScrollToItem(0)
+    }
+
+    fun openFolder(id: String?) {
+        favorites = id == null; selectedId = id; query = ""
+        list.requestScrollToItem(0)
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class, ExperimentalTime::class)
 @Composable
 fun NativeCollectionsScreen(session: NativeCoreSession) {
     val snapshot by session.collectionsState.snapshot.collectAsState()
     val selectedItem by session.collectionItem.collectAsState()
     val errors by session.uiErrors.messages.collectAsState()
-    var favorites by remember(session) { mutableStateOf(false) }
-    var query by remember(session) { mutableStateOf("") }
+    var favorites by session.library::favorites
+    var query by session.library::query
+    var grid by session.library::grid
     val pickFile = LocalNativeOpenFile.current
-    val list = remember(session) { androidx.compose.foundation.lazy.LazyListState() }
-    var selectedId by remember(session) { mutableStateOf<String?>(null) }
+    val list = session.library.list
+    var selectedId by session.library::selectedId
     var saving by remember(session) { mutableStateOf(false) }
     var editingName by remember(session) { mutableStateOf(false) }
     var renaming by remember(session) { mutableStateOf<NativeItemCollection?>(null) }
@@ -83,7 +103,7 @@ fun NativeCollectionsScreen(session: NativeCoreSession) {
         topBar = {
             Row(Modifier.fillMaxWidth().statusBarsPadding().padding(NativeDimensions.space2), horizontalArrangement = Arrangement.spacedBy(NativeDimensions.space3), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                 NativeIconButton(components.backButton, "back-button", "Назад", {
-                    if (selectedItem == null && (favorites || selectedId != null)) { favorites = false; selectedId = null; query = "" }
+                    if (selectedItem == null && (favorites || selectedId != null)) { session.library.showRoot() }
                     else session.actionScope.launch { session.back() }
                 }, icon = nativeCollectionGlyph(NativeAppGlyphName.ArrowLeft))
                 NativeSearchField(query, { query = it }, "Название или элемент", Modifier.weight(1f), icon = nativeCollectionGlyph(NativeAppGlyphName.Search))
@@ -102,7 +122,7 @@ fun NativeCollectionsScreen(session: NativeCoreSession) {
                         if (selectedItem != null) add(NativeCrumb("Сохранить элемент"))
                         else if (favorites) add(NativeCrumb("Избранное"))
                         else selected?.let { add(NativeCrumb(it.name)) }
-                    }, { favorites = false; selectedId = null; query = "" }, Modifier.testTag("user-library-breadcrumbs"))
+                    }, { session.library.showRoot() }, Modifier.testTag("user-library-breadcrumbs"))
                 }
                 item {
                     Column(Modifier.padding(horizontal = NativeDimensions.space4)) {
@@ -137,12 +157,6 @@ fun NativeCollectionsScreen(session: NativeCoreSession) {
                         }
                     }
                 } else if (state != null) {
-                    item {
-                        FlowRow(Modifier.fillMaxWidth().padding(horizontal = NativeDimensions.space4)) {
-                            NativePrimaryButton(text = "Избранное", onClick = { favorites = true; selectedId = null })
-                            NativePrimaryButton(text = "Коллекции", onClick = { favorites = false; selectedId = null })
-                        }
-                    }
                     when {
                         favorites -> {
                             item { BasicText("Избранных элементов: ${state.favorites.size}", modifier = Modifier.padding(horizontal = NativeDimensions.space4), style = NativeDesign.components.coreStatusDetail.text.textStyle()) }
@@ -170,16 +184,25 @@ fun NativeCollectionsScreen(session: NativeCoreSession) {
                             }
                         }
                         else -> {
-                            val collections = state.collections.filter { collection -> collection.name.contains(query, true) || collection.items.any { (it.title ?: it.id).contains(query, true) } }
-                            if (collections.isEmpty()) item {
-                                NativePaperSheet { NativeSectionHeading(if (query.isBlank()) "Здесь пока нет коллекций" else "Ничего не найдено",
+                            item {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    NativeIconToggle(listOf("Плитка" to nativeCollectionGlyph(NativeAppGlyphName.SquaresFour), "Список" to nativeCollectionGlyph(NativeAppGlyphName.ListBullets)),
+                                        if (grid) 0 else 1, { grid = it == 0 }, Modifier.testTag("user-library-view-toggle"))
+                                }
+                            }
+                            val folders = buildList<NativeItemCollection?> {
+                                if ("Избранное".contains(query, true) || state.favorites.any { (it.title ?: it.id).contains(query, true) }) add(null)
+                                addAll(state.collections.filter { collection -> collection.name.contains(query, true) || collection.items.any { (it.title ?: it.id).contains(query, true) } })
+                            }
+                            if (folders.isEmpty() || (query.isBlank() && state.collections.isEmpty() && state.favorites.isEmpty())) item {
+                                NativePaperSheet { NativeSectionHeading(if (query.isBlank()) "Здесь пока нет сохранённых элементов" else "Ничего не найдено",
                                     description = if (query.isBlank()) "Откройте файл с устройства или сохраните источник и инструмент в избранное." else null) }
                             }
-                            items(collections.chunked(2), key = { row -> row.joinToString { it.id } }) { row ->
+                            items(folders.chunked(if (grid) 2 else 1), key = { row -> row.first()?.id ?: "favorites" }) { row ->
                                 Row(horizontalArrangement = Arrangement.spacedBy(NativeDimensions.space2)) {
-                                    row.forEach { collection -> NativeFolderCard(collection.name, "Элементов: ${collection.items.size}",
-                                        { selectedId = collection.id }, Modifier.weight(1f).testTag("user-library-folder-card"), icon = nativeCollectionGlyph(NativeAppGlyphName.FolderOpen)) }
-                                    if (row.size == 1) androidx.compose.foundation.layout.Box(Modifier.weight(1f))
+                                    row.forEach { collection -> NativeFolderCard(collection?.name ?: "Избранное", "Элементов: ${collection?.items?.size ?: state.favorites.size}",
+                                        { session.library.openFolder(collection?.id) }, Modifier.weight(1f).testTag("user-library-folder-card"), icon = nativeCollectionGlyph(NativeAppGlyphName.FolderOpen)) }
+                                    if (grid && row.size == 1) androidx.compose.foundation.layout.Box(Modifier.weight(1f))
                                 }
                             }
                             pickFile?.let { pick -> item { NativePrimaryButton("Открыть файл", pick, icon = nativeCollectionGlyph(NativeAppGlyphName.FolderOpen)) } }

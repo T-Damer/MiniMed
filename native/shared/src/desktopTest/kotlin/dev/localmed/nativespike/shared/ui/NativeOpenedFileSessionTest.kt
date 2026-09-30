@@ -19,6 +19,23 @@ class NativeOpenedFileSessionTest {
         val session = NativeCoreSession(JVMContentIO(profile.absolutePath), { error("Core must not open") }, this)
         try {
             session.startupSearch.updateQuery("сохранённый черновик")
+            session.openCollections()
+            session.library.openFolder("public-collection")
+            session.library.query = "сохранённый фильтр"
+            var allowFolderSave = false
+            val stopFolderSave = session.registerNavigationFlush { allowFolderSave }
+            session.openCollections()
+            assertEquals("public-collection", session.library.selectedId)
+            assertEquals("сохранённый фильтр", session.library.query)
+            allowFolderSave = true
+            session.openPanel(NativeUserPanel.Settings)
+            session.openCollections()
+            assertEquals("public-collection", session.library.selectedId)
+            assertEquals("сохранённый фильтр", session.library.query)
+            session.openCollections()
+            assertEquals(null, session.library.selectedId)
+            assertEquals("", session.library.query)
+            stopFolderSave()
             session.openPanel(NativeUserPanel.Settings)
             var canSave = false
             session.registerNavigationFlush { canSave }
