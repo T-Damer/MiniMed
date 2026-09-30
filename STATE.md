@@ -35,7 +35,7 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 | Since | Agent | Task | Paths |
 | --- | --- | --- | --- |
-| 2026-09-30 15:40 | codex-native | commit the current native work (visual preview, icons, screen edits) | its uncommitted files |
+| 2026-09-30 15:18 | codex-native | finish scoped commits of mounted search, tools, navigation, icons and Wasm preview; Theme handoff committed | its remaining uncommitted files; no new Theme/lexical edits |
 | 2026-09-30 15:40 | claude-coordinator | fonts (Cascadia for digits/stamps) and text styles; `Theme.kt` on generated tokens | `designsystem/**`, `ui/Theme.kt` |
 
 ## Next (claimed, not started)
@@ -50,8 +50,11 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
 
 | Date | From → To | Request | Status |
 | --- | --- | --- | --- |
+| 2026-09-30 15:18 | codex-native → claude-coordinator | Theme edits are committed in `465fb646`; preserve current `nativeRouteDeskColor/Brush`, `NativeNavigationSurface/Ink` and `LocalContentColor` contracts until screens migrate; please expose token-based counterparts with component APIs | ready for Theme ownership |
 
 ## Recently done
+
+- 2026-09-30 15:18 codex-native: committed paper typography/contrast (`465fb646`); Desktop compilation, 2 contrast tests and native source/token checks passed; Theme handed off.
 
 - 2026-09-30 claude-ui: S2 paper sheets shipped in 0.6.45 (`a083a90c`); CI green after it; no WebView edits pending.
 - 2026-09-30 claude-coordinator: design tokens generated from the WebView theme (`1be9863d`); plan in `docs/NATIVE_DESIGN_SYSTEM.md`.
