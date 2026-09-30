@@ -5,11 +5,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.SideEffect
@@ -26,6 +28,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider
 import dev.localmed.nativespike.shared.content.JVMContentIO
 import dev.localmed.nativespike.shared.content.bundledNativeCatalog
+import dev.localmed.nativespike.shared.content.bundledNativeTools
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.ui.NativeCoreSession
 import dev.localmed.nativespike.shared.ui.NativeCoreSessionState
@@ -49,7 +52,7 @@ private const val BENCH_LOG_TAG = "MiniMedNativeSpikeBench"
 class NativeSessionOwner(application: Application) : AndroidViewModel(application) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val io = JVMContentIO(File(application.filesDir, "minimed-native").absolutePath)
-    val session = NativeCoreSession(io, { bundledNativeCatalog() }, scope)
+    val session = NativeCoreSession(io, { bundledNativeCatalog() }, scope, ::bundledNativeTools)
 
     init { if (NativeMedicalCore.hasCachedCore(io)) session.retry() }
 
@@ -63,29 +66,29 @@ class NativeSessionOwner(application: Application) : AndroidViewModel(applicatio
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle=SystemBarStyle.auto(android.graphics.Color.TRANSPARENT,android.graphics.Color.TRANSPARENT),
+            navigationBarStyle=SystemBarStyle.auto(android.graphics.Color.TRANSPARENT,android.graphics.Color.TRANSPARENT),
+        )
+        if(Build.VERSION.SDK_INT>=29) window.isStatusBarContrastEnforced=false
         val owner = ViewModelProvider(this)[NativeSessionOwner::class.java]
         val startedAtMs = SystemClock.elapsedRealtime()
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 val core = (owner.session.state.value as? NativeCoreSessionState.Ready)?.core
-                if (owner.session.panel.value != null || (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null))) owner.scope.launch { owner.session.back() }
+                if (owner.session.panel.value != null || owner.session.toolsState.snapshot.value?.route != null || (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null))) owner.scope.launch { owner.session.back() }
                 else moveTaskToBack(true)
             }
         })
         setContent {
             val state by owner.session.state.collectAsState()
-            val readyCore = (state as? NativeCoreSessionState.Ready)?.core
-            val navigation = if (readyCore != null) readyCore.navigation.collectAsState().value else null
-            val panel by owner.session.panel.collectAsState()
             val user by owner.session.userState.snapshot.collectAsState()
-            val paperRoute = panel != null || readyCore == null || navigation?.readers?.isNotEmpty() == true || navigation?.catalog != null
             val darkSystem = nativeUserDarkTheme(user?.preferences?.theme ?: NativeThemePreference.System)
             SideEffect {
                 val controller = WindowCompat.getInsetsController(window, window.decorView)
-                // Search uses the grey background in both themes; opaque paper is light only in light mode.
-                controller.isAppearanceLightStatusBars = paperRoute && !darkSystem
-                controller.isAppearanceLightNavigationBars = paperRoute && !darkSystem
+                // Both the route desk and reader paper are light in the light theme.
+                controller.isAppearanceLightStatusBars = !darkSystem
+                controller.isAppearanceLightNavigationBars = !darkSystem
             }
             var benchQuery by remember { mutableStateOf<String?>(null) }
             // Exported query injection and timing hooks exist only in the debug measurement build.

@@ -1,10 +1,18 @@
 package dev.localmed.nativespike.shared.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,14 +20,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -29,8 +32,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.localmed.nativespike.shared.core.NativeCatalogSnapshot
 import dev.localmed.nativespike.shared.core.NativeDefinitionCard
 import dev.localmed.nativespike.shared.core.NativeDefinitionEditionResolution
@@ -124,78 +130,88 @@ fun NativeDefinitionCatalogScreen(
             viewportQuery = completedQuery
         }
     }
-    Scaffold(containerColor = MaterialTheme.colorScheme.surface, topBar = {
-        Surface(color = MaterialTheme.colorScheme.surface) {
-            Column(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = onBack) { Text("Назад") }
-                    TextButton(onClick = { leave(onShowSearch) }) { Text("Поиск") }
-                }
-                Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
-                Text("Требует проверки · записи в пределах источников", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Редакция: ${target.moduleVersion}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                installed?.let { Text("Записей справочника: ${it.status.entries}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                OutlinedTextField(value = query, onValueChange = {
-                    inputError = nativeCatalogInputError(it)
-                    if (inputError == null) query = it
-                }, enabled = installed != null, label = { Text("Название или исходная фраза") }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
+    val error = loadError ?: installFailure?.takeIf { it.target == target }?.message
+    val navigationBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    NativeChromeScaffold(containerColor = MaterialTheme.colorScheme.surface, desk = true, topBar = {
+        Column(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                NativePaperIconButton(NativeAppGlyphName.ArrowLeft, onBack, "Назад", primary = true)
+                NativePaperButton("Поиск", { leave(onShowSearch) })
             }
+            Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text("Требует проверки · записи в пределах источников", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Редакция: ${target.moduleVersion}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            installed?.let { Text("Записей справочника: ${it.status.entries}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            NativePaperTextField(value = query, onValueChange = {
+                inputError = nativeCatalogInputError(it)
+                if (inputError == null) query = it
+            }, enabled = installed != null, label = "Название или исходная фраза", singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
+            inputError?.let { Text(it, color = MaterialTheme.colorScheme.onSurface) }
+            sourceError?.let { Text(it, color = MaterialTheme.colorScheme.onSurface) }
+            if (openingSource) Text("Открываем запись…", color = MaterialTheme.colorScheme.onSurface)
+            failures[NativeUiOperation.CatalogPosition]?.let {
+                Text(it, color = MaterialTheme.colorScheme.onSurface)
+                NativePaperButton(text = "Повторить сохранение", onClick = { saveAttempt += 1 })
+            }
+            error?.let { Text(it, color = MaterialTheme.colorScheme.onSurface) }
+            if (installed != null) {
+                if (searching) LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (query.isBlank()) Text("Введите название или фразу из исходного текста.", color = MaterialTheme.colorScheme.onSurface)
+                searchError?.let {
+                    Text(it, color = MaterialTheme.colorScheme.onSurface)
+                    NativePaperButton(text = "Повторить поиск", onClick = { attempt += 1 })
+                }
+                if (completedQuery != null) Text(if (cards.isEmpty()) "В этой редакции записи не найдены." else "Показано записей: ${cards.size} · максимум 20 за запрос",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (loadError != null) NativePaperButton(text = "Повторить открытие", onClick = { attempt += 1 })
         }
     }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            inputError?.let { Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface) }
-            sourceError?.let { Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface) }
-            if (openingSource) Text("Открываем запись…", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
-            failures[NativeUiOperation.CatalogPosition]?.let {
-                Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
-                TextButton(onClick = { saveAttempt += 1 }) { Text("Повторить сохранение") }
-            }
-            val error = loadError ?: installFailure?.takeIf { it.target == target }?.message
-            error?.let { Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface) }
-            when (val current = resolution) {
-                null -> if (error == null) LinearProgressIndicator(Modifier.fillMaxWidth())
-                is NativeDefinitionEditionResolution.Unavailable -> Text(current.reason, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
-                is NativeDefinitionEditionResolution.Download -> Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Для поиска и чтения исходных записей установите эту редакцию. После установки она доступна без интернета.", color = MaterialTheme.colorScheme.onSurface)
-                    Text("Размер загрузки: ${formatFixed1(current.downloadBytes / 1048576.0)} МБ", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (progress != null || installing) NativeInstallProgressView(progress)
-                    else TextButton(onClick = {
-                        installing = true
-                        actionScope.launch {
-                            try {
-                                val loaded = core.installDefinitionEdition(target)
-                                if (onCurrentRoute()) resolution = loaded
-                            } catch (cause: CancellationException) { throw cause }
-                            catch (cause: Exception) { if (onCurrentRoute()) loadError = "Не удалось загрузить справочник. Повторите попытку." }
-                            finally { installing = false }
+        if (installed != null) {
+            LazyColumn(state = listState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(
+                top = padding.calculateTopPadding(), bottom = 24.dp + navigationBottom + padding.calculateBottomPadding())) {
+                items(cards, key = { it.id }) { card ->
+                    NativePaperSurface(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp), raised = true) {
+                        Column(Modifier.fillMaxWidth().clickable(enabled = !openingSource) { leave { onOpenDefinition(target.entityTarget(card.id)) } }.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(card.title, style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.8.sp), color = MaterialTheme.colorScheme.onSurface)
+                            Text(nativeDefinitionEntryLabel(card), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(nativeIdentityCoverageLabel(card.coverage), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(if (card.match == "text") "Совпадение исходного текста" else "Совпадение названия", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Исходных блоков: ${card.blockCount}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                    }) { Text("Загрузить справочник") }
-                }
-                is NativeDefinitionEditionResolution.Installed -> {
-                    if (searching) LinearProgressIndicator(Modifier.fillMaxWidth())
-                    if (query.isBlank()) Text("Введите название или фразу из исходного текста.", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
-                    searchError?.let {
-                        Text(it, Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
-                        TextButton(onClick = { attempt += 1 }) { Text("Повторить поиск") }
                     }
-                    if (completedQuery != null) Text(if (cards.isEmpty()) "В этой редакции записи не найдены." else "Показано записей: ${cards.size} · максимум 20 за запрос",
-                        Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(bottom = 24.dp)) {
-                        items(cards, key = { it.id }) { card ->
-                            Column(Modifier.fillMaxWidth().clickable(enabled = !openingSource) { leave { onOpenDefinition(target.entityTarget(card.id)) } }.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Text(card.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                                Text(nativeDefinitionEntryLabel(card), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(nativeIdentityCoverageLabel(card.coverage), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text(if (card.match == "text") "Совпадение исходного текста" else "Совпадение названия", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                Text("Исходных блоков: ${card.blockCount}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                    }
+            }
+        } else {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                Spacer(Modifier.height(padding.calculateTopPadding()))
+                Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp,
+                    bottom = 24.dp + navigationBottom + padding.calculateBottomPadding()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    when (val current = resolution) {
+                        null -> if (error == null) LinearProgressIndicator(Modifier.fillMaxWidth())
+                        is NativeDefinitionEditionResolution.Unavailable -> Text(current.reason, color = MaterialTheme.colorScheme.onSurface)
+                        is NativeDefinitionEditionResolution.Download -> {
+                            Text("Для поиска и чтения исходных записей установите эту редакцию. После установки она доступна без интернета.", color = MaterialTheme.colorScheme.onSurface)
+                            Text("Размер загрузки: ${formatFixed1(current.downloadBytes / 1048576.0)} МБ", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (progress != null || installing) NativeInstallProgressView(progress)
+                            else NativePaperButton(text = "Загрузить справочник", onClick = {
+                                installing = true
+                                actionScope.launch {
+                                    try {
+                                        val loaded = core.installDefinitionEdition(target)
+                                        if (onCurrentRoute()) resolution = loaded
+                                    } catch (cause: CancellationException) { throw cause }
+                                    catch (cause: Exception) { if (onCurrentRoute()) loadError = "Не удалось загрузить справочник. Повторите попытку." }
+                                    finally { installing = false }
+                                }
+                            })
                         }
+                        is NativeDefinitionEditionResolution.Installed -> Unit
                     }
                 }
             }
-            if (loadError != null) TextButton(onClick = { attempt += 1 }) { Text("Повторить открытие") }
         }
     }
 }

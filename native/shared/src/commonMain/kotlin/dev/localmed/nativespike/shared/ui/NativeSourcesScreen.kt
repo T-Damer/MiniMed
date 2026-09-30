@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,14 +16,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -30,8 +29,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.localmed.nativespike.shared.core.NativeCatalogDocument
 import dev.localmed.nativespike.shared.core.NativeCatalogSnapshot
 import dev.localmed.nativespike.shared.core.NativeDefinitionTarget
@@ -131,41 +133,37 @@ fun NativeSourcesScreen(
     val terms = remember(filterQuery) { nativeCatalogFilterTerms(filterQuery) }
     val visibleOffers = remember(indexedOffers, terms) { indexedOffers.filter { nativeCatalogFilterMatches(it.second, terms) }.map { it.first } }
     val visibleDocuments = remember(indexedDocuments, terms) { indexedDocuments.filter { nativeCatalogFilterMatches(it.second, terms) }.map { it.first } }
-    Scaffold(containerColor = MaterialTheme.colorScheme.surface, topBar = {
-        Surface(color = MaterialTheme.colorScheme.surface) {
-            Column(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    TextButton(onClick = { if (registerNavigationFlush != null) onBack() else leaveCatalog(onBack) }) { Text("Назад") }
-                    TextButton(onClick = { leaveCatalog(onShowSearch) }) { Text("Поиск") }
-                }
-                Text(selected?.title ?: "Источники", modifier = Modifier.padding(bottom = 12.dp),
-                    style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
-                if (snapshot.moduleId != null && selected == null) Text("Набор: ${snapshot.moduleId} · ${snapshot.moduleVersion}",
-                    style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                OutlinedTextField(value = filterQuery, onValueChange = {
-                    filterInputError = nativeCatalogInputError(it)
-                    if (filterInputError == null) filterQuery = it
-                },
-                    label = { Text("Название или идентификатор") }, singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
-                filterInputError?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) }
-                if (snapshot.moduleId == null && offers != null) Text("Показано наборов: ${visibleOffers.size} из ${offers.orEmpty().size}",
-                    modifier = Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                if (snapshot.moduleId != null && documents != null) Text("Показано редакций: ${visibleDocuments.size} из ${documents.orEmpty().size}",
-                    modifier = Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val navigationBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    NativeChromeScaffold(containerColor = MaterialTheme.colorScheme.surface, desk = true, topBar = {
+        Column(Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 12.dp)) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                NativePaperIconButton(NativeAppGlyphName.ArrowLeft, { if (registerNavigationFlush != null) onBack() else leaveCatalog(onBack) }, "Назад", primary = true)
+                NativePaperButton("Поиск", { leaveCatalog(onShowSearch) })
             }
-        }
-    }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
+            Text(selected?.title ?: "Источники", modifier = Modifier.padding(bottom = 12.dp),
+                style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            if (snapshot.moduleId != null && selected == null) Text("Набор: ${snapshot.moduleId} · ${snapshot.moduleVersion}",
+                style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            NativePaperTextField(value = filterQuery, onValueChange = {
+                filterInputError = nativeCatalogInputError(it)
+                if (filterInputError == null) filterQuery = it
+            },
+                label = "Название или идентификатор", singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
+            filterInputError?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) }
+            if (snapshot.moduleId == null && offers != null) Text("Показано наборов: ${visibleOffers.size} из ${offers.orEmpty().size}",
+                modifier = Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (snapshot.moduleId != null && documents != null) Text("Показано редакций: ${visibleDocuments.size} из ${documents.orEmpty().size}",
+                modifier = Modifier.padding(bottom = 8.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (openingSource) Text("Открываем источник…", modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
             sourceError?.let { Text(it, modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface) }
             failures[NativeUiOperation.CatalogPosition]?.let {
                 Text(it, modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
-                TextButton(onClick = { saveAttempt += 1 }) { Text("Повторить сохранение") }
+                NativePaperButton(text = "Повторить сохранение", onClick = { saveAttempt += 1 })
             }
             if (error != null) {
                 Text(error.orEmpty(), modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
-                TextButton(onClick = { attempt += 1 }) { Text("Повторить") }
+                NativePaperButton(text = "Повторить", onClick = { attempt += 1 })
             } else if (offers == null || (snapshot.moduleId != null && documents == null)) {
                 LinearProgressIndicator(Modifier.fillMaxWidth().padding(horizontal = 16.dp))
             }
@@ -173,23 +171,27 @@ fun NativeSourcesScreen(
                 (snapshot.moduleId != null && documents != null && visibleDocuments.isEmpty()))) {
                 Text("По этому фильтру ничего не найдено.", modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface)
             }
-            LazyColumn(state = listState, modifier = Modifier.fillMaxWidth().weight(1f), contentPadding = PaddingValues(bottom = 24.dp)) {
-                if (snapshot.moduleId == null) items(visibleOffers, key = { it.id + "@" + it.version }) { offer ->
-                    Column(Modifier.fillMaxWidth().clickable(enabled = !openingSource) { leaveCatalog { onOpenModule(offer) } }.padding(16.dp),
+        }
+    }) { padding ->
+        LazyColumn(state = listState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(top = padding.calculateTopPadding(), bottom = 24.dp + navigationBottom + padding.calculateBottomPadding())) {
+            if (snapshot.moduleId == null) items(visibleOffers, key = { it.id + "@" + it.version }) { offer ->
+                NativePaperSurface(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp), raised = true) {
+                    Column(Modifier.fillMaxWidth().clickable(enabled = !openingSource) { leaveCatalog { onOpenModule(offer) } }.padding(horizontal = 12.dp, vertical = 11.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(offer.title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                        Text(offer.title, style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp), color = MaterialTheme.colorScheme.onSurface)
                         Text("В каталоге: ${nativeCatalogCounts(offer.documentCount, offer.documentVersionCount)}",
                             style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("Набор: ${offer.version}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Набор: ${offer.version}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         offer.definitionEntryCount?.let { Text("Записей справочника: $it", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         offer.downloadBytes?.let { Text("Размер загрузки: ${formatFixed1(it / 1048576.0)} МБ",
                             style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         offer.unsupportedReason?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                } else {
-                    selected?.unsupportedReason?.let { reason -> item { Text(reason, modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface) } }
-                    items(visibleDocuments, key = { it.target.documentVersionId }) { document ->
+                }
+            } else {
+                selected?.unsupportedReason?.let { reason -> item { Text(reason, modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurface) } }
+                items(visibleDocuments, key = { it.target.documentVersionId }) { document ->
+                    NativePaperSurface(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp), raised = true) {
                         Column(Modifier.fillMaxWidth().clickable(enabled = !openingSource) { leaveCatalog { onOpenDocument(document) } }.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(document.title ?: "Название не указано в каталоге", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
@@ -198,7 +200,6 @@ fun NativeSourcesScreen(
                             Text("Редакция: ${document.target.documentVersionId}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text("Статус в каталоге: ${nativeCatalogStatus(document.status)}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                     }
                 }
             }

@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -22,5 +23,8 @@ class NativeReaderChrome {
     }
 }
 
+internal val LocalNativeReaderChrome = compositionLocalOf<NativeReaderChrome?> { null }
+
 @Composable
-fun rememberNativeReaderChrome(target: NativeReaderTarget): NativeReaderChrome = remember(target) { NativeReaderChrome() }
+fun rememberNativeReaderChrome(target: NativeReaderTarget): NativeReaderChrome =
+    LocalNativeReaderChrome.current ?: remember(target) { NativeReaderChrome() }

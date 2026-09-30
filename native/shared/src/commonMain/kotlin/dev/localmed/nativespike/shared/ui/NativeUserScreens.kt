@@ -1,8 +1,14 @@
 package dev.localmed.nativespike.shared.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,7 +21,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -24,7 +29,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.localmed.nativespike.shared.user.NativeThemePreference
 import dev.localmed.nativespike.shared.user.NativeHistoryAnalysisMode
@@ -66,13 +73,17 @@ fun NativeSettingsScreen(session: NativeCoreSession, snapshot: NativeUserSnapsho
         }
         Unit
     }
-    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
-        Column(Modifier.statusBarsPadding().navigationBarsPadding()) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Настройки", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
-                TextButton(onClick = { session.actionScope.launch { session.back() } }) { Text("Назад") }
-            }
-            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val navigationBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    NativeChromeScaffold(containerColor = MaterialTheme.colorScheme.surface, desk = true, topBar = {
+        Row(Modifier.fillMaxWidth().statusBarsPadding().heightIn(min = 56.dp).padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            NativePaperIconButton(NativeAppGlyphName.ArrowLeft, { session.actionScope.launch { session.back() } }, "Назад", primary = true)
+            Text("Настройки", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+    }) { padding ->
+        NativePaperSurface(Modifier.fillMaxSize().padding(horizontal = 10.dp)) {
+            LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = padding.calculateTopPadding(), bottom = 24.dp + navigationBottom + padding.calculateBottomPadding()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item { Column(Modifier.padding(horizontal = 16.dp)) { NativeUserError(session) } }
                 if (snapshot != null) {
                     item { Text("Тема", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium) }
@@ -80,9 +91,7 @@ fun NativeSettingsScreen(session: NativeCoreSession, snapshot: NativeUserSnapsho
                         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                             RadioButton(selected = snapshot.preferences.theme == theme, enabled = !saving,
                                 onClick = { save { session.userState.setTheme(theme) } })
-                            TextButton(enabled = !saving, onClick = { save { session.userState.setTheme(theme) } }) {
-                                Text(when (theme) { NativeThemePreference.System -> "Системная"; NativeThemePreference.Light -> "Светлая"; NativeThemePreference.Dark -> "Тёмная" })
-                            }
+                            Text(when (theme) { NativeThemePreference.System -> "Системная"; NativeThemePreference.Light -> "Светлая"; NativeThemePreference.Dark -> "Тёмная" }, modifier = Modifier.clickable(enabled = !saving) { save { session.userState.setTheme(theme) } }.padding(vertical = 12.dp), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                     item { Text("Размер текста", modifier = Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.titleMedium) }
@@ -91,7 +100,7 @@ fun NativeSettingsScreen(session: NativeCoreSession, snapshot: NativeUserSnapsho
                         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                             RadioButton(selected = snapshot.preferences.textScalePercent == scale, enabled = !saving,
                                 onClick = { save { session.userState.setTextScalePercent(scale) } })
-                            TextButton(enabled = !saving, onClick = { save { session.userState.setTextScalePercent(scale) } }) { Text("$scale %") }
+                            Text("$scale %", modifier = Modifier.clickable(enabled = !saving) { save { session.userState.setTextScalePercent(scale) } }.padding(vertical = 12.dp), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -124,7 +133,7 @@ fun NativeHistoryDrawer(session: NativeCoreSession, snapshot: NativeUserSnapshot
                 items(snapshot?.history.orEmpty(), key = { it.id }) { entry ->
                     Column(Modifier.fillMaxWidth()) {
                         Text(entry.query, style = MaterialTheme.typography.titleMedium)
-                        Text("База поиска · ${if (entry.analysisMode == NativeHistoryAnalysisMode.Clinical) "клинический запрос" else "по названию"} · лексический поиск · найдено групп: ${entry.resultCount}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("${nativeSearchScopeLabel(entry.selection.scope)} · ${if (entry.analysisMode == NativeHistoryAnalysisMode.Clinical) "клинический запрос" else "по названию"} · лексический поиск · найдено групп: ${entry.resultCount}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(entry.createdAt, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Row {
                             TextButton(enabled = !saving, onClick = { session.actionScope.launch { session.replay(entry) } }) { Text("Повторить поиск") }

@@ -1,6 +1,9 @@
 package dev.localmed.nativespike.shared.ui
 
 import dev.localmed.nativespike.shared.core.NativeSearchSnapshot
+import dev.localmed.nativespike.shared.model.NativeSearchSelection
+import dev.localmed.nativespike.shared.model.NativeSearchScope
+import dev.localmed.nativespike.shared.model.NativeSearchFilters
 import dev.localmed.nativespike.shared.model.NativeSearchMode
 import dev.localmed.nativespike.shared.model.SearchOutcome
 import dev.localmed.nativespike.shared.model.SearchTiming
@@ -46,5 +49,22 @@ class NativeSearchModeStateTest {
         assertEquals(NativeSearchMode.CLINICAL, state.mode)
         state.updateQuery("ещё один запрос")
         assertNull(state.inputError)
+    }
+    @Test fun scopeAndFilterChangesRejectOldSameQueryRequestsAndResetViewport() {
+        val selection=NativeSearchSelection(NativeSearchScope.GUIDELINES,NativeSearchFilters(ageGroups=listOf("children")))
+        val snapshot=NativeSearchSnapshot("энцефалит",8,70,selection=selection)
+        val state=NativeSearchUiState(snapshot)
+        assertEquals(snapshot,state.snapshot())
+        assertTrue(state.acceptsRequest(state.query,state.mode,selection))
+        val changed=selection.copy(scope=NativeSearchScope.MEDICATIONS)
+        state.updateSelection(changed)
+        assertFalse(state.acceptsRequest(state.query,state.mode,selection))
+        assertFalse(state.acceptsLookupIdentities(state.query,state.mode,selection))
+        assertEquals(NativeSearchSnapshot(snapshot.query,selection=changed),state.snapshot())
+        val newFilters=changed.copy(filters=NativeSearchFilters(ageGroups=listOf("adults")))
+        state.updateSelection(newFilters)
+        assertFalse(state.acceptsRequest(state.query,state.mode,changed))
+        assertTrue(state.acceptsLookupIdentities(state.query,state.mode,newFilters))
+        assertEquals(newFilters,NativeSearchUiState(state.snapshot()).selection)
     }
 }

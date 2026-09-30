@@ -2,6 +2,8 @@ package dev.localmed.nativespike.shared.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,13 +17,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -33,9 +31,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.localmed.nativespike.shared.core.NativeDefinitionCard
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.core.NativeReaderRoute
@@ -51,6 +48,7 @@ fun NativeDefinitionReaderScreen(
     onSavePosition: suspend (NativeReaderRoute.Definition) -> Boolean,
     error: String?, saveFailed: Boolean, onBack: () -> Unit,
     registerNavigationFlush: ((suspend () -> Boolean) -> (() -> Unit))? = null,
+    onSaveItem: (() -> Unit)? = null,
 ) {
     val state = remember(core, route.target) { NativeDefinitionReaderState(route) }
     val listState = remember(core, route.target) { LazyListState(route.firstVisibleItemIndex, route.firstVisibleItemOffset) }
@@ -91,38 +89,35 @@ fun NativeDefinitionReaderScreen(
     }
 
     val readerError = listOfNotNull(error, state.blocksError, state.textError, state.sourceError).distinct().joinToString("\n").ifBlank { null }
-    Scaffold(containerColor = MaterialTheme.colorScheme.surface, topBar = {
-        Surface(color = MaterialTheme.colorScheme.surface) {
-            Column(Modifier.fillMaxWidth()) {
-                Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-                if (chrome.visible || readerError != null) Row(Modifier.fillMaxWidth().padding(8.dp)) {
-                    IconButton(onClick = onBack, modifier = Modifier.semantics { contentDescription = "Назад" }) {
-                        Text("←", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                    }
-                    Column(Modifier.weight(1f).padding(start = 8.dp, top = 8.dp)) {
-                        Text(card.title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
-                        Text(nativeDefinitionEntryLabel(card), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("Требует проверки · запись в пределах источника", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        readerError?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) }
-                        if (saveFailed) TextButton(onClick = { saveAttempt += 1 }) { Text("Повторить сохранение") }
-                    }
-                }
-            }
+    NativeChromeScaffold(containerColor = MaterialTheme.colorScheme.surface, topBar = {
+        Column(Modifier.fillMaxWidth()) {
+            Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+            if (chrome.visible || readerError != null) NativeReaderHeader(
+                title = card.title,
+                details = listOf(nativeDefinitionEntryLabel(card),
+                    "Требует проверки · запись в пределах источника", "Редакция: ${route.target.moduleVersion}"),
+                error = readerError, onBack = onBack, onSaveItem = onSaveItem,
+                onRetrySave = if (saveFailed) ({ saveAttempt += 1 }) else null,
+            )
         }
     }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
+        Column(Modifier.fillMaxSize()) {
             if (!state.blocksLoaded) {
-                if (state.blocksLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
-                else TextButton(onClick = { blocksAttempt += 1 }) { Text("Повторить чтение блоков") }
+                Column(Modifier.fillMaxWidth().padding(padding)) {
+                    if (state.blocksLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
+                    else NativePaperButton(text = "Повторить чтение блоков", onClick = { blocksAttempt += 1 })
+                }
             } else {
                 val page = state.text
-                LazyColumn(state = listState, modifier = Modifier.fillMaxSize().nestedScroll(chrome.connection), contentPadding = PaddingValues(bottom = 24.dp)) {
+                LazyColumn(state = listState, modifier = Modifier.fillMaxSize().nestedScroll(chrome.connection), contentPadding = PaddingValues(top = padding.calculateTopPadding(), bottom = 24.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + padding.calculateBottomPadding())) {
                     item("record") {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(nativeIdentityCoverageLabel(card.coverage), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("Связь названия с записью предложена в пределах источника.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("Исходных блоков: ${card.blockCount}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("Редакция: ${route.target.moduleVersion}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        NativePaperSurface(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp), raised = false) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(nativeIdentityCoverageLabel(card.coverage), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Связь названия с записью предложена в пределах источника.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Исходных блоков: ${card.blockCount}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Редакция: ${route.target.moduleVersion}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                     }
                     item("blocks") {
@@ -132,36 +127,40 @@ fun NativeDefinitionReaderScreen(
                         }, onMore = { scope.launch { state.loadMoreBlocks(core) } })
                     }
                     item("text") {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (state.selected == null) Text("В этой записи нет доступного исходного блока.", color = MaterialTheme.colorScheme.onSurface)
-                            else if (page == null) {
-                                if (state.textLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
-                                else TextButton(onClick = { textAttempt += 1 }) { Text("Повторить чтение текста") }
-                            } else {
-                            Text(nativeDefinitionBlockLabel(requireNotNull(state.selected).role, card), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-                            Text(nativeDefinitionPageRange(state.offset, page.totalCharacters, page.nextOffset),
-                                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            if (page.text.isEmpty() && state.offset > 0) TextButton(onClick = { state.moveTo(0); pendingTextPosition = true }) { Text("К началу блока") }
-                            SelectionContainer { Text(page.text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface) }
+                        NativePaperSurface(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp), raised = true) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                if (state.selected == null) Text("В этой записи нет доступного исходного блока.", color = MaterialTheme.colorScheme.onSurface)
+                                else if (page == null) {
+                                    if (state.textLoading) LinearProgressIndicator(Modifier.fillMaxWidth())
+                                    else NativePaperButton(text = "Повторить чтение текста", onClick = { textAttempt += 1 })
+                                } else {
+                                Text(nativeDefinitionBlockLabel(requireNotNull(state.selected).role, card), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                                Text(nativeDefinitionPageRange(state.offset, page.totalCharacters, page.nextOffset),
+                                    style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (page.text.isEmpty() && state.offset > 0) NativePaperButton(text = "К началу блока", onClick = { state.moveTo(0); pendingTextPosition = true })
+                                SelectionContainer { Text(page.text, style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 27.2.sp), color = MaterialTheme.colorScheme.onSurface) }
+                                }
                             }
                         }
                     }
                     item("paging") {
                         Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                            TextButton(modifier = Modifier.weight(1f), enabled = page?.previousOffset != null, onClick = {
+                            NativePaperButton(text = "Предыдущий фрагмент", modifier = Modifier.weight(1f), enabled = page?.previousOffset != null, onClick = {
                                 page?.previousOffset?.let { state.moveTo(it); pendingTextPosition = true }
-                            }) { Text("Предыдущий фрагмент") }
-                            TextButton(modifier = Modifier.weight(1f), enabled = page?.nextOffset != null, onClick = {
+                            })
+                            NativePaperButton(text = "Следующий фрагмент", modifier = Modifier.weight(1f), enabled = page?.nextOffset != null, onClick = {
                                 page?.nextOffset?.let { state.moveTo(it); pendingTextPosition = true }
-                            }) { Text("Следующий фрагмент") }
+                            })
                         }
                     }
                     item("source") {
-                        if (page != null) Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
-                            TextButton(onClick = { sourceVisible = !sourceVisible }) { Text(if (sourceVisible) "Скрыть сведения об источнике" else "Источник и положение фрагмента") }
-                            if (sourceVisible) NativeDefinitionSourceDetails(state.source, page)
-                            if (state.sourceError != null) TextButton(onClick = { textAttempt += 1 }) { Text("Повторить чтение источника") }
+                        if (page != null) NativePaperSurface(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp), raised = true) {
+                            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+                                NativePaperButton(text = if (sourceVisible) "Скрыть сведения об источнике" else "Источник и положение фрагмента", onClick = { sourceVisible = !sourceVisible })
+                                if (sourceVisible) NativeDefinitionSourceDetails(state.source, page)
+                                if (state.sourceError != null) NativePaperButton(text = "Повторить чтение источника", onClick = { textAttempt += 1 })
+                            }
                         }
                     }
                 }

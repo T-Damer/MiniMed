@@ -9,6 +9,7 @@ import androidx.compose.ui.window.ComposeUIViewController
 import dev.localmed.nativespike.shared.core.IOSNativeContentIO
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.content.bundledNativeCatalog
+import dev.localmed.nativespike.shared.content.bundledNativeTools
 import dev.localmed.nativespike.shared.ui.NativeCoreSession
 import dev.localmed.nativespike.shared.ui.NativeSessionShell
 import dev.localmed.nativespike.shared.ui.NativeSearchSpikeApp
@@ -34,7 +35,7 @@ fun nativeViewController(): UIViewController = ComposeUIViewController {
         ).firstOrNull() as? NSURL ?: error("Локальное хранилище недоступно")
         IOSNativeContentIO("${directory.path ?: error("Локальное хранилище недоступно")}/MiniMed")
     }
-    val session = remember { NativeCoreSession(io, ::bundledNativeCatalog, scope) }
+    val session = remember { NativeCoreSession(io, ::bundledNativeCatalog, scope, ::bundledNativeTools) }
     LaunchedEffect(session) {
         if (NativeMedicalCore.hasCachedCore(io)) session.retry()
     }

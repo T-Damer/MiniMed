@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-enum class NativeUiOperation { Navigation, SearchPosition, ReaderPosition, CatalogPosition, UserState, UserPreferences, UserHistory }
+enum class NativeUiOperation { Navigation, SearchPosition, ReaderPosition, CatalogPosition, UserState, UserPreferences, UserHistory, CollectionsState, Collections, ToolsState }
 
 /** Host-retained UI failures; retries always receive the current action or current snapshot. */
 class NativeUiErrors {

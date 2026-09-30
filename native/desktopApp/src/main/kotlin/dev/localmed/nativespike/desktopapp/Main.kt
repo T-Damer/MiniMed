@@ -19,6 +19,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import dev.localmed.nativespike.shared.content.JVMContentIO
 import dev.localmed.nativespike.shared.content.bundledNativeCatalog
+import dev.localmed.nativespike.shared.content.bundledNativeTools
 import dev.localmed.nativespike.shared.core.NativeMedicalCore
 import dev.localmed.nativespike.shared.ui.NativeCoreSession
 import dev.localmed.nativespike.shared.ui.NativeCoreSessionState
@@ -35,7 +36,7 @@ fun main() = application {
             ?: File(System.getProperty("user.home"), ".minimed-native-spike").absolutePath
         JVMContentIO(root)
     }
-    val session = remember { NativeCoreSession(io, { bundledNativeCatalog() }, scope) }
+    val session = remember { NativeCoreSession(io, { bundledNativeCatalog() }, scope, ::bundledNativeTools) }
     var closing by remember { mutableStateOf(false) }
     LaunchedEffect(session) { if (NativeMedicalCore.hasCachedCore(io)) session.retry() }
     val windowState = rememberWindowState(size = DpSize(480.dp, 900.dp), position = WindowPosition(Alignment.Center))
@@ -53,7 +54,7 @@ fun main() = application {
         title = "MiniMed Native", state = windowState,
         onPreviewKeyEvent = { event ->
             val core = (session.state.value as? NativeCoreSessionState.Ready)?.core
-            if (event.type == KeyEventType.KeyDown && event.key == Key.Escape && (session.panel.value != null || (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null)))) {
+            if (event.type == KeyEventType.KeyDown && event.key == Key.Escape && (session.panel.value != null || session.toolsState.snapshot.value?.route != null || (core != null && (core.navigation.value.readers.isNotEmpty() || core.navigation.value.catalog != null)))) {
                 scope.launch { session.back() }; true
             } else false
         },

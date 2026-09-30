@@ -22,6 +22,7 @@ fun NativeReaderPane(
     core: NativeMedicalCore, reader: NativeReaderRoute, uiErrors: NativeUiErrors,
     actionScope: CoroutineScope, onBack: () -> Unit, onContentInstalled: () -> Unit,
     registerNavigationFlush: ((suspend () -> Boolean) -> (() -> Unit))? = null,
+    onSaveItem: ((title: String) -> Unit)? = null,
 ) {
     val progress by core.installProgress.collectAsState()
     val installFailure by core.installFailure.collectAsState()
@@ -61,10 +62,12 @@ fun NativeReaderPane(
     when {
         reader is NativeReaderRoute.Document && document != null -> ReaderScreen(document.document, reader,
             error = positionError, saveFailed = failures[NativeUiOperation.ReaderPosition] != null,
-            onSavePosition = savePosition, onBack = onBack, registerNavigationFlush = registerNavigationFlush)
+            onSavePosition = savePosition, onBack = onBack, registerNavigationFlush = registerNavigationFlush,
+            onSaveItem = onSaveItem?.let { action -> { action(document.document.title) } })
         reader is NativeReaderRoute.Definition && definition != null -> NativeDefinitionReaderScreen(core, definition.card, reader,
             error = positionError, saveFailed = failures[NativeUiOperation.ReaderPosition] != null,
-            onSavePosition = savePosition, onBack = onBack, registerNavigationFlush = registerNavigationFlush)
+            onSavePosition = savePosition, onBack = onBack, registerNavigationFlush = registerNavigationFlush,
+            onSaveItem = onSaveItem?.let { action -> { action(definition.card.title) } })
         else -> NativeReaderStatus(current, progress,
             error = listOfNotNull(readerError, installFailure?.takeIf { it.target == reader.target }?.message,
                 failures[NativeUiOperation.Navigation]).distinct().joinToString("\n").ifBlank { null },
