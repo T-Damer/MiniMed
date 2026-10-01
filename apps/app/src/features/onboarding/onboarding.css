@@ -1,5 +1,5 @@
-/* Guided onboarding: a blur over the real app, a greeting, then a tour with an edge glow, a hint
-   card and hand-drawn arrows. Base styles are the END state of every animation, so «Анимации:
+/* Guided onboarding: a blur over the real app, a greeting, then a tour with a hint card, a
+   spotlight on the navigation and hand-drawn arrows. Base styles are the END state of every animation, so «Анимации:
    выкл» (which collapses durations) and prefers-reduced-motion both land on the finished picture. */
 
 /* The radius of the clear window in the blur: from nothing to past the corners. */
@@ -11,14 +11,14 @@
 
 .onboarding,
 .core-progress-line {
-  --onboarding-glow: 46 204 113;
+  --onboarding-accent: 46 204 113;
   --onboarding-ease: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   .onboarding,
   .core-progress-line {
-    --onboarding-glow: 82 226 138;
+    --onboarding-accent: 82 226 138;
   }
 }
 
@@ -102,67 +102,6 @@
     visibility 0s;
 }
 
-/* ---- edge glow ---- */
-
-.onboarding__edge-light {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  box-shadow:
-    inset 0 0 0.75rem 0 rgb(var(--onboarding-glow) / 44%),
-    inset 0 0 2.25rem 0 rgb(var(--onboarding-glow) / 12%);
-}
-
-.onboarding--tour .onboarding__edge-light {
-  opacity: 1;
-  animation:
-    onboarding-glow-in 700ms ease-out,
-    onboarding-breathe 3600ms ease-in-out 700ms infinite alternate;
-}
-
-@keyframes onboarding-glow-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes onboarding-breathe {
-  from {
-    opacity: 0.62;
-  }
-}
-
-.onboarding__edge-flare {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  box-shadow:
-    inset 0 0 1.5rem 0.25rem rgb(var(--onboarding-glow) / 80%),
-    inset 0 0 5rem 0.5rem rgb(var(--onboarding-glow) / 38%);
-  animation: onboarding-flare 1800ms ease-out;
-}
-
-@keyframes onboarding-flare {
-  0% {
-    opacity: 0;
-  }
-
-  18% {
-    opacity: 1;
-  }
-}
-
-.onboarding__particles {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  animation: onboarding-glow-in 700ms ease-out;
-}
-
 /* ---- intro (step 1) ---- */
 
 .onboarding__intro-layer {
@@ -225,8 +164,14 @@
 }
 
 .onboarding-intro__mark {
-  width: 4rem;
-  height: 4rem;
+  width: 6.5rem;
+  height: 6.5rem;
+  margin-bottom: 0.25rem;
+  object-fit: contain;
+  /* The real app icon, sharp: the scene's own fade is the only thing that touches it. */
+  filter: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .onboarding-intro__title {
@@ -325,6 +270,11 @@
 }
 
 .onboarding-intro__skip {
+  --ui-button-height: 2.75rem;
+  --ui-button-padding-inline: 1.25rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -385,7 +335,7 @@
   z-index: 2;
   display: grid;
   width: min(26rem, calc(100vw - 1.5rem));
-  max-height: calc(100dvh - 1.5rem - var(--safe-top, 0px) - var(--safe-bottom, 0px));
+  max-height: calc(100dvh - 4rem - var(--safe-top, 0px) - var(--safe-bottom, 0px));
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0.75rem;
   padding: 0.875rem 1rem 0.75rem;
@@ -458,8 +408,11 @@
 
 .onboarding-hint__skip {
   flex: 0 0 auto;
-  --ui-button-height: 2rem;
-  font-size: 0.8rem;
+  --ui-button-height: 2.75rem;
+  --ui-button-padding-inline: 1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .onboarding-hint__body {
@@ -618,14 +571,34 @@
   position: fixed;
   top: 0;
   left: 0;
-  border: 2px solid rgb(var(--onboarding-glow));
+  border: 2px solid rgb(var(--onboarding-accent));
   box-shadow:
-    0 0 0 4px rgb(var(--onboarding-glow) / 18%),
-    0 0 1.5rem rgb(var(--onboarding-glow) / 55%);
+    0 0 0 4px rgb(var(--onboarding-accent) / 18%),
+    0 0 1.5rem rgb(var(--onboarding-accent) / 55%);
   pointer-events: none;
   animation:
     onboarding-ring-in 420ms var(--onboarding-ease) both,
     onboarding-ring-pulse 2400ms ease-in-out 420ms infinite;
+}
+
+/* Spotlight: the ring's own shadow dims everything around the control a little. */
+.onboarding-ring--spotlight {
+  box-shadow:
+    0 0 0 4px rgb(var(--onboarding-accent) / 22%),
+    0 0 1.5rem rgb(var(--onboarding-accent) / 55%),
+    0 0 0 200vmax rgb(0 0 0 / 22%);
+  animation:
+    onboarding-ring-in 420ms var(--onboarding-ease) both,
+    onboarding-spotlight-pulse 2400ms ease-in-out 420ms infinite;
+}
+
+@keyframes onboarding-spotlight-pulse {
+  50% {
+    box-shadow:
+      0 0 0 9px rgb(var(--onboarding-accent) / 12%),
+      0 0 2.5rem rgb(var(--onboarding-accent) / 75%),
+      0 0 0 200vmax rgb(0 0 0 / 22%);
+  }
 }
 
 @keyframes onboarding-ring-in {
@@ -638,8 +611,8 @@
 @keyframes onboarding-ring-pulse {
   50% {
     box-shadow:
-      0 0 0 7px rgb(var(--onboarding-glow) / 10%),
-      0 0 2.25rem rgb(var(--onboarding-glow) / 70%);
+      0 0 0 7px rgb(var(--onboarding-accent) / 10%),
+      0 0 2.25rem rgb(var(--onboarding-accent) / 70%);
   }
 }
 
@@ -661,8 +634,8 @@
   stroke-dashoffset: 0;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2.4;
-  filter: drop-shadow(0 0 4px rgb(var(--onboarding-glow) / 50%));
+  stroke-width: 2.8;
+  shape-rendering: geometricPrecision;
 }
 
 .onboarding-arrow__shaft {
@@ -671,6 +644,14 @@
 
 .onboarding-arrow__head {
   animation: onboarding-draw 220ms ease-out calc(var(--onboarding-arrow-delay, 0ms) + 620ms) both;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* The dark paper theme's own accent is too quiet for a thin line on a dark card. */
+  .onboarding-arrow__shaft,
+  .onboarding-arrow__head {
+    stroke: rgb(var(--onboarding-accent));
+  }
 }
 
 @keyframes onboarding-draw {
@@ -713,10 +694,10 @@
   height: 100%;
   background: linear-gradient(
     90deg,
-    rgb(var(--onboarding-glow) / 70%),
-    rgb(var(--onboarding-glow))
+    rgb(var(--onboarding-accent) / 70%),
+    rgb(var(--onboarding-accent))
   );
-  box-shadow: 0 0 0.5rem rgb(var(--onboarding-glow) / 70%);
+  box-shadow: 0 0 0.5rem rgb(var(--onboarding-accent) / 70%);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform 600ms linear;
@@ -792,11 +773,9 @@
     transition-delay: 0s;
   }
 
-  .onboarding--tour .onboarding__edge-light,
-  .onboarding__edge-flare,
-  .onboarding__particles,
   .onboarding-hint__body,
   .onboarding-ring,
+  .onboarding-ring--spotlight,
   .onboarding-arrow__shaft,
   .onboarding-arrow__head,
   .onboarding-intro__next--ready,

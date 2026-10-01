@@ -146,11 +146,36 @@ describe('arrowGeometry', () => {
     expect(arrowGeometry(from, to, 5).d).not.toBe(arrowGeometry(from, to, 6).d);
   });
 
-  it('draws a head with two strokes meeting at the tip', () => {
+  it('draws the head as two curved strokes meeting at the tip', () => {
     const { head } = arrowGeometry(from, to, 1);
     expect(head.match(/M/gu)).toHaveLength(1);
-    expect(head.match(/L/gu)).toHaveLength(2);
-    expect(head).toContain(`L${to.x} ${to.y}`);
+    expect(head.match(/Q/gu)).toHaveLength(2);
+    expect(head).toContain(`${to.x} ${to.y}`);
+  });
+
+  it('builds the shaft from a few smooth cubic Béziers, never from many short lines', () => {
+    for (const seed of [1, 2, 3, 4]) {
+      const { d } = arrowGeometry(from, to, seed);
+      expect(d.match(/M/gu)).toHaveLength(1);
+      expect(d).not.toMatch(/[LQ]/u);
+      const segments = d.match(/C/gu)?.length ?? 0;
+      expect(segments).toBeGreaterThanOrEqual(1);
+      expect(segments).toBeLessThanOrEqual(8);
+    }
+  });
+
+  it('turns the head to the last direction of the shaft', () => {
+    const { d, head } = arrowGeometry(from, to, 2);
+    const values = numbersIn(d);
+    const tip = { x: values.at(-2) ?? 0, y: values.at(-1) ?? 0 };
+    const control = { x: values.at(-4) ?? 0, y: values.at(-3) ?? 0 };
+    const heading = Math.atan2(tip.y - control.y, tip.x - control.x);
+    const [ax, ay] = numbersIn(head);
+    const wing = Math.atan2((ay ?? 0) - tip.y, (ax ?? 0) - tip.x);
+    // The wing points back along the shaft, within the head's spread.
+    let difference = Math.abs(wing - (heading + Math.PI));
+    if (difference > Math.PI) difference = 2 * Math.PI - difference;
+    expect(difference).toBeLessThan(0.6);
   });
 
   it('adds a curl to a long arrow, so it is longer than the straight line', () => {

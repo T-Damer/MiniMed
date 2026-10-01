@@ -23,8 +23,8 @@ export interface OnboardingStep {
    */
   readonly targets: readonly string[];
   readonly extra?: OnboardingExtra;
-  /** The edge glow flares for this step. */
-  readonly pulse?: boolean;
+  /** The target is spotlit: a pulsing ring, the rest of the screen dimmed a little. */
+  readonly spotlight?: boolean;
   /** The last step ends the tour. */
   readonly finishLabel?: string;
 }
@@ -35,10 +35,11 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     title: 'Поиск',
     paragraphs: [
       'Это главный экран — поиск. Здесь можно найти любую информацию по медицине, но только ту, что ты скачал.',
+      'Нижняя панель переключает разделы: поиск, файлы и настройки.',
     ],
     view: 'search',
-    targets: [],
-    pulse: true,
+    targets: ['nav'],
+    spotlight: true,
   },
   {
     id: 'sections',
@@ -120,7 +121,6 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     ],
     view: 'search',
     targets: [],
-    pulse: true,
     finishLabel: 'Начать работу',
   },
 ];

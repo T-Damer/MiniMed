@@ -1,6 +1,5 @@
 import { createEffect, createSignal, type JSX, on, onCleanup, Show } from 'solid-js';
 
-import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/Button';
 import { OnboardingArrow } from './OnboardingArrow';
 import type { IntroPhase } from './onboarding-controller';
@@ -94,7 +93,14 @@ export function OnboardingIntro(props: {
           classList={{ 'onboarding-intro__scene--shown': props.phase === 'welcome' }}
           aria-hidden={props.phase === 'welcome' ? undefined : 'true'}
         >
-          <BrandMark class="onboarding-intro__mark" title="MiniMed" />
+          <img
+            class="onboarding-intro__mark"
+            src={`${import.meta.env.BASE_URL}boot-icon.png`}
+            alt=""
+            width="104"
+            height="104"
+            decoding="async"
+          />
           <h1 class="onboarding-intro__title">Добро пожаловать в MiniMed</h1>
           <p class="onboarding-intro__subtitle">Твой персональный помощник по медицине</p>
         </section>
@@ -133,7 +139,14 @@ export function OnboardingIntro(props: {
 
       <Show when={arrow()}>
         {(points) => (
-          <OnboardingArrow from={points().from} to={points().to} seed={11} delayMs={350} />
+          <OnboardingArrow
+            from={points().from}
+            to={points().to}
+            seed={11}
+            width={window.innerWidth}
+            height={window.innerHeight}
+            delayMs={350}
+          />
         )}
       </Show>
 
@@ -156,7 +169,7 @@ export function OnboardingIntro(props: {
           classList={{
             'onboarding-intro__skip--shown': props.phase !== 'wait' && props.phase !== 'hello',
           }}
-          variant="quiet"
+          variant="secondary"
           tabindex={props.phase === 'wait' || props.phase === 'hello' ? -1 : undefined}
           onClick={props.onSkip}
         >

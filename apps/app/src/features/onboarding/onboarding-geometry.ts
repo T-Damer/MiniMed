@@ -210,9 +210,9 @@ export function arrowWorthDrawing(from: Point, to: Point): boolean {
 }
 
 export interface ArrowGeometry {
-  /** The shaft: a smooth curve with a small curl in the middle. */
+  /** The shaft: a few smooth cubic Béziers with a small loop (curl) in the middle. */
   readonly d: string;
-  /** The arrowhead: two short strokes meeting at the tip. */
+  /** The arrowhead: two short curved strokes meeting at the tip, aligned with the shaft's end. */
   readonly head: string;
   /** Rough length of the shaft in pixels. */
   readonly length: number;
@@ -230,50 +230,66 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-const SAMPLES = 40;
 /** Arrows shorter than this are drawn without the curl: there is no room for a flourish. */
-const CURL_MIN_LENGTH = 70;
-/** Head strokes: length and spread from the shaft's direction, a little uneven on purpose. */
-const HEAD_LENGTHS = [14, 11] as const;
-const HEAD_SPREAD = (28 * Math.PI) / 180;
+const CURL_MIN_LENGTH = 110;
+/** Circle approximation by four cubic Béziers. */
+const KAPPA = 0.5522847498;
+const HEAD_LENGTH = 17;
+const HEAD_SPREAD = (30 * Math.PI) / 180;
 
 function fixed(value: number): string {
-  return (Math.round(value * 10) / 10).toString();
+  return (Math.round(value * 100) / 100).toString();
 }
 
-function cubicAt(p0: Point, p1: Point, p2: Point, p3: Point, t: number): Point {
-  const u = 1 - t;
-  const a = u * u * u;
-  const b = 3 * u * u * t;
-  const c = 3 * u * t * t;
-  const d = t * t * t;
-  return {
-    x: a * p0.x + b * p1.x + c * p2.x + d * p3.x,
-    y: a * p0.y + b * p1.y + c * p2.y + d * p3.y,
-  };
+type Cubic = readonly [Point, Point, Point, Point];
+
+/** Local frame: `u` along the arrow, `v` across it (positive toward `side`). */
+function frame(from: Point, tangent: Point, normal: Point, side: number) {
+  return (u: number, v: number): Point => ({
+    x: from.x + tangent.x * u + normal.x * v * side,
+    y: from.y + tangent.y * u + normal.y * v * side,
+  });
 }
 
-/** Catmull-Rom through the points, written as cubic Bézier segments. */
-function smoothPath(points: readonly Point[]): string {
-  const first = points[0];
-  if (!first) return '';
-  let path = `M${fixed(first.x)} ${fixed(first.y)}`;
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const before = points[Math.max(0, index - 1)] as Point;
-    const from = points[index] as Point;
-    const to = points[index + 1] as Point;
-    const after = points[Math.min(points.length - 1, index + 2)] as Point;
-    const c1 = { x: from.x + (to.x - before.x) / 6, y: from.y + (to.y - before.y) / 6 };
-    const c2 = { x: to.x - (after.x - from.x) / 6, y: to.y - (after.y - from.y) / 6 };
-    path += `C${fixed(c1.x)} ${fixed(c1.y)} ${fixed(c2.x)} ${fixed(c2.y)} ${fixed(to.x)} ${fixed(to.y)}`;
+function pathOf(segments: readonly Cubic[]): string {
+  const start = segments[0]?.[0];
+  if (!start) return '';
+  let path = `M${fixed(start.x)} ${fixed(start.y)}`;
+  for (const [, c1, c2, end] of segments) {
+    path += `C${fixed(c1.x)} ${fixed(c1.y)} ${fixed(c2.x)} ${fixed(c2.y)} ${fixed(end.x)} ${fixed(end.y)}`;
   }
   return path;
 }
 
+function cubicLength(segment: Cubic): number {
+  let length = 0;
+  let previous = segment[0];
+  for (let step = 1; step <= 12; step += 1) {
+    const t = step / 12;
+    const u = 1 - t;
+    const point = {
+      x:
+        u * u * u * segment[0].x +
+        3 * u * u * t * segment[1].x +
+        3 * u * t * t * segment[2].x +
+        t * t * t * segment[3].x,
+      y:
+        u * u * u * segment[0].y +
+        3 * u * u * t * segment[1].y +
+        3 * u * t * t * segment[2].y +
+        t * t * t * segment[3].y,
+    };
+    length += Math.hypot(point.x - previous.x, point.y - previous.y);
+    previous = point;
+  }
+  return length;
+}
+
 /**
- * A hand-drawn looking arrow from `from` to `to`: an S-shaped bow, a small loop a third of the
- * way along, a hair of wobble, and a two-stroke head. `seed` varies the bow side and the wobble
- * between steps; the same inputs always give the same drawing.
+ * A hand-drawn looking arrow from `from` to `to`, built only from cubic Béziers that join with the
+ * same tangent: a gentle S-bow with one small loop in the middle, then a two-stroke head turned to
+ * the shaft's last direction. `seed` varies the bow side and the proportions between steps; the
+ * same inputs always give the same drawing.
  */
 export function arrowGeometry(from: Point, to: Point, seed: number): ArrowGeometry {
   const dx = to.x - from.x;
@@ -290,61 +306,79 @@ export function arrowGeometry(from: Point, to: Point, seed: number): ArrowGeomet
   const tangent = { x: dx / length, y: dy / length };
   const normal = { x: -tangent.y, y: tangent.x };
   const side = random() < 0.5 ? -1 : 1;
-  const bow = side * Math.min(length * 0.26, 64);
-  const control1 = {
-    x: from.x + tangent.x * length * 0.28 + normal.x * bow,
-    y: from.y + tangent.y * length * 0.28 + normal.y * bow,
-  };
-  const control2 = {
-    x: from.x + tangent.x * length * 0.74 - normal.x * bow * 0.45,
-    y: from.y + tangent.y * length * 0.74 - normal.y * bow * 0.45,
-  };
-  const curl = length >= CURL_MIN_LENGTH;
-  const curlStart = 0.34;
-  const curlEnd = 0.58;
-  // The loop must run backwards faster than the line runs forwards, or it is only a wiggle.
-  const span = length * (curlEnd - curlStart);
-  const loop = Math.max(Math.min(length * 0.05, 18), (span / (2 * Math.PI)) * 1.25, 8);
-  const loopSide = -side;
-  const points: Point[] = [];
-  for (let index = 0; index <= SAMPLES; index += 1) {
-    const t = index / SAMPLES;
-    const base = cubicAt(from, control1, control2, to, t);
-    let offsetAlong = 0;
-    let offsetAcross = 0;
-    if (curl && t > curlStart && t < curlEnd) {
-      const angle = ((t - curlStart) / (curlEnd - curlStart)) * 2 * Math.PI;
-      offsetAlong = -loop * Math.sin(angle);
-      offsetAcross = loopSide * loop * (1 - Math.cos(angle));
-    }
-    const interior = index > 0 && index < SAMPLES;
-    const wobble = interior ? (random() - 0.5) * 1.6 : 0;
-    points.push({
-      x: base.x + tangent.x * offsetAlong + normal.x * (offsetAcross + wobble),
-      y: base.y + tangent.y * offsetAlong + normal.y * (offsetAcross + wobble),
-    });
+  const at = frame(from, tangent, normal, side);
+  const bow = Math.min(length * (0.16 + random() * 0.06), 46);
+  const landing = Math.min(length * 0.12, 22);
+  const segments: Cubic[] = [];
+  const end = at(length, 0);
+  if (length < CURL_MIN_LENGTH) {
+    segments.push([
+      at(0, 0),
+      at(length * 0.3, bow),
+      at(length * 0.7, -bow * 0.4 - landing * 0.2),
+      end,
+    ]);
+  } else {
+    // The loop sits on the line at `centre`; the line enters and leaves it heading along `u`.
+    const radius = Math.min(Math.max(length * 0.045, 8), 15);
+    const centre = length * (0.42 + random() * 0.1);
+    const rx = radius * 1.2;
+    const ry = radius;
+    const entry = at(centre - rx * 0.2, 0);
+    const exit = at(centre + rx * 0.2, 0);
+    const lead = Math.max(centre * 0.45, 12);
+    segments.push([
+      at(0, 0),
+      at(centre * 0.28, bow),
+      at(centre - rx * 0.2 - lead, bow * 0.15),
+      entry,
+    ]);
+    // Counter-clockwise ellipse from the entry point round to the exit point.
+    const cu = centre;
+    const bottomLeft = at(cu - rx * 0.2, 0);
+    const right = at(cu + rx, ry);
+    const top = at(cu, ry * 2);
+    const left = at(cu - rx, ry);
+    segments.push([
+      bottomLeft,
+      at(cu - rx * 0.2 + rx * KAPPA * 1.2, 0),
+      at(cu + rx, ry - ry * KAPPA),
+      right,
+    ]);
+    segments.push([right, at(cu + rx, ry + ry * KAPPA), at(cu + rx * KAPPA, ry * 2), top]);
+    segments.push([top, at(cu - rx * KAPPA, ry * 2), at(cu - rx, ry + ry * KAPPA), left]);
+    segments.push([
+      left,
+      at(cu - rx, ry - ry * KAPPA),
+      at(cu - rx * 0.2 - rx * KAPPA * 0.6, 0),
+      exit,
+    ]);
+    const run = length - (centre + rx * 0.2);
+    segments.push([
+      exit,
+      at(centre + rx * 0.2 + run * 0.35, -bow * 0.1),
+      at(length - run * 0.3, -landing),
+      end,
+    ]);
   }
-  let shaft = 0;
-  for (let index = 1; index < points.length; index += 1) {
-    const previous = points[index - 1] as Point;
-    const current = points[index] as Point;
-    shaft += Math.hypot(current.x - previous.x, current.y - previous.y);
-  }
-  const tip = points[points.length - 1] as Point;
-  const back = points[points.length - 4] as Point;
-  const heading = Math.atan2(tip.y - back.y, tip.x - back.x);
-  const [leftLength, rightLength] = HEAD_LENGTHS;
-  const left = {
-    x: tip.x - Math.cos(heading - HEAD_SPREAD) * leftLength,
-    y: tip.y - Math.sin(heading - HEAD_SPREAD) * leftLength,
-  };
-  const right = {
-    x: tip.x - Math.cos(heading + HEAD_SPREAD) * rightLength,
-    y: tip.y - Math.sin(heading + HEAD_SPREAD) * rightLength,
-  };
+  const last = segments[segments.length - 1] as Cubic;
+  const heading = Math.atan2(last[3].y - last[2].y, last[3].x - last[2].x);
+  const wing = (turn: number, size: number): Point => ({
+    x: end.x - Math.cos(heading + turn) * size,
+    y: end.y - Math.sin(heading + turn) * size,
+  });
+  const left = wing(-HEAD_SPREAD, HEAD_LENGTH);
+  const right = wing(HEAD_SPREAD, HEAD_LENGTH * 0.88);
+  // Each wing bows slightly outward, so the head reads as drawn by hand rather than ruled.
+  const bend = (wingEnd: Point, sign: number): Point => ({
+    x: (wingEnd.x + end.x) / 2 + Math.sin(heading) * sign * 1.6,
+    y: (wingEnd.y + end.y) / 2 - Math.cos(heading) * sign * 1.6,
+  });
+  const leftBend = bend(left, 1);
+  const rightBend = bend(right, -1);
   return {
-    d: smoothPath(points),
-    head: `M${fixed(left.x)} ${fixed(left.y)}L${fixed(tip.x)} ${fixed(tip.y)}L${fixed(right.x)} ${fixed(right.y)}`,
-    length: shaft,
+    d: pathOf(segments),
+    head: `M${fixed(left.x)} ${fixed(left.y)}Q${fixed(leftBend.x)} ${fixed(leftBend.y)} ${fixed(end.x)} ${fixed(end.y)}Q${fixed(rightBend.x)} ${fixed(rightBend.y)} ${fixed(right.x)} ${fixed(right.y)}`,
+    length: segments.reduce((sum, segment) => sum + cubicLength(segment), 0),
   };
 }

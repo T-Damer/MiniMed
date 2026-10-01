@@ -37,6 +37,7 @@ export function AppBottomNav(props: {
     <nav
       ref={props.bindNav}
       class="app-bottom-nav"
+      data-tour="nav"
       classList={{
         'app-bottom-nav--dragging': props.dragging(),
         'app-bottom-nav--pressed': props.pressed(),

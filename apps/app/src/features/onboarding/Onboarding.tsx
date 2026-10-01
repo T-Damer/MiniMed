@@ -15,7 +15,6 @@ import { dismissSetup } from '@/features/setup/setup-state';
 import { motionMs } from '@/state/motion';
 import { CoreProgressLine } from './CoreProgressLine';
 import { OnboardingArrow } from './OnboardingArrow';
-import { OnboardingEdgeGlow } from './OnboardingEdgeGlow';
 import { OnboardingExtraContent } from './OnboardingExtras';
 import { OnboardingHintCard } from './OnboardingHintCard';
 import { OnboardingIntro } from './OnboardingIntro';
@@ -73,6 +72,8 @@ const INTRO_PHASE_MS: Readonly<Record<IntroPhase, number>> = {
 };
 /** The card needs this long to glide to its place before an arrow is drawn from it. */
 const CARD_GLIDE_MS = 420;
+/** Height of the bottom strip kept free for the core progress label (px). */
+const BOTTOM_STRIP = 40;
 /** The blur recedes and the intro leaves in about this long (matches onboarding.css). */
 const LEAVE_MS = 520;
 
@@ -88,7 +89,7 @@ const FOCUSABLE = 'button:not([disabled]):not([tabindex="-1"]), a[href], [tabind
 
 /**
  * The guided onboarding: the real app under a blur, a greeting, the core download on a thin line
- * along the bottom edge, then a tour of the app's controls with a living edge glow, a floating
+ * along the bottom edge, then a tour of the app's controls with a floating
  * hint card and hand-drawn arrows. It replaces the old first-run setup screen.
  */
 export function Onboarding(props: OnboardingProps): JSX.Element {
@@ -101,7 +102,6 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
   const [introMounted, setIntroMounted] = createSignal(true);
   const [introLeaving, setIntroLeaving] = createSignal(false);
   const [flying, setFlying] = createSignal(false);
-  const [pulseKey, setPulseKey] = createSignal(0);
   const [cardSize, setCardSize] = createSignal<Size>();
   const [viewport, setViewport] = createSignal<Size>({
     width: window.innerWidth,
@@ -171,12 +171,11 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
     onCleanup(() => clearTimeout(timer));
   });
 
-  // ---- the tour: switch screens, flare the glow, follow the control ----
+  // ---- the tour: switch screens, follow the control ----
   let shownView: OnboardingView | undefined;
   createEffect(
     on(step, (current) => {
       if (!current) return;
-      if (current.pulse) setPulseKey((key) => key + 1);
       if (current.view !== shownView) {
         shownView = current.view;
         props.onNavigate(current.view);
@@ -192,7 +191,9 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
   );
   const placement = createMemo(() => {
     const size = cardSize();
-    return step() && size ? placeCard(viewport(), target()?.rect, size) : undefined;
+    // The strip along the bottom edge belongs to the core progress label: keep the card off it.
+    const usable = { width: viewport().width, height: viewport().height - BOTTOM_STRIP };
+    return step() && size ? placeCard(usable, target()?.rect, size) : undefined;
   });
   const anchors = createMemo(() => {
     const spot = placement();
@@ -351,17 +352,6 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
           >
             <div class="onboarding__veil onboarding__veil--full" aria-hidden="true" />
             <div class="onboarding__veil onboarding__veil--edge" aria-hidden="true" />
-            <div class="onboarding__edge-light" aria-hidden="true" />
-            <Show when={touring() && pulseKey() > 0 && animated()}>
-              <Show when={pulseKey()} keyed>
-                {(key) => (
-                  <div class="onboarding__edge-flare" data-pulse={key} aria-hidden="true" />
-                )}
-              </Show>
-            </Show>
-            <Show when={touring() && animated()}>
-              <OnboardingEdgeGlow pulseKey={pulseKey()} />
-            </Show>
 
             <Show when={introMounted()}>
               <div
@@ -384,7 +374,13 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
               {(marked) => (
                 <div class="onboarding__marks" data-step={marked.id}>
                   <Show when={ringed()}>
-                    {(found) => <OnboardingRing rect={found().rect} radius={found().radius} />}
+                    {(found) => (
+                      <OnboardingRing
+                        rect={found().rect}
+                        radius={found().radius}
+                        spotlight={marked.spotlight === true}
+                      />
+                    )}
                   </Show>
                   <Show when={anchors()}>
                     {(points) => (
@@ -392,6 +388,8 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
                         from={points().from}
                         to={points().to}
                         seed={stepNumber()}
+                        width={viewport().width}
+                        height={viewport().height}
                         delayMs={CARD_GLIDE_MS}
                       />
                     )}

@@ -9,8 +9,11 @@ import { arrowGeometry, type Point } from './onboarding-geometry';
 export function OnboardingArrow(props: {
   readonly from: Point;
   readonly to: Point;
-  /** Varies the bow and the wobble between steps. */
+  /** Varies the bow and the proportions between steps. */
   readonly seed: number;
+  /** The overlay's size in CSS pixels: the viewBox matches it, so nothing is ever scaled. */
+  readonly width: number;
+  readonly height: number;
   /** Milliseconds to wait before drawing, so it starts once the card has settled. */
   readonly delayMs?: number;
 }): JSX.Element {
@@ -19,6 +22,9 @@ export function OnboardingArrow(props: {
     <svg
       class="onboarding-arrow"
       aria-hidden="true"
+      viewBox={`0 0 ${props.width} ${props.height}`}
+      width={props.width}
+      height={props.height}
       style={{ '--onboarding-arrow-delay': `${props.delayMs ?? 0}ms` }}
     >
       <path class="onboarding-arrow__shaft" d={geometry().d} pathLength="1" />

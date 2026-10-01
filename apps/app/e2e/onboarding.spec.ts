@@ -41,6 +41,10 @@ for (const viewport of [
     await expect(counter).toContainText('2 / 9');
     await expect(card.getByRole('heading', { name: 'Поиск', exact: true })).toBeVisible();
     await expect(card.locator('.onboarding-hint__back')).toBeDisabled();
+    // The first step spotlights the bottom navigation and explains it; no glow or particles.
+    await expect(page.locator('.onboarding-ring--spotlight')).toBeVisible();
+    await expect(card).toContainText('Нижняя панель переключает разделы');
+    await expect(page.locator('.onboarding__particles, .onboarding__edge-light')).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath('step-2.png') });
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();

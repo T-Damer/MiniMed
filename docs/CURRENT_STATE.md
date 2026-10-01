@@ -56,13 +56,16 @@ Detailed history, moved verbatim on 2026-09-24:
   connection, «Повторить» on error). An installed core is reported as «уже на месте».
 - «Далее» begins the tour (steps 2–9 of 9, data in `onboarding-steps.ts`, state machine in
   `onboarding-controller.ts`): the blur recedes to a light band at the screen edges (registered
-  `@property --onboarding-clear`), a green edge glow with streaming particles runs on an
-  OffscreenCanvas in `edge-glow.worker.ts` (main-thread canvas fallback; static CSS glow when
-  animations are off or `prefers-reduced-motion`), the intro's «Далее» flies into the hint card
-  with the View Transitions API (cross-fade without it), and hand-drawn arrows are drawn with
-  `stroke-dashoffset` from the card to the control found by `[data-tour="…"]` (rAF-batched
-  tracking; carousel slides out of sight are scrolled into view). The tour switches between search
-  and «Мои файлы» and returns to search at the end.
+  `@property --onboarding-clear`; the band is the «tutorial mode» indicator, there is no edge glow
+  or particle layer), the intro's «Далее» flies into the hint card with the View Transitions API
+  (cross-fade without it), and hand-drawn arrows are drawn with `stroke-dashoffset` from the card
+  to the control found by `[data-tour="…"]` (rAF-batched tracking; carousel slides out of sight are
+  scrolled into view). Arrows are plain SVG: a few tangent-continuous cubic Béziers with one small
+  loop and a two-stroke curved head turned to the shaft's last direction, viewBox in CSS pixels, no
+  filter or noise. Step 2 spotlights the bottom navigation (`data-tour="nav"`): a pulsing ring whose
+  shadow dims the rest of the screen a little (static with animations off or reduced motion). The
+  welcome scene shows the real `boot-icon.png`; both «Пропустить» buttons are bordered 44 px pills.
+  The tour switches between search and «Мои файлы» and returns to search at the end.
 - Optional downloads inside the tour go through the real feature code: «Скачать препараты» queues
   the released `medication` modules through the module runtime (the 10 MB catalog loads only at
   that step, after the intro; size from the catalog), «Скачать модель (в фоне)» activates the first
@@ -72,8 +75,8 @@ Detailed history, moved verbatim on 2026-09-24:
   tour or when it arrives later); otherwise the tour hides for the session and returns next launch.
   `restartOnboarding()` (`onboarding-state.ts`) runs it again; Settings needs a button for it.
 - Verified in headless Chromium at 390 and 1280 px (light, dark, reduced motion, animations off,
-  core ready / downloading / failing) and by `e2e/onboarding.spec.ts`; not verified on a physical
-  Android device or WebView build (frame pacing of the particle worker, View Transitions there).
+  core ready / downloading / failing; dark theme re-checked step by step) and by `e2e/onboarding.spec.ts`; not verified on a physical
+  Android device or WebView build (View Transitions there).
 
 ## Release 0.6.45 — 2026-09-30
 

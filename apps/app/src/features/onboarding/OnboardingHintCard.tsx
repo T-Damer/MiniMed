@@ -85,7 +85,7 @@ export function OnboardingHintCard(props: {
             )}
           </For>
         </ol>
-        <Button class="onboarding-hint__skip" variant="quiet" onClick={props.onSkip}>
+        <Button class="onboarding-hint__skip" variant="secondary" onClick={props.onSkip}>
           Пропустить
         </Button>
       </header>
