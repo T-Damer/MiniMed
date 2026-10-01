@@ -32,10 +32,10 @@ screens (the reference), with no Material look (no ripple, no Material widgets, 
 | T6 | [x] d4a3cc9c | codex-native | settings page on design-system parts — T1 parts ready; copy the layout of `NativeSettingsGallery` |
 | T7 | [x] 9ce0c00f | codex-native | core startup/loading screen and shell without Material widgets (`NativeCoreStartup`, `NativeSessionShell`, `App`, `SearchScreen` leftovers) |
 | T8 | [ ] | claude-coordinator | side-by-side check with the WebView: home, results, reader, files, settings — light/dark, phone and wide |
-| T9 | [ ] | claude-coordinator | device build: release-optimised APK with the core download, install steps for the user |
+| T9 | [x] 15:10 | claude-coordinator | device build (release, R8, debug-signed, `playwright/MiniMed-native-test.apk`; core download and search checked on the emulator; sent to the user): release-optimised APK with the core download, install steps for the user |
 | T11 | [ ] | codex-native | preview check 2026-10-01 00:15 (production Wasm, 375 px): «Файлы» — back button and search field overlap the breadcrumb bar; the page shows only «Повторить чтение» (fixture storage fails?); the nav bubble stays on «Поиск» while Files is open |
 | T12 | [ ] | claude-coordinator | reader in the Wasm preview: an 8 px dark band under the page top while the bar is hidden; headings and placeholder use sans in Wasm (no bundled serif) — bundle an open serif for Wasm or accept for the preview only |
-| T10 | [ ] | user | install on the device and judge the port |
+| T10 | [~] | user | install on the device and judge the port |
 | T11 | [x] 29b7e631 | codex-native | remaining clinical-search analysis panel on DS paper/disclosure/chips, preserving deterministic facts/warnings/calculation copy |
 
 ## Agents
