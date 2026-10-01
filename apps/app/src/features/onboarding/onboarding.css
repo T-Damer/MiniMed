@@ -126,9 +126,18 @@
 
 .onboarding-intro__stage {
   position: relative;
-  display: grid;
+  display: flex;
   width: min(100%, 34rem);
   height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.onboarding-intro__scenes {
+  display: grid;
+  width: 100%;
+  min-height: 9.5rem;
   place-items: center;
 }
 
@@ -166,12 +175,24 @@
 .onboarding-intro__mark {
   width: 6.5rem;
   height: 6.5rem;
-  margin-bottom: 0.25rem;
+  max-height: 6.5rem;
+  margin-bottom: 1rem;
   object-fit: contain;
-  /* The real app icon, sharp: the scene's own fade is the only thing that touches it. */
+  /* The real app icon, sharp: nothing but its own fade ever touches it. */
   filter: none;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
+  transition:
+    max-height 520ms var(--onboarding-ease),
+    margin 520ms var(--onboarding-ease),
+    opacity 420ms ease;
+}
+
+/* Once the core explanation takes the screen the icon steps aside. */
+.onboarding-intro__mark--away {
+  max-height: 0;
+  margin-bottom: 0;
+  opacity: 0;
 }
 
 .onboarding-intro__title {
@@ -658,6 +679,12 @@
   from {
     stroke-dashoffset: 1;
   }
+}
+
+/* The splash icon flies into the intro's icon: same easing as the rest of the app. */
+::view-transition-group(minimed-boot-icon) {
+  animation-duration: 520ms;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* The card flies the shared «Далее» button in: slower than the default, same easing as the app. */

@@ -125,3 +125,44 @@ test('Escape skips the tour from the intro and the keyboard moves between steps'
   await expect(page.locator('.onboarding')).toHaveCount(0);
   await expect(page.locator('.search-home')).toBeVisible();
 });
+
+for (const scheme of ['light', 'dark'] as const) {
+  test(`the splash hands over to the intro without a frame of search in between (${scheme})`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.emulateMedia({ colorScheme: scheme });
+    await holdCore(page);
+    // Every frame records what is on screen: the splash, the blurred intro, or bare search.
+    await page.addInitScript(() => {
+      const frames: Array<{ surface: boolean; leaving: boolean; veil: boolean; search: boolean }> =
+        [];
+      (window as unknown as { __frames: typeof frames }).__frames = frames;
+      const tick = (): void => {
+        const surface = document.getElementById('boot-surface');
+        const search = document.querySelector('.search-home')?.getBoundingClientRect();
+        frames.push({
+          surface: surface !== null,
+          leaving: surface?.classList.contains('boot-surface--leaving') ?? false,
+          veil: document.querySelector('.onboarding__veil--full') !== null,
+          search: (search?.width ?? 0) > 0,
+        });
+        requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+    await page.goto(`${ORIGIN}/#/search`, { waitUntil: 'commit' });
+    await expect(
+      page.locator('.onboarding-intro__scene--hello.onboarding-intro__scene--shown'),
+    ).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('#boot-surface')).toHaveCount(0);
+    const frames = await page.evaluate(
+      () => (window as unknown as { __frames: Array<Record<string, boolean>> }).__frames,
+    );
+    // Search only ever shows under the splash or under the blur, never bare.
+    expect(frames.filter((frame) => frame.search && !frame.surface && !frame.veil)).toEqual([]);
+    // The splash is taken over, not faded out: it never starts its own exit.
+    expect(frames.some((frame) => frame.leaving)).toBe(false);
+    await expect(page.locator('.onboarding-intro__mark')).toBeVisible();
+  });
+}

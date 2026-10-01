@@ -42,23 +42,34 @@ export async function firstScreenPainted(work: readonly Promise<unknown>[]): Pro
   await nextFrame();
 }
 
-export async function revealFromBootSurface(): Promise<void> {
+export interface BootRevealOptions {
+  /**
+   * The screen behind the surface takes the surface over instead of the surface fading away (the
+   * onboarding: the splash icon flies into its intro). It is called once the native splash has
+   * faded onto the surface, receives the function that removes the surface, and resolves true
+   * when it has handled the leaving. False (not ready, no animation) falls back to the fade.
+   */
+  readonly handOff?: (removeSurface: () => void) => Promise<boolean>;
+}
+
+export async function revealFromBootSurface(options: BootRevealOptions = {}): Promise<void> {
   if (revealed) return;
   revealed = true;
   performance.mark('minimed:boot-reveal');
   try {
-    await leaveBootSurface();
+    await leaveBootSurface(options);
   } finally {
     markRevealed();
   }
 }
 
-async function leaveBootSurface(): Promise<void> {
+async function leaveBootSurface(options: BootRevealOptions): Promise<void> {
   const surface = document.getElementById('boot-surface');
   // Floating windows load the app in a frame: no native splash there, and no surface to keep.
   const topLevel = window.top === window;
   if (topLevel && reportNativeBootReady()) await delay(motionMs(NATIVE_SPLASH_EXIT_MS));
   if (!surface) return;
+  if (topLevel && options.handOff && (await options.handOff(() => surface.remove()))) return;
   const icon = surface.querySelector<HTMLElement>('.boot-surface__icon');
   if (
     !topLevel ||

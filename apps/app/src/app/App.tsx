@@ -31,7 +31,10 @@ import {
   isUserLibraryCatalogRoute,
   USER_LIBRARY_CATALOG_HASH,
 } from '@/features/library/user-library-routing';
-import { onboardingRestartRequests } from '@/features/onboarding/onboarding-state';
+import {
+  handOffToOnboarding,
+  onboardingRestartRequests,
+} from '@/features/onboarding/onboarding-state';
 import { searchCoreStatus } from '@/features/search/search-core-status';
 import { isSetupDismissed } from '@/features/setup/setup-state';
 import {
@@ -170,7 +173,9 @@ export function App(): JSX.Element {
     if (navigation.documentReadActive()) firstScreen.push(loadDocumentPageHost());
     if (onboardingVisible()) firstScreen.push(loadOnboarding());
     if (document.fonts) firstScreen.push(document.fonts.ready);
-    void firstScreenPainted(firstScreen).then(revealFromBootSurface);
+    // With the onboarding to show, the splash hands over to its intro instead of revealing search.
+    const handOff = onboardingVisible() ? { handOff: handOffToOnboarding } : {};
+    void firstScreenPainted(firstScreen).then(() => revealFromBootSurface(handOff));
   });
   onMount(() => {
     const refresh = () => {

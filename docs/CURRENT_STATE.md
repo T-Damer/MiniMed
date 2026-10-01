@@ -66,6 +66,15 @@ Detailed history, moved verbatim on 2026-09-24:
   shadow dims the rest of the screen a little (static with animations off or reduced motion). The
   welcome scene shows the real `boot-icon.png`; both «Пропустить» buttons are bordered 44 px pills.
   The tour switches between search and «Мои файлы» and returns to search at the end.
+- Start-up hand-off: when the onboarding will show, `App.tsx` calls
+  `revealFromBootSurface({ handOff })` and the splash does not reveal search. The onboarding is
+  already mounted under the surface (blur at full strength, the wallet icon as the intro's anchor);
+  after the native splash has faded, `document.startViewTransition` removes the surface and starts
+  the greeting in one frame while the splash icon (`minimed-boot-icon`) flies onto the intro icon
+  (520 ms, `::view-transition-group` in `onboarding.css`) and the ground cross-fades into the blurred
+  app. Without the API or with animations off the surface fades over the intro. A finished
+  onboarding keeps the plain fade into search. Checked by 25 fps video frame strips at 390 px (light,
+  dark) and an rAF probe: no frame shows bare search. `afterBootReveal()` still resolves after it.
 - Optional downloads inside the tour go through the real feature code: «Скачать препараты» queues
   the released `medication` modules through the module runtime (the 10 MB catalog loads only at
   that step, after the intro; size from the catalog), «Скачать модель (в фоне)» activates the first

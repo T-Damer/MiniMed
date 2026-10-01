@@ -32,6 +32,7 @@ import {
   placeCard,
   type Size,
 } from './onboarding-geometry';
+import { registerOnboardingHandOff } from './onboarding-state';
 import {
   ONBOARDING_STEPS,
   ONBOARDING_TOTAL,
@@ -155,10 +156,48 @@ export function Onboarding(props: OnboardingProps): JSX.Element {
     onCleanup(() => {
       disposed = true;
     });
-    void afterBootReveal().then(() => {
-      if (disposed) return;
+    const begin = (): void => {
       controller.send({ type: 'start' });
       root?.querySelector<HTMLElement>('.onboarding-intro')?.focus({ preventScroll: true });
+    };
+    // First launch: the boot surface hands over to the intro instead of revealing search. The
+    // splash icon (named in the old state) flies onto the intro's icon (named in the new one),
+    // and in the same frame the surface goes and the greeting begins. Ground to blurred app is
+    // the root cross-fade. Without the API, or with animations off, the shell fades the surface
+    // over the already blurred intro.
+    onCleanup(
+      registerOnboardingHandOff(async (removeSurface) => {
+        const icon = root?.querySelector<HTMLElement>('.onboarding-intro__mark');
+        const splashIcon = document.querySelector<HTMLElement>('.boot-surface__icon');
+        if (
+          !icon ||
+          !splashIcon ||
+          reducedMotion() ||
+          typeof document.startViewTransition !== 'function'
+        ) {
+          begin();
+          return false;
+        }
+        splashIcon.style.viewTransitionName = 'minimed-boot-icon';
+        const transition = document.startViewTransition(() => {
+          icon.style.viewTransitionName = 'minimed-boot-icon';
+          removeSurface();
+          begin();
+        });
+        transition.finished
+          .catch((cause: unknown) => {
+            console.warn('Полёт значка с заставки в приветствие не сыграл.', cause);
+          })
+          .finally(() => {
+            icon.style.viewTransitionName = '';
+          });
+        await transition.updateCallbackDone;
+        return true;
+      }),
+    );
+    // Later runs (Settings → replay) have no surface: start as soon as there is none.
+    void afterBootReveal().then(() => {
+      if (!disposed) begin();
     });
   });
 

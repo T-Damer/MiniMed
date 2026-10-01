@@ -79,62 +79,66 @@ export function OnboardingIntro(props: {
       aria-label="Добро пожаловать в MiniMed"
       tabindex="-1"
     >
-      <div class="onboarding-intro__stage" aria-live="polite">
-        <section
-          class="onboarding-intro__scene onboarding-intro__scene--hello"
-          classList={{ 'onboarding-intro__scene--shown': props.phase === 'hello' }}
-          aria-hidden={props.phase === 'hello' ? undefined : 'true'}
-        >
-          <p class="onboarding-intro__hello">Привет</p>
-        </section>
-
-        <section
-          class="onboarding-intro__scene onboarding-intro__scene--welcome"
-          classList={{ 'onboarding-intro__scene--shown': props.phase === 'welcome' }}
-          aria-hidden={props.phase === 'welcome' ? undefined : 'true'}
-        >
-          <img
-            class="onboarding-intro__mark"
-            src={`${import.meta.env.BASE_URL}boot-icon.png`}
-            alt=""
-            width="104"
-            height="104"
-            decoding="async"
-          />
-          <h1 class="onboarding-intro__title">Добро пожаловать в MiniMed</h1>
-          <p class="onboarding-intro__subtitle">Твой персональный помощник по медицине</p>
-        </section>
-
-        <section
-          class="onboarding-intro__scene onboarding-intro__scene--core"
-          classList={{ 'onboarding-intro__scene--shown': coreVisible() }}
-          aria-hidden={coreVisible() ? undefined : 'true'}
-        >
-          <div
-            class="onboarding-intro__core"
-            ref={(element) => {
-              coreText = element;
-            }}
+      <div class="onboarding-intro__stage">
+        {/* The anchor of the intro from the first moment: the splash icon flies onto it. */}
+        <img
+          class="onboarding-intro__mark"
+          classList={{ 'onboarding-intro__mark--away': coreVisible() }}
+          src={`${import.meta.env.BASE_URL}boot-icon.png`}
+          alt=""
+          width="104"
+          height="104"
+          decoding="async"
+        />
+        <div class="onboarding-intro__scenes" aria-live="polite">
+          <section
+            class="onboarding-intro__scene onboarding-intro__scene--hello"
+            classList={{ 'onboarding-intro__scene--shown': props.phase === 'hello' }}
+            aria-hidden={props.phase === 'hello' ? undefined : 'true'}
           >
-            <p class="onboarding-intro__lead">{coreHeadline()}</p>
-            <Show when={props.coreDeferred && !props.coreReady}>
-              <Button
-                class="onboarding-intro__download"
-                variant="secondary"
-                onClick={props.onDownloadCore}
-              >
-                Скачать · ~490 МБ
-              </Button>
-            </Show>
-            <p
-              class="onboarding-intro__hint"
-              classList={{ 'onboarding-intro__hint--shown': props.phase === 'ready' }}
-              aria-hidden={props.phase === 'ready' ? undefined : 'true'}
+            <p class="onboarding-intro__hello">Привет</p>
+          </section>
+
+          <section
+            class="onboarding-intro__scene onboarding-intro__scene--welcome"
+            classList={{ 'onboarding-intro__scene--shown': props.phase === 'welcome' }}
+            aria-hidden={props.phase === 'welcome' ? undefined : 'true'}
+          >
+            <h1 class="onboarding-intro__title">Добро пожаловать в MiniMed</h1>
+            <p class="onboarding-intro__subtitle">Твой персональный помощник по медицине</p>
+          </section>
+
+          <section
+            class="onboarding-intro__scene onboarding-intro__scene--core"
+            classList={{ 'onboarding-intro__scene--shown': coreVisible() }}
+            aria-hidden={coreVisible() ? undefined : 'true'}
+          >
+            <div
+              class="onboarding-intro__core"
+              ref={(element) => {
+                coreText = element;
+              }}
             >
-              {nextHint()}
-            </p>
-          </div>
-        </section>
+              <p class="onboarding-intro__lead">{coreHeadline()}</p>
+              <Show when={props.coreDeferred && !props.coreReady}>
+                <Button
+                  class="onboarding-intro__download"
+                  variant="secondary"
+                  onClick={props.onDownloadCore}
+                >
+                  Скачать · ~490 МБ
+                </Button>
+              </Show>
+              <p
+                class="onboarding-intro__hint"
+                classList={{ 'onboarding-intro__hint--shown': props.phase === 'ready' }}
+                aria-hidden={props.phase === 'ready' ? undefined : 'true'}
+              >
+                {nextHint()}
+              </p>
+            </div>
+          </section>
+        </div>
       </div>
 
       <Show when={arrow()}>

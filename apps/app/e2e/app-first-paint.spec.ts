@@ -3,6 +3,8 @@ import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 const SPLASH = 'rgb(243, 236, 217)';
 
+// This file covers a launch whose onboarding is already done: the splash fades into search. The
+// first launch, where the splash icon flies into the onboarding intro, is in onboarding.spec.ts.
 for (const width of [375, 1280]) {
   test(`start-up keeps the splash colour and reveals the first view once at ${width}px`, async ({
     page,
