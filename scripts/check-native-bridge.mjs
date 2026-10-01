@@ -73,6 +73,9 @@ for (const method of [
   requireText('typescriptPlugin', `${method}(`);
   requireText('androidPlugin', `void ${method}(`);
 }
+// The Android core is a gzip transfer: the JS contract and the native installer must agree on it.
+requireText('typescriptPlugin', "readonly compression?: 'gzip'");
+requireText('androidPlugin', 'VerifiedPackFiles.openTransfer(');
 requireText('androidPlugin', '@CapacitorPlugin(name = "LocalMedDatabase")');
 requireText('androidActivity', 'registerPlugin(LocalMedDatabasePlugin.class)');
 requireText('iosPlugin', 'public let jsName = "LocalMedDatabase"');

@@ -77,6 +77,14 @@ roadmap ideas.
 - Browser and Android core files may use different SQLite page sizes for the same logical corpus.
   Keep the Android download URL paired with its own checksum; never validate that immutable remote
   artifact against the browser gzip's checksum. A corpus change must update both distributions.
+  Android downloads a gzip transfer (`distributions.android.url`, `transferSha256`) whose decoded
+  `checksum` is what the native installer verifies; today it is the browser bundle's `core.db.gz`
+  because both distributions share one 16 KiB-page file. When they diverge, publish a separate gzip
+  for Android and update `transferSha256`, `transferSizeBytes` and `checksum` together.
+- Large module indexes live in one place on the device: OPFS (one pool per module version) for
+  indexes above the 32 MiB WASM limit, IndexedDB for small ones. Never write the bytes of a large
+  index to IndexedDB, and remove a module's OPFS pools together with its rows (the orphan sweep in
+  `browser-module-runtime.ts` does it; the staging lock keeps it away from installs in progress).
 
 - Every artifact download — content modules and model weights alike — goes through
   `downloadWithRetry`. Never call `downloadWithResume` directly from a feature; the retry layer is

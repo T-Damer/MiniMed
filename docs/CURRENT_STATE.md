@@ -47,6 +47,80 @@ pure and tested):
   module; the packaging photo was a synthetic stand-in (the real images module is not installed
   locally).
 
+## Storage and transfer compression — 2026-10-01 (STATE C1, K2 P0)
+
+Implements the P0 items of [kb-audit-storage-2026-10](research/kb-audit-storage-2026-10.md) (levels a and b).
+Candidate artifacts are built and verified locally; **nothing is published and the catalog still points
+at the uncompressed assets** (see «Publishing» below).
+
+- **Android core as gzip.** The native installer inflates the downloaded transfer while it streams
+  into the verified-install transaction (`VerifiedPackFiles.openTransfer`); the decoded checksum is
+  what is verified, a truncated archive never replaces the installed core. `ANDROID_CORE_DOWNLOAD`
+  now points at the published `core-0.6.45/core.db.gz` (76.2 MB, the browser bundle's archive of the
+  same 16 KiB-page file; `core-report.json` records `transferSha256`/`transferSizeBytes` next to the
+  decoded `checksum`). Download 440.9 → 76.2 MB (−365 MB). JVM tests pass; not run on a device.
+- **One store per large module index.** Indexes above the 32 MiB WASM limit used to sit in
+  IndexedDB (Blob) *and* OPFS, and OPFS pools survived remove/rollback. Now the OPFS pool is the only
+  copy; the row keeps `indexStorage: 'opfs'`, `indexSizeBytes`, `indexSha256`. A zstd index made of
+  independent ≤64 MiB frames is decoded frame by frame inside the OPFS worker straight into its pool
+  with an incremental SHA-256, and the pool associates the file only after size and checksum match
+  (`stageEncodedIndex`; no decoded copy in memory, none in IndexedDB). fzstd's streaming API was
+  measured and rejected: it moves its whole window per block (10 s vs 1.2 s for 340 MB). Other
+  artifacts keep the generic decode and still end up OPFS-only. Pool files are found under the
+  unsuffixed name blob imports always used (an e2e run caught the size-suffixed variant).
+- **Migration of existing installs, no re-download.** Mounting a legacy row opens its OPFS copy (or
+  imports it once from the Blob) and then drops the duplicate bytes; inactive versions migrate in
+  the background; pools no row refers to (removed modules, failed installs, copies orphaned by older
+  versions) are swept under Web Locks, an install in progress holds a shared staging lock, and a pool
+  a live worker still holds waits for a later sweep. Rollback keeps both versions (the registry history
+  needs them); registry history is still unbounded, so a version bump of a large module keeps the old
+  copy on the device (next task: prune history).
+- **Search-compacted module builds.** `medbase compact-module-search` (migration 013) and
+  `medbase build --compact-search-text`: external-content FTS (the pack's own tokenizer/prefix kept)
+  plus empty `chunks.normalized_text` after the rank-1 integrity check; accepted only when a
+  token-instance fingerprint of the index, bm25 top-50 of a deterministic query set and a hash of all
+  other chunk columns equal the input's. The Krasota/MKB/packaging module scripts use it; a compacted
+  pack records `search_text_state` and refuses any later index rebuild or composition.
+
+| Measured | before | after |
+|---|---:|---:|
+| ЕСКЛП ×15, download | 1 992.6 MB (`none`) | 94.5 MB zstd of the published bytes (21.1×) · **68.7 MB** zstd of the compacted build (29.0×) |
+| ЕСКЛП ×15, on device | 3 985 MB (IndexedDB + OPFS copies, by code) | 1 992.6 MB (single store) · **1 429.4 MB** (compacted, −28.3% of the SQLite) |
+| Клинреки ×744, download | 2 072.5 MB (`none`) | 677.0 MB (3.06×) · **652.6 MB** compacted (3.18×) |
+| Клинреки ×744, on device | 2 072.5 MB | **1 560.9 MB** compacted (−24.7%) |
+| Android core, download | 440.9 MB | 76.2 MB |
+| kras / MKB / packaging SQLite (local packs, already external FTS) | 629.8 / 294.8 / 221.1 MB | 461.9 / 257.6 / 177.1 MB (normalized_text only) |
+
+zstd parameters: `-19 --long=26`, frames of ≤64 MiB made from files (so each declares its size; the
+128 MiB-window decoding bug of fzstd is avoided by construction). `-22 --ultra` gains 4.8% for 10× time.
+Search checks: all 15 + 744 compactions passed the built-in fingerprint/bm25/text-hash proof. Through the
+whole `MedicalCore.search` pipeline over the released core plus the modules mounted as the app mounts
+them (`tools/benchmarks/src/compare-module-search.ts`, lexical, every `query` of the committed benchmark
+fixtures plus document titles): 229 queries over three compacted ЕСКЛП modules and 260 queries over 49
+sampled compacted clinical modules, 0 differences in both (reports in `output/module-zstd-2026-10-01/`;
+the full 15-module run did not finish on the loaded host). The same 40 store-level queries on one module
+in Chromium over sqlite-wasm/OPFS (plain vs compacted install): identical ids, ranks and order.
+`bun run benchmark:all` (core only, unchanged) stays within tolerance. All 1 518 `.db.zst` files were
+decoded again with the reference `zstd` CLI and match their catalog checksums.
+
+**Publishing (pending the owner's decision).** Candidates are in `output/module-zstd-2026-10-01/`
+(`esklp`, `esklp-compacted`, `clinical`, `clinical-compacted`, each with `repack-report.json`; the two
+`catalog.candidate.*.json` are the full catalog with those entries swapped; recorded in the data
+ledger). Upload plan and mirror paths are in the reports; `scripts/publish-module-zstd-mirror.sh`
+adds the files to the `datasets/<tag>` branches additively. The clinical release already has 746 of
+the 1 000 allowed assets, so the 744 clinical `.db.zst` go to the branch only. The same module
+version is kept: the logical source set is unchanged, installed copies stay valid, nothing re-downloads.
+`minAppVersion` of repacked modules becomes 0.6.45 (the first release with the zstd installer; the
+three already published zstd modules still say 0.6.44 and should be corrected with the next catalog change).
+Regenerate `catalog.shell.json` (`scripts/build-module-catalog-shell.ts`) after swapping the catalog.
+
+Not verified: any Android device or WebView (Java unit tests and Chromium only), slower hardware (install
+of a 93 MB module took 1.4 s to import + ≈8 s validation on this loaded laptop), all 744 compacted
+clinical modules through the app (49 sampled through the benchmark pipeline, none in a browser), the four already published
+zstd modules (single frame: they still decode in memory) and the `module-pointer` e2e case
+«no download action when experiments are disabled» (times out waiting for the core on this loaded host;
+it does not touch module storage).
+
 ## Smooth start-up — 2026-10-01
 
 - Android splash shows the whole launcher wallet (`res/drawable/splash_icon.xml`) and stays until

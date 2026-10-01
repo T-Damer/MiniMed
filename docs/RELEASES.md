@@ -77,6 +77,32 @@ The optional decoder belongs to the module installer; the separately installed A
 its existing URL/checksum contract. This does not change background-transfer support or eliminate
 the installer's existing in-memory SQLite buffer.
 
+#### zstd module indexes and the Android core
+
+Large indexes are published as `compression: "zstd"`: a plain concatenation of independent frames
+of at most 64 MiB of decoded data, each made by `zstd -19 --long=26` from a file (so every frame
+declares its content size). Any zstd decoder reads it. The browser installer decodes it **frame by
+frame inside the OPFS worker straight into the module's pool**, hashing the decoded bytes
+incrementally; the artifact's `decodedSizeBytes`/`decodedSha256` are verified before the file is
+associated with the pool, so neither a decoded copy in memory nor a second copy in IndexedDB exists.
+fzstd's streaming decoder is not used for this: it moves its whole 64 MiB window after every block
+(≈10 s for a 340 MB index against ≈1 s frame by frame). A single huge frame still installs, through
+the generic in-memory decode.
+
+```bash
+bun scripts/repack-module-indexes-zstd.ts --family esklp|clinical --source-dir DIR --out-dir DIR \
+  [--compacted] [--catalog-out candidate.catalog.json]
+```
+
+The script verifies every output with the app's own decoder, writes a candidate catalog and a report
+(file, URL, sizes, checksums, mirror path) and never touches a published asset. Publishing is a
+separate, explicit step: upload the files to the mirror locations in the report, then commit the
+candidate catalog. Modules that use zstd need `minAppVersion` 0.6.45 or newer.
+
+The Android core is downloaded as the release's `core.db.gz` (the archive of the same file the
+browser bundle uses): `core-report.json` records `distributions.android.{url, compression,
+transferSha256, transferSizeBytes}` next to the decoded `checksum` the native installer verifies.
+
 A release should include:
 
 - static web bundle;
