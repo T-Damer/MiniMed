@@ -40,7 +40,7 @@ import sqlite3InitModule, {
 
 import { createDefinitionReferenceDispatch } from './definition-reference-dispatch';
 import { SCHEMA_SQL } from './generated/schema';
-import { resolveOpfsCacheFile } from './opfs-cache-identity';
+import { findInstalledPackFile, resolveOpfsCacheFile } from './opfs-cache-identity';
 import {
   createStreamChunkImporter,
   parseContentSchemaVersion,
@@ -588,9 +588,18 @@ export class SqliteMedicalStore implements MedicalStore {
       source.kind === 'url'
         ? await fetchPackByteLength(source.url, fetchTimeoutMs)
         : source.byteLength;
-    const vfsName = resolveOpfsCacheFile(databaseName, byteLength, pool.getFileNames());
+    // A fetched pack is identified by its download size. A module index is identified by its own
+    // name; where a size is only known to the caller the file keeps the unsuffixed name that
+    // blob: URL imports have always had (HEAD cannot size them), and either form is found.
+    const vfsName =
+      source.kind === 'url'
+        ? resolveOpfsCacheFile(databaseName, byteLength, pool.getFileNames())
+        : (findInstalledPackFile(databaseName, source.byteLength, pool.getFileNames()) ??
+          `/${databaseName}`);
     const legacyVfsName =
-      byteLength === null ? databaseName : `${databaseName}.${String(byteLength)}`;
+      byteLength === null || source.kind !== 'url'
+        ? databaseName
+        : `${databaseName}.${String(byteLength)}`;
     const alreadyImported = pool.getFileNames().includes(vfsName);
     const open = (installation: StoreHealthHints['installation']): SqliteMedicalStore => {
       const database = new pool.OpfsSAHPoolDb(vfsName);

@@ -156,8 +156,18 @@ function installWorld(): World {
               } as MessageEvent);
               return;
             }
-            // An open that imports (url/encoded) leaves its pool behind, as the SAH pool does.
-            if (!message.installed) world.pools.add(message.poolName);
+            // An open that imports (url/encoded) leaves its pool behind, as the SAH pool does; an
+            // installed open never imports and fails when the pool has no file.
+            if (message.installed && !world.pools.has(message.poolName)) {
+              this.onmessage?.({
+                data: {
+                  id: message.id,
+                  error: `Installed pack ${message.databaseName} is missing from OPFS.`,
+                },
+              } as MessageEvent);
+              return;
+            }
+            world.pools.add(message.poolName);
           }
           const method = 'method' in message ? message.method : 'open';
           const result =
@@ -294,6 +304,7 @@ describe('single store for large module indexes', () => {
   it('mounts a row that exists only in OPFS by opening the installed file, never importing', async () => {
     seed(world, row('minimed.esklp.a', '1.0.0', { indexStorage: 'opfs', indexSizeBytes: LARGE }));
     world.active.set('minimed.esklp.a', { moduleId: 'minimed.esklp.a', version: '1.0.0' });
+    world.pools.add(moduleOpfsPoolName('minimed.esklp.a', '1.0.0', SHA));
 
     const mounts = await loadInstalledModuleMounts();
     expect(mounts).toHaveLength(1);
@@ -305,6 +316,17 @@ describe('single store for large module indexes', () => {
     expect(world.opens[0]?.url).toBeUndefined();
     expect(URL.createObjectURL).not.toHaveBeenCalled();
     await Promise.all(mounts.map((mount) => mount.store.close()));
+  });
+
+  it('does not import anything for an OPFS-only row whose pool has vanished', async () => {
+    seed(world, row('minimed.esklp.a', '1.0.0', { indexStorage: 'opfs', indexSizeBytes: LARGE }));
+    world.active.set('minimed.esklp.a', { moduleId: 'minimed.esklp.a', version: '1.0.0' });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    expect(await loadInstalledModuleMounts()).toHaveLength(0);
+    expect(world.pools.size).toBe(0);
+    expect(world.rows.has('minimed.esklp.a@1.0.0')).toBe(true);
+    expect(warn).toHaveBeenCalled();
   });
 
   it('migrates an install that kept both copies: the OPFS copy stays, the IndexedDB bytes go', async () => {

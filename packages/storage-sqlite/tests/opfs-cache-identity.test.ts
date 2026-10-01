@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveOpfsCacheFile } from '../src/opfs-cache-identity';
+import { findInstalledPackFile, resolveOpfsCacheFile } from '../src/opfs-cache-identity';
 
 const name = `core.${'a'.repeat(64)}.db`;
 describe('offline core cache identity', () => {
@@ -35,5 +35,21 @@ describe('offline core cache identity', () => {
       resolveOpfsCacheFile(name, null, [`/${name}.0`, `/${name}.4.5`, `/${name}.9007199254740992`]),
     ).toBe(`/${name}`);
     expect(resolveOpfsCacheFile(name, null, [])).toBe(`/${name}`);
+  });
+});
+
+describe('installed module index file', () => {
+  const module = 'minimed-module-minimed.rls.packaging.ru%402026.9.28%3Asha256%3Aabc.db';
+  it('finds the unsuffixed name that blob: URL imports have always used', () => {
+    expect(findInstalledPackFile(module, 221_089_792, [`/${module}`])).toBe(`/${module}`);
+  });
+  it('also accepts a file stored with its size', () => {
+    expect(findInstalledPackFile(module, 221_089_792, [`/${module}.221089792`])).toBe(
+      `/${module}.221089792`,
+    );
+  });
+  it('does not mistake another size or another module for the installed file', () => {
+    expect(findInstalledPackFile(module, 221_089_792, [`/${module}.5`, '/other.db'])).toBeNull();
+    expect(findInstalledPackFile(module, 1, [])).toBeNull();
   });
 });

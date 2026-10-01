@@ -485,13 +485,21 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
         ? staged.artifact.sha256
         : staged.artifact.decodedSha256;
     if (largeIndex && staged.bytes) {
-      // The validator normally imported it already; make the OPFS copy the one durable copy.
-      const store = await openModuleStore(
-        module.id,
-        module.version,
-        staged.bytes,
-        indexSha256 ?? undefined,
-      );
+      // The validator normally imported it already; make sure the OPFS copy, now the one durable
+      // copy, exists. Opening it as installed reads nothing, so no second Blob of the index is made.
+      const checksum = indexSha256 ?? undefined;
+      let store: SqliteMedicalStore | WorkerOpfsMedicalStore;
+      try {
+        store = await openModuleStore(
+          module.id,
+          module.version,
+          { opfsBytes: decodedSize },
+          checksum,
+        );
+      } catch (cause) {
+        if (!(cause instanceof Error) || !/missing from OPFS/u.test(cause.message)) throw cause;
+        store = await openModuleStore(module.id, module.version, staged.bytes, checksum);
+      }
       await store.close();
     }
     const sourceAssets = module.artifacts
