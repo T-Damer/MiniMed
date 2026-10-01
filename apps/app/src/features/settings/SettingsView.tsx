@@ -3,6 +3,7 @@ import { createSignal, type JSX, lazy, onCleanup, onMount, Show } from 'solid-js
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { ChoiceGroup } from '@/components/ChoiceGroup';
 import { Disclosure } from '@/components/Disclosure';
 import { Page } from '@/components/Page';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
@@ -24,12 +25,15 @@ import {
   getExperimentalModulesEnabled,
   getFloatingWindowsEnabled,
   getModuleAutoUpdatesEnabled,
+  getMotionSpeed,
   getSoundVolume,
   getSplitNavigation,
   getVibrationEnabled,
+  isMotionSpeed,
   setExperimentalModulesEnabled,
   setFloatingWindowsEnabled,
   setModuleAutoUpdatesEnabled,
+  setMotionSpeed,
   setSoundVolume,
   setSplitNavigation,
   setVibrationEnabled,
@@ -49,6 +53,13 @@ const DevDownloadSettings = import.meta.env.DEV
       import('./DevDownloadSettings').then((module) => ({ default: module.DevDownloadSettings })),
     )
   : undefined;
+
+const MOTION_OPTIONS = [
+  { value: 'off', label: 'Выключены' },
+  { value: 'fast', label: 'Быстрые' },
+  { value: 'normal', label: 'Обычные' },
+  { value: 'slow', label: 'Медленные' },
+] as const;
 
 interface SettingsViewProps {
   readonly status: CoreStatus | undefined;
@@ -72,6 +83,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   const [splitNavigation, setSplitNavigationState] = createSignal(getSplitNavigation());
   const [vibrationEnabled, setVibrationEnabledState] = createSignal(getVibrationEnabled());
   const [soundVolume, setSoundVolumeState] = createSignal(getSoundVolume());
+  const [motionSpeed, setMotionSpeedState] = createSignal(getMotionSpeed());
   const [floatingWindowsEnabled, setFloatingWindowsEnabledState] = createSignal(
     getFloatingWindowsEnabled(),
   );
@@ -99,6 +111,7 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
       setVibrationEnabledState(preferences.vibrationEnabled);
       setSplitNavigationState(preferences.splitNavigation);
       setSoundVolumeState(preferences.soundVolume);
+      setMotionSpeedState(preferences.motionSpeed);
       setFloatingWindowsEnabledState(preferences.floatingWindowsEnabled);
       setExperimentalModulesEnabledState(preferences.experimentalModulesEnabled);
       setModuleAutoUpdatesEnabledState(preferences.moduleAutoUpdatesEnabled);
@@ -274,6 +287,18 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
               }}
             />
           </div>
+
+          <ChoiceGroup
+            class="settings-motion"
+            legend="Анимации"
+            hint="Скорость переходов и появления окон. «Выключены» показывает изменения сразу."
+            orientation="horizontal"
+            options={MOTION_OPTIONS}
+            value={motionSpeed()}
+            onChange={(value) => {
+              if (isMotionSpeed(value)) setMotionSpeed(value);
+            }}
+          />
         </section>
 
         <h2 class="settings-page__group-title">Загрузки</h2>

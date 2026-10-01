@@ -337,6 +337,11 @@
   gap: 0.5rem;
 }
 
+.settings-motion {
+  margin: 0;
+  min-width: 0;
+}
+
 .settings-update__error {
   margin: 0;
   color: var(--theme-danger);

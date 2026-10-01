@@ -79,6 +79,11 @@
     transition: none;
   }
 
+  /* Slides down from wherever it is, including part-way down a pull. */
+  .overlay-dialog.overlay-dialog--sheet.overlay-dialog--closing {
+    animation: overlay-sheet-out 280ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+
   .overlay-dialog__grip {
     display: grid;
     flex: none;
@@ -105,8 +110,15 @@
   }
 }
 
+@keyframes overlay-sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .overlay-dialog.overlay-dialog--sheet {
+  .overlay-dialog.overlay-dialog--sheet,
+  .overlay-dialog.overlay-dialog--sheet.overlay-dialog--closing {
     animation: none;
     transition: none;
   }

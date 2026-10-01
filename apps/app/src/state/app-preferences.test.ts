@@ -5,6 +5,7 @@ import {
   clearSearchScope,
   getFloatingWindowsEnabled,
   getModuleAutoUpdatesEnabled,
+  getMotionSpeed,
   getRememberSearchMode,
   getSoundVolume,
   getSplitNavigation,
@@ -16,6 +17,7 @@ import {
   saveSearchScope,
   setFloatingWindowsEnabled,
   setModuleAutoUpdatesEnabled,
+  setMotionSpeed,
   setRememberSearchMode,
   setSoundVolume,
   setSplitNavigation,
@@ -74,6 +76,7 @@ describe('app-preferences', () => {
       floatingWindowsEnabled: false,
       experimentalModulesEnabled: true,
       moduleAutoUpdatesEnabled: true,
+      motionSpeed: 'normal',
     });
   });
 
@@ -85,6 +88,7 @@ describe('app-preferences', () => {
         rememberSearchMode: false,
         soundVolume: 2,
         experimentalModulesEnabled: 'yes',
+        motionSpeed: 'warp',
       }),
     );
     expect(loadAppPreferences()).toEqual({
@@ -96,7 +100,14 @@ describe('app-preferences', () => {
       floatingWindowsEnabled: false,
       experimentalModulesEnabled: true,
       moduleAutoUpdatesEnabled: true,
+      motionSpeed: 'normal',
     });
+  });
+
+  it('stores the animation speed', () => {
+    setMotionSpeed('off');
+    expect(getMotionSpeed()).toBe('off');
+    expect(loadAppPreferences().motionSpeed).toBe('off');
   });
 
   it('preserves the previous auto-update pause and broadcasts changes from settings', () => {

@@ -1,5 +1,14 @@
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 
+/** AnimationManager speeds (Settings → Анимации); rates live in `src/state/motion.ts`. */
+export type MotionSpeed = 'off' | 'fast' | 'normal' | 'slow';
+
+export const MOTION_SPEEDS: readonly MotionSpeed[] = ['off', 'fast', 'normal', 'slow'];
+
+export function isMotionSpeed(value: unknown): value is MotionSpeed {
+  return typeof value === 'string' && (MOTION_SPEEDS as readonly string[]).includes(value);
+}
+
 export interface AppPreferences {
   readonly devLocalModuleArtifacts?: boolean;
   readonly splitNavigation: boolean;
@@ -10,6 +19,8 @@ export interface AppPreferences {
   readonly floatingWindowsEnabled: boolean;
   readonly experimentalModulesEnabled: boolean;
   readonly moduleAutoUpdatesEnabled: boolean;
+  /** AnimationManager speed for every transition in the app. */
+  readonly motionSpeed: MotionSpeed;
 }
 
 export const APP_PREFERENCES_KEY = 'minimed.app-preferences.v1';
@@ -25,6 +36,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   floatingWindowsEnabled: false,
   experimentalModulesEnabled: true,
   moduleAutoUpdatesEnabled: true,
+  motionSpeed: 'normal',
 };
 
 const VALID_SCOPES = new Set<SearchScope>([
@@ -56,6 +68,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly floatingWindowsEnabled?: unknown;
     readonly experimentalModulesEnabled?: unknown;
     readonly moduleAutoUpdatesEnabled?: unknown;
+    readonly motionSpeed?: unknown;
   };
   return {
     ...(typeof candidate.devLocalModuleArtifacts === 'boolean'
@@ -94,6 +107,9 @@ function normalizePreferences(value: unknown): AppPreferences {
       typeof candidate.experimentalModulesEnabled === 'boolean'
         ? candidate.experimentalModulesEnabled
         : DEFAULT_PREFERENCES.experimentalModulesEnabled,
+    motionSpeed: isMotionSpeed(candidate.motionSpeed)
+      ? candidate.motionSpeed
+      : DEFAULT_PREFERENCES.motionSpeed,
   };
 }
 
@@ -182,6 +198,14 @@ export function getFloatingWindowsEnabled(): boolean {
 
 export function setFloatingWindowsEnabled(enabled: boolean): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), floatingWindowsEnabled: enabled });
+}
+
+export function getMotionSpeed(): MotionSpeed {
+  return loadAppPreferences().motionSpeed;
+}
+
+export function setMotionSpeed(speed: MotionSpeed): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), motionSpeed: speed });
 }
 
 export function getExperimentalModulesEnabled(): boolean {

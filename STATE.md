@@ -31,7 +31,7 @@ Statuses: `[ ]` todo, `[~]` in progress (agent, time), `[x]` done (commit), `[!]
 | # | Status | Owner | Item |
 | --- | --- | --- | --- |
 | W1 | [~] claude 16:30 | claude-coordinator | first boot frame by frame: splash → core download/«включение» inside the search field (no separate screen) → search, iOS-smooth; start button lights up when the core is ready; warm start fast and smooth |
-| W2 | [ ] | claude-coordinator | AnimationManager: one place for motion durations/easings, a speed setting (incl. off) in Settings; smooth bottom-sheet close and other transitions |
+| W2 | [x] claude 16:40 | claude-coordinator | AnimationManager (`src/state/motion.ts`): Settings → «Анимации» off/fast/normal/slow retimes every CSS/WAAPI animation, `motionMs()` for JS timings; OverlayDialog plays an exit (sheet slides down from where it was released, backdrop fades) before unmounting. Other rough transitions: as the user reports them |
 | W3 | [ ] | claude-coordinator | reader like the Chromium PDF viewer: fast find, selection, print, drawing, several pages, thumbnails; resume where the user stopped |
 | K1 | [~] sonnet 16:30 | kb-audit-content | audit: OCR-damaged clinical recommendations and where clean text exists; merging the drug bases (description + full instruction), ATC codes as searchable, explained codes — report only |
 | K2 | [~] sonnet 16:30 | kb-audit-storage | audit: duplication and size, compressed storage with lazy decompression (incl. user files/books), dynamic term linking from a dictionary instead of stored links, a words/concepts index in the core — report only |

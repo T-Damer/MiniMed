@@ -52,6 +52,13 @@
   }
 }
 
+@keyframes overlay-panel-out {
+  to {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.985);
+  }
+}
+
 @keyframes history-drawer-in {
   from {
     transform: translateX(-100%);
@@ -91,3 +98,19 @@
     opacity: 0;
   }
 }
+
+/* AnimationManager «off» (Settings → Анимации): end states and transitionend/animationend handlers
+   still happen, just at once. Other speeds retime running animations in src/state/motion.ts.
+   !important is the point: one switch has to beat every component's own timing. */
+/* biome-ignore-start lint/complexity/noImportantStyles: global motion switch overrides all timings */
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: global motion switch overrides all timings */

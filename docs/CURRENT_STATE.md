@@ -1,10 +1,11 @@
 # Current state
 
-> Updated: 30 September 2026
+> Updated: 1 October 2026
 > Released version: `0.6.45` (public prerelease toward `1.0`)
-> Next planned step: continue the native port (`native/`, Kotlin + Compose) after the published
-> last WebView release (user decision, 2026-09-29). Physical Android qualification remains pending
-> because the connected device rejected installation through USB.
+> Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
+> (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
+> the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
+> Chromium-like reader (W3) and the knowledge-base audits K1/K2 — see `STATE.md`.
 
 This file records what exists now, its trust boundaries and the ordered next work. Keep it short:
 append dated measurements to `docs/state/` or `docs/research/`, and link them from here. The target
@@ -18,6 +19,16 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Motion settings — 2026-10-01
+
+- Settings → «Анимации» (Выключены / Быстрые / Обычные / Медленные), stored as
+  `motionSpeed` in app preferences. `src/state/motion.ts` retimes every CSS transition, keyframe
+  animation and `Element.animate` call through `playbackRate`; «off» collapses durations in CSS so
+  end states and `transitionend`/`animationend` still happen. JS-timed code uses `motionMs()`.
+- `OverlayDialog` keeps a closing dialog mounted until its exit plays: on phones the sheet slides
+  down from where it was released (pull-to-close continues instead of snapping back), the backdrop
+  fades; wide-screen dialogs fade and settle. Verified in headless Chromium (close ≈ 290 ms).
 
 ## Release 0.6.45 — 2026-09-30
 

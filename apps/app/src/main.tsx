@@ -3,6 +3,7 @@ import { render } from 'solid-js/web';
 import { App } from '@/app/App';
 import { lockNativeSafeBottom } from '@/app/lock-native-safe-bottom';
 import { registerAppServiceWorker } from '@/state/app-update';
+import { installMotionManager } from '@/state/motion';
 import { startReminderNotifications } from '@/state/reminder-notifications';
 import 'overlayscrollbars/overlayscrollbars.css';
 import '@/styles/theme.css';
@@ -44,11 +45,13 @@ import '@/styles/floating-windows.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('Missing #root element.');
 
+const stopMotionManager = installMotionManager();
 render(() => <App />, root);
 const stopNativeSafeBottomLock = lockNativeSafeBottom();
 const stopReminderNotifications = startReminderNotifications();
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
+    stopMotionManager();
     stopNativeSafeBottomLock();
     stopReminderNotifications();
   });

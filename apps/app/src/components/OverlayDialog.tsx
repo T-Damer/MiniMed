@@ -1,9 +1,10 @@
-import { createEffect, createSignal, type JSX, onCleanup, Show } from 'solid-js';
+import { createEffect, createSignal, type JSX, on, onCleanup, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { lockBodyScroll } from '@/components/body-scroll-lock';
 import { NARROW_VIEWPORT_QUERY } from '@/components/narrow-viewport';
 import { sheetDragOffset, sheetDragShouldClose } from '@/components/sheet-drag';
+import { motionMs } from '@/state/motion';
 import { setDarkHeaderStatusBar } from '@/state/native-system-ui';
 
 import '@/components/overlay-sheet.css';
@@ -37,6 +38,9 @@ interface OverlayDialogProps {
 
 let nextOverlayDialogId = 0;
 
+/** Upper bound for the exit animation at normal speed, in case it never reports finishing. */
+const EXIT_FALLBACK_MS = 600;
+
 const FOCUSABLE_SELECTOR = [
   'a[href]',
   'button:not([disabled])',
@@ -54,6 +58,7 @@ function focusableElementsWithin(root: HTMLElement): HTMLElement[] {
 
 export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   let panel: HTMLElement | undefined;
+  let backdrop: HTMLElement | undefined;
   let historyEntryPushed = false;
   const titleId = props.labelledBy ?? `overlay-dialog-title-${++nextOverlayDialogId}`;
   const tracksHistory = () => props.tracksHistory !== false;
@@ -64,6 +69,50 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   let drag:
     | { readonly startY: number; readonly startTime: number; readonly id: number }
     | undefined;
+  // The dialog stays mounted after `open` turns false until its exit animation has played.
+  const [mounted, setMounted] = createSignal(props.open);
+  const [closing, setClosing] = createSignal(false);
+
+  createEffect(
+    on(
+      () => props.open,
+      (open) => {
+        if (open) {
+          setDragOffset(0);
+          setClosing(false);
+          setMounted(true);
+          return;
+        }
+        if (!mounted()) return;
+        setClosing(true);
+        let done = false;
+        const unmount = (): void => {
+          if (done) return;
+          done = true;
+          window.clearTimeout(fallback);
+          if (props.open) return;
+          setMounted(false);
+          setClosing(false);
+          setDragOffset(0);
+        };
+        const fallback = window.setTimeout(
+          unmount,
+          Math.max(EXIT_FALLBACK_MS, motionMs(EXIT_FALLBACK_MS)),
+        );
+        // The closing class starts the exit animations on the next style pass.
+        requestAnimationFrame(() => {
+          // Only the backdrop's and the panel's own exits: content may hold endless spinners.
+          const animations = [
+            ...(backdrop?.getAnimations() ?? []),
+            ...(panel?.getAnimations() ?? []),
+          ];
+          void Promise.allSettled(animations.map((animation) => animation.finished)).then(unmount);
+        });
+        onCleanup(unmount);
+      },
+      { defer: true },
+    ),
+  );
 
   const closeDialog = (): void => {
     if (historyEntryPushed) {
@@ -98,8 +147,9 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     const close = sheetDragShouldClose(offset, event.timeStamp - drag.startTime);
     drag = undefined;
     setDragging(false);
-    setDragOffset(0);
+    // A sheet released to close leaves from where the finger let go, not from its resting place.
     if (event.type !== 'pointercancel' && close) closeDialog();
+    else setDragOffset(0);
   };
   const dragHandlers = {
     onPointerDown: startDrag,
@@ -109,7 +159,9 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   };
 
   const isTopmostDialog = (): boolean => {
-    const dialogs = document.querySelectorAll<HTMLElement>('.overlay-dialog');
+    const dialogs = document.querySelectorAll<HTMLElement>(
+      '.overlay-dialog:not(.overlay-dialog--closing)',
+    );
     return dialogs.item(dialogs.length - 1) === panel;
   };
 
@@ -176,7 +228,6 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
     onCleanup(() => {
       drag = undefined;
       setDragging(false);
-      setDragOffset(0);
       setDarkHeaderStatusBar(false);
       releaseScroll();
       window.removeEventListener('keydown', handleKeyDown);
@@ -190,12 +241,17 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   });
 
   return (
-    <Show when={props.open}>
+    <Show when={mounted()}>
       <Portal>
         <div
+          ref={(element) => {
+            backdrop = element;
+          }}
           class={`overlay-backdrop overlay-backdrop--${presentation()}`}
+          classList={{ 'overlay-backdrop--closing': closing() }}
           role="presentation"
           onPointerDown={(event) => {
+            if (closing()) return;
             if (event.target === event.currentTarget && dismissible()) closeDialog();
           }}
         >
@@ -205,7 +261,10 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
               panel = element;
             }}
             class={`overlay-dialog overlay-dialog--${presentation()} ${props.class ?? ''}`}
-            classList={{ 'overlay-dialog--dragging': dragging() }}
+            classList={{
+              'overlay-dialog--dragging': dragging(),
+              'overlay-dialog--closing': closing(),
+            }}
             style={dragOffset() > 0 ? { '--sheet-drag': `${dragOffset()}px` } : undefined}
             role={props.role ?? 'dialog'}
             aria-modal="true"

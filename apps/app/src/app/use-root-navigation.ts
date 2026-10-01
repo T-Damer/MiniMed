@@ -144,7 +144,7 @@ export function useRootNavigation() {
     if (current === next) return false;
     const reduceMotion =
       window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      document.querySelector('.overlay-dialog') !== null ||
+      document.querySelector('.overlay-dialog:not(.overlay-dialog--closing)') !== null ||
       new URLSearchParams(window.location.search).has('minimed-floating') ||
       !mountedViews().has(next);
     const inFlight = rootNavigationMotion();

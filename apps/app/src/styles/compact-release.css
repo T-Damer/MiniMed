@@ -1326,6 +1326,16 @@ html.app-chrome-hidden .app-bottom-nav {
   animation: overlay-panel-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* Closing: OverlayDialog keeps the dialog mounted until these finish. */
+.overlay-backdrop.overlay-backdrop--closing {
+  pointer-events: none;
+  animation: overlay-fade-out 220ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.overlay-dialog.overlay-dialog--closing {
+  animation: overlay-panel-out 220ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
 /* Same material as the bottom bubble, so the two floating controls read as one system. */
 .search-history-fab {
   position: static;
