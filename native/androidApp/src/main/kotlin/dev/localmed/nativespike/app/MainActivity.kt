@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.util.Log
 import androidx.activity.ComponentActivity
+import dev.localmed.nativespike.shared.platform.requestHighestRefreshRate
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -68,6 +69,12 @@ class NativeSessionOwner(application: Application) : AndroidViewModel(applicatio
 }
 
 class MainActivity : ComponentActivity() {
+    override fun onResume() {
+        super.onResume()
+        // 120 Hz on high-refresh phones (HyperOS needs an explicit display mode).
+        requestHighestRefreshRate()
+    }
+
     private val owner by lazy { ViewModelProvider(this)[NativeSessionOwner::class.java] }
 
     override fun onNewIntent(intent: Intent) {

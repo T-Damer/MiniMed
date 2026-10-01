@@ -2,6 +2,7 @@ package dev.localmed.nativespike.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import dev.localmed.nativespike.shared.platform.requestHighestRefreshRate
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,12 @@ import kotlinx.coroutines.withContext
  * screens adopt it.
  */
 class ReaderLabActivity : ComponentActivity() {
+    override fun onResume() {
+        super.onResume()
+        // 120 Hz on high-refresh phones (HyperOS needs an explicit display mode).
+        requestHighestRefreshRate()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
