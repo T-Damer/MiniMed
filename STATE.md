@@ -35,7 +35,7 @@ Statuses: `[ ]` todo, `[~]` in progress (agent, time), `[x]` done (commit), `[!]
 | W3 | [ ] | claude-coordinator | reader like the Chromium PDF viewer: fast find, selection, print, drawing, several pages, thumbnails; resume where the user stopped |
 | W4 | [~] sonnet 18:50 | onboarding | guided 9-step onboarding replacing the FirstRunSetup modal: blurred app → «Привет» → welcome → core download with thin bottom progress (%, speed) → blur recedes to the edges + living green edge glow → floating hint card with hand-drawn arrows to real controls; owns `apps/app/src/features/onboarding/**`, `apps/app/src/features/setup/**`, `data-tour` attributes, App.tsx onboarding mount |
 | W5 | [~] sonnet 18:50 | settings-sliders | «Анимации» and «Режим расшифровки» as step sliders; owns `apps/app/src/components/StepSlider*`, `SettingsView.tsx` motion row, `AsrSettings.tsx` mode control |
-| W6 | [~] sonnet 18:50 | mri-slices | 3–4 real head MRI slices from an openly licensed, de-identified source for the onboarding/imaging demo; owns `apps/app/public/onboarding/mri/**` |
+| W6 | [x] sonnet 18:50 | mri-slices | 3–4 real head MRI slices from an openly licensed, de-identified source for the onboarding/imaging demo; owns `apps/app/public/onboarding/mri/**` |
 | K1 | [x] sonnet 18:45 | kb-audit-content | audit: OCR-damaged clinical recommendations and where clean text exists; merging the drug bases (description + full instruction), ATC codes as searchable, explained codes — report only |
 | K2 | [~] sonnet 16:30 | kb-audit-storage | audit: duplication and size, compressed storage with lazy decompression (incl. user files/books), dynamic term linking from a dictionary instead of stored links, a words/concepts index in the core — report only |
 
