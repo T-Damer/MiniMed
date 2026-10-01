@@ -21,6 +21,7 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0-spike"
+        buildConfigField("boolean", "BENCHMARK", "false")
     }
 
     buildFeatures {
@@ -52,6 +53,14 @@ android {
         debug {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
+        }
+        // Release-optimised build with the query-injection and timing hooks, for side-by-side
+        // measurements against the WebView app (assembleBenchmark). Never handed to users.
+        create("benchmark") {
+            initWith(getByName("release"))
+            matchingFallbacks += listOf("release")
+            applicationIdSuffix = ".bench"
+            buildConfigField("boolean", "BENCHMARK", "true")
         }
     }
 

@@ -53,6 +53,9 @@ import dev.localmed.nativespike.shared.reader.readDocument
 private const val BENCH_QUERY_ACTION = "dev.localmed.nativespike.BENCH_QUERY"
 private const val BENCH_LOG_TAG = "MiniMedNativeSpikeBench"
 
+/** Query injection and timing logs: debug builds and the release-optimised benchmark build only. */
+private val MEASUREMENT_HOOKS = BuildConfig.DEBUG || BuildConfig.BENCHMARK
+
 /** One private prototype session survives rotation; production WebView data is never opened. */
 class NativeSessionOwner(application: Application) : AndroidViewModel(application) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -122,8 +125,8 @@ class MainActivity : ComponentActivity() {
                 controller.isAppearanceLightNavigationBars = !darkSystem
             }
             var benchQuery by remember { mutableStateOf<String?>(null) }
-            // Exported query injection and timing hooks exist only in the debug measurement build.
-            if (BuildConfig.DEBUG) DisposableEffect(Unit) {
+            // Exported query injection and timing hooks exist only in the debug and benchmark builds.
+            if (MEASUREMENT_HOOKS) DisposableEffect(Unit) {
                 val receiver = object : BroadcastReceiver() {
                     override fun onReceive(context: Context, intent: Intent) {
                         benchQuery = intent.getStringExtra("query")
@@ -135,7 +138,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(state) {
                 if (state is NativeCoreSessionState.Ready) {
                     reportFullyDrawn()
-                    if (BuildConfig.DEBUG) {
+                    if (MEASUREMENT_HOOKS) {
                         val core = (state as NativeCoreSessionState.Ready).core
                         Log.i("MiniMedNativeSpike", "search-ready tookMs=${SystemClock.elapsedRealtime() - startedAtMs}")
                         core.awaitReady()
@@ -148,8 +151,8 @@ class MainActivity : ComponentActivity() {
                     core = current.core,
                     actionScope = owner.scope,
                     uiErrors = owner.session.uiErrors, session = owner.session,
-                    externalQuery = if (BuildConfig.DEBUG) benchQuery else null,
-                    onOutcome = if (BuildConfig.DEBUG) { _, outcome, tookMs, stages ->
+                    externalQuery = if (MEASUREMENT_HOOKS) benchQuery else null,
+                    onOutcome = if (MEASUREMENT_HOOKS) { _, outcome, tookMs, stages ->
                         val timings = stages.entries.joinToString(" ") { (name, ms) -> "$name=$ms" }
                         Log.i(BENCH_LOG_TAG, "sqlMs=${outcome?.timing?.sqlOnlyMs} searchFnMs=${outcome?.timing?.totalMs} totalToFrameMs=$tookMs resultGroups=${outcome?.groups?.size ?: 0} stages=[$timings]")
                     } else null,
