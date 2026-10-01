@@ -1,0 +1,123 @@
+import { expect, type Page, test } from '@playwright/test';
+
+const ORIGIN = process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173';
+
+/** A core that never arrives keeps the download line on screen for the whole tour. */
+async function holdCore(page: Page): Promise<void> {
+  await page.route('**/core.db', () => new Promise(() => {}));
+}
+
+for (const viewport of [
+  { width: 390, height: 844 },
+  { width: 1280, height: 800 },
+]) {
+  test(`the first run plays the intro, tours the app and returns to search at ${viewport.width}px`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize(viewport);
+    await holdCore(page);
+    await page.goto(`${ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
+
+    // Intro: greeting, welcome, then the core explanation with the thin progress line.
+    const intro = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
+    await expect(intro).toBeAttached();
+    await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
+    await expect(intro.getByRole('heading', { name: 'Добро пожаловать в MiniMed' })).toBeVisible();
+    await expect(intro.getByText('Твой персональный помощник по медицине')).toBeVisible();
+    await expect(
+      intro.getByText('Сейчас нам надо скачать ядро знаний — прогресс загрузки ты увидишь внизу'),
+    ).toBeVisible();
+    await expect(
+      intro.getByText('Нажми «Далее», чтобы продолжить изучать приложение, пока идёт загрузка'),
+    ).toBeVisible();
+    await expect(page.locator('.core-progress-line__track')).toBeVisible();
+    await expect(page.locator('.core-progress-line__track')).toHaveAttribute('role', 'progressbar');
+    await page.screenshot({ path: testInfo.outputPath('intro.png') });
+    await intro.getByRole('button', { name: 'Далее', exact: true }).click();
+
+    // Tour: the card, the counter and the step dots advance one step at a time.
+    const card = page.locator('.onboarding-hint');
+    const counter = card.locator('.onboarding-hint__counter');
+    await expect(counter).toContainText('2 / 9');
+    await expect(card.getByRole('heading', { name: 'Поиск', exact: true })).toBeVisible();
+    await expect(card.locator('.onboarding-hint__back')).toBeDisabled();
+    await page.screenshot({ path: testInfo.outputPath('step-2.png') });
+
+    await card.getByRole('button', { name: 'Далее', exact: true }).click();
+    await expect(counter).toContainText('3 / 9');
+    await expect(card.getByRole('heading', { name: 'Разделы поиска' })).toBeVisible();
+    // The control the step explains is ringed and an arrow is drawn to it.
+    await expect(page.locator('.onboarding-ring')).toBeVisible();
+    await expect(page.locator('.onboarding-arrow__shaft')).toBeAttached();
+    await expect(card.locator('.onboarding-hint__dot--active')).toHaveCount(1);
+
+    await card.getByRole('button', { name: 'Далее', exact: true }).click();
+    await expect(counter).toContainText('4 / 9');
+    await expect(
+      card.getByRole('button', { name: /Скачать препараты|Считаем размер/u }),
+    ).toBeVisible();
+
+    await card.getByRole('button', { name: 'Назад', exact: true }).click();
+    await expect(counter).toContainText('3 / 9');
+    await card.getByRole('button', { name: 'Далее', exact: true }).click();
+    await card.getByRole('button', { name: 'Далее', exact: true }).click();
+    await expect(counter).toContainText('5 / 9');
+    await card.getByRole('button', { name: 'Далее', exact: true }).click();
+
+    // Files: the real sample slices cycle with their attribution.
+    await expect(counter).toContainText('6 / 9');
+    await expect(card.getByRole('heading', { name: 'Мои файлы' })).toBeVisible();
+    await expect(card.locator('.onboarding-mri__slice--active')).toBeVisible();
+    await expect(card.locator('.onboarding-mri__source')).toContainText('OpenNeuro');
+    await page.screenshot({ path: testInfo.outputPath('step-6.png') });
+
+    await card.getByRole('button', { name: 'Далее', exact: true }).click();
+    await expect(counter).toContainText('7 / 9');
+    await expect(card.getByRole('heading', { name: 'ЭКГ по фото' })).toBeVisible();
+
+    await card.getByRole('button', { name: 'Далее', exact: true }).click();
+    await expect(counter).toContainText('8 / 9');
+    await expect(card.getByRole('button', { name: 'Скачать модель (в фоне)' })).toBeVisible();
+    await expect(card).toContainText('только с согласия пациента');
+
+    await card.getByRole('button', { name: 'Далее', exact: true }).click();
+    await expect(counter).toContainText('9 / 9');
+    await expect(card).toContainText('Всё хранится только на твоём устройстве');
+    await page.screenshot({ path: testInfo.outputPath('step-9.png') });
+    await card.getByRole('button', { name: 'Начать работу' }).click();
+
+    // Finish: the tour is gone, search is on screen, the core download line keeps going.
+    await expect(page.locator('.onboarding')).toHaveCount(0);
+    await expect(page.locator('.search-home')).toBeVisible();
+    await expect(page.locator('.app-nav-button--active')).toHaveAttribute('aria-label', 'Поиск');
+    await expect(page.locator('.core-progress-line')).toBeVisible();
+    // Without the core the tour hides for this session only and returns on the next launch.
+    expect(
+      await page.evaluate(() => localStorage.getItem('minimed:package-setup-dismissed:v1')),
+    ).toBeNull();
+    expect(await page.evaluate(() => document.getElementById('root')?.hasAttribute('inert'))).toBe(
+      false,
+    );
+  });
+}
+
+test('Escape skips the tour from the intro and the keyboard moves between steps', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await holdCore(page);
+  await page.goto(`${ORIGIN}/#/search`, { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' })).toBeAttached();
+  // Arrow keys fast-forward the intro phases, then start the tour.
+  await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
+  for (let press = 0; press < 4; press += 1) await page.keyboard.press('ArrowRight');
+  const counter = page.locator('.onboarding-hint__counter');
+  await expect(counter).toContainText('2 / 9');
+  await page.keyboard.press('ArrowRight');
+  await expect(counter).toContainText('3 / 9');
+  await page.keyboard.press('ArrowLeft');
+  await expect(counter).toContainText('2 / 9');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.onboarding')).toHaveCount(0);
+  await expect(page.locator('.search-home')).toBeVisible();
+});

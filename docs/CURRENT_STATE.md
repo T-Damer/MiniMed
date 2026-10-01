@@ -29,7 +29,7 @@ Detailed history, moved verbatim on 2026-09-24:
   (`MiniMedBoot.iconShiftY()` corrects for the system bars). `src/app/boot-surface.ts` removes it
   with one fade once the first view's code and fonts are in and two frames have painted. The
   former «Запускаем MiniMed…» card and the reveal veil are gone.
-- `FirstRunSetup` is lazy; its package list loads the full module catalog after the reveal, so the
+- `FirstRunSetup` (now the lazy onboarding, see below) is lazy; its package list loaded the full module catalog after the reveal, so the
   9.6 MB catalog chunk is no longer in every launch's start-up graph (12.2 → 2.5 MB; emulator
   DOMContentLoaded 5.9 → 1.8 s). The session's catalog load also waits for the reveal.
 - `capacitor.config.ts` sets `loggingBehavior: 'none'`: prereleases are debug builds, where
@@ -45,6 +45,35 @@ Detailed history, moved verbatim on 2026-09-24:
 - `OverlayDialog` keeps a closing dialog mounted until its exit plays: on phones the sheet slides
   down from where it was released (pull-to-close continues instead of snapping back), the backdrop
   fades; wide-screen dialogs fade and settle. Verified in headless Chromium (close ≈ 290 ms).
+
+## Guided onboarding — 2026-10-01
+
+- `apps/app/src/features/onboarding/` replaces the first-run modal (`FirstRunSetup`, its package
+  list and the carousel on that screen are gone). The real search page renders under a full-screen
+  blur; after the splash leaves: «Привет», «Добро пожаловать в MiniMed», then the core download on
+  a thin line along the bottom edge (`CoreProgressLine`: percent and smoothed speed from
+  `coreProgress.loaded` samples, own texts for verifying/installing, «Скачать» on a metered
+  connection, «Повторить» on error). An installed core is reported as «уже на месте».
+- «Далее» begins the tour (steps 2–9 of 9, data in `onboarding-steps.ts`, state machine in
+  `onboarding-controller.ts`): the blur recedes to a light band at the screen edges (registered
+  `@property --onboarding-clear`), a green edge glow with streaming particles runs on an
+  OffscreenCanvas in `edge-glow.worker.ts` (main-thread canvas fallback; static CSS glow when
+  animations are off or `prefers-reduced-motion`), the intro's «Далее» flies into the hint card
+  with the View Transitions API (cross-fade without it), and hand-drawn arrows are drawn with
+  `stroke-dashoffset` from the card to the control found by `[data-tour="…"]` (rAF-batched
+  tracking; carousel slides out of sight are scrolled into view). The tour switches between search
+  and «Мои файлы» and returns to search at the end.
+- Optional downloads inside the tour go through the real feature code: «Скачать препараты» queues
+  the released `medication` modules through the module runtime (the 10 MB catalog loads only at
+  that step, after the intro; size from the catalog), «Скачать модель (в фоне)» activates the first
+  runtime-ready Whisper model through `asr-models`. Step 6 cycles the real MRI slices from
+  `public/onboarding/mri/manifest.json` with their attribution (the drawn imaging demo if absent).
+- Dismissal is unchanged: `dismissSetup()` runs only when the core is installed (at the end of the
+  tour or when it arrives later); otherwise the tour hides for the session and returns next launch.
+  `restartOnboarding()` (`onboarding-state.ts`) runs it again; Settings needs a button for it.
+- Verified in headless Chromium at 390 and 1280 px (light, dark, reduced motion, animations off,
+  core ready / downloading / failing) and by `e2e/onboarding.spec.ts`; not verified on a physical
+  Android device or WebView build (frame pacing of the particle worker, View Transitions there).
 
 ## Release 0.6.45 — 2026-09-30
 

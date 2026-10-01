@@ -169,28 +169,22 @@ test('missing core on a cellular connection waits for the user while files and s
   await expect(page.getByRole('button', { name: 'Скачать ядро · ~490 МБ' })).toBeVisible();
 });
 
-test('the first run on a cellular connection shows only the setup screen', async ({ page }) => {
+test('the first run on a cellular connection waits for the user inside the onboarding', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'connection', { value: { type: 'cellular' } });
   });
   await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`);
-  const setup = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
-  await expect(setup).toBeVisible();
-  // The consent to download belongs to the setup screen; no boot card may layer under it.
-  await expect(setup).toContainText('Ждёт вашего решения', { timeout: 30_000 });
+  const onboarding = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
+  await expect(onboarding).toBeAttached();
+  // The consent to download belongs to the onboarding; no boot card may layer under it.
+  await expect(onboarding).toContainText('Ядро знаний занимает около 490 МБ', { timeout: 30_000 });
+  await expect(onboarding.getByRole('button', { name: 'Скачать · ~490 МБ' })).toBeVisible();
   await expect(page.locator('.boot-screen')).toHaveCount(0);
-});
-
-test('the first-run tour shows how a CT study opens while the core downloads', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 812 });
-  await page.route('**/core.db', () => new Promise(() => {}));
-  await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`);
-  const setup = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
-  await setup.getByRole('button', { name: 'Снимки КТ и МРТ' }).click();
-  const slide = setup.locator('.feature-tour__slide--active');
-  await expect(slide).toContainText('Снимки КТ и МРТ');
-  await slide.getByRole('button', { name: 'Кость', exact: true }).click();
-  await expect(slide.locator('.tour-imaging__label')).toContainText('Кость');
-  await expect(slide.getByRole('button', { name: 'Скачать пример КТ' })).toBeEnabled();
+  // The same decision stays reachable on the thin line along the bottom edge.
+  await expect(
+    page.locator('.core-progress-line').getByRole('button', { name: 'Скачать' }),
+  ).toBeVisible();
 });
