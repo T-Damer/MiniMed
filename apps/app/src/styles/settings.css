@@ -325,6 +325,10 @@
   color: var(--theme-link);
 }
 
+.settings-row__action {
+  flex: none;
+}
+
 .settings-row__helper {
   margin: 0.2rem 0 0;
   font-size: 0.8125rem;

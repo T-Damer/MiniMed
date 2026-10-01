@@ -285,7 +285,10 @@ export function App(): JSX.Element {
     on(
       onboardingRestartRequests,
       () => {
-        if (!embeddedFloatingWindow) setOnboardingOpen(true);
+        if (embeddedFloatingWindow) return;
+        // The intro is told over the search screen, wherever the request came from.
+        navigation.navigate('search');
+        setOnboardingOpen(true);
       },
       { defer: true },
     ),

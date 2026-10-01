@@ -11,6 +11,7 @@ import { Switch } from '@/components/Switch';
 import { AsrSettings } from '@/features/asr/AsrSettings';
 import { DownloadsPage } from '@/features/downloads/DownloadsPage';
 import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
+import { restartOnboarding } from '@/features/onboarding/onboarding-state';
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
 import { EcgModelSettings } from '@/features/settings/EcgModelSettings';
 import { PackagingImagesSettings } from '@/features/settings/PackagingImagesSettings';
@@ -300,6 +301,21 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
               if (isMotionSpeed(value)) setMotionSpeed(value);
             }}
           />
+
+          <div class="settings-row">
+            <div class="settings-row__text">
+              <span class="settings-row__label settings-row__label--with-icon">
+                <AppGlyph name="question" class="settings-row__label-icon" aria-hidden="true" />
+                Обучение
+              </span>
+              <p class="settings-row__helper">
+                Короткая экскурсия по поиску, файлам, инструментам и голосу.
+              </p>
+            </div>
+            <Button class="settings-row__action" onClick={restartOnboarding}>
+              Пройти заново
+            </Button>
+          </div>
         </section>
 
         <h2 class="settings-page__group-title">Загрузки</h2>
