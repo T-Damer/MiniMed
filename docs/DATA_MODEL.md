@@ -79,6 +79,14 @@ Direct FTS5 index over:
 
 Identity fields are `UNINDEXED`. The index can be deleted and rebuilt from relational data.
 
+Since migration 010 the index is external-content over the `chunks_fts_source` view (no second copy
+of the indexed strings). A finished **module** pack may additionally have `chunks.normalized_text`
+emptied (`app_metadata.search_text_state = normalized-text-emptied`, migration 013 /
+`medbase compact-module-search`, or `medbase build --compact-search-text`): the text is only read by
+an index rebuild, nothing at runtime uses it, and such a pack refuses to be re-indexed or composed.
+`original_text`, offsets, anchors and ids are never touched. Inputs of `compose` and of the core
+build keep their normalized text.
+
 ## Stable identifiers
 
 IDs are generated deterministically from document identity, heading path, and ordered text. Rebuilds

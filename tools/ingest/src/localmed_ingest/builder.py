@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 import yaml
@@ -22,6 +24,7 @@ from .knowledge import (
 from .knowledge_modules import load_knowledge_modules
 from .markdown_parser import parse_markdown_document
 from .models import Alias, BuildReport, ContentPack, PackDocument, PackManifest
+from .module_search_compaction import compact_search_text as compact_search_text_in_place
 from .normalization import normalize_for_index
 from .sqlite_builder import inspect_integrity, write_sqlite_pack
 from .text_encoding import (
@@ -244,6 +247,7 @@ def build_content_pack(
     edition_manifest_output: Path | None = None,
     include_embeddings: bool = True,
     include_unreviewed_knowledge: bool = False,
+    compact_search_text: bool = False,
 ) -> tuple[ContentPack, BuildReport]:
     pack, knowledge = _load_content_pack(
         input_dir,
@@ -255,6 +259,12 @@ def build_content_pack(
         raise ValueError("Content lint failed:\n" + "\n".join(errors))
     write_sqlite_pack(pack, output, vacuum=False)
     write_knowledge_sqlite(output, knowledge, include_unreviewed=include_unreviewed_knowledge)
+    if compact_search_text:
+        # Only a finished module pack may lose its normalized text: it is read solely by the
+        # index rebuild, which has just run (and passed rank-1 verification) in write_sqlite_pack.
+        with closing(sqlite3.connect(output)) as connection:
+            compact_search_text_in_place(connection)
+            connection.execute("VACUUM")
     integrity, foreign_keys, chunk_count, fts_rows, profile_count, embedding_count = (
         inspect_integrity(output)
     )

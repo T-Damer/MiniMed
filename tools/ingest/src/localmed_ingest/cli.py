@@ -38,6 +38,7 @@ from .krasotaimedicina_crawl import DEFAULT_SEEDS, crawl_krasotaimedicina
 from .krasotaimedicina_distribution import package_krasotaimedicina_module
 from .krasotaimedicina_prepare import prepare_krasotaimedicina
 from .mkb_reference_upgrade import upgrade_mkb_reference_database, write_upgrade_report
+from .module_search_compaction import MIGRATION_ID, migrate_module_search
 from .pdf_import import import_pdf
 from .publication import PublicationDecision
 from .rls_mkb import RLS_MKB_DETAIL_URL, RLS_MKB_INDEX_URL, scrape_rls_mkb
@@ -589,6 +590,16 @@ def build(
             help="Demo-only: include proposed knowledge in search projections.",
         ),
     ] = False,
+    compact_search_text: Annotated[
+        bool,
+        typer.Option(
+            "--compact-search-text",
+            help=(
+                "Finished module packs only: empty chunks.normalized_text after the final index "
+                "rebuild (the pack can no longer be re-indexed or composed)."
+            ),
+        ),
+    ] = False,
 ) -> None:
     """Build a SQLite pack and optional JSON seed from Markdown sources."""
     _, build_report = build_content_pack(
@@ -599,8 +610,33 @@ def build(
         edition_manifest,
         include_embeddings=not lexical_only,
         include_unreviewed_knowledge=include_unreviewed_knowledge,
+        compact_search_text=compact_search_text,
     )
     typer.echo(json.dumps(build_report.model_dump(by_alias=True), ensure_ascii=False, indent=2))
+
+
+@app.command("compact-module-search")
+def compact_module_search_command(
+    source: Annotated[Path, typer.Option("--input", exists=True)],
+    output: Annotated[Path, typer.Option("--output")],
+    report: Annotated[Path, typer.Option("--report")],
+) -> None:
+    """External-content FTS and empty normalized_text for finished module packs (migration 013)."""
+    pairs = (
+        [(path, output / path.name) for path in sorted(source.glob("*.db"))]
+        if source.is_dir()
+        else [(source, output)]
+    )
+    if not pairs:
+        raise typer.BadParameter(f"No .db files in {source}")
+    results = [migrate_module_search(path, target) for path, target in pairs]
+    report.parent.mkdir(parents=True, exist_ok=True)
+    report.write_text(
+        json.dumps({"migration": MIGRATION_ID, "modules": results}, ensure_ascii=False, indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+    typer.echo(f"{len(results)} pack(s) compacted → {output}")
 
 
 @app.command("upgrade-mkb-reference")

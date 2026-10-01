@@ -64,6 +64,8 @@ def secondary_indexes_sql() -> list[str]:
 
 
 _ESCAPED_SEARCH_JSON = r"*\[bfnrtu]*"
+SEARCH_TEXT_STATE_KEY = "search_text_state"
+SEARCH_TEXT_EMPTIED = "normalized-text-emptied"
 
 
 def chunks_fts_uses_external_content(connection: sqlite3.Connection) -> bool:
@@ -75,6 +77,15 @@ def chunks_fts_uses_external_content(connection: sqlite3.Connection) -> bool:
 
 def rebuild_chunks_fts_index(connection: sqlite3.Connection) -> None:
     """Populate the external-content ordinary index from chunks (migration 010 layout)."""
+    emptied = connection.execute(
+        "SELECT 1 FROM app_metadata WHERE key = ? AND value = ?",
+        (SEARCH_TEXT_STATE_KEY, SEARCH_TEXT_EMPTIED),
+    ).fetchone()
+    if emptied is not None:
+        raise ValueError(
+            "This pack's normalized_text was emptied after its final index build "
+            "(module_search_compaction); rebuild it from its sources instead."
+        )
     # The view indexes raw JSON arrays; escapes would add tokens absent from the decoded names.
     escaped = connection.execute(
         """SELECT 1 FROM sections WHERE path_json GLOB ?

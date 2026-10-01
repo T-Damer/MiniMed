@@ -189,7 +189,32 @@ uv run --project tools/ingest medbase inspect \
 - each chunk belongs to one document version and one section;
 - source spans never appear in visible chunk text;
 - `chunks` and `chunks_fts` row counts match;
+- a module pack that was search-compacted (`search_text_state = normalized-text-emptied`) is a final
+  artifact only: it was verified against its source by a token-instance fingerprint of the index, the
+  bm25 top-50 of a query set and a hash of every other chunk column, and it must never feed another
+  index build;
 - `PRAGMA integrity_check` returns `ok`;
 - `PRAGMA foreign_key_check` returns no rows;
 - a non-synthetic imported document should carry a source file, checksum, and span metadata;
 - extraction warnings remain visible in build reports.
+
+## Compacting module packs
+
+A finished module pack loses about a quarter of its size, with the index unchanged, in one step:
+
+```bash
+# existing packs whose sources are not on this machine (ЕСКЛП, clinical recommendations, ...)
+uv run --project tools/ingest medbase compact-module-search --input DIR_OR_DB --output DIR_OR_DB --report report.json
+# a module build that has its sources
+uv run --project tools/ingest medbase build --input ... --output ... --lexical-only --compact-search-text
+```
+
+The migration converts a self-contained `chunks_fts` to the external-content layout of migration 010
+(keeping the pack's own tokenizer and prefix list), runs the rank-1 integrity check, empties
+`chunks.normalized_text`, vacuums, and accepts the output only if the index fingerprint, the bm25
+results of a deterministic query set and the hash of the remaining chunk columns equal the input's.
+Compare real search behaviour of two directories with
+`bun tools/benchmarks/src/compare-module-search.ts --before DIR --after DIR --kind esklp|clinical`.
+A search-compacted pack has a new decoded checksum: publish it as an artifact of the same module
+version only when no installed copy has to be replaced (the logical source set is unchanged), and
+otherwise bump the version.
