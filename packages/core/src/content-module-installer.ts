@@ -59,10 +59,26 @@ export interface ContentModuleArtifactBackend {
   ): Promise<ContentModuleActivationReceipt>;
   restore(receipt: ContentModuleActivationReceipt): Promise<void>;
   discardStaging(moduleId: string, version: string): Promise<void>;
+  /**
+   * Optional. Installs a compressed index without ever holding its decoded bytes: the backend
+   * decodes straight into its store, verifies the artifact's `decodedSizeBytes`/`decodedSha256`
+   * itself and throws on a mismatch. Returning null declines (the generic decode path runs). The
+   * validator then receives `null` instead of the index bytes.
+   */
+  stageEncodedIndex?(
+    module: ContentModuleCatalogEntry,
+    artifact: ModuleArtifact,
+    encoded: Uint8Array,
+    signal: AbortSignal,
+  ): Promise<StagedContentModuleArtifact | null>;
 }
 
 export interface ContentModuleIndexValidator {
-  validate(module: ContentModuleCatalogEntry, indexBytes: Uint8Array): Promise<ModuleValidation>;
+  /** `indexBytes` is null when the backend staged the index itself (see `stageEncodedIndex`). */
+  validate(
+    module: ContentModuleCatalogEntry,
+    indexBytes: Uint8Array | null,
+  ): Promise<ModuleValidation>;
 }
 
 export type ContentModuleIndexDecoder = (
@@ -352,6 +368,7 @@ export class ForegroundContentModuleInstaller {
     if (!sourceSetDigest) throw new Error(`Module ${module.id} has no source-set digest.`);
     const staged: StagedContentModuleArtifact[] = [];
     let indexBytes: Uint8Array | undefined;
+    let indexStagedByBackend = false;
     let recoveryFailed = false;
     const completedBytes = new Map<string, number>();
     let releaseInstallSlot: ReleaseInstallSlot | null = null;
@@ -401,6 +418,24 @@ export class ForegroundContentModuleInstaller {
           }
           this.setTask(task.id, { state: 'verifying' });
           signal.throwIfAborted();
+          const encodedStage = await this.backend.stageEncodedIndex?.(
+            module,
+            artifact,
+            bytes,
+            signal,
+          );
+          if (encodedStage) {
+            signal.throwIfAborted();
+            staged.push(encodedStage);
+            if (artifact.id === indexArtifact.id) indexStagedByBackend = true;
+            this.setTask(task.id, {
+              downloadedBytes: [...completedBytes.values()].reduce(
+                (total, value) => total + value,
+                0,
+              ),
+            });
+            continue;
+          }
           installedBytes = await this.decodeIndex(artifact, bytes, signal);
           if (signal.aborted) throw new DOMException('Installation cancelled.', 'AbortError');
           if (
@@ -421,8 +456,10 @@ export class ForegroundContentModuleInstaller {
 
       this.setTask(task.id, { state: 'verifying' });
       signal.throwIfAborted();
-      if (!indexBytes) throw new Error(`Index artifact ${indexArtifact.id} was not downloaded.`);
-      const validation = await this.validator.validate(module, indexBytes);
+      if (!indexBytes && !indexStagedByBackend) {
+        throw new Error(`Index artifact ${indexArtifact.id} was not downloaded.`);
+      }
+      const validation = await this.validator.validate(module, indexBytes ?? null);
       indexBytes = undefined;
       signal.throwIfAborted();
       if (

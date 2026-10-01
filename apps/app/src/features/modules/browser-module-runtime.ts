@@ -32,6 +32,7 @@ import {
 } from '@/features/assessments/assessment-packs';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { resolveContentModuleArtifactUrl } from '@/features/modules/artifact-url';
+import { canStreamEncodedIndex } from '@/features/modules/encoded-index-reader';
 import {
   contentModuleNeedsInstall,
   isModuleReleased,
@@ -45,6 +46,16 @@ import {
   moduleIndexBytes,
   moduleIndexSize,
 } from '@/features/modules/module-index-payload';
+import {
+  holdModuleStagingLock,
+  listModulePools,
+  MODULE_POOL_PREFIX,
+  type ModulePoolSweep,
+  moduleOpfsPoolName,
+  moduleVersionKey,
+  removeModulePoolWhenFree,
+  sweepModulePools,
+} from '@/features/modules/module-opfs-pools';
 import { commitRegistryAndArtifactMutation } from '@/features/modules/module-registry-transaction';
 import {
   dequeuePendingModuleInstall,
@@ -72,7 +83,14 @@ interface StoredModuleVersion {
   readonly key: string;
   readonly moduleId: string;
   readonly version: string;
-  readonly bytes: ArrayBuffer | Blob;
+  /**
+   * The index of a small module. Absent once a large index lives only in OPFS (`indexStorage`):
+   * rows written before the single-store change still carry the bytes next to an OPFS copy and are
+   * migrated by dropping them (see `dropRedundantIndexBytes`).
+   */
+  readonly bytes?: ArrayBuffer | Blob;
+  readonly indexStorage?: 'opfs';
+  readonly indexSizeBytes?: number;
   readonly indexSha256?: string;
   readonly sourceAssets?: readonly StoredModuleArtifact[];
   readonly sourceSetDigest: string;
@@ -94,7 +112,14 @@ interface StagedBytes {
   readonly moduleId: string;
   readonly version: string;
   readonly artifact: ModuleArtifact;
-  readonly bytes: Uint8Array;
+  /** Decoded bytes; absent when a large index was streamed straight into OPFS. */
+  readonly bytes?: Uint8Array;
+  /** Decoded size of an index that already sits in `opfsPool`. */
+  readonly opfsBytes?: number;
+  readonly opfsPool?: string;
+  /** Keeps orphan sweeps away from the pool until the version is committed or discarded. */
+  readonly releaseStaging?: () => void;
+  committed?: boolean;
 }
 
 function requestResult<T>(request: IDBRequest<T>): Promise<T> {
@@ -132,31 +157,56 @@ async function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-function versionKey(moduleId: string, version: string): string {
-  return `${moduleId}@${version}`;
+const versionKey = moduleVersionKey;
+
+/** An index already imported into OPFS (nothing to copy), identified by its decoded size. */
+interface InstalledOpfsIndex {
+  readonly opfsBytes: number;
+}
+type ModuleIndexSource = ModuleIndexPayload | InstalledOpfsIndex;
+
+function isInstalledOpfsIndex(source: ModuleIndexSource): source is InstalledOpfsIndex {
+  return typeof source === 'object' && source !== null && 'opfsBytes' in source;
 }
 
-function moduleOpfsKey(moduleId: string, version: string): string {
-  return `minimed-module-${encodeURIComponent(versionKey(moduleId, version))}`;
+/** Large indexes live in OPFS only; small ones stay in IndexedDB and are opened in memory. */
+function isLargeIndex(sizeBytes: number): boolean {
+  return sizeBytes > SQLITE_WASM_DESERIALIZE_MAX_BYTES;
+}
+
+function storedIndexSource(stored: StoredModuleVersion): ModuleIndexSource | null {
+  if (stored.bytes) return stored.bytes;
+  if (stored.indexStorage === 'opfs' && stored.indexSizeBytes !== undefined) {
+    return { opfsBytes: stored.indexSizeBytes };
+  }
+  return null;
 }
 
 async function openModuleStore(
   moduleId: string,
   version: string,
-  payload: ModuleIndexPayload,
+  source: ModuleIndexSource,
   indexSha256?: string,
 ): Promise<SqliteMedicalStore | WorkerOpfsMedicalStore> {
-  if (moduleIndexSize(payload) <= SQLITE_WASM_DESERIALIZE_MAX_BYTES) {
-    return SqliteMedicalStore.createFromBytes(await moduleIndexBytes(payload));
+  if (!isInstalledOpfsIndex(source) && !isLargeIndex(moduleIndexSize(source))) {
+    return SqliteMedicalStore.createFromBytes(await moduleIndexBytes(source));
   }
 
   if (indexSha256 !== undefined && !/^sha256:[a-f0-9]{64}$/u.test(indexSha256)) {
     throw new Error('Invalid module index checksum.');
   }
-  const key = moduleOpfsKey(moduleId, indexSha256 ? `${version}:${indexSha256}` : version);
-  // ponytail: OPFS copies survive remove/rollback; IndexedDB stays authoritative. Add per-version
-  // OPFS deletion only with a cache lifecycle API.
-  const url = URL.createObjectURL(moduleIndexBlob(payload));
+  const key = moduleOpfsPoolName(moduleId, version, indexSha256);
+  if (isInstalledOpfsIndex(source)) {
+    return WorkerOpfsMedicalStore.open({
+      installed: { byteLength: source.opfsBytes },
+      databaseName: `${key}.db`,
+      fetchTimeoutMs: MODULE_OPFS_FETCH_TIMEOUT_MS,
+      poolName: key,
+    });
+  }
+  // The OPFS pool is the module's only copy: a missing file is imported from the payload once, an
+  // existing one is reused. The caller drops any IndexedDB duplicate after a successful open.
+  const url = URL.createObjectURL(moduleIndexBlob(source));
   try {
     return await WorkerOpfsMedicalStore.open({
       url,
@@ -191,6 +241,94 @@ async function readVersion(
   );
   await transactionDone(transaction);
   return value ?? null;
+}
+
+async function readVersionKeys(database: IDBDatabase): Promise<readonly string[]> {
+  const transaction = database.transaction(VERSIONS_STORE, 'readonly');
+  const keys = await requestResult(transaction.objectStore(VERSIONS_STORE).getAllKeys());
+  await transactionDone(transaction);
+  return keys.map(String);
+}
+
+/**
+ * Single store: once a large index is in OPFS, the IndexedDB row keeps only its metadata. The row
+ * is rewritten inside one transaction, and only if it still holds the duplicate bytes.
+ */
+async function dropRedundantIndexBytes(database: IDBDatabase, key: string): Promise<boolean> {
+  const transaction = database.transaction(VERSIONS_STORE, 'readwrite');
+  const store = transaction.objectStore(VERSIONS_STORE);
+  const row = await requestResult(store.get(key) as IDBRequest<StoredModuleVersion | undefined>);
+  const size = row?.bytes ? moduleIndexSize(row.bytes) : 0;
+  if (!row || !isLargeIndex(size)) {
+    transaction.abort();
+    await transactionDone(transaction).catch(() => undefined);
+    return false;
+  }
+  const { bytes: _duplicate, ...metadata } = row;
+  store.put({ ...metadata, indexStorage: 'opfs', indexSizeBytes: size });
+  await transactionDone(transaction);
+  return true;
+}
+
+/**
+ * Pool names the stored versions refer to. Row keys are enough: a pool is named after its
+ * `moduleId@version`, optionally followed by the index checksum.
+ */
+function referencedPoolPrefixes(keys: readonly string[]): readonly string[] {
+  return keys.map((key) => `${MODULE_POOL_PREFIX}${encodeURIComponent(key)}`);
+}
+
+function poolBelongsToVersion(pool: string, prefix: string): boolean {
+  return pool === prefix || pool.startsWith(`${prefix}${encodeURIComponent(':')}`);
+}
+
+/** Removes OPFS pools that no stored module version refers to; a pool in use is left for later. */
+export async function sweepOrphanedModulePools(): Promise<ModulePoolSweep | null> {
+  if (!('indexedDB' in globalThis)) return null;
+  const database = await openDatabase();
+  let prefixes: readonly string[];
+  try {
+    prefixes = referencedPoolPrefixes(await readVersionKeys(database));
+  } finally {
+    database.close();
+  }
+  const referenced = new Set(
+    (await listModulePools()).filter((pool) =>
+      prefixes.some((prefix) => poolBelongsToVersion(pool, prefix)),
+    ),
+  );
+  return sweepModulePools(referenced);
+}
+
+/**
+ * Versions that are not active are never mounted, so earlier app versions left their IndexedDB
+ * copy next to the OPFS one. Make sure the OPFS copy exists and drop the duplicate.
+ */
+export async function migrateInactiveModuleCopies(
+  largeModuleIds: ReadonlySet<string>,
+): Promise<number> {
+  if (!('indexedDB' in globalThis) || largeModuleIds.size === 0) return 0;
+  const database = await openDatabase();
+  let migrated = 0;
+  try {
+    const active = new Set(
+      (await readActivePointers(database)).map((pointer) =>
+        versionKey(pointer.moduleId, pointer.version),
+      ),
+    );
+    for (const key of await readVersionKeys(database)) {
+      const moduleId = key.slice(0, key.lastIndexOf('@'));
+      if (active.has(key) || !largeModuleIds.has(moduleId)) continue;
+      const row = await readVersion(database, moduleId, key.slice(moduleId.length + 1));
+      if (!row?.bytes || !isLargeIndex(moduleIndexSize(row.bytes))) continue;
+      const store = await openModuleStore(row.moduleId, row.version, row.bytes, row.indexSha256);
+      await store.close();
+      if (await dropRedundantIndexBytes(database, key)) migrated += 1;
+    }
+  } finally {
+    database.close();
+  }
+  return migrated;
 }
 
 export async function readActiveInstalledSourceAssets(
@@ -256,13 +394,79 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
     bytes: Uint8Array,
   ): Promise<StagedContentModuleArtifact> {
     const token = `${module.id}@${module.version}:${artifact.id}`;
-    this.staged.set(token, { moduleId: module.id, version: module.version, artifact, bytes });
+    // A large index reaches OPFS while it is validated and is committed only by `activate`: keep
+    // orphan sweeps away in between.
+    const large = artifact.kind === 'index' && isLargeIndex(bytes.byteLength);
+    const releaseStaging = large ? await holdModuleStagingLock() : undefined;
+    const indexSha256 = artifact.compression === 'none' ? artifact.sha256 : artifact.decodedSha256;
+    this.staged.set(token, {
+      moduleId: module.id,
+      version: module.version,
+      artifact,
+      bytes,
+      ...(large
+        ? { opfsPool: moduleOpfsPoolName(module.id, module.version, indexSha256 ?? undefined) }
+        : {}),
+      ...(releaseStaging ? { releaseStaging } : {}),
+    });
     return {
       artifactId: artifact.id,
       kind: artifact.kind,
       sizeBytes: bytes.byteLength,
       token,
     };
+  }
+
+  /**
+   * A large zstd index is decoded frame by frame straight into its OPFS pool and verified against
+   * the catalog's decoded size and SHA-256 on the way: neither the decoded file nor a second copy
+   * of it ever exists in memory or IndexedDB. Anything else takes the generic decode path.
+   */
+  public async stageEncodedIndex(
+    module: ContentModuleCatalogEntry,
+    artifact: ModuleArtifact,
+    encoded: Uint8Array,
+    signal: AbortSignal,
+  ): Promise<StagedContentModuleArtifact | null> {
+    const { decodedSizeBytes, decodedSha256 } = artifact;
+    if (
+      artifact.kind !== 'index' ||
+      artifact.compression !== 'zstd' ||
+      !decodedSizeBytes ||
+      !decodedSha256 ||
+      !isLargeIndex(decodedSizeBytes) ||
+      typeof Worker === 'undefined' ||
+      !canStreamEncodedIndex(encoded)
+    ) {
+      return null;
+    }
+    signal.throwIfAborted();
+    const token = `${module.id}@${module.version}:${artifact.id}`;
+    const opfsPool = moduleOpfsPoolName(module.id, module.version, decodedSha256);
+    const releaseStaging = await holdModuleStagingLock();
+    const staged: StagedBytes = {
+      moduleId: module.id,
+      version: module.version,
+      artifact,
+      opfsBytes: decodedSizeBytes,
+      opfsPool,
+      releaseStaging,
+    };
+    this.staged.set(token, staged);
+    try {
+      const store = await WorkerOpfsMedicalStore.open({
+        encoded: { bytes: encoded, decodedSizeBytes, decodedSha256 },
+        databaseName: `${opfsPool}.db`,
+        fetchTimeoutMs: MODULE_OPFS_FETCH_TIMEOUT_MS,
+        poolName: opfsPool,
+      });
+      await store.close();
+      signal.throwIfAborted();
+    } catch (cause) {
+      await this.discardStaging(module.id, module.version);
+      throw cause;
+    }
+    return { artifactId: artifact.id, kind: artifact.kind, sizeBytes: decodedSizeBytes, token };
   }
 
   public async activate(
@@ -273,6 +477,23 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
     if (!index) throw new Error('В наборе нет поисковой базы.');
     const staged = this.staged.get(index.token);
     if (!staged) throw new Error('Временный файл набора потерян.');
+    const decodedSize = staged.opfsBytes ?? staged.bytes?.byteLength;
+    if (decodedSize === undefined) throw new Error('Временный файл набора потерян.');
+    const largeIndex = isLargeIndex(decodedSize);
+    const indexSha256 =
+      staged.artifact.compression === 'none'
+        ? staged.artifact.sha256
+        : staged.artifact.decodedSha256;
+    if (largeIndex && staged.bytes) {
+      // The validator normally imported it already; make the OPFS copy the one durable copy.
+      const store = await openModuleStore(
+        module.id,
+        module.version,
+        staged.bytes,
+        indexSha256 ?? undefined,
+      );
+      await store.close();
+    }
     const sourceAssets = module.artifacts
       .filter((artifact) => artifact.kind === 'source-assets')
       .map((artifact) => {
@@ -287,7 +508,7 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
         }
         const source = this.staged.get(stagedArtifact.token);
         if (!source) throw new Error('Временный файл source-assets набора потерян.');
-        if (source.artifact.compression !== 'zip') {
+        if (source.artifact.compression !== 'zip' || !source.bytes) {
           throw new Error(`Source-assets артефакт ${artifact.id} должен быть ZIP.`);
         }
         return {
@@ -308,17 +529,14 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
       await transactionDone(previousTransaction);
 
       const transaction = database.transaction([VERSIONS_STORE, ACTIVE_STORE], 'readwrite');
-      const storedBytes = moduleIndexBlob(staged.bytes);
-      const indexSha256 =
-        staged.artifact.compression === 'none'
-          ? staged.artifact.sha256
-          : staged.artifact.decodedSha256;
       const stored: StoredModuleVersion = {
         key: versionKey(module.id, module.version),
         ...(module.definitionReference ? { definitionReference: module.definitionReference } : {}),
         moduleId: module.id,
         version: module.version,
-        bytes: storedBytes,
+        ...(largeIndex || !staged.bytes
+          ? { indexStorage: 'opfs' as const, indexSizeBytes: decodedSize }
+          : { bytes: moduleIndexBlob(staged.bytes) }),
         ...(indexSha256 ? { indexSha256 } : {}),
         ...(sourceAssets.length > 0 ? { sourceAssets } : {}),
         sourceSetDigest: module.sourceSetDigest ?? '',
@@ -327,12 +545,13 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
       transaction.objectStore(VERSIONS_STORE).put(stored);
       transaction.objectStore(ACTIVE_STORE).put({ moduleId: module.id, version: module.version });
       await transactionDone(transaction);
+      staged.committed = true;
       await this.discardStaging(module.id, module.version);
       return {
         moduleId: module.id,
         version: module.version,
         installedSizeBytes:
-          staged.bytes.byteLength +
+          decodedSize +
           sourceAssets.reduce((total, artifact) => total + artifact.bytes.byteLength, 0),
         token: JSON.stringify(previous ?? null),
       };
@@ -358,16 +577,41 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
   }
 
   public async discardStaging(moduleId: string, version: string): Promise<void> {
+    const abandoned: StagedBytes[] = [];
     for (const [token, staged] of this.staged) {
-      if (staged.moduleId === moduleId && staged.version === version) this.staged.delete(token);
+      if (staged.moduleId !== moduleId || staged.version !== version) continue;
+      this.staged.delete(token);
+      if (staged.opfsPool && !staged.committed) abandoned.push(staged);
+      else staged.releaseStaging?.();
+    }
+    // An index that reached OPFS but was never committed has no row: drop its pool, unless a row
+    // of the same version (an earlier, valid installation) is using it.
+    for (const staged of abandoned) {
+      try {
+        if (!(await this.hasStoredVersion(moduleId, version))) {
+          await removeModulePoolWhenFree(staged.opfsPool ?? '');
+        }
+      } finally {
+        staged.releaseStaging?.();
+      }
     }
   }
 
+  private async hasStoredVersion(moduleId: string, version: string): Promise<boolean> {
+    const database = await openDatabase();
+    try {
+      return (await readVersion(database, moduleId, version)) !== null;
+    } finally {
+      database.close();
+    }
+  }
+
+  /** The in-memory index of a small module; null for a missing version or an OPFS-only index. */
   public async readIndexBytes(moduleId: string, version: string): Promise<Uint8Array | null> {
     const database = await openDatabase();
     try {
       const stored = await readVersion(database, moduleId, version);
-      return stored ? await moduleIndexBytes(stored.bytes) : null;
+      return stored?.bytes ? await moduleIndexBytes(stored.bytes) : null;
     } finally {
       database.close();
     }
@@ -387,6 +631,11 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
     } finally {
       database.close();
     }
+    // The OPFS pools of the removed versions are orphans now. One that a search worker still has
+    // open stays until a later sweep (every core connection and app start runs one).
+    await sweepOrphanedModulePools().catch((cause: unknown) => {
+      console.warn(`Unable to clean the OPFS pools of ${moduleId}.`, cause);
+    });
   }
 
   public async setActive(moduleId: string, version: string): Promise<void> {
@@ -404,16 +653,24 @@ export class BrowserModuleBackend implements ContentModuleArtifactBackend {
 }
 
 export class BrowserModuleValidator implements ContentModuleIndexValidator {
-  public async validate(module: ContentModuleCatalogEntry, indexBytes: Uint8Array) {
+  public async validate(module: ContentModuleCatalogEntry, indexBytes: Uint8Array | null) {
     let store: SqliteMedicalStore | WorkerOpfsMedicalStore | null = null;
     try {
       const artifact = module.artifacts.find((entry) => entry.kind === 'index');
-      store = await openModuleStore(
-        module.id,
-        module.version,
-        indexBytes,
-        (artifact?.compression === 'none' ? artifact.sha256 : artifact?.decodedSha256) ?? undefined,
-      );
+      const indexSha256 =
+        (artifact?.compression === 'none' ? artifact.sha256 : artifact?.decodedSha256) ?? undefined;
+      if (indexBytes === null) {
+        // Streamed into OPFS by the backend: open that copy, never import another.
+        if (!artifact?.decodedSizeBytes) throw new Error('Для базы не указан размер распаковки.');
+        store = await openModuleStore(
+          module.id,
+          module.version,
+          { opfsBytes: artifact.decodedSizeBytes },
+          indexSha256,
+        );
+      } else {
+        store = await openModuleStore(module.id, module.version, indexBytes, indexSha256);
+      }
       const health = await store.initialize();
       const integrity = await store.inspectIntegrity();
       const schemaCompatible = health.schemaVersion === module.compatibility.schemaVersion;
@@ -642,6 +899,31 @@ export class BrowserContentModuleRuntime {
     }
     this.reconcileAssessmentDependencies();
     this.localPackagedModulesReady = this.ensureLocalPackagedModules();
+    void this.reconcileStoredIndexes();
+  }
+
+  /**
+   * One store per large index: older app versions kept an IndexedDB copy next to the OPFS one and
+   * never removed OPFS pools. Idle work, safe to repeat, and never allowed to fail the app.
+   */
+  private async reconcileStoredIndexes(): Promise<void> {
+    const largeModuleIds = new Set(
+      this.catalog.modules
+        .filter((module) =>
+          module.artifacts.some(
+            (artifact) =>
+              artifact.kind === 'index' &&
+              isLargeIndex(artifact.decodedSizeBytes ?? artifact.sizeBytes ?? 0),
+          ),
+        )
+        .map((module) => module.id),
+    );
+    try {
+      await migrateInactiveModuleCopies(largeModuleIds);
+      await sweepOrphanedModulePools();
+    } catch (cause) {
+      console.warn('Unable to reconcile stored module indexes.', cause);
+    }
   }
 
   public whenLocalPackagedModulesReady(): Promise<void> {
@@ -985,10 +1267,32 @@ export class BrowserContentModuleRuntime {
         () => this.backend.remove(moduleId),
       );
       removeAssessmentModuleDependencies(moduleId, getAssessmentCatalog());
+      this.scheduleOrphanSweep();
     } catch (cause) {
       this.restoreAssessmentDependencyScan(moduleId);
       throw cause;
     }
+  }
+
+  /**
+   * A removed module's pool may still be open in the live search core until the app reconnects its
+   * content. Look again a little later, a bounded number of times.
+   */
+  private scheduleOrphanSweep(attempt = 0): void {
+    const delays = [3_000, 15_000, 60_000];
+    const delay = delays[attempt];
+    if (this.disposed || delay === undefined) return;
+    window.setTimeout(() => {
+      void sweepOrphanedModulePools()
+        .then((result) => {
+          if (result && (result.busy.length > 0 || result.deferred)) {
+            this.scheduleOrphanSweep(attempt + 1);
+          }
+        })
+        .catch((cause: unknown) => {
+          console.warn('Unable to sweep orphaned OPFS module pools.', cause);
+        });
+    }, delay);
   }
 
   public async rollback(moduleId: string, version?: string): Promise<InstalledContentModule> {
@@ -1029,11 +1333,16 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
     for (const pointer of pointers) {
       const stored = await readVersion(database, pointer.moduleId, pointer.version);
       if (!stored) continue;
+      const source = storedIndexSource(stored);
+      if (!source) {
+        console.warn(`Content module ${pointer.moduleId} has no stored index.`);
+        continue;
+      }
       try {
         const store = await openModuleStore(
           pointer.moduleId,
           pointer.version,
-          stored.bytes,
+          source,
           stored.indexSha256,
         );
         if (stored.definitionReference) {
@@ -1060,6 +1369,12 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
             ? { definitionReference: stored.definitionReference }
             : {}),
         });
+        if (stored.bytes && isLargeIndex(moduleIndexSize(stored.bytes))) {
+          // Installed before the single-store change: the OPFS copy just opened is the module now.
+          await dropRedundantIndexBytes(database, stored.key).catch((cause: unknown) => {
+            console.warn(`Unable to drop the duplicate index of ${pointer.moduleId}.`, cause);
+          });
+        }
       } catch (cause) {
         console.warn(`Unable to mount content module ${pointer.moduleId}.`, cause);
       }
@@ -1067,5 +1382,8 @@ export async function loadInstalledModuleMounts(): Promise<readonly MedicalStore
     return mounts;
   } finally {
     database.close();
+    void sweepOrphanedModulePools().catch((cause: unknown) => {
+      console.warn('Unable to sweep orphaned OPFS module pools.', cause);
+    });
   }
 }

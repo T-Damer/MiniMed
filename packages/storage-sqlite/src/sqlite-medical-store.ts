@@ -164,6 +164,31 @@ export function opfsImportProgressTotal(
   return loaded > headByteLength ? 0 : headByteLength;
 }
 
+/** Where the bytes of an OPFS-hosted pack come from when its pool does not hold them yet. */
+export type OpfsPackSource =
+  /** Fetch the file; the pool name carries its identity, a HEAD request its size. */
+  | { readonly kind: 'url'; readonly url: string }
+  /** Already installed by an earlier import: open it, never write it. */
+  | { readonly kind: 'installed'; readonly byteLength: number }
+  /**
+   * A producer of the pack's exact bytes (for example a decoder that verifies a checksum when it
+   * reaches the end). `open` runs only when the pool needs an import; a producer that throws leaves
+   * no file behind, because the pool associates an imported file only after its last chunk.
+   */
+  | {
+      readonly kind: 'stream';
+      readonly byteLength: number;
+      readonly open: () => () => Promise<Uint8Array | undefined>;
+    };
+
+/** An `installed` source whose file is absent from the pool: nothing may be imported silently. */
+export class OpfsPackMissingError extends Error {
+  public constructor(databaseName: string) {
+    super(`Installed pack ${databaseName} is missing from OPFS.`);
+    this.name = 'OpfsPackMissingError';
+  }
+}
+
 async function importOpfsPack(
   pool: SahPool,
   url: string,
@@ -186,6 +211,28 @@ async function importOpfsPack(
     }
     return bytes;
   });
+}
+
+async function importOpfsStream(
+  pool: SahPool,
+  vfsName: string,
+  byteLength: number,
+  read: () => Promise<Uint8Array | undefined>,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<void> {
+  let loaded = 0;
+  await pool.importDb(vfsName, async () => {
+    const bytes = await read();
+    if (bytes) {
+      loaded += bytes.byteLength;
+      onProgress?.(loaded, byteLength);
+    }
+    return bytes;
+  });
+  if (loaded !== byteLength) {
+    pool.unlink(vfsName);
+    throw new Error(`Imported pack has ${loaded} bytes instead of ${byteLength}.`);
+  }
 }
 
 async function fetchPackByteLength(url: string, timeoutMs: number): Promise<number | null> {
@@ -454,6 +501,15 @@ export interface SqliteIntegrityReport {
 const LEXICAL_OVERFETCH = 4;
 const LEXICAL_CHUNKS_PER_DOCUMENT = 3;
 
+export interface OpfsOpenOptions {
+  readonly fetchTimeoutMs?: number;
+  readonly poolName?: string;
+  readonly beforeImport?: () => Promise<void>;
+  readonly onImportProgress?: (loaded: number, total: number) => void;
+  /** Called once the file is written, before the new database is opened and checked. */
+  readonly onImportInstalling?: () => void;
+}
+
 export class SqliteMedicalStore implements MedicalStore {
   private initialized = false;
   private referenceDispatch: ReturnType<typeof createDefinitionReferenceDispatch> | undefined;
@@ -514,20 +570,24 @@ export class SqliteMedicalStore implements MedicalStore {
   public static async createFromOpfsUrl(
     url: string,
     databaseName: string,
-    options: {
-      readonly fetchTimeoutMs?: number;
-      readonly poolName?: string;
-      readonly beforeImport?: () => Promise<void>;
-      readonly onImportProgress?: (loaded: number, total: number) => void;
-      /** Called once the file is written, before the new database is opened and checked. */
-      readonly onImportInstalling?: () => void;
-    } = {},
+    options: OpfsOpenOptions = {},
+  ): Promise<SqliteMedicalStore> {
+    return SqliteMedicalStore.createFromOpfsSource({ kind: 'url', url }, databaseName, options);
+  }
+
+  public static async createFromOpfsSource(
+    source: OpfsPackSource,
+    databaseName: string,
+    options: OpfsOpenOptions = {},
   ): Promise<SqliteMedicalStore> {
     const sqlite = await getSqliteModule();
     const poolName = options.poolName ?? sahPoolContextName();
     const pool = await getSahPool(sqlite, poolName);
     const fetchTimeoutMs = options.fetchTimeoutMs ?? 180_000;
-    const byteLength = await fetchPackByteLength(url, fetchTimeoutMs);
+    const byteLength =
+      source.kind === 'url'
+        ? await fetchPackByteLength(source.url, fetchTimeoutMs)
+        : source.byteLength;
     const vfsName = resolveOpfsCacheFile(databaseName, byteLength, pool.getFileNames());
     const legacyVfsName =
       byteLength === null ? databaseName : `${databaseName}.${String(byteLength)}`;
@@ -551,20 +611,33 @@ export class SqliteMedicalStore implements MedicalStore {
     if (alreadyImported) {
       try {
         return open('reused');
-      } catch {
+      } catch (cause) {
+        // An installed file is the only copy: a failed open must not destroy it.
+        if (source.kind === 'installed') throw cause;
         pool.unlink(vfsName);
       }
     }
+    if (source.kind === 'installed') throw new OpfsPackMissingError(databaseName);
     await options.beforeImport?.();
-    await importOpfsPack(
-      pool,
-      url,
-      databaseName,
-      vfsName,
-      fetchTimeoutMs,
-      byteLength,
-      options.onImportProgress,
-    );
+    if (source.kind === 'url') {
+      await importOpfsPack(
+        pool,
+        source.url,
+        databaseName,
+        vfsName,
+        fetchTimeoutMs,
+        byteLength,
+        options.onImportProgress,
+      );
+    } else {
+      await importOpfsStream(
+        pool,
+        vfsName,
+        source.byteLength,
+        source.open(),
+        options.onImportProgress,
+      );
+    }
     options.onImportInstalling?.();
     if (legacyVfsName !== vfsName) pool.unlink(legacyVfsName);
     return open('copied');

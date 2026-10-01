@@ -66,6 +66,15 @@ export function resolveContentModuleArtifactUrl(url: string): string {
       if (
         releaseTag.startsWith('esklp-') &&
         fileName.startsWith('minimed.medications.') &&
+        fileName.endsWith('.db.zst')
+      ) {
+        // Compressed modules are small enough for plain git blobs on the mirror branch; raw
+        // serves them with browser CORS and without LFS bandwidth quota.
+        return `https://raw.githubusercontent.com/${owner}/${repo}/datasets/${releaseTag}/modules/${fileName}`;
+      }
+      if (
+        releaseTag.startsWith('esklp-') &&
+        fileName.startsWith('minimed.medications.') &&
         (fileName.endsWith('.db') || fileName.endsWith('.db.gz'))
       ) {
         // Large medication databases live in LFS; media URLs expose bytes with browser CORS.
@@ -76,7 +85,7 @@ export function resolveContentModuleArtifactUrl(url: string): string {
       }
       if (
         fileName.startsWith('clinical-') &&
-        (fileName.endsWith('.db') || fileName.endsWith('.db.gz'))
+        (fileName.endsWith('.db') || fileName.endsWith('.db.gz') || fileName.endsWith('.db.zst'))
       ) {
         if (usesLocalModuleArtifacts() && typeof window !== 'undefined') {
           return resolveRelativeModulePath(

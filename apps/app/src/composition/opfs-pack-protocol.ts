@@ -1,5 +1,6 @@
 import type { ContentPackSeed, DefinitionReferenceRequest } from '@localmed/contracts';
 import type { LexicalSearchRequest, VectorSearchRequest } from '@localmed/storage';
+import type { EncodedModuleIndex } from '@/features/modules/encoded-index-reader';
 
 export type OpfsPackWorkerMethod =
   | 'reference'
@@ -27,15 +28,10 @@ export type OpfsPackWorkerMethod =
 
 export type OpfsPackWorkerRequest =
   | { readonly id: number; readonly type: 'approve-download' }
-  | {
+  | ({
       readonly id: number;
       readonly type: 'open';
-      readonly url: string;
-      readonly databaseName: string;
-      readonly fetchTimeoutMs: number;
-      readonly poolName: string;
-      readonly waitForDownloadApproval?: boolean;
-    }
+    } & OpfsPackWorkerOpenOptions)
   | {
       readonly id: number;
       readonly type: 'call';
@@ -61,8 +57,13 @@ export type OpfsPackWorkerResponse =
   | { readonly id: number; readonly error: string }
   | { readonly id: number; readonly status: OpfsPackWorkerLockStatus };
 
-export type OpfsPackWorkerOpenOptions = {
-  readonly url: string;
+/** What an OPFS pack worker opens: fetched, already installed, or decoded from a zstd archive. */
+export type OpfsPackWorkerSource =
+  | { readonly url: string }
+  | { readonly installed: { readonly byteLength: number } }
+  | { readonly encoded: EncodedModuleIndex };
+
+export type OpfsPackWorkerOpenOptions = OpfsPackWorkerSource & {
   readonly databaseName: string;
   readonly fetchTimeoutMs: number;
   readonly poolName: string;

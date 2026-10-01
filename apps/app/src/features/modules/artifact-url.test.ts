@@ -134,4 +134,22 @@ describe('resolveContentModuleArtifactUrl', () => {
       'https://media.githubusercontent.com/media/T-Damer/MiniMed/datasets/esklp-test/modules/minimed.medications.test.ru.db.gz',
     );
   });
+  it('serves zstd clinical and ESKLP modules as plain blobs from their dataset branches', () => {
+    vi.stubEnv('VITE_USE_LOCAL_MODULE_ARTIFACTS', 'false');
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/clinical-json-2026.07.27-13991c1feee5/clinical-53_2-clinical-json-2026.07.27-13991c1feee5.db.zst',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/clinical-json-2026.07.27-13991c1feee5/apps/app/public/content/clinical/clinical-53_2-clinical-json-2026.07.27-13991c1feee5.db.zst',
+    );
+    // No LFS media URL: a compressed module is far below the 100 MB git limit and raw has CORS.
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/minimed.medications.cardiovascular.ru.db.zst',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/esklp-2026-08-28/modules/minimed.medications.cardiovascular.ru.db.zst',
+    );
+  });
 });

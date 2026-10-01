@@ -1,16 +1,32 @@
 /// <reference lib="webworker" />
 
-import { SqliteMedicalStore } from '@localmed/storage-sqlite';
+import { type OpfsPackSource, SqliteMedicalStore } from '@localmed/storage-sqlite';
 
 import type {
+  OpfsPackWorkerOpenOptions,
   OpfsPackWorkerRequest,
   OpfsPackWorkerResponse,
 } from '@/composition/opfs-pack-protocol';
+import { createDecodedIndexReader } from '@/features/modules/encoded-index-reader';
 
 let store: SqliteMedicalStore | undefined;
 let downloadApproval: { id: number; resolve: () => void } | undefined;
 /** Bytes streamed into OPFS so far; reported again when installation starts. */
 let importedBytes = 0;
+
+function opfsSource(options: OpfsPackWorkerOpenOptions): OpfsPackSource {
+  if ('url' in options) return { kind: 'url', url: options.url };
+  if ('installed' in options)
+    return { kind: 'installed', byteLength: options.installed.byteLength };
+  const { encoded } = options;
+  return {
+    kind: 'stream',
+    byteLength: encoded.decodedSizeBytes,
+    // Decoded straight into the pool one frame at a time; the checksum is verified before the
+    // last chunk is reported, so a mismatch leaves no file behind.
+    open: () => createDecodedIndexReader(encoded),
+  };
+}
 
 self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<void> => {
   const message = event.data;
@@ -51,39 +67,43 @@ self.onmessage = async (event: MessageEvent<OpfsPackWorkerRequest>): Promise<voi
         status: 'lock-acquired',
       } satisfies OpfsPackWorkerResponse);
       importedBytes = 0;
-      const next = await SqliteMedicalStore.createFromOpfsUrl(message.url, message.databaseName, {
-        fetchTimeoutMs: message.fetchTimeoutMs,
-        poolName: message.poolName,
-        ...(message.waitForDownloadApproval
-          ? {
-              beforeImport: () =>
-                new Promise<void>((resolve) => {
-                  downloadApproval = { id: message.id, resolve };
+      const next = await SqliteMedicalStore.createFromOpfsSource(
+        opfsSource(message),
+        message.databaseName,
+        {
+          fetchTimeoutMs: message.fetchTimeoutMs,
+          poolName: message.poolName,
+          ...(message.waitForDownloadApproval
+            ? {
+                beforeImport: () =>
+                  new Promise<void>((resolve) => {
+                    downloadApproval = { id: message.id, resolve };
+                    self.postMessage({
+                      id: message.id,
+                      event: 'download-required',
+                    } satisfies OpfsPackWorkerResponse);
+                  }),
+                onImportProgress: (loaded: number, total: number) => {
+                  importedBytes = loaded;
                   self.postMessage({
                     id: message.id,
-                    event: 'download-required',
+                    event: 'download-progress',
+                    loaded,
+                    total,
                   } satisfies OpfsPackWorkerResponse);
-                }),
-              onImportProgress: (loaded: number, total: number) => {
-                importedBytes = loaded;
-                self.postMessage({
-                  id: message.id,
-                  event: 'download-progress',
-                  loaded,
-                  total,
-                } satisfies OpfsPackWorkerResponse);
-              },
-              onImportInstalling: () =>
-                self.postMessage({
-                  id: message.id,
-                  event: 'download-progress',
-                  loaded: importedBytes,
-                  total: importedBytes,
-                  phase: 'installing',
-                } satisfies OpfsPackWorkerResponse),
-            }
-          : {}),
-      });
+                },
+                onImportInstalling: () =>
+                  self.postMessage({
+                    id: message.id,
+                    event: 'download-progress',
+                    loaded: importedBytes,
+                    total: importedBytes,
+                    phase: 'installing',
+                  } satisfies OpfsPackWorkerResponse),
+              }
+            : {}),
+        },
+      );
       const health = await next.initialize();
       store = next;
       self.postMessage({ id: message.id, result: health } satisfies OpfsPackWorkerResponse);

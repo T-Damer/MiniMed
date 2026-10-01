@@ -329,6 +329,82 @@ describe('ForegroundContentModuleInstaller', () => {
     }
   });
 
+  it('lets a backend stage a compressed index itself, without decoding or holding its bytes', async () => {
+    const archive = new Uint8Array([1, 2, 3]);
+    for (const behaviour of ['streams', 'declines', 'throws'] as const) {
+      const { catalog, module } = await moduleFixture({ indexBytes: archive });
+      const index = module.artifacts[0];
+      if (!index) throw new Error('Fixture has no index.');
+      const decoded = new Uint8Array([4, 5, 6, 7]);
+      Object.assign(index, {
+        compression: 'zstd',
+        decodedSizeBytes: decoded.length,
+        decodedSha256: await checksum(decoded),
+      });
+      const registry = new InMemoryInstalledModuleRegistry();
+      registry.activate(validatedInstallation());
+      const backend = new TestBackend();
+      const stageEncodedIndex = vi.fn(
+        async (_module: ContentModuleCatalogEntry, artifact: Artifact) => {
+          if (behaviour === 'throws') throw new Error('decoded checksum mismatch');
+          if (behaviour === 'declines') return null;
+          return {
+            artifactId: artifact.id,
+            kind: artifact.kind,
+            sizeBytes: decoded.length,
+            token: 'streamed',
+          };
+        },
+      );
+      (backend as ContentModuleArtifactBackend).stageEncodedIndex = stageEncodedIndex;
+      const stage = vi.spyOn(backend, 'stage');
+      const decode = vi.fn(async () => decoded);
+      const check = validator();
+      const validate = vi.spyOn(check, 'validate');
+      const installer = new ForegroundContentModuleInstaller(
+        catalog,
+        runtime,
+        new TestDownloader({ index: archive }),
+        backend,
+        check,
+        registry,
+        1,
+        decode,
+      );
+      const task = installer.install({
+        moduleId: module.id,
+        version: module.version,
+        includeSourceAssets: false,
+      });
+      const result = await installer.wait(task.id);
+      expect(stageEncodedIndex).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        archive,
+        expect.any(AbortSignal),
+      );
+      if (behaviour === 'streams') {
+        expect(result.state).toBe('completed');
+        expect(decode).not.toHaveBeenCalled();
+        expect(stage).not.toHaveBeenCalled();
+        // The validator is told there are no bytes: the backend owns the staged index.
+        expect(validate).toHaveBeenCalledWith(expect.anything(), null);
+        expect(registry.get(module.id)?.installedSizeBytes).toBe(decoded.length);
+      } else if (behaviour === 'declines') {
+        expect(result.state).toBe('completed');
+        expect(decode).toHaveBeenCalledOnce();
+        expect(stage).toHaveBeenCalledWith(expect.anything(), expect.anything(), decoded);
+        expect(validate).toHaveBeenCalledWith(expect.anything(), decoded);
+      } else {
+        expect(result.state).toBe('failed');
+        expect(result.errorMessage).toContain('decoded checksum mismatch');
+        expect(backend.activated).toBe(false);
+        expect(backend.discarded).toBe(true);
+        expect(registry.get(module.id)).toBeNull();
+      }
+    }
+  });
+
   it('rejects an unbuilt preview before adding a task or starting a download', async () => {
     const fixture = await moduleFixture({ indexBytes: new Uint8Array([1]) });
     const unbuilt = { ...fixture.module, releaseState: 'preview' as const, artifacts: [] };
