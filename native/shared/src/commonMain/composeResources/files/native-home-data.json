@@ -6,11 +6,7 @@
       "id": "conditions",
       "label": "МКБ, симптомы и состояния",
       "icon": "notes",
-      "countNoun": [
-        "запись",
-        "записи",
-        "записей"
-      ],
+      "countNoun": ["запись", "записи", "записей"],
       "navigationDocumentCount": 15903,
       "countEntity": "navigation-document",
       "countProvider": "released-core",
@@ -20,11 +16,7 @@
       "id": "guidelines",
       "label": "Клинические рекомендации",
       "icon": "book-open",
-      "countNoun": [
-        "рекомендация",
-        "рекомендации",
-        "рекомендаций"
-      ],
+      "countNoun": ["рекомендация", "рекомендации", "рекомендаций"],
       "navigationDocumentCount": 751,
       "countEntity": "navigation-document",
       "countProvider": "released-core",
@@ -34,11 +26,7 @@
       "id": "medications",
       "label": "Препараты",
       "icon": "prescription",
-      "countNoun": [
-        "действующее вещество",
-        "действующих вещества",
-        "действующих веществ"
-      ],
+      "countNoun": ["действующее вещество", "действующих вещества", "действующих веществ"],
       "navigationDocumentCount": 3332,
       "countEntity": "navigation-document",
       "countProvider": "released-core",
@@ -48,11 +36,7 @@
       "id": "legal",
       "label": "Нормативные документы",
       "icon": "scales",
-      "countNoun": [
-        "документ",
-        "документа",
-        "документов"
-      ],
+      "countNoun": ["документ", "документа", "документов"],
       "navigationDocumentCount": 0,
       "countEntity": "navigation-document",
       "countProvider": "released-core",
@@ -62,11 +46,7 @@
       "id": "assessments",
       "label": "Опросники",
       "icon": "list-checks",
-      "countNoun": [
-        "опросник",
-        "опросника",
-        "опросников"
-      ],
+      "countNoun": ["опросник", "опросника", "опросников"],
       "navigationDocumentCount": null,
       "countEntity": "tool",
       "countProvider": "native-tool-runtime",
@@ -76,11 +56,7 @@
       "id": "calculators",
       "label": "Калькуляторы",
       "icon": "calculator",
-      "countNoun": [
-        "калькулятор",
-        "калькулятора",
-        "калькуляторов"
-      ],
+      "countNoun": ["калькулятор", "калькулятора", "калькуляторов"],
       "navigationDocumentCount": null,
       "countEntity": "tool",
       "countProvider": "native-tool-runtime",
@@ -88,11 +64,7 @@
     }
   ],
   "examplesByScope": {
-    "conditions": [
-      "J18",
-      "Головная боль",
-      "Отёк"
-    ],
+    "conditions": ["J18", "Головная боль", "Отёк"],
     "calculators": [],
     "assessments": [],
     "diagnosis": [

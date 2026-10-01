@@ -3293,10 +3293,7 @@
           "publicationNumber": "0001202505230032",
           "documentNumber": "211н",
           "sourceSection": "приложение № 1, пункты 8–9",
-          "pages": [
-            4,
-            5
-          ],
+          "pages": [4, 5],
           "contentMode": "paraphrase"
         }
       ],
@@ -3437,10 +3434,7 @@
           "publicationNumber": "0001202505230032",
           "documentNumber": "211н",
           "sourceSection": "приложение № 1, пункты 10–12",
-          "pages": [
-            5,
-            6
-          ],
+          "pages": [5, 6],
           "contentMode": "paraphrase"
         }
       ],
@@ -4506,28 +4500,13 @@
       "metadataJson": "{\"sourceSpans\":[{\"bbox\":[100,0,0,0]},{\"bbox\":[120,0,0,0]},{\"bbox\":[80,0,0,0]}]}",
       "sourceSpans": [
         {
-          "bbox": [
-            100,
-            0,
-            0,
-            0
-          ]
+          "bbox": [100, 0, 0, 0]
         },
         {
-          "bbox": [
-            120,
-            0,
-            0,
-            0
-          ]
+          "bbox": [120, 0, 0, 0]
         },
         {
-          "bbox": [
-            80,
-            0,
-            0,
-            0
-          ]
+          "bbox": [80, 0, 0, 0]
         }
       ],
       "strippedText": "• Пункт начинается\n\nи продолжается.\n\nСледующий раздел",
@@ -4704,19 +4683,13 @@
       "metadataJson": "{\"sourceSpans\":[{\"bbox\":[100]},{\"bbox\":[103]},{\"bbox\":[100]}]}",
       "sourceSpans": [
         {
-          "bbox": [
-            100
-          ]
+          "bbox": [100]
         },
         {
-          "bbox": [
-            103
-          ]
+          "bbox": [103]
         },
         {
-          "bbox": [
-            100
-          ]
+          "bbox": [100]
         }
       ],
       "strippedText": "Одна строка\n\nвторая строка.\n\nТретий абзац.",
@@ -4754,14 +4727,10 @@
       "metadataJson": "{\"sourceSpans\":[{\"bbox\":[100]},{\"bbox\":[104]}]}",
       "sourceSpans": [
         {
-          "bbox": [
-            100
-          ]
+          "bbox": [100]
         },
         {
-          "bbox": [
-            104
-          ]
+          "bbox": [104]
         }
       ],
       "strippedText": "• Первая строка\n\nВторая строка",
@@ -4799,14 +4768,10 @@
       "metadataJson": "{\"sourceSpans\":[{\"bbox\":[100]},{\"bbox\":[104.1]}]}",
       "sourceSpans": [
         {
-          "bbox": [
-            100
-          ]
+          "bbox": [100]
         },
         {
-          "bbox": [
-            104.1
-          ]
+          "bbox": [104.1]
         }
       ],
       "strippedText": "• Первая строка\n\nВторая строка",
@@ -4836,9 +4801,7 @@
       "metadataJson": "{\"sourceSpans\":[{\"bbox\":[\"100\"]},null]}",
       "sourceSpans": [
         {
-          "bbox": [
-            "100"
-          ]
+          "bbox": ["100"]
         },
         null
       ],
@@ -5475,24 +5438,16 @@
       "metadataJson": "{\"sourceSpans\":[{\"bbox\":[100]},{\"bbox\":[100]},{\"bbox\":[120]},{\"bbox\":[140]}]}",
       "sourceSpans": [
         {
-          "bbox": [
-            100
-          ]
+          "bbox": [100]
         },
         {
-          "bbox": [
-            100
-          ]
+          "bbox": [100]
         },
         {
-          "bbox": [
-            120
-          ]
+          "bbox": [120]
         },
         {
-          "bbox": [
-            140
-          ]
+          "bbox": [140]
         }
       ],
       "strippedText": "Введение.\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n\n• Строка\n\nпродолжение.",
@@ -5814,14 +5769,10 @@
       "metadataJson": "{\"sourceSpans\":[{\"bbox\":[100]},{\"bbox\":[104]}]}",
       "sourceSpans": [
         {
-          "bbox": [
-            100
-          ]
+          "bbox": [100]
         },
         {
-          "bbox": [
-            104
-          ]
+          "bbox": [104]
         }
       ],
       "strippedText": "Одна строка\n\nвторая строка.",
