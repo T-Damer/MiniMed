@@ -16,38 +16,40 @@ lives in git and `docs/CURRENT_STATE.md`; product decisions live in `docs/`.
   agent and time when you start, `[x]` with the commit when it is in `main`, `[!]` with a reason when
   blocked. Add an item instead of starting unlisted work for the goal.
 
-## TODO — device build (user goal, 2026-09-30 22:15)
+## Decision (user, 2026-10-01 16:25)
 
-A build for the user's own Android device to judge whether the native port is worth it: working
-search and basic pages — home/search, results, reader, files, settings — that look like the WebView
-screens (the reference), with no Material look (no ripple, no Material widgets, calm chrome).
+The WebView (Capacitor) app is the product again; the native Kotlin/Compose port is **frozen** (kept
+in the repository, no new work unless the user reopens it). Reason: on one core the WebView app
+searched ~10× faster on the emulator (docs/research/native-vs-webview-2026-10-01.md) and its 60 Hz
+on HyperOS was the per-package cap HyperOS remembers, not WebView (`org.med.web` runs at 120 Hz).
+All native TODO items and native requests below are closed.
+
+## TODO — WebView (user goals, 2026-10-01)
+
+Statuses: `[ ]` todo, `[~]` in progress (agent, time), `[x]` done (commit), `[!]` blocked (reason).
 
 | # | Status | Owner | Item |
 | --- | --- | --- | --- |
-| T1 | [x] 798a8aff | claude-coordinator | design-system parts for settings and files, captured from the WebView and rebuilt as gallery pages `?scene=design-settings` / `design-files`: `NativePageHeader`, `NativeGroupTitle`, `NativePaperSheet`, `NativeSectionHeading`, `NativeSettingSwitch`, `NativeRangeSetting`, `NativeChoiceGroup`, `NativeDisclosure`, `NativeFeatureTile`, `NativePrimaryButton`, `NativeTextLink`, `NativeSearchField`, `NativeBreadcrumbs`, `NativeIconToggle`, `NativeFolderCard`, round back/sort/add buttons (see `docs/NATIVE_DESIGN_SYSTEM.md`) |
-| T2 | [~] claude 22:42 | claude-coordinator | popup menu part; reader source menu and definition reader on design-system parts (drop Material `DropdownMenu`/`Text`) |
-| T3 | [x] 22:25 | claude-coordinator | Material audit (imports of Material widgets per screen file): `NativeUserScreens` 5, `NativeReaderHeader` 4, `NativeCoreStartup` 4, `NativeCollectionsScreen` 4, `NativeDefinitionReaderScreen` 3, `NativeDefinitionBlockSelector` 3, `NativeClinicalAnalysisPanel` 3, `SearchScreen` 2, `NativeSourcesScreen` 2, `NativeSessionShell` 2, `NativeDefinitionCatalogScreen` 2, `NativeReaderStatus` 1, `NativePaperControls` 1, `NativeDefinitionSourceDetails` 1, `App` 1 |
-| T4 | [!] exact meanings API missing; result/identity cards already e85eb137 | codex-native | results screen from `NativeResultGroup` / `NativeMeanings` / `NativeIdentityCard` / `NativeSecondaryButton` (gallery `?scene=design&q=пневмония`) |
-| T5 | [x] 3b20cb7a + c310f0ba + 14250a1b | codex-native | files page on design-system parts (T1 parts ready; layout as `NativeLibraryGallery`): list, «Открыть файл», empty state; `NativeOpenedFileScreen` per the 21:36 request (window insets, shell chrome, `nativeReaderAppGlyphs()`) |
-| T6 | [x] d4a3cc9c | codex-native | settings page on design-system parts — T1 parts ready; copy the layout of `NativeSettingsGallery` |
-| T7 | [x] 9ce0c00f | codex-native | core startup/loading screen and shell without Material widgets (`NativeCoreStartup`, `NativeSessionShell`, `App`, `SearchScreen` leftovers) |
-| T8 | [ ] | claude-coordinator | side-by-side check with the WebView: home, results, reader, files, settings — light/dark, phone and wide |
-| T9 | [x] 15:10 | claude-coordinator | device build (release, R8, debug-signed, `playwright/MiniMed-native-test.apk`; core download and search checked on the emulator; sent to the user): release-optimised APK with the core download, install steps for the user |
-| T11 | [ ] | codex-native | preview check 2026-10-01 00:15 (production Wasm, 375 px): «Файлы» — back button and search field overlap the breadcrumb bar; the page shows only «Повторить чтение» (fixture storage fails?); the nav bubble stays on «Поиск» while Files is open |
-| T12 | [ ] | claude-coordinator | reader in the Wasm preview: an 8 px dark band under the page top while the bar is hidden; headings and placeholder use sans in Wasm (no bundled serif) — bundle an open serif for Wasm or accept for the preview only |
-| T13 | [x] | claude-coordinator | 120 Hz on the user's Xiaomi: HyperOS had remembered a 60 Hz cap for the exact package `dev.localmed.nativespike` (the same build as `dev.localmed.paperreader`, `org.example.nativespike` or `org.med.spike` runs at 120 Hz during scrolling); the app id is now `org.med.spike`. Not the installer, signing key or refresh requests (each tested). The WebView app `dev.localmed.search` likely has the same remembered cap |
-| T10 | [~] | user | install on the device and judge the port |
-| T11 | [x] 29b7e631 | codex-native | remaining clinical-search analysis panel on DS paper/disclosure/chips, preserving deterministic facts/warnings/calculation copy |
+| W1 | [~] claude 16:30 | claude-coordinator | first boot frame by frame: splash → core download/«включение» inside the search field (no separate screen) → search, iOS-smooth; start button lights up when the core is ready; warm start fast and smooth |
+| W2 | [ ] | claude-coordinator | AnimationManager: one place for motion durations/easings, a speed setting (incl. off) in Settings; smooth bottom-sheet close and other transitions |
+| W3 | [ ] | claude-coordinator | reader like the Chromium PDF viewer: fast find, selection, print, drawing, several pages, thumbnails; resume where the user stopped |
+| K1 | [~] sonnet 16:30 | kb-audit-content | audit: OCR-damaged clinical recommendations and where clean text exists; merging the drug bases (description + full instruction), ATC codes as searchable, explained codes — report only |
+| K2 | [~] sonnet 16:30 | kb-audit-storage | audit: duplication and size, compressed storage with lazy decompression (incl. user files/books), dynamic term linking from a dictionary instead of stored links, a words/concepts index in the core — report only |
 
 ## Agents
 
 | Agent | Tool | Role |
 | --- | --- | --- |
-| claude-coordinator | Claude Code (desktop) | coordination, design system, native search core, commits for Claude sessions |
-| codex-native | Codex (ChatGPT app) | native screens, navigation, app state, visual preview, icons |
-| claude-ui | Claude Code session «Улучшения приложения» | WebView UI (frozen reference; fixes only); idle, S3 dropped (result cards go straight to native) |
+| claude-coordinator | Claude Code (desktop) | coordination; WebView boot, motion and reader (W1–W3); commits for Claude sessions |
+| kb-audit-content, kb-audit-storage | Claude subagents (Sonnet) | read-only knowledge-base audits K1/K2 → reports in `docs/research/` |
+| codex-native | Codex (ChatGPT app) | native port frozen; awaiting a new assignment from the user |
+| claude-ui | Claude Code session «Улучшения приложения» | idle |
 
-## Ownership (native)
+## Ownership
+
+WebView: `apps/app/**` boot, motion and reader work — claude-coordinator (W1–W3). Native (frozen):
+
+## Ownership (native, frozen)
 
 | Paths | Owner |
 | --- | --- |
@@ -82,6 +84,8 @@ After the device build (see TODO):
 | — | claude-ui | idle; WebView bug fixes only on request |
 
 ## Requests
+
+Native requests are closed by the 2026-10-01 freeze.
 
 | Date | From → To | Request | Status |
 | --- | --- | --- | --- |
