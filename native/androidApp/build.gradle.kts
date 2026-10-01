@@ -12,7 +12,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "dev.localmed.nativespike"
+        // org.med.spike: HyperOS kept a remembered 60 Hz cap for the old id dev.localmed.nativespike
+        // (the same build under any other id runs at 120 Hz on the user's phone).
+        applicationId = "org.med.spike"
         // 26, not shared's 24: this app module only ships an adaptive launcher icon
         // (mipmap-anydpi-v26); the test device is API 36 either way.
         minSdk = 26
