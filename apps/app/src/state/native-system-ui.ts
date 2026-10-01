@@ -47,3 +47,15 @@ export function setDarkHeaderStatusBar(active: boolean): void {
   darkHeaderOverlayCount = Math.max(0, darkHeaderOverlayCount + (active ? 1 : -1));
   syncStatusBar();
 }
+
+/**
+ * Tells the Android shell that the first screen is ready under the boot surface, so its splash
+ * can fade out. A synchronous JavaScript interface (MainActivity.BootBridge), because plugin calls
+ * queue behind the database plugin while it opens the core. True when a native splash was told.
+ */
+export function reportNativeBootReady(): boolean {
+  const bridge = (window as { MiniMedBoot?: { ready(): void } }).MiniMedBoot;
+  if (!bridge) return false;
+  bridge.ready();
+  return true;
+}

@@ -7,9 +7,11 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.PathInterpolator;
 import android.webkit.WebView;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.PackageInfoCompat;
@@ -21,6 +23,17 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     private static final String WEB_ASSET_CACHE_PREFS = "LocalMedWebAssetCache";
     private static final String WEB_ASSET_CACHE_VERSION = "version";
+    /** The splash never outstays this, even if the page never reports its first screen. */
+    private static final long SPLASH_MAX_MS = 4000;
+    /** The splash fades onto the identical web boot surface; see apps/app/index.html. */
+    private static final long SPLASH_EXIT_MS = 180;
+
+    private volatile boolean webBootReady = false;
+
+    /** The page has painted its boot surface over a ready first screen (BootBridge.ready). */
+    void markWebBootReady() {
+        webBootReady = true;
+    }
 
     /** The fastest mode with the current physical resolution, so the resolution never changes. */
     static Display.Mode fastestModeAtCurrentResolution(Display display) {
@@ -80,7 +93,19 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        SplashScreen.installSplashScreen(this);
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+        long splashStart = SystemClock.uptimeMillis();
+        splashScreen.setKeepOnScreenCondition(
+                () -> !webBootReady && SystemClock.uptimeMillis() - splashStart < SPLASH_MAX_MS);
+        splashScreen.setOnExitAnimationListener(
+                provider ->
+                        provider.getView()
+                                .animate()
+                                .alpha(0f)
+                                .setDuration(SPLASH_EXIT_MS)
+                                .setInterpolator(new PathInterpolator(0.32f, 0.72f, 0f, 1f))
+                                .withEndAction(provider::remove)
+                                .start());
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);

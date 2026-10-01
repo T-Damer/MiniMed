@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Splash icon: the launcher wallet whole, inset so the splash's circular mask never crops it. The
+  web boot surface (apps/app/index.html) draws the same image at the same size and place, so the
+  hand-over from this splash to the page is invisible.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@mipmap/ic_launcher_foreground"
+    android:inset="16.5%" />

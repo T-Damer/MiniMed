@@ -30,10 +30,10 @@ Statuses: `[ ]` todo, `[~]` in progress (agent, time), `[x]` done (commit), `[!]
 
 | # | Status | Owner | Item |
 | --- | --- | --- | --- |
-| W1 | [~] claude 16:30 | claude-coordinator | first boot frame by frame: splash → core download/«включение» inside the search field (no separate screen) → search, iOS-smooth; start button lights up when the core is ready; warm start fast and smooth |
+| W1 | [x] claude 18:45 | claude-coordinator | boot: native splash (whole wallet, `drawable/splash_icon.xml`) waits for `window.MiniMedBoot.ready()` (≤4 s), fades onto the identical `#boot-surface` in index.html, which leaves once the first screen has rendered — no spinner/blank frames; core status stays inside search; start button lights up when the core is ready. Start-up graph 12.2 → 2.5 MB (FirstRunSetup and the 9.6 MB catalog lazy); Capacitor bridge logging off |
 | W2 | [x] claude 16:40 | claude-coordinator | AnimationManager (`src/state/motion.ts`): Settings → «Анимации» off/fast/normal/slow retimes every CSS/WAAPI animation, `motionMs()` for JS timings; OverlayDialog plays an exit (sheet slides down from where it was released, backdrop fades) before unmounting. Other rough transitions: as the user reports them |
 | W3 | [ ] | claude-coordinator | reader like the Chromium PDF viewer: fast find, selection, print, drawing, several pages, thumbnails; resume where the user stopped |
-| K1 | [~] sonnet 16:30 | kb-audit-content | audit: OCR-damaged clinical recommendations and where clean text exists; merging the drug bases (description + full instruction), ATC codes as searchable, explained codes — report only |
+| K1 | [x] sonnet 18:45 | kb-audit-content | audit: OCR-damaged clinical recommendations and where clean text exists; merging the drug bases (description + full instruction), ATC codes as searchable, explained codes — report only |
 | K2 | [~] sonnet 16:30 | kb-audit-storage | audit: duplication and size, compressed storage with lazy decompression (incl. user files/books), dynamic term linking from a dictionary instead of stored links, a words/concepts index in the core — report only |
 
 ## Agents

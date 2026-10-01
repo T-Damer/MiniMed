@@ -3,7 +3,6 @@ import { type JSX, Show } from 'solid-js';
 import { formatModuleBytes } from '@/features/modules/module-display';
 
 export function BootScreen(props: {
-  readonly appLoading?: boolean;
   readonly error: string | undefined;
   readonly bootSlow: boolean;
   /** Another tab owns the local database; this one opens it once that tab closes. */
@@ -31,33 +30,29 @@ export function BootScreen(props: {
         </Show>
         <p class="archive-kicker">Локальная медицинская база</p>
         <h1 class="boot-card__title">
-          {props.appLoading
-            ? 'Запускаем MiniMed…'
-            : props.error
-              ? 'База не открылась'
-              : props.waitingForOtherTab
-                ? 'MiniMed открыт в другой вкладке'
-                : props.coreDownloadRequired
-                  ? props.coreDownloading
-                    ? 'Скачиваем ядро MiniMed'
-                    : 'Скачайте ядро MiniMed'
-                  : 'Подготавливаем поиск…'}
+          {props.error
+            ? 'База не открылась'
+            : props.waitingForOtherTab
+              ? 'MiniMed открыт в другой вкладке'
+              : props.coreDownloadRequired
+                ? props.coreDownloading
+                  ? 'Скачиваем ядро MiniMed'
+                  : 'Скачайте ядро MiniMed'
+                : 'Подготавливаем поиск…'}
         </h1>
         <p class="boot-card__description">
-          {props.appLoading
-            ? 'Загружаем интерфейс приложения…'
-            : (props.error ??
-              (props.waitingForOtherTab
-                ? 'Локальную базу одновременно может открыть только одна вкладка. Закройте другую вкладку или окно MiniMed — поиск откроется здесь автоматически.'
-                : props.coreDownloadRequired
-                  ? props.coreDownloading
-                    ? 'Ядро — это база для поиска, около 490 МБ. После загрузки поиск работает без интернета. Свои файлы и настройки доступны уже сейчас.'
-                    : 'Похоже, вы в мобильной сети, поэтому загрузка не началась сама. Ядро занимает около 490 МБ: скачайте сейчас или позже через Wi‑Fi. Свои файлы и настройки доступны и без него.'
-                  : props.bootSlow
-                    ? 'Подготовка базы продолжается. Свои файлы и настройки доступны через нижнее меню.'
-                    : 'Поиск откроется, когда ядро будет готово. Пока можно пользоваться своими файлами и настройками.'))}
+          {props.error ??
+            (props.waitingForOtherTab
+              ? 'Локальную базу одновременно может открыть только одна вкладка. Закройте другую вкладку или окно MiniMed — поиск откроется здесь автоматически.'
+              : props.coreDownloadRequired
+                ? props.coreDownloading
+                  ? 'Ядро — это база для поиска, около 490 МБ. После загрузки поиск работает без интернета. Свои файлы и настройки доступны уже сейчас.'
+                  : 'Похоже, вы в мобильной сети, поэтому загрузка не началась сама. Ядро занимает около 490 МБ: скачайте сейчас или позже через Wi‑Fi. Свои файлы и настройки доступны и без него.'
+                : props.bootSlow
+                  ? 'Подготовка базы продолжается. Свои файлы и настройки доступны через нижнее меню.'
+                  : 'Поиск откроется, когда ядро будет готово. Пока можно пользоваться своими файлами и настройками.')}
         </p>
-        <Show when={!props.appLoading && props.coreDownloadRequired && !props.error}>
+        <Show when={props.coreDownloadRequired && !props.error}>
           <Show
             when={props.coreDownloading}
             fallback={
@@ -81,7 +76,7 @@ export function BootScreen(props: {
             </p>
           </Show>
         </Show>
-        <Show when={!props.appLoading && props.error}>
+        <Show when={props.error}>
           <button class="boot-card__action" type="button" onClick={() => window.location.reload()}>
             Повторить
           </button>

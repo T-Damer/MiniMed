@@ -93,12 +93,6 @@
   }
 }
 
-@keyframes app-reveal-veil-out {
-  to {
-    opacity: 0;
-  }
-}
-
 /* AnimationManager «off» (Settings → Анимации): end states and transitionend/animationend handlers
    still happen, just at once. Other speeds retime running animations in src/state/motion.ts.
    !important is the point: one switch has to beat every component's own timing. */

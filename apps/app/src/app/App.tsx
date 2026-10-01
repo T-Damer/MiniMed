@@ -14,6 +14,7 @@ import { Toaster } from 'solid-sonner';
 
 import { AppBottomNav } from '@/app/AppBottomNav';
 import { BootScreen } from '@/app/BootScreen';
+import { firstScreenPainted, revealFromBootSurface } from '@/app/boot-surface';
 import { COMPACT_ROOT_VIEWS, compactRootView, ROOT_VIEWS, type RootView } from '@/app/root-view';
 import { useAppSession } from '@/app/use-app-session';
 import { useBottomNav } from '@/app/use-bottom-nav';
@@ -30,7 +31,6 @@ import {
   USER_LIBRARY_CATALOG_HASH,
 } from '@/features/library/user-library-routing';
 import { searchCoreStatus } from '@/features/search/search-core-status';
-import { FirstRunSetup } from '@/features/setup/FirstRunSetup';
 import { dismissSetup, isSetupDismissed } from '@/features/setup/setup-state';
 import {
   getFloatingWindowsEnabled,
@@ -45,9 +45,6 @@ import {
   type RouteWindowRequestDetail,
 } from '@/state/route-window-request';
 
-/** Matches the `app-reveal-veil-out` animation plus a frame of slack. */
-const APP_REVEAL_MS = 260;
-
 const loadAssessmentsView = () =>
   import('@/features/assessments/AssessmentsView').then(({ AssessmentsView: component }) => ({
     default: component,
@@ -60,11 +57,18 @@ const loadKnowledgeBaseView = () =>
   import('@/features/knowledge/KnowledgeBaseView').then(({ KnowledgeBaseView: component }) => ({
     default: component,
   }));
-const DocumentPageHost = lazy(() =>
+const loadDocumentPageHost = () =>
   import('@/features/library/DocumentPageHost').then(({ DocumentPageHost: component }) => ({
     default: component,
-  })),
-);
+  }));
+const DocumentPageHost = lazy(loadDocumentPageHost);
+// First run only: it lists every package, so it brings the full module catalog (~10 MB) with it,
+// which must stay out of the start-up bundle of every later launch.
+const loadFirstRunSetup = () =>
+  import('@/features/setup/FirstRunSetup').then(({ FirstRunSetup: component }) => ({
+    default: component,
+  }));
+const FirstRunSetup = lazy(loadFirstRunSetup);
 const loadNotesView = () =>
   import('@/features/notes/NotesView').then(({ NotesView: component }) => ({
     default: component,
@@ -151,16 +155,19 @@ export function App(): JSX.Element {
       navigation.view() !== 'assessments' &&
       !personalLibraryActive() &&
       !personalDocumentActive());
-  // The first view emerges once from the splash ground, when the boot surface gives way. A veil
-  // fades out over it: fading the view itself would make it a stacking context and drop its
-  // sticky header under the native status blur for the length of the animation.
-  const [revealing, setRevealing] = createSignal(false);
-  let revealTimer: number | undefined;
-  onCleanup(() => window.clearTimeout(revealTimer));
+  // The first screen renders under the boot surface (index.html) and is revealed once its code
+  // and fonts are in and it has painted: no spinner or empty frame between splash and screen.
+  // The surface is an overlay, so the view itself never fades (that would make it a stacking
+  // context and drop its sticky header under the native status blur).
+  let bootRevealStarted = false;
   createEffect(() => {
-    if (revealTimer !== undefined || showingBootScreen()) return;
-    setRevealing(true);
-    revealTimer = window.setTimeout(() => setRevealing(false), APP_REVEAL_MS);
+    if (!shellReady() || bootRevealStarted) return;
+    bootRevealStarted = true;
+    const firstScreen: Promise<unknown>[] = [rootViewLoaders[navigation.view()]()];
+    if (navigation.documentReadActive()) firstScreen.push(loadDocumentPageHost());
+    if (firstRunSetupVisible()) firstScreen.push(loadFirstRunSetup());
+    if (document.fonts) firstScreen.push(document.fonts.ready);
+    void firstScreenPainted(firstScreen).then(revealFromBootSurface);
   });
   onMount(() => {
     const refresh = () => {
@@ -360,22 +367,24 @@ export function App(): JSX.Element {
         <ConversationRecorderHost />
       </Show>
       <Show when={firstRunSetupVisible()}>
-        <FirstRunSetup
-          coreReady={Boolean(session.ready())}
-          coreRequired={session.coreDownloadRequired()}
-          coreDownloading={session.coreDownloading()}
-          coreDeferred={session.coreDownloadDeferred()}
-          coreProgress={session.coreProgress()}
-          coreError={session.error()}
-          onDownloadCore={session.downloadCore}
-          onContentChanged={session.connectInstalledModules}
-          onClose={() => {
-            // Leaving early (error or metered network) hides the screen for this session only,
-            // so onboarding returns on the next launch until the core is actually installed.
-            if (session.ready()) dismissSetup();
-            setSetupDismissed(true);
-          }}
-        />
+        <Suspense>
+          <FirstRunSetup
+            coreReady={Boolean(session.ready())}
+            coreRequired={session.coreDownloadRequired()}
+            coreDownloading={session.coreDownloading()}
+            coreDeferred={session.coreDownloadDeferred()}
+            coreProgress={session.coreProgress()}
+            coreError={session.error()}
+            onDownloadCore={session.downloadCore}
+            onContentChanged={session.connectInstalledModules}
+            onClose={() => {
+              // Leaving early (error or metered network) hides the screen for this session only,
+              // so onboarding returns on the next launch until the core is actually installed.
+              if (session.ready()) dismissSetup();
+              setSetupDismissed(true);
+            }}
+          />
+        </Suspense>
       </Show>
       <main
         class="app-main"
@@ -426,12 +435,8 @@ export function App(): JSX.Element {
             backToFiles={!expandedNavigation()}
           />
         ))}
-        <Show when={revealing()}>
-          <div class="app-reveal-veil" aria-hidden="true" />
-        </Show>
-        <Show when={showingBootScreen()}>
+        <Show when={shellReady() && showingBootScreen()}>
           <BootScreen
-            appLoading={!shellReady()}
             error={session.error()}
             bootSlow={session.bootSlow()}
             waitingForOtherTab={session.coreWaitingForOtherTab()}

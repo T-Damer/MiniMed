@@ -1,6 +1,7 @@
 import { Capacitor, type PluginListenerHandle } from '@capacitor/core';
 import type { MedicalCore } from '@localmed/contracts';
 import { createSignal, onCleanup, onMount } from 'solid-js';
+import { afterBootReveal } from '@/app/boot-surface';
 import { countPublishedCatalogModules } from '@/app/root-view';
 import { createBrowserCore } from '@/composition/create-browser-core';
 import {
@@ -458,15 +459,17 @@ export function useAppSession() {
       performance.mark('minimed:search-ready');
       setCoreDownloading(false);
       if (reconnectRequested) await connectInstalledModules();
-      // The ~10 MB release catalog is parsed only after search is interactive and the main thread
-      // is idle; the remote refresh below reuses the same load.
-      const moduleRuntimeLoad = scheduleIdle(() =>
-        Promise.all([
-          import('@/features/modules/module-catalog-state').then(({ loadModuleCatalog }) =>
-            loadModuleCatalog(),
-          ),
-          import('@/features/modules/module-runtime-service'),
-        ]),
+      // The ~10 MB release catalog is parsed only after search is interactive, the boot surface
+      // has gone and the main thread is idle; the remote refresh below reuses the same load.
+      const moduleRuntimeLoad = afterBootReveal().then(() =>
+        scheduleIdle(() =>
+          Promise.all([
+            import('@/features/modules/module-catalog-state').then(({ loadModuleCatalog }) =>
+              loadModuleCatalog(),
+            ),
+            import('@/features/modules/module-runtime-service'),
+          ]),
+        ),
       );
       void moduleRuntimeLoad
         .then(([catalog, runtimeService]) => {

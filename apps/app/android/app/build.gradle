@@ -16,7 +16,9 @@ android {
     compileSdk = rootProject.ext.compileSdkVersion
     ndkVersion "27.3.13750724"
     defaultConfig {
-        applicationId "dev.localmed.search"
+        // Released id stays dev.localmed.search (renaming loses user data). Local measurements may
+        // install beside it with -PlocalmedApplicationId=… (e.g. org.med.web on the emulator).
+        applicationId findProperty('localmedApplicationId') ?: "dev.localmed.search"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode releaseMetadata.androidVersionCode

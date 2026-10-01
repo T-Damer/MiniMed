@@ -41,11 +41,14 @@ for (const viewport of [
     try {
       await page.goto('http://127.0.0.1:4173/#/search', { waitUntil: 'domcontentloaded' });
       const navigation = page.getByRole('navigation', { name: 'Разделы приложения' });
-      await expect(page.locator('.boot-card__title')).toContainText('Запускаем MiniMed');
+      // The splash-identical boot surface covers the app until its first screen is ready.
+      await expect(page.locator('#boot-surface')).toBeVisible();
+      await expect(page.locator('.boot-card')).toHaveCount(0);
       await expect(navigation).toHaveCount(0);
       await page.screenshot({ path: testInfo.outputPath('application-loading.png') });
       releaseShell();
       await expect(navigation).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('#boot-surface')).toHaveCount(0);
       await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
       // An installed core that is still opening keeps the search page: the field waits disabled.
       const coreStatus = page.locator('.search-core-status');

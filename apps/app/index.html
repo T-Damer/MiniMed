@@ -19,13 +19,49 @@
       content="MiniMed — offline-first поиск по локальному корпусу клинических материалов."
     />
     <title>MiniMed — локальная медицинская картотека</title>
-    <!-- First frame before the stylesheet: the native splash colour, never a white flash. -->
+    <!--
+      Boot surface: the Android splash drawn again by the page (same ground, the same wallet image
+      at the same size and place; see res/drawable/splash_icon.xml), so the native splash fades
+      onto an identical picture. It covers the app until the first screen is ready, then
+      src/app/boot-surface.ts plays its exit. Inline, because it must paint before any stylesheet.
+    -->
     <style>
       html:not(:has(#root > *)) {
         background: #f3ecd9;
       }
+      .boot-surface {
+        position: fixed;
+        z-index: 2147483000;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #f3ecd9;
+        pointer-events: none;
+      }
+      .boot-surface__icon {
+        width: 190px;
+        height: 190px;
+      }
+      .boot-surface--leaving {
+        animation: boot-surface-out 360ms cubic-bezier(0.32, 0.72, 0, 1) both;
+      }
+      .boot-surface__icon--leaving {
+        animation: boot-surface-icon-out 300ms cubic-bezier(0.32, 0.72, 0, 1) both;
+      }
+      @keyframes boot-surface-out {
+        to {
+          opacity: 0;
+        }
+      }
+      @keyframes boot-surface-icon-out {
+        to {
+          opacity: 0;
+          transform: scale(1.12);
+        }
+      }
       @media (prefers-color-scheme: dark) {
-        html:not(:has(#root > *)) {
+        html:not(:has(#root > *)),
+        .boot-surface {
           background: #2d2721;
         }
       }
@@ -33,6 +69,23 @@
   </head>
   <body>
     <noscript>Для запуска MiniMed нужен JavaScript.</noscript>
+    <div id="boot-surface" class="boot-surface" aria-hidden="true">
+      <img class="boot-surface__icon" src="./boot-icon.png" alt="" width="190" height="190" />
+    </div>
+    <script>
+      // On Android the splash icon is centred on the screen, the WebView sits between the system
+      // bars: move ours to the same spot (MiniMedBoot comes from LocalMedSystemUiPlugin).
+      (() => {
+        const bridge = window.MiniMedBoot;
+        const icon = document.querySelector('.boot-surface__icon');
+        if (!bridge || !icon) return;
+        const place = () => {
+          icon.style.translate = `0 ${bridge.iconShiftY()}px`;
+        };
+        place();
+        window.addEventListener('resize', place);
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

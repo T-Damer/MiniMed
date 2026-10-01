@@ -12,7 +12,7 @@ for (const width of [375, 1280]) {
       const state = window as unknown as { __revealSeen?: number };
       state.__revealSeen = 0;
       new MutationObserver(() => {
-        if (document.querySelector('.app-reveal-veil')) state.__revealSeen = 1;
+        if (document.querySelector('.boot-surface--leaving')) state.__revealSeen = 1;
       }).observe(document, { subtree: true, attributes: true, childList: true });
     });
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
@@ -40,7 +40,7 @@ for (const width of [375, 1280]) {
         page.evaluate(() => (window as unknown as { __revealSeen?: number }).__revealSeen),
       )
       .toBe(1);
-    await expect(page.locator('.app-reveal-veil')).toHaveCount(0);
+    await expect(page.locator('#boot-surface')).toHaveCount(0);
 
     // Switching tabs later never replays the start-up reveal.
     await page.evaluate(() => {

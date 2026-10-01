@@ -20,6 +20,22 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Smooth start-up — 2026-10-01
+
+- Android splash shows the whole launcher wallet (`res/drawable/splash_icon.xml`) and stays until
+  the page calls `window.MiniMedBoot.ready()` (a JavaScript interface from
+  `LocalMedSystemUiPlugin`, because plugin calls queue behind the database plugin) or 4 s pass,
+  then fades onto `#boot-surface` in `index.html`: the same image at the same screen position
+  (`MiniMedBoot.iconShiftY()` corrects for the system bars). `src/app/boot-surface.ts` removes it
+  with one fade once the first view's code and fonts are in and two frames have painted. The
+  former «Запускаем MiniMed…» card and the reveal veil are gone.
+- `FirstRunSetup` is lazy; its package list loads the full module catalog after the reveal, so the
+  9.6 MB catalog chunk is no longer in every launch's start-up graph (12.2 → 2.5 MB; emulator
+  DOMContentLoaded 5.9 → 1.8 s). The session's catalog load also waits for the reveal.
+- `capacitor.config.ts` sets `loggingBehavior: 'none'`: prereleases are debug builds, where
+  Capacitor echoed every bridge result (SQL rows, query text) to logcat.
+- Open: on the loaded emulator the native core open still takes ~25 s before search is ready.
+
 ## Motion settings — 2026-10-01
 
 - Settings → «Анимации» (Выключены / Быстрые / Обычные / Медленные), stored as

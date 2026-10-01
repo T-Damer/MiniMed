@@ -1,10 +1,21 @@
 import type { ContentModuleCatalog } from '@localmed/contracts';
-import { createMemo, createSignal, For, type JSX, onCleanup, Show } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  type JSX,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
+import { afterBootReveal } from '@/app/boot-surface';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Disclosure } from '@/components/Disclosure';
 import { OverlayDialog } from '@/components/OverlayDialog';
-import { MODULE_CATALOG } from '@/features/modules/module-catalog';
+import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
+import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { subscribeAppPreferences } from '@/state/app-preferences';
@@ -35,17 +46,43 @@ export function FirstRunSetup(props: {
   readonly onClose: () => void;
   readonly catalog?: ContentModuleCatalog;
 }): JSX.Element {
-  const runtime = getContentModuleRuntime(props.catalog ?? MODULE_CATALOG);
   const [revision, setRevision] = createSignal(0);
   const [expanded, setExpanded] = createSignal<ReadonlySet<string>>(new Set());
   const refresh = () => setRevision((value) => value + 1);
-  onCleanup(runtime.subscribe(refresh));
+  // The package list needs the full catalog (~10 MB); it arrives after the screen has opened,
+  // so parsing it never holds the splash or stalls the opening animation.
+  const [runtime, setRuntime] = createSignal<BrowserContentModuleRuntime>();
+  onMount(() => {
+    if (props.catalog) {
+      setRuntime(getContentModuleRuntime(props.catalog));
+      return;
+    }
+    let disposed = false;
+    onCleanup(() => {
+      disposed = true;
+    });
+    void afterBootReveal()
+      .then(loadModuleCatalog)
+      .then((catalog) => {
+        if (!disposed) setRuntime(getContentModuleRuntime(catalog));
+      })
+      .catch((cause: unknown) => {
+        console.warn('Список дополнительных пакетов не загрузился.', cause);
+      });
+  });
+  createEffect(() => {
+    const current = runtime();
+    if (current) onCleanup(current.subscribe(refresh));
+  });
   onCleanup(subscribeAppPreferences(refresh));
-  const groups = createMemo(() =>
-    setupPackageGroups(runtime.getCatalog().modules, {
-      experimental: experimentalModulesEnabled(),
-    }),
-  );
+  const groups = createMemo(() => {
+    const current = runtime();
+    return current
+      ? setupPackageGroups(current.getCatalog().modules, {
+          experimental: experimentalModulesEnabled(),
+        })
+      : [];
+  });
 
   // Search needs the core, so the screen stays until it is installed. Only a failure or a
   // metered connection lets the user leave early for their own files and settings.
@@ -159,45 +196,47 @@ export function FirstRunSetup(props: {
             <FeatureTour />
           </section>
 
-          <Show when={groups().length > 0}>
-            <section class="first-run-setup__section">
-              <h3 class="first-run-setup__section-title">Дополнительные пакеты</h3>
-              <p class="first-run-setup__section-text">
-                По желанию: загрузки встают в общую очередь, позже их можно добавить через базу
-                знаний.
-              </p>
-              <div class="first-run-setup__groups">
-                <For each={groups()}>
-                  {(group) => (
-                    <Disclosure
-                      title={group.title}
-                      description={group.description}
-                      meta={group.modules.length}
-                      open={expanded().has(group.id)}
-                      onToggle={(open) => {
-                        const next = new Set(expanded());
-                        if (open) next.add(group.id);
-                        else next.delete(group.id);
-                        setExpanded(next);
-                      }}
-                    >
-                      <ul class="package-list">
-                        <For each={group.modules}>
-                          {(module) => (
-                            <PackageDownloadRow
-                              module={module}
-                              runtime={runtime}
-                              revision={revision()}
-                              onContentChanged={props.onContentChanged}
-                            />
-                          )}
-                        </For>
-                      </ul>
-                    </Disclosure>
-                  )}
-                </For>
-              </div>
-            </section>
+          <Show when={groups().length > 0 ? runtime() : undefined}>
+            {(loadedRuntime) => (
+              <section class="first-run-setup__section first-run-setup__section--arriving">
+                <h3 class="first-run-setup__section-title">Дополнительные пакеты</h3>
+                <p class="first-run-setup__section-text">
+                  По желанию: загрузки встают в общую очередь, позже их можно добавить через базу
+                  знаний.
+                </p>
+                <div class="first-run-setup__groups">
+                  <For each={groups()}>
+                    {(group) => (
+                      <Disclosure
+                        title={group.title}
+                        description={group.description}
+                        meta={group.modules.length}
+                        open={expanded().has(group.id)}
+                        onToggle={(open) => {
+                          const next = new Set(expanded());
+                          if (open) next.add(group.id);
+                          else next.delete(group.id);
+                          setExpanded(next);
+                        }}
+                      >
+                        <ul class="package-list">
+                          <For each={group.modules}>
+                            {(module) => (
+                              <PackageDownloadRow
+                                module={module}
+                                runtime={loadedRuntime()}
+                                revision={revision()}
+                                onContentChanged={props.onContentChanged}
+                              />
+                            )}
+                          </For>
+                        </ul>
+                      </Disclosure>
+                    )}
+                  </For>
+                </div>
+              </section>
+            )}
           </Show>
         </div>
       </div>
@@ -210,6 +249,7 @@ export function FirstRunSetup(props: {
           </Show>
           <Button
             class="first-run-setup__start"
+            classList={{ 'first-run-setup__start--ready': props.coreReady }}
             variant="primary"
             disabled={!props.coreReady}
             onClick={props.onClose}

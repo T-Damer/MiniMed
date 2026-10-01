@@ -92,22 +92,6 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   animation-name: root-view-enter-backward;
 }
 
-/* Start-up only: the splash ground fades off the first view (an overlay, never hit-tested). */
-.app-reveal-veil {
-  position: fixed;
-  z-index: var(--z-overlay);
-  inset: 0;
-  pointer-events: none;
-  background: var(--paper);
-  animation: app-reveal-veil-out 200ms ease-out both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-reveal-veil {
-    display: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .app-view.root-view-enter-forward,
   .app-view.root-view-enter-backward,
