@@ -39,7 +39,7 @@ fun NativeAppFrame(desk: Brush, content: @Composable () -> Unit) {
         content()
         return
     }
-    BoxWithConstraints(Modifier.fillMaxSize().background(desk), contentAlignment = Alignment.TopCenter) {
+    BoxWithConstraints(Modifier.fillMaxSize().nativeHighFrameRate().background(desk), contentAlignment = Alignment.TopCenter) {
         val page = NativeLayout.pageWidth(maxWidth)
         Box(Modifier.width(page).fillMaxHeight()) {
             CompositionLocalProvider(LocalNativeAppFramed provides true, content = content)
