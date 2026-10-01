@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 1 October 2026
-> Released version: `0.6.45` (public prerelease toward `1.0`)
+> Released version: `0.6.46` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -120,6 +120,18 @@ clinical modules through the app (49 sampled through the benchmark pipeline, non
 zstd modules (single frame: they still decode in memory) and the `module-pointer` e2e case
 «no download action when experiments are disabled» (times out waiting for the core on this loaded host;
 it does not touch module storage).
+
+## Release 0.6.46 — 2026-10-02
+
+- Ships the smooth start-up, guided onboarding, drug screen, motion settings and the compressed
+  module distribution (ЕСКЛП ×15 and КР ×744 as framed zstd from the dataset mirror branches,
+  `minAppVersion` 0.6.46; kras/МКБ/РЛС-упаковки zstd gated to 0.6.45; Android core as gzip).
+- Verified: `bun run verify`, 23 targeted browser E2E tests, emulator clean install (core gzip
+  download → search; КР and ЕСКЛП zstd modules installed from the real mirror and opened).
+- Known limitation, not new: `benchmark:real:release` reports `pilot.sectionRecall` 0.836 against
+  the 0.869 baseline; v0.6.45 measures the same 0.836, so the drop predates this release.
+- Not in this release (owner decisions pending): ГРЛС access (its robots.txt forbids crawlers),
+  Allmed redistribution, refreshing КР (+30 editions since 2026-07-27); embeddings paused.
 
 ## Smooth start-up — 2026-10-01
 

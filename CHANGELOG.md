@@ -4,6 +4,26 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.46] - 2026-10-02
+
+- Start-up: the Android splash shows the whole MiniMed wallet and hands over to an identical web
+  surface, which leaves in one fade once the first screen has rendered — no spinner or blank
+  frames. On a first launch the wallet flies into the new onboarding. The start-up bundle shrank
+  from 12.2 MB to 2.5 MB (the full module catalog loads only when needed).
+- Onboarding: a guided 9-step tour over the real app instead of the first-run sheet — the core
+  download as a thin progress line with speed, hand-drawn arrows to real controls, a spotlight on
+  the navigation, real head MRI slices (OpenNeuro ds000001, CC0), optional drug base and speech
+  model downloads, privacy notes. Settings → «Обучение» replays it.
+- Smaller downloads: drug registry (ЕСКЛП) modules 2.0 GB → 69 MB and clinical recommendations
+  2.1 GB → 653 MB as zstd, decoded straight into one on-device store (the second IndexedDB copy is
+  gone, existing installs migrate without downloading again); Android downloads the core as gzip
+  (441 MB → 76 MB). Search results are unchanged.
+- Drug screen: header with the packaging photo, quick links to analogues, the active substance,
+  the pharmacological group and ATC codes with a level-by-level explanation.
+- Motion: Settings → «Анимации» slider (off, slow, normal, fast) applies to every animation; sheets
+  slide away smoothly instead of disappearing. «Режим расшифровки» is a slider too.
+- Fixed: debug-signed builds no longer echo every database call (including query text) to logcat.
+
 ## [0.6.44] - 2026-09-29
 
 - Reference modules: the 6,068 krasotaimedicina.ru disease articles and the RLS MKB-10 reference

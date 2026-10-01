@@ -95,10 +95,13 @@ describe('catalog.preview.json', () => {
       }
       expect(module.previewDocumentCount).toBeGreaterThan(0);
       expect(module.artifacts).toHaveLength(1);
+      // ESKLP indexes ship as framed zstd since 0.6.46 (C1); the app decodes them into OPFS.
       expect(module.artifacts[0]).toMatchObject({
         kind: 'index',
-        url: `https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/${module.id}.db`,
+        compression: 'zstd',
+        url: `https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/${module.id}.db.zst`,
       });
+      expect(module.compatibility.minAppVersion).toBe('0.6.46');
     }
   });
 });
