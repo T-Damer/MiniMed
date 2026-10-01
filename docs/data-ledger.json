@@ -526,7 +526,7 @@
         "Candidate release artifacts for the ESKLP / clinical-recommendation catalog entries (not published)"
       ],
       "rebuild": "medbase compact-module-search --input data/build/official-clinical-documents-2026-07-27/databases --output <dir> --report <file>; bun scripts/repack-module-indexes-zstd.ts --family clinical --source-dir <dir> --out-dir output/module-zstd-2026-10-01/clinical-compacted --compacted",
-      "note": "744 files, compacted search storage, new decoded checksums. Not published. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy.",
+      "note": "744 files, compacted search storage, new decoded checksums. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy.",
       "bytes": 653162729,
       "modified": "2026-10-01"
     }
