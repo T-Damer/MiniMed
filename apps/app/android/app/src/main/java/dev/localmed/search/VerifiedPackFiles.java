@@ -8,12 +8,25 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
+import java.util.zip.GZIPInputStream;
 
 /** File-only transaction shared by bundled and system-downloaded cores. Never buffers a pack. */
 final class VerifiedPackFiles {
     private VerifiedPackFiles() {}
 
     interface Progress { void phase(String phase); }
+
+    /**
+     * Opens a downloaded transfer file as the exact pack bytes. A gzip transfer is inflated while
+     * streaming into {@link #install}, so the checksum is always that of the decoded SQLite file;
+     * a truncated or damaged archive fails inside the gzip trailer check before it is committed.
+     */
+    static InputStream openTransfer(InputStream transfer, String compression) throws IOException {
+        if (compression == null || compression.isEmpty() || compression.equals("none")) return transfer;
+        if (compression.equals("gzip")) return new GZIPInputStream(transfer, 64 * 1024);
+        transfer.close();
+        throw new IOException("Unsupported core transfer compression.");
+    }
 
     static void install(InputStream source, File target, File marker, File validationMarker,
                         String expectedChecksum) throws IOException, NoSuchAlgorithmException {

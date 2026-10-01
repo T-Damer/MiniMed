@@ -127,7 +127,8 @@ public final class LocalMedDatabasePlugin extends Plugin {
                         deleteIfExists(validationMarker(target));
                     }
                     recoverInterruptedInstall(target, new File(directory, "core.db.backup"), marker, checksum);
-                    try (InputStream input = new FileInputStream(stage)) {
+                    try (InputStream input = VerifiedPackFiles.openTransfer(
+                        new FileInputStream(stage), call.getString("compression"))) {
                         VerifiedPackFiles.install(input, target, marker, validationMarker(target), checksum, phase -> {
                             JSObject progress = new JSObject();
                             progress.put("loaded", stage.length());

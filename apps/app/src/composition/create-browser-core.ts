@@ -47,10 +47,16 @@ const BUILT_IN_MKB_MODULE_ID = 'minimed.mkb.ru';
 const CONTENT_FETCH_TIMEOUT_MS = 15_000;
 const CONTENT_OPEN_TIMEOUT_MS = 15_000;
 const OPFS_PACK_FETCH_TIMEOUT_MS = 180_000;
-// Android downloads a separately published encoding of the same corpus. Its checksum belongs
-// to this immutable URL, not to the browser bundle's SQLite page layout.
+// Android downloads a separately published encoding of the same corpus. `checksum` is the exact
+// SQLite file that gets installed; `url` is its gzip transfer (76 MB instead of 441 MB), whose own
+// checksum and size are recorded in core-report.json. The native installer inflates the stream and
+// verifies the decoded checksum, so a damaged or truncated archive never becomes an installed core.
+// The raw `MiniMed-*-core.db` asset of the same release stays published for older app builds.
 export const ANDROID_CORE_DOWNLOAD = {
-  url: 'https://github.com/T-Damer/MiniMed/releases/download/core-0.6.45/MiniMed-0.6.45-core.db',
+  url: 'https://github.com/T-Damer/MiniMed/releases/download/core-0.6.45/core.db.gz',
+  compression: 'gzip',
+  transferSha256: 'sha256:6047b4557f59293d82659f70bcd260af14427817f2d720c943a1b99db3640eef',
+  transferSizeBytes: 76_212_355,
   checksum: 'sha256:13f238f7fefe1b19eefa19ac9de0ea89fabff34ed96e98d987277f15ab03025f',
 } as const;
 const SQLITE_HEADER = new TextEncoder().encode('SQLite format 3\u0000');
@@ -151,9 +157,12 @@ export async function createNativeStore(
   if (Capacitor.getPlatform() === 'android' && downloadUi) {
     const options = { expectedSha256: checksum };
     if (!(await LocalMedDatabase.hasCorePack(options)).installed) {
+      // The retained partial download is keyed by the transfer's identity: raw and gzip bytes of
+      // the same core must never resume each other's file.
       const transfer = {
         url: ANDROID_CORE_DOWNLOAD.url,
-        cacheKey: checksum,
+        cacheKey: ANDROID_CORE_DOWNLOAD.transferSha256,
+        expectedBytes: ANDROID_CORE_DOWNLOAD.transferSizeBytes,
       };
       await downloadUi.requestDownload(await hasRetainedFileDownload(transfer));
       return getDownloadQueue().run(
@@ -184,7 +193,11 @@ export async function createNativeStore(
                   total: file.sizeBytes,
                   phase: 'verifying',
                 });
-                await LocalMedDatabase.installDownloadedCore({ ...options, id: file.id });
+                await LocalMedDatabase.installDownloadedCore({
+                  ...options,
+                  id: file.id,
+                  compression: ANDROID_CORE_DOWNLOAD.compression,
+                });
               },
             );
             context.phase('verifying', false);

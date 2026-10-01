@@ -35,10 +35,14 @@
       "pageSizeBytes": 16384
     },
     "android": {
-      "url": "https://github.com/T-Damer/MiniMed/releases/download/core-0.6.45/MiniMed-0.6.45-core.db",
+      "url": "https://github.com/T-Damer/MiniMed/releases/download/core-0.6.45/core.db.gz",
+      "compression": "gzip",
+      "transferSha256": "sha256:6047b4557f59293d82659f70bcd260af14427817f2d720c943a1b99db3640eef",
+      "transferSizeBytes": 76212355,
       "checksum": "sha256:13f238f7fefe1b19eefa19ac9de0ea89fabff34ed96e98d987277f15ab03025f",
       "sizeBytes": 440942592,
-      "pageSizeBytes": 16384
+      "pageSizeBytes": 16384,
+      "rawUrl": "https://github.com/T-Damer/MiniMed/releases/download/core-0.6.45/MiniMed-0.6.45-core.db"
     }
   }
 }

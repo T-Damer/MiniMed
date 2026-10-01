@@ -68,9 +68,14 @@ export interface NativeCoreDownloadPlugin {
   inspectNativeDownload(options: {
     readonly id: string;
   }): Promise<{ readonly filePath: string; readonly sizeBytes: number }>;
+  /**
+   * `expectedSha256` identifies the installed SQLite file. With `compression: 'gzip'` the
+   * downloaded transfer is inflated while it streams and the decoded bytes are what is verified.
+   */
   installDownloadedCore(options: {
     readonly id: string;
     readonly expectedSha256: string;
+    readonly compression?: 'gzip';
   }): Promise<void>;
   addListener(
     event: 'coreDownloadProgress',

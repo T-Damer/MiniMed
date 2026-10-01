@@ -45,8 +45,21 @@ describe('Android core first launch', () => {
   it('keeps the Android download URL paired with its exact qualified encoding', () => {
     expect(ANDROID_CORE_DOWNLOAD).toEqual({
       url: bundledCoreReport.distributions.android.url,
+      compression: bundledCoreReport.distributions.android.compression,
+      transferSha256: bundledCoreReport.distributions.android.transferSha256,
+      transferSizeBytes: bundledCoreReport.distributions.android.transferSizeBytes,
       checksum: bundledCoreReport.distributions.android.checksum,
     });
+    // The gzip transfer is the browser bundle's archive: one file, two checksums (archive/decoded).
+    expect(bundledCoreReport.distributions.android.transferSha256).toBe(
+      bundledCoreReport.distributions.browser.compressedChecksum,
+    );
+    expect(bundledCoreReport.distributions.android.transferSizeBytes).toBe(
+      bundledCoreReport.distributions.browser.compressedSizeBytes,
+    );
+    expect(bundledCoreReport.distributions.android.pageSizeBytes).toBe(
+      bundledCoreReport.distributions.browser.pageSizeBytes,
+    );
   });
   it('waits for the download action, forwards progress, and reuses an installed core offline', async () => {
     vi.spyOn(Capacitor, 'getPlatform').mockReturnValue('android');
@@ -97,8 +110,17 @@ describe('Android core first launch', () => {
     expect(LocalMedDatabase.installDownloadedCore).toHaveBeenCalledWith({
       expectedSha256: ANDROID_CORE_DOWNLOAD.checksum,
       id: 'a'.repeat(64),
+      compression: 'gzip',
     });
     expect(downloadFileWithRetry).toHaveBeenCalledOnce();
+    expect(downloadFileWithRetry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: ANDROID_CORE_DOWNLOAD.url,
+        cacheKey: ANDROID_CORE_DOWNLOAD.transferSha256,
+        expectedBytes: ANDROID_CORE_DOWNLOAD.transferSizeBytes,
+      }),
+      expect.any(Function),
+    );
     expect(requestDownload).toHaveBeenCalledWith(false);
     expect(remove).toHaveBeenCalledOnce();
     vi.mocked(LocalMedDatabase.hasCorePack).mockResolvedValue({ installed: true });

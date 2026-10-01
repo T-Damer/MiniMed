@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.zip.GZIPOutputStream;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -51,5 +52,56 @@ public class VerifiedPackFilesTest {
         assertFalse(target.exists());
         assertFalse(new File(folder.getRoot(), "core.db.sha256").exists());
         assertFalse(new File(folder.getRoot(), "core.db.tmp").exists());
+    }
+
+    private static byte[] gzip(byte[] bytes) throws IOException {
+        ByteArrayOutputStream archive = new ByteArrayOutputStream();
+        try (GZIPOutputStream output = new GZIPOutputStream(archive)) { output.write(bytes); }
+        return archive.toByteArray();
+    }
+
+    @Test public void gzipTransferInstallsTheDecodedPackAndVerifiesItsChecksum() throws Exception {
+        File target = new File(folder.getRoot(), "core.db");
+        byte[] bytes = "SQLite format 3\0 decoded pack bytes".repeat(5000).getBytes(StandardCharsets.UTF_8);
+        String checksum = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+        try (InputStream input = VerifiedPackFiles.openTransfer(new ByteArrayInputStream(gzip(bytes)), "gzip")) {
+            VerifiedPackFiles.install(input, target, new File(folder.getRoot(), "core.db.sha256"),
+                new File(folder.getRoot(), "core.db.validated"), checksum);
+        }
+        assertArrayEquals(bytes, Files.readAllBytes(target.toPath()));
+    }
+
+    @Test public void truncatedGzipTransferNeverPublishesAPack() throws Exception {
+        File target = new File(folder.getRoot(), "core.db");
+        byte[] bytes = "SQLite format 3\0 decoded pack bytes".repeat(5000).getBytes(StandardCharsets.UTF_8);
+        String checksum = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+        byte[] archive = gzip(bytes);
+        byte[] truncated = java.util.Arrays.copyOf(archive, archive.length - 12);
+        assertThrows(IOException.class, () -> {
+            try (InputStream input = VerifiedPackFiles.openTransfer(new ByteArrayInputStream(truncated), "gzip")) {
+                VerifiedPackFiles.install(input, target, new File(folder.getRoot(), "core.db.sha256"),
+                    new File(folder.getRoot(), "core.db.validated"), checksum);
+            }
+        });
+        assertFalse(target.exists());
+        assertFalse(new File(folder.getRoot(), "core.db.sha256").exists());
+    }
+
+    @Test public void gzipPackWithAnotherDecodedChecksumIsRejected() throws Exception {
+        File target = new File(folder.getRoot(), "core.db");
+        assertThrows(IOException.class, () -> {
+            try (InputStream input = VerifiedPackFiles.openTransfer(
+                new ByteArrayInputStream(gzip("not the expected pack".getBytes(StandardCharsets.UTF_8))), "gzip")) {
+                VerifiedPackFiles.install(input, target, new File(folder.getRoot(), "core.db.sha256"),
+                    new File(folder.getRoot(), "core.db.validated"), "0".repeat(64));
+            }
+        });
+        assertFalse(target.exists());
+    }
+
+    @Test public void unknownTransferCompressionIsRefusedAndAbsentOneMeansRawBytes() throws Exception {
+        assertThrows(IOException.class, () -> VerifiedPackFiles.openTransfer(new ByteArrayInputStream(new byte[] {1}), "brotli"));
+        ByteArrayInputStream raw = new ByteArrayInputStream(new byte[] {1});
+        assertSame(raw, VerifiedPackFiles.openTransfer(raw, null));
     }
 }
