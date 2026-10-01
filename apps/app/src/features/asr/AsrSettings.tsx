@@ -1,8 +1,8 @@
 import { createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Button } from '@/components/Button';
-import { ChoiceGroup } from '@/components/ChoiceGroup';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { FeatureCard } from '@/components/FeatureCard';
+import { StepSlider } from '@/components/StepSlider';
 import { asrDownloadId } from '@/features/asr/asr-download-protocol';
 import {
   ASR_MODELS,
@@ -189,9 +189,10 @@ export function AsrSettings(): JSX.Element {
         </>
       }
     >
-      <ChoiceGroup
+      <StepSlider
         class="asr-settings__choice"
-        legend="Режим расшифровки"
+        label="Режим расшифровки"
+        ariaLabel="Режим расшифровки голосовых заметок"
         value={busy() ?? selected() ?? 'off'}
         disabled={removing() !== null}
         options={[

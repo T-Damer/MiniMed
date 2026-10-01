@@ -3,10 +3,10 @@ import { createSignal, type JSX, lazy, onCleanup, onMount, Show } from 'solid-js
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
-import { ChoiceGroup } from '@/components/ChoiceGroup';
 import { Disclosure } from '@/components/Disclosure';
 import { Page } from '@/components/Page';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
+import { StepSlider } from '@/components/StepSlider';
 import { Switch } from '@/components/Switch';
 import { AsrSettings } from '@/features/asr/AsrSettings';
 import { DownloadsPage } from '@/features/downloads/DownloadsPage';
@@ -54,11 +54,12 @@ const DevDownloadSettings = import.meta.env.DEV
     )
   : undefined;
 
+/** Ordered by speed, slowest to fastest. */
 const MOTION_OPTIONS = [
-  { value: 'off', label: 'Выключены' },
-  { value: 'fast', label: 'Быстрые' },
-  { value: 'normal', label: 'Обычные' },
-  { value: 'slow', label: 'Медленные' },
+  { value: 'off', label: 'Выкл', hint: 'Без анимаций: изменения видны сразу.' },
+  { value: 'slow', label: 'Медленные', hint: 'Переходы и окна появляются неторопливо.' },
+  { value: 'normal', label: 'Обычные', hint: 'Стандартная скорость переходов и окон.' },
+  { value: 'fast', label: 'Быстрые', hint: 'Переходы и окна появляются почти мгновенно.' },
 ] as const;
 
 interface SettingsViewProps {
@@ -288,11 +289,11 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
             />
           </div>
 
-          <ChoiceGroup
-            class="settings-motion"
-            legend="Анимации"
-            hint="Скорость переходов и появления окон. «Выключены» показывает изменения сразу."
-            orientation="horizontal"
+          <StepSlider
+            class="settings-slider"
+            label="Анимации"
+            icon={<AppGlyph name="film-strip" class="range-input__label-icon" aria-hidden="true" />}
+            ariaLabel="Скорость анимаций"
             options={MOTION_OPTIONS}
             value={motionSpeed()}
             onChange={(value) => {
