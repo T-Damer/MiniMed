@@ -1,5 +1,6 @@
 import type { MedicationProduct } from '@/features/medications/medication-record';
 import { readableMedicationDocumentId } from '@/features/medications/medication-record';
+import { MEDICATION_CATALOG_HASH } from '@/features/medications/medication-routing';
 import { openDocumentOverlay } from '@/state/document-navigation';
 
 interface PendingMedicationProduct {
@@ -95,14 +96,40 @@ export function medicationProductFromHistory(
   return isMedicationProduct(entry['product']) ? entry['product'] : null;
 }
 
+/**
+ * Saves the selected trade name (or, with `undefined`, the substance card) with the current history
+ * entry, so a reload opens the same screen.
+ */
+export function rememberMedicationProduct(
+  documentId: string,
+  product: MedicationProduct | undefined,
+): void {
+  const state = window.history.state as Record<string, unknown> | null;
+  window.history.replaceState(
+    { ...state, [HISTORY_PRODUCT_KEY]: product ? { documentId, product } : null },
+    '',
+    window.location.href,
+  );
+}
+
 export function openMedicationProduct(product: MedicationProduct): void {
   const documentId = queueMedicationProductContext(product);
   if (!documentId) return;
   openDocumentOverlay(documentId);
-  const state = window.history.state as Record<string, unknown> | null;
-  window.history.replaceState(
-    { ...state, [HISTORY_PRODUCT_KEY]: { documentId, product } },
-    '',
-    window.location.href,
-  );
+  rememberMedicationProduct(documentId, product);
+}
+
+let pendingCatalogQuery: string | null = null;
+
+/** Opens the medication catalog with its search field filled, e.g. from a pharmacological group. */
+export function openMedicationCatalogSearch(query: string): void {
+  pendingCatalogQuery = query;
+  window.location.hash = MEDICATION_CATALOG_HASH;
+}
+
+/** The query a link asked the catalog to start with; read once when the catalog mounts. */
+export function consumeMedicationCatalogQuery(): string {
+  const query = pendingCatalogQuery ?? '';
+  pendingCatalogQuery = null;
+  return query;
 }

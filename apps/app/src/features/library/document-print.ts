@@ -179,12 +179,16 @@ function summaryText(document: MedicalDocument): string {
   return lines.join('\n\n');
 }
 
-export async function shareDocument(document: MedicalDocument): Promise<'shared' | 'copied'> {
-  const text = summaryText(document);
+/** The system share sheet where there is one, the clipboard otherwise. */
+export async function shareText(title: string, text: string): Promise<'shared' | 'copied'> {
   if ('share' in navigator && typeof navigator.share === 'function') {
-    await navigator.share({ title: document.title, text });
+    await navigator.share({ title, text });
     return 'shared';
   }
   await navigator.clipboard.writeText(text);
   return 'copied';
+}
+
+export function shareDocument(document: MedicalDocument): Promise<'shared' | 'copied'> {
+  return shareText(document.title, summaryText(document));
 }

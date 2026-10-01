@@ -48,7 +48,7 @@ import {
   buildDocumentLinkPhrases,
   createDocumentLinkMatcher,
 } from '@/features/library/document-medication-links';
-import { printDocument, shareDocument } from '@/features/library/document-print';
+import { printDocument, shareDocument, shareText } from '@/features/library/document-print';
 import {
   DocumentReaderChromeShell,
   useDocumentReaderChrome,
@@ -62,6 +62,17 @@ import { RlsMedicationPackagingPanel } from '@/features/library/RlsMedicationPac
 import type { ResolvedReferenceImage } from '@/features/library/reference-image-assets';
 import { getReferenceImageResolver } from '@/features/library/reference-image-assets';
 import type { ClinicalMedicationLink } from '@/features/medications/clinical-medication-links';
+import { DrugQuickLinks } from '@/features/medications/DrugQuickLinks';
+import { DrugScreenHeader } from '@/features/medications/DrugScreenHeader';
+import { DrugSectionIndex } from '@/features/medications/DrugSectionIndex';
+import {
+  buildDrugScreen,
+  drugSectionIndex,
+  drugShareText,
+  instructionIndexFromSummaries,
+  isEsklpSubstanceDocument,
+} from '@/features/medications/drug-screen';
+import { openMedicationCatalogSearch } from '@/features/medications/medication-navigation';
 import {
   ALLMED_SOURCE_URL,
   type ResolvedMedicationPackagingImage,
@@ -70,8 +81,8 @@ import {
 import {
   type MedicationProduct,
   type MedicationReadingMode,
-  medicationProductHeading,
   medicationReadingChoices,
+  parseEsklpMedicationProducts,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
 import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
@@ -87,6 +98,12 @@ interface OfficialDocumentReaderProps {
   readonly pendingTitle?: string;
   readonly availableDocuments?: readonly MedicalDocumentSummary[];
   readonly medicationProduct?: MedicationProduct;
+  /** The substance card (ЕСКЛП) the trade name belongs to; `document` is the instruction while it is open. */
+  readonly medicationSource?: MedicalDocument;
+  /** Picks another trade name of the same substance; `undefined` shows the substance card itself. */
+  readonly onSelectMedicationProduct?: (product: MedicationProduct | undefined) => void;
+  /** Allmed material for the header (packaging photo, Latin name); unlike the panels it is kept in the instruction view. */
+  readonly drugSupplements?: readonly TradeNameSupplement[];
   /** The document the product card was opened on; the instruction may replace the body. */
   readonly medicationOpenedDocumentId?: string;
   readonly medicationReadingMode?: MedicationReadingMode;
@@ -267,6 +284,10 @@ function MedicationProductPanel(props: {
   readonly openedDocumentId: string;
   readonly mode: MedicationReadingMode;
   readonly onModeChange: (mode: MedicationReadingMode) => void;
+  /** The drug header already names the form and strength of a single presentation. */
+  readonly formInHeader: boolean;
+  /** The quick links already lead to the substance card. */
+  readonly substanceLinked: boolean;
 }): JSX.Element {
   const choices = () => medicationReadingChoices(props.product, props.openedDocumentId);
   const presentationList = () => (
@@ -288,7 +309,7 @@ function MedicationProductPanel(props: {
   ];
   const links = () =>
     [
-      props.product.mnnDocumentId
+      props.product.mnnDocumentId && !props.substanceLinked
         ? { id: props.product.mnnDocumentId, label: 'Карточка МНН' }
         : null,
       props.product.grlsRegistrationDocumentId
@@ -302,7 +323,6 @@ function MedicationProductPanel(props: {
 
   return (
     <section class="document-medication-product" aria-label="Карточка препарата">
-      <h2 class="document-medication-product__title">{medicationProductHeading(props.product)}</h2>
       <div class="document-medication-product__reading">
         <SegmentedControl
           label="Версия текста"
@@ -318,7 +338,9 @@ function MedicationProductPanel(props: {
       <Show
         when={props.product.presentations.length > 1}
         fallback={
-          <div class="document-medication-product__presentations">{presentationList()}</div>
+          <Show when={!props.formInHeader}>
+            <div class="document-medication-product__presentations">{presentationList()}</div>
+          </Show>
         }
       >
         {/* Several packagings of one form read as noise above the text; they open on demand. */}
@@ -482,11 +504,44 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     });
   });
 
+  // Drug screen: header, quick links and section index. Only for a trade name or a substance card.
+  const drugSourceProducts = createMemo(() => {
+    const source = props.medicationSource ?? props.document;
+    return source && isEsklpSubstanceDocument(source)
+      ? parseEsklpMedicationProducts(
+          source,
+          instructionIndexFromSummaries(props.availableDocuments ?? []),
+        )
+      : [];
+  });
+  const listedDocumentTitles = createMemo(
+    () =>
+      new Map(
+        (props.availableDocuments ?? []).map((item) => [item.id, displayDocumentTitle(item)]),
+      ),
+  );
+  const drugScreen = createMemo(() => {
+    const document = props.document;
+    if (!document) return null;
+    return buildDrugScreen({
+      source: props.medicationSource ?? document,
+      document,
+      product: props.medicationProduct,
+      sourceProducts: drugSourceProducts(),
+      supplements: props.drugSupplements ?? props.supplementalPanels ?? [],
+      documentTitle: (documentId) => listedDocumentTitles().get(documentId),
+    });
+  });
+  const drugSections = createMemo(() => (drugScreen() ? drugSectionIndex(orderedSections()) : []));
+
   const findUnits = createMemo((): readonly DocumentFindUnit[] => {
     const document = props.document;
     if (!document) return [];
     const units: DocumentFindUnit[] = [];
-    units.push({ id: document.id, text: displayDocumentTitle(document) });
+    units.push({
+      id: document.id,
+      text: drugScreen()?.header.title ?? displayDocumentTitle(document),
+    });
     for (const section of orderedSections()) {
       units.push({ id: section.anchor, text: section.title });
       for (const item of resolveDocumentChunkItems(section.chunks)) {
@@ -697,6 +752,20 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
       Boolean(fullTextDocumentId()),
     );
 
+  const shareDrug = (header: Parameters<typeof drugShareText>[0]): void => {
+    shareText(header.title, drugShareText(header, window.location.href))
+      .then((mode) => {
+        toast.success(
+          mode === 'shared' ? 'Карточка передана.' : 'Карточка скопирована в буфер обмена.',
+        );
+      })
+      .catch((cause: unknown) => {
+        // Closing the system share sheet rejects with AbortError; that is not a failure.
+        if (cause instanceof DOMException && cause.name === 'AbortError') return;
+        toast.error('Не удалось поделиться карточкой.');
+      });
+  };
+
   const pageTitle = (): string =>
     props.document
       ? displayDocumentTitle(props.document)
@@ -860,116 +929,173 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
           <Show when={props.document}>
             {(documentValue) => (
               <>
-                <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
-                  {(label) => <p class="document-overlay-paper__source-label">{label()}</p>}
-                </Show>
-                <ReaderTitleRow item={bookmarkItem(documentValue())} bookmark={bookmark}>
-                  <h1
-                    class="document-overlay-paper__title"
-                    classList={{
-                      'document-overlay-paper__title--pointer': Boolean(props.modulePointer),
-                    }}
-                  >
-                    <QueryHighlightedText
-                      text={displayDocumentTitle(documentValue())}
-                      query={findState().query}
-                      exact={findState().mode === 'exact'}
-                      fuzzy={findState().mode === 'similar'}
-                      ranges={rangesForFindUnit(
-                        rangesByUnit(),
-                        documentValue().id,
-                        findState().query,
-                      )}
-                      unitId={documentValue().id}
-                      activeStart={
-                        activeMatch()?.unitId === documentValue().id
-                          ? activeMatch()?.start
-                          : undefined
-                      }
-                      matchClass="document-overlay-match"
-                    />
-                  </h1>
-                </ReaderTitleRow>
-                <header class="document-overlay-paper__header">
-                  <Show when={displayDocumentSubtitle(documentValue())}>
-                    {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
-                  </Show>
-                  <Show when={fullTextError()}>
-                    {(message) => (
-                      <p class="document-overlay-full-text-error" role="alert">
-                        {message()}
-                      </p>
-                    )}
-                  </Show>
-                  <Show when={isClinicalSummary() && !fullTextDocumentId()}>
-                    <p class="document-overlay-summary-note">
-                      Это краткая выжимка. Полная рекомендация загрузится и откроется здесь.
-                    </p>
-                  </Show>
-                  <DocumentModulePointer {...props} />
-                  <div class="document-overlay-paper__actions">
-                    <Show when={interactiveTool()}>
-                      {(tool) => (
-                        <Button
-                          type="button"
-                          variant="primary"
-                          class="document-overlay-action-button document-overlay-action-button--tool"
-                          aria-label={`${tool().label}: ${displayDocumentTitle(documentValue())}`}
-                          onClick={() => props.onNavigate(tool().href)}
-                          icon={
-                            <AppGlyph
-                              name={tool().kind === 'assessment' ? 'list-checks' : 'calculator'}
-                              class="document-overlay-action-button__icon"
-                            />
-                          }
+                <Show
+                  when={drugScreen()}
+                  fallback={
+                    <>
+                      <Show when={sourceTypeReaderLabel(documentValue().sourceType)}>
+                        {(label) => <p class="document-overlay-paper__source-label">{label()}</p>}
+                      </Show>
+                      <ReaderTitleRow item={bookmarkItem(documentValue())} bookmark={bookmark}>
+                        <h1
+                          class="document-overlay-paper__title"
+                          classList={{
+                            'document-overlay-paper__title--pointer': Boolean(props.modulePointer),
+                          }}
                         >
-                          {tool().label}
-                        </Button>
-                      )}
-                    </Show>
-                    <Show when={isClinicalSummary()}>
-                      <Button
-                        type="button"
-                        class="document-overlay-full-text-inline"
-                        variant="primary"
-                        disabled={fullTextPending()}
-                        aria-label={fullTextButtonLabel()}
-                        onClick={() => void openFullText()}
-                        icon={
-                          <AppGlyph
-                            name={fullTextPending() ? 'refresh' : 'download'}
-                            class={`document-overlay-action-button__icon${fullTextPending() ? ' document-overlay-action-button__icon--spin' : ''}`}
+                          <QueryHighlightedText
+                            text={displayDocumentTitle(documentValue())}
+                            query={findState().query}
+                            exact={findState().mode === 'exact'}
+                            fuzzy={findState().mode === 'similar'}
+                            ranges={rangesForFindUnit(
+                              rangesByUnit(),
+                              documentValue().id,
+                              findState().query,
+                            )}
+                            unitId={documentValue().id}
+                            activeStart={
+                              activeMatch()?.unitId === documentValue().id
+                                ? activeMatch()?.start
+                                : undefined
+                            }
+                            matchClass="document-overlay-match"
+                          />
+                        </h1>
+                      </ReaderTitleRow>
+                      <header class="document-overlay-paper__header">
+                        <Show when={displayDocumentSubtitle(documentValue())}>
+                          {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
+                        </Show>
+                        <Show when={fullTextError()}>
+                          {(message) => (
+                            <p class="document-overlay-full-text-error" role="alert">
+                              {message()}
+                            </p>
+                          )}
+                        </Show>
+                        <Show when={isClinicalSummary() && !fullTextDocumentId()}>
+                          <p class="document-overlay-summary-note">
+                            Это краткая выжимка. Полная рекомендация загрузится и откроется здесь.
+                          </p>
+                        </Show>
+                        <DocumentModulePointer {...props} />
+                        <div class="document-overlay-paper__actions">
+                          <Show when={interactiveTool()}>
+                            {(tool) => (
+                              <Button
+                                type="button"
+                                variant="primary"
+                                class="document-overlay-action-button document-overlay-action-button--tool"
+                                aria-label={`${tool().label}: ${displayDocumentTitle(documentValue())}`}
+                                onClick={() => props.onNavigate(tool().href)}
+                                icon={
+                                  <AppGlyph
+                                    name={
+                                      tool().kind === 'assessment' ? 'list-checks' : 'calculator'
+                                    }
+                                    class="document-overlay-action-button__icon"
+                                  />
+                                }
+                              >
+                                {tool().label}
+                              </Button>
+                            )}
+                          </Show>
+                          <Show when={isClinicalSummary()}>
+                            <Button
+                              type="button"
+                              class="document-overlay-full-text-inline"
+                              variant="primary"
+                              disabled={fullTextPending()}
+                              aria-label={fullTextButtonLabel()}
+                              onClick={() => void openFullText()}
+                              icon={
+                                <AppGlyph
+                                  name={fullTextPending() ? 'refresh' : 'download'}
+                                  class={`document-overlay-action-button__icon${fullTextPending() ? ' document-overlay-action-button__icon--spin' : ''}`}
+                                />
+                              }
+                            >
+                              {fullTextButtonLabel()}
+                            </Button>
+                          </Show>
+                          <Show when={documentValue().sourceType === 'medical_reference'}>
+                            <Button
+                              type="button"
+                              class="document-overlay-action-button"
+                              aria-label="Поделиться памяткой"
+                              onClick={() => {
+                                shareDocument(documentValue())
+                                  .then((mode) => {
+                                    toast.success(
+                                      mode === 'shared'
+                                        ? 'Памятка передана.'
+                                        : 'Памятка скопирована в буфер обмена.',
+                                    );
+                                  })
+                                  .catch(() => toast.error('Не удалось поделиться памяткой.'));
+                              }}
+                              icon={
+                                <AppGlyph
+                                  name="share"
+                                  class="document-overlay-action-button__icon"
+                                />
+                              }
+                            >
+                              Поделиться
+                            </Button>
+                          </Show>
+                        </div>
+                      </header>
+                    </>
+                  }
+                >
+                  {(screen) => (
+                    <>
+                      <DrugScreenHeader
+                        header={screen().header}
+                        bookmarkItem={bookmarkItem(documentValue())}
+                        bookmark={bookmark}
+                        onShare={() => shareDrug(screen().header)}
+                        title={
+                          <QueryHighlightedText
+                            text={screen().header.title}
+                            query={findState().query}
+                            exact={findState().mode === 'exact'}
+                            fuzzy={findState().mode === 'similar'}
+                            ranges={rangesForFindUnit(
+                              rangesByUnit(),
+                              documentValue().id,
+                              findState().query,
+                            )}
+                            unitId={documentValue().id}
+                            activeStart={
+                              activeMatch()?.unitId === documentValue().id
+                                ? activeMatch()?.start
+                                : undefined
+                            }
+                            matchClass="document-overlay-match"
                           />
                         }
-                      >
-                        {fullTextButtonLabel()}
-                      </Button>
-                    </Show>
-                    <Show when={documentValue().sourceType === 'medical_reference'}>
-                      <Button
-                        type="button"
-                        class="document-overlay-action-button"
-                        aria-label="Поделиться памяткой"
-                        onClick={() => {
-                          shareDocument(documentValue())
-                            .then((mode) => {
-                              toast.success(
-                                mode === 'shared'
-                                  ? 'Памятка передана.'
-                                  : 'Памятка скопирована в буфер обмена.',
-                              );
-                            })
-                            .catch(() => toast.error('Не удалось поделиться памяткой.'));
+                      />
+                      <DrugQuickLinks
+                        links={screen().links}
+                        onSelectProduct={(product) => props.onSelectMedicationProduct?.(product)}
+                        onOpenSubstance={(link) => {
+                          if (link.target.kind === 'substance-card') {
+                            props.onSelectMedicationProduct?.(undefined);
+                            return;
+                          }
+                          openDocumentOverlay(link.target.documentId, null, {
+                            preferSummary: true,
+                          });
                         }}
-                        icon={
-                          <AppGlyph name="share" class="document-overlay-action-button__icon" />
-                        }
-                      >
-                        Поделиться
-                      </Button>
-                    </Show>
-                  </div>
-                </header>
+                        onOpenGroup={(group) => openMedicationCatalogSearch(group.query)}
+                      />
+                    </>
+                  )}
+                </Show>
 
                 <RlsMedicationPackagingPanel document={documentValue()} />
 
@@ -981,6 +1107,8 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       openedDocumentId={props.medicationOpenedDocumentId ?? documentValue().id}
                       mode={props.medicationReadingMode ?? 'short'}
                       onModeChange={(mode) => props.onMedicationReadingModeChange?.(mode)}
+                      formInHeader={drugScreen()?.header.formInMeta ?? false}
+                      substanceLinked={drugScreen()?.links.substance != null}
                     />
                   )}
                 </Show>
@@ -1020,6 +1148,14 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                         ? (documentValue().metadata['sourceDocumentId'] as string)
                         : documentValue().id
                     }
+                  />
+                </Show>
+
+                <Show when={drugSections().length > 0}>
+                  <DrugSectionIndex
+                    items={drugSections()}
+                    activeAnchor={chrome.activeAnchor()}
+                    onSelect={(anchor) => chrome.scrollTo(anchor)}
                   />
                 </Show>
 

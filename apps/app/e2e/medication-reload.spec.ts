@@ -11,7 +11,7 @@ test('a medication card keeps its catalog product after a page reload', async ({
     .first()
     .click({ timeout: 30_000 });
 
-  const productTitle = page.locator('.document-medication-product__title');
+  const productTitle = page.locator('.drug-header__title');
   await expect(productTitle).toBeVisible({ timeout: 30_000 });
   const heading = (await productTitle.textContent())?.trim() ?? '';
   expect(heading).not.toBe('');

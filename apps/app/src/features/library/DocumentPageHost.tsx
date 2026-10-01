@@ -19,14 +19,17 @@ import {
   type ClinicalMedicationLink,
   parseClinicalMedicationLinks,
 } from '@/features/medications/clinical-medication-links';
+import { isEsklpSubstanceDocument } from '@/features/medications/drug-screen';
 import {
   consumeMedicationProductContext,
   medicationProductFromHistory,
+  rememberMedicationProduct,
 } from '@/features/medications/medication-navigation';
 import {
   type MedicationProduct,
   type MedicationReadingMode,
   medicationReadingChoices,
+  mergeAllmedSupplementalText,
   parseTradeNameSupplement,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
@@ -439,6 +442,50 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     }
     setInstructionDocument(result.value);
   };
+  let productSwitchGeneration = 0;
+  /**
+   * Another trade name of the same substance (or, with `undefined`, the substance card) opens in
+   * place: the document is the same, so the address stays and only the card, the Allmed material and
+   * the saved history entry change.
+   */
+  const selectMedicationProduct = async (next: MedicationProduct | undefined): Promise<void> => {
+    const source = document();
+    if (!source) return;
+    const generation = ++productSwitchGeneration;
+    setMedicationProduct(next);
+    setMedicationReadingMode(
+      next ? medicationReadingChoices(next, source.id).initialMode : 'short',
+    );
+    setInstructionDocument(undefined);
+    setSupplementalPanels([]);
+    rememberMedicationProduct(source.id, next);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const core = props.getCore();
+    if (!core || !isEsklpSubstanceDocument(source)) return;
+    try {
+      const supplements = await loadTradeNameSupplements(
+        core,
+        availableDocuments(),
+        source.id,
+        next?.tradeName,
+      );
+      if (generation !== productSwitchGeneration || document()?.id !== source.id) return;
+      setSupplementalPanels(supplements);
+      if (!next) return;
+      const merged = mergeAllmedSupplementalText(
+        next,
+        supplements.map((supplement) => supplement.product),
+      );
+      if (merged === next) return;
+      setMedicationProduct(merged);
+      rememberMedicationProduct(source.id, merged);
+    } catch (cause) {
+      if (generation !== productSwitchGeneration) return;
+      toast.error(
+        cause instanceof Error ? cause.message : 'Не удалось загрузить справочные материалы.',
+      );
+    }
+  };
   const showsInstruction = (): boolean => {
     const instructionId = medicationProduct()?.instructionDocumentId;
     return (
@@ -715,6 +762,9 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
                   ? { medicationOpenedDocumentId: (document() as MedicalDocument).id }
                   : {})}
                 supplementalPanels={showsInstruction() ? [] : supplementalPanels()}
+                drugSupplements={supplementalPanels()}
+                {...(document() ? { medicationSource: document() as MedicalDocument } : {})}
+                onSelectMedicationProduct={(product) => void selectMedicationProduct(product)}
                 clinicalMedicationLinks={clinicalMedicationLinks()}
                 initialAnchor={initialAnchor()}
                 trail={trail()}

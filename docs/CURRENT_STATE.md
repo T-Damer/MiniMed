@@ -20,6 +20,33 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Drug document screen — 2026-10-01
+
+A trade name or an ЕСКЛП substance card now opens with a drug header instead of the plain title row
+(`features/medications/DrugScreen*.tsx`, model in `drug-screen.ts`, ATC logic in `atc-code.ts`, both
+pure and tested):
+
+- Header: sentence-case name (ЕСКЛП capitals are only recased when the whole name is capitals),
+  Latin name when an Allmed supplement has one, form/strength and manufacturer, bookmark and share. A
+  packaging photo (installed packaging-images set only) is a dimmed backdrop under a paper veil
+  (`object-fit: cover`, never stretched); without one the header is a plain paper panel.
+- Quick links, each row only when the data has it: other trade names of the same substance («Аналоги»,
+  opened in place with the closest form/strength, «ещё N» after 6), the substance (switches to the
+  substance card with all trade names), the pharmacological group (opens the medication catalog with
+  its search filled; groups are matched by catalog text search, not by an exact membership list), ATC
+  code chips.
+- ATC sheet: the code level by level. Level 1 names are MiniMed's 14 taxonomy headings; levels 2-4
+  are named only when ЕСКЛП's group text is a three-entry chain on a level-4+ code; level 5 is the
+  node's substance name; everything else says the name is not in the loaded data. Cyrillic look-alike
+  letters are mapped to Latin. WHO ATC names are not used.
+- Section index (jump chips) above the unchanged instruction/registry text; the «Кратко / Инструкция»
+  switch stays below the quick links.
+- Not covered: GRLS-only registrations get no analogues/ATC (the data is not in the document);
+  the group link is a text search; the bookmark of a trade name still saves the substance document id.
+- Verified in headless Chromium at 390 and 1280 px, light and dark, on the ЕСКЛП nervous-system
+  module; the packaging photo was a synthetic stand-in (the real images module is not installed
+  locally).
+
 ## Smooth start-up — 2026-10-01
 
 - Android splash shows the whole launcher wallet (`res/drawable/splash_icon.xml`) and stays until

@@ -24,7 +24,10 @@ import {
   documentFromSummary,
   processMedicationSummariesInBatches,
 } from '@/features/medications/medication-loading';
-import { openMedicationProduct } from '@/features/medications/medication-navigation';
+import {
+  consumeMedicationCatalogQuery,
+  openMedicationProduct,
+} from '@/features/medications/medication-navigation';
 import {
   composeMedicationProducts,
   type MedicationProduct,
@@ -215,7 +218,7 @@ async function loadProducts(
 
 export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.Element {
   const [products, setProducts] = createSignal<readonly MedicationProduct[]>([]);
-  const [searchQuery, setSearchQuery] = createSignal('');
+  const [searchQuery, setSearchQuery] = createSignal(consumeMedicationCatalogQuery());
   const [legacyRegistration, setLegacyRegistration] = createSignal(
     legacyMedicationRegistrationFromHash(window.location.hash),
   );

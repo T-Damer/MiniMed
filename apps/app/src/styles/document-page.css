@@ -158,16 +158,9 @@
   background: var(--theme-surface-muted, var(--paper-surface));
 }
 
-.document-medication-product__title,
 .document-medication-product__presentation,
 .document-medication-product__source {
   margin: 0;
-}
-
-.document-medication-product__title {
-  color: var(--theme-text, var(--ink));
-  font-size: 1rem;
-  line-height: 1.35;
 }
 
 .document-medication-product__presentations,
