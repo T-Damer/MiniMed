@@ -10,7 +10,7 @@ import '@/styles/ecg-editor-flow.css';
 /** Home entry: a photo goes straight into the local editor, which opens on its first step. */
 export function EcgHomeEntry(): JSX.Element {
   return (
-    <section class="ecg-home" aria-labelledby="ecg-home-title">
+    <section class="ecg-home" aria-labelledby="ecg-home-title" data-tour="ecg-entry">
       <div class="ecg-home__head">
         <span class="ecg-home__kicker">
           <AppGlyph class="ecg-home__kicker-icon" name="heartbeat" />

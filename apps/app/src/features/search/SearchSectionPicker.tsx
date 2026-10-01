@@ -100,6 +100,8 @@ export function SearchSectionPicker(props: {
       triggerLabel="Раздел поиска"
       triggerRef={(element) => {
         trigger = element;
+        // The onboarding tour points at this control.
+        element.dataset['tour'] = 'section-picker';
       }}
       contentClass="search-section-menu"
       contentRef={(element) => {

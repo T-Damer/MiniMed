@@ -4,6 +4,7 @@ import {
   createSignal,
   type JSX,
   lazy,
+  on,
   onCleanup,
   onMount,
   Show,
@@ -30,8 +31,9 @@ import {
   isUserLibraryCatalogRoute,
   USER_LIBRARY_CATALOG_HASH,
 } from '@/features/library/user-library-routing';
+import { onboardingRestartRequests } from '@/features/onboarding/onboarding-state';
 import { searchCoreStatus } from '@/features/search/search-core-status';
-import { dismissSetup, isSetupDismissed } from '@/features/setup/setup-state';
+import { isSetupDismissed } from '@/features/setup/setup-state';
 import {
   getFloatingWindowsEnabled,
   getSplitNavigation,
@@ -62,13 +64,13 @@ const loadDocumentPageHost = () =>
     default: component,
   }));
 const DocumentPageHost = lazy(loadDocumentPageHost);
-// First run only: it lists every package, so it brings the full module catalog (~10 MB) with it,
-// which must stay out of the start-up bundle of every later launch.
-const loadFirstRunSetup = () =>
-  import('@/features/setup/FirstRunSetup').then(({ FirstRunSetup: component }) => ({
+// First run (and «Пройти обучение заново»): the tour carries its own styles, a particle worker and
+// the optional downloads, which must stay out of the start-up bundle of every later launch.
+const loadOnboarding = () =>
+  import('@/features/onboarding/Onboarding').then(({ Onboarding: component }) => ({
     default: component,
   }));
-const FirstRunSetup = lazy(loadFirstRunSetup);
+const Onboarding = lazy(loadOnboarding);
 const loadNotesView = () =>
   import('@/features/notes/NotesView').then(({ NotesView: component }) => ({
     default: component,
@@ -108,7 +110,7 @@ export function App(): JSX.Element {
   const scaledFloatingWindow =
     embeddedFloatingWindow && floatingWindowParams.get('minimed-floating-scale') !== '0';
   const session = useAppSession();
-  const [setupDismissed, setSetupDismissed] = createSignal(isSetupDismissed());
+  const [onboardingOpen, setOnboardingOpen] = createSignal(!isSetupDismissed());
   const navigation = useRootNavigation();
   const [shellReady, setShellReady] = createSignal(document.readyState === 'complete');
   const [splitNavigation, setSplitNavigation] = createSignal(getSplitNavigation());
@@ -142,12 +144,13 @@ export function App(): JSX.Element {
   // A separate screen only while the application itself loads, or while a missing core waits for
   // the user's consent to download. Opening, verifying, another tab, errors and later downloads
   // keep the search page (field disabled, compact status); tools, notes and settings never read
-  // the medical core and stay usable throughout (offline-first). While first-run setup is open
-  // it owns the screen, including the consent to download; the boot screen never layers under it.
-  const firstRunSetupVisible = () => shellReady() && !embeddedFloatingWindow && !setupDismissed();
+  // the medical core and stay usable throughout (offline-first). While the onboarding is open it
+  // owns the screen (the real search page under its blur), including the consent to download;
+  // the boot screen never layers under it.
+  const onboardingVisible = () => shellReady() && !embeddedFloatingWindow && onboardingOpen();
   const showingBootScreen = () =>
     !shellReady() ||
-    (!firstRunSetupVisible() &&
+    (!onboardingVisible() &&
       coreStatus()?.kind === 'download-required' &&
       navigation.view() !== 'notes' &&
       navigation.view() !== 'settings' &&
@@ -165,7 +168,7 @@ export function App(): JSX.Element {
     bootRevealStarted = true;
     const firstScreen: Promise<unknown>[] = [rootViewLoaders[navigation.view()]()];
     if (navigation.documentReadActive()) firstScreen.push(loadDocumentPageHost());
-    if (firstRunSetupVisible()) firstScreen.push(loadFirstRunSetup());
+    if (onboardingVisible()) firstScreen.push(loadOnboarding());
     if (document.fonts) firstScreen.push(document.fonts.ready);
     void firstScreenPainted(firstScreen).then(revealFromBootSurface);
   });
@@ -277,6 +280,16 @@ export function App(): JSX.Element {
     };
     idle(next);
   });
+  // «Пройти обучение заново» (Settings) asks for the tour again; a tour already open ignores it.
+  createEffect(
+    on(
+      onboardingRestartRequests,
+      () => {
+        if (!embeddedFloatingWindow) setOnboardingOpen(true);
+      },
+      { defer: true },
+    ),
+  );
   const bottomNav = useBottomNav({
     view: navView,
     items: navItems,
@@ -366,23 +379,18 @@ export function App(): JSX.Element {
       <Show when={!embeddedFloatingWindow}>
         <ConversationRecorderHost />
       </Show>
-      <Show when={firstRunSetupVisible()}>
+      <Show when={onboardingVisible()}>
         <Suspense>
-          <FirstRunSetup
+          <Onboarding
             coreReady={Boolean(session.ready())}
-            coreRequired={session.coreDownloadRequired()}
             coreDownloading={session.coreDownloading()}
             coreDeferred={session.coreDownloadDeferred()}
             coreProgress={session.coreProgress()}
             coreError={session.error()}
             onDownloadCore={session.downloadCore}
             onContentChanged={session.connectInstalledModules}
-            onClose={() => {
-              // Leaving early (error or metered network) hides the screen for this session only,
-              // so onboarding returns on the next launch until the core is actually installed.
-              if (session.ready()) dismissSetup();
-              setSetupDismissed(true);
-            }}
+            onNavigate={(view) => navigateTab(view === 'files' ? 'notes' : 'search')}
+            onClose={() => setOnboardingOpen(false)}
           />
         </Suspense>
       </Show>

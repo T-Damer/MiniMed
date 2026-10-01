@@ -1,5 +1,3 @@
-import type { ContentModuleCatalogEntry } from '@localmed/contracts';
-
 const SETUP_DISMISSED_KEY = 'minimed:package-setup-dismissed:v1';
 let dismissedInSession = false;
 
@@ -40,63 +38,6 @@ export function coreAutoDownloadAllowed(connection: NetworkConnectionHint | unde
 
 export function currentNetworkConnection(): NetworkConnectionHint | undefined {
   return (navigator as Navigator & { readonly connection?: NetworkConnectionHint }).connection;
-}
-
-/** Preview (experimental) packages are listed only while experimental modules are enabled. */
-export function setupPackageGroups(
-  modules: readonly ContentModuleCatalogEntry[],
-  options: { readonly experimental: boolean } = { experimental: true },
-) {
-  const kinds = [
-    ['reference', 'Справочники и словари', 'Определения терминов и справочные материалы.'],
-    ['clinical', 'Клинические рекомендации', 'Полные документы по нужным специальностям.'],
-    ['medication', 'Лекарственные препараты', 'Лекарственные справочники и инструкции.'],
-    ['tool', 'Шкалы и калькуляторы', 'Доступные опросники и расчёты.'],
-    ['regulatory', 'Нормативные документы', 'Порядки и другие документы для работы.'],
-    ['personal', 'Дополнительные материалы', 'Материалы для локальной работы.'],
-  ] as const;
-  return kinds
-    .map(([kind, title, description]) => ({
-      id: kind,
-      title,
-      description,
-      modules: modules
-        .filter(
-          (module) =>
-            module.kind === kind &&
-            !module.required &&
-            module.releaseState !== 'bundled' &&
-            (options.experimental || module.releaseState !== 'preview'),
-        )
-        .toSorted(
-          (a, b) =>
-            Number(Boolean(b.definitionReference)) - Number(Boolean(a.definitionReference)) ||
-            a.title.localeCompare(b.title, 'ru'),
-        ),
-    }))
-    .filter((group) => group.modules.length > 0);
-}
-
-/**
- * The setup button while the core is not ready. A percentage only while bytes are counted
- * against a known total in the same units; installation and checks are named stages, never «100%».
- */
-export function setupCoreFooterLabel(state: {
-  readonly downloading: boolean;
-  readonly progress:
-    | {
-        readonly loaded: number;
-        readonly total: number;
-        readonly phase?: 'downloading' | 'verifying' | 'installing';
-      }
-    | undefined;
-}): string {
-  const phase = state.progress?.phase;
-  if (phase === 'installing') return 'Устанавливаем ядро…';
-  if (phase === 'verifying') return 'Проверяем ядро…';
-  if (!state.downloading && !state.progress) return 'Готовим поиск…';
-  const value = downloadPercent(state.progress?.loaded ?? 0, state.progress?.total);
-  return value === undefined ? 'Загружаем ядро…' : `Загружаем ядро · ${Math.floor(value)}%`;
 }
 
 export function downloadPercent(

@@ -74,6 +74,7 @@ export function AppBottomNav(props: {
               </Show>
               <button
                 class="app-nav-button"
+                data-tour={`nav-${item.id}`}
                 classList={{ 'app-nav-button--active': selected() }}
                 type="button"
                 aria-label={label()}

@@ -158,13 +158,14 @@ export function SearchQuickAccess(props: {
     openQuickTool(tool);
   };
   return (
-    <div class="search-quick-access">
+    <div class="search-quick-access" data-tour="quick-tools">
       <HorizontalScroller class="search-quick-access__row" hideScrollbar>
         <ul class="search-quick-access__chips" aria-label="Инструменты">
           <li class="search-quick-access__chip-item">
             <button
               type="button"
               class="search-quick-access__all"
+              data-tour="all-tools"
               aria-haspopup="dialog"
               onClick={() => setOpen(true)}
             >

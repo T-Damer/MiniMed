@@ -22,7 +22,10 @@ export function SearchSectionsOverview(props: {
       <ul class="search-sections__list">
         <For each={props.rows}>
           {(row) => (
-            <li class="search-sections__item">
+            <li
+              class="search-sections__item"
+              data-tour={row.id === 'medications' ? 'section-medications' : undefined}
+            >
               <button
                 type="button"
                 class="search-sections__row"

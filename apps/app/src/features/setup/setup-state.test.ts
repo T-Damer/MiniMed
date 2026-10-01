@@ -1,80 +1,14 @@
-import { ContentModuleCatalogEntrySchema } from '@localmed/contracts';
-import { describe, expect, it } from 'vitest';
-import {
-  coreAutoDownloadAllowed,
-  downloadPercent,
-  setupCoreFooterLabel,
-  setupPackageGroups,
-} from './setup-state';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { coreAutoDownloadAllowed, downloadPercent } from './setup-state';
 
-function module(
-  id: string,
-  kind: 'core' | 'reference' | 'tool',
-  required = false,
-  releaseState = 'published',
-) {
-  return ContentModuleCatalogEntrySchema.parse({
-    id,
-    version: '1.0.0',
-    kind,
-    collection: 'test',
-    title: id,
-    description: 'Fixture',
-    required,
-    releaseState,
-    compatibility: { minAppVersion: '0.6.39', schemaVersion: 2, coreCatalogVersion: '1' },
-    sourceSetDigest: `sha256:${'a'.repeat(64)}`,
-    sizes: {},
-    capabilities: {
-      search: true,
-      fullText: true,
-      structuredTables: false,
-      images: false,
-      originalPdf: false,
-      structuredKnowledge: false,
-      calculations: false,
-    },
-    artifacts: [
-      {
-        id: 'index',
-        kind: 'index',
-        required: true,
-        url: 'https://example.invalid/fixture.db',
-        sha256: `sha256:${'b'.repeat(64)}`,
-        sizeBytes: 100,
-        compression: 'none',
-        sourceSetDigest: `sha256:${'a'.repeat(64)}`,
-      },
-    ],
-  });
-}
-describe('package setup', () => {
-  it('keeps the required core out of optional groups and never fabricates a missing group', () => {
-    const groups = setupPackageGroups([
-      module('core', 'core', true),
-      module('dictionary', 'reference'),
-      module('built-in', 'tool', false, 'bundled'),
-    ]);
-    expect(groups).toHaveLength(1);
-    expect(groups[0]?.modules.map((entry) => entry.id)).toEqual(['dictionary']);
-  });
-  it('lists experimental (preview) packages only while experimental modules are enabled', () => {
-    const modules = [module('draft-dictionary', 'reference', false, 'preview')];
-    expect(setupPackageGroups(modules, { experimental: false })).toEqual([]);
-    expect(
-      setupPackageGroups(modules, { experimental: true })[0]?.modules.map((entry) => entry.id),
-    ).toEqual(['draft-dictionary']);
-  });
-  it('does not promote a planned package into a published download', () => {
-    const groups = setupPackageGroups([module('later', 'reference', false, 'planned')]);
-    expect(groups[0]?.modules[0]?.releaseState).toBe('planned');
-  });
+describe('download percent', () => {
   it('uses indeterminate progress when total is not known', () => {
     expect(downloadPercent(20, null)).toBeUndefined();
     expect(downloadPercent(20, 0)).toBeUndefined();
     expect(downloadPercent(20, Number.NaN)).toBeUndefined();
     expect(downloadPercent(Number.NaN, 100)).toBeUndefined();
   });
+
   it('clamps finite progress without pretending verification equals download completion', () => {
     expect(downloadPercent(25, 100)).toBe(25);
     expect(downloadPercent(120, 100)).toBe(100);
@@ -95,29 +29,37 @@ describe('core auto-download policy', () => {
   });
 });
 
-describe('setup core button', () => {
-  it('shows a percentage only against a known total, then names the install stage', () => {
-    expect(setupCoreFooterLabel({ downloading: false, progress: undefined })).toBe(
-      'Готовим поиск…',
-    );
-    expect(
-      setupCoreFooterLabel({
-        downloading: true,
-        progress: { loaded: 38_000_000, total: 76_000_000, phase: 'downloading' },
-      }),
-    ).toBe('Загружаем ядро · 50%');
-    // Compressed in transit: the streamed bytes have no known total, so no false «100%».
-    expect(
-      setupCoreFooterLabel({
-        downloading: true,
-        progress: { loaded: 252_000_000, total: 0, phase: 'downloading' },
-      }),
-    ).toBe('Загружаем ядро…');
-    expect(
-      setupCoreFooterLabel({
-        downloading: true,
-        progress: { loaded: 252_000_000, total: 252_000_000, phase: 'installing' },
-      }),
-    ).toBe('Устанавливаем ядро…');
+describe('onboarding dismissal', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('remembers the dismissal in storage and for the session', async () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, value: string) => store.set(key, value),
+    });
+    const { dismissSetup, isSetupDismissed } = await import('./setup-state');
+    expect(isSetupDismissed()).toBe(false);
+    dismissSetup();
+    expect(store.get('minimed:package-setup-dismissed:v1')).toBe('1');
+    expect(isSetupDismissed()).toBe(true);
+  });
+
+  it('still counts as dismissed for the session when storage is unavailable', async () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => {
+        throw new Error('blocked');
+      },
+      setItem: () => {
+        throw new Error('blocked');
+      },
+    });
+    const { dismissSetup, isSetupDismissed } = await import('./setup-state');
+    expect(isSetupDismissed()).toBe(false);
+    dismissSetup();
+    expect(isSetupDismissed()).toBe(true);
   });
 });
