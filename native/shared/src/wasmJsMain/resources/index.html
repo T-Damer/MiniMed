@@ -7,7 +7,7 @@
 <link rel="icon" href="data:,">
 <style>
 .native-preview { margin:0; height:100dvh; overflow:hidden; display:flex; flex-direction:column; background:#fbf7ea; }
-.native-preview__toolbar { box-sizing:border-box; flex:none; height:44px; display:flex; align-items:center; gap:8px; padding:6px 10px; font:12px Arial,sans-serif; color:#292720; }
+.native-preview__toolbar { box-sizing:border-box; flex:none; height:44px; display:none; align-items:center; gap:8px; padding:6px 10px; font:12px Arial,sans-serif; color:#292720; }
 .native-preview__viewport { flex:1; min-height:0; min-width:0; overflow:hidden; }
 </style>
 </head>
@@ -20,6 +20,8 @@
 <div id="native-preview-root" class="native-preview__viewport"></div>
 <script>
 const parameters=new URLSearchParams(location.search);
+// The scene/theme bar is a developer aid: shown only with ?toolbar=1.
+if(parameters.get('toolbar')==='1') document.querySelector('.native-preview__toolbar').style.display='flex';
 for(const id of ['scene','theme']) {
  const field=document.getElementById(id);
  if(parameters.has(id)) field.value=parameters.get(id);

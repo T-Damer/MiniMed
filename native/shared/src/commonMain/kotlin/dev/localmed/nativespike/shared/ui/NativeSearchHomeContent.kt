@@ -3,6 +3,7 @@ package dev.localmed.nativespike.shared.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -51,7 +52,8 @@ internal fun NativeSearchHomeContent(
         NativeFeature(card.kicker, card.title, card.text, action(card.actions.first()), card.actions.getOrNull(1)?.let(::action),
             kickerIcon = { tint -> NativeAppGlyph(nativeHomeGlyph(card.icon), Modifier.size(NativeDimensions.space4), tint) })
     }
-    Column(Modifier.fillMaxWidth().testTag("search-home-intro"), verticalArrangement = Arrangement.spacedBy(NativeDimensions.space4)) {
+    // The intro keeps the same 16 dp rhythm from the query sheet as between its own blocks.
+    Column(Modifier.fillMaxWidth().padding(top = NativeDimensions.space4).testTag("search-home-intro"), verticalArrangement = Arrangement.spacedBy(NativeDimensions.space4)) {
         if (showIntro) {
         onOpenTools?.let { open -> NativeChip("Все инструменты", open) { tint ->
             NativeAppGlyph(NativeAppGlyphName.SquaresFour, Modifier.size(NativeDimensions.space4), tint)

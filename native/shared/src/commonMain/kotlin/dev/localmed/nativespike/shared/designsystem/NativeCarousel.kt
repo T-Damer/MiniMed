@@ -9,6 +9,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.ui.input.pointer.PointerType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import kotlinx.coroutines.coroutineScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -87,7 +95,11 @@ fun NativeFeatureCarousel(
                         .maxOf { it.measure(probe).height }
                 }
                 val pagerPlaceables = subcompose("pager") {
-                    HorizontalPager(pager, Modifier.fillMaxWidth().height(tallest.toDp()), pageSpacing = 12.dp) { page ->
+                    HorizontalPager(
+                        pager,
+                        Modifier.fillMaxWidth().height(tallest.toDp()).nativeMouseSwipe(pager) { userTookOver = true },
+                        pageSpacing = 12.dp,
+                    ) { page ->
                         NativeFeatureCard(features[page], Modifier.fillMaxHeight())
                     }
                 }.map { it.measure(constraints.copy(minHeight = tallest, maxHeight = tallest)) }
@@ -129,4 +141,38 @@ private fun NativeFeatureCard(feature: NativeFeature, modifier: Modifier = Modif
         kickerIcon = feature.kickerIcon,
         help = feature.help,
     )
+}
+
+/**
+ * Lets a mouse drag the pager like a finger (desktop and browser builds; touch already swipes):
+ * the page follows the pointer and settles on the nearest page, or the next one after a quarter
+ * of the width.
+ */
+private fun Modifier.nativeMouseSwipe(pager: PagerState, onTakeOver: () -> Unit): Modifier = pointerInput(pager) {
+    coroutineScope {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            if (down.type != PointerType.Mouse) return@awaitEachGesture
+            val start = pager.currentPage
+            var moved = 0f
+            drag(down.id) { change ->
+                val dx = change.positionChange().x
+                if (dx != 0f) {
+                    moved += dx
+                    pager.dispatchRawDelta(-dx)
+                    change.consume()
+                }
+            }
+            if (moved != 0f) {
+                onTakeOver()
+                val threshold = size.width / 4f
+                val target = when {
+                    moved < -threshold -> start + 1
+                    moved > threshold -> start - 1
+                    else -> start
+                }.coerceIn(0, pager.pageCount - 1)
+                launch { pager.animateScrollToPage(target) }
+            }
+        }
+    }
 }

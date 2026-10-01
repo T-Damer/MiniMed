@@ -44,10 +44,12 @@ Do not add blur to document readers and do not offset their whole header below `
 Native Compose routes use `NativeChromeScaffold`. Android system-bar scrims are transparent; the
 application draws the material beneath the status icons. This also applies to native source readers.
 
-- No blur and no grain (user decision, evening 2026-09-30: they looked muddy and re-rendered the
-  whole scene every frame). Once the scene scrolls, an opaque strip in the route's own colour (the
-  top of the desk gradient, or the route surface) sits behind the controls and the status bar and
-  fades out over 12 dp below them.
+- Frosted glass, no grain (user decisions 2026-09-30/10-01): once the scene scrolls, the strip
+  under the controls and the status bar shows the scene blurred by 16 dp (web
+  `backdrop-filter: blur(1rem)`), painted over the page background so sharp text never shows
+  through, and fades out over 20 dp below the controls. Only the strip is blurred. Android draws it
+  (nested RenderNode layers); the skiko targets (desktop, iOS, Wasm preview) record nested layers
+  empty and show a translucent page-colour strip with the same fade instead.
 - Apply the measured header height as scroll-content padding, rather than padding the viewport.
   Source text must actually scroll behind the status bar. Apply the status inset once inside the
   controls, and the navigation inset once at the bottom.
