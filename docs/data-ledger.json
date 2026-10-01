@@ -507,18 +507,6 @@
       "modified": "2026-10-01"
     },
     {
-      "path": "output/module-zstd-2026-10-01/esklp",
-      "class": "REBUILDABLE",
-      "producer": "scripts/repack-module-indexes-zstd.ts (framed zstd -19 --long=26 of the released ESKLP SQLite)",
-      "consumers": [
-        "Candidate release artifacts for the ESKLP / clinical-recommendation catalog entries (not published)"
-      ],
-      "rebuild": "bun scripts/repack-module-indexes-zstd.ts --family esklp --source-dir data/build/release-esklp --out-dir output/module-zstd-2026-10-01/esklp --catalog-out catalog.candidate.json",
-      "note": "15 files, same decoded checksums as the published catalog (installed copies untouched). Not published; the recommended set is esklp-compacted.",
-      "bytes": 94477375,
-      "modified": "2026-10-01"
-    },
-    {
       "path": "output/module-zstd-2026-10-01/esklp-compacted",
       "class": "REBUILDABLE",
       "producer": "medbase compact-module-search then scripts/repack-module-indexes-zstd.ts --compacted",
@@ -526,20 +514,8 @@
         "Candidate release artifacts for the ESKLP / clinical-recommendation catalog entries (not published)"
       ],
       "rebuild": "medbase compact-module-search --input data/build/release-esklp --output <dir> --report <file>; bun scripts/repack-module-indexes-zstd.ts --family esklp --source-dir <dir> --out-dir output/module-zstd-2026-10-01/esklp-compacted --compacted",
-      "note": "15 files; external-content FTS and empty normalized_text, fingerprints identical to the published packs. New decoded checksums. Not published.",
+      "note": "15 files; external-content FTS and empty normalized_text, fingerprints identical to the published packs. New decoded checksums. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy.",
       "bytes": 68736867,
-      "modified": "2026-10-01"
-    },
-    {
-      "path": "output/module-zstd-2026-10-01/clinical",
-      "class": "REBUILDABLE",
-      "producer": "scripts/repack-module-indexes-zstd.ts (zstd of the released clinical recommendation SQLite)",
-      "consumers": [
-        "Candidate release artifacts for the ESKLP / clinical-recommendation catalog entries (not published)"
-      ],
-      "rebuild": "bun scripts/repack-module-indexes-zstd.ts --family clinical --source-dir data/build/official-clinical-documents-2026-07-27/databases --out-dir output/module-zstd-2026-10-01/clinical --catalog-out catalog.candidate.json",
-      "note": "744 files, same decoded checksums as the published catalog. Not published.",
-      "bytes": 677612216,
       "modified": "2026-10-01"
     },
     {
@@ -550,7 +526,7 @@
         "Candidate release artifacts for the ESKLP / clinical-recommendation catalog entries (not published)"
       ],
       "rebuild": "medbase compact-module-search --input data/build/official-clinical-documents-2026-07-27/databases --output <dir> --report <file>; bun scripts/repack-module-indexes-zstd.ts --family clinical --source-dir <dir> --out-dir output/module-zstd-2026-10-01/clinical-compacted --compacted",
-      "note": "744 files, compacted search storage, new decoded checksums. Not published.",
+      "note": "744 files, compacted search storage, new decoded checksums. Not published. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy.",
       "bytes": 653162729,
       "modified": "2026-10-01"
     }
