@@ -1,6 +1,5 @@
 import {
   createEffect,
-  createMemo,
   createResource,
   createSignal,
   For,
@@ -27,21 +26,10 @@ import {
 } from '@/features/asr/asr-models';
 import { isDownloadActive } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
-import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
-import {
-  contentModuleNeedsInstall,
-  isModuleReleased,
-  mergePreinstalledModules,
-} from '@/features/modules/local-packaged-modules';
-import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
-import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
-import { moduleGroupDownloadProgress } from '@/features/modules/recommendation-categories';
-import { installPublishedCategoryModules } from '@/features/modules/recommendation-category-operations';
+import { useDrugDownload } from '@/features/medications/use-drug-download';
 import { downloadPercent } from '@/features/setup/setup-state';
 import { motionMs } from '@/state/motion';
 import {
-  drugDownloadPlan,
-  drugModules,
   formatDownloadSize,
   LARGE_DOWNLOAD_BYTES,
   mriAttribution,
@@ -76,77 +64,7 @@ export function OnboardingExtraContent(props: {
 function DrugDownloadAction(props: {
   readonly onContentChanged: () => Promise<void>;
 }): JSX.Element {
-  const [runtime, setRuntime] = createSignal<BrowserContentModuleRuntime>();
-  const [failed, setFailed] = createSignal(false);
-  const [revision, setRevision] = createSignal(0);
-  const [starting, setStarting] = createSignal(false);
-  const [problem, setProblem] = createSignal(false);
-
-  onMount(() => {
-    let disposed = false;
-    let unsubscribe: (() => void) | undefined;
-    onCleanup(() => {
-      disposed = true;
-      unsubscribe?.();
-    });
-    loadModuleCatalog()
-      .then((catalog) => {
-        if (disposed) return;
-        const current = getContentModuleRuntime(catalog);
-        setRuntime(current);
-        unsubscribe = current.subscribe(() => setRevision((value) => value + 1));
-      })
-      .catch((cause: unknown) => {
-        console.warn('Каталог пакетов не загрузился.', cause);
-        if (!disposed) setFailed(true);
-      });
-  });
-
-  const state = createMemo(() => {
-    revision();
-    const current = runtime();
-    if (!current) return undefined;
-    const catalog = current.getCatalog();
-    const modules = drugModules(catalog, isModuleReleased);
-    const installedById = new Map(
-      mergePreinstalledModules(catalog, current.listInstalled()).map((module) => [
-        module.moduleId,
-        module,
-      ]),
-    );
-    const isInstalled = (module: (typeof modules)[number]): boolean =>
-      !contentModuleNeedsInstall(module, installedById.get(module.id));
-    const plan = drugDownloadPlan(modules, isInstalled);
-    const installedIds = new Set(modules.filter(isInstalled).map((module) => module.id));
-    const progress = moduleGroupDownloadProgress(modules, installedIds, current.listTasks());
-    return { current, modules, plan, installedIds, progress };
-  });
-
-  const active = () => starting() || (state()?.progress.activeTaskCount ?? 0) > 0;
-
-  const start = async (): Promise<void> => {
-    const current = state();
-    if (!current || active()) return;
-    setProblem(false);
-    setStarting(true);
-    try {
-      const result = await installPublishedCategoryModules(
-        current.current,
-        current.plan.pending,
-        current.installedIds,
-      );
-      if (result.errorMessage) {
-        setProblem(true);
-        toast.error(result.errorMessage);
-      }
-      if (result.changed) await props.onContentChanged();
-    } catch (cause) {
-      setProblem(true);
-      toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать препараты.');
-    } finally {
-      setStarting(false);
-    }
-  };
+  const { state, failed, problem, active, start } = useDrugDownload(props.onContentChanged);
 
   const label = (): string => {
     const current = state();

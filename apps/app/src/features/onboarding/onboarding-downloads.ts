@@ -18,17 +18,22 @@ export interface DrugDownloadPlan {
   readonly complete: boolean;
 }
 
+/** Declared download sizes summed; null when any package has no declared size. */
+export function totalDownloadBytes(modules: readonly ContentModuleCatalogEntry[]): number | null {
+  const sizes = modules.map((module) => module.sizes.downloadBytes);
+  return sizes.every((size): size is number => size !== null)
+    ? sizes.reduce((sum, size) => sum + size, 0)
+    : null;
+}
+
 export function drugDownloadPlan(
   modules: readonly ContentModuleCatalogEntry[],
   installed: (module: ContentModuleCatalogEntry) => boolean,
 ): DrugDownloadPlan {
   const pending = modules.filter((module) => !installed(module));
-  const sizes = pending.map((module) => module.sizes.downloadBytes);
   return {
     pending,
-    bytes: sizes.every((size): size is number => size !== null)
-      ? sizes.reduce((sum, size) => sum + size, 0)
-      : null,
+    bytes: totalDownloadBytes(pending),
     complete: modules.length > 0 && pending.length === 0,
   };
 }

@@ -22,21 +22,14 @@ export function ClinicalEditionNoticeLine(props: ClinicalEditionNoticeProps): JS
       role="note"
     >
       <span class="clinical-edition-notice__lead">{props.notice.lead}</span>{' '}
-      <Show when={props.notice.action}>
-        {(action) => (
-          <button
-            type="button"
-            class="clinical-edition-notice__link"
-            disabled={props.pending}
-            onClick={() => props.onOpen(action().target)}
-          >
-            {props.pending ? clinicalEditionDownloadLabel(props.progress) : action().label}
-          </button>
-        )}
-      </Show>
-      <Show when={props.notice.unavailable}>
-        {(text) => <span class="clinical-edition-notice__unavailable">{text()}</span>}
-      </Show>
+      <button
+        type="button"
+        class="clinical-edition-notice__link"
+        disabled={props.pending}
+        onClick={() => props.onOpen(props.notice.action.target)}
+      >
+        {props.pending ? clinicalEditionDownloadLabel(props.progress) : props.notice.action.label}
+      </button>
       <Show when={props.pending && props.progress !== null}>
         <span
           class="clinical-edition-notice__progress"

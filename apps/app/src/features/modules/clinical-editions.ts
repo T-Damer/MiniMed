@@ -206,15 +206,15 @@ export interface ClinicalEditionNotice {
   readonly kind: 'current' | 'replaced';
   /** «Это новая редакция от 12 марта 2025.» */
   readonly lead: string;
-  /** The text link to the other edition, «Открыть старую редакцию от …»; absent when it is not shipped. */
-  readonly action: { readonly label: string; readonly target: ClinicalEditionLink } | null;
-  /** Said instead of the link when the other edition is not part of the app. */
-  readonly unavailable: string | null;
+  /** The text link to the other edition, «Открыть старую редакцию от …». */
+  readonly action: { readonly label: string; readonly target: ClinicalEditionLink };
 }
 
 /**
  * The one-line notice above an open clinical recommendation: a current edition points at the
- * immediately previous one, a replaced edition at the newest.
+ * immediately previous one, a replaced edition at the newest. When the other edition is not
+ * shipped in a module there is nothing to open, and nothing is said (owner decision 2026-10-02:
+ * no modules for the old editions for now).
  */
 export function clinicalEditionNotice(
   documentId: string,
@@ -233,26 +233,16 @@ export function clinicalEditionNotice(
       kind: 'replaced',
       lead: `Это старая редакция от ${formatEditionDate(edition.publishedAt)}.`,
       action: { label: `Открыть новую редакцию от ${target.date}`, target },
-      unavailable: null,
     };
   }
 
   const previous = chain[position - 1];
   if (!previous) return null;
+  if (previous.moduleId === null) return null;
   const target = toLink(previous);
-  const lead = `Это новая редакция от ${formatEditionDate(edition.publishedAt)}.`;
-  if (previous.moduleId === null) {
-    return {
-      kind: 'current',
-      lead,
-      action: null,
-      unavailable: `Предыдущая редакция от ${target.date} в приложении не поставляется.`,
-    };
-  }
   return {
     kind: 'current',
-    lead,
+    lead: `Это новая редакция от ${formatEditionDate(edition.publishedAt)}.`,
     action: { label: `Открыть старую редакцию от ${target.date}`, target },
-    unavailable: null,
   };
 }

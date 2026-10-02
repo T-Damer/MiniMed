@@ -127,7 +127,14 @@ Owner decision: the 15-card «pilot» corpus gives way to the full databases
   publication date (`publishedAt`), written as «14 августа 2026». A current edition links to the immediately previous
   one, a replaced one to the newest current one; if the other edition's module is not installed the same tap
   downloads it through the queue (progress inline) and opens it. Only 11 codes have two shipped editions; for the
-  rest a current edition says «Предыдущая редакция от … в приложении не поставляется» instead of a link.
+  rest the notice is not shown at all (owner decision 2026-10-02: no modules for the 485 old editions for now; STATE
+  UX3), so «Предыдущая редакция … не поставляется» is gone.
+- **«Препараты» without a medication package (UX3).** Since core 0.6.47 the core holds only pointers, so the catalog
+  (`#/modules/documents/medications`) is empty until a package is installed. Once it has finished loading with zero
+  products the page shows an explanation, the whole download size (sum of the released medication packages,
+  `formatModuleBytes`) and a primary «Скачать препараты» that queues them through the same logic as the tour step
+  (`useDrugDownload` in `features/medications/use-drug-download.ts`, shared with the onboarding action), plus a quiet
+  link «Выбрать группы в базе знаний». Progress shows in the button; the list fills when packages connect.
 - **Landing counts** come from the catalog manifest at build time (`apps/landing/src/data/catalog-facts.ts`): current
   recommendation modules (replaced editions excluded, 763) and sections (21), with correct Russian plural forms.
 

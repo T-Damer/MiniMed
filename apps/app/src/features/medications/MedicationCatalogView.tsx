@@ -19,6 +19,7 @@ import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
+import { MedicationDownloadState } from '@/features/medications/MedicationDownloadState';
 import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
 import {
   documentFromSummary,
@@ -46,6 +47,8 @@ import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 interface MedicationCatalogViewProps {
   readonly core: MedicalCore;
   readonly onBack: () => void;
+  /** Reconnects the core after packages are installed; falls back to the content event. */
+  readonly onContentChanged?: () => Promise<void>;
 }
 
 interface PackageVariant {
@@ -290,6 +293,15 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     rankMedicationCatalog(products(), deferredSearchQuery()),
   );
 
+  // The core holds only pointers until a medication package is installed: an empty catalog that
+  // has finished loading is «not downloaded yet», not «no drugs».
+  const needsDownload = () =>
+    catalogComplete() && !loading() && !error() && products().length === 0 && !legacyRegistration();
+  const notifyContentChanged = async (): Promise<void> => {
+    if (props.onContentChanged) await props.onContentChanged();
+    else window.dispatchEvent(new Event(CONTENT_CHANGED_EVENT));
+  };
+
   const openProduct = (product: MedicationProduct): void => {
     openMedicationProduct(product);
   };
@@ -335,8 +347,13 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
       <section class="medication-catalog-section">
         <div class="module-collection-heading">
           <h2 class="module-collection-heading__title">Препараты</h2>
-          <CountBadge value={products().length} />
+          <Show when={!needsDownload()}>
+            <CountBadge value={products().length} />
+          </Show>
         </div>
+        <Show when={needsDownload()}>
+          <MedicationDownloadState onContentChanged={notifyContentChanged} />
+        </Show>
         <Show when={loading()}>
           <div class="medication-empty paper-card" role="status">
             Открываем локальную базу…

@@ -703,10 +703,6 @@
   text-decoration: none;
 }
 
-.clinical-edition-notice__unavailable {
-  color: var(--theme-text-muted, var(--ink-muted));
-}
-
 .clinical-edition-notice__progress {
   display: block;
   height: 0.2rem;

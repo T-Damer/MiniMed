@@ -132,7 +132,11 @@ export function KnowledgeBaseView(props: KnowledgeBaseViewProps): JSX.Element {
               />
             </Show>
             <Show when={route() === 'medications'}>
-              <MedicationCatalogView core={state().core} onBack={navigateBack} />
+              <MedicationCatalogView
+                core={state().core}
+                onBack={navigateBack}
+                {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
+              />
             </Show>
 
             <Show when={route() === 'conditions'}>

@@ -113,7 +113,7 @@ describe('the notice above an open recommendation', () => {
     );
   });
 
-  it('says so instead of linking when the previous edition is not shipped', () => {
+  it('says nothing when the previous edition is not shipped', () => {
     const only = buildClinicalEditionIndex({
       codes: [
         {
@@ -126,11 +126,7 @@ describe('the notice above an open recommendation', () => {
         },
       ],
     });
-    const notice = clinicalEditionNotice('kr.rf.4_2', only);
-    expect(notice?.action).toBeNull();
-    expect(notice?.unavailable).toBe(
-      'Предыдущая редакция от 2 февраля 2020 в приложении не поставляется.',
-    );
+    expect(clinicalEditionNotice('kr.rf.4_2', only)).toBeNull();
   });
 
   it('shows nothing for a recommendation without other editions or a non-КР document', () => {
@@ -178,8 +174,7 @@ describe('real edition chains (catalog.clinical-editions.json)', () => {
     for (const [editionId] of index.chains) {
       const notice = clinicalEditionNotice(`kr.rf.${editionId}`, index);
       if (!notice) continue;
-      expect(Boolean(notice.action) !== Boolean(notice.unavailable)).toBe(true);
-      if (notice.action) expect(notice.action.target.moduleId).not.toBeNull();
+      expect(notice.action.target.moduleId).not.toBeNull();
     }
   });
 });
