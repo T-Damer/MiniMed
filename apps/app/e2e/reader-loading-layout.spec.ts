@@ -1,13 +1,19 @@
 import { expect, test } from '@playwright/test';
 
+import {
+  CLINICAL_DOCUMENT_ROUTE,
+  installClinicalModule,
+  routeClinicalModule,
+} from './clinical-module-fixture';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 for (const width of [390, 1280]) {
   test(`reader keeps navigation in place while loading at ${width}px`, async ({ page }) => {
+    test.setTimeout(150_000);
     await page.setViewportSize({ width, height: 844 });
+    await routeClinicalModule(page);
     await mountBuiltApp(page);
-    await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/d/a3IucmYuNzE0XzIucG5ldW1vbmlh`);
-    await page.getByRole('button', { name: 'Загрузить полный текст' }).click();
+    await installClinicalModule(page);
     await page.locator('.document-overlay-section__title').first().waitFor();
     await page.goto(`${E2E_ASSET_ORIGIN}/#/search`);
     await page.getByTestId('search-input').waitFor();
@@ -34,9 +40,9 @@ for (const width of [390, 1280]) {
         subtree: true,
       });
     });
-    await page.evaluate(() => {
-      location.hash = '#/modules/documents/d/a3IucmYuNzE0XzIucG5ldW1vbmlh';
-    });
+    await page.evaluate((route) => {
+      location.hash = new URL(route).hash;
+    }, CLINICAL_DOCUMENT_ROUTE);
     const toggle = page.locator('.document-overlay-outline-toggle');
     await expect(toggle).toBeEnabled();
     const positions = await page.evaluate(() => ({

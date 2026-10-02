@@ -1,4 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
+import { installClinicalModule, routeClinicalModule } from './clinical-module-fixture';
 
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
@@ -286,10 +287,11 @@ for (const safeTop of [0, 24, 47]) {
   test(`moves sticky document headings with the hidden reader chrome (${safeTop}px)`, async ({
     page,
   }) => {
+    test.setTimeout(150_000);
     await page.setViewportSize({ width: 390, height: 844 });
+    await routeClinicalModule(page);
     await mountBuiltApp(page);
-    await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/d/a3IucmYuNzE0XzIucG5ldW1vbmlh`);
-    await page.getByRole('button', { name: 'Загрузить полный текст' }).click();
+    await installClinicalModule(page);
 
     const heading = page
       .locator('.document-overlay-section__title--h1, .document-overlay-section__title--h2')
