@@ -68,13 +68,11 @@ judging that).
 
 ## What still says «pilot», and why
 
-- `content/pilot-rf/` (the 15 cards), `content:lint:pilot`/`content:build:pilot`, `scripts/build-core.mjs`
-  stages `public-pilot-*`, `pilot-vocabulary-pack`, `tools/ingest/scripts/*pilot_vocabulary*`,
-  registry migrations 007/008/012 and their pytest fixtures: the released core is composed from them
-  and the pilot-free compose already exists (`finalize-clean`). They go with the first core rebuilt and
-  released without the pilot (`--stage=pilot-removal-diff` records the 15 ids); the `alias.pilot.*`
-  colloquial vocabulary (45 rows) must then be re-homed, as in
-  [core-build-reconstruction-2026-09-27.md](core-build-reconstruction-2026-09-27.md).
+- `tools/ingest/tests/fixtures/pilot-rf/` (the 15 cards, moved from `content/pilot-rf` with the core 0.6.47
+  rebuild) and registry migrations 007/008/012 with their pytest fixtures: migrations are numbered history and
+  stay. The core build no longer composes the pilot (stages removed); the 45 colloquial aliases are
+  `content/colloquial-aliases.yaml` (`alias.colloquial.*`). Measured result: core 0.6.47 in
+  [CURRENT_STATE.md](../CURRENT_STATE.md) («Discovery core 0.6.47»).
 - `content/regulatory-rf-pilot`, `content/reference-rf-pilot`, `content/definition-pilot`, pack ids
   `minimed.rf-regulatory-pilot`, `data/build/rf-regulatory-pilot.db`, `definition.pilot.*`: shipped
   companion packs. The word is only part of their identifiers; renaming would invalidate installed

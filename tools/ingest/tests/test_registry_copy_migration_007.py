@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[3]
 def test_clarifies_prepared_summaries_and_evidence_without_changing_anchors_or_reviews(
     tmp_path: Path,
 ) -> None:
-    prepared = ROOT / "content" / "pilot-rf"
+    prepared = Path(__file__).parent / "fixtures" / "pilot-rf"
     original = tmp_path / "original"
     shutil.copytree(prepared, original)
     for path in original.iterdir():

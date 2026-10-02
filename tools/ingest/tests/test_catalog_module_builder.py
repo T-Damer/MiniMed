@@ -996,6 +996,63 @@ def test_clinical_core_pointer_defaults_to_disease_without_declared_entity_type(
     assert "entityType: reference" not in pointer_text
 
 
+def test_clinical_core_pointers_link_a_replaced_edition_with_its_successor(
+    tmp_path: Path,
+) -> None:
+    ledger = tmp_path / "clinical-pointers-editions.json"
+    module_id = "minimed.clinical.infectious.ru"
+
+    def record(official_id: str, **links: object) -> dict[str, object]:
+        return {
+            "recordId": f"kr.rf.{official_id}",
+            "title": "Туберкулез у детей",
+            "officialId": official_id,
+            "entityType": "disease",
+            "versionLabel": official_id,
+            "status": "active",
+            "moduleIds": [module_id],
+            "primaryModuleId": module_id,
+            **links,
+        }
+
+    write_ledger(
+        ledger,
+        [
+            record("507_3", status="superseded", supersededBy="kr.rf.507_4"),
+            record("507_4", supersedes=["kr.rf.507_3"]),
+        ],
+        [
+            {
+                "moduleId": module_id,
+                "title": "Инфекционные болезни",
+                "recordIds": ["kr.rf.507_3", "kr.rf.507_4"],
+                "coverageCounts": {"metadata-only": 2},
+            }
+        ],
+    )
+    output = tmp_path / "clinical-core-pointers-editions"
+
+    report = build_core_catalog_pointers(
+        ledger,
+        output,
+        family="clinical",
+        version="2026.10.1",
+        built_at="2026-10-02T00:00:00Z",
+    )
+
+    module_dir = output / report.modules[0].directory
+    texts = {path.read_text(encoding="utf-8") for path in module_dir.glob("*.md")}
+    old = next(text for text in texts if "targetDocumentId: kr.rf.507_3" in text)
+    new = next(text for text in texts if "targetDocumentId: kr.rf.507_4" in text)
+    assert "status: superseded" in old
+    assert "supersededByDocumentId: kr.rf.507_4" in old
+    assert "Редакция заменена: актуальная редакция 507_4 (kr.rf.507_4)." in old
+    assert "status: active" in new
+    assert "kr.rf.507_3" in new
+    assert "Заменяет редакции: 507_3 (kr.rf.507_3)." in new
+    assert "supersededByDocumentId" not in new
+
+
 def test_builds_compact_legal_core_pointer(tmp_path: Path) -> None:
     ledger = tmp_path / "legal-pointers.json"
     target_id = "law.ru.192n"

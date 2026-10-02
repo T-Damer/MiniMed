@@ -20,6 +20,65 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Discovery core 0.6.47 — 2026-10-02 (STATE CORE2)
+
+Published as `core-0.6.47` (prerelease; `core-0.6.45` stays published for rollback). Rebuilt with
+`CORE_BUILD_VERSION=0.6.47 CORE_BUILT_AT=2026-10-02T00:00:00Z bun run content:core:build -- --stage=finalize`.
+
+- **Pilot gone from the build.** The stages `public-pilot-build`, `public-pilot-clean-build`,
+  `finalize-clean`, `pilot-removal-diff` and the retargeting report are removed; `finalize` composes
+  reference + clinical + medication pointers and two alias-only inputs. The 15 pilot documents
+  (`kr.rf.*.{uti,…}`, `drug.rf.*`) and their 8 `medication_profiles` are not in the core. The 45
+  colloquial aliases moved to `content/colloquial-aliases.yaml` (`alias.pilot.*` → `alias.colloquial.*`;
+  `build_alias_pack.py`, the renamed vocabulary builder). `content/pilot-rf` is now only the fixture of the
+  historical registry migrations 007/008/012 (`tools/ingest/tests/fixtures/pilot-rf`); the
+  `content:lint:pilot`/`content:build:pilot` scripts are gone. The medication alias projection is empty
+  (the 1 643 source names are already in the pinned pointers, byte-identical to `medication-source-aliases.db`
+  of 0.6.45), so that pack is built with `--allow-empty`.
+- **Clinical track = every current edition + the replaced ones.** `medbase-clinical-catalog build
+  --previous-source` takes the 2026-10-02 catalog (763 current) and keeps the 11 editions that left it
+  (115_2, 25_2, 507_3, 535_2, 758_1, 759_1, 760_1, 761_1, 762_1, 771_1, 937_1) as pointers with
+  `status: superseded` and `supersededByDocumentId` (the registry gives no link; the successor is the highest
+  current edition of the same code, and a replaced edition without one fails the build). The successor
+  lists `supersedesDocumentIds`; both bodies and aliases carry the other edition's code, so a search for
+  «507_3» finds both cards. Pointer ids are unchanged for the 744 earlier records (their keywords, aliases,
+  definitions, ICD, modules and medication links are identical to 0.6.45); 30 pointers are new
+  (`kr.rf.1062_1`…`1080_1`, `311_2`, and the 11 new editions). The databases of the 30 editions are decoded
+  from their published zstd modules (decoded checksums verified) because enrichment reads them; they come
+  from the current importer, so most have no «Ключевые слова» list (keywords 0 for 27 of 30).
+- **Result** (against 0.6.45): 20 002 documents (19 987 − 15 + 30), 57 264 sections, 57 276 chunks, 62 960 aliases
+  (62 615 − 45 + 45 + 345); SQLite 441 597 952 B (+0.65 MB, +0.15 %), `core.db.gz` 76 268 794 B (+56 KB, +0.07 %),
+  16 KiB pages, integrity ok, no FK violations, identity index unchanged (31 599 names / 31 508 targets). Diff
+  against 0.6.45: exactly the 15 pilot ids removed, 30 added, the 11 replaced pointers changed, nothing else.
+- **Benchmarks** (candidate = released bytes; baseline file re-measured and committed separately): CI
+  `benchmark:all` (core only) lookup R@1 0.131 → 0.180, R@5 0.246 → 0.279, MRR 0.175 → 0.214, demo unchanged;
+  release `benchmark:real:release` (all packs + 7 modules) lookup R@1 0.705 → 0.803, R@5 0.918 → 0.934, MRR
+  0.788 → 0.855, Top-1 rate 0 → 1 (the ceftriaxone/amoxicillin/paracetamol/oseltamivir lookups no longer rank
+  the pilot card above the ЕСКЛП/Allmed record); demo R@1 0.526 unchanged, R@5 **0.684 → 0.632** (one query of 19,
+  `demo.30` «учащенное мочеиспускание боль в пояснице», expected `kr.rf.281_3`: it was answered by the pilot's
+  retelling text, which the title-only pointer cannot replace) — more than the 0.02 tolerance, accepted as
+  the cost of retiring the pilot and recorded in the new baseline; cases unchanged. No colloquial alias was
+  added to win it back: that needs a clinician-reviewed symptom → disease mapping.
+- **Published:** GitHub release `core-0.6.47` with `core.db.gz` (browser bundle and Android download),
+  `MiniMed-0.6.47-core.db` (raw, for older builds), `core-report.json` (`distributions.android` with the gzip
+  checksums) and `core.manifest.json`; `content/bundled/core.db.gz`, `apps/app/public/content/core-report.json`
+  and `ANDROID_CORE_DOWNLOAD` point at it. `scripts/write-core-report.mjs` writes the report (self-tested: it
+  reproduces the 0.6.45 report byte for byte apart from the dropped migration-012 checksum). The catalog's core
+  entry (`minimed.core.ru` 1.0.0-preview.8) is independent of the build version and unchanged.
+- **Verified:** `bun run test:unit` (312 files, 7 355 tests), `pytest tools/ingest` (895), `python:check`,
+  `typecheck`, `benchmark:all`, `benchmark:real:release`; in a Chromium build (headless, fresh profile) the
+  new core installs from `/content/core.db` and its checksum passes, a search for «Панариций у детей»
+  returns the new pointer first, its page offers «Скачать набор» (139 КБ), the real mirror download installs
+  and opens the full text; «507_3» returns the 507_4 pointer (528 КБ module) above the 507_3 one (453 КБ,
+  still installable), and their pointer pages show «Редакция заменена: актуальная редакция 507_4» /
+  «Заменяет редакции: 507_3».
+- **Not verified:** the Android download of the new gzip on a device/emulator (the installer is unchanged; the
+  URL and checksums are the published ones), the iOS/native Kotlin port (its `RELEASE_CORE` constant still names
+  0.6.45; the port is frozen), a physician review of any text. UI follow-ups: the two pointer cards of an
+  edition pair look identical in a result list (same title); the pointer page does not yet read
+  `supersededByDocumentId`/`supersedesDocumentIds` or the `superseded` status. `packages/test-fixtures/scripts/
+  build-core-slice.ts` still copies `kr.rf.714_2.pneumonia` from the core and fails on regeneration.
+
 ## Pilot corpus retired — 2026-10-02
 
 Owner decision: the 15-card «pilot» corpus gives way to the full databases
@@ -34,15 +93,14 @@ Owner decision: the 15-card «pilot» corpus gives way to the full databases
   because pointers carry titles only); tolerance 0.02 is unchanged.
 - A pilot-free core candidate (`core.0.7.0-test7.no-pilot.db`) passes the retargeted lookup gate
   (R@5 0.918, Top-1 rate 1): the earlier «no-pilot rebuild failed the clinical gate» came from
-  fixtures that expected pilot ids. Removing `content/pilot-rf` from the core build is now unblocked
-  by the gate; it still needs a real rebuild and release (and re-homing the 45 `alias.pilot.*` rows).
+  fixtures that expected pilot ids. The pilot left the core build with core 0.6.47 (see above); the 45
+  `alias.pilot.*` rows became `alias.colloquial.*`.
 - Removed: `benchmark:pilot`/`run-pilot.ts`, the pilot sync/auto-rebuild workflow and scripts, the
   drug-pilot and knowledge-pilot workflows, the pilot docs, the corrupt hard-1500 fixture and its
   loader. Renamed: `Public Russian pilot Android release` → `Android release` (versioned APK asset
   `MiniMed-<v>-android-debug.apk`; `android-latest/MiniMed-android.apk`, Pages and tags unchanged),
   `Validate Russian regulatory pilot` → `…regulatory pack`.
-- Still named «pilot» on purpose: `content/pilot-rf` and its core-build stages (until the pilot-free
-  core ships), the shipped regulatory/reference/definition pack identifiers and the local
+- Still named «pilot» on purpose: the fixture copy of `content/pilot-rf` for the historical migrations, the shipped regulatory/reference/definition pack identifiers and the local
   `private-pilot`/`medications-pilot` data paths (renaming breaks installed modules or running
   pipelines); full list in the research note.
 
@@ -98,11 +156,8 @@ and 11 new editions of recommendations the app already had**; those 11 earlier e
   they would double the titles in every category list until the UI hides or badges `superseded` editions.
 - **Catalog.** 812 modules (+30); `publishedAt` moved to 2026-10-02 because a remote catalog replaces the bundled one only
   when it is newer; category counters recount current editions.
-- **Not done: discovery core.** The 30 new editions have no pointer in `core.db` (a core rebuild means a new core release,
-  `core-report`, `core.db.gz` and the Android gzip). Until then global search finds them only after the module is installed
-  (the installed module is mounted for search; verified), and the core still points the 11 replaced recommendations to their
-  previous editions, which remain installable. The next core build should add the new editions and point replaced ones to the
-  current edition.
+- **Discovery core:** the 30 new editions have pointers and the 11 replaced ones point to their successors since
+  core 0.6.47 (see «Discovery core 0.6.47»). Installed modules and their checksums are untouched.
 - **Published** to the new mirror branch `datasets/clinical-json-2026.10.02-7b17a45f02ff` (30 `.db.zst`, 33.3 MB, additive:
   a new branch, nothing existing touched; no GitHub release). All 30 mirror URLs return the published bytes (size and SHA-256
   equal the catalog) with `access-control-allow-origin: *`. Local copy: `data/build/official-clinical-2026-10-02/zst/`.

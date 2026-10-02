@@ -12,7 +12,14 @@ from pathlib import Path
 from typing import Literal, cast
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializerFunctionWrapHandler,
+    model_serializer,
+    model_validator,
+)
 
 CoverageState = Literal[
     "published",
@@ -203,6 +210,21 @@ class ClinicalCatalogRecord(CatalogModel):
     specialties: list[str] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
     raw_metadata: dict[str, object] = Field(default_factory=dict)
+    # Edition links: a replaced edition names the record that replaced it, a current edition the
+    # records it replaced. Both are omitted from the serialized ledger while empty, so ledgers
+    # (and the pointer checksums derived from their records) of unlinked records stay unchanged.
+    superseded_by: str | None = None
+    supersedes: list[str] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def _omit_empty_edition_links(
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, object]:
+        data = cast(dict[str, object], handler(self))
+        for key in ("supersededBy", "supersedes", "superseded_by"):
+            if key in data and not data[key]:
+                del data[key]
+        return data
 
 
 class ClinicalModulePlanEntry(CatalogModel):
@@ -527,19 +549,78 @@ def _module_plan(
     return result
 
 
+def _edition_key(row: Mapping[str, object]) -> tuple[int, int]:
+    code, version = row.get("code"), row.get("versionNumber")
+    if not isinstance(code, int) or not isinstance(version, int):
+        raise ValueError(f"Registry row {row.get('id')} has no numeric code and version.")
+    return code, version
+
+
+def combine_clinical_editions(
+    current_rows: list[dict[str, object]], previous_rows: list[dict[str, object]]
+) -> tuple[list[dict[str, object]], dict[str, str]]:
+    """Return current rows plus earlier editions the registry replaced, and replaced -> successor.
+
+    A previous row that is no longer current must have a current edition of the same code with a
+    higher version; otherwise the recommendation disappeared and the build fails instead of
+    silently dropping a pointer.
+    """
+    current_ids = {str(row["id"]) for row in current_rows}
+    newest_by_code: dict[int, dict[str, object]] = {}
+    for row in current_rows:
+        code, _version = _edition_key(row)
+        best = newest_by_code.get(code)
+        if best is None or _edition_key(row)[1] > _edition_key(best)[1]:
+            newest_by_code[code] = row
+    rows = list(current_rows)
+    replaced_by: dict[str, str] = {}
+    for row in previous_rows:
+        row_id = str(row["id"])
+        if row_id in current_ids:
+            continue
+        code, version = _edition_key(row)
+        successor = newest_by_code.get(code)
+        if successor is None or _edition_key(successor)[1] <= version:
+            raise ValueError(f"Recommendation {row_id} left the registry without a successor.")
+        rows.append(row)
+        replaced_by[row_id] = str(successor["id"])
+    return rows, replaced_by
+
+
+def _link_editions(records: list[ClinicalCatalogRecord], replaced_by: Mapping[str, str]) -> None:
+    by_official_id = {record.official_id: record for record in records}
+    for replaced_id, successor_id in sorted(replaced_by.items()):
+        replaced = by_official_id[replaced_id]
+        successor = by_official_id[successor_id]
+        replaced.status = "superseded"
+        replaced.coverage_state = "superseded"
+        replaced.superseded_by = successor.record_id
+        successor.supersedes = sorted({*successor.supersedes, replaced.record_id})
+
+
 def build_clinical_coverage_ledger(
     source: Path,
     taxonomy_path: Path,
     *,
     overrides_path: Path | None = None,
     generated_at: str | None = None,
+    previous_source: Path | None = None,
 ) -> ClinicalCoverageLedger:
     taxonomy = load_taxonomy(taxonomy_path)
     overrides = load_overrides(overrides_path)
     records: list[ClinicalCatalogRecord] = []
     warnings: list[str] = []
     by_official_id: dict[str, ClinicalCatalogRecord] = {}
-    for index, row in enumerate(load_catalog_rows(source)):
+    rows = load_catalog_rows(source)
+    source_checksum = _sha256_file(source)
+    replaced_by: dict[str, str] = {}
+    if previous_source is not None:
+        rows, replaced_by = combine_clinical_editions(rows, load_catalog_rows(previous_source))
+        source_checksum = hashlib.sha256(
+            f"{source_checksum}\n{_sha256_file(previous_source)}".encode()
+        ).hexdigest()
+        source_checksum = f"sha256:{source_checksum}"
+    for index, row in enumerate(rows):
         try:
             record = _normalize_row(row, taxonomy, overrides)
         except ValueError as error:
@@ -558,6 +639,7 @@ def build_clinical_coverage_ledger(
             continue
         by_official_id[record.official_id] = record
         records.append(record)
+    _link_editions(records, replaced_by)
     records.sort(key=lambda item: (item.primary_module_id, item.title, item.official_id))
     modules = _module_plan(records, taxonomy)
     summary = ClinicalCoverageSummary(
@@ -568,7 +650,7 @@ def build_clinical_coverage_ledger(
     )
     return ClinicalCoverageLedger(
         generated_at=generated_at or _utc_now(),
-        source_checksum=_sha256_file(source),
+        source_checksum=source_checksum,
         taxonomy_checksum=_sha256_file(taxonomy_path),
         records=records,
         modules=modules,

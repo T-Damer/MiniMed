@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 def test_repacks_pages_without_changing_content_or_source(tmp_path: Path) -> None:
     source, output = tmp_path / "source.db", tmp_path / "repacked.db"
-    write_sqlite_pack(load_content_pack(ROOT / "content" / "pilot-rf"), source)
+    write_sqlite_pack(load_content_pack(Path(__file__).parent / "fixtures" / "pilot-rf"), source)
     checksum = sha256_file(source)
     with pytest.raises(ValueError, match="checksum"):
         migrate_sqlite_layout(source, output, "sha256:incorrect")

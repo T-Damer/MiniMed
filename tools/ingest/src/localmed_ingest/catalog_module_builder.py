@@ -1548,6 +1548,12 @@ def _clinical_core_pointer_document(
     specialties = _text_values(record.get("specialties"))
     age_categories = _text_values(record.get("ageCategories"))
     clinical_medication_links = _object_list(record.get("clinicalMedicationLinks"))
+    superseded_by = _clean(record.get("supersededBy"))
+    supersedes = _text_values(record.get("supersedes"))
+    # Edition links name exact registry editions, so their codes stay searchable both ways: the
+    # replaced pointer finds its successor and the current one finds the codes it replaced.
+    successor_official_id = superseded_by.removeprefix("kr.rf.") if superseded_by else None
+    replaced_official_ids = [replaced.removeprefix("kr.rf.") for replaced in supersedes]
     canonical_definition = _object_value(record.get("canonicalDefinition"))
     definition_text = _clean(canonical_definition.get("text")) if canonical_definition else None
     definition_section_title = (
@@ -1585,6 +1591,8 @@ def _clinical_core_pointer_document(
             *declared_aliases,
             *keywords,
             *([official_id] if official_id else []),
+            *([successor_official_id] if successor_official_id else []),
+            *replaced_official_ids,
             *icd_codes,
             *specialties,
             *age_categories,
@@ -1627,6 +1635,20 @@ def _clinical_core_pointer_document(
         "canonicalDefinition": canonical_definition,
         "clinicalMedicationLinks": clinical_medication_links,
     }
+    if superseded_by:
+        metadata["supersededByDocumentId"] = superseded_by
+    if supersedes:
+        metadata["supersedesDocumentIds"] = supersedes
+    edition_lines: list[str] = []
+    if superseded_by:
+        edition_lines.append(
+            f"Редакция заменена: актуальная редакция {successor_official_id} ({superseded_by})."
+        )
+    if supersedes:
+        edition_lines.append(
+            f"Заменяет редакции: {_format_values(replaced_official_ids)} "
+            f"({_format_values(supersedes)})."
+        )
     body: list[str] = []
     if definition_text and canonical_definition:
         body.extend(
@@ -1654,6 +1676,7 @@ def _clinical_core_pointer_document(
             f"МКБ-10: {_format_values(icd_codes)}.",
             f"Специальности: {_format_values(specialties)}.",
             f"Возрастные категории: {_format_values(age_categories)}.",
+            *edition_lines,
             "",
             (
                 f"Полные данные находятся в скачиваемом модуле «{primary_module_id}» "

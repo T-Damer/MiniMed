@@ -104,13 +104,20 @@ Discovery core (`apps/app/public/content/core.db`), reproducible and incremental
 bun run content:core:build
 ```
 
-Wires three independent, already-built pointer tracks (krasotaimedicina+mkb "reference",
-"clinical", "medication" — see `docs/research/core-build-reconstruction-2026-09-27.md` for how
+Wires three independent pointer tracks (krasotaimedicina+mkb "reference", "clinical", "medication" —
+the clinical track covers every current registry edition plus earlier editions the registry replaced, which
+stay as `superseded` pointers linked to their successor (`--previous-source`); the 15 retired pilot
+documents are no longer composed; see `docs/research/core-build-reconstruction-2026-09-27.md` for how
 this was reconstructed and verified against the released core.db's exact per-track document
 counts) through `medbase compose`/`build-core-reference-pointers`/`build-core-catalog-pointers`
 into a candidate `data/build/core.<version>.db`. Every stage is hash-keyed and skipped when
 unchanged. Never copies over the released `core.db`/`content/bundled/core.db.gz` itself — that
-publish step, plus the benchmark suite, stays manual and separate.
+publish step, plus the benchmark suite, stays manual and separate. Publishing a core: build with
+`CORE_BUILD_VERSION=<v> CORE_BUILT_AT=<date>T00:00:00Z`, `gzip -9 -n` the file, write the report with
+`bun scripts/write-core-report.mjs --db … --version … --gzip … --release-tag core-<v> --output core-report.json`,
+upload `core.db.gz`, `MiniMed-<v>-core.db`, `core-report.json` and `core.manifest.json` to the `core-<v>`
+prerelease, then update `content/bundled/core.db.gz`, `apps/app/public/content/core-report.json` and
+`ANDROID_CORE_DOWNLOAD` (see [RELEASES.md](RELEASES.md)).
 
 Local ICD-10 reference pack:
 

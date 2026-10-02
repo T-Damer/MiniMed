@@ -177,6 +177,74 @@ def test_rejects_conflicting_duplicate_official_ids(tmp_path: Path) -> None:
         build_clinical_coverage_ledger(source, taxonomy)
 
 
+def edition_row(
+    official_id: str, code: int, version: int, name: str = "Бронхит"
+) -> dict[str, object]:
+    return {
+        "id": official_id,
+        "name": name,
+        "version": official_id,
+        "code": code,
+        "versionNumber": version,
+        "applicationStatus": "Применяется",
+        "mkb10": ["J40"],
+    }
+
+
+def test_replaced_editions_stay_in_the_ledger_linked_to_their_successor(tmp_path: Path) -> None:
+    previous = tmp_path / "previous.json"
+    current = tmp_path / "current.json"
+    previous.write_text(
+        json.dumps([edition_row("381_3", 381, 3), edition_row("10_1", 10, 1, "Диабет")]),
+        encoding="utf-8",
+    )
+    current.write_text(
+        json.dumps(
+            [
+                edition_row("381_4", 381, 4),
+                edition_row("10_1", 10, 1, "Диабет"),
+                edition_row("900_1", 900, 1, "Новая"),
+            ]
+        ),
+        encoding="utf-8",
+    )
+    taxonomy = tmp_path / "taxonomy.yaml"
+    write_yaml(taxonomy, taxonomy_payload())
+
+    ledger = build_clinical_coverage_ledger(
+        current, taxonomy, generated_at="2026-10-02T00:00:00Z", previous_source=previous
+    )
+
+    by_id = {record.official_id: record for record in ledger.records}
+    assert sorted(by_id) == ["10_1", "381_3", "381_4", "900_1"]
+    assert by_id["381_3"].status == "superseded"
+    assert by_id["381_3"].coverage_state == "superseded"
+    assert by_id["381_3"].superseded_by == "kr.rf.381_4"
+    assert by_id["381_4"].supersedes == ["kr.rf.381_3"]
+    assert by_id["381_4"].status == "active"
+    assert ledger.summary.status_counts == {"active": 3, "superseded": 1}
+    output = tmp_path / "ledger.json"
+    write_clinical_coverage_ledger(ledger, output)
+    saved = {r["officialId"]: r for r in json.loads(output.read_text(encoding="utf-8"))["records"]}
+    assert saved["381_3"]["supersededBy"] == "kr.rf.381_4"
+    assert saved["381_4"]["supersedes"] == ["kr.rf.381_3"]
+    # Unlinked records serialize exactly as before the edition fields existed.
+    assert "supersededBy" not in saved["10_1"]
+    assert "supersedes" not in saved["10_1"]
+
+
+def test_an_edition_that_left_the_registry_without_a_successor_fails(tmp_path: Path) -> None:
+    previous = tmp_path / "previous.json"
+    current = tmp_path / "current.json"
+    previous.write_text(json.dumps([edition_row("381_3", 381, 3)]), encoding="utf-8")
+    current.write_text(json.dumps([edition_row("900_1", 900, 1, "Другая")]), encoding="utf-8")
+    taxonomy = tmp_path / "taxonomy.yaml"
+    write_yaml(taxonomy, taxonomy_payload())
+
+    with pytest.raises(ValueError, match="left the registry without a successor"):
+        build_clinical_coverage_ledger(current, taxonomy, previous_source=previous)
+
+
 def test_repository_taxonomy_is_valid_and_has_one_fallback() -> None:
     repository_root = Path(__file__).resolve().parents[3]
     taxonomy = load_taxonomy(repository_root / "content" / "clinical-module-taxonomy.yaml")

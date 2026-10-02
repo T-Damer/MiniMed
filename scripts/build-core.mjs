@@ -39,44 +39,30 @@
 //                           registry (38,815 records and growing) is NOT rebuilt into the core.
 //
 //   Assembly:
-//     public-pilot-build    medbase build content/pilot-rf -> rf-public-pilot.db (15 docs: 7
-//                           kr.rf.*.{uti,bronchiolitis,bronchitis,measles,meningococcal,
-//                           pneumonia,rotavirus} clinical_recommendation_summary retellings + 8
-//                           drug.rf.* official_registry_summary retellings). Reuses
-//                           content:build:pilot.
+//     colloquial-alias-pack  content/colloquial-aliases.yaml (45 Russian colloquial rows,
+//                           `alias.colloquial.*`) -> alias-only compose input.
+//     medication-alias-pack  source-listed medicine names projected onto the pinned INN pointers
+//                           -> alias-only compose input.
 //     finalize              medbase compose --input core-pointers-base.db --input
 //                           core-catalog-pointers-clinical.db --input
-//                           core-medication-pointers-pinned.db --input rf-public-pilot.db
-//                           --compact -> data/build/core.<version>.db (candidate final core;
-//                           NOT copied over apps/app/public/content/core.db -- that publish step
-//                           is manual/separate). This is the equivalence-proving build: it still
-//                           contains the 15 public-pilot documents, matching the currently
-//                           released core.db precisely so a before/after diff is possible.
+//                           core-medication-pointers-pinned.db --input colloquial-aliases.db
+//                           --input medication-source-aliases.db --compact
+//                           -> data/build/core.<version>.db (candidate final core; NOT copied over
+//                           apps/app/public/content/core.db -- that publish step is
+//                           manual/separate), then the exact-name identity index (migration 011).
 //
-// Coordinator decision (2026-09-27, Russian, see conversation): after the above proves
-// equivalent to the released core.db, remove the 15 public-pilot documents (their pointers,
-// generated from the real krasotaimedicina/mkb/clinical/medication sources above, are
-// unaffected and stay) as a SEPARATE step with its own diff report, via inputs -- never by
-// hand-editing a built database. The following stages implement that:
+// Pilot corpus (retired 2026-10-02, docs/research/pilot-corpus-retired-2026-10-02.md): until
+// core 0.6.45 the compose also took the 15 `content/pilot-rf` retellings (7 kr.rf.* summaries, 8
+// drug.rf.* cards). They are gone from the build; their colloquial vocabulary lives on as
+// content/colloquial-aliases.yaml. The pilot files are kept only as fixtures of the historical
+// registry migrations (tools/ingest/tests/fixtures/pilot-rf).
 //
-//   public-pilot-clean-build   filters content/pilot-rf down to a scratch directory (default:
-//                         only oral-rehydration-salts.md, see the ORS exception below) and builds
-//                         it the same way as public-pilot-build -> rf-public-pilot-clean.db. If
-//                         the ORS exception does not apply, this directory is empty and the
-//                         stage is skipped entirely (no clean-pilot input to compose).
-//   finalize-clean        medbase compose --input core-pointers-base.db --input
-//                         core-catalog-pointers-clinical.db --input
-//                         core-medication-pointers-pinned.db [--input
-//                         rf-public-pilot-clean.db] --compact -> core.<version>.no-pilot.db.
-//   pilot-removal-diff    Diffs finalize vs finalize-clean's document id sets and writes
-//                         data/build/core-pilot-removal-diff.json (removed ids, kept ids,
-//                         checksums, and the ORS decision with its rationale).
-//
-// ORS exception, resolved 2026-09-27: a real GRLS/ESKLP oral-rehydration-salts instruction
-// (Регидрон + 3 more) has landed in the medications package (data/build/medications-v2.db,
-// data/build/grls-selected-instructions-v2.db -- only their YAML registries are committed), so
-// the pilot ORS retelling is dropped along with the other 14 by default. Pass --keep-ors to
-// restore the old conservative default (e.g. if those v2 databases are rebuilt without it).
+// Clinical editions (2026-10-02 registry refresh): the clinical track covers every current
+// edition of the registry plus the earlier editions the core already pointed to. `--previous-source`
+// keeps an edition that left the current catalog as a `superseded` pointer linked to its
+// successor (`supersededByDocumentId`), and the successor lists the codes it replaces. The 30 new
+// editions' databases are decoded from their published zstd modules (checksum-verified) because
+// the clinical keywords/aliases/definitions/medication links are read from the databases.
 //
 // Every stage is hashed (inputs) and skipped when its recorded input hash and output file are
 // already present and unchanged -- an alias-only rebuild only reruns from stage 3 onward.
@@ -85,14 +71,13 @@
 //   bun run content:core:build
 //   bun run content:core:build -- --force            # ignore the incremental cache
 //   bun run content:core:build -- --stage=compose-reference   # run one stage (+ its deps)
-//   bun run content:core:build -- --stage=pilot-removal-diff  # runs the full chain through diff
-//   bun run content:core:build -- --stage=pilot-removal-diff --keep-ors
+//   CORE_BUILD_VERSION=0.6.47 bun run content:core:build -- --stage=finalize
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, statSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { relative, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
 const buildDir = resolve(root, 'data/build');
@@ -117,33 +102,6 @@ const identityInputs = {
 const args = process.argv.slice(2);
 const force = args.includes('--force');
 const onlyStage = args.find((a) => a.startsWith('--stage='))?.slice('--stage='.length);
-// ORS exception, resolved 2026-09-27: the coordinator confirmed a real ORS/Регидрон instruction
-// has landed in the medications package (data/build/medications-v2.db and
-// data/build/grls-selected-instructions-v2.db both carry drug.rf.regidron.instruction; only
-// their YAML registries are committed). So the pilot ORS retelling is dropped by default too,
-// same as the other 14. Pass --keep-ors to restore the old conservative default if that ever
-// regresses (e.g. those v2 databases are rebuilt without it).
-const dropOrs = !args.includes('--keep-ors');
-const pilotRoot = resolve(root, 'content/pilot-rf');
-const PILOT_DOCUMENT_IDS = [
-  'kr.rf.281_3.uti',
-  'kr.rf.360_3.bronchiolitis',
-  'kr.rf.381_3.bronchitis',
-  'kr.rf.563_2.measles',
-  'kr.rf.58_2.meningococcal',
-  'kr.rf.714_2.pneumonia',
-  'kr.rf.755_1.rotavirus',
-  'drug.rf.amoxicillin-clavulanate.suspension-400-57',
-  'drug.rf.amoxicillin.tablets-500',
-  'drug.rf.azithromycin.suspension-200mg-5ml',
-  'drug.rf.ceftriaxone.injection-1g',
-  'drug.rf.ibuprofen.pediatric-suspension',
-  'drug.rf.oral-rehydration-salts.powder-18-9g',
-  'drug.rf.oseltamivir.capsules-30mg',
-  'drug.rf.paracetamol.pediatric-suspension',
-];
-const ORS_DOCUMENT_ID = 'drug.rf.oral-rehydration-salts.powder-18-9g';
-const ORS_SOURCE_FILE = 'oral-rehydration-salts.md';
 
 function sha256(buffer) {
   return `sha256:${createHash('sha256').update(buffer).digest('hex')}`;
@@ -295,7 +253,10 @@ function catalogPointerTrack(family, ledgerFile, deps = []) {
       name: `catalog-pointers-${family}`,
       deps,
       async inputs() {
-        return { ledger: resolve(buildDir, ledgerFile) };
+        return {
+          ledger: resolve(buildDir, ledgerFile),
+          builder: resolve(root, 'tools/ingest/src/localmed_ingest/catalog_module_builder.py'),
+        };
       },
       async outputs() {
         return [pointerDir];
@@ -433,6 +394,17 @@ async function verifyClinicalSourceDatabases() {
   }
 }
 
+// Registry catalogs: the 2026-10-02 snapshot lists every current edition; the earlier catalog
+// (2026-07-27, 744 editions) lists the 11 editions the registry has since replaced, which the core
+// keeps as superseded pointers.
+const CLINICAL_CATALOG = resolve(
+  root,
+  'data/raw/official-clinical-registry/2026-10-02/catalog.json',
+);
+const CLINICAL_PREVIOUS_CATALOG = resolve(root, 'data/raw/official-clinical-registry/catalog.json');
+const NEW_EDITION_ZST_DIRECTORY = resolve(buildDir, 'official-clinical-2026-10-02/zst');
+const NEW_EDITION_DATABASES = resolve(buildDir, 'core-clinical-new-editions/databases');
+
 const stages = [
   {
     name: 'medication-pointers-pinned',
@@ -493,9 +465,11 @@ const stages = [
     deps: [],
     async inputs() {
       return {
-        catalog: resolve(root, 'data/raw/official-clinical-registry/catalog.json'),
+        catalog: CLINICAL_CATALOG,
+        previousCatalog: CLINICAL_PREVIOUS_CATALOG,
         taxonomy: resolve(root, 'content/clinical-module-taxonomy.yaml'),
         overrides: resolve(root, 'content/clinical-coverage-overrides.yaml'),
+        builder: resolve(root, 'tools/ingest/src/localmed_ingest/clinical_catalog.py'),
       };
     },
     async outputs() {
@@ -511,7 +485,9 @@ const stages = [
           'medbase-clinical-catalog',
           'build',
           '--source',
-          'data/raw/official-clinical-registry/catalog.json',
+          relative(root, CLINICAL_CATALOG),
+          '--previous-source',
+          relative(root, CLINICAL_PREVIOUS_CATALOG),
           '--taxonomy',
           'content/clinical-module-taxonomy.yaml',
           '--overrides',
@@ -521,17 +497,58 @@ const stages = [
         ],
         {
           label:
-            'regenerate the base clinical coverage ledger from the cached raw catalog (no network)',
+            'regenerate the clinical coverage ledger from the cached raw catalogs (no network): current editions plus the replaced editions, linked to their successors',
         },
       );
     },
   },
   {
+    // The 30 editions published after the 2026-07-27 batch exist on this machine only as their
+    // published zstd modules (the built databases were removed after packaging). The clinical
+    // enrichment reads keywords, aliases, definitions and medication relations from per-
+    // recommendation databases, so decode them (every output is checked against the decoded
+    // checksum recorded when the modules were published) into a scratch directory named like
+    // the earlier batches.
+    name: 'clinical-new-edition-sources',
+    deps: [],
+    async inputs() {
+      return { zstDirectory: NEW_EDITION_ZST_DIRECTORY };
+    },
+    async outputs() {
+      return [NEW_EDITION_DATABASES];
+    },
+    async execute() {
+      const startedAt = Date.now();
+      const report = JSON.parse(
+        await readFile(resolve(NEW_EDITION_ZST_DIRECTORY, 'repack-report.json'), 'utf8'),
+      );
+      await rm(NEW_EDITION_DATABASES, { recursive: true, force: true });
+      await mkdir(NEW_EDITION_DATABASES, { recursive: true });
+      for (const file of report.files) {
+        const decoded = spawnSync(
+          'zstd',
+          ['-d', '-c', '--long=26', resolve(NEW_EDITION_ZST_DIRECTORY, file.file)],
+          { maxBuffer: 1 << 30 },
+        );
+        if (decoded.status !== 0) throw new Error(`zstd failed for ${file.file}`);
+        if (sha256(decoded.stdout) !== file.decodedSha256) {
+          throw new Error(`${file.file}: decoded checksum differs from the published module.`);
+        }
+        await writeFile(
+          resolve(NEW_EDITION_DATABASES, file.file.replace(/\.zst$/, '')),
+          decoded.stdout,
+        );
+      }
+      return Date.now() - startedAt;
+    },
+  },
+  {
     name: 'clinical-medication-relations',
-    deps: ['medication-pointers-pinned'],
+    deps: ['medication-pointers-pinned', 'clinical-new-edition-sources'],
     async inputs() {
       return {
         databases: resolve(root, 'data/build/official-clinical-documents/databases'),
+        newEditionDatabases: NEW_EDITION_DATABASES,
         medicationIndex: resolve(buildDir, 'core-medication-pointers-pinned.db'),
       };
     },
@@ -539,27 +556,35 @@ const stages = [
       return [resolve(buildDir, 'clinical-medication-relations')];
     },
     async execute() {
-      return run(
-        'uv',
-        [
-          'run',
-          '--project',
-          'tools/ingest',
-          'medbase-regulated-catalog',
-          'clinical-medication-relations-batch',
-          '--clinical-dir',
-          'data/build/official-clinical-documents/databases',
-          '--medication-index',
-          'data/build/core-medication-pointers-pinned.db',
-          '--output-dir',
-          'data/build/clinical-medication-relations',
-          '--workers',
-          '4',
-        ],
-        {
-          label:
-            'extract clinical-recommendation -> ESKLP MNN relation candidates (deterministic, no LLM/network)',
-        },
+      // `--resume` reuses a candidate whose database and medication index are unchanged, so a
+      // new edition only adds its own file next to the earlier 723.
+      const batch = (clinicalDirectory) =>
+        run(
+          'uv',
+          [
+            'run',
+            '--project',
+            'tools/ingest',
+            'medbase-regulated-catalog',
+            'clinical-medication-relations-batch',
+            '--clinical-dir',
+            clinicalDirectory,
+            '--medication-index',
+            'data/build/core-medication-pointers-pinned.db',
+            '--output-dir',
+            'data/build/clinical-medication-relations',
+            '--workers',
+            '4',
+            '--resume',
+          ],
+          {
+            label:
+              'extract clinical-recommendation -> ESKLP MNN relation candidates (deterministic, no LLM/network)',
+          },
+        );
+      return (
+        batch('data/build/official-clinical-documents/databases') +
+        batch(relative(root, NEW_EDITION_DATABASES))
       );
     },
   },
@@ -597,13 +622,15 @@ const stages = [
     // merges the two, deterministically, using the real extraction code (not a guess) to decide
     // per id -- see tools/ingest/scripts/build_clinical_source_snapshot.py's module docstring.
     name: 'clinical-source-snapshot',
-    deps: ['clinical-ledger-base'],
+    deps: ['clinical-ledger-base', 'clinical-new-edition-sources'],
     async inputs() {
       return {
         ledger: resolve(buildDir, 'official-clinical-coverage-ledger.json'),
         primary: resolve(root, 'data/build/official-clinical-documents-2026-07-27/databases'),
         primaryManifest: CLINICAL_SOURCE_MANIFEST,
         fallback: resolve(root, 'data/build/official-clinical-documents/databases'),
+        supplement: NEW_EDITION_DATABASES,
+        snapshotBuilder: resolve(root, 'tools/ingest/scripts/build_clinical_source_snapshot.py'),
       };
     },
     async outputs() {
@@ -625,6 +652,8 @@ const stages = [
           'data/build/official-clinical-documents-2026-07-27/databases',
           '--fallback',
           'data/build/official-clinical-documents/databases',
+          '--supplement',
+          relative(root, NEW_EDITION_DATABASES),
           '--output',
           'data/build/official-clinical-documents-merged/databases',
           '--report',
@@ -645,6 +674,7 @@ const stages = [
         baseLedger: resolve(buildDir, 'official-clinical-coverage-ledger.json'),
         databases: resolve(buildDir, 'official-clinical-documents-merged/databases'),
         medicationRelations: resolve(buildDir, 'clinical-medication-relations'),
+        enricher: resolve(root, 'tools/ingest/src/localmed_ingest/clinical_aliases.py'),
       };
     },
     async outputs() {
@@ -835,89 +865,21 @@ const stages = [
       );
     },
   },
+  // The 45-row Russian colloquial vocabulary (abbreviations, lay symptom phrasing) is independent
+  // of any document: the `aliases` table has no document foreign key. It was written next to the
+  // retired pilot pack and now lives in content/colloquial-aliases.yaml; this builds it as its own
+  // compose input straight from that committed file.
   {
-    name: 'public-pilot-build',
+    name: 'colloquial-alias-pack',
     deps: [],
     async inputs() {
       return {
-        pilotRoot,
-        compiler: resolve(root, 'tools/ingest/src/localmed_ingest/builder.py'),
-        parser: resolve(root, 'tools/ingest/src/localmed_ingest/markdown_parser.py'),
-        normalization: resolve(root, 'tools/ingest/src/localmed_ingest/normalization.py'),
-        issuedIdentities: resolve(
-          root,
-          'tools/ingest/src/localmed_ingest/registry_identity_migration_012.py',
-        ),
-        registryClarification: resolve(
-          root,
-          'tools/ingest/src/localmed_ingest/registry_copy_migration_007.py',
-        ),
+        aliases: resolve(root, 'content/colloquial-aliases.yaml'),
+        builder: resolve(root, 'tools/ingest/scripts/build_alias_pack.py'),
       };
     },
     async outputs() {
-      return [
-        resolve(buildDir, 'rf-public-pilot.db'),
-        resolve(buildDir, 'registry-identities-012-report.json'),
-      ];
-    },
-    async execute() {
-      const buildMs = run(
-        'uv',
-        [
-          'run',
-          '--project',
-          'tools/ingest',
-          'medbase',
-          'build',
-          '--input',
-          'content/pilot-rf',
-          '--output',
-          'data/build/rf-public-pilot.db',
-          '--report',
-          'data/build/rf-public-pilot-report.json',
-        ],
-        { label: 'build the 15-document public pilot pack (content:build:pilot)' },
-      );
-      return (
-        buildMs +
-        run(
-          'uv',
-          [
-            'run',
-            '--project',
-            'tools/ingest',
-            'python',
-            '-m',
-            'localmed_ingest.registry_identity_migration_012',
-            '--candidate-database',
-            'data/build/rf-public-pilot.db',
-            '--prepared',
-            'content/pilot-rf',
-            '--report',
-            'data/build/registry-identities-012-report.json',
-          ],
-          { label: 'restore the eight issued registry paragraph identities (migration 012)' },
-        )
-      );
-    },
-  },
-  // Coordinator decision (2026-09-27): removing the 15 public-pilot documents also silently
-  // dropped content/pilot-rf/aliases.yaml's 45-row Russian colloquial vocabulary (finding 4,
-  // investigation 6, measurement 5, symptom 25, treatment 2, diagnosis 3 -- confirmed by a full
-  // alias-table audit against the released core.db). That vocabulary is independent of the pilot
-  // documents (AGENTS.md: "Aliases are the intended Russian vocabulary layer") and must survive
-  // pilot removal. tools/ingest/scripts/build_pilot_vocabulary_pack.py builds it as its own
-  // compose input straight from the committed aliases.yaml (no document required -- the
-  // `aliases` table has no document foreign key, so this is a hashed, reproducible build stage
-  // over that one committed file, not a hand-edit of any built pack).
-  {
-    name: 'pilot-vocabulary-pack',
-    deps: [],
-    async inputs() {
-      return { aliases: resolve(pilotRoot, 'aliases.yaml') };
-    },
-    async outputs() {
-      return [resolve(buildDir, 'pilot-vocabulary.db')];
+      return [resolve(buildDir, 'colloquial-aliases.db')];
     },
     async execute() {
       return run(
@@ -927,22 +889,19 @@ const stages = [
           '--project',
           'tools/ingest',
           'python',
-          'tools/ingest/scripts/build_pilot_vocabulary_pack.py',
+          'tools/ingest/scripts/build_alias_pack.py',
           '--aliases',
-          'content/pilot-rf/aliases.yaml',
+          'content/colloquial-aliases.yaml',
           '--output',
-          'data/build/pilot-vocabulary.db',
+          'data/build/colloquial-aliases.db',
           '--report',
-          'data/build/pilot-vocabulary-report.json',
+          'data/build/colloquial-aliases-report.json',
           '--edition-version',
           VERSION,
           '--built-at',
           BUILT_AT,
         ],
-        {
-          label:
-            'build the pilot colloquial-vocabulary dictionary, independent of the pilot documents',
-        },
+        { label: 'build the colloquial-vocabulary dictionary (alias-only compose input)' },
       );
     },
   },
@@ -955,7 +914,7 @@ const stages = [
         allmed: resolve(root, 'apps/app/public/content/medications.db'),
         grls: resolve(buildDir, 'official-grls-coverage-ledger.json'),
         generator: resolve(root, 'tools/ingest/src/localmed_ingest/medication_aliases.py'),
-        builder: resolve(root, 'tools/ingest/scripts/build_pilot_vocabulary_pack.py'),
+        builder: resolve(root, 'tools/ingest/scripts/build_alias_pack.py'),
         settings: { version: VERSION, schemaVersion: SCHEMA_VERSION },
       };
     },
@@ -998,7 +957,7 @@ const stages = [
             '--project',
             'tools/ingest',
             'python',
-            'tools/ingest/scripts/build_pilot_vocabulary_pack.py',
+            'tools/ingest/scripts/build_alias_pack.py',
             '--aliases',
             'data/build/medication-source-aliases.yaml',
             '--output',
@@ -1009,12 +968,17 @@ const stages = [
             'minimed.core.medication.source-aliases',
             '--edition-version',
             VERSION,
+            '--allow-empty',
             '--title',
             'Поисковые имена лекарств из исходных каталогов',
             '--built-at',
             BUILT_AT,
           ],
-          { label: 'build the medicine alias-only compose input without adding FTS documents' },
+          {
+            // Names the pinned pointers already carry are not projected again, so this pack is empty
+            // once the pin comes from a core that contains the earlier projection (0.6.45 and later).
+            label: 'build the medicine alias-only compose input without adding FTS documents',
+          },
         )
       );
     },
@@ -1025,8 +989,7 @@ const stages = [
       'pointers-build',
       'catalog-pointers-clinical-build',
       'medication-pointers-pinned',
-      'public-pilot-build',
-      'pilot-vocabulary-pack',
+      'colloquial-alias-pack',
       'medication-alias-pack',
     ],
     async inputs() {
@@ -1034,8 +997,7 @@ const stages = [
         reference: resolve(buildDir, 'core-pointers-base.db'),
         clinical: resolve(buildDir, 'core-catalog-pointers-clinical.db'),
         medication: resolve(buildDir, 'core-medication-pointers-pinned.db'),
-        pilot: resolve(buildDir, 'rf-public-pilot.db'),
-        vocabulary: resolve(buildDir, 'pilot-vocabulary.db'),
+        vocabulary: resolve(buildDir, 'colloquial-aliases.db'),
         medicationAliases: resolve(buildDir, 'medication-source-aliases.db'),
         ...identityInputs,
       };
@@ -1063,9 +1025,7 @@ const stages = [
           '--input',
           'data/build/core-medication-pointers-pinned.db',
           '--input',
-          'data/build/rf-public-pilot.db',
-          '--input',
-          'data/build/pilot-vocabulary.db',
+          'data/build/colloquial-aliases.db',
           '--input',
           'data/build/medication-source-aliases.db',
           '--output',
@@ -1098,244 +1058,7 @@ const stages = [
       );
     },
   },
-  {
-    // Post-equivalence cleanup (coordinator decision, 2026-09-27): the 15 public-pilot
-    // documents are retellings/summaries of the real krasotaimedicina/mkb/clinical/GRLS sources
-    // that already have proper catalog pointers from stage 3; this stage builds a "clean" pilot
-    // input containing only what the ORS exception keeps, entirely via a filtered content
-    // directory under data/build/ -- content/pilot-rf itself is never edited.
-    name: 'public-pilot-clean-build',
-    deps: [],
-    async inputs() {
-      return {
-        pilotRoot,
-        dropOrs,
-        compiler: resolve(root, 'tools/ingest/src/localmed_ingest/builder.py'),
-        parser: resolve(root, 'tools/ingest/src/localmed_ingest/markdown_parser.py'),
-        normalization: resolve(root, 'tools/ingest/src/localmed_ingest/normalization.py'),
-      };
-    },
-    async outputs() {
-      return keptPilotFiles().length ? [resolve(buildDir, 'rf-public-pilot-clean.db')] : [];
-    },
-    async execute() {
-      const kept = keptPilotFiles();
-      if (!kept.length) {
-        process.stderr.write(
-          '[build-core] public-pilot-clean-build: nothing kept (ORS dropped too, default) -- skipping.\n',
-        );
-        return 0;
-      }
-      const cleanDir = resolve(buildDir, 'pilot-rf-clean');
-      await mkdir(cleanDir, { recursive: true });
-      const { copyFile } = await import('node:fs/promises');
-      await copyFile(resolve(pilotRoot, 'manifest.yaml'), resolve(cleanDir, 'manifest.yaml'));
-      await copyFile(resolve(pilotRoot, 'aliases.yaml'), resolve(cleanDir, 'aliases.yaml'));
-      for (const file of kept) {
-        await copyFile(resolve(pilotRoot, file), resolve(cleanDir, file));
-      }
-      return run(
-        'uv',
-        [
-          'run',
-          '--project',
-          'tools/ingest',
-          'medbase',
-          'build',
-          '--input',
-          'data/build/pilot-rf-clean',
-          '--output',
-          'data/build/rf-public-pilot-clean.db',
-          '--report',
-          'data/build/rf-public-pilot-clean-report.json',
-        ],
-        { label: `build clean pilot pack (${kept.length} document(s) kept)` },
-      );
-    },
-  },
-  {
-    name: 'finalize-clean',
-    deps: ['finalize', 'public-pilot-clean-build', 'pilot-vocabulary-pack'],
-    async inputs() {
-      return {
-        reference: resolve(buildDir, 'core-pointers-base.db'),
-        clinical: resolve(buildDir, 'core-catalog-pointers-clinical.db'),
-        medication: resolve(buildDir, 'core-medication-pointers-pinned.db'),
-        cleanPilot: keptPilotFiles().length ? resolve(buildDir, 'rf-public-pilot-clean.db') : null,
-        vocabulary: resolve(buildDir, 'pilot-vocabulary.db'),
-        medicationAliases: resolve(buildDir, 'medication-source-aliases.db'),
-        dropOrs,
-        ...identityInputs,
-      };
-    },
-    async outputs() {
-      return [
-        resolve(buildDir, `core.${VERSION}.no-pilot.db`),
-        resolve(buildDir, `core.${VERSION}.no-pilot.manifest.json`),
-        resolve(buildDir, `core.${VERSION}.no-pilot.db.identity-report.json`),
-      ];
-    },
-    async execute() {
-      const composeArgs = [
-        'run',
-        '--project',
-        'tools/ingest',
-        'medbase',
-        'compose',
-        '--input',
-        'data/build/core-pointers-base.db',
-        '--input',
-        'data/build/core-catalog-pointers-clinical.db',
-        '--input',
-        'data/build/core-medication-pointers-pinned.db',
-        '--input',
-        'data/build/pilot-vocabulary.db',
-        '--input',
-        'data/build/medication-source-aliases.db',
-      ];
-      if (keptPilotFiles().length) {
-        composeArgs.push('--input', 'data/build/rf-public-pilot-clean.db');
-      }
-      composeArgs.push(
-        '--output',
-        `data/build/core.${VERSION}.no-pilot.db`,
-        '--edition-manifest',
-        `data/build/core.${VERSION}.no-pilot.manifest.json`,
-        '--edition-id',
-        'minimed.core.ru',
-        '--edition-version',
-        VERSION,
-        '--title',
-        'Ядро MiniMed (без публичного пилота)',
-        '--built-at',
-        BUILT_AT,
-        '--schema-version',
-        String(SCHEMA_VERSION),
-        '--compact',
-      );
-      const wallMs = run('uv', composeArgs, {
-        label: 'finalize layout without the 14-or-15 public-pilot documents',
-      });
-      return (
-        wallMs +
-        (await addCoreIdentities(
-          resolve(buildDir, `core.${VERSION}.no-pilot.db`),
-          resolve(buildDir, `core.${VERSION}.no-pilot.manifest.json`),
-        ))
-      );
-    },
-  },
-  {
-    // Read-only audit (coordinator decision, 2026-09-27): the aliases table has no per-document
-    // foreign key, so there is no field to "retarget" -- this records, for traceability, which
-    // surviving document each pilot-vocabulary alias's canonicalTerm now resolves to via the same
-    // lexical FTS the app uses, in the pilot-removed candidate.
-    name: 'pilot-vocabulary-retargeting-report',
-    deps: ['finalize-clean'],
-    async inputs() {
-      return {
-        aliases: resolve(pilotRoot, 'aliases.yaml'),
-        candidate: resolve(buildDir, `core.${VERSION}.no-pilot.db`),
-      };
-    },
-    async outputs() {
-      return [resolve(buildDir, 'pilot-vocabulary-retargeting-report.json')];
-    },
-    async execute() {
-      return run(
-        'uv',
-        [
-          'run',
-          '--project',
-          'tools/ingest',
-          'python',
-          'tools/ingest/scripts/report_pilot_vocabulary_retargeting.py',
-          '--aliases',
-          'content/pilot-rf/aliases.yaml',
-          '--candidate',
-          `data/build/core.${VERSION}.no-pilot.db`,
-          '--report',
-          'data/build/pilot-vocabulary-retargeting-report.json',
-        ],
-        {
-          label:
-            'report what each pilot-vocabulary alias resolves to in the pilot-removed candidate',
-        },
-      );
-    },
-  },
-  {
-    name: 'pilot-removal-diff',
-    deps: ['finalize', 'finalize-clean'],
-    async inputs() {
-      return {
-        withPilot: resolve(buildDir, `core.${VERSION}.db`),
-        withoutPilot: resolve(buildDir, `core.${VERSION}.no-pilot.db`),
-      };
-    },
-    async outputs() {
-      return [resolve(buildDir, 'core-pilot-removal-diff.json')];
-    },
-    async execute() {
-      const startedAt = Date.now();
-      const withPilotIds = await documentIds(resolve(buildDir, `core.${VERSION}.db`));
-      const withoutPilotIds = await documentIds(resolve(buildDir, `core.${VERSION}.no-pilot.db`));
-      const removed = [...withPilotIds].filter((id) => !withoutPilotIds.has(id)).sort();
-      const unexpectedlyAdded = [...withoutPilotIds].filter((id) => !withPilotIds.has(id)).sort();
-      const expectedRemoved = (
-        dropOrs ? PILOT_DOCUMENT_IDS : PILOT_DOCUMENT_IDS.filter((id) => id !== ORS_DOCUMENT_ID)
-      )
-        .slice()
-        .sort();
-      const diff = {
-        builtAt: BUILT_AT,
-        version: VERSION,
-        withPilotDocumentCount: withPilotIds.size,
-        withoutPilotDocumentCount: withoutPilotIds.size,
-        removedDocumentIds: removed,
-        unexpectedlyAddedDocumentIds: unexpectedlyAdded,
-        matchesExpectation:
-          JSON.stringify(removed) === JSON.stringify(expectedRemoved) &&
-          unexpectedlyAdded.length === 0,
-        orsDecision: dropOrs
-          ? 'dropped (default as of 2026-09-27: coordinator confirmed a real ORS/Регидрон ' +
-            'instruction landed in data/build/medications-v2.db and ' +
-            'data/build/grls-selected-instructions-v2.db -- drug.rf.regidron.instruction)'
-          : 'kept (--keep-ors was passed)',
-        withPilotChecksum: sha256(await readFile(resolve(buildDir, `core.${VERSION}.db`))),
-        withoutPilotChecksum: sha256(
-          await readFile(resolve(buildDir, `core.${VERSION}.no-pilot.db`)),
-        ),
-      };
-      await writeFile(
-        resolve(buildDir, 'core-pilot-removal-diff.json'),
-        JSON.stringify(diff, null, 2),
-      );
-      return Date.now() - startedAt;
-    },
-  },
 ];
-
-function keptPilotFiles() {
-  if (dropOrs) return [];
-  return [ORS_SOURCE_FILE];
-}
-
-async function documentIds(dbPath) {
-  const result = spawnSync(
-    'python3',
-    [
-      '-c',
-      "import sqlite3,sys,json; c=sqlite3.connect(sys.argv[1]); print(json.dumps([r[0] for r in c.execute('SELECT id FROM documents')]))",
-      dbPath,
-    ],
-    { cwd: root, encoding: 'utf8' },
-  );
-  if (result.status !== 0) {
-    throw new Error(`Failed to read document ids from ${dbPath}: ${result.stderr}`);
-  }
-  return new Set(JSON.parse(result.stdout));
-}
 
 // --- driver ----------------------------------------------------------------
 

@@ -34,8 +34,13 @@ Usage:
         --ledger data/build/official-clinical-coverage-ledger.json \
         --primary data/build/official-clinical-documents-2026-07-27/databases \
         --fallback data/build/official-clinical-documents/databases \
+        [--supplement data/build/core-clinical-new-editions/databases] \
         --output data/build/official-clinical-documents-merged/databases \
         --report data/build/official-clinical-documents-merged-report.json
+
+`--supplement` supplies databases of editions that are in neither batch (new registry editions
+after 2026-07-27, decoded from their published modules): used only when an id has no file in
+`--primary` or `--fallback`.
 """
 
 from __future__ import annotations
@@ -67,7 +72,11 @@ def _keyword_count(
 
 
 def build_clinical_source_snapshot(
-    ledger_path: Path, primary: Path, fallback: Path, output: Path
+    ledger_path: Path,
+    primary: Path,
+    fallback: Path,
+    output: Path,
+    supplement: Path | None = None,
 ) -> dict[str, object]:
     ledger = ClinicalCoverageLedger.model_validate_json(ledger_path.read_text(encoding="utf-8"))
     output.mkdir(parents=True, exist_ok=True)
@@ -76,7 +85,9 @@ def build_clinical_source_snapshot(
 
     copied = 0
     fallbacks: list[dict[str, object]] = []
+    supplemented: list[str] = []
     missing: list[str] = []
+    supplement_index = _database_index(supplement) if supplement is not None else {}
     for record in ledger.records:
         primary_count, primary_diag, primary_path = _keyword_count(
             primary, record.official_id, record.record_id
@@ -97,6 +108,13 @@ def build_clinical_source_snapshot(
                     }
                 )
         if chosen_path is None:
+            # Editions published after the two batches above exist in neither of them; their
+            # databases come from the supplement (one file per id, no keyword preference to apply).
+            supplement_paths = supplement_index.get(record.official_id, [])
+            if len(supplement_paths) == 1:
+                chosen_path = supplement_paths[0]
+                supplemented.append(record.official_id)
+        if chosen_path is None:
             missing.append(record.official_id)
             continue
         shutil.copy2(chosen_path, output / chosen_path.name)
@@ -109,6 +127,8 @@ def build_clinical_source_snapshot(
         "output": str(output),
         "recordsTotal": len(ledger.records),
         "copied": copied,
+        "supplement": str(supplement) if supplement is not None else None,
+        "supplemented": supplemented,
         "missing": missing,
         "fallbackCount": len(fallbacks),
         "fallbacks": fallbacks,
@@ -121,11 +141,14 @@ def main() -> None:
     parser.add_argument("--ledger", type=Path, required=True)
     parser.add_argument("--primary", type=Path, required=True)
     parser.add_argument("--fallback", type=Path, required=True)
+    parser.add_argument("--supplement", type=Path, default=None)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
 
-    report = build_clinical_source_snapshot(args.ledger, args.primary, args.fallback, args.output)
+    report = build_clinical_source_snapshot(
+        args.ledger, args.primary, args.fallback, args.output, args.supplement
+    )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

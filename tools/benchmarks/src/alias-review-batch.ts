@@ -43,7 +43,7 @@ interface ReviewItem {
 // review, not a claim of clinical accuracy.
 const CANDIDATES: readonly AliasCandidate[] = [
   {
-    id: 'alias.pilot.nasal-flaring',
+    id: 'alias.colloquial.nasal-flaring',
     category: 'finding',
     canonicalTerm: 'раздувание крыльев носа дыхательная недостаточность пневмония',
     alias: 'раздувает ноздри при дыхании',
@@ -53,7 +53,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Ребенок 8 месяцев, раздувает ноздри при дыхании, температура 38.5',
   },
   {
-    id: 'alias.pilot.chest-pain-pneumonia',
+    id: 'alias.colloquial.chest-pain-pneumonia',
     category: 'symptom',
     canonicalTerm: 'боль в груди пневмония',
     alias: 'болит в грудной клетке при кашле',
@@ -62,7 +62,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Кашель неделю, болит в грудной клетке при кашле, температура держится',
   },
   {
-    id: 'alias.pilot.apnea-infant',
+    id: 'alias.colloquial.apnea-infant',
     category: 'finding',
     canonicalTerm: 'апноэ дыхательная недостаточность',
     alias: 'перестает дышать на несколько секунд',
@@ -71,7 +71,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Грудничок иногда перестает дышать на несколько секунд, кашель',
   },
   {
-    id: 'alias.pilot.cyanosis',
+    id: 'alias.colloquial.cyanosis',
     category: 'finding',
     canonicalTerm: 'цианоз дыхательная недостаточность гипоксемия',
     alias: 'губы синеют',
@@ -80,7 +80,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Ребенок кашляет, губы синеют при плаче',
   },
   {
-    id: 'alias.pilot.bulging-fontanelle',
+    id: 'alias.colloquial.bulging-fontanelle',
     category: 'symptom',
     canonicalTerm: 'выбухание родничка менингококковая инфекция',
     alias: 'родничок выбухает',
@@ -89,7 +89,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Грудничок вялый, родничок выбухает, температура 39',
   },
   {
-    id: 'alias.pilot.monotone-cry',
+    id: 'alias.colloquial.monotone-cry',
     category: 'symptom',
     canonicalTerm: 'монотонный крик менингококковая инфекция',
     alias: 'плачет на одной ноте',
@@ -98,7 +98,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Младенец плачет на одной ноте уже час, не берет грудь',
   },
   {
-    id: 'alias.pilot.severe-headache-meningeal',
+    id: 'alias.colloquial.severe-headache-meningeal',
     category: 'symptom',
     canonicalTerm: 'сильная головная боль менингококковая инфекция',
     alias: 'сильно болит голова и тошнит',
@@ -107,7 +107,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Ребенок 10 лет, сильно болит голова и тошнит, температура 39.5',
   },
   {
-    id: 'alias.pilot.abdominal-rumbling',
+    id: 'alias.colloquial.abdominal-rumbling',
     category: 'symptom',
     canonicalTerm: 'урчание в животе ротавирусный гастроэнтерит',
     alias: 'живот урчит',
@@ -116,7 +116,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Живот урчит второй день, понос и температура',
   },
   {
-    id: 'alias.pilot.poor-appetite',
+    id: 'alias.colloquial.poor-appetite',
     category: 'symptom',
     canonicalTerm: 'снижение аппетита обезвоживание',
     alias: 'плохо ест второй день',
@@ -125,7 +125,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Ребенок плохо ест второй день, рвота, вялый',
   },
   {
-    id: 'alias.pilot.cloudy-urine',
+    id: 'alias.colloquial.cloudy-urine',
     category: 'symptom',
     canonicalTerm: 'мутная моча резко пахнущая моча инфекция мочевых путей',
     alias: 'моча стала мутная и воняет',
@@ -134,7 +134,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'У дочки моча стала мутная и воняет, больно писать',
   },
   {
-    id: 'alias.pilot.urgency',
+    id: 'alias.colloquial.urgency',
     category: 'symptom',
     canonicalTerm: 'императивные позывы инфекция мочевых путей',
     alias: 'резко хочет в туалет и не успевает добежать',
@@ -143,7 +143,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Ребенок 6 лет резко хочет в туалет и не успевает добежать, температура',
   },
   {
-    id: 'alias.pilot.daytime-wetting',
+    id: 'alias.colloquial.daytime-wetting',
     category: 'symptom',
     canonicalTerm: 'дневное недержание энурез инфекция мочевых путей',
     alias: 'писается днем хотя раньше не было',
@@ -152,7 +152,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Девочка 5 лет писается днем хотя раньше не было такого',
   },
   {
-    id: 'alias.pilot.chills',
+    id: 'alias.colloquial.chills',
     category: 'symptom',
     canonicalTerm: 'озноб пиелонефрит',
     alias: 'трясет от температуры',
@@ -161,7 +161,7 @@ const CANDIDATES: readonly AliasCandidate[] = [
     sampleQuery: 'Взрослого трясет от температуры, боль в пояснице',
   },
   {
-    id: 'alias.pilot.disturbed-consciousness',
+    id: 'alias.colloquial.disturbed-consciousness',
     category: 'symptom',
     canonicalTerm: 'нарушение сознания менингококковая инфекция',
     alias: 'стал заторможенным и плохо реагирует',

@@ -17,7 +17,7 @@ from localmed_ingest.registry_identity_migration_012 import (
 from localmed_ingest.sqlite_composer import compose_sqlite_packs
 
 ROOT = Path(__file__).resolve().parents[3]
-PREPARED = ROOT / "content" / "pilot-rf"
+PREPARED = Path(__file__).parent / "fixtures" / "pilot-rf"
 
 
 def build_candidate(tmp_path: Path) -> Path:

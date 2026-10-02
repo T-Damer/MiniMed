@@ -86,8 +86,6 @@
     "content:lint:calculator": "bun scripts/lint-calculator-schema.ts",
     "content:lint": "uv run --project tools/ingest medbase lint --input content/fixtures",
     "content:build": "bun run content:compile && bun run content:publish",
-    "content:lint:pilot": "uv run --project tools/ingest medbase lint --input content/pilot-rf",
-    "content:build:pilot": "uv run --project tools/ingest medbase build --input content/pilot-rf --output data/build/rf-public-pilot.db --report data/build/rf-public-pilot-report.json",
     "content:lint:regulatory": "uv run --project tools/ingest medbase lint --input content/regulatory-rf-pilot",
     "content:build:regulatory": "uv run --project tools/ingest medbase build --input content/regulatory-rf-pilot --output data/build/rf-regulatory-pilot.db --report data/build/rf-regulatory-pilot-report.json",
     "content:build:regulatory:synced": "uv run --project tools/ingest medbase build --input data/synced/rf-regulatory-pilot --output data/build/rf-regulatory-pilot.db --report data/build/rf-regulatory-pilot-report.json",

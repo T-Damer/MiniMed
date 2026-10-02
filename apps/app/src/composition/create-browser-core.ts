@@ -53,11 +53,11 @@ const OPFS_PACK_FETCH_TIMEOUT_MS = 180_000;
 // verifies the decoded checksum, so a damaged or truncated archive never becomes an installed core.
 // The raw `MiniMed-*-core.db` asset of the same release stays published for older app builds.
 export const ANDROID_CORE_DOWNLOAD = {
-  url: 'https://github.com/T-Damer/MiniMed/releases/download/core-0.6.45/core.db.gz',
+  url: 'https://github.com/T-Damer/MiniMed/releases/download/core-0.6.47/core.db.gz',
   compression: 'gzip',
-  transferSha256: 'sha256:6047b4557f59293d82659f70bcd260af14427817f2d720c943a1b99db3640eef',
-  transferSizeBytes: 76_212_355,
-  checksum: 'sha256:13f238f7fefe1b19eefa19ac9de0ea89fabff34ed96e98d987277f15ab03025f',
+  transferSha256: 'sha256:a5d0e3b5dfc418c4208c171d365afc03a956fae75bd5ddeee3b956ae814392c5',
+  transferSizeBytes: 76_268_794,
+  checksum: 'sha256:8e6fe3bf5874c63b0df0e260fccf0905c6af1ac06e8b93ea5039a2f6ad1318d4',
 } as const;
 const SQLITE_HEADER = new TextEncoder().encode('SQLite format 3\u0000');
 // sqlite-wasm deserializes the whole file into the WASM heap. Local-dev companions such as

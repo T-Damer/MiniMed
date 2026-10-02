@@ -115,6 +115,18 @@ def build_command(
     ] = None,
     generated_at: Annotated[str | None, typer.Option("--generated-at")] = None,
     fail_on_warning: Annotated[bool, typer.Option("--fail-on-warning")] = False,
+    previous_source: Annotated[
+        Path | None,
+        typer.Option(
+            "--previous-source",
+            exists=True,
+            dir_okay=False,
+            help=(
+                "Earlier registry catalog: editions it lists that --source no longer does stay "
+                "in the ledger as superseded and link to their successor."
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Build a deterministic coverage ledger and specialty module plan."""
     ledger = build_clinical_coverage_ledger(
@@ -122,6 +134,7 @@ def build_command(
         taxonomy,
         overrides_path=overrides,
         generated_at=generated_at,
+        previous_source=previous_source,
     )
     write_clinical_coverage_ledger(ledger, output)
     typer.echo(

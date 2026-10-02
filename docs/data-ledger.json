@@ -202,7 +202,7 @@
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (pointers-build)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
       "bytes": 91705612,
-      "modified": "2026-09-30"
+      "modified": "2026-10-02"
     },
     {
       "path": "data/build/core-pointers-base.db",
@@ -211,7 +211,7 @@
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
       "bytes": 267395072,
-      "modified": "2026-09-30"
+      "modified": "2026-10-02"
     },
     {
       "path": "data/build/core-medication-pointers-pinned.db",
@@ -219,30 +219,8 @@
       "producer": "tools/ingest/scripts/pin_medication_pointers.py",
       "consumers": ["bun run content:core:build (scripts/build-core.mjs) (finalize)"],
       "rebuild": "bun run content:core:build (scripts/build-core.mjs) (~14 s)",
-      "bytes": 64929792,
-      "modified": "2026-09-27"
-    },
-    {
-      "path": "data/build/core.0.7.0-test7.db",
-      "class": "REBUILDABLE",
-      "producer": "bun run content:core:build (scripts/build-core.mjs) stage finalize",
-      "consumers": [
-        "docs/research/core-coverage-2026-09-28.md",
-        "docs/research/search-kr-pointers-vs-mkb-2026-09.md"
-      ],
-      "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
-      "note": "Latest candidate core measured in research notes.",
-      "bytes": 452149248,
-      "modified": "2026-09-27"
-    },
-    {
-      "path": "data/build/core.0.7.0-test7.no-pilot.db",
-      "class": "REBUILDABLE",
-      "producer": "bun run content:core:build (scripts/build-core.mjs) stage finalize-clean",
-      "consumers": ["docs/research/core-coverage-2026-09-28.md"],
-      "rebuild": "bun run content:core:build (scripts/build-core.mjs)",
-      "bytes": 451837952,
-      "modified": "2026-09-27"
+      "bytes": 65372160,
+      "modified": "2026-10-02"
     },
     {
       "path": "data/build/diseases.db",
@@ -372,8 +350,8 @@
       "consumers": ["app DEV/build", ".github/workflows/*"],
       "release": "v0.6.37-v0.6.44 MiniMed-*-core.db",
       "note": "Never delete or replace by hand (AGENTS.md, docs/RELEASES.md).",
-      "bytes": 440942592,
-      "modified": "2026-09-30"
+      "bytes": 441597952,
+      "modified": "2026-10-02"
     },
     {
       "path": "apps/app/public/content/mkb.db",
@@ -446,8 +424,8 @@
       "class": "REBUILDABLE",
       "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
       "consumers": ["Core rebuild and release qualification"],
-      "rebuild": "CORE_BUILD_VERSION=0.6.45 bun run content:core:build -- --stage=finalize-clean",
-      "note": "Current qualified 0.6.45 build input/output. Clinical gate passes with all 15 pilot documents retained; exact historical source identities preserved by migrations 011/012.",
+      "rebuild": "CORE_BUILD_VERSION=0.6.47 CORE_BUILT_AT=2026-10-02T00:00:00Z bun run content:core:build -- --stage=finalize",
+      "note": "Build input of core 0.6.47 (pilot-free, with the 2026-10-02 clinical editions).",
       "bytes": 1927856128,
       "modified": "2026-09-29"
     },
@@ -456,20 +434,10 @@
       "class": "REBUILDABLE",
       "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
       "consumers": ["Core rebuild and release qualification"],
-      "rebuild": "CORE_BUILD_VERSION=0.6.45 bun run content:core:build -- --stage=finalize-clean",
-      "note": "Current qualified 0.6.45 build input/output. Clinical gate passes with all 15 pilot documents retained; exact historical source identities preserved by migrations 011/012.",
-      "bytes": 2068365312,
-      "modified": "2026-09-05"
-    },
-    {
-      "path": "data/build/core.0.6.45.db",
-      "class": "REBUILDABLE",
-      "producer": "Deterministic content:core:build stages and checksum-verified core release staging",
-      "consumers": ["Core rebuild and release qualification"],
-      "rebuild": "CORE_BUILD_VERSION=0.6.45 bun run content:core:build -- --stage=finalize-clean",
-      "note": "Current qualified 0.6.45 build input/output. Clinical gate passes with all 15 pilot documents retained; exact historical source identities preserved by migrations 011/012.",
-      "bytes": 440942592,
-      "modified": "2026-09-30"
+      "rebuild": "CORE_BUILD_VERSION=0.6.47 CORE_BUILT_AT=2026-10-02T00:00:00Z bun run content:core:build -- --stage=finalize",
+      "note": "Build input of core 0.6.47 (pilot-free, with the 2026-10-02 clinical editions).",
+      "bytes": 2144260096,
+      "modified": "2026-10-02"
     },
     {
       "path": "output/release-core-0.6.45",
@@ -481,22 +449,11 @@
         "Native search parity",
         "Offline rollback"
       ],
-      "rebuild": "CORE_BUILD_VERSION=0.6.45 bun run content:core:build -- --stage=finalize-clean",
-      "note": "Current qualified 0.6.45 build input/output. Clinical gate passes with all 15 pilot documents retained; exact historical source identities preserved by migrations 011/012.",
+      "rebuild": "gh release download core-0.6.45",
+      "note": "Previous core, kept for rollback while 0.6.47 is the current core. Contains the 15 retired pilot documents.",
       "bytes": 524658294,
       "modified": "2026-09-30",
       "release": "core-0.6.45"
-    },
-    {
-      "path": "output/release-core-0.6.44",
-      "class": "RELEASED",
-      "producer": "Original bundled core restored from HEAD before this task",
-      "consumers": ["Stable rollback and fixed-corpus comparison"],
-      "release": "v0.6.44",
-      "rebuild": "git show <0.6.44 commit>:content/bundled/core.db.gz | gzip -d > core.db",
-      "note": "Checksum sha256:d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a; original source bytes preserved.",
-      "bytes": 422838272,
-      "modified": "2026-09-29"
     },
     {
       "path": "output/module-zstd-2026-10-01",
@@ -545,6 +502,47 @@
       "release": "clinical-json-2026.10.02-7b17a45f02ff: branch datasets/clinical-json-2026.10.02-7b17a45f02ff (30 .db.zst, no GitHub release)",
       "note": "zst/ holds the published bytes (30 files, 33.3 MB); the rest is the plan (catalog-delta.json, ledger.json, source-plan/, sync reports, catalog fragments, snapshot-manifest.json). Uncompacted databases and workspaces were deleted after publication; rebuild from the raw JSON with the commands in docs/CONTENT_PIPELINE.md (incremental clinical refresh).",
       "bytes": 34946929,
+      "modified": "2026-10-02"
+    },
+    {
+      "path": "output/release-core-0.6.47",
+      "class": "RELEASED",
+      "producer": "scripts/build-core.mjs finalize, gzip -9 -n, scripts/write-core-report.mjs",
+      "consumers": [
+        "Browser bundled core (content/bundled/core.db.gz)",
+        "Android first-launch download (core.db.gz)",
+        "Offline rollback to 0.6.45 is output/release-core-0.6.45"
+      ],
+      "rebuild": "gh release download core-0.6.47",
+      "note": "Current core: pilot-free, +30 clinical edition pointers, 11 replaced editions superseded and linked to successors.",
+      "bytes": 525375692,
+      "modified": "2026-10-02",
+      "release": "core-0.6.47"
+    },
+    {
+      "path": "data/build/core.0.6.47.db",
+      "class": "REBUILDABLE",
+      "producer": "scripts/build-core.mjs stage finalize",
+      "consumers": [
+        "output/release-core-0.6.47",
+        "benchmark:real:release --core=",
+        "apps/app/public/content/core.db"
+      ],
+      "rebuild": "CORE_BUILD_VERSION=0.6.47 CORE_BUILT_AT=2026-10-02T00:00:00Z bun run content:core:build -- --stage=finalize",
+      "note": "Build output of the published core 0.6.47 (same bytes as the release asset).",
+      "bytes": 441597952,
+      "modified": "2026-10-02"
+    },
+    {
+      "path": "data/build/core-clinical-new-editions",
+      "class": "REBUILDABLE",
+      "producer": "scripts/build-core.mjs stage clinical-new-edition-sources (decodes data/build/official-clinical-2026-10-02/zst)",
+      "consumers": [
+        "scripts/build-core.mjs (clinical-source-snapshot, clinical-medication-relations)"
+      ],
+      "rebuild": "bun run content:core:build -- --stage=clinical-new-edition-sources",
+      "note": "Decoded databases of the 30 editions published after 2026-07-27.",
+      "bytes": 75894784,
       "modified": "2026-10-02"
     }
   ]
