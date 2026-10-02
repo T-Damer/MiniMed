@@ -132,10 +132,11 @@ export function downloadDisplayTitle(value: unknown): string | null {
   }
   const characters = Array.from(value);
   if (characters.length <= TITLE_LABEL_MAX) return value;
-  return `${characters
-    .slice(0, TITLE_LABEL_MAX - 1)
-    .join('')
-    .trimEnd()}…`;
+  const head = characters.slice(0, TITLE_LABEL_MAX - 1).join('');
+  // Cut at the last word boundary unless that would drop more than a quarter of the label.
+  const boundary = head.search(/\s\S*$/u);
+  const clipped = boundary >= (TITLE_LABEL_MAX * 3) / 4 ? head.slice(0, boundary) : head;
+  return `${clipped.replace(/[\s,;:.([{–—-]+$/u, '')}…`;
 }
 
 export function isDownloadActive(task: Pick<DownloadTask, 'state'>): boolean {

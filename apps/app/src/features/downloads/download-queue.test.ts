@@ -341,6 +341,24 @@ describe('shared download ownership', () => {
       }
     });
 
+    it('clips the 307-character 888_1 title at a word boundary', () => {
+      const module = catalog.modules.find((item) => item.id.endsWith('888_1'));
+      expect(module?.title.length).toBe(307);
+      const title = downloadDisplayTitle(module?.title) ?? '';
+      expect(Array.from(title).length).toBeLessThanOrEqual(180);
+      expect(title.endsWith('…')).toBe(true);
+      const kept = title.slice(0, -1);
+      expect(module?.title.startsWith(kept)).toBe(true);
+      expect(module?.title.charAt(kept.length)).toMatch(/[\s,;:.([{–—-]/u);
+      expect(kept).not.toMatch(/[\s,;:.([{–—-]$/u);
+    });
+
+    it('falls back to a hard cut when the label has no late word boundary', () => {
+      const title = downloadDisplayTitle(`${'а'.repeat(170)} ${'б'.repeat(40)}`) ?? '';
+      expect(title).toBe(`${'а'.repeat(170)}…`);
+      expect(downloadDisplayTitle('я'.repeat(400))).toBe(`${'я'.repeat(179)}…`);
+    });
+
     it('keeps short titles intact and still rejects bad ids, kinds and titles', () => {
       expect(downloadDisplayTitle('Пакет')).toBe('Пакет');
       expect(downloadDisplayTitle('')).toBeNull();
