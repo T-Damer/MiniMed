@@ -1,0 +1,69 @@
+[
+  {
+    "id": "drug.amoxicillin-clavulanate.registry",
+    "query": "Аугментин суспензия 400 мг + 57 мг/5 мл регистрационная запись",
+    "expectedDocumentIds": ["esklp.mnn.амоксициллин-клавулановая-кислота", "drug.allmed.3324"],
+    "category": "medication-lookup",
+    "scope": "medications"
+  },
+  {
+    "id": "drug.azithromycin.registry",
+    "query": "Сумамед форте азитромицин суспензия 200 мг/5 мл регистрационная запись",
+    "expectedDocumentIds": ["esklp.mnn.азитромицин", "drug.allmed.6"],
+    "category": "medication-lookup",
+    "scope": "medications"
+  },
+  {
+    "id": "drug.ceftriaxone.registry",
+    "query": "Цефтриаксон порошок для внутривенного и внутримышечного введения 1 г",
+    "expectedDocumentIds": ["esklp.mnn.цефтриаксон", "drug.allmed.525"],
+    "category": "medication-lookup",
+    "scope": "medications"
+  },
+  {
+    "id": "drug.ceftriaxone.pediatric-pneumonia-workflow",
+    "query": "Цефтриаксон ребенку 3 лет вес 20 кг при пневмонии как второй антибиотик",
+    "expectedDocumentIds": ["esklp.mnn.цефтриаксон", "drug.allmed.525"],
+    "category": "medication-lookup",
+    "requireTop1": true,
+    "scope": "medications"
+  },
+  {
+    "id": "drug.amoxicillin-tablets.registry",
+    "query": "Амоксициллин таблетки 500 мг регистрационное удостоверение",
+    "expectedDocumentIds": ["esklp.mnn.амоксициллин", "drug.allmed.8"],
+    "category": "medication-lookup",
+    "scope": "medications"
+  },
+  {
+    "id": "drug.ibuprofen.registry",
+    "query": "Ибупрофен детская суспензия 100 мг/5 мл регистрационная запись",
+    "expectedDocumentIds": ["esklp.mnn.ибупрофен", "drug.allmed.11"],
+    "category": "medication-lookup",
+    "scope": "medications"
+  },
+  {
+    "id": "drug.paracetamol.registry",
+    "query": "Парацетамол-АКОС детская суспензия 120 мг/5 мл",
+    "expectedDocumentIds": ["esklp.mnn.парацетамол", "drug.allmed.10"],
+    "category": "medication-lookup",
+    "scope": "medications"
+  },
+  {
+    "id": "drug.oral-rehydration-salts.registry",
+    "query": "Регидрон порошок для раствора 18,9 г декстроза натрия калия соли",
+    "expectedDocumentIds": [
+      "esklp.mnn.декстроза-калия-хлорид-натрия-хлорид-натрия-цитрат",
+      "drug.allmed.372"
+    ],
+    "category": "medication-lookup",
+    "scope": "medications"
+  },
+  {
+    "id": "drug.oseltamivir.registry",
+    "query": "Осельтамивир капсулы 30 мг регистрационное удостоверение",
+    "expectedDocumentIds": ["esklp.mnn.осельтамивир", "drug.allmed.1676"],
+    "category": "medication-lookup",
+    "scope": "medications"
+  }
+]

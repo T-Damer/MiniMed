@@ -113,7 +113,7 @@ const fileSources: readonly [string, string][] = [
   ['real-corpus-demo-queries.json', 'real-corpus-demo'],
   ['curated-clinician-queries.json', 'curated-clinician'],
   ['doctor-workflow-queries.json', 'doctor-workflow'],
-  ['pilot-rf-queries.json', 'pilot-rf'],
+  ['clinical-guideline-queries.json', 'clinical-guideline'],
   ['search-quality-v2.json', 'search-quality-v2'],
 ];
 
@@ -146,8 +146,8 @@ function buildClinicalQuerySet(): QuerySource[] {
     ),
   );
   return [
-    ...readQueryFile('pilot-rf-queries.json', 'pilot-rf'),
-    ...readQueryFile('pilot-rf-drug-queries.json', 'pilot-rf-drug'),
+    ...readQueryFile('clinical-guideline-queries.json', 'clinical-guideline'),
+    ...readQueryFile('medication-lookup-queries.json', 'medication-lookup'),
     ...readQueryFile('doctor-workflow-queries.json', 'doctor-workflow'),
     ...demo.queries
       .filter((item) => item.status !== 'excluded')

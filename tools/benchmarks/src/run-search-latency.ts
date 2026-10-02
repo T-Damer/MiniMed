@@ -43,7 +43,7 @@ const queries = [
   ...read('search-quality-v2.json'),
   ...read('curated-clinician-queries.json'),
   ...read('doctor-workflow-queries.json'),
-  ...read('pilot-rf-queries.json'),
+  ...read('clinical-guideline-queries.json'),
   ...read('real-corpus-demo-queries.json'),
 ];
 const store = await createBunFileMedicalStore(process.argv[2] ?? 'apps/app/public/content/core.db');

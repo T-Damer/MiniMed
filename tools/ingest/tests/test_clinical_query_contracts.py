@@ -17,8 +17,8 @@ def _benchmark_path(name: str) -> Path:
 
 def _retrieval_paths() -> list[Path]:
     return [
-        _benchmark_path("pilot-rf-queries.json"),
-        _benchmark_path("pilot-rf-drug-queries.json"),
+        _benchmark_path("clinical-guideline-queries.json"),
+        _benchmark_path("medication-lookup-queries.json"),
     ]
 
 

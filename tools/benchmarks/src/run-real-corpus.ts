@@ -1,12 +1,14 @@
-// The former pilot (rf-public-pilot.db) and demo (kr.demo.*) query sets, run on the released
-// corpus: core.db plus the companion packs. Pilot queries keep their request and scoring, so the
-// numbers compare directly with benchmark:pilot; demo queries use the real targets recorded in
-// real-corpus-demo-queries.json, where each re-targeted or excluded query says why.
+// The doctor query sets run on the released corpus: core.db plus the companion packs. Lookup queries
+// (clinical-guideline-, medication-lookup- and doctor-workflow-queries.json) name the documents of
+// the full databases that answer them -- recommendations by official id (`kr.rf.714_2`), medications
+// by ЕСКЛП МНН or Allmed instruction. Demo queries (the former kr.demo.* corpus) use the real targets
+// recorded in real-corpus-demo-queries.json, where each re-targeted or excluded query says why.
+// Nothing here expects a document of the retired pilot corpus (docs/research/pilot-corpus-retired-2026-10-02.md).
 //
 // The metrics are a ratchet, not a goal: `--check` fails when one falls more than the tolerance
 // below the baseline in real-corpus-baseline.json, and `--write-baseline` records the current
 // values after a search improvement (commit that separately).
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 import type { QueryBranchKind, QueryFactKind, SearchResultGroup } from '@localmed/contracts';
@@ -22,25 +24,28 @@ for (const arg of args)
   )
     throw new Error(`Unknown argument ${arg}`);
 /**
- * `core` repeats the former pilot request (hybrid search over the whole corpus); `app` sends the
+ * `core` is hybrid search over the whole corpus; `app` sends the
  * same clinical phrasing through «Клинический разбор», the path the app uses for it.
  */
 const path = args.find((arg) => arg.startsWith('--path='))?.slice(7) ?? 'core';
-/** `core` mounts core.db alone, as CI has it; `all` adds every companion pack present locally. */
+/**
+ * `core` mounts core.db alone, as CI has it; `all` adds every companion pack and the recommendation
+ * modules the lookup queries target, whichever are present locally.
+ */
 const corpusScope = args.find((arg) => arg.startsWith('--corpus='))?.slice(9) ?? 'all';
 const check = args.includes('--check');
 const writeBaseline = args.includes('--write-baseline');
 /** Mount a rebuild candidate instead of the released core.db without touching that file. */
 const corePathOverride = args.find((arg) => arg.startsWith('--core='))?.slice('--core='.length);
 
-interface PilotQuery {
+interface LookupQuery {
   readonly id: string;
   readonly query: string;
+  /** Any of these documents (or the document a catalog pointer stands for) is a correct answer. */
   readonly expectedDocumentIds: readonly string[];
-  readonly expectedOfficialId?: string;
-  readonly expectedSectionTypes: readonly string[];
-  readonly expectedAnchorPrefixes: readonly string[];
   readonly requireTop1?: boolean;
+  /** `medications`: asked on the «Лекарства» tab (plain lookup); default is «Клинический разбор». */
+  readonly scope?: 'medications';
   readonly category: string;
 }
 
@@ -66,14 +71,13 @@ interface DemoCase {
 
 const read = <T>(path: string): T =>
   JSON.parse(readFileSync(resolve(REPOSITORY_ROOT, path), 'utf8')) as T;
-const pilotQueries = [
-  'tools/benchmarks/pilot-rf-queries.json',
-  'tools/benchmarks/pilot-rf-drug-queries.json',
+const lookupQueries = [
+  'tools/benchmarks/clinical-guideline-queries.json',
+  'tools/benchmarks/medication-lookup-queries.json',
   'tools/benchmarks/doctor-workflow-queries.json',
-].flatMap((path) => read<readonly PilotQuery[]>(path));
+].flatMap((path) => read<readonly LookupQuery[]>(path));
 const demo = read<{
   queries: readonly DemoQuery[];
-  pilotAdditionalTargets: { targets: Readonly<Record<string, readonly string[]>> };
   cases: readonly DemoCase[];
 }>('tools/benchmarks/real-corpus-demo-queries.json');
 
@@ -83,27 +87,78 @@ const percentile = (values: readonly number[], share: number) => {
   const sorted = values.toSorted((left, right) => left - right);
   return sorted[Math.min(sorted.length - 1, Math.ceil(share * sorted.length) - 1)] ?? 0;
 };
-const { core, corpus, target } = await openRealCorpus({
+/**
+ * A catalog pointer in core.db carries a recommendation's title only; its text lives in the
+ * recommendation module a user installs. `--corpus=all` therefore mounts the released module of
+ * every recommendation the lookup queries expect (`kr.rf.<id>`), when it is present locally in
+ * data/build/release-clinical (a local-only 3.6 GB set; CI has core.db alone).
+ */
+const RELEASED_RECOMMENDATIONS = resolve(REPOSITORY_ROOT, 'data/build/release-clinical');
+const guidelineModules =
+  corpusScope === 'all' && existsSync(RELEASED_RECOMMENDATIONS)
+    ? [
+        ...new Set(
+          lookupQueries.flatMap((query) =>
+            query.expectedDocumentIds.flatMap((id) => /^kr\.rf\.(.+)$/u.exec(id)?.[1] ?? []),
+          ),
+        ),
+      ]
+        .toSorted()
+        .flatMap((recommendationId) => {
+          const file = readdirSync(RELEASED_RECOMMENDATIONS).find((name) =>
+            name.startsWith(`clinical-${recommendationId}-clinical-`),
+          );
+          return file
+            ? [
+                {
+                  moduleId: `minimed.clinical.recommendation.${recommendationId}`,
+                  path: resolve(RELEASED_RECOMMENDATIONS, file),
+                },
+              ]
+            : [];
+        })
+    : [];
+const {
+  core,
+  corpus: mounted,
+  target,
+} = await openRealCorpus({
   embedder: new PortableHashEmbedder(),
   companions: corpusScope === 'all',
   corePath: corePathOverride,
+  installedModules: guidelineModules,
 });
+/** The baseline key names the recommendation modules by count, not one by one. */
+const corpus = [
+  ...mounted.filter((name) => !name.startsWith('minimed.clinical.recommendation.')),
+  ...(guidelineModules.length > 0 ? [`recommendations×${guidelineModules.length}`] : []),
+];
 const clinical = new ScopedMedicalCore(core, 'diagnosis');
-const searchClinical = (query: string) =>
-  path === 'app'
-    ? clinical.search({
+const medications = new ScopedMedicalCore(core, 'medications');
+const searchClinical = (query: string, scope?: 'medications') =>
+  path === 'app' && scope === 'medications'
+    ? medications.search({
         query,
         mode: 'auto',
-        analysisMode: 'clinical',
+        analysisMode: 'lookup',
         filters: {},
         limit: 20,
         includeSuggestions: true,
       })
-    : core.search({ query, mode: 'hybrid', filters: {}, limit: 20, includeSuggestions: false });
+    : path === 'app'
+      ? clinical.search({
+          query,
+          mode: 'auto',
+          analysisMode: 'clinical',
+          filters: {},
+          limit: 20,
+          includeSuggestions: true,
+        })
+      : core.search({ query, mode: 'hybrid', filters: {}, limit: 20, includeSuggestions: false });
 /** Every search response, for the zero-result, mode and latency figures. */
 const searches: { empty: boolean; hybrid: boolean; semantic: boolean; elapsedMs: number }[] = [];
-const searchMeasured = async (query: string) => {
-  const response = await searchClinical(query);
+const searchMeasured = async (query: string, scope?: 'medications') => {
+  const response = await searchClinical(query, scope);
   if (response.ok)
     searches.push({
       empty: response.value.groups.length === 0,
@@ -122,37 +177,18 @@ const rankOf = (groups: readonly SearchResultGroup[], expected: ReadonlySet<stri
   return index >= 0 ? index + 1 : null;
 };
 
-const pilotRows = [];
-for (const fixture of pilotQueries) {
-  const response = await searchMeasured(fixture.query);
+const lookupRows = [];
+for (const fixture of lookupQueries) {
+  const response = await searchMeasured(fixture.query, fixture.scope);
   if (!response.ok) throw new Error(`${fixture.id}: ${response.error.message}`);
-  const expected = new Set([
-    ...fixture.expectedDocumentIds,
-    ...(demo.pilotAdditionalTargets.targets[fixture.id] ?? []),
-    // The same guideline reached through its catalog pointer.
-    ...(fixture.expectedOfficialId ? [`kr.rf.${fixture.expectedOfficialId}`] : []),
-  ]);
-  const rank = rankOf(response.value.groups, expected);
-  const sectionHit = response.value.groups.some(
-    (group) =>
-      fixture.expectedDocumentIds.includes(group.documentId) &&
-      group.results.some(
-        (result) =>
-          result.sectionType !== null &&
-          fixture.expectedSectionTypes.includes(result.sectionType) &&
-          fixture.expectedAnchorPrefixes.some((prefix) =>
-            result.anchor.startsWith(`${prefix}#chunk-`),
-          ),
-      ),
-  );
-  pilotRows.push({
+  const rank = rankOf(response.value.groups, new Set(fixture.expectedDocumentIds));
+  lookupRows.push({
     id: fixture.id,
     category: fixture.category,
     requireTop1: fixture.requireTop1 === true,
     hitAt1: rank === 1,
     hitAt5: rank !== null,
     reciprocalRank: rank === null ? 0 : 1 / rank,
-    sectionHit,
     top: response.value.groups.slice(0, 5).map((group) => target(group.documentId)),
   });
 }
@@ -177,7 +213,7 @@ const caseRows = [];
 for (const fixture of demo.cases) {
   const analysis = await core.analyzeQuery({ query: fixture.query, includeSuggestions: true });
   if (!analysis.ok) throw new Error(`${fixture.id}: ${analysis.error.message}`);
-  // Case descriptions are clinical phrasing: the same path as the pilot queries.
+  // Case descriptions are clinical phrasing: the same path as the lookup queries.
   const response = await searchMeasured(fixture.query);
   if (!response.ok) throw new Error(`${fixture.id}: ${response.error.message}`);
   const factKinds = new Set<string>(analysis.value.facts.map((fact) => fact.kind));
@@ -221,14 +257,13 @@ const summarize = (
   recallAt5: mean(rows.map((row) => Number(row.hitAt5))),
   mrrAt5: mean(rows.map((row) => row.reciprocalRank)),
 });
-const requiredTop1 = pilotRows.filter((row) => row.requireTop1);
+const requiredTop1 = lookupRows.filter((row) => row.requireTop1);
 const latencies = searches.map((search) => search.elapsedMs);
 const summary = {
   corpus,
   path,
-  pilot: {
-    ...summarize(pilotRows),
-    sectionRecall: mean(pilotRows.map((row) => Number(row.sectionHit))),
+  lookup: {
+    ...summarize(lookupRows),
     requiredTop1Rate: mean(requiredTop1.map((row) => Number(row.hitAt1))),
   },
   demo: {
@@ -255,17 +290,16 @@ const reportPath = resolve(REPOSITORY_ROOT, `data/build/real-corpus-benchmark-${
 mkdirSync(dirname(reportPath), { recursive: true });
 writeFileSync(
   reportPath,
-  `${JSON.stringify({ summary, pilotRows, demoRows, caseRows }, null, 2)}\n`,
+  `${JSON.stringify({ summary, lookupRows, demoRows, caseRows }, null, 2)}\n`,
 );
-console.log(JSON.stringify({ summary, pilotRows, demoRows, caseRows }, null, 2));
+console.log(JSON.stringify({ summary, lookupRows, demoRows, caseRows }, null, 2));
 
 /** Gated metrics: higher is better, except the zero-result rate. */
 const gated: Record<string, number> = {
-  'pilot.recallAt1': summary.pilot.recallAt1,
-  'pilot.recallAt5': summary.pilot.recallAt5,
-  'pilot.mrrAt5': summary.pilot.mrrAt5,
-  'pilot.sectionRecall': summary.pilot.sectionRecall,
-  'pilot.requiredTop1Rate': summary.pilot.requiredTop1Rate,
+  'lookup.recallAt1': summary.lookup.recallAt1,
+  'lookup.recallAt5': summary.lookup.recallAt5,
+  'lookup.mrrAt5': summary.lookup.mrrAt5,
+  'lookup.requiredTop1Rate': summary.lookup.requiredTop1Rate,
   'demo.recallAt1': summary.demo.recallAt1,
   'demo.recallAt5': summary.demo.recallAt5,
   'demo.mrrAt5': summary.demo.mrrAt5,

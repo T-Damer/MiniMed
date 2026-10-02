@@ -5,7 +5,7 @@
       "query": "лихорадка кашель тахипноэ",
       "category": "exact",
       "status": "mapped",
-      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "expectedTargets": ["kr.rf.714_2"],
       "demoTarget": "kr.demo.pediatrics.pneumonia"
     },
     {
@@ -13,12 +13,7 @@
       "query": "ребенок часто дышит и температурит",
       "category": "alias",
       "status": "mapped",
-      "expectedTargets": [
-        "kr.rf.714_2.pneumonia",
-        "kr.rf.714_2",
-        "kr.rf.360_3.bronchiolitis",
-        "kr.rf.360_3"
-      ],
+      "expectedTargets": ["kr.rf.714_2", "kr.rf.360_3"],
       "demoTarget": "kr.demo.pediatrics.pneumonia"
     },
     {
@@ -26,14 +21,7 @@
       "query": "сатурация одышка кашель",
       "category": "symptoms",
       "status": "mapped",
-      "expectedTargets": [
-        "kr.rf.714_2.pneumonia",
-        "kr.rf.714_2",
-        "kr.rf.360_3.bronchiolitis",
-        "kr.rf.360_3",
-        "kr.rf.381_3.bronchitis",
-        "kr.rf.381_3"
-      ],
+      "expectedTargets": ["kr.rf.714_2", "kr.rf.360_3", "kr.rf.381_3"],
       "demoTarget": "kr.demo.pediatrics.pneumonia"
     },
     {
@@ -41,11 +29,7 @@
       "query": "амоксициллин клавулановая кислота",
       "category": "medication",
       "status": "retargeted",
-      "expectedTargets": [
-        "esklp.mnn.амоксициллин-клавулановая-кислота",
-        "drug.allmed.3324",
-        "drug.rf.amoxicillin-clavulanate.suspension-400-57"
-      ],
+      "expectedTargets": ["esklp.mnn.амоксициллин-клавулановая-кислота", "drug.allmed.3324"],
       "demoTarget": "kr.demo.pediatrics.pneumonia",
       "note": "A drug name is a medication lookup; the demo pointed it at the pneumonia guideline. The ESKLP registry record and the Allmed instruction of the INN are the answer."
     },
@@ -54,7 +38,7 @@
       "query": "аугментин пневмония",
       "category": "alias",
       "status": "mapped",
-      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "expectedTargets": ["kr.rf.714_2"],
       "demoTarget": "kr.demo.pediatrics.pneumonia"
     },
     {
@@ -71,12 +55,7 @@
       "query": "затруднение дыхания не может пить",
       "category": "lay",
       "status": "mapped",
-      "expectedTargets": [
-        "kr.rf.714_2.pneumonia",
-        "kr.rf.714_2",
-        "kr.rf.360_3.bronchiolitis",
-        "kr.rf.360_3"
-      ],
+      "expectedTargets": ["kr.rf.714_2", "kr.rf.360_3"],
       "demoTarget": "kr.demo.pediatrics.pneumonia"
     },
     {
@@ -84,12 +63,7 @@
       "query": "частота дыхания температура сатурация",
       "category": "investigation",
       "status": "mapped",
-      "expectedTargets": [
-        "kr.rf.714_2.pneumonia",
-        "kr.rf.714_2",
-        "kr.rf.360_3.bronchiolitis",
-        "kr.rf.360_3"
-      ],
+      "expectedTargets": ["kr.rf.714_2", "kr.rf.360_3"],
       "demoTarget": "kr.demo.pediatrics.pneumonia"
     },
     {
@@ -98,11 +72,8 @@
       "category": "exact",
       "status": "mapped",
       "expectedTargets": [
-        "kr.rf.714_2.pneumonia",
         "kr.rf.714_2",
-        "kr.rf.381_3.bronchitis",
         "kr.rf.381_3",
-        "kr.rf.360_3.bronchiolitis",
         "kr.rf.360_3",
         "kr.rf.891_1",
         "kr.rf.654_2"
@@ -209,7 +180,7 @@
       "query": "лихорадка без очага дизурия",
       "category": "symptoms",
       "status": "mapped",
-      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "expectedTargets": ["kr.rf.281_3"],
       "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
     },
     {
@@ -217,7 +188,7 @@
       "query": "оам бактериальная культура мочи",
       "category": "alias",
       "status": "mapped",
-      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "expectedTargets": ["kr.rf.281_3"],
       "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
     },
     {
@@ -225,7 +196,7 @@
       "query": "рези при мочеиспускании",
       "category": "lay",
       "status": "mapped",
-      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "expectedTargets": ["kr.rf.281_3"],
       "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
     },
     {
@@ -233,7 +204,7 @@
       "query": "болезненное мочеиспускание поясница",
       "category": "symptoms",
       "status": "mapped",
-      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3", "kr.rf.9_3"],
+      "expectedTargets": ["kr.rf.281_3", "kr.rf.9_3"],
       "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
     },
     {
@@ -241,7 +212,7 @@
       "query": "бактериальная культура мочи",
       "category": "investigation",
       "status": "mapped",
-      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "expectedTargets": ["kr.rf.281_3"],
       "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
     },
     {
@@ -267,7 +238,7 @@
       "query": "образец мочи до терапии",
       "category": "investigation",
       "status": "mapped",
-      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "expectedTargets": ["kr.rf.281_3"],
       "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
     },
     {
@@ -284,30 +255,10 @@
       "query": "учащенное мочеиспускание боль в пояснице",
       "category": "symptoms",
       "status": "mapped",
-      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3", "kr.rf.9_3"],
+      "expectedTargets": ["kr.rf.281_3", "kr.rf.9_3"],
       "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
     }
   ],
-  "pilotAdditionalTargets": {
-    "note": "Pilot drug queries name one registered product. On the released corpus the ESKLP registry record of the same INN and the Allmed instruction of that INN are also correct answers (coordinator decision, 2026-09-27); the drug.rf.* summaries leave together with the pilot.",
-    "targets": {
-      "drug.amoxicillin-clavulanate.registry": [
-        "esklp.mnn.амоксициллин-клавулановая-кислота",
-        "drug.allmed.3324"
-      ],
-      "drug.azithromycin.registry": ["esklp.mnn.азитромицин", "drug.allmed.6"],
-      "drug.ceftriaxone.registry": ["esklp.mnn.цефтриаксон", "drug.allmed.525"],
-      "drug.ceftriaxone.pediatric-pneumonia-workflow": ["esklp.mnn.цефтриаксон", "drug.allmed.525"],
-      "drug.amoxicillin-tablets.registry": ["esklp.mnn.амоксициллин", "drug.allmed.8"],
-      "drug.ibuprofen.registry": ["esklp.mnn.ибупрофен", "drug.allmed.11"],
-      "drug.paracetamol.registry": ["esklp.mnn.парацетамол", "drug.allmed.10"],
-      "drug.oral-rehydration-salts.registry": [
-        "esklp.mnn.декстроза-калия-хлорид-натрия-хлорид-натрия-цитрат",
-        "drug.allmed.372"
-      ],
-      "drug.oseltamivir.registry": ["esklp.mnn.осельтамивир", "drug.allmed.1676"]
-    }
-  },
   "cases": [
     {
       "id": "respiratory-with-negation-and-treatment",
@@ -326,7 +277,7 @@
       "negativeContains": ["каш"],
       "excludedClinicalTerms": ["кашл"],
       "status": "mapped",
-      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "expectedTargets": ["kr.rf.714_2"],
       "demoTarget": "kr.demo.pediatrics.pneumonia"
     },
     {
@@ -353,7 +304,7 @@
       "expectedBranchKinds": ["clinical", "investigation", "clause"],
       "negativeContains": ["каш"],
       "status": "mapped",
-      "expectedTargets": ["kr.rf.281_3.uti", "kr.rf.281_3"],
+      "expectedTargets": ["kr.rf.281_3"],
       "demoTarget": "kr.demo.pediatrics.urinary-tract-infection"
     },
     {
@@ -363,7 +314,7 @@
       "expectedBranchKinds": ["clinical", "clause"],
       "minimumWarnings": 1,
       "status": "mapped",
-      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "expectedTargets": ["kr.rf.714_2"],
       "demoTarget": "kr.demo.pediatrics.pneumonia"
     },
     {
@@ -372,7 +323,7 @@
       "expectedFactKinds": ["sex", "age", "duration", "medication", "investigation"],
       "expectedBranchKinds": ["clinical", "medication", "investigation", "clause"],
       "status": "mapped",
-      "expectedTargets": ["kr.rf.714_2.pneumonia", "kr.rf.714_2"],
+      "expectedTargets": ["kr.rf.714_2"],
       "demoTarget": "kr.demo.pediatrics.pneumonia"
     }
   ]

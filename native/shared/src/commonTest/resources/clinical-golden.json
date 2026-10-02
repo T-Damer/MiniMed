@@ -10,7 +10,7 @@
   "queryCount": 85,
   "queries": [
     {
-      "sourceId": "pilot-rf.uti.clinical.dysuria",
+      "sourceId": "clinical-guideline.uti.clinical.dysuria",
       "query": "Девочка 6 лет, больно писать, часто ходит в туалет и появилось недержание",
       "normalizedQuery": "девочка 6 лет, больно писать, часто ходит в туалет и появилось недержание",
       "analysis": {
@@ -1424,7 +1424,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.uti.clinical.pyelonephritis",
+      "sourceId": "clinical-guideline.uti.clinical.pyelonephritis",
       "query": "Ребенок с лихорадкой, рвотой и болью в боку, возможен пиелонефрит",
       "normalizedQuery": "ребенок с лихорадкой, рвотой и болью в боку, возможен пиелонефрит",
       "analysis": {
@@ -2981,7 +2981,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.uti.diagnostics.urine",
+      "sourceId": "clinical-guideline.uti.diagnostics.urine",
       "query": "Диагностика: температура без ясного очага у грудничка, нужен общий анализ и посев мочи",
       "normalizedQuery": "диагностика: температура без ясного очага у грудничка, нужен общий анализ и посев мочи",
       "analysis": {
@@ -4347,7 +4347,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.uti.diagnostics.markers",
+      "sourceId": "clinical-guideline.uti.diagnostics.markers",
       "query": "Помогают ли маркеры воспаления отличить пиелонефрит и заменяют ли они исследование мочи",
       "normalizedQuery": "помогают ли маркеры воспаления отличить пиелонефрит и заменяют ли они исследование мочи",
       "analysis": {
@@ -5758,7 +5758,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.uti.treatment.empiric",
+      "sourceId": "clinical-guideline.uti.treatment.empiric",
       "query": "Лечение фебрильной инфекции мочевых путей: откладывать ли антибиотик до посева",
       "normalizedQuery": "лечение фебрильной инфекции мочевых путей: откладывать ли антибиотик до посева",
       "analysis": {
@@ -7506,7 +7506,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.uti.routing.infant",
+      "sourceId": "clinical-guideline.uti.routing.infant",
       "query": "Маршрутизация: ребенок 4 месяцев с фебрильной ИМП, рвотой и не может пить",
       "normalizedQuery": "маршрутизация: ребенок 4 месяцев с фебрильной имп, рвотой и не может пить",
       "analysis": {
@@ -9030,7 +9030,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchitis.clinical.cough",
+      "sourceId": "clinical-guideline.bronchitis.clinical.cough",
       "query": "Клиническая картина бронхита: кашель после ОРВИ, рассеянные хрипы и умеренная температура",
       "normalizedQuery": "клиническая картина бронхита: кашель после орви, рассеянные хрипы и умеренная температура",
       "analysis": {
@@ -10694,7 +10694,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchitis.clinical.sputum",
+      "sourceId": "clinical-guideline.bronchitis.clinical.sputum",
       "query": "Доказывает ли цветная мокрота бактериальную природу острого бронхита",
       "normalizedQuery": "доказывает ли цветная мокрота бактериальную природу острого бронхита",
       "analysis": {
@@ -12260,7 +12260,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchitis.diagnostics.xray",
+      "sourceId": "clinical-guideline.bronchitis.diagnostics.xray",
       "query": "Диагностика типичного бронхита у ребенка: нужны ли анализы и рентгенография",
       "normalizedQuery": "диагностика типичного бронхита у ребенка: нужны ли анализы и рентгенография",
       "analysis": {
@@ -13606,7 +13606,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchitis.treatment.antibiotics",
+      "sourceId": "clinical-guideline.bronchitis.treatment.antibiotics",
       "query": "Лечение неосложненного вирусного бронхита: нужны ли антибиотики",
       "normalizedQuery": "лечение неосложненного вирусного бронхита: нужны ли антибиотики",
       "analysis": {
@@ -14872,7 +14872,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchitis.treatment.supportive",
+      "sourceId": "clinical-guideline.bronchitis.treatment.supportive",
       "query": "Ведение бронхита: питье, контроль температуры и наблюдение за дыханием",
       "normalizedQuery": "ведение бронхита: питье, контроль температуры и наблюдение за дыханием",
       "analysis": {
@@ -16232,7 +16232,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchitis.routing.redflags",
+      "sourceId": "clinical-guideline.bronchitis.routing.redflags",
       "query": "Маршрутизация при бронхите: нарастает одышка, втяжение грудной клетки и цианоз",
       "normalizedQuery": "маршрутизация при бронхите: нарастает одышка, втяжение грудной клетки и цианоз",
       "analysis": {
@@ -18023,7 +18023,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchiolitis.clinical.wheeze",
+      "sourceId": "clinical-guideline.bronchiolitis.clinical.wheeze",
       "query": "Грудничок после насморка кашляет, свистит и втягивает межреберья",
       "normalizedQuery": "грудничок после насморка кашляет, свистит и втягивает межреберья",
       "analysis": {
@@ -19461,7 +19461,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchiolitis.clinical.apnea",
+      "sourceId": "clinical-guideline.bronchiolitis.clinical.apnea",
       "query": "Недоношенный младенец, первым проявлением после ОРВИ стало апноэ",
       "normalizedQuery": "недоношенный младенец, первым проявлением после орви стало апноэ",
       "analysis": {
@@ -20539,7 +20539,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchiolitis.diagnostics.first-episode",
+      "sourceId": "clinical-guideline.bronchiolitis.diagnostics.first-episode",
       "query": "Диагностика первого эпизода свистящих хрипов у ребенка до двух лет",
       "normalizedQuery": "диагностика первого эпизода свистящих хрипов у ребенка до двух лет",
       "analysis": {
@@ -21494,7 +21494,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchiolitis.treatment.supportive",
+      "sourceId": "clinical-guideline.bronchiolitis.treatment.supportive",
       "query": "Лечение бронхиолита: жидкость, проходимость носа и респираторная поддержка",
       "normalizedQuery": "лечение бронхиолита: жидкость, проходимость носа и респираторная поддержка",
       "analysis": {
@@ -22824,7 +22824,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchiolitis.routing.admission",
+      "sourceId": "clinical-guideline.bronchiolitis.routing.admission",
       "query": "Госпитализация при бронхиолите: апноэ, обезвоживание и затрудненное кормление",
       "normalizedQuery": "госпитализация при бронхиолите: апноэ, обезвоживание и затрудненное кормление",
       "analysis": {
@@ -23982,7 +23982,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.bronchiolitis.routing.discharge",
+      "sourceId": "clinical-guideline.bronchiolitis.routing.discharge",
       "query": "Критерии выписки при бронхиолите: сатурация выше 94, нет дистресса и ребенок пьет",
       "normalizedQuery": "критерии выписки при бронхиолите: сатурация выше 94, нет дистресса и ребенок пьет",
       "analysis": {
@@ -25441,7 +25441,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.measles.clinical.rash",
+      "sourceId": "clinical-guideline.measles.clinical.rash",
       "query": "Лихорадка, кашель, насморк и конъюнктивит, затем сыпь пошла с лица вниз",
       "normalizedQuery": "лихорадка, кашель, насморк и конъюнктивит, затем сыпь пошла с лица вниз",
       "analysis": {
@@ -27153,7 +27153,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.measles.clinical.koplik",
+      "sourceId": "clinical-guideline.measles.clinical.koplik",
       "query": "Пятна Бельского-Филатова-Коплика на слизистой щек у ребенка",
       "normalizedQuery": "пятна бельского-филатова-коплика на слизистой щек у ребенка",
       "analysis": {
@@ -28285,7 +28285,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.measles.diagnostics.confirmation",
+      "sourceId": "clinical-guideline.measles.diagnostics.confirmation",
       "query": "Диагностика кори: вакцинация, контакт, последовательность сыпи и лабораторное подтверждение",
       "normalizedQuery": "диагностика кори: вакцинация, контакт, последовательность сыпи и лабораторное подтверждение",
       "analysis": {
@@ -29568,7 +29568,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.measles.treatment.supportive",
+      "sourceId": "clinical-guideline.measles.treatment.supportive",
       "query": "Лечение кори: поддерживающая помощь и когда нужны антибиотики",
       "normalizedQuery": "лечение кори: поддерживающая помощь и когда нужны антибиотики",
       "analysis": {
@@ -30975,7 +30975,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.measles.routing.isolation",
+      "sourceId": "clinical-guideline.measles.routing.isolation",
       "query": "Маршрутизация при подозрении на корь: изоляция и эпидемиологические мероприятия",
       "normalizedQuery": "маршрутизация при подозрении на корь: изоляция и эпидемиологические мероприятия",
       "analysis": {
@@ -32090,7 +32090,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.measles.routing.severe",
+      "sourceId": "clinical-guideline.measles.routing.severe",
       "query": "Корь с судорогами, нарушением сознания и дыхательной недостаточностью, нужна интенсивная помощь",
       "normalizedQuery": "корь с судорогами, нарушением сознания и дыхательной недостаточностью, нужна интенсивная помощь",
       "analysis": {
@@ -33261,7 +33261,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.rotavirus.clinical.gastroenteritis",
+      "sourceId": "clinical-guideline.rotavirus.clinical.gastroenteritis",
       "query": "Рвота, водянистая диарея, лихорадка и снижение аппетита у ребенка",
       "normalizedQuery": "рвота, водянистая диарея, лихорадка и снижение аппетита у ребенка",
       "analysis": {
@@ -35072,7 +35072,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.rotavirus.clinical.dehydration",
+      "sourceId": "clinical-guideline.rotavirus.clinical.dehydration",
       "query": "После рвоты и диареи ребенок вялый, мало пьет и редко мочится",
       "normalizedQuery": "после рвоты и диареи ребенок вялый, мало пьет и редко мочится",
       "analysis": {
@@ -36709,7 +36709,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.rotavirus.diagnostics.differential",
+      "sourceId": "clinical-guideline.rotavirus.diagnostics.differential",
       "query": "Диагностика гастроэнтерита: кровь в стуле и локальная боль требуют другого поиска",
       "normalizedQuery": "диагностика гастроэнтерита: кровь в стуле и локальная боль требуют другого поиска",
       "analysis": {
@@ -37999,7 +37999,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.rotavirus.treatment.ors",
+      "sourceId": "clinical-guideline.rotavirus.treatment.ors",
       "query": "Лечение ротавируса: низкоосмолярный раствор для регидратации маленькими порциями",
       "normalizedQuery": "лечение ротавируса: низкоосмолярный раствор для регидратации маленькими порциями",
       "analysis": {
@@ -39415,7 +39415,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.rotavirus.treatment.antibiotics",
+      "sourceId": "clinical-guideline.rotavirus.treatment.antibiotics",
       "query": "Нужны ли антибактериальные препараты при ротавирусном гастроэнтерите",
       "normalizedQuery": "нужны ли антибактериальные препараты при ротавирусном гастроэнтерите",
       "analysis": {
@@ -40901,7 +40901,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.rotavirus.routing.shock",
+      "sourceId": "clinical-guideline.rotavirus.routing.shock",
       "query": "Госпитализация: тяжелое обезвоживание, неукротимая рвота, ребенок не может пить и есть признаки шока",
       "normalizedQuery": "госпитализация: тяжелое обезвоживание, неукротимая рвота, ребенок не может пить и есть признаки шока",
       "analysis": {
@@ -42548,7 +42548,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.meningococcal.clinical.infant",
+      "sourceId": "clinical-guideline.meningococcal.clinical.infant",
       "query": "Младенец вялый, отказывается от еды, монотонно кричит и выбухает родничок",
       "normalizedQuery": "младенец вялый, отказывается от еды, монотонно кричит и выбухает родничок",
       "analysis": {
@@ -43534,7 +43534,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.meningococcal.clinical.rash",
+      "sourceId": "clinical-guideline.meningococcal.clinical.rash",
       "query": "Лихорадка и геморрагическая сыпь, которая не бледнеет при надавливании",
       "normalizedQuery": "лихорадка и геморрагическая сыпь, которая не бледнеет при надавливании",
       "analysis": {
@@ -45725,7 +45725,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.meningococcal.diagnostics.stabilization",
+      "sourceId": "clinical-guideline.meningococcal.diagnostics.stabilization",
       "query": "Диагностика менингококковой инфекции: оценка шока и лабораторное подтверждение не должны задерживать помощь",
       "normalizedQuery": "диагностика менингококковой инфекции: оценка шока и лабораторное подтверждение не должны задерживать помощь",
       "analysis": {
@@ -47077,7 +47077,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.meningococcal.treatment.immediate",
+      "sourceId": "clinical-guideline.meningococcal.treatment.immediate",
       "query": "Лечение генерализованной менингококковой инфекции до полного лабораторного подтверждения",
       "normalizedQuery": "лечение генерализованной менингококковой инфекции до полного лабораторного подтверждения",
       "analysis": {
@@ -48557,7 +48557,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.meningococcal.routing.hospitalization",
+      "sourceId": "clinical-guideline.meningococcal.routing.hospitalization",
       "query": "Подозрение на генерализованную менингококковую инфекцию, нужна экстренная госпитализация",
       "normalizedQuery": "подозрение на генерализованную менингококковую инфекцию, нужна экстренная госпитализация",
       "analysis": {
@@ -50152,7 +50152,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.meningococcal.routing.shock",
+      "sourceId": "clinical-guideline.meningococcal.routing.shock",
       "query": "Менингококковая инфекция: признаки шока, судороги и быстрое ухудшение, требуется интенсивная терапия",
       "normalizedQuery": "менингококковая инфекция: признаки шока, судороги и быстрое ухудшение, требуется интенсивная терапия",
       "analysis": {
@@ -52003,7 +52003,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.pneumonia.clinical.symptoms",
+      "sourceId": "clinical-guideline.pneumonia.clinical.symptoms",
       "query": "Температура держится четвертый день, кашель, тахипноэ и втяжение грудной клетки",
       "normalizedQuery": "температура держится четвертый день, кашель, тахипноэ и втяжение грудной клетки",
       "analysis": {
@@ -53972,7 +53972,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.pneumonia.clinical.saturation",
+      "sourceId": "clinical-guideline.pneumonia.clinical.saturation",
       "query": "Пневмония у ребенка: сатурация ниже 94 а менее 90 означает значимую гипоксемию",
       "normalizedQuery": "пневмония у ребенка: сатурация ниже 94 а менее 90 означает значимую гипоксемию",
       "analysis": {
@@ -55401,7 +55401,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.pneumonia.diagnostics.imaging",
+      "sourceId": "clinical-guideline.pneumonia.diagnostics.imaging",
       "query": "Диагностика пневмонии: пульсоксиметрия, визуализация по показаниям и нужна ли повторная рентгенография",
       "normalizedQuery": "диагностика пневмонии: пульсоксиметрия, визуализация по показаниям и нужна ли повторная рентгенография",
       "analysis": {
@@ -56636,7 +56636,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.pneumonia.treatment.amoxicillin",
+      "sourceId": "clinical-guideline.pneumonia.treatment.amoxicillin",
       "query": "Лечение внебольничной пневмонии у амбулаторного ребенка: амоксициллин как препарат выбора",
       "normalizedQuery": "лечение внебольничной пневмонии у амбулаторного ребенка: амоксициллин как препарат выбора",
       "analysis": {
@@ -58289,7 +58289,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.pneumonia.treatment.nonresponse",
+      "sourceId": "clinical-guideline.pneumonia.treatment.nonresponse",
       "query": "Нет ответа на стартовый антибиотик через 48–72 часа при пневмонии, нужна повторная оценка",
       "normalizedQuery": "нет ответа на стартовый антибиотик через 48-72 часа при пневмонии, нужна повторная оценка",
       "analysis": {
@@ -59299,7 +59299,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf.pneumonia.routing.hypoxemia",
+      "sourceId": "clinical-guideline.pneumonia.routing.hypoxemia",
       "query": "Госпитализация при пневмонии: ребенок 2 месяцев, цианоз и сатурация 88 процентов",
       "normalizedQuery": "госпитализация при пневмонии: ребенок 2 месяцев, цианоз и сатурация 88 процентов",
       "analysis": {
@@ -60683,7 +60683,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf-drug.drug.amoxicillin-clavulanate.registry",
+      "sourceId": "medication-lookup.drug.amoxicillin-clavulanate.registry",
       "query": "Аугментин суспензия 400 мг + 57 мг/5 мл регистрационная запись",
       "normalizedQuery": "аугментин суспензия 400 мг + 57 мг/5 мл регистрационная запись",
       "analysis": {
@@ -61264,7 +61264,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf-drug.drug.azithromycin.registry",
+      "sourceId": "medication-lookup.drug.azithromycin.registry",
       "query": "Сумамед форте азитромицин суспензия 200 мг/5 мл регистрационная запись",
       "normalizedQuery": "сумамед форте азитромицин суспензия 200 мг/5 мл регистрационная запись",
       "analysis": {
@@ -61792,7 +61792,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf-drug.drug.ceftriaxone.registry",
+      "sourceId": "medication-lookup.drug.ceftriaxone.registry",
       "query": "Цефтриаксон порошок для внутривенного и внутримышечного введения 1 г",
       "normalizedQuery": "цефтриаксон порошок для внутривенного и внутримышечного введения 1 г",
       "analysis": {
@@ -62732,7 +62732,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf-drug.drug.ceftriaxone.pediatric-pneumonia-workflow",
+      "sourceId": "medication-lookup.drug.ceftriaxone.pediatric-pneumonia-workflow",
       "query": "Цефтриаксон ребенку 3 лет вес 20 кг при пневмонии как второй антибиотик",
       "normalizedQuery": "цефтриаксон ребенку 3 лет вес 20 кг при пневмонии как второй антибиотик",
       "analysis": {
@@ -64386,7 +64386,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf-drug.drug.amoxicillin-tablets.registry",
+      "sourceId": "medication-lookup.drug.amoxicillin-tablets.registry",
       "query": "Амоксициллин таблетки 500 мг регистрационное удостоверение",
       "normalizedQuery": "амоксициллин таблетки 500 мг регистрационное удостоверение",
       "analysis": {
@@ -65381,7 +65381,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf-drug.drug.ibuprofen.registry",
+      "sourceId": "medication-lookup.drug.ibuprofen.registry",
       "query": "Ибупрофен детская суспензия 100 мг/5 мл регистрационная запись",
       "normalizedQuery": "ибупрофен детская суспензия 100 мг/5 мл регистрационная запись",
       "analysis": {
@@ -66029,7 +66029,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf-drug.drug.paracetamol.registry",
+      "sourceId": "medication-lookup.drug.paracetamol.registry",
       "query": "Парацетамол-АКОС детская суспензия 120 мг/5 мл",
       "normalizedQuery": "парацетамол-акос детская суспензия 120 мг/5 мл",
       "analysis": {
@@ -66485,7 +66485,7 @@
       ]
     },
     {
-      "sourceId": "pilot-rf-drug.drug.oral-rehydration-salts.registry",
+      "sourceId": "medication-lookup.drug.oral-rehydration-salts.registry",
       "query": "Регидрон порошок для раствора 18,9 г декстроза натрия калия соли",
       "normalizedQuery": "регидрон порошок для раствора 18,9 г декстроза натрия калия соли",
       "analysis": {
@@ -66974,7 +66974,7 @@
       "groups": []
     },
     {
-      "sourceId": "pilot-rf-drug.drug.oseltamivir.registry",
+      "sourceId": "medication-lookup.drug.oseltamivir.registry",
       "query": "Осельтамивир капсулы 30 мг регистрационное удостоверение",
       "normalizedQuery": "осельтамивир капсулы 30 мг регистрационное удостоверение",
       "analysis": {
