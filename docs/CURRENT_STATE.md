@@ -1,7 +1,7 @@
 # Current state
 
 > Updated: 2 October 2026
-> Released version: `0.6.46` (public prerelease toward `1.0`)
+> Released version: `0.6.47` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
 > the HyperOS 60 Hz cap was per package, not WebView). Ordered work: smooth first boot (W1), the
@@ -300,6 +300,16 @@ delays, backoff on 429/503, no CAPTCHA handling, resumable state ledger, never o
   `grls-instruction-text-coverage.json` holds before/after coverage. Released packs and the catalog
   are untouched; the confidence is recorded only for PDFs extracted since this change (older OCR
   documents have the flag and the unknown-word proxy only).
+
+## Release 0.6.47 — 2026-10-02
+
+- Ships core 0.6.47 (no pilot; 30 new КР editions, replaced editions point to successors), the
+  КР refresh to the 2026-10-02 rubricator, the reader edition notice, НСИ ATC names and the FIX1
+  fixes. Release ratchet passes on the full databases (lookup R@1 0.803, R@5 0.934).
+- Verified: `bun run verify`, 27 targeted browser E2E tests, emulator clean install with the new
+  core (metered-network consent → gzip download → ready).
+- Known: the «Препараты» catalog is empty until a medication module is installed (pilot drug
+  cards left the core).
 
 ## Release 0.6.46 — 2026-10-02
 

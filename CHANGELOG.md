@@ -4,6 +4,24 @@ All notable changes are documented here. The project follows Semantic Versioning
 
 ## [Unreleased]
 
+## [0.6.47] - 2026-10-02
+
+- Clinical recommendations refreshed to the Минздрав rubricator of 2026-10-02: 30 new editions
+  (19 new recommendations, 11 new editions of existing ones) as compressed modules; the discovery
+  core 0.6.47 points to them and leads replaced editions to their successors. The pilot corpus is
+  gone from the core.
+- Editions: the reader says whether a recommendation is the new or the old edition and links the
+  other one («Открыть старую редакцию от …»), downloading it on demand; lists hide replaced
+  editions unless installed (then badged «прежняя редакция»).
+- Drug screen: ATC codes are explained at every level from the НСИ Минздрава АТХ dictionary
+  (version 3.8, 2025-07-15), loaded only when the explanation opens.
+- Fixed: eight recommendations with very long titles could not be downloaded; a document opened
+  right after its module installed could fail with «DB has been closed».
+- Search quality on the full databases: lookup Recall@1 0.705 → 0.803, Recall@5 0.918 → 0.934.
+- Core download prompts show the real transfer size (≈76 MB) instead of the old «~490 МБ».
+- Known: without an installed medication module the «Препараты» catalog is empty (the pilot drug
+  cards left the core); download a drug section from the knowledge base or the onboarding.
+
 ## [0.6.46] - 2026-10-02
 
 - Start-up: the Android splash shows the whole MiniMed wallet and hands over to an identical web
