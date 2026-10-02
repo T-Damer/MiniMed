@@ -81,6 +81,24 @@ Published as `core-0.6.47` (prerelease; `core-0.6.45` stays published for rollba
   regenerates again (modules from `data/build/release-clinical`, the retired pilot summary carried over from
   the committed slice under its original core.db checksum).
 
+## Retrieval benchmark from external datasets — 2026-10-02 (STATE Q1)
+
+Research note: [research/query-datasets-2026-10.md](research/query-datasets-2026-10.md). The owner has no
+query log, so benchmark queries come from open Russian datasets (nothing machine-translated):
+RuMedPrimeData complaints (CC BY 3.0) and RuCCoD diagnosis phrases (CC BY 4.0) with ICD-10 codes, plus
+forum questions that name one medication (licence unknown: kept under `data/build/`, never committed).
+Relevance is derived over the full databases (753 КР modules with registry ICD codes, 9 549 МКБ cards,
+ЕСКЛП МНН/Allmed documents): grade 3 = same/ancestor/descendant code (or the named МНН), grade 1 = same
+3-character block.
+
+- `tools/benchmarks/retrieval-icd-queries.json` (400 rows, dev/test 200/200, attribution and checksums inside),
+  `retrieval-benchmark.ts` (loader, ICD matching, R@k/MRR/nDCG, vitest), `build-retrieval-benchmark.ts`
+  (`--fetch` downloads ≈25 MB into `data/raw/query-datasets`), `run-retrieval-benchmark.ts`
+  (`--path=app|core --split=dev|test|all`; the test split is for reporting, not tuning).
+- Lexical baseline over core + all packs + 753 КР modules (app path): R@5 0.282 overall (dev 0.272, test
+  0.292); complaints 0.05, diagnosis phrases 0.22, drug names 0.87. Not gated: a run takes ≈1 h (≈6 s per
+  query with 753 modules mounted). Use it for E1 (embeddings) instead of the synthetic pediatric set.
+
 ## Pilot corpus retired — 2026-10-02
 
 Owner decision: the 15-card «pilot» corpus gives way to the full databases

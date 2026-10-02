@@ -31,7 +31,9 @@
     "benchmark:real": "bun src/run-real-corpus.ts",
     "benchmark:search-coverage-observations": "bun src/run-search-coverage-observations.ts",
     "benchmark:rapidfuzz-micro": "bun src/rapidfuzz-microbenchmark.ts",
-    "benchmark:typo-correction": "bun src/run-typo-correction.ts"
+    "benchmark:typo-correction": "bun src/run-typo-correction.ts",
+    "benchmark:retrieval:build": "bun src/build-retrieval-benchmark.ts",
+    "benchmark:retrieval": "bun src/run-retrieval-benchmark.ts"
   },
   "dependencies": {
     "@localmed/contracts": "workspace:*",
