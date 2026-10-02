@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-import type { HardMedicalQuery } from './hard-query-dataset';
+import type { HardMedicalQuery } from './hard-query-types';
 
 const DATASET_PATH = resolve(import.meta.dirname, '../curated-clinician-queries.json');
 const STYLES = new Set(['professional', 'colloquial', 'keywords', 'noisy', 'case']);

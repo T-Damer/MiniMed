@@ -1,6 +1,6 @@
 import type { SearchResultGroup } from '@localmed/contracts';
 
-import type { HardMedicalQuery } from './hard-query-dataset';
+import type { HardMedicalQuery } from './hard-query-types';
 
 export interface HardQueryEvaluation {
   readonly queryId: string;

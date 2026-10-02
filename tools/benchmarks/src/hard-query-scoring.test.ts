@@ -1,8 +1,7 @@
 import type { SearchResultGroup } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
-
-import type { HardMedicalQuery } from './hard-query-dataset';
 import { aggregateHardQueryEvaluations, evaluateHardQuery } from './hard-query-scoring';
+import type { HardMedicalQuery } from './hard-query-types';
 
 const FIXTURE: HardMedicalQuery = {
   query_id: 'MED-TEST-1',
