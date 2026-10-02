@@ -46,6 +46,31 @@ Owner decision: the 15-card «pilot» corpus gives way to the full databases
   `private-pilot`/`medications-pilot` data paths (renaming breaks installed modules or running
   pipelines); full list in the research note.
 
+## App fixes after the КР refresh — 2026-10-02 (STATE FIX1)
+
+- **Long titles install.** The download queue rejected any title over 180 characters, so 8 recommendations (759_1,
+  759_2, 129_3, 766_1, 817_1, 888_1, 32_2, 795_1) could not be installed. The title is a display label only: it is
+  now clipped to 180 characters with «…» (`downloadDisplayTitle`), while id, kind, resume and empty/control-character
+  titles are validated exactly as before. Tested with the real titles from `catalog.preview.json`.
+- **«DB has been closed» right after an install.** Installing a module builds a new core and closes the old one, but
+  the state (`ready`) still pointed at the old core until its close had finished, and readers keep the core they were
+  given. The session now wraps every core in `RetirableMedicalCore`: the old core forwards new calls to its successor,
+  closes only after its running calls have settled (20 s cap, logged) and `ready`/`searchCore` are switched before the
+  close starts (`swapMedicalCore` → `onSwapped(next)`). OPFS pools keep their single worker owner. The end-to-end run
+  installs 129_3 (303-character title) and opens it the moment it is installed: no error; the open itself waits ~10 s
+  for the new core (not a failure; a faster reconnect is a separate improvement).
+- **Replaced КР editions.** `catalog.clinical-editions.json` is the source (`features/modules/clinical-editions.ts`).
+  Lists, category counters, search and «Скачать раздел» hide a replaced edition unless it is installed (the catalog
+  still contains it); an installed one carries the badge «прежняя редакция» and a link «Текущая редакция от …».
+- **Edition notice in the reader.** One line under the title: «Это новая редакция от {дата}. Открыть старую
+  редакцию от {дата}» / «Это старая редакция от {дата}. Открыть новую редакцию от {дата}». Date = registry
+  publication date (`publishedAt`), written as «14 августа 2026». A current edition links to the immediately previous
+  one, a replaced one to the newest current one; if the other edition's module is not installed the same tap
+  downloads it through the queue (progress inline) and opens it. Only 11 codes have two shipped editions; for the
+  rest a current edition says «Предыдущая редакция от … в приложении не поставляется» instead of a link.
+- **Landing counts** come from the catalog manifest at build time (`apps/landing/src/data/catalog-facts.ts`): current
+  recommendation modules (replaced editions excluded, 763) and sections (21), with correct Russian plural forms.
+
 ## Clinical recommendations refresh — 2026-10-02 (STATE KR2)
 
 Registry snapshot 2026-10-02 (`apicr.minzdrav.gov.ru`, 1 855 records: 763 current, 496 replaced, 596 archived

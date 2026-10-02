@@ -17,6 +17,7 @@ export default defineConfig({
       'packages/**/tests/**/*.test.ts',
       'packages/**/src/**/*.test.ts',
       'apps/app/src/**/*.test.ts',
+      'apps/landing/src/**/*.test.ts',
       'tools/benchmarks/src/**/*.test.ts',
     ],
     exclude: ['**/node_modules/**'],

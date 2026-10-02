@@ -171,7 +171,9 @@ button:disabled {
     .diary-chips__chip,
     .tour-search__chip,
     .tour-tools__option,
-    .feature-tour__dot
+    .feature-tour__dot,
+    .clinical-edition-notice__link,
+    .recommendation-row__edition-link
   ):hover {
     transform: translateY(-1px);
     box-shadow: var(--theme-control-hover-shadow);

@@ -1,5 +1,7 @@
 import type { CoreStatus, MedicalCore } from '@localmed/contracts';
 
+import { RetirableMedicalCore } from '@/composition/retirable-medical-core';
+
 export interface InitializedMedicalCore {
   readonly core: MedicalCore;
   readonly status: CoreStatus;
@@ -34,13 +36,19 @@ export async function replaceMedicalCore(
   return next;
 }
 
+/**
+ * Replaces the active core without a window in which callers can reach a closed one: the previous
+ * core forwards new calls to its successor and closes only after its running calls have settled,
+ * and `onSwapped` publishes the successor (state, search core) before that close starts.
+ */
 export async function swapMedicalCore(
   current: InitializedMedicalCore,
   factory: () => Promise<MedicalCore>,
-  onSwapped: (core: MedicalCore) => void,
+  onSwapped: (next: InitializedMedicalCore) => void,
 ): Promise<InitializedMedicalCore> {
   const next = await initializeMedicalCore(factory);
-  onSwapped(next.core);
+  if (current.core instanceof RetirableMedicalCore) current.core.handOverTo(next.core);
+  onSwapped(next);
   await closeQuietly(current.core);
   return next;
 }

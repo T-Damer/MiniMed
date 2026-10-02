@@ -408,6 +408,34 @@
 }
 
 .module-transition-note strong,
+.recommendation-row__edition {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+
+.recommendation-row__edition-badge {
+  padding: 0.0625rem 0.5rem;
+  border: 1px solid var(--theme-border, var(--paper-line));
+  border-radius: 999px;
+  color: var(--theme-text-muted, var(--ink-muted));
+  font-size: var(--type-micro);
+  background: var(--theme-surface-muted, var(--paper-deep));
+}
+
+.recommendation-row__edition-link {
+  padding: 0;
+  border: 0;
+  color: var(--theme-link, var(--theme-accent, currentColor));
+  font: inherit;
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  background: none;
+  cursor: pointer;
+}
+
 .module-download-plan h2 {
   font-family: var(--font-serif);
   font-size: 1.375rem;
@@ -1064,7 +1092,7 @@
 .recommendation-controls input,
 .recommendation-controls select,
 .recommendation-controls button,
-.recommendation-row button:not(.recommendation-delete-button) {
+.recommendation-row button:not(.recommendation-delete-button, .recommendation-row__edition-link) {
   min-height: 2.375rem;
   padding: 0.5rem 0.75rem;
   border: 1px solid rgb(68 57 35 / 23%);
@@ -1074,7 +1102,7 @@
 }
 
 .recommendation-controls button,
-.recommendation-row button:not(.recommendation-delete-button) {
+.recommendation-row button:not(.recommendation-delete-button, .recommendation-row__edition-link) {
   flex: 0 0 auto;
   color: #355b69;
   cursor: pointer;

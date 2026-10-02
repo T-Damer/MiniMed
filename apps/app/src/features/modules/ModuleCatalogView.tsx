@@ -38,6 +38,11 @@ import { DocumentLibrary } from '@/features/library/DocumentLibrary';
 import { openUserLibraryCatalog } from '@/features/library/user-library-routing';
 import { ContentModuleCard } from '@/features/modules/ContentModuleCard';
 import { refreshContentModuleCatalog } from '@/features/modules/catalog-service';
+import {
+  listableModules,
+  type SupersededEditionNote,
+  supersededEditionNote,
+} from '@/features/modules/clinical-editions';
 import { LawsDocumentsView } from '@/features/modules/LawsDocumentsView';
 import {
   isCompanionMedicationsMounted,
@@ -134,6 +139,11 @@ function availableCount(catalog: ContentModuleCatalog): number {
   return catalog.modules.filter(
     (module) => isModuleReleased(module) && !module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG),
   ).length;
+}
+
+/** A replaced edition is listed only while installed; it carries the badge and a link to the current one. */
+function replacedEditionNote(moduleId: string): SupersededEditionNote | null {
+  return supersededEditionNote(moduleId);
 }
 
 function openModuleDocument(module: ContentModuleCatalogEntry): void {
@@ -320,9 +330,6 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
     window.removeEventListener(CONTENT_CHANGED_EVENT, refreshOverviewDocumentCounts);
   });
 
-  const recommendationModules = createMemo(() =>
-    catalog().modules.filter((module) => module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG)),
-  );
   const recommendationSectionModules = createMemo(() =>
     catalog().modules.filter(
       (module) =>
@@ -372,6 +379,13 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
   );
   const installedModuleIds = createMemo(
     () => new Set(installedWithBundled().map((module) => module.moduleId)),
+  );
+  // A replaced edition stands beside its successor under the same title: list it only while installed.
+  const recommendationModules = createMemo(() =>
+    listableModules(
+      catalog().modules.filter((module) => module.tags.includes(INDIVIDUAL_RECOMMENDATION_TAG)),
+      installedModuleIds(),
+    ),
   );
   const medicationCatalogModules = createMemo(() =>
     catalog().modules.filter((module) => module.kind === 'medication'),
@@ -1686,6 +1700,25 @@ export function ModuleCatalogView(props: ModuleCatalogViewProps): JSX.Element {
                         <strong class="recommendation-row__title recommendation-row-compact__title">
                           {module.title}
                         </strong>
+                        <Show when={replacedEditionNote(module.id)}>
+                          {(note) => (
+                            <span class="recommendation-row__edition">
+                              <span class="recommendation-row__edition-badge">{note().badge}</span>
+                              <button
+                                type="button"
+                                class="recommendation-row__edition-link"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  openDocumentOverlay(note().target.documentId, null, {
+                                    preferSummary: true,
+                                  });
+                                }}
+                              >
+                                {note().linkLabel}
+                              </button>
+                            </span>
+                          )}
+                        </Show>
                         <span class="recommendation-row__meta">
                           {[
                             module.tags.find((tag) => /^\d+_\d+$/u.test(tag)),

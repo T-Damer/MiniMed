@@ -33,6 +33,10 @@ import {
   parseTradeNameSupplement,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
+import {
+  type ClinicalEditionLink,
+  clinicalEditionNotice,
+} from '@/features/modules/clinical-editions';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import {
@@ -146,6 +150,13 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const [modulePointerInstallError, setModulePointerInstallError] = createSignal<string | null>(
     null,
   );
+  const [editionPending, setEditionPending] = createSignal(false);
+  const [editionProgress, setEditionProgress] = createSignal<number | null>(null);
+  const [editionError, setEditionError] = createSignal<string | null>(null);
+  const editionNotice = () => {
+    const shown = document();
+    return shown ? clinicalEditionNotice(shown.id) : null;
+  };
   let loadingDocumentId: string | null = null;
   let loadedOfficialRequestId: string | null = null;
   let officialLoadGeneration = 0;
@@ -238,6 +249,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     setModulePointerInstallError(null);
     setModulePointerPending(false);
     setModulePointerProgress(null);
+    setEditionError(null);
     setSupplementalPanels([]);
     setClinicalMedicationLinks([]);
     setDocument(undefined);
@@ -570,6 +582,50 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     }
   };
 
+  /**
+   * The other edition of a clinical recommendation opens in the reader; when its module is not
+   * installed the same tap downloads it through the shared queue and opens it once connected.
+   */
+  const openClinicalEdition = async (target: ClinicalEditionLink): Promise<void> => {
+    if (editionPending()) return;
+    const openedFrom = route()?.documentId;
+    const stillHere = () => route()?.documentId === openedFrom;
+    setEditionPending(true);
+    setEditionProgress(null);
+    setEditionError(null);
+    try {
+      const runtime =
+        peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
+      const resolution = resolveCatalogDocumentPointer(
+        target.documentId,
+        runtime.getCatalog(),
+        runtime.listInstalled(),
+      );
+      if (!resolution) throw new Error('Эту редакцию не удалось найти в каталоге загрузок.');
+      if (resolution.state === 'unavailable') throw new Error(resolution.message);
+      if (resolution.state === 'available') {
+        await installModulePointer(runtime, resolution, (progress) => {
+          if (stillHere()) setEditionProgress(progress);
+        });
+        if (!props.reconnectContent) {
+          throw new Error('Редакция загружена, но локальный поиск не удалось обновить.');
+        }
+        await props.reconnectContent();
+      }
+      if (!stillHere()) return;
+      openDocumentOverlay(target.documentId, null, { preferSummary: true });
+    } catch (cause) {
+      if (stillHere()) {
+        setEditionError(
+          cause instanceof Error ? cause.message : 'Не удалось открыть другую редакцию.',
+        );
+      }
+    } finally {
+      setEditionPending(false);
+      setEditionProgress(null);
+    }
+  };
+
   const requestFullText = async (
     summary: MedicalDocument,
     onProgress?: (fraction: number | null) => void,
@@ -775,6 +831,11 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
                 modulePointerInstallError={modulePointerInstallError()}
                 onNavigate={navigateTrail}
                 onInstallModulePointer={requestModulePointerInstall}
+                {...(editionNotice() ? { editionNotice: editionNotice() } : {})}
+                editionPending={editionPending()}
+                editionProgress={editionProgress()}
+                editionError={editionError()}
+                onOpenEdition={(target) => void openClinicalEdition(target)}
                 onRequestFullText={requestFullText}
               />
             </Show>

@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import catalog from '../modules/catalog.preview.json';
 import {
   aggregateDownloadFraction,
   type DownloadKind,
   DownloadQueue,
+  downloadDisplayTitle,
   downloadTaskFraction,
 } from './download-queue';
 
@@ -307,5 +309,53 @@ describe('shared download ownership', () => {
     cleanup.resolve();
     await cancellation;
     expect(queue.get('module')?.state).toBe('cancelled');
+  });
+
+  describe('long display titles', () => {
+    const longClinicalTitles = catalog.modules.filter((module) => module.title.length > 180);
+
+    it('covers the eight real clinical recommendations with titles over 180 characters', () => {
+      expect(longClinicalTitles.map((module) => module.id.split('.').pop()).sort()).toEqual(
+        expect.arrayContaining([
+          '129_3',
+          '32_2',
+          '759_1',
+          '759_2',
+          '766_1',
+          '795_1',
+          '817_1',
+          '888_1',
+        ]),
+      );
+    });
+
+    it('queues and completes every real long-title module, clipping only the label', async () => {
+      const queue = new DownloadQueue();
+      for (const module of longClinicalTitles) {
+        await queue.run({ id: module.id, kind: 'module', title: module.title }, async () => 'ok');
+        const task = queue.get(module.id);
+        expect(task?.state).toBe('completed');
+        expect(Array.from(task?.title ?? '').length).toBeLessThanOrEqual(180);
+        expect(task?.title.endsWith('…')).toBe(true);
+        expect(module.title.startsWith((task?.title ?? '').slice(0, -1))).toBe(true);
+      }
+    });
+
+    it('keeps short titles intact and still rejects bad ids, kinds and titles', () => {
+      expect(downloadDisplayTitle('Пакет')).toBe('Пакет');
+      expect(downloadDisplayTitle('')).toBeNull();
+      expect(downloadDisplayTitle('a\u0007b')).toBeNull();
+      const queue = new DownloadQueue();
+      const operation = async (): Promise<void> => undefined;
+      const invalid = [
+        { id: '', kind: 'module' as DownloadKind, title: 'x' },
+        { id: 'x'.repeat(513), kind: 'module' as DownloadKind, title: 'x' },
+        { id: 'a', kind: 'module' as DownloadKind, title: '' },
+        { id: 'a', kind: 'bogus' as DownloadKind, title: 'x' },
+      ];
+      for (const item of invalid) {
+        expect(() => queue.run(item, operation)).toThrow('Invalid download descriptor.');
+      }
+    });
   });
 });

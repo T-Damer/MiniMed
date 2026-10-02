@@ -6,6 +6,7 @@ import {
   replaceMedicalCore,
   swapMedicalCore,
 } from '@/composition/medical-core-lifecycle';
+import { RetirableMedicalCore } from '@/composition/retirable-medical-core';
 
 const STATUS = {
   state: 'ready',
@@ -103,8 +104,8 @@ describe('medical core lifecycle', () => {
     const ready = await swapMedicalCore(
       { core: currentCore, status: STATUS },
       async () => candidate,
-      (core) => {
-        swapped.push(core);
+      (next) => {
+        swapped.push(next.core);
         events.push('swap');
       },
     );
@@ -112,5 +113,93 @@ describe('medical core lifecycle', () => {
     expect(ready.core).toBe(candidate);
     expect(swapped).toEqual([candidate]);
     expect(events).toEqual(['initialize:candidate', 'swap', 'close:current']);
+  });
+
+  describe('reading while a module install swaps the core', () => {
+    /** Mirrors sqlite-wasm: any use after close() fails with «DB has been closed». */
+    function storeBackedCore(label: string, readDelayMs = 0): MedicalCore {
+      let closed = false;
+      const read = async (documentId: string) => {
+        if (closed) throw new Error('DB has been closed');
+        if (readDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, readDelayMs));
+        if (closed) throw new Error('DB has been closed');
+        return { ok: true, value: { id: documentId, label } };
+      };
+      return {
+        initialize: async () => ({ ok: true, value: STATUS }),
+        getDocument: read,
+        listDocuments: async () => {
+          if (closed) throw new Error('DB has been closed');
+          return { ok: true, value: [] };
+        },
+        close: async () => {
+          closed = true;
+        },
+      } as unknown as MedicalCore;
+    }
+
+    it('lets a reader that still holds the previous core open a document during and after the swap', async () => {
+      const previous = new RetirableMedicalCore(storeBackedCore('previous', 30));
+      const successor = new RetirableMedicalCore(storeBackedCore('successor'));
+      const inFlight = previous.getDocument('kr.rf.1_1');
+
+      let readDuringClose: Promise<unknown> | undefined;
+      const swapping = swapMedicalCore(
+        { core: previous, status: STATUS },
+        async () => successor,
+        () => {
+          // The state already points at the successor, but a reader may still call the old one.
+          readDuringClose = previous.getDocument('kr.rf.2_1');
+        },
+      );
+      await swapping;
+
+      await expect(inFlight).resolves.toMatchObject({ value: { label: 'previous' } });
+      await expect(readDuringClose).resolves.toMatchObject({ value: { label: 'successor' } });
+      await expect(previous.getDocument('kr.rf.3_1')).resolves.toMatchObject({
+        value: { label: 'successor' },
+      });
+      await expect(previous.listDocuments()).resolves.toEqual({ ok: true, value: [] });
+    });
+
+    it('closes the replaced core only after its running requests finished', async () => {
+      const events: string[] = [];
+      const inner = storeBackedCore('previous', 40);
+      const originalClose = inner.close.bind(inner);
+      inner.close = async () => {
+        events.push('inner-closed');
+        await originalClose();
+      };
+      const previous = new RetirableMedicalCore(inner);
+      const running = previous.getDocument('kr.rf.1_1').then((result) => {
+        events.push('read-finished');
+        return result;
+      });
+      previous.handOverTo(storeBackedCore('successor'));
+      await previous.close();
+      await running;
+      expect(events).toEqual(['read-finished', 'inner-closed']);
+    });
+
+    it('does not wait forever for a request that never settles', async () => {
+      const warning = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const stuck = {
+        initialize: async () => ({ ok: true, value: STATUS }),
+        getDocument: () => new Promise(() => undefined),
+        close: vi.fn(async () => undefined),
+      } as unknown as MedicalCore;
+      const previous = new RetirableMedicalCore(stuck, 20);
+      void previous.getDocument('kr.rf.1_1');
+      await previous.close();
+      expect(stuck.close).toHaveBeenCalledOnce();
+      expect(warning).toHaveBeenCalledOnce();
+      warning.mockRestore();
+    });
+
+    it('closes the wrapped core once and reports a closed core honestly without a successor', async () => {
+      const previous = new RetirableMedicalCore(storeBackedCore('only'));
+      await Promise.all([previous.close(), previous.close()]);
+      await expect(previous.getDocument('kr.rf.1_1')).rejects.toThrow('DB has been closed');
+    });
   });
 });

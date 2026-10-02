@@ -1,12 +1,19 @@
 ---
+import editions from '../../../app/src/features/modules/catalog.clinical-editions.json';
+import catalog from '../../../app/src/features/modules/catalog.preview.json';
 // biome-ignore lint/correctness/noUnusedImports: Astro template data.
 import calculator from '../data/calculator.json';
+// biome-ignore lint/correctness/noUnusedImports: Astro template data.
+import { catalogFacts, recommendationModulesLabel, sectionsLabel } from '../data/catalog-facts';
 // biome-ignore lint/correctness/noUnusedImports: Astro template data.
 import questionnaire from '../data/questionnaire.json';
 import searchCards from '../data/searchCards.json';
 
 // biome-ignore lint/correctness/noUnusedVariables: Astro template data.
 const cards = searchCards.cards;
+// Counts come from the catalog manifest at build time; never type them into the markup.
+// biome-ignore lint/correctness/noUnusedVariables: Astro template data.
+const facts = catalogFacts(catalog, editions);
 ---
 
 <section class="contents" id="capabilities" aria-label="Попробуйте возможности MiniMed">
@@ -31,7 +38,7 @@ const cards = searchCards.cards;
       </section>
       <section class="showcase-panel" id="feature-library" data-feature-panel="library" aria-label="Библиотека" hidden>
         <h3 class="showcase-panel__title">Документы и свои книги</h3><p class="showcase-panel__copy">Выбирайте нужные модули или добавляйте книги EPUB и FB2.</p>
-        <ul class="showcase-panel__items"><li class="showcase-panel__item">744 модуля клинических рекомендаций</li><li class="showcase-panel__item">21 медицинский раздел</li><li class="showcase-panel__item">Оглавление, поиск и выделения</li><li class="showcase-panel__item">Личные заметки и напоминания</li></ul>
+        <ul class="showcase-panel__items"><li class="showcase-panel__item">{recommendationModulesLabel(facts.currentRecommendationModules)}</li><li class="showcase-panel__item">{sectionsLabel(facts.sections)}</li><li class="showcase-panel__item">Оглавление, поиск и выделения</li><li class="showcase-panel__item">Личные заметки и напоминания</li></ul>
       </section>
       <section class="showcase-panel" id="feature-tools" data-feature-panel="tools" aria-label="Пример калькулятора" hidden>
         <p class="demo__caption">Клинический калькулятор</p><h3 class="showcase-panel__title">{calculator.title}</h3>

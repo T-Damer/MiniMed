@@ -669,3 +669,63 @@
 .document-medication-product__reading-switch {
   background: var(--theme-surface);
 }
+
+.clinical-edition-notice {
+  margin: 0.35rem 0 0;
+  color: var(--theme-text-muted, var(--ink-muted));
+  font-size: 0.9rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.clinical-edition-notice--replaced {
+  color: var(--theme-text, var(--ink));
+}
+
+.clinical-edition-notice__lead {
+  font-weight: 600;
+}
+
+.clinical-edition-notice__link {
+  padding: 0;
+  border: 0;
+  color: var(--theme-link, var(--theme-accent, currentColor));
+  font: inherit;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  background: none;
+  cursor: pointer;
+}
+
+.clinical-edition-notice__link:disabled {
+  cursor: progress;
+  text-decoration: none;
+}
+
+.clinical-edition-notice__unavailable {
+  color: var(--theme-text-muted, var(--ink-muted));
+}
+
+.clinical-edition-notice__progress {
+  display: block;
+  height: 0.2rem;
+  margin-top: 0.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--theme-border, var(--paper-line));
+}
+
+.clinical-edition-notice__progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--theme-accent, currentColor);
+  transition: width 0.2s ease;
+}
+
+.clinical-edition-notice__error {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--theme-danger, var(--theme-text, var(--ink)));
+}

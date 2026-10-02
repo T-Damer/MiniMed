@@ -29,6 +29,7 @@ import {
   ReaderActionsMenu,
   ReaderTitleRow,
 } from '@/features/collections/ReaderItemActions';
+import { ClinicalEditionNoticeLine } from '@/features/library/ClinicalEditionNotice';
 import { DocumentFindBar, type DocumentFindResultState } from '@/features/library/DocumentFindBar';
 import { DocumentModulePointer } from '@/features/library/DocumentModulePointer';
 import {
@@ -85,6 +86,10 @@ import {
   parseEsklpMedicationProducts,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
+import type {
+  ClinicalEditionLink,
+  ClinicalEditionNotice,
+} from '@/features/modules/clinical-editions';
 import { formatFullTextDownloadLabel } from '@/features/modules/module-display';
 import type { ModulePointerResolution } from '@/features/modules/module-pointer-install';
 import { searchResultDocumentKind } from '@/features/search/ScopedMedicalCore';
@@ -119,6 +124,11 @@ interface OfficialDocumentReaderProps {
   readonly modulePointerInstallError?: string | null;
   readonly onNavigate: (href: string) => void;
   readonly onInstallModulePointer?: () => Promise<void>;
+  readonly editionNotice?: ClinicalEditionNotice | null;
+  readonly editionPending?: boolean;
+  readonly editionProgress?: number | null;
+  readonly editionError?: string | null;
+  readonly onOpenEdition?: (target: ClinicalEditionLink) => void;
   readonly onRequestFullText: (
     document: MedicalDocument,
     onProgress?: (fraction: number | null) => void,
@@ -966,6 +976,17 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       <header class="document-overlay-paper__header">
                         <Show when={displayDocumentSubtitle(documentValue())}>
                           {(subtitle) => <p class="document-overlay-lead">{subtitle()}</p>}
+                        </Show>
+                        <Show when={props.editionNotice}>
+                          {(notice) => (
+                            <ClinicalEditionNoticeLine
+                              notice={notice()}
+                              pending={props.editionPending ?? false}
+                              progress={props.editionProgress ?? null}
+                              error={props.editionError ?? null}
+                              onOpen={(target) => props.onOpenEdition?.(target)}
+                            />
+                          )}
                         </Show>
                         <Show when={fullTextError()}>
                           {(message) => (

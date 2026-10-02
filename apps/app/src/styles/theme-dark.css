@@ -423,7 +423,9 @@
   .module-page .recommendation-controls input,
   .module-page .recommendation-controls select,
   .module-page .recommendation-controls button,
-  .module-page .recommendation-row button:not(.recommendation-delete-button),
+  .module-page
+    .recommendation-row
+    button:not(.recommendation-delete-button, .recommendation-row__edition-link),
   .module-card-actions__remove,
   .module-card__version-button {
     border-color: var(--theme-border);
@@ -442,7 +444,9 @@
   .recommendation-section-actions__download,
   .recommendation-list-actions__download,
   .module-page .recommendation-controls button,
-  .module-page .recommendation-row button:not(.recommendation-delete-button) {
+  .module-page
+    .recommendation-row
+    button:not(.recommendation-delete-button, .recommendation-row__edition-link) {
     color: var(--theme-link);
   }
 

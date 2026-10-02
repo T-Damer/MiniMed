@@ -9,6 +9,7 @@ import {
   initializeMedicalCore,
   swapMedicalCore,
 } from '@/composition/medical-core-lifecycle';
+import { RetirableMedicalCore } from '@/composition/retirable-medical-core';
 import {
   cancelQueuedAndroidApkDownload,
   startQueuedAndroidApkDownload,
@@ -349,42 +350,46 @@ export function useAppSession() {
     );
   };
 
-  const createSessionCore = () =>
-    createBrowserCore({
-      requestDownload: (resuming) =>
-        new Promise<void>((resolve, reject) => {
-          if (ready()) {
-            reject(
-              new Error(
-                'Установленное ядро больше не доступно. Перезапустите приложение для повторной загрузки.',
-              ),
-            );
-            return;
-          }
-          setCoreDownloadRequired(true);
-          if (resuming || coreAutoDownloadAllowed(currentNetworkConnection())) {
-            setCoreDownloading(true);
-            resolve();
-          } else {
-            setCoreDownloadDeferred(true);
-            beginCoreDownload = resolve;
-          }
-        }),
-      onProgress: setCoreProgress,
-      onWaitingForOtherTab: setCoreWaitingForOtherTab,
-    });
+  const createSessionCore = async () =>
+    new RetirableMedicalCore(
+      await createBrowserCore({
+        requestDownload: (resuming) =>
+          new Promise<void>((resolve, reject) => {
+            if (ready()) {
+              reject(
+                new Error(
+                  'Установленное ядро больше не доступно. Перезапустите приложение для повторной загрузки.',
+                ),
+              );
+              return;
+            }
+            setCoreDownloadRequired(true);
+            if (resuming || coreAutoDownloadAllowed(currentNetworkConnection())) {
+              setCoreDownloading(true);
+              resolve();
+            } else {
+              setCoreDownloadDeferred(true);
+              beginCoreDownload = resolve;
+            }
+          }),
+        onProgress: setCoreProgress,
+        onWaitingForOtherTab: setCoreWaitingForOtherTab,
+      }),
+    );
 
   const reconnectInstalledModules = async (): Promise<void> => {
     const current = ready();
     if (!current) throw new Error('Локальный поиск ещё не готов.');
-    const next = await swapMedicalCore(current, createSessionCore, (core) => {
+    await swapMedicalCore(current, createSessionCore, (candidate) => {
+      // Publish the new core before the previous one closes: readers must never be handed a core
+      // that is shutting down («DB has been closed» right after an install).
       const previousSearchCore = searchCore();
-      const nextSearchCore = new WorkerSearchMedicalCore(core);
+      const nextSearchCore = new WorkerSearchMedicalCore(candidate.core);
       setSearchCore(nextSearchCore);
+      coreToClose = candidate.core;
+      setReady(candidate);
       if (previousSearchCore) void previousSearchCore.close();
     });
-    coreToClose = next.core;
-    setReady(next);
     setDownloadedModuleCount(
       moduleRuntimeService?.peekContentModuleRuntime()?.listInstalled().length ?? 0,
     );

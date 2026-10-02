@@ -119,6 +119,25 @@ const safeText = (value: unknown, max: number): value is string =>
   value.length <= max &&
   Array.from(value).every((character) => character.charCodeAt(0) >= 32);
 
+const TITLE_LABEL_MAX = 180;
+const hasNoControlCharacters = (value: string): boolean =>
+  Array.from(value).every((character) => character.charCodeAt(0) >= 32);
+/**
+ * The title is a display label only: identity is `id`/`kind`, so a long document title must not
+ * make a download invalid. Reject only empty or control-character titles; clip the label.
+ */
+export function downloadDisplayTitle(value: unknown): string | null {
+  if (typeof value !== 'string' || value.length === 0 || !hasNoControlCharacters(value)) {
+    return null;
+  }
+  const characters = Array.from(value);
+  if (characters.length <= TITLE_LABEL_MAX) return value;
+  return `${characters
+    .slice(0, TITLE_LABEL_MAX - 1)
+    .join('')
+    .trimEnd()}…`;
+}
+
 export function isDownloadActive(task: Pick<DownloadTask, 'state'>): boolean {
   return !TERMINAL.has(task.state);
 }
@@ -189,16 +208,14 @@ export class DownloadQueue {
   }
 
   private create(descriptor: DownloadDescriptor, controls: Controls): Entry {
-    if (
-      !safeText(descriptor.id, 512) ||
-      !safeText(descriptor.title, 180) ||
-      !KINDS.has(descriptor.kind)
-    ) {
+    const title = downloadDisplayTitle(descriptor.title);
+    if (!safeText(descriptor.id, 512) || title === null || !KINDS.has(descriptor.kind)) {
       throw new Error('Invalid download descriptor.');
     }
     const entry: Entry = {
       view: {
         ...descriptor,
+        title,
         state: 'queued',
         downloadedBytes: 0,
         totalBytes: descriptor.totalBytes ?? null,
@@ -310,7 +327,7 @@ export class DownloadQueue {
       entry,
       {
         ...patch,
-        title: descriptor.title,
+        title: downloadDisplayTitle(descriptor.title) ?? entry.view.title,
         state: entry.cancellation ? 'cancelling' : state,
         canCancel:
           !entry.cancellation &&
@@ -571,7 +588,7 @@ export class DownloadQueue {
           !item ||
           typeof item !== 'object' ||
           !safeText(item.id, 512) ||
-          !safeText(item.title, 180) ||
+          downloadDisplayTitle(item.title) === null ||
           !KINDS.has(item.kind) ||
           !PHASES.has(item.state)
         )
