@@ -341,6 +341,22 @@ delays, backoff on 429/503, no CAPTCHA handling, resumable state ledger, never o
   are untouched; the confidence is recorded only for PDFs extracted since this change (older OCR
   documents have the flag and the unknown-word proxy only).
 
+## Manufacturer-site instructions (M1) — 2026-10-02
+
+Research and pilot (`docs/research/manufacturer-instructions-2026-10.md`): official instruction texts for
+registrations the ГРЛС collector has not delivered, taken from the holders' own sites. Separate source class
+`manufacturer-site` under `data/raw/manufacturer-instructions/` (ledger entry in `docs/data-ledger.json`); ГРЛС raw files and
+the G1 loop are not touched. Collector `tools/ingest/.../manufacturer_instructions.py`
+(`medbase-manufacturer-instructions missing-report | crawl | rebuild-manifest`): robots (RFC 9309), one request at a time
+per host, TLS verified, truthful `User-Agent`, stops a host on 403/429/CAPTCHA, resumable ledger, manifest with URL, fetch
+date, sha256, version/date as printed, OCR flag and match evidence.
+
+- 8 325 missing registrations (3 102 ЖНВЛП, 77 % EAEU numbers) over 1 323 holders: 78 holders cover 50 %, 301 cover 80 %.
+- Pilot on 7 holder sites: 245 of 681 missing registrations found (36 %; 94 ЖНВЛП), 61 with the registration number
+  printed in the document or on its page, 179 `label-unique` (name + form + holder, no number printed: EAEU листки omit it),
+  5 ambiguous. Not yet used by any pack or the app; whether to accept `label-unique` is an owner decision.
+- Generic web search for 20 missing ЖНВЛП: 0 verified official documents (reference books and aggregators only).
+
 ## Release 0.6.47 — 2026-10-02
 
 - Ships core 0.6.47 (no pilot; 30 new КР editions, replaced editions point to successors), the

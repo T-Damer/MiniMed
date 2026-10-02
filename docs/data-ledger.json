@@ -544,6 +544,15 @@
       "note": "Decoded databases of the 30 editions published after 2026-07-27.",
       "bytes": 75894784,
       "modified": "2026-10-02"
+    },
+    {
+      "path": "data/raw/manufacturer-instructions",
+      "class": "SOURCE",
+      "producer": "medbase-manufacturer-instructions crawl (M1, 2026-10-02; docs/research/manufacturer-instructions-2026-10.md): official instruction texts from manufacturers' sites, source class manufacturer-site",
+      "consumers": [],
+      "note": "Per-site files/ (PDF/DOCX), pages/ (HTML evidence), text/ (extraction cache, rebuildable), state.jsonl (fetch ledger) and manifest.jsonl (matches with provenance, derived by rebuild-manifest). Never mixed with data/raw/grls-instructions-active; GRLS files untouched.",
+      "bytes": 423354000,
+      "modified": "2026-10-02"
     }
   ]
 }
