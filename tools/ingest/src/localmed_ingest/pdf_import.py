@@ -88,6 +88,17 @@ ORGANIZATION_PREFIX_PATTERN = re.compile(
 )
 
 
+_LOW_OCR_CONFIDENCE = 0.5
+
+
+@dataclass(frozen=True)
+class OcrSignal:
+    engine: Literal["macos-vision", "pymupdf-ocr"]
+    pages: list[int]
+    mean_confidence: float | None
+    low_confidence_ratio: float | None
+
+
 @dataclass(frozen=True)
 class RawBlock:
     page: int
@@ -101,6 +112,7 @@ class RawBlock:
     bold: bool
     line_count: int
     columnar_lines: int
+    confidence: float | None = None
 
 
 def sha256_file(path: Path) -> str:
@@ -474,6 +486,7 @@ def _build_diagnostics(
     text_extraction_mode: Literal["pdf_text_layer", "ocr"] = "pdf_text_layer",
     included_text: str = "",
     ocr_failure_reason: str | None = None,
+    ocr_signal: OcrSignal | None = None,
 ) -> ExtractionDiagnostics:
     blocks = [block for page in pages for block in page.blocks]
     included = [block for block in blocks if not block.removed]
@@ -533,6 +546,10 @@ def _build_diagnostics(
         table_candidates=table_count,
         body_font_size=round(body_font_size, 3) if body_font_size is not None else None,
         text_extraction_mode=text_extraction_mode,
+        ocr_engine=ocr_signal.engine if ocr_signal else None,
+        ocr_pages=ocr_signal.pages if ocr_signal else [],
+        ocr_mean_confidence=ocr_signal.mean_confidence if ocr_signal else None,
+        ocr_low_confidence_ratio=ocr_signal.low_confidence_ratio if ocr_signal else None,
         quality_score=round(score, 4),
         requires_review=bool(reasons),
         review_reasons=reasons,
@@ -560,6 +577,31 @@ def _maybe_extract_with_ocr(
     if cyrillic_letter_ratio(ocr_text) > baseline_ratio + 0.05:
         return ocr_blocks, "ocr"
     return raw_blocks, "pdf_text_layer"
+
+
+def _vision_confidence(value: object) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return max(0.0, min(1.0, float(value)))
+
+
+def ocr_signal_from_blocks(
+    blocks: list[RawBlock],
+    engine: Literal["macos-vision", "pymupdf-ocr"],
+    ocr_pages: set[int],
+) -> OcrSignal:
+    """Character-weighted recognition confidence of the OCR-derived blocks (Vision only)."""
+    scored = [
+        (block.confidence, len(block.text))
+        for block in blocks
+        if block.page in ocr_pages and block.confidence is not None and block.text.strip()
+    ]
+    total = sum(weight for _, weight in scored)
+    if not total:
+        return OcrSignal(engine, sorted(ocr_pages), None, None)
+    mean = sum(confidence * weight for confidence, weight in scored) / total
+    low = sum(weight for confidence, weight in scored if confidence < _LOW_OCR_CONFIDENCE) / total
+    return OcrSignal(engine, sorted(ocr_pages), round(mean, 4), round(low, 4))
 
 
 def _extract_raw_blocks_macos_vision(source: Path) -> list[RawBlock]:
@@ -644,6 +686,7 @@ def _extract_raw_blocks_macos_vision(source: Path) -> list[RawBlock]:
                     bold=False,
                     line_count=1,
                     columnar_lines=0,
+                    confidence=_vision_confidence(raw_line.get("confidence")),
                 )
             )
     return blocks
@@ -654,6 +697,7 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
     document = pymupdf.open(source)
     text_extraction_mode: Literal["pdf_text_layer", "ocr"] = "pdf_text_layer"
     ocr_failure_reason: str | None = None
+    ocr_signal: OcrSignal | None = None
     try:
         raw_blocks: list[RawBlock] = []
         page_dimensions: dict[int, tuple[float, float]] = {}
@@ -665,6 +709,10 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
             raw_blocks, text_extraction_mode = _maybe_extract_with_ocr(
                 document, raw_blocks, configured
             )
+            if text_extraction_mode == "ocr":
+                ocr_signal = ocr_signal_from_blocks(
+                    raw_blocks, "pymupdf-ocr", {block.page for block in raw_blocks}
+                )
         missing_pages = set(page_dimensions) - {block.page for block in raw_blocks}
         if configured.ocr_fallback and missing_pages:
             # Keep native text verbatim when only some PDF pages are scanned.
@@ -686,6 +734,9 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
             if recovered:
                 raw_blocks.extend(recovered)
                 text_extraction_mode = "ocr"
+                ocr_signal = ocr_signal_from_blocks(
+                    raw_blocks, "macos-vision", {block.page for block in recovered}
+                )
         if configured.ocr_fallback and is_likely_garbled_russian_pdf_text(
             _raw_blocks_text(raw_blocks)
         ):
@@ -709,6 +760,9 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
             if vision_blocks and not is_likely_garbled_russian_pdf_text(vision_text):
                 raw_blocks = vision_blocks
                 text_extraction_mode = "ocr"
+                ocr_signal = ocr_signal_from_blocks(
+                    vision_blocks, "macos-vision", {block.page for block in vision_blocks}
+                )
         body_font_size = _weighted_body_font(raw_blocks, configured)
         pages, removed_repeated = _classify_blocks(raw_blocks, body_font_size, configured)
         existing_pages = {page.page for page in pages}
@@ -743,6 +797,7 @@ def extract_pdf(source: Path, options: ExtractionOptions | None = None) -> Extra
         text_extraction_mode=text_extraction_mode,
         included_text=included_text,
         ocr_failure_reason=ocr_failure_reason,
+        ocr_signal=ocr_signal,
     )
     return ExtractedSource(
         source_file=source.name,

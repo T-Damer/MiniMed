@@ -130,6 +130,27 @@ zstd modules (single frame: they still decode in memory) and the `module-pointer
 «no download action when experiments are disabled» (times out waiting for the core on this loaded host;
 it does not touch module storage).
 
+## ГРЛС instruction collection (G1) — 2026-10-02
+
+Owner decision: ГРЛС grants no database access; for this personal single-user build the public
+instruction PDFs are still collected, politely (`tools/ingest/.../grls_collect.py`, command
+`medbase-regulated-catalog grls-collect`): truthful `User-Agent`, ≤2 requests in flight, randomized
+delays, backoff on 429/503, no CAPTCHA handling, resumable state ledger, never overwrites a raw file.
+
+- The first run (2 workers, ~1 request/2.5 s each) fetched 30 new PDFs and then **stopped at a
+  CAPTCHA page** (about 140 requests in 3.5 min); the run wrote `data/build/grls-collect/BLOCKED-by-site`
+  and refuses to restart until the owner decides. 6 319 transient failures and 675 registrations
+  added since 24.07.2026 remain uncollected. No other long run is active.
+- New registry export 02.10.2026 (39 481 records, +666) is stored next to the old one
+  (`data/raw/official-grls-registry/catalog-02.10.2026.json`); plan `grls-instructions-active-plan-02.10.2026.json`.
+- OCR flag kept: `ExtractionDiagnostics`/`metadata.extraction` now carry `textExtractionMode`,
+  `ocrEngine`, `ocrPages`, `ocrMeanConfidence` (Vision, character-weighted) and
+  `ocrLowConfidenceRatio` for PDFs; `data/build/grls-instruction-text-manifest.jsonl` joins every PDF
+  (checksum, URL, fetch date, OCR flag, `unknownWordRatio`, `textSha256`) and
+  `grls-instruction-text-coverage.json` holds before/after coverage. Released packs and the catalog
+  are untouched; the confidence is recorded only for PDFs extracted since this change (older OCR
+  documents have the flag and the unknown-word proxy only).
+
 ## Release 0.6.46 — 2026-10-02
 
 - Ships the smooth start-up, guided onboarding, drug screen, motion settings and the compressed

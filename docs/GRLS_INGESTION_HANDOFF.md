@@ -64,6 +64,50 @@ shipped. The current local GRLS catalog is ignored data and has edition `24.07.2
   launcher remain unavailable on this machine.
 - The existing text-layer pilot remains valid: 8 instructions + 8 registry cards, 156 chunks, 2.7 MB.
 
+## Polite collection of the missing instructions (G1, 2026-10-02)
+
+Owner decision: ГРЛС will not grant database access and its `robots.txt` disallows crawlers; for this
+personal single-user build the public instruction PDFs are collected anyway, slowly, and the run
+stops as soon as the site starts blocking.
+
+- Command: `medbase-regulated-catalog grls-collect --plan <plan> --output-root data/raw/grls-instructions-active
+  --state data/build/grls-instructions-active-state.jsonl --log-dir data/build/grls-collect [--workers 1|2]`.
+  Code: `grls_collect.py`. It sends the truthful `User-Agent` `MiniMed-GRLS-collector/1.0 (personal
+  single-user offline medical reference; sequential, rate-limited)`, keeps at most two requests in flight,
+  sleeps a random 1.0–2.5 s before every request and 2–5 s between registrations, backs off 60 s doubling
+  on HTTP 429/503 (honouring `Retry-After`) and stops after five consecutive refusals or network failures.
+  A CAPTCHA marker in any page stops the run at once, saves the page to `--log-dir`, and writes
+  `BLOCKED-by-site`; a later run refuses to start until the owner deletes that file. It never solves or
+  works around a CAPTCHA.
+- Resume: state is the existing append-only ledger (`grls-instructions-active-state.jsonl`); the merged view
+  takes the latest record per registration across catalog checksums and a success always wins. Order of work:
+  transient failures first (connection refused, TLS handshake and read time-outs, 429), then registrations never
+  attempted, then non-exhausted search misses. `ФС-` numbers are pharmaceutical substances (the form has a
+  separate «Фармацевтические субстанции» switch) and are skipped unless `--include-substances`.
+  `STOP` in the log directory ends a run after the current registrations; progress is in `progress.json`.
+- Raw files: `pdf/<sha256(registration)>.pdf` as before; an existing file is never replaced (a different
+  body is stored as `<name>.<sha12>.pdf`). Each success record keeps `pdfSha256`, `pdfBytes`, `instructionUrl`,
+  `recordedAt` (fetch time), `httpLastModified`, `httpEtag`.
+- New registrations: the registry export `02.10.2026` (39 481 records, +666 vs 24.07.2026) was fetched with
+  `grls-sync` into new files (`catalog-02.10.2026.json`, `grls-02.10.2026.zip`) and planned with
+  `grls-instruction-plan` (19 465 targets, 675 not in the old plan, mostly `ЛП-№(…)-(РГ-RU)`).
+- Text extraction keeps the existing PDF text layer with the macOS Vision OCR fallback and now records how the text
+  was obtained: `textExtractionMode`, `ocrEngine`, `ocrPages`, `ocrMeanConfidence`, `ocrLowConfidenceRatio` in
+  the diagnostics and in the prepared document's `metadata.extraction`. `grls-additions-registry` builds a registry
+  for downloaded PDFs no prepared workspace has yet; `grls-text-manifest` joins state, plans and workspaces by PDF
+  checksum into `data/build/grls-instruction-text-manifest.jsonl` (one row per PDF: source URL, fetch date, OCR flag,
+  Vision confidence when known, `unknownWordRatio` against a lexicon from native-text instructions, `textSha256`)
+  and `grls-instruction-text-coverage.json` (before/after).
+
+First run (2026-10-02 05:02–05:09 UTC): 30 new PDFs, then a CAPTCHA page after about 140 requests at roughly
+2 requests per 5 s with two workers; collection stopped and is not resumed (see `BLOCKED-by-site`). Coverage:
+12 659 of 28 731 active registrations had instruction text before (44.1 %); against the 02.10.2026 registry
+12 579 of 29 365 (42.8 %; the registry grew by 634 active registrations and some left it). Distinct texts 8 874 → 8 904,
+OCR share 25.8 % of documents with text (2 290 → 2 298). Failures by reason for the active registrations: transient
+6 319, search-miss 1 224, substance (`ФС-`) 2 291, deferred legacy/ambiguous numbers 2 420, forbidden 72, no PDF 73,
+not attempted 675. To resume, the owner decides; a cautious restart would use one worker and several seconds
+between requests, and must stop again on any CAPTCHA.
+
 ## Next action
 
 Continue the repaired current-site resolver in bounded eight-worker batches. Use

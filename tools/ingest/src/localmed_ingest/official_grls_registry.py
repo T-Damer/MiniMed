@@ -26,6 +26,11 @@ import yaml
 from .source_registry import load_source_registry
 
 GRLS_PAGE = "https://grls.rosminzdrav.ru/GRLS.aspx"
+# Truthful, project-naming User-Agent for every GRLS request (owner decision 2026-10-02).
+GRLS_USER_AGENT = (
+    "MiniMed-GRLS-collector/1.0 (personal single-user offline medical reference; "
+    "sequential, rate-limited)"
+)
 _GRLS_HOST = "grls.rosminzdrav.ru"
 _MAX_PAGE_BYTES = 8 * 1024 * 1024
 _MAX_ARCHIVE_BYTES = 128 * 1024 * 1024
@@ -90,7 +95,7 @@ def _request_bytes(
     request = urllib.request.Request(
         url,
         data=data,
-        headers={"User-Agent": "MiniMed/0.5", **(headers or {})},
+        headers={"User-Agent": GRLS_USER_AGENT, **(headers or {})},
         method="POST" if data is not None else "GET",
     )
     open_request = opener.open if opener is not None else urllib.request.urlopen
@@ -908,6 +913,17 @@ def run_grls_instruction_batch(
     if requested_registrations:
         summary["requestedRegistrations"] = sorted(requested_registrations)
     return summary
+
+
+# Public names for the polite collector (``grls_collect``) and tests.
+hidden_form_fields = _hidden_fields
+routing_guid = _routing_guid
+instruction_pdf_url = _instruction_url
+safe_instruction_target = _safe_target
+append_instruction_state = _append_instruction_state
+read_instruction_plan = _read_instruction_plan
+utc_now = _utc_now
+validate_grls_url = _validate_grls_url
 
 
 def build_grls_instruction_source_registry(

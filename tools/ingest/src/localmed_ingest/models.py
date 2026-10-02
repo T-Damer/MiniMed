@@ -316,6 +316,10 @@ class ExtractionDiagnostics(CamelModel):
     table_candidates: int = Field(ge=0)
     body_font_size: float | None = None
     text_extraction_mode: Literal["pdf_text_layer", "ocr"] = "pdf_text_layer"
+    ocr_engine: Literal["macos-vision", "pymupdf-ocr"] | None = None
+    ocr_pages: list[int] = Field(default_factory=list)
+    ocr_mean_confidence: float | None = Field(default=None, ge=0, le=1)
+    ocr_low_confidence_ratio: float | None = Field(default=None, ge=0, le=1)
     quality_score: float = Field(ge=0, le=1)
     requires_review: bool
     review_reasons: list[str] = Field(default_factory=list)

@@ -153,14 +153,27 @@ def render_prepared_markdown(source: RegistrySource, extracted: ExtractedSource)
         provenance["rawChecksum"] = extracted.source_checksum
         metadata["provenance"] = provenance
     metadata["sourcePath"] = source.path
-    metadata["extraction"] = {
+    diagnostics = extracted.diagnostics
+    extraction: dict[str, object] = {
         "format": extracted.source_format,
-        "pageCount": extracted.diagnostics.page_count,
-        "qualityScore": extracted.diagnostics.quality_score,
-        "requiresReview": extracted.diagnostics.requires_review,
-        "headingCandidates": extracted.diagnostics.heading_candidates,
-        "tableCandidates": extracted.diagnostics.table_candidates,
+        "pageCount": diagnostics.page_count,
+        "qualityScore": diagnostics.quality_score,
+        "requiresReview": diagnostics.requires_review,
+        "headingCandidates": diagnostics.heading_candidates,
+        "tableCandidates": diagnostics.table_candidates,
     }
+    if extracted.source_format == "pdf":
+        # Keep how the text was obtained, so downstream databases can show it.
+        extraction.update(
+            {
+                "textExtractionMode": diagnostics.text_extraction_mode,
+                "ocrEngine": diagnostics.ocr_engine,
+                "ocrPages": diagnostics.ocr_pages,
+                "ocrMeanConfidence": diagnostics.ocr_mean_confidence,
+                "ocrLowConfidenceRatio": diagnostics.ocr_low_confidence_ratio,
+            }
+        )
+    metadata["extraction"] = extraction
     front_matter: dict[str, object] = {
         "id": source.id,
         "title": source.title,

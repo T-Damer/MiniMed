@@ -27,9 +27,9 @@
         "data/intermediate/grls-full-final",
         "data/intermediate/grls-instructions-current-*"
       ],
-      "note": "Rate-limited official downloads plus the download state ledger; the only local copy.",
-      "bytes": 13215609041,
-      "modified": "2026-09-27"
+      "note": "Rate-limited official downloads plus the download state ledger; the only local copy. G1 (2026-10-02) added 30 PDFs; collection stopped at a CAPTCHA (data/build/grls-collect/BLOCKED-by-site).",
+      "bytes": 13297448263,
+      "modified": "2026-10-02"
     },
     {
       "path": "data/raw/krasotaimedicina",
@@ -59,8 +59,9 @@
       "class": "SOURCE",
       "producer": "bun run content:catalog:drugs (grls-sync)",
       "consumers": ["data/build/official-grls-coverage-ledger.json"],
-      "bytes": 146660080,
-      "modified": "2026-07-24"
+      "note": "Includes catalog-02.10.2026.json and grls-02.10.2026.zip beside the 24.07.2026 export (never overwritten).",
+      "bytes": 295788807,
+      "modified": "2026-10-02"
     },
     {
       "path": "data/raw/vaccine-instructions-2026",

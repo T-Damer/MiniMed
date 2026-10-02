@@ -13,7 +13,9 @@ from .clinical_medication_relations import (
 )
 from .esklp_catalog import build_esklp_coverage_ledger, write_esklp_coverage_ledger
 from .esklp_release import prepare_esklp_release
+from .grls_collect import MAX_WORKERS, CollectOptions, run_collection
 from .grls_products import build_grls_product_workspace
+from .grls_text_manifest import build_additions_registry, build_text_manifest
 from .legal_catalog import collect_legal_catalog
 from .medication_catalog import (
     build_medication_coverage_ledger,
@@ -247,6 +249,87 @@ def grls_instruction_batch_command(
         workers=workers,
         max_attempts=max_attempts,
         registrations=registration,
+    )
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("grls-collect")
+def grls_collect_command(
+    plan: Annotated[Path, typer.Option("--plan", exists=True, dir_okay=False)],
+    output_root: Annotated[Path, typer.Option("--output-root")],
+    state: Annotated[Path, typer.Option("--state")],
+    log_dir: Annotated[Path, typer.Option("--log-dir")],
+    limit: Annotated[int | None, typer.Option("--limit", min=1)] = None,
+    workers: Annotated[int, typer.Option("--workers", min=1, max=MAX_WORKERS)] = 1,
+    min_request_delay: Annotated[float, typer.Option("--min-request-delay", min=0.2)] = 0.8,
+    max_request_delay: Annotated[float, typer.Option("--max-request-delay", min=0.2)] = 2.0,
+    min_item_pause: Annotated[float, typer.Option("--min-item-pause", min=0.2)] = 1.5,
+    max_item_pause: Annotated[float, typer.Option("--max-item-pause", min=0.2)] = 4.0,
+    timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 45.0,
+    max_run_seconds: Annotated[float | None, typer.Option("--max-run-seconds", min=1)] = None,
+    max_attempts: Annotated[int, typer.Option("--max-attempts", min=1)] = 3,
+    include_substances: Annotated[bool, typer.Option("--include-substances")] = False,
+    include_exhausted: Annotated[bool, typer.Option("--include-exhausted")] = False,
+    registration: Annotated[
+        list[str] | None,
+        typer.Option("--registration", help="Exact registration number; repeatable."),
+    ] = None,
+) -> None:
+    """Polite resumable GRLS instruction collection (transient failures first, then new)."""
+    options = CollectOptions(
+        min_request_delay=min_request_delay,
+        max_request_delay=max(max_request_delay, min_request_delay),
+        min_item_pause=min_item_pause,
+        max_item_pause=max(max_item_pause, min_item_pause),
+        timeout_seconds=timeout_seconds,
+        workers=workers,
+        limit=limit,
+        max_run_seconds=max_run_seconds,
+        max_attempts=max_attempts,
+        registrations=tuple(registration or ()),
+        include_substances=include_substances,
+        include_exhausted=include_exhausted,
+    )
+    summary = run_collection(plan, output_root, state, log_dir, options, log=typer.echo)
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("grls-additions-registry")
+def grls_additions_registry_command(
+    plan: Annotated[Path, typer.Option("--plan", exists=True, dir_okay=False)],
+    state: Annotated[Path, typer.Option("--state", exists=True, dir_okay=False)],
+    catalog: Annotated[list[Path], typer.Option("--catalog", exists=True, dir_okay=False)],
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)],
+    prepared: Annotated[list[Path], typer.Option("--prepared", help="Prepared workspace.")],
+    output: Annotated[Path, typer.Option("--output")],
+    limit: Annotated[int | None, typer.Option("--limit", min=1)] = None,
+) -> None:
+    """Registry of downloaded GRLS PDFs that no prepared workspace has extracted yet."""
+    summary = build_additions_registry(
+        plan, state, catalog, raw_root, prepared, output, limit=limit
+    )
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("grls-text-manifest")
+def grls_text_manifest_command(
+    plan: Annotated[list[Path], typer.Option("--plan", exists=True, dir_okay=False)],
+    state: Annotated[Path, typer.Option("--state", exists=True, dir_okay=False)],
+    raw_root: Annotated[Path, typer.Option("--raw-root", exists=True, file_okay=False)],
+    prepared: Annotated[list[Path], typer.Option("--prepared", help="Prepared workspace.")],
+    manifest: Annotated[Path, typer.Option("--manifest")],
+    report: Annotated[Path, typer.Option("--report")],
+    before_cutoff: Annotated[str | None, typer.Option("--before-cutoff")] = None,
+) -> None:
+    """Per-PDF text manifest (OCR flag and quality signals) and coverage report."""
+    summary = build_text_manifest(
+        plan,
+        state,
+        raw_root,
+        prepared,
+        manifest,
+        report,
+        before_cutoff=before_cutoff,
     )
     typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
 
