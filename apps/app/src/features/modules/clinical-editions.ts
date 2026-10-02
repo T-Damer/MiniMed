@@ -106,6 +106,35 @@ export function currentEditionLink(
   return newerEditionLink(edition, index);
 }
 
+/**
+ * One edition per clinical recommendation in a result list. The registry keeps a replaced edition
+ * under the same title as its successor, so when a newer edition of the chain is among the items,
+ * the older one is left out; an edition found on its own stays (its reader names the current one).
+ */
+export function withoutOlderEditions<T>(
+  items: readonly T[],
+  editionOf: (item: T) => string | null,
+  index: ClinicalEditionIndex = clinicalEditionIndex(),
+): readonly T[] {
+  const placed = items.map((item) => {
+    const editionId = editionOf(item);
+    const chain = editionId ? index.chains.get(editionId) : undefined;
+    const version = chain?.find((edition) => edition.id === editionId)?.version;
+    return { item, chain, version };
+  });
+  const newest = new Map<readonly ClinicalEdition[], number>();
+  for (const { chain, version } of placed) {
+    if (chain && version !== undefined)
+      newest.set(chain, Math.max(newest.get(chain) ?? version, version));
+  }
+  return placed
+    .filter(
+      ({ chain, version }) =>
+        !chain || version === undefined || version >= (newest.get(chain) ?? version),
+    )
+    .map(({ item }) => item);
+}
+
 export const SUPERSEDED_EDITION_BADGE = 'прежняя редакция';
 
 export interface SupersededEditionNote {

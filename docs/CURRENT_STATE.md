@@ -74,10 +74,12 @@ Published as `core-0.6.47` (prerelease; `core-0.6.45` stays published for rollba
   «Заменяет редакции: 507_3».
 - **Not verified:** the Android download of the new gzip on a device/emulator (the installer is unchanged; the
   URL and checksums are the published ones), the iOS/native Kotlin port (its `RELEASE_CORE` constant still names
-  0.6.45; the port is frozen), a physician review of any text. UI follow-ups: the two pointer cards of an
-  edition pair look identical in a result list (same title); the pointer page does not yet read
-  `supersededByDocumentId`/`supersedesDocumentIds` or the `superseded` status. `packages/test-fixtures/scripts/
-  build-core-slice.ts` still copies `kr.rf.714_2.pneumonia` from the core and fails on regeneration.
+  0.6.45; the port is frozen), a physician review of any text. UI follow-up: the pointer page does not yet read
+  `supersededByDocumentId`/`supersedesDocumentIds` or the `superseded` status. Done since: a result list keeps
+  one edition of a КР — when a newer edition of the same chain is among the results, the older pointer is left
+  out (`withoutOlderEditions`, edition list loaded lazily after the search page); `build-core-slice.ts`
+  regenerates again (modules from `data/build/release-clinical`, the retired pilot summary carried over from
+  the committed slice under its original core.db checksum).
 
 ## Pilot corpus retired — 2026-10-02
 

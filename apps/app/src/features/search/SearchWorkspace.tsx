@@ -68,6 +68,7 @@ import type { SearchScope } from '@/features/search/ScopedMedicalCore';
 import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
+import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
 import {
@@ -75,6 +76,8 @@ import {
   SEARCH_REPLAY_EVENT,
   type SearchReplayDetail,
 } from '@/state/search-history';
+
+type ClinicalEditionsModule = typeof import('@/features/modules/clinical-editions');
 
 interface SearchWorkspaceProps {
   /** Absent while the medical core opens; the field stays disabled until it arrives. */
@@ -296,9 +299,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   >();
 
   createEffect(() => props.onQueryChange?.(query()));
-  createEffect(() =>
-    props.onResultDocuments?.(response()?.groups.map((group) => group.documentId) ?? []),
-  );
+  createEffect(() => props.onResultDocuments?.(visibleGroups().map((group) => group.documentId)));
 
   createEffect(
     on(
@@ -350,10 +351,35 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     return draftAnalysis();
   });
 
-  const resultCount = createMemo(
-    () => response()?.groups.reduce((total, group) => total + group.results.length, 0) ?? 0,
+  // Clinical recommendation editions: a replaced edition shares its successor's title, so results
+  // keep only the newest edition found. The edition sidecar (~60 kB gzip) loads after the page,
+  // off the start-up path; until then results show as the core returned them.
+  const [editions, setEditions] = createSignal<ClinicalEditionsModule>();
+  onMount(() => {
+    void import('@/features/modules/clinical-editions')
+      .then((module) => setEditions(() => module))
+      .catch((cause: unknown) => {
+        console.error(
+          `Clinical edition list did not load: ${cause instanceof Error ? cause.name : 'unknown'}`,
+        );
+      });
+  });
+  const visibleGroups = createMemo(() => {
+    const groups = response()?.groups ?? [];
+    const module = editions();
+    if (!module) return groups;
+    const documents = contextDocumentsById();
+    return module.withoutOlderEditions(groups, (group) => {
+      // A catalog pointer names the full record it stands for; the edition is in that id.
+      const target = documents.get(group.documentId)?.metadata?.['targetDocumentId'];
+      return module.clinicalEditionIdFromDocumentId(
+        typeof target === 'string' ? target : group.documentId,
+      );
+    });
+  });
+  const resultCount = createMemo(() =>
+    visibleGroups().reduce((total, group) => total + group.results.length, 0),
   );
-  const visibleGroups = createMemo(() => response()?.groups ?? []);
   const visibleIdentities = createMemo(() =>
     (response()?.identities ?? []).filter((hit) => {
       const target = hit.target;
@@ -1042,13 +1068,14 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                     >
                       <div class="result-summary__cell">
                         <span class="result-summary__label">РЕЗУЛЬТАТЫ</span>
-                        <strong class="result-summary__value">{resultCount()} фрагментов</strong>
+                        <strong class="result-summary__value">
+                          {resultCount()}{' '}
+                          {pluralRu(resultCount(), 'фрагмент', 'фрагмента', 'фрагментов')}
+                        </strong>
                       </div>
                       <div class="result-summary__cell">
                         <span class="result-summary__label">ДОКУМЕНТЫ</span>
-                        <strong class="result-summary__value">
-                          {searchResponse().groups.length}
-                        </strong>
+                        <strong class="result-summary__value">{visibleGroups().length}</strong>
                       </div>
                       <div class="result-summary__cell">
                         <span class="result-summary__label">ВРЕМЯ</span>

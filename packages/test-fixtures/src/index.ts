@@ -23,9 +23,11 @@ export const CORE_SLICE = {
   pneumoniaPointer: 'core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d',
 } as const;
 
+// core.db appears once per checksum: the current pointers, and summaries frozen from an earlier core.
 const coreDatabaseDocumentIds = new Set(
-  rawCoreSlice.sources.find((source) => source.file === 'apps/app/public/content/core.db')
-    ?.documents,
+  rawCoreSlice.sources
+    .filter((source) => source.file === 'apps/app/public/content/core.db')
+    .flatMap((source) => source.documents),
 );
 const coreDatabaseDocuments = CORE_SLICE_PACK.documents.filter((document) =>
   coreDatabaseDocumentIds.has(document.id),

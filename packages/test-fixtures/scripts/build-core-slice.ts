@@ -32,7 +32,7 @@ const { Database } = (await import('bun:sqlite' as string)) as unknown as {
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 const CONTENT = resolve(ROOT, 'apps/app/public/content');
-const RELEASE_CLINICAL = resolve(ROOT, 'release-clinical');
+const RELEASE_CLINICAL = resolve(ROOT, 'data/build/release-clinical');
 const OUTPUT = resolve(ROOT, 'packages/test-fixtures/src/generated/core-slice.json');
 const CHUNKS_PER_SECTION = 2;
 /** Typed sections kept per section type in a clinical recommendation. */
@@ -54,9 +54,12 @@ const POINTER_TARGETS = [
 ];
 /**
  * A core.db clinical-recommendation summary that a released full module supersedes
- * (minimed-respiratory-pediatrics-full carries kr.rf.714_2.pneumonia.full).
+ * (minimed-respiratory-pediatrics-full carries kr.rf.714_2.pneumonia.full). It left core.db with
+ * the pilot corpus (core 0.6.47), while the summary → full-module remapping it exercises still runs
+ * for any summary a core ships; so it is carried over verbatim from the committed slice, under the
+ * provenance (core.db checksum) it was copied with.
  */
-const CORE_DOCUMENTS = ['kr.rf.714_2.pneumonia'];
+const FROZEN_CORE_DOCUMENTS = ['kr.rf.714_2.pneumonia'];
 const COMPANION_DOCUMENTS: readonly (readonly [file: string, ids: readonly string[]])[] = [
   ['medications.db', ['drug.allmed.3324', 'drug.allmed.11']],
   ['mkb.db', ['rls.mkb.node.j18', 'rls.mkb.node.k35', 'rls.mkb.node.n39-0']],
@@ -236,12 +239,29 @@ const pointerIds = POINTER_TARGETS.map((target) => {
   if (!row) throw new Error(`core.db has no pointer to ${target}.`);
   return row.id;
 });
-for (const id of [...pointerIds, ...CORE_DOCUMENTS]) documents.push(readDocument(core, id, false));
+for (const id of pointerIds) documents.push(readDocument(core, id, false));
 sources.push({
   file: 'apps/app/public/content/core.db',
   checksum: sha256(readFileSync(corePath)),
-  documents: [...pointerIds, ...CORE_DOCUMENTS],
+  documents: [...pointerIds],
 });
+const previousSlice = JSON.parse(readFileSync(OUTPUT, 'utf8')) as {
+  readonly documents: readonly { readonly id: string }[];
+  readonly sources: readonly {
+    readonly file: string;
+    readonly checksum: string;
+    readonly documents: readonly string[];
+  }[];
+};
+for (const id of FROZEN_CORE_DOCUMENTS) {
+  const frozen = previousSlice.documents.find((document) => document.id === id);
+  const origin = previousSlice.sources.find(
+    (source) => source.file === 'apps/app/public/content/core.db' && source.documents.includes(id),
+  );
+  if (!frozen || !origin) throw new Error(`The committed slice has no frozen document ${id}.`);
+  documents.push(frozen);
+  sources.push({ file: origin.file, checksum: origin.checksum, documents: [id] });
+}
 
 for (const officialId of CLINICAL_RECOMMENDATIONS) {
   const file = readdirSync(RELEASE_CLINICAL)
@@ -254,7 +274,7 @@ for (const officialId of CLINICAL_RECOMMENDATIONS) {
   documents.push(readDocument(database, `kr.rf.${officialId}`, true));
   database.close();
   sources.push({
-    file: `release-clinical/${file}`,
+    file: `data/build/release-clinical/${file}`,
     checksum: sha256(readFileSync(path)),
     documents: [`kr.rf.${officialId}`],
   });

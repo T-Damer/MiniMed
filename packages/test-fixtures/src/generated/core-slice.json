@@ -4,13 +4,13 @@
   "version": "1",
   "schemaVersion": 2,
   "title": "MiniMed released-corpus slice for tests",
-  "checksum": "sha256:71aa70a8ca56a7c6ad62ff59c5bb836972bf8269227027a57710d9f6ac63953e",
+  "checksum": "sha256:b4a7befc194089817f0516579915badf6212e46165d522752f8e267ce37228fa",
   "builtAt": "1970-01-01T00:00:00Z"
  },
  "sources": [
   {
    "file": "apps/app/public/content/core.db",
-   "checksum": "sha256:d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a",
+   "checksum": "sha256:8e6fe3bf5874c63b0df0e260fccf0905c6af1ac06e8b93ea5039a2f6ad1318d4",
    "documents": [
     "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d",
     "core.catalog.pointer.clinical.kr.rf.654_2-600ef9b20b01bce5",
@@ -20,26 +20,32 @@
     "core.catalog.pointer.medication.esklp.mnn.ибупрофен-5c34d93418b30876",
     "core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3",
     "core.catalog.pointer.reference.rls.mkb.node.k35-22ccffc46f175996",
-    "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686",
+    "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686"
+   ]
+  },
+  {
+   "file": "apps/app/public/content/core.db",
+   "checksum": "sha256:d0797f8c33e7d1050831d8ff02958f49b9f30f10335f716ac3fe287407e1572a",
+   "documents": [
     "kr.rf.714_2.pneumonia"
    ]
   },
   {
-   "file": "release-clinical/clinical-714_2-clinical-2026.07.24-cbb0e01c1bce.db",
+   "file": "data/build/release-clinical/clinical-714_2-clinical-2026.07.24-cbb0e01c1bce.db",
    "checksum": "sha256:45286c9641581eaa14b1f36653ab54f8e1e06e8c688a80d05fe08561b68d1e6c",
    "documents": [
     "kr.rf.714_2"
    ]
   },
   {
-   "file": "release-clinical/clinical-64_2-clinical-2026.07.24-cbb0e01c1bce.db",
+   "file": "data/build/release-clinical/clinical-64_2-clinical-2026.07.24-cbb0e01c1bce.db",
    "checksum": "sha256:435402e92f0b95f5da9af3a1ed6e9cbafd784fdca4b015493e067e4c77117005",
    "documents": [
     "kr.rf.64_2"
    ]
   },
   {
-   "file": "release-clinical/clinical-281_3-clinical-2026.07.24-cbb0e01c1bce.db",
+   "file": "data/build/release-clinical/clinical-281_3-clinical-2026.07.24-cbb0e01c1bce.db",
    "checksum": "sha256:f391d0772c069631c741039201bae35729a855259a7079dac4646073c9e38b58",
    "documents": [
     "kr.rf.281_3"
@@ -125,305 +131,49 @@
      "Дети"
     ],
     "canonicalDefinition": {
-     "definitionId": "clinical.definition.714_2.f4e2e7554bca3f54e58f",
+     "definitionId": "clinical.definition.714_2.b638322e1fc36d66fb54",
      "text": "острое полиэтиологическое инфекционное заболевание с преимущественным поражением респираторных отделов легких и накоплением воспалительного экссудата в альвеолах, проявляющееся выраженными в различной степени интоксикацией, респираторными нарушениями, локальными физикальными изменениями со стороны легких и наличием инфильтративной тени на рентгенограмме грудной клетки [4].",
      "sourceDocumentId": "kr.rf.714_2",
      "sourceDocumentVersionId": "kr.rf.714_2@714_2",
-     "sourceSectionId": "section.5f568935195beed4",
-     "sourceChunkId": "chunk.1357cba3e5a3cc95",
-     "sourceAnchor": "kr.rf.714_2@714_2/1-краткая-информация-по-заболеванию-или-состоянию-группе/1-1-определение-заболевания-или-состояния-группы-заболеваний-или#chunk-1357cba3",
-     "sourceSectionTitle": "1.1. Определение заболевания или состояния (группы заболеваний или",
+     "sourceSectionId": "section.4491e1ec98555b98",
+     "sourceChunkId": "chunk.4e01de4278d377f0",
+     "sourceAnchor": "kr.rf.714_2@714_2/1-краткая-информация/1-1-определение-заболевания-или-состояния#chunk-4e01de42",
+     "sourceSectionTitle": "1.1 Определение заболевания или состояния",
      "sourceQuote": "Пневмония – острое полиэтиологическое инфекционное заболевание с преимущественным поражением респираторных отделов легких и накоплением воспалительного экссудата в альвеолах, проявляющееся выраженными в различной степени интоксикацией, респираторными нарушениями, локальными физикальными изменениями со стороны легких и наличием инфильтративной тени на рентгенограмме грудной клетки [4].",
-     "pageStart": 8,
-     "pageEnd": 8,
+     "pageStart": null,
+     "pageEnd": null,
      "charStart": null,
      "charEnd": null,
      "sourceSpans": [
       {
-       "bbox": [
-        119.06,
-        137.993,
-        187.1,
-        152.339
-       ],
-       "block": "p8-b4",
+       "block": "json-b56",
        "kind": "paragraph",
-       "page": 8
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        120.5,
-        160.088,
-        555.94,
-        173.372
-       ],
-       "block": "p8-b5",
+       "block": "json-b57",
        "kind": "paragraph",
-       "page": 8
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        85.104,
-        180.848,
-        555.516,
-        194.132
-       ],
-       "block": "p8-b6",
+       "block": "json-b58",
        "kind": "paragraph",
-       "page": 8
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        85.104,
-        201.488,
-        555.576,
-        214.772
-       ],
-       "block": "p8-b7",
+       "block": "json-b59",
        "kind": "paragraph",
-       "page": 8
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        85.104,
-        222.128,
-        555.802,
-        235.412
-       ],
-       "block": "p8-b8",
+       "block": "json-b60",
        "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        242.888,
-        555.802,
-        256.172
-       ],
-       "block": "p8-b9",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        263.558,
-        555.892,
-        276.842
-       ],
-       "block": "p8-b10",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        284.318,
-        555.48,
-        297.602
-       ],
-       "block": "p8-b11",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        304.958,
-        238.97,
-        318.242
-       ],
-       "block": "p8-b12",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        120.5,
-        325.718,
-        555.572,
-        339.002
-       ],
-       "block": "p8-b13",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        346.358,
-        555.94,
-        359.642
-       ],
-       "block": "p8-b14",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        367.118,
-        555.868,
-        380.402
-       ],
-       "block": "p8-b15",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        387.758,
-        555.686,
-        401.042
-       ],
-       "block": "p8-b16",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        408.518,
-        185.78,
-        421.802
-       ],
-       "block": "p8-b17",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        120.5,
-        429.418,
-        555.65,
-        442.702
-       ],
-       "block": "p8-b18",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        450.178,
-        555.468,
-        463.462
-       ],
-       "block": "p8-b19",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        470.818,
-        555.79,
-        484.102
-       ],
-       "block": "p8-b20",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        491.578,
-        555.552,
-        504.862
-       ],
-       "block": "p8-b21",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        512.218,
-        555.492,
-        525.502
-       ],
-       "block": "p8-b22",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        532.738,
-        301.13,
-        546.022
-       ],
-       "block": "p8-b23",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        120.5,
-        553.378,
-        555.476,
-        566.662
-       ],
-       "block": "p8-b24",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        574.138,
-        555.468,
-        587.422
-       ],
-       "block": "p8-b25",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        594.778,
-        555.928,
-        608.062
-       ],
-       "block": "p8-b26",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        615.568,
-        424.15,
-        628.852
-       ],
-       "block": "p8-b27",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        120.5,
-        636.208,
-        555.584,
-        649.492
-       ],
-       "block": "p8-b28",
-       "kind": "paragraph",
-       "page": 8
-      },
-      {
-       "bbox": [
-        85.104,
-        656.968,
-        467.26,
-        670.252
-       ],
-       "block": "p8-b29",
-       "kind": "paragraph",
-       "page": 8
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       }
      ]
     },
@@ -495,25 +245,64 @@
     ],
     "sourceFile": "https://apicr.minzdrav.gov.ru/api.ashx?op=GetClinrecPdf&id=714_2",
     "conceptId": "core.concept.bdda529a738d527d0b351432",
-    "definitionPreviewAnchor": "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d@714_2/определение#chunk-4fef7626"
+    "definitionPreviewAnchor": "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d@714_2/определение#chunk-712c51bd"
    },
    "version": {
     "id": "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d@714_2",
     "label": "714_2",
     "effectiveFrom": null,
     "effectiveTo": null,
-    "sourceChecksum": "sha256:725fd2b9092e2455a1f07b7d1b1bb353766b107e4a069bc2be12259954b18293",
-    "extractedAt": "2026-09-04T16:30:00Z"
+    "sourceChecksum": "sha256:aa2e0eb7a03038057cef63f45fa174e601265cf052f73acbc2920ed9daec1cf6",
+    "extractedAt": "2026-10-02T00:00:00Z"
    },
    "sections": [
+    {
+     "id": "section.d8a721ade3adba8f",
+     "parentSectionId": null,
+     "title": "Определение",
+     "normalizedTitle": "определение определ",
+     "sectionType": "other",
+     "depth": 1,
+     "orderIndex": 0,
+     "pageStart": null,
+     "pageEnd": null,
+     "anchor": "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d@714_2/определение",
+     "sectionPath": [
+      "Определение"
+     ],
+     "chunks": [
+      {
+       "id": "chunk.712c51bd689aa4f2",
+       "orderIndex": 0,
+       "originalText": "острое полиэтиологическое инфекционное заболевание с преимущественным поражением респираторных отделов легких и накоплением воспалительного экссудата в альвеолах, проявляющееся выраженными в различной степени интоксикацией, респираторными нарушениями, локальными физикальными изменениями со стороны легких и наличием инфильтративной тени на рентгенограмме грудной клетки [4].\n\nИсточник определения: клиническая рекомендация «Пневмония (внебольничная)», раздел «1.1 Определение заболевания или состояния».",
+       "normalizedText": "пневмония внебольничная определение острое полиэтиологическое инфекционное заболевание преимущественным поражением респираторных отделов легких накоплением воспалительного экссудата альвеолах проявляющееся выраженными различной степени интоксикацией респираторными нарушениями локальными физикальными изменениями стороны легких наличием инфильтративной тени рентгенограмме грудной клетки источник определения клиническая рекомендация пневмония внебольничная раздел определение заболевания состояния пневмон внебольничн определ остр полиэтиологическ инфекционн заболев поражени отдел накоплени воспалительн экссудат альвеол проявляющеес выраженн различн степен интоксикаци респираторн нарушен локальн физикальн изменен сторон наличи инфильтративн рентгенограмм грудн клетк определен клиническ рекомендац состоян j12 j13 j14 j15 j16 j18",
+       "pageStart": null,
+       "pageEnd": null,
+       "charStart": null,
+       "charEnd": null,
+       "anchor": "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d@714_2/определение#chunk-712c51bd",
+       "metadata": {
+        "localOrder": 0,
+        "icd10Codes": [
+         "J12",
+         "J13",
+         "J14",
+         "J15",
+         "J16",
+         "J18"
+        ]
+       }
+      }
+     ]
+    },
     {
      "id": "section.7dba275af5439adb",
      "parentSectionId": null,
      "title": "Сведения о документе",
-     "normalizedTitle": "сведения сведен документе документ",
+     "normalizedTitle": "сведения документе сведен документ",
      "sectionType": "other",
      "depth": 1,
-     "orderIndex": 0,
+     "orderIndex": 1,
      "pageStart": null,
      "pageEnd": null,
      "anchor": "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d@714_2/сведения-о-документе",
@@ -523,9 +312,9 @@
      "chunks": [
       {
        "id": "chunk.387d4472aee0e085",
-       "orderIndex": 0,
+       "orderIndex": 1,
        "originalText": "Название: Пневмония (внебольничная). Объявленные алиасы: Пневмония, Внебольничная пневмония, ВП. Ключевые слова: не указано в каталоге. Официальный идентификатор: 714_2. МКБ-10: J12, J13, J14, J15, J16, J18. Специальности: pulmonology, allergology-immunology, infectious-diseases, epidemiology, pediatrics. Возрастные категории: Дети.\n\nПолные данные находятся в скачиваемом модуле «minimed.clinical.respiratory-allergy.ru» и не дублируются в ядре.",
-       "normalizedText": "пневмония пневмон внебольничная внебольничн сведения сведен документе документ название назв объявленные объявленн алиасы алиас вп ключевые ключев слова слов указано указан каталоге каталог официальный официальн идентификатор 714 мкб 10 j12 j13 j14 j15 j16 j18 специальности специальн pulmonology allergology immunology infectious diseases epidemiology pediatrics возрастные возрастн категории категори дети полные полн данные данн находятся находятс скачиваемом скачиваем модуле модул minimed clinical respiratory allergy ru дублируются дублируютс ядре j12 j13 j14 j15 j16 j18",
+       "normalizedText": "пневмония внебольничная сведения документе название пневмония внебольничная объявленные алиасы пневмония внебольничная пневмония вп ключевые слова указано каталоге официальный идентификатор 714 мкб 10 j12 j13 j14 j15 j16 j18 специальности pulmonology allergology immunology infectious diseases epidemiology pediatrics возрастные категории дети полные данные находятся скачиваемом модуле minimed clinical respiratory allergy ru дублируются ядре пневмон внебольничн сведен документ назв объявленн алиас ключев слов указан каталог официальн специальн возрастн категори полн данн находятс скачиваем модул дублируютс j12 j13 j14 j15 j16 j18",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
@@ -548,37 +337,6 @@
          "J16",
          "J18"
         ]
-       }
-      }
-     ]
-    },
-    {
-     "id": "section.d8a721ade3adba8f",
-     "parentSectionId": null,
-     "title": "Определение",
-     "normalizedTitle": "определение определ",
-     "sectionType": "other",
-     "depth": 1,
-     "orderIndex": 1,
-     "pageStart": null,
-     "pageEnd": null,
-     "anchor": "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d@714_2/определение",
-     "sectionPath": [
-      "Определение"
-     ],
-     "chunks": [
-      {
-       "id": "chunk.4fef762622b191bf",
-       "orderIndex": 1,
-       "originalText": "острое полиэтиологическое инфекционное заболевание с преимущественным поражением респираторных отделов легких и накоплением воспалительного экссудата в альвеолах, проявляющееся выраженными в различной степени интоксикацией, респираторными нарушениями, локальными физикальными изменениями со стороны легких и наличием инфильтративной тени на рентгенограмме грудной клетки [4].\n\nИсточник определения: клиническая рекомендация «Пневмония (внебольничная)», раздел «1.1. Определение заболевания или состояния (группы заболеваний или».",
-       "normalizedText": "пневмония пневмон внебольничная внебольничн определение определ острое остр полиэтиологическое полиэтиологическ инфекционное инфекционн заболевание заболев преимущественным поражением поражени респираторных отделов отдел легких накоплением накоплени воспалительного воспалительн экссудата экссудат альвеолах альвеол проявляющееся проявляющеес выраженными выраженн различной различн степени степен интоксикацией интоксикаци респираторными респираторн нарушениями нарушен локальными локальн физикальными физикальн изменениями изменен стороны сторон наличием наличи инфильтративной инфильтративн тени рентгенограмме рентгенограмм грудной грудн клетки клетк источник определения определен клиническая клиническ рекомендация рекомендац раздел заболевания состояния состоян группы групп заболеваний заболеван",
-       "pageStart": null,
-       "pageEnd": null,
-       "charStart": null,
-       "charEnd": null,
-       "anchor": "core.catalog.pointer.clinical.kr.rf.714_2-bdda529a738d527d@714_2/определение#chunk-4fef7626",
-       "metadata": {
-        "localOrder": 0
        }
       }
      ]
@@ -1456,14 +1214,14 @@
     "effectiveFrom": null,
     "effectiveTo": null,
     "sourceChecksum": "sha256:ef746cb57946738f85a8e75699f11a25c2aa4c012c69fabfd4c1cae058cc1abb",
-    "extractedAt": "2026-09-04T16:30:00Z"
+    "extractedAt": "2026-10-02T00:00:00Z"
    },
    "sections": [
     {
      "id": "section.6bd4b836469fc1dc",
      "parentSectionId": null,
      "title": "Сведения о документе",
-     "normalizedTitle": "сведения сведен документе документ",
+     "normalizedTitle": "сведения документе сведен документ",
      "sectionType": "other",
      "depth": 1,
      "orderIndex": 0,
@@ -1478,7 +1236,7 @@
        "id": "chunk.bc5c0bf69dee6001",
        "orderIndex": 0,
        "originalText": "Название: Внебольничная пневмония у взрослых. Объявленные алиасы: внебольничная пневмония, ВП. Ключевые слова: не указано в каталоге. Официальный идентификатор: 654_2. МКБ-10: J13, J14, J15, J16, J18, J85.1. Специальности: pulmonology, allergology-immunology. Возрастные категории: Взрослые.\n\nПолные данные находятся в скачиваемом модуле «minimed.clinical.respiratory-allergy.ru» и не дублируются в ядре.",
-       "normalizedText": "внебольничная внебольничн пневмония пневмон взрослых сведения сведен документе документ название назв объявленные объявленн алиасы алиас вп ключевые ключев слова слов указано указан каталоге каталог официальный официальн идентификатор 654 мкб 10 j13 j14 j15 j16 j18 j85 специальности специальн pulmonology allergology immunology возрастные возрастн категории категори взрослые взросл полные полн данные данн находятся находятс скачиваемом скачиваем модуле модул minimed clinical respiratory allergy ru дублируются дублируютс ядре j13 j14 j15 j16 j18 j851 851",
+       "normalizedText": "внебольничная пневмония взрослых сведения документе название внебольничная пневмония взрослых объявленные алиасы внебольничная пневмония вп ключевые слова указано каталоге официальный идентификатор 654 мкб 10 j13 j14 j15 j16 j18 j85 специальности pulmonology allergology immunology возрастные категории взрослые полные данные находятся скачиваемом модуле minimed clinical respiratory allergy ru дублируются ядре внебольничн пневмон сведен документ назв объявленн алиас ключев слов указан каталог официальн специальн возрастн категори взросл полн данн находятс скачиваем модул дублируютс j13 j14 j15 j16 j18 j851 851",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
@@ -1574,14 +1332,14 @@
     "effectiveFrom": null,
     "effectiveTo": null,
     "sourceChecksum": "sha256:a0f32554cb375d8fe877049af550f9e82781a7ce93603078049492ffc10612cb",
-    "extractedAt": "2026-09-04T16:30:00Z"
+    "extractedAt": "2026-10-02T00:00:00Z"
    },
    "sections": [
     {
      "id": "section.a8d2305f3c130953",
      "parentSectionId": null,
      "title": "Сведения о документе",
-     "normalizedTitle": "сведения сведен документе документ",
+     "normalizedTitle": "сведения документе сведен документ",
      "sectionType": "other",
      "depth": 1,
      "orderIndex": 0,
@@ -1596,7 +1354,7 @@
        "id": "chunk.f7d7c9ff2ac360b5",
        "orderIndex": 0,
        "originalText": "Название: Острый аппендицит и перитонит у детей. Объявленные алиасы: не указано в каталоге. Ключевые слова: Острый аппендицит, Аппендэктомия, Лапароскопия, Перитонит. Официальный идентификатор: 64_2. МКБ-10: K35, K36, K37, K38.1, K38.8, K65, K66.8. Специальности: gastroenterology, hepatology, nutrition, pediatrics, surgery, traumatology-orthopedics. Возрастные категории: Дети.\n\nПолные данные находятся в скачиваемом модуле «minimed.clinical.gastro-hepatology.ru» и не дублируются в ядре.",
-       "normalizedText": "острый остр аппендицит перитонит детей сведения сведен документе документ название назв объявленные объявленн алиасы алиас указано указан каталоге каталог ключевые ключев слова слов аппендэктомия аппендэктом лапароскопия лапароскоп официальный официальн идентификатор 64 мкб 10 k35 k36 k37 k38 k65 k66 специальности специальн gastroenterology hepatology nutrition pediatrics surgery traumatology orthopedics возрастные возрастн категории категори дети полные полн данные данн находятся находятс скачиваемом скачиваем модуле модул minimed clinical gastro ru дублируются дублируютс ядре k35 k36 k37 k381 381 k388 388 k65 k668 668",
+       "normalizedText": "острый аппендицит перитонит детей сведения документе название острый аппендицит перитонит детей объявленные алиасы указано каталоге ключевые слова острый аппендицит аппендэктомия лапароскопия перитонит официальный идентификатор 64 мкб 10 k35 k36 k37 k38 k38 k65 k66 специальности gastroenterology hepatology nutrition pediatrics surgery traumatology orthopedics возрастные категории дети полные данные находятся скачиваемом модуле minimed clinical gastro hepatology ru дублируются ядре остр сведен документ назв объявленн алиас указан каталог ключев слов аппендэктом лапароскоп официальн специальн возрастн категори полн данн находятс скачиваем модул дублируютс k35 k36 k37 k381 381 k388 388 k65 k668 668",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
@@ -1685,327 +1443,73 @@
      "Дети"
     ],
     "canonicalDefinition": {
-     "definitionId": "clinical.definition.281_3.19c79610e6e591b9eca3",
+     "definitionId": "clinical.definition.281_3.7349c88fad7da1e66c6d",
      "text": "воспалительный процесс уротелия в различных отделах мочевого тракта, возникающий в ответ на появление патогенных микроорганизмов в мочевыводящих путях.",
      "sourceDocumentId": "kr.rf.281_3",
      "sourceDocumentVersionId": "kr.rf.281_3@281_3",
-     "sourceSectionId": "section.33632028f76de901",
-     "sourceChunkId": "chunk.ace0394e1e1e2984",
-     "sourceAnchor": "kr.rf.281_3@281_3/1-краткая-информация-по-заболеванию-или-состоянию-группе/1-1-определение-заболевания-или-состояния-группы-заболеваний-или#chunk-ace0394e",
-     "sourceSectionTitle": "1.1 Определение заболевания или состояния (группы заболеваний или",
+     "sourceSectionId": "section.580b6406b62bc8e2",
+     "sourceChunkId": "chunk.2550fe8a3df6f422",
+     "sourceAnchor": "kr.rf.281_3@281_3/1-краткая-информация/1-1-определение-заболевания-или-состояния#chunk-2550fe8a",
+     "sourceSectionTitle": "1.1 Определение заболевания или состояния",
      "sourceQuote": "Инфекция мочевых путей (ИМП) – воспалительный процесс уротелия в различных отделах мочевого тракта, возникающий в ответ на появление патогенных микроорганизмов в мочевыводящих путях.",
-     "pageStart": 5,
-     "pageEnd": 6,
+     "pageStart": null,
+     "pageEnd": null,
      "charStart": null,
      "charEnd": null,
      "sourceSpans": [
       {
-       "bbox": [
-        106.34,
-        230.768,
-        169.1,
-        244.052
-       ],
-       "block": "p5-b8",
+       "block": "json-b39",
        "kind": "paragraph",
-       "page": 5
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        106.34,
-        251.198,
-        555.71,
-        264.482
-       ],
-       "block": "p5-b9",
+       "block": "json-b40",
        "kind": "paragraph",
-       "page": 5
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        70.944,
-        271.958,
-        555.504,
-        285.242
-       ],
-       "block": "p5-b10",
+       "block": "json-b41",
        "kind": "paragraph",
-       "page": 5
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        70.944,
-        292.598,
-        195.77,
-        305.882
-       ],
-       "block": "p5-b11",
+       "block": "json-b42",
        "kind": "paragraph",
-       "page": 5
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        106.34,
-        313.358,
-        499.06,
-        326.642
-       ],
-       "block": "p5-b12",
+       "block": "json-b43",
        "kind": "paragraph",
-       "page": 5
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        106.34,
-        333.998,
-        555.802,
-        347.282
-       ],
-       "block": "p5-b13",
+       "block": "json-b44",
        "kind": "paragraph",
-       "page": 5
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        70.944,
-        352.766,
-        555.79,
-        368.042
-       ],
-       "block": "p5-b14",
+       "block": "json-b45",
        "kind": "paragraph",
-       "page": 5
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        70.944,
-        375.398,
-        555.662,
-        388.682
-       ],
-       "block": "p5-b15",
+       "block": "json-b46",
        "kind": "paragraph",
-       "page": 5
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       },
       {
-       "bbox": [
-        70.944,
-        396.158,
-        555.65,
-        409.442
-       ],
-       "block": "p5-b16",
+       "block": "json-b47",
        "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        416.798,
-        117.26,
-        430.082
-       ],
-       "block": "p5-b17",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        106.34,
-        437.578,
-        555.856,
-        450.862
-       ],
-       "block": "p5-b18",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        458.218,
-        372.31,
-        471.502
-       ],
-       "block": "p5-b19",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        106.34,
-        478.858,
-        555.674,
-        492.142
-       ],
-       "block": "p5-b20",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        499.618,
-        157.22,
-        512.902
-       ],
-       "block": "p5-b21",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        106.34,
-        520.258,
-        555.746,
-        533.542
-       ],
-       "block": "p5-b22",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        541.018,
-        555.916,
-        554.302
-       ],
-       "block": "p5-b23",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        561.658,
-        555.564,
-        574.942
-       ],
-       "block": "p5-b24",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        582.418,
-        136.7,
-        595.702
-       ],
-       "block": "p5-b25",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        106.34,
-        603.058,
-        555.766,
-        616.342
-       ],
-       "block": "p5-b26",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        623.848,
-        189.29,
-        637.132
-       ],
-       "block": "p5-b27",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        106.34,
-        644.488,
-        555.662,
-        657.772
-       ],
-       "block": "p5-b28",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        665.248,
-        555.73,
-        678.532
-       ],
-       "block": "p5-b29",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        685.888,
-        555.516,
-        699.172
-       ],
-       "block": "p5-b30",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        706.648,
-        106.22,
-        719.932
-       ],
-       "block": "p5-b31",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        106.34,
-        727.288,
-        555.79,
-        740.572
-       ],
-       "block": "p5-b32",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        748.044,
-        555.516,
-        761.328
-       ],
-       "block": "p5-b33",
-       "kind": "paragraph",
-       "page": 5
-      },
-      {
-       "bbox": [
-        70.944,
-        56.868,
-        555.928,
-        70.152
-       ],
-       "block": "p6-b2",
-       "kind": "paragraph",
-       "page": 6
-      },
-      {
-       "bbox": [
-        70.944,
-        77.648,
-        223.61,
-        90.932
-       ],
-       "block": "p6-b3",
-       "kind": "paragraph",
-       "page": 6
+       "sourceSectionId": "doc_crat_info_1_1",
+       "sourceSectionOrder": 5
       }
      ]
     },
@@ -2189,25 +1693,67 @@
     ],
     "sourceFile": "https://cr.minzdrav.gov.ru/preview-cr/281_3",
     "conceptId": "core.concept.a7867aa8bb77a67d0904902b",
-    "definitionPreviewAnchor": "core.catalog.pointer.clinical.kr.rf.281_3-a7867aa8bb77a67d@281_3/определение#chunk-52c03db0"
+    "definitionPreviewAnchor": "core.catalog.pointer.clinical.kr.rf.281_3-a7867aa8bb77a67d@281_3/определение#chunk-ba205695"
    },
    "version": {
     "id": "core.catalog.pointer.clinical.kr.rf.281_3-a7867aa8bb77a67d@281_3",
     "label": "281_3",
     "effectiveFrom": null,
     "effectiveTo": null,
-    "sourceChecksum": "sha256:a14abfa52b37f764b7e725468f4e95351c264e2bb8504d6608c65284bfbe6aa0",
-    "extractedAt": "2026-09-04T16:30:00Z"
+    "sourceChecksum": "sha256:d74a368f33ac33e926e88c9d6a08326f5b5e8895fb2bec96dd59b6a6d0404247",
+    "extractedAt": "2026-10-02T00:00:00Z"
    },
    "sections": [
+    {
+     "id": "section.4e542c371125a0cb",
+     "parentSectionId": null,
+     "title": "Определение",
+     "normalizedTitle": "определение определ",
+     "sectionType": "other",
+     "depth": 1,
+     "orderIndex": 0,
+     "pageStart": null,
+     "pageEnd": null,
+     "anchor": "core.catalog.pointer.clinical.kr.rf.281_3-a7867aa8bb77a67d@281_3/определение",
+     "sectionPath": [
+      "Определение"
+     ],
+     "chunks": [
+      {
+       "id": "chunk.ba205695b2967c42",
+       "orderIndex": 0,
+       "originalText": "воспалительный процесс уротелия в различных отделах мочевого тракта, возникающий в ответ на появление патогенных микроорганизмов в мочевыводящих путях.\n\nИсточник определения: клиническая рекомендация «Инфекция мочевых путей», раздел «1.1 Определение заболевания или состояния».",
+       "normalizedText": "инфекция мочевых путей определение воспалительный процесс уротелия различных отделах мочевого тракта возникающий ответ появление патогенных микроорганизмов мочевыводящих путях источник определения клиническая рекомендация инфекция мочевых путей раздел определение заболевания состояния инфекц определ воспалительн уротел отдел мочев тракт возникающ появл микроорганизм определен клиническ рекомендац заболев состоян n10 n11 n136 136 n151 151 n30 n300 300 n301 301 n309 309 n390 390",
+       "pageStart": null,
+       "pageEnd": null,
+       "charStart": null,
+       "charEnd": null,
+       "anchor": "core.catalog.pointer.clinical.kr.rf.281_3-a7867aa8bb77a67d@281_3/определение#chunk-ba205695",
+       "metadata": {
+        "localOrder": 0,
+        "icd10Codes": [
+         "N10",
+         "N11",
+         "N13.6",
+         "N15.1",
+         "N30",
+         "N30.0",
+         "N30.1",
+         "N30.9",
+         "N39.0"
+        ]
+       }
+      }
+     ]
+    },
     {
      "id": "section.30a86a72aacd6f7b",
      "parentSectionId": null,
      "title": "Сведения о документе",
-     "normalizedTitle": "сведения сведен документе документ",
+     "normalizedTitle": "сведения документе сведен документ",
      "sectionType": "other",
      "depth": 1,
-     "orderIndex": 0,
+     "orderIndex": 1,
      "pageStart": null,
      "pageEnd": null,
      "anchor": "core.catalog.pointer.clinical.kr.rf.281_3-a7867aa8bb77a67d@281_3/сведения-о-документе",
@@ -2217,9 +1763,9 @@
      "chunks": [
       {
        "id": "chunk.e7567059f8895537",
-       "orderIndex": 0,
+       "orderIndex": 1,
        "originalText": "Название: Инфекция мочевых путей. Объявленные алиасы: ИМП. Ключевые слова: дети, инфекция мочевыводящих путей, пиелонефрит, цистит. Официальный идентификатор: 281_3. МКБ-10: N10, N11, N13.6, N15.1, N30, N30.0, N30.1, N30.9, N39.0. Специальности: nephrology, urology, infectious-diseases, epidemiology, pediatrics. Возрастные категории: Дети.\n\nПолные данные находятся в скачиваемом модуле «minimed.clinical.nephrology-urology.ru» и не дублируются в ядре.",
-       "normalizedText": "инфекция инфекц мочевых путей сведения сведен документе документ название назв объявленные объявленн алиасы алиас имп ключевые ключев слова слов дети мочевыводящих пиелонефрит цистит официальный официальн идентификатор 281 мкб 10 n10 n11 n13 n15 n30 n39 специальности специальн nephrology urology infectious diseases epidemiology pediatrics возрастные возрастн категории категори полные полн данные данн находятся находятс скачиваемом скачиваем модуле модул minimed clinical ru дублируются дублируютс ядре n10 n11 n136 136 n151 151 n30 n300 300 n301 301 n309 309 n390 390",
+       "normalizedText": "инфекция мочевых путей сведения документе название инфекция мочевых путей объявленные алиасы имп ключевые слова дети инфекция мочевыводящих путей пиелонефрит цистит официальный идентификатор 281 мкб 10 n10 n11 n13 n15 n30 n30 n30 n30 n39 специальности nephrology urology infectious diseases epidemiology pediatrics возрастные категории дети полные данные находятся скачиваемом модуле minimed clinical nephrology urology ru дублируются ядре инфекц сведен документ назв объявленн алиас ключев слов официальн специальн возрастн категори полн данн находятс скачиваем модул дублируютс n10 n11 n136 136 n151 151 n30 n300 300 n301 301 n309 309 n390 390",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
@@ -2245,37 +1791,6 @@
          "N30.9",
          "N39.0"
         ]
-       }
-      }
-     ]
-    },
-    {
-     "id": "section.4e542c371125a0cb",
-     "parentSectionId": null,
-     "title": "Определение",
-     "normalizedTitle": "определение определ",
-     "sectionType": "other",
-     "depth": 1,
-     "orderIndex": 1,
-     "pageStart": null,
-     "pageEnd": null,
-     "anchor": "core.catalog.pointer.clinical.kr.rf.281_3-a7867aa8bb77a67d@281_3/определение",
-     "sectionPath": [
-      "Определение"
-     ],
-     "chunks": [
-      {
-       "id": "chunk.52c03db0ff70b301",
-       "orderIndex": 1,
-       "originalText": "воспалительный процесс уротелия в различных отделах мочевого тракта, возникающий в ответ на появление патогенных микроорганизмов в мочевыводящих путях.\n\nИсточник определения: клиническая рекомендация «Инфекция мочевых путей», раздел «1.1 Определение заболевания или состояния (группы заболеваний или».",
-       "normalizedText": "инфекция инфекц мочевых путей определение определ воспалительный воспалительн процесс уротелия уротел различных отделах отдел мочевого мочев тракта тракт возникающий возникающ ответ появление появл патогенных микроорганизмов микроорганизм мочевыводящих путях источник определения определен клиническая клиническ рекомендация рекомендац раздел заболевания заболев состояния состоян группы групп заболеваний заболеван",
-       "pageStart": null,
-       "pageEnd": null,
-       "charStart": null,
-       "charEnd": null,
-       "anchor": "core.catalog.pointer.clinical.kr.rf.281_3-a7867aa8bb77a67d@281_3/определение#chunk-52c03db0",
-       "metadata": {
-        "localOrder": 0
        }
       }
      ]
@@ -3831,9 +3346,6 @@
     "sourceExtractedAt": "2026-08-14T13:10:28Z",
     "rightsStatus": "unknown",
     "requiresReview": true,
-    "declaredAliases": [],
-    "sourceFile": "https://www.rlsnet.ru/mkb/pnevmoniya-bez-utocneniya-vozbuditelya-221",
-    "conceptId": "core.concept.4ceda38905999ac3c19f610d",
     "referenceCoverage": "classification-only",
     "classificationPath": [
      {
@@ -3846,7 +3358,227 @@
       "sourceChunkId": "chunk.4244939f1d9d14a3",
       "sourceAnchor": "rls.mkb.classification@rls-3a6900f460eb/узлы-классификации/j09-j18-грипп-и-пневмония#chunk-4244939f"
      }
-    ]
+    ],
+    "globalQueryAliases": [
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.0",
+      "canonicalTerm": "J18",
+      "alias": "Пневмония бактериальная",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.1",
+      "canonicalTerm": "J18",
+      "alias": "Пневмония очаговая",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.10",
+      "canonicalTerm": "J18",
+      "alias": "Нозокомиальная пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.11",
+      "canonicalTerm": "J18",
+      "alias": "Крупозная пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.12",
+      "canonicalTerm": "J18",
+      "alias": "Обострение хронической пневмонии",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.13",
+      "canonicalTerm": "J18",
+      "alias": "Очаговая пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.14",
+      "canonicalTerm": "J18",
+      "alias": "Пневмония с затруднением отхождения мокроты",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.15",
+      "canonicalTerm": "J18",
+      "alias": "Пневмония у больных СПИДом",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.16",
+      "canonicalTerm": "J18",
+      "alias": "Пневмония у детей",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.17",
+      "canonicalTerm": "J18",
+      "alias": "Внебольничная пневмония атипичная",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.18",
+      "canonicalTerm": "J18",
+      "alias": "Внебольничная пневмония непневмококковая",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.19",
+      "canonicalTerm": "J18",
+      "alias": "Септическая пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.2",
+      "canonicalTerm": "J18",
+      "alias": "Пневмония крупозная",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.20",
+      "canonicalTerm": "J18",
+      "alias": "Хроническая пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.21",
+      "canonicalTerm": "J18",
+      "alias": "Воспалительное заболевание легких",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.22",
+      "canonicalTerm": "J18",
+      "alias": "Воспаление легких",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.23",
+      "canonicalTerm": "J18",
+      "alias": "Инфекции нижнего отдела дыхательных путей",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.24",
+      "canonicalTerm": "J18",
+      "alias": "Кашель при воспалительных заболеваниях легких и бронхов",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.25",
+      "canonicalTerm": "J18",
+      "alias": "Острая внебольничная пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.26",
+      "canonicalTerm": "J18",
+      "alias": "Лимфоидная интерстициальная пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.3",
+      "canonicalTerm": "J18",
+      "alias": "Пневмония абсцедирующая",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.4",
+      "canonicalTerm": "J18",
+      "alias": "Острая пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.5",
+      "canonicalTerm": "J18",
+      "alias": "Хроническая обструктивная пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.6",
+      "canonicalTerm": "J18",
+      "alias": "Долевая пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.7",
+      "canonicalTerm": "J18",
+      "alias": "Инфекции дыхательных путей и легких",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.8",
+      "canonicalTerm": "J18",
+      "alias": "Альвеолярная пневмония",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     },
+     {
+      "sourceAliasId": "alias.rls.mkb.j18.9",
+      "canonicalTerm": "J18",
+      "alias": "Воспаление нижних дыхательных путей",
+      "category": "diagnosis",
+      "weight": 1,
+      "sourceKind": "global-query-expansion"
+     }
+    ],
+    "sourceFile": "https://www.rlsnet.ru/mkb/pnevmoniya-bez-utocneniya-vozbuditelya-221",
+    "conceptId": "core.concept.4ceda38905999ac3c19f610d"
    },
    "version": {
     "id": "core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3@rls-2faacac9954c",
@@ -3854,34 +3586,34 @@
     "effectiveFrom": null,
     "effectiveTo": null,
     "sourceChecksum": "sha256:765828250bd9545fc3627c581514e8dc91279f2d735493d44547b824f4d17d6d",
-    "extractedAt": "2026-09-05T00:00:00Z"
+    "extractedAt": "2026-10-02T00:00:00Z"
    },
    "sections": [
     {
-     "id": "section.e9ce05e0ca60a1f7",
+     "id": "section.2e53c06def51d79b",
      "parentSectionId": null,
      "title": "Сведения МКБ-10",
-     "normalizedTitle": "сведения сведен мкб 10",
+     "normalizedTitle": "сведения мкб 10 сведен",
      "sectionType": "other",
      "depth": 1,
      "orderIndex": 0,
      "pageStart": null,
      "pageEnd": null,
-     "anchor": "core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3@rls-2faacac9954c/указатель-справочного-материала",
+     "anchor": "core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3@rls-2faacac9954c/сведения-мкб-10",
      "sectionPath": [
       "Сведения МКБ-10"
      ],
      "chunks": [
       {
-       "id": "chunk.3d84159f2c8ed262",
+       "id": "chunk.8c0cbe1a64259c7e",
        "orderIndex": 0,
        "originalText": "МКБ-10: J18 — Пневмония без уточнения возбудителя. Источник: Регистр лекарственных средств России; https://www.rlsnet.ru/mkb/pnevmoniya-bez-utocneniya-vozbuditelya-221.",
-       "normalizedText": "j18 пневмония пневмон уточнения уточнен возбудителя возбудител мкб 10 сведения сведен источник регистр лекарственных средств россии росси https www rlsnet ru mkb pnevmoniya bez utocneniya vozbuditelya 221",
+       "normalizedText": "j18 пневмония уточнения возбудителя мкб 10 сведения мкб 10 мкб 10 j18 пневмония уточнения возбудителя источник регистр лекарственных средств россии https www rlsnet ru mkb pnevmoniya bez utocneniya vozbuditelya 221 пневмон уточнен возбудител сведен росси j18",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
        "charEnd": null,
-       "anchor": "core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3@rls-2faacac9954c/указатель-справочного-материала#chunk-3d84159f",
+       "anchor": "core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3@rls-2faacac9954c/сведения-мкб-10#chunk-8c0cbe1a",
        "metadata": {
         "localOrder": 0,
         "sourceSpans": [
@@ -3890,6 +3622,9 @@
           "kind": "catalog-metadata",
           "recordId": "rls.mkb.node.j18"
          }
+        ],
+        "icd10Codes": [
+         "J18"
         ]
        }
       }
@@ -3899,7 +3634,7 @@
      "id": "section.2e92c254e17230eb",
      "parentSectionId": null,
      "title": "Классификационный контекст",
-     "normalizedTitle": "классификационный классификационн контекст",
+     "normalizedTitle": "классификационный контекст классификационн",
      "sectionType": "classification",
      "depth": 1,
      "orderIndex": 1,
@@ -3914,7 +3649,7 @@
        "id": "chunk.f8d9f127545ff358",
        "orderIndex": 1,
        "originalText": "- J09-J18 Грипп и пневмония",
-       "normalizedText": "j18 пневмония пневмон уточнения уточнен возбудителя возбудител мкб 10 классификационный классификационн контекст j09 грипп",
+       "normalizedText": "j18 пневмония уточнения возбудителя мкб 10 классификационный контекст j09 j18 грипп пневмония пневмон уточнен возбудител классификационн j18",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
@@ -3928,6 +3663,9 @@
           "kind": "catalog-metadata",
           "recordId": "rls.mkb.classification"
          }
+        ],
+        "icd10Codes": [
+         "J18"
         ]
        }
       }
@@ -3937,7 +3675,7 @@
      "id": "section.e62b069951e3bf66",
      "parentSectionId": null,
      "title": "Ограничение покрытия",
-     "normalizedTitle": "ограничение огранич покрытия покрыт",
+     "normalizedTitle": "ограничение покрытия огранич покрыт",
      "sectionType": "other",
      "depth": 1,
      "orderIndex": 2,
@@ -3952,14 +3690,17 @@
        "id": "chunk.0a2b9b1ee6f3ea1f",
        "orderIndex": 2,
        "originalText": "В указателе сохранены код, название и доступный классификационный контекст источника. Клиническое описание и рекомендации в этом материале отсутствуют.",
-       "normalizedText": "j18 пневмония пневмон уточнения уточнен возбудителя возбудител мкб 10 ограничение огранич покрытия покрыт указателе указател сохранены сохранен код название назв доступный доступн классификационный классификационн контекст источника источник клиническое клиническ описание опис рекомендации рекомендаци этом материале материал отсутствуют",
+       "normalizedText": "j18 пневмония уточнения возбудителя мкб 10 ограничение покрытия указателе сохранены код название доступный классификационный контекст источника клиническое описание рекомендации этом материале отсутствуют пневмон уточнен возбудител огранич покрыт указател сохранен назв доступн классификационн источник клиническ опис рекомендаци материал j18",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
        "charEnd": null,
        "anchor": "core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3@rls-2faacac9954c/ограничение-покрытия#chunk-0a2b9b1e",
        "metadata": {
-        "localOrder": 0
+        "localOrder": 0,
+        "icd10Codes": [
+         "J18"
+        ]
        }
       }
      ]
@@ -4003,9 +3744,6 @@
     "sourceExtractedAt": "2026-08-14T13:10:28Z",
     "rightsStatus": "unknown",
     "requiresReview": true,
-    "declaredAliases": [],
-    "sourceFile": "https://www.rlsnet.ru/mkb/ostryi-appendicit-6193",
-    "conceptId": "core.concept.22ccffc46f17599659849be6",
     "referenceCoverage": "classification-only",
     "classificationPath": [
      {
@@ -4018,7 +3756,9 @@
       "sourceChunkId": "chunk.6b708e5849d052b5",
       "sourceAnchor": "rls.mkb.classification@rls-3a6900f460eb/узлы-классификации/k35-k38-болезни-аппендикса-червеобразного-отростка#chunk-6b708e58"
      }
-    ]
+    ],
+    "sourceFile": "https://www.rlsnet.ru/mkb/ostryi-appendicit-6193",
+    "conceptId": "core.concept.22ccffc46f17599659849be6"
    },
    "version": {
     "id": "core.catalog.pointer.reference.rls.mkb.node.k35-22ccffc46f175996@rls-f5a53b1704e5",
@@ -4026,34 +3766,34 @@
     "effectiveFrom": null,
     "effectiveTo": null,
     "sourceChecksum": "sha256:82c2530c82aa8898efab9b7d8482b6bf8a7dfcf63820b0d4f052cdf0605c0858",
-    "extractedAt": "2026-09-05T00:00:00Z"
+    "extractedAt": "2026-10-02T00:00:00Z"
    },
    "sections": [
     {
-     "id": "section.fae17b28bb131de7",
+     "id": "section.0c01f866ff777d4c",
      "parentSectionId": null,
      "title": "Сведения МКБ-10",
-     "normalizedTitle": "сведения сведен мкб 10",
+     "normalizedTitle": "сведения мкб 10 сведен",
      "sectionType": "other",
      "depth": 1,
      "orderIndex": 0,
      "pageStart": null,
      "pageEnd": null,
-     "anchor": "core.catalog.pointer.reference.rls.mkb.node.k35-22ccffc46f175996@rls-f5a53b1704e5/указатель-справочного-материала",
+     "anchor": "core.catalog.pointer.reference.rls.mkb.node.k35-22ccffc46f175996@rls-f5a53b1704e5/сведения-мкб-10",
      "sectionPath": [
       "Сведения МКБ-10"
      ],
      "chunks": [
       {
-       "id": "chunk.7c7fa5034e38b292",
+       "id": "chunk.ea6db18dbd1583ec",
        "orderIndex": 0,
        "originalText": "МКБ-10: K35 — Острый аппендицит. Источник: Регистр лекарственных средств России; https://www.rlsnet.ru/mkb/ostryi-appendicit-6193.",
-       "normalizedText": "k35 острый остр аппендицит мкб 10 сведения сведен источник регистр лекарственных средств россии росси https www rlsnet ru mkb ostryi appendicit 6193",
+       "normalizedText": "k35 острый аппендицит мкб 10 сведения мкб 10 мкб 10 k35 острый аппендицит источник регистр лекарственных средств россии https www rlsnet ru mkb ostryi appendicit 6193 остр сведен росси k35",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
        "charEnd": null,
-       "anchor": "core.catalog.pointer.reference.rls.mkb.node.k35-22ccffc46f175996@rls-f5a53b1704e5/указатель-справочного-материала#chunk-7c7fa503",
+       "anchor": "core.catalog.pointer.reference.rls.mkb.node.k35-22ccffc46f175996@rls-f5a53b1704e5/сведения-мкб-10#chunk-ea6db18d",
        "metadata": {
         "localOrder": 0,
         "sourceSpans": [
@@ -4062,6 +3802,9 @@
           "kind": "catalog-metadata",
           "recordId": "rls.mkb.node.k35"
          }
+        ],
+        "icd10Codes": [
+         "K35"
         ]
        }
       }
@@ -4071,7 +3814,7 @@
      "id": "section.924e528b9064333e",
      "parentSectionId": null,
      "title": "Классификационный контекст",
-     "normalizedTitle": "классификационный классификационн контекст",
+     "normalizedTitle": "классификационный контекст классификационн",
      "sectionType": "classification",
      "depth": 1,
      "orderIndex": 1,
@@ -4086,7 +3829,7 @@
        "id": "chunk.29cfbb0e740cb5e0",
        "orderIndex": 1,
        "originalText": "- K35-K38 Болезни аппендикса [червеобразного отростка]",
-       "normalizedText": "k35 острый остр аппендицит мкб 10 классификационный классификационн контекст k38 болезни болезн аппендикса аппендикс червеобразного червеобразн отростка отростк",
+       "normalizedText": "k35 острый аппендицит мкб 10 классификационный контекст k35 k38 болезни аппендикса червеобразного отростка остр классификационн болезн аппендикс червеобразн отростк k35",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
@@ -4100,6 +3843,9 @@
           "kind": "catalog-metadata",
           "recordId": "rls.mkb.classification"
          }
+        ],
+        "icd10Codes": [
+         "K35"
         ]
        }
       }
@@ -4109,7 +3855,7 @@
      "id": "section.195d09d2fc3e5dcd",
      "parentSectionId": null,
      "title": "Ограничение покрытия",
-     "normalizedTitle": "ограничение огранич покрытия покрыт",
+     "normalizedTitle": "ограничение покрытия огранич покрыт",
      "sectionType": "other",
      "depth": 1,
      "orderIndex": 2,
@@ -4124,14 +3870,17 @@
        "id": "chunk.20620170c5a590da",
        "orderIndex": 2,
        "originalText": "В указателе сохранены код, название и доступный классификационный контекст источника. Клиническое описание и рекомендации в этом материале отсутствуют.",
-       "normalizedText": "k35 острый остр аппендицит мкб 10 ограничение огранич покрытия покрыт указателе указател сохранены сохранен код название назв доступный доступн классификационный классификационн контекст источника источник клиническое клиническ описание опис рекомендации рекомендаци этом материале материал отсутствуют",
+       "normalizedText": "k35 острый аппендицит мкб 10 ограничение покрытия указателе сохранены код название доступный классификационный контекст источника клиническое описание рекомендации этом материале отсутствуют остр огранич покрыт указател сохранен назв доступн классификационн источник клиническ опис рекомендаци материал k35",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
        "charEnd": null,
        "anchor": "core.catalog.pointer.reference.rls.mkb.node.k35-22ccffc46f175996@rls-f5a53b1704e5/ограничение-покрытия#chunk-20620170",
        "metadata": {
-        "localOrder": 0
+        "localOrder": 0,
+        "icd10Codes": [
+         "K35"
+        ]
        }
       }
      ]
@@ -4175,61 +3924,6 @@
     "sourceExtractedAt": "2026-08-14T13:10:28Z",
     "rightsStatus": "unknown",
     "requiresReview": true,
-    "declaredAliases": [
-     "Инфекции урогенитальные",
-     "Бактериурия асимптоматическая",
-     "Инфекция мочеполовых путей",
-     "Ретроградная инфекция почек",
-     "Воспалительное заболевание мочевыводящих путей",
-     "Инфекции мочевых путей, вызванные энтерококками или смешанной флорой",
-     "Инфекция мочевых путей",
-     "Инфекции мочевыводящего тракта",
-     "Инфекции мочевыводящей системы",
-     "Инфекции мочевыводящих путей",
-     "Инфекции мочевых путей",
-     "Хронические инфекции мочевыводящих путей",
-     "Бактериальные инфекции мочевыводящих путей",
-     "Воспалительное заболеваний мочевого пузыря и мочевыводящих путей",
-     "Воспалительные заболевания мочевыводящей системы",
-     "Обострение хронической инфекции мочевого тракта",
-     "Рецидивирующие инфекции мочевыводящих путей",
-     "Хронические воспалительные заболевания органов малого таза",
-     "Неосложненные инфекции мочевыводящих путей",
-     "Рецидивирующие инфекции мочевых путей",
-     "Рецидивирующие инфекционные заболевания мочевыводящих путей",
-     "Воспалительное заболевание мочеполового тракта",
-     "Инфекции мочеполового тракта неосложненные",
-     "Бактериальные инфекции мочевых путей",
-     "Инфекции мочеполового тракта осложненные",
-     "Неосложненные инфекции мочевых путей",
-     "Неосложненные инфекции мочеполовой системы",
-     "Смешанные уретральные инфекции",
-     "Инфекции мочевого тракта",
-     "Инфекция урогенитального тракта",
-     "Урогенитальная инфекция",
-     "Урогенитальное инфекционно-воспалительное заболевание",
-     "Урологическое заболевание инфекционной этиологии",
-     "Хронические инфекционные заболевания мочевыводящей системы",
-     "Бактериальные инфекции мочеполовой системы",
-     "Инфекция мочевого тракта",
-     "Инфекция мочевыделительной системы",
-     "Хроническая инфекция мочевого тракта",
-     "Асимптоматическая бактериурия",
-     "Воспалительные заболевания мочевыводящих путей",
-     "Воспалительные заболевания урогенитальной системы",
-     "Инфекции органов мочеполовой системы",
-     "Инфекционные заболевания мочевыводящих путей",
-     "Урогенитальный микоплазмоз",
-     "Бактериурия хроническая скрытая",
-     "Бактериурия",
-     "Грибковые поражения мочевых путей",
-     "Бессимптомная бактериурия",
-     "Бессимптомная массивная бактериурия",
-     "Грибковые заболевания урогенитального тракта",
-     "Инфекция мочевыводящих путей"
-    ],
-    "sourceFile": "https://www.rlsnet.ru/mkb/infekciya-mocevyvodyashhix-putei-bez-ustanovlennoi-lokalizacii-43",
-    "conceptId": "core.concept.9ebe95fc60d6b6862f7d14af",
     "referenceCoverage": "classification-only",
     "classificationPath": [
      {
@@ -4253,17 +3947,14 @@
       "sourceAnchor": "rls.mkb.classification@rls-3a6900f460eb/узлы-классификации/n30-n39-другие-болезни-мочевой-системы#chunk-22c0c9d3"
      }
     ],
-    "sourceAliases": [
+    "globalQueryAliases": [
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.0",
       "canonicalTerm": "N39.0",
       "alias": "Инфекции урогенитальные",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.1",
@@ -4271,10 +3962,7 @@
       "alias": "Бактериурия асимптоматическая",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.10",
@@ -4282,10 +3970,7 @@
       "alias": "Инфекция мочеполовых путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.11",
@@ -4293,10 +3978,7 @@
       "alias": "Ретроградная инфекция почек",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.12",
@@ -4304,10 +3986,7 @@
       "alias": "Воспалительное заболевание мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.13",
@@ -4315,10 +3994,7 @@
       "alias": "Инфекции мочевых путей, вызванные энтерококками или смешанной флорой",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.14",
@@ -4326,10 +4002,7 @@
       "alias": "Инфекция мочевых путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.15",
@@ -4337,10 +4010,7 @@
       "alias": "Инфекции мочевыводящего тракта",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.16",
@@ -4348,10 +4018,7 @@
       "alias": "Инфекции мочевыводящей системы",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.17",
@@ -4359,10 +4026,7 @@
       "alias": "Инфекции мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.18",
@@ -4370,10 +4034,7 @@
       "alias": "Инфекции мочевых путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.19",
@@ -4381,10 +4042,7 @@
       "alias": "Хронические инфекции мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.2",
@@ -4392,10 +4050,7 @@
       "alias": "Бактериальные инфекции мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.20",
@@ -4403,10 +4058,7 @@
       "alias": "Воспалительное заболеваний мочевого пузыря и мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.21",
@@ -4414,10 +4066,7 @@
       "alias": "Воспалительные заболевания мочевыводящей системы",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.22",
@@ -4425,10 +4074,7 @@
       "alias": "Обострение хронической инфекции мочевого тракта",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.23",
@@ -4436,10 +4082,7 @@
       "alias": "Рецидивирующие инфекции мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.24",
@@ -4447,10 +4090,7 @@
       "alias": "Хронические воспалительные заболевания органов малого таза",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.25",
@@ -4458,10 +4098,7 @@
       "alias": "Неосложненные инфекции мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.26",
@@ -4469,10 +4106,7 @@
       "alias": "Рецидивирующие инфекции мочевых путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.27",
@@ -4480,10 +4114,7 @@
       "alias": "Рецидивирующие инфекционные заболевания мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.28",
@@ -4491,10 +4122,7 @@
       "alias": "Воспалительное заболевание мочеполового тракта",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.29",
@@ -4502,10 +4130,7 @@
       "alias": "Инфекции мочеполового тракта неосложненные",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.3",
@@ -4513,10 +4138,7 @@
       "alias": "Бактериальные инфекции мочевых путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.30",
@@ -4524,10 +4146,7 @@
       "alias": "Инфекции мочеполового тракта осложненные",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.31",
@@ -4535,10 +4154,7 @@
       "alias": "Неосложненные инфекции мочевых путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.32",
@@ -4546,10 +4162,7 @@
       "alias": "Неосложненные инфекции мочеполовой системы",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.33",
@@ -4557,10 +4170,7 @@
       "alias": "Смешанные уретральные инфекции",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.34",
@@ -4568,10 +4178,7 @@
       "alias": "Инфекции мочевого тракта",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.35",
@@ -4579,10 +4186,7 @@
       "alias": "Инфекция урогенитального тракта",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.36",
@@ -4590,10 +4194,7 @@
       "alias": "Урогенитальная инфекция",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.37",
@@ -4601,10 +4202,7 @@
       "alias": "Урогенитальное инфекционно-воспалительное заболевание",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.38",
@@ -4612,10 +4210,7 @@
       "alias": "Урологическое заболевание инфекционной этиологии",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.39",
@@ -4623,10 +4218,7 @@
       "alias": "Хронические инфекционные заболевания мочевыводящей системы",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.4",
@@ -4634,10 +4226,7 @@
       "alias": "Бактериальные инфекции мочеполовой системы",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.40",
@@ -4645,10 +4234,7 @@
       "alias": "Инфекция мочевого тракта",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.41",
@@ -4656,10 +4242,7 @@
       "alias": "Инфекция мочевыделительной системы",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.42",
@@ -4667,10 +4250,7 @@
       "alias": "Хроническая инфекция мочевого тракта",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.43",
@@ -4678,10 +4258,7 @@
       "alias": "Асимптоматическая бактериурия",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.44",
@@ -4689,10 +4266,7 @@
       "alias": "Воспалительные заболевания мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.45",
@@ -4700,10 +4274,7 @@
       "alias": "Воспалительные заболевания урогенитальной системы",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.46",
@@ -4711,10 +4282,7 @@
       "alias": "Инфекции органов мочеполовой системы",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.47",
@@ -4722,10 +4290,7 @@
       "alias": "Инфекционные заболевания мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.48",
@@ -4733,10 +4298,7 @@
       "alias": "Урогенитальный микоплазмоз",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.49",
@@ -4744,10 +4306,7 @@
       "alias": "Бактериурия хроническая скрытая",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.5",
@@ -4755,10 +4314,7 @@
       "alias": "Бактериурия",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.50",
@@ -4766,10 +4322,7 @@
       "alias": "Грибковые поражения мочевых путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.6",
@@ -4777,10 +4330,7 @@
       "alias": "Бессимптомная бактериурия",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.7",
@@ -4788,10 +4338,7 @@
       "alias": "Бессимптомная массивная бактериурия",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.8",
@@ -4799,10 +4346,7 @@
       "alias": "Грибковые заболевания урогенитального тракта",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      },
      {
       "sourceAliasId": "alias.rls.mkb.n39-0.9",
@@ -4810,12 +4354,11 @@
       "alias": "Инфекция мочевыводящих путей",
       "category": "diagnosis",
       "weight": 1,
-      "sourceDocumentId": "rls.mkb.node.n39-0",
-      "sourceDocumentVersionId": "rls.mkb.node.n39-0@rls-ccdd3160b735",
-      "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-      "sourceKind": "synonyms"
+      "sourceKind": "global-query-expansion"
      }
-    ]
+    ],
+    "sourceFile": "https://www.rlsnet.ru/mkb/infekciya-mocevyvodyashhix-putei-bez-ustanovlennoi-lokalizacii-43",
+    "conceptId": "core.concept.9ebe95fc60d6b6862f7d14af"
    },
    "version": {
     "id": "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686@rls-ccdd3160b735",
@@ -4823,34 +4366,34 @@
     "effectiveFrom": null,
     "effectiveTo": null,
     "sourceChecksum": "sha256:91ace3312ea97f49bc5da70e77269f5930e4fb192f0863dc16f31af9fe71417f",
-    "extractedAt": "2026-09-05T00:00:00Z"
+    "extractedAt": "2026-10-02T00:00:00Z"
    },
    "sections": [
     {
-     "id": "section.0f4414fc48c2e564",
+     "id": "section.b53dbf4b0688b45e",
      "parentSectionId": null,
      "title": "Сведения МКБ-10",
-     "normalizedTitle": "сведения сведен мкб 10",
+     "normalizedTitle": "сведения мкб 10 сведен",
      "sectionType": "other",
      "depth": 1,
      "orderIndex": 0,
      "pageStart": null,
      "pageEnd": null,
-     "anchor": "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686@rls-ccdd3160b735/указатель-справочного-материала",
+     "anchor": "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686@rls-ccdd3160b735/сведения-мкб-10",
      "sectionPath": [
       "Сведения МКБ-10"
      ],
      "chunks": [
       {
-       "id": "chunk.33120d8e295b22af",
+       "id": "chunk.f5f2182271ae099a",
        "orderIndex": 0,
        "originalText": "МКБ-10: N39.0 — Инфекция мочевыводящих путей без установленной локализации. Источник: Регистр лекарственных средств России; https://www.rlsnet.ru/mkb/infekciya-mocevyvodyashhix-putei-bez-ustanovlennoi-lokalizacii-43.",
-       "normalizedText": "n39 инфекция инфекц мочевыводящих путей установленной установленн локализации локализаци мкб 10 сведения сведен источник регистр лекарственных средств россии росси https www rlsnet ru mkb infekciya mocevyvodyashhix putei bez ustanovlennoi lokalizacii 43",
+       "normalizedText": "n39 инфекция мочевыводящих путей установленной локализации мкб 10 сведения мкб 10 мкб 10 n39 инфекция мочевыводящих путей установленной локализации источник регистр лекарственных средств россии https www rlsnet ru mkb infekciya mocevyvodyashhix putei bez ustanovlennoi lokalizacii 43 инфекц установленн локализаци сведен росси n390 390",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
        "charEnd": null,
-       "anchor": "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686@rls-ccdd3160b735/указатель-справочного-материала#chunk-33120d8e",
+       "anchor": "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686@rls-ccdd3160b735/сведения-мкб-10#chunk-f5f21822",
        "metadata": {
         "localOrder": 0,
         "sourceSpans": [
@@ -4859,6 +4402,9 @@
           "kind": "catalog-metadata",
           "recordId": "rls.mkb.node.n39-0"
          }
+        ],
+        "icd10Codes": [
+         "N39.0"
         ]
        }
       }
@@ -4868,7 +4414,7 @@
      "id": "section.d8a36f22aed7ce78",
      "parentSectionId": null,
      "title": "Классификационный контекст",
-     "normalizedTitle": "классификационный классификационн контекст",
+     "normalizedTitle": "классификационный контекст классификационн",
      "sectionType": "classification",
      "depth": 1,
      "orderIndex": 1,
@@ -4883,7 +4429,7 @@
        "id": "chunk.6b175db402696c2a",
        "orderIndex": 1,
        "originalText": "- N39 Другие болезни мочевыделительной системы\n\n- N30-N39 Другие болезни мочевой системы",
-       "normalizedText": "n39 инфекция инфекц мочевыводящих путей установленной установленн локализации локализаци мкб 10 классификационный классификационн контекст другие друг болезни болезн мочевыделительной мочевыделительн системы систем n30 мочевой мочев",
+       "normalizedText": "n39 инфекция мочевыводящих путей установленной локализации мкб 10 классификационный контекст n39 другие болезни мочевыделительной системы n30 n39 другие болезни мочевой системы инфекц установленн локализаци классификационн друг болезн мочевыделительн систем мочев n390 390",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
@@ -4902,44 +4448,9 @@
           "kind": "catalog-metadata",
           "recordId": "rls.mkb.classification"
          }
-        ]
-       }
-      }
-     ]
-    },
-    {
-     "id": "section.aa05724ffbae0bd7",
-     "parentSectionId": null,
-     "title": "Синонимы",
-     "normalizedTitle": "синонимы синоним",
-     "sectionType": "other",
-     "depth": 1,
-     "orderIndex": 2,
-     "pageStart": null,
-     "pageEnd": null,
-     "anchor": "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686@rls-ccdd3160b735/синонимы",
-     "sectionPath": [
-      "Синонимы"
-     ],
-     "chunks": [
-      {
-       "id": "chunk.864792973fbc57b1",
-       "orderIndex": 2,
-       "originalText": "- Инфекции урогенитальные\n- Бактериурия асимптоматическая\n- Инфекция мочеполовых путей\n- Ретроградная инфекция почек\n- Воспалительное заболевание мочевыводящих путей\n- Инфекции мочевых путей, вызванные энтерококками или смешанной флорой\n- Инфекция мочевых путей\n- Инфекции мочевыводящего тракта\n- Инфекции мочевыводящей системы\n- Инфекции мочевыводящих путей\n- Инфекции мочевых путей\n- Хронические инфекции мочевыводящих путей\n- Бактериальные инфекции мочевыводящих путей\n- Воспалительное заболеваний мочевого пузыря и мочевыводящих путей\n- Воспалительные заболевания мочевыводящей системы\n- Обострение хронической инфекции мочевого тракта\n- Рецидивирующие инфекции мочевыводящих путей\n- Хронические воспалительные заболевания органов малого таза\n- Неосложненные инфекции мочевыводящих путей\n- Рецидивирующие инфекции мочевых путей\n- Рецидивирующие инфекционные заболевания мочевыводящих путей\n- Воспалительное заболевание мочеполового тракта\n- Инфекции мочеполового тракта неосложненные\n- Бактериальные инфекции мочевых путей\n- Инфекции мочеполового тракта осложненные\n- Неосложненные инфекции мочевых путей\n- Неосложненные инфекции мочеполовой системы\n- Смешанные уретральные инфекции\n- Инфекции мочевого тракта\n- Инфекция урогенитального тракта\n- Урогенитальная инфекция\n- Урогенитальное инфекционно-воспалительное заболевание\n- Урологическое заболевание инфекционной этиологии\n- Хронические инфекционные заболевания мочевыводящей системы\n- Бактериальные инфекции мочеполовой системы\n- Инфекция мочевого тракта\n- Инфекция мочевыделительной системы\n- Хроническая инфекция мочевого тракта\n- Асимптоматическая бактериурия\n- Воспалительные заболевания мочевыводящих путей\n- Воспалительные заболевания урогенитальной системы\n- Инфекции органов мочеполовой системы\n- Инфекционные заболевания мочевыводящих путей\n- Урогенитальный микоплазмоз\n- Бактериурия хроническая скрытая\n- Бактериурия\n- Грибковые поражения мочевых путей\n- Бессимптомная бактериурия\n- Бессимптомная массивная бактериурия\n- Грибковые заболевания урогенитального тракта\n- Инфекция мочевыводящих путей",
-       "normalizedText": "n39 инфекция инфекц мочевыводящих путей установленной установленн локализации локализаци мкб 10 синонимы синоним инфекции инфекци урогенитальные урогенитальн бактериурия бактериур асимптоматическая асимптоматическ мочеполовых ретроградная ретроградн почек воспалительное воспалительн заболевание заболев мочевых вызванные вызванн энтерококками энтерококк смешанной смешанн флорой флор мочевыводящего мочевыводящ тракта тракт мочевыводящей системы систем хронические хроническ бактериальные бактериальн заболеваний заболеван мочевого мочев пузыря пузыр воспалительные заболевания обострение обостр хронической рецидивирующие рецидивирующ органов орган малого малог таза неосложненные неосложненн инфекционные инфекционн мочеполового мочеполов осложненные осложненн мочеполовой смешанные уретральные уретральн урогенитального урогенитальная урогенитальное инфекционно урологическое урологическ инфекционной этиологии этиологи мочевыделительной мочевыделительн хроническая урогенитальной урогенитальный микоплазмоз скрытая скрыт грибковые грибков поражения поражен бессимптомная бессимптомн массивная массивн",
-       "pageStart": null,
-       "pageEnd": null,
-       "charStart": null,
-       "charEnd": null,
-       "anchor": "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686@rls-ccdd3160b735/синонимы#chunk-86479297",
-       "metadata": {
-        "localOrder": 0,
-        "sourceSpans": [
-         {
-          "field": "synonyms",
-          "kind": "catalog-metadata",
-          "recordId": "rls.mkb.node.n39-0"
-         }
+        ],
+        "icd10Codes": [
+         "N39.0"
         ]
        }
       }
@@ -4949,10 +4460,10 @@
      "id": "section.a48a591b83056ea0",
      "parentSectionId": null,
      "title": "Ограничение покрытия",
-     "normalizedTitle": "ограничение огранич покрытия покрыт",
+     "normalizedTitle": "ограничение покрытия огранич покрыт",
      "sectionType": "other",
      "depth": 1,
-     "orderIndex": 3,
+     "orderIndex": 2,
      "pageStart": null,
      "pageEnd": null,
      "anchor": "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686@rls-ccdd3160b735/ограничение-покрытия",
@@ -4962,16 +4473,19 @@
      "chunks": [
       {
        "id": "chunk.ab38a9e4d97a4fe2",
-       "orderIndex": 3,
+       "orderIndex": 2,
        "originalText": "В указателе сохранены код, название и доступный классификационный контекст источника. Клиническое описание и рекомендации в этом материале отсутствуют.",
-       "normalizedText": "n39 инфекция инфекц мочевыводящих путей установленной установленн локализации локализаци мкб 10 ограничение огранич покрытия покрыт указателе указател сохранены сохранен код название назв доступный доступн классификационный классификационн контекст источника источник клиническое клиническ описание опис рекомендации рекомендаци этом материале материал отсутствуют",
+       "normalizedText": "n39 инфекция мочевыводящих путей установленной локализации мкб 10 ограничение покрытия указателе сохранены код название доступный классификационный контекст источника клиническое описание рекомендации этом материале отсутствуют инфекц установленн локализаци огранич покрыт указател сохранен назв доступн классификационн источник клиническ опис рекомендаци материал n390 390",
        "pageStart": null,
        "pageEnd": null,
        "charStart": null,
        "charEnd": null,
        "anchor": "core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686@rls-ccdd3160b735/ограничение-покрытия#chunk-ab38a9e4",
        "metadata": {
-        "localOrder": 0
+        "localOrder": 0,
+        "icd10Codes": [
+         "N39.0"
+        ]
        }
       }
      ]
@@ -22436,6 +21950,300 @@
  ],
  "aliases": [
   {
+   "id": "alias.colloquial.abdominal-rumbling",
+   "canonicalTerm": "урчание в животе ротавирусный гастроэнтерит",
+   "alias": "живот урчит",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.apnea-infant",
+   "canonicalTerm": "апноэ дыхательная недостаточность",
+   "alias": "перестает дышать на несколько секунд",
+   "category": "finding",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.body-mass-index",
+   "canonicalTerm": "индекс массы тела",
+   "alias": "ИМТ",
+   "category": "measurement",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.bulging-fontanelle",
+   "canonicalTerm": "выбухание родничка менингококковая инфекция",
+   "alias": "родничок выбухает",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.cant-drink",
+   "canonicalTerm": "невозможность пить отказ от жидкости дегидратация",
+   "alias": "не может пить",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.chest-pain-pneumonia",
+   "canonicalTerm": "боль в груди пневмония",
+   "alias": "болит в грудной клетке при кашле",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.chills",
+   "canonicalTerm": "озноб пиелонефрит",
+   "alias": "трясет от температуры",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.cloudy-urine",
+   "canonicalTerm": "мутная моча резко пахнущая моча инфекция мочевых путей",
+   "alias": "моча стала мутная и воняет",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.crp-en",
+   "canonicalTerm": "С-реактивный белок",
+   "alias": "CRP",
+   "category": "investigation",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.crp-ru",
+   "canonicalTerm": "С-реактивный белок",
+   "alias": "СРБ",
+   "category": "investigation",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.cyanosis",
+   "canonicalTerm": "цианоз дыхательная недостаточность гипоксемия",
+   "alias": "губы синеют",
+   "category": "finding",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.daytime-wetting",
+   "canonicalTerm": "дневное недержание энурез инфекция мочевых путей",
+   "alias": "писается днем хотя раньше не было",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.disturbed-consciousness",
+   "canonicalTerm": "нарушение сознания менингококковая инфекция",
+   "alias": "стал заторможенным и плохо реагирует",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.fever-no-focus",
+   "canonicalTerm": "лихорадка без очага инфекции",
+   "alias": "температура без других симптомов",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.flank-pain",
+   "canonicalTerm": "боль в боку боль в пояснице пиелонефрит",
+   "alias": "болит сбоку спины",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.focal-breath-sounds",
+   "canonicalTerm": "локальные асимметричные изменения дыхания пневмония",
+   "alias": "с одной стороны дыхание хуже",
+   "category": "finding",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.frequent-urination",
+   "canonicalTerm": "частое мочеиспускание дизурия",
+   "alias": "часто писает",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.grunting",
+   "canonicalTerm": "кряхтящее стонущее дыхание дыхательный дистресс",
+   "alias": "стонет на выдохе",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.heart-rate",
+   "canonicalTerm": "частота сердечных сокращений",
+   "alias": "ЧСС",
+   "category": "measurement",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.intercostal-retractions",
+   "canonicalTerm": "втяжение межреберий бронхиолит",
+   "alias": "втягивает межреберья",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.low-saturation",
+   "canonicalTerm": "гипоксемия низкая сатурация дыхательная недостаточность",
+   "alias": "низкая сатурация",
+   "category": "measurement",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.monotone-cry",
+   "canonicalTerm": "монотонный крик менингококковая инфекция",
+   "alias": "плачет на одной ноте",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.nasal-flaring",
+   "canonicalTerm": "раздувание крыльев носа дыхательная недостаточность пневмония",
+   "alias": "раздувает ноздри при дыхании",
+   "category": "finding",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.nonblanching-pressure",
+   "canonicalTerm": "геморрагическая сыпь менингококковая инфекция",
+   "alias": "не бледнеет при надавливании",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.nonblanching-rash",
+   "canonicalTerm": "геморрагическая сыпь не бледнеет при надавливании менингококковая инфекция",
+   "alias": "сыпь не исчезает под стаканом",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.oak",
+   "canonicalTerm": "общий анализ крови",
+   "alias": "ОАК",
+   "category": "investigation",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.oam",
+   "canonicalTerm": "общий анализ мочи",
+   "alias": "ОАМ",
+   "category": "investigation",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.oral-rehydration-colloquial",
+   "canonicalTerm": "оральная регидратация восполнение жидкости",
+   "alias": "отпаивать",
+   "category": "treatment",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.oral-rehydration-drink",
+   "canonicalTerm": "оральная регидратация восполнение жидкости",
+   "alias": "чем поить",
+   "category": "treatment",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.oxygen-saturation",
+   "canonicalTerm": "периферическая сатурация кислорода пульсоксиметрия",
+   "alias": "SpO2",
+   "category": "measurement",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.painful-urination",
+   "canonicalTerm": "болезненное мочеиспускание дизурия",
+   "alias": "больно писать",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.pcr",
+   "canonicalTerm": "полимеразная цепная реакция",
+   "alias": "ПЦР",
+   "category": "investigation",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.persistent-fever",
+   "canonicalTerm": "стойкая лихорадка более трех дней пневмония",
+   "alias": "температура держится четвертый день",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.poor-appetite",
+   "canonicalTerm": "снижение аппетита обезвоживание",
+   "alias": "плохо ест второй день",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.rash-from-face",
+   "canonicalTerm": "корь этапная сыпь начинается с лица",
+   "alias": "сыпь пошла с лица вниз",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.respiratory-rate",
+   "canonicalTerm": "частота дыхательных движений",
+   "alias": "ЧДД",
+   "category": "measurement",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.retractions",
+   "canonicalTerm": "втяжение уступчивых мест грудной клетки дыхательный дистресс",
+   "alias": "втягивает ребра при дыхании",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.severe-headache-meningeal",
+   "canonicalTerm": "сильная головная боль менингококковая инфекция",
+   "alias": "сильно болит голова и тошнит",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.ultrasound",
+   "canonicalTerm": "ультразвуковое исследование",
+   "alias": "УЗИ",
+   "category": "investigation",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.urgency",
+   "canonicalTerm": "императивные позывы инфекция мочевых путей",
+   "alias": "резко хочет в туалет и не успевает добежать",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.vomiting-diarrhea",
+   "canonicalTerm": "рвота водянистая диарея обезвоживание ротавирусный гастроэнтерит",
+   "alias": "рвет и понос",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
+   "id": "alias.colloquial.wheezy-infant",
+   "canonicalTerm": "свистящее дыхание бронхиолит ребенок до двух лет",
+   "alias": "грудничок свистит при дыхании",
+   "category": "symptom",
+   "weight": 1
+  },
+  {
    "id": "alias.core.catalog.pointer.clinical.kr.rf.281_3-a7867aa8bb77a67d.1",
    "canonicalTerm": "Инфекция мочевых путей",
    "alias": "Инфекция мочевых путей",
@@ -23570,6 +23378,195 @@
    "weight": 1
   },
   {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.1",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Пневмония бактериальная",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.10",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Внебольничная пневмония атипичная",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.11",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Внебольничная пневмония непневмококковая",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.12",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Септическая пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.13",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Пневмония крупозная",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.14",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Хроническая пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.15",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Воспалительное заболевание легких",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.16",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Воспаление легких",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.17",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Инфекции нижнего отдела дыхательных путей",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.18",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Кашель при воспалительных заболеваниях легких и бронхов",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.19",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Острая внебольничная пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.2",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Пневмония очаговая",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.20",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Лимфоидная интерстициальная пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.21",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Пневмония абсцедирующая",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.22",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Острая пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.23",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Хроническая обструктивная пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.24",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Долевая пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.25",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Инфекции дыхательных путей и легких",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.26",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Альвеолярная пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.27",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Воспаление нижних дыхательных путей",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.3",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Нозокомиальная пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.4",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Крупозная пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.5",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Обострение хронической пневмонии",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.6",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Очаговая пневмония",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.7",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Пневмония с затруднением отхождения мокроты",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.8",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Пневмония у больных СПИДом",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
+   "id": "alias.core.catalog.pointer.reference.rls.mkb.node.j18-4ceda38905999ac3.9",
+   "canonicalTerm": "J18 Пневмония без уточнения возбудителя, МКБ-10",
+   "alias": "Пневмония у детей",
+   "category": "diagnosis",
+   "weight": 1
+  },
+  {
    "id": "alias.core.catalog.pointer.reference.rls.mkb.node.n39-0-9ebe95fc60d6b686.1",
    "canonicalTerm": "N39.0 Инфекция мочевыводящих путей без установленной локализации, МКБ-10",
    "alias": "Инфекции урогенитальные",
@@ -23927,300 +23924,6 @@
    "weight": 1
   },
   {
-   "id": "alias.pilot.abdominal-rumbling",
-   "canonicalTerm": "урчание в животе ротавирусный гастроэнтерит",
-   "alias": "живот урчит",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.apnea-infant",
-   "canonicalTerm": "апноэ дыхательная недостаточность",
-   "alias": "перестает дышать на несколько секунд",
-   "category": "finding",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.body-mass-index",
-   "canonicalTerm": "индекс массы тела",
-   "alias": "ИМТ",
-   "category": "measurement",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.bulging-fontanelle",
-   "canonicalTerm": "выбухание родничка менингококковая инфекция",
-   "alias": "родничок выбухает",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.cant-drink",
-   "canonicalTerm": "невозможность пить отказ от жидкости дегидратация",
-   "alias": "не может пить",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.chest-pain-pneumonia",
-   "canonicalTerm": "боль в груди пневмония",
-   "alias": "болит в грудной клетке при кашле",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.chills",
-   "canonicalTerm": "озноб пиелонефрит",
-   "alias": "трясет от температуры",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.cloudy-urine",
-   "canonicalTerm": "мутная моча резко пахнущая моча инфекция мочевых путей",
-   "alias": "моча стала мутная и воняет",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.crp-en",
-   "canonicalTerm": "С-реактивный белок",
-   "alias": "CRP",
-   "category": "investigation",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.crp-ru",
-   "canonicalTerm": "С-реактивный белок",
-   "alias": "СРБ",
-   "category": "investigation",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.cyanosis",
-   "canonicalTerm": "цианоз дыхательная недостаточность гипоксемия",
-   "alias": "губы синеют",
-   "category": "finding",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.daytime-wetting",
-   "canonicalTerm": "дневное недержание энурез инфекция мочевых путей",
-   "alias": "писается днем хотя раньше не было",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.disturbed-consciousness",
-   "canonicalTerm": "нарушение сознания менингококковая инфекция",
-   "alias": "стал заторможенным и плохо реагирует",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.fever-no-focus",
-   "canonicalTerm": "лихорадка без очага инфекции",
-   "alias": "температура без других симптомов",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.flank-pain",
-   "canonicalTerm": "боль в боку боль в пояснице пиелонефрит",
-   "alias": "болит сбоку спины",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.focal-breath-sounds",
-   "canonicalTerm": "локальные асимметричные изменения дыхания пневмония",
-   "alias": "с одной стороны дыхание хуже",
-   "category": "finding",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.frequent-urination",
-   "canonicalTerm": "частое мочеиспускание дизурия",
-   "alias": "часто писает",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.grunting",
-   "canonicalTerm": "кряхтящее стонущее дыхание дыхательный дистресс",
-   "alias": "стонет на выдохе",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.heart-rate",
-   "canonicalTerm": "частота сердечных сокращений",
-   "alias": "ЧСС",
-   "category": "measurement",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.intercostal-retractions",
-   "canonicalTerm": "втяжение межреберий бронхиолит",
-   "alias": "втягивает межреберья",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.low-saturation",
-   "canonicalTerm": "гипоксемия низкая сатурация дыхательная недостаточность",
-   "alias": "низкая сатурация",
-   "category": "measurement",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.monotone-cry",
-   "canonicalTerm": "монотонный крик менингококковая инфекция",
-   "alias": "плачет на одной ноте",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.nasal-flaring",
-   "canonicalTerm": "раздувание крыльев носа дыхательная недостаточность пневмония",
-   "alias": "раздувает ноздри при дыхании",
-   "category": "finding",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.nonblanching-pressure",
-   "canonicalTerm": "геморрагическая сыпь менингококковая инфекция",
-   "alias": "не бледнеет при надавливании",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.nonblanching-rash",
-   "canonicalTerm": "геморрагическая сыпь не бледнеет при надавливании менингококковая инфекция",
-   "alias": "сыпь не исчезает под стаканом",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.oak",
-   "canonicalTerm": "общий анализ крови",
-   "alias": "ОАК",
-   "category": "investigation",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.oam",
-   "canonicalTerm": "общий анализ мочи",
-   "alias": "ОАМ",
-   "category": "investigation",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.oral-rehydration-colloquial",
-   "canonicalTerm": "оральная регидратация восполнение жидкости",
-   "alias": "отпаивать",
-   "category": "treatment",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.oral-rehydration-drink",
-   "canonicalTerm": "оральная регидратация восполнение жидкости",
-   "alias": "чем поить",
-   "category": "treatment",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.oxygen-saturation",
-   "canonicalTerm": "периферическая сатурация кислорода пульсоксиметрия",
-   "alias": "SpO2",
-   "category": "measurement",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.painful-urination",
-   "canonicalTerm": "болезненное мочеиспускание дизурия",
-   "alias": "больно писать",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.pcr",
-   "canonicalTerm": "полимеразная цепная реакция",
-   "alias": "ПЦР",
-   "category": "investigation",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.persistent-fever",
-   "canonicalTerm": "стойкая лихорадка более трех дней пневмония",
-   "alias": "температура держится четвертый день",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.poor-appetite",
-   "canonicalTerm": "снижение аппетита обезвоживание",
-   "alias": "плохо ест второй день",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.rash-from-face",
-   "canonicalTerm": "корь этапная сыпь начинается с лица",
-   "alias": "сыпь пошла с лица вниз",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.respiratory-rate",
-   "canonicalTerm": "частота дыхательных движений",
-   "alias": "ЧДД",
-   "category": "measurement",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.retractions",
-   "canonicalTerm": "втяжение уступчивых мест грудной клетки дыхательный дистресс",
-   "alias": "втягивает ребра при дыхании",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.severe-headache-meningeal",
-   "canonicalTerm": "сильная головная боль менингококковая инфекция",
-   "alias": "сильно болит голова и тошнит",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.ultrasound",
-   "canonicalTerm": "ультразвуковое исследование",
-   "alias": "УЗИ",
-   "category": "investigation",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.urgency",
-   "canonicalTerm": "императивные позывы инфекция мочевых путей",
-   "alias": "резко хочет в туалет и не успевает добежать",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.vomiting-diarrhea",
-   "canonicalTerm": "рвота водянистая диарея обезвоживание ротавирусный гастроэнтерит",
-   "alias": "рвет и понос",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
-   "id": "alias.pilot.wheezy-infant",
-   "canonicalTerm": "свистящее дыхание бронхиолит ребенок до двух лет",
-   "alias": "грудничок свистит при дыхании",
-   "category": "symptom",
-   "weight": 1
-  },
-  {
    "id": "core.navigation-alias.0d674ef00ff0602769b0a92a",
    "canonicalTerm": "Международная классификация болезней (МКБ-10) — РЛС",
    "alias": "МКБ",
@@ -24260,15 +23963,15 @@
  "embeddings": [
   {
    "profileId": "localmed.feature-hash.384.v1",
-   "chunkId": "chunk.387d4472aee0e085",
-   "values": [0,0,8,0,0,0,-11,5,3,0,-8,0,-11,11,5,0,0,-8,3,0,11,11,-11,0,5,0,-3,0,3,0,0,3,5,0,-8,0,-11,0,0,0,0,3,11,0,0,-3,0,0,3,-3,0,0,-11,3,-5,35,-11,3,0,16,11,3,0,3,0,0,25,0,-3,-3,-3,3,-8,0,0,0,-3,-3,0,-11,0,-11,0,0,-5,11,0,8,0,3,3,0,8,-8,0,0,-8,-3,44,0,8,-11,0,0,8,-8,5,0,0,0,0,-3,-3,3,-16,0,5,0,3,0,3,0,-8,0,0,0,27,-5,0,-14,0,0,-19,0,-3,0,-14,-5,3,11,0,0,3,0,11,3,0,-8,8,-3,8,0,-3,-11,0,-14,-3,0,11,-8,0,0,0,-11,-8,-11,3,0,0,-3,0,11,8,0,-19,0,3,0,0,0,11,0,3,0,-16,3,0,0,-11,0,0,16,-3,0,0,19,0,-3,3,0,-3,0,-11,3,5,-8,-3,0,11,3,5,0,0,0,-3,0,-8,0,0,-3,0,3,0,0,3,0,0,-3,-3,-5,3,0,0,0,3,8,0,-11,0,-3,0,0,11,19,3,0,-5,0,3,3,3,-3,0,3,0,-8,0,-5,-8,0,-3,-3,-3,0,0,3,0,5,0,0,8,-5,0,0,0,3,-3,0,3,0,8,3,0,3,0,0,0,0,0,0,-3,3,0,-8,-3,0,-3,-19,16,-8,5,-8,-3,0,0,0,0,0,3,0,-3,0,0,0,0,-3,-5,0,3,0,8,0,3,0,3,0,3,8,3,0,3,-5,-3,0,-8,0,5,8,0,3,0,0,0,-8,0,0,-5,0,-5,-3,0,-11,0,0,0,-3,-3,11,0,11,0,0,0,0,0,-3,0,0,5,-5,-8,0,-8,-11,-3,-3,0,-11,0,0,-5,8,0,8],
-   "norm": 126.85030547854427
+   "chunkId": "chunk.712c51bd689aa4f2",
+   "values": [9,-6,0,0,0,0,0,-3,0,0,0,-3,0,3,0,0,0,-9,0,-9,0,3,-9,0,20,9,3,9,3,14,0,-9,-6,0,0,0,-3,-11,3,0,0,-3,0,3,0,0,-9,-6,-3,0,0,6,0,3,0,37,0,6,0,-3,3,9,-6,11,-6,0,17,-9,3,3,-11,-11,0,3,0,-11,0,0,3,0,-14,0,0,-9,0,6,0,9,0,9,-9,9,0,0,-11,0,-9,-6,17,-9,-6,-3,0,-3,-3,14,11,3,-3,0,9,17,-20,0,9,0,0,3,0,0,0,3,11,0,0,9,11,0,-3,-9,0,6,0,0,0,3,-14,0,0,-9,3,0,0,0,0,3,-3,0,14,11,-9,0,0,0,-14,-14,0,3,9,-11,9,-9,-9,0,3,-6,0,6,0,0,0,0,-9,-9,3,0,0,9,0,0,3,11,0,9,0,11,-3,11,-9,0,3,20,0,-3,0,3,0,-9,0,0,0,0,9,9,3,0,-26,0,-3,0,-3,6,-3,3,-3,-3,0,-3,0,-3,0,11,11,0,3,-6,0,0,0,0,0,3,0,0,6,6,11,0,0,0,3,0,0,-6,3,-3,-6,9,9,3,-3,-14,0,-9,0,9,6,11,0,0,6,0,0,-14,0,17,0,3,6,0,0,3,-26,3,0,0,-6,-3,3,0,-3,0,6,6,0,6,-6,0,-3,3,0,3,0,0,0,-3,3,9,6,0,-6,9,-6,-3,0,9,0,3,0,-9,-3,3,0,0,-11,-11,0,6,0,0,3,-3,0,9,3,0,0,-3,0,0,-3,-6,0,-9,-6,0,0,0,-3,-11,9,20,0,0,0,-6,6,0,0,0,0,14,23,0,0,0,6,3,0,0,0,6,0,-9,-3,0,0,-3,6,-3,0,3,0,3,3,-3,6,3,0,0,-9,0,3,0],
+   "norm": 128.70120434556935
   },
   {
    "profileId": "localmed.feature-hash.384.v1",
-   "chunkId": "chunk.4fef762622b191bf",
-   "values": [8,-5,0,0,0,0,0,-3,0,0,-8,-3,0,3,0,0,0,-8,0,-8,0,3,-8,0,19,8,3,8,3,14,0,-5,-5,0,0,0,-3,-11,3,0,0,-3,0,3,0,0,-8,-5,-3,0,0,5,0,3,0,36,0,5,0,-3,3,8,-5,11,-8,0,16,-8,3,3,-11,-11,0,3,0,-11,3,0,3,0,-14,0,0,-8,0,5,0,8,0,8,-8,8,0,0,-11,0,-8,-5,16,-8,-5,-5,0,-3,-3,14,11,3,-3,0,8,16,-19,0,8,0,0,3,0,0,0,3,11,0,0,8,11,0,-5,-8,0,5,0,0,0,3,-14,0,0,-8,3,0,0,0,0,3,-3,0,16,11,-8,0,0,0,-14,-14,0,3,8,-11,8,-8,-8,0,3,-5,0,5,0,0,0,0,-8,-11,3,0,0,8,0,0,14,11,0,8,0,11,-3,11,-8,0,3,19,0,-3,0,3,0,-8,0,0,0,0,8,8,14,0,-25,0,-3,0,-3,5,-3,3,-3,-3,0,-3,0,-3,-3,22,11,0,3,-5,0,0,0,0,0,3,0,0,5,5,11,0,0,0,0,3,0,-5,3,-3,-5,8,8,3,-3,-14,0,-8,0,8,5,11,0,0,5,0,0,-14,0,16,0,3,5,0,0,3,-25,3,0,0,-5,-3,3,0,-3,0,5,5,0,8,-5,0,-3,3,0,3,0,0,0,-11,3,8,5,0,-5,8,-5,-3,0,8,0,3,0,-8,-3,3,0,0,-11,-11,0,5,0,0,3,-3,0,8,3,0,0,-3,-3,0,-3,-5,0,-8,-5,0,0,0,-3,-11,8,19,0,0,0,-5,8,0,0,0,0,14,22,0,0,0,8,3,0,0,0,5,0,-8,-3,0,0,-3,5,-3,0,3,0,3,3,5,5,3,0,0,-8,0,3,0],
-   "norm": 126.62148316932637
+   "chunkId": "chunk.387d4472aee0e085",
+   "values": [0,0,8,0,0,0,-11,5,3,0,-8,0,-11,11,5,0,0,-8,3,0,11,11,-11,0,5,0,-3,0,3,0,0,3,5,0,-8,0,-11,0,0,0,0,3,11,0,0,-3,0,0,3,-3,0,0,-11,3,-5,35,-11,3,0,16,11,3,0,3,0,0,25,0,-3,-3,-3,3,-8,0,0,0,-3,-3,0,-11,0,-11,0,0,-5,11,0,8,0,3,3,0,8,-8,0,0,-8,-3,44,0,8,-11,0,0,8,-8,5,0,0,0,0,-3,-3,3,-16,0,5,0,3,0,3,0,-8,0,0,0,27,-5,0,-14,0,0,-19,0,-3,0,-14,-5,3,11,0,0,3,0,11,3,0,-8,8,-3,8,0,-3,-11,0,-14,-3,0,11,-8,0,0,0,-11,-8,-11,3,0,0,-3,0,11,8,0,-19,0,3,0,0,0,11,0,3,0,-16,3,0,0,-11,0,0,16,-3,0,0,19,0,-3,3,0,-3,0,-11,3,5,-8,-3,0,11,3,5,0,0,0,-3,0,-8,0,0,-3,0,3,0,0,3,0,0,-3,-3,-5,3,0,0,0,3,8,0,-11,0,-3,0,0,11,19,3,0,-5,0,3,3,3,-3,0,3,0,-8,0,-5,-8,0,-3,-3,-3,0,0,3,0,5,0,0,8,-5,0,0,0,3,-3,0,3,0,8,3,0,3,0,0,0,0,0,0,-3,3,0,-8,-3,0,-3,-19,16,-8,5,-8,-3,0,0,0,0,0,3,0,-3,0,0,0,0,-3,-5,0,3,0,8,0,3,0,3,0,3,8,3,0,3,-5,-3,0,-8,0,5,8,0,3,0,0,0,-8,0,0,-5,0,-5,-3,0,-11,0,0,0,-3,-3,11,0,11,0,0,0,0,0,-3,0,0,5,-5,-8,0,-8,-11,-3,-3,0,-11,0,0,-5,8,0,8],
+   "norm": 126.85030547854427
   },
   {
    "profileId": "localmed.feature-hash.384.v1",
@@ -24284,15 +23987,15 @@
   },
   {
    "profileId": "localmed.feature-hash.384.v1",
-   "chunkId": "chunk.e7567059f8895537",
-   "values": [0,-8,8,0,0,0,-3,5,5,-3,-8,0,-10,3,5,8,0,0,3,0,10,10,0,8,5,0,-3,10,3,21,0,3,-3,0,-39,0,-10,-8,0,0,0,0,8,0,-8,-5,0,-5,3,-3,0,0,-10,3,-5,-5,-10,-8,0,0,0,3,0,3,0,0,0,0,-5,49,-8,3,0,0,10,23,-3,-3,0,0,-5,-3,-8,0,-5,0,0,-10,0,0,3,3,13,0,3,0,0,0,-3,0,0,-13,8,8,8,-8,5,0,0,0,0,-3,-3,3,-15,0,5,3,0,0,3,0,-10,0,0,-10,0,-5,0,-3,0,0,-5,0,0,8,-23,-13,0,10,0,0,3,0,0,3,10,-8,3,-3,0,0,-10,-10,0,-5,8,3,-3,0,0,0,-8,0,-8,0,3,0,0,-3,0,10,3,0,-3,0,3,0,0,0,0,0,3,0,-3,3,8,0,0,0,0,13,-3,0,0,-10,-10,-3,3,0,0,10,-13,3,-3,-18,0,0,-8,3,-3,0,0,0,0,0,3,8,0,-3,0,3,0,0,-5,8,0,-3,-3,10,3,0,0,0,3,5,0,-10,0,-3,-3,-8,10,8,3,10,-5,0,-8,0,3,-3,0,3,0,-8,31,0,3,0,0,-3,-3,-8,0,3,0,13,0,0,8,0,0,0,-3,3,-10,0,8,0,15,5,0,3,0,21,0,0,8,0,-5,0,-3,-5,0,0,5,0,0,0,-3,-8,-3,0,0,0,0,0,0,0,-3,0,0,0,0,0,-5,0,3,0,8,0,3,0,3,0,5,0,0,0,-13,0,-10,0,0,0,-3,8,15,-5,0,0,0,-8,-3,0,-5,0,-5,-3,-3,-10,0,0,0,-3,0,8,0,5,0,0,-10,3,8,-3,3,0,3,-5,-8,-8,-8,-13,0,-3,3,-13,0,0,-5,10,0,10],
-   "norm": 128.12493902437572
+   "chunkId": "chunk.ba205695b2967c42",
+   "values": [0,-10,-3,0,0,0,0,0,0,0,0,0,0,0,13,0,0,0,0,-10,0,0,0,0,24,13,0,3,0,3,0,7,0,0,-27,0,0,-10,0,0,0,0,0,3,0,-7,0,0,0,0,0,0,0,0,0,-10,0,0,0,-10,3,0,0,0,-3,0,-3,0,-7,0,-13,-13,0,-10,0,-10,0,0,0,0,0,0,0,13,-17,0,3,3,0,0,0,10,-3,0,-13,0,0,0,0,3,0,-3,0,10,0,27,0,3,0,0,0,-3,0,0,0,-3,-3,3,0,13,-10,0,10,0,0,10,10,0,0,0,13,0,0,10,0,3,0,-13,0,-3,3,0,-13,0,-3,3,0,0,3,-13,-10,0,0,-10,0,-3,7,3,-3,0,0,0,-10,-3,0,0,0,0,0,0,0,0,-7,-3,27,0,0,10,-3,13,3,0,0,0,0,17,0,0,0,0,7,10,-3,-3,0,0,3,0,3,3,0,0,-13,0,0,0,-17,3,0,0,-3,3,-3,3,10,-3,0,-7,-3,0,-10,13,10,0,0,0,0,0,0,10,0,0,-13,0,7,0,0,0,0,0,3,-13,0,-3,3,0,0,0,0,0,0,-10,0,-3,0,0,27,0,13,-13,0,0,0,-20,0,0,10,0,0,0,0,0,-13,0,0,3,-3,-3,7,0,0,3,0,-3,0,27,0,0,3,0,-3,0,3,0,0,-3,7,-3,0,0,-3,3,-3,0,0,10,0,0,0,-10,-3,0,0,0,0,-7,0,0,0,0,0,0,0,3,0,0,0,-7,-10,-3,-30,0,0,0,0,0,-3,0,24,0,0,-3,0,-3,-3,0,3,0,3,13,3,0,27,0,0,0,3,0,0,0,3,3,-10,0,-3,0,-13,0,3,0,0,-7,13,0,0,-7,3,7,3,0,0,0,0,0],
+   "norm": 125.41929676090518
   },
   {
    "profileId": "localmed.feature-hash.384.v1",
-   "chunkId": "chunk.52c03db0ff70b301",
-   "values": [0,-10,-3,0,0,0,0,0,0,0,-10,0,0,0,13,0,0,0,0,-10,0,0,0,0,22,13,0,3,0,3,0,10,0,0,-26,0,0,-10,0,0,0,0,0,3,0,-6,0,0,0,0,0,0,0,0,0,-10,0,0,0,-10,3,0,0,0,-6,0,-3,0,-6,0,-13,-13,0,-10,0,-10,3,0,0,0,0,0,0,13,-16,0,3,3,0,0,0,10,-3,0,-13,0,0,0,0,3,0,-6,0,10,0,26,0,3,0,0,0,-3,0,0,0,-3,-3,3,0,13,-10,0,10,0,0,10,10,0,-3,0,13,0,0,10,0,3,0,-13,0,-3,3,0,-13,0,-3,3,0,0,6,-13,-10,0,0,-10,0,-3,6,3,-3,0,0,0,-10,-3,0,0,0,0,0,0,0,0,-6,-6,26,0,0,10,-3,13,16,0,0,0,0,16,0,0,0,0,6,10,-3,-3,0,0,3,0,3,3,0,0,-13,0,13,0,-16,3,0,0,-3,3,-3,3,10,-3,0,-6,-3,0,-13,26,10,0,0,0,0,0,0,10,0,0,-13,0,6,0,0,0,0,0,0,-10,0,-3,3,0,0,0,0,0,0,-10,0,-3,0,0,26,0,13,-13,0,0,0,-19,0,0,10,0,0,0,0,0,-13,0,0,3,-3,-3,6,0,0,3,0,-3,0,29,0,0,3,0,-3,0,3,0,0,-13,6,-3,0,0,-3,3,-3,0,0,10,0,0,0,-10,-3,0,0,0,0,-6,0,0,0,0,0,0,0,3,0,0,0,-6,-13,-3,-29,0,0,0,0,0,-3,0,22,0,0,-3,0,-3,-3,0,6,0,3,13,3,0,26,0,0,0,6,0,0,0,3,3,-10,0,-3,0,-13,0,3,0,0,-6,13,0,0,3,3,6,3,0,0,0,0,0],
-   "norm": 128.30042868205857
+   "chunkId": "chunk.e7567059f8895537",
+   "values": [0,-8,8,0,0,0,-3,5,5,-3,-8,0,-10,3,5,8,0,0,3,0,10,10,0,8,5,0,-3,10,3,21,0,3,-3,0,-39,0,-10,-8,0,0,0,0,8,0,-8,-5,0,-5,3,-3,0,0,-10,3,-5,-5,-10,-8,0,0,0,3,0,3,0,0,0,0,-5,49,-8,3,0,0,10,23,-3,-3,0,0,-5,-3,-8,0,-5,0,0,-10,0,0,3,3,13,0,3,0,0,0,-3,0,0,-13,8,8,8,-8,5,0,0,0,0,-3,-3,3,-15,0,5,3,0,0,3,0,-10,0,0,-10,0,-5,0,-3,0,0,-5,0,0,8,-23,-13,0,10,0,0,3,0,0,3,10,-8,3,-3,0,0,-10,-10,0,-5,8,3,-3,0,0,0,-8,0,-8,0,3,0,0,-3,0,10,3,0,-3,0,3,0,0,0,0,0,3,0,-3,3,8,0,0,0,0,13,-3,0,0,-10,-10,-3,3,0,0,10,-13,3,-3,-18,0,0,-8,3,-3,0,0,0,0,0,3,8,0,-3,0,3,0,0,-5,8,0,-3,-3,10,3,0,0,0,3,5,0,-10,0,-3,-3,-8,10,8,3,10,-5,0,-8,0,3,-3,0,3,0,-8,31,0,3,0,0,-3,-3,-8,0,3,0,13,0,0,8,0,0,0,-3,3,-10,0,8,0,15,5,0,3,0,21,0,0,8,0,-5,0,-3,-5,0,0,5,0,0,0,-3,-8,-3,0,0,0,0,0,0,0,-3,0,0,0,0,0,-5,0,3,0,8,0,3,0,3,0,5,0,0,0,-13,0,-10,0,0,0,-3,8,15,-5,0,0,0,-8,-3,0,-5,0,-5,-3,-3,-10,0,0,0,-3,0,8,0,5,0,0,-10,3,8,-3,3,0,3,-5,-8,-8,-8,-13,0,-3,3,-13,0,0,-5,10,0,10],
+   "norm": 128.12493902437572
   },
   {
    "profileId": "localmed.feature-hash.384.v1",
@@ -24518,7 +24221,7 @@
   },
   {
    "profileId": "localmed.feature-hash.384.v1",
-   "chunkId": "chunk.3d84159f2c8ed262",
+   "chunkId": "chunk.8c0cbe1a64259c7e",
    "values": [0,-10,0,0,0,0,0,3,0,-6,0,0,-6,0,0,0,0,0,0,0,-13,0,0,0,0,0,6,-36,3,0,0,-10,0,0,0,0,0,0,0,0,0,0,0,0,0,-6,0,0,0,0,10,0,0,-3,0,0,0,6,0,0,0,0,-3,3,-3,0,0,0,0,0,-13,0,-3,0,0,0,3,0,0,-16,0,0,0,0,0,6,0,0,0,13,0,0,0,0,0,0,0,10,6,-3,0,0,-3,6,0,-29,-13,0,0,10,-13,-3,0,0,0,0,0,6,0,0,0,0,0,0,0,0,6,-3,-3,-16,0,6,-19,3,13,0,0,-3,3,0,0,0,0,0,0,0,0,0,0,-36,16,0,0,10,0,0,0,0,0,-13,0,0,-3,0,3,-6,0,-10,0,0,0,0,0,-3,-3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0,-6,-3,-3,0,0,0,-3,0,0,0,0,0,0,0,10,-6,-3,-3,0,0,10,13,10,0,39,0,0,0,0,10,-13,0,0,0,0,0,-39,-19,0,10,3,0,3,0,3,0,0,-6,10,0,0,0,0,0,0,3,0,-10,0,0,0,0,0,0,-3,-3,0,-10,0,0,0,-13,0,0,0,-3,0,0,0,3,3,0,0,0,0,0,36,0,0,0,0,6,-3,0,0,10,-10,0,0,3,0,10,0,0,0,0,10,0,0,0,-13,3,0,0,0,-3,-6,3,-3,0,0,0,0,6,13,0,0,0,0,3,0,0,0,0,10,0,3,0,13,0,-10,0,0,0,-10,0,0,0,0,0,-6,0,0,0,0,-10,0,-26,0,0,-3,0,0,0,-10,3,-6,0,-3,0,3,-3,-13,3,0,0,0,0,0,0,0,0,0],
    "norm": 126.9291140755343
   },
@@ -24536,7 +24239,7 @@
   },
   {
    "profileId": "localmed.feature-hash.384.v1",
-   "chunkId": "chunk.7c7fa5034e38b292",
+   "chunkId": "chunk.ea6db18dbd1583ec",
    "values": [0,-12,0,0,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,12,0,0,-12,0,0,0,0,0,16,0,0,0,0,0,0,0,0,0,0,12,0,0,0,0,-4,0,0,0,0,0,0,0,0,-4,8,8,0,0,0,0,8,-16,0,0,0,0,0,4,0,0,-16,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,12,0,-4,0,0,0,0,0,-36,-12,-4,0,0,0,-4,0,0,0,0,-8,8,0,0,0,0,0,0,0,0,0,-4,-4,-12,0,0,-4,4,16,0,0,0,0,0,0,43,0,0,0,0,0,-4,0,-12,-4,0,0,12,-12,0,0,0,0,-16,0,0,0,0,0,0,0,-16,0,0,0,0,0,0,-4,0,24,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,-8,-4,-4,0,0,0,-4,0,-12,0,0,0,0,0,0,0,-4,0,0,0,-8,8,12,0,32,0,0,0,0,12,-16,0,0,0,0,4,-47,0,-8,0,0,4,4,0,4,0,0,0,12,0,-24,0,0,0,0,4,0,-12,0,0,0,0,0,0,0,-4,0,0,32,0,0,-4,0,0,0,-4,0,0,0,4,4,0,-8,0,0,0,0,0,0,0,0,0,0,0,0,4,-4,0,0,4,0,0,0,0,0,0,12,0,0,0,-16,0,0,0,-4,-4,0,-8,-4,0,-8,0,0,0,16,0,0,0,0,4,-4,0,12,0,0,0,4,0,0,0,12,0,0,0,-4,0,0,0,0,0,-16,0,0,0,0,-16,0,0,0,0,-4,0,0,0,-12,-4,-8,0,0,16,4,-4,-16,0,4,4,0,0,8,0,0,0,4],
    "norm": 127.7888884058391
   },
@@ -24554,7 +24257,7 @@
   },
   {
    "profileId": "localmed.feature-hash.384.v1",
-   "chunkId": "chunk.33120d8e295b22af",
+   "chunkId": "chunk.f5f2182271ae099a",
    "values": [0,-15,3,0,0,-3,0,3,0,0,0,0,0,-6,0,0,0,0,3,-9,0,0,-6,-6,0,-3,0,-6,3,0,0,0,0,0,-23,0,0,0,0,0,0,-9,0,0,0,0,-3,0,0,0,0,0,0,-6,-12,-6,0,0,3,0,0,0,-3,0,-3,0,0,0,0,0,-12,0,0,0,23,0,3,0,9,-9,0,0,0,0,-6,0,0,0,0,0,0,0,0,0,0,0,0,9,0,-3,0,0,0,23,-3,-26,-3,0,0,0,-3,-9,0,0,0,0,3,6,-23,0,0,-12,0,0,0,0,0,-3,-3,-9,0,12,0,3,12,0,0,-12,0,0,0,6,0,0,0,0,0,0,6,-35,-3,0,0,26,9,0,6,0,-6,0,0,0,-6,0,0,0,0,-9,0,0,0,0,6,0,3,-3,0,-23,0,0,6,0,0,0,0,9,0,0,0,0,0,3,0,6,9,-3,0,0,0,0,0,-6,-12,-3,-9,0,6,-3,0,-3,3,0,0,0,0,0,0,-3,0,0,-3,9,12,9,-17,35,0,-3,0,6,9,-12,0,3,0,0,0,-35,0,0,0,-3,0,6,0,-3,0,0,0,15,0,0,0,0,0,0,26,0,3,0,0,0,9,3,0,0,-3,-3,0,0,0,0,-3,0,0,0,-23,0,6,0,3,6,0,0,-20,0,0,0,9,0,0,0,0,0,0,0,9,-15,0,0,3,9,0,0,0,0,0,9,0,0,0,-12,0,0,-3,-3,-3,-3,0,-3,0,0,0,0,-6,15,0,-6,0,0,3,-6,0,0,-6,0,-6,3,-17,0,0,0,0,0,-6,-3,0,0,0,0,-6,-12,0,0,0,-3,-9,0,-3,0,0,3,0,0,0,-9,-3,-9,0,0,0,3,-3,-9,0,0,3,17,0,0,12,0,0,0],
    "norm": 127.53038853543887
   },
@@ -24563,12 +24266,6 @@
    "chunkId": "chunk.6b175db402696c2a",
    "values": [0,-4,0,0,0,-8,4,0,0,0,0,0,0,-4,0,0,-33,0,0,0,-4,0,-8,-4,0,0,0,-4,0,8,0,0,0,0,-16,0,0,0,0,0,-8,-4,0,0,0,-4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-8,0,0,25,0,16,0,-4,0,0,49,0,0,0,4,-33,0,0,0,4,-4,-12,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,16,0,-12,4,0,0,-33,0,-4,0,0,0,0,0,8,-16,0,-16,0,0,0,0,0,0,0,0,-4,0,4,0,0,0,4,0,-16,0,0,8,4,0,0,0,0,0,4,12,-20,0,-4,0,12,-4,-4,4,0,-4,25,0,0,-4,0,0,0,0,0,-8,0,0,0,4,0,12,0,0,-16,0,0,4,0,0,0,0,4,-4,0,0,0,4,0,-4,0,0,0,0,0,0,12,0,4,0,0,0,0,8,0,0,-8,0,0,0,-4,0,0,0,0,0,0,0,0,0,0,-12,16,0,0,0,8,0,0,0,0,0,0,0,-16,0,0,0,-16,8,4,-25,-4,0,0,0,4,0,0,0,0,-12,0,16,0,8,4,0,0,0,-4,0,0,0,0,0,0,0,4,0,0,0,4,-12,0,4,0,0,0,0,0,-12,0,0,0,12,0,0,0,4,0,0,0,4,0,-12,8,12,4,-4,-8,0,0,0,0,0,0,-8,-16,0,0,16,0,-4,0,0,0,0,0,0,0,0,0,0,-8,0,0,0,-4,0,0,0,4,-4,0,-8,0,0,0,-4,0,-4,-4,0,0,0,0,-4,0,0,-12,0,0,0,0,0,0,0,4,0,0,0,-4,0,0,0,0,0,0,0,0,0,0,4,4,-12,0,8,0,16,0],
    "norm": 126.01190419956362
-  },
-  {
-   "profileId": "localmed.feature-hash.384.v1",
-   "chunkId": "chunk.864792973fbc57b1",
-   "values": [-1,-26,-3,0,0,2,-1,1,0,-1,-2,2,44,6,11,0,-18,0,0,1,-1,0,-3,-12,3,0,0,-1,1,2,2,8,0,3,-44,2,-11,0,-2,0,-9,-6,0,-2,0,-5,7,0,1,0,2,0,1,1,-2,-2,0,-3,-1,0,0,5,-5,0,0,3,-5,0,-4,0,0,-1,-1,0,2,1,1,3,4,1,-9,3,-2,0,-1,2,1,3,-2,0,-4,-4,0,-1,2,0,-2,2,-3,1,1,-8,1,27,-2,2,4,4,0,4,0,-3,0,0,0,1,2,4,-2,-2,0,0,4,-1,0,0,4,0,2,-2,0,-2,2,0,0,3,-3,-17,0,2,4,6,-2,-2,2,0,0,-6,8,-13,-1,-1,-3,2,-1,-13,9,-1,-9,2,-7,1,-20,1,-1,-3,0,1,0,0,-1,0,8,-7,20,2,0,-2,0,22,9,-6,0,7,-2,-2,-3,1,-1,4,3,5,3,5,-2,0,0,3,1,1,-1,0,-4,-4,0,0,-2,-1,0,-3,-1,2,0,4,-4,3,-1,3,-1,0,0,7,1,2,-22,0,8,0,0,12,0,0,0,0,2,1,0,-2,0,0,0,-23,0,-2,4,-1,-6,0,4,2,3,0,1,-3,0,0,22,0,16,0,-2,1,-7,-29,0,6,6,0,-2,-13,0,-1,-5,3,0,3,-3,0,25,2,0,5,-2,-3,1,17,-2,-2,1,3,0,0,5,2,0,-2,20,1,0,-1,0,8,3,-6,0,1,1,6,0,0,-6,-2,-8,-1,-1,0,0,1,6,0,-1,-3,-4,6,5,0,2,1,1,-5,-9,3,-2,-2,8,-4,-9,0,1,0,0,-12,-2,0,-7,0,7,0,0,4,-9,0,0,-2,0,0,7,1,-1,2,2,5,2,0,4,-1,-4,0,3,0,-1,-1,0,0,2,-4,14,15,4,0,-5,5,1,2],
-   "norm": 126.98031343479981
   },
   {
    "profileId": "localmed.feature-hash.384.v1",

@@ -119,7 +119,7 @@ export function SearchResultGroupCard(props: {
     );
   };
   return (
-    <section class="result-group">
+    <section class="result-group" data-document-id={props.group.documentId}>
       <button
         type="button"
         class="result-group-header"

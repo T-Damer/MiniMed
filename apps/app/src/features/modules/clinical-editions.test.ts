@@ -9,6 +9,7 @@ import {
   isSupersededClinicalModule,
   listableModules,
   supersededEditionNote,
+  withoutOlderEditions,
 } from '@/features/modules/clinical-editions';
 
 const edition = (
@@ -180,5 +181,37 @@ describe('real edition chains (catalog.clinical-editions.json)', () => {
       expect(Boolean(notice.action) !== Boolean(notice.unavailable)).toBe(true);
       if (notice.action) expect(notice.action.target.moduleId).not.toBeNull();
     }
+  });
+});
+
+describe('withoutOlderEditions', () => {
+  const index = buildClinicalEditionIndex({
+    codes: [
+      {
+        code: 507,
+        title: 'Туберкулез у детей',
+        editions: [
+          edition('507_3', 3, 'superseded', '2022-01-10T00:00:00', 'm.507_3'),
+          edition('507_4', 4, 'active', '2026-09-01T00:00:00', 'm.507_4'),
+        ],
+      },
+    ],
+  });
+  const results = (...ids: string[]) => ids.map((id) => ({ id }));
+  const byId = (item: { readonly id: string }) => clinicalEditionIdFromDocumentId(item.id);
+
+  it('keeps only the newest edition of a chain found together', () => {
+    expect(
+      withoutOlderEditions(results('kr.rf.507_3', 'icd.a15', 'kr.rf.507_4'), byId, index),
+    ).toEqual(results('icd.a15', 'kr.rf.507_4'));
+  });
+
+  it('keeps an older edition found on its own and leaves other documents alone', () => {
+    expect(withoutOlderEditions(results('kr.rf.507_3', 'icd.a15'), byId, index)).toEqual(
+      results('kr.rf.507_3', 'icd.a15'),
+    );
+    expect(withoutOlderEditions(results('kr.rf.999_1'), byId, index)).toEqual(
+      results('kr.rf.999_1'),
+    );
   });
 });
