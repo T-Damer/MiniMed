@@ -373,7 +373,20 @@ def _routing_guid(page: str, registration_number: str) -> str:
     raise ValueError(f"GRLS search did not return registration {registration_number}.")
 
 
-def _instruction_url(payload: bytes) -> tuple[str, str]:
+def _normalize_instruction_path(path: str) -> str:
+    url = urllib.parse.urljoin(GRLS_PAGE, path.replace("\\", "/"))
+    parsed_url = urllib.parse.urlsplit(url)
+    url = urllib.parse.urlunsplit(
+        parsed_url._replace(
+            path=urllib.parse.quote(urllib.parse.unquote(parsed_url.path), safe="/")
+        )
+    )
+    _validate_grls_url(url)
+    return url
+
+
+def _instruction_images(payload: bytes) -> list[tuple[str, str]]:
+    """Every (url, label) the instruction endpoint lists, in response order."""
     outer: object = json.loads(payload.decode("utf-8-sig"))
     if not isinstance(outer, dict) or not isinstance(outer.get("d"), str):
         raise ValueError("GRLS instruction response does not contain a d field.")
@@ -389,18 +402,17 @@ def _instruction_url(payload: bytes) -> tuple[str, str]:
                 continue
             for image in instruction["Images"]:
                 if isinstance(image, dict) and isinstance(image.get("Url"), str):
-                    images.append((image["Url"], str(image.get("Label") or "")))
+                    images.append(
+                        (_normalize_instruction_path(image["Url"]), str(image.get("Label") or ""))
+                    )
     if not images:
         raise ValueError("GRLS returned no instruction PDF.")
-    path, label = max(images, key=lambda item: item[0])
-    url = urllib.parse.urljoin(GRLS_PAGE, path.replace("\\", "/"))
-    parsed_url = urllib.parse.urlsplit(url)
-    url = urllib.parse.urlunsplit(
-        parsed_url._replace(
-            path=urllib.parse.quote(urllib.parse.unquote(parsed_url.path), safe="/")
-        )
-    )
-    _validate_grls_url(url)
+    return images
+
+
+def _instruction_url(payload: bytes) -> tuple[str, str]:
+    images = _instruction_images(payload)
+    url, label = max(images, key=lambda item: item[0])
     return url, label
 
 
@@ -919,6 +931,7 @@ def run_grls_instruction_batch(
 hidden_form_fields = _hidden_fields
 routing_guid = _routing_guid
 instruction_pdf_url = _instruction_url
+instruction_images = _instruction_images
 safe_instruction_target = _safe_target
 append_instruction_state = _append_instruction_state
 read_instruction_plan = _read_instruction_plan

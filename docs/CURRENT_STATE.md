@@ -325,10 +325,12 @@ instruction PDFs are still collected, politely (`tools/ingest/.../grls_collect.p
 `medbase-regulated-catalog grls-collect`): truthful `User-Agent`, ≤2 requests in flight, randomized
 delays, backoff on 429/503, no CAPTCHA handling, resumable state ledger, never overwrites a raw file.
 
-- The first run (2 workers, ~1 request/2.5 s each) fetched 30 new PDFs and then **stopped at a
-  CAPTCHA page** (about 140 requests in 3.5 min); the run wrote `data/build/grls-collect/BLOCKED-by-site`
-  and refuses to restart until the owner decides. 6 319 transient failures and 675 registrations
-  added since 24.07.2026 remain uncollected. No other long run is active.
+- Owner decision: collect over time (no RLS purchase). The runs stopped at an image CAPTCHA twice (30 PDFs, then 14);
+  a detached daily-batch loop (`grls-collect-daily`: probe with one registration, batch ≤50 until the first CAPTCHA,
+  wait 24 h; never bypassed) waits for its first attempt 2026-10-03 05:45 UTC. Queue order: ЖНВЛП, then INNs with the
+  most registrations. Watch `data/build/grls-collect/progress.json`; stop with a `STOP` file. 6 300+ transient
+  failures and 675 new registrations remain; the ledger now keeps `idReg`/`routingGuid`/exact PDF URLs
+  (`grls-instruction-url-ledger.jsonl`). Pace is unknown until the first windows finish.
 - New registry export 02.10.2026 (39 481 records, +666) is stored next to the old one
   (`data/raw/official-grls-registry/catalog-02.10.2026.json`); plan `grls-instructions-active-plan-02.10.2026.json`.
 - OCR flag kept: `ExtractionDiagnostics`/`metadata.extraction` now carry `textExtractionMode`,

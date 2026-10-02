@@ -13,6 +13,7 @@ from localmed_ingest.grls_collect import (
     GrlsBackoff,
     GrlsCaptcha,
     classify_state_record,
+    export_url_ledger,
     load_merged_state,
     run_collection,
     select_items,
@@ -228,3 +229,52 @@ def test_ocr_signal_weights_confidence_by_characters() -> None:
     signal = ocr_signal_from_blocks(blocks, "macos-vision", {1})
     assert signal == OcrSignal("macos-vision", [1], 0.84, 0.1)
     assert ocr_signal_from_blocks(blocks, "pymupdf-ocr", {2}).mean_confidence is None
+
+
+def test_priority_order_puts_essential_drugs_and_big_inns_first(tmp_path: Path) -> None:
+    plan, state = tmp_path / "plan.json", tmp_path / "state.jsonl"
+    write_plan(plan, ["RARE", "BIG", "ESSENTIAL", "MISS"])
+    write_state(state, [failed("MISS", "GRLS search did not return registration MISS.", 1)])
+    records: list[dict[str, object]] = [
+        {"registrationNumber": "RARE", "inn": "редкин", "status": "Действующий"},
+        {"registrationNumber": "BIG", "inn": "ибупрофен", "status": "Действующий"},
+        {"registrationNumber": "BIG2", "inn": "ибупрофен", "status": "Действующий"},
+        {
+            "registrationNumber": "ESSENTIAL",
+            "inn": "редкин",
+            "status": "Действующий",
+            "essentialDrug": "Да",
+        },
+        {
+            "registrationNumber": "MISS",
+            "inn": "ибупрофен",
+            "status": "Действующий",
+            "essentialDrug": "Да",
+        },
+    ]
+    catalog = tmp_path / "catalog.json"
+    catalog.write_text(json.dumps({"records": records}), encoding="utf-8")
+    selected = select_items(plan, state, tmp_path / "raw", CollectOptions(catalog_path=catalog))
+    assert [item.registration_number for item in selected] == ["ESSENTIAL", "BIG", "RARE", "MISS"]
+
+
+def test_success_records_id_reg_and_url_ledger(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    plan, state = tmp_path / "plan.json", tmp_path / "state.jsonl"
+    write_plan(plan, ["A"])
+
+    def fake_fetch(_client: object, _number: str) -> FetchedInstruction:
+        url = "https://grls.rosminzdrav.ru/InstrImg/2026/10/02/1/x.pdf"
+        return FetchedInstruction(
+            url, "label", b"%PDF-1 a", "Mon", "etag", "123", "guid-1", ((url, "label"),)
+        )
+
+    monkeypatch.setattr(collect, "fetch_instruction", fake_fetch)
+    run_collection(plan, tmp_path / "raw", state, tmp_path / "log", quiet_options())
+    record = load_merged_state(state)["A"]
+    assert record["idReg"] == "123" and record["routingGuid"] == "guid-1"
+    summary = export_url_ledger(state, tmp_path / "urls.jsonl")
+    assert summary["withIdReg"] == 1
+    row = json.loads((tmp_path / "urls.jsonl").read_text().splitlines()[0])
+    assert row["instructionUrls"][0]["url"].endswith("x.pdf") and row["idReg"] == "123"

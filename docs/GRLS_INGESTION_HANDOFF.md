@@ -99,6 +99,52 @@ stops as soon as the site starts blocking.
   Vision confidence when known, `unknownWordRatio` against a lexicon from native-text instructions, `textSha256`)
   and `grls-instruction-text-coverage.json` (before/after).
 
+### Daily-batch loop (owner decision 2026-10-02: collect ГРЛС ourselves over time)
+
+The slow single-request run (10–20 s between requests) still hit an image CAPTCHA after 14 PDFs
+(05:41 UTC); only the `.aspx` search/card/file-list pages are limited (about 40–50 registrations per window),
+the `/InstrImg/` PDFs are static files whose GUID URLs cannot be derived
+([research/grls-mirrors-2026-10.md](research/grls-mirrors-2026-10.md)). So the collector now runs as a
+plain detached loop (`grls_daily.py`, command `grls-collect-daily`; no cron/launchd):
+
+1. wait until the first attempt time, then **probe with ONE registration**;
+2. probe passes → run a batch of at most 50 registrations (stops at the first CAPTCHA or after 5 consecutive
+   refusals); probe hits a CAPTCHA → nothing more that day;
+3. sleep 24 h, repeat. A CAPTCHA is never solved or worked around; no host, cookie or IP changes; one request at
+   a time, 10–20 s pauses, backoff base 300 s on 429/503, truthful `User-Agent`.
+
+Start (already running; first attempt 2026-10-03 05:45 UTC, 24 h after the CAPTCHA):
+
+```
+cd tools/ingest && nohup uv run --frozen medbase-regulated-catalog grls-collect-daily \
+  --plan ../../data/build/grls-instructions-active-plan-02.10.2026.json \
+  --output-root ../../data/raw/grls-instructions-active \
+  --state ../../data/build/grls-instructions-active-state.jsonl \
+  --log-dir ../../data/build/grls-collect \
+  --catalog ../../data/raw/official-grls-registry/catalog-02.10.2026.json \
+  --batch-cap 50 --wait-hours 24 --first-attempt-at 2026-10-03T05:45:00Z \
+  >> ../../data/build/grls-collect/stdout-daily.log 2>&1 &
+caffeinate -i -w <pid> &
+```
+
+- Watch: `data/build/grls-collect/progress.json` (`status` running/waiting/stopped/finished, `nextAttemptAt`,
+  totals, last windows, `currentWindow.progress` while a batch runs), `daily-loop.log` (one line per window) and
+  the per-window `run-*.log` / `window-progress.json`.
+- Stop: `touch data/build/grls-collect/STOP` (the loop ends within 30 s, or after the current registration inside a
+  window; delete the file before a restart) or `kill -TERM <pid>`. The loop ignores the old `BLOCKED-by-site`
+  marker by owner decision; the manual `grls-collect` command still honours it.
+- Queue order (`--catalog`): registrations likely to succeed (transient failures and never-attempted) before
+  numbers the site did not find; inside each group essential drugs (ЖНВЛП, catalog `essentialDrug = Да`) first,
+  then active ingredients with the most active registrations, then registration number; `ФС-` skipped.
+  Current queue 8 325 registrations: 2 739 + 3 548 (likely, essential / other), 668 new, 1 370 not-found.
+- Ledger: success records now also hold `idReg`, `routingGuid` and all `instructionUrls`; failures that got past the
+  search keep `idReg`/`routingGuid` too. `grls-url-ledger` exports `data/build/grls-instruction-url-ledger.jsonl`
+  (8 935 registrations with exact PDF URL, checksum, fetch time, ETag/Last-Modified where recorded). `idReg` and
+  `routingGuid` could not be backfilled for earlier successes (never logged); a re-download of those needs the
+  `.aspx` lookup once, a re-download of a known URL needs only the static file.
+- Pace: unknown until the first windows complete. At ~85 s per registration a window of 50 takes ~70 min; at one
+  window per day the remaining 8 325 would take years, so the order above matters.
+
 First run (2026-10-02 05:02–05:09 UTC): 30 new PDFs, then a CAPTCHA page after about 140 requests at roughly
 2 requests per 5 s with two workers; collection stopped and is not resumed (see `BLOCKED-by-site`). Coverage:
 12 659 of 28 731 active registrations had instruction text before (44.1 %); against the 02.10.2026 registry

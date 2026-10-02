@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -13,7 +14,8 @@ from .clinical_medication_relations import (
 )
 from .esklp_catalog import build_esklp_coverage_ledger, write_esklp_coverage_ledger
 from .esklp_release import prepare_esklp_release
-from .grls_collect import MAX_WORKERS, CollectOptions, run_collection
+from .grls_collect import MAX_WORKERS, CollectOptions, export_url_ledger, run_collection
+from .grls_daily import DailyOptions, run_daily_loop
 from .grls_products import build_grls_product_workspace
 from .grls_text_manifest import build_additions_registry, build_text_manifest
 from .legal_catalog import collect_legal_catalog
@@ -294,6 +296,60 @@ def grls_collect_command(
     )
     summary = run_collection(plan, output_root, state, log_dir, options, log=typer.echo)
     typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("grls-collect-daily")
+def grls_collect_daily_command(
+    plan: Annotated[Path, typer.Option("--plan", exists=True, dir_okay=False)],
+    output_root: Annotated[Path, typer.Option("--output-root")],
+    state: Annotated[Path, typer.Option("--state")],
+    log_dir: Annotated[Path, typer.Option("--log-dir")],
+    catalog: Annotated[
+        Path | None,
+        typer.Option("--catalog", exists=True, dir_okay=False, help="Registry for priorities."),
+    ] = None,
+    batch_cap: Annotated[int, typer.Option("--batch-cap", min=1)] = 50,
+    wait_hours: Annotated[float, typer.Option("--wait-hours", min=0.001)] = 24.0,
+    first_attempt_at: Annotated[
+        str | None, typer.Option("--first-attempt-at", help="UTC ISO time of the first probe.")
+    ] = None,
+    min_request_delay: Annotated[float, typer.Option("--min-request-delay", min=0.2)] = 10.0,
+    max_request_delay: Annotated[float, typer.Option("--max-request-delay", min=0.2)] = 20.0,
+    backoff_base_seconds: Annotated[float, typer.Option("--backoff-base-seconds", min=1)] = 300.0,
+    max_windows: Annotated[int | None, typer.Option("--max-windows", min=1)] = None,
+) -> None:
+    """Daily-batch loop: batch until the first CAPTCHA or the cap, wait 24 h, probe with one."""
+    options = DailyOptions(
+        batch_cap=batch_cap,
+        wait_seconds=wait_hours * 3600,
+        first_attempt_at=(
+            datetime.fromisoformat(first_attempt_at.replace("Z", "+00:00"))
+            if first_attempt_at
+            else None
+        ),
+        max_windows=max_windows,
+        collect=CollectOptions(
+            min_request_delay=min_request_delay,
+            max_request_delay=max(max_request_delay, min_request_delay),
+            min_item_pause=0.2,
+            max_item_pause=0.2,
+            workers=1,
+            backoff_base_seconds=backoff_base_seconds,
+            include_exhausted=True,
+            catalog_path=catalog,
+        ),
+    )
+    summary = run_daily_loop(plan, output_root, state, log_dir, options, log=typer.echo)
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2, default=str))
+
+
+@app.command("grls-url-ledger")
+def grls_url_ledger_command(
+    state: Annotated[Path, typer.Option("--state", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Export registration -> idReg/routingGuid/PDF URL(s)/checksum/fetch time."""
+    typer.echo(json.dumps(export_url_ledger(state, output), ensure_ascii=False, indent=2))
 
 
 @app.command("grls-additions-registry")

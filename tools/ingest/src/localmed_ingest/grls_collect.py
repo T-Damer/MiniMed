@@ -39,7 +39,7 @@ from .official_grls_registry import (
     GRLS_USER_AGENT,
     append_instruction_state,
     hidden_form_fields,
-    instruction_pdf_url,
+    instruction_images,
     read_instruction_plan,
     routing_guid,
     safe_instruction_target,
@@ -97,9 +97,15 @@ class GrlsForbidden(Exception):
 class GrlsPermanent(Exception):
     """The site answered normally but has no instruction for this registration."""
 
-    def __init__(self, failure_class: FailureClass, message: str) -> None:
+    def __init__(
+        self,
+        failure_class: FailureClass,
+        message: str,
+        context: dict[str, object] | None = None,
+    ) -> None:
         super().__init__(message)
         self.failure_class: FailureClass = failure_class
+        self.context: dict[str, object] = context or {}
 
 
 @dataclass(frozen=True)
@@ -120,6 +126,7 @@ class CollectOptions:
     registrations: tuple[str, ...] = ()
     include_substances: bool = False
     include_exhausted: bool = False
+    catalog_path: Path | None = None
     user_agent: str = GRLS_USER_AGENT
 
 
@@ -129,6 +136,8 @@ class CollectItem:
     target: str
     trade_name: str | None
     priority: int
+    essential: bool = False
+    mnn_registrations: int = 0
 
 
 @dataclass
@@ -208,16 +217,53 @@ def load_merged_state(state_path: Path) -> dict[str, dict[str, object]]:
     return merged
 
 
+def build_priority_index(catalog_path: Path) -> tuple[dict[str, bool], dict[str, int]]:
+    """Essential-drug flag (ЖНВЛП) per registration and active registrations per INN."""
+    decoded: object = json.loads(catalog_path.read_text(encoding="utf-8-sig"))
+    catalog = cast(dict[str, object], decoded) if isinstance(decoded, dict) else {}
+    if not isinstance(catalog.get("records"), list):
+        raise ValueError("GRLS catalog must contain a records list.")
+    essential: dict[str, bool] = {}
+    inn_by_registration: dict[str, str] = {}
+    inn_counts: Counter[str] = Counter()
+    for raw in cast(list[object], catalog["records"]):
+        if not isinstance(raw, dict):
+            continue
+        record = cast(dict[str, object], raw)
+        number = record.get("registrationNumber")
+        if not isinstance(number, str):
+            continue
+        essential[number] = record.get("essentialDrug") == "Да"
+        status = str(record.get("status") or "").casefold().replace("ё", "е")
+        inn = " ".join(str(record.get("inn") or "").casefold().split())
+        if inn and inn != "~":
+            inn_by_registration[number] = inn
+            if "действ" in status or "еаэс" in status:
+                inn_counts[inn] += 1
+    mnn_registrations = {number: inn_counts[inn] for number, inn in inn_by_registration.items()}
+    return essential, mnn_registrations
+
+
 def select_items(
     plan_path: Path,
     state_path: Path,
     output_root: Path,
     options: CollectOptions,
 ) -> list[CollectItem]:
-    """Order work: transient failures first, then never-attempted registrations."""
+    """Order work by value, then by how likely a retry is to succeed.
+
+    Likely-to-succeed work (transient failures and never-attempted registrations) goes before
+    registrations the site did not find; inside each group essential drugs (ЖНВЛП) come first, then
+    active ingredients with the most registrations, then the registration number. Without a
+    catalog the order is transient, new, not-found.
+    """
     plan = read_instruction_plan(plan_path)
     state = load_merged_state(state_path)
     requested = set(options.registrations)
+    essential_flags: dict[str, bool] = {}
+    mnn_counts: dict[str, int] = {}
+    if options.catalog_path is not None:
+        essential_flags, mnn_counts = build_priority_index(options.catalog_path)
     selected: list[CollectItem] = []
     for raw in cast(list[object], plan["items"]):
         if not isinstance(raw, dict):
@@ -251,15 +297,34 @@ def select_items(
         else:
             priority = 1
         trade_name = item.get("tradeName")
+        requested_numbers = item.get("requestedRegistrationNumbers")
+        covered = (
+            [value for value in cast(list[object], requested_numbers) if isinstance(value, str)]
+            if isinstance(requested_numbers, list)
+            else []
+        ) or [registration_number]
         selected.append(
             CollectItem(
                 registration_number,
                 target,
                 trade_name if isinstance(trade_name, str) else None,
                 priority,
+                essential=any(essential_flags.get(number, False) for number in covered),
+                mnn_registrations=max(mnn_counts.get(number, 0) for number in covered),
             )
         )
-    selected.sort(key=lambda entry: (entry.priority, entry.registration_number))
+    if options.catalog_path is None:
+        selected.sort(key=lambda entry: (entry.priority, entry.registration_number))
+    else:
+        selected.sort(
+            key=lambda entry: (
+                entry.priority == 2,
+                not entry.essential,
+                -entry.mnn_registrations,
+                entry.priority,
+                entry.registration_number,
+            )
+        )
     return selected
 
 
@@ -372,6 +437,9 @@ class FetchedInstruction:
     pdf: bytes
     last_modified: str | None
     etag: str | None
+    id_reg: str | None = None
+    routing_guid: str | None = None
+    images: tuple[tuple[str, str], ...] = ()
 
 
 def fetch_instruction(client: _PoliteClient, registration_number: str) -> FetchedInstruction:
@@ -394,6 +462,7 @@ def fetch_instruction(client: _PoliteClient, registration_number: str) -> Fetche
         guid = routing_guid(result_page, registration_number)
     except ValueError as error:
         raise GrlsPermanent("search-miss", str(error)) from error
+    context: dict[str, object] = {"routingGuid": guid}
     detail_url = urllib.parse.urljoin(
         GRLS_PAGE, f"Grls_View_v2.aspx?routingGuid={urllib.parse.quote(guid)}"
     )
@@ -401,8 +470,11 @@ def fetch_instruction(client: _PoliteClient, registration_number: str) -> Fetche
     id_match = re.search(r'id=["\']ctl00_plate_hfIdReg["\'][^>]*value=["\'](\d+)["\']', detail_page)
     if id_match is None:
         raise GrlsPermanent(
-            "invalid-response", f"detail page has no idReg for {registration_number}"
+            "invalid-response",
+            f"detail page has no idReg for {registration_number}",
+            context,
         )
+    context["idReg"] = id_match.group(1)
     endpoint = urllib.parse.urljoin(GRLS_PAGE, "GRLS_View_V2.aspx/AddInstrImg")
     response_body, _ = client.request(
         endpoint,
@@ -412,18 +484,30 @@ def fetch_instruction(client: _PoliteClient, registration_number: str) -> Fetche
         headers={"Content-Type": "application/json; charset=utf-8", "Referer": detail_url},
     )
     try:
-        url, label = instruction_pdf_url(response_body)
+        images = instruction_images(response_body)
     except ValueError as error:
         message = str(error)
         failure: FailureClass = "no-pdf" if "no instruction PDF" in message else "invalid-response"
-        raise GrlsPermanent(failure, message) from error
+        raise GrlsPermanent(failure, message, context) from error
+    url, label = max(images, key=lambda image: image[0])
     pdf, headers = client.request(url, maximum=MAX_PDF_BYTES, want_headers=True)
     if not pdf.startswith(b"%PDF-"):
         decoded = pdf[:200_000].decode("utf-8-sig", errors="replace")
         if _CAPTCHA_MARKER.search(decoded):
             raise GrlsCaptcha("CAPTCHA marker in GRLS PDF response", decoded)
-        raise GrlsPermanent("not-pdf", f"instruction for {registration_number} is not a PDF")
-    return FetchedInstruction(url, label, pdf, headers.get("last-modified"), headers.get("etag"))
+        raise GrlsPermanent(
+            "not-pdf", f"instruction for {registration_number} is not a PDF", context
+        )
+    return FetchedInstruction(
+        url,
+        label,
+        pdf,
+        headers.get("last-modified"),
+        headers.get("etag"),
+        id_reg=id_match.group(1),
+        routing_guid=guid,
+        images=tuple(images),
+    )
 
 
 def store_pdf(output_root: Path, target_relative: str, pdf: bytes) -> str:
@@ -479,6 +563,9 @@ def run_collection(
     options: CollectOptions,
     *,
     log: Callable[[str], None] | None = None,
+    progress_name: str = "progress.json",
+    on_progress: Callable[[dict[str, object]], None] | None = None,
+    guard_blocked_marker: bool = True,
 ) -> dict[str, object]:
     if options.workers < 1 or options.workers > MAX_WORKERS:
         raise ValueError(f"workers must be between 1 and {MAX_WORKERS}.")
@@ -489,14 +576,14 @@ def run_collection(
         items = items[: options.limit]
     log_dir.mkdir(parents=True, exist_ok=True)
     blocked_file = log_dir / BLOCKED_FILE_NAME
-    if blocked_file.exists():
+    if guard_blocked_marker and blocked_file.exists():
         raise RuntimeError(
             f"{blocked_file} exists: a previous run was stopped because the site started "
             "blocking (CAPTCHA or repeated refusals). Read it and delete it only after the "
             "owner decides to resume."
         )
     stop_file = log_dir / STOP_FILE_NAME
-    progress_path = log_dir / "progress.json"
+    progress_path = log_dir / progress_name
     run_log = log_dir / f"run-{utc_now().replace(':', '')}.log"
     shared = _Shared()
     queue: Iterator[CollectItem] = iter(items)
@@ -512,7 +599,7 @@ def run_collection(
     def write_progress(status: str) -> None:
         elapsed = time.monotonic() - shared.started
         done = sum(shared.counters[key] for key in ("success", "permanent", "transient-recorded"))
-        payload = {
+        payload: dict[str, object] = {
             "status": status,
             "updatedAt": utc_now(),
             "planned": total,
@@ -527,6 +614,8 @@ def run_collection(
         temporary = progress_path.with_suffix(".tmp")
         temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", "utf-8")
         temporary.replace(progress_path)
+        if on_progress is not None:
+            on_progress(payload)
 
     def request_stop(reason: str) -> None:
         with shared.lock:
@@ -604,6 +693,11 @@ def run_collection(
                             pdfBytes=len(fetched.pdf),
                             httpLastModified=fetched.last_modified,
                             httpEtag=fetched.etag,
+                            idReg=fetched.id_reg,
+                            routingGuid=fetched.routing_guid,
+                            instructionUrls=[
+                                {"url": url, "label": label} for url, label in fetched.images
+                            ],
                         )
                     )
                     clear_refusals()
@@ -690,6 +784,7 @@ def run_collection(
                             state="failed",
                             failureClass=error.failure_class,
                             error=str(error),
+                            **error.context,
                         )
                     )
                     with shared.lock:
@@ -724,8 +819,10 @@ def run_collection(
         for sig, handler in previous_handlers.items():
             signal.signal(sig, handler)
     status = "stopped" if shared.stop_reason else "finished"
-    if shared.stop_reason and (
-        "CAPTCHA" in shared.stop_reason or "consecutive" in shared.stop_reason
+    if (
+        guard_blocked_marker
+        and shared.stop_reason
+        and ("CAPTCHA" in shared.stop_reason or "consecutive" in shared.stop_reason)
     ):
         blocked_file.write_text(
             f"{utc_now()} {shared.stop_reason}\n"
@@ -735,11 +832,72 @@ def run_collection(
         )
     write_progress(status)
     emit(f"END {status} {dict(sorted(shared.counters.items()))}")
+    interrupted = bool(
+        shared.stop_reason
+        and (shared.stop_reason.startswith("signal") or "STOP file" in shared.stop_reason)
+    )
+    blocked = bool(
+        shared.stop_reason
+        and ("CAPTCHA" in shared.stop_reason or "consecutive" in shared.stop_reason)
+    )
     return {
         "status": status,
         "stopReason": shared.stop_reason,
+        "blocked": blocked,
+        "interrupted": interrupted,
+        "processed": sum(
+            shared.counters[key] for key in ("success", "permanent", "transient-recorded")
+        ),
         "planned": total,
         "counters": dict(sorted(shared.counters.items())),
         "log": str(run_log),
         "progress": str(progress_path),
     }
+
+
+def export_url_ledger(state_path: Path, output: Path) -> dict[str, object]:
+    """One row per collected registration with every identifier needed to re-fetch it.
+
+    ``idReg``/``routingGuid`` exist only for records written since the collector started to log
+    them; older successes keep the exact PDF URL, checksum and fetch time from the state ledger.
+    A later update or re-download of a known URL needs only the static file request.
+    """
+    latest: dict[str, dict[str, object]] = {}
+    ids: dict[str, dict[str, object]] = {}
+    with state_path.open(encoding="utf-8") as handle:
+        for line in handle:
+            if not line.strip():
+                continue
+            record = cast(dict[str, object], json.loads(line))
+            number = cast(str, record["registrationNumber"])
+            for key in ("idReg", "routingGuid"):
+                if record.get(key):
+                    ids.setdefault(number, {})[key] = record[key]
+            if record.get("state") == "success":
+                latest[number] = record
+    rows = 0
+    with output.open("w", encoding="utf-8") as handle:
+        for number in sorted(latest):
+            record = latest[number]
+            urls = record.get("instructionUrls")
+            row: dict[str, object] = {
+                "registrationNumber": number,
+                "idReg": ids.get(number, {}).get("idReg"),
+                "routingGuid": ids.get(number, {}).get("routingGuid"),
+                "instructionUrl": record.get("instructionUrl"),
+                "instructionUrls": urls
+                if isinstance(urls, list)
+                else [
+                    {"url": record.get("instructionUrl"), "label": record.get("instructionLabel")}
+                ],
+                "pdfSha256": record.get("pdfSha256"),
+                "pdfBytes": record.get("pdfBytes"),
+                "target": record.get("target"),
+                "fetchedAt": record.get("recordedAt"),
+                "httpLastModified": record.get("httpLastModified"),
+                "httpEtag": record.get("httpEtag"),
+            }
+            handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+            rows += 1
+    with_ids = sum(1 for number in latest if "idReg" in ids.get(number, {}))
+    return {"output": str(output), "registrations": rows, "withIdReg": with_ids}
