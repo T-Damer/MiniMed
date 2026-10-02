@@ -1,4 +1,4 @@
-name: Public Russian pilot Android release
+name: Android release
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: public-pilot-${{ github.ref }}
+  group: android-release-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -38,7 +38,7 @@ jobs:
           version="$(bun -p "require('./release.json').version")"
           echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=v$version" >> "$GITHUB_ENV"
-          echo "APK_NAME=MiniMed-$version-rf-public-pilot-debug.apk" >> "$GITHUB_ENV"
+          echo "APK_NAME=MiniMed-$version-android-debug.apk" >> "$GITHUB_ENV"
           echo "APK_LATEST_NAME=MiniMed-android.apk" >> "$GITHUB_ENV"
           echo "CORE_DATABASE_NAME=MiniMed-$version-core.db" >> "$GITHUB_ENV"
       - uses: astral-sh/setup-uv@v7
