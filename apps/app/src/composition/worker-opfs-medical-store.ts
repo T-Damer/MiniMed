@@ -42,6 +42,9 @@ export interface OpfsDownloadUi {
   onProgress(progress: { loaded: number; total: number; phase?: 'installing' }): void;
 }
 
+/** Whole-pack listings that never change while a pack is open read-only. */
+type PackListingMethod = 'listDocumentIdentities' | 'listAliases' | 'listNavigationDocuments';
+
 export class WorkerOpfsMedicalStore implements MedicalStore {
   private onDownloadWait: (waiting: boolean) => void = () => {};
   private static readonly sharedStores = new Map<string, SharedWorkerStore>();
@@ -53,6 +56,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   private leaseClosed = false;
   private leaseCount = 1;
   private closing: Promise<void> | undefined;
+  private readonly listings = new Map<PackListingMethod, Promise<unknown>>();
 
   private constructor(
     private readonly worker: Worker,
@@ -209,6 +213,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   }
 
   public initialize(seed?: ContentPackSeed): Promise<StorageHealth> {
+    if (seed !== undefined) this.owner.listings.clear();
     return this.call('initialize', seed === undefined ? [] : [seed]);
   }
 
@@ -221,7 +226,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   }
 
   public listDocumentIdentities(): Promise<readonly DocumentIdentity[]> {
-    return this.call('listDocumentIdentities', []);
+    return this.listing('listDocumentIdentities');
   }
 
   public lookupCoreIdentities(query: string): Promise<readonly CoreIdentityHit[]> {
@@ -237,7 +242,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   }
 
   public listNavigationDocuments(): Promise<readonly DocumentRecord[]> {
-    return this.call('listNavigationDocuments', []);
+    return this.listing('listNavigationDocuments');
   }
 
   public getDocument(id: string): Promise<DocumentRecord | null> {
@@ -273,7 +278,7 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
   }
 
   public listAliases(): Promise<readonly AliasRecord[]> {
-    return this.call('listAliases', []);
+    return this.listing('listAliases');
   }
 
   public listEmbeddingProfiles(): Promise<readonly EmbeddingProfile[]> {
@@ -333,6 +338,26 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
         args,
       });
     });
+  }
+
+  /**
+   * A core rebuilt after a module install leases the same pool owner, so the owner reads each
+   * whole-pack listing once: the rebuild skips ~2 s of worker time for the 20 000-document core
+   * (identities and aliases for validation, the navigation list) and the document the user is
+   * opening is not queued behind them. A failed read is not kept, so the next call retries.
+   */
+  private listing<M extends PackListingMethod>(
+    method: M,
+  ): Promise<Awaited<ReturnType<WorkerOpfsMedicalStore[M]>>> {
+    const owner = this.owner;
+    let pending = owner.listings.get(method);
+    if (!pending) {
+      pending = this.call(method, []);
+      owner.listings.set(method, pending);
+      // Callers still receive the failure through `pending`; only the cache entry is dropped.
+      pending.catch(() => owner.listings.delete(method));
+    }
+    return pending as Promise<Awaited<ReturnType<WorkerOpfsMedicalStore[M]>>>;
   }
 
   private call<M extends Exclude<OpfsPackWorkerMethod, 'inspectIntegrity'>>(

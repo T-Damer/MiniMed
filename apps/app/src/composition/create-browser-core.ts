@@ -109,9 +109,22 @@ async function fetchContent(url: URL, init?: RequestInit): Promise<Response> {
   }
 }
 
-async function readPackReport(
-  contentBaseUrl = getPackagedContentBaseUrl(),
-): Promise<PackBuildReport> {
+// The report names the bundled core and changes only with a new app build, so one read per page
+// serves every core reconnect; a module install used to fetch it again on the critical path.
+const packReports = new Map<string, Promise<PackBuildReport>>();
+
+function readPackReport(contentBaseUrl = getPackagedContentBaseUrl()): Promise<PackBuildReport> {
+  let report = packReports.get(contentBaseUrl);
+  if (!report) {
+    report = fetchPackReport(contentBaseUrl);
+    packReports.set(contentBaseUrl, report);
+    // Callers still receive the failure; only the cache entry is dropped so a retry refetches.
+    report.catch(() => packReports.delete(contentBaseUrl));
+  }
+  return report;
+}
+
+async function fetchPackReport(contentBaseUrl: string): Promise<PackBuildReport> {
   const response = await fetchContent(new URL('content/core-report.json', contentBaseUrl));
   if (!response.ok) {
     throw new Error(`Unable to load content-pack report (${response.status}).`);

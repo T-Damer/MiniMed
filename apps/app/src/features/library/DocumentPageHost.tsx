@@ -538,12 +538,8 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       await props.reconnectContent();
       const refreshedCore = props.getCore();
       if (!refreshedCore) throw new Error('Локальный поиск ещё не готов.');
-      const listed = await listDocuments(refreshedCore);
-      if (!current()) return;
-      setAvailableDocuments(listed);
-      if (!listed.some((item) => item.id === resolution.pointer.targetDocumentId)) {
-        throw new Error('Набор загружен, но целевой документ не подключился к поиску.');
-      }
+      // Reading the target proves it is connected. The new core's document list starts cold
+      // (~3 s for 20 000 documents) and is not needed to show the text, so it loads afterwards.
       const target = await refreshedCore.getDocument(resolution.pointer.targetDocumentId);
       if (!target.ok || !target.value.sections.some((section) => section.chunks.length > 0)) {
         throw new Error('Набор загружен, но полный документ не удалось прочитать.');
@@ -563,6 +559,16 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         const currentTrail = trail();
         if (currentTrail)
           setTrail(updateCurrentCrumbTitle(currentTrail, displayDocumentTitle(target.value)));
+        void listDocuments(refreshedCore).then(
+          (listed) => {
+            if (current()) setAvailableDocuments(listed);
+          },
+          (cause: unknown) => {
+            console.warn(
+              `Document list did not refresh after an install: ${cause instanceof Error ? cause.name : 'unknown'}`,
+            );
+          },
+        );
         return;
       }
       openDocumentOverlay(resolution.pointer.targetDocumentId, targetAnchor, {

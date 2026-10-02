@@ -118,7 +118,18 @@ Owner decision: the 15-card «pilot» corpus gives way to the full databases
   closes only after its running calls have settled (20 s cap, logged) and `ready`/`searchCore` are switched before the
   close starts (`swapMedicalCore` → `onSwapped(next)`). OPFS pools keep their single worker owner. The end-to-end run
   installs 129_3 (303-character title) and opens it the moment it is installed: no error; the open itself waits ~10 s
-  for the new core (not a failure; a faster reconnect is a separate improvement).
+  for the new core (not a failure; a faster reconnect is a separate improvement). Done since (claude-ui, PERF1):
+  «Скачать набор» → open text measured 5.9 s → 0.9 s on the КР 1006_1 pointer (built app, desktop Chromium, two runs).
+  The time went to (a) a quadratic catalog lookup — every pointer of the 20 000-document home catalog scanned whole
+  module document lists (`moduleContainsTarget`; 600–790 ms per home recompute, three recomputes per install), now a
+  per-module index; (b) the rebuilt core re-reading whole-pack listings of the unchanged core pack (identities and
+  aliases for validation, the navigation list: ~2.1 s of worker time with the opened document queued behind them),
+  now read once per OPFS pool owner, which the rebuilt core leases (`WorkerOpfsMedicalStore.listing`; a seeded
+  initialize drops them); (c) the pointer page waiting for the new core's full document list before reading the
+  target — reading the target with text is the proof now, the list loads afterwards; (d) `core-report.json` fetched
+  again on every reconnect, now once per page. The first document opened after start-up also waits less (2.1 →
+  1.2 s): the home catalog no longer blocks the main thread. Small modules are still re-read from IndexedDB on every
+  reconnect (linear in installed modules; not measured with many КР installed).
 - **Replaced КР editions.** `catalog.clinical-editions.json` is the source (`features/modules/clinical-editions.ts`).
   Lists, category counters, search and «Скачать раздел» hide a replaced edition unless it is installed (the catalog
   still contains it); an installed one carries the badge «прежняя редакция» and a link «Текущая редакция от …».

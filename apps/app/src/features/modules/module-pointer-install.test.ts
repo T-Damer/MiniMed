@@ -266,6 +266,28 @@ describe('module-pointer-install', () => {
     expect(selected?.id).toBe('fallback');
   });
 
+  it('finds a target among thousands of module documents, including a repeated membership', () => {
+    const large = moduleEntry('primary', [
+      ...Array.from({ length: 5_000 }, (_, index) => `other.${index}`),
+      'target.document',
+      'target.document',
+    ]);
+    const [unindexed] = large.documents.filter(
+      (document) => document.documentId === 'target.document',
+    );
+    if (!unindexed) throw new Error('Expected the target membership');
+    const documents = large.documents.map((document) =>
+      document === unindexed ? { ...document, indexArtifactId: 'missing' } : document,
+    );
+    // The first membership names no index; the second one still verifies the target.
+    expect(selectModuleForPointer(pointer(), catalog([{ ...large, documents }]))?.id).toBe(
+      'primary',
+    );
+    expect(
+      selectModuleForPointer(pointer({ targetDocumentId: 'absent' }), catalog([large])),
+    ).toBeNull();
+  });
+
   it('rejects unverified membership and missing index artifacts', () => {
     expect(selectModuleForPointer(pointer(), catalog([moduleEntry('primary', [])]))).toBeNull();
     expect(

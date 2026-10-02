@@ -132,14 +132,40 @@ export function modulePointerTargetAnchor(
   return anchor;
 }
 
+type ModuleDocument = ContentModuleCatalogEntry['documents'][number];
+
+// Medication and reference modules list thousands of documents, and a home catalog asks about
+// every one of ~20 000 pointers: a per-module index replaces a scan of the whole list per pointer.
+const moduleDocumentIndexes = new WeakMap<
+  ContentModuleCatalogEntry,
+  ReadonlyMap<string, readonly ModuleDocument[]>
+>();
+
+function moduleDocumentsWithId(
+  module: ContentModuleCatalogEntry,
+  documentId: string,
+): readonly ModuleDocument[] {
+  let index = moduleDocumentIndexes.get(module);
+  if (!index) {
+    const built = new Map<string, ModuleDocument[]>();
+    for (const document of module.documents) {
+      const entries = built.get(document.documentId);
+      if (entries) entries.push(document);
+      else built.set(document.documentId, [document]);
+    }
+    index = built;
+    moduleDocumentIndexes.set(module, index);
+  }
+  return index.get(documentId) ?? [];
+}
+
 function moduleContainsTarget(
   module: ContentModuleCatalogEntry,
   targetDocumentId: string,
   expectedIdentity?: Extract<CoreIdentityHit['target'], { readonly type: 'document' }>,
 ): boolean {
-  return module.documents.some(
+  return moduleDocumentsWithId(module, targetDocumentId).some(
     (document) =>
-      document.documentId === targetDocumentId &&
       (!expectedIdentity ||
         (document.documentVersionId === expectedIdentity.documentVersionId &&
           document.sourceChecksum === expectedIdentity.sourceChecksum)) &&
@@ -260,7 +286,7 @@ export function resolveCatalogDocumentPointer(
       (!expectedIdentity ||
         (module.id === expectedIdentity.moduleId &&
           module.version === expectedIdentity.moduleVersion)) &&
-      module.documents.some((document) => document.documentId === documentId),
+      moduleDocumentsWithId(module, documentId).length > 0,
   );
   const primary = modules[0];
   if (!primary) return null;

@@ -1,4 +1,4 @@
-import type { CoreIdentityHit } from '@localmed/contracts';
+import type { ContentPackSeed, CoreIdentityHit } from '@localmed/contracts';
 import type { StorageHealth } from '@localmed/storage';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -256,6 +256,68 @@ describe('WorkerOpfsMedicalStore', () => {
     expect(Worker).toHaveBeenCalledOnce();
     expect(terminatedAfterFirstClose).toBe(0);
     expect(workers[0]?.terminate).toHaveBeenCalledOnce();
+  });
+
+  it('reads each whole-pack listing once per pool owner, across the leases of a core rebuild', async () => {
+    const workers: Array<{
+      postMessage: ReturnType<typeof vi.fn>;
+      terminate: ReturnType<typeof vi.fn>;
+      onmessage?: (event: MessageEvent) => void;
+    }> = [];
+    vi.stubGlobal(
+      'Worker',
+      vi.fn(function FakeWorker(this: (typeof workers)[number]) {
+        this.postMessage = vi.fn();
+        this.terminate = vi.fn();
+        workers.push(this);
+      }),
+    );
+    const options = {
+      url: 'https://example.test/content/core.db',
+      databaseName: 'core.db',
+      fetchTimeoutMs: 180_000,
+      poolName: 'minimed-sah-core-listings',
+    };
+    const firstPromise = WorkerOpfsMedicalStore.open(options);
+    const worker = workers[0];
+    worker?.onmessage?.({ data: { id: 1, result: HEALTH } } as MessageEvent);
+    const first = await firstPromise;
+    const calls = (method: string) =>
+      worker?.postMessage.mock.calls.filter(([message]) => message.method === method) ?? [];
+    const answerLast = (method: string, result: unknown, error?: string): void => {
+      const request = calls(method).at(-1)?.[0];
+      worker?.onmessage?.({
+        data: error ? { id: request?.id, error } : { id: request?.id, result },
+      } as MessageEvent);
+    };
+
+    const navigation = [{ id: 'doc-1' }];
+    const firstList = first.listNavigationDocuments();
+    answerLast('listNavigationDocuments', navigation);
+    await expect(firstList).resolves.toEqual(navigation);
+
+    // The rebuilt core leases the same owner: no second worker round trip.
+    const second = await WorkerOpfsMedicalStore.open(options);
+    await expect(second.listNavigationDocuments()).resolves.toBe(await firstList);
+    expect(calls('listNavigationDocuments')).toHaveLength(1);
+
+    // A failed read reaches its caller and is not kept.
+    const failed = second.listAliases();
+    answerLast('listAliases', undefined, 'busy');
+    await expect(failed).rejects.toThrow('busy');
+    const retried = second.listAliases();
+    answerLast('listAliases', [{ id: 'alias-1' }]);
+    await expect(retried).resolves.toEqual([{ id: 'alias-1' }]);
+    expect(calls('listAliases')).toHaveLength(2);
+
+    // Seeding writes into the pack, so the listings are read again afterwards.
+    const seeded = second.initialize({ id: 'seed' } as unknown as ContentPackSeed);
+    answerLast('initialize', HEALTH);
+    await seeded;
+    const reread = second.listNavigationDocuments();
+    answerLast('listNavigationDocuments', navigation);
+    await reread;
+    expect(calls('listNavigationDocuments')).toHaveLength(2);
   });
 
   it('rejects pending calls when the worker fails', async () => {
