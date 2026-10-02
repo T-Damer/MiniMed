@@ -7,6 +7,19 @@ import { expect, test } from '@playwright/test';
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
+// Local copies of the published zstd module indexes (docs/data-ledger.json keeps them as release
+// copies); the tests serve exactly those bytes instead of the network mirror.
+const PUBLISHED_ARTIFACT_DIRECTORIES = [
+  'output/module-zstd-2026-10-01/clinical-compacted',
+  'output/module-zstd-2026-10-01/esklp-compacted',
+  'data/build/official-clinical-2026-10-02/zst',
+];
+
+function publishedArtifactPath(fileName: string): string | undefined {
+  return PUBLISHED_ARTIFACT_DIRECTORIES.map((directory) => resolve(ROOT, directory, fileName)).find(
+    (path) => existsSync(path),
+  );
+}
 const POINTER = 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac';
 const TARGET = 'kr.rf.1006_1';
 const ANCHOR =
@@ -31,9 +44,11 @@ for (const cpuSlowdown of [1, 4]) {
     );
     const artifact = module?.artifacts.find((item) => item.kind === 'index');
     if (!module || !artifact?.url) throw new Error('Missing clinical fixture artifact');
-    const bytes = await readFile(resolve(ROOT, 'data/build/e2e-clinical-1006-release.db'));
+    const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
+    const localPath = publishedArtifactPath(fileName);
+    test.skip(!localPath, `The published module file ${fileName} is local-only.`);
+    const bytes = await readFile(localPath ?? '');
     expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);
-    const fileName = new URL(artifact.url).pathname.split('/').at(-1);
     await page.route(
       (url) => url.pathname.endsWith(`/${fileName}`),
       (request) => request.fulfill({ body: bytes, contentType: 'application/octet-stream' }),
@@ -87,11 +102,14 @@ test('downloads the verified medication package with experiments enabled', async
     ),
   );
   const artifact = catalog.modules.find((module) => module.id === moduleId)?.artifacts[0];
-  if (!artifact) throw new Error('Missing medication fixture artifact');
-  const bytes = await readFile(resolve(ROOT, `data/build/release-esklp/${moduleId}.db`));
+  if (!artifact?.url) throw new Error('Missing medication fixture artifact');
+  const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
+  const localPath = publishedArtifactPath(fileName);
+  test.skip(!localPath, `The published module file ${fileName} is local-only.`);
+  const bytes = await readFile(localPath ?? '');
   expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);
   await page.route(
-    (url) => url.pathname.endsWith(`/${moduleId}.db`),
+    (url) => url.pathname.endsWith(`/${fileName}`),
     (request) => request.fulfill({ body: bytes, contentType: 'application/octet-stream' }),
   );
   await mountBuiltApp(page, {
