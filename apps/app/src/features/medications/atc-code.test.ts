@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ATC_ANATOMICAL_GROUPS,
+  atcCatalogCitation,
   atcGroupChain,
   atcLadder,
   atcPrefixes,
@@ -117,6 +118,60 @@ describe('atcLadder', () => {
   it('keeps the structure of a level-1 code and marks the rest as absent', () => {
     const steps = atcLadder({ code: code('N') });
     expect(steps.map((step) => step.code)).toEqual(['N', null, null, null, null]);
+  });
+});
+
+describe('atcLadder with the NSI catalog', () => {
+  const catalog = {
+    source: 'НСИ Минздрава, справочник АТХ',
+    version: '3.8',
+    publishDate: '2025-07-15',
+    names: {
+      J: 'Противомикробные препараты системного действия',
+      J05: 'Противовирусные препараты системного действия',
+      J05A: 'Противовирусные препараты прямого действия',
+      J05AX: 'Прочие противовирусные препараты',
+    },
+  };
+
+  it('names levels 1-4 from the catalog and prefers it over the older sources', () => {
+    const steps = atcLadder({
+      code: code('J05AX'),
+      catalog,
+      groupText: 'а; б; в',
+      substanceName: 'Ингибиторы',
+    });
+    expect(steps.slice(0, 4).map((step) => step.name)).toEqual(Object.values(catalog.names));
+    expect(steps.slice(0, 4).map((step) => step.nameSource)).toEqual(Array(4).fill('nsi-atc'));
+  });
+
+  it('keeps the older sources where the catalog has no such code and never names level 5 from it', () => {
+    const steps = atcLadder({
+      code: code('J05AX09'),
+      catalog: { ...catalog, names: { J: catalog.names.J, J05AX09: 'не должно использоваться' } },
+      groupText: null,
+      substanceName: 'Маравирок',
+    });
+    expect(steps[0]?.nameSource).toBe('nsi-atc');
+    expect(steps[1]).toMatchObject({ code: 'J05', name: null, nameSource: null });
+    expect(steps[4]).toMatchObject({ name: 'Маравирок', nameSource: 'esklp-substance' });
+    const taxonomyOnly = atcLadder({ code: code('N'), catalog });
+    expect(taxonomyOnly[0]).toMatchObject({
+      name: 'Нервная система',
+      nameSource: 'minimed-taxonomy',
+    });
+  });
+
+  it('finds the names for a code typed with Cyrillic look-alikes', () => {
+    // «J05АХ» below has Cyrillic А and Х.
+    const steps = atcLadder({ code: code('J05АХ'), catalog });
+    expect(steps[3]).toMatchObject({ code: 'J05AX', name: catalog.names.J05AX });
+  });
+
+  it('cites the dictionary version and date', () => {
+    expect(atcCatalogCitation(catalog)).toBe(
+      'НСИ Минздрава, справочник АТХ, версия 3.8 от 15.07.2025',
+    );
   });
 });
 

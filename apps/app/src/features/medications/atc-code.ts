@@ -2,16 +2,18 @@
  * ATC (АТХ) codes as the Russian registries (ЕСКЛП) give them: normalisation of the code and the
  * level-by-level explanation shown in the drug screen.
  *
- * Names are never invented. The only names we hold are the 14 level-1 headings of MiniMed's own
- * medication taxonomy (`content/medication-module-taxonomy.yaml`), the chain of group names that
- * ЕСКЛП prints in its «pharmacotherapeutic group» text for some nodes (levels 2-4) and the node's
- * own substance name (level 5). WHO ATC names are a separate rights question and are not used.
+ * Names are never invented. Levels 1-4 take their Russian names from the Minzdrav NSI dictionary
+ * «АТХ» (`atc-names.ts`, a lazy asset built from the dictionary the NSI publishes). Only where that
+ * dictionary has no such code do the older, narrower sources apply: the 14 level-1 headings of
+ * MiniMed's own medication taxonomy (`content/medication-module-taxonomy.yaml`) and the chain of
+ * group names that ЕСКЛП prints in its «pharmacotherapeutic group» text for some nodes. Level 5
+ * is the node's own substance name.
  */
 
 export type AtcLevel = 1 | 2 | 3 | 4 | 5;
 
 /** Where the name of a level comes from; shown to the reader beside the name. */
-export type AtcNameSource = 'minimed-taxonomy' | 'esklp-group-text' | 'esklp-substance';
+export type AtcNameSource = 'nsi-atc' | 'minimed-taxonomy' | 'esklp-group-text' | 'esklp-substance';
 
 /** The code length that completes each level: N, N06, N06B, N06BX, N06BX03. */
 const LEVEL_LENGTHS: readonly [1, 3, 4, 5, 7] = [1, 3, 4, 5, 7];
@@ -140,8 +142,30 @@ function chainNames(
   return { 2: sentenceCase(second), 3: sentenceCase(third), 4: sentenceCase(fourth) };
 }
 
+/** The NSI «АТХ» names of levels 1-4, keyed by code prefix (`N`, `N06`, `N06B`, `N06BX`). */
+export interface AtcNameCatalog {
+  readonly source: string;
+  readonly version: string;
+  /** ISO date the NSI published this version. */
+  readonly publishDate: string;
+  readonly names: Readonly<Record<string, string>>;
+}
+
+/** «2025-07-15» → «15.07.2025»; anything else is returned as written. */
+function displayDate(value: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/u.exec(value);
+  return match ? `${match[3] ?? ''}.${match[2] ?? ''}.${match[1] ?? ''}` : value;
+}
+
+/** The source line shown under the ladder: «НСИ Минздрава, справочник АТХ, версия 3.8 от 15.07.2025». */
+export function atcCatalogCitation(catalog: AtcNameCatalog): string {
+  return `${catalog.source}, версия ${catalog.version} от ${displayDate(catalog.publishDate)}`;
+}
+
 export interface AtcLadderInput {
   readonly code: NormalizedAtcCode;
+  /** The NSI names; without them (not loaded yet, or failed) only the older sources name levels. */
+  readonly catalog?: AtcNameCatalog | null | undefined;
   /** The node's «pharmacotherapeutic group» text from ЕСКЛП. */
   readonly groupText?: string | null | undefined;
   /** The node's standardised substance name, already formatted for display. */
@@ -156,6 +180,8 @@ export function atcLadder(input: AtcLadderInput): readonly AtcLadderStep[] {
     const code = prefixes.find((prefix) => prefix.level === level)?.code ?? null;
     const role = ATC_LEVEL_ROLES[level];
     if (code === null) return { level, role, code, name: null, nameSource: null };
+    const catalogName = level < 5 ? input.catalog?.names[code]?.trim() : undefined;
+    if (catalogName) return { level, role, code, name: catalogName, nameSource: 'nsi-atc' };
     if (level === 1) {
       const name = ATC_ANATOMICAL_GROUPS[code] ?? null;
       return { level, role, code, name, nameSource: name ? 'minimed-taxonomy' : null };
@@ -171,6 +197,8 @@ export function atcLadder(input: AtcLadderInput): readonly AtcLadderStep[] {
 
 export function atcNameSourceLabel(source: AtcNameSource): string {
   switch (source) {
+    case 'nsi-atc':
+      return 'НСИ АТХ';
     case 'minimed-taxonomy':
       return 'раздел MiniMed';
     case 'esklp-group-text':

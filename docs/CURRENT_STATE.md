@@ -35,10 +35,19 @@ pure and tested):
   substance card with all trade names), the pharmacological group (opens the medication catalog with
   its search filled; groups are matched by catalog text search, not by an exact membership list), ATC
   code chips.
-- ATC sheet: the code level by level. Level 1 names are MiniMed's 14 taxonomy headings; levels 2-4
-  are named only when ЕСКЛП's group text is a three-entry chain on a level-4+ code; level 5 is the
-  node's substance name; everything else says the name is not in the loaded data. Cyrillic look-alike
-  letters are mapped to Latin. WHO ATC names are not used.
+- ATC sheet: the code level by level. Levels 1-4 take their Russian names from the Minzdrava NSI
+  dictionary «АТХ» (OID 1.2.643.5.1.13.13.99.2.473, v3.8 of 2025-07-15, 6 897 rows built from WHOCC
+  data; 14/93/271/937 names for levels 1-4): `features/medications/atc-names.json` (109 kB, 16.8 kB
+  gzip) is a lazy chunk loaded by `atc-names.ts` when a sheet first opens, outside the start-up
+  preload list. Where the dictionary lacks a code, the older sources apply (MiniMed's 14 headings,
+  ЕСКЛП group text); level 5 is the node's substance name. The footer cites the dictionary, version,
+  date and the WHO Collaborating Centre. Cyrillic look-alike letters are mapped to Latin. The chunk is
+  cached by the service worker after the first open (not pre-cached). The dictionary is fetched by
+  `scripts/fetch-nsi-dictionary.sh` in a disposable container that trusts the Russian national root CA
+  (fingerprint-checked) and receives only `NSI_USER_TOKEN`; raw data stays in `data/raw/nsi/` (ignored),
+  see `docs/NSI_FETCH.md`. The passport carries no licence text; a public release still needs a WHOCC
+  request. Verified in headless Chromium (420 px, light and dark) on the albendazole and
+  levothyroxine ЕСКЛП cards.
 - Section index (jump chips) above the unchanged instruction/registry text; the «Кратко / Инструкция»
   switch stays below the quick links.
 - Not covered: GRLS-only registrations get no analogues/ATC (the data is not in the document);

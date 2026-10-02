@@ -1,26 +1,35 @@
-import { For, type JSX, Show } from 'solid-js';
+import { createResource, For, type JSX, Show } from 'solid-js';
 
 import { OverlayDialog } from '@/components/OverlayDialog';
-import { atcLadder, atcNameSourceLabel, normalizeAtcCode } from '@/features/medications/atc-code';
+import {
+  atcCatalogCitation,
+  atcLadder,
+  atcNameSourceLabel,
+  normalizeAtcCode,
+} from '@/features/medications/atc-code';
+import { loadAtcNames } from '@/features/medications/atc-names';
 import type { DrugAtcCode } from '@/features/medications/drug-screen';
 
 import '@/features/medications/drug-screen.css';
 
 /**
- * A code explained level by level, from the names the loaded data actually has. A level without a
- * name says so; nothing is filled in from outside the source.
+ * A code explained level by level. Levels 1-4 are named by the NSI «АТХ» dictionary, a lazy chunk
+ * fetched when the sheet first opens; if it cannot load, the names the drug's own data carries are
+ * shown and the sheet says so. A level without a name says so; nothing is invented.
  */
 export function AtcCodeSheet(props: {
   readonly code: DrugAtcCode | undefined;
   readonly open: boolean;
   readonly onClose: () => void;
 }): JSX.Element {
+  const [catalog] = createResource(() => (props.open ? true : undefined), loadAtcNames);
   const steps = () => {
     const code = props.code;
     const normalized = code ? normalizeAtcCode(code.code) : null;
     return code && normalized
       ? atcLadder({
           code: normalized,
+          catalog: catalog(),
           groupText: code.groupText,
           substanceName: code.substanceName,
         })
@@ -59,7 +68,9 @@ export function AtcCodeSheet(props: {
                           <span class="atc-sheet__missing">
                             {step.code === null
                               ? 'Источник не уточняет код до этого уровня.'
-                              : 'Название в загруженных данных отсутствует.'}
+                              : catalog.loading
+                                ? 'Названия загружаются…'
+                                : 'Название в загруженных данных отсутствует.'}
                           </span>
                         }
                       >
@@ -88,6 +99,11 @@ export function AtcCodeSheet(props: {
                 </p>
               )}
             </Show>
+            <Show when={catalog.error}>
+              <p class="atc-sheet__note">
+                Справочник названий АТХ не загрузился: показаны только названия из данных препарата.
+              </p>
+            </Show>
             <Show when={code().sourceCode}>
               {(sourceCode) => (
                 <p class="atc-sheet__note">
@@ -98,7 +114,16 @@ export function AtcCodeSheet(props: {
             </Show>
             <p class="atc-sheet__footer">
               {code().edition ? `Код АТХ по ЕСКЛП от ${code().edition}. ` : 'Код АТХ по ЕСКЛП. '}
-              Названия, которых нет в загруженных данных, не подставляются из других источников.
+              <Show when={catalog()}>
+                {(names) => (
+                  <>
+                    Названия уровней 1–4: {atcCatalogCitation(names())}; разработан на основе данных
+                    Сотрудничающего центра ВОЗ по методологии статистики лекарственных средств,
+                    Осло.{' '}
+                  </>
+                )}
+              </Show>
+              Названия, которых нет в справочнике и в данных препарата, не подставляются.
             </p>
           </div>
         )}
