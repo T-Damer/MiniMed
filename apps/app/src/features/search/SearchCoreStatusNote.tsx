@@ -1,7 +1,7 @@
 import { type JSX, Match, Show, Switch } from 'solid-js';
-
 import { Button } from '@/components/Button';
 import { DownloadProgressMark } from '@/components/DownloadProgressMark';
+import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
 import {
   type SearchCoreStatus,
   searchCoreProgress,
@@ -52,7 +52,7 @@ export function SearchCoreStatusNote(props: {
       <Show when={props.status.kind === 'download-required' && props.onDownload}>
         {(download) => (
           <Button class="search-core-status__action" variant="primary" onClick={() => download()()}>
-            Скачать ядро · ~490 МБ
+            Скачать ядро · ~{CORE_DOWNLOAD_SIZE_LABEL}
           </Button>
         )}
       </Show>

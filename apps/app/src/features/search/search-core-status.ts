@@ -1,3 +1,4 @@
+import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
 import { formatModuleBytes } from '@/features/modules/module-display';
 
 /**
@@ -110,7 +111,7 @@ export function searchCoreStatusDetail(status: SearchCoreStatus): string {
     case 'installing':
       return 'Устанавливаем проверенное ядро.';
     case 'download-required':
-      return 'Ядро занимает около 490 МБ. Скачайте его, чтобы искать по источникам.';
+      return `Загрузка ядра — около ${CORE_DOWNLOAD_SIZE_LABEL}. Скачайте его, чтобы искать по источникам.`;
     case 'error':
       return status.message;
   }

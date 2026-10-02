@@ -1,6 +1,6 @@
 import { createEffect, createSignal, type JSX, on, onCleanup, Show } from 'solid-js';
-
 import { Button } from '@/components/Button';
+import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
 import { OnboardingArrow } from './OnboardingArrow';
 import type { IntroPhase } from './onboarding-controller';
 import type { Point } from './onboarding-geometry';
@@ -62,7 +62,7 @@ export function OnboardingIntro(props: {
     if (props.coreError)
       return 'Ядро скачать не получилось — проверь интернет и нажми «Повторить» внизу';
     if (props.coreDeferred) {
-      return 'Ядро знаний занимает около 490 МБ, а ты в мобильной сети — скачай сейчас или позже по Wi‑Fi';
+      return `Загрузка ядра знаний — около ${CORE_DOWNLOAD_SIZE_LABEL}, а ты в мобильной сети: скачай сейчас или позже по Wi‑Fi`;
     }
     return 'Сейчас нам надо скачать ядро знаний — прогресс загрузки ты увидишь внизу';
   };
@@ -126,7 +126,7 @@ export function OnboardingIntro(props: {
                   variant="secondary"
                   onClick={props.onDownloadCore}
                 >
-                  Скачать · ~490 МБ
+                  Скачать · ~{CORE_DOWNLOAD_SIZE_LABEL}
                 </Button>
               </Show>
               <p

@@ -26,7 +26,7 @@ export interface NetworkConnectionHint {
 }
 
 /**
- * The ~490 MB core starts downloading on first launch without a tap, except on a
+ * The core (a ~76 MB gzip download) starts downloading on first launch without a tap, except on a
  * connection the platform reports as cellular or data-saving: there the user decides.
  * An unknown connection (no API) counts as unmetered, matching the desktop browser case.
  */

@@ -152,7 +152,7 @@ test('missing core on a cellular connection waits for the user while files and s
   });
   await page.goto(`${process.env.MINIMED_LIVE_URL ?? 'http://127.0.0.1:4173'}/#/search`);
   await expect(page.getByRole('heading', { name: 'Скачайте ядро MiniMed' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Скачать ядро · ~490 МБ' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Скачать ядро · ~\d+ МБ$/u })).toBeVisible();
   const navigation = page.locator('.app-bottom-nav');
   await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
   // The search page stays mounted under the setup screen, but hidden.
@@ -166,7 +166,7 @@ test('missing core on a cellular connection waits for the user while files and s
   await navigation.getByRole('button', { name: 'Настройки', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Настройки', exact: true })).toBeVisible();
   await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Скачать ядро · ~490 МБ' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Скачать ядро · ~\d+ МБ$/u })).toBeVisible();
 });
 
 test('the first run on a cellular connection waits for the user inside the onboarding', async ({
@@ -180,8 +180,10 @@ test('the first run on a cellular connection waits for the user inside the onboa
   const onboarding = page.getByRole('dialog', { name: 'Добро пожаловать в MiniMed' });
   await expect(onboarding).toBeAttached();
   // The consent to download belongs to the onboarding; no boot card may layer under it.
-  await expect(onboarding).toContainText('Ядро знаний занимает около 490 МБ', { timeout: 30_000 });
-  await expect(onboarding.getByRole('button', { name: 'Скачать · ~490 МБ' })).toBeVisible();
+  await expect(onboarding).toContainText(/Загрузка ядра знаний — около \d+ МБ/u, {
+    timeout: 30_000,
+  });
+  await expect(onboarding.getByRole('button', { name: /^Скачать · ~\d+ МБ$/u })).toBeVisible();
   await expect(page.locator('.boot-screen')).toHaveCount(0);
   // The same decision stays reachable on the thin line along the bottom edge.
   await expect(

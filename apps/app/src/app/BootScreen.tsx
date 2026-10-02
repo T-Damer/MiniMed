@@ -1,4 +1,5 @@
 import { type JSX, Show } from 'solid-js';
+import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
 
 import { formatModuleBytes } from '@/features/modules/module-display';
 
@@ -46,8 +47,8 @@ export function BootScreen(props: {
               ? 'Локальную базу одновременно может открыть только одна вкладка. Закройте другую вкладку или окно MiniMed — поиск откроется здесь автоматически.'
               : props.coreDownloadRequired
                 ? props.coreDownloading
-                  ? 'Ядро — это база для поиска, около 490 МБ. После загрузки поиск работает без интернета. Свои файлы и настройки доступны уже сейчас.'
-                  : 'Похоже, вы в мобильной сети, поэтому загрузка не началась сама. Ядро занимает около 490 МБ: скачайте сейчас или позже через Wi‑Fi. Свои файлы и настройки доступны и без него.'
+                  ? `Ядро — это база для поиска, загрузка около ${CORE_DOWNLOAD_SIZE_LABEL}. После загрузки поиск работает без интернета. Свои файлы и настройки доступны уже сейчас.`
+                  : `Похоже, вы в мобильной сети, поэтому загрузка не началась сама. Загрузка ядра — около ${CORE_DOWNLOAD_SIZE_LABEL}: скачайте сейчас или позже через Wi‑Fi. Свои файлы и настройки доступны и без него.`
                 : props.bootSlow
                   ? 'Подготовка базы продолжается. Свои файлы и настройки доступны через нижнее меню.'
                   : 'Поиск откроется, когда ядро будет готово. Пока можно пользоваться своими файлами и настройками.')}
@@ -57,7 +58,7 @@ export function BootScreen(props: {
             when={props.coreDownloading}
             fallback={
               <button class="boot-card__action" type="button" onClick={props.onDownloadCore}>
-                Скачать ядро · ~490 МБ
+                Скачать ядро · ~{CORE_DOWNLOAD_SIZE_LABEL}
               </button>
             }
           >

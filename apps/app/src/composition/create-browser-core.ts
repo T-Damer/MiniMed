@@ -9,6 +9,7 @@ import {
   SqliteMedicalStore,
 } from '@localmed/storage-sqlite';
 import { readBoundedResponse } from '@/composition/bounded-response';
+import { ANDROID_CORE_DOWNLOAD } from '@/composition/core-download';
 import { createRegisteredExternalMedicalCore } from '@/composition/external-medical-core';
 import { WorkerOpfsMedicalStore } from '@/composition/worker-opfs-medical-store';
 import { getDownloadQueue } from '@/features/downloads/download-service';
@@ -47,18 +48,9 @@ const BUILT_IN_MKB_MODULE_ID = 'minimed.mkb.ru';
 const CONTENT_FETCH_TIMEOUT_MS = 15_000;
 const CONTENT_OPEN_TIMEOUT_MS = 15_000;
 const OPFS_PACK_FETCH_TIMEOUT_MS = 180_000;
-// Android downloads a separately published encoding of the same corpus. `checksum` is the exact
-// SQLite file that gets installed; `url` is its gzip transfer (76 MB instead of 441 MB), whose own
-// checksum and size are recorded in core-report.json. The native installer inflates the stream and
-// verifies the decoded checksum, so a damaged or truncated archive never becomes an installed core.
-// The raw `MiniMed-*-core.db` asset of the same release stays published for older app builds.
-export const ANDROID_CORE_DOWNLOAD = {
-  url: 'https://github.com/T-Damer/MiniMed/releases/download/core-0.6.47/core.db.gz',
-  compression: 'gzip',
-  transferSha256: 'sha256:a5d0e3b5dfc418c4208c171d365afc03a956fae75bd5ddeee3b956ae814392c5',
-  transferSizeBytes: 76_268_794,
-  checksum: 'sha256:8e6fe3bf5874c63b0df0e260fccf0905c6af1ac06e8b93ea5039a2f6ad1318d4',
-} as const;
+
+export { ANDROID_CORE_DOWNLOAD };
+
 const SQLITE_HEADER = new TextEncoder().encode('SQLite format 3\u0000');
 // sqlite-wasm deserializes the whole file into the WASM heap. Local-dev companions such as
 // mkb.db (~1.4 GB) and medications.db (~420 MB) cannot fit; opening them yields SQLITE_NOMEM.

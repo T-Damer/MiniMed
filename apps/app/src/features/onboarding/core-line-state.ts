@@ -1,3 +1,4 @@
+import { CORE_DOWNLOAD_SIZE_LABEL } from '@/composition/core-download';
 import { formatModuleBytes } from '@/features/modules/module-display';
 import { downloadPercent } from '@/features/setup/setup-state';
 import { formatSpeed } from './download-speed';
@@ -42,7 +43,11 @@ export function coreLineState(input: CoreLineInput): CoreLineState {
   if (input.ready) return { kind: 'ready', fraction: 1, label: 'Ядро знаний установлено' };
   if (input.error) return { kind: 'error', fraction: undefined, label: 'Не удалось скачать ядро' };
   if (input.deferred && !input.downloading) {
-    return { kind: 'deferred', fraction: 0, label: 'Мобильная сеть: ядро около 490 МБ' };
+    return {
+      kind: 'deferred',
+      fraction: 0,
+      label: `Мобильная сеть: загрузка ядра около ${CORE_DOWNLOAD_SIZE_LABEL}`,
+    };
   }
   const phase = input.progress?.phase;
   if (phase === 'verifying') {

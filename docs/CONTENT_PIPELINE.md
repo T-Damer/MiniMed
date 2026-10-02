@@ -117,7 +117,7 @@ publish step, plus the benchmark suite, stays manual and separate. Publishing a 
 `bun scripts/write-core-report.mjs --db … --version … --gzip … --release-tag core-<v> --output core-report.json`,
 upload `core.db.gz`, `MiniMed-<v>-core.db`, `core-report.json` and `core.manifest.json` to the `core-<v>`
 prerelease, then update `content/bundled/core.db.gz`, `apps/app/public/content/core-report.json` and
-`ANDROID_CORE_DOWNLOAD` (see [RELEASES.md](RELEASES.md)).
+`ANDROID_CORE_DOWNLOAD` in `apps/app/src/composition/core-download.ts` (see [RELEASES.md](RELEASES.md)).
 
 Local ICD-10 reference pack:
 
