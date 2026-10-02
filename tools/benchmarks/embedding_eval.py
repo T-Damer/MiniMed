@@ -385,6 +385,85 @@ def evaluate(work: Path, model_name: str, weights: list[float]) -> None:
         )
 
 
+def evaluate_documents(
+    work: Path, model_name: str, queries_file: str, lexical_file: str
+) -> None:
+    """Document-level relevance (`relevantKr`: document id → grade) from retrieval-icd-queries."""
+    rows = load_corpus(work)
+    queries = {
+        q["query_id"]: q
+        for q in map(json.loads, (work / queries_file).read_text().splitlines())
+        if q
+    }
+    lexical = {
+        c["queryId"]: [(g["documentId"], g["chunkIds"]) for g in c["groups"]]
+        for c in map(json.loads, (work / lexical_file).read_text().splitlines())
+        if c
+    }
+    vectors = quantize(np.load(work / f"emb-{slug(model_name)}.npy"), "int8")
+    model, _ = load_model(model_name)
+    prefix = QUERY_PREFIX.get(model_name, "")
+    ids = [qid for qid in lexical if qid in queries]
+    query_vectors = model.encode(
+        [prefix + queries[q]["query"] for q in ids],
+        normalize_embeddings=True,
+        convert_to_numpy=True,
+        batch_size=64,
+    ).astype(np.float32)
+
+    def metrics(ranked: list[str], relevant: dict[str, int]) -> dict[str, float]:
+        first = next((i + 1 for i, d in enumerate(ranked[:10]) if d in relevant), None)
+        strict = next(
+            (i + 1 for i, d in enumerate(ranked[:5]) if relevant.get(d) == 3), None
+        )
+        return {
+            "at1": float(first == 1),
+            "at5": float(first is not None and first <= 5),
+            "strictAt5": float(strict is not None),
+            "mrr10": 0.0 if first is None else 1 / first,
+        }
+
+    by: dict[str, dict[str, list[dict[str, float]]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
+    for qid, query_vector in zip(ids, query_vectors, strict=True):
+        query = queries[qid]
+        lex = lexical[qid]
+        sem = semantic_groups(vectors @ query_vector, rows)
+        runs = {
+            "lexical": lex,
+            "semantic": sem,
+            "hybrid w=1.0": fuse(lex, sem, 1.0),
+            "hybrid w=2.0": fuse(lex, sem, 2.0),
+        }
+        for name, groups in runs.items():
+            scored = metrics([d for d, _ in groups], query["relevantKr"])
+            for slice_ in (
+                "all",
+                f"source:{query['source']}",
+                f"split:{query['split']}",
+            ):
+                by[name][slice_].append(scored)
+    report = {
+        name: {
+            slice_: {k: round(statistics.fmean(r[k] for r in rs), 3) for k in rs[0]}
+            | {"n": len(rs)}
+            for slice_, rs in sorted(slices.items())
+        }
+        for name, slices in by.items()
+    }
+    (work / f"report-docs-{slug(model_name)}.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=1)
+    )
+    for name, slices in report.items():
+        line = " | ".join(
+            f"{s}: @1 {v['at1']} @5 {v['at5']} strict@5 {v['strictAt5']} mrr {v['mrr10']} (n{v['n']})"
+            for s, v in slices.items()
+            if s == "all" or s.startswith("source:")
+        )
+        print(f"{model_name} {name:14} {line}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="command", required=True)
@@ -399,11 +478,18 @@ def main() -> None:
     v.add_argument("--work", type=Path, required=True)
     v.add_argument("--model", required=True)
     v.add_argument("--weights", type=float, nargs="+", default=[0.5, 1.0, 1.5])
+    d = sub.add_parser("evaluate-docs")
+    d.add_argument("--work", type=Path, required=True)
+    d.add_argument("--model", required=True)
+    d.add_argument("--queries", default="icd-queries.jsonl")
+    d.add_argument("--lexical", default="icd-lexical.jsonl")
     args = parser.parse_args()
     if args.command == "corpus":
         corpus(args.packs, args.work)
     elif args.command == "embed":
         embed(args.work, args.model, args.batch)
+    elif args.command == "evaluate-docs":
+        evaluate_documents(args.work, args.model, args.queries, args.lexical)
     else:
         evaluate(args.work, args.model, args.weights)
 

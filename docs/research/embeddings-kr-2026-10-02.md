@@ -56,6 +56,28 @@ R@5 by query style (lexical → e5-small semantic): professional 0.32 → 0.55, 
   МКБ), host latency (a phone will be several times slower). Before product work this needs the
   200–300 physician-written queries with real relevance judgements.
 
+## Re-run on real Russian queries (Q1 benchmark)
+
+The Q1 benchmark (`tools/benchmarks/retrieval-icd-queries.json`, `docs/research/query-datasets-2026-10.md`)
+gives real-language queries with document-level relevance through ICD-10 codes: RuMedPrime
+complaints written by physicians and RuCCoD diagnosis phrases. Restricted to the 330 queries with at
+least one relevant КР among the 723 packs (`embedding_eval.py evaluate-docs`; КР relevance only,
+grade 3 = same/parent/child code, grade 1 = same 3-character block):
+
+| Variant | R@1 | R@5 | strict R@5 | MRR@10 | R@5 complaints (n 165) | R@5 diagnoses (n 165) |
+|---|---:|---:|---:|---:|---:|---:|
+| Lexical (app) | 0.136 | 0.215 | 0.188 | 0.171 | 0.121 | 0.309 |
+| **e5-small, semantic** | **0.248** | **0.424** | **0.376** | **0.320** | 0.218 | **0.630** |
+| e5-small, hybrid RRF w=2 | 0.203 | 0.358 | 0.312 | 0.277 | 0.212 | 0.503 |
+| USER-base, semantic | 0.176 | 0.339 | 0.288 | 0.251 | 0.248 | 0.430 |
+| USER-base, hybrid RRF w=2 | 0.176 | 0.355 | 0.297 | 0.251 | **0.303** | 0.406 |
+
+The synthetic result holds on real queries: semantic retrieval roughly doubles R@5 over the
+current lexical search on КР (0.215 → 0.424 with e5-small), and plain RRF fusion again loses to
+semantic alone for e5-small. Multi-symptom complaints stay hard for every variant (best 0.30 R@5);
+USER-base is better there, e5-small on diagnosis-style phrasing. Scope: КР packs only, before the
+2026-10-02 refresh; complaint labels are the physician's final diagnosis, not «the best document».
+
 ## Proposed next steps
 
 1. Physician query set (the owner's real phrasing) with document-level judgements over the full
