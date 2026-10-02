@@ -33,6 +33,7 @@ bun run data:ledger -- --commands --tier=confirm   # include "confirm" candidate
 | `data/intermediate/rls-mkb`, `allmed-*` | RLS MKB scrape state; Allmed workspace (its snapshot is not on this machine) | SOURCE |
 | `data/intermediate/grls-full-final` | all GRLS OCR/extractions (8 868); `grls-full-v1…v6` are contained batches | REBUILDABLE / DUPLICATE |
 | `data/build/release-clinical`, `release-esklp`, `official-clinical-documents-2026-07-27`, `mkb.db` | local copies of published data | RELEASED |
+| `data/build/official-clinical-2026-10-02` | incremental КР refresh: 30 published `.db.zst` (`zst/`) and the plan; raw JSON of 763 current + 496 replaced editions lives in `data/raw/official-clinical-documents` | RELEASED / SOURCE |
 | `data/build/*-module`, `definition-reference` | module builds whose `.db.gz` are released | RELEASED |
 | `data/build/core-*`, `core.0.7.0-test7*`, `diseases.db`, `official-clinical-documents` | `bun run content:core:build` inputs/outputs | REBUILDABLE |
 | `data/build/core.0.7.0-test1…6*`, `ux-icd-*`, `core-before-*`, `mkb-legacy.db` | superseded experiments | OBSOLETE / BACKUP |

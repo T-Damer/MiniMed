@@ -78,8 +78,17 @@ and 11 new editions of recommendations the app already had**; those 11 earlier e
   (the installed module is mounted for search; verified), and the core still points the 11 replaced recommendations to their
   previous editions, which remain installable. The next core build should add the new editions and point replaced ones to the
   current edition.
-- **Known app bug found on the way** (not caused by this data): the download queue rejects titles over 180 characters, so 8
-  catalog modules (759_1, 759_2, 32_2, 129_3, 766_1, 795_1, 817_1, 888_1) fail with «Invalid download descriptor».
+- **Published** to the new mirror branch `datasets/clinical-json-2026.10.02-7b17a45f02ff` (30 `.db.zst`, 33.3 MB, additive:
+  a new branch, nothing existing touched; no GitHub release). All 30 mirror URLs return the published bytes (size and SHA-256
+  equal the catalog) with `access-control-allow-origin: *`. Local copy: `data/build/official-clinical-2026-10-02/zst/`.
+- **Verified:** `bun run typecheck`, `vitest` (310 files, 7 331 tests), `pytest tools/ingest/tests`, `bun run benchmark:all`
+  (within tolerance of the core); all 30 files decode with the reference `zstd` CLI to the catalog's decoded checksums; in a
+  Chromium build 29 of the 30 modules installed from the catalog UI and opened as full text (3 of them through the real mirror
+  with real CORS). Not verified: Android/WebView, slow hardware, a physician review of any text. The 30 new modules come from the current importer, the 744
+  earlier ones from an earlier revision (same text, slightly different image labels and table-caption chunking).
+- **Known app issues found on the way** (not caused by this data): the download queue rejects titles over 180 characters, so 8
+  catalog modules (759_1, 759_2, 32_2, 129_3, 766_1, 795_1, 817_1, 888_1) fail with «Invalid download descriptor» (including the
+  new 759_2; fix flagged); opening a document within ~1.5 s after an install can show «DB has been closed» while the app reconnects.
 
 ## Drug document screen — 2026-10-01
 

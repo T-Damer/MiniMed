@@ -29,18 +29,25 @@ def _sha256_bytes(value: bytes) -> str:
     return f"sha256:{hashlib.sha256(value).hexdigest()}"
 
 
-def _request_payload(*, page_size: int, current_page: int) -> dict[str, object]:
+def _request_payload(
+    *, page_size: int, current_page: int, status: int | None = 0
+) -> dict[str, object]:
+    """One registry page request: ``status`` 0 is active, ``None`` lists every status."""
     return {
-        "filters": [
-            {
-                "fieldName": "status",
-                "filterType": 1,
-                "filterValueType": 2,
-                "value1": 0,
-                "value2": "",
-                "values": [],
-            }
-        ],
+        "filters": (
+            []
+            if status is None
+            else [
+                {
+                    "fieldName": "status",
+                    "filterType": 1,
+                    "filterValueType": 2,
+                    "value1": status,
+                    "value2": "",
+                    "values": [],
+                }
+            ]
+        ),
         "sortOption": {"fieldName": "publishdate", "sortType": 2},
         "pageSize": page_size,
         "currentPage": current_page,
@@ -252,6 +259,7 @@ def collect_official_clinical_registry(
     max_pages: int = 100,
     timeout_seconds: float = 180.0,
     generated_at: str | None = None,
+    status: int | None = 0,
     transport: JsonTransport = _default_transport,
 ) -> dict[str, object]:
     if page_size < 1 or page_size > 1000:
@@ -267,6 +275,7 @@ def collect_official_clinical_registry(
     raw_pages: list[dict[str, object]] = []
     normalized_records: list[dict[str, object]] = []
     seen_ids: set[str] = set()
+    skipped_rows = 0
     total_records: int | None = None
     actual_page_size: int | None = None
     total_pages: int | None = None
@@ -277,7 +286,7 @@ def collect_official_clinical_registry(
             raise ValueError(
                 f"Official registry requires more than the configured {max_pages} pages."
             )
-        request_payload = _request_payload(page_size=page_size, current_page=page)
+        request_payload = _request_payload(page_size=page_size, current_page=page, status=status)
         request_body = json.dumps(
             request_payload,
             ensure_ascii=False,
@@ -308,9 +317,16 @@ def collect_official_clinical_registry(
             }
         )
         for row in rows:
+            if status is None and (
+                _clean(row.get("CodeVersion")) is None or _clean(row.get("Name")) is None
+            ):
+                # Unusable archive rows (no id or title) stay in the raw pages only.
+                skipped_rows += 1
+                continue
             normalized = normalize_official_registry_row(row)
             official_id = cast(str, normalized["id"])
-            if official_id in seen_ids:
+            # Archived records (statuses 1-3) may repeat a CodeVersion (`Id` differs).
+            if official_id in seen_ids and status is not None:
                 raise ValueError(
                     f"Official registry returned duplicate recommendation {official_id}."
                 )
@@ -321,7 +337,7 @@ def collect_official_clinical_registry(
     assert total_records is not None
     assert actual_page_size is not None
     assert total_pages is not None
-    if len(normalized_records) != total_records:
+    if len(normalized_records) + skipped_rows != total_records:
         raise ValueError(
             "Official registry record-count mismatch: "
             f"expected {total_records}, collected {len(normalized_records)}."
@@ -363,6 +379,7 @@ def collect_official_clinical_registry(
         "catalogSha256": _sha256_bytes(encoded_catalog),
         "totalRecords": total_records,
         "uniqueOfficialIds": len(seen_ids),
+        "skippedRowsWithoutIdOrTitle": skipped_rows,
         "pageSize": actual_page_size,
         "pages": total_pages,
         "activeRecords": sum(
@@ -436,3 +453,52 @@ def import_official_clinical_registry_pages(
         generated_at=generated_at,
         transport=captured_transport,
     )
+
+
+CLINICAL_MODULE_ID_PREFIX = "minimed.clinical.recommendation."
+
+
+def write_clinical_catalog_delta(
+    catalog_path: Path, module_catalog_path: Path, output: Path
+) -> dict[str, object]:
+    """Keep the active registry records whose edition is not yet a module of the app catalog.
+
+    A new edition (``CodeVersion``) is a new module; the modules already listed are never rebuilt,
+    so installed copies and their checksums stay valid. The output has the catalog's own shape and
+    feeds ``build`` / ``plan-sources`` like the full catalog does.
+    """
+    catalog: object = json.loads(catalog_path.read_text(encoding="utf-8"))
+    modules: object = json.loads(module_catalog_path.read_text(encoding="utf-8"))
+    if not isinstance(catalog, dict) or not isinstance(catalog.get("records"), list):
+        raise ValueError("Official registry catalog must contain a records array.")
+    if not isinstance(modules, dict) or not isinstance(modules.get("modules"), list):
+        raise ValueError("Module catalog must contain a modules array.")
+    listed = {
+        module["id"].removeprefix(CLINICAL_MODULE_ID_PREFIX)
+        for module in modules["modules"]
+        if isinstance(module, dict)
+        and isinstance(module.get("id"), str)
+        and module["id"].startswith(CLINICAL_MODULE_ID_PREFIX)
+    }
+    records = [record for record in catalog["records"] if isinstance(record, dict)]
+    delta = [record for record in records if record.get("id") not in listed]
+    active = {str(record.get("id")) for record in records}
+    delta_catalog = {
+        **catalog,
+        "totalRecords": len(delta),
+        "pages": 1,
+        "pageSize": max(1, len(delta)),
+        "records": delta,
+        "note": "Records of the registry catalog without a module in the app catalog.",
+    }
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(delta_catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    return {
+        "output": str(output),
+        "registryRecords": len(records),
+        "listedModules": len(listed),
+        "newRecords": [str(record["id"]) for record in delta],
+        "listedButNotActive": sorted(listed - active),
+    }

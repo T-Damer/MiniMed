@@ -101,6 +101,13 @@ The script verifies every output with the app's own decoder, writes a candidate 
 separate, explicit step: upload the files to the mirror locations in the report, then commit the
 candidate catalog. Modules that use zstd need `minAppVersion` 0.6.45 or newer.
 
+An incremental clinical snapshot (new КР editions after a registry refresh) is published with
+`scripts/publish-module-zstd-mirror.sh --family clinical --tag <new snapshot id> --source-dir DIR --create`,
+which starts the branch `datasets/<tag>` without touching any existing branch, then
+`scripts/add-clinical-delta-modules.ts` adds the modules to the catalog and marks the replaced
+editions `superseded` (procedure in [CONTENT_PIPELINE.md](CONTENT_PIPELINE.md)). Move the catalog's
+`publishedAt` forward: a remote catalog replaces the bundled one only when it is newer.
+
 The Android core is downloaded as the release's `core.db.gz` (the archive of the same file the
 browser bundle uses): `core-report.json` records `distributions.android.{url, compression,
 transferSha256, transferSizeBytes}` next to the decoded `checksum` the native installer verifies.

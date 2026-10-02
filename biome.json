@@ -15,6 +15,7 @@
       "!!apps/app/android",
       "!!apps/app/ios",
       "!!apps/app/public/content/reference-images/manifest.json",
+      "!!apps/app/src/features/modules/catalog.clinical-editions.json",
       "!!apps/app/src/features/modules/catalog.preview.json",
       "!!apps/app/src/features/modules/catalog.terminology.json",
       "!!data",

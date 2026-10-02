@@ -16,6 +16,7 @@ from .official_clinical_registry import (
     check_selected_clinical_sources,
     collect_official_clinical_registry,
     import_official_clinical_registry_pages,
+    write_clinical_catalog_delta,
 )
 
 app = typer.Typer(
@@ -41,8 +42,18 @@ def official_sync_command(
     max_pages: Annotated[int, typer.Option("--max-pages", min=1)] = 100,
     timeout_seconds: Annotated[float, typer.Option("--timeout-seconds", min=1)] = 180.0,
     generated_at: Annotated[str | None, typer.Option("--generated-at")] = None,
+    status: Annotated[
+        str,
+        typer.Option(
+            "--status",
+            help="Registry status filter: 0 (active, default), 1-4, or 'all' for every status.",
+        ),
+    ] = "0",
 ) -> None:
     """Collect or import the complete official Minzdrav registry."""
+    if status != "all" and not status.isdigit():
+        raise typer.BadParameter("--status must be a number or 'all'.")
+    status_filter = None if status == "all" else int(status)
     if raw_input is None:
         summary = collect_official_clinical_registry(
             output,
@@ -52,6 +63,7 @@ def official_sync_command(
             max_pages=max_pages,
             timeout_seconds=timeout_seconds,
             generated_at=generated_at,
+            status=status_filter,
         )
     else:
         summary = import_official_clinical_registry_pages(
@@ -61,6 +73,17 @@ def official_sync_command(
             report_output=report,
             generated_at=generated_at,
         )
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+
+
+@app.command("delta")
+def delta_command(
+    catalog: Annotated[Path, typer.Option("--catalog", exists=True, dir_okay=False)],
+    module_catalog: Annotated[Path, typer.Option("--module-catalog", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+) -> None:
+    """Write the registry records that have no clinical-recommendation module in the app catalog."""
+    summary = write_clinical_catalog_delta(catalog, module_catalog, output)
     typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
 
 

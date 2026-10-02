@@ -1,6 +1,6 @@
 {
-  "catalogVersion": "release-0.6.33",
-  "publishedAt": "2026-09-05T15:00:00Z",
+  "catalogVersion": "release-0.6.46-kr.2026.10.02",
+  "publishedAt": "2026-10-02T05:45:00Z",
   "coreModule": {
     "id": "minimed.core.ru",
     "version": "1.0.0-preview.8",

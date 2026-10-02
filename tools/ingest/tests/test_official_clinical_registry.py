@@ -252,3 +252,76 @@ sources:
             "replacementId": "714_3",
         }
     ]
+
+
+def test_all_status_listing_sends_no_status_filter_and_keeps_archive_rows(tmp_path: Path) -> None:
+    replaced = {**official_row("507_3", title="Туберкулез у детей"), "Status": 4}
+    current = official_row("507_4", title="Туберкулез у детей")
+    archived_twice = [
+        {**official_row("687_1", title="Архивная"), "Status": 2},
+        {**official_row("687_1", title="Архивная"), "Status": 1},
+    ]
+    untitled = {**official_row("9_1", title="x"), "CodeVersion": None, "Name": None, "Status": 2}
+    rows = [replaced, current, *archived_twice, untitled]
+    requests: list[dict[str, object]] = []
+
+    def transport(
+        _url: str,
+        body: bytes,
+        _headers: dict[str, str],
+        _timeout: float,
+    ) -> object:
+        request = json.loads(body)
+        requests.append(request)
+        return {
+            "Data": rows,
+            "CurrentPage": request["currentPage"],
+            "PageSize": request["pageSize"],
+            "TotalRecords": len(rows),
+        }
+
+    report = collect_official_clinical_registry(
+        tmp_path / "catalog.json",
+        page_size=10,
+        status=None,
+        transport=transport,
+    )
+
+    assert requests[0]["filters"] == []
+    assert report["totalRecords"] == 5
+    assert report["skippedRowsWithoutIdOrTitle"] == 1
+    catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
+    assert [record["id"] for record in catalog["records"]] == ["507_3", "507_4", "687_1", "687_1"]
+    assert [record["officialMetadata"]["Status"] for record in catalog["records"]] == [4, 0, 2, 1]
+
+
+def test_delta_keeps_only_records_without_a_module(tmp_path: Path) -> None:
+    from localmed_ingest.official_clinical_registry import write_clinical_catalog_delta
+
+    records = [
+        normalize_official_registry_row(official_row("507_4", title="Туберкулез у детей")),
+        normalize_official_registry_row(official_row("53_2", title="Аневризмы")),
+    ]
+    catalog = tmp_path / "catalog.json"
+    catalog.write_text(json.dumps({"records": records, "totalRecords": 2}), encoding="utf-8")
+    modules = tmp_path / "modules.json"
+    modules.write_text(
+        json.dumps(
+            {
+                "modules": [
+                    {"id": "minimed.core.ru"},
+                    {"id": "minimed.clinical.recommendation.53_2"},
+                    {"id": "minimed.clinical.recommendation.507_3"},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    summary = write_clinical_catalog_delta(catalog, modules, tmp_path / "delta.json")
+
+    assert summary["newRecords"] == ["507_4"]
+    assert summary["listedButNotActive"] == ["507_3"]
+    delta = json.loads((tmp_path / "delta.json").read_text(encoding="utf-8"))
+    assert [record["id"] for record in delta["records"]] == ["507_4"]
+    assert delta["totalRecords"] == 1

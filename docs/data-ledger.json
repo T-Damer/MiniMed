@@ -28,7 +28,7 @@
         "data/intermediate/grls-instructions-current-*"
       ],
       "note": "Rate-limited official downloads plus the download state ledger; the only local copy. G1 (2026-10-02) added 30 PDFs; collection stopped at a CAPTCHA (data/build/grls-collect/BLOCKED-by-site).",
-      "bytes": 13297448263,
+      "bytes": 13330872667,
       "modified": "2026-10-02"
     },
     {
@@ -47,12 +47,15 @@
     {
       "path": "data/raw/official-clinical-documents",
       "class": "SOURCE",
-      "producer": "bun run content:sync:clinical:all",
-      "consumers": ["bun run content:build:clinical:documents"],
+      "producer": "bun run content:sync:clinical:all (PDFs); medbase sync --manifest <plan>/sources.yaml (JSON, KR2)",
+      "consumers": [
+        "bun run content:build:clinical:documents",
+        "medbase-clinical-catalog build-documents (JSON, clinical_json_import)"
+      ],
       "release": "clinical-2026.07.24-cbb0e01c1bce (category PDF ZIPs)",
-      "note": "Official PDFs; the category ZIPs on the release are the recovery copy.",
-      "bytes": 2048428319,
-      "modified": "2026-07-24"
+      "note": "Official PDFs (2026-07-24; the category ZIPs on the release are the recovery copy) plus, since 2026-10-02, 1 259 byte-exact GetClinrec2 JSON files <CodeVersion>.json (763 current + 496 replaced editions, 1.41 GB, checksums in data/raw/official-clinical-registry/2026-10-02/raw-json-checksums.json). The JSON is not on GitHub: this is the only copy besides the registry.",
+      "bytes": 3457765766,
+      "modified": "2026-10-02"
     },
     {
       "path": "data/raw/official-grls-registry",
@@ -504,7 +507,7 @@
       ],
       "rebuild": "see the four subdirectories; ~30 min of CPU",
       "note": "Unpublished candidate artifacts (ESKLP x15, clinical recommendations x744, plain and search-compacted). Delete after the owner publishes one set or rejects both.",
-      "bytes": 1508878017,
+      "bytes": 730161267,
       "modified": "2026-10-01"
     },
     {
@@ -530,6 +533,19 @@
       "note": "744 files, compacted search storage, new decoded checksums. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy.",
       "bytes": 653162729,
       "modified": "2026-10-01"
+    },
+    {
+      "path": "data/build/official-clinical-2026-10-02",
+      "class": "RELEASED",
+      "producer": "KR2 incremental clinical refresh: medbase-clinical-catalog delta/build/plan-sources/build-documents/package-snapshot, medbase compact-module-search, scripts/repack-module-indexes-zstd.ts --compacted",
+      "consumers": [
+        "catalog.preview.json (30 КР modules, minAppVersion 0.6.46)",
+        "bun run content:core:build (future pointers for the new editions)"
+      ],
+      "release": "clinical-json-2026.10.02-7b17a45f02ff: branch datasets/clinical-json-2026.10.02-7b17a45f02ff (30 .db.zst, no GitHub release)",
+      "note": "zst/ holds the published bytes (30 files, 33.3 MB); the rest is the plan (catalog-delta.json, ledger.json, source-plan/, sync reports, catalog fragments, snapshot-manifest.json). Uncompacted databases and workspaces were deleted after publication; rebuild from the raw JSON with the commands in docs/CONTENT_PIPELINE.md (incremental clinical refresh).",
+      "bytes": 34946929,
+      "modified": "2026-10-02"
     }
   ]
 }
