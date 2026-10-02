@@ -700,7 +700,7 @@ def run_collection(
             processed = sum(
                 shared.counters[key] for key in ("success", "permanent", "transient-recorded")
             )
-            if processed and processed % 25 == 0:
+            if processed:
                 write_progress("running")
             client.pause_between_items()
 
