@@ -1,4 +1,4 @@
-# Private pilot corpus
+# Private corpus workspace
 
 Version 0.2.2 adds a reproducible authoring boundary for the first private clinical-recommendation
 corpus. Raw documents remain outside Git; only generated Markdown, diagnostic JSON, and the final

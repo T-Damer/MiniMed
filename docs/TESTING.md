@@ -40,7 +40,7 @@ CHROMIUM_PATH=/usr/bin/chromium bun run test:e2e
 Python tests generate a multi-page PDF at runtime with repeated headers, numbered headings, body
 text, and page-number footers. They verify removal/classification, build-ready Markdown, page/block
 provenance, atomic registry preparation, path-root enforcement, and a searchable SQLite build. A
-separate TXT test verifies line provenance. Real recommendations still require a private pilot and
+separate TXT test verifies line provenance. Real recommendations still require a private corpus and
 manual inspection of parser diagnostics.
 
 ## SQLite integration
@@ -56,9 +56,10 @@ manual inspection of parser diagnostics.
 `bun run benchmark:all` (CI, `core.db` alone) and `bun run benchmark:real:release` (release, with
 the companion packs) run the same sets on the released corpus:
 
-- `pilot-rf-queries.json`, `pilot-rf-drug-queries.json` and `doctor-workflow-queries.json`: 61
-  queries with section recall; marked cases must hold Top-1. Drug queries also accept the ESKLP
-  record and the Allmed instruction of the same INN.
+- `clinical-guideline-queries.json`, `medication-lookup-queries.json` and `doctor-workflow-queries.json`:
+  61 queries, each naming the full-corpus documents that answer it (`kr.rf.<id>` recommendations; ЕСКЛП
+  МНН or Allmed instructions for medications, asked on the «Лекарства» scope); recall@1/@5 and MRR,
+  marked cases must hold Top-1. No expected id belongs to the retired pilot corpus.
 - `real-corpus-demo-queries.json`: the former demo queries with real targets, or excluded with a
   reason, and 5 long clinical descriptions with expected facts, branches, negations and warnings.
 

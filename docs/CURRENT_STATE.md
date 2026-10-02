@@ -1,6 +1,6 @@
 # Current state
 
-> Updated: 1 October 2026
+> Updated: 2 October 2026
 > Released version: `0.6.46` (public prerelease toward `1.0`)
 > Next planned step: the WebView (Capacitor) app is the product again and the native port is frozen
 > (user decision, 2026-10-01, after [native-vs-webview-2026-10-01](research/native-vs-webview-2026-10-01.md);
@@ -19,6 +19,67 @@ Detailed history, moved verbatim on 2026-09-24:
   baseline and runtime benchmark up to the 0.6.39 release.
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
+
+## Pilot corpus retired — 2026-10-02
+
+Owner decision: the 15-card «pilot» corpus gives way to the full databases
+([research/pilot-corpus-retired-2026-10-02.md](research/pilot-corpus-retired-2026-10-02.md)).
+
+- The lookup query sets were renamed (`clinical-guideline-queries.json`,
+  `medication-lookup-queries.json`, `doctor-workflow-queries.json`) and re-targeted at full-corpus ids
+  (`kr.rf.<id>`, `esklp.mnn.*`, `drug.allmed.*`); no expectation names a pilot card. `run-real-corpus.ts`
+  reports `lookup.*` instead of `pilot.*` (section recall is gone) and, for the release run, mounts the
+  released module of each targeted recommendation. The baseline was re-measured in its own commit
+  (app path, all packs: lookup R@1 0.705, R@5 0.918; CI `core.db`-only R@5 0.246, low by construction
+  because pointers carry titles only); tolerance 0.02 is unchanged.
+- A pilot-free core candidate (`core.0.7.0-test7.no-pilot.db`) passes the retargeted lookup gate
+  (R@5 0.918, Top-1 rate 1): the earlier «no-pilot rebuild failed the clinical gate» came from
+  fixtures that expected pilot ids. Removing `content/pilot-rf` from the core build is now unblocked
+  by the gate; it still needs a real rebuild and release (and re-homing the 45 `alias.pilot.*` rows).
+- Removed: `benchmark:pilot`/`run-pilot.ts`, the pilot sync/auto-rebuild workflow and scripts, the
+  drug-pilot and knowledge-pilot workflows, the pilot docs, the corrupt hard-1500 fixture and its
+  loader. Renamed: `Public Russian pilot Android release` → `Android release` (versioned APK asset
+  `MiniMed-<v>-android-debug.apk`; `android-latest/MiniMed-android.apk`, Pages and tags unchanged),
+  `Validate Russian regulatory pilot` → `…regulatory pack`.
+- Still named «pilot» on purpose: `content/pilot-rf` and its core-build stages (until the pilot-free
+  core ships), the shipped regulatory/reference/definition pack identifiers and the local
+  `private-pilot`/`medications-pilot` data paths (renaming breaks installed modules or running
+  pipelines); full list in the research note.
+
+## Clinical recommendations refresh — 2026-10-02 (STATE KR2)
+
+Registry snapshot 2026-10-02 (`apicr.minzdrav.gov.ru`, 1 855 records: 763 current, 496 replaced, 596 archived
+or cancelled, 56 of those rows without id or title). Against the 744 modules of `clinical-json-2026.07.27-13991c1feee5` it adds **30 current editions:
+19 recommendations that are new to the app (18 new codes 1062–1080 and 311_2, whose only earlier edition is archived)
+and 11 new editions of recommendations the app already had**; those 11 earlier editions are now replaced.
+
+- **Raw data kept** (`data/raw/official-clinical-documents/<id>.json`, byte-exact `GetClinrec2`, 1.41 GB, checksums in
+  `data/raw/official-clinical-registry/2026-10-02/raw-json-checksums.json`): all 763 current and all 496 replaced
+  editions, plus the registry pages (`api-pages*.json`, `catalog*.json`). Every fetch was sequential. 732 of the 744
+  earlier modules still match the source checksum of the published pack byte for byte; the 11 replaced editions changed
+  bytes when the registry replaced them; 998_1 was re-saved by the registry (publication time) but its text is equal to the
+  published pack up to image labels and table captions (the same differences appear for unchanged sources, they come from
+  importer changes since 2026-07-27), so its module is unchanged.
+- **Built the same way** as the published 744 (`delta` → ledger → source plan → `medbase sync` → `build-documents` →
+  `package-snapshot` → `compact-module-search` → framed zstd with decoded checksums): snapshot
+  `clinical-json-2026.10.02-7b17a45f02ff`, 30 modules, 85.7 MB SQLite → **33.3 MB** download (2.6×; modules need app
+  ≥ 0.6.46). Only the 30 new editions were built; installed modules and their checksums are untouched.
+- **Editions.** A new edition is a new module id (`minimed.clinical.recommendation.<CodeVersion>`). The 11 replaced
+  editions stay in the catalog, downloadable and installed copies stay valid, with their document marked `superseded`
+  (the schema's own status; the app already labels it «предыдущая редакция»). The catalog schema cannot link two modules,
+  so the old ↔ new link, dates, registry ids, which edition is a module and the raw checksum are in the sidecar
+  `apps/app/src/features/modules/catalog.clinical-editions.json` (358 codes, 797 editions, tested against the catalog).
+  Replaced editions that were never modules (485) have raw JSON only; adding them as modules is the same pipeline, but
+  they would double the titles in every category list until the UI hides or badges `superseded` editions.
+- **Catalog.** 812 modules (+30); `publishedAt` moved to 2026-10-02 because a remote catalog replaces the bundled one only
+  when it is newer; category counters recount current editions.
+- **Not done: discovery core.** The 30 new editions have no pointer in `core.db` (a core rebuild means a new core release,
+  `core-report`, `core.db.gz` and the Android gzip). Until then global search finds them only after the module is installed
+  (the installed module is mounted for search; verified), and the core still points the 11 replaced recommendations to their
+  previous editions, which remain installable. The next core build should add the new editions and point replaced ones to the
+  current edition.
+- **Known app bug found on the way** (not caused by this data): the download queue rejects titles over 180 characters, so 8
+  catalog modules (759_1, 759_2, 32_2, 129_3, 766_1, 795_1, 817_1, 888_1) fail with «Invalid download descriptor».
 
 ## Drug document screen — 2026-10-01
 
@@ -158,8 +219,9 @@ delays, backoff on 429/503, no CAPTCHA handling, resumable state ledger, never o
   `minAppVersion` 0.6.46; kras/МКБ/РЛС-упаковки zstd gated to 0.6.45; Android core as gzip).
 - Verified: `bun run verify`, 23 targeted browser E2E tests, emulator clean install (core gzip
   download → search; КР and ЕСКЛП zstd modules installed from the real mirror and opened).
-- Known limitation, not new: `benchmark:real:release` reports `pilot.sectionRecall` 0.836 against
-  the 0.869 baseline; v0.6.45 measures the same 0.836, so the drop predates this release.
+- Known limitation at release time (resolved 2026-10-02, see «Pilot corpus retired»):
+  `benchmark:real:release` reported `pilot.sectionRecall` 0.836 against 0.869; v0.6.45 measured the
+  same, so the drop predated this release.
 - Not in this release (owner decisions pending): ГРЛС access (its robots.txt forbids crawlers),
   Allmed redistribution, refreshing КР (+30 editions since 2026-07-27); embeddings paused.
 
@@ -1086,5 +1148,5 @@ Branch-specific next steps (PR #180):
    spelled words), not ten.
 4. Further size work: catalog-pointer `classificationPath` (9.3 MiB) as parent pointers, and a
    decision on `normalized_text` (16.9 MiB) versus a custom tokenizer.
-5. Regenerate `tools/benchmarks/fixtures/hard-medical-queries-1500.parts`: the committed base64
-   parts fail gzip CRC, so `hard-query-dataset.test.ts` is excluded from Vitest until then.
+5. (Done 2026-10-02) the corrupt `hard-medical-queries-1500` fixture was removed, not regenerated; see
+   `tools/benchmarks/HARD_BENCHMARK.md`.

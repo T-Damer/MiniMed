@@ -78,44 +78,32 @@ behavior. It runs in the strict Python test suite. Run `bun run benchmark:querie
 suite or `bun run python:check` for all Python gates. It is a software regression set, not a source of
 medical recommendations.
 
-## Russian source-grounded retrieval gate
+## Russian lookup gate on the full corpus
 
-The public-pilot benchmark loads two committed fixture files:
+The doctor-phrased query sets are committed as three files; each query names the documents of the
+**full released databases** that answer it (any of them counts):
 
-- `tools/benchmarks/pilot-rf-queries.json`: 42 scenarios grounded in exact sections and anchors of the
-  seven current Russian clinical-recommendation cards;
-- `tools/benchmarks/pilot-rf-drug-queries.json`: eight scenarios grounded in exact official Russian
-  medication-registry records.
+- `tools/benchmarks/clinical-guideline-queries.json`: 42 scenarios, six for each of seven pediatric
+  recommendations, expecting `kr.rf.<official id>` (`714_2` pneumonia, `281_3` urinary tract infection,
+  `360_3` bronchiolitis, `381_3` bronchitis, `563_2` measles, `58_2` meningococcal infection, `755_1`
+  rotavirus gastroenteritis);
+- `tools/benchmarks/medication-lookup-queries.json`: nine brand/form/clinical-phrasing medication
+  lookups asked on the «Лекарства» scope, expecting the ЕСКЛП МНН record (`esklp.mnn.*`) or the Allmed
+  instruction (`drug.allmed.*`) of the same active substance;
+- `tools/benchmarks/doctor-workflow-queries.json`: ten deliberately messy real-world phrasings (typos,
+  abbreviations, brand names), same target scheme.
 
-Every scenario fixes an expected document, version, source class, section type, and section-anchor
-prefix. Clinical scenarios additionally fix the official recommendation ID. Medication scenarios fix
-the registry record ID, registration number, authority tier, and `source_linked_summary` mode.
+`run-real-corpus.ts` runs them (`bun run benchmark:all` over `core.db`, `bun run
+benchmark:real:release` over the app path with every companion pack and the recommendation modules the
+queries target) and gates recall@1, recall@5, MRR@5 and the Top-1 rate of marked cases against
+`real-corpus-baseline.json`. Section and anchor expectations were dropped on 2026-10-02: they
+named sections of the retired pilot cards, and a section of the real recommendation text exists only
+once its module is installed, so section-level navigation belongs to a gate that mounts the module text
+rather than to these document-level lookups. Expected ids are checked against the mounted corpus: a
+catalog pointer stands for the document it points to.
 
-The benchmark verifies that retrieval:
-
-- keeps the expected document within top five;
-- finds a chunk in the expected section;
-- resolves the exact stable chunk anchor through `getContext`;
-- preserves active version and source-authority metadata;
-- continues to use the hybrid and semantic paths.
-
-The enforced gates require at least 0.90 document Recall@5, 0.90 section recall, and 0.70 top-section
-accuracy. Context resolution and source metadata must remain 1.00.
-
-Latest green 50-scenario baseline:
-
-- Recall@1: `0.94`;
-- Recall@5: `1.00`;
-- MRR@5: `0.965`;
-- section recall: `1.00`;
-- top-section accuracy: `0.96`;
-- exact context and source metadata: `1.00`;
-- zero-result rate: `0`;
-- latency p50: `14.59 ms`; p95: `24.29 ms`.
-
-The medication-registry category scored `1.00` for Recall@1, section recall, exact context, and metadata.
-These checks validate retrieval and source navigation. They do not turn registry identity into a dose,
-indication, contraindication, interaction, or patient-specific recommendation.
+These checks validate retrieval and source navigation. They do not turn a registry identity or a title
+into a dose, indication, contraindication, interaction, or patient-specific recommendation.
 
 ## Scenario contract overlay
 

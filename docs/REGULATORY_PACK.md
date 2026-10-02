@@ -1,4 +1,4 @@
-# Russian regulatory pilot
+# Russian regulatory pack
 
 ## Scope
 

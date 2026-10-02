@@ -1,6 +1,6 @@
 # Automated content database updates
 
-MiniMed can synchronize URL and local-file inputs, rebuild a pilot SQLite pack and run the retrieval gate. Publishing a replacement discovery core is a separate release step.
+MiniMed can synchronize URL and local-file inputs into a prepared corpus directory (`medbase sync`; today `bun run content:sync:regulatory` for the regulatory pack). Building and publishing a replacement discovery core is a separate local step (`docs/RELEASES.md`).
 
 ## Source manifest
 
@@ -75,41 +75,20 @@ preflight signal — the downloaded bytes remain identified by their checksum.
 
 Local files use a content-addressed cache keyed by SHA-256. Output files are replaced atomically only when their checksum changes.
 
-## GitHub Actions
+## Automation status
 
-`.github/workflows/automated-content-rebuild.yml` runs:
-
-- on every push to `main`;
-- on manual `workflow_dispatch`;
-- on pull requests as a validation-only build.
-
-A commit message containing:
-
-```text
-MEM:UPD
-```
-
-forces an unconditional remote refresh. The manual workflow also exposes a `force_refresh` checkbox.
-
-The workflow:
-
-1. restores `.cache/localmed/sources`;
-2. synchronizes links and files;
-3. validates the prepared corpus;
-4. rebuilds SQLite, FTS5 and precomputed vectors;
-5. runs the pilot retrieval benchmark;
-6. builds the web application with the tracked discovery core;
-7. uploads synchronization, build and retrieval reports as an Actions artifact.
-
-The reports make each rebuild inspectable. The workflow has read-only repository permission and never
-replaces or commits `core.db`: the smaller pilot pack must not erase its catalog pointers. A commit
-containing `[skip db rebuild]` still skips this optional pilot job.
+The `Automated content database rebuild` workflow (push/PR rebuild of the 15-card public pilot pack and
+its benchmark) was removed on 2026-10-02 with the pilot corpus: content builds run locally and are
+pushed to GitHub (user decision 2026-09-29), and the retrieval gate now runs on the released corpus
+(`bun run benchmark:all` in CI, `bun run benchmark:real:release` before a release). The sync step
+itself is unchanged: it caches remote inputs by `ETag`/`Last-Modified`/checksum and replaces outputs
+atomically only when a checksum changes. Reports are written under `data/build/`.
 
 ## Public and private repositories
 
-The public MiniMed workflow currently synchronizes tracked source-linked paraphrase files. Full recommendation PDFs, copyrighted books, OCR exports, local hospital protocols and patient material must not be introduced into the public manifest.
+The public MiniMed manifests currently synchronize tracked source-linked paraphrase files. Full recommendation PDFs, copyrighted books, OCR exports, local hospital protocols and patient material must not be introduced into the public manifest.
 
-For a private corpus, copy the workflow into a private repository or private build environment and point it to a private sync manifest. Repository secrets are appropriate for authenticated source servers, but credentials must never be written into the manifest or cache report.
+For a private corpus, run the sync in a private build environment with a private sync manifest. Repository secrets are appropriate for authenticated source servers, but credentials must never be written into the manifest or cache report.
 
 ## Update safety
 

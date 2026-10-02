@@ -14,7 +14,7 @@ Detailed shortlist from the private library and OCR inventory: [CONTENT_BACKLOG.
 | Category | Status | Source strategy | Detail doc |
 | --- | --- | --- | --- |
 | Clinical recommendations | 744 official recommendations synced, largest existing asset | Ministry API, official structured JSON | [CURRENT_STATE.md](CURRENT_STATE.md) |
-| Regulatory acts | 32 drafted, `publicationState: local-dev`, unpublished | Official RF orders/laws | [REGULATORY_PILOT.md](REGULATORY_PILOT.md) |
+| Regulatory acts | 32 drafted, `publicationState: local-dev`, unpublished | Official RF orders/laws | [REGULATORY_PACK.md](REGULATORY_PACK.md) |
 | Pediatric norms / growth | WHO 0–5 and 5–19 z-score/percentile calculator built as an experimental downloadable module; reference cards bundled | WHO Child Growth Standards + cited textbook pages | [LITERATURE_BANK.md](LITERATURE_BANK.md), [CALCULATORS.md](CALCULATORS.md) |
 | Medical glossary | 19,972 compact catalog pointers and 44,211 aliases are bundled in `core.db`; titles and declared aliases become inline links with definition previews | Clinical-recommendation definitions plus compact MKB/RLS and linked disease-reference routing; full articles stay in companion packs | [DRUG_KNOWLEDGE_PIPELINE.md](DRUG_KNOWLEDGE_PIPELINE.md) |
 | Laboratory reference intervals | Sourced pilot bundled in `reference.db`: common age-specific CBC, biochemistry and CSF ranges plus adult urine orientation | Method-specific CALIPER data + official formularies; the performing laboratory's interval always takes precedence | this doc |

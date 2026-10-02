@@ -155,7 +155,7 @@ bun run benchmark:all           # real-corpus sets over core.db alone (CI)
 bun run benchmark:real:release  # the app path over core.db and every companion pack (release)
 ```
 
-Both run `tools/benchmarks/src/run-real-corpus.ts`: the 61 former public-pilot queries, the former
+Both run `tools/benchmarks/src/run-real-corpus.ts`: the 61 doctor lookup queries retargeted at the full corpus (no pilot-document ids), the former
 demo queries retargeted to released documents (`real-corpus-demo-queries.json`, where excluded
 queries say why) and 5 long clinical descriptions with expected facts, branches, negative spans and
 negated-term exclusion. Metrics are a ratchet against `real-corpus-baseline.json`: a check fails when

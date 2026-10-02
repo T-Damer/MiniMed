@@ -20,10 +20,9 @@ Implemented:
 - device-local patient cards, nested notes, follow-up reminders, and separately labelled personal
   matches in search.
 
-The public pilot contains 15 source-linked navigation cards: seven clinical recommendations and eight
-official medication-registry identity records. These cards are enough to test retrieval, but they are
-not complete clinical sources. In particular, the installed pilot does not contain verified dosing
-regimens.
+The discovery core links to the full databases (clinical recommendations, drug instructions, ICD-10,
+regulatory acts, reference material); document text arrives as separately installed modules. The
+15-card public pilot was retired on 2026-10-02 (`docs/research/pilot-corpus-retired-2026-10-02.md`).
 
 [![GitHub Releases](https://img.shields.io/badge/GitHub%20Releases-Check%20latest-181717?logo=github&style=for-the-badge&logoColor=white)](https://github.com/T-Damer/MiniMed/releases)
 
@@ -71,12 +70,11 @@ bun run benchmark:all
 bun run native:source:check
 ```
 
-Build and benchmark the public Russian pilot:
+Benchmark the released corpus (`core.db` alone, as CI does; the release variant adds the companion packs):
 
 ```bash
-bun run content:lint:pilot
-bun run content:build:pilot
-bun run benchmark:pilot
+bun run benchmark:all
+bun run benchmark:real:release
 ```
 
 The generated database and reports live under `data/build/` and are intentionally ignored by Git.

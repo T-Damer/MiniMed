@@ -69,7 +69,7 @@ Landed on `main` with unit, benchmark, and Chromium E2E coverage:
   each get their own fill and outline.
 - Download reliability: shared retry/backoff for module *and* model downloads, awaited flush of
   partial bytes, transfer speed and per-stage progress on `#/settings/downloads`.
-- Ten realistic Russian doctor queries in the public-pilot gate, plus the alias gaps they exposed.
+- Ten realistic Russian doctor queries in the real-corpus gate (`doctor-workflow-queries.json`), plus the alias gaps they exposed.
 - Personal notes: patient cards with categorized nested notes, a badged personal results block outside
   the official results container, linked installed documents, and follow-up reminders with a red tab
   badge and recorded completion condition.

@@ -20,3 +20,6 @@ the last commit that contains all of them is `15e79dda`.
 Kept: `hard-query-dataset.ts`, `hard-query-scoring.ts` (used by `run-curated-clinician`),
 `search-quality-v2.json` (queries for `run-search-latency`), the local reranker contract, and the pilot
 content build (`content:*pilot*`, `run-pilot.ts`) until the core build no longer needs it.
+
+Update 2026-10-02: the pilot content build, `run-pilot.ts` and the pilot query sets were retired too; see
+[pilot-corpus-retired-2026-10-02.md](pilot-corpus-retired-2026-10-02.md).

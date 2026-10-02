@@ -28,7 +28,7 @@ content/fixtures/
 
 These files are intentionally synthetic and declare `synthetic_fixture: true`.
 
-## Private pilot workspace
+## Private workspace
 
 ```text
 data/raw/                         ignored
@@ -40,7 +40,7 @@ data/intermediate/private-pilot/ ignored
 data/build/private-pilot.db       ignored unless intentionally released
 ```
 
-See [`PILOT_CORPUS.md`](PILOT_CORPUS.md) for commands and the registry template.
+See [`PRIVATE_CORPUS.md`](PRIVATE_CORPUS.md) for commands and the registry template.
 
 ## Stable structure
 
@@ -87,7 +87,7 @@ bun run content:build
 ```
 
 The publish step refuses to replace `apps/app/public/content/core.db` when the committed pack
-(built by CI from the pilot corpus) contains more documents than the local fixtures build. Run
+(the released discovery core) contains more documents than the local fixtures build. Run
 `bun scripts/publish-demo-pack.mjs --force` to overwrite it deliberately.
 
 Private pilot:
@@ -151,6 +151,34 @@ bun run content:package:clinical:snapshot -- \
 Each recommendation is distributed as one SQLite file containing searchable text, navigable headings,
 structured tables, and safe embedded images. The JSON payload and original PDF are preparation inputs,
 not user downloads.
+
+Incremental clinical refresh (registry changed after a snapshot, e.g. `clinical-json-2026.10.02-*`).
+A new edition (`CodeVersion`) is a new module; the modules already listed are never rebuilt, so
+installed copies and checksums stay valid. Raw `GetClinrec2` JSON is stored byte-exact in
+`data/raw/official-clinical-documents/<id>.json` with checksums in
+`data/raw/official-clinical-registry/<date>/raw-json-checksums.json`.
+
+```bash
+D=data/raw/official-clinical-registry/YYYY-MM-DD; B=data/build/official-clinical-YYYY-MM-DD
+uv run --project tools/ingest medbase-clinical-catalog official-sync --output $D/catalog.json --raw-output $D/api-pages.json --report $D/registry-report.json
+uv run --project tools/ingest medbase-clinical-catalog official-sync --status all --page-size 1000 --output $D/catalog-all-statuses.json --raw-output $D/api-pages-all-statuses.json --report $D/registry-report-all-statuses.json
+uv run --project tools/ingest medbase-clinical-catalog delta --catalog $D/catalog.json --module-catalog apps/app/src/features/modules/catalog.preview.json --output $B/catalog-delta.json
+# then, as above, on the delta: build (ledger) -> plan-sources -> medbase sync (GetClinrec2) -> build-documents --all -> package-snapshot (new --snapshot-id)
+uv run --project tools/ingest medbase compact-module-search --input $B/documents/databases --output $B/documents/compacted --report $B/documents/compaction-report.json
+bun scripts/repack-module-indexes-zstd.ts --family clinical --compacted --source-dir <compacted files renamed to the snapshot's clinical-<id>-<snapshot>.db> --out-dir $B/zst --catalog-in <catalog with the fragment added> --catalog-out <candidate>
+bun scripts/add-clinical-delta-modules.ts CATALOG FRAGMENT OUTPUT --min-app-version X --published-at T --superseded <replaced CodeVersion> ...
+bun scripts/build-clinical-editions.ts --registry $D/catalog-all-statuses.json --raw-dir data/raw/official-clinical-documents
+bun run catalog:shell
+scripts/publish-module-zstd-mirror.sh --family clinical --tag <snapshot id> --source-dir $B/zst --create
+```
+
+`add-clinical-delta-modules.ts` appends the new modules, marks every replaced edition `superseded` in
+its document table (its artifact and source-set digest stay untouched, so an installed copy remains
+valid and nothing is removed from a device), recounts the category counters and moves `publishedAt`
+forward (a remote catalog replaces the bundled one only when it is newer). The module catalog schema
+cannot link two modules, so old ↔ new editions live in the sidecar
+`apps/app/src/features/modules/catalog.clinical-editions.json` (checked against the catalog by
+`catalog.clinical-editions.test.ts`).
 
 Optional one-file Replicate OCR pilot:
 

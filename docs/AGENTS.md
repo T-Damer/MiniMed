@@ -101,10 +101,10 @@ roadmap ideas.
 - Retrieval cases live in `tools/benchmarks/`. `doctor-workflow-queries.json` holds deliberately messy
   real-world phrasing (typos, abbreviations, brand names, colloquial verbs) and gates the same
   thresholds as the curated sets. Add real doctor phrasing there rather than canonical terminology.
-- When a realistic query misses, first check whether the pilot aliases lack the colloquial term.
+- When a realistic query misses, first check whether the colloquial-vocabulary aliases (`alias.*` rows) lack the term.
   Aliases are the intended Russian vocabulary layer.
-- The public pilot corpus carries no dosing regimens by design. A dose question must retrieve the
-  relevant treatment section, never imply a dose the corpus does not contain.
+- A dose question must retrieve the relevant treatment or instruction section, never imply a dose
+  the corpus does not contain (the medication cards in core are identity records, not instructions).
 
 ## Release order
 

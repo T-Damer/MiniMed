@@ -2,24 +2,29 @@
 
 MiniMed keeps three different retrieval suites because they answer different questions.
 
-## Synthetic 1500-query baseline
+## Synthetic 1500-query baseline (removed 2026-10-02)
 
-`hard-medical-queries-1500` is a reproducible **synthetic baseline**, not a claim that all 1500 rows
-were typed by real clinicians or parents. It contains 300 information needs with five controlled
-styles each: professional, colloquial, keyword, noisy, and case narrative. Its main purpose is to
-expose regressions, query-style brittleness, section-ranking errors, and obviously dangerous matches.
+`hard-medical-queries-1500` was a synthetic baseline of 300 pediatric information needs with five
+styles each (professional, colloquial, keyword, noisy, case narrative), written against the 15-card
+pilot corpus (its expected sections and forbidden phrases name pilot cards). It is gone:
 
-The fixture is stored as checked, gzip-compressed base64 split into deterministic text parts so it
-remains compatible with the GitHub Contents API. `hard-query-dataset.ts` verifies compressed and
-uncompressed SHA-256 checksums, query uniqueness, split counts, style counts, scenario count, and
-no-answer probes before returning a row.
+- its only runner (`benchmark:hard`) was retired on 2026-09-27 with the pilot research tooling
+  ([../../docs/research/pilot-research-tools-retired-2026-09-27.md](../../docs/research/pilot-research-tools-retired-2026-09-27.md)),
+  and nothing has used it since;
+- the committed gzip+base64 parts were corrupt since their first commit (`d02f173c`): the stream
+  fails its CRC after row 1 159, so `hard-query-dataset.test.ts` could not run and was excluded from
+  Vitest; the generator and source file were never found;
+- the corpus it described no longer exists, so a partial re-encode (1 159 rows, 232 scenarios,
+  MED-001..MED-232: dev 699, validation 230, hidden_test 230) would have been a lopsided benchmark for
+  nothing. The last 341 rows (scenarios 233..300, five styles each: 201 dev, 70 validation, 70
+  hidden_test, plus the tail of the partial-answer probes) were lost; the readable 1 159 rows can be
+  decoded from commit `d02f173c` onwards if ever needed (`zlib.decompressobj(31)` stops at the bad block).
 
-The pilot-corpus runner (`benchmark:hard`, `run-hard-queries.ts`) was retired on 2026-09-27 together
-with the rest of the pilot research tooling; see
-[../../docs/research/pilot-research-tools-retired-2026-09-27.md](../../docs/research/pilot-research-tools-retired-2026-09-27.md).
-The dataset and its scoring (`hard-query-dataset.ts`, `hard-query-scoring.ts`) remain and are used by
-`run-curated-clinician`. Real-corpus quality is measured by `benchmark:all` (core ratchet) and
-`benchmark:real:release`.
+`hard-query-types.ts` (row shape) and `hard-query-scoring.ts` stay: they score the curated clinician
+set below. Real-corpus quality is measured by the lookup sets in `benchmark:all` (core ratchet) and
+`benchmark:real:release` (`run-real-corpus.ts`, [../../docs/TESTING.md](../../docs/TESTING.md)). A new
+large synthetic set must be generated against the full released databases, with its generator
+committed, rather than restored.
 
 ## Curated clinician queries
 

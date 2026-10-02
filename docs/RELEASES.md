@@ -6,7 +6,7 @@
    version also changes.
 2. Run `bun run content:restore:core` to restore the checksum-verified compressed discovery core.
    Verify the existing generated artifacts; rebuild only artifacts whose inputs changed. Never replace
-   `apps/app/public/content/core.db` with the smaller pilot/fixture pack. Source SQLite databases and
+   `apps/app/public/content/core.db` with the smaller fixture pack. Source SQLite databases and
    private full medication builds remain untouched by application publication.
 3. Run `bun run verify`.
 4. Run targeted browser E2E for changed UI flows. The complete Web E2E workflow is manual.
@@ -16,7 +16,10 @@
    app's «Клинический разбор» path over the full released corpus, checked against the ratchet
    baseline in `tools/benchmarks/real-corpus-baseline.json` (a metric may not fall more than 0.02).
    CI runs `benchmark:all`, the same query sets over `core.db` alone. After a search improvement,
-   raise the baseline with `--write-baseline` in a separate commit.
+   raise the baseline with `--write-baseline` in a separate commit. The release run also mounts the
+   released modules of the recommendations the lookup queries target (`kr.rf.<id>`) from
+   `data/build/release-clinical/` when present, because a catalog pointer in core carries only a
+   title; a baseline is keyed by the databases mounted (`recommendations×7`).
 7. Review the generated benchmark and integrity reports.
 8. Confirm no real patient data, source PDFs, or API keys are tracked.
 9. Push a release commit only from a clean working tree; the release workflow creates the tag and
@@ -28,8 +31,7 @@ verified corpus version; release evidence records both versions.
 Android release checks verify the downloadable `core.db` against the tracked build report, checksum, SQLite integrity,
 foreign keys and FTS counts, and assert that the APK omits the core. First launch installs the
 checksum-verified core from the pinned public mirror; keep that mirror reachable before publishing.
-Automatic pilot rebuilds produce benchmark evidence only; they do not
-commit a replacement core. GitHub Pages and Android use the same canonical filename. Git stores `content/bundled/core.db.gz`
+No workflow commits a replacement core. GitHub Pages and Android use the same canonical filename. Git stores `content/bundled/core.db.gz`
 (the uncompressed database exceeds GitHub’s file limit); update that archive together with the
 report whenever the discovery core changes. Dev/build/verification restore and checksum-check it.
 
@@ -121,7 +123,7 @@ one last reinstall (export a notes backup first).
 
 - Key: PKCS12 `minimed-prerelease.p12`, alias `minimed-prerelease`, certificate SHA-256
   `684fde01054b3860f02f406c4d90a55f0c2bb2370f624770848ebbf4d42fb970` (pinned as
-  `PRERELEASE_CERT_SHA256` in `public-pilot-android-release.yml`; the release fails on any other
+  `PRERELEASE_CERT_SHA256` in `android-release.yml`; the release fails on any other
   certificate).
 - CI reads the repository secrets `MINIMED_ANDROID_KEYSTORE_BASE64`,
   `MINIMED_ANDROID_KEYSTORE_PASSWORD` and `MINIMED_ANDROID_KEY_ALIAS`; Gradle signs the debug build
