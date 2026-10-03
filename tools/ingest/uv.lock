@@ -207,7 +207,7 @@ wheels = [
 
 [[package]]
 name = "crawlee"
-version = "1.9.3"
+version = "1.10.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-timeout" },
@@ -215,6 +215,7 @@ dependencies = [
     { name = "colorama" },
     { name = "impit" },
     { name = "more-itertools" },
+    { name = "proclimits" },
     { name = "protego" },
     { name = "psutil" },
     { name = "pydantic" },
@@ -223,9 +224,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "yarl" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/43/a0/b79ee1397c97bdb487d8d267b3f7605738072a92cb7b8a01ff375f3baa0c/crawlee-1.9.3.tar.gz", hash = "sha256:2f9ade0707193368c32642cfbfa3f20848eddcc2cd0b020e52ee575aa272bd9d", size = 332668, upload-time = "2026-08-24T05:57:43.581Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/1b/6c2504997a5a8a2cdf525f6b347f3078f67c1cbba205bcb606d1fc99a57e/crawlee-1.10.3.tar.gz", hash = "sha256:00310fbcb7ac0862ba50a58862899bdd982d91234dfe485fb24b531359435671", size = 345842, upload-time = "2026-09-29T10:51:35.072Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/0d/34509e630e07136c2351edf6bd13d9d1ce54d502a984d0d6c7615c058a68/crawlee-1.9.3-py3-none-any.whl", hash = "sha256:df833b18e1c1aa34822f12a9e8b9d88027bf7c6a97d0b243d46cd9c3bedb55c1", size = 419069, upload-time = "2026-08-24T05:57:41.783Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/2d/3cf59adab02505ed3bf2d8bc080aa790983e6043b8dd5458168625c44362/crawlee-1.10.3-py3-none-any.whl", hash = "sha256:ca2dabe438fa4025303142be489ebd18ac449ac6260fe03b8d90b8ccba398e25", size = 431070, upload-time = "2026-09-29T10:51:33.341Z" },
 ]
 
 [package.optional-dependencies]
@@ -330,7 +331,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "crawlee", extras = ["beautifulsoup"], specifier = "==1.9.3" },
+    { name = "crawlee", extras = ["beautifulsoup"], specifier = "==1.10.3" },
     { name = "pydantic", specifier = "==2.13.5" },
     { name = "pymupdf", specifier = "==1.28.2" },
     { name = "pyyaml", specifier = "==6.0.3" },
@@ -608,6 +609,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f9/e2/3e91f31a7d2b083fe6ef3fa267035b518369d9511ffab804f839851d2779/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3", size = 69412, upload-time = "2025-05-15T12:30:07.975Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746", size = 20538, upload-time = "2025-05-15T12:30:06.134Z" },
+]
+
+[[package]]
+name = "proclimits"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/88/c96bbd2c272e4032c4e47374c8209f55a7e4414312feac3a8ca92121ae04/proclimits-0.2.0.tar.gz", hash = "sha256:fc80a1e6e993c63254836329ecc3f67555c8275fb4d5c3fd1c376b4aaab2d7b5", size = 51600, upload-time = "2026-09-17T14:28:05.612Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/14/b4/e2c68c699b2d1b3fedede8246216f7f71e8a4dd44112e1ee97910671ec7c/proclimits-0.2.0-py3-none-any.whl", hash = "sha256:3fd36ce31b5d72d9b4b06dc788c7c3257afec34f52a4dec5aa69b105d7cdcda7", size = 47690, upload-time = "2026-09-17T14:28:04.289Z" },
 ]
 
 [[package]]
