@@ -1339,3 +1339,30 @@ Branch-specific next steps (PR #180):
    decision on `normalized_text` (16.9 MiB) versus a custom tokenizer.
 5. (Done 2026-10-02) the corrupt `hard-medical-queries-1500` fixture was removed, not regenerated; see
    `tools/benchmarks/HARD_BENCHMARK.md`.
+
+### Drug chips, fold button and the ATC group tree — 2026-10-04 (STATE UX4)
+
+- Drug screen: the fold button of trade-name/analogue/group lists is `.drug-links__toggle`, a tinted
+  borderless pill with an `AppGlyph` `caret-down` that turns 180° on open (`aria-expanded`,
+  `aria-controls`, Russian plural labels unchanged). Chips are one type step smaller (0.875rem),
+  tighter (0.625rem side padding, 0.375rem gaps, 40 px minimum height) and the country «(Россия)» is
+  muted, 0.8em and never splits from its brackets; two chips usually fit a row at 360–390 px.
+- «Препараты» has a view switch «Список | По группам АТХ» (`SegmentedControl`, state in the hash):
+  `#/modules/documents/medications/atc` (14 groups) and `…/atc/<code>` for levels 1–4 (`N`, `N06`,
+  `N06B`, `N06BX`) or `none` (substances without an ATC code). The registration-number legacy route
+  no longer swallows `atc`; browser back climbs the tree, the header back button goes one level up
+  (`knowledgeDocumentBackHash`).
+- `atc-tree.ts` (pure, tested) places the installed ЕСКЛП МНН documents under the levels of their
+  normalised ATC codes (`drugAtcCodes`, Cyrillic look-alikes fixed), counts distinct substances per
+  node («12 веществ», «3 подгруппы») and names levels 1–4 from the NSI dictionary
+  (`atc-names.json`, lazy; taxonomy headings as fallback for level 1). Levels the dictionary does
+  not name show «Группа <код>». `MedicationAtcTree.tsx` + `medication-atc-tree.css` are a lazy chunk
+  of `MedicationCatalogView`; substance lists use `LayoutVirtualizedGrid`; each level fades in.
+- Level-1 groups without substances show the package size and «Скачать · 9,3 МБ» for their ЕСКЛП module
+  (`atc-group-package.ts` over `useDrugDownload`, now exposing `installedIds`/`tasks` and
+  `start(modules?)`; the same queue and progress mark as the catalog button); the subtree appears
+  once the module is installed and the catalog reloads. «Скачать все группы» queues the rest.
+  Group → module map is `atcLevelOneGroups` (checked against the release catalog in a test).
+- Not covered: the unclassified and Allmed packages have no group of their own (only the synthetic
+  `none` group when installed substances lack a code); no search inside the tree. E2E:
+  `apps/app/e2e/medication-atc-tree.spec.ts` (antiparasitic module, needs the local zstd copy).

@@ -32,6 +32,8 @@ function state(overrides: Partial<DrugDownloadState> = {}): DrugDownloadState {
       installedFraction: 0,
       byteProgress: null,
     },
+    installedIds: new Set(),
+    tasks: [],
     ...overrides,
   };
 }

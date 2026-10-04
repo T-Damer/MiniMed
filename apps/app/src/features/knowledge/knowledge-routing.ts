@@ -1,3 +1,9 @@
+import {
+  atcParentCode,
+  MEDICATION_ATC_ROUTE,
+  medicationAtcHash,
+  medicationCatalogViewFromHash,
+} from '@/features/medications/medication-routing';
 import { isDocumentReadRoute } from '@/state/document-route';
 
 /** Intra-catalog hashes that should reset window scroll without touching root-tab restore. */
@@ -21,6 +27,13 @@ export function knowledgeDocumentBackHash(route: string): string | null {
     /^modules\/documents\/conditions\/(diseases|conditions|syndromes|symptoms)$/u.test(route)
   ) {
     return '#/modules/documents';
+  }
+  if (route === MEDICATION_ATC_ROUTE || route.startsWith(`${MEDICATION_ATC_ROUTE}/`)) {
+    // One level up the ATC tree; the list of groups goes back to the knowledge base.
+    const view = medicationCatalogViewFromHash(route);
+    const code = view.view === 'atc' ? view.code : null;
+    const parent = code ? atcParentCode(code) : null;
+    return code ? medicationAtcHash(parent) : '#/modules/documents';
   }
   if (route.startsWith('modules/documents/category/')) {
     return '#/modules/documents/recommendations';

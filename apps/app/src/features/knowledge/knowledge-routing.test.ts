@@ -35,6 +35,24 @@ describe('knowledgeDocumentBackHash', () => {
     );
   });
 
+  it('goes one level up the ATC tree and from its groups to the knowledge base', () => {
+    expect(knowledgeDocumentBackHash('modules/documents/medications/atc/N06BX')).toBe(
+      '#/modules/documents/medications/atc/N06B',
+    );
+    expect(knowledgeDocumentBackHash('modules/documents/medications/atc/N06')).toBe(
+      '#/modules/documents/medications/atc/N',
+    );
+    expect(knowledgeDocumentBackHash('modules/documents/medications/atc/N')).toBe(
+      '#/modules/documents/medications/atc',
+    );
+    expect(knowledgeDocumentBackHash('modules/documents/medications/atc/none')).toBe(
+      '#/modules/documents/medications/atc',
+    );
+    expect(knowledgeDocumentBackHash('modules/documents/medications/atc')).toBe(
+      '#/modules/documents',
+    );
+  });
+
   it('returns the active condition section for condition details', () => {
     expect(knowledgeDocumentBackHash('modules/documents/conditions/diseases/code%3AI10')).toBe(
       '#/modules/documents/conditions/diseases',

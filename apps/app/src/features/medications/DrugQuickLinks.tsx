@@ -1,5 +1,6 @@
 import { createSignal, createUniqueId, For, type JSX, Show } from 'solid-js';
 
+import { AppGlyph } from '@/components/AppGlyph';
 import { AtcCodeSheet } from '@/features/medications/AtcCodeSheet';
 import {
   DRUG_ACCORDION_VISIBLE,
@@ -66,7 +67,7 @@ function ChipRow<T>(props: {
         </div>
         <button
           type="button"
-          class="drug-chip drug-chip--more"
+          class="drug-links__toggle"
           aria-expanded={expanded()}
           aria-controls={panelId}
           aria-label={
@@ -78,7 +79,13 @@ function ChipRow<T>(props: {
           }
           onClick={() => setExpanded((value) => !value)}
         >
-          {expanded() ? 'Свернуть' : moreLabel(rest().length)}
+          <span class="drug-links__toggle-label">
+            {expanded() ? 'Свернуть' : moreLabel(rest().length)}
+          </span>
+          <AppGlyph
+            name="caret-down"
+            class={`drug-links__toggle-icon${expanded() ? ' drug-links__toggle-icon--open' : ''}`}
+          />
         </button>
       </Show>
     </section>

@@ -5,6 +5,7 @@ import {
   createMemo,
   createSignal,
   type JSX,
+  lazy,
   onCleanup,
   onMount,
   Show,
@@ -17,8 +18,10 @@ import { LayoutVirtualizedGrid } from '@/components/LayoutVirtualizedGrid';
 import { NavBack } from '@/components/NavBack';
 import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
+import { SegmentedControl } from '@/components/SegmentedControl';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
+import { type AtcSubstance, atcSubstanceFromDocument } from '@/features/medications/atc-tree';
 import { displayDrugName, displayStrength } from '@/features/medications/drug-screen';
 import { MedicationDownloadState } from '@/features/medications/MedicationDownloadState';
 import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
@@ -40,7 +43,9 @@ import {
 } from '@/features/medications/medication-record';
 import {
   legacyMedicationRegistrationFromHash,
+  MEDICATION_ATC_HASH,
   MEDICATION_CATALOG_HASH,
+  medicationCatalogViewFromHash,
 } from '@/features/medications/medication-routing';
 import {
   countryMarkText,
@@ -51,6 +56,14 @@ import {
 import { useMfgCountries } from '@/features/medications/use-mfg-countries';
 import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
+
+const MedicationAtcTree = lazy(() =>
+  import('@/features/medications/MedicationAtcTree').then((module) => ({
+    default: module.MedicationAtcTree,
+  })),
+);
+
+type CatalogViewMode = 'list' | 'atc';
 
 interface MedicationCatalogViewProps {
   readonly core: MedicalCore;
@@ -92,6 +105,8 @@ function metadataContentMode(metadata: MedicalDocument['metadata'] | undefined):
 interface ParsedMedicationProducts {
   readonly registry: readonly MedicationProduct[];
   readonly allmed: readonly MedicationProduct[];
+  /** ЕСКЛП substance cards, for the «По группам АТХ» view. */
+  readonly substances: readonly AtcSubstance[];
 }
 
 function parseProducts(
@@ -100,8 +115,11 @@ function parseProducts(
 ): ParsedMedicationProducts {
   const registry: MedicationProduct[] = [];
   const allmed: MedicationProduct[] = [];
+  const substances: AtcSubstance[] = [];
   for (const document of documents) {
     if (metadataContentMode(document.metadata) === 'esklp-mnn') {
+      const substance = atcSubstanceFromDocument(document);
+      if (substance) substances.push(substance);
       registry.push(...parseEsklpMedicationProducts(document, instructions));
       continue;
     }
@@ -117,7 +135,7 @@ function parseProducts(
     const product = parseAllmedMedicationProduct(document);
     if (product) allmed.push(product);
   }
-  return { registry, allmed };
+  return { registry, allmed, substances };
 }
 
 function medicationProductKey(product: MedicationProduct): string {
@@ -198,8 +216,11 @@ function productDescription(product: MedicationProduct): string {
  */
 async function loadProducts(
   core: MedicalCore,
-  onUpdate: (products: readonly MedicationProduct[]) => void,
-): Promise<readonly MedicationProduct[]> {
+  onUpdate: (products: readonly MedicationProduct[], substances: readonly AtcSubstance[]) => void,
+): Promise<{
+  readonly products: readonly MedicationProduct[];
+  readonly substances: readonly AtcSubstance[];
+}> {
   const summaries = await core.listDocuments();
   if (!summaries.ok) throw new Error(summaries.error.message);
   const medicationSummaries = summaries.value.filter((document) =>
@@ -223,13 +244,18 @@ async function loadProducts(
 
   const registryProducts = new Map<string, MedicationProduct>();
   const allmedProducts = new Map<string, MedicationProduct>();
+  const substances = new Map<string, AtcSubstance>();
   await processMedicationSummariesInBatches(otherSummaries, (batchDocuments) => {
     const parsed = parseProducts(batchDocuments, instructions);
     addProducts(registryProducts, parsed.registry);
     addProducts(allmedProducts, parsed.allmed);
-    onUpdate(toProducts(registryProducts, allmedProducts));
+    for (const substance of parsed.substances) substances.set(substance.documentId, substance);
+    onUpdate(toProducts(registryProducts, allmedProducts), [...substances.values()]);
   });
-  return toProducts(registryProducts, allmedProducts);
+  return {
+    products: toProducts(registryProducts, allmedProducts),
+    substances: [...substances.values()],
+  };
 }
 
 export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.Element {
@@ -237,6 +263,10 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   const [searchQuery, setSearchQuery] = createSignal(consumeMedicationCatalogQuery());
   const [legacyRegistration, setLegacyRegistration] = createSignal(
     legacyMedicationRegistrationFromHash(window.location.hash),
+  );
+  const [substances, setSubstances] = createSignal<readonly AtcSubstance[]>([]);
+  const [viewState, setViewState] = createSignal(
+    medicationCatalogViewFromHash(window.location.hash),
   );
   const [loading, setLoading] = createSignal(true);
   const [catalogComplete, setCatalogComplete] = createSignal(false);
@@ -251,16 +281,19 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     setCatalogComplete(false);
     setError(undefined);
     setProducts([]);
+    setSubstances([]);
     let firstBatchSeen = false;
     try {
-      const complete = await loadProducts(props.core, (next) => {
+      const complete = await loadProducts(props.core, (next, nextSubstances) => {
         setProducts(next);
+        setSubstances(nextSubstances);
         if (!firstBatchSeen) {
           firstBatchSeen = true;
           setLoading(false);
         }
       });
-      setProducts(complete);
+      setProducts(complete.products);
+      setSubstances(complete.substances);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Не удалось открыть базу препаратов.');
     } finally {
@@ -271,6 +304,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
 
   const syncLegacyRegistration = (): void => {
     setLegacyRegistration(legacyMedicationRegistrationFromHash(window.location.hash));
+    setViewState(medicationCatalogViewFromHash(window.location.hash));
   };
 
   onMount(() => {
@@ -301,6 +335,15 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
     setLegacyRegistration(null);
     openMedicationProduct(product);
   });
+
+  const mode = (): CatalogViewMode => viewState().view;
+  const atcCode = (): string | null => {
+    const state = viewState();
+    return state.view === 'atc' ? state.code : null;
+  };
+  const switchMode = (next: CatalogViewMode): void => {
+    window.location.hash = next === 'atc' ? MEDICATION_ATC_HASH : MEDICATION_CATALOG_HASH;
+  };
 
   const deferredSearchQuery = createDeferred(searchQuery, { timeoutMs: 120 });
   const visibleProducts = createMemo(() =>
@@ -343,89 +386,117 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
         title={<Heading depth={1}>Препараты</Heading>}
         description="Локальный справочник препаратов и официальных инструкций, доступный без сети."
       />
-      <div
-        ref={setHeadingElement}
-        class="knowledge-subroute-heading knowledge-subroute-heading--blurred medication-route-heading route-sticky-chrome route-sticky-chrome--transparent"
-      >
-        <SearchField
-          class="route-search knowledge-subroute-heading__control"
-          value={searchQuery()}
-          onInput={setSearchQuery}
-          onClear={() => setSearchQuery('')}
-          label="Поиск по препаратам"
-          hideLabel
-          placeholder="Название, МНН или показание"
+      <div class="medication-view-switch">
+        <SegmentedControl<CatalogViewMode>
+          label="Вид каталога препаратов"
+          value={mode()}
+          onChange={switchMode}
+          options={[
+            { value: 'list', label: 'Список' },
+            { value: 'atc', label: 'По группам АТХ' },
+          ]}
         />
       </div>
+      <Show when={mode() === 'list'}>
+        <div
+          ref={setHeadingElement}
+          class="knowledge-subroute-heading knowledge-subroute-heading--blurred medication-route-heading route-sticky-chrome route-sticky-chrome--transparent"
+        >
+          <SearchField
+            class="route-search knowledge-subroute-heading__control"
+            value={searchQuery()}
+            onInput={setSearchQuery}
+            onClear={() => setSearchQuery('')}
+            label="Поиск по препаратам"
+            hideLabel
+            placeholder="Название, МНН или показание"
+          />
+        </div>
+      </Show>
 
-      <section class="medication-catalog-section">
-        <div class="module-collection-heading">
-          <h2 class="module-collection-heading__title">Препараты</h2>
-          <Show when={!needsDownload()}>
-            <CountBadge value={products().length} />
-          </Show>
-        </div>
-        <Show when={needsDownload()}>
-          <MedicationDownloadState onContentChanged={notifyContentChanged} />
-        </Show>
-        <Show when={loading()}>
-          <div class="medication-empty paper-card" role="status">
-            Открываем локальную базу…
+      <Show when={mode() === 'atc'}>
+        <section class="medication-catalog-section">
+          <MedicationAtcTree
+            substances={substances()}
+            loading={loading() || !catalogComplete()}
+            code={atcCode()}
+            onContentChanged={notifyContentChanged}
+          />
+        </section>
+      </Show>
+
+      <Show when={mode() === 'list'}>
+        <section class="medication-catalog-section">
+          <div class="module-collection-heading">
+            <h2 class="module-collection-heading__title">Препараты</h2>
+            <Show when={!needsDownload()}>
+              <CountBadge value={products().length} />
+            </Show>
           </div>
-        </Show>
-        <Show when={error()}>
-          {(message) => (
-            <div class="error-card" role="alert">
-              {message()}
+          <Show when={needsDownload()}>
+            <MedicationDownloadState onContentChanged={notifyContentChanged} />
+          </Show>
+          <Show when={loading()}>
+            <div class="medication-empty paper-card" role="status">
+              Открываем локальную базу…
             </div>
-          )}
-        </Show>
-        <div class="medication-grid">
-          <LayoutVirtualizedGrid data={visibleProducts()} bufferSize={500}>
-            {(product) => {
-              const variants = () => productVariants(product);
-              const description = () => productDescription(product);
-              const country = () =>
-                countryMarkText(manufacturingCountries(mfgCountries(), product.registrationNumber));
-              return (
-                <button
-                  type="button"
-                  class="medication-product-card paper-card"
-                  onClick={() => openProduct(product)}
-                >
-                  <AppGlyph name="arrow-up-right" class="medication-product-card__open-icon" />
-                  <strong class="medication-product-card__title">
-                    {displayDrugName(product.tradeName)}
-                    <Show when={country()}>
-                      {(text) => (
-                        <>
-                          {' '}
-                          <span
-                            class="medication-product-card__country"
-                            title={manufacturingBasisTitle(
-                              manufacturingBasis(mfgCountries(), product.registrationNumber),
-                            )}
-                          >
-                            ({text()})
-                          </span>
-                        </>
-                      )}
-                    </Show>
-                  </strong>
-                  <p class="medication-product-card__inn">{displayDrugName(product.inn)}</p>
-                  <div class="medication-product-card__summary">
-                    <span class="medication-product-card__description">{description()}</span>
-                  </div>
-                  <p class="medication-product-card-meta">
-                    {product.registrationStatus} · {variants().length}{' '}
-                    {pluralRu(variants().length, 'вариант', 'варианта', 'вариантов')} упаковки
-                  </p>
-                </button>
-              );
-            }}
-          </LayoutVirtualizedGrid>
-        </div>
-      </section>
+          </Show>
+          <Show when={error()}>
+            {(message) => (
+              <div class="error-card" role="alert">
+                {message()}
+              </div>
+            )}
+          </Show>
+          <div class="medication-grid">
+            <LayoutVirtualizedGrid data={visibleProducts()} bufferSize={500}>
+              {(product) => {
+                const variants = () => productVariants(product);
+                const description = () => productDescription(product);
+                const country = () =>
+                  countryMarkText(
+                    manufacturingCountries(mfgCountries(), product.registrationNumber),
+                  );
+                return (
+                  <button
+                    type="button"
+                    class="medication-product-card paper-card"
+                    onClick={() => openProduct(product)}
+                  >
+                    <AppGlyph name="arrow-up-right" class="medication-product-card__open-icon" />
+                    <strong class="medication-product-card__title">
+                      {displayDrugName(product.tradeName)}
+                      <Show when={country()}>
+                        {(text) => (
+                          <>
+                            {' '}
+                            <span
+                              class="medication-product-card__country"
+                              title={manufacturingBasisTitle(
+                                manufacturingBasis(mfgCountries(), product.registrationNumber),
+                              )}
+                            >
+                              ({text()})
+                            </span>
+                          </>
+                        )}
+                      </Show>
+                    </strong>
+                    <p class="medication-product-card__inn">{displayDrugName(product.inn)}</p>
+                    <div class="medication-product-card__summary">
+                      <span class="medication-product-card__description">{description()}</span>
+                    </div>
+                    <p class="medication-product-card-meta">
+                      {product.registrationStatus} · {variants().length}{' '}
+                      {pluralRu(variants().length, 'вариант', 'варианта', 'вариантов')} упаковки
+                    </p>
+                  </button>
+                );
+              }}
+            </LayoutVirtualizedGrid>
+          </div>
+        </section>
+      </Show>
 
       <Show when={legacyRegistration() && catalogComplete() && !legacyProduct()}>
         <div class="medication-empty paper-card">Препарат не найден в локальной базе.</div>
