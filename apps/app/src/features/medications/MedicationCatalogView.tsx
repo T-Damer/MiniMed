@@ -19,6 +19,7 @@ import { Page } from '@/components/Page';
 import { SearchField } from '@/components/SearchField';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
+import { displayDrugName, displayStrength } from '@/features/medications/drug-screen';
 import { MedicationDownloadState } from '@/features/medications/MedicationDownloadState';
 import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
 import {
@@ -181,7 +182,12 @@ function productDescription(product: MedicationProduct): string {
   return stripKnownHtmlMarkupInline(
     product.shortDescription ??
       product.supplementalDescription ??
-      [presentation?.dosageForm, presentation?.strength].filter(Boolean).join(' '),
+      [
+        presentation?.dosageForm ? displayDrugName(presentation.dosageForm) : null,
+        presentation?.strength ? displayStrength(presentation.strength) : null,
+      ]
+        .filter(Boolean)
+        .join(' · '),
   );
 }
 
@@ -389,7 +395,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                 >
                   <AppGlyph name="arrow-up-right" class="medication-product-card__open-icon" />
                   <strong class="medication-product-card__title">
-                    {product.tradeName}
+                    {displayDrugName(product.tradeName)}
                     <Show when={country()}>
                       {(text) => (
                         <>
@@ -406,7 +412,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                       )}
                     </Show>
                   </strong>
-                  <p class="medication-product-card__inn">{product.inn}</p>
+                  <p class="medication-product-card__inn">{displayDrugName(product.inn)}</p>
                   <div class="medication-product-card__summary">
                     <span class="medication-product-card__description">{description()}</span>
                   </div>
