@@ -10,6 +10,14 @@ import type {
   MedicationProduct,
   TradeNameSupplement,
 } from '@/features/medications/medication-record';
+import {
+  countryMarkText,
+  formatTradeNameWithCountry,
+  type MfgCountryCatalog,
+  manufacturingBasis,
+  manufacturingBasisTitle,
+  manufacturingCountries,
+} from '@/features/medications/mfg-country';
 
 type SourceRecord = Readonly<Record<string, unknown>>;
 
@@ -219,6 +227,13 @@ export interface DrugSubstanceLink {
 
 export interface DrugRelatedProduct {
   readonly key: string;
+  /** The trade name alone, ready for display. */
+  readonly name: string;
+  /** Where this entry's registrations are made; null when the registry does not say. */
+  readonly country: string | null;
+  /** Says which registry fact `country` rests on. */
+  readonly countryTitle: string | undefined;
+  /** «Ибупрофен (Индия)»: what a screen reader and a list entry read. */
   readonly label: string;
   /** The registration of this trade name that opens: same form and strength as the current one if any. */
   readonly product: MedicationProduct;
@@ -245,26 +260,40 @@ function sameStrength(left: MedicationProduct, right: MedicationProduct): boolea
 }
 
 /**
- * Other trade names of the same substance, one entry per name. Each opens the registration closest
+ * Other trade names of the same substance, one entry per trade name and manufacturing country, so
+ * «Ибупрофен (Индия)» and «Ибупрофен (Россия)» are two entries. Each opens the registration closest
  * to the current one (same form and strength, then same form), so an analogue of a 50 mg tablet is
- * a tablet. Names in the current form come first; the rest by name. Without a current product (the
- * substance card) every trade name is listed.
+ * a tablet. Names in the current form come first; the rest by label. Without a current product (the
+ * substance card) every entry is listed. Without a country catalog (not loaded yet) the entries are
+ * per trade name alone.
  */
 export function drugRelatedProducts(
   products: readonly MedicationProduct[],
   current: MedicationProduct | undefined,
+  mfgCountries?: MfgCountryCatalog,
 ): readonly DrugRelatedProduct[] {
-  const currentKey = current ? drugNameKey(current.tradeName) : null;
-  const groups = new Map<string, MedicationProduct[]>();
+  const keyOf = (name: string, country: string | null): string =>
+    `${drugNameKey(name)}\u001f${country ?? ''}`;
+  const countriesOf = (product: MedicationProduct): readonly (string | null)[] => {
+    const countries = manufacturingCountries(mfgCountries, product.registrationNumber);
+    return countries.length > 0 ? countries : [null];
+  };
+  const currentKeys = new Set(
+    current ? countriesOf(current).map((country) => keyOf(current.tradeName, country)) : [],
+  );
+  const groups = new Map<string, { country: string | null; products: MedicationProduct[] }>();
   for (const product of products) {
-    const key = drugNameKey(product.tradeName);
-    if (!key || key === currentKey) continue;
-    const group = groups.get(key) ?? [];
-    group.push(product);
-    groups.set(key, group);
+    if (!drugNameKey(product.tradeName)) continue;
+    for (const country of countriesOf(product)) {
+      const key = keyOf(product.tradeName, country);
+      if (currentKeys.has(key)) continue;
+      const group = groups.get(key) ?? { country, products: [] };
+      group.products.push(product);
+      groups.set(key, group);
+    }
   }
-  const entries = [...groups.entries()].map(([key, group]) => {
-    const ordered = group.toSorted(
+  const entries = [...groups.entries()].flatMap(([key, group]) => {
+    const ordered = group.products.toSorted(
       (left, right) =>
         left.registrationNumber.localeCompare(right.registrationNumber, 'ru') ||
         drugNameKey(left.presentations[0]?.strength ?? '').localeCompare(
@@ -276,21 +305,29 @@ export function drugRelatedProducts(
       (current && ordered.find((item) => sameForm(item, current) && sameStrength(item, current))) ||
       (current && ordered.find((item) => sameForm(item, current))) ||
       ordered[0];
-    return {
-      key,
-      label: displayDrugName(ordered[0]?.tradeName ?? key),
-      product,
-      inCurrentForm: !!current && !!product && sameForm(product, current),
-    };
+    if (!product) return [];
+    const name = displayDrugName(ordered[0]?.tradeName ?? key);
+    return [
+      {
+        key,
+        name,
+        country: group.country,
+        countryTitle: group.country
+          ? manufacturingBasisTitle(manufacturingBasis(mfgCountries, product.registrationNumber))
+          : undefined,
+        label: formatTradeNameWithCountry(name, group.country),
+        product,
+        inCurrentForm: !!current && sameForm(product, current),
+      },
+    ];
   });
   return entries
-    .flatMap((entry) => (entry.product ? [entry] : []))
     .toSorted(
       (left, right) =>
         Number(right.inCurrentForm) - Number(left.inCurrentForm) ||
         left.label.localeCompare(right.label, 'ru'),
     )
-    .map(({ key, label, product }) => ({ key, label, product: product as MedicationProduct }));
+    .map(({ inCurrentForm: _inCurrentForm, ...entry }) => entry);
 }
 
 /* ------------------------------------------------------------------------------------------ */
@@ -303,6 +340,10 @@ export interface DrugHeaderModel {
   readonly kicker: string;
   readonly title: string;
   readonly latinName: string | null;
+  /** Where the trade name's product is made, for a trade name only; never set for a substance. */
+  readonly country: string | null;
+  /** Says which registry fact `country` rests on. */
+  readonly countryTitle: string | undefined;
   /** Form and strength, manufacturer: short facts under the name. */
   readonly meta: readonly string[];
   /** Packaging photo reference (a `img/preparations/…` path), when the product has one. */
@@ -311,11 +352,19 @@ export interface DrugHeaderModel {
   readonly formInMeta: boolean;
 }
 
+/** Trade names shown on the substance card before «Показать ещё N». */
+export const DRUG_ACCORDION_VISIBLE = 2;
+
 export interface DrugQuickLinksModel {
   readonly substance: DrugSubstanceLink | null;
   readonly groups: readonly DrugGroupLink[];
   /** «Аналоги» next to a trade name, «Торговые наименования» on the substance card. */
   readonly relatedTitle: string;
+  /**
+   * The substance card lists every trade name and country, which can be hundreds: it shows
+   * `DRUG_ACCORDION_VISIBLE` of them and folds the rest. A trade name's own analogue row does not.
+   */
+  readonly relatedAccordion: boolean;
   readonly related: readonly DrugRelatedProduct[];
   readonly atc: readonly DrugAtcCode[];
 }
@@ -337,6 +386,8 @@ export interface DrugScreenInput {
   readonly supplements: readonly TradeNameSupplement[];
   /** The title of a document the app lists, for links to a substance card. */
   readonly documentTitle: (documentId: string) => string | undefined;
+  /** Manufacturing countries by registration number, once the lazy asset has loaded. */
+  readonly mfgCountries?: MfgCountryCatalog | undefined;
 }
 
 const UNKNOWN_LATIN_NAME = 'не указано';
@@ -409,10 +460,17 @@ function substanceLinkOf(
 
 /** What the share action sends: the name, the short facts and the address of the screen. */
 export function drugShareText(
-  header: Pick<DrugHeaderModel, 'title' | 'latinName' | 'meta'>,
+  header: Pick<DrugHeaderModel, 'title' | 'latinName' | 'meta'> & {
+    readonly country?: string | null;
+  },
   pageUrl: string,
 ): string {
-  return [header.title, header.latinName, header.meta.join(' · '), pageUrl]
+  return [
+    formatTradeNameWithCountry(header.title, header.country),
+    header.latinName,
+    header.meta.join(' · '),
+    pageUrl,
+  ]
     .filter((line) => line)
     .join('\n');
 }
@@ -430,6 +488,9 @@ export function buildDrugScreen(input: DrugScreenInput): DrugScreenModel | null 
     ? displayDrugName(product.tradeName)
     : substanceTitle(source, input.document);
   const latinName = latinNameOf(product, input.supplements);
+  const countries = product
+    ? manufacturingCountries(input.mfgCountries, product.registrationNumber)
+    : [];
   const manufacturer = product ? (product.manufacturer ?? product.holder) : null;
   const form = product ? presentationLabel(product.presentations[0]) : null;
   const meta = [form, manufacturer].flatMap((item) => (item ? [item] : []));
@@ -446,6 +507,12 @@ export function buildDrugScreen(input: DrugScreenInput): DrugScreenModel | null 
       kicker: product ? 'Препарат' : 'Действующее вещество',
       title,
       latinName,
+      country: countryMarkText(countries),
+      countryTitle: product
+        ? manufacturingBasisTitle(
+            manufacturingBasis(input.mfgCountries, product.registrationNumber),
+          )
+        : undefined,
       meta,
       imageReference: imageReferenceOf(product, input.supplements),
       formInMeta: form !== null && (product?.presentations.length ?? 0) === 1,
@@ -454,7 +521,8 @@ export function buildDrugScreen(input: DrugScreenInput): DrugScreenModel | null 
       substance: substanceLinkOf(input, product),
       groups: drugGroupLinks(groupTexts),
       relatedTitle: product ? 'Аналоги (дженерики, синонимы)' : 'Торговые наименования',
-      related: drugRelatedProducts(input.sourceProducts, product),
+      relatedAccordion: !product,
+      related: drugRelatedProducts(input.sourceProducts, product, input.mfgCountries),
       atc: drugAtcCodes(atcSource, product),
     },
   };

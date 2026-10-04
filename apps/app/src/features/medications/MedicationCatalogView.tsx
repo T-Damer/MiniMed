@@ -41,6 +41,13 @@ import {
   legacyMedicationRegistrationFromHash,
   MEDICATION_CATALOG_HASH,
 } from '@/features/medications/medication-routing';
+import {
+  countryMarkText,
+  manufacturingBasis,
+  manufacturingBasisTitle,
+  manufacturingCountries,
+} from '@/features/medications/mfg-country';
+import { useMfgCountries } from '@/features/medications/use-mfg-countries';
 import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 
@@ -231,6 +238,7 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
   const [headingElement, setHeadingElement] = createSignal<HTMLElement | undefined>();
 
   useStickySurface(headingElement);
+  const mfgCountries = useMfgCountries(() => true);
 
   const refresh = async (): Promise<void> => {
     setLoading(true);
@@ -371,6 +379,8 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
             {(product) => {
               const variants = () => productVariants(product);
               const description = () => productDescription(product);
+              const country = () =>
+                countryMarkText(manufacturingCountries(mfgCountries(), product.registrationNumber));
               return (
                 <button
                   type="button"
@@ -378,7 +388,24 @@ export function MedicationCatalogView(props: MedicationCatalogViewProps): JSX.El
                   onClick={() => openProduct(product)}
                 >
                   <AppGlyph name="arrow-up-right" class="medication-product-card__open-icon" />
-                  <strong class="medication-product-card__title">{product.tradeName}</strong>
+                  <strong class="medication-product-card__title">
+                    {product.tradeName}
+                    <Show when={country()}>
+                      {(text) => (
+                        <>
+                          {' '}
+                          <span
+                            class="medication-product-card__country"
+                            title={manufacturingBasisTitle(
+                              manufacturingBasis(mfgCountries(), product.registrationNumber),
+                            )}
+                          >
+                            ({text()})
+                          </span>
+                        </>
+                      )}
+                    </Show>
+                  </strong>
                   <p class="medication-product-card__inn">{product.inn}</p>
                   <div class="medication-product-card__summary">
                     <span class="medication-product-card__description">{description()}</span>

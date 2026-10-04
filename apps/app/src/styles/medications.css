@@ -76,6 +76,13 @@
   font-weight: 500;
 }
 
+.medication-product-card__country {
+  color: var(--ink-soft);
+  font-size: 0.6em;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
 .medication-product-card__inn {
   margin: 0;
   overflow-wrap: anywhere;

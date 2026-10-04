@@ -18,6 +18,22 @@ import {
   parseEsklpMedicationProducts,
   type TradeNameSupplement,
 } from './medication-record';
+import { type MfgBasis, type MfgCountryCatalog, normalizeRegistrationKey } from './mfg-country';
+
+function countryCatalog(
+  entries: Readonly<Record<string, readonly [basis: MfgBasis, ...countries: string[]]>>,
+): MfgCountryCatalog {
+  return {
+    source: 'ГРЛС',
+    sourceEdition: '02.10.2026',
+    entries: new Map(
+      Object.entries(entries).map(([registration, [basis, ...countries]]) => [
+        normalizeRegistrationKey(registration),
+        { basis, countries },
+      ]),
+    ),
+  };
+}
 
 function substanceCard(): MedicalDocument {
   const node = (smnnCode: string, strength: string, tradeNames: readonly string[]) => ({
@@ -231,6 +247,95 @@ describe('drugRelatedProducts', () => {
   });
 });
 
+describe('drugRelatedProducts with manufacturing countries', () => {
+  // Registrations of the fixture: «ЛП-<smnn>-<index>» in the order of the trade names above.
+  const products = parseEsklpMedicationProducts(substanceCard());
+  const registration = (name: string, strength: string) =>
+    productNamed(products, name, strength).registrationNumber;
+
+  it('lists a trade name once per manufacturing country, each linked to its registration', () => {
+    const catalog = countryCatalog({
+      [registration('АКТИТРОПИЛ', '50')]: ['finished-form', 'Россия'],
+      [registration('АКТИТРОПИЛ', '100')]: ['holder', 'Индия'],
+      [registration('Нооредит', '100')]: ['finished-form', 'Россия'],
+      [registration('Фонтурацетам', '50')]: ['release-qc', 'Беларусь'],
+    });
+    const related = drugRelatedProducts(products, undefined, catalog);
+    expect(related.map((item) => item.label)).toEqual([
+      'Актитропил (Индия)',
+      'Актитропил (Россия)',
+      'Нанотропил ново',
+      'Нооредит (Россия)',
+      'Фонтурацетам (Беларусь)',
+    ]);
+    const india = related.find((item) => item.label === 'Актитропил (Индия)');
+    expect(india?.name).toBe('Актитропил');
+    expect(india?.country).toBe('Индия');
+    expect(india?.product.registrationNumber).toBe(registration('АКТИТРОПИЛ', '100'));
+    expect(india?.countryTitle).toContain('держателя');
+  });
+
+  it('keeps the other-country entries of the current trade name, not its own', () => {
+    const catalog = countryCatalog({
+      [registration('АКТИТРОПИЛ', '50')]: ['finished-form', 'Россия'],
+      [registration('АКТИТРОПИЛ', '100')]: ['finished-form', 'Индия'],
+    });
+    const current = productNamed(products, 'АКТИТРОПИЛ', '50');
+    expect(drugRelatedProducts(products, current, catalog).map((item) => item.label)).toEqual([
+      'Актитропил (Индия)',
+      'Нанотропил ново',
+      'Нооредит',
+      'Фонтурацетам',
+    ]);
+  });
+
+  it('puts a registration of an unknown country on a plain entry of the same name', () => {
+    const catalog = countryCatalog({
+      [registration('АКТИТРОПИЛ', '50')]: ['finished-form', 'Россия'],
+    });
+    expect(
+      drugRelatedProducts(products, undefined, catalog)
+        .filter((item) => item.name === 'Актитропил')
+        .map((item) => item.label),
+    ).toEqual(['Актитропил', 'Актитропил (Россия)']);
+  });
+
+  it('shows a multi-site registration under each of its countries', () => {
+    const catalog = countryCatalog({
+      [registration('Нооредит', '100')]: ['finished-form', 'Индия', 'Россия'],
+    });
+    const labels = drugRelatedProducts(products, undefined, catalog).map((item) => item.label);
+    expect(labels).toContain('Нооредит (Индия)');
+    expect(labels).toContain('Нооредит (Россия)');
+  });
+
+  it('matches registration numbers in any spelling', () => {
+    const catalog = countryCatalog({ 'ЛП-№ (000001)-(РГ-RU)': ['finished-form', 'Россия'] });
+    const spelled = parseEsklpMedicationProducts({
+      ...substanceCard(),
+      metadata: {
+        contentMode: 'esklp-mnn',
+        smnnNodes: [
+          {
+            smnnCode: 'one',
+            dosageForm: 'ТАБЛЕТКИ',
+            tradeNames: [
+              {
+                tradeName: 'ОДИН',
+                registrationNumber: 'ЛП-N(000001)-(РГ-RU)',
+                dosageForm: 'ТАБЛЕТКИ',
+              },
+            ],
+          },
+        ],
+      },
+    });
+    expect(drugRelatedProducts(spelled, undefined, catalog).map((item) => item.label)).toEqual([
+      'Один (Россия)',
+    ]);
+  });
+});
+
 describe('instructionIndexFromSummaries', () => {
   it('maps registration numbers of instruction documents only', () => {
     const index = instructionIndexFromSummaries([
@@ -283,6 +388,40 @@ describe('buildDrugScreen', () => {
     expect(screen && drugShareText(screen.header, 'https://example.test/#/doc')).toBe(
       'Актитропил\nТаблетки · 50мг · ОАО ФАРМСТАНДАРТ-ЛЕКСРЕДСТВА\nhttps://example.test/#/doc',
     );
+  });
+
+  it('puts the manufacturing country in the header of a trade name, never of the substance', () => {
+    const product = productNamed(products, 'АКТИТРОПИЛ', '50');
+    const mfgCountries = countryCatalog({
+      [product.registrationNumber]: ['finished-form', 'Россия'],
+    });
+    const screen = buildDrugScreen({ ...baseInput, product, mfgCountries });
+    expect(screen?.header.country).toBe('Россия');
+    expect(screen?.header.countryTitle).toContain('готовой лекарственной формы');
+    expect(screen?.header.title).toBe('Актитропил');
+    expect(screen && drugShareText(screen.header, 'https://example.test/#/doc')).toBe(
+      'Актитропил (Россия)\nТаблетки · 50мг · ОАО ФАРМСТАНДАРТ-ЛЕКСРЕДСТВА\nhttps://example.test/#/doc',
+    );
+    const substance = buildDrugScreen({ ...baseInput, product: undefined, mfgCountries });
+    expect(substance?.header.country).toBeNull();
+    expect(substance?.header.title).toBe('Фонтурацетам');
+  });
+
+  it('has no country before the asset has loaded or for an unlisted registration', () => {
+    const product = productNamed(products, 'АКТИТРОПИЛ', '50');
+    expect(buildDrugScreen({ ...baseInput, product })?.header.country).toBeNull();
+    expect(
+      buildDrugScreen({ ...baseInput, product, mfgCountries: countryCatalog({}) })?.header
+        .countryTitle,
+    ).toBeUndefined();
+  });
+
+  it('folds the trade-name list of the substance card only', () => {
+    expect(buildDrugScreen({ ...baseInput, product: undefined })?.links.relatedAccordion).toBe(
+      true,
+    );
+    const product = productNamed(products, 'АКТИТРОПИЛ', '50');
+    expect(buildDrugScreen({ ...baseInput, product })?.links.relatedAccordion).toBe(false);
   });
 
   it('builds the substance card when no trade name is selected', () => {

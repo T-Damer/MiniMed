@@ -83,7 +83,17 @@ export function DrugScreenHeader(props: {
             </button>
           </div>
         </div>
-        <h1 class="drug-header__title">{props.title}</h1>
+        <div class="drug-header__heading">
+          <h1 class="drug-header__title">{props.title}</h1>
+          <Show when={props.header.country}>
+            {(country) => (
+              <p class="drug-header__country" title={props.header.countryTitle}>
+                <span class="sr-only">Страна производства: </span>
+                <span class="drug-header__country-text">({country()})</span>
+              </p>
+            )}
+          </Show>
+        </div>
         <Show when={props.header.latinName}>
           {(latin) => (
             <p class="drug-header__latin" lang="la">

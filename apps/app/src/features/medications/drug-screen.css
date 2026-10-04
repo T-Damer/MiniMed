@@ -110,6 +110,14 @@
   height: 1.25rem;
 }
 
+.drug-header__heading {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.5rem;
+}
+
 .drug-header__title {
   max-width: min(100%, 48rem);
   margin: 0.25rem 0 0;
@@ -119,6 +127,15 @@
   font-size: clamp(1.875rem, 7.5vw, 3rem);
   font-weight: 500;
   line-height: 1.05;
+  text-shadow: 0 0 0.75rem color-mix(in srgb, var(--document-paper-fill) 80%, transparent);
+}
+
+.drug-header__country {
+  margin: 0;
+  color: var(--ink-soft);
+  font-family: var(--font-serif);
+  font-size: clamp(1.0625rem, 4.4vw, 1.5rem);
+  line-height: 1.1;
   text-shadow: 0 0 0.75rem color-mix(in srgb, var(--document-paper-fill) 80%, transparent);
 }
 
@@ -221,6 +238,15 @@
     transform var(--theme-motion-control);
 }
 
+.drug-chip__text {
+  min-width: 0;
+}
+
+.drug-chip__country {
+  color: var(--theme-text-muted);
+  font-size: 0.875em;
+}
+
 .drug-chip:active {
   transform: translateY(0.0625rem);
 }
@@ -253,6 +279,41 @@
   border-style: dashed;
   color: var(--theme-text-muted);
   background: transparent;
+  justify-self: start;
+}
+
+/* The folded part of a chip row opens like `.ui-disclosure__panel`: a 0fr → 1fr grid track. */
+.drug-links__more {
+  display: grid;
+  /* The collapsed track cancels the group's row gap, so a folded row looks like an unfolded one. */
+  margin-top: -0.375rem;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    margin-top 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.drug-links__more--open {
+  margin-top: 0;
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.drug-links__more-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.drug-links__list--rest {
+  padding-top: 0.375rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drug-links__more {
+    transition: none;
+  }
 }
 
 /* ---------- ATC sheet ---------- */

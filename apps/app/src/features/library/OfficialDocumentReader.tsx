@@ -86,6 +86,7 @@ import {
   parseEsklpMedicationProducts,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
+import { useMfgCountries } from '@/features/medications/use-mfg-countries';
 import type {
   ClinicalEditionLink,
   ClinicalEditionNotice,
@@ -530,10 +531,16 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
         (props.availableDocuments ?? []).map((item) => [item.id, displayDocumentTitle(item)]),
       ),
   );
+  const isDrugDocument = createMemo(() => {
+    const source = props.medicationSource ?? props.document;
+    return !!props.medicationProduct || (!!source && isEsklpSubstanceDocument(source));
+  });
+  const mfgCountries = useMfgCountries(isDrugDocument);
   const drugScreen = createMemo(() => {
     const document = props.document;
     if (!document) return null;
     return buildDrugScreen({
+      mfgCountries: mfgCountries(),
       source: props.medicationSource ?? document,
       document,
       product: props.medicationProduct,

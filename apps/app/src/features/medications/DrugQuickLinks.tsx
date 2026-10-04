@@ -1,12 +1,13 @@
-import { createSignal, For, type JSX, Show } from 'solid-js';
+import { createSignal, createUniqueId, For, type JSX, Show } from 'solid-js';
 
 import { AtcCodeSheet } from '@/features/medications/AtcCodeSheet';
-import type {
-  DrugAtcCode,
-  DrugGroupLink,
-  DrugQuickLinksModel,
-  DrugRelatedProduct,
-  DrugSubstanceLink,
+import {
+  DRUG_ACCORDION_VISIBLE,
+  type DrugAtcCode,
+  type DrugGroupLink,
+  type DrugQuickLinksModel,
+  type DrugRelatedProduct,
+  type DrugSubstanceLink,
 } from '@/features/medications/drug-screen';
 import type { MedicationProduct } from '@/features/medications/medication-record';
 import { pluralRu } from '@/i18n/labels';
@@ -16,54 +17,83 @@ import '@/features/medications/drug-screen.css';
 /** Chips shown before «ещё N»; a longer list is folded. */
 export const DRUG_CHIP_LIMIT = 6;
 
+/**
+ * A row of chips. Past `limit` the rest is folded into a panel that opens like the app's other
+ * disclosures (a 0fr → 1fr grid track); `foldAll` folds even a single chip, where otherwise «ещё 1»
+ * would take the place of the chip it hides.
+ */
 function ChipRow<T>(props: {
   readonly id: string;
   readonly label: string;
   readonly items: readonly T[];
-  readonly limit?: number;
+  readonly limit?: number | undefined;
+  readonly foldAll?: boolean | undefined;
+  readonly moreLabel?: ((hidden: number) => string) | undefined;
   readonly children: (item: T) => JSX.Element;
 }): JSX.Element {
   const [expanded, setExpanded] = createSignal(false);
+  const panelId = createUniqueId();
   const limit = (): number => props.limit ?? DRUG_CHIP_LIMIT;
-  // «ещё 1» would take the place of the chip it hides: fold only when it saves at least two.
-  const folded = (): boolean => props.items.length > limit() + 1;
-  const hidden = (): number => (folded() ? props.items.length - limit() : 0);
-  const visible = (): readonly T[] =>
-    folded() && !expanded() ? props.items.slice(0, limit()) : props.items;
+  const folded = (): boolean => props.items.length > limit() + (props.foldAll ? 0 : 1);
+  const head = (): readonly T[] => (folded() ? props.items.slice(0, limit()) : props.items);
+  const rest = (): readonly T[] => (folded() ? props.items.slice(limit()) : []);
+  const moreLabel = (hidden: number): string =>
+    props.moreLabel?.(hidden) ?? `ещё ${String(hidden)}`;
   return (
     <section class="drug-links__group" aria-labelledby={props.id}>
       <p class="drug-links__label" id={props.id}>
         {props.label}
       </p>
       <ul class="drug-links__list">
-        <For each={visible()}>
+        <For each={head()}>
           {(item) => <li class="drug-links__item">{props.children(item)}</li>}
         </For>
-        <Show when={hidden() > 0}>
-          <li class="drug-links__item">
-            <button
-              type="button"
-              class="drug-chip drug-chip--more"
-              aria-expanded={expanded()}
-              aria-label={
-                expanded()
-                  ? 'Свернуть список'
-                  : `Показать ещё ${String(hidden())} ${pluralRu(hidden(), 'вариант', 'варианта', 'вариантов')}`
-              }
-              onClick={() => setExpanded((value) => !value)}
-            >
-              {expanded() ? 'Свернуть' : `ещё ${String(hidden())}`}
-            </button>
-          </li>
-        </Show>
       </ul>
+      <Show when={folded()}>
+        <div
+          class="drug-links__more"
+          classList={{ 'drug-links__more--open': expanded() }}
+          id={panelId}
+          inert={!expanded()}
+        >
+          <div class="drug-links__more-inner">
+            <ul class="drug-links__list drug-links__list--rest">
+              <For each={rest()}>
+                {(item) => <li class="drug-links__item">{props.children(item)}</li>}
+              </For>
+            </ul>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="drug-chip drug-chip--more"
+          aria-expanded={expanded()}
+          aria-controls={panelId}
+          aria-label={
+            expanded()
+              ? 'Свернуть список'
+              : props.moreLabel
+                ? undefined
+                : `Показать ещё ${String(rest().length)} ${pluralRu(rest().length, 'вариант', 'варианта', 'вариантов')}`
+          }
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded() ? 'Свернуть' : moreLabel(rest().length)}
+        </button>
+      </Show>
     </section>
   );
 }
 
+/** «Показать ещё 5 названий»: the fold button of the substance card's trade-name list. */
+function moreTradeNamesLabel(hidden: number): string {
+  return `Показать ещё ${String(hidden)} ${pluralRu(hidden, 'название', 'названия', 'названий')}`;
+}
+
 /**
  * Right under the header: the links a physician reaches for first. Only rows the data supports are
- * drawn: other trade names, the active substance, the pharmacological group, the ATC code.
+ * drawn: other trade names (with their manufacturing country), the active substance, the
+ * pharmacological group, the ATC code.
  */
 export function DrugQuickLinks(props: {
   readonly links: DrugQuickLinksModel;
@@ -91,6 +121,9 @@ export function DrugQuickLinks(props: {
             id="drug-links-related"
             label={props.links.relatedTitle}
             items={props.links.related}
+            limit={props.links.relatedAccordion ? DRUG_ACCORDION_VISIBLE : undefined}
+            foldAll={props.links.relatedAccordion}
+            moreLabel={props.links.relatedAccordion ? moreTradeNamesLabel : undefined}
           >
             {(item: DrugRelatedProduct) => (
               <button
@@ -99,7 +132,19 @@ export function DrugQuickLinks(props: {
                 aria-label={`Открыть: ${item.label}`}
                 onClick={() => props.onSelectProduct(item.product)}
               >
-                {item.label}
+                <span class="drug-chip__text">
+                  {item.name}
+                  <Show when={item.country}>
+                    {(country) => (
+                      <>
+                        {' '}
+                        <span class="drug-chip__country" title={item.countryTitle}>
+                          ({country()})
+                        </span>
+                      </>
+                    )}
+                  </Show>
+                </span>
               </button>
             )}
           </ChipRow>

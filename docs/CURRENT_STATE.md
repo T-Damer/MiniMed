@@ -244,6 +244,35 @@ pure and tested):
   module; the packaging photo was a synthetic stand-in (the real images module is not installed
   locally).
 
+### Country of manufacture next to trade names — 2026-10-04 (STATE MFG1)
+
+- `scripts/build-mfg-countries.ts` reads `data/raw/official-grls-registry/catalog-02.10.2026.json`
+  and writes `features/medications/mfg-countries.json` (registration number → country index, grouped
+  by `basis`; 888 kB, 126 kB gzip) — a lazy chunk loaded by `mfg-countries.ts` /
+  `use-mfg-countries.ts` only once a drug screen or the «Препараты» list is open; `dist/index.html`
+  and the start-up graph do not reference it. Registration numbers are matched by
+  `normalizeRegistrationKey` (case, spaces, dashes, Latin look-alikes, `N` = `№`); when the registry
+  lists `ЛП-N (…)` (changed) and `ЛП-№(…)` (in force) the record in force wins.
+- Country = where the product is made, from «Сведения о стадиях производства»: stage making the
+  finished form («Все стадии», «готовой ЛФ») → `finished-form`; else release quality control →
+  `release-qc`; else primary packaging → `primary-packaging`; else the holder's country → `holder`
+  (secondary packers, solvent and substance makers do not make the product). The export holds one
+  stage line per registration, so there is no multi-site data today (the parser and asset support
+  it). Countries are normalised to short Russian names («Республика Беларусь» → «Беларусь»).
+- Coverage 2026-10-02: 99.96 % of registrations in force (29 389 of 29 400) and 29 297 of the 29 300
+  registrations the ЕСКЛП modules show; basis shares over all 39 415 numbers: finished form 80.3 %,
+  release control 8.7 %, primary packaging 2.4 %, holder 8.4 %. Packer-only and release-control-only
+  records can differ from the true maker; a tooltip on the country says which basis it rests on.
+- UI: trade name in the drug header gets «(Россия)» after it (muted, read as «Страна производства»);
+  the analogue row lists one chip per trade name × country («Альбендацид (Беларусь)», «Альбендацид
+  (Россия)»), each opening its closest registration; «Препараты» list titles carry the country; the
+  share text includes it. No country on the МНН (substance) card header. The МНН card's trade-name
+  list is an accordion: 2 entries visible, «Показать ещё N названий» (Russian plural) opens the rest
+  with the app's disclosure motion (0fr → 1fr track). No «оригинальный препарат» mark.
+- Rebuild after a registry refresh: `bun scripts/build-mfg-countries.ts`. Not tested: the ибупрофен
+  pointer in the musculoskeletal module did not open its card in headless install (module install
+  stayed at 100 %); verification used the antiparasitic module (албендазол) at 360 px, light and dark.
+
 ## Storage and transfer compression — 2026-10-01 (STATE C1, K2 P0)
 
 Implements the P0 items of [kb-audit-storage-2026-10](research/kb-audit-storage-2026-10.md) (levels a and b).
