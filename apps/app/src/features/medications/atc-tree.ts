@@ -104,6 +104,18 @@ function compareText(left: string, right: string): number {
   return left.localeCompare(right, 'ru');
 }
 
+/**
+ * Within a group the substance itself comes first: ATC level-5 codes order it so (N02BE01
+ * paracetamol before N02BE51 paracetamol combinations); names break ties.
+ */
+function compareSubstanceEntries(
+  left: { readonly substance: AtcSubstance; readonly codes: readonly string[] },
+  right: { readonly substance: AtcSubstance; readonly codes: readonly string[] },
+): number {
+  const byCode = compareText(left.codes[0] ?? '\uffff', right.codes[0] ?? '\uffff');
+  return byCode !== 0 ? byCode : compareText(left.substance.name, right.substance.name);
+}
+
 function validCodes(substance: AtcSubstance): readonly string[] {
   return [
     ...new Set(
@@ -174,7 +186,7 @@ export function buildAtcTree(
       children: [...draft.children].toSorted(compareText).map((child) => freeze(child, code)),
       entries: [...draft.entries.values()]
         .map((entry) => ({ substance: entry.substance, codes: [...entry.codes].toSorted() }))
-        .toSorted((left, right) => compareText(left.substance.name, right.substance.name)),
+        .toSorted(compareSubstanceEntries),
       substanceCount: draft.subtree.size,
     };
     nodes.set(code, node);

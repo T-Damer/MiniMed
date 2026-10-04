@@ -68,6 +68,22 @@ describe('buildAtcTree', () => {
     expect(tree.nodes.get('N06B')?.entries).toEqual([]);
   });
 
+  it('puts the single substance before its combinations (level-5 code order)', () => {
+    const anilides = buildAtcTree(
+      [
+        substance('x', 'Амброксол+гвайфенезин+парацетамол', ['N02BE51']),
+        substance('y', 'Парацетамол', ['N02BE01']),
+        substance('z', 'Аскорбиновая кислота+парацетамол', ['N02BE51']),
+      ],
+      NAMES,
+    );
+    expect(anilides.nodes.get('N02BE')?.entries.map((entry) => entry.substance.name)).toEqual([
+      'Парацетамол',
+      'Амброксол+гвайфенезин+парацетамол',
+      'Аскорбиновая кислота+парацетамол',
+    ]);
+  });
+
   it('collects substances without a code in a synthetic closing group', () => {
     expect(tree.roots.map((node) => node.code)).toEqual(['N', 'none']);
     const none = tree.nodes.get('none');
