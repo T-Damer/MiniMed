@@ -12,6 +12,7 @@ import hashlib
 import json
 import re
 from collections import Counter
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
@@ -19,6 +20,7 @@ from typing import cast
 import yaml
 
 from .grls_collect import classify_state_record, load_merged_state
+from .grls_groups import classify_document_kind
 from .official_grls_registry import read_instruction_plan, safe_instruction_target, utc_now
 
 _WORD = re.compile(r"[а-яё]{4,}")
@@ -63,6 +65,28 @@ def index_prepared(workspaces: list[Path]) -> dict[str, PreparedDocument]:
     return index
 
 
+def record_documents(record: Mapping[str, object]) -> list[dict[str, object]]:
+    """Documents of a success record: the primary PDF first, then the extra current-edition ones."""
+    documents = record.get("documents")
+    if isinstance(documents, list) and documents:
+        return [
+            cast(dict[str, object], item)
+            for item in cast(list[object], documents)
+            if isinstance(item, dict)
+        ]
+    return [
+        {
+            "primary": True,
+            "url": record.get("instructionUrl"),
+            "label": record.get("instructionLabel"),
+            "kind": None,
+            "target": record.get("target"),
+            "pdfSha256": record.get("pdfSha256"),
+            "pdfBytes": record.get("pdfBytes"),
+        }
+    ]
+
+
 def build_additions_registry(
     plan_path: Path,
     state_path: Path,
@@ -93,41 +117,45 @@ def build_additions_registry(
         result = state.get(registration_number)
         if result is None or result.get("state") != "success":
             continue
-        checksum = result.get("pdfSha256")
-        if not isinstance(checksum, str) or checksum in known:
-            continue
-        target = str(result.get("target") or item["target"])
-        if not safe_instruction_target(raw_root, target).is_file():
-            continue
         catalog_record = records.get(registration_number, {})
         trade_name = str(catalog_record.get("tradeName") or item.get("tradeName") or "")
         source_id = hashlib.sha256(registration_number.encode("utf-8")).hexdigest()[:20]
-        sources.append(
-            {
-                "id": f"drug.rf.{source_id}.instruction",
-                "path": target,
-                "title": f"{trade_name}: инструкция по медицинскому применению",
-                "shortTitle": trade_name,
-                "versionLabel": f"grls-{plan['catalogEdition']}",
-                "sourceType": "official_drug_instruction",
-                "status": "active",
-                "format": "pdf",
-                "metadata": {
-                    "registrationNumber": registration_number,
-                    "requestedRegistrationNumbers": item.get("requestedRegistrationNumbers"),
-                    "tradeName": trade_name,
-                    "inn": catalog_record.get("inn"),
-                    "dosageForm": catalog_record.get("dosageForm"),
-                    "holder": catalog_record.get("holder"),
-                    "officialSourceUrl": result.get("instructionUrl"),
-                    "instructionLabel": result.get("instructionLabel"),
-                    "pdfSha256": checksum,
-                    "fetchedAt": result.get("recordedAt"),
-                    "catalogEdition": plan["catalogEdition"],
-                    "catalogChecksum": plan["catalogChecksum"],
-                },
-            }
-        )
+        for index, document in enumerate(record_documents(result)):
+            checksum = document.get("pdfSha256")
+            if not isinstance(checksum, str) or checksum in known:
+                continue
+            target = str(document.get("target") or item["target"])
+            if not safe_instruction_target(raw_root, target).is_file():
+                continue
+            suffix = "" if index == 0 else f".d{index}"
+            sources.append(
+                {
+                    "id": f"drug.rf.{source_id}.instruction{suffix}",
+                    "path": target,
+                    "title": f"{trade_name}: инструкция по медицинскому применению",
+                    "shortTitle": trade_name,
+                    "versionLabel": f"grls-{plan['catalogEdition']}",
+                    "sourceType": "official_drug_instruction",
+                    "status": "active",
+                    "format": "pdf",
+                    "metadata": {
+                        "registrationNumber": registration_number,
+                        "requestedRegistrationNumbers": item.get("requestedRegistrationNumbers"),
+                        "tradeName": trade_name,
+                        "inn": catalog_record.get("inn"),
+                        "dosageForm": catalog_record.get("dosageForm"),
+                        "holder": catalog_record.get("holder"),
+                        "officialSourceUrl": document.get("url"),
+                        "instructionLabel": document.get("label"),
+                        "pdfSha256": checksum,
+                        "documentIndex": index,
+                        "documentKindAtDownload": document.get("kind"),
+                        "fetchedAt": result.get("recordedAt"),
+                        "catalogEdition": plan["catalogEdition"],
+                        "catalogChecksum": plan["catalogChecksum"],
+                    },
+                }
+            )
     if limit is not None:
         sources = sources[:limit]
     edition = cast(str, plan["catalogEdition"])
@@ -274,46 +302,52 @@ def build_text_manifest(
     for number, record in sorted(state.items()):
         if record.get("state") != "success":
             continue
-        checksum = cast(str | None, record.get("pdfSha256"))
-        prepared = index.get(checksum) if checksum else None
         item = targets.get(number, {})
-        row: dict[str, object] = {
-            "registrationNumber": number,
-            "requestedRegistrationNumbers": item.get("requestedRegistrationNumbers"),
-            "target": record.get("target"),
-            "pdfSha256": checksum,
-            "pdfBytes": record.get("pdfBytes"),
-            "sourceUrl": record.get("instructionUrl"),
-            "fetchedAt": record.get("recordedAt"),
-            "instructionLabel": record.get("instructionLabel"),
-            "extraction": "prepared" if prepared else "not-prepared",
-            "searchable": False,
-        }
-        if prepared is not None:
-            diagnostics = prepared.diagnostics
-            body = _body(prepared.markdown)
-            words = _words(body)
-            unknown = sum(word not in lexicon for word in words)
-            row.update(
-                {
-                    "sourceId": prepared.stem,
-                    "workspace": str(prepared.workspace),
-                    "searchable": bool(words),
-                    "pageCount": diagnostics.get("pageCount"),
-                    "characterCount": diagnostics.get("characterCount"),
-                    "textExtractionMode": diagnostics.get("textExtractionMode", "pdf_text_layer"),
-                    "ocr": diagnostics.get("textExtractionMode") == "ocr",
-                    "ocrEngine": diagnostics.get("ocrEngine"),
-                    "ocrMeanConfidence": diagnostics.get("ocrMeanConfidence"),
-                    "ocrLowConfidenceRatio": diagnostics.get("ocrLowConfidenceRatio"),
-                    "qualityScore": diagnostics.get("qualityScore"),
-                    "requiresReview": diagnostics.get("requiresReview"),
-                    "wordCount": len(words),
-                    "unknownWordRatio": round(unknown / len(words), 4) if words else None,
-                    "textSha256": _text_digest(body),
-                }
-            )
-        rows.append(row)
+        for document_index, document in enumerate(record_documents(record)):
+            checksum = cast(str | None, document.get("pdfSha256"))
+            prepared = index.get(checksum) if checksum else None
+            row: dict[str, object] = {
+                "registrationNumber": number,
+                "requestedRegistrationNumbers": item.get("requestedRegistrationNumbers"),
+                "documentIndex": document_index,
+                "target": document.get("target"),
+                "pdfSha256": checksum,
+                "pdfBytes": document.get("pdfBytes"),
+                "sourceUrl": document.get("url"),
+                "fetchedAt": record.get("recordedAt"),
+                "instructionLabel": document.get("label"),
+                "extraction": "prepared" if prepared else "not-prepared",
+                "documentKind": document.get("kind"),
+                "searchable": False,
+            }
+            if prepared is not None:
+                diagnostics = prepared.diagnostics
+                body = _body(prepared.markdown)
+                words = _words(body)
+                unknown = sum(word not in lexicon for word in words)
+                row.update(
+                    {
+                        "sourceId": prepared.stem,
+                        "workspace": str(prepared.workspace),
+                        "searchable": bool(words),
+                        "pageCount": diagnostics.get("pageCount"),
+                        "characterCount": diagnostics.get("characterCount"),
+                        "textExtractionMode": diagnostics.get(
+                            "textExtractionMode", "pdf_text_layer"
+                        ),
+                        "ocr": diagnostics.get("textExtractionMode") == "ocr",
+                        "ocrEngine": diagnostics.get("ocrEngine"),
+                        "ocrMeanConfidence": diagnostics.get("ocrMeanConfidence"),
+                        "ocrLowConfidenceRatio": diagnostics.get("ocrLowConfidenceRatio"),
+                        "qualityScore": diagnostics.get("qualityScore"),
+                        "requiresReview": diagnostics.get("requiresReview"),
+                        "wordCount": len(words),
+                        "unknownWordRatio": round(unknown / len(words), 4) if words else None,
+                        "textSha256": _text_digest(body),
+                        "documentKind": classify_document_kind(body[:4000]),
+                    }
+                )
+            rows.append(row)
     manifest_output.parent.mkdir(parents=True, exist_ok=True)
     with manifest_output.open("w", encoding="utf-8") as handle:
         for row in rows:
@@ -357,8 +391,11 @@ def build_text_manifest(
             "ocrMedianConfidence": median(sorted(confidences)),
         }
 
+    primary_rows = [row for row in rows if row["documentIndex"] == 0]
+    kind_counts = Counter(str(row.get("documentKind") or "unknown") for row in rows)
+
     def rows_before(cutoff: str) -> list[dict[str, object]]:
-        return [row for row in rows if str(row["fetchedAt"]) < cutoff]
+        return [row for row in primary_rows if str(row["fetchedAt"]) < cutoff]
 
     def by_registration(selected: list[dict[str, object]]) -> dict[str, dict[str, object]]:
         return {cast(str, row["registrationNumber"]): row for row in selected}
@@ -367,8 +404,10 @@ def build_text_manifest(
         "generatedAt": utc_now(),
         "manifest": str(manifest_output),
         "after": {
-            "texts": summarize(rows),
-            "coverage": _coverage(plans[-1], by_registration(rows), state),
+            "texts": summarize(primary_rows),
+            "documentKinds": dict(sorted(kind_counts.items())),
+            "extraDocuments": len(rows) - len(primary_rows),
+            "coverage": _coverage(plans[-1], by_registration(primary_rows), state),
         },
     }
     if before_cutoff is not None:

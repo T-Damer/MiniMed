@@ -145,6 +145,40 @@ caffeinate -i -w <pid> &
 - Pace: unknown until the first windows complete. At ~85 s per registration a window of 50 takes ~70 min; at one
   window per day the remaining 8 325 would take years, so the order above matters.
 
+### Real-difference queue: one text per «МНН + лекарственная форма» (owner decision 2026-10-04)
+
+A window reaches the CAPTCHA after only ~13–14 registrations (2026-10-03 and 2026-10-04 alike), so the queue
+is no longer «every registration» but groups (`grls_groups.py`, pure and tested):
+
+- Group key = normalized INN (components of a combination sorted; no INN → trade-name tail) + dosage-form
+  class (`dosage_form_class`: parenteral — includes порошок/лиофилизат/концентрат «для приготовления раствора
+  для … введения/инфузий» —, oral-solid, oral-liquid, topical, eye, ear, nasal, inhalation, rectal, vaginal,
+  transdermal, dialysis, implant, dental, herbal; `субстанция…` and `ФС-` are excluded). 27 049 active
+  non-substance registrations form 4 383 groups (852 without INN).
+- A group is covered when any member holds an instruction PDF (a canonical EAEU item covers the registrations it
+  requests). Each uncovered group gets ONE representative: a foreign holder (originator) first, else the earliest
+  registration date; registrations already failed twice are skipped, so a dead representative is replaced at the
+  next window. The catalog has no instruction-change date, so «latest instruction change» is not used.
+- Order: ЖНВЛП groups (any member `essentialDrug = Да`), then larger groups, INN-less tail last. Second pass
+  (appended): groups where we hold only a листок-вкладыш get one EAEU registration revisited for the ОХЛП.
+- Every card visit now downloads ALL documents of the current edition (inside each instruction entry the newest
+  «Изм. №»; at most 4) and keeps the raw card JSON in `data/raw/grls-instructions-active/cards/`. Per document the
+  state/URL ledger keep `kind` — `ohlp` / `leaflet` / `national-instruction` / `unknown` — from the first pages
+  (`classify_document_kind`); the text manifest re-derives it from the extracted text (`documentKind`, one row per
+  document, extras as `<id>.d<k>`). Today's sample of 8 956 prepared PDFs: 3 816 leaflets, 4 677 national
+  instructions, 5 ОХЛП, 465 unclassified (scans).
+- `progress.json` now has `coverage`: `groupsCovered/groupsTotal`, `essentialGroupsCovered/Total` (ЖНВЛП),
+  `ohlpDocuments`, queue sizes (`queueFirstPass`, `queueSecondPass`, `essentialInQueue`), `unreachableGroups`
+  (only legacy-format numbers or twice-failed members) and `measuredAt`; totals survive a loop restart.
+- Restarting the loop (new code, same wait): stop with `STOP`, then start the same command with
+  `--queue groups --manifest data/build/grls-instruction-text-manifest.jsonl --first-attempt-at <nextAttemptAt>`.
+
+State on 2026-10-04: groups 2 954/4 383 covered (67 %), ЖНВЛП groups 958/1 138 (84 %); first-pass queue 1 041
+groups (177 ЖНВЛП), second pass 854 leaflet-only groups, 388 groups unreachable. Pace stays ~14 registrations per
+window, i.e. per day: the ЖНВЛП groups take ~2 weeks, the first pass ~2.5 months (40–100 days if windows vary
+between 10 and 25), the ОХЛП pass another ~2 months, and whether cards of leaflet-only groups hold an ОХЛП at all
+is unknown until the first revisits (the one EAEU card read for this work listed a single document).
+
 First run (2026-10-02 05:02–05:09 UTC): 30 new PDFs, then a CAPTCHA page after about 140 requests at roughly
 2 requests per 5 s with two workers; collection stopped and is not resumed (see `BLOCKED-by-site`). Coverage:
 12 659 of 28 731 active registrations had instruction text before (44.1 %); against the 02.10.2026 registry

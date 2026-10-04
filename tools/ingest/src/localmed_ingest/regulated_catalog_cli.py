@@ -14,7 +14,13 @@ from .clinical_medication_relations import (
 )
 from .esklp_catalog import build_esklp_coverage_ledger, write_esklp_coverage_ledger
 from .esklp_release import prepare_esklp_release
-from .grls_collect import MAX_WORKERS, CollectOptions, export_url_ledger, run_collection
+from .grls_collect import (
+    MAX_WORKERS,
+    CollectOptions,
+    build_group_queue_for_run,
+    export_url_ledger,
+    run_collection,
+)
 from .grls_daily import DailyOptions, run_daily_loop
 from .grls_products import build_grls_product_workspace
 from .grls_text_manifest import build_additions_registry, build_text_manifest
@@ -317,8 +323,36 @@ def grls_collect_daily_command(
     max_request_delay: Annotated[float, typer.Option("--max-request-delay", min=0.2)] = 20.0,
     backoff_base_seconds: Annotated[float, typer.Option("--backoff-base-seconds", min=1)] = 300.0,
     max_windows: Annotated[int | None, typer.Option("--max-windows", min=1)] = None,
+    queue: Annotated[
+        str,
+        typer.Option("--queue", help="groups (one per INN+form group) or registrations."),
+    ] = "groups",
+    manifest: Annotated[
+        Path | None,
+        typer.Option("--manifest", help="Text manifest with document kinds (ОХЛП detection)."),
+    ] = None,
 ) -> None:
     """Daily-batch loop: batch until the first CAPTCHA or the cap, wait 24 h, probe with one."""
+    if queue not in ("groups", "registrations"):
+        raise typer.BadParameter("--queue must be groups or registrations.")
+    collect_options = CollectOptions(
+        min_request_delay=min_request_delay,
+        max_request_delay=max(max_request_delay, min_request_delay),
+        min_item_pause=0.2,
+        max_item_pause=0.2,
+        workers=1,
+        backoff_base_seconds=backoff_base_seconds,
+        include_exhausted=True,
+        catalog_path=catalog,
+        queue="groups" if queue == "groups" else "registrations",
+        manifest_path=manifest,
+    )
+
+    def queue_report() -> dict[str, object]:
+        if collect_options.queue != "groups":
+            return {}
+        return build_group_queue_for_run(plan, state, output_root, collect_options)[1]
+
     options = DailyOptions(
         batch_cap=batch_cap,
         wait_seconds=wait_hours * 3600,
@@ -328,16 +362,8 @@ def grls_collect_daily_command(
             else None
         ),
         max_windows=max_windows,
-        collect=CollectOptions(
-            min_request_delay=min_request_delay,
-            max_request_delay=max(max_request_delay, min_request_delay),
-            min_item_pause=0.2,
-            max_item_pause=0.2,
-            workers=1,
-            backoff_base_seconds=backoff_base_seconds,
-            include_exhausted=True,
-            catalog_path=catalog,
-        ),
+        collect=collect_options,
+        report=queue_report,
     )
     summary = run_daily_loop(plan, output_root, state, log_dir, options, log=typer.echo)
     typer.echo(json.dumps(summary, ensure_ascii=False, indent=2, default=str))

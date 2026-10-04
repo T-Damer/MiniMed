@@ -32,14 +32,17 @@ from collections import Counter
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
+import pymupdf
+
+from .grls_groups import DocumentKind, build_group_queue, classify_document_kind
 from .official_grls_registry import (
     GRLS_PAGE,
     GRLS_USER_AGENT,
     append_instruction_state,
     hidden_form_fields,
-    instruction_images,
+    instruction_documents,
     read_instruction_plan,
     routing_guid,
     safe_instruction_target,
@@ -127,6 +130,8 @@ class CollectOptions:
     include_substances: bool = False
     include_exhausted: bool = False
     catalog_path: Path | None = None
+    queue: Literal["registrations", "groups"] = "registrations"
+    manifest_path: Path | None = None
     user_agent: str = GRLS_USER_AGENT
 
 
@@ -138,6 +143,8 @@ class CollectItem:
     priority: int
     essential: bool = False
     mnn_registrations: int = 0
+    group: str | None = None
+    reason: str = "registration"
 
 
 @dataclass
@@ -244,6 +251,149 @@ def build_priority_index(catalog_path: Path) -> tuple[dict[str, bool], dict[str,
     return essential, mnn_registrations
 
 
+def _load_catalog_records(catalog_path: Path) -> list[dict[str, object]]:
+    decoded: object = json.loads(catalog_path.read_text(encoding="utf-8-sig"))
+    catalog = cast(dict[str, object], decoded) if isinstance(decoded, dict) else {}
+    records = catalog.get("records")
+    if not isinstance(records, list):
+        raise ValueError("GRLS catalog must contain a records list.")
+    return [
+        cast(dict[str, object], record)
+        for record in cast(list[object], records)
+        if isinstance(record, dict)
+    ]
+
+
+def _document_kinds(
+    state: dict[str, dict[str, object]],
+    requested_by_number: dict[str, list[str]],
+    manifest_path: Path | None,
+) -> tuple[dict[str, set[DocumentKind]], set[str]]:
+    """Document kinds per registration (manifest text kinds plus kinds seen at download time)."""
+    kinds: dict[str, set[DocumentKind]] = {}
+    ohlp_checksums: set[str] = set()
+
+    def add(number: str, kind: str, checksum: object) -> None:
+        if kind not in ("ohlp", "leaflet", "national-instruction"):
+            return
+        for target in {number, *requested_by_number.get(number, [])}:
+            kinds.setdefault(target, set()).add(cast(DocumentKind, kind))
+        if kind == "ohlp" and isinstance(checksum, str):
+            ohlp_checksums.add(checksum)
+
+    if manifest_path is not None and manifest_path.is_file():
+        with manifest_path.open(encoding="utf-8") as handle:
+            for line in handle:
+                if line.strip():
+                    row = cast(dict[str, object], json.loads(line))
+                    number = row.get("registrationNumber")
+                    kind = row.get("documentKind")
+                    if isinstance(number, str) and isinstance(kind, str):
+                        add(number, kind, row.get("pdfSha256"))
+    for number, record in state.items():
+        documents = record.get("documents")
+        if record.get("state") == "success" and isinstance(documents, list):
+            for document in cast(list[object], documents):
+                if isinstance(document, dict):
+                    entry = cast(dict[str, object], document)
+                    add(number, str(entry.get("kind")), entry.get("pdfSha256"))
+    return kinds, ohlp_checksums
+
+
+def build_group_queue_for_run(
+    plan_path: Path,
+    state_path: Path,
+    output_root: Path,
+    options: CollectOptions,
+) -> tuple[list[CollectItem], dict[str, object]]:
+    """Queue of one representative per uncovered «INN + form» group (+ ОХЛП second pass)."""
+    if options.catalog_path is None:
+        raise ValueError("The group queue needs the registry catalog (catalog_path).")
+    plan = read_instruction_plan(plan_path)
+    state = load_merged_state(state_path)
+    records = _load_catalog_records(options.catalog_path)
+    plan_items: dict[str, dict[str, object]] = {}
+    for raw in cast(list[object], plan["items"]):
+        item = cast(dict[str, object], raw)
+        plan_items[cast(str, item["registrationNumber"])] = item
+    # EAEU registrations the plan did not map to a unique current one are still searchable by
+    # their own number; only numbers of the old national formats the search cannot find stay out.
+    for raw in cast(list[object], plan.get("deferredItems") or []):
+        deferred = cast(dict[str, object], raw)
+        number = deferred.get("registrationNumber")
+        reason = str(deferred.get("deferredReason") or "")
+        if isinstance(number, str) and "legacy-registration-number" not in reason:
+            plan_items.setdefault(number, deferred)
+    requested_by_number = {
+        number: [value for value in cast(list[str], item.get("requestedRegistrationNumbers") or [])]
+        for number, item in plan_items.items()
+    }
+    plan_alias: dict[str, str] = {}
+    for number, requested_numbers in requested_by_number.items():
+        for requested_number in requested_numbers:
+            plan_alias.setdefault(requested_number, number)
+    covered: set[str] = set()
+    revisit: set[str] = set()
+    permanent: dict[str, int] = {}
+    for number, item in plan_items.items():
+        record = state.get(number)
+        status = classify_state_record(record)
+        if status == "success" and record is not None:
+            target = safe_instruction_target(
+                output_root, str(record.get("target") or item["target"])
+            )
+            if target.is_file():
+                covered.add(number)
+                covered.update(requested_by_number[number])
+                if (not record.get("allDocuments") and "РГ-RU" in number) or "ГП-RU" in number:
+                    revisit.add(number)
+                continue
+        if status == "permanent" and record is not None:
+            attempts = record.get("attempts")
+            permanent[number] = attempts if isinstance(attempts, int) else 1
+    kinds, ohlp_checksums = _document_kinds(state, requested_by_number, options.manifest_path)
+    picks, stats = build_group_queue(
+        records,
+        plan_items.keys(),
+        covered,
+        permanent,
+        document_kinds=kinds,
+        revisit_candidates=revisit,
+        plan_alias=plan_alias,
+    )
+    items = [
+        CollectItem(
+            pick.registration_number,
+            cast(str, plan_items[pick.registration_number]["target"]),
+            cast(str | None, plan_items[pick.registration_number].get("tradeName")),
+            0 if pick.reason == "uncovered" else 3,
+            essential=pick.essential,
+            mnn_registrations=pick.group_size,
+            group=pick.key.label(),
+            reason=pick.reason,
+        )
+        for pick in picks
+    ]
+    report: dict[str, object] = {
+        "groupsTotal": stats.groups_total,
+        "groupsCovered": stats.groups_covered,
+        "essentialGroupsTotal": stats.essential_groups_total,
+        "essentialGroupsCovered": stats.essential_groups_covered,
+        "innLessGroupsTotal": stats.inn_less_groups_total,
+        "innLessGroupsCovered": stats.inn_less_groups_covered,
+        "unreachableGroups": stats.unreachable_groups,
+        "queueFirstPass": stats.queue_first_pass,
+        "queueSecondPass": stats.queue_second_pass,
+        "leafletOnlyGroups": stats.leaflet_only_groups,
+        "groupsWithOhlp": stats.groups_with_ohlp,
+        "ohlpDocuments": len(ohlp_checksums),
+        "essentialInQueue": sum(
+            1 for pick in picks if pick.essential and pick.reason == "uncovered"
+        ),
+    }
+    return items, report
+
+
 def select_items(
     plan_path: Path,
     state_path: Path,
@@ -257,6 +407,8 @@ def select_items(
     active ingredients with the most registrations, then the registration number. Without a
     catalog the order is transient, new, not-found.
     """
+    if options.queue == "groups":
+        return build_group_queue_for_run(plan_path, state_path, output_root, options)[0]
     plan = read_instruction_plan(plan_path)
     state = load_merged_state(state_path)
     requested = set(options.registrations)
@@ -431,6 +583,16 @@ def _retry_after(value: str | None) -> float | None:
 
 
 @dataclass(frozen=True)
+class FetchedDocument:
+    url: str
+    label: str
+    pdf: bytes
+    kind: DocumentKind
+    last_modified: str | None = None
+    etag: str | None = None
+
+
+@dataclass(frozen=True)
 class FetchedInstruction:
     url: str
     label: str
@@ -440,6 +602,72 @@ class FetchedInstruction:
     id_reg: str | None = None
     routing_guid: str | None = None
     images: tuple[tuple[str, str], ...] = ()
+    kind: DocumentKind = "unknown"
+    extra_documents: tuple[FetchedDocument, ...] = ()
+    card_json: bytes = b""
+
+
+_AMENDMENT = re.compile(r"изм\.?\s*№\s*(\d+)", re.IGNORECASE)
+MAX_DOCUMENTS_PER_CARD = 4
+
+
+def amendment_number(label: str) -> int | None:
+    match = _AMENDMENT.search(label)
+    return int(match.group(1)) if match else None
+
+
+def select_current_documents(
+    documents: list[dict[str, object]], cap: int = MAX_DOCUMENTS_PER_CARD
+) -> list[dict[str, object]]:
+    """Documents of the current edition: inside each instruction entry the highest «Изм. №».
+
+    An entry may list the whole amendment history; only its newest amendment is current. Several
+    images at the same amendment (for EAEU cards the ОХЛП and the листок-вкладыш) are all kept.
+    """
+    groups: dict[tuple[str, object], list[dict[str, object]]] = {}
+    for document in documents:
+        key = (str(document.get("sourceName")), document.get("instructionIndex"))
+        groups.setdefault(key, []).append(document)
+    selected: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for group in groups.values():
+        newest = max(amendment_number(str(item.get("label"))) or -1 for item in group)
+        for item in group:
+            url = str(item["url"])
+            if (amendment_number(str(item.get("label"))) or -1) == newest and url not in seen:
+                seen.add(url)
+                selected.append(item)
+    selected.sort(key=lambda item: str(item["url"]), reverse=True)
+    return selected[:cap]
+
+
+def pdf_document_kind(pdf: bytes) -> DocumentKind:
+    """Kind of a PDF from its first pages; ``unknown`` for scans (text comes from OCR later)."""
+    try:
+        document: Any = pymupdf.open(stream=pdf, filetype="pdf")
+    except (RuntimeError, ValueError):
+        return "unknown"
+    try:
+        parts: list[str] = []
+        for page_index in range(min(2, document.page_count)):
+            page_text: object = document.load_page(page_index).get_text("text")
+            parts.append(str(page_text))
+        text = " ".join(parts)
+    finally:
+        document.close()
+    return classify_document_kind(text)
+
+
+def _download_pdf(
+    client: _PoliteClient, url: str, context: dict[str, object], number: str
+) -> tuple[bytes, dict[str, str]]:
+    pdf, headers = client.request(url, maximum=MAX_PDF_BYTES, want_headers=True)
+    if not pdf.startswith(b"%PDF-"):
+        decoded = pdf[:200_000].decode("utf-8-sig", errors="replace")
+        if _CAPTCHA_MARKER.search(decoded):
+            raise GrlsCaptcha("CAPTCHA marker in GRLS PDF response", decoded)
+        raise GrlsPermanent("not-pdf", f"instruction for {number} is not a PDF", context)
+    return pdf, headers
 
 
 def fetch_instruction(client: _PoliteClient, registration_number: str) -> FetchedInstruction:
@@ -484,19 +712,35 @@ def fetch_instruction(client: _PoliteClient, registration_number: str) -> Fetche
         headers={"Content-Type": "application/json; charset=utf-8", "Referer": detail_url},
     )
     try:
-        images = instruction_images(response_body)
+        listed = instruction_documents(response_body)
     except ValueError as error:
         message = str(error)
         failure: FailureClass = "no-pdf" if "no instruction PDF" in message else "invalid-response"
         raise GrlsPermanent(failure, message, context) from error
-    url, label = max(images, key=lambda image: image[0])
-    pdf, headers = client.request(url, maximum=MAX_PDF_BYTES, want_headers=True)
-    if not pdf.startswith(b"%PDF-"):
-        decoded = pdf[:200_000].decode("utf-8-sig", errors="replace")
-        if _CAPTCHA_MARKER.search(decoded):
-            raise GrlsCaptcha("CAPTCHA marker in GRLS PDF response", decoded)
-        raise GrlsPermanent(
-            "not-pdf", f"instruction for {registration_number} is not a PDF", context
+    current = select_current_documents(listed)
+    primary_document = max(current, key=lambda item: str(item["url"]))
+    url, label = str(primary_document["url"]), str(primary_document["label"])
+    pdf, headers = _download_pdf(client, url, context, registration_number)
+    extras: list[FetchedDocument] = []
+    for document in current:
+        if document is primary_document:
+            continue
+        extra_url = str(document["url"])
+        try:
+            extra_pdf, extra_headers = _download_pdf(
+                client, extra_url, context, registration_number
+            )
+        except GrlsPermanent:
+            continue
+        extras.append(
+            FetchedDocument(
+                extra_url,
+                str(document["label"]),
+                extra_pdf,
+                pdf_document_kind(extra_pdf),
+                extra_headers.get("last-modified"),
+                extra_headers.get("etag"),
+            )
         )
     return FetchedInstruction(
         url,
@@ -506,7 +750,10 @@ def fetch_instruction(client: _PoliteClient, registration_number: str) -> Fetche
         headers.get("etag"),
         id_reg=id_match.group(1),
         routing_guid=guid,
-        images=tuple(images),
+        images=tuple((str(item["url"]), str(item["label"])) for item in listed),
+        kind=pdf_document_kind(pdf),
+        extra_documents=tuple(extras),
+        card_json=response_body,
     )
 
 
@@ -679,6 +926,45 @@ def run_collection(
                     fetched = fetch_instruction(client, item.registration_number)
                     target = store_pdf(output_root, item.target, fetched.pdf)
                     sha = f"sha256:{hashlib.sha256(fetched.pdf).hexdigest()}"
+                    documents: list[dict[str, object]] = [
+                        {
+                            "primary": True,
+                            "url": fetched.url,
+                            "label": fetched.label,
+                            "kind": fetched.kind,
+                            "target": target,
+                            "pdfSha256": sha,
+                            "pdfBytes": len(fetched.pdf),
+                            "httpLastModified": fetched.last_modified,
+                            "httpEtag": fetched.etag,
+                        }
+                    ]
+                    base_target = Path(item.target)
+                    for number, extra in enumerate(fetched.extra_documents, 1):
+                        extra_target = store_pdf(
+                            output_root,
+                            str(base_target.with_name(f"{base_target.stem}.d{number}.pdf")),
+                            extra.pdf,
+                        )
+                        documents.append(
+                            {
+                                "primary": False,
+                                "url": extra.url,
+                                "label": extra.label,
+                                "kind": extra.kind,
+                                "target": extra_target,
+                                "pdfSha256": f"sha256:{hashlib.sha256(extra.pdf).hexdigest()}",
+                                "pdfBytes": len(extra.pdf),
+                                "httpLastModified": extra.last_modified,
+                                "httpEtag": extra.etag,
+                            }
+                        )
+                    if fetched.card_json:
+                        store_pdf(
+                            output_root,
+                            str(Path("cards") / f"{base_target.stem}.json"),
+                            fetched.card_json,
+                        )
                     append(
                         _record(
                             item,
@@ -698,6 +984,10 @@ def run_collection(
                             instructionUrls=[
                                 {"url": url, "label": label} for url, label in fetched.images
                             ],
+                            documents=documents,
+                            allDocuments=True,
+                            queueReason=item.reason,
+                            group=item.group,
                         )
                     )
                     clear_refusals()
@@ -882,6 +1172,7 @@ def export_url_ledger(state_path: Path, output: Path) -> dict[str, object]:
             urls = record.get("instructionUrls")
             row: dict[str, object] = {
                 "registrationNumber": number,
+                "documents": record.get("documents"),
                 "idReg": ids.get(number, {}).get("idReg"),
                 "routingGuid": ids.get(number, {}).get("routingGuid"),
                 "instructionUrl": record.get("instructionUrl"),

@@ -331,6 +331,11 @@ delays, backoff on 429/503, no CAPTCHA handling, resumable state ledger, never o
   most registrations. Watch `data/build/grls-collect/progress.json`; stop with a `STOP` file. 6 300+ transient
   failures and 675 new registrations remain; the ledger now keeps `idReg`/`routingGuid`/exact PDF URLs
   (`grls-instruction-url-ledger.jsonl`). Pace is unknown until the first windows finish.
+- Real-difference queue (owner, 2026-10-04): one text per «INN + dosage-form class» group, not per registration —
+  4 383 groups, 2 954 covered (67 %), ЖНВЛП groups 958/1 138 (84 %); queue 1 041 groups (177 ЖНВЛП first) plus an
+  ОХЛП second pass for 854 leaflet-only groups. Each card visit keeps all current-edition documents with their kind
+  (ohlp/leaflet/national-instruction); only 5 ОХЛП held so far. ~14 registrations per daily window: ЖНВЛП groups
+  ~2 weeks, first pass ~2.5 months (honest range 40–100 days). `progress.json` reports groups/ЖНВЛП/ОХЛП coverage.
 - New registry export 02.10.2026 (39 481 records, +666) is stored next to the old one
   (`data/raw/official-grls-registry/catalog-02.10.2026.json`); plan `grls-instructions-active-plan-02.10.2026.json`.
 - OCR flag kept: `ExtractionDiagnostics`/`metadata.extraction` now carry `textExtractionMode`,

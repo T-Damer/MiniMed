@@ -385,29 +385,47 @@ def _normalize_instruction_path(path: str) -> str:
     return url
 
 
-def _instruction_images(payload: bytes) -> list[tuple[str, str]]:
-    """Every (url, label) the instruction endpoint lists, in response order."""
+def _instruction_documents(payload: bytes) -> list[dict[str, object]]:
+    """Every image the instruction endpoint lists with the structure around it.
+
+    Each item holds ``url``, ``label``, ``instructionLabel`` (the instruction entry the image sits
+    in), ``sourceName`` and ``instructionIndex``; the caller decides which are current.
+    """
     outer: object = json.loads(payload.decode("utf-8-sig"))
     if not isinstance(outer, dict) or not isinstance(outer.get("d"), str):
         raise ValueError("GRLS instruction response does not contain a d field.")
     inner: object = json.loads(outer["d"])
     if not isinstance(inner, dict) or not isinstance(inner.get("Sources"), list):
         raise ValueError("GRLS instruction response does not contain Sources.")
-    images: list[tuple[str, str]] = []
+    documents: list[dict[str, object]] = []
     for source in inner["Sources"]:
         if not isinstance(source, dict) or not isinstance(source.get("Instructions"), list):
             continue
-        for instruction in source["Instructions"]:
+        for index, instruction in enumerate(source["Instructions"]):
             if not isinstance(instruction, dict) or not isinstance(instruction.get("Images"), list):
                 continue
             for image in instruction["Images"]:
                 if isinstance(image, dict) and isinstance(image.get("Url"), str):
-                    images.append(
-                        (_normalize_instruction_path(image["Url"]), str(image.get("Label") or ""))
+                    documents.append(
+                        {
+                            "url": _normalize_instruction_path(image["Url"]),
+                            "label": str(image.get("Label") or ""),
+                            "instructionLabel": str(instruction.get("Label") or ""),
+                            "sourceName": str(source.get("SourceName") or ""),
+                            "instructionIndex": index,
+                        }
                     )
-    if not images:
+    if not documents:
         raise ValueError("GRLS returned no instruction PDF.")
-    return images
+    return documents
+
+
+def _instruction_images(payload: bytes) -> list[tuple[str, str]]:
+    """Every (url, label) the instruction endpoint lists, in response order."""
+    return [
+        (str(document["url"]), str(document["label"]))
+        for document in _instruction_documents(payload)
+    ]
 
 
 def _instruction_url(payload: bytes) -> tuple[str, str]:
@@ -932,6 +950,7 @@ hidden_form_fields = _hidden_fields
 routing_guid = _routing_guid
 instruction_pdf_url = _instruction_url
 instruction_images = _instruction_images
+instruction_documents = _instruction_documents
 safe_instruction_target = _safe_target
 append_instruction_state = _append_instruction_state
 read_instruction_plan = _read_instruction_plan

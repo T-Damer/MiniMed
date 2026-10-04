@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -9,6 +10,7 @@ import localmed_ingest.grls_collect as collect
 from localmed_ingest.grls_collect import (
     BLOCKED_FILE_NAME,
     CollectOptions,
+    FetchedDocument,
     FetchedInstruction,
     GrlsBackoff,
     GrlsCaptcha,
@@ -278,3 +280,38 @@ def test_success_records_id_reg_and_url_ledger(
     assert summary["withIdReg"] == 1
     row = json.loads((tmp_path / "urls.jsonl").read_text().splitlines()[0])
     assert row["instructionUrls"][0]["url"].endswith("x.pdf") and row["idReg"] == "123"
+
+
+def test_all_current_documents_are_stored_and_kinds_recorded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    plan, state = tmp_path / "plan.json", tmp_path / "state.jsonl"
+    write_plan(plan, ["A"])
+    base = "https://grls.rosminzdrav.ru/InstrImg/2026/10/02/1/"
+
+    def fake_fetch(_client: object, _number: str) -> FetchedInstruction:
+        return FetchedInstruction(
+            base + "leaflet.pdf",
+            "Изм. № 1, A",
+            b"%PDF-1 leaflet",
+            None,
+            None,
+            "7",
+            "guid",
+            (),
+            "leaflet",
+            (FetchedDocument(base + "ohlp.pdf", "Изм. № 1, A", b"%PDF-1 ohlp", "ohlp"),),
+            b'{"d": "{}"}',
+        )
+
+    monkeypatch.setattr(collect, "fetch_instruction", fake_fetch)
+    run_collection(plan, tmp_path / "raw", state, tmp_path / "log", quiet_options())
+    record = load_merged_state(state)["A"]
+    documents = cast(list[dict[str, object]], record["documents"])
+    assert [(item["kind"], item["primary"]) for item in documents] == [
+        ("leaflet", True),
+        ("ohlp", False),
+    ]
+    assert record["allDocuments"] is True
+    assert (tmp_path / "raw" / "pdf" / "0.d1.pdf").read_bytes() == b"%PDF-1 ohlp"
+    assert (tmp_path / "raw" / "cards" / "0.json").is_file()

@@ -37,10 +37,22 @@ class DailyOptions:
     first_attempt_at: datetime | None = None
     max_windows: int | None = None
     collect: CollectOptions = field(default_factory=CollectOptions)
+    # Computes queue/coverage numbers (groups covered, ЖНВЛП groups, ОХЛП count) for progress.json.
+    report: Callable[[], dict[str, object]] | None = None
 
 
 def _iso(moment: datetime) -> str:
     return moment.astimezone(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _read_previous(path: Path) -> dict[str, object] | None:
+    if not path.is_file():
+        return None
+    decoded: object = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(decoded, dict):
+        return None
+    progress = cast(dict[str, object], decoded)
+    return progress if progress.get("mode") == "daily-batch" else None
 
 
 def run_daily_loop(
@@ -61,6 +73,21 @@ def run_daily_loop(
     stop = threading.Event()
     windows: list[dict[str, object]] = []
     totals = {"success": 0, "permanent": 0, "transientRecorded": 0, "windows": 0, "captchas": 0}
+    coverage: dict[str, object] = {}
+    previous_progress = _read_previous(progress_path)
+    if previous_progress is not None:
+        previous_totals = previous_progress.get("totals")
+        if isinstance(previous_totals, dict):
+            for key, value in cast(dict[str, object], previous_totals).items():
+                if key in totals and isinstance(value, int):
+                    totals[key] = value
+        recent = previous_progress.get("recentWindows")
+        if isinstance(recent, list):
+            windows.extend(
+                cast(dict[str, object], item)
+                for item in cast(list[object], recent)
+                if isinstance(item, dict)
+            )
     state: dict[str, object] = {
         "status": "waiting",
         "next_attempt_at": None,
@@ -93,6 +120,7 @@ def run_daily_loop(
             "batchCap": options.batch_cap,
             "waitHours": options.wait_seconds / 3600,
             "totals": totals,
+            "coverage": coverage,
             "currentWindow": current,
             "recentWindows": windows[-10:],
             "userAgent": options.collect.user_agent,
@@ -101,6 +129,13 @@ def run_daily_loop(
         temporary = progress_path.with_suffix(".tmp")
         temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", "utf-8")
         temporary.replace(progress_path)
+
+    def refresh_coverage() -> None:
+        if options.report is None:
+            return
+        coverage.clear()
+        coverage.update(options.report())
+        coverage["measuredAt"] = utc_now()
 
     def on_signal(signum: int, _frame: object) -> None:
         state["stop_reason"] = f"signal {signum}"
@@ -165,6 +200,7 @@ def run_daily_loop(
             "log": summary["log"],
         }
         windows.append(result)
+        refresh_coverage()
         totals["windows"] += 1
         totals["success"] += counters.get("success", 0)
         totals["permanent"] += counters.get("permanent", 0)
@@ -179,6 +215,7 @@ def run_daily_loop(
             state["stop_reason"] = state["stop_reason"] or "STOP file present"
             write_progress("stopped")
             return {"status": "stopped", "stopReason": state["stop_reason"], "windows": windows}
+        refresh_coverage()
         start = options.first_attempt_at or now()
         emit(f"LOOP start first_attempt={_iso(start)} batch_cap={options.batch_cap}")
         if not wait_until(start):
