@@ -63,8 +63,9 @@ export function diaryPrintHtml(
     () =>
       `<tr class="blank"><td></td>${invitation.fields.map(() => '<td></td>').join('')}<td></td></tr>`,
   ).join('');
-  const plan = invitation.plan?.length
+  const plan = invitation.plan?.some((item) => !item.ended)
     ? `<section class="plan"><h2>${escapeHtml(invitation.planTitle ?? 'Назначение врача')}</h2><ol>${invitation.plan
+        .filter((item) => !item.ended)
         .map(
           (item) =>
             `<li><strong>${escapeHtml(item.name)}</strong>${item.dose ? ` — ${escapeHtml(item.dose)}` : ''}${item.schedule ? `, ${escapeHtml(item.schedule)}` : ''}</li>`,

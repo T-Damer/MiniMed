@@ -68,6 +68,11 @@ export interface DiaryPlanItem {
   readonly name: string;
   readonly dose?: string;
   readonly schedule?: string;
+  /**
+   * The doctor removed this item from the plan in a newer link. Entries already made for it keep
+   * resolving, but the patient is no longer offered it.
+   */
+  readonly ended?: boolean;
 }
 
 /** What the doctor gives the patient. Contains no patient identity. */
@@ -282,6 +287,7 @@ function parsePlan(value: unknown): DiaryPlanItem[] | undefined {
       name: text(source['name'], `Пункт назначения ${index + 1}`),
       ...(dose ? { dose } : {}),
       ...(schedule ? { schedule } : {}),
+      ...(source['ended'] === true ? { ended: true } : {}),
     };
   });
   if (new Set(items.map((item) => item.id)).size !== items.length) {
@@ -562,6 +568,11 @@ export function planItem(
   id: string | undefined,
 ): DiaryPlanItem | undefined {
   return id === undefined ? undefined : invitation.plan?.find((item) => item.id === id);
+}
+
+/** Plan items the patient can still choose (the doctor has not ended them). */
+export function activePlanItems(invitation: DiaryInvitation): readonly DiaryPlanItem[] {
+  return (invitation.plan ?? []).filter((item) => !item.ended);
 }
 
 function formatNumber(value: number): string {

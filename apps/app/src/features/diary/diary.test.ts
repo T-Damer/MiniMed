@@ -189,7 +189,7 @@ describe('diary local storage', () => {
     const store = createDiaryStore(storage, () => NOW);
 
     expect(store.list()).toEqual([results.invitation]);
-    expect(store.load(results.invitation)).toEqual(results);
+    expect(store.read(results.invitation.id)).toEqual(results);
   });
 });
 

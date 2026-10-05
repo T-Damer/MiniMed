@@ -1,9 +1,13 @@
 import { render } from 'solid-js/web';
 
 import { DiaryApp } from '@/diary/DiaryApp';
+import { listenForInstallPrompt } from '@/diary/install-state';
 import '@/styles/theme.css';
 import '@/styles/theme-dark.css';
 import '@/diary/diary-page.css';
+
+// Chrome offers its install prompt once, early: listen before anything renders.
+listenForInstallPrompt();
 
 const root = document.getElementById('diary-root');
 if (!root) throw new Error('Diary root element is missing.');

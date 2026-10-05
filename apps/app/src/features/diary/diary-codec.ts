@@ -391,3 +391,35 @@ export async function decodeDiaryResultsPayload(
     now,
   );
 }
+
+// --- Results as one text (file, message, clipboard) ----------------------------------------------
+
+const PART_TEXT_PATTERN = /MMD1\.[A-Za-z0-9_-]{8}\.\d{1,2}\.\d{1,2}\.[A-Za-z0-9_-]+/gu;
+
+/** The QR texts one per line: what a saved file or a pasted message carries. */
+export async function encodeDiaryResultsText(results: DiaryResults): Promise<string> {
+  return (await encodeDiaryResults(results)).join('\n');
+}
+
+/**
+ * Reads results from text that holds the QR parts, in any order and surrounded by anything
+ * (a messenger adds captions and wraps lines). Parts of another transfer are ignored.
+ */
+export async function decodeDiaryResultsText(
+  text: string,
+  now = Date.now(),
+): Promise<DiaryResults> {
+  const collector = new DiaryPartCollector();
+  let found = 0;
+  for (const match of text.matchAll(PART_TEXT_PATTERN)) {
+    found += 1;
+    collector.add(match[0]);
+  }
+  if (found === 0) throw new DiaryFormatError('В этом тексте нет данных дневника MiniMed.');
+  if (!collector.complete) {
+    throw new DiaryFormatError(
+      `Данные неполные: найдено частей ${collector.received} из ${collector.total}. Скопируйте текст целиком.`,
+    );
+  }
+  return collector.results(now);
+}

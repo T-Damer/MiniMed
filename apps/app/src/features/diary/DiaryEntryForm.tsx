@@ -181,10 +181,12 @@ function FieldInput(props: {
             value={selected()}
             options={[
               { value: '', label: 'Не выбрано' },
-              ...(props.invitation.plan ?? []).map((item) => ({
-                value: item.id,
-                label: [item.name, item.dose, item.schedule].filter(Boolean).join(' · '),
-              })),
+              ...(props.invitation.plan ?? [])
+                .filter((item) => !item.ended || item.id === plan().item)
+                .map((item) => ({
+                  value: item.id,
+                  label: [item.name, item.dose, item.schedule].filter(Boolean).join(' · '),
+                })),
               { value: OTHER, label: 'Другое — вписать самому' },
             ]}
             onChange={(event) => {
