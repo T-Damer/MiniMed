@@ -20,6 +20,82 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Shared PDF viewer — 2026-10-06 (STATE W3)
+
+Owner decision 2026-10-05: «PDF viewer — just re-use our viewer». The pdf.js reader that lived inline
+in `UserDocumentReader` is now one module, `apps/app/src/features/pdf-viewer/` (`PdfViewer`,
+`createPdfViewerModel`, `PdfThumbnails`, `PdfFileViewer`), and fills the gaps of W3.
+
+- **Where a PDF is shown, and what is not a PDF here.**
+  - «Ваши документы»: `UserDocumentReader` hosts `PdfViewer` (reader chrome, header find, page strip in
+    the side panel, menu items «Миниатюры страниц», «Открыть в системе», «Печать»).
+  - Note attachments (saved or not yet saved; patient notes, ordinary notes, the timeline): the
+    attachment dialog hosts `PdfFileViewer` with its own toolbar (find, page strip, print, open in
+    the system). Before, a PDF there fell into «Этот тип файла нельзя показать в заметке».
+  - Library card thumbnails (first page, `state/thumbnails.ts`) and OCR ingest still use the same
+    `state/pdfjs-document.ts` loader; unchanged.
+  - Nothing else shows a PDF file because nothing else ships one: ГРЛС / Allmed / manufacturer
+    instruction modules, КР and the forms are text/JSON/schemas (the originals are only recorded as
+    `pdfSha256` / `officialSourceUrl` and open as external links); the form preview and print are HTML
+    pages (F1/F2); no regulatory scans ship. If a module ever ships an original PDF, or a form offers
+    «Сохранить оригинал в Ваши документы», it opens in this viewer (rights decision pending); the
+    NEWS1 site viewer is an iframe of its own (request in `STATE.md`).
+- **Find.** The units are whole pages of pdf.js text (`pdf-page-text.ts`: item `i` of the text is
+  `textDivs[i]` of the layer), searched by the same `findInUnits`/worker as every reader, so a phrase
+  matches across lines (the old word units could not). Hits are painted with the CSS Custom Highlight
+  API (`::highlight(pdf-find-hit | pdf-find-active)`; a class on the spans where it is missing), next /
+  previous bring the match to the middle (`pdf-find-state.ts`, `pdf-find-dom.ts`). Page text is read
+  idly 2.5 s after opening (≤ 600 pages) or when find opens; a search waits for it (`busy`). Scanned
+  pages without a text layer keep the recognised-word units and the OCR overlay.
+- **Page strip, go to page.** Thumbnails (104 px, DPR ≤ 2) live in the reader's side panel — open by
+  default in a wide window, a drawer under the header button on a phone; capped at 6 MB with LRU release
+  (`pdf-thumbnail-budget.ts`), drawn after pages; in a dialog a rail (a floating strip on a phone). The
+  dock above the bottom navigation has previous/next, a page box (type a number, Enter) and zoom.
+- **Zoom.** 50–400 % of the column width: buttons, two-finger pinch (anchored at the fingers),
+  Ctrl/⌘ + wheel / trackpad pinch, Ctrl/⌘ +/−/0; the % button cycles «По ширине» / «Вся страница»
+  (`pdf-zoom.ts`). Pages keep their own aspect ratio from the first read of their size, so positions are
+  exact before they are drawn. During a zoom only the CSS scale moves; bitmaps and text layers are
+  redrawn 220 ms after it settles.
+- **Resume.** Page, offset inside the page and zoom per document (`user:<id>`, `note:<id>`) in
+  `localStorage` (`minimed.pdf-position.v1`, newest 150; `pdf-position.ts`). A search hit / explicit page
+  wins; a restore keeps its target for 1.5 s while page sizes arrive.
+- **Chrome contract** (`docs/NATIVE_STICKY_CHROME.md`): the dock slides out with the bottom navigation
+  when the user scrolls down and returns on scroll up; a jump the viewer makes itself (find next, go to
+  page, thumbnail, restore) keeps the controls through `state/reader-chrome-hold.ts`.
+- **Phone performance design.** One `PdfRenderQueue` (2 concurrent, nearest page to the viewport centre
+  first, thumbnails last, off-screen renders cancelled), page bitmaps ≤ 2.5 MP each and ≤ 24 MB in total
+  (`pageBudget`), bitmaps swapped in only when complete (no blank flash), pdf.js caches freed by a
+  retrying `pdf.cleanup()`, and the text layer built in slices of 8 items after a page has stayed on
+  screen 250 ms: pdf.js measures every item with `canvas.measureText`, which made one dense page a
+  1.2 s main-thread task.
+- **Measured** (`PDF_PERF=1 … pdf-viewer-perf.spec.ts`, production build, headless Chromium, 390 px at
+  2.75×, CPU throttled 4×, 150 dense pages / 465 KB; the machine ran at load 12–28 from other agents, so
+  absolute times are pessimistic; 4 runs, ranges): open → first page with text layer 0.9–1.2 s;
+  finger-speed scroll (140 frames × 30 px) 1.6–1.8 s wall, frame p50 8 ms, p95 34–41 ms, none over
+  100 ms, longest task 82–231 ms (before the sliced text layer: 9.3 s, p95 775 ms, 1.2 s tasks); fling
+  over all 150 pages: p95 frame 34–42 ms, peak 8 live page canvases = 6.3 MP (was 23 / 18 MP) — two of
+  four runs saw a single 1.3 s / 5.6 s stall from other processes; page draw 27–30 ms median;
+  jump to page 140 → drawn 0.24–0.29 s (one run 1.7 s); first search 0.38–0.44 s (22 hits), a 5 700-hit
+  search 0.44–1.4 s, next match 0.12–0.18 s; two zoom steps → sharp 0.6–1.3 s; thumbnails of all 150
+  pages scrolled through: ≤ 25 drawn at once, 1.5 MP. JS heap 54 MB after open → 129 MB after visiting
+  every page, searching and scrolling the strip; a heap snapshot shows the PDF part is page text ≈ 1 MB,
+  the rest is the app (core buffers 68 MB, catalog JSON 13 MB).
+- **Tests.** Unit: `pdf-page-text`, `pdf-position`, `pdf-zoom`, `pdf-render-queue`,
+  `pdf-thumbnail-budget`, `pdf-find-state` (26). e2e: `pdf-viewer.spec.ts` (open and lazy pages, text
+  selection, find across lines with highlights and wrap-around, go to page, strip on desktop and phone,
+  zoom/fit/Ctrl+wheel, CDP two-finger pinch, resume after reload, print path, dock vs reader chrome),
+  `pdf-note-attachment.spec.ts`; the reader, native-chrome and user-library specs still pass.
+  Screenshots 390/1280 × light/dark in `output/w3-screens/`.
+- **Not done / not verified.** Drawing and annotation: the notes drawing editor is a modal Excalidraw
+  scene, not an overlay that can sit on a page, so there is no cheap reuse; next step is a per-page ink
+  layer (strokes in normalised page coordinates stored per document, eraser, undo-last-stroke — B1).
+  Not run: a real phone / Android WebView (touch pinch is CDP-injected), the system print dialog (only
+  the hand-off iframe is asserted, headless has no PDF plug-in), OCR-only PDFs end to end (find over
+  recognised words + overlay were adapted, no e2e: needs tessdata), PDFs with embedded fonts, rotated
+  pages, encrypted files, documents over ~1 000 pages (three observers per page), dark page tint.
+  Opening the header menu right after a PDF ingest re-renders it as OCR/text progress events arrive
+  (existing behaviour; the specs wait for the banner to go).
+
 ## Tools: age scope, «Дети / Взрослые / Все» filter, own questionnaires and calculators — 2026-10-06 (STATE TOOLS1)
 
 - **Age scope in every schema.** `ageScope` (`packages/contracts/src/tool-age-scope.ts`: groups
@@ -1905,9 +1981,11 @@ released), the native Android transcriber, and the Android high-refresh display 
 - Text-layer drug PDFs can still lose visually distinct subheadings that use the same font size as
   body text. Preserved layout metadata prevents list continuations from absorbing adjacent text, but
   complex layouts still require reviewed structure extraction before publication.
-- The PDF reader now bounds page rasterization, cancels offscreen renders, and releases inactive
-  canvases promptly; a 160-page Android stress scroll completed without a WebView crash, while
-  broader large-PDF memory qualification remains a release follow-up.
+- The PDF reader is the shared viewer (see «Shared PDF viewer»): page rasterization is bounded
+  (2.5 MP per page, 24 MB in total), off-screen renders are cancelled and inactive canvases released;
+  a 160-page Android stress scroll completed without a WebView crash earlier, the new queue/budget
+  and sliced text layer were measured only in headless Chromium — a physical-phone qualification is
+  still open.
 - Scroll-driven app-chrome hiding is scoped to generic document readers; CT/MRI and ordinary
   application pages keep their normal navigation chrome.
 - Medication registry cards establish identity, form, strength, and registration status; they do not
