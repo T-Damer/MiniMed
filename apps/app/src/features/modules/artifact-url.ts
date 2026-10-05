@@ -5,6 +5,9 @@ import { loadAppPreferences } from '@/state/app-preferences';
 const GITHUB_RELEASE_PATTERN =
   /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/([^/?#]+)$/u;
 
+/** Dataset tags whose `.db.zst` modules live as plain git blobs on `datasets/<tag>` (modules/…). */
+const MEDICATION_MIRROR_TAG = /^(?:esklp|grls-instructions|allmed)-/u;
+
 const RAW_GITHUB_MODULE_BASE =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules';
 export function usesLocalModuleArtifacts(): boolean {
@@ -64,7 +67,7 @@ export function resolveContentModuleArtifactUrl(url: string): string {
     const fileName = releaseMatch[4] ?? '';
     if (owner === 'T-Damer' && repo === 'MiniMed' && fileName.length > 0 && releaseTag.length > 0) {
       if (
-        releaseTag.startsWith('esklp-') &&
+        MEDICATION_MIRROR_TAG.test(releaseTag) &&
         fileName.startsWith('minimed.medications.') &&
         fileName.endsWith('.db.zst')
       ) {

@@ -152,4 +152,21 @@ describe('resolveContentModuleArtifactUrl', () => {
       'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/esklp-2026-08-28/modules/minimed.medications.cardiovascular.ru.db.zst',
     );
   });
+
+  it('serves the ГРЛС instruction and Allmed modules from their dataset branches', () => {
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026.10.05-abc123/minimed.medications.instructions.nervous-system.ru.db.zst',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/grls-instructions-2026.10.05-abc123/modules/minimed.medications.instructions.nervous-system.ru.db.zst',
+    );
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/allmed-2026.10.05-abc123/minimed.medications.ru.db.zst',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/allmed-2026.10.05-abc123/modules/minimed.medications.ru.db.zst',
+    );
+  });
 });

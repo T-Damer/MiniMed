@@ -2,6 +2,7 @@ import { ContentModuleCatalogSchema } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import rawCatalog from '@/features/modules/catalog.preview.json';
+import { drugModules } from '@/features/onboarding/onboarding-downloads';
 
 const ESKLP_MODULE_IDS = [
   'minimed.medications.alimentary-metabolism.ru',
@@ -57,8 +58,9 @@ describe('catalog.preview.json', () => {
       tags: ['drugs', 'allmed', 'supplemental-reference'],
       sourceSetDigest: 'sha256:7b8a22cef1a7bb7338765106b57dfdf52f60f21f7b8570a4bf74443d34b55200',
       sizes: {
-        downloadBytes: null,
-        installedBytes: 514_322_432,
+        // The search-compacted build of the same source set, as framed zstd.
+        downloadBytes: 48_722_356,
+        installedBytes: 276_516_864,
         sourceAssetsDownloadBytes: null,
         precision: 'exact',
       },
@@ -67,9 +69,18 @@ describe('catalog.preview.json', () => {
         originalPdf: false,
         structuredKnowledge: false,
       },
-      artifacts: [],
       documents: [],
       previewDocumentCount: 4708,
+    });
+    expect(medicationsModule.compatibility.minAppVersion).toBe('0.6.48');
+    expect(medicationsModule.artifacts).toHaveLength(1);
+    expect(medicationsModule.artifacts[0]).toMatchObject({
+      kind: 'index',
+      compression: 'zstd',
+      url: 'https://github.com/T-Damer/MiniMed/releases/download/allmed-2026.10.05-2d39a7fc2b43/minimed.medications.ru.db.zst',
+      decodedSizeBytes: 276_516_864,
+      // The source set is the one of the unchanged Allmed snapshot, so installed copies stay valid.
+      sourceSetDigest: medicationsModule.sourceSetDigest,
     });
     expect(medicationsModule.tags).not.toContain('registry');
     expect(medicationsModule.tags).not.toContain('instructions');
@@ -102,6 +113,57 @@ describe('catalog.preview.json', () => {
         url: `https://github.com/T-Damer/MiniMed/releases/download/esklp-2026-08-28/${module.id}.db.zst`,
       });
       expect(module.compatibility.minAppVersion).toBe('0.6.46');
+    }
+  });
+
+  it('lists one official-instruction module per ЕСКЛП group, served as zstd from the dataset mirror', () => {
+    const catalog = ContentModuleCatalogSchema.parse(rawCatalog);
+    const instructionModules = catalog.modules.filter(
+      (module) => module.collection === 'grls-instructions',
+    );
+    expect(instructionModules.map((module) => module.id).sort()).toEqual(
+      ESKLP_MODULE_IDS.map((id) =>
+        id.replace('minimed.medications.', 'minimed.medications.instructions.'),
+      ).sort(),
+    );
+    for (const module of instructionModules) {
+      expect(module).toMatchObject({
+        kind: 'medication',
+        releaseState: 'preview',
+        required: false,
+        dependencies: [{ moduleId: 'minimed.core.ru', required: true }],
+        compatibility: { minAppVersion: '0.6.48', schemaVersion: 2 },
+      });
+      expect(module.previewDocumentCount).toBeGreaterThan(0);
+      expect(module.artifacts).toHaveLength(1);
+      expect(module.artifacts[0]).toMatchObject({
+        kind: 'index',
+        compression: 'zstd',
+        url: expect.stringMatching(
+          new RegExp(
+            `^https://github.com/T-Damer/MiniMed/releases/download/grls-instructions-2026\\.10\\.05-[0-9a-f]{12}/${module.id.replaceAll('.', '\\.')}\\.db\\.zst$`,
+            'u',
+          ),
+        ),
+      });
+      expect(module.sizes.downloadBytes).toBe(module.artifacts[0]?.sizeBytes);
+      expect(module.sizes.installedBytes).toBe(module.artifacts[0]?.decodedSizeBytes);
+    }
+    // 8 944 prepared instructions of 8 947 (three fail lint; see docs/CURRENT_STATE.md «GI1»).
+    expect(instructionModules.reduce((sum, module) => sum + module.previewDocumentCount, 0)).toBe(
+      8944,
+    );
+  });
+
+  it('puts the official-instruction and Allmed packages into the «Скачать препараты» set', () => {
+    const catalog = ContentModuleCatalogSchema.parse(rawCatalog);
+    const ids = new Set(drugModules(catalog, () => true).map((module) => module.id));
+    expect(ids.has('minimed.medications.ru')).toBe(true);
+    for (const id of ESKLP_MODULE_IDS) {
+      expect(ids.has(id)).toBe(true);
+      expect(ids.has(id.replace('minimed.medications.', 'minimed.medications.instructions.'))).toBe(
+        true,
+      );
     }
   });
 });
