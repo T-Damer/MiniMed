@@ -611,8 +611,23 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   max-width: 100%;
 }
 
-.example-scroll__viewport {
-  margin-inline-end: 1.25rem;
+/* The chips run under the arrows and fade out there, instead of ending on a hard edge. */
+.example-scroll__viewport.horizontal-overlay-scroll--more-after {
+  mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 0.5rem));
+}
+
+.example-scroll__viewport.horizontal-overlay-scroll--more-before {
+  mask-image: linear-gradient(to left, #000 calc(100% - 3rem), transparent calc(100% - 0.5rem));
+}
+
+.example-scroll__viewport.horizontal-overlay-scroll--more-before.horizontal-overlay-scroll--more-after {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0.5rem,
+    #000 3rem,
+    #000 calc(100% - 3rem),
+    transparent calc(100% - 0.5rem)
+  );
 }
 
 .search-workspace-main .example-scroll-content {
@@ -630,8 +645,12 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   margin-block: calc(-1 * var(--example-pad-top)) calc(-1 * var(--example-pad-bottom));
 }
 
-/* The arrows sit on the middle of the chips row, not of the padded frame around it. */
+/* The arrows sit on the middle of the chips row, not of the padded frame around it, and are big
+   enough to read as arrows on a phone. */
 .horizontal-scroll-control.example-scroll__control {
+  --scroll-control-glyph: 0.6875rem;
+  width: 1.5rem;
+  height: 1.5rem;
   top: calc(
     var(--example-pad-top) +
     (100% - var(--example-pad-top) - var(--example-pad-bottom)) /

@@ -150,8 +150,8 @@ button:disabled {
 }
 
 .horizontal-scroll-control svg {
-  width: 0.4375rem;
-  height: 0.4375rem;
+  width: var(--scroll-control-glyph, 0.4375rem);
+  height: var(--scroll-control-glyph, 0.4375rem);
 }
 
 .horizontal-scroll-control.next svg {

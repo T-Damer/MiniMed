@@ -75,6 +75,10 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
           scroller = value;
         }}
         class={`horizontal-overlay-scroll os-theme-dark ${props.viewportClass ?? ''}`}
+        classList={{
+          'horizontal-overlay-scroll--more-before': canScrollPrevious(),
+          'horizontal-overlay-scroll--more-after': canScrollNext(),
+        }}
         options={{
           overflow: { x: 'scroll', y: 'hidden' },
           scrollbars: { autoHide: props.hideScrollbar ? 'scroll' : 'never' },
