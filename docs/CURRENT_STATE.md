@@ -51,6 +51,21 @@ Detailed history, moved verbatim on 2026-09-24:
   existing path); ICD-10 codes are format-checked, not looked up in the МКБ module; the OCR-derived
   code lists were compared with the scan by eye only.
 
+## Search loading skeleton — 2026-10-05 (STATE UX6)
+
+- The skeleton (`SearchResultsSkeleton.tsx`, `search-results-skeleton.css`) is drawn with the real result
+  group's own classes (`result-group`, header, tags row, excerpt card) and the result grid's column rule,
+  so a placeholder card has the card's border, header and spacing; bars replace text, a soft highlight
+  sweeps over each card (transform only, off under `prefers-reduced-motion`).
+- It lives in the results slot (`.search-results-slot`), one grid cell shared with the results, and is
+  shown from the first keystroke of a query (through the 500 ms debounce too) or the submit: it fades out
+  in place (`createLingeringFlag`, `motionMs(180)`) while the results fade in; opacity only.
+- It does not move: the home intro folds away as a fading overlay (`.search-heading--hidden` is out of
+  flow, so the slot is already at its final top), and in «Клинический разбор» a placeholder analysis row
+  holds the real row's place. A catalog block above the slot (tools matching the query) is real content and
+  can still push it. Checked by `apps/app/e2e/search-skeleton.spec.ts` (skeleton top vs results top within
+  2 px, lookup and clinical, 390/1280 px, typing and Enter).
+
 ## Download by sections — 2026-10-05 (STATE SEC1)
 
 - «Скачать по специальности»: the tour (new step 4 of 10) and Settings → Загрузки show one shared list

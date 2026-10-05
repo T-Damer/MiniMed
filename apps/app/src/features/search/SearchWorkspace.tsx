@@ -68,9 +68,13 @@ import { type SearchScope, searchModeForScope } from '@/features/search/ScopedMe
 import { SearchExamples } from '@/features/search/SearchExamples';
 import { type SearchMeaning, SearchMeaningChoices } from '@/features/search/SearchMeaningChoices';
 import { SearchResultGroupCard } from '@/features/search/SearchResultGroupCard';
+import { SearchResultsSkeleton } from '@/features/search/SearchResultsSkeleton';
+import { createLingeringFlag } from '@/features/search/search-skeleton';
+import '@/features/search/search-results-skeleton.css';
 import { pluralRu } from '@/i18n/labels';
 import { CONTENT_CHANGED_EVENT } from '@/state/content-events';
 import { openDocumentInArchive } from '@/state/document-navigation';
+import { motionMs } from '@/state/motion';
 import {
   appendSearchHistory,
   SEARCH_REPLAY_EVENT,
@@ -267,6 +271,8 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     ).values(),
   ]);
   const [loading, setLoading] = createSignal(false);
+  // A typed query waits 500 ms before it searches; the skeleton shows through that wait too.
+  const [searchQueued, setSearchQueued] = createSignal(false);
   const [analysisLoading, setAnalysisLoading] = createSignal(false);
   const [contextLoading, setContextLoading] = createSignal(false);
   const [error, setError] = createSignal<string>();
@@ -350,6 +356,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     }
     return draftAnalysis();
   });
+
+  // The skeleton stands in for the groups from the first frame of a search (typed or submitted)
+  // until the response, an error or an empty query replaces it.
+  const resultsPending = createMemo(
+    () =>
+      props.scope !== 'personal' &&
+      !props.catalogOnly &&
+      !response() &&
+      !error() &&
+      (loading() || searchQueued()),
+  );
+  const skeletonMounted = createLingeringFlag(resultsPending, () => motionMs(180));
 
   // Clinical recommendation editions: a replaced edition shares its successor's title, so results
   // keep only the newest edition found. The edition sidecar (~60 kB gzip) loads after the page,
@@ -453,6 +471,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       activeScope = props.scope;
       searchGeneration += 1;
       if (searchTimer) clearTimeout(searchTimer);
+      setSearchQueued(false);
       if (analysisTimer) clearTimeout(analysisTimer);
       setQuery(saved?.query ?? (clinicalToggle ? query() : ''));
       setResponse(saved?.response);
@@ -605,11 +624,16 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       lastSearchedQuery = '';
       setResponse(undefined);
       setLoading(false);
+      setSearchQueued(false);
       return;
     }
     // A trailing space used to schedule a full second search for the identical query — the whole
     // FTS5 + vector pass ran again on the main thread just to produce the same results.
-    if (trimmed === lastSearchedQuery) return;
+    if (trimmed === lastSearchedQuery) {
+      setSearchQueued(false);
+      return;
+    }
+    setSearchQueued(true);
     searchTimer = setTimeout(() => void runSearch(trimmed, false), 500);
   }
 
@@ -627,6 +651,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
   async function runSearch(nextQuery = query(), recordHistory = true): Promise<void> {
     const rawQuery = nextQuery.trim();
     const trimmed = searchableQuery(nextQuery);
+    setSearchQueued(false);
     if (props.catalogOnly) {
       if (recordHistory && rawQuery)
         appendSearchHistory(rawQuery, props.scope, props.catalogResultCount ?? 0, props.specialty);
@@ -736,6 +761,7 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
     setContext(undefined);
     setError(undefined);
     setLoading(false);
+    setSearchQueued(false);
     requestAnimationFrame(() => {
       if (!textarea) return;
       resizeTextarea(textarea);
@@ -1015,6 +1041,23 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           />
         </Show>
 
+        {/* Holds the analysis row's place from the first keystroke, so the results slot below does
+            not drop when the analysis arrives. */}
+        <Show when={props.scope === 'diagnosis' && !activeAnalysis() && analysisLoading()}>
+          <section class="query-index query-index--content-sized" aria-hidden="true">
+            <div class="analysis-details query-index__details">
+              <div class="analysis-details__summary query-index__summary">
+                <span class="query-index__summary-main">
+                  <span class="query-index__badge">Детали</span>
+                  <span class="query-index__text query-index__text--pending">
+                    Распознано 0 полей · показать детали
+                  </span>
+                </span>
+              </div>
+            </div>
+          </section>
+        </Show>
+
         <Show when={props.scope === 'diagnosis' && activeAnalysis()}>
           {(analysis) => (
             <section class="query-index query-index--content-sized" aria-label="Разбор запроса">
@@ -1195,27 +1238,6 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
 
         <PersonalNoteMatches query={searchableQuery(query())} scope={props.scope} />
 
-        <Show when={loading() && !response() && props.scope !== 'personal'}>
-          <div
-            class="search-results-skeleton"
-            role="status"
-            aria-label="Загружаем результаты поиска"
-          >
-            <For each={[0, 1, 2]}>
-              {() => (
-                <div class="search-results-skeleton__row">
-                  <span class="search-results-skeleton__marker" aria-hidden="true" />
-                  <div class="search-results-skeleton__copy">
-                    <span class="search-results-skeleton__line search-results-skeleton__line--long" />
-                    <span class="search-results-skeleton__line" />
-                  </div>
-                  <span class="search-results-skeleton__tail" aria-hidden="true" />
-                </div>
-              )}
-            </For>
-          </div>
-        </Show>
-
         <Show when={error() === SEARCH_QUERY_EMPTY_ERROR}>
           <QueryEmptyState message="Недостаточно данных для поиска. Уточните запрос." />
         </Show>
@@ -1223,80 +1245,85 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
           {(message) => <div class="error-card">{message()}</div>}
         </Show>
 
-        <Show when={response()}>
-          {(_searchResponse) => (
-            <>
-              <Show when={loading() && props.scope !== 'personal'}>
-                <div class="results-refreshing-note" role="status">
-                  Обновляем результаты по установленным документам…
-                </div>
-              </Show>
+        <div class="search-results-slot">
+          <Show when={skeletonMounted()}>
+            <SearchResultsSkeleton leaving={!resultsPending()} />
+          </Show>
+          <Show when={response()}>
+            {(_searchResponse) => (
+              <div class="search-results-slot__content search-results-slot__reveal">
+                <Show when={loading() && props.scope !== 'personal'}>
+                  <div class="results-refreshing-note" role="status">
+                    Обновляем результаты по установленным документам…
+                  </div>
+                </Show>
 
-              <Show when={requestedInlineCalculator() ? undefined : calculatorSuggestion()}>
-                {(suggestion) => (
-                  <CalculatorSuggestionCard
-                    suggestion={suggestion()}
-                    schemas={calculatorSchemas()}
-                    onCalculate={showCalculatorInline}
-                  />
-                )}
-              </Show>
-
-              <Show when={props.scope !== 'personal'}>
-                <Show when={visibleIdentities().length ? props.referenceCore : undefined}>
-                  {(referenceCore) => (
-                    <CoreIdentityMatches
-                      hits={visibleIdentities()}
-                      core={referenceCore()}
-                      onContentChanged={
-                        props.onContentChanged ??
-                        (async () => {
-                          window.dispatchEvent(new Event(CONTENT_CHANGED_EVENT));
-                        })
-                      }
+                <Show when={requestedInlineCalculator() ? undefined : calculatorSuggestion()}>
+                  {(suggestion) => (
+                    <CalculatorSuggestionCard
+                      suggestion={suggestion()}
+                      schemas={calculatorSchemas()}
+                      onCalculate={showCalculatorInline}
                     />
                   )}
                 </Show>
-                <div
-                  class="results-list"
-                  classList={{ 'results-refreshing': loading() }}
-                  data-testid="search-results"
-                >
-                  <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400}>
-                    {(group, groupIndex) => {
-                      return (
-                        <SearchResultGroupCard
-                          group={group}
-                          index={groupIndex}
-                          specialties={
-                            contextDocumentsById().get(group.documentId)?.specialties ?? []
-                          }
-                          selectedChunkId={context()?.focusChunkId}
-                          action={props.groupAction?.(group)}
-                          onOpenDocument={openDocumentInArchive}
-                          onOpenResult={(result) => void openResult(result)}
-                        />
-                      );
-                    }}
-                  </LayoutVirtualizedGrid>
-                </div>
-              </Show>
 
-              <Show
-                when={
-                  !loading() &&
-                  visibleGroups().length === 0 &&
-                  !response()?.identities?.length &&
-                  props.scope !== 'personal'
-                    ? props.emptyResults
-                    : undefined
-                }
-              >
-                {(emptyResults) => emptyResults()(searchableQuery(query()))}
-              </Show>
-            </>
-          )}
-        </Show>
+                <Show when={props.scope !== 'personal'}>
+                  <Show when={visibleIdentities().length ? props.referenceCore : undefined}>
+                    {(referenceCore) => (
+                      <CoreIdentityMatches
+                        hits={visibleIdentities()}
+                        core={referenceCore()}
+                        onContentChanged={
+                          props.onContentChanged ??
+                          (async () => {
+                            window.dispatchEvent(new Event(CONTENT_CHANGED_EVENT));
+                          })
+                        }
+                      />
+                    )}
+                  </Show>
+                  <div
+                    class="results-list"
+                    classList={{ 'results-refreshing': loading() }}
+                    data-testid="search-results"
+                  >
+                    <LayoutVirtualizedGrid data={visibleGroups()} bufferSize={400}>
+                      {(group, groupIndex) => {
+                        return (
+                          <SearchResultGroupCard
+                            group={group}
+                            index={groupIndex}
+                            specialties={
+                              contextDocumentsById().get(group.documentId)?.specialties ?? []
+                            }
+                            selectedChunkId={context()?.focusChunkId}
+                            action={props.groupAction?.(group)}
+                            onOpenDocument={openDocumentInArchive}
+                            onOpenResult={(result) => void openResult(result)}
+                          />
+                        );
+                      }}
+                    </LayoutVirtualizedGrid>
+                  </div>
+                </Show>
+
+                <Show
+                  when={
+                    !loading() &&
+                    visibleGroups().length === 0 &&
+                    !response()?.identities?.length &&
+                    props.scope !== 'personal'
+                      ? props.emptyResults
+                      : undefined
+                  }
+                >
+                  {(emptyResults) => emptyResults()(searchableQuery(query()))}
+                </Show>
+              </div>
+            )}
+          </Show>
+        </div>
       </div>
 
       <Show when={context() || contextLoading()}>

@@ -951,14 +951,6 @@ body {
     grid-template-columns: 1fr auto;
   }
 
-  .search-results-skeleton__row {
-    grid-template-columns: 2.5rem minmax(0, 1fr);
-  }
-
-  .search-results-skeleton__tail {
-    display: none;
-  }
-
   .reader-column {
     padding-right: 0.4375rem;
     padding-left: 0.4375rem;

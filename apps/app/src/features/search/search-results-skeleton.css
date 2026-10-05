@@ -1,0 +1,191 @@
+/*
+ * The results slot holds the skeleton and the results in one grid cell. The skeleton starts at the
+ * slot's top edge and fades out in place while the results fade in, so nothing moves.
+ */
+.search-results-slot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.search-results-slot__content {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.search-results-slot__reveal {
+  animation: search-results-reveal 180ms ease-out;
+}
+
+@keyframes search-results-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes search-results-hide {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The intro folds away as an overlay that only fades, so the slot below never slides up. */
+.search-column.case-folder {
+  position: relative;
+}
+
+.search-heading.search-heading--hidden {
+  position: absolute;
+  z-index: var(--z-raised-2);
+  inset-inline: 0;
+  pointer-events: none;
+}
+
+.results-skeleton {
+  z-index: var(--z-raised);
+  grid-area: 1 / 1;
+  align-self: start;
+  min-width: 0;
+  animation: search-results-reveal 180ms ease-out;
+  pointer-events: none;
+}
+
+.results-skeleton--leaving {
+  animation: search-results-hide 180ms ease-out forwards;
+}
+
+.results-skeleton__group {
+  --skeleton-bar: color-mix(in srgb, var(--theme-text-faint) 24%, transparent);
+  --skeleton-sweep: color-mix(in srgb, var(--theme-surface-raised) 70%, transparent);
+}
+
+/* One soft highlight sweeps over each card; it is a transform, so it costs no layout. */
+.results-skeleton__group::after {
+  content: "";
+  position: absolute;
+  z-index: var(--z-raised-2);
+  inset: 0;
+  background: linear-gradient(100deg, transparent 35%, var(--skeleton-sweep) 50%, transparent 65%);
+  animation: results-skeleton-sweep 1.8s ease-in-out infinite;
+  pointer-events: none;
+  transform: translateX(-100%);
+}
+
+@keyframes results-skeleton-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .results-skeleton,
+  .search-results-slot__reveal {
+    animation: none;
+  }
+
+  .results-skeleton__group::after {
+    display: none;
+  }
+
+  .results-skeleton--leaving {
+    display: none;
+  }
+}
+
+.results-skeleton__bar {
+  display: block;
+  height: 0.625rem;
+  border-radius: 999px;
+  background: var(--skeleton-bar);
+}
+
+/* Heights follow the line boxes of the real header: kind pill, content kind, title, note. */
+.results-skeleton__bar--kind {
+  height: 1.4375rem;
+  width: 9rem;
+  max-width: 100%;
+}
+
+.results-skeleton__bar--meta {
+  width: 5.5rem;
+  margin-block: 0.25rem;
+}
+
+.results-skeleton__bar--title {
+  width: 72%;
+  height: 0.8125rem;
+  margin-block: 0.1875rem;
+}
+
+.results-skeleton__tags {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.results-skeleton__tag {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--skeleton-bar);
+}
+
+.results-skeleton__bar--note {
+  width: 58%;
+  margin-block: 0.1875rem;
+}
+
+.results-skeleton__card {
+  display: block;
+  padding: 0.3125rem 0.875rem 0.8125rem;
+}
+
+.results-skeleton__category {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.results-skeleton__category-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
+  background: var(--skeleton-bar);
+}
+
+.results-skeleton__bar--stamp {
+  width: 4.5rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+}
+
+/* The excerpt text is 0.9375rem on a 1.48 line, so each bar sits in a 1.39rem pitch. */
+.results-skeleton__bar--line {
+  margin-block: 0.4rem;
+}
+
+.results-skeleton__bar--first {
+  margin-top: 0.8125rem;
+}
+
+.results-skeleton__bar--last {
+  width: 64%;
+  margin-bottom: 0.1875rem;
+}
+
+/* The analysis row's placeholder keeps the real row's text (hidden) so it wraps and sizes the
+   same, with a bar painted in its place. */
+.query-index__text.query-index__text--pending {
+  color: transparent;
+  background:
+    linear-gradient(
+      color-mix(in srgb, var(--theme-text-faint) 24%, transparent),
+      color-mix(in srgb, var(--theme-text-faint) 24%, transparent)
+    )
+    center / 100% 0.5rem no-repeat;
+  user-select: none;
+}
