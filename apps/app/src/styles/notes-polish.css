@@ -1671,3 +1671,13 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* A PDF attachment is read in a tall panel: the viewer scrolls inside it. */
+.note-attachment-viewer__panel--pdf {
+  width: min(60rem, 96vw);
+  max-width: none;
+  /* Ends above the floating bottom navigation. */
+  height: min(52rem, calc(100dvh - 9rem));
+  overflow: hidden;
+  grid-template-rows: auto minmax(0, 1fr);
+}

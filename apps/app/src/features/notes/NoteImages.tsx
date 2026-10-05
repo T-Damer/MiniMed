@@ -297,7 +297,8 @@ export function NoteImagePicker(props: {
   createEffect(() => {
     if (!viewer()) return;
     const handleKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') setViewer(null);
+      // A find box inside the viewer takes the first Escape (it marks the event handled).
+      if (event.key === 'Escape' && !event.defaultPrevented) setViewer(null);
     };
     window.addEventListener('keydown', handleKeyDown);
     onCleanup(() => window.removeEventListener('keydown', handleKeyDown));
@@ -425,11 +426,17 @@ export function NoteImagePicker(props: {
                                   }
                                 : preview.kind === 'audio'
                                   ? { kind: 'audio', name: preview.name, src: preview.url }
-                                  : {
-                                      kind: 'text',
-                                      name: preview.name,
-                                      blob: props.files[index()] ?? new Blob(),
-                                    },
+                                  : preview.kind === 'pdf'
+                                    ? {
+                                        kind: 'pdf',
+                                        name: preview.name,
+                                        blob: props.files[index()] ?? new Blob(),
+                                      }
+                                    : {
+                                        kind: 'text',
+                                        name: preview.name,
+                                        blob: props.files[index()] ?? new Blob(),
+                                      },
                           )
                         }
                         onDelete={() => requestDelete([key()], { name: preview.name })}

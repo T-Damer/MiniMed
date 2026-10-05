@@ -1,4 +1,4 @@
-import { createEffect, createSignal, type JSX, Match, Show, Switch } from 'solid-js';
+import { createEffect, createSignal, type JSX, lazy, Match, Show, Switch } from 'solid-js';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -9,6 +9,8 @@ import {
   type ViewerState,
 } from '@/features/notes/note-attachment-viewer-state';
 import { downloadNoteFile } from '@/state/note-files';
+
+const PdfFileViewer = lazy(() => import('@/features/pdf-viewer/PdfFileViewer'));
 
 export {
   recordToViewerState,
@@ -117,7 +119,10 @@ export function AttachmentViewerDialog(props: {
               aria-label="Закрыть просмотр"
               onClick={props.onClose}
             />
-            <div class="note-attachment-viewer__panel">
+            <div
+              class="note-attachment-viewer__panel"
+              classList={{ 'note-attachment-viewer__panel--pdf': current.kind === 'pdf' }}
+            >
               <header class="note-attachment-viewer__header">
                 <span class="note-attachment-viewer__name">{current.name}</span>
                 <button
@@ -181,6 +186,18 @@ export function AttachmentViewerDialog(props: {
                       )}
                     </Show>
                   </div>
+                </Match>
+                <Match when={current.kind === 'pdf'}>
+                  <PdfFileViewer
+                    blob={(current as Extract<ViewerState, { readonly kind: 'pdf' }>).blob}
+                    title={current.name}
+                    {...((current as Extract<ViewerState, { readonly kind: 'pdf' }>).resumeKey
+                      ? {
+                          resumeKey: (current as Extract<ViewerState, { readonly kind: 'pdf' }>)
+                            .resumeKey,
+                        }
+                      : {})}
+                  />
                 </Match>
                 <Match when={current.kind === 'text'}>
                   <TextPreviewBody

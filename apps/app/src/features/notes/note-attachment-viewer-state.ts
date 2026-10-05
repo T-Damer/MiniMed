@@ -23,7 +23,13 @@ export type ViewerState =
       readonly mimeType?: string;
       readonly blob: Blob;
     }
-  | { readonly kind: 'pdf'; readonly name: string; readonly record: NoteFile }
+  | {
+      readonly kind: 'pdf';
+      readonly name: string;
+      readonly blob: Blob;
+      /** Where the reader stopped is remembered under this id; absent for a file not saved yet. */
+      readonly resumeKey?: string;
+    }
   | { readonly kind: 'download'; readonly name: string; readonly record: NoteFile };
 
 export function recordToViewerState(record: NoteFile): ViewerState {
@@ -54,5 +60,8 @@ export function recordToViewerState(record: NoteFile): ViewerState {
   if (kind === 'text') {
     return { kind: 'text', name: record.name, mimeType: record.mimeType, blob: record.blob };
   }
-  return { kind: 'pdf', name: record.name, record };
+  if (kind === 'pdf') {
+    return { kind: 'pdf', name: record.name, blob: record.blob, resumeKey: `note:${record.id}` };
+  }
+  return { kind: 'download', name: record.name, record };
 }

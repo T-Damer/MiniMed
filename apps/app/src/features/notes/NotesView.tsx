@@ -865,7 +865,9 @@ export function NotesView(props: {
                 ? { kind: 'video', name: file.name, src: url }
                 : kind === 'audio'
                   ? { kind: 'audio', name: file.name, src: url }
-                  : { kind: 'text', name: file.name, blob: file },
+                  : kind === 'pdf'
+                    ? { kind: 'pdf', name: file.name, blob: file }
+                    : { kind: 'text', name: file.name, blob: file },
           ...(drawing ? { drawing } : {}),
         };
       });
