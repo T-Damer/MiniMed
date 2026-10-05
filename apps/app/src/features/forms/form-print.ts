@@ -84,7 +84,7 @@ const FORM_PRINT_STYLES = `
     border-bottom: 0.2mm solid #000;
     overflow-wrap: anywhere;
   }
-  .form-print__blank--centered { text-align: center; }
+  .form-print__blank--centered { display: flex; justify-content: center; padding: 0 0.1em; white-space: nowrap; }
   .form-print__rule { display: block; min-height: calc(1em * var(--form-lh)); border-bottom: 0.2mm solid #000; }
   .form-print__caption { font-size: 0.72em; text-align: center; line-height: 1.1; }
   .form-print__option { white-space: normal; }

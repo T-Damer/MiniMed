@@ -46,3 +46,12 @@ describe('form print: a joined segment continues the previous one', () => {
     expect(html).toContain('<span class="form-print__text">сезоны</span>');
   });
 });
+
+describe('form print: a date part is never wrapped inside its blank', () => {
+  it('keeps «15», «марта» and «2027» on one line, centred over a short blank', () => {
+    const html = renderFormPrintHtml(schemaWithBrackets(), {});
+    expect(html).toContain(
+      '.form-print__blank--centered { display: flex; justify-content: center; padding: 0 0.1em; white-space: nowrap; }',
+    );
+  });
+});
