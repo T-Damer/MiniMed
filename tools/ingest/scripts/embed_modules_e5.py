@@ -6,13 +6,14 @@
 
 Local-only build stage. `--family clinical`: every chunk of the single-recommendation modules
 (`minimed.clinical.recommendation.*`), replacing the feature-hash scaffold. `--family medications`:
-only the indication sections («Показания», «Показания к применению», section type `indications`)
-of the ГРЛС instruction modules and the Allmed module, which is what a query such as «таблетки от
-головы» needs. Input is the published framed-zstd index of each module, found by the file name of
-its catalog URL in one of `--source` directories and checked against the catalog `sha256`. Each
-index is decoded into `--out`; inside that copy only `embedding_profiles` and `chunk_embeddings`
-change. Documents, sections, chunks, FTS and `content_packs` keep their content. Run
-`scripts/reframe-modules-e5.ts` afterwards.
+only the indication sections («Показания», «Показания к применению», section type `indications`) of
+the ГРЛС instruction modules and the Allmed module, which is what a query such as «таблетки от
+головы» needs. `--family reference`: the code/name and synonym rows of the МКБ cards and the short
+description, overview and symptom sections of the disease articles (description → term). Input is
+the published framed-zstd index of each module, found by the file name of its catalog URL in one of
+`--source` directories and checked against the catalog `sha256`. Each index is decoded into `--out`;
+inside that copy only `embedding_profiles` and `chunk_embeddings` change. Documents, sections,
+chunks, FTS and `content_packs` keep their content. Run `scripts/reframe-modules-e5.ts` afterwards.
 
 Passage text matches the measured E1 setup (docs/research/embeddings-kr-2026-10-02.md):
 `"passage: " + title + ". " + section path + ". " + chunk text`, cut to 1 200 characters and
@@ -49,6 +50,12 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 CATALOG = REPO_ROOT / "apps/app/src/features/modules/catalog.preview.json"
 FAMILIES = {
     "clinical": {"ids": ("minimed.clinical.recommendation.",), "chunks": ""},
+    "reference": {
+        "ids": ("minimed.mkb.ru", "minimed.reference.krasotaimedicina.ru"),
+        "chunks": """WHERE s.title IN ('Код и название', 'Синонимы', 'Краткое описание',
+                                  'Общие сведения', 'Симптомы')
+               AND c.original_text NOT LIKE 'Синонимы на странице не указаны%'""",
+    },
     "medications": {
         "ids": ("minimed.medications.instructions.", "minimed.medications.ru"),
         "chunks": """WHERE s.section_type = 'indications'
