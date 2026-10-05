@@ -18,3 +18,9 @@ export function stepFraction(index: number, count: number): number {
   if (count <= 1) return 0;
   return Math.min(1, Math.max(0, index / (count - 1)));
 }
+
+/** Position of `value` along `min..max` as a 0..1 fraction (an empty range sits at 0). */
+export function rangeFraction(value: number, min: number, max: number): number {
+  if (!(max > min)) return 0;
+  return Math.min(1, Math.max(0, (value - min) / (max - min)));
+}

@@ -1,0 +1,239 @@
+/*
+ * One range slider style for the whole app: a thick rounded track, a filled progress part and a
+ * small round thumb with a light outline. Native range inputs, the stepped slider and the
+ * multi-thumb print range all read these tokens.
+ */
+:root {
+  --range-thumb-size: 1rem;
+  --range-track-height: 0.5rem;
+  --range-track-bg: color-mix(in srgb, var(--theme-text) 12%, transparent);
+  --range-track-outline: color-mix(in srgb, var(--theme-text) 20%, transparent);
+  --range-fill: var(--theme-accent);
+  --range-thumb-bg: var(--theme-accent);
+  --range-thumb-outline: var(--theme-surface-raised);
+  --range-thumb-shadow: 0 0.0625rem 0.1875rem rgb(0 0 0 / 28%);
+  --range-focus-ring: 0 0 0 0.125rem var(--theme-surface-raised), 0 0 0 0.25rem var(--theme-accent);
+}
+
+.range-input {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.range-input--disabled {
+  opacity: 0.55;
+}
+
+.range-input__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.range-input__label {
+  font-size: 0.9375rem;
+  font-weight: 650;
+}
+
+.range-input__label--with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.range-input__label-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: 0 0 auto;
+  color: var(--theme-link);
+}
+
+.range-input__value {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--theme-text-muted, rgb(0 0 0 / 58%));
+}
+
+.range-input__track {
+  position: relative;
+  height: var(--range-thumb-size);
+}
+
+/* Centre of the thumb (and of its mark and step name) for the element's fraction. */
+.range-input__control,
+.range-input__mark,
+.range-input__step {
+  --range-input-at: calc(
+    var(--range-thumb-size) /
+    2 +
+    (100% - var(--range-thumb-size)) *
+    var(--range-input-fraction, 0)
+  );
+}
+
+.range-input__control {
+  display: block;
+  width: 100%;
+  height: var(--range-thumb-size);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  touch-action: pan-y;
+  cursor: pointer;
+}
+
+.range-input__control:disabled {
+  cursor: not-allowed;
+}
+
+.range-input__control:hover,
+.range-input__control:focus,
+.range-input__control:focus-visible {
+  border-color: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.range-input__control::-webkit-slider-runnable-track {
+  height: var(--range-track-height);
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--range-fill) var(--range-input-at),
+    var(--range-track-bg) 0
+  );
+  box-shadow: inset 0 0 0 1px var(--range-track-outline);
+}
+
+.range-input__control::-moz-range-track {
+  height: var(--range-track-height);
+  border-radius: 999px;
+  background: var(--range-track-bg);
+  box-shadow: inset 0 0 0 1px var(--range-track-outline);
+}
+
+.range-input__control::-moz-range-progress {
+  height: var(--range-track-height);
+  border-radius: 999px;
+  background: var(--range-fill);
+}
+
+.range-input__control::-webkit-slider-thumb {
+  width: var(--range-thumb-size);
+  height: var(--range-thumb-size);
+  box-sizing: border-box;
+  margin-top: calc((var(--range-track-height) - var(--range-thumb-size)) / 2);
+  border: 0.125rem solid var(--range-thumb-outline);
+  border-radius: 999px;
+  background: var(--range-thumb-bg);
+  box-shadow: var(--range-thumb-shadow);
+  appearance: none;
+  transition: transform var(--theme-motion-control);
+}
+
+.range-input__control::-moz-range-thumb {
+  width: var(--range-thumb-size);
+  height: var(--range-thumb-size);
+  box-sizing: border-box;
+  border: 0.125rem solid var(--range-thumb-outline);
+  border-radius: 999px;
+  background: var(--range-thumb-bg);
+  box-shadow: var(--range-thumb-shadow);
+  transition: transform var(--theme-motion-control);
+}
+
+.range-input__control:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+
+.range-input__control:active::-moz-range-thumb {
+  transform: scale(1.12);
+}
+
+/* The keyboard focus ring sits on the thumb: it is visible on any theme and not clipped. */
+.range-input__control:focus-visible::-webkit-slider-thumb {
+  box-shadow: var(--range-thumb-shadow), var(--range-focus-ring);
+}
+
+.range-input__control:focus-visible::-moz-range-thumb {
+  box-shadow: var(--range-thumb-shadow), var(--range-focus-ring);
+}
+
+/* Subtle marks of a stepped slider, drawn inside the track; the mark under the thumb is hidden. */
+.range-input__marks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.range-input__mark {
+  position: absolute;
+  top: 50%;
+  left: var(--range-input-at);
+  width: 0.1875rem;
+  height: 0.1875rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--theme-text) 34%, transparent);
+  transform: translate(-50%, -50%);
+}
+
+.range-input__mark--passed {
+  background: color-mix(in srgb, var(--theme-accent-contrast) 60%, transparent);
+}
+
+.range-input__mark--current {
+  visibility: hidden;
+}
+
+.range-input__steps {
+  position: relative;
+  height: 1.125rem;
+}
+
+.range-input__step {
+  position: absolute;
+  top: 0;
+  left: var(--range-input-at);
+  font-size: clamp(0.6875rem, 3.2vw, 0.75rem);
+  line-height: 1.125rem;
+  white-space: nowrap;
+  color: var(--theme-text-muted, rgb(0 0 0 / 58%));
+  transform: translateX(-50%);
+}
+
+.range-input__step--first {
+  left: 0;
+  transform: none;
+}
+
+.range-input__step--last {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.range-input__step--current {
+  font-weight: 650;
+  color: var(--theme-text);
+}
+
+.range-input__helper {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--theme-text-muted, rgb(0 0 0 / 58%));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .range-input__control::-webkit-slider-thumb {
+    transition: none;
+  }
+
+  .range-input__control::-moz-range-thumb {
+    transition: none;
+  }
+}

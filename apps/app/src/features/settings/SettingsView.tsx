@@ -5,6 +5,7 @@ import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { Disclosure } from '@/components/Disclosure';
 import { Page } from '@/components/Page';
+import { RangeSlider } from '@/components/RangeSlider';
 import { ReleaseLinks } from '@/components/ReleaseLinks';
 import { StepSlider } from '@/components/StepSlider';
 import { Switch } from '@/components/Switch';
@@ -272,29 +273,25 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
             />
           </div>
 
-          <div class="settings-slider range-input">
-            <div class="range-input__header">
-              <span class="range-input__label range-input__label--with-icon">
-                <AppGlyph name="speaker-high" class="range-input__label-icon" aria-hidden="true" />
-                Звуки
-              </span>
-              <span class="range-input__value">{soundPercent()}%</span>
-            </div>
-            <input
-              class="range-input__control"
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={soundPercent()}
-              aria-label="Громкость звуков интерфейса"
-              onInput={(event) => {
-                const next = Number(event.currentTarget.value) / 100;
-                setSoundVolumeState(next);
-                setSoundVolume(next);
-              }}
-            />
-          </div>
+          <RangeSlider
+            class="settings-slider"
+            label="Звуки"
+            icon={
+              <AppGlyph name="speaker-high" class="range-input__label-icon" aria-hidden="true" />
+            }
+            valueLabel={`${String(soundPercent())}%`}
+            ariaLabel="Громкость звуков интерфейса"
+            ariaValueText={`${String(soundPercent())}%`}
+            min={0}
+            max={100}
+            step={1}
+            value={soundPercent()}
+            onInput={(percent) => {
+              const next = percent / 100;
+              setSoundVolumeState(next);
+              setSoundVolume(next);
+            }}
+          />
 
           <StepSlider
             class="settings-slider"

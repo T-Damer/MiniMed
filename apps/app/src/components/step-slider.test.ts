@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { stepFraction, stepIndexFromRange, stepIndexOf } from './step-slider';
+import { rangeFraction, stepFraction, stepIndexFromRange, stepIndexOf } from './step-slider';
 
 describe('stepIndexOf', () => {
   it('finds an option and falls back to the first one', () => {
@@ -26,5 +26,15 @@ describe('stepFraction', () => {
     expect(stepFraction(3, 4)).toBe(1);
     expect(stepFraction(1, 3)).toBe(0.5);
     expect(stepFraction(0, 1)).toBe(0);
+  });
+});
+
+describe('rangeFraction', () => {
+  it('maps a value to its fraction of the range and clamps', () => {
+    expect(rangeFraction(73, 0, 100)).toBe(0.73);
+    expect(rangeFraction(-5, 0, 100)).toBe(0);
+    expect(rangeFraction(500, 0, 100)).toBe(1);
+    expect(rangeFraction(3, 1, 5)).toBe(0.5);
+    expect(rangeFraction(1, 1, 1)).toBe(0);
   });
 });

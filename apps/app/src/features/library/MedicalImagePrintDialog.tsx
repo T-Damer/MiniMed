@@ -13,6 +13,7 @@ import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { RangeSlider } from '@/components/RangeSlider';
 import { Switch } from '@/components/Switch';
 import {
   buildMedicalImagePrintHtml,
@@ -626,15 +627,13 @@ export function MedicalImagePrintDialog(props: MedicalImagePrintDialogProps): JS
                   {String(imagesPerPage())} из {String(imagesPerPageMaximum())}
                 </output>
               </div>
-              <input
-                class="medical-image-print-dialog__page-range-input"
-                type="range"
-                min="1"
+              <RangeSlider
+                min={1}
                 max={imagesPerPageMaximum()}
-                step="1"
+                step={1}
                 value={imagesPerPage()}
-                aria-label="Количество снимков на странице"
-                onInput={(event) => setPageCount(event.currentTarget.value)}
+                ariaLabel="Количество снимков на странице"
+                onInput={(value) => setPageCount(String(value))}
               />
             </fieldset>
 

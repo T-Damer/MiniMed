@@ -599,53 +599,6 @@
   padding-inline: clamp(0.75rem, 3vw, 1.5rem);
 }
 
-.range-input {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.range-input__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.range-input__label {
-  font-size: 0.9375rem;
-  font-weight: 650;
-}
-
-.range-input__value {
-  font-size: 0.8125rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--theme-text-muted, rgb(0 0 0 / 58%));
-}
-
-.range-input__control {
-  width: 100%;
-  margin: 0;
-  accent-color: var(--theme-accent);
-}
-
-.range-input__control:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-.range-input__control:focus-visible {
-  outline: var(--theme-outline-width) solid var(--theme-accent);
-  outline-offset: var(--theme-outline-offset);
-  box-shadow: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .range-input__control:hover {
-    border-color: transparent;
-    box-shadow: none;
-  }
-}
-
 .patient-case-combobox__action {
   display: flex;
   align-items: center;

@@ -193,6 +193,7 @@ export function AsrSettings(): JSX.Element {
         class="asr-settings__choice"
         label="Режим расшифровки"
         ariaLabel="Режим расшифровки голосовых заметок"
+        showHint
         value={busy() ?? selected() ?? 'off'}
         disabled={removing() !== null}
         options={[

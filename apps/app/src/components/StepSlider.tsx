@@ -1,7 +1,7 @@
-import { createMemo, createSignal, createUniqueId, For, type JSX, Show } from 'solid-js';
+import { createMemo, createSignal, createUniqueId, type JSX } from 'solid-js';
 
-import '@/components/StepSlider.css';
-import { stepFraction, stepIndexFromRange, stepIndexOf } from '@/components/step-slider';
+import { RangeSlider } from '@/components/RangeSlider';
+import { stepIndexFromRange, stepIndexOf } from '@/components/step-slider';
 
 export interface StepSliderOption<T extends string> {
   readonly value: T;
@@ -18,15 +18,18 @@ export interface StepSliderProps<T extends string> {
   readonly onChange: (value: T) => void;
   readonly ariaLabel: string;
   readonly disabled?: boolean;
+  /** Opt-in: names of all options under the track. The current one is already in the header. */
+  readonly showStepLabels?: boolean;
+  /** Opt-in: the current option's hint under the track, for hints the value label cannot carry. */
+  readonly showHint?: boolean;
   readonly class?: string;
 }
 
 /**
- * Discrete slider over a short ordered list of options: a native range input over option
- * indices, tick marks with labels under the track, the current label as value text and the
- * current option's hint underneath. While dragging only the preview moves; `onChange` fires
- * when the user releases, so a choice with side effects (a model download) is not triggered
- * by every option the thumb passes.
+ * Discrete slider over a short ordered list of options: the shared `RangeSlider` over option
+ * indices, with the current label in the header and as value text. While dragging only the
+ * preview moves; `onChange` fires when the user releases, so a choice with side effects (a
+ * model download) is not triggered by every option the thumb passes.
  */
 export function StepSlider<T extends string>(props: StepSliderProps<T>): JSX.Element {
   const hintId = `step-slider-hint-${createUniqueId()}`;
@@ -42,7 +45,6 @@ export function StepSlider<T extends string>(props: StepSliderProps<T>): JSX.Ele
   );
   const index = () => preview() ?? committedIndex();
   const current = () => props.options[index()];
-  const fraction = () => stepFraction(index(), count());
 
   const settle = (): void => {
     const next = preview();
@@ -56,74 +58,29 @@ export function StepSlider<T extends string>(props: StepSliderProps<T>): JSX.Ele
   };
 
   return (
-    <div
-      class={`step-slider range-input${props.class ? ` ${props.class}` : ''}`}
-      classList={{ 'step-slider--disabled': props.disabled ?? false }}
-    >
-      <div class="range-input__header">
-        <span class="range-input__label range-input__label--with-icon">
-          {props.icon}
-          {props.label}
-        </span>
-        <span class="range-input__value step-slider__value">{current()?.label}</span>
-      </div>
-      <div class="step-slider__track">
-        <input
-          ref={control}
-          class="step-slider__control"
-          type="range"
-          min={0}
-          max={Math.max(0, count() - 1)}
-          step={1}
-          value={committedIndex()}
-          disabled={props.disabled}
-          aria-label={props.ariaLabel}
-          aria-valuetext={current()?.label}
-          aria-describedby={current()?.hint ? hintId : undefined}
-          style={{ '--step-slider-fraction': String(fraction()) }}
-          onInput={(event) => setPreview(stepIndexFromRange(event.currentTarget.value, count()))}
-          onChange={settle}
-        />
-        <div class="step-slider__ticks" aria-hidden="true">
-          <For each={props.options}>
-            {(option, position) => (
-              <span
-                class="step-slider__tick"
-                classList={{
-                  'step-slider__tick--passed': position() < index(),
-                  'step-slider__tick--current': position() === index(),
-                }}
-                style={{ '--step-slider-fraction': String(stepFraction(position(), count())) }}
-                data-value={option.value}
-              />
-            )}
-          </For>
-        </div>
-      </div>
-      <div class="step-slider__labels" aria-hidden="true">
-        <For each={props.options}>
-          {(option, position) => (
-            <span
-              class="step-slider__option"
-              classList={{
-                'step-slider__option--first': position() === 0,
-                'step-slider__option--last': position() === count() - 1,
-                'step-slider__option--current': position() === index(),
-              }}
-              style={{ '--step-slider-fraction': String(stepFraction(position(), count())) }}
-            >
-              {option.label}
-            </span>
-          )}
-        </For>
-      </div>
-      <Show when={current()?.hint}>
-        {(hint) => (
-          <p id={hintId} class="step-slider__hint">
-            {hint()}
-          </p>
-        )}
-      </Show>
-    </div>
+    <RangeSlider
+      class={props.class}
+      label={props.label}
+      icon={props.icon}
+      valueLabel={current()?.label}
+      value={index()}
+      min={0}
+      max={Math.max(0, count() - 1)}
+      step={1}
+      marks={count()}
+      stepLabels={props.showStepLabels ? props.options.map((option) => option.label) : undefined}
+      helper={props.showHint ? current()?.hint : undefined}
+      helperId={hintId}
+      disabled={props.disabled}
+      ariaLabel={props.ariaLabel}
+      ariaValueText={current()?.label}
+      controlRef={(element) => {
+        control = element;
+      }}
+      onInput={(next) => {
+        setPreview(stepIndexFromRange(String(next), count()));
+      }}
+      onChange={settle}
+    />
   );
 }

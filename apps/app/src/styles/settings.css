@@ -316,19 +316,6 @@
   color: var(--theme-link);
 }
 
-.range-input__label--with-icon {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.range-input__label-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-  flex: 0 0 auto;
-  color: var(--theme-link);
-}
-
 .settings-row__action {
   flex: none;
 }
