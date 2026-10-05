@@ -188,6 +188,19 @@ OCR share 25.8 % of documents with text (2 290 → 2 298). Failures by reason fo
 not attempted 675. To resume, the owner decides; a cautious restart would use one worker and several seconds
 between requests, and must stop again on any CAPTCHA.
 
+## Released instruction modules (GI1, 2026-10-05)
+
+The prepared instructions (`data/intermediate/grls-full-final` + the G1 addition workspaces, joined by
+`grls-instruction-text-manifest.jsonl`) are built into one module per ATC level-1 group by
+`tools/ingest/scripts/build_grls_instruction_modules.py build --out data/build/grls-instruction-modules`
+(group = the ЕСКЛП module listing the registration, otherwise «без АТХ»), then
+`medbase compact-module-search`, `bun scripts/package-instruction-modules.ts --family grls …` and
+`scripts/publish-module-zstd-mirror.sh --family esklp --tag grls-instructions-<date>-<digest> --create`; numbers,
+paths and the browser check are in `CURRENT_STATE.md` («GI1»). The builder keeps the PDF's prepared Markdown body
+byte-exact and adds the manifest's kind, fetch date, OCR flag and quality values to the front matter. A later
+collector window is a new module version (or extra modules) through the same steps; a registration the daily
+loop adds reaches users only with such a refresh.
+
 ## Next action
 
 Continue the repaired current-site resolver in bounded eight-worker batches. Use

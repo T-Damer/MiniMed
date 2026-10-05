@@ -22,13 +22,14 @@ import { SegmentedControl } from '@/components/SegmentedControl';
 import { useStickySurface } from '@/components/sticky-surface';
 import { Heading } from '@/components/Text';
 import { type AtcSubstance, atcSubstanceFromDocument } from '@/features/medications/atc-tree';
-import { displayDrugName, displayStrength } from '@/features/medications/drug-screen';
+import {
+  displayDrugName,
+  displayStrength,
+  instructionIndexFromSummaries,
+} from '@/features/medications/drug-screen';
 import { MedicationDownloadState } from '@/features/medications/MedicationDownloadState';
 import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
-import {
-  documentFromSummary,
-  processMedicationSummariesInBatches,
-} from '@/features/medications/medication-loading';
+import { processMedicationSummariesInBatches } from '@/features/medications/medication-loading';
 import {
   consumeMedicationCatalogQuery,
   openMedicationProduct,
@@ -233,14 +234,7 @@ async function loadProducts(
     (document) => document.sourceType !== 'official_drug_instruction',
   );
 
-  const instructions = new Map(
-    instructionSummaries.flatMap((summary) => {
-      const document = documentFromSummary(summary);
-      if (!document) return [];
-      const registration = medicationDocumentRegistration(document);
-      return registration ? [[registration, document.id] as const] : [];
-    }),
-  );
+  const instructions = instructionIndexFromSummaries(instructionSummaries);
 
   const registryProducts = new Map<string, MedicationProduct>();
   const allmedProducts = new Map<string, MedicationProduct>();

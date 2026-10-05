@@ -6,6 +6,7 @@
 import type { MedicalDocument, MedicalDocumentSummary, MedicalSection } from '@localmed/contracts';
 
 import { type AtcLevel, atcGroupChain, normalizeAtcCode } from '@/features/medications/atc-code';
+import { instructionIndexFromDocuments } from '@/features/medications/instruction-source';
 import type {
   MedicationProduct,
   TradeNameSupplement,
@@ -97,17 +98,15 @@ function presentationLabel(
   return text || null;
 }
 
-/** Registration number → instruction document, from the catalog's document summaries. */
+/**
+ * Registration number → instruction document, from the catalog's document summaries. A PDF that
+ * serves several registrations is indexed under each; when a registration has several documents
+ * the professional text (ОХЛП, instruction) outranks the patient leaflet.
+ */
 export function instructionIndexFromSummaries(
   summaries: readonly Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>[],
 ): ReadonlyMap<string, string> {
-  const index = new Map<string, string>();
-  for (const summary of summaries) {
-    if (summary.sourceType !== 'official_drug_instruction') continue;
-    const registration = textValue(summary.metadata?.['registrationNumber']);
-    if (registration) index.set(registration, summary.id);
-  }
-  return index;
+  return instructionIndexFromDocuments(summaries);
 }
 
 export function isEsklpSubstanceDocument(document: Pick<MedicalDocument, 'metadata'>): boolean {

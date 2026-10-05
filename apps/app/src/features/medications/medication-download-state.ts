@@ -3,7 +3,7 @@ import { formatModuleBytes } from '@/features/modules/module-display';
 import { LARGE_DOWNLOAD_BYTES } from '@/features/onboarding/onboarding-downloads';
 
 export const MEDICATION_DOWNLOAD_EXPLANATION =
-  'Справочник препаратов скачивается отдельно — по группам АТХ или целиком. После загрузки работает без интернета.';
+  'Справочник препаратов (реестр ЕСКЛП, официальные инструкции ГРЛС и справочник Allmed) скачивается отдельно — по группам АТХ или целиком. После загрузки работает без интернета.';
 
 /** «Скачать препараты · 286 МБ»: the size is the whole set, whatever is already installed. */
 export function medicationDownloadLabel(input: {

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { Page } from '@playwright/test';
 
-export const E2E_ASSET_ORIGIN = 'http://127.0.0.1:4173';
+export const E2E_ASSET_ORIGIN = process.env['E2E_ORIGIN'] ?? 'http://127.0.0.1:4173';
 const BUILT_CONTENT_ROOT = resolve(import.meta.dirname, '../dist/content');
 
 export function hasLocalCompanionPack(name: string): boolean {

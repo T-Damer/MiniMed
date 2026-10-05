@@ -73,6 +73,15 @@ import {
   instructionIndexFromSummaries,
   isEsklpSubstanceDocument,
 } from '@/features/medications/drug-screen';
+import {
+  INSTRUCTION_UNAVAILABLE_NOTICE,
+  type InstructionModuleOffer,
+  instructionOfferLabel,
+} from '@/features/medications/instruction-offer';
+import {
+  type InstructionSourceInfo,
+  instructionSourceInfo,
+} from '@/features/medications/instruction-source';
 import { openMedicationCatalogSearch } from '@/features/medications/medication-navigation';
 import {
   ALLMED_SOURCE_URL,
@@ -115,6 +124,12 @@ interface OfficialDocumentReaderProps {
   readonly medicationReadingMode?: MedicationReadingMode;
   readonly onMedicationReadingModeChange?: (mode: MedicationReadingMode) => void;
   readonly supplementalPanels?: readonly TradeNameSupplement[];
+  /** The group's instruction module, when it would add the official text of this drug. */
+  readonly instructionOffer?: InstructionModuleOffer | null;
+  readonly instructionOfferPending?: boolean;
+  readonly instructionOfferProgress?: number | null;
+  readonly instructionOfferError?: string | null;
+  readonly onInstallInstructionModule?: () => void;
   readonly clinicalMedicationLinks?: readonly ClinicalMedicationLink[];
   readonly initialAnchor?: string | null;
   readonly trail: DocumentTrail | null;
@@ -192,7 +207,10 @@ function cancelIdleWork(handle: number): void {
   window.clearTimeout(handle);
 }
 
-function AllmedSupplementPanel(props: { readonly supplement: TradeNameSupplement }): JSX.Element {
+function AllmedSupplementPanel(props: {
+  readonly supplement: TradeNameSupplement;
+  readonly defaultOpen: boolean;
+}): JSX.Element {
   const [image, setImage] = createSignal<ResolvedMedicationPackagingImage | null>(null);
 
   onMount(() => {
@@ -202,7 +220,11 @@ function AllmedSupplementPanel(props: { readonly supplement: TradeNameSupplement
   });
 
   return (
-    <Disclosure class="document-allmed-supplement" title={props.supplement.product.tradeName}>
+    <Disclosure
+      class="document-allmed-supplement"
+      title={props.supplement.product.tradeName}
+      defaultOpen={props.defaultOpen}
+    >
       <div class="document-allmed-supplement__body">
         <Show when={image()}>
           {(resolvedImage) => (
@@ -289,6 +311,77 @@ function ReferencePointerImage(props: { readonly documentId: string }): JSX.Elem
   );
 }
 
+const OFFER_NOTE =
+  'Официальной инструкции для этого препарата нет на устройстве: она может быть в наборе инструкций его группы.';
+
+const ALLMED_FALLBACK_NOTICE =
+  'Справочный материал Allmed; не является официальной инструкцией ГРЛС.';
+
+/** The notice Allmed's own entry carries; one is enough for the section. */
+function allmedNotice(supplements: readonly TradeNameSupplement[]): string {
+  for (const supplement of supplements) {
+    const notice = supplement.document.metadata['sourceNotice'];
+    if (typeof notice === 'string' && notice.trim()) return notice.trim();
+  }
+  return ALLMED_FALLBACK_NOTICE;
+}
+
+function InstructionSourcePanel(props: { readonly info: InstructionSourceInfo }): JSX.Element {
+  return (
+    <section class="document-instruction-source" aria-label="Источник официального текста">
+      <p class="document-instruction-source__kind">{props.info.kindLabel}</p>
+      <dl class="document-instruction-source__facts">
+        <Show when={props.info.edition}>
+          {(edition) => (
+            <div class="document-instruction-source__fact">
+              <dt class="document-instruction-source__term">Редакция</dt>
+              <dd class="document-instruction-source__value">{edition()}</dd>
+            </div>
+          )}
+        </Show>
+        <div class="document-instruction-source__fact">
+          <dt class="document-instruction-source__term">Источник</dt>
+          <dd class="document-instruction-source__value">
+            <Show when={props.info.sourceUrl} fallback="ГРЛС (Минздрав России)">
+              {(url) => (
+                <a
+                  class="document-instruction-source__link"
+                  href={url()}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  ГРЛС (Минздрав России)
+                </a>
+              )}
+            </Show>
+          </dd>
+        </div>
+        <Show when={props.info.fetchedOn}>
+          {(date) => (
+            <div class="document-instruction-source__fact">
+              <dt class="document-instruction-source__term">Получено</dt>
+              <dd class="document-instruction-source__value">{date()}</dd>
+            </div>
+          )}
+        </Show>
+      </dl>
+      <Show when={props.info.qualityNote}>
+        {(note) => (
+          <p
+            class="document-instruction-source__note"
+            classList={{
+              'document-instruction-source__note--low': props.info.quality === 'ocr-low',
+            }}
+            role="note"
+          >
+            {note()}
+          </p>
+        )}
+      </Show>
+    </section>
+  );
+}
+
 function MedicationProductPanel(props: {
   readonly product: MedicationProduct;
   readonly currentDocumentId: string;
@@ -299,6 +392,11 @@ function MedicationProductPanel(props: {
   readonly formInHeader: boolean;
   /** The quick links already lead to the substance card. */
   readonly substanceLinked: boolean;
+  readonly instructionOffer?: InstructionModuleOffer | null | undefined;
+  readonly instructionOfferPending?: boolean | undefined;
+  readonly instructionOfferProgress?: number | null | undefined;
+  readonly instructionOfferError?: string | null | undefined;
+  readonly onInstallInstructionModule?: (() => void) | undefined;
 }): JSX.Element {
   const choices = () => medicationReadingChoices(props.product, props.openedDocumentId);
   const presentationList = () => (
@@ -342,8 +440,35 @@ function MedicationProductPanel(props: {
           value={props.mode}
           onChange={props.onModeChange}
         />
-        <Show when={choices().note}>
+        <Show when={props.instructionOffer ? OFFER_NOTE : choices().note}>
           {(note) => <p class="document-medication-product__reading-note">{note()}</p>}
+        </Show>
+        <Show when={props.instructionOffer}>
+          {(offer) => (
+            <div class="document-medication-product__offer">
+              <Button
+                type="button"
+                variant="secondary"
+                class="document-medication-product__offer-button"
+                disabled={props.instructionOfferPending ?? false}
+                onClick={() => props.onInstallInstructionModule?.()}
+              >
+                {props.instructionOfferPending
+                  ? props.instructionOfferProgress === null ||
+                    props.instructionOfferProgress === undefined
+                    ? 'Скачиваем инструкции…'
+                    : `Скачиваем инструкции · ${Math.floor(props.instructionOfferProgress * 100)} %`
+                  : instructionOfferLabel(offer())}
+              </Button>
+              <Show when={props.instructionOfferError}>
+                {(message) => (
+                  <p class="document-medication-product__offer-error" role="alert">
+                    {message()}
+                  </p>
+                )}
+              </Show>
+            </div>
+          )}
         </Show>
       </div>
       <Show
@@ -1137,12 +1262,13 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                       onModeChange={(mode) => props.onMedicationReadingModeChange?.(mode)}
                       formInHeader={drugScreen()?.header.formInMeta ?? false}
                       substanceLinked={drugScreen()?.links.substance != null}
+                      instructionOffer={props.instructionOffer}
+                      instructionOfferPending={props.instructionOfferPending}
+                      instructionOfferProgress={props.instructionOfferProgress}
+                      instructionOfferError={props.instructionOfferError}
+                      onInstallInstructionModule={props.onInstallInstructionModule}
                     />
                   )}
-                </Show>
-
-                <Show when={(props.clinicalMedicationLinks?.length ?? 0) > 0}>
-                  <ClinicalMedicationLinksPanel links={props.clinicalMedicationLinks ?? []} />
                 </Show>
 
                 <Show when={(props.supplementalPanels?.length ?? 0) > 0}>
@@ -1156,12 +1282,33 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                     >
                       Справочные материалы Allmed
                     </h2>
+                    <Show
+                      when={
+                        props.medicationProduct && !props.medicationProduct.instructionDocumentId
+                      }
+                    >
+                      <p class="document-allmed-supplements__plaque" role="note">
+                        {INSTRUCTION_UNAVAILABLE_NOTICE}
+                      </p>
+                    </Show>
+                    <p class="document-allmed-supplements__notice">
+                      {allmedNotice(props.supplementalPanels ?? [])}
+                    </p>
                     <div class="document-allmed-supplements__list">
                       <For each={props.supplementalPanels ?? []}>
-                        {(supplement) => <AllmedSupplementPanel supplement={supplement} />}
+                        {(supplement, index) => (
+                          <AllmedSupplementPanel
+                            supplement={supplement}
+                            defaultOpen={index() === 0}
+                          />
+                        )}
                       </For>
                     </div>
                   </section>
+                </Show>
+
+                <Show when={(props.clinicalMedicationLinks?.length ?? 0) > 0}>
+                  <ClinicalMedicationLinksPanel links={props.clinicalMedicationLinks ?? []} />
                 </Show>
 
                 <Show
@@ -1177,6 +1324,10 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                         : documentValue().id
                     }
                   />
+                </Show>
+
+                <Show when={instructionSourceInfo(documentValue())}>
+                  {(info) => <InstructionSourcePanel info={info()} />}
                 </Show>
 
                 <Show when={drugSections().length > 0}>

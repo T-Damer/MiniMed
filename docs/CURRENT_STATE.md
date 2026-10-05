@@ -390,6 +390,96 @@ delays, backoff on 429/503, no CAPTCHA handling, resumable state ledger, never o
   are untouched; the confidence is recorded only for PDFs extracted since this change (older OCR
   documents have the flag and the unknown-word proxy only).
 
+## Official ГРЛС instructions and Allmed as downloadable modules — 2026-10-05 (STATE GI1)
+
+The ~8 950 collected ГРЛС instructions were in no module; now they ship, one module per ЕСКЛП group, and the
+Allmed reference (until now only the local dev companion `public/content/medications.db`, catalog entry without
+artifact) is a downloadable module too. Both need app **0.6.48** (`minAppVersion`); the catalog entries are
+`releaseState: preview`, i.e. like the ЕСКЛП groups they appear with «Экспериментальные модули».
+
+- **Builder** (`tools/ingest/src/localmed_ingest/grls_instruction_modules.py`, CLI
+  `tools/ingest/scripts/build_grls_instruction_modules.py plan|build`, tests `tests/test_grls_instruction_modules.py`;
+  it replaces the Sep-28 `build_grls_atc_modules.py` partition, whose `data/build/grls-instructions-atc-*.db` are now
+  obsolete). Input = every row of `grls-instruction-text-manifest.jsonl` with `extraction == prepared` (8 947 distinct
+  document ids; a PDF fetched under two registration numbers is one document that serves both). Group = the ЕСКЛП
+  module that lists one of the document's registration numbers (`data/build/release-esklp`; primary registration
+  first, otherwise the most common group, ties alphabetical and flagged `atcGroupBasis`); no ЕСКЛП registration or no ATC
+  → `unclassified` («без АТХ»). Only the front matter of the prepared Markdown changes; the body, `localmed:source` spans,
+  ids, section and chunk anchors stay byte-identical (checked against the Sep-28 build: 690/690 chunks equal). Added
+  metadata, all taken from the manifest: `documentKind` (`leaflet` / `national-instruction` / `ohlp` / `unknown`),
+  `fetchedAt`, `ocr`, `textExtractionMode`, `ocrEngine`, `ocrMeanConfidence`, `ocrLowConfidenceRatio`,
+  `unknownWordRatio`, `qualityScore`, `textSha256`, `pdfPageCount`, `registrationNumbers` (every number the PDF serves),
+  `atcGroup`, `atcGroupBasis`; `officialSourceUrl`, `instructionLabel` («Изм. № …») and `pdfSha256` were already there.
+  A leaflet/ОХЛП title names its kind («РАМИПРИЛ: листок-вкладыш»). Cards (`official_registry_summary`) are not shipped
+  (ЕСКЛП holds the registry data). Lexical only (no hash embeddings), then `medbase compact-module-search` (all 15
+  passed the fingerprint/bm25/text-hash proof), framed zstd (`scripts/package-instruction-modules.ts`, shared archive
+  code in `scripts/lib/zstd-module-archive.ts`, also used by `repack-module-indexes-zstd.ts`; decoded again with the app's
+  reader and with the reference `zstd` CLI, all 16 match the catalog checksums).
+- **Left out:** 3 of 8 947 fail the builder's own guards and are listed in the reports (two OCR headings with control
+  characters/backslashes, one English-dominant text); 6 PDFs are `not-prepared` (no text).
+- **Published** additively to new branches `datasets/grls-instructions-2026.10.05-056961ab2b54` (15 files) and
+  `datasets/allmed-2026.10.05-2d39a7fc2b43` (1 file) with `publish-module-zstd-mirror.sh --family esklp --create`;
+  `artifact-url.ts` maps those tags to `raw.githubusercontent.com/…/datasets/<tag>/modules/<file>.db.zst`. All 16 URLs
+  return the catalog's bytes (size and SHA-256) with CORS. Catalog `release-0.6.48-grls.2026.10.05` (827 modules, +15,
+  Allmed completed with its artifact, same version and `sourceSetDigest` so a locally mounted companion stays valid);
+  `catalog:shell` regenerated.
+
+| Module (`minimed.medications.instructions.<group>.ru`) | documents | registrations served | download MB | installed MB |
+|---|---:|---:|---:|---:|
+| alimentary-metabolism | 1 217 | 1 761 | 26.5 | 159.8 |
+| antiinfectives | 1 245 | 1 760 | 40.9 | 236.0 |
+| antineoplastic-immunomodulating | 688 | 913 | 25.9 | 141.9 |
+| antiparasitic | 30 | 49 | 0.5 | 3.3 |
+| blood | 516 | 734 | 15.8 | 96.2 |
+| cardiovascular | 949 | 1 361 | 28.2 | 167.6 |
+| dermatological | 502 | 754 | 7.3 | 47.7 |
+| genitourinary-hormones | 262 | 366 | 7.1 | 41.4 |
+| musculoskeletal | 616 | 880 | 16.3 | 97.7 |
+| nervous-system | 1 086 | 1 547 | 30.1 | 174.5 |
+| respiratory | 680 | 965 | 13.1 | 84.2 |
+| sensory-organs | 203 | 272 | 4.9 | 29.4 |
+| systemic-hormones | 87 | 126 | 2.8 | 15.5 |
+| unclassified («без АТХ») | 705 | 1 040 | 7.2 | 49.9 |
+| various | 158 | 221 | 3.9 | 22.8 |
+| **15 modules** | **8 944** | **12 749** | **230.6** | **1 367.8** |
+| `minimed.medications.ru` (Allmed, 4 708 entries) | 4 708 | — | 48.7 | 276.5 (was 514.3) |
+
+  Uncompacted the instruction packs were 1 883 MB (−27 %). The whole «Препараты» set (ЕСКЛП 68.7 MB + instructions 230.6 +
+  Allmed 48.7) is **348 MB download, 3 074 MB installed** (the empty-catalog / onboarding «Скачать препараты» button reads
+  332 МБ in MiB), installed as the app does from the mirror in a clean browser profile in 15 minutes on this loaded
+  laptop. Kinds in the modules: 4 671 instructions, 3 811 leaflets, 5 ОХЛП, 457 unclassified (scans); 2 296 OCR texts.
+- **Coverage** (`tools/ingest/scripts/measure_grls_instruction_coverage.py`, `data/build/grls-instruction-modules/coverage.json`):
+  12 740 of 27 049 active non-substance ГРЛС registrations (47.1 %) and 12 666 of 29 300 ЕСКЛП registrations (43.2 %) have an
+  official text; 2 353 of 3 324 ЕСКЛП МНН cards (70.8 %), 5 075 of 7 672 СМНН nodes (66.2 %), 2 811 of 4 055 МНН × form-class
+  groups (69.3 %); in the collector's «INN + dosage-form class» groups 2 971 of 4 383 (67.8 %), ЖНВЛП groups 961 of 1 138
+  (84.4 %). It grows with the daily collector window (about 14 registrations a day); a later delta is a new module version
+  or additional modules by the same pipeline.
+- **App.** `instruction-source.ts`: kind label («Листок-вкладыш (для пациента)», «Инструкция по медицинскому применению»,
+  «ОХЛП (…)»), edition, ГРЛС link (https only), fetch date and an OCR/low-quality note, shown above any
+  `official_drug_instruction` text; `instructionIndexFromSummaries` indexes a PDF under every registration it serves and
+  prefers ОХЛП > instruction > leaflet when one registration has several documents. `allmed-matching.ts`: an Allmed entry
+  is attached to a product only for the same ЕСКЛП substance, the same trade name and a compatible dosage form (a form only
+  rules an entry out when both sides name forms with nothing in common; no match across substances or by similarity) — used
+  for the merged «Кратко (Allmed)» text and the Allmed panel. The Allmed panel shows its own notice («не официальная
+  инструкция ГРЛС»), and for a drug without an installed official text the plaque «Полная официальная инструкция пока
+  недоступна — показана краткая справка Allmed» plus, when the group's instruction module is in the catalog and not
+  installed, «Скачать инструкции группы «…» · 495 КБ» (downloads through the module runtime, reconnects the core and opens
+  «Инструкция»). Without Allmed only the official text is shown (the «Кратко» side is the ЕСКЛП card). The «Скачать
+  препараты» flow already selects every `kind: medication` module, so it now includes the instruction modules and Allmed;
+  its explanation text names them.
+- **Verified in a browser** (390 px, light/dark, headless Chromium, clean profile, packages from the mirror): the whole
+  «Скачать препараты» set installs (16 976 documents, 2 931 МБ); Мефлохин (OCR instruction): switch «Кратко (Allmed) /
+  Инструкция», source block with edition «Изм. № 1, ЛП-004502, 2022», link, date and OCR note; Вермокс (leaflet): label
+  «Листок-вкладыш (для пациента)»; with the antiparasitic instruction module removed the plaque and the offer appear,
+  the offer downloads 0.5 MB and opens the text (`apps/app/e2e/grls-instruction-modules.spec.ts`, opt-in with
+  `GI1_MIRROR_E2E=1`, passes against a 0.6.48 build). Unit tests: `instruction-source`, `allmed-matching`,
+  `instruction-offer`, `artifact-url`, `catalog.preview` (15 instruction modules + Allmed in the drug set),
+  Python `test_grls_instruction_modules`.
+- **Not verified:** Android/WebView and slow devices; search quality over the mounted instruction modules (they join the
+  lexical search as `official_drug_instruction`, which the scoped search already treats as medication); registrations
+  with several documents of different kinds (none exist yet: the collector now keeps all of a card's current documents);
+  the 3 left-out documents are not repaired.
+
 ## Manufacturer-site instructions (M1) — 2026-10-02
 
 Research and pilot (`docs/research/manufacturer-instructions-2026-10.md`): official instruction texts for
@@ -1239,10 +1329,12 @@ released), the native Android transcriber, and the Android high-refresh display 
   not bundled.
 - The local RLS MKB companion is a classification/reference index with sparse downloaded detail
   content and medicine mentions, not a complete drug-instruction or dosing corpus. The local GRLS
-  instruction builds are selected/current samples rather than complete coverage. There is no released
+  instruction pilot builds are samples; since 0.6.48 the collected official instructions ship as 15 group modules
+  (43 % of ЕСКЛП registrations, see «Official ГРЛС instructions … (GI1)»). There is no released
   deterministic linker yet from exact terms inside instructions (for example, `синдром Жильбера`) to
   stable local condition cards, and ambiguous abbreviations are not context-disambiguated.
-- The published corpus still lacks complete verified drug instructions, legal/normative material,
+- The published corpus has official ГРЛС instruction texts for 43 % of ЕСКЛП registrations (a part of them OCR, flagged), but
+  still lacks complete verified drug instructions, legal/normative material,
   vaccination calendars, nutrition, growth, development, and calculation-rule sources. The complete
   clinical-recommendation snapshot is not yet a complete physician knowledge base.
 - A separate Allmed packaging-image pack is built locally with 4,214 images and 4 rejected source

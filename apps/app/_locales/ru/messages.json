@@ -267,6 +267,10 @@
     "message": "Всегда доступно",
     "description": "Module catalog collection id: core"
   },
+  "collection_grls-instructions": {
+    "message": "Официальные инструкции ГРЛС",
+    "description": "Module catalog collection id: grls-instructions"
+  },
   "collection_pediatrics": {
     "message": "Клиническая педиатрия",
     "description": "Module catalog collection id: pediatrics"

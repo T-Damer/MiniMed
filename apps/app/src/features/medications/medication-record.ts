@@ -1,5 +1,7 @@
 import type { MedicalDocument } from '@localmed/contracts';
 
+import { allmedMatchesProduct } from '@/features/medications/allmed-matching';
+
 export interface MedicationPackage {
   readonly description: string;
   readonly prescriptionStatus: string | null;
@@ -400,22 +402,11 @@ export function mergeAllmedSupplementalText(
   supplements: readonly MedicationProduct[],
 ): MedicationProduct {
   if (product.sourceKind === 'allmed' || !product.mnnDocumentId) return product;
-  const texts = supplements
-    .filter(
-      (supplement) =>
-        supplement.sourceKind === 'allmed' &&
-        supplement.linkedMnnDocumentId === product.mnnDocumentId &&
-        normalizedIdentity(supplement.tradeName) === normalizedIdentity(product.tradeName),
-    )
+  const matched = supplements.filter((supplement) => allmedMatchesProduct(product, supplement));
+  const texts = matched
     .map((supplement) => supplement.shortDescription)
     .filter((text): text is string => Boolean(text));
-  const imageReference = supplements.find(
-    (supplement) =>
-      supplement.sourceKind === 'allmed' &&
-      supplement.linkedMnnDocumentId === product.mnnDocumentId &&
-      normalizedIdentity(supplement.tradeName) === normalizedIdentity(product.tradeName) &&
-      supplement.imageReference,
-  )?.imageReference;
+  const imageReference = matched.find((supplement) => supplement.imageReference)?.imageReference;
   if (texts.length === 0 && !imageReference) return product;
   return {
     ...product,

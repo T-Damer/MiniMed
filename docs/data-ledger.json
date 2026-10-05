@@ -28,8 +28,8 @@
         "data/intermediate/grls-instructions-current-*"
       ],
       "note": "Rate-limited official downloads plus the download state ledger; the only local copy. G1 (2026-10-02) added 30 PDFs; collection stopped at a CAPTCHA (data/build/grls-collect/BLOCKED-by-site).",
-      "bytes": 13330872667,
-      "modified": "2026-10-02"
+      "bytes": 13347785804,
+      "modified": "2026-10-04"
     },
     {
       "path": "data/raw/krasotaimedicina",
@@ -274,14 +274,40 @@
       "modified": "2026-09-29"
     },
     {
+      "path": "data/build/grls-instruction-modules",
+      "class": "RELEASED",
+      "producer": "tools/ingest/scripts/build_grls_instruction_modules.py build + medbase compact-module-search + bun scripts/package-instruction-modules.ts --family grls",
+      "consumers": [
+        "apps/app/src/features/modules/catalog.preview.json (15 minimed.medications.instructions.*.ru entries)"
+      ],
+      "release": "datasets/grls-instructions-2026.10.05-056961ab2b54 (15 .db.zst, 230.6 MB; the local zst/ copy is the published bytes)",
+      "note": "Also keeps reports/, coverage.json, plan.json and the compaction report. The raw and compacted SQLite files were deleted after verification (decode from zst/ or rebuild).",
+      "rebuild": "build_grls_instruction_modules.py build (≈25 min with 3 workers) from data/intermediate/grls-full-final + grls-g1-additions*, then compact + package (≈10 min)",
+      "bytes": 231447429,
+      "modified": "2026-10-05"
+    },
+    {
+      "path": "data/build/allmed-module",
+      "class": "RELEASED",
+      "producer": "medbase compact-module-search over apps/app/public/content/medications.db + bun scripts/package-instruction-modules.ts --family allmed",
+      "consumers": [
+        "apps/app/src/features/modules/catalog.preview.json (minimed.medications.ru artifact)"
+      ],
+      "release": "datasets/allmed-2026.10.05-2d39a7fc2b43 (minimed.medications.ru.db.zst, 48.7 MB; the local zst/ copy is the published bytes)",
+      "rebuild": "compact-module-search over medications.db (≈1 min), package (≈2 min)",
+      "bytes": 48724984,
+      "modified": "2026-10-05"
+    },
+    {
       "path": "data/build/grls-instructions-atc-*.db",
       "pattern": true,
-      "class": "REBUILDABLE",
+      "class": "OBSOLETE",
       "producer": "tools/ingest/scripts/build_grls_atc_modules.py",
-      "consumers": ["GRLS ATC module release (not published yet)"],
+      "consumers": [],
       "rebuild": "python tools/ingest/scripts/build_grls_atc_modules.py (from grls-full-final + release-esklp)",
       "bytes": 2140180480,
-      "modified": "2026-09-27"
+      "modified": "2026-09-27",
+      "note": "Superseded 2026-10-05 by data/build/grls-instruction-modules (released as 15 modules, STATE GI1): built from an older workspace, with registry cards, hash embeddings and without kind/OCR metadata."
     },
     {
       "path": "data/build/grls-instructions-current-189-v2.db",
@@ -329,9 +355,7 @@
       "producer": "release staging",
       "consumers": [],
       "release": "v0.6.34 (20/22 assets)",
-      "note": "Kept by the AGENTS.md rule (newest releases, never fewer than 2).",
-      "bytes": 1689750578,
-      "modified": "2026-09-06"
+      "note": "Kept by the AGENTS.md rule (newest releases, never fewer than 2)."
     },
     {
       "path": "output/release-0.6.35",
@@ -339,9 +363,7 @@
       "producer": "release staging and CI evidence",
       "consumers": [],
       "release": "v0.6.35 (assets)",
-      "note": "Kept by the AGENTS.md rule.",
-      "bytes": 1011381533,
-      "modified": "2026-09-07"
+      "note": "Kept by the AGENTS.md rule."
     },
     {
       "path": "apps/app/public/content/core.db",

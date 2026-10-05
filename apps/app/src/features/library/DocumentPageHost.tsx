@@ -5,7 +5,7 @@ import type {
   MedicalDocumentSummary,
 } from '@localmed/contracts';
 import { fullDocumentCandidateIds } from '@localmed/core';
-import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
+import { createEffect, createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 import {
   displayDocumentTitle,
@@ -15,11 +15,19 @@ import { shouldReloadOfficialDocument } from '@/features/library/document-page-l
 import { OfficialDocumentReader } from '@/features/library/OfficialDocumentReader';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { migrateLegacyUserDocumentHash } from '@/features/library/user-library-routing';
+import { allmedMatchesProduct } from '@/features/medications/allmed-matching';
 import {
   type ClinicalMedicationLink,
   parseClinicalMedicationLinks,
 } from '@/features/medications/clinical-medication-links';
-import { isEsklpSubstanceDocument } from '@/features/medications/drug-screen';
+import {
+  instructionIndexFromSummaries,
+  isEsklpSubstanceDocument,
+} from '@/features/medications/drug-screen';
+import {
+  type InstructionModuleOffer,
+  instructionModuleOffer,
+} from '@/features/medications/instruction-offer';
 import {
   consumeMedicationProductContext,
   medicationProductFromHistory,
@@ -37,6 +45,7 @@ import {
   type ClinicalEditionLink,
   clinicalEditionNotice,
 } from '@/features/modules/clinical-editions';
+import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { contentModuleTaskProgress } from '@/features/modules/module-display';
 import {
@@ -100,6 +109,7 @@ async function loadTradeNameSupplements(
   summaries: readonly MedicalDocumentSummary[],
   mnnDocumentId: string,
   tradeName?: string,
+  product?: MedicationProduct,
 ): Promise<readonly TradeNameSupplement[]> {
   const candidates = linkedAllmedSummaries(summaries, mnnDocumentId).filter(
     (summary) =>
@@ -111,6 +121,8 @@ async function loadTradeNameSupplements(
     if (!result.ok) continue;
     const supplement = parseTradeNameSupplement(result.value);
     if (!supplement || supplement.product.linkedMnnDocumentId !== mnnDocumentId) continue;
+    // Same substance and trade name are not enough: an entry for another dosage form stays out.
+    if (product && !allmedMatchesProduct(product, supplement.product)) continue;
     const key = normalizedTradeName(supplement.product.tradeName);
     if (!uniqueByTradeName.has(key)) uniqueByTradeName.set(key, supplement);
   }
@@ -140,6 +152,10 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
   const [medicationReadingMode, setMedicationReadingMode] =
     createSignal<MedicationReadingMode>('short');
   const [instructionDocument, setInstructionDocument] = createSignal<MedicalDocument>();
+  const [instructionOffer, setInstructionOffer] = createSignal<InstructionModuleOffer | null>(null);
+  const [instructionOfferPending, setInstructionOfferPending] = createSignal(false);
+  const [instructionOfferProgress, setInstructionOfferProgress] = createSignal<number | null>(null);
+  const [instructionOfferError, setInstructionOfferError] = createSignal<string | null>(null);
   const [clinicalMedicationLinks, setClinicalMedicationLinks] = createSignal<
     readonly ClinicalMedicationLink[]
   >([]);
@@ -406,6 +422,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
           listed,
           result.value.id,
           selectedMedicationProduct?.tradeName,
+          selectedMedicationProduct,
         );
         if (!current()) return;
         setSupplementalPanels(supplements);
@@ -480,6 +497,7 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         availableDocuments(),
         source.id,
         next?.tradeName,
+        next,
       );
       if (generation !== productSwitchGeneration || document()?.id !== source.id) return;
       setSupplementalPanels(supplements);
@@ -496,6 +514,103 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       toast.error(
         cause instanceof Error ? cause.message : 'Не удалось загрузить справочные материалы.',
       );
+    }
+  };
+  let instructionOfferGeneration = 0;
+  /** The group's instruction module is offered while a drug of the open card has no official text. */
+  const refreshInstructionOffer = async (
+    product: MedicationProduct | undefined,
+    source: MedicalDocument | undefined,
+  ): Promise<void> => {
+    const generation = ++instructionOfferGeneration;
+    const primaryModuleId = source?.metadata['primaryModuleId'];
+    if (
+      !product ||
+      product.instructionDocumentId ||
+      !source ||
+      !isEsklpSubstanceDocument(source) ||
+      typeof primaryModuleId !== 'string'
+    ) {
+      setInstructionOffer(null);
+      return;
+    }
+    try {
+      const runtime =
+        peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
+      if (generation !== instructionOfferGeneration) return;
+      setInstructionOffer(
+        instructionModuleOffer({
+          substanceModuleId: primaryModuleId,
+          catalogModules: runtime.getCatalog().modules,
+          installedModuleIds: new Set(runtime.listInstalled().map((module) => module.moduleId)),
+          isReleased: isModuleReleased,
+        }),
+      );
+    } catch (cause) {
+      if (generation !== instructionOfferGeneration) return;
+      console.warn('Набор инструкций не удалось проверить.', cause);
+      setInstructionOffer(null);
+    }
+  };
+  createEffect(() => {
+    void refreshInstructionOffer(medicationProduct(), document());
+  });
+
+  /** Downloads the group's instruction module, reconnects the core and opens the new text. */
+  const installInstructionModule = async (): Promise<void> => {
+    const offer = instructionOffer();
+    const product = medicationProduct();
+    const source = document();
+    if (!offer || !product || !source || instructionOfferPending()) return;
+    setInstructionOfferPending(true);
+    setInstructionOfferProgress(null);
+    setInstructionOfferError(null);
+    try {
+      const runtime =
+        peekContentModuleRuntime() ?? getContentModuleRuntime(await loadModuleCatalog());
+      const module = runtime.getCatalog().modules.find((entry) => entry.id === offer.moduleId);
+      if (!module) throw new Error('Набор инструкций не найден в каталоге.');
+      const task = runtime.install(module);
+      setInstructionOfferProgress(contentModuleTaskProgress(task));
+      const unsubscribe = runtime.subscribe((nextTask) => {
+        if (nextTask.id === task.id)
+          setInstructionOfferProgress(contentModuleTaskProgress(nextTask));
+      });
+      let completed: Awaited<ReturnType<typeof runtime.wait>>;
+      try {
+        completed = await runtime.wait(task.id);
+      } finally {
+        unsubscribe();
+      }
+      if (completed.state !== 'completed') {
+        throw new Error(completed.errorMessage ?? 'Не удалось скачать инструкции.');
+      }
+      if (!props.reconnectContent) {
+        throw new Error('Инструкции загружены, но локальный поиск не удалось обновить.');
+      }
+      await props.reconnectContent();
+      const core = props.getCore();
+      if (!core) throw new Error('Локальный поиск ещё не готов.');
+      const list = await core.listDocuments();
+      if (!list.ok) throw new Error(list.error.message);
+      setAvailableDocuments(list.value);
+      const instructionId =
+        instructionIndexFromSummaries(list.value).get(product.registrationNumber) ?? null;
+      setInstructionOffer(null);
+      if (!instructionId) {
+        toast.info('В скачанном наборе нет официальной инструкции для этого препарата.');
+        return;
+      }
+      const next: MedicationProduct = { ...product, instructionDocumentId: instructionId };
+      setMedicationProduct(next);
+      rememberMedicationProduct(source.id, next);
+      await changeMedicationReadingMode('instruction');
+    } catch (cause) {
+      setInstructionOfferError(
+        cause instanceof Error ? cause.message : 'Не удалось скачать инструкции.',
+      );
+    } finally {
+      setInstructionOfferPending(false);
     }
   };
   const showsInstruction = (): boolean => {
@@ -823,6 +938,11 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
                 {...(document()
                   ? { medicationOpenedDocumentId: (document() as MedicalDocument).id }
                   : {})}
+                instructionOffer={instructionOffer()}
+                instructionOfferPending={instructionOfferPending()}
+                instructionOfferProgress={instructionOfferProgress()}
+                instructionOfferError={instructionOfferError()}
+                onInstallInstructionModule={() => void installInstructionModule()}
                 supplementalPanels={showsInstruction() ? [] : supplementalPanels()}
                 drugSupplements={supplementalPanels()}
                 {...(document() ? { medicationSource: document() as MedicalDocument } : {})}

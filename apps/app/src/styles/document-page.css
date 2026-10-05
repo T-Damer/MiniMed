@@ -665,6 +665,101 @@
   font-size: var(--type-small, 0.875rem);
 }
 
+.document-medication-product__offer {
+  display: grid;
+  justify-items: start;
+  gap: 0.35rem;
+}
+
+.document-medication-product__offer-button {
+  min-height: 2.25rem;
+}
+
+.document-medication-product__offer-error {
+  margin: 0;
+  color: var(--theme-danger, var(--ink));
+  font-size: var(--type-small, 0.875rem);
+}
+
+.document-allmed-supplements__plaque {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--theme-border, var(--paper-line));
+  border-left: 0.2rem solid var(--theme-accent, currentColor);
+  border-radius: 0.5rem;
+  color: var(--theme-text, var(--ink));
+  font-size: var(--type-small, 0.875rem);
+  line-height: 1.4;
+  background: var(--theme-surface, var(--paper-surface));
+}
+
+.document-allmed-supplements__notice {
+  margin: 0;
+  color: var(--theme-text-muted, var(--ink-muted));
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.document-instruction-source {
+  display: grid;
+  gap: 0.45rem;
+  margin: 1rem 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--theme-border, var(--paper-line));
+  border-radius: 0.75rem;
+  background: var(--theme-surface-muted, var(--paper-surface));
+}
+
+.document-instruction-source__kind {
+  margin: 0;
+  color: var(--theme-text, var(--ink));
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.document-instruction-source__facts {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+}
+
+.document-instruction-source__fact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.5rem;
+}
+
+.document-instruction-source__term {
+  color: var(--theme-text-muted, var(--ink-muted));
+  font-size: var(--type-small, 0.875rem);
+}
+
+.document-instruction-source__value {
+  margin: 0;
+  color: var(--theme-text, var(--ink));
+  font-size: var(--type-small, 0.875rem);
+  overflow-wrap: anywhere;
+}
+
+.document-instruction-source__link {
+  color: var(--theme-link, var(--theme-accent, currentColor));
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.document-instruction-source__note {
+  margin: 0;
+  color: var(--theme-text-muted, var(--ink-muted));
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.document-instruction-source__note--low {
+  color: var(--theme-text, var(--ink));
+  font-weight: 600;
+}
+
 /* The panel sits on the muted surface; the switch track needs its own ground to stay visible. */
 .document-medication-product__reading-switch {
   background: var(--theme-surface);

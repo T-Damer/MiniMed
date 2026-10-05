@@ -75,6 +75,10 @@
     "message": "Medical records",
     "description": "Medical specialty slug: medical-records"
   },
+  "collection_grls-instructions": {
+    "message": "Official GRLS instructions",
+    "description": "Module catalog collection id: grls-instructions"
+  },
   "collection_pediatrics": {
     "message": "Clinical pediatrics",
     "description": "Module catalog collection id: pediatrics"

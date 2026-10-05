@@ -96,6 +96,12 @@ bun scripts/repack-module-indexes-zstd.ts --family esklp|clinical --source-dir D
   [--compacted] [--catalog-out candidate.catalog.json]
 ```
 
+New modules that have no catalog artifact yet (the ГРЛС instruction groups, Allmed) go through
+`bun scripts/package-instruction-modules.ts --family grls|allmed --source-dir DIR --out-dir DIR --tag TAG
+--catalog-in FILE --catalog-out FILE`, which creates or completes their catalog entries (the tags
+`grls-instructions-…` and `allmed-…` resolve to `datasets/<tag>/modules/`, like `esklp-…`). A blob must stay
+below 100 MB.
+
 The script verifies every output with the app's own decoder, writes a candidate catalog and a report
 (file, URL, sizes, checksums, mirror path) and never touches a published asset. Publishing is a
 separate, explicit step: upload the files to the mirror locations in the report, then commit the
