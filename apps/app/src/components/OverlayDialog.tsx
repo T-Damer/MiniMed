@@ -1,4 +1,12 @@
-import { createEffect, createSignal, type JSX, on, onCleanup, Show } from 'solid-js';
+import {
+  createEffect,
+  createRenderEffect,
+  createSignal,
+  type JSX,
+  on,
+  onCleanup,
+  Show,
+} from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { AppGlyph } from '@/components/AppGlyph';
 import { lockBodyScroll } from '@/components/body-scroll-lock';
@@ -73,7 +81,9 @@ export function OverlayDialog(props: OverlayDialogProps): JSX.Element {
   const [mounted, setMounted] = createSignal(props.open);
   const [closing, setClosing] = createSignal(false);
 
-  createEffect(
+  // A render effect, not createEffect: the views sit inside <Suspense>, and while a resource there
+  // is pending user effects are held back, so an `open` change never mounted the dialog.
+  createRenderEffect(
     on(
       () => props.open,
       (open) => {

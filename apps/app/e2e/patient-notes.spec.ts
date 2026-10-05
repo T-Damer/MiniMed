@@ -143,6 +143,7 @@ test('keeps patient note records local, editable in nested routes, and findable 
 });
 
 test('reminders surface in the tab bar and close with a recorded condition', async ({ page }) => {
+  test.setTimeout(150_000);
   const past = new Date(Date.now() - 3_600_000).toISOString();
   const seeded = {
     cards: [
@@ -177,6 +178,9 @@ test('reminders surface in the tab bar and close with a recorded condition', asy
     persistentOrigin: true,
     localStorage: { 'minimed.patient-notes.v1': JSON.stringify(seeded) },
   });
+  // The separate «Заметки» tab exists once the core is ready; while it loads, notes live under
+  // «Мои файлы» (the badge is there too).
+  await expect(page.getByTestId('search-input')).toBeEnabled({ timeout: 90_000 });
 
   // The due follow-up is loud before the section is even opened.
   const notesButton = page
