@@ -63,8 +63,9 @@ registration of the same МНН**, as a pointer, never as the product's own text
 - The «Инструкция» tab opens the donor's document unchanged (its own source block stays: kind,
   edition, source link, fetch date, OCR note).
 - Above it a fallback block, in this order: the label «Инструкция другого производителя: то же
-  вещество, форма и дозировка» (level 1) or the same label with the warning «Дозировка отличается:
-  проверьте дозы по своему препарату» (level 2); the source product (trade name, holder, form and
+  вещество, форма и дозировка» (level 1) or «Инструкция другого производителя: то же вещество, есть
+  отличия» with the warning «Дозировка отличается: проверьте дозы по своему препарату» (level 2;
+  coordinator correction 2026-10-05: the level-1 label must not claim the same strength there); the source product (trade name, holder, form and
   strength as the registry states them) and its registration number; a note that it is not this
   product's instruction. A level-2 flag of an unstated strength reads «Дозировка в реестре не
   указана: проверьте дозы по своему препарату», a different form wording «Лекарственная форма

@@ -77,13 +77,13 @@ test('a product without its own text shows another registration’s text with a 
     'инструкция другого производителя',
   );
 
-  // Level 2: a different strength (or form wording) keeps the label and warns about it.
+  // Level 2: a different strength (or form wording) says so in the label and warns about it.
   await openCatalogProduct(page, 'Гельминтокс');
   await page.getByRole('radio', { name: 'Инструкция' }).check({ force: true });
   const warned = page.locator('.document-instruction-fallback');
   await expect(warned).toBeVisible({ timeout: 60_000 });
   await expect(warned.locator('.document-instruction-fallback__label')).toHaveText(
-    'Инструкция другого производителя: то же вещество, форма и дозировка',
+    'Инструкция другого производителя: то же вещество, есть отличия',
   );
   await expect(warned.locator('.document-instruction-fallback__warnings')).toContainText(
     'проверьте дозы',

@@ -233,7 +233,11 @@ export function applyInstructionFallbacks(
 /* Wording                                                                                     */
 /* ------------------------------------------------------------------------------------------ */
 
+/** Level 1: the donor matches the product's substance, form and strength. */
 export const FALLBACK_LABEL = 'Инструкция другого производителя: то же вещество, форма и дозировка';
+/** Level 2: only the substance and the form class match; the warnings name what differs. */
+export const FALLBACK_LABEL_WITH_DIFFERENCES =
+  'Инструкция другого производителя: то же вещество, есть отличия';
 
 const FALLBACK_NOT_OWN_NOTE =
   'Это не инструкция выбранного препарата: у него в установленных базах собственного текста нет. Тексты не объединяются и не изменены.';
@@ -284,7 +288,7 @@ export function fallbackNotice(source: InstructionFallbackSource): FallbackNotic
     .join(' · ');
   if (form) facts.push({ term: 'Форма и дозировка', value: form });
   return {
-    label: FALLBACK_LABEL,
+    label: source.level === 1 ? FALLBACK_LABEL : FALLBACK_LABEL_WITH_DIFFERENCES,
     warnings: source.level === 1 ? [] : fallbackWarnings(source.flags),
     sourceFacts: facts,
     note: FALLBACK_NOT_OWN_NOTE,

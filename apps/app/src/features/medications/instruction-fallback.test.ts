@@ -8,6 +8,7 @@ import {
   FALLBACK_FLAG_STRENGTH_DIFFERS,
   FALLBACK_FLAG_STRENGTH_UNKNOWN,
   FALLBACK_LABEL,
+  FALLBACK_LABEL_WITH_DIFFERENCES,
   fallbackNotice,
   fallbackWarnings,
   parseSubstanceFallbackAsset,
@@ -368,9 +369,10 @@ describe('fallbackNotice', () => {
     ]);
   });
 
-  it('level 2 keeps the label and adds the strength warning from the owner decision', () => {
+  it('level 2 does not claim the same strength and adds the strength warning', () => {
     const notice = fallbackNotice({ ...donor, level: 2, flags: FALLBACK_FLAG_STRENGTH_DIFFERS });
-    expect(notice.label).toBe(FALLBACK_LABEL);
+    expect(notice.label).toBe(FALLBACK_LABEL_WITH_DIFFERENCES);
+    expect(notice.label).not.toContain('дозировка');
     expect(notice.warnings).toEqual(['Дозировка отличается: проверьте дозы по своему препарату']);
   });
 
