@@ -19,13 +19,16 @@ and the list is updated when the proposal is better. How search works today:
 
 | Query kind | Set | Lexical | With e5 | Status |
 |---|---|---:|---:|---|
-| Exact names, codes (app path) | `benchmark:real:release` lookup; `benchmark:doctor-lookup` | R@1 0.803, R@5 0.934; doctor R@5 0.7 → 0.9 | — (lexical by design) | S2 done |
-| Diagnosis phrase → КР | Q1 RuCCoD, test | R@5 0.20 | 0.70 | shipped 0.6.48 |
-| Complaint → КР | Q1 RuMedPrime, test | R@5 0.04 | 0.28 | weakest area |
+| Exact names, codes (app path) | `benchmark:real:release` lookup; `benchmark:doctor-lookup` | R@1 0.803, R@5 0.934; doctor R@5 0.7 → 0.9 → 1.0 (S3) | — (lexical by design) | S2, S3 done |
+| Name on the wrong keyboard layout or in Latin letters | `name-variant-queries.json`, 720 generated | hit@1 0.063, hit@5 0.094 → 0.947 / 0.956 | — | S3 item 3 shipped |
+| Owner queries («Все», lookup) | `owner-queries.json`, 54 | hit@1 0.167, hit@5 0.444 (rush 0.581, thoughtful 0.261) → 0.278, 0.574 (0.774, 0.304) | — | S3 items 3–4 |
+| Diagnosis phrase → КР | Q1 RuCCoD, test | R@5 0.20 (KR packs) | 0.70 | shipped 0.6.48 |
+| Diagnosis phrase → КР through the МКБ card | Q1 RuCCoD, test, `run-icd-bridge.ts` | core only 0.417 → 0.536; core + mkb.db 0.298 → 0.476; 723 КР modules 0.274 → 0.476 | 0.643 → 0.643 (no change) | S3 item 4 shipped (lexical) |
+| Complaint → КР | Q1 RuMedPrime, test | R@5 0.04 (0.10 with the pointers) , unchanged by the bridge | 0.28 (0.19 in the S3 re-run) | weakest area |
 | Drug by indication («от головы») | `drug-indication-queries.json`, 45 | hit@1 0.16, hit@5 0.47 | hit@1 0.62, hit@5 0.91 | E3 shipped to main |
 | Drug names | 100 ГРЛС trade names | top-1 0.99 | 1.00 | E3 gate |
 | Description → term («воспаление слизистой желудка» → гастрит) | `reverse-term-queries.json`, 35 | hit@5 0.80 | 0.49 | lexical kept (E5 rejected) |
-| Diagnosis / complaint → МКБ card | Q1, «Болезни» scope | R@5 0.28 / 0.03 | 0.39 / 0.02 | see item 4 |
+| Diagnosis / complaint → МКБ card | Q1, «Болезни» scope | R@5 0.28 / 0.03 | 0.39 / 0.02 | cards are the bridge's input (item 4); e5 on cards rejected |
 
 ## Ordered plan
 
@@ -34,12 +37,19 @@ and the list is updated when the proposal is better. How search works today:
    service words («от», «таблетки») acting as the subject, and generic form words outranking it.
 2. **Description → term, symptoms → disease** (E5) — measured, not shipped: see the rejected table.
    Lexical search after S2 already answers description queries (hit@5 0.80).
-3. **Keyboard layout and transliteration for names.** «ьуеащкьшт» → «метформин», «nurofen» →
-   «нурофен»: deterministic, cheap, common on phones; only as a fallback when the typed form finds
-   nothing exact.
-4. **Diagnosis → МКБ code → КР bridge.** Match the query to an МКБ card (lexically or by e5), then
-   lift the recommendations that list that code. Deterministic data already exists (КР carry their
-   МКБ codes); expected to help diagnosis phrasing in lexical mode too.
+3. **Keyboard layout and transliteration for names** — done (S3, 2026-10-06). «ьуеащкьшт» and
+   «vtnajhvby» → «метформин», «nurofen» → «нурофен», «Nurofen» → «Нурофен» through the drug's declared
+   Latin name. Only when the typed form names nothing in the first five groups; the typed response is
+   never changed otherwise. Numbers and design: [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md).
+   Left: names with several equally plausible spellings («пэгаспаргаза» ← «pegaspargaza»), soft signs in
+   long adjectives («дуоденальная» ← «duodenalnaya»), and Latin typed on the Russian layout without a
+   `nameLat` (only the transliteration path).
+4. **Diagnosis → МКБ code → КР bridge** — done in lexical mode (S3, 2026-10-06). A card (or disease
+   article) whose title covers ≥ 80 % of the query words puts the recommendations that list its code
+   first in «Клинический разбор»; in «Все» they follow the card and the first recommendation found
+   by words. e5 mode is unchanged (R@5 0.643 both ways: e5 already finds them). Complaints are not
+   helped: a symptom list names no card, and the dev-set variant that bridged weaker cards too
+   (+0.11 R@5 on complaints) broke the demo and lookup gates — see the rejected table.
 5. **Semantic candidates in «Все»** once items 1–2 show no name regression in the per-scope gates;
    «Все» is the default search box.
 6. **Related documents from existing links** («Похожие по теме»): disease card → its КР and drugs,
@@ -53,6 +63,24 @@ and the list is updated when the proposal is better. How search works today:
    word may occur in it.
 10. **Approximate vector search** only when a phone measurement of the exact scan exceeds ~300 ms.
 
+Candidates from the owner query baseline (2026-10-06, `bun run benchmark:owner-queries`; none
+started). The committed baseline numbers (rush hit@5 0.774, thoughtful 0.304) were taken in a tree
+that already held the S3 code; the clean pre-S3 state, measured with `S3_OFF=1`, is hit@1 0.167 /
+hit@5 0.444 (rush 0.581, thoughtful 0.261), and with S3 0.278 / 0.574 (0.774, 0.304):
+
+11. **Abbreviation expansion derived from the sources.** «аг лечение» → the 274н sanatorium order,
+    «фп антикоагулянты», «окс», «хсн» are weak. КР «Список сокращений» sections define
+    «АГ – артериальная гипертензия»; expand from those definitions (and the core's
+    `clinical-abbrev` identities), not from a hand-written list.
+12. **Equal-title tie-break.** krasotaimedicina «Мигрень» / «Острый панкреатит» rank above the КР with
+    the identical title, and МКБ nodes crowd the top five («жаропонижающее ребенку» → poisoning codes
+    T39/X40). Candidate: prefer the recommendation for equal title matches (owner decision pending;
+    measure on `owner-queries.json` and the lookup gate first).
+13. **Missing-letter drug typo** («цефтриаксн» finds nothing relevant): spelling candidates for
+    names one letter shorter than a registered name (`medication-spelling.ts` starts at five letters).
+14. **Case vignettes** («Внезапная слабость в правой руке и нарушение речи два часа назад»): route
+    long case-like queries to the clinical analysis / e5 path automatically; same ground as item 5 and 8.
+
 ## Measured and rejected
 
 | Idea | Result | Date |
@@ -64,6 +92,10 @@ and the list is updated when the proposal is better. How search works today:
 | Aleph Alpha Kolibri-1 (78B MoE chat LLM) for search | not an embedder/reranker; English/German only, 47–78 GB; [note](research/kolibri-1-2026-10-05.md) | 2026-10-05 |
 | Rule list «от X / при X» → indication search | not needed: indication vectors answer it without rules | 2026-10-05 |
 | e5 on МКБ card names/synonyms + disease-article overview/symptoms in «Болезни» | description → term hit@5 0.80 → 0.49; diagnosis → card R@5 0.28 → 0.39; short МКБ rows attract unrelated cards | 2026-10-05 |
+| МКБ bridge from every card, recommendations first (clinical analysis) | Q1 dev КР R@5 0.162 → 0.347 (complaints 0.07 → 0.21), but the app-path demo set loses recall@1 0.526 → 0.211–0.421: a card matched through one word of «аугментин пневмония» puts «пневмония у детей» before the adult recommendation | 2026-10-06 |
+| МКБ bridge placed right behind its card / by score / appended, in name lookup | right behind the card: lookup recall@1 0.803 → 0.689, mrr 0.855 → 0.766; appended: Q1 dev R@5 0.174 (no gain) | 2026-10-06 |
+| МКБ bridge in name lookup without «first group is a card» | `benchmark:all` lookup recall@1 0.180 → 0.115: «парацетамол», «ибупрофен», «цефтриаксон» get recommendations in front of the drug through «Отравление парацетамолом» and neighbours | 2026-10-06 |
+| МКБ bridge on top of e5 hybrid | Q1 test, 723 КР modules: R@5 0.423 → 0.423, MRR 0.350 → 0.351 — nothing to add | 2026-10-06 |
 
 ## Open owner decisions
 

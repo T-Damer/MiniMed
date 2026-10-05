@@ -12,7 +12,9 @@ measured plan: [`SEARCH_ROADMAP.md`](SEARCH_ROADMAP.md).
 2. **Understanding the words.** Spelling, ё/е, abbreviations (АД, ОАК, СРБ), colloquial aliases
    («температурит» → лихорадка), drug forms and routes (сироп, в/м), negations («нет кашля») and
    numbers (age, weight, temperature) are recognised. Words that only describe the form or the
-   audience («таблетки», «у ребёнка») never count as the subject.
+   audience («таблетки», «у ребёнка») never count as the subject. A name that finds nothing as
+   typed is retried on the other keyboard layout, as a Latin spelling («nurofen» → «нурофен») or
+   through a drug's Latin name, and the page says which spelling was searched.
 3. **Word search.** SQLite FTS5 with BM25 over every downloaded pack, several weighted branches per
    query. Exact names, codes and titles are pinned to the top.
 4. **Search by meaning (optional).** With the e5-small model downloaded (Settings → «Поиск по
@@ -22,7 +24,9 @@ measured plan: [`SEARCH_ROADMAP.md`](SEARCH_ROADMAP.md).
    «Препараты»; the other tabs stay word-only so an exact name is never outranked by a paraphrase.
 5. **Ranking.** Word and meaning scores are combined (the meaning score is taken relative to the
    query's best match), chunks are grouped by document, titles naming the subject rise, replaced
-   editions of a recommendation are hidden, and a pointer and its downloaded document merge.
+   editions of a recommendation are hidden, and a pointer and its downloaded document merge. A card
+   that names the diagnosis («J20.9 Острый бронхит неуточнённый») brings the recommendations that
+   list its МКБ code.
 6. **Result.** Always the source text with the matching passage and a link to the exact place in
    the document. Nothing is generated.
 
@@ -31,7 +35,7 @@ measured plan: [`SEARCH_ROADMAP.md`](SEARCH_ROADMAP.md).
 | Query | Example | Words only | With meaning |
 |---|---|---:|---:|
 | Exact name or code | «амоксициллин», «J18.9» | right document first 80%, top 5 93% | (words only) |
-| Diagnosis in own words → КР | «острый бронхит неуточнённый» | top 5 20% | 70% |
+| Diagnosis in own words → КР | «острый бронхит неуточнённый» | top 5 20% (27% → 48% with the МКБ bridge, 723 КР modules) | 70% |
 | Complaint → КР | «боли в эпигастрии после еды…» | top 5 4% | 28% |
 | Drug by indication | «таблетки от головы», «от изжоги» | top 5 47% | 91% |
 | Description → disease | «воспаление слизистой желудка» | top 5 80% | (words only) |

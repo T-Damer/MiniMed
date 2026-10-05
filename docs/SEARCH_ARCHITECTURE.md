@@ -20,7 +20,10 @@ SearchHome / SearchWorkspace (apps/app/src/features/search)
       → exact-identity rescue    titles, aliases, spelling candidates
       → groupResults             chunks → document groups
       → rankSearchGroupsByQuery  packages/core/src/query-group-ranking.ts
-      → TerminologySearchIndex.rank, exact-title sort, collapse by target document
+      → TerminologySearchIndex.rank, exact-title sort
+      → bridgeIcdRecommendations МКБ card → recommendations that list its code (S3)
+      → collapse by target document
+  → withNameVariantFallback      layout / transliteration / Latin-name retry of a weak lookup (S3)
 ```
 
 The UI never touches SQL. Every store implements the `MedicalStore` port
@@ -70,6 +73,39 @@ audience, `lookupTitleRescue` (a `title : (subject AND audience)` FTS query run 
 `lookup-subject.ts` decides which words are subject words. Short Cyrillic terms become exact
 inflection lists in the FTS expression (`ftsLookupToken`); `hasWordPrefix`/`findWordPrefixMatches`
 (`normalize.ts`) implement the same word-start rule for `matchedTerms`.
+
+### Name variants: keyboard layout, transliteration, Latin names (S3, item 3)
+
+`createMedicalCore` wraps the lookup search (`analysisMode: 'lookup'`; the clinical analysis is not
+touched) in `withNameVariantFallback` (`create-medical-core.ts`), and only that wrapper changes
+anything:
+
+1. The typed query is searched as usual. `responseNamesQuery` (`name-variant-fallback.ts`) says it
+   already answers the name when the response has identities, a group with a terminology match, or
+   one of the first five groups whose title or declared alias begins with every typed word (a close
+   token, edit distance ≤ 1–2 from five letters, also counts). Then the response is returned
+   untouched — a query that already matches never changes.
+2. Otherwise `nameVariantCandidates` builds at most three rewrites: the titles of documents whose
+   `metadata.nameLat` equals the typed query or its layout swap (`QueryDocumentIndex.titlesForLatinName`
+   — the real Latin name of an Allmed drug, «Nurofen» → «Нурофен»), then
+   `nameQueryVariants` (`packages/search-lexical/src/name-variants.ts`): the same keys on the other
+   layout (`swapKeyboardLayout`: «vtnajhvby» → «метформин», including the punctuation keys that are
+   letters, `[` → х), the Russian readings of a Latin spelling (`transliterateLatinName`: ordered
+   rules with ambiguity flips — ц/к for c, г/х for h, э/е, ч/х for ch, silent final e, «-um», doubled
+   consonants — «nurofen» → «нурофен», «paracetamol» → «парацетамол»), and both steps in a row for
+   Latin typed on the Russian layout («ьуеащкьшт» → «metformin» → «метформин»). Only short
+   single-script name-shaped queries (≤ 3 words, ≥ 4 letters) produce variants.
+3. A rewrite is searched only when every word of it of four letters or more begins like a title or
+   alias word of the mounted corpus (`QueryDocumentIndex.hasNameWordPrefix`: the first five letters;
+   built lazily on first use), so gibberish and unknown names cost no search.
+4. The first rewrite whose own response names it replaces the response; it carries
+   `queryRewrite: {kind, query}` (contract `QueryRewrite`) and the UI says «Показаны результаты по:
+   «…»» (`SearchWorkspace.tsx`, `data-testid="search-rewrite-note"`). Otherwise the typed response
+   is returned. `createMedicalCore({nameVariants: false})` switches it off for measurements.
+
+`SEARCH_METADATA_FIELDS` of the SQLite store and the Capacitor store project `nameLat`,
+`icd10Codes` and `mkbCode` into `listSearchDocuments`/`listNavigationDocuments` for this and for
+the bridge below.
 
 ## 3. Lexical retrieval
 
@@ -160,6 +196,30 @@ e5 embedder ignores). The Capacitor native store answers `scoreVectors` only if 
   then `collapseGroupsByTargetDocument` (a pointer and its installed full document become one
   group), then `slice(0, limit)`.
 
+### МКБ → recommendation bridge (S3, item 4)
+
+After ranking and before the collapse of pointers into documents, `bridgeIcdRecommendations`
+(`create-medical-core.ts`, data side in `icd-bridge.ts`) joins a diagnosis to the recommendations
+that cover it through source codes only:
+
+- The best-ranked (`cards` = 5) groups that are not recommendations but carry МКБ codes
+  (`documentIcdCodes`: `icd10Codes`/`mkbCode`; cards, disease articles, core pointers) lend their
+  codes if their score is at least 30 % of the best card's.
+- `IcdRecommendationIndex` (built lazily from the search documents) lists recommendations and
+  recommendation pointers (`catalogFamily: 'clinical'`, `icd10Codes`) by МКБ category; a recommendation
+  matches a code that it lists, or a category/subcode of it; sibling subcodes never match.
+  At most 4 per card and 6 in total; recommendations already in the list (also through their pointer's
+  `targetDocumentId`) are skipped. Their passages are read by `buildExactIdentityResults` and labelled
+  «Рекомендация по коду МКБ J20.9».
+- Placement depends on the evidence and the mode (`DEFAULT_ICD_BRIDGE_TUNING`): a card whose title
+  covers ≥ 80 % of the query words (`titleCoverage`) is a diagnosis match. **Clinical analysis**:
+  its recommendations go first, behind exact-name groups; weaker cards add nothing. **Lookup**: only
+  when the first group is itself a card or disease article; its recommendations follow the first
+  recommendation found by words, weaker cards' the first two. Exact names, aliases and spelling
+  candidates (`pinnedIds`) are never moved.
+- `createMedicalCore({icdBridge: false | Partial<IcdBridgeTuning>})` switches or tunes it; the e5
+  hybrid path uses the same code after `fuseSemanticResults` and grouping.
+
 ## 6. Packs and modules
 
 - **Core** (`core.db`, bundled/downloaded): pointers for medications, КР and legal documents,
@@ -182,6 +242,9 @@ e5 embedder ignores). The Capacitor native store answers `scoreVectors` only if 
 | `tools/benchmarks/src/export-retrieval-candidates.ts` + `embedding_eval.py` | offline lexical vs embedding comparison ([research](research/embeddings-kr-2026-10-02.md)) |
 | `tools/benchmarks/src/probe-exact-lookup.ts` | S2 probe: top-5 titles of every lookup miss (release + doctor-lookup sets) and of «nonsense» probes («от головной боли», «таблетки от головы») in the «Все» and «Лекарства» scopes; `--query="…"` adds queries |
 | `tools/benchmarks/retrieval-icd-queries.json` | Q1 real-language queries with ICD-based КР relevance |
+| `tools/benchmarks/src/run-icd-bridge.ts` | S3 item 4: Q1 through `ScopedMedicalCore('diagnosis' \| 'guidelines')`, bridge off/on, optional `--packs=<КР modules>`, `--e5-model-dir=`, `--tunings='[…]'` |
+| `tools/benchmarks/src/build-name-variant-queries.ts` → `name-variant-queries.json`, `run-name-variants.ts` | S3 item 3: layout / Latin-spelling variants of real names plus negative controls, fallback off/on, hit@1/hit@5 and latency |
+| `S3_OFF=1` (any `openRealCorpus` benchmark), `S3_BRIDGE_JSON='{…}'` | state before S3 / tuning override for `run-real-corpus`, `run-doctor-lookup`, `run-owner-queries` |
 | `tools/benchmarks/src/run-semantic-kr.ts` | Q1 over the e5 КР packs through MedicalCore: lexical / semantic / hybrid fusion grid |
 
 ## Pitfalls

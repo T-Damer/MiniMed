@@ -381,6 +381,35 @@ pack stays a pointer; the calendars themselves are now a tool, **«Календ�
   packs on the host. Not yet measured on a phone; ESKLP, МКБ and core packs have no e5 vectors.
 - Code map of the whole search path: [SEARCH_ARCHITECTURE.md](SEARCH_ARCHITECTURE.md).
 
+## Search: name variants and МКБ → КР bridge — 2026-10-06 (STATE S3)
+
+Roadmap items 3 and 4 ([SEARCH_ROADMAP.md](SEARCH_ROADMAP.md), code map in
+[SEARCH_ARCHITECTURE.md](SEARCH_ARCHITECTURE.md)); both on by default in `createMedicalCore`
+(`nameVariants`, `icdBridge`), measured off/on with `S3_OFF=1`.
+
+- **Names on the wrong layout or in Latin letters.** «vtnajhvby», «ьуеащкьшт», «nurofen», «Nurofen»
+  find the drug; a lookup whose first groups name nothing typed is retried (layout swap, Latin →
+  Russian reading, drug `nameLat`) and the page says «Показаны результаты по: «метформин»»
+  (`queryRewrite`). `tools/benchmarks/name-variant-queries.json` (720 generated variants of real
+  МНН, Allmed trade names, disease and КР titles + 166 controls): hit@1 0.063 → 0.947, hit@5 0.094 →
+  0.956; controls: 3 of 166 rewritten («vitamin D», «Parkinson», «APGAR» — none had a title match as
+  typed), the rest identical. Cost: only on a weak lookup with a plausible rewrite, +50 ms p50 / ~1 s
+  p95 over the 720 cases (nearly all of which are such misses). Not covered: the clinical analysis.
+- **МКБ → КР bridge.** Cards and disease articles carry `icd10Codes`; recommendation pointers list
+  theirs. Q1 test (lexical, `run-icd-bridge.ts`): КР R@5 0.264 → 0.325 with core only (RuCCoD 0.417
+  → 0.536), 0.190 → 0.282 with core + mkb.db (0.298 → 0.476), 0.190 → 0.294 with 723 КР modules
+  (0.274 → 0.476); e5 hybrid 0.423 → 0.423; complaints unchanged. Latency unchanged (p50 311 → 309 ms).
+- **Gates, off → on:** `benchmark:real:release` lookup R@1 0.803 / R@5 0.934, demo 0.526 / 0.632
+  — identical; `benchmark:all` identical; `benchmark:doctor-lookup` R@5 0.9 → 1.0; owner queries
+  hit@1 0.167 → 0.278, hit@5 0.444 → 0.574; 100 Allmed trade names top-1 100/100 both; `reverse-term`
+  hit@5 23/35 both. Not measured (packs not on disk): the ГРЛС name and indication sets of E3,
+  e5 on «Болезни», phone latency, the «Рекомендации» scope with e5 and 723 modules.
+- Storage: `listSearchDocuments`/`listNavigationDocuments` (SQLite and Capacitor) now project
+  `icd10Codes`, `mkbCode`, `nameLat`. Tests: `name-variants.test.ts`, `icd-bridge.test.ts`,
+  `packages/core/tests/name-variants-and-icd-bridge.test.ts`, `apps/app/e2e/search-name-variants.spec.ts`.
+  The e2e skeleton spec `search-skeleton.spec.ts` (lookup, 390px) was flaky while other work was in
+  the tree; it does not involve a rewrite.
+
 ## Discovery core 0.6.47 — 2026-10-02 (STATE CORE2)
 
 Published as `core-0.6.47` (prerelease; `core-0.6.45` stays published for rollback). Rebuilt with
