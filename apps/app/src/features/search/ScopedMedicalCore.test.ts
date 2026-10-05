@@ -442,6 +442,20 @@ describe('ScopedMedicalCore', () => {
     ]);
   });
 
+  it('keeps tool documents out of the document sections', () => {
+    const assessment = {
+      sourceType: 'medical_reference',
+      metadata: { interactiveAssessmentId: 'paei' },
+    };
+    const calculator = { sourceType: 'medical_reference', metadata: { calculationRequired: true } };
+    expect(documentMatchesSearchScope(assessment, 'guidelines')).toBe(false);
+    expect(documentMatchesSearchScope(assessment, 'assessments')).toBe(true);
+    expect(documentMatchesSearchScope(assessment, 'all')).toBe(true);
+    expect(documentMatchesSearchScope(calculator, 'guidelines')).toBe(false);
+    expect(documentMatchesSearchScope(calculator, 'calculators')).toBe(true);
+    expect(documentMatchesSearchScope({ sourceType: 'medical_reference' }, 'guidelines')).toBe(true);
+  });
+
   it('routes core catalog pointers by catalog family and entity type', () => {
     const medication = pointerDocument('medication-pointer', 'medication', 'medication');
     const clinicalDisease = pointerDocument('disease-pointer', 'clinical', 'disease');

@@ -83,6 +83,12 @@ export function documentMatchesSearchScope(
   if (scope === 'personal') return false;
   if (scope === 'calculators') return searchResultDocumentKind(document) === 'calculator';
   if (scope === 'assessments') return searchResultDocumentKind(document) === 'assessment';
+  // Questionnaires and calculators have sections of their own; a tool document whose source type is
+  // a reference one (PAEI in «Клинические рекомендации») must not appear in the document sections.
+  if (scope !== 'all' && scope !== 'diagnosis') {
+    const kind = searchResultDocumentKind(document);
+    if (kind === 'assessment' || kind === 'calculator') return false;
+  }
   if (scope === 'conditions' && document.metadata?.['terminology']) {
     return ['condition', 'disease', 'syndrome', 'symptom'].includes(
       String(document.metadata['entityType']),
