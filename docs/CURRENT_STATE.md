@@ -85,6 +85,34 @@ timing, the system share sheet, camera scan of the QR codes), Telegram/WhatsApp 
 the user-agent heuristic is tested), GitHub Pages hosting of the scope, a doctor result link that
 deep-links into the app (not built: file and pasted text instead).
 
+## Search header, core status line and source-card download — 2026-10-05 (STATE UX8)
+
+- **Header.** The search top row holds only the history button, the update notice and «?». With the
+  notice visible the old row (history, notice, dice, graph, «?») was 392 px wide at 360 px. The
+  random record and the relation map are now rows of the «?» menu (`Справка`), under a divider after
+  the two help rows: «Случайная запись» (current section; disabled with «Откроется, когда база будет
+  готова» until the core is up) and «Карта связей» (hidden for clinical analysis, catalog-only
+  views and with experimental modules off, as before). The relation map is still on the knowledge-base
+  document library too.
+- **Core status line.** Measured in headless Chromium (full 441 MB core, local server): on a first
+  run the old «Подготавливаем поиск…» note with a spinner appeared ~1.2 s in and stayed until the user
+  pressed «Далее» past the greeting, although nothing ran — the download is held back for the
+  onboarding. That state is now `waiting` (`coreWaitingToStart` in `use-app-session.ts`, set only while
+  `requestDownload` waits for `releaseCoreStart`): no note on the search page (the field says «Поиск
+  откроется после загрузки ядра»; the knowledge-base and document-wait pages still explain it). An
+  ordinary open of an installed core takes ~1 s, so the note delay is 400 → 1 200 ms (no flash). The
+  spinner is gone: downloading shows the pie with the real share, verifying/installing a full pie
+  (no measurable share), opening/waiting/other tab/consent a still clock mark. Slow opens (≥ 10 s)
+  still get the longer explanation.
+- **Source card.** The «Скачать полный текст · <name> · 1.1 МБ» block below the card header of a
+  clinical-recommendation pointer is a compact chip in the header's top-right corner (icon + size;
+  «В очереди» / percent / «Повторить» while it works). The accessible name and tooltip keep the full
+  sentence with the document title and size; the kind badge on the same line gives it room
+  (`--result-group-action-reserve`). The document page's own «Скачать набор» button is unchanged.
+- Tests: `search-core-status.test.ts`; `apps/app/e2e/ux8-search-header.spec.ts` (header at 360/390/1280
+  px, light and dark, menu rows, first-run status, compact chip); `search.spec.ts` and
+  `boot-screen.spec.ts` follow the moved buttons. Before/after screenshots: `output/ux8-screens/`.
+
 ## Settings as a list with sub-pages — 2026-10-05 (STATE SET1)
 
 Settings follow the macOS/iOS pattern. `#/settings` is a list of inset groups of large rows (coloured
