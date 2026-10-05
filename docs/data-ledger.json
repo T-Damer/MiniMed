@@ -485,7 +485,7 @@
         "Candidate catalog entries catalog.candidate.plain.json / catalog.candidate.compacted.json; upload plan in each repack-report.json"
       ],
       "rebuild": "see the four subdirectories; ~30 min of CPU",
-      "note": "Unpublished candidate artifacts (ESKLP x15, clinical recommendations x744, plain and search-compacted). Delete after the owner publishes one set or rejects both.",
+      "note": "Unpublished candidate artifacts (ESKLP x15, clinical recommendations x744, plain and search-compacted). Delete after the owner publishes one set or rejects both. clinical-compacted deleted on 2026-10-05 after 0.6.48 shipped the e5 copy (output/module-zstd-e5-2026-10-05).",
       "bytes": 730161267,
       "modified": "2026-10-01"
     },
@@ -499,18 +499,6 @@
       "rebuild": "medbase compact-module-search --input data/build/release-esklp --output <dir> --report <file>; bun scripts/repack-module-indexes-zstd.ts --family esklp --source-dir <dir> --out-dir output/module-zstd-2026-10-01/esklp-compacted --compacted",
       "note": "15 files; external-content FTS and empty normalized_text, fingerprints identical to the published packs. New decoded checksums. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy.",
       "bytes": 68736867,
-      "modified": "2026-10-01"
-    },
-    {
-      "path": "output/module-zstd-2026-10-01/clinical-compacted",
-      "class": "REBUILDABLE",
-      "producer": "medbase compact-module-search then scripts/repack-module-indexes-zstd.ts --compacted",
-      "consumers": [
-        "Candidate release artifacts for the ESKLP / clinical-recommendation catalog entries (not published)"
-      ],
-      "rebuild": "medbase compact-module-search --input data/build/official-clinical-documents-2026-07-27/databases --output <dir> --report <file>; bun scripts/repack-module-indexes-zstd.ts --family clinical --source-dir <dir> --out-dir output/module-zstd-2026-10-01/clinical-compacted --compacted",
-      "note": "744 files, compacted search storage, new decoded checksums. Published 2026-10-02 to the dataset mirror branches for 0.6.46; kept as the local release copy. Superseded on 2026-10-05 by output/module-zstd-e5-2026-10-05 (same text, e5 vectors); delete once 0.6.48 is released.",
-      "bytes": 653162729,
       "modified": "2026-10-01"
     },
     {
