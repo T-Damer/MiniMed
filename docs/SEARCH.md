@@ -1,5 +1,7 @@
 # Search design — 0.3.0 alpha
 
+Code map of the query path (files, functions, scoring constants): [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md).
+
 ## Default offline path
 
 ```text
