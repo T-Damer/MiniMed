@@ -23,6 +23,7 @@ export function AppBottomNav(props: {
   readonly availableModuleCount: Accessor<number>;
   readonly downloadedModuleCount: Accessor<number>;
   readonly dueReminderCount: Accessor<number>;
+  readonly newsUnreadCount: Accessor<number>;
   readonly appUpdateReady: Accessor<boolean>;
   readonly bubbleStyle: () => string;
   readonly bindNav: (element: HTMLElement) => void;
@@ -60,6 +61,9 @@ export function AppBottomNav(props: {
             }
             if (item.id === 'notes' && props.dueReminderCount() > 0) {
               return `${item.label}, напоминаний: ${props.dueReminderCount()}`;
+            }
+            if (item.id === 'news' && props.newsUnreadCount() > 0) {
+              return `${item.label}, непрочитанных: ${props.newsUnreadCount()}`;
             }
             if (item.id === 'settings' && props.appUpdateReady()) {
               return `${item.label}, доступно обновление приложения`;
@@ -100,6 +104,15 @@ export function AppBottomNav(props: {
                 <Show when={item.id === 'modules' && props.downloadedModuleCount() > 0}>
                   <span class="app-nav-badge app-nav-badge--downloaded" aria-hidden="true">
                     {compactCount(props.downloadedModuleCount(), 99)}
+                  </span>
+                </Show>
+                <Show when={item.id === 'news' && props.newsUnreadCount() > 0}>
+                  <span
+                    class="app-nav-badge app-nav-badge--news"
+                    data-testid="news-unread-badge"
+                    aria-hidden="true"
+                  >
+                    {compactCount(props.newsUnreadCount(), 99)}
                   </span>
                 </Show>
                 <Show when={item.id === 'notes' && props.dueReminderCount() > 0}>

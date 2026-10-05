@@ -31,6 +31,7 @@ import {
   isUserLibraryCatalogRoute,
   USER_LIBRARY_CATALOG_HASH,
 } from '@/features/library/user-library-routing';
+import { useNewsUnreadCount } from '@/features/news/news-store';
 import {
   handOffToOnboarding,
   onboardingRestartRequests,
@@ -79,6 +80,10 @@ const loadNotesView = () =>
   import('@/features/notes/NotesView').then(({ NotesView: component }) => ({
     default: component,
   }));
+const loadNewsView = () =>
+  import('@/features/news/NewsView').then(({ NewsView: component }) => ({
+    default: component,
+  }));
 const loadSearchHome = () =>
   import('@/features/search/SearchHome').then(({ SearchHome: component }) => ({
     default: component,
@@ -91,6 +96,7 @@ const loadSettingsView = () =>
 const AssessmentsView = lazy(loadAssessmentsView);
 const CalculatorsView = lazy(loadCalculatorsView);
 const KnowledgeBaseView = lazy(loadKnowledgeBaseView);
+const NewsView = lazy(loadNewsView);
 const NotesView = lazy(loadNotesView);
 const SearchHome = lazy(loadSearchHome);
 const SettingsView = lazy(loadSettingsView);
@@ -101,6 +107,7 @@ const rootViewLoaders: Readonly<Record<RootView, () => Promise<unknown>>> = {
   assessments: loadAssessmentsView,
   calculators: loadCalculatorsView,
   notes: loadNotesView,
+  news: loadNewsView,
   settings: loadSettingsView,
 };
 
@@ -164,6 +171,7 @@ export function App(): JSX.Element {
     (!onboardingVisible() &&
       coreStatus()?.kind === 'download-required' &&
       navigation.view() !== 'notes' &&
+      navigation.view() !== 'news' &&
       navigation.view() !== 'settings' &&
       navigation.view() !== 'calculators' &&
       navigation.view() !== 'assessments' &&
@@ -306,6 +314,7 @@ export function App(): JSX.Element {
       { defer: true },
     ),
   );
+  const newsUnreadCount = useNewsUnreadCount();
   const bottomNav = useBottomNav({
     view: navView,
     items: navItems,
@@ -460,6 +469,9 @@ export function App(): JSX.Element {
             backToFiles={!expandedNavigation()}
           />
         ))}
+        {rootPane('news', () => (
+          <NewsView active={navigation.view() === 'news'} />
+        ))}
         <Show when={shellReady() && showingBootScreen()}>
           <BootScreen
             error={session.error()}
@@ -563,6 +575,7 @@ export function App(): JSX.Element {
             availableModuleCount={session.availableModuleCount}
             downloadedModuleCount={session.downloadedModuleCount}
             dueReminderCount={session.dueReminderCount}
+            newsUnreadCount={newsUnreadCount}
             appUpdateReady={() => Boolean(session.appUpdateWorker() || session.availableApkUrl())}
             bubbleStyle={bottomNav.bubbleStyle}
             bindNav={bottomNav.bindNav}

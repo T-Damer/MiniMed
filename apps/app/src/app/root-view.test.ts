@@ -26,7 +26,7 @@ describe('viewFromLocation', () => {
     vi.unstubAllGlobals();
   });
 
-  it('maps root and nested hashes onto the six shell tabs', () => {
+  it('maps root and nested hashes onto the seven shell tabs', () => {
     expect(viewFromLocation('#/search')).toBe('search');
     expect(viewFromLocation('#/history')).toBe('search');
     expect(viewFromLocation('#/modules/documents')).toBe('modules');
@@ -34,6 +34,9 @@ describe('viewFromLocation', () => {
     expect(viewFromLocation('#/assessments/psychology')).toBe('assessments');
     expect(viewFromLocation('#/calculators/dose')).toBe('calculators');
     expect(viewFromLocation('#/notes/abc')).toBe('notes');
+    expect(viewFromLocation('#/news')).toBe('news');
+    expect(viewFromLocation('#/news/item/i-1')).toBe('news');
+    expect(viewFromLocation('#/news/sources')).toBe('news');
     expect(viewFromLocation('#/settings')).toBe('settings');
     expect(viewFromLocation('#/settings/downloads')).toBe('settings');
     expect(viewFromLocation('#/modules/model')).toBe('settings');
@@ -47,6 +50,7 @@ describe('viewFromLocation', () => {
     expect(compactRootView('modules', '#/modules/documents/user/doc-1')).toBe('notes');
     expect(compactRootView('notes', '#/notes')).toBe('notes');
     expect(compactRootView('settings', '#/settings/downloads')).toBe('settings');
+    expect(compactRootView('news', '#/news/add')).toBe('news');
   });
 
   it('keeps official document reads on search when no trail is stored', () => {

@@ -14,7 +14,14 @@ import {
 } from '@/state/document-trail';
 import { overlayFromLocationSearch, stripOrphanedOverlaySearch } from '@/state/overlay-route';
 
-export type RootView = 'search' | 'modules' | 'assessments' | 'calculators' | 'notes' | 'settings';
+export type RootView =
+  | 'search'
+  | 'modules'
+  | 'assessments'
+  | 'calculators'
+  | 'notes'
+  | 'news'
+  | 'settings';
 
 export interface RootViewItem {
   readonly id: RootView;
@@ -28,6 +35,7 @@ export const ROOT_VIEWS: readonly RootViewItem[] = [
   { id: 'assessments', label: 'Тесты', icon: 'list-checks' },
   { id: 'calculators', label: 'Калькуляторы', icon: 'calculator' },
   { id: 'notes', label: 'Заметки', icon: 'notes' },
+  { id: 'news', label: 'Лента', icon: 'newspaper' },
   { id: 'settings', label: 'Настройки', icon: 'system' },
 ];
 
@@ -36,11 +44,13 @@ export const ROOT_VIEW_ORDER = new Map(ROOT_VIEWS.map((item, index) => [item.id,
 export const COMPACT_ROOT_VIEWS: readonly RootViewItem[] = [
   { id: 'search', label: 'Поиск', icon: 'search' },
   { id: 'notes', label: 'Мои файлы', icon: 'folder-open' },
+  { id: 'news', label: 'Лента', icon: 'newspaper' },
   { id: 'settings', label: 'Настройки', icon: 'system' },
 ];
 
 export function compactRootView(view: RootView, hash: string): RootView {
   if (view === 'settings') return 'settings';
+  if (view === 'news') return 'news';
   if (
     view === 'notes' ||
     parseDocumentReadRoute(hash)?.kind === 'user' ||

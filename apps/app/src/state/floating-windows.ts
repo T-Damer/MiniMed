@@ -30,6 +30,7 @@ function isRootView(value: unknown): value is RootView {
     value === 'assessments' ||
     value === 'calculators' ||
     value === 'notes' ||
+    value === 'news' ||
     value === 'settings'
   );
 }

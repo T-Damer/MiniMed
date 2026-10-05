@@ -105,6 +105,23 @@ describe('nativeBackAction', () => {
     expect(nativeBackAction('search', 'search', false)).toEqual({ type: 'minimize' });
   });
 
+  it('returns news sub-routes to the list and the list to search', () => {
+    expect(nativeBackAction('news/item/i-1', 'news', true)).toEqual({
+      type: 'parent',
+      hash: '#/news',
+    });
+    expect(nativeBackAction('news/site/s-1', 'news', true)).toEqual({
+      type: 'parent',
+      hash: '#/news',
+    });
+    expect(nativeBackAction('news/add', 'news', true)).toEqual({ type: 'parent', hash: '#/news' });
+    expect(nativeBackAction('news/sources', 'news', true)).toEqual({
+      type: 'parent',
+      hash: '#/news',
+    });
+    expect(nativeBackAction('news', 'news', false)).toEqual({ type: 'search' });
+  });
+
   it('uses history for document read pages', () => {
     expect(nativeBackAction('modules/documents/d/abc-token', 'search', true)).toEqual({
       type: 'history',

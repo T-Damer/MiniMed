@@ -2,6 +2,7 @@ import type { RootView } from '@/app/root-view';
 import { assessmentParentHash } from '@/features/assessments/assessment-routing';
 import { calculatorParentHash } from '@/features/calculators/calculator-routing';
 import { knowledgeDocumentBackHash } from '@/features/knowledge/knowledge-routing';
+import { newsParentHash } from '@/features/news/news-routing';
 import { settingsParentHash } from '@/features/settings/settings-routing';
 import { isDocumentReadRoute } from '@/state/document-route';
 
@@ -20,6 +21,8 @@ export function hierarchicalParentHash(route: string): string | null {
   if (assessmentParent) return assessmentParent;
   const calculatorParent = calculatorParentHash(route);
   if (calculatorParent) return calculatorParent;
+  const newsParent = newsParentHash(route);
+  if (newsParent) return newsParent;
   return settingsParentHash(route);
 }
 

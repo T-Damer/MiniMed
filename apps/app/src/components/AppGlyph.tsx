@@ -1,6 +1,7 @@
 import archiveBold from '@phosphor-icons/core/assets/bold/archive-bold.svg?raw';
 import arrowCounterClockwiseBold from '@phosphor-icons/core/assets/bold/arrow-counter-clockwise-bold.svg?raw';
 import arrowLeftBold from '@phosphor-icons/core/assets/bold/arrow-left-bold.svg?raw';
+import arrowSquareOutBold from '@phosphor-icons/core/assets/bold/arrow-square-out-bold.svg?raw';
 import arrowSquareUpRightBold from '@phosphor-icons/core/assets/bold/arrow-square-up-right-bold.svg?raw';
 import arrowUUpLeftBold from '@phosphor-icons/core/assets/bold/arrow-u-up-left-bold.svg?raw';
 import arrowUUpRightBold from '@phosphor-icons/core/assets/bold/arrow-u-up-right-bold.svg?raw';
@@ -59,6 +60,7 @@ import flaskBold from '@phosphor-icons/core/assets/bold/flask-bold.svg?raw';
 import folderOpenBold from '@phosphor-icons/core/assets/bold/folder-open-bold.svg?raw';
 import frameCornersBold from '@phosphor-icons/core/assets/bold/frame-corners-bold.svg?raw';
 import gearSixBold from '@phosphor-icons/core/assets/bold/gear-six-bold.svg?raw';
+import globeBold from '@phosphor-icons/core/assets/bold/globe-bold.svg?raw';
 import graphBold from '@phosphor-icons/core/assets/bold/graph-bold.svg?raw';
 import handBold from '@phosphor-icons/core/assets/bold/hand-bold.svg?raw';
 import heartbeatBold from '@phosphor-icons/core/assets/bold/heartbeat-bold.svg?raw';
@@ -79,6 +81,7 @@ import microphoneBold from '@phosphor-icons/core/assets/bold/microphone-bold.svg
 import microscopeBold from '@phosphor-icons/core/assets/bold/microscope-bold.svg?raw';
 import minusBold from '@phosphor-icons/core/assets/bold/minus-bold.svg?raw';
 import musicNotesBold from '@phosphor-icons/core/assets/bold/music-notes-bold.svg?raw';
+import newspaperBold from '@phosphor-icons/core/assets/bold/newspaper-bold.svg?raw';
 import notchesBold from '@phosphor-icons/core/assets/bold/notches-bold.svg?raw';
 import noteBold from '@phosphor-icons/core/assets/bold/note-bold.svg?raw';
 import notepadBold from '@phosphor-icons/core/assets/bold/notepad-bold.svg?raw';
@@ -89,6 +92,7 @@ import plusBold from '@phosphor-icons/core/assets/bold/plus-bold.svg?raw';
 import prescriptionBold from '@phosphor-icons/core/assets/bold/prescription-bold.svg?raw';
 import printerBold from '@phosphor-icons/core/assets/bold/printer-bold.svg?raw';
 import questionMarkBold from '@phosphor-icons/core/assets/bold/question-mark-bold.svg?raw';
+import rssBold from '@phosphor-icons/core/assets/bold/rss-bold.svg?raw';
 import scalesBold from '@phosphor-icons/core/assets/bold/scales-bold.svg?raw';
 import shareFatBold from '@phosphor-icons/core/assets/bold/share-fat-bold.svg?raw';
 import shareNetworkBold from '@phosphor-icons/core/assets/bold/share-network-bold.svg?raw';
@@ -237,7 +241,11 @@ export type AppGlyphName =
   | 'text-aa-fill'
   | 'image-fill'
   | 'refresh-fill'
-  | 'download-fill';
+  | 'download-fill'
+  | 'newspaper'
+  | 'rss'
+  | 'globe'
+  | 'arrow-square-out';
 
 function svgBody(asset: string): string {
   return asset.slice(asset.indexOf('>') + 1, asset.lastIndexOf('</svg>'));
@@ -251,6 +259,10 @@ const glyphBodies: Record<AppGlyphName, string> = {
   flask: svgBody(flaskBold),
   'system-fill': svgBody(gearSixFill),
   'download-fill': svgBody(downloadSimpleFill),
+  newspaper: svgBody(newspaperBold),
+  rss: svgBody(rssBold),
+  globe: svgBody(globeBold),
+  'arrow-square-out': svgBody(arrowSquareOutBold),
   search: svgBody(magnifyingGlassBold),
   archive: svgBody(archiveBold),
   modules: svgBody(stackBold),

@@ -160,7 +160,7 @@ test('missing core on a cellular connection waits for the user while files and s
   await expect(page.getByRole('heading', { name: 'Скачайте ядро MiniMed' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Скачать ядро · ~\d+ МБ$/u })).toBeVisible();
   const navigation = page.locator('.app-bottom-nav');
-  await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
+  await expect(navigation.locator('.app-nav-button')).toHaveCount(4);
   // The search page stays mounted under the setup screen, but hidden.
   await expect(page.getByTestId('search-input')).toBeHidden();
   const bounds = await page.locator('.boot-screen').boundingBox();

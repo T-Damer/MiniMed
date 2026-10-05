@@ -1,0 +1,8 @@
+/* Unread count on the «Лента» tab: in the start-up bundle because the tab bar is. */
+.app-nav-badge--news {
+  top: -0.3125rem;
+  right: -0.3125rem;
+  left: auto;
+  color: #f5f5df;
+  background: #4d7657;
+}

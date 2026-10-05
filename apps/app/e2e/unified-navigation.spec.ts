@@ -9,7 +9,7 @@ test('keeps source and tool lookup together and restores the six-section layout 
   await page.setViewportSize({ width: 375, height: 844 });
   await mountBuiltApp(page, { splitNavigation: false, skipLargeCompanionPacks: true });
   const nav = page.locator('.app-bottom-nav');
-  await expect(nav.locator('.app-nav-button')).toHaveCount(3);
+  await expect(nav.locator('.app-nav-button')).toHaveCount(4);
   const mode = page.getByRole('button', { name: 'Раздел поиска', exact: true });
   const input = page.getByTestId('search-input');
   await waitForHomeSections(page);
@@ -41,9 +41,9 @@ test('keeps source and tool lookup together and restores the six-section layout 
   await openSettingsPage(page, 'Внешний вид');
   const legacy = page.getByRole('switch', { name: 'Отдельные вкладки разделов' });
   await legacy.click();
-  await expect(nav.locator('.app-nav-button')).toHaveCount(6);
+  await expect(nav.locator('.app-nav-button')).toHaveCount(7);
   await expect(nav.getByRole('button', { name: /^База знаний/u })).toBeVisible();
   await legacy.click();
-  await expect(nav.locator('.app-nav-button')).toHaveCount(3);
+  await expect(nav.locator('.app-nav-button')).toHaveCount(4);
   await page.screenshot({ path: test.info().outputPath('unified-navigation-phone.png') });
 });

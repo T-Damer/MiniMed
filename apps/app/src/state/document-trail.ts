@@ -14,6 +14,7 @@ export type DocumentTrailOriginView =
   | 'assessments'
   | 'calculators'
   | 'notes'
+  | 'news'
   | 'settings';
 
 export interface DocumentTrailOrigin {
@@ -43,6 +44,7 @@ const ROOT_VIEWS: readonly DocumentTrailOriginView[] = [
   'assessments',
   'calculators',
   'notes',
+  'news',
   'settings',
 ];
 
@@ -66,6 +68,7 @@ export function viewFromHash(hash: string): DocumentTrailOriginView {
   if (value === 'assessments' || value.startsWith('assessments/')) return 'assessments';
   if (value === 'calculators' || value.startsWith('calculators/')) return 'calculators';
   if (value === 'notes' || value.startsWith('notes/')) return 'notes';
+  if (value === 'news' || value.startsWith('news/')) return 'news';
   if (value === 'history') return 'search';
   if (ROOT_VIEWS.includes(value as DocumentTrailOriginView)) {
     return value as DocumentTrailOriginView;
@@ -78,6 +81,7 @@ export function originLabelForView(view: DocumentTrailOriginView, hash: string):
   if (view === 'assessments') return 'Тесты';
   if (view === 'calculators') return 'Калькуляторы';
   if (view === 'notes') return 'Заметки';
+  if (view === 'news') return 'Лента';
   if (view === 'settings') return 'Настройки';
   const route = hash.replace(/^#\/?/u, '');
   if (

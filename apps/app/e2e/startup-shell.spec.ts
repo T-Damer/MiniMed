@@ -50,7 +50,7 @@ for (const viewport of [
       releaseShell();
       await expect(navigation).toBeVisible({ timeout: 5000 });
       await expect(page.locator('#boot-surface')).toHaveCount(0);
-      await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
+      await expect(navigation.locator('.app-nav-button')).toHaveCount(4);
       // An installed core that is still opening keeps the search page: the field waits disabled.
       const coreStatus = page.locator('.search-core-status');
       await expect(coreStatus).toContainText('Подготавливаем поиск');
@@ -113,7 +113,7 @@ for (const viewport of [
       await expect(page.getByRole('heading', { name: 'Настройки', exact: true })).toBeVisible();
       await openSettingsPage(page, 'Внешний вид');
       await page.getByRole('switch', { name: 'Отдельные вкладки разделов' }).click();
-      await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
+      await expect(navigation.locator('.app-nav-button')).toHaveCount(4);
       await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();
       await expect(coreStatus).toBeVisible();
       await expect(page.getByTestId('search-input')).toBeDisabled();

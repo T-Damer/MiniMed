@@ -14,7 +14,7 @@ test.describe('published MiniMed prototype', () => {
     await expect(nav.getByRole('button', { name: 'Настройки', exact: true })).toBeVisible({
       timeout: 30_000,
     });
-    await expect(nav.locator('.app-nav-button')).toHaveCount(3);
+    await expect(nav.locator('.app-nav-button')).toHaveCount(4);
     await nav.getByRole('button', { name: 'Настройки', exact: true }).click();
     await openSettingsPage(page, 'Внешний вид');
     const splitNavigation = page.getByRole('switch', { name: 'Отдельные вкладки разделов' });

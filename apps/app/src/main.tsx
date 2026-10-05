@@ -33,6 +33,7 @@ import '@/styles/settings.css';
 import '@/styles/tool-link-icons.css';
 import '@/styles/components.css';
 import '@/styles/notifications.css';
+import '@/styles/news-badge.css';
 import '@/styles/user-library.css';
 import '@/styles/user-reader.css';
 import '@/styles/theme-dark.css';
