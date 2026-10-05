@@ -1,4 +1,4 @@
-/* The «?» panel: two ways to learn the app, as full-width rows (a popover or a sheet). */
+/* The «?» panel: ways to learn the app, then rare actions on the section, as full-width rows (a popover or a sheet). */
 .search-help-sheet {
   min-width: 16rem;
   padding: 0.375rem;
@@ -11,6 +11,12 @@
 .search-help-sheet__list {
   display: grid;
   gap: 0.25rem;
+}
+
+.search-help-sheet__list--page {
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--theme-border);
 }
 
 .search-help-sheet__item {
@@ -29,8 +35,13 @@
   cursor: pointer;
 }
 
-.search-help-sheet__item:hover {
+.search-help-sheet__item:hover:not(:disabled) {
   background: var(--theme-accent-soft);
+}
+
+.search-help-sheet__item:disabled {
+  cursor: default;
+  opacity: 0.55;
 }
 
 .search-help-sheet__item:focus-visible {
@@ -43,4 +54,16 @@
   height: 1.125rem;
   flex: none;
   color: var(--theme-text-muted);
+}
+
+.search-help-sheet__copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.0625rem;
+}
+
+.search-help-sheet__hint {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.3;
 }

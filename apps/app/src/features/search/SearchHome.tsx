@@ -109,6 +109,18 @@ interface SearchHomeProps {
   readonly onOpenAppUpdateSettings?: () => void;
 }
 
+/** A row of the «?» panel. Accessors keep the row's state live while the panel is open. */
+interface HelpPanelAction {
+  readonly id: string;
+  readonly label: string;
+  readonly icon: AppGlyphName;
+  readonly onSelect: () => void;
+  /** A line under the label, shown while the row is enabled. */
+  readonly description?: string;
+  readonly hidden?: () => boolean;
+  readonly disabled?: () => boolean;
+}
+
 export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [coreNoteDelayPassed, setCoreNoteDelayPassed] = createSignal(false);
   const coreNoteTimer = window.setTimeout(
@@ -391,13 +403,8 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
   const [tourOpen, setTourOpen] = createSignal(false);
   // One array for the component's lifetime: a literal in JSX would rebuild the open menu's items.
   const [helpMenuOpen, setHelpMenuOpen] = createSignal(false);
-  /** The «?» panel: where to learn the app and the search. */
-  const helpActions: readonly {
-    readonly id: string;
-    readonly label: string;
-    readonly icon: AppGlyphName;
-    readonly onSelect: () => void;
-  }[] = [
+  /** The «?» panel, first part: where to learn the app and the search. */
+  const helpActions: readonly HelpPanelAction[] = [
     {
       id: 'feature-tour',
       label: 'Что умеет MiniMed',
@@ -411,6 +418,60 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       onSelect: () => setHelpOpen(true),
     },
   ];
+  /**
+   * The «?» panel, second part: rare actions on the current section. They live here, not in the
+   * top row, which has to keep room for the history button and the update notice on a phone.
+   */
+  const pageActions: readonly HelpPanelAction[] = [
+    {
+      id: 'random-record',
+      label: 'Случайная запись',
+      description: 'Из текущего раздела',
+      icon: 'dice',
+      disabled: () => !props.baseCore || catalogLoading() || visibleDocuments().length === 0,
+      onSelect: () => {
+        const document = pickRandomDocument(visibleDocuments());
+        if (document) openDocumentOverlay(document.id);
+      },
+    },
+    {
+      id: 'knowledge-graph',
+      label: 'Карта связей',
+      description: 'Связи между документами раздела',
+      icon: 'graph',
+      hidden: () => catalogOnly() || scope() === 'diagnosis' || !experimentalModulesEnabled(),
+      disabled: () => catalogLoading() || visibleDocuments().length === 0,
+      onSelect: () => {
+        setGraphShowAll(false);
+        setGraphOpen(true);
+      },
+    },
+  ];
+  const renderHelpAction = (action: HelpPanelAction): JSX.Element => (
+    <Show when={!action.hidden?.()}>
+      <button
+        type="button"
+        class="search-help-sheet__item"
+        disabled={action.disabled?.() ?? false}
+        onClick={() => {
+          setHelpMenuOpen(false);
+          action.onSelect();
+        }}
+      >
+        <AppGlyph name={action.icon} class="search-help-sheet__icon" />
+        <span class="search-help-sheet__copy">
+          <span class="search-help-sheet__label">{action.label}</span>
+          <Show when={action.description}>
+            {(description) => (
+              <span class="search-help-sheet__hint">
+                {action.disabled?.() ? 'Откроется, когда база будет готова' : description()}
+              </span>
+            )}
+          </Show>
+        </span>
+      </button>
+    </Show>
+  );
   /** The source the clinical-analysis switch returns to when it is turned off. */
   const [sourceScope, setSourceScope] = createSignal<SearchScope>('all');
   const clinicalAnalysis = () => scope() === 'diagnosis';
@@ -646,41 +707,6 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             <span class="search-update-status__label">Доступно обновление</span>
           </button>
         </Show>
-        <Button
-          class="search-random-record"
-          variant="icon"
-          aria-label="Случайная запись"
-          title={
-            props.baseCore
-              ? 'Случайная запись из текущего раздела'
-              : 'Откроется, когда база будет готова'
-          }
-          disabled={!props.baseCore || catalogLoading() || visibleDocuments().length === 0}
-          onClick={() => {
-            const document = pickRandomDocument(visibleDocuments());
-            if (document) openDocumentOverlay(document.id);
-          }}
-          icon={<AppGlyph name="dice" class="search-random-record__icon" />}
-        />
-        {/* A rare action: the relation map sits with the other page actions, not in the field. */}
-        <Show when={!catalogOnly() && scope() !== 'diagnosis' && experimentalModulesEnabled()}>
-          <Button
-            class="search-graph-shortcut"
-            variant="icon"
-            aria-label="Карта связей"
-            title={
-              catalogLoading() || visibleDocuments().length === 0
-                ? 'Откроется, когда база будет готова'
-                : 'Карта связей'
-            }
-            disabled={catalogLoading() || visibleDocuments().length === 0}
-            onClick={() => {
-              setGraphShowAll(false);
-              setGraphOpen(true);
-            }}
-            icon={<AppGlyph name="graph" class="search-graph-shortcut__icon" />}
-          />
-        </Show>
         <SheetPopover
           open={helpMenuOpen()}
           onOpenChange={setHelpMenuOpen}
@@ -693,21 +719,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           contentClass="search-help-sheet"
         >
           <div class="search-help-sheet__list">
-            <For each={helpActions}>
-              {(action) => (
-                <button
-                  type="button"
-                  class="search-help-sheet__item"
-                  onClick={() => {
-                    setHelpMenuOpen(false);
-                    action.onSelect();
-                  }}
-                >
-                  <AppGlyph name={action.icon} class="search-help-sheet__icon" />
-                  {action.label}
-                </button>
-              )}
-            </For>
+            <For each={helpActions}>{(action) => renderHelpAction(action)}</For>
+          </div>
+          <div class="search-help-sheet__list search-help-sheet__list--page">
+            <For each={pageActions}>{(action) => renderHelpAction(action)}</For>
           </div>
         </SheetPopover>
       </div>

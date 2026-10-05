@@ -235,10 +235,12 @@ for (const width of [375, 1280]) {
     await waitForSearchReady(page);
     const sheet = page.locator('.query-sheet');
     const input = page.getByTestId('search-input');
-    // Rare actions live in the top row, not in the field.
+    // Rare actions live in the «?» menu, not in the field and not in the top row.
     await expect(sheet.getByRole('button', { name: 'Случайная запись' })).toHaveCount(0);
     await expect(sheet.getByRole('button', { name: 'Карта связей' })).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Случайная запись' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Случайная запись' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Карта связей' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Справка', exact: true })).toBeVisible();
     await expect(sheet.getByRole('button', { name: 'Раздел поиска', exact: true })).toBeVisible();
     const clinical = sheet.getByRole('button', { name: 'Клинический разбор', exact: true });
     await expect(clinical).toHaveAttribute('aria-pressed', 'false');
@@ -1004,7 +1006,10 @@ test('opens a random record of the current section', async ({ page }) => {
   await mountBuiltApp(page, { skipLargeCompanionPacks: true });
   await waitForSearchReady(page);
   await selectSearchSection(page, 'Клинические рекомендации');
-  const dice = page.getByRole('button', { name: 'Случайная запись' });
+  await page.getByRole('button', { name: 'Справка', exact: true }).click();
+  const dice = page.getByRole('dialog', { name: 'Справка' }).getByRole('button', {
+    name: /^Случайная запись/u,
+  });
   await expect(dice).toBeEnabled({ timeout: 30_000 });
   await dice.click();
   await expect(page).toHaveURL(/#\/modules\/documents\/d\//u);
