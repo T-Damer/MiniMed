@@ -20,6 +20,71 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Patient diary: finding it again, sync, home screen — 2026-10-05 (STATE DIARY2)
+
+Walked the whole flow (doctor issues → patient opens, enters readings, closes the tab, reopens by the
+same link / a newer link / another diary / offline / after a browser restart → returns results →
+doctor imports, re-imports, imports a newer batch). Bugs found and fixed:
+
+- **Diary lost when no entry was saved.** A link only created the diary in memory; the home-screen
+  icon or a bookmark (no link in the address) then showed «пока нет дневников». The diary is now
+  stored the moment its link is opened.
+- **Older link rolled the header back; a changed plan broke the diary.** `store.load` replaced the
+  header with whatever link was opened last. A newer link with a different plan left entries pointing
+  at a missing plan item, so the next read failed validation and the diary showed as damaged.
+  `diary-merge.ts` merges by `issuedAt` (newer wins, older ignored), keeps plan items that entries
+  still use as `ended: true` (not offered again, still readable) and refuses a link whose fields do not
+  fit the stored entries. A damaged record keeps its readable entries and the original text is set
+  aside under `minimed.diary.salvage.v1.<id>`.
+- **No way back from a diary to the list; no landing.** The address kept the first link forever.
+  Now: no link → one diary opens at once, several → list with the last used first («Продолжить»);
+  «← Мои дневники» is always there; the address is rewritten to a complete link to the open diary.
+- **Offline right after the first visit did not work.** The worker cached only `./`; the hashed JS/CSS
+  of the first visit were not cached, and cached modules did not match when the host sends
+  `Vary: Origin`. The worker now caches the page, its assets (parsed from the HTML and CSS) and the
+  manifest on install and matches with `ignoreVary`; `minimed-diary-v3`.
+- **Doctor never saw patient corrections.** Import skipped any record whose id was already in the card,
+  so an entry the patient edited after the first import stayed wrong. `applyDiaryImport` now replaces
+  the card's record and appends «Исправлено пациентом, ранее: …» (applied once; a record in a closed
+  visit is reported, not changed). Patient deletions are not propagated (the card is a record).
+- **Wrong card.** Results of a diary already imported into / issued from another card are flagged
+  before saving and need an explicit tick.
+- **Comment and text lines of a diary record were never shown** in the card's «События» list
+  (`event.text` was not rendered); it is shown now.
+- **Results file.** The patient's «Сохранить файл» was FHIR, which the doctor app cannot read. The
+  patient now sends a text file (or copies text) that holds the QR parts; the doctor reads it under
+  «Принять данные» → «Пациент прислал файл или текст». The same file restores records on a new phone
+  (`RestoreCard`: added to the diary by entry id, never replaces).
+
+Patient UX (`apps/app/src/diary/`): large cards, plain Russian. A «Новая запись» block says how many
+entries were made today, a green «Запись сохранена» confirms every save; «Передать врачу» says what
+was handed over («Передано врачу (5 окт.): 2 из 3. Не передано — новых: 1»), entries carry «Не
+передана врачу» / «Изменена после передачи», and the patient confirms «Врач получил» (showing codes is
+not treated as proof). Sending: codes on screen, file (system share sheet where there is one), text.
+A link that reopens an existing diary says so («Ваши записи на месте (3 записи)»). Add to home
+screen (`InstallCard`): the browser's own prompt (`beforeinstallprompt`, captured at start-up), steps
+for iPhone Safari written out, a menu hint for other Android browsers, remembered «Не сейчас» for 7
+days, hidden when already installed; a messenger's built-in browser gets a «Откройте дневник в
+браузере» warning (its storage is separate and cannot add an icon). Blocked storage (private window)
+is explained instead of failing silently. `public/diary/manifest.webmanifest` (scope and start URL
+`./`, icons from `../`), Apple meta tags.
+
+Doctor side: the card keeps a list of issued diaries (a patient file `diary-ledger-<patientId>`,
+encrypted like other card files, removed with the card): «Ссылка и QR» shows the same link again,
+«Обновить» re-issues the same diary id with a new plan/instruction (plan ids are kept; same fields),
+«Убрать» forgets it. Import preview counts new / corrected / already present records.
+
+Tests: `diary-sync.test.ts`, `diary-doctor-sync.test.ts` (vitest); e2e `diary-patient`, `diary-install`,
+`diary-share`, `diary-doctor` (full doctor ↔ patient round trip, two browser contexts), `diary-screens`
+(set `DIARY_SCREENSHOTS=1`; images in `output/diary2-screens/`). The offline test runs only against
+the built page (the service worker is off in `vite dev`).
+
+Not verified: real iPhone Safari / Android Chrome (add-to-home-screen behaviour, whether iOS keeps the
+`#i=` fragment in the saved URL and gives the icon its own empty storage, `beforeinstallprompt`
+timing, the system share sheet, camera scan of the QR codes), Telegram/WhatsApp in-app browsers (only
+the user-agent heuristic is tested), GitHub Pages hosting of the scope, a doctor result link that
+deep-links into the app (not built: file and pasted text instead).
+
 ## Settings as a list with sub-pages — 2026-10-05 (STATE SET1)
 
 Settings follow the macOS/iOS pattern. `#/settings` is a list of inset groups of large rows (coloured
