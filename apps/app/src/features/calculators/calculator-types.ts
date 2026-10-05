@@ -1,4 +1,4 @@
-export type CalculatorAudience = 'all' | 'adult' | 'pediatric';
+import type { ToolAgeScope } from '@localmed/contracts';
 
 export type CalculatorCategory =
   | 'unit-conversion'
@@ -43,7 +43,8 @@ export interface AvailableCalculatorDefinition {
   readonly shortTitle: string;
   readonly aliases: readonly string[];
   readonly summary: string;
-  readonly audience: CalculatorAudience;
+  /** Who the calculator is for, declared in its schema. */
+  readonly ageScope: ToolAgeScope;
   readonly category: CalculatorCategory;
   readonly tags?: readonly CalculatorCategory[];
   readonly clinical: boolean;
@@ -59,7 +60,7 @@ export interface PlannedCalculatorDefinition {
   readonly state: 'planned';
   readonly title: string;
   readonly summary: string;
-  readonly audience: CalculatorAudience;
+  readonly ageScope: ToolAgeScope;
   readonly category: CalculatorCategory;
   readonly tags?: readonly CalculatorCategory[];
   readonly clinical: boolean;

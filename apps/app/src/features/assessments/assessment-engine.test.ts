@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { ToolDefinitionRecord } from '@localmed/contracts';
+import { anyAgeScope, type ToolDefinitionRecord } from '@localmed/contracts';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import {
   clearDownloadedAssessments,
@@ -204,6 +204,7 @@ describe('assessment scoring', () => {
       description: 'Локальный опросник.',
       estimatedMinutes: 1,
       audience: 'Локальный файл',
+      ageScope: anyAgeScope('Тест'),
       responseOptions: [],
       scales: [],
       scoringMode: 'responses-only',
@@ -267,6 +268,7 @@ describe('assessment scoring', () => {
           description: 'Минимальный опросник для проверки schema-driven интерпретаций.',
           estimatedMinutes: 1,
           audience: 'Тест',
+          ageScope: anyAgeScope('Тест'),
           responseOptions: [
             { value: 0, label: '0' },
             { value: 1, label: '1' },
@@ -366,6 +368,7 @@ describe('assessment scoring', () => {
         description: 'Проверка стабильной области баллов.',
         estimatedMinutes: 1,
         audience: 'Тест',
+        ageScope: anyAgeScope('Тест'),
         responseOptions: [
           { value: 0, label: 'Нет' },
           { value: 1, label: 'Да' },

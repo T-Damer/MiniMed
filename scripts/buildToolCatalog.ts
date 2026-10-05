@@ -42,7 +42,11 @@ for (const source of sourceModules) {
     if (definition.id !== record.id || definition.slug !== record.slug) {
       throw new Error(`Tool identity mismatch: ${record.id}`);
     }
-    return ToolCatalogEntrySchema.parse({ ...record, preview: definition });
+    return ToolCatalogEntrySchema.parse({
+      ...record,
+      ageScope: definition.ageScope,
+      preview: definition,
+    });
   });
   if (module.toolCount !== module.tools.length) {
     throw new Error(`Tool count mismatch: ${source.id}`);

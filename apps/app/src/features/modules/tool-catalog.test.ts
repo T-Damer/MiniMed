@@ -56,7 +56,11 @@ describe('core tool discovery', () => {
       const catalog = MODULE_CATALOG.modules.find((entry) => entry.id === source.id);
       expect(catalog?.tools).toEqual(
         source.tools.map((record) =>
-          ToolCatalogEntrySchema.parse({ ...record, preview: record.definition }),
+          ToolCatalogEntrySchema.parse({
+            ...record,
+            ageScope: record.definition['ageScope'],
+            preview: record.definition,
+          }),
         ),
       );
       for (const record of source.tools) expect(moduleForTool(record.id)?.id).toBe(source.id);

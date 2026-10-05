@@ -33,6 +33,7 @@ describe('tool module contracts', () => {
       description: 'Пример для проверки контракта.',
       estimatedMinutes: 1,
       audience: 'Тест',
+      ageScope: { groups: ['neonates', 'children', 'adults'], basis: 'Тест' },
       responseOptions: [{ value: 0, label: '0' }],
       scales: [
         {

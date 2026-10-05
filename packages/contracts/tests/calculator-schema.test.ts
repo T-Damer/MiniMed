@@ -10,7 +10,10 @@ const CALCULATOR_SCHEMA = {
   shortTitle: 'Тест',
   aliases: [],
   summary: 'Тестовый контракт без клинических правил.',
-  audience: 'all' as const,
+  ageScope: {
+    groups: ['neonates', 'children', 'adults'] as ('neonates' | 'children' | 'adults')[],
+    basis: 'Тест',
+  },
   category: 'medication' as const,
   clinical: false,
   formulaDisplay: 'Тестовая формула',

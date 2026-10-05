@@ -19,6 +19,7 @@ export type AssessmentCatalogEntry = Pick<
   | 'description'
   | 'estimatedMinutes'
   | 'audience'
+  | 'ageScope'
 >;
 
 export interface AssessmentSpecialty {
@@ -125,6 +126,7 @@ export function getAssessmentCatalog(): readonly AssessmentCatalogEntry[] {
     description: definition.description,
     estimatedMinutes: definition.estimatedMinutes,
     audience: definition.audience,
+    ageScope: definition.ageScope,
   }));
 }
 

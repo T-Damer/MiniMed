@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.pediatrics-growth.ru",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "title": "Педиатрия: антропометрия ВОЗ и артериальное давление",
   "schemaVersion": 2,
   "builtAt": "2026-09-02T00:00:00Z",
@@ -41,7 +41,11 @@
           "окружность плеча"
         ],
         "summary": "Один запуск рассчитывает все заполненные антропометрические показатели ребёнка: возраст, BMI, z-score и перцентиль по соответствующей возрасту и измерению таблице ВОЗ.",
-        "audience": "pediatric",
+        "ageScope": {
+          "groups": ["neonates", "children"],
+          "maxAge": { "value": 19, "unit": "years" },
+          "basis": "Определение: «Дети от рождения до 60 месяцев по ВОЗ Child Growth Standards и от 5 до 19 лет по ВОЗ 2007 Growth Reference»."
+        },
         "category": "anthropometry",
         "tags": ["pediatrics", "anthropometry"],
         "clinical": true,
@@ -1603,7 +1607,7 @@
         "окружность плеча"
       ],
       "category": "anthropometry",
-      "audience": "pediatric",
+      "audience": "Дети от рождения до 60 месяцев по ВОЗ Child Growth Standards и от 5 до 19 лет по ВОЗ 2007 Growth Reference; таблицы разделены по полу.",
       "sources": [
         {
           "id": "who-cgs-standards-0-5",
@@ -1686,7 +1690,12 @@
           "AAP давление"
         ],
         "summary": "Определяет категорию усреднённого офисного САД/ДАД: до 13 лет по полу, полному возрасту и ближайшему табличному ростовому столбцу, с 13 лет — по фиксированным границам AAP.",
-        "audience": "pediatric",
+        "ageScope": {
+          "groups": ["children"],
+          "minAge": { "value": 1, "unit": "years" },
+          "maxAge": { "value": 17, "unit": "years" },
+          "basis": "Определение: «Дети и подростки от 1 года до 17 лет включительно»; не для детей младше 1 года."
+        },
         "category": "cardiology",
         "tags": ["pediatrics"],
         "clinical": true,
@@ -1976,7 +1985,7 @@
         "AAP давление"
       ],
       "category": "cardiology",
-      "audience": "pediatric",
+      "audience": "Дети и подростки от 1 года до 17 лет включительно; усреднённое офисное артериальное давление.",
       "sources": [
         {
           "id": "aap-pediatric-bp-2017",

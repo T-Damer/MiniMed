@@ -99,6 +99,7 @@ import {
   snapshotCalculationForNote,
 } from '@/features/notes/note-attached-results';
 import { ItemFavoriteButton, toolItem } from '@/features/search/ToolPinControls';
+import { toolAgeBadge } from '@/features/tools/tool-age-scope';
 import {
   getExperimentalModulesEnabled,
   getSplitNavigation,
@@ -163,12 +164,6 @@ function maxSchemaStep(schema: CalculatorSchema): number {
   );
 }
 
-function audienceLabel(definition: CalculatorDefinition): string {
-  if (definition.audience === 'adult') return 'Взрослые';
-  if (definition.audience === 'pediatric') return 'Дети';
-  return 'Все';
-}
-
 function CalculatorCard(props: {
   readonly definition: CalculatorDefinition;
   readonly installed: boolean;
@@ -182,7 +177,7 @@ function CalculatorCard(props: {
   return (
     <Card class={`calculator-card${disabled() ? ' calculator-card--disabled' : ''}`}>
       <div class="calculator-card-meta" classList={{ 'calculator-card__muted': disabled() }}>
-        <span>{audienceLabel(definition)}</span>
+        <span>{toolAgeBadge(definition.ageScope).label}</span>
         <span>{definition.clinical ? 'Клинический' : 'Служебный'}</span>
         <span>
           {definition.state === 'planned'

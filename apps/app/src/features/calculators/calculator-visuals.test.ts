@@ -14,7 +14,10 @@ const BASE_SCHEMA = {
   shortTitle: 'ИМТ',
   aliases: [],
   summary: 'Тестовый калькулятор с визуализацией.',
-  audience: 'all' as const,
+  ageScope: {
+    groups: ['neonates', 'children', 'adults'] as ('neonates' | 'children' | 'adults')[],
+    basis: 'Тест',
+  },
   category: 'anthropometry' as const,
   clinical: false,
   formulaDisplay: 'ИМТ = вес / рост²',

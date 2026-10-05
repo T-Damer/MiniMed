@@ -1,4 +1,9 @@
-import type { CalculatorToolPreview, ToolDefinitionRecord } from '@localmed/contracts';
+import {
+  anyAgeScope,
+  type CalculatorToolPreview,
+  type ToolAgeScope,
+  type ToolDefinitionRecord,
+} from '@localmed/contracts';
 import {
   clearDownloadedCalculatorSchemas,
   registerDownloadedCalculatorSchema,
@@ -10,6 +15,7 @@ import type {
 } from '@/features/calculators/calculator-types';
 
 import { TOOL_CATALOG } from '@/features/modules/module-catalog-shell';
+import { toolAgeBadge } from '@/features/tools/tool-age-scope';
 
 const DOWNLOADED_CALCULATORS = new Map<string, AvailableCalculatorDefinition>();
 
@@ -30,7 +36,7 @@ export const CALCULATOR_REGISTRY: readonly CalculatorDefinition[] = [
     shortTitle: 'Единицы',
     aliases: ['конвертер единиц', 'мг в мл', 'кг в граммы', 'мкг мг'],
     summary: 'Масса, длина и объём с явным промежуточным значением в базовой единице.',
-    audience: 'all',
+    ageScope: anyAgeScope('Определение: «Любой пользователь; не является клинической формулой».'),
     category: 'unit-conversion',
     clinical: false,
     formula: 'Линейное преобразование через базовую единицу выбранной величины.',
@@ -53,13 +59,15 @@ export const CALCULATOR_REGISTRY: readonly CalculatorDefinition[] = [
     aliases: ['ЭКГ фото', 'интервалы ЭКГ', 'RR', 'P', 'PR', 'QRS', 'QTc', 'оценка ЭКГ'],
     summary:
       'Полноэкранная разметка ЭКГ в пять шагов: снимок, калибровка, отведения, точки зубцов и печатное заключение.',
-    audience: 'all',
+    ageScope: anyAgeScope(
+      'Возрастные группы от 0–6 дней до 18 лет и старше; детские нормы Rijnbeek (2001) охватывают возраст от 11 дней до 16 лет, для остальных возрастов показываются только измерения.',
+    ),
     category: 'cardiology',
     clinical: true,
     formula:
       'Скорость 25/50 мм/с, усиление 5/10/20 мм/мВ; отдельные шкалы X/Y; время = мм / скорость; ЧСС = 60 000 / RR; QTc по Bazett, Fridericia и Framingham. Измерения по проверенным точкам выбранного отведения. Отдельный ввод готовых измерений сохраняет взрослые правила и опциональный HGB по 30 подтверждённым полям.',
     population:
-      'Только взрослые 18+; горизонтальная фотография или скриншот стандартной 12-отведённой ЭКГ.',
+      'Взрослые 18+ с интерпретацией по взрослым правилам и дети по возрастным нормам Rijnbeek (11 дней–16 лет); для остальных возрастов только измерения. Горизонтальная фотография или скриншот стандартной 12-отведённой ЭКГ.',
     limitations: [
       'Перспектива, изгиб бумаги, размытие и неправильная калибровка искажают интервалы.',
       'Взрослые правила доступны после подтверждения возраста 18+, скорости, усиления, двух шкал сетки, областей и точек; отсутствующие интервалы не считаются нормальными.',
@@ -138,7 +146,7 @@ export const CALCULATOR_REGISTRY: readonly CalculatorDefinition[] = [
 ];
 
 const CORE_CALCULATOR_CATALOG = TOOL_CATALOG.filter((entry) => entry.kind === 'calculator').map(
-  (entry) => calculatorCatalogDefinition(entry, entry.preview),
+  (entry) => calculatorCatalogDefinition(entry, entry.preview, entry.ageScope),
 );
 
 export function getCalculatorRegistry(): readonly CalculatorDefinition[] {
@@ -159,7 +167,10 @@ export function registerDownloadedCalculator(record: ToolDefinitionRecord): void
   }
   const schema = validation.schema;
   registerDownloadedCalculatorSchema(record);
-  DOWNLOADED_CALCULATORS.set(record.id, calculatorCatalogDefinition(record, schema));
+  DOWNLOADED_CALCULATORS.set(
+    record.id,
+    calculatorCatalogDefinition(record, schema, schema.ageScope),
+  );
 }
 
 function calculatorCatalogDefinition(
@@ -168,6 +179,7 @@ function calculatorCatalogDefinition(
     'id' | 'version' | 'slug' | 'title' | 'shortTitle' | 'aliases'
   >,
   schema: CalculatorToolPreview,
+  ageScope: ToolAgeScope,
 ): AvailableCalculatorDefinition {
   return {
     id: record.id,
@@ -178,7 +190,7 @@ function calculatorCatalogDefinition(
     shortTitle: record.shortTitle,
     aliases: record.aliases,
     summary: schema.summary,
-    audience: schema.audience,
+    ageScope,
     category: schema.category,
     tags: schema.tags,
     clinical: schema.clinical,
@@ -227,7 +239,7 @@ export function searchCalculators(query: string): readonly CalculatorDefinition[
     const searchable = [
       calculator.title,
       calculator.summary,
-      calculator.audience,
+      toolAgeBadge(calculator.ageScope).label,
       calculator.category,
       ...(calculator.tags ?? []),
       ...(calculator.state === 'available' ? calculator.aliases : []),

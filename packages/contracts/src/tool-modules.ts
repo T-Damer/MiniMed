@@ -5,6 +5,7 @@ import {
   ObservationMappingSchema,
   ToolEvaluationSchema,
 } from './clinical-observations';
+import { ToolAgeScopeSchema } from './tool-age-scope';
 
 export const ToolModuleKindSchema = z.enum(['calculator', 'assessment']);
 
@@ -50,7 +51,10 @@ export const AssessmentDefinitionSchema = z.object({
   category: z.string().min(1),
   description: z.string().min(1),
   estimatedMinutes: z.number().int().positive(),
+  /** Who fills it in, in words («Взрослые; заполняет специалист»). */
   audience: z.string().min(1),
+  /** Whose age the questionnaire is for (children with a range, adults, any age); required. */
+  ageScope: ToolAgeScopeSchema,
   responseOptions: z.array(
     z.object({ value: AssessmentResponseValueSchema, label: z.string().min(1) }),
   ),
@@ -123,7 +127,6 @@ export type ToolDefinitionRecord = z.infer<typeof ToolDefinitionRecordSchema>;
 /** Descriptive core metadata only: executable steps and questionnaire questions stay in packs. */
 export const CalculatorToolPreviewSchema = z.object({ ...CalculatorSchemaSchema.shape }).pick({
   summary: true,
-  audience: true,
   category: true,
   tags: true,
   clinical: true,
@@ -137,6 +140,9 @@ export const CalculatorToolPreviewSchema = z.object({ ...CalculatorSchemaSchema.
 const ToolCatalogMetadataSchema = ToolDefinitionRecordSchema.omit({
   definition: true,
   sources: true,
+}).extend({
+  /** Copied from the definition so catalog lists can filter by age without loading it. */
+  ageScope: ToolAgeScopeSchema,
 });
 
 export const ToolCatalogEntrySchema = z.discriminatedUnion('kind', [

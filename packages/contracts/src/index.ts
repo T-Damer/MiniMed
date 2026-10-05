@@ -13,5 +13,6 @@ export * from './result';
 export * from './search';
 export * from './semantic';
 export * from './terminology';
+export * from './tool-age-scope';
 export * from './tool-modules';
 export * from './transcription';

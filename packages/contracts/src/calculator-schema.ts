@@ -6,6 +6,7 @@ import {
   ObservationMappingSchema,
   ToolEvaluationSchema,
 } from './clinical-observations';
+import { ToolAgeScopeSchema } from './tool-age-scope';
 
 /**
  * A declarative calculator definition: inputs, a restricted formula expression per step, sources, and
@@ -14,8 +15,6 @@ import {
  * content pack or, eventually, an LLM-authored draft: validating against this schema is the trust
  * boundary, not the formula's origin.
  */
-
-export const CalculatorAudienceSchema = z.enum(['all', 'adult', 'pediatric']);
 
 export const CalculatorCategorySchema = z.enum([
   'unit-conversion',
@@ -267,7 +266,8 @@ export const CalculatorSchemaSchema = z
     shortTitle: z.string().min(1),
     aliases: z.array(z.string().min(1)).default([]),
     summary: z.string().min(1),
-    audience: CalculatorAudienceSchema,
+    /** Who the calculator is for (children with an age range, adults, any age); required. */
+    ageScope: ToolAgeScopeSchema,
     category: CalculatorCategorySchema,
     /** Additional calculator sections where this same definition is listed. */
     tags: z.array(CalculatorCategorySchema).default([]),
@@ -344,7 +344,6 @@ export const CalculatorSchemaSchema = z
     },
   );
 
-export type CalculatorAudience = z.infer<typeof CalculatorAudienceSchema>;
 export type CalculatorCategory = z.infer<typeof CalculatorCategorySchema>;
 export type CalculatorSourceReference = z.infer<typeof CalculatorSourceReferenceSchema>;
 export type CalculatorInputOption = z.infer<typeof CalculatorInputOptionSchema>;

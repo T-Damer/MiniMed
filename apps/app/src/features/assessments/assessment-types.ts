@@ -3,6 +3,7 @@ import type {
   EvaluationStatus,
   ObservationMapping,
   ReferenceVerdict,
+  ToolAgeScope,
   ToolEvaluation,
   ToolSourceLink,
 } from '@localmed/contracts';
@@ -81,7 +82,10 @@ export interface AssessmentDefinition {
   readonly category: string;
   readonly description: string;
   readonly estimatedMinutes: number;
+  /** Who fills it in, in words. */
   readonly audience: string;
+  /** Whose age the questionnaire is for (children with a range, adults, any age). */
+  readonly ageScope: ToolAgeScope;
   /** Optional explanatory text and images supplied by a local user-created questionnaire. */
   readonly intro?: string;
   readonly images?: readonly AssessmentImage[];

@@ -32,7 +32,7 @@ function schema(
     shortTitle: 'Парацетамол',
     aliases: [],
     summary: 'Тестовая схема.',
-    audience: 'pediatric',
+    ageScope: { groups: ['children'], basis: 'Тест' },
     category: 'medication',
     tags: [],
     clinical: true,

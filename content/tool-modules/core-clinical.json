@@ -1,6 +1,6 @@
 {
   "id": "minimed.tools.core-clinical.ru",
-  "version": "0.1.0-preview.3",
+  "version": "0.1.0-preview.4",
   "title": "Базовые клинические расчёты",
   "schemaVersion": 2,
   "builtAt": "2026-08-18T00:00:00Z",
@@ -27,7 +27,11 @@
         "shortTitle": "Cockcroft–Gault",
         "aliases": ["Cockcroft-Gault", "клиренс креатинина", "CrCl"],
         "summary": "Оценка клиренса креатинина по формуле Cockcroft–Gault у взрослых.",
-        "audience": "adult",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": { "value": 18, "unit": "years" },
+          "basis": "Определение: «Взрослые»; ввод возраста от 18 лет."
+        },
         "category": "renal",
         "clinical": true,
         "formulaDisplay": "((140 − возраст) × масса) / (72 × Scr) × 0,85 для женщин",
@@ -198,7 +202,10 @@
         "shortTitle": "FeNa",
         "aliases": ["FeNa", "FENa", "фракционная экскреция натрия"],
         "summary": "Расчёт FeNa по парным образцам плазмы и мочи.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Взрослые и дети»; нижняя граница возраста не указана."
+        },
         "category": "renal",
         "clinical": true,
         "formulaDisplay": "FeNa = (UᵥNa × PᵥCr) / (PᵥNa × UᵥCr) × 100%",
@@ -319,7 +326,10 @@
         "shortTitle": "FeUrea",
         "aliases": ["FeUrea", "FE мочевины", "фракционная экскреция мочевины"],
         "summary": "Расчёт FeUrea по парным образцам мочи и плазмы.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Взрослые и дети»; нижняя граница возраста не указана."
+        },
         "category": "renal",
         "clinical": true,
         "formulaDisplay": "FeUrea = (UᵥUrea × PᵥCr) / (PᵥUrea × UᵥCr) × 100%",
@@ -438,7 +448,10 @@
         "shortTitle": "Диурез",
         "aliases": ["диурез мл кг час", "почасовой диурез", "urine output"],
         "summary": "Пересчёт измеренного объёма мочи на массу тела и время наблюдения.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Дети и взрослые»; нижняя граница возраста не указана."
+        },
         "category": "fluids",
         "clinical": true,
         "formulaDisplay": "Диурез = объём мочи / (масса × часы наблюдения)",
@@ -558,7 +571,10 @@
         "shortTitle": "Anion gap",
         "aliases": ["anion gap", "анионный разрыв", "анионная разница", "AG"],
         "summary": "Расчёт обычной и альбумин-корректированной анионной разницы без калия.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Дети и взрослые»; нижняя граница возраста не указана."
+        },
         "category": "emergency",
         "clinical": true,
         "formulaDisplay": "AG = Na − Cl − HCO₃; AGcorr = AG + 2,5 × (4 − альбумин в г/дл)",
@@ -688,7 +704,10 @@
         "shortTitle": "Натрий при гипергликемии",
         "aliases": ["corrected sodium", "скорректированный натрий", "гипергликемия натрий"],
         "summary": "Оценка натрия с поправкой на гипергликемию по коэффициенту Hillier.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Дети и взрослые»; нижняя граница возраста не указана."
+        },
         "category": "emergency",
         "clinical": true,
         "formulaDisplay": "Na корр. = Na измеренный + 0,024 × (глюкоза мг/дл − 100)",
@@ -815,7 +834,10 @@
         "shortTitle": "Осмолярность",
         "aliases": ["effective osmolality", "осмолярность плазмы", "тоничность"],
         "summary": "Расчёт эффективной осмолярности и осмолярности по натрию, глюкозе и мочевине.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Дети и взрослые»; нижняя граница возраста не указана."
+        },
         "category": "emergency",
         "clinical": true,
         "formulaDisplay": "Эффективная = 2 × Na + глюкоза/18; расчётная = 2 × Na + глюкоза/18 + BUN/2,8",
@@ -944,7 +966,10 @@
         "shortTitle": "Winter",
         "aliases": ["Winter's formula", "формула Винтера", "компенсация ацидоза"],
         "summary": "Ожидаемый PaCO₂ при метаболическом ацидозе по концентрации бикарбоната.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Дети и взрослые»; нижняя граница возраста не указана."
+        },
         "category": "emergency",
         "clinical": true,
         "formulaDisplay": "Ожидаемый PaCO₂ = 1,5 × HCO₃ + 8 ± 2 мм рт. ст.",
@@ -1069,7 +1094,11 @@
         "shortTitle": "FIB-4",
         "aliases": ["FIB4", "FIB-4", "индекс фиброза"],
         "summary": "Неинвазивный индекс, рассчитанный по возрасту, AST, ALT и тромбоцитам.",
-        "audience": "adult",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": { "value": 18, "unit": "years" },
+          "basis": "Определение: «Взрослые»; ввод возраста от 18 лет."
+        },
         "category": "gastroenterology",
         "clinical": true,
         "formulaDisplay": "FIB-4 = возраст × AST / (тромбоциты × √ALT)",
@@ -1195,7 +1224,10 @@
         "shortTitle": "APRI",
         "aliases": ["APRI", "AST platelet ratio index", "индекс APRI"],
         "summary": "Неинвазивный индекс по AST, верхней границе нормы AST и тромбоцитам.",
-        "audience": "adult",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые»."
+        },
         "category": "gastroenterology",
         "clinical": true,
         "formulaDisplay": "APRI = (AST / верхняя граница AST) × 100 / тромбоциты",
@@ -1309,7 +1341,10 @@
         "shortTitle": "ANC",
         "aliases": ["ANC", "absolute neutrophil count", "абсолютные нейтрофилы"],
         "summary": "Пересчёт общего числа лейкоцитов и доли сегментоядерных и палочкоядерных форм в ANC.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Дети и взрослые»; нижняя граница возраста не указана."
+        },
         "category": "hematology",
         "clinical": true,
         "formulaDisplay": "ANC = лейкоциты × (сегментоядерные + палочкоядерные) / 100",
@@ -1423,7 +1458,10 @@
         "shortTitle": "Mentzer",
         "aliases": ["Mentzer index", "индекс Ментцера", "микроцитоз"],
         "summary": "Скрининговый индекс для первичной ориентации при микроцитозе по MCV и числу эритроцитов.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Дети и взрослые»; нижняя граница возраста не указана."
+        },
         "category": "hematology",
         "clinical": true,
         "formulaDisplay": "Индекс Ментцера = MCV / число эритроцитов",
@@ -1558,7 +1596,10 @@
         "shortTitle": "QTc",
         "aliases": ["QTc", "QTc Bazett", "QTc Fridericia", "корригированный QT"],
         "summary": "Расчёт QTc по формулам Bazett и Fridericia из QT и RR на ЭКГ.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Дети и взрослые»; нижняя граница возраста не указана."
+        },
         "category": "cardiology",
         "clinical": true,
         "formulaDisplay": "QTcB = QT / √RR; QTcF = QT / ∛RR (QT и RR в секундах)",
@@ -1685,7 +1726,11 @@
         "shortTitle": "CHA₂DS₂-VASc",
         "aliases": ["CHA2DS2-VASc", "фибрилляция предсердий", "риск инсульта при ФП"],
         "summary": "Балльная оценка факторов риска инсульта при неклапанной фибрилляции предсердий.",
-        "audience": "adult",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": { "value": 18, "unit": "years" },
+          "basis": "Определение: «Взрослые с неклапанной фибрилляцией предсердий»; ввод возраста от 18 лет."
+        },
         "category": "cardiology",
         "clinical": true,
         "formulaDisplay": "Сердечная недостаточность + гипертензия + возраст + диабет + инсульт/ТИА/ТЭ + сосудистая болезнь + пол",
@@ -1880,7 +1925,10 @@
         "shortTitle": "HAS-BLED",
         "aliases": ["HAS BLED", "риск кровотечения", "фибрилляция предсердий кровотечение"],
         "summary": "Балльная оценка модифицируемых факторов риска кровотечения при ФП.",
-        "audience": "adult",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые с фибрилляцией предсердий»."
+        },
         "category": "cardiology",
         "clinical": true,
         "formulaDisplay": "Гипертензия + функция почек/печени + инсульт + кровотечение + лабильный INR + возраст + препараты/алкоголь",
@@ -2095,7 +2143,10 @@
         "shortTitle": "Child–Pugh",
         "aliases": ["Child Pugh", "Child-Turcotte-Pugh", "класс тяжести цирроза"],
         "summary": "Балльная оценка пяти компонентов классификации Child–Pugh.",
-        "audience": "adult",
+        "ageScope": {
+          "groups": ["adults"],
+          "basis": "Определение: «Взрослые с хроническим заболеванием печени»."
+        },
         "category": "gastroenterology",
         "clinical": true,
         "formulaDisplay": "Сумма баллов билирубина, альбумина, INR/протромбинового времени, асцита и энцефалопатии",
@@ -2326,7 +2377,10 @@
         "shortTitle": "Parkland",
         "aliases": ["Parkland formula", "формула Паркланда", "ожоговая инфузия"],
         "summary": "Ориентировочный объём кристаллоида на первые 24 часа и распределение по времени после ожога.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["children", "adults"],
+          "basis": "Определение: «Дети и взрослые с ожогами»; нижняя граница возраста не указана."
+        },
         "category": "emergency",
         "clinical": true,
         "formulaDisplay": "4 мл × масса (кг) × площадь ожога (%TBSA); половина за первые 8 часов",
@@ -2498,7 +2552,10 @@
         "shortTitle": "ППТ Mosteller",
         "aliases": ["площадь поверхности тела", "ППТ", "BSA", "Mosteller"],
         "summary": "ППТ по росту и массе с отображением исходной формулы и промежуточных шагов.",
-        "audience": "all",
+        "ageScope": {
+          "groups": ["neonates", "children", "adults"],
+          "basis": "Определение: «возраст отдельно не используется» — ограничений по возрасту нет."
+        },
         "category": "anthropometry",
         "clinical": true,
         "formulaDisplay": "Mosteller, 1987: BSA = √((рост, см × масса, кг) / 3600)",
@@ -2640,7 +2697,11 @@
         "shortTitle": "СКФ CKD-EPI 2021",
         "aliases": ["CKD-EPI 2021", "СКФ взрослые", "eGFR adult", "креатинин СКФ"],
         "summary": "Креатининовая CKD-EPI 2021 без расового коэффициента, с мг/дл и мкмоль/л.",
-        "audience": "adult",
+        "ageScope": {
+          "groups": ["adults"],
+          "minAge": { "value": 18, "unit": "years" },
+          "basis": "Определение: «Взрослые от 18 лет»; не предназначена для детей."
+        },
         "category": "renal",
         "clinical": true,
         "formulaDisplay": "142 × min(Scr/κ,1)^α × max(Scr/κ,1)^−1,200 × 0,9938^возраст × 1,012 для женщин",
@@ -2900,7 +2961,12 @@
         "shortTitle": "СКФ Schwartz 2009",
         "aliases": ["формула Шварца", "Schwartz bedside", "СКФ дети", "CKiD 0.413"],
         "summary": "Bedside-формула 0,413 × рост / креатинин с явными возрастными ограничениями.",
-        "audience": "pediatric",
+        "ageScope": {
+          "groups": ["children"],
+          "minAge": { "value": 1, "unit": "years" },
+          "maxAge": { "value": 16, "unit": "years" },
+          "basis": "Определение: «Дети 1–16 лет»; не применяется у младенцев до года и после 16 лет."
+        },
         "category": "renal",
         "clinical": true,
         "formulaDisplay": "Bedside CKiD (Schwartz), 2009: eGFR = 0,413 × рост(см) / Scr(мг/дл)",
@@ -3074,7 +3140,10 @@
         "shortTitle": "Жидкость 100/50/20",
         "aliases": ["Holliday Segar", "4-2-1", "100 50 20", "поддерживающая инфузия детям"],
         "summary": "Суточная схема 100/50/20 и почасовое приближение 4–2–1 с отдельными результатами.",
-        "audience": "pediatric",
+        "ageScope": {
+          "groups": ["children"],
+          "basis": "Определение: «Дети с массой 0,5–200 кг»; границы возраста не заданы."
+        },
         "category": "fluids",
         "clinical": true,
         "formulaDisplay": "100/50/20 мл/кг/сут; почасовое приближение 4/2/1 мл/кг/ч",
@@ -3259,7 +3328,12 @@
           "oral rehydration"
         ],
         "summary": "Двухэтапный расчёт: возраст и масса задают исходную схему, затем рвота и жидкий стул добавляются как продолжающиеся потери.",
-        "audience": "pediatric",
+        "ageScope": {
+          "groups": ["children"],
+          "minAge": { "value": 1, "unit": "months" },
+          "maxAge": { "value": 17, "unit": "years" },
+          "basis": "Определение: «Дети от 1 месяца до 18 лет»."
+        },
         "category": "fluids",
         "clinical": true,
         "formulaDisplay": "ОРС при клинической дегидратации: 50 мл/кг за 4 ч; продолжающиеся потери: 10 мл/кг за жидкий стул и 2 мл/кг за эпизод рвоты; поддержка 100/50/20.",

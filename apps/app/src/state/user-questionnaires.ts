@@ -1,3 +1,4 @@
+import { anyAgeScope } from '@localmed/contracts';
 import type {
   AssessmentDefinition,
   AssessmentImage,
@@ -381,6 +382,7 @@ export function userQuestionnaireToAssessmentDefinition(
     description: questionnaire.description || 'Локальный опросник из «Моих файлов».',
     estimatedMinutes: Math.max(1, Math.ceil(questionnaire.questions.length / 4)),
     audience: 'Локальный файл',
+    ageScope: anyAgeScope('Возраст не указан автором локального опросника.'),
     responseOptions: [],
     scales: usesWeights
       ? [
