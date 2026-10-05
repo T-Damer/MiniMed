@@ -23,6 +23,9 @@ from .catalog_module_builder import (
 )
 from .clinical_queries import import_real_pocqi_benchmark
 from .drug_sources import collect_drug_sources
+from .icd11_distribution import package_icd11_module
+from .icd11_fetch import fetch_icd11_release
+from .icd11_prepare import prepare_icd11
 from .instruction_card_drafts import export_instruction_card_drafts
 from .knowledge import (
     approve_knowledge,
@@ -363,6 +366,60 @@ def package_krasotaimedicina_command(
         version=version,
         min_app_version=min_app_version,
         core_database=core_database,
+    )
+    typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
+
+
+@app.command("fetch-icd11")
+def fetch_icd11_command(
+    release: Annotated[str, typer.Option("--release", help="WHO release, e.g. 2026-01.")],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+) -> None:
+    """Download WHO's public ICD-11 MMS Russian tabulation and ICD-10/11 mapping tables."""
+    manifest = fetch_icd11_release(release, output)
+    typer.echo(json.dumps(manifest, ensure_ascii=False, indent=2))
+
+
+@app.command("prepare-icd11")
+def prepare_icd11_command(
+    raw_input: Annotated[Path, typer.Option("--raw-input", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output")],
+    publication_decision_date: Annotated[str, typer.Option("--publication-decision-date")],
+    publication_decision_basis: Annotated[str, typer.Option("--publication-decision-basis")],
+    mkb10_database: Annotated[
+        Path | None,
+        typer.Option(
+            "--mkb10-database",
+            exists=True,
+            dir_okay=False,
+            help="ICD-10 module database; only used to check which ICD-10 cards exist for links.",
+        ),
+    ] = None,
+) -> None:
+    """Prepare the WHO ICD-11 MMS (Russian) workspace; ICD-10 data is never modified."""
+    report = prepare_icd11(
+        raw_input,
+        output,
+        PublicationDecision(
+            decided_at=publication_decision_date,
+            decided_by="project owner",
+            basis=publication_decision_basis,
+        ),
+        mkb10_database=mkb10_database,
+    )
+    typer.echo(json.dumps(report.__dict__, ensure_ascii=False, indent=2))
+
+
+@app.command("package-icd11")
+def package_icd11_command(
+    database: Annotated[Path, typer.Option("--database", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    version: Annotated[str, typer.Option("--version")],
+    min_app_version: Annotated[str, typer.Option("--min-app-version")],
+) -> None:
+    """Gzip the built ICD-11 pack and write its catalog entry."""
+    report = package_icd11_module(
+        database, output, version=version, min_app_version=min_app_version
     )
     typer.echo(json.dumps(report, ensure_ascii=False, indent=2))
 

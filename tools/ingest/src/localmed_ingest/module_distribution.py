@@ -267,6 +267,10 @@ class ModuleDescriptor:
     # Catalog grouping: «conditions» files a pack under «Заболевания и состояния», not the
     # generic reference («Нормы и расчёты») section.
     collection: str = "shared"
+    # A module no core pointer targets (ICD-11) lists no documents in its catalog entry: the
+    # per-document table exists to verify pointers and would add megabytes to every catalog fetch.
+    # The exact membership still ends up in the package report and `sourceSetDigest`.
+    list_documents: bool = True
 
 
 def package_module(
@@ -362,7 +366,9 @@ def package_module(
         "documents": [
             {**item, "indexArtifactId": artifact_id, "sourceAssetArtifactId": None}
             for item in documents
-        ],
+        ]
+        if descriptor.list_documents
+        else [],
         "previewDocumentCount": len(documents),
     }
     entry_path = output_dir / f"{stem}.catalog-entry.json"
