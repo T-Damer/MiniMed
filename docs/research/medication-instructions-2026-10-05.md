@@ -249,6 +249,25 @@ Order logic: 1 is the only item that changes what the doctor sees for most produ
 - **D5** Foreign labels with machine translation: yes/no in principle, local-only vs hosted model, scope, and approval of an ADR to be written. Allmed's own redistribution
   rights remain unresolved (`DRUG_KNOWLEDGE_PIPELINE.md`); that decision is separate.
 
+### Decisions (owner, 2026-10-05)
+
+- **D1 — decided (delegated to the coordinator): yes, a labelled same-substance fallback in the drug screen.**
+  Level 1: another registration with the same МНН, dosage form and strength → the label «Инструкция другого
+  производителя: то же вещество, форма и дозировка», naming the source product, holder and registration. Level 2, only when level 1
+  has nothing: same МНН and same form class, a different strength → the same label plus the warning «Дозировка отличается:
+  проверьте дозы по своему препарату». It is never presented as the product's own instruction, texts are never merged, exact
+  provenance is kept, and nothing is shown across different МНН or form classes. Donor order (the open question above): fewest
+  differences, ГРЛС before holder-site documents, professional text (ОХЛП, instruction) before the leaflet, foreign holder
+  (originator proxy), earliest registration, registration number. Implemented as MED3, [ADR-0023](../adr/0023-same-substance-instruction-fallback.md);
+  two additions the owner's wording did not cover, recorded in the ADR: an unstated registry strength («НЕ УКАЗАНО») never counts as
+  the same strength (level 2 with the warning «Дозировка в реестре не указана…»), and a different wording of the form at level 2 gets
+  its own warning.
+- **D2 — yes:** the already collected M1 manufacturer-site registrations ship as a separately labelled source class
+  (`manufacturer-site`) with the match method visible in provenance and in the drug screen. Only matches with a registration
+  match (number in the text, number on the page, `label-unique`) are attached; ambiguous ones are not.
+- **D3 — no** official requests for now. **D4 — no** Belarus/Kazakhstan registers for now (the owner expects Russian sources to
+  carry them, since the products are sold here). **D5 — no** machine-translated foreign labels.
+
 ## 5. Method, limits, what was not verified
 
 - Numbers in §1 come from the current repo state at 2026-10-05: the 15 module reports (`data/build/grls-instruction-modules/reports`) joined with the text manifest

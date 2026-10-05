@@ -796,6 +796,65 @@ tags `manufacturer-site`, `official-instruction`, `instructions`, `minAppVersion
   sections, onboarding). **Not verified:** installing the module in a browser/Android profile, the drug-screen wording for this source
   class (MED3 UI), search ranking over the mounted module, text overlap with the ГРЛС version of the same drug.
 
+## Same-substance instruction fallback (MED3) — 2026-10-05
+
+Owner decision D1 (2026-10-05, delegated and decided; details in [ADR-0023](adr/0023-same-substance-instruction-fallback.md) and
+`docs/research/medication-instructions-2026-10-05.md` «Decisions»): a product with no instruction of its own shows, labelled, the
+instruction of ANOTHER registration of the same МНН. Never presented as the product's own text, never merged, exact provenance kept,
+no fallback across МНН or form classes. D2 (the M1 holder-site module) is the section above; D3–D5 (official requests, BY/KZ
+registers, machine translation) stay not done.
+
+- **Matching is build-time data.** `tools/ingest/src/localmed_ingest/substance_fallback.py` (pure; 43 pytest cases in
+  `tests/test_substance_fallback.py`) + `tools/ingest/scripts/build_substance_fallback.py` read the released ЕСКЛП cards, the
+  documents the released instruction modules hold (GRLS module reports + the instruction manifest, and the M1 module report) and the
+  ГРЛС registry export (holder country and date, ranking only), and write the generated asset
+  `apps/app/src/features/medications/substance-fallback.json` (schema 1: ranked donor lists shared between registrations, 669 kB,
+  14 180 registrations, 3 358 groups, lazy chunk) plus `data/build/substance-fallback/report.json` (coverage). Rebuild it with
+  `bun run content:substance-fallback` after every instruction-module refresh or collector window; nobody edits it by hand.
+  Level 1 = the same СМНН node or an identical form string with an identical canonical strength (`0,5 г` = `500 мг`, combinations keep
+  their order; an unstated strength, «НЕ УКАЗАНО», is never «the same»). Level 2 only when level 1 has no donor: same form class
+  (the collector's `dosage_form_class`) with a different strength (flag 1), unstated strength (2) or another wording of the form (4).
+  A donor always belongs to the product's own ЕСКЛП МНН card. Ranking: fewest differences, ГРЛС before holder-site, ОХЛП >
+  instruction > leaflet, foreign holder (originator proxy), earliest registration, number; four donors per registration.
+- **Drug screen** (`instruction-fallback.ts`, `substance-fallback.ts`, `use-substance-fallback.ts`; `DocumentPageHost`,
+  `OfficialDocumentReader`): the asset is validated at the boundary (schema, flags/level consistency); a donor applies only if it is
+  in the product's own card and its document is installed (the existing registration index), so nothing shows until the group's
+  instruction module is installed (the existing download offer stays). The «Инструкция» tab then opens the donor document; above the
+  donor's own source block a fallback block shows the label «Инструкция другого производителя: то же вещество, форма и
+  дозировка», the warnings (level 2: «Дозировка отличается: проверьте дозы по своему препарату»; unstated strength: «Дозировка в
+  реестре не указана: …»; other form wording: «Лекарственная форма отличается: …»), the donor product (trade name, registration,
+  holder, form and strength) and «Это не инструкция выбранного препарата…». The product card's source line no longer claims ГРЛС for a
+  fallback; a hint under the «Кратко | Инструкция» switch names it. A restored history entry is re-resolved against what is
+  installed. A product with an own text never gets a fallback; a ГРЛС file outranks a holder-site document of the same registration.
+- **Holder-site documents in the screen:** the source block names the holder («Сайт производителя: АО «ВЕРТЕКС»»), links the
+  document, and states the match method per registration (number in the text, number on the product page, or «по названию, форме и
+  держателю: номер регистрации в документе не напечатан»); `instructionSourceClass` keeps the product's source line honest.
+- **Coverage** (604 213 ЕСКЛП product positions = packs, deduplicated by КЛП code; own = the registration has a document in a released
+  module, now including the 231 M1 registrations that are in ЕСКЛП):
+
+  | | own text | + level 1 (same form and stated strength) | + level 2 (same form class) | none |
+  |---|---:|---:|---:|---:|
+  | all positions | 267 374 = **44.3 %** | 88.9 % | **97.4 %** | 15 752 (2.6 %) |
+  | ЖНВЛП positions (345 837) | 42.2 % | 94.3 % | 99.0 % | 3 519 |
+  | trade name × МНН units (12 038) | 55.8 % | 83.0 % | 89.2 % | 1 296 |
+  | registrations (29 300) | 12 897 = 44.0 % | + 10 869 | + 3 311 | 2 223 |
+
+  Versus MED2's estimate (43.7 % → 94.3 % same СМНН node / 97.3 % same form class): without M1 the same method gives 43.7 % own, 95.1 %
+  node-equivalent and 97.3 % form-class-equivalent (the 0.8-point gap to 94.3 % is unreconciled: positions listed under several
+  registrations), so the estimate holds. The shipped level 1 is stricter than «same node»: 6 points of positions sit in groups whose
+  strength the registry does not state (14 % of trade entries) and are level 2 with a warning, which is why level 1 alone is 88.9 %.
+  Level 2 first donors: unstated strength 2 173 registrations, different strength 456, other form wording 322, wording and strength
+  231, wording and unstated strength 129. МНН cards: 2 395 of 3 324 have a text somewhere; the other 929 have no registration with a
+  text, so nothing can be shown for them (nothing crosses an МНН).
+- **Verified:** pytest (matching), vitest (`instruction-fallback`, `instruction-source`, `medication-record`), e2e
+  `apps/app/e2e/medication-instruction-fallback.spec.ts` on a real build with the real antiparasitic ЕСКЛП module and GRLS instruction module
+  (level 1 Албендазол-Эдвансд, level 2 Гельминтокс with its warning, own text Вермокс without a block; screenshots in
+  `output/med3-screens/`, light and dark, 390 px). The real M1 module was read with the app's own functions (272 documents, 240
+  registrations indexed, 213 / 47 / 16 registration-document pairs by match level).
+- **Not verified:** Android/WebView and slow devices; the M1 module installed in a browser profile (its drug-screen wording was checked
+  on the real module's metadata only); clinical suitability of any donor text (that is the label's job, not a check); search ranking
+  with the M1 module mounted; the fallback asset's refresh after the next collector window (manual rebuild step).
+
 ## Exact lookup (S2) — 2026-10-05
 
 - Lexical lookup no longer matches a short query word inside a longer one («боли» → `Болиголов`), drops
