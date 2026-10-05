@@ -7,7 +7,11 @@
 export type OnboardingView = 'search' | 'files';
 
 /** Extra content a step brings into its card. */
-export type OnboardingExtra = 'drugs-download' | 'speech-download' | 'mri-viewer';
+export type OnboardingExtra =
+  | 'sections-download'
+  | 'drugs-download'
+  | 'speech-download'
+  | 'mri-viewer';
 
 export interface OnboardingStep {
   readonly id: string;
@@ -50,6 +54,17 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     ],
     view: 'search',
     targets: ['section-picker'],
+  },
+  {
+    id: 'specialty',
+    title: 'Скачать по специальности',
+    paragraphs: [
+      'Выбери специальность: скачаем её клинические рекомендации и препараты, которые в них названы. Стрелка справа покажет состав раздела.',
+      'Это необязательно — то же самое есть в «Настройки → Загрузки».',
+    ],
+    view: 'search',
+    targets: [],
+    extra: 'sections-download',
   },
   {
     id: 'drugs',

@@ -26,7 +26,8 @@ export function totalDownloadBytes(modules: readonly ContentModuleCatalogEntry[]
     : null;
 }
 
-export function drugDownloadPlan(
+/** What of a set of packages is still to download; the size counts only what is missing. */
+export function moduleDownloadPlan(
   modules: readonly ContentModuleCatalogEntry[],
   installed: (module: ContentModuleCatalogEntry) => boolean,
 ): DrugDownloadPlan {
@@ -37,6 +38,8 @@ export function drugDownloadPlan(
     complete: modules.length > 0 && pending.length === 0,
   };
 }
+
+export const drugDownloadPlan = moduleDownloadPlan;
 
 const MIB = 1024 * 1024;
 const GIB = MIB * 1024;

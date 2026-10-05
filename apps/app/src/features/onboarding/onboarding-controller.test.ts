@@ -87,8 +87,8 @@ describe('onboarding controller', () => {
 });
 
 describe('onboarding steps', () => {
-  it('counts the intro as the first of nine steps', () => {
-    expect(ONBOARDING_TOTAL).toBe(9);
+  it('counts the intro as the first of ten steps', () => {
+    expect(ONBOARDING_TOTAL).toBe(10);
   });
 
   it('has unique ids, a title and text for every step', () => {

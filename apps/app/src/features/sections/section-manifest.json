@@ -1,0 +1,851 @@
+{
+  "schemaVersion": 1,
+  "provenance": {
+    "catalogFile": "apps/app/src/features/modules/catalog.preview.json",
+    "catalogVersion": "release-0.6.48-grls.2026.10.05",
+    "catalogSha256": "e2662ce3894a6176fbdbf74ad03d599761781a59ed3436952c9e30320439bdc5",
+    "relationsDirectory": "data/build/clinical-medication-relations",
+    "relationsFileCount": 753,
+    "relationsDigest": "c417b9053c4f0b03230ee097df597ee021908a75354d4d1e4579e431976890b5",
+    "generator": "scripts/build-section-manifest.ts"
+  },
+  "drugGroups": [
+    {
+      "id": "alimentary-metabolism",
+      "esklpModuleId": "minimed.medications.alimentary-metabolism.ru",
+      "instructionModuleId": "minimed.medications.instructions.alimentary-metabolism.ru"
+    },
+    {
+      "id": "antiinfectives",
+      "esklpModuleId": "minimed.medications.antiinfectives.ru",
+      "instructionModuleId": "minimed.medications.instructions.antiinfectives.ru"
+    },
+    {
+      "id": "antineoplastic-immunomodulating",
+      "esklpModuleId": "minimed.medications.antineoplastic-immunomodulating.ru",
+      "instructionModuleId": "minimed.medications.instructions.antineoplastic-immunomodulating.ru"
+    },
+    {
+      "id": "antiparasitic",
+      "esklpModuleId": "minimed.medications.antiparasitic.ru",
+      "instructionModuleId": "minimed.medications.instructions.antiparasitic.ru"
+    },
+    {
+      "id": "blood",
+      "esklpModuleId": "minimed.medications.blood.ru",
+      "instructionModuleId": "minimed.medications.instructions.blood.ru"
+    },
+    {
+      "id": "cardiovascular",
+      "esklpModuleId": "minimed.medications.cardiovascular.ru",
+      "instructionModuleId": "minimed.medications.instructions.cardiovascular.ru"
+    },
+    {
+      "id": "dermatological",
+      "esklpModuleId": "minimed.medications.dermatological.ru",
+      "instructionModuleId": "minimed.medications.instructions.dermatological.ru"
+    },
+    {
+      "id": "genitourinary-hormones",
+      "esklpModuleId": "minimed.medications.genitourinary-hormones.ru",
+      "instructionModuleId": "minimed.medications.instructions.genitourinary-hormones.ru"
+    },
+    {
+      "id": "musculoskeletal",
+      "esklpModuleId": "minimed.medications.musculoskeletal.ru",
+      "instructionModuleId": "minimed.medications.instructions.musculoskeletal.ru"
+    },
+    {
+      "id": "nervous-system",
+      "esklpModuleId": "minimed.medications.nervous-system.ru",
+      "instructionModuleId": "minimed.medications.instructions.nervous-system.ru"
+    },
+    {
+      "id": "respiratory",
+      "esklpModuleId": "minimed.medications.respiratory.ru",
+      "instructionModuleId": "minimed.medications.instructions.respiratory.ru"
+    },
+    {
+      "id": "sensory-organs",
+      "esklpModuleId": "minimed.medications.sensory-organs.ru",
+      "instructionModuleId": "minimed.medications.instructions.sensory-organs.ru"
+    },
+    {
+      "id": "systemic-hormones",
+      "esklpModuleId": "minimed.medications.systemic-hormones.ru",
+      "instructionModuleId": "minimed.medications.instructions.systemic-hormones.ru"
+    },
+    {
+      "id": "unclassified",
+      "esklpModuleId": "minimed.medications.unclassified.ru",
+      "instructionModuleId": "minimed.medications.instructions.unclassified.ru"
+    },
+    {
+      "id": "various",
+      "esklpModuleId": "minimed.medications.various.ru",
+      "instructionModuleId": "minimed.medications.instructions.various.ru"
+    }
+  ],
+  "sections": [
+    {
+      "collection": "minimed.clinical.cardiology-vascular.ru",
+      "relatedRecommendations": 37,
+      "recommendationsWithDrugs": 19,
+      "medicationCount": 41,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 4
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 10
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 20
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "unclassified",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.dentistry-maxillofacial.ru",
+      "relatedRecommendations": 7,
+      "recommendationsWithDrugs": 0,
+      "medicationCount": 0,
+      "unmatchedMedicationCount": 0,
+      "drugs": []
+    },
+    {
+      "collection": "minimed.clinical.dermatology.ru",
+      "relatedRecommendations": 29,
+      "recommendationsWithDrugs": 8,
+      "medicationCount": 31,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 11
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 4
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 7
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 5
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.emergency-critical.ru",
+      "relatedRecommendations": 14,
+      "recommendationsWithDrugs": 7,
+      "medicationCount": 11,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 8
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.endocrinology-metabolic.ru",
+      "relatedRecommendations": 65,
+      "recommendationsWithDrugs": 30,
+      "medicationCount": 63,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 19
+        },
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 4
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 7
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "genitourinary-hormones",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 6
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 9
+        },
+        {
+          "groupId": "respiratory",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "systemic-hormones",
+          "medicationCount": 6
+        },
+        {
+          "groupId": "unclassified",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "various",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.ent.ru",
+      "relatedRecommendations": 20,
+      "recommendationsWithDrugs": 8,
+      "medicationCount": 17,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 5
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "respiratory",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "sensory-organs",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "systemic-hormones",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.gastro-hepatology.ru",
+      "relatedRecommendations": 54,
+      "recommendationsWithDrugs": 15,
+      "medicationCount": 38,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 4
+        },
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 6
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 18
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "respiratory",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "systemic-hormones",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.hematology-oncology.ru",
+      "relatedRecommendations": 115,
+      "recommendationsWithDrugs": 51,
+      "medicationCount": 106,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 5
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 64
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 14
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 7
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "sensory-organs",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "systemic-hormones",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "unclassified",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "various",
+          "medicationCount": 4
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.infectious.ru",
+      "relatedRecommendations": 62,
+      "recommendationsWithDrugs": 23,
+      "medicationCount": 63,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 9
+        },
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 41
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "antiparasitic",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "sensory-organs",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "various",
+          "medicationCount": 2
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.neonatology.ru",
+      "relatedRecommendations": 31,
+      "recommendationsWithDrugs": 6,
+      "medicationCount": 9,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 4
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.nephrology-urology.ru",
+      "relatedRecommendations": 23,
+      "recommendationsWithDrugs": 10,
+      "medicationCount": 21,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 11
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "genitourinary-hormones",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "various",
+          "medicationCount": 2
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.neurology-neurosurgery.ru",
+      "relatedRecommendations": 25,
+      "recommendationsWithDrugs": 19,
+      "medicationCount": 90,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 5
+        },
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 6
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 6
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "genitourinary-hormones",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 15
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 44
+        },
+        {
+          "groupId": "sensory-organs",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "systemic-hormones",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "unclassified",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.obstetrics-gynecology.ru",
+      "relatedRecommendations": 60,
+      "recommendationsWithDrugs": 18,
+      "medicationCount": 44,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 4
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "genitourinary-hormones",
+          "medicationCount": 17
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 7
+        },
+        {
+          "groupId": "systemic-hormones",
+          "medicationCount": 4
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.ophthalmology.ru",
+      "relatedRecommendations": 36,
+      "recommendationsWithDrugs": 4,
+      "medicationCount": 6,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "sensory-organs",
+          "medicationCount": 2
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.other.ru",
+      "relatedRecommendations": 16,
+      "recommendationsWithDrugs": 7,
+      "medicationCount": 20,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "alimentary-metabolism",
+          "medicationCount": 4
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "genitourinary-hormones",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 5
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 5
+        },
+        {
+          "groupId": "systemic-hormones",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.pediatrics-general.ru",
+      "relatedRecommendations": 33,
+      "recommendationsWithDrugs": 10,
+      "medicationCount": 23,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 7
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 7
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 7
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.psychiatry-addiction.ru",
+      "relatedRecommendations": 27,
+      "recommendationsWithDrugs": 17,
+      "medicationCount": 42,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 4
+        },
+        {
+          "groupId": "genitourinary-hormones",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 32
+        },
+        {
+          "groupId": "respiratory",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "various",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.rehabilitation-palliative.ru",
+      "relatedRecommendations": 1,
+      "recommendationsWithDrugs": 1,
+      "medicationCount": 1,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.respiratory-allergy.ru",
+      "relatedRecommendations": 25,
+      "recommendationsWithDrugs": 13,
+      "medicationCount": 40,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 25
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "respiratory",
+          "medicationCount": 8
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.rheumatology-immunology.ru",
+      "relatedRecommendations": 20,
+      "recommendationsWithDrugs": 13,
+      "medicationCount": 19,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "antineoplastic-immunomodulating",
+          "medicationCount": 6
+        },
+        {
+          "groupId": "antiparasitic",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 2
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "musculoskeletal",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 3
+        },
+        {
+          "groupId": "systemic-hormones",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "various",
+          "medicationCount": 1
+        }
+      ]
+    },
+    {
+      "collection": "minimed.clinical.surgery-trauma.ru",
+      "relatedRecommendations": 53,
+      "recommendationsWithDrugs": 12,
+      "medicationCount": 8,
+      "unmatchedMedicationCount": 0,
+      "drugs": [
+        {
+          "groupId": "antiinfectives",
+          "medicationCount": 4
+        },
+        {
+          "groupId": "blood",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "cardiovascular",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "dermatological",
+          "medicationCount": 1
+        },
+        {
+          "groupId": "nervous-system",
+          "medicationCount": 1
+        }
+      ]
+    }
+  ]
+}

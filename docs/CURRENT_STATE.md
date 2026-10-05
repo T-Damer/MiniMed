@@ -20,6 +20,33 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Download by sections — 2026-10-05 (STATE SEC1)
+
+- «Скачать по специальности»: the tour (new step 4 of 10) and Settings → Загрузки show one shared list
+  (`apps/app/src/features/sections/SectionDownloads.tsx`). A section is a clinical collection of the
+  catalog (20 sections, 774 single-КР modules; titles from `catalog.categories`, a small glyph table
+  for the icons). Each row reads «35 клинических рекомендаций · препараты: 3 группы · 210 МБ» (Russian
+  plural forms), expands to the recommendations, the drug groups with the number of substances the
+  recommendations name, and a «Формы — скоро» line without a count (forms are task F1). Several sections
+  can be ticked; a drug group can be switched off per section; the total counts a shared drug group
+  once and an installed package never (partial sections read «ещё N МБ», finished ones «скачано»).
+- **Drug groups are derived, not listed.** `bun run content:sections:manifest`
+  (`scripts/build-section-manifest.ts`, pure part in `section-manifest-source.ts`) reads the 753
+  `data/build/clinical-medication-relations/<КР id>.json` files and the catalog: each recommendation's
+  ЕСКЛП МНН ids are looked up in the `documentTable` rows of the ЕСКЛП modules (an ATC level-1 group
+  each), and the group's ГРЛС instruction module is the one of the same group. The result is
+  `section-manifest.json` (21 kB, provenance: catalog version + SHA-256, relations count + digest;
+  `--check` verifies it). Every МНН named in the relations matched a ЕСКЛП module. Allmed
+  (`minimed.medications.ru`) is not part of any section: it has no per-drug membership in the catalog;
+  «Скачать препараты целиком» still covers it.
+- Downloads go through `useModuleInstaller` (shared with `useDrugDownload`, which now sits on top of
+  it): the module runtime, so tasks appear in the shared queue; the full-set drug button is unchanged.
+- Sizes of the sections today: 85 МБ (офтальмология) … 350 МБ (гематология и онкология), mostly ГРЛС
+  instructions; all drug packages together are ~350 МБ. Not measured on a phone; the real download could not be
+  completed in the dev browser (the dev server's release proxy answered 502), so the queue path was
+  checked up to the retrying task. Unit tests: `features/sections/*.test.ts`; e2e:
+  `section-downloads.spec.ts` and the updated `onboarding.spec.ts` (10 steps).
+
 ## Semantic search over clinical recommendations — 2026-10-05 (STATE E2)
 
 - Optional on-device e5-small (`Xenova/multilingual-e5-small` q8, 129 MB, pinned revision and
@@ -495,6 +522,17 @@ date, sha256, version/date as printed, OCR flag and match evidence.
   printed in the document or on its page, 179 `label-unique` (name + form + holder, no number printed: EAEU листки omit it),
   5 ambiguous. Not yet used by any pack or the app; whether to accept `label-unique` is an owner decision.
 - Generic web search for 20 missing ЖНВЛП: 0 verified official documents (reference books and aggregators only).
+
+## Exact lookup (S2) — 2026-10-05
+
+- Lexical lookup no longer matches a short query word inside a longer one («боли» → `Болиголов`), drops
+  groups that share only form/audience/meta words with the query, prefers documents with every subject
+  word, and finds «Вирусные менингиты у детей» for «менингит у ребёнка» (rules in `docs/SEARCH.md`).
+  Measured: `benchmark:doctor-lookup` R@5 0.7 → 0.9, MRR 0.65 → 0.85; `benchmark:real:release` lookup
+  R@1 0.803, R@5 0.934, MRR 0.855 → 0.852 (unchanged within tolerance, no re-baseline).
+- Left: the release set is mostly narrative clinical phrasing (clinical path); its misses come from
+  the intent branch («лечить», «терапия») matching ICD Z-codes when the subject is lost to a negation
+  span, and need the clinical parser. Indication queries («от давления») need the semantic path (E3).
 
 ## Release 0.6.47 — 2026-10-02
 

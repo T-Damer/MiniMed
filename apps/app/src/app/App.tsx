@@ -423,6 +423,7 @@ export function App(): JSX.Element {
             onCheckAppUpdate={session.checkAvailableUpdate}
             onActivateAppUpdate={session.activateAvailableUpdate}
             onCancelAppUpdate={session.cancelAvailableUpdate}
+            onContentChanged={session.connectInstalledModules}
           />
         ))}
         {rootPane('modules', () => (

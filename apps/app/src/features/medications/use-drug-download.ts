@@ -1,32 +1,18 @@
 import type { ContentModuleCatalogEntry, ContentModuleDownloadTask } from '@localmed/contracts';
-import { type Accessor, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
-import { toast } from 'solid-sonner';
+import { type Accessor, createMemo } from 'solid-js';
 
-import type { BrowserContentModuleRuntime } from '@/features/modules/browser-module-runtime';
-import {
-  contentModuleNeedsInstall,
-  isModuleReleased,
-  mergePreinstalledModules,
-} from '@/features/modules/local-packaged-modules';
-import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
-import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import { isModuleReleased } from '@/features/modules/local-packaged-modules';
 import {
   moduleGroupDownloadProgress,
   type RecommendationCategoryDownloadProgress,
 } from '@/features/modules/recommendation-categories';
-import { installPublishedCategoryModules } from '@/features/modules/recommendation-category-operations';
 import {
   type DrugDownloadPlan,
-  drugDownloadPlan,
   drugModules,
+  moduleDownloadPlan,
   totalDownloadBytes,
 } from '@/features/onboarding/onboarding-downloads';
-
-const FINISHED_TASK_STATES = new Set<ContentModuleDownloadTask['state']>([
-  'completed',
-  'failed',
-  'cancelled',
-]);
+import { useModuleInstaller } from '@/features/sections/use-module-installer';
 
 export interface DrugDownloadState {
   readonly modules: readonly ContentModuleCatalogEntry[];
@@ -58,102 +44,33 @@ export interface DrugDownload {
  * catalog (~10 MB) loads here on mount, never at start-up. Shared by the tour and the catalog page.
  */
 export function useDrugDownload(onContentChanged: () => Promise<void>): DrugDownload {
-  const [runtime, setRuntime] = createSignal<BrowserContentModuleRuntime>();
-  const [failed, setFailed] = createSignal(false);
-  const [revision, setRevision] = createSignal(0);
-  const [starting, setStarting] = createSignal(0);
-  const [problem, setProblem] = createSignal(false);
+  const installer = useModuleInstaller(onContentChanged, 'Не удалось скачать препараты.');
 
-  onMount(() => {
-    let disposed = false;
-    let unsubscribe: (() => void) | undefined;
-    onCleanup(() => {
-      disposed = true;
-      unsubscribe?.();
-    });
-    loadModuleCatalog()
-      .then((catalog) => {
-        if (disposed) return;
-        const current = getContentModuleRuntime(catalog);
-        setRuntime(current);
-        unsubscribe = current.subscribe(() => setRevision((value) => value + 1));
-      })
-      .catch((cause: unknown) => {
-        console.warn('Каталог пакетов не загрузился.', cause);
-        if (!disposed) setFailed(true);
-      });
-  });
-
-  const internal = createMemo(() => {
-    revision();
-    const current = runtime();
-    if (!current) return undefined;
-    const catalog = current.getCatalog();
-    const modules = drugModules(catalog, isModuleReleased);
-    const installedById = new Map(
-      mergePreinstalledModules(catalog, current.listInstalled()).map((module) => [
-        module.moduleId,
-        module,
-      ]),
-    );
-    const isInstalled = (module: ContentModuleCatalogEntry): boolean =>
-      !contentModuleNeedsInstall(module, installedById.get(module.id));
-    const plan = drugDownloadPlan(modules, isInstalled);
-    const installedIds = new Set(modules.filter(isInstalled).map((module) => module.id));
-    const tasks = current.listTasks();
-    const progress = moduleGroupDownloadProgress(modules, installedIds, tasks);
+  const state = createMemo<DrugDownloadState | undefined>(() => {
+    const snapshot = installer.snapshot();
+    if (!snapshot) return undefined;
+    const modules = drugModules(snapshot.catalog, isModuleReleased);
+    const plan = moduleDownloadPlan(modules, snapshot.isInstalled);
+    const installedIds = new Set(modules.filter(snapshot.isInstalled).map((module) => module.id));
     return {
-      current,
-      installedIds,
       modules,
       plan,
-      progress,
-      tasks,
+      progress: moduleGroupDownloadProgress(modules, installedIds, snapshot.tasks),
       totalBytes: totalDownloadBytes(modules),
+      installedIds,
+      tasks: snapshot.tasks,
     };
   });
 
-  const state = createMemo<DrugDownloadState | undefined>(() => {
-    const value = internal();
-    if (!value) return undefined;
-    const { modules, plan, progress, totalBytes, installedIds, tasks } = value;
-    return { modules, plan, progress, totalBytes, installedIds, tasks };
-  });
-
-  const active = () => starting() > 0 || (internal()?.progress.activeTaskCount ?? 0) > 0;
+  const active = () => installer.starting() || (state()?.progress.activeTaskCount ?? 0) > 0;
 
   const start = async (modules?: readonly ContentModuleCatalogEntry[]): Promise<void> => {
-    const value = internal();
+    const value = state();
     if (!value) return;
     // The whole set waits for a quiet queue; a single package may join a running download.
     if (!modules && active()) return;
-    const queued = new Set(
-      value.tasks
-        .filter((task) => !FINISHED_TASK_STATES.has(task.state))
-        .map((task) => task.moduleId),
-    );
-    const wanted = (modules ?? value.plan.pending).filter((module) => !queued.has(module.id));
-    if (wanted.length === 0) return;
-    setProblem(false);
-    setStarting((count) => count + 1);
-    try {
-      const result = await installPublishedCategoryModules(
-        value.current,
-        wanted,
-        value.installedIds,
-      );
-      if (result.errorMessage) {
-        setProblem(true);
-        toast.error(result.errorMessage);
-      }
-      if (result.changed) await onContentChanged();
-    } catch (cause) {
-      setProblem(true);
-      toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать препараты.');
-    } finally {
-      setStarting((count) => count - 1);
-    }
+    await installer.start(modules ?? value.plan.pending);
   };
 
-  return { state, failed, problem, active, start };
+  return { state, failed: installer.failed, problem: installer.problem, active, start };
 }

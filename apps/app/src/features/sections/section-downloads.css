@@ -1,0 +1,240 @@
+.section-downloads {
+  display: grid;
+  min-width: 0;
+  gap: 0.625rem;
+}
+
+.section-downloads__note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* The tour card scrolls its body: keep the action in view while the list moves under it. */
+.section-downloads__bar {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.section-downloads__bar--sticky {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  padding-block: 0.25rem;
+  background: var(--theme-surface-raised);
+}
+
+.section-downloads__start {
+  width: 100%;
+}
+
+.section-downloads__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.section-downloads__list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 0.375rem;
+  list-style: none;
+}
+
+.section-downloads__item {
+  min-width: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.section-downloads__item--selected {
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+}
+
+.section-downloads__row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.section-downloads__select,
+.section-downloads__group-select {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0 0.625rem 0.75rem;
+  cursor: pointer;
+}
+
+.section-downloads__group-select {
+  align-items: flex-start;
+  padding: 0.5rem 0;
+}
+
+.section-downloads__check {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--theme-accent);
+}
+
+.section-downloads__check:disabled {
+  cursor: default;
+}
+
+.section-downloads__glyph {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  color: var(--theme-accent);
+}
+
+.section-downloads__glyph--muted {
+  color: var(--theme-text-muted);
+}
+
+.section-downloads__copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+}
+
+.section-downloads__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.section-downloads__summary {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.section-downloads__queue {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+}
+
+.section-downloads__mark {
+  width: 1rem;
+  height: 1rem;
+}
+
+.section-downloads__expand {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: var(--theme-radius-control);
+  background: transparent;
+  color: var(--theme-text-muted);
+  cursor: pointer;
+}
+
+.section-downloads__expand:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: -2px;
+}
+
+.section-downloads__caret {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 200ms ease;
+}
+
+.section-downloads__caret--open {
+  transform: rotate(180deg);
+}
+
+.section-downloads__details {
+  display: grid;
+  gap: 0.625rem;
+  padding: 0.25rem 0.75rem 0.75rem;
+  border-top: 1px solid var(--theme-border);
+}
+
+.section-downloads__part {
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.5rem;
+}
+
+.section-downloads__part-title {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.section-downloads__part-text {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.section-downloads__part--soon {
+  opacity: 0.7;
+}
+
+.section-downloads__groups {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.section-downloads__group-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-downloads__item,
+  .section-downloads__caret {
+    transition: none;
+  }
+}
+
+/* Settings → Загрузки: the section list sits in a card above the queue. */
+.downloads-sections {
+  display: grid;
+  width: 100%;
+  max-width: 48rem;
+  gap: 0.5rem;
+  margin-block-end: 1rem;
+  padding: 1rem 1.1rem;
+}
+
+.downloads-sections__title {
+  margin: 0;
+  font: 700 1.05rem / 1.25 var(--font-serif);
+}
+
+.downloads-sections__text {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}

@@ -76,6 +76,8 @@ interface SettingsViewProps {
   readonly onCheckAppUpdate: () => void;
   readonly onActivateAppUpdate: () => void;
   readonly onCancelAppUpdate: () => void;
+  /** Connects freshly downloaded packages to the search core. */
+  readonly onContentChanged?: () => Promise<void>;
 }
 
 export function SettingsView(props: SettingsViewProps): JSX.Element {
@@ -131,7 +133,9 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   return (
     <section class="settings-page page-surface page-grain">
       <Show when={route() === 'downloads'}>
-        <DownloadsPage />
+        <DownloadsPage
+          {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
+        />
         <PackagingImagesSettings />
       </Show>
       <Show when={route() === 'index'}>

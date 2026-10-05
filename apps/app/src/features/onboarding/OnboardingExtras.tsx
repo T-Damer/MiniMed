@@ -27,6 +27,7 @@ import {
 import { isDownloadActive } from '@/features/downloads/download-queue';
 import { getDownloadQueue } from '@/features/downloads/download-service';
 import { useDrugDownload } from '@/features/medications/use-drug-download';
+import { SectionDownloads } from '@/features/sections/SectionDownloads';
 import { downloadPercent } from '@/features/setup/setup-state';
 import { motionMs } from '@/state/motion';
 import {
@@ -48,6 +49,8 @@ export function OnboardingExtraContent(props: {
   readonly onContentChanged: () => Promise<void>;
 }): JSX.Element {
   switch (props.kind) {
+    case 'sections-download':
+      return <SectionDownloads variant="onboarding" onContentChanged={props.onContentChanged} />;
     case 'drugs-download':
       return <DrugDownloadAction onContentChanged={props.onContentChanged} />;
     case 'speech-download':

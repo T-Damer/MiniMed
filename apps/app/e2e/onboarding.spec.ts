@@ -38,7 +38,7 @@ for (const viewport of [
     // Tour: the card, the counter and the step dots advance one step at a time.
     const card = page.locator('.onboarding-hint');
     const counter = card.locator('.onboarding-hint__counter');
-    await expect(counter).toContainText('2 / 9');
+    await expect(counter).toContainText('2 / 10');
     await expect(card.getByRole('heading', { name: 'Поиск', exact: true })).toBeVisible();
     await expect(card.locator('.onboarding-hint__back')).toBeDisabled();
     // The first step spotlights the bottom navigation and explains it; no glow or particles.
@@ -48,44 +48,52 @@ for (const viewport of [
     await page.screenshot({ path: testInfo.outputPath('step-2.png') });
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('3 / 9');
+    await expect(counter).toContainText('3 / 10');
     await expect(card.getByRole('heading', { name: 'Разделы поиска' })).toBeVisible();
     // The control the step explains is ringed and an arrow is drawn to it.
     await expect(page.locator('.onboarding-ring')).toBeVisible();
     await expect(page.locator('.onboarding-arrow__shaft')).toBeAttached();
     await expect(card.locator('.onboarding-hint__dot--active')).toHaveCount(1);
 
+    // Specialty: whole sections, each with its contents before anything is downloaded.
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('4 / 9');
+    await expect(counter).toContainText('4 / 10');
+    await expect(card.getByRole('heading', { name: 'Скачать по специальности' })).toBeVisible();
+    await expect(card.locator('.section-downloads__item').first()).toBeVisible({ timeout: 30_000 });
+    await expect(card.getByRole('button', { name: /Выберите раздел/u })).toBeDisabled();
+    await page.screenshot({ path: testInfo.outputPath('step-4.png') });
+
+    await card.getByRole('button', { name: 'Далее', exact: true }).click();
+    await expect(counter).toContainText('5 / 10');
     await expect(
       card.getByRole('button', { name: /Скачать препараты|Считаем размер/u }),
     ).toBeVisible();
 
     await card.getByRole('button', { name: 'Назад', exact: true }).click();
-    await expect(counter).toContainText('3 / 9');
+    await expect(counter).toContainText('4 / 10');
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('5 / 9');
+    await expect(counter).toContainText('6 / 10');
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
 
     // Files: the real sample slices cycle with their attribution.
-    await expect(counter).toContainText('6 / 9');
+    await expect(counter).toContainText('7 / 10');
     await expect(card.getByRole('heading', { name: 'Мои файлы' })).toBeVisible();
     await expect(card.locator('.onboarding-mri__slice--active')).toBeVisible();
     await expect(card.locator('.onboarding-mri__source')).toContainText('OpenNeuro');
     await page.screenshot({ path: testInfo.outputPath('step-6.png') });
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('7 / 9');
+    await expect(counter).toContainText('8 / 10');
     await expect(card.getByRole('heading', { name: 'ЭКГ по фото' })).toBeVisible();
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('8 / 9');
+    await expect(counter).toContainText('9 / 10');
     await expect(card.getByRole('button', { name: 'Скачать модель (в фоне)' })).toBeVisible();
     await expect(card).toContainText('только с согласия пациента');
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();
-    await expect(counter).toContainText('9 / 9');
+    await expect(counter).toContainText('10 / 10');
     await expect(card).toContainText('Всё хранится только на твоём устройстве');
     await page.screenshot({ path: testInfo.outputPath('step-9.png') });
     await card.getByRole('button', { name: 'Начать работу' }).click();
@@ -116,11 +124,11 @@ test('Escape skips the tour from the intro and the keyboard moves between steps'
   await expect(page.getByText('Привет', { exact: true })).toBeVisible({ timeout: 30_000 });
   for (let press = 0; press < 4; press += 1) await page.keyboard.press('ArrowRight');
   const counter = page.locator('.onboarding-hint__counter');
-  await expect(counter).toContainText('2 / 9');
+  await expect(counter).toContainText('2 / 10');
   await page.keyboard.press('ArrowRight');
-  await expect(counter).toContainText('3 / 9');
+  await expect(counter).toContainText('3 / 10');
   await page.keyboard.press('ArrowLeft');
-  await expect(counter).toContainText('2 / 9');
+  await expect(counter).toContainText('2 / 10');
   await page.keyboard.press('Escape');
   await expect(page.locator('.onboarding')).toHaveCount(0);
   await expect(page.locator('.search-home')).toBeVisible();
