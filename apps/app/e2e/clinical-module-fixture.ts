@@ -8,7 +8,7 @@ import { E2E_ASSET_ORIGIN } from './mount-built-app';
 
 const ROOT = resolve(import.meta.dirname, '../../..');
 // Local copy of the published zstd index (docs/data-ledger.json keeps it as the release copy).
-const PUBLISHED_DIRECTORY = 'output/module-zstd-2026-10-01/clinical-compacted';
+const PUBLISHED_DIRECTORY = 'output/module-zstd-e5-2026-10-05';
 const MODULE_ID = 'minimed.clinical.recommendation.1006_1';
 const POINTER = 'core.catalog.pointer.clinical.kr.rf.1006_1-1151be108d81d0ac';
 

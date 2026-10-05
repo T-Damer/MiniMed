@@ -12,6 +12,7 @@
  * artifact its new URL, checksums and sizes. Every archive is decoded again and compared with the
  * SQLite's SHA-256 before it is accepted.
  */
+import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -72,23 +73,38 @@ for (const module of raw.modules) {
     throw new Error(`Unexpected URL ${url}`);
   const stem = fileName0.slice(0, -suffix.length);
   if (oldTag === tag) continue;
-  const decodedPath = join(decodedDir, `${stem}-${oldTag}.db`);
-  if (!existsSync(decodedPath)) throw new Error(`Missing ${decodedPath} for ${module.id}.`);
-
   const fileName = `${stem}-${tag}.db.zst`;
   const archivePath = join(outDir, fileName);
-  const decodedSha256 = fileSha256(decodedPath);
-  const decodedSizeBytes = statSync(decodedPath).size;
-  if (!existsSync(archivePath)) {
-    try {
-      encodeFramed(decodedPath, archivePath);
-      await verifyFramed(archivePath, decodedSizeBytes, decodedSha256);
-    } catch (cause) {
-      rmSync(archivePath, { force: true });
-      throw cause;
+  const decodedPath = join(decodedDir, `${stem}-${oldTag}.db`);
+  let decodedSha256: string;
+  let decodedSizeBytes: number;
+  if (existsSync(decodedPath)) {
+    decodedSha256 = fileSha256(decodedPath);
+    decodedSizeBytes = statSync(decodedPath).size;
+    if (!existsSync(archivePath)) {
+      try {
+        encodeFramed(decodedPath, archivePath);
+      } catch (cause) {
+        rmSync(archivePath, { force: true });
+        throw cause;
+      }
     }
+  } else if (existsSync(archivePath)) {
+    // Already framed and the decoded copy deleted: take the identity from the reference decoder.
+    const temporary = join(outDir, `${fileName}.check.db`);
+    const decoded = spawnSync('zstd', ['-dqf', '--long=27', archivePath, '-o', temporary]);
+    if (decoded.status !== 0) throw new Error(`zstd could not decode ${archivePath}.`);
+    decodedSha256 = fileSha256(temporary);
+    decodedSizeBytes = statSync(temporary).size;
+    rmSync(temporary, { force: true });
   } else {
+    throw new Error(`Missing ${decodedPath} for ${module.id}.`);
+  }
+  try {
     await verifyFramed(archivePath, decodedSizeBytes, decodedSha256);
+  } catch (cause) {
+    if (existsSync(decodedPath)) rmSync(archivePath, { force: true });
+    throw cause;
   }
   const sizeBytes = statSync(archivePath).size;
   artifact['url'] = `${RELEASE_BASE}/${tag}/${fileName}`;
