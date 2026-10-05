@@ -1,0 +1,1920 @@
+{
+  "schemaVersion": 1,
+  "id": "ru.minzdrav.395n.071u",
+  "formNumber": "071/у",
+  "title": "Медицинское заключение о наличии (об отсутствии) у трактористов, машинистов и водителей самоходных машин (кандидатов в трактористы, машинисты и водители самоходных машин) медицинских противопоказаний, медицинских показаний или медицинских ограничений к управлению самоходными машинами",
+  "edition": "Приказ Минздрава России от 09.06.2022 № 395н, приложение № 1; действует с 03.07.2022 по 01.03.2028 (единственное приложение, на скане без номера)",
+  "source": {
+    "issuer": "Министерство здравоохранения Российской Федерации",
+    "orderNumber": "395н",
+    "orderDate": "2022-06-09",
+    "orderTitle": "Об утверждении формы медицинского заключения о наличии (об отсутствии) у трактористов, машинистов и водителей самоходных машин (кандидатов в трактористы, машинисты и водители самоходных машин) медицинских противопоказаний, медицинских показаний или медицинских ограничений к управлению самоходными машинами",
+    "registration": {
+      "authority": "Министерство юстиции Российской Федерации",
+      "number": "68933",
+      "date": "2022-06-21"
+    },
+    "effectiveFrom": "2022-07-03",
+    "effectiveUntil": "2028-03-01",
+    "publicationUrl": "http://publication.pravo.gov.ru/document/0001202206210025",
+    "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202206210025",
+    "retrievedAt": "2026-10-05",
+    "sha256": "1c39c9e8e6280d1733f073524105b3e474336477fa98d197da3cb5c3d1c8022c",
+    "pdfPages": 3,
+    "blankAppendix": {
+      "number": 1,
+      "pdfPages": [
+        2,
+        3
+      ]
+    },
+    "extraction": {
+      "method": "macos-vision-ocr-v1",
+      "ocrSha256": "a88016cb978b41dfa0c902cae839ac704a938d904a689ec9a9d965efb5216f00",
+      "corrections": [
+        {
+          "pdfPage": 1,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 1,
+          "from": "У твердить",
+          "to": "Утвердить",
+          "reason": "a letter of the verb is split off by the wide spacing of the justified line"
+        },
+        {
+          "pdfPage": 1,
+          "from": "заключения наличии",
+          "to": "заключения о наличии",
+          "reason": "the preposition «о» is lost in the wide spacing of the justified line"
+        },
+        {
+          "pdfPage": 2,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        }
+      ],
+      "blankLabelsVerified": 42,
+      "captionsReviewedOnScan": [
+        "Медицинское заключение серия",
+        "8. Обязательное медицинское освидетельствование проведено",
+        "Категории «А II» – внедорожные автотранспортные средства",
+        "Категории «А III» – внедорожные автотранспортные средства"
+      ],
+      "note": "The official PDF is a scan without a text layer. Text recognised by macOS Vision; fragments are regrouped into printed lines (top to bottom, left to right) and footnotes under the per-page limits of the blueprint are dropped. Span line indices count these regrouped lines of each PDF page from 0. Corrections listed here were reviewed against the scan."
+    }
+  },
+  "sections": [
+    {
+      "id": "organization",
+      "title": "Медицинская организация",
+      "description": "Наименование и адрес подставляются из настроек «Врач и организация».",
+      "fieldIds": [
+        "orgName",
+        "orgLicense",
+        "orgAddress",
+        "orgOkpo"
+      ]
+    },
+    {
+      "id": "certificate",
+      "title": "Серия, номер и дата",
+      "fieldIds": [
+        "certSeries",
+        "certNumber",
+        "formDate"
+      ]
+    },
+    {
+      "id": "patient",
+      "title": "Освидетельствуемый",
+      "fieldIds": [
+        "patientFullName",
+        "patientBirthDate",
+        "snils"
+      ]
+    },
+    {
+      "id": "residence",
+      "title": "Регистрация по месту жительства (пребывания)",
+      "fieldIds": [
+        "residenceSubject",
+        "residenceDistrict",
+        "residenceLocality",
+        "residenceStreet",
+        "residenceHouse",
+        "residenceBuilding",
+        "residenceCorpus",
+        "residenceApartment",
+        "residenceRoom"
+      ]
+    },
+    {
+      "id": "results",
+      "title": "Результаты осмотров и обследований",
+      "description": "Результат, фамилия и подпись врача-специалиста и печать — на бумаге.",
+      "fieldIds": [
+        "resultTherapist",
+        "resultOphthalmologist",
+        "resultPsychiatrist",
+        "resultNarcologist",
+        "resultNeurologist",
+        "resultOtolaryngologist",
+        "resultInstrumental",
+        "resultLaboratory"
+      ]
+    },
+    {
+      "id": "findings",
+      "title": "Выявлено",
+      "fieldIds": [
+        "contraindications",
+        "indications",
+        "restrictions",
+        "afterLicenseReturn"
+      ]
+    },
+    {
+      "id": "categories",
+      "title": "Категории самоходных машин, на управление которыми предоставляется специальное право",
+      "fieldIds": [
+        "categoryAI",
+        "categoryAII",
+        "categoryAIII",
+        "categoryAIV",
+        "categoryB",
+        "categoryC",
+        "categoryD",
+        "categoryE",
+        "categoryF"
+      ]
+    },
+    {
+      "id": "restrictions",
+      "title": "Медицинские ограничения к управлению самоходной машиной",
+      "fieldIds": [
+        "restrictionAI",
+        "restrictionAII",
+        "restrictionAIII",
+        "restrictionAIV",
+        "restrictionB",
+        "restrictionC",
+        "restrictionD",
+        "restrictionE",
+        "restrictionF"
+      ]
+    },
+    {
+      "id": "indications",
+      "title": "Медицинские показания к управлению самоходной машиной",
+      "fieldIds": [
+        "indicationManual",
+        "indicationAutomatic",
+        "indicationParking",
+        "indicationVision",
+        "indicationHearing"
+      ]
+    },
+    {
+      "id": "doctor",
+      "title": "Врач, выдавший заключение",
+      "description": "Подпись врача и печать организации ставятся на бумажной форме.",
+      "fieldIds": [
+        "doctorName"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "id": "orgName",
+      "label": "Наименование медицинской организации",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "prefill": {
+        "sources": [
+          "organization.name"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "orgLicense",
+      "label": "Лицензия",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "orgAddress",
+      "label": "Адрес",
+      "type": "text",
+      "required": false,
+      "maxLength": 300,
+      "prefill": {
+        "sources": [
+          "organization.address"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "orgOkpo",
+      "label": "Код по ОКПО",
+      "type": "text",
+      "required": false,
+      "maxLength": 20,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "certSeries",
+      "label": "Серия медицинского заключения",
+      "type": "text",
+      "required": false,
+      "maxLength": 10,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "certNumber",
+      "label": "Номер медицинского заключения",
+      "type": "text",
+      "required": false,
+      "maxLength": 20,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "patientFullName",
+      "label": "Фамилия, имя, отчество (при наличии)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "patient.fullName"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "patientBirthDate",
+      "label": "Дата рождения",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "editorial",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "patient.birthDate"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "residenceSubject",
+      "label": "субъект Российской Федерации",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.subject"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "residenceDistrict",
+      "label": "район",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.district"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "residenceLocality",
+      "label": "населенный пункт",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.locality"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "residenceStreet",
+      "label": "улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.street"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "residenceHouse",
+      "label": "дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.house"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "residenceBuilding",
+      "label": "строение",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.building"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "residenceCorpus",
+      "label": "корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "residenceApartment",
+      "label": "квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.apartment"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "residenceRoom",
+      "label": "комната",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "snils",
+      "label": "Страховой номер индивидуального лицевого счета в системе индивидуального (персонифицированного) учета (СНИЛС)",
+      "type": "text",
+      "required": false,
+      "pattern": "^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$",
+      "patternMessage": "СНИЛС в формате 123-456-789 01",
+      "prefill": {
+        "sources": [
+          "patient.snils"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "formDate",
+      "label": "Дата выдачи медицинского заключения",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "editorial",
+      "prefill": {
+        "sources": [
+          "today"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "resultTherapist",
+      "label": "Осмотр врачом-терапевтом или осмотр врачом общей практики (семейным врачом)",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "resultOphthalmologist",
+      "label": "Осмотр врачом-офтальмологом",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "resultPsychiatrist",
+      "label": "Обследование врачом-психиатром",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "resultNarcologist",
+      "label": "Обследование врачом-психиатром-наркологом",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "resultNeurologist",
+      "label": "Осмотр врачом-неврологом",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "resultOtolaryngologist",
+      "label": "Осмотр врачом-оториноларингологом",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "resultInstrumental",
+      "label": "Инструментальное исследование",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "resultLaboratory",
+      "label": "Лабораторные исследования",
+      "type": "text",
+      "required": false,
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "contraindications",
+      "label": "отсутствие (наличие) медицинских противопоказаний к управлению самоходными машинами",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "absent",
+          "label": "отсутствие"
+        },
+        {
+          "value": "present",
+          "label": "наличие"
+        }
+      ],
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "indications",
+      "label": "отсутствие (наличие) медицинских показаний к управлению самоходными машинами",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "absent",
+          "label": "отсутствие"
+        },
+        {
+          "value": "present",
+          "label": "наличие"
+        }
+      ],
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "restrictions",
+      "label": "отсутствие (наличие) медицинских ограничений к управлению самоходными машинами",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "absent",
+          "label": "отсутствие"
+        },
+        {
+          "value": "present",
+          "label": "наличие"
+        }
+      ],
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "afterLicenseReturn",
+      "label": "Обязательное медицинское освидетельствование проведено в связи с возвратом водительского удостоверения",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "yes",
+          "label": "да"
+        },
+        {
+          "value": "no",
+          "label": "нет"
+        }
+      ],
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "categoryAI",
+      "label": "«A I»",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "categoryAII",
+      "label": "«A II»",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "categoryAIII",
+      "label": "«A III»",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "categoryAIV",
+      "label": "«A IV»",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "categoryB",
+      "label": "«B»",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "categoryC",
+      "label": "«C»",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "categoryD",
+      "label": "«D»",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "categoryE",
+      "label": "«E»",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "categoryF",
+      "label": "«F»",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "restrictionAI",
+      "label": "Категории «A I» – внедорожные мототранспортные средства (не предназначенные для движения по автомобильным дорогам общего пользования либо имеющие максимальную конструктивную скорость 50 километров в час и менее)",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "restrictionAII",
+      "label": "Категории «A II» – внедорожные автотранспортные средства, разрешенная максимальная масса которых не превышает 3500 килограммов и число мест для сидения в которых, за исключением места водителя, не превышает 8 (не предназначенные для движения по автомобильным дорогам общего пользования либо имеющие максимальную конструктивную скорость 50 километров в час и менее)",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "restrictionAIII",
+      "label": "Категории «A III» – внедорожные автотранспортные средства, разрешенная максимальная масса которых превышает 3500 килограммов, за исключением относящихся к категории «A IV» (не предназначенные для движения по автомобильным дорогам общего пользования либо имеющие максимальную конструктивную скорость 50 километров в час и менее)",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "restrictionAIV",
+      "label": "Категории «A IV» – внедорожные автотранспортные средства, предназначенные для перевозки пассажиров и имеющие, за исключением места водителя, более 8 мест для сидения (не предназначенные для движения по автомобильным дорогам общего пользования либо имеющие максимальную конструктивную скорость 50 километров в час и менее)",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "restrictionB",
+      "label": "Категории «B» – гусеничные и колесные машины с двигателем мощностью до 25,7 киловатта",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "restrictionC",
+      "label": "Категории «C» – колесные машины с двигателем мощностью от 25,7 киловатта до 110,3 киловатта",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "restrictionD",
+      "label": "Категории «D» – колесные машины с двигателем мощностью свыше 110,3 киловатта",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "restrictionE",
+      "label": "Категории «E» – гусеничные машины с двигателем мощностью свыше 25,7 киловатта",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "restrictionF",
+      "label": "Категории «F» – самоходные сельскохозяйственные машины",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "indicationManual",
+      "label": "С ручным управлением",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "indicationAutomatic",
+      "label": "С автоматической трансмиссией",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "indicationParking",
+      "label": "Оборудованной акустической парковочной системой",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "indicationVision",
+      "label": "С использованием водителем самоходной машины медицинских изделий для коррекции зрения",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "indicationHearing",
+      "label": "С использованием водителем самоходной машины медицинских изделий для компенсации потери слуха",
+      "type": "text",
+      "required": false,
+      "maxLength": 8,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н не говорит, каким знаком отмечается выбранное в этой таблице (для формы 003-В/у такой знак задан приказом № 1092н, здесь он не переносится)."
+      }
+    },
+    {
+      "id": "doctorName",
+      "label": "Фамилия, имя, отчество (при наличии), подпись врача, выдавшего медицинское заключение",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "editorial",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "clinician.fullName"
+        ]
+      },
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    },
+    {
+      "id": "stamp",
+      "label": "МП (при наличии)",
+      "type": "stamp",
+      "required": false,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Приказ № 395н утверждает форму (пункт 1) и не содержит порядка её заполнения: как заполнять эту строку, он не говорит."
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "1",
+      "text": "1. Утвердить форму медицинского заключения о наличии (об отсутствии) у трактористов, машинистов и водителей самоходных машин (кандидатов в трактористы, машинисты и водители самоходных машин) медицинских противопоказаний, медицинских показаний или медицинских ограничений к управлению самоходными машинами согласно приложению.",
+      "spans": [
+        {
+          "pdfPage": 1,
+          "firstLine": 20,
+          "lastLine": 24
+        }
+      ],
+      "textSha256": "18995acddf36edd6026a65d57076ecd3f497cf47d4cceb295f6149f2d3a15756"
+    },
+    {
+      "id": "2",
+      "text": "2. Настоящий приказ вступает в силу с 3 июля 2022 г. и действует до 1 марта 2028 г.",
+      "spans": [
+        {
+          "pdfPage": 1,
+          "firstLine": 25,
+          "lastLine": 26
+        }
+      ],
+      "textSha256": "64e97cc7deedb389a5dcc64d9b8f652363575416315c31620277bdfc0131782d"
+    }
+  ],
+  "layout": {
+    "page": {
+      "size": "A4",
+      "orientation": "portrait",
+      "marginMm": {
+        "top": 10,
+        "right": 9.3,
+        "bottom": 10,
+        "left": 20.1
+      },
+      "fontSizePt": 10.0,
+      "lineHeight": 1.1
+    },
+    "blocks": [
+      {
+        "id": "header",
+        "columns": [
+          {
+            "widthPercent": 38,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Наименование медицинской организации"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "orgName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Лицензия          "
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "orgLicense",
+                    "length": 25,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 1.12
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Адрес              "
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "orgAddress",
+                    "length": 25,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.43
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Код по ОКПО  "
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "orgOkpo",
+                    "length": 25,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "widthPercent": 58,
+            "align": "center",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинская документация"
+                  }
+                ],
+                "spaceBeforeMm": 10.99
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Форма № 071/у"
+                  }
+                ],
+                "spaceBeforeMm": 0.34
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Утверждена приказом Министерства здравоохранения"
+                  }
+                ],
+                "spaceBeforeMm": 0.6
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Российской Федерации"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "от «9» июня 2022 г. № 395н"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "title",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "center",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинское заключение серия",
+                    "bold": true
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "certSeries",
+                    "length": 8
+                  },
+                  {
+                    "kind": "text",
+                    "text": "№",
+                    "bold": true
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "certNumber",
+                    "length": 8
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "gap": "large"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "о наличии (об отсутствии) у трактористов, машинистов и водителей самоходных машин (кандидатов в"
+                  }
+                ],
+                "align": "center",
+                "bold": true
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "трактористы, машинисты и водители самоходных машин) медицинских противопоказаний, медицинских"
+                  }
+                ],
+                "align": "center",
+                "bold": true
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "показаний или медицинских ограничений к управлению самоходными машинами"
+                  }
+                ],
+                "align": "center",
+                "bold": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "identity",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "1. Фамилия, имя, отчество (при наличии)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientFullName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 5.27
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "2. Дата рождения:"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 7,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 11,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 11,
+                    "part": "year"
+                  }
+                ],
+                "spaceBeforeMm": 0.47
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "3. Регистрация по месту жительства (пребывания): субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceSubject",
+                    "length": 29,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceDistrict",
+                    "length": 40,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.42
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceLocality",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceStreet",
+                    "length": 59,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceHouse",
+                    "length": 11
+                  },
+                  {
+                    "kind": "text",
+                    "text": "строение"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceBuilding",
+                    "length": 11
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceCorpus",
+                    "length": 11
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceApartment",
+                    "length": 11
+                  },
+                  {
+                    "kind": "text",
+                    "text": "комната"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceRoom",
+                    "length": 11
+                  }
+                ],
+                "spaceBeforeMm": 0.45
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "4. Страховой номер индивидуального лицевого счета в системе индивидуального (персонифицированного) учета"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(СНИЛС)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "snils",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "5. Дата выдачи медицинского заключения:"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 7,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 11,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 11,
+                    "part": "year"
+                  }
+                ],
+                "spaceBeforeMm": 0.44
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "6. Результаты осмотров и обследований врачами-специалистами, инструментального и лабораторных исследований:"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "rows": [
+                      [
+                        {
+                          "text": "Осмотр врачом-терапевтом или осмотр врачом общей практики (семейным врачом)"
+                        },
+                        "resultTherapist"
+                      ],
+                      [
+                        {
+                          "text": "Осмотр врачом-офтальмологом"
+                        },
+                        "resultOphthalmologist"
+                      ],
+                      [
+                        {
+                          "text": "Обследование врачом-психиатром"
+                        },
+                        "resultPsychiatrist"
+                      ],
+                      [
+                        {
+                          "text": "Обследование врачом-психиатром-наркологом"
+                        },
+                        "resultNarcologist"
+                      ],
+                      [
+                        {
+                          "text": "Осмотр врачом-неврологом"
+                        },
+                        "resultNeurologist"
+                      ],
+                      [
+                        {
+                          "text": "Осмотр врачом-оториноларингологом"
+                        },
+                        "resultOtolaryngologist"
+                      ],
+                      [
+                        {
+                          "text": "Инструментальное исследование"
+                        },
+                        "resultInstrumental"
+                      ],
+                      [
+                        {
+                          "text": "Лабораторные исследования"
+                        },
+                        "resultLaboratory"
+                      ]
+                    ],
+                    "columnWeights": [
+                      1,
+                      1
+                    ],
+                    "rowHeightMm": 8.5
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "findings",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "7. Выявлено (нужное подчеркнуть)¹:"
+                  }
+                ],
+                "spaceBeforeMm": 3.66
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "options",
+                    "fieldId": "contraindications",
+                    "separator": " (",
+                    "codes": false,
+                    "mark": "underline"
+                  },
+                  {
+                    "kind": "text",
+                    "text": ") медицинских противопоказаний к управлению самоходными машинами;",
+                    "joined": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "options",
+                    "fieldId": "indications",
+                    "separator": " (",
+                    "codes": false,
+                    "mark": "underline"
+                  },
+                  {
+                    "kind": "text",
+                    "text": ") медицинских показаний к управлению самоходными машинами;",
+                    "joined": true
+                  }
+                ],
+                "spaceBeforeMm": 0.46
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "options",
+                    "fieldId": "restrictions",
+                    "separator": " (",
+                    "codes": false,
+                    "mark": "underline"
+                  },
+                  {
+                    "kind": "text",
+                    "text": ") медицинских ограничений к управлению самоходными машинами.",
+                    "joined": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "8. Обязательное медицинское освидетельствование проведено в связи с возвратом водительского удостоверения:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "afterLicenseReturn",
+                    "separator": "/",
+                    "codes": false,
+                    "mark": "underline"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(нужное подчеркнуть)."
+                  }
+                ],
+                "spaceBeforeMm": 1.09
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "footnote",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 30
+                  }
+                ],
+                "gap": "large"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "¹ Постановление Правительства Российской Федерации от 29 декабря 2014 г. № 1604 «О перечнях медицинских противопоказаний, медицинских показаний и медицинских ограничений к управлению транспортным средством» (Собрании законодательства Российской Федерации, 2015 г., № 2, ст. 506; 2019, № 32, ст. 4730)."
+                  }
+                ],
+                "align": "justify"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "categories",
+        "pageBreakBefore": true,
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "center",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Категории самоходных машин, на управление"
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 22.0
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "которыми предоставляется специальное право"
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 0.46
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [
+                      [
+                        {
+                          "text": "«A I»"
+                        },
+                        {
+                          "text": "«A II»"
+                        },
+                        {
+                          "text": "«A III»"
+                        },
+                        {
+                          "text": "«A IV»"
+                        },
+                        {
+                          "text": "«B»"
+                        },
+                        {
+                          "text": "«C»"
+                        },
+                        {
+                          "text": "«D»"
+                        },
+                        {
+                          "text": "«E»"
+                        },
+                        {
+                          "text": "«F»"
+                        }
+                      ]
+                    ],
+                    "rows": [
+                      [
+                        "categoryAI",
+                        "categoryAII",
+                        "categoryAIII",
+                        "categoryAIV",
+                        "categoryB",
+                        "categoryC",
+                        "categoryD",
+                        "categoryE",
+                        "categoryF"
+                      ]
+                    ],
+                    "rowHeightMm": 4.3
+                  }
+                ],
+                "spaceBeforeMm": 4.95
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинские ограничения к управлению самоходной машиной"
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 4.09
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "rows": [
+                      [
+                        {
+                          "text": "Категории «A I» – внедорожные мототранспортные средства (не предназначенные для движения по автомобильным дорогам общего пользования либо имеющие максимальную конструктивную скорость 50 километров в час и менее)"
+                        },
+                        "restrictionAI"
+                      ],
+                      [
+                        {
+                          "text": "Категории «A II» – внедорожные автотранспортные средства, разрешенная максимальная масса которых не превышает 3500 килограммов и число мест для сидения в которых, за исключением места водителя, не превышает 8 (не предназначенные для движения по автомобильным дорогам общего пользования либо имеющие максимальную конструктивную скорость 50 километров в час и менее)"
+                        },
+                        "restrictionAII"
+                      ],
+                      [
+                        {
+                          "text": "Категории «A III» – внедорожные автотранспортные средства, разрешенная максимальная масса которых превышает 3500 килограммов, за исключением относящихся к категории «A IV» (не предназначенные для движения по автомобильным дорогам общего пользования либо имеющие максимальную конструктивную скорость 50 километров в час и менее)"
+                        },
+                        "restrictionAIII"
+                      ],
+                      [
+                        {
+                          "text": "Категории «A IV» – внедорожные автотранспортные средства, предназначенные для перевозки пассажиров и имеющие, за исключением места водителя, более 8 мест для сидения (не предназначенные для движения по автомобильным дорогам общего пользования либо имеющие максимальную конструктивную скорость 50 километров в час и менее)"
+                        },
+                        "restrictionAIV"
+                      ],
+                      [
+                        {
+                          "text": "Категории «B» – гусеничные и колесные машины с двигателем мощностью до 25,7 киловатта"
+                        },
+                        "restrictionB"
+                      ],
+                      [
+                        {
+                          "text": "Категории «C» – колесные машины с двигателем мощностью от 25,7 киловатта до 110,3 киловатта"
+                        },
+                        "restrictionC"
+                      ],
+                      [
+                        {
+                          "text": "Категории «D» – колесные машины с двигателем мощностью свыше 110,3 киловатта"
+                        },
+                        "restrictionD"
+                      ],
+                      [
+                        {
+                          "text": "Категории «E» – гусеничные машины с двигателем мощностью свыше 25,7 киловатта"
+                        },
+                        "restrictionE"
+                      ],
+                      [
+                        {
+                          "text": "Категории «F» – самоходные сельскохозяйственные машины"
+                        },
+                        "restrictionF"
+                      ]
+                    ],
+                    "cellLineHeight": 1.18,
+                    "columnWeights": [
+                      7,
+                      1
+                    ],
+                    "rowHeightMm": 4.4
+                  }
+                ],
+                "spaceBeforeMm": 4.34
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинские показания к управлению самоходной машиной"
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 5.65
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "rows": [
+                      [
+                        {
+                          "text": "С ручным управлением"
+                        },
+                        "indicationManual"
+                      ],
+                      [
+                        {
+                          "text": "С автоматической трансмиссией"
+                        },
+                        "indicationAutomatic"
+                      ],
+                      [
+                        {
+                          "text": "Оборудованной акустической парковочной системой"
+                        },
+                        "indicationParking"
+                      ],
+                      [
+                        {
+                          "text": "С использованием водителем самоходной машины медицинских изделий для коррекции зрения"
+                        },
+                        "indicationVision"
+                      ],
+                      [
+                        {
+                          "text": "С использованием водителем самоходной машины медицинских изделий для компенсации потери слуха"
+                        },
+                        "indicationHearing"
+                      ]
+                    ],
+                    "cellLineHeight": 1.18,
+                    "columnWeights": [
+                      7,
+                      1
+                    ],
+                    "rowHeightMm": 4.4
+                  }
+                ],
+                "spaceBeforeMm": 3.83
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "signature",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "9. Фамилия, имя, отчество (при наличии), подпись врача, выдавшего медицинское заключение:"
+                  }
+                ],
+                "spaceBeforeMm": 4.19
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "doctorName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "stamp",
+                    "fieldId": "stamp",
+                    "text": "МП (при наличии)"
+                  }
+                ],
+                "align": "right",
+                "spaceBeforeMm": 2.82
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "notes": [
+    "Черновик для просмотра и печати на обычной бумаге. Приказ № 395н утверждает только форму (пункт 1) и не содержит ни порядка её заполнения, ни требований к бланку; для близкой формы 003-В/у приказ № 1092н требует защищённую от подделок полиграфическую продукцию, для 071/у такого требования в приказе нет, но и права выдавать заключение распечатка не даёт.",
+    "У формы нет «Порядка заполнения»: все поля имеют rule.status = undefined, а в списке paragraphs схемы (rules) хранятся два пункта самого приказа — пункт 1 (утверждает форму «согласно приложению») и пункт 2 (вступает в силу с 3 июля 2022 г., действует до 1 марта 2028 г.); ни одно поле на них не ссылается, потому что они не описывают заполнение строк.",
+    "Единственное приложение к приказу напечатано без номера («Приложение к приказу …»); в схеме оно записано как приложение № 1. Бланк — два печатных листа: первый (стр. 2 PDF) заканчивается строкой 8 и сноской, второй (стр. 3) начинается таблицей категорий.",
+    "Обязательность полей (required) приказ не задаёт ни для одной строки; отмечены только ФИО, дата рождения, дата выдачи и врач (basis = editorial). Незаполненные обязательные поля подсвечиваются, печать не блокируется.",
+    "Знак отметки в таблицах «Категории самоходных машин», «Медицинские ограничения» и «Медицинские показания» приказ не называет, поэтому поля таблиц — свободный короткий текст (знак «V»/«Z», принятый для формы 003-В/у, сюда не переносится).",
+    "Сноска ¹ к строке 7 напечатана на бланке под строкой 8 и воспроизведена как напечатана, включая слово «Собрании» (в оригинале так).",
+    "Подписи граф таблицы категорий (A I … F) сверены по скану вручную; категории записаны латинскими буквами (начертание латинских и кириллических букв не различимо на скане). Строка «от «9» июня 2022 г. № 395н» шапки напечатана на бланке текстом, а не пустыми линиями.",
+    "Привязки: «населенный пункт» — patient.address.locality (города отдельной строки на бланке нет), «строение» — patient.address.building, «квартира» — patient.address.apartment, «корпус» и «комната» не подставляются; СНИЛС — patient.snils.",
+    "Поля, которые порядок не определяет (rule.status = undefined): orgName, orgLicense, orgAddress, orgOkpo, certSeries, certNumber, patientFullName, patientBirthDate, residenceSubject, residenceDistrict, residenceLocality, residenceStreet, residenceHouse, residenceBuilding, residenceCorpus, residenceApartment, residenceRoom, snils, formDate, resultTherapist, resultOphthalmologist, resultPsychiatrist, resultNarcologist, resultNeurologist, resultOtolaryngologist, resultInstrumental, resultLaboratory, contraindications, indications, restrictions, afterLicenseReturn, categoryAI, categoryAII, categoryAIII, categoryAIV, categoryB, categoryC, categoryD, categoryE, categoryF, restrictionAI, restrictionAII, restrictionAIII, restrictionAIV, restrictionB, restrictionC, restrictionD, restrictionE, restrictionF, indicationManual, indicationAutomatic, indicationParking, indicationVision, indicationHearing, doctorName, stamp."
+  ]
+}

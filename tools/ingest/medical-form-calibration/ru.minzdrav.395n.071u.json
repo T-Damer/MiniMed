@@ -1,0 +1,37 @@
+{
+  "formId": "ru.minzdrav.395n.071u",
+  "method": "page margins and font size from the extent and the line widths of the scan text, line height, and the space above each layout row, fitted so the print lands on the official scan (OCR boxes); `medical_form_overlay calibrate`",
+  "page": {
+    "marginMm": {
+      "top": 10,
+      "right": 9.3,
+      "bottom": 10,
+      "left": 20.1
+    },
+    "fontSizePt": 10.0
+  },
+  "lineHeight": 1.1,
+  "rows": {
+    "categories/0/1": 0.46,
+    "categories/0/2": 4.95,
+    "categories/0/3": 4.09,
+    "categories/0/4": 4.34,
+    "categories/0/5": 5.65,
+    "categories/0/6": 3.83,
+    "findings/0/0": 3.66,
+    "findings/0/2": 0.46,
+    "findings/0/5": 1.09,
+    "header/0/2": 1.12,
+    "header/0/3": 0.43,
+    "header/1/0": 10.99,
+    "header/1/1": 0.34,
+    "header/1/2": 0.6,
+    "identity/0/0": 5.27,
+    "identity/0/1": 0.47,
+    "identity/0/3": 0.42,
+    "identity/0/6": 0.45,
+    "identity/0/9": 0.44,
+    "signature/0/0": 4.19,
+    "signature/0/2": 2.82
+  }
+}
