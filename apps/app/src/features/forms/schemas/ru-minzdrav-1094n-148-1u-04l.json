@@ -1,0 +1,2814 @@
+{
+  "schemaVersion": 1,
+  "id": "ru.minzdrav.1094n.148-1u-04l",
+  "formNumber": "148-1/у-04(л)",
+  "title": "Рецептурный бланк (льготный)",
+  "edition": "Приказ Минздрава России от 24.11.2021 № 1094н, приложение № 2; действует с 01.03.2022 по 01.03.2028",
+  "source": {
+    "issuer": "Министерство здравоохранения Российской Федерации",
+    "orderNumber": "1094н",
+    "orderDate": "2021-11-24",
+    "orderTitle": "Об утверждении Порядка назначения лекарственных препаратов, форм рецептурных бланков на лекарственные препараты, Порядка оформления указанных бланков, их учета и хранения, форм бланков рецептов, содержащих назначение наркотических средств или психотропных веществ, Порядка их изготовления, распределения, регистрации, учета и хранения, а также Правил оформления бланков рецептов, в том числе в форме электронных документов",
+    "registration": {
+      "authority": "Министерство юстиции Российской Федерации",
+      "number": "66124",
+      "date": "2021-11-30"
+    },
+    "effectiveFrom": "2022-03-01",
+    "effectiveUntil": "2028-03-01",
+    "publicationUrl": "http://publication.pravo.gov.ru/document/0001202111300115",
+    "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202111300115",
+    "retrievedAt": "2026-10-05",
+    "sha256": "fee584611033934a601644b7423390b201125f917ed85d382b4236b162e83c7e",
+    "pdfPages": 43,
+    "blankAppendix": {
+      "number": 2,
+      "pdfPages": [
+        25,
+        26
+      ]
+    },
+    "rulesAppendix": {
+      "number": 3,
+      "pdfPages": [
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34
+      ]
+    },
+    "extraction": {
+      "method": "macos-vision-ocr-v1",
+      "ocrSha256": "1e3012e78ffe8a012a246a085079fd3e714e917dbd8190a167833baa7d93328d",
+      "corrections": [
+        {
+          "pdfPage": 6,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 7,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 8,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 8,
+          "from": "Ф3",
+          "to": "ФЗ",
+          "reason": "OCR renders the Cyrillic З of «ФЗ» as 3"
+        },
+        {
+          "pdfPage": 9,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 10,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 11,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 12,
+          "from": " - ",
+          "to": " – ",
+          "reason": "typographic en dash printed between words, recognised as a hyphen"
+        },
+        {
+          "pdfPage": 12,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 13,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 13,
+          "from": "гражданам, препаратов страдающим",
+          "to": "гражданам, страдающим",
+          "reason": "fragment of the previous line merged into this one"
+        },
+        {
+          "pdfPage": 16,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 17,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 25,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 27,
+          "from": " - ",
+          "to": " – ",
+          "reason": "typographic en dash printed between words, recognised as a hyphen"
+        },
+        {
+          "pdfPage": 27,
+          "from": "/y",
+          "to": "/у",
+          "reason": "Latin letters recognised for the Cyrillic ones of the same shape"
+        },
+        {
+          "pdfPage": 27,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 27,
+          "from": "субьекта",
+          "to": "субъекта",
+          "reason": "OCR confuses ъ and ь"
+        },
+        {
+          "pdfPage": 28,
+          "from": " - ",
+          "to": " – ",
+          "reason": "typographic en dash printed between words, recognised as a hyphen"
+        },
+        {
+          "pdfPage": 28,
+          "from": "/y",
+          "to": "/у",
+          "reason": "Latin letters recognised for the Cyrillic ones of the same shape"
+        },
+        {
+          "pdfPage": 28,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 28,
+          "from": "Ф3",
+          "to": "ФЗ",
+          "reason": "OCR renders the Cyrillic З of «ФЗ» as 3"
+        },
+        {
+          "pdfPage": 28,
+          "from": "иной % 3])",
+          "to": "иной % [3])",
+          "reason": "opening bracket dropped"
+        },
+        {
+          "pdfPage": 28,
+          "from": "пОМОЩЬ",
+          "to": "помощь",
+          "reason": "capital letters recognised for a lower-case word"
+        },
+        {
+          "pdfPage": 28,
+          "from": "помощи»! *, И код",
+          "to": "помощи», и код",
+          "reason": "footnote reference mark recognised as punctuation"
+        },
+        {
+          "pdfPage": 29,
+          "from": " - ",
+          "to": " – ",
+          "reason": "typographic en dash printed between words, recognised as a hyphen"
+        },
+        {
+          "pdfPage": 29,
+          "from": "/y",
+          "to": "/у",
+          "reason": "Latin letters recognised for the Cyrillic ones of the same shape"
+        },
+        {
+          "pdfPage": 29,
+          "from": "ATX",
+          "to": "АТХ",
+          "reason": "Latin letters recognised for the Cyrillic ones of the same shape"
+        },
+        {
+          "pdfPage": 29,
+          "from": "NO6A",
+          "to": "N06A",
+          "reason": "zero recognised as letter O"
+        },
+        {
+          "pdfPage": 29,
+          "from": "NOSA",
+          "to": "N05A",
+          "reason": "digit 5 recognised as letter S, zero as letter O"
+        },
+        {
+          "pdfPage": 29,
+          "from": "NOSB",
+          "to": "N05B",
+          "reason": "digit 5 recognised as letter S, zero as letter O"
+        },
+        {
+          "pdfPage": 29,
+          "from": "NOSC",
+          "to": "N05C",
+          "reason": "digit 5 recognised as letter S, zero as letter O"
+        },
+        {
+          "pdfPage": 29,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 29,
+          "from": "«для рецептов»",
+          "to": "«Для рецептов»",
+          "reason": "capital letters recognised for a lower-case word"
+        },
+        {
+          "pdfPage": 29,
+          "from": "НПI);",
+          "to": "НП);",
+          "reason": "footnote reference mark recognised as punctuation"
+        },
+        {
+          "pdfPage": 29,
+          "from": "Федерации*",
+          "to": "Федерации.",
+          "reason": "footnote mark recognised as an asterisk; the sentence ends with a full stop"
+        },
+        {
+          "pdfPage": 29,
+          "from": "вышеуказанным ATX",
+          "to": "вышеуказанным ATX.",
+          "reason": "full stop dropped after the last word of the paragraph"
+        },
+        {
+          "pdfPage": 29,
+          "from": "медицинскую помощь в амбулаторных условиях",
+          "to": "медицинскую помощь в амбулаторных условиях.",
+          "reason": "full stop dropped after the footnote mark"
+        },
+        {
+          "pdfPage": 29,
+          "from": "препарата международное",
+          "to": "препарата (международное",
+          "reason": "opening parenthesis dropped"
+        },
+        {
+          "pdfPage": 30,
+          "from": " II. Оформление рецепта в форме электронного документа",
+          "to": "",
+          "reason": "heading of the next part of the appendix, not part of the paragraph"
+        },
+        {
+          "pdfPage": 30,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 32,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 33,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        }
+      ],
+      "blankLabelsVerified": 36,
+      "captionsReviewedOnScan": [
+        "Код категории граждан",
+        "% оплаты:",
+        "Rp:"
+      ],
+      "note": "The official PDF is a scan without a text layer. Text recognised by macOS Vision; fragments are regrouped into printed lines (top to bottom, left to right) and footnotes under the per-page limits of the blueprint are dropped. Span line indices count these regrouped lines of each PDF page from 0. Corrections listed here were reviewed against the scan."
+    }
+  },
+  "sections": [
+    {
+      "id": "organization",
+      "title": "Организация и бланк",
+      "fieldIds": [
+        "organizationCode",
+        "entrepreneurCode",
+        "series",
+        "number"
+      ]
+    },
+    {
+      "id": "benefit",
+      "title": "Льготная категория",
+      "fieldIds": [
+        "categoryCode",
+        "nosologyCode",
+        "fundingSource",
+        "paymentPercent"
+      ]
+    },
+    {
+      "id": "patient",
+      "title": "Пациент",
+      "fieldIds": [
+        "patientFullName",
+        "patientBirthDate",
+        "snils",
+        "omsPolicyNumber",
+        "medicalCardNumber"
+      ]
+    },
+    {
+      "id": "recipe",
+      "title": "Рецепт",
+      "fieldIds": [
+        "recipeDate",
+        "prescription",
+        "prescriptionContinued",
+        "dtd",
+        "signa",
+        "validity"
+      ]
+    },
+    {
+      "id": "doctor",
+      "title": "Врач",
+      "fieldIds": [
+        "doctorFullName"
+      ]
+    },
+    {
+      "id": "pharmacy",
+      "title": "Заполняет аптечная организация",
+      "fieldIds": [
+        "pharmacyDispensed",
+        "pharmacyTradeName",
+        "pharmacyDate",
+        "pharmacyQuantity",
+        "pharmacyPrepared",
+        "pharmacyChecked",
+        "pharmacyReleased"
+      ]
+    },
+    {
+      "id": "stub",
+      "title": "Корешок рецептурного бланка",
+      "description": "Отметку на корешке делает аптечная организация.",
+      "fieldIds": [
+        "stubDrug",
+        "stubDose",
+        "stubMethod",
+        "stubDuration",
+        "stubTimesPerDay",
+        "stubPerDose"
+      ]
+    },
+    {
+      "id": "reverse",
+      "title": "Оборотная сторона",
+      "description": "Графы заполняет аптечная организация.",
+      "fieldIds": [
+        "reversePrepared",
+        "reverseChecked",
+        "reverseReleased"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "id": "barcode",
+      "label": "МЕСТО ДЛЯ ШТРИХКОДА",
+      "type": "stamp",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.5"
+        ],
+        "note": "Штрих-код — дополнительный реквизит бланка, изготовленного с помощью компьютера."
+      }
+    },
+    {
+      "id": "organizationCode",
+      "label": "Код медицинской организации (ОГРН)",
+      "type": "text",
+      "required": false,
+      "pattern": "^[0-9]{13}$",
+      "patternMessage": "ОГРН — 13 цифр",
+      "prefill": {
+        "sources": [
+          "organization.ogrn"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.1",
+          "3.5"
+        ],
+        "note": "Код организации — ОГРН (13 цифр); для индивидуального предпринимателя — ОГРНИП (15 цифр) в строке ниже. Проставляется при изготовлении бланка."
+      }
+    },
+    {
+      "id": "entrepreneurCode",
+      "label": "Код индивидуального предпринимателя (ОГРНИП)",
+      "type": "text",
+      "required": false,
+      "pattern": "^[0-9]{15}$",
+      "patternMessage": "ОГРНИП — 15 цифр",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.5"
+        ]
+      }
+    },
+    {
+      "id": "categoryCode",
+      "label": "Код категории граждан",
+      "type": "text",
+      "required": false,
+      "pattern": "^[0-9]{1,3}$",
+      "patternMessage": "Код категории — до трёх цифр",
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.5"
+        ],
+        "note": "Код категории граждан, имеющих право на получение лекарственных препаратов (статья 6.1 Федерального закона № 178-ФЗ); каждая цифра — в отдельной ячейке."
+      }
+    },
+    {
+      "id": "nosologyCode",
+      "label": "Код нозологической формы (по МКБ)",
+      "type": "icd10",
+      "required": false,
+      "pattern": "^[A-Z][0-9]{2}(?:\\.[0-9]{1,2})?$",
+      "patternMessage": "Код МКБ-10 в формате J45.0",
+      "prefill": {
+        "sources": [
+          "episode.diagnosis.icd10"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.5"
+        ],
+        "note": "Каждая цифра — в отдельной ячейке, точка — в отдельной ячейке."
+      }
+    },
+    {
+      "id": "fundingSource",
+      "label": "Источник финансирования: (подчеркнуть)",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1.Федеральный бюджет"
+        },
+        {
+          "value": "2",
+          "label": "2. Бюджет субъекта Российской Федерации"
+        },
+        {
+          "value": "3",
+          "label": "3. Муниципальный бюджет"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.5"
+        ]
+      }
+    },
+    {
+      "id": "paymentPercent",
+      "label": "% оплаты: (подчеркнуть)",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "1",
+          "label": "1. Бесплатно"
+        },
+        {
+          "value": "2",
+          "label": "2. 50 %"
+        },
+        {
+          "value": "3",
+          "label": "3. иной %"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.5"
+        ]
+      }
+    },
+    {
+      "id": "series",
+      "label": "Серия",
+      "type": "text",
+      "required": false,
+      "maxLength": 20,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.1"
+        ],
+        "note": "Серия бланка включает код субъекта Российской Федерации — две первые цифры ОКАТО."
+      }
+    },
+    {
+      "id": "number",
+      "label": "№",
+      "type": "text",
+      "required": false,
+      "maxLength": 20,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает номер бланка."
+      }
+    },
+    {
+      "id": "recipeDate",
+      "label": "Дата оформления",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "today"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.1"
+        ],
+        "note": "Пункт 1 требует дату выписки (оформления) рецепта на бланке."
+      }
+    },
+    {
+      "id": "patientFullName",
+      "label": "Фамилия, инициалы имени и отчества (последнее – при наличии) пациента",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.fullName"
+        ],
+        "format": "initials"
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.6"
+        ],
+        "note": "Графа требует фамилию и инициалы имени и отчества; подставляется из полного имени."
+      }
+    },
+    {
+      "id": "patientBirthDate",
+      "label": "Дата рождения",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "patient.birthDate"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.7"
+        ]
+      }
+    },
+    {
+      "id": "snils",
+      "label": "СНИЛС",
+      "type": "text",
+      "required": false,
+      "prefill": {
+        "sources": [
+          "patient.snils"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.8"
+        ],
+        "note": "СНИЛС указывается при наличии."
+      }
+    },
+    {
+      "id": "omsPolicyNumber",
+      "label": "№ полиса обязательного медицинского страхования",
+      "type": "text",
+      "required": false,
+      "maxLength": 40,
+      "prefill": {
+        "sources": [
+          "patient.omsPolicy.number"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.8"
+        ]
+      }
+    },
+    {
+      "id": "medicalCardNumber",
+      "label": "Номер медицинской карты пациента, получающего медицинскую помощь в амбулаторных условиях",
+      "type": "text",
+      "required": false,
+      "maxLength": 60,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.9"
+        ]
+      }
+    },
+    {
+      "id": "doctorFullName",
+      "label": "Фамилия, инициалы имени и отчества (последнее – при наличии) лечащего врача (фельдшера, акушерки)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "clinician.fullName"
+        ],
+        "format": "initials"
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.10"
+        ],
+        "note": "Графа требует фамилию и инициалы имени и отчества; подставляется из полного имени."
+      }
+    },
+    {
+      "id": "prescription",
+      "label": "Rp:",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.11",
+          "3.15",
+          "1.16",
+          "1.17"
+        ],
+        "note": "На одном бланке разрешено назначение только одного наименования препарата (п. 15). Графы «Руб.» и «Коп.» порядок не описывает. Если рецепт выписан гражданину по пунктам 38–39 приложения № 1, он действителен 15 дней."
+      }
+    },
+    {
+      "id": "prescriptionContinued",
+      "label": "Rp: (продолжение, вторая строка)",
+      "type": "text",
+      "labelPrinted": false,
+      "required": false,
+      "maxLength": 300,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.11"
+        ],
+        "note": "Вторая строка графы «Rp»: подписи к ней на бланке нет."
+      }
+    },
+    {
+      "id": "dtd",
+      "label": "D.t.d.",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "3.11"
+        ],
+        "note": "Пункт 11 называет графу «Rp» целиком (препарат, форма выпуска, дозировка, количество); строку «D.t.d.» (Da tales doses, приложение № 2 к Порядку назначения) отдельно не определяет."
+      }
+    },
+    {
+      "id": "signa",
+      "label": "Signa:",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 300,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "3.11",
+          "1.17"
+        ],
+        "note": "Строка «Signa:» — способ применения лекарственного препарата (п. 11, подп. 2)."
+      }
+    },
+    {
+      "id": "doctorSignature",
+      "label": "Подпись и печать лечащего врача (подпись фельдшера, акушерки)",
+      "type": "signature",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.14"
+        ]
+      }
+    },
+    {
+      "id": "doctorSeal",
+      "label": "М.П.",
+      "type": "stamp",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.14"
+        ],
+        "note": "Рецепт дополнительно заверяется печатью медицинской организации «Для рецептов»."
+      }
+    },
+    {
+      "id": "validity",
+      "label": "Рецепт действителен в течение 15 дней, 30 дней, 90 дней (нужное подчеркнуть)",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "15",
+          "label": "15 дней"
+        },
+        {
+          "value": "30",
+          "label": "30 дней"
+        },
+        {
+          "value": "90",
+          "label": "90 дней"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "1.21",
+          "1.22"
+        ]
+      }
+    },
+    {
+      "id": "pharmacyDispensed",
+      "label": "Отпущено по рецепту:",
+      "type": "text",
+      "required": false,
+      "maxLength": 80,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эту графу."
+      }
+    },
+    {
+      "id": "pharmacyTradeName",
+      "label": "Торговое наименование и дозировка:",
+      "type": "text",
+      "required": false,
+      "maxLength": 80,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эту графу."
+      }
+    },
+    {
+      "id": "pharmacyDate",
+      "label": "Дата отпуска",
+      "type": "date",
+      "required": false,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эту графу."
+      }
+    },
+    {
+      "id": "pharmacyQuantity",
+      "label": "Количество:",
+      "type": "text",
+      "required": false,
+      "maxLength": 80,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эту графу."
+      }
+    },
+    {
+      "id": "pharmacyPrepared",
+      "label": "Приготовил:",
+      "type": "text",
+      "required": false,
+      "maxLength": 80,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эту графу."
+      }
+    },
+    {
+      "id": "pharmacyChecked",
+      "label": "Проверил:",
+      "type": "text",
+      "required": false,
+      "maxLength": 80,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эту графу."
+      }
+    },
+    {
+      "id": "pharmacyReleased",
+      "label": "Отпустил:",
+      "type": "text",
+      "required": false,
+      "maxLength": 80,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эту графу."
+      }
+    },
+    {
+      "id": "stubDrug",
+      "label": "Наименование лекарственного препарата:",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.18"
+        ],
+        "note": "Корешок выдаётся пациенту в аптечной организации; на нём делается отметка о наименовании, дозировке, количестве и способе применения."
+      }
+    },
+    {
+      "id": "stubDose",
+      "label": "Дозировка:",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.18"
+        ],
+        "note": "Корешок выдаётся пациенту в аптечной организации; на нём делается отметка о наименовании, дозировке, количестве и способе применения."
+      }
+    },
+    {
+      "id": "stubMethod",
+      "label": "Способ применения:",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.18"
+        ],
+        "note": "Корешок выдаётся пациенту в аптечной организации; на нём делается отметка о наименовании, дозировке, количестве и способе применения."
+      }
+    },
+    {
+      "id": "stubDuration",
+      "label": "Продолжительность",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.18"
+        ],
+        "note": "Корешок выдаётся пациенту в аптечной организации; на нём делается отметка о наименовании, дозировке, количестве и способе применения."
+      }
+    },
+    {
+      "id": "stubTimesPerDay",
+      "label": "Количество приемов в день:",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.18"
+        ],
+        "note": "Корешок выдаётся пациенту в аптечной организации; на нём делается отметка о наименовании, дозировке, количестве и способе применения."
+      }
+    },
+    {
+      "id": "stubPerDose",
+      "label": "На 1 прием:",
+      "type": "text",
+      "required": false,
+      "maxLength": 200,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.18"
+        ],
+        "note": "Корешок выдаётся пациенту в аптечной организации; на нём делается отметка о наименовании, дозировке, количестве и способе применения."
+      }
+    },
+    {
+      "id": "commissionMark",
+      "label": "Отметка о назначении лекарственного препарата по решению врачебной комиссии",
+      "type": "stamp",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3.17"
+        ]
+      }
+    },
+    {
+      "id": "reversePrepared",
+      "label": "Приготовил",
+      "type": "text",
+      "required": false,
+      "maxLength": 80,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эти графы оборотной стороны."
+      }
+    },
+    {
+      "id": "reverseChecked",
+      "label": "Проверил",
+      "type": "text",
+      "required": false,
+      "maxLength": 80,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эти графы оборотной стороны."
+      }
+    },
+    {
+      "id": "reverseReleased",
+      "label": "Отпустил",
+      "type": "text",
+      "required": false,
+      "maxLength": 80,
+      "rule": {
+        "status": "undefined",
+        "paragraphIds": [],
+        "note": "Порядок не описывает эти графы оборотной стороны."
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "1.16",
+      "appendix": {
+        "number": 1,
+        "title": "Порядок назначения лекарственных препаратов"
+      },
+      "clause": "16",
+      "text": "16. Состав лекарственного препарата, лекарственная форма и обращение медицинского работника к фармацевтическому работнику об отпуске лекарственного препарата на бумажном носителе оформляются на латинском или русском языке в родительном падеже, за исключением оформления рецептов в форме электронного документа, осуществляемого на русском языке. При оформлении рецептурных бланков допускается использование сокращений (приложение № 2 к настоящему Порядку). При назначении лекарственного препарата не допускается сокращение наименований ингредиентов, составляющих лекарственный препарат, не позволяющих установить, какой именно лекарственный препарат назначен.",
+      "spans": [
+        {
+          "pdfPage": 11,
+          "firstLine": 47,
+          "lastLine": 47
+        },
+        {
+          "pdfPage": 12,
+          "firstLine": 1,
+          "lastLine": 9
+        }
+      ],
+      "textSha256": "1ef4532ec9bb586f2f3651c39dd98bf8e6f560ea4f41611536934ad08500d7a5"
+    },
+    {
+      "id": "1.17",
+      "appendix": {
+        "number": 1,
+        "title": "Порядок назначения лекарственных препаратов"
+      },
+      "clause": "17",
+      "text": "17. Способ применения лекарственного препарата обозначается с указанием пути введения, дозы, частоты, времени приема относительно сна (утром, на ночь) и его длительности, а для лекарственных препаратов, взаимодействующих с пищей, – времени их употребления относительно приема пищи (до еды, во время еды, после еды).",
+      "spans": [
+        {
+          "pdfPage": 12,
+          "firstLine": 10,
+          "lastLine": 14
+        }
+      ],
+      "textSha256": "d086bb69748d30262124ecf390b2d7daf51cd0868137e7582bdc950511695ed5"
+    },
+    {
+      "id": "1.21",
+      "appendix": {
+        "number": 1,
+        "title": "Порядок назначения лекарственных препаратов"
+      },
+      "clause": "21",
+      "text": "21. Рецепты на бумажном носителе, в форме электронного документа, оформленные на рецептурном бланке формы №148-1/у-04(л) и предназначенные для отпуска лекарственных препаратов гражданам, указанным в пункте 10 настоящего Порядка, действительны в течение 30 дней со дня оформления, за исключением случаев оформления рецепта в соответствии с пунктами 38 и 39 настоящего Порядка, при которых он действителен в течение 15 дней со дня оформления.",
+      "spans": [
+        {
+          "pdfPage": 12,
+          "firstLine": 43,
+          "lastLine": 47
+        },
+        {
+          "pdfPage": 13,
+          "firstLine": 1,
+          "lastLine": 2
+        }
+      ],
+      "textSha256": "bf4e11367ff12c0422a6c32c9f75b0139d4dea1665f8cb796bbd3e8306e85e00"
+    },
+    {
+      "id": "1.22",
+      "appendix": {
+        "number": 1,
+        "title": "Порядок назначения лекарственных препаратов"
+      },
+      "clause": "22",
+      "text": "22. Рецепты на бумажном носителе, в форме электронного документа, оформленные на рецептурном бланке формы № 148-1/у-04(л) и предназначенные для отпуска лекарственных препаратов гражданам, достигшим пенсионного возраста, инвалидам первой группы, детям-инвалидам, а также гражданам, страдающим хроническими заболеваниями, требующими длительного курсового лечения, действительны в течение 90 дней со дня оформления, за исключением случаев, указанных в пунктах 38 и 39 настоящего Порядка, при которых он действителен в течение 15 дней со дня оформления. Для лечения хронических заболеваний указанным категориям граждан лекарственные препараты с оформлением рецептов на бумажном носителе или рецептов в форме электронного документа могут назначаться на курс лечения до 180 дней.",
+      "spans": [
+        {
+          "pdfPage": 13,
+          "firstLine": 3,
+          "lastLine": 14
+        }
+      ],
+      "textSha256": "92f52648cec6db56a2d9979d25a459cec978314e273901baa15cf7c0a3f64cbf"
+    },
+    {
+      "id": "3.1",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "1",
+      "text": "1. На рецептурных бланках форм № 107-1/у, № 148-1/у-88 и № 148-1/у-04(л) в левом верхнем углу проставляется штамп медицинской организации с указанием ее наименования, адреса и телефона с датой выписки (датой оформления) рецепта на лекарственный препарат. Дополнительно на рецептурном бланке формы № 148-1/у-04(л) проставляется код медицинской организации в соответствии с Основным государственным регистрационным номером (далее – ОГРН). Серия рецептурного бланка формы № 148-1/у-04(л) включает код субъекта Российской Федерации, соответствующий двум первым цифрам Общероссийского классификатора объектов административно-территориального деления (далее – ОКАТО). Разрешается изготавливать рецептурные бланки формы № 107-1/у и формы № 148-1/у-04(л) с помощью компьютерных технологий. Рецептурные бланки формы формы № 148-1/у-88 изготавливаются исключительно типографским способом.",
+      "spans": [
+        {
+          "pdfPage": 27,
+          "firstLine": 7,
+          "lastLine": 21
+        }
+      ],
+      "textSha256": "f8d52158e2f40aa53c489860a97ab4bd0c1137d9f9089b7a42abd90226f04c8a"
+    },
+    {
+      "id": "3.5",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "5",
+      "text": "5. Оформление рецептурных бланков формы № 148-1/у-04(л) включает цифровое кодирование. Цифровое кодирование указанных рецептурных бланков включает: 1) код медицинской организации (ОГРН) или код индивидуального предпринимателя в соответствии с Основным государственным регистрационным номером индивидуального предпринимателя (далее – ОГРНИП), проставляемый при изготовлении рецептурных бланков; 2) код категории граждан, имеющих право на получение лекарственных препаратов в соответствии со статьей 6.1 Федерального закона от 17 июля 1999 г. № 178-ФЗ «О государственной социальной помощи», и код нозологической формы по Международной статистической классификации болезней и проблем, связанных со здоровьем (10-й пересмотр) (далее – МКБ), заполняемые лечащим врачом путем занесения каждой цифры в пустые ячейки, при этом точка проставляется в отдельной ячейке; 3) отметку об источнике финансирования (федеральный бюджет [1], бюджет субъекта Российской Федерации [2], муниципальный бюджет [3]) и проценте оплаты рецепта (бесплатно [1], 50% [2], иной % [3]); 4) штрих-код – дополнительный реквизит (в случае изготовления на территории субъекта Российской Федерации рецептурного бланка с использованием компьютерных технологий).",
+      "spans": [
+        {
+          "pdfPage": 27,
+          "firstLine": 33,
+          "lastLine": 39
+        },
+        {
+          "pdfPage": 28,
+          "firstLine": 1,
+          "lastLine": 13
+        }
+      ],
+      "textSha256": "6d44de0c709d122ec455c91c0a3bb95418fd223d5f2c322c40a19831eb701e7e"
+    },
+    {
+      "id": "3.6",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "6",
+      "text": "6. В рецептурных бланках форм № 107-1/у, № 148-1/у-88 и № 148-1/у-04(л) в графе «Фамилия, инициалы имени и отчества (последнее – при наличии) пациента» указываются фамилия, инициалы имени и отчества (последнее – при наличии) пациента.",
+      "spans": [
+        {
+          "pdfPage": 28,
+          "firstLine": 14,
+          "lastLine": 17
+        }
+      ],
+      "textSha256": "e5068393b2dd56a7ef4296b5016be592e231f1e00b8668606ea3856a893b8f9d"
+    },
+    {
+      "id": "3.7",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "7",
+      "text": "7. В рецептурных бланках форм № 148-1/у-88, № 107-1/у и № 148-1/у-04(л) в графе «Дата рождения» указывается дата рождения пациента (число, месяц, год). Дополнительно в рецептурных бланках формы № 148-1/у-88 и формы № 107-1/у для детей в возрасте до 1 года в графе «Дата рождения» указывается количество полных месяцев.",
+      "spans": [
+        {
+          "pdfPage": 28,
+          "firstLine": 18,
+          "lastLine": 22
+        }
+      ],
+      "textSha256": "70e9b0c178699a53aec31749d6e25698750170a424269e233afe98648132de91"
+    },
+    {
+      "id": "3.8",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "8",
+      "text": "8. В рецептурных бланках формы № 148-1/у-04(л) в графах «СНИЛС» и «№ полиса обязательного медицинского страхования» указываются страховой номер индивидуального лицевого счета гражданина в Пенсионном фонде Российской Федерации (СНИЛС) (при наличии) и номер полиса обязательного медицинского страхования.",
+      "spans": [
+        {
+          "pdfPage": 28,
+          "firstLine": 23,
+          "lastLine": 27
+        }
+      ],
+      "textSha256": "c59edd18b553f6aa366bb9ac6afc937218552c565329a3df11904815a9f46827"
+    },
+    {
+      "id": "3.9",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "9",
+      "text": "9. В рецептурных бланках формы № 148-1/у-88 в графе «Адрес места жительства или номер медицинской карты пациента, получающего медицинскую помощь в амбулаторных условиях», указывается почтовый адрес места жительства (места пребывания или места фактического проживания) пациента или номер медицинской карты пациента, получающего медицинскую помощь в амбулаторных условиях' Указание и адреса места жительства и номера медицинской карты пациента, получающего медицинскую помощь в амбулаторных условиях, не является ошибкой. В рецептурных бланках формы № 148-1/у-04(л) в графе «Номер медицинской карты пациента, получающего медицинскую помощь в амбулаторных условиях» указывается номер медицинской карты пациента, получающего медицинскую помощь в амбулаторных условиях.",
+      "spans": [
+        {
+          "pdfPage": 28,
+          "firstLine": 28,
+          "lastLine": 38
+        },
+        {
+          "pdfPage": 29,
+          "firstLine": 1,
+          "lastLine": 2
+        }
+      ],
+      "textSha256": "b6d923b45670df2e1905ffcc85b34611f56b3b81ea310c4b2b24d0202ddf91a8"
+    },
+    {
+      "id": "3.10",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "10",
+      "text": "10. В графе «Фамилия, инициалы имени и отчества (последнее – при наличии) лечащего врача (фельдшера, акушерки)» рецептурных бланков форм № 148-1/у-88, № 107-1/у и № 148-1/у-04(л) указываются полностью фамилия, инициалы имени отчества (последнее – при наличии) медицинского работника, назначившего лекарственные препараты и оформившего рецепт.",
+      "spans": [
+        {
+          "pdfPage": 29,
+          "firstLine": 3,
+          "lastLine": 7
+        }
+      ],
+      "textSha256": "3bfbf9457e4cbc8c3d952e68720ef45b6243ee4c3835c9bcc49c3d4b98ee54d8"
+    },
+    {
+      "id": "3.11",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "11",
+      "text": "11. В графе «Rp» рецептурных бланков форм № 107-1/у, № 148-1/у-88 и № 148-1/у-04(л) указывается: 1) наименование лекарственного препарата (международное непатентованное наименование, группировочное или химическое наименование, торговое наименование) на латинском языке или на русском языке, форма выпуска, дозировка, количество (указывается прописью на рецептурном бланке формы № 107/у-НП); 2) способ применения лекарственного препарата на государственном языке Российской Федерации или на государственном языке Российской Федерации и государственном языке республик и иных языках народов Российской Федерации.",
+      "spans": [
+        {
+          "pdfPage": 29,
+          "firstLine": 8,
+          "lastLine": 18
+        }
+      ],
+      "textSha256": "723bbefaf8ba4e069905ba28b096d7d38b5d80935fc23dc0450180923d0b7662"
+    },
+    {
+      "id": "3.14",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "14",
+      "text": "14. Рецепт, оформленный на рецептурном бланке форм № 148-1/у-88, № 107-1/у и № 148-1/у-04(л), подписывается медицинским работником и заверяется его печатью. Рецепт, оформленный на рецептурном бланке формы № 148-1/у-88 и формы № 148-1/у-04(л), дополнительно заверяется печатью медицинской организации «Для рецептов». Для рецепта, оформленного на рецептурном бланке формы № 107-1/у, наличие печати «Для рецептов» не является обязательным.",
+      "spans": [
+        {
+          "pdfPage": 29,
+          "firstLine": 21,
+          "lastLine": 28
+        }
+      ],
+      "textSha256": "1f7c1edcdef328bea18baf7fe41d3cb56a3811682f2c8c7358beae9e67a0c240"
+    },
+    {
+      "id": "3.15",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "15",
+      "text": "15. На одном рецептурном бланке формы № 148-1/у-88 и формы № 148-1/у-04(л) разрешается осуществлять назначение только одного наименования лекарственного препарата. На одном рецептурном бланке формы № 107-1/у разрешается осуществлять назначение только одного наименования лекарственного препарата, относящегося по АТХ к антипсихотическим средствам (код N05A), анксиолитикам (код N05B), снотворным и седативным средствам (код N05C), антидепрессантам (код N06A) и не подлежащего предметно-количественному учету, и до трех наименований лекарственных препаратов – для иных лекарственных препаратов, не отнесенных к вышеуказанным АТХ.",
+      "spans": [
+        {
+          "pdfPage": 29,
+          "firstLine": 29,
+          "lastLine": 38
+        }
+      ],
+      "textSha256": "7bc58f1f8f5f9f101f08bd2e8f477d9ea812bc86dd829fe4115fac2767695d88"
+    },
+    {
+      "id": "3.17",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "17",
+      "text": "17. При оформлении рецептурных бланков форм № 148-1/у-88, № 107-1/у и № 148-1/у-04(л) на лекарственные препараты, назначенные по решению врачебной комиссии, на обороте рецептурного бланка ставится специальная отметка (штамп).",
+      "spans": [
+        {
+          "pdfPage": 29,
+          "firstLine": 40,
+          "lastLine": 42
+        },
+        {
+          "pdfPage": 30,
+          "firstLine": 1,
+          "lastLine": 1
+        }
+      ],
+      "textSha256": "08197c93fb1b10385ad630b11e1a7a59e6648a5395c529d04b5b0c65ce06ea45"
+    },
+    {
+      "id": "3.18",
+      "appendix": {
+        "number": 3,
+        "title": "Порядок оформления рецептурных бланков на лекарственные препараты"
+      },
+      "clause": "18",
+      "text": "18. На рецептурном бланке формы № 148-1/у-04(л) внизу имеется линия отрыва, разделяющая рецептурный бланк и корешок. Корешок от рецепта, оформленного на указанном рецептурном бланке, выдается пациенту (его законному представителю) в аптечной организации, на корешке делается отметка о наименовании лекарственного препарата, дозировке, количестве, способе применения.",
+      "spans": [
+        {
+          "pdfPage": 30,
+          "firstLine": 2,
+          "lastLine": 8
+        }
+      ],
+      "textSha256": "d7148c8829b25807f4082e3508e761a64f00e0988005758c5c180ca267d3cc57"
+    }
+  ],
+  "layout": {
+    "page": {
+      "size": "A4",
+      "orientation": "portrait",
+      "marginMm": {
+        "top": 18,
+        "right": 3.0,
+        "bottom": 3,
+        "left": 25.4
+      },
+      "fontSizePt": 11.25,
+      "lineHeight": 1.105
+    },
+    "blocks": [
+      {
+        "id": "head",
+        "columns": [
+          {
+            "widthPercent": 31.9,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Министерство здравоохранения",
+                    "indentMm": 3.6
+                  }
+                ],
+                "spaceBeforeMm": 73.3
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Российской Федерации",
+                    "indentMm": 3.6
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "здравоохранения",
+                    "indentMm": 3.6
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "widthPercent": 28.6,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "stamp",
+                    "fieldId": "barcode",
+                    "text": "МЕСТО ДЛЯ ШТРИХКОДА*"
+                  }
+                ],
+                "spaceBeforeMm": 77.56
+              }
+            ]
+          },
+          {
+            "widthPercent": 38.5,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "УТВЕРЖДЕНА"
+                  }
+                ],
+                "spaceBeforeMm": 72.9
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "приказом Министерства"
+                  }
+                ],
+                "spaceBeforeMm": 0.26
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Российской Федерации"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "от «"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "24",
+                    "underline": true,
+                    "joined": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "»",
+                    "joined": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "ноября",
+                    "underline": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "2021 г. №"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "1094н",
+                    "underline": true,
+                    "joined": true
+                  }
+                ]
+              }
+            ],
+            "align": "center"
+          }
+        ],
+        "columnGapMm": 2
+      },
+      {
+        "id": "stamp-organization",
+        "columns": [
+          {
+            "widthPercent": 33.0,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Штамп",
+                    "indentMm": 3.6
+                  },
+                  {
+                    "kind": "boxes",
+                    "count": 5,
+                    "widthMm": 4.64,
+                    "heightMm": 5.8,
+                    "indentMm": 7.3
+                  }
+                ],
+                "valign": "top",
+                "heightMm": 3.5,
+                "fontScale": 0.72,
+                "spaceBeforeMm": 3.95
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Код",
+                    "indentMm": 3.6
+                  }
+                ],
+                "fontScale": 0.72
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "медицинской организации",
+                    "indentMm": 3.6
+                  }
+                ],
+                "fontScale": 0.72
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "organizationCode",
+                    "length": 15,
+                    "charCells": {
+                      "count": 15,
+                      "widthMm": 3.2,
+                      "heightMm": 3.6,
+                      "digitsOnly": true
+                    },
+                    "indentMm": 4.3
+                  }
+                ],
+                "heightMm": 3.6
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stamp-entrepreneur",
+        "columns": [
+          {
+            "widthPercent": 33.0,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Штамп",
+                    "indentMm": 3.6
+                  },
+                  {
+                    "kind": "boxes",
+                    "count": 5,
+                    "widthMm": 4.64,
+                    "heightMm": 5.8,
+                    "indentMm": 7.3
+                  }
+                ],
+                "valign": "top",
+                "heightMm": 3.5,
+                "fontScale": 0.72,
+                "spaceBeforeMm": 3.26
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Код",
+                    "indentMm": 3.6
+                  }
+                ],
+                "fontScale": 0.72
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "индивидуального предпринимателя",
+                    "indentMm": 3.6
+                  }
+                ],
+                "fontScale": 0.72
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "entrepreneurCode",
+                    "length": 15,
+                    "charCells": {
+                      "count": 15,
+                      "widthMm": 3.2,
+                      "heightMm": 3.6,
+                      "digitsOnly": true
+                    },
+                    "indentMm": 4.3
+                  }
+                ],
+                "heightMm": 3.6
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "okud",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Код формы по ОКУД 3108805",
+                    "indentMm": 116.3
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Форма № 148-1/у-04(л)",
+                    "indentMm": 130.3
+                  }
+                ],
+                "spaceBeforeMm": 2.21
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "benefit-table",
+        "columns": [
+          {
+            "widthPercent": 96.3,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "columnWeights": [
+                      31.1,
+                      51.9,
+                      56.5,
+                      34.9
+                    ],
+                    "cellPaddingMm": {
+                      "x": 1.0,
+                      "y": 0.3,
+                      "top": 1.2
+                    },
+                    "rows": [
+                      [
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Код категории\nграждан\n\n\n\n "
+                            }
+                          ],
+                          "align": "center"
+                        },
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Код нозологической формы\n(по МКБ)\n\n\n\n "
+                            }
+                          ],
+                          "align": "center"
+                        },
+                        {
+                          "rowSpan": 2,
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Источник финансирования:\n(подчеркнуть)\n"
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\n"
+                            },
+                            {
+                              "kind": "options",
+                              "fieldId": "fundingSource",
+                              "separator": ", ",
+                              "mark": "underline",
+                              "codes": false,
+                              "range": [
+                                0,
+                                1
+                              ]
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\n"
+                            },
+                            {
+                              "kind": "options",
+                              "fieldId": "fundingSource",
+                              "separator": ", ",
+                              "mark": "underline",
+                              "codes": false,
+                              "range": [
+                                1,
+                                2
+                              ]
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\n"
+                            },
+                            {
+                              "kind": "options",
+                              "fieldId": "fundingSource",
+                              "separator": ", ",
+                              "mark": "underline",
+                              "codes": false,
+                              "range": [
+                                2,
+                                3
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "rowSpan": 2,
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "% оплаты:\n(подчеркнуть)\n"
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\n"
+                            },
+                            {
+                              "kind": "options",
+                              "fieldId": "paymentPercent",
+                              "separator": ", ",
+                              "mark": "underline",
+                              "codes": false,
+                              "range": [
+                                0,
+                                1
+                              ]
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\n"
+                            },
+                            {
+                              "kind": "options",
+                              "fieldId": "paymentPercent",
+                              "separator": ", ",
+                              "mark": "underline",
+                              "codes": false,
+                              "range": [
+                                1,
+                                2
+                              ]
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\n"
+                            },
+                            {
+                              "kind": "options",
+                              "fieldId": "paymentPercent",
+                              "separator": ", ",
+                              "mark": "underline",
+                              "codes": false,
+                              "range": [
+                                2,
+                                3
+                              ]
+                            }
+                          ]
+                        }
+                      ],
+                      [
+                        {
+                          "segments": [
+                            {
+                              "kind": "field",
+                              "fieldId": "categoryCode",
+                              "length": 3,
+                              "charCells": {
+                                "count": 3,
+                                "widthMm": 10.4,
+                                "heightMm": 5.6
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "segments": [
+                            {
+                              "kind": "field",
+                              "fieldId": "nosologyCode",
+                              "length": 5,
+                              "charCells": {
+                                "count": 5,
+                                "widthMm": 10.4,
+                                "heightMm": 5.6
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "fontScale": 0.72
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "recipe-line",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "РЕЦЕПТ",
+                    "large": true,
+                    "indentMm": 4.0
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Серия",
+                    "small": true,
+                    "indentMm": 11.5
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "series",
+                    "length": 12
+                  },
+                  {
+                    "kind": "text",
+                    "text": "№",
+                    "small": true
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "number",
+                    "length": 9
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Дата оформления:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "recipeDate",
+                    "length": 2,
+                    "charCells": {
+                      "count": 2,
+                      "widthMm": 3.2,
+                      "heightMm": 6.8
+                    },
+                    "part": "day"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "recipeDate",
+                    "length": 2,
+                    "charCells": {
+                      "count": 2,
+                      "widthMm": 3.2,
+                      "heightMm": 6.8
+                    },
+                    "part": "monthNumber",
+                    "indentMm": 5
+                  },
+                  {
+                    "kind": "text",
+                    "text": "20",
+                    "indentMm": 1
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "recipeDate",
+                    "length": 1.5,
+                    "part": "year2"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "г."
+                  }
+                ],
+                "valign": "center",
+                "heightMm": 5.4
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "patient",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Фамилия, инициалы имени и отчества (последнее – при наличии)",
+                    "indentMm": 4.0
+                  }
+                ],
+                "heightMm": 3.9,
+                "spaceBeforeMm": 2.89
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "пациента",
+                    "indentMm": 3.6
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientFullName",
+                    "length": 36
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Дата рождения"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 2,
+                    "charCells": {
+                      "count": 2,
+                      "widthMm": 3.2,
+                      "heightMm": 8.1
+                    },
+                    "part": "day",
+                    "indentMm": 1.5
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 2,
+                    "charCells": {
+                      "count": 2,
+                      "widthMm": 3.2,
+                      "heightMm": 8.1
+                    },
+                    "part": "monthNumber",
+                    "indentMm": 5
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 4,
+                    "charCells": {
+                      "count": 4,
+                      "widthMm": 3.2,
+                      "heightMm": 8.1
+                    },
+                    "part": "year",
+                    "indentMm": 5
+                  }
+                ],
+                "valign": "center",
+                "heightMm": 4.4,
+                "spaceBeforeMm": 0.48
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "snils",
+        "columns": [
+          {
+            "widthPercent": 82.3,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "columnWeights": [
+                      21.4,
+                      128.1
+                    ],
+                    "cellPaddingMm": {
+                      "x": 0,
+                      "y": 0.2
+                    },
+                    "rows": [
+                      [
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "СНИЛС",
+                              "large": true
+                            }
+                          ]
+                        },
+                        {
+                          "segments": [
+                            {
+                              "kind": "field",
+                              "fieldId": "snils",
+                              "length": 20,
+                              "charCells": {
+                                "count": 20,
+                                "widthMm": 6.4,
+                                "heightMm": 5.5,
+                                "digitsOnly": true
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "spaceBeforeMm": 1.59
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "oms",
+        "columns": [
+          {
+            "widthPercent": 96.1,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "columnWeights": [
+                      21.4,
+                      153.2
+                    ],
+                    "cellPaddingMm": {
+                      "x": 0.3,
+                      "y": 0.2
+                    },
+                    "rows": [
+                      [
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "№ полиса обязательного медицинского страхования:"
+                            }
+                          ]
+                        },
+                        {
+                          "segments": [
+                            {
+                              "kind": "field",
+                              "fieldId": "omsPolicyNumber",
+                              "length": 24,
+                              "charCells": {
+                                "count": 24,
+                                "widthMm": 6.38,
+                                "heightMm": 13,
+                                "digitsOnly": true
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "fontScale": 0.72
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "card",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Номер медицинской карты пациента, получающего медицинскую помощь в амбулаторных",
+                    "indentMm": 4.0
+                  }
+                ],
+                "spaceBeforeMm": 0.26
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "условиях",
+                    "indentMm": 3.5
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "medicalCardNumber",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "doctor",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Фамилия, инициалы имени и отчества (последнее – при наличии)",
+                    "indentMm": 4.4
+                  }
+                ],
+                "spaceBeforeMm": 0.56
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "лечащего врача (фельдшера, акушерки)",
+                    "indentMm": 4.0
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "doctorFullName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "rp",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Руб.",
+                    "indentMm": 4.4
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Коп.",
+                    "indentMm": 5.1
+                  },
+                  {
+                    "kind": "text",
+                    "text": "Rp:",
+                    "indentMm": 5.1
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "prescription",
+                    "length": 40,
+                    "grow": true,
+                    "lineStyle": "dotted"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "prescriptionContinued",
+                    "length": 40,
+                    "grow": true,
+                    "lineStyle": "dotted",
+                    "indentMm": 35.6
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "D.t.d.",
+                    "indentMm": 35.6
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "dtd",
+                    "length": 40,
+                    "grow": true,
+                    "lineStyle": "dotted"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Signa:",
+                    "indentMm": 35.5
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "signa",
+                    "length": 40,
+                    "grow": true,
+                    "lineStyle": "dotted"
+                  }
+                ],
+                "spaceBeforeMm": 0.33
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "rp-end",
+        "columns": [
+          {
+            "widthPercent": 88.1,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "signature",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "stamp",
+                    "fieldId": "doctorSignature",
+                    "text": "Подпись и печать лечащего врача",
+                    "indentMm": 4.0
+                  }
+                ],
+                "spaceBeforeMm": 5.54
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(подпись фельдшера, акушерки)",
+                    "indentMm": 4.0
+                  },
+                  {
+                    "kind": "stamp",
+                    "fieldId": "doctorSeal",
+                    "text": "М.П.",
+                    "indentMm": 60
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "validity",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Рецепт действителен в течение",
+                    "indentMm": 26.8
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "validity",
+                    "separator": ", ",
+                    "mark": "underline",
+                    "codes": false
+                  },
+                  {
+                    "kind": "text",
+                    "text": "(нужное подчеркнуть)"
+                  }
+                ],
+                "spaceBeforeMm": 4.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pharmacy-title",
+        "columns": [
+          {
+            "widthPercent": 84.9,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 22.8,
+                    "grow": true,
+                    "lineStyle": "dashed",
+                    "indentMm": 20.2
+                  },
+                  {
+                    "kind": "text",
+                    "text": "(Заполняется специалистом аптечной организации)"
+                  },
+                  {
+                    "kind": "rule",
+                    "length": 26.4,
+                    "grow": true,
+                    "lineStyle": "dashed"
+                  }
+                ],
+                "spaceBeforeMm": 3.2
+              }
+            ]
+          }
+        ],
+        "pageBreakBefore": true
+      },
+      {
+        "id": "pharmacy",
+        "columns": [
+          {
+            "widthPercent": 95.8,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "columnWeights": [
+                      85.5,
+                      88.4
+                    ],
+                    "minRowHeightMm": 8.4,
+                    "cellPaddingMm": {
+                      "x": 1.2,
+                      "y": 0.3,
+                      "top": 0.8
+                    },
+                    "rows": [
+                      [
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Отпущено по рецепту:",
+                              "underline": true
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "pharmacyDispensed",
+                              "length": 12,
+                              "plain": true
+                            }
+                          ]
+                        },
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Торговое наименование и дозировка:"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "pharmacyTradeName",
+                              "length": 12,
+                              "plain": true
+                            }
+                          ]
+                        }
+                      ],
+                      [
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Дата отпуска: «"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "pharmacyDate",
+                              "length": 3,
+                              "part": "day"
+                            },
+                            {
+                              "kind": "text",
+                              "text": "»",
+                              "joined": true
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "pharmacyDate",
+                              "length": 14,
+                              "part": "month"
+                            },
+                            {
+                              "kind": "text",
+                              "text": "20"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "pharmacyDate",
+                              "length": 3,
+                              "part": "year2"
+                            },
+                            {
+                              "kind": "text",
+                              "text": "г."
+                            }
+                          ]
+                        },
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Количество:"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "pharmacyQuantity",
+                              "length": 12,
+                              "plain": true
+                            }
+                          ]
+                        }
+                      ],
+                      [
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Приготовил:"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "pharmacyPrepared",
+                              "length": 12,
+                              "plain": true
+                            }
+                          ]
+                        },
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Проверил:"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "pharmacyChecked",
+                              "length": 8,
+                              "plain": true
+                            },
+                            {
+                              "kind": "text",
+                              "text": "Отпустил:",
+                              "indentMm": 14
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "pharmacyReleased",
+                              "length": 8,
+                              "plain": true
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "tear-off",
+        "columns": [
+          {
+            "widthPercent": 93.6,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 60,
+                    "grow": true,
+                    "lineStyle": "dashed",
+                    "indentMm": 4.3
+                  },
+                  {
+                    "kind": "text",
+                    "text": "(линия отрыва)"
+                  },
+                  {
+                    "kind": "rule",
+                    "length": 60,
+                    "grow": true,
+                    "lineStyle": "dashed"
+                  }
+                ],
+                "spaceBeforeMm": 1.88
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stub",
+        "columns": [
+          {
+            "widthPercent": 95.9,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "columnWeights": [
+                      85,
+                      89
+                    ],
+                    "cellPaddingMm": {
+                      "x": 1.2,
+                      "y": 0.5,
+                      "top": 0.8
+                    },
+                    "rows": [
+                      [
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Корешок рецептурного бланка",
+                              "underline": true
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\nНаименование\nлекарственного препарата:"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "stubDrug",
+                              "length": 12,
+                              "plain": true
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\nДозировка:"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "stubDose",
+                              "length": 26
+                            }
+                          ]
+                        },
+                        {
+                          "segments": [
+                            {
+                              "kind": "text",
+                              "text": "Способ применения:"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "stubMethod",
+                              "length": 12,
+                              "plain": true
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\nПродолжительность"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "stubDuration",
+                              "length": 19
+                            },
+                            {
+                              "kind": "text",
+                              "text": "дней",
+                              "indentMm": 1
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\n\nКоличество приемов в день:"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "stubTimesPerDay",
+                              "length": 14
+                            },
+                            {
+                              "kind": "text",
+                              "text": "раз",
+                              "indentMm": 1
+                            },
+                            {
+                              "kind": "text",
+                              "text": "\nНа 1 прием:"
+                            },
+                            {
+                              "kind": "field",
+                              "fieldId": "stubPerDose",
+                              "length": 25
+                            },
+                            {
+                              "kind": "text",
+                              "text": "ед.",
+                              "indentMm": 1
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "spaceBeforeMm": 1.47
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "footnote-rule",
+        "columns": [
+          {
+            "widthPercent": 30.8,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 26,
+                    "grow": true,
+                    "lineStyle": "dashed",
+                    "indentMm": 4.7
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "footnote",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "<*> В случае изготовления рецептурного бланка с использованием компьютерных технологий",
+                    "indentMm": 4.0
+                  }
+                ],
+                "spaceBeforeMm": 3.48
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "reverse-top",
+        "columns": [
+          {
+            "widthPercent": 47.9,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Оборотная сторона"
+                  }
+                ],
+                "spaceBeforeMm": 5.17
+              }
+            ]
+          },
+          {
+            "widthPercent": 45.8,
+            "align": "center",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "stamp",
+                    "fieldId": "commissionMark",
+                    "text": "Отметка о назначении лекарственного\nпрепарата по решению врачебной комиссии"
+                  }
+                ],
+                "align": "center",
+                "box": "outline",
+                "minHeightMm": 26.0,
+                "paddingTopMm": 2.2,
+                "spaceBeforeMm": 21.64
+              }
+            ]
+          },
+          {
+            "widthPercent": 6.3,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": ""
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "columnGapMm": 0
+      },
+      {
+        "id": "reverse-table",
+        "columns": [
+          {
+            "widthPercent": 93.7,
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [
+                      [
+                        {
+                          "text": "Приготовил"
+                        },
+                        {
+                          "text": "Проверил"
+                        },
+                        {
+                          "text": "Отпустил"
+                        }
+                      ]
+                    ],
+                    "rows": [
+                      [
+                        "reversePrepared",
+                        "reverseChecked",
+                        "reverseReleased"
+                      ]
+                    ],
+                    "columnWeights": [
+                      284,
+                      308,
+                      256
+                    ],
+                    "headHeightMm": 8.1,
+                    "rowHeightMm": 7.6
+                  }
+                ],
+                "spaceBeforeMm": 6.38
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "notes": [
+    "Печатная форма — черновик-образец для врача, а не бланк: рецептурные бланки изготавливает и учитывает медицинская организация (приложение № 3: бланки 107-1/у и 148-1/у-04(л) разрешено изготавливать с помощью компьютерных технологий, бланк 148-1/у-88 — только типографским способом, п. 1; организации получают оформленные типографским способом бланки через территориальные органы управления здравоохранением или уполномоченные организации, п. 27). Распечатка приложения не заменяет бланк и юридической силы не имеет.",
+    "Приказ не указывает размер этих бланков. Страница воспроизведена так, как напечатана в приказе (лист А4, бланк расположен на странице приложения № 2 так же, как на скане): бланки в приложении идут один за другим, поэтому оборотная сторона предыдущего бланка и начало следующего делят с ним страницу.",
+    "Бланки заполняются медицинским работником чернилами или шариковой ручкой (п. 3 приложения № 3); допускается оформление всех реквизитов, кроме подписи, с использованием печатающих устройств (п. 4). Исправления в рецепте не допускаются (п. 16).",
+    "Приказ действует с 01.03.2022 по 01.03.2028 (п. 4 приказа; п. 2 признаёт утратившими силу, в частности, приказы Минздрава России от 14.01.2019 № 4н и от 01.08.2012 № 54н).",
+    "Латинские обозначения (Rp., D.t.d., Signa) напечатаны на бланке и сохранены как в приказе.",
+    "Бланк 148-1/у-04(л) оформляется при назначении лекарственных препаратов гражданам, имеющим право на бесплатное получение лекарственных препаратов или получение их со скидкой (п. 10 приложения № 1); на бумаге оформляются два экземпляра: один остаётся в аптечной организации, второй — в медицинской документации пациента (п. 35 приложения № 1).",
+    "Срок действия: 30 дней со дня оформления; 90 дней для граждан, достигших пенсионного возраста, инвалидов первой группы, детей-инвалидов и граждан с хроническими заболеваниями, требующими длительного курсового лечения; 15 дней в случаях пунктов 38 и 39 (п. 21, 22 приложения № 1).",
+    "В бланке напечатано «Министерство здравоохранения / Российской Федерации / здравоохранения»: повтор слова «здравоохранения» воспроизведён как в приказе.",
+    "Страница приказа 26 — продолжение лицевой стороны (часть для аптечной организации и корешок, линия отрыва) и оборотная сторона на одной странице; так они и воспроизведены.",
+    "Серия бланка включает код субъекта Российской Федерации — две первые цифры ОКАТО (п. 1 приложения № 3); код организации — ОГРН, предпринимателя — ОГРНИП, при изготовлении бланка (п. 5). Цифры кода категории и МКБ заносятся по одной в ячейку, точка МКБ — в отдельную ячейку (п. 5).",
+    "Поля, которые порядок не определяет (rule.status = undefined): number, pharmacyDispensed, pharmacyTradeName, pharmacyDate, pharmacyQuantity, pharmacyPrepared, pharmacyChecked, pharmacyReleased, reversePrepared, reverseChecked, reverseReleased."
+  ]
+}
