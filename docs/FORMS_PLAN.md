@@ -240,6 +240,14 @@ it in step with the blueprints and the committed schemas.
 - Human review of the OCR-derived code lists (89 subjects of the Russian Federation) against the scan
   once more before the form is called verified; a second recogniser would catch residual slips.
 
+## Owner requirement: layout fidelity (2026-10-05)
+
+The printed blank must preserve the layout of the original form file: block order, line breaks,
+field positions, boxed rows and the one- or two-sided sheet structure as on the official scan.
+Next check (not done yet): render each form's print preview to PDF/PNG and overlay it on the
+official scan page at the same scale; differences beyond line-length rounding are bugs. Add this
+as an e2e/visual test per form.
+
 ## Open questions for the owner
 
 - Which of the «Candidates for the owner» to build next; whether 025/у (the full outpatient card)
