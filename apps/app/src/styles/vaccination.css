@@ -1,0 +1,590 @@
+.vax {
+  display: grid;
+  gap: 0.9rem;
+  min-height: 100%;
+  padding-bottom: calc(var(--theme-bottom-nav-clearance, 5rem) + 1rem);
+  color: var(--theme-text);
+}
+
+.vax__chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.vax__back {
+  flex: 0 0 auto;
+}
+
+.vax__print {
+  flex: 0 0 auto;
+}
+
+.vax__notice {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.9rem 1rem;
+}
+
+.vax__notice-edition {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.vax__notice-details {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.vax__notice-text,
+.vax__notice-check,
+.vax__notice-links {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.vax__notice-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.vax__notice-link,
+.vax-source__link {
+  color: var(--theme-link);
+  text-decoration: underline;
+  text-underline-offset: var(--theme-text-underline-offset, 0.2em);
+}
+
+.vax__parts,
+.vax__population,
+.vax__layout {
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+
+.vax__filters {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.6rem 1rem;
+}
+
+.vax__age {
+  min-width: min(100%, 16rem);
+  max-width: 100%;
+}
+
+.vax__query {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.vax__count {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
+
+.vax__empty {
+  margin: 0;
+  padding: 1rem;
+  color: var(--theme-text-muted);
+}
+
+.vax__review {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem;
+}
+
+.vax__review-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.vax__review-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.vax__review-item {
+  margin: 0;
+}
+
+/* Source link under a row. */
+.vax-source {
+  display: grid;
+  gap: 0.1rem;
+  font-size: 0.8rem;
+}
+
+.vax-source__page {
+  color: var(--theme-text-muted);
+  font-size: 0.74rem;
+}
+
+/* The order's tables: a real table on wide screens. */
+.vax-table-wrap {
+  min-width: 0;
+}
+
+.vax-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-surface-raised);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.vax-table__caption {
+  padding: 0 0 0.4rem;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  text-align: left;
+}
+
+.vax-table__th {
+  position: sticky;
+  top: var(--vax-sticky-top, 0);
+  z-index: var(--z-sticky-chrome, 5);
+  padding: 0.55rem 0.7rem;
+  border-bottom: 2px solid var(--theme-border);
+  background: var(--theme-surface-muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-align: left;
+}
+
+.vax-table__th--number {
+  width: 3.2rem;
+}
+
+.vax-table__th--source {
+  width: 11rem;
+}
+
+.vax-table__cell {
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--theme-border);
+  vertical-align: top;
+  font-weight: 400;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.vax-table__cell--number {
+  text-align: right;
+  color: var(--theme-text-muted);
+}
+
+.vax-table__cell--category {
+  font-weight: 560;
+}
+
+.vax-table__cell--source {
+  font-size: 0.8rem;
+}
+
+.vax-items {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vax-items__item {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.3rem 0;
+  border-top: 1px solid var(--theme-border);
+}
+
+.vax-items__item:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.vax-blocks {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.vax-blocks__block {
+  margin: 0;
+}
+
+.vax-blocks__block--bullet {
+  padding-left: 0.9rem;
+  text-indent: -0.9rem;
+}
+
+.vax-blocks__dash {
+  color: var(--theme-text-muted);
+}
+
+.vax-amendment {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-left: 3px solid var(--theme-warning);
+  background: var(--theme-warning-soft);
+}
+
+.vax-amendment__note {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+/* The same rows on a phone: cards with an expandable body. */
+.vax-cards {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.vax-cards__toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vax-cards__list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vax-cards__item {
+  min-width: 0;
+}
+
+.vax-cards__title {
+  overflow-wrap: anywhere;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.vax-cards__number {
+  color: var(--theme-text-muted);
+  font-weight: 650;
+}
+
+.vax-cards__body {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.25rem 0 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.vax-cards__category {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.vax-cards__label {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+/* Summary grid: infection × age. */
+.vax-grid {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.vax-grid__note,
+.vax-grid__empty {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.vax-grid__scroller {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-surface-raised);
+}
+
+.vax-grid__table {
+  width: 100%;
+  min-width: 52rem;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.vax-grid__caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.vax-grid__corner,
+.vax-grid__age {
+  padding: 0.45rem 0.4rem;
+  border-bottom: 2px solid var(--theme-border);
+  background: var(--theme-surface-muted);
+  font-size: 0.74rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+.vax-grid__corner,
+.vax-grid__infection {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 9.5rem;
+  text-align: left;
+}
+
+.vax-grid__infection {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--theme-border);
+  background: var(--theme-surface-raised);
+  font-weight: 650;
+}
+
+.vax-grid__cell {
+  padding: 0.35rem 0.3rem;
+  border-bottom: 1px solid var(--theme-border);
+  border-left: 1px solid var(--theme-border);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.vax-grid__dose {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.vax-grid__categories {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.vax-grid__categories-title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.vax-grid__category-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vax-grid__category {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-surface-raised);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.vax-grid__category-vaccine {
+  margin: 0;
+  font-weight: 650;
+}
+
+.vax-grid__category-number {
+  color: var(--theme-text-muted);
+}
+
+.vax-grid__category-text {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Order of procedure (Appendix 3). */
+.vax-procedure {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.vax-procedure__intro {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+}
+
+.vax-procedure__item {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-surface-raised);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.vax-procedure__text,
+.vax-procedure__footnote,
+.vax-procedure__amended {
+  margin: 0;
+}
+
+.vax-procedure__number {
+  color: var(--theme-text-muted);
+  font-weight: 650;
+}
+
+.vax-procedure__footnote,
+.vax-procedure__amended {
+  color: var(--theme-text-muted);
+  font-size: 0.78rem;
+}
+
+/* Plan from a birth date. */
+.vax-plan {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.vax-plan__note,
+.vax-plan__convention {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.vax-plan__birth {
+  max-width: 14rem;
+}
+
+.vax-plan__problem {
+  margin: 0;
+  color: var(--theme-danger);
+  font-size: 0.88rem;
+}
+
+.vax-plan__list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vax-plan__entry {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-surface-raised);
+}
+
+.vax-plan__entry--passed {
+  opacity: 0.78;
+}
+
+.vax-plan__entry--current {
+  border-color: var(--theme-accent);
+  box-shadow: inset 0.25rem 0 0 var(--theme-accent);
+}
+
+.vax-plan__entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.2rem 1rem;
+}
+
+.vax-plan__age {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.vax-plan__date {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.7rem;
+  margin: 0;
+}
+
+.vax-plan__date-value {
+  font-family: var(--font-mono);
+  font-weight: 650;
+}
+
+.vax-plan__status {
+  color: var(--theme-text-muted);
+  font-size: 0.76rem;
+}
+
+.vax-plan__ref {
+  color: var(--theme-text-muted);
+  font-size: 0.76rem;
+}
+
+.vax-plan__conditions {
+  min-width: 0;
+}
+
+/* Print preview. */
+.vax-preview__body {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+}
+
+.vax-preview__note {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8rem;
+}
+
+.vax-preview__viewport {
+  min-width: 0;
+  overflow: auto;
+}
+
+.vax-preview__sheet {
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  background: #fff;
+  box-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 0.12);
+}
+
+.vax-preview__frame {
+  display: block;
+  border: 0;
+  background: #fff;
+  transform-origin: top left;
+}

@@ -7,6 +7,7 @@ import {
   notesPath,
   notesPatientsPath,
   notesTemplatesPath,
+  notesVaccinationPath,
   noteTemplatePath,
   readNotesRoute,
   withNotesFullscreen,
@@ -59,6 +60,20 @@ describe('notes routing', () => {
     expect(readNotesRoute('#/notes/patients/patient%2F1/dynamics')).toEqual({
       kind: 'patient-dynamics',
       patientId: 'patient/1',
+    });
+  });
+
+  it('parses the vaccination calendar route with the part it was opened on', () => {
+    expect(readNotesRoute('#/notes/vaccination')).toEqual({ kind: 'vaccination' });
+    expect(readNotesRoute('#/notes/vaccination?part=epidemic')).toEqual({
+      kind: 'vaccination',
+      part: 'epidemic',
+    });
+    expect(notesVaccinationPath()).toBe('#/notes/vaccination');
+    expect(notesVaccinationPath('plan')).toBe('#/notes/vaccination?part=plan');
+    expect(readNotesRoute(notesVaccinationPath('procedure'))).toEqual({
+      kind: 'vaccination',
+      part: 'procedure',
     });
   });
 

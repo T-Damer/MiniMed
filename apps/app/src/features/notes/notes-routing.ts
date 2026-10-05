@@ -11,6 +11,7 @@ export type NotesRoute =
       readonly patientId?: string;
       readonly episodeId?: string;
     }
+  | { readonly kind: 'vaccination'; readonly part?: string }
   | { readonly kind: 'templates'; readonly create?: boolean }
   | { readonly kind: 'template'; documentId: string }
   | { readonly kind: 'card'; readonly cardId: string }
@@ -21,6 +22,7 @@ const FULLSCREEN_QUERY_KEY = 'fullscreen';
 const CREATE_TEMPLATE_QUERY_KEY = 'create';
 const PATIENT_EPISODE_QUERY_KEY = 'episode';
 const FORM_PATIENT_QUERY_KEY = 'patient';
+const VACCINATION_PART_QUERY_KEY = 'part';
 
 function notesPathAndQuery(hash: string): readonly [string, string] {
   const separator = hash.indexOf('?');
@@ -70,6 +72,10 @@ export function readNotesRoute(
       return { kind: 'forms', ...context };
     }
     return { kind: 'form', formId, ...context };
+  }
+  if (parts[1] === 'vaccination') {
+    const part = new URLSearchParams(query).get(VACCINATION_PART_QUERY_KEY);
+    return part ? { kind: 'vaccination', part } : { kind: 'vaccination' };
   }
   if (parts[1] === 'templates') {
     if (parts.length === 2) {
@@ -136,6 +142,13 @@ export function notesFormsPath(
   const query = params.toString();
   const base = formId ? `#/notes/forms/${encodeURIComponent(formId)}` : '#/notes/forms';
   return query ? `${base}?${query}` : base;
+}
+
+/** `#/notes/vaccination` opens «Календарь прививок»; `part` picks national, plan, epidemic or procedure. */
+export function notesVaccinationPath(part?: string): string {
+  return part
+    ? `#/notes/vaccination?${VACCINATION_PART_QUERY_KEY}=${encodeURIComponent(part)}`
+    : '#/notes/vaccination';
 }
 
 export function notesTemplatesPath(create = false): string {

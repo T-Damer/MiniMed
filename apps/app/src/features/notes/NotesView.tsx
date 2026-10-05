@@ -7,9 +7,11 @@ import {
   createSignal,
   For,
   type JSX,
+  lazy,
   onCleanup,
   onMount,
   Show,
+  Suspense,
 } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import { toast } from 'solid-sonner';
@@ -420,6 +422,13 @@ function deferEnrichment(
     void enrichPatientNote(noteId, core).finally(() => onSettled?.());
   }, 0);
 }
+
+/** «Календарь прививок» ships its 100 KB of transcribed tables only when it is opened. */
+const VaccinationWorkspace = lazy(() =>
+  import('@/features/vaccination/VaccinationWorkspace').then((module) => ({
+    default: module.VaccinationWorkspace,
+  })),
+);
 
 export function NotesView(props: {
   readonly core: MedicalCore | undefined;
@@ -932,6 +941,10 @@ export function NotesView(props: {
     const current = route();
     return current.kind === 'forms' || current.kind === 'form' ? current : null;
   });
+  const vaccinationRoute = createMemo(() => {
+    const current = route();
+    return current.kind === 'vaccination' ? current : null;
+  });
   const activeTemplateId = (): string | null => {
     const current = route();
     return current.kind === 'template' ? current.documentId : null;
@@ -1245,6 +1258,25 @@ export function NotesView(props: {
             onNavigate={navigate}
             backLabel={props.backToFiles ? 'К файлам' : 'Назад к заметкам'}
           />
+        )}
+      </Show>
+      <Show when={props.active && vaccinationRoute()}>
+        {(current) => (
+          <Suspense
+            fallback={
+              <p class="vax-loading" role="status">
+                Открываем календарь прививок…
+              </p>
+            }
+          >
+            <VaccinationWorkspace
+              initialPart={current().part}
+              onBack={() => {
+                if (window.history.length > 1) window.history.back();
+                else navigate(notesPath());
+              }}
+            />
+          </Suspense>
         )}
       </Show>
       <Show when={props.active && route().kind === 'index'}>
