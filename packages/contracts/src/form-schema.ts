@@ -176,6 +176,16 @@ export const FormRuleParagraphSchema = z.object({
   text: z.string().min(1),
   /** Items of a code list the paragraph introduces (counted, held as field options). */
   listItemCount: z.number().int().nonnegative().optional(),
+  /**
+   * The appendix of the order the paragraph belongs to when the requirements for the blank are
+   * spread over several (order 1094н: appendices 1 and 3); `id` is then `<appendix>.<clause>`.
+   */
+  appendix: z.object({ number: z.number().int().positive(), title: z.string().min(1) }).optional(),
+  /** The paragraph number as printed in that appendix. */
+  clause: z
+    .string()
+    .regex(/^\d+(?:\.\d+)*$/u)
+    .optional(),
   spans: z.array(FormSourceSpanSchema).min(1),
   textSha256: sha256,
 });

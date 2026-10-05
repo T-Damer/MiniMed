@@ -57,9 +57,11 @@ export function fieldRuleView(schema: FormSchema, field: FormField): FieldRuleVi
 export function ruleCitation(schema: FormSchema, paragraph: FormRuleParagraph): string {
   const pages = [...new Set(paragraph.spans.map((span) => span.pdfPage))];
   const pageText = pages.length === 1 ? `стр. ${pages[0]}` : `стр. ${pages[0]}–${pages.at(-1)}`;
+  const title = paragraph.appendix?.title ?? 'Порядок заполнения';
+  const appendix = paragraph.appendix?.number ?? schema.source.rulesAppendix.number;
   return (
-    `Порядок заполнения (приложение № ${schema.source.rulesAppendix.number} ` +
-    `к приказу № ${schema.source.orderNumber}), п. ${paragraph.id}; ${pageText} официального PDF`
+    `${title} (приложение № ${appendix} ` +
+    `к приказу № ${schema.source.orderNumber}), п. ${paragraph.clause ?? paragraph.id}; ${pageText} официального PDF`
   );
 }
 

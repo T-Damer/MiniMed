@@ -24,6 +24,7 @@ import urllib.parse
 import urllib.request
 from collections.abc import Mapping
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Final
@@ -41,6 +42,7 @@ OCR_METHOD: Final = "macos-vision-ocr-v1"
 # Rows of one printed line differ in height by less than this fraction of the page.
 ROW_TOLERANCE: Final = 0.009
 PAGE_NUMBER_MIN_Y: Final = 0.955
+PAGE_HEADER_MIN_Y: Final = 0.94
 
 
 class FormSourceError(RuntimeError):
@@ -250,8 +252,16 @@ def correct_text(
 
 
 def body_rows(rows: list[Row]) -> list[Row]:
-    """Drop the running page number; row indices keep pointing into the full row list."""
-    return [row for row in rows if row.y < PAGE_NUMBER_MIN_Y]
+    """Drop the running page number; row indices keep pointing into the full row list.
+
+    The number sits above `PAGE_NUMBER_MIN_Y` on most pages; where a scan prints it a little lower
+    (order 1094н), a row that is nothing but digits in the page header band is dropped as well.
+    """
+    return [
+        row
+        for row in rows
+        if row.y < PAGE_NUMBER_MIN_Y and not (row.y > PAGE_HEADER_MIN_Y and row.text.isdigit())
+    ]
 
 
 # ------------------------------------------------------------------------------ paragraphs
@@ -309,6 +319,45 @@ def split_paragraphs(rows: list[Row]) -> list[Paragraph]:
         elif paragraphs:
             paragraphs[-1].rows.append(row)
     return paragraphs
+
+
+# An order whose «Порядок» lists items instead of numbered paragraphs (joint order 488н/551н):
+# «10. При заполнении указываются: 1) в строке … 8) в подпунктах пункта 5 … в подпункте 5.1
+# делается отметка …». Item `N)` of paragraph 10 becomes paragraph `10.N`, each «в подпункте X.Y
+# делается …» line `10.N.X.Y` (the line «в подпунктах 9.2, 9.3 …» is one paragraph, under 9.2).
+NUMBERED_ITEM_START = re.compile(r"^(\d{1,3})\)\s+\S")
+SUBPOINT_START = re.compile(
+    r"^(?:[вВ]\s+)?(?:под)?пункт(?:е|ах)\s+(\d{1,2}(?:\.\d{1,2})+)(?:\s*,\s*\d{1,2}(?:\.\d{1,2})+)*"
+    r"\s+(?:дела|указыва|в\s+случае)"
+)
+
+
+def split_item_paragraphs(paragraph: Paragraph, parent: str) -> list[Paragraph]:
+    """The introduction of `parent`, then its `N)` items and the sub-point lines under each."""
+    result = [Paragraph(parent, [])]
+    item = 0
+    seen: set[str] = {parent}
+    for row in paragraph.rows:
+        number: str | None = None
+        item_match = NUMBERED_ITEM_START.match(row.text)
+        sub_match = SUBPOINT_START.match(row.text) if item else None
+        if item_match:
+            if int(item_match.group(1)) != item + 1:
+                raise FormSourceError(
+                    f"paragraph {parent}: item {item_match.group(1)}) follows item {item})"
+                )
+            item += 1
+            number = f"{parent}.{item}"
+        elif sub_match:
+            number = f"{parent}.{item}.{sub_match.group(1)}"
+        if number is None:
+            result[-1].rows.append(row)
+            continue
+        if number in seen:
+            raise FormSourceError(f"paragraph {number} occurs twice in the order text")
+        seen.add(number)
+        result.append(Paragraph(number, [row]))
+    return result
 
 
 # -------------------------------------------------------------------------------- code lists
@@ -372,6 +421,16 @@ def split_list(rows: list[Row]) -> tuple[list[Row], list[ListItem]]:
 
 
 @dataclass(frozen=True)
+class RulesSection:
+    """A further appendix of the order whose paragraphs a form cites (order 1094н: the blanks are
+    in appendix 2, the requirements for their lines in appendices 1 and 3)."""
+
+    appendix: int
+    title: str
+    pages: tuple[int, ...]
+
+
+@dataclass(frozen=True)
 class FormBlueprint:
     """A reviewed reading of one form's blank and the paragraphs of its «Порядок заполнения»."""
 
@@ -405,6 +464,22 @@ class FormBlueprint:
     # Who issued the order (a joint order names both ministries) and what the edition line calls it.
     issuer: str = "Министерство здравоохранения Российской Федерации"
     issuer_short: str = "Минздрава России"
+    # A paragraph number whose `N)` items and «в подпункте X.Y …» lines are cut into paragraphs
+    # `<number>.N` and `<number>.N.X.Y` (see `split_item_paragraphs`).
+    item_paragraphs: str | None = None
+    # Added to the edition line, e.g. when the order names no entry-into-force date and the date
+    # is taken from the general rule (the basis is stated in the text).
+    edition_note: str | None = None
+    # More than one appendix holds the requirements (`extra_rules`): paragraph ids are then
+    # `<appendix>.<paragraph>` for every cited paragraph (the appendices number their paragraphs
+    # independently), each schema paragraph names its appendix, and `rules_title` is the title of
+    # the primary `rules_appendix`. Empty `extra_rules` keeps the single-appendix behaviour.
+    extra_rules: tuple[RulesSection, ...] = ()
+    rules_title: str = "Порядок заполнения"
+    # Several forms may share one scan page (order 1094н prints a blank under the reverse side of
+    # the previous one): per blank page, the (low, high) share of the page height, origin at the
+    # bottom as in the OCR boxes, that belongs to this form. Captions are searched only there.
+    blank_regions: dict[int, tuple[float, float]] = dataclass_field(default_factory=dict)
 
     @property
     def schema_filename(self) -> str:
@@ -442,7 +517,8 @@ def prepare_form(
     fragments = load_ocr_pages(ocr_json, blueprint.footnote_below)
     applied: list[Correction] = []
     rows_by_page: dict[int, list[Row]] = {}
-    for page in (*blueprint.blank_pages, *blueprint.rules_pages):
+    extra_pages = tuple(page for section in blueprint.extra_rules for page in section.pages)
+    for page in (*blueprint.blank_pages, *blueprint.rules_pages, *extra_pages):
         if page not in fragments:
             raise FormSourceError(f"page {page} is missing from the OCR text")
         rows = apply_corrections(build_rows(page, fragments[page]), applied)
@@ -455,7 +531,12 @@ def prepare_form(
             + "; ".join(f"p.{c.page} {c.source!r}" for c in unused)
         )
 
-    blank_text = "\n".join(row.text for page in blueprint.blank_pages for row in rows_by_page[page])
+    blank_text = "\n".join(
+        row.text
+        for page in blueprint.blank_pages
+        for row in rows_by_page[page]
+        if _in_region(row.y, blueprint.blank_regions.get(page))
+    )
     verified = 0
     scan_reviewed: list[str] = []
     for field in blueprint.fields:
@@ -470,10 +551,28 @@ def prepare_form(
         else:
             raise FormSourceError(f"printed caption not found on the blank: {anchor!r}")
 
-    body: list[Row] = []
-    for page in blueprint.rules_pages:
-        body.extend(body_rows(rows_by_page[page]))
-    paragraphs = {paragraph.number: paragraph for paragraph in split_paragraphs(body)}
+    sections = [
+        RulesSection(blueprint.rules_appendix, blueprint.rules_title, blueprint.rules_pages),
+        *blueprint.extra_rules,
+    ]
+    prefixed = bool(blueprint.extra_rules)
+    paragraphs: dict[str, Paragraph] = {}
+    appendix_of: dict[str, RulesSection] = {}
+    for section in sections:
+        body: list[Row] = []
+        for page in section.pages:
+            body.extend(body_rows(rows_by_page[page]))
+        for paragraph in split_paragraphs(body):
+            key = f"{section.appendix}.{paragraph.number}" if prefixed else paragraph.number
+            paragraphs[key] = paragraph
+            appendix_of[key] = section
+    if blueprint.item_paragraphs:
+        parent = paragraphs.get(blueprint.item_paragraphs)
+        if parent is None:
+            raise FormSourceError(f"paragraph {blueprint.item_paragraphs} not found in the order")
+        for part in split_item_paragraphs(parent, blueprint.item_paragraphs):
+            paragraphs[part.number] = part
+            appendix_of[part.number] = appendix_of[blueprint.item_paragraphs]
 
     cited: list[str] = []
     for field in blueprint.fields:
@@ -492,6 +591,12 @@ def prepare_form(
         pages = {row.page for row in paragraph.rows}
         text = paragraph.text
         entry: dict[str, Any] = {"id": number}
+        if prefixed:
+            entry["appendix"] = {
+                "number": appendix_of[number].appendix,
+                "title": appendix_of[number].title,
+            }
+            entry["clause"] = paragraph.number
         if number in blueprint.code_lists.values():
             intro, items = split_list(paragraph.rows)
             text = join_rows([row.text for row in intro])
@@ -589,6 +694,7 @@ def prepare_form(
             f"№ {blueprint.order_number}, приложение № {blueprint.blank_appendix}; действует с "
             f"{_ru_date(blueprint.effective_from)}"
             + (f" по {_ru_date(blueprint.effective_until)}" if blueprint.effective_until else "")
+            + (f" ({blueprint.edition_note})" if blueprint.edition_note else "")
         ),
         "source": source_block,
         "sections": blueprint.sections,
@@ -599,6 +705,10 @@ def prepare_form(
         ),
         "notes": notes,
     }
+
+
+def _in_region(y: float, region: tuple[float, float] | None) -> bool:
+    return region is None or region[0] <= y <= region[1]
 
 
 def _check_list(number: str, items: list[ListItem], sequential: int | None) -> None:
