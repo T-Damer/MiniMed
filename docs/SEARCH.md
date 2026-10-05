@@ -1,6 +1,6 @@
 # Search design — 0.3.0 alpha
 
-Code map of the query path (files, functions, scoring constants): [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md). Ordered improvement plan: [`SEARCH_ROADMAP.md`](SEARCH_ROADMAP.md).
+Code map of the query path (files, functions, scoring constants): [`SEARCH_ARCHITECTURE.md`](SEARCH_ARCHITECTURE.md). Ordered improvement plan: [`SEARCH_ROADMAP.md`](SEARCH_ROADMAP.md). One-page summary: [`SEARCH_OVERVIEW.md`](SEARCH_OVERVIEW.md).
 
 ## Default offline path
 
