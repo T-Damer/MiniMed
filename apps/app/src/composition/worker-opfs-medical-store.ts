@@ -4,6 +4,7 @@ import type {
   DefinitionReferenceReply,
   DefinitionReferenceRequest,
   EmbeddingProfile,
+  SearchFilters,
 } from '@localmed/contracts';
 import type { AliasRecord, ChunkRecord, DocumentRecord, SectionRecord } from '@localmed/domain';
 import type {
@@ -14,6 +15,7 @@ import type {
   SearchDocumentDescriptor,
   StorageHealth,
   VectorHit,
+  VectorScore,
   VectorSearchRequest,
 } from '@localmed/storage';
 import type { SqliteIntegrityReport } from '@localmed/storage-sqlite';
@@ -291,6 +293,17 @@ export class WorkerOpfsMedicalStore implements MedicalStore {
 
   public searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]> {
     return this.call('searchVector', [request]);
+  }
+
+  public scoreVectors(request: VectorSearchRequest): Promise<readonly VectorScore[]> {
+    return this.call('scoreVectors', [request]);
+  }
+
+  public hydrateVectorHits(
+    scores: readonly VectorScore[],
+    filters: SearchFilters,
+  ): Promise<readonly VectorHit[]> {
+    return this.call('hydrateVectorHits', [scores, filters]);
   }
 
   public async close(): Promise<void> {

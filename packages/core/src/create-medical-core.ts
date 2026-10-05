@@ -37,7 +37,12 @@ import {
   searchSubjectText,
   tokenize,
 } from '@localmed/search-lexical';
-import { profilesCompatible, type QueryEmbedder } from '@localmed/search-semantic';
+import {
+  LEGACY_SEMANTIC_FUSION,
+  profilesCompatible,
+  type QueryEmbedder,
+  type SemanticFusion,
+} from '@localmed/search-semantic';
 import type {
   LexicalHit,
   MedicalStore,
@@ -831,35 +836,42 @@ function fuseSemanticResults(
   limit: number,
   query: string,
   exactAliasDocumentIds: ReadonlySet<string>,
+  fusion: SemanticFusion,
 ): readonly SearchResult[] {
   const maximumLexical = Math.max(0.000_001, ...lexicalResults.map((result) => result.finalScore));
+  const bestCosine = Math.max(0, ...vectorHits.map((hit) => hit.score));
+  const semanticStrength = (cosine: number): number =>
+    fusion.band === undefined
+      ? Math.max(0, cosine)
+      : Math.max(0, Math.min(1, (cosine - (bestCosine - fusion.band)) / fusion.band));
   const byChunk = new Map<string, SearchResult>();
 
   if (mode === 'hybrid') {
     for (const result of lexicalResults) {
       byChunk.set(result.chunkId, {
         ...result,
-        finalScore: (result.finalScore / maximumLexical) * 0.78,
+        finalScore: (result.finalScore / maximumLexical) * fusion.lexicalWeight,
       });
     }
   }
 
   for (const hit of vectorHits) {
     const semanticScore = Math.max(0, hit.score);
+    const strength = semanticStrength(hit.score);
     const existing = byChunk.get(hit.chunk.id);
     if (!existing) {
       const result = vectorResult(hit, terms, semanticScore);
       byChunk.set(hit.chunk.id, {
         ...result,
-        finalScore: mode === 'semantic' ? semanticScore : semanticScore * 0.62,
+        finalScore: mode === 'semantic' ? semanticScore : strength * fusion.vectorOnlyWeight,
       });
       continue;
     }
-    const corroboration = semanticScore > 0 ? 0.04 : 0;
+    const corroboration = strength > 0 ? 0.04 : 0;
     byChunk.set(hit.chunk.id, {
       ...existing,
       semanticScore,
-      finalScore: existing.finalScore + semanticScore * 0.22 + corroboration,
+      finalScore: existing.finalScore + strength * fusion.corroborationWeight + corroboration,
       matchedBranches: [...existing.matchedBranches, 'Смысловое совпадение'],
     });
   }
@@ -1320,7 +1332,9 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             } else {
               semanticProfileId = compatibleProfile.id;
               const queryVector = await options.embedder.embedQuery(
-                semanticQueryText(plan.analysis),
+                options.embedder.input === 'original-query'
+                  ? parsed.data.query
+                  : semanticQueryText(plan.analysis),
               );
               if (
                 queryVector.profileId !== compatibleProfile.id ||
@@ -1363,6 +1377,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 perBranchLimit,
                 parsed.data.query,
                 exactAliasDocumentIds,
+                options.embedder?.fusion ?? LEGACY_SEMANTIC_FUSION,
               );
         // Semantic-only retrieval and hybrid truncation may discard an identity that survived
         // lexical fusion. Reuse its source-backed lexical hits before reading missing identities.

@@ -447,6 +447,36 @@ describe('SqliteMedicalStore', () => {
     expect(results[0]?.score).toBeGreaterThan(0);
   });
 
+  it('scores vectors in memory exactly like the SQL metadata-filter scan', async () => {
+    const store = await SqliteMedicalStore.create();
+    stores.push(store);
+    await store.initialize(CORE_SLICE_PACK);
+    const query = embedPortableText('боль справа внизу живота и рвота');
+    const request = {
+      profileId: query.profileId,
+      vector: query.values,
+      norm: query.norm,
+      filters: {},
+      limit: 20,
+    };
+    // Specialty filters take the SQL scan; the same documents as an id filter stay in memory.
+    const documents = (await store.listDocuments()).filter(
+      (document) => document.specialties.length > 0,
+    );
+    const specialties = [...new Set(documents.flatMap((document) => document.specialties))];
+    const inMemory = await store.scoreVectors({
+      ...request,
+      filters: { documentIds: documents.map((document) => document.id) },
+    });
+    const throughSql = await store.scoreVectors({ ...request, filters: { specialties } });
+    expect(inMemory.length).toBe(20);
+    expect(throughSql.map((item) => item.chunkId)).toEqual(inMemory.map((item) => item.chunkId));
+    const hydrated = await store.hydrateVectorHits(inMemory.slice(0, 5), {});
+    expect(hydrated.map((hit) => hit.chunk.id)).toEqual(
+      inMemory.slice(0, 5).map((item) => item.chunkId),
+    );
+  });
+
   it('applies document and section filters inside the vector candidate scan', async () => {
     const store = await SqliteMedicalStore.create();
     stores.push(store);

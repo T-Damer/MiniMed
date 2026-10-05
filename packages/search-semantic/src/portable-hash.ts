@@ -10,8 +10,37 @@ const UTF8_ENCODER = new TextEncoder();
 
 export interface QueryEmbedder {
   readonly profile: EmbeddingProfile;
+  /**
+   * What MedicalCore passes to `embedQuery`: the analysed positive facts (default, what the
+   * feature-hash profile was tuned for) or the user's original wording (neural models).
+   */
+  readonly input?: 'analysed-facts' | 'original-query';
+  /** How MedicalCore weighs this profile's cosines against lexical scores; legacy when absent. */
+  readonly fusion?: SemanticFusion;
   embedQuery(text: string): Promise<QuantizedEmbeddingVector>;
 }
+
+/**
+ * Hybrid fusion calibration of one embedding profile. Lexical scores are normalised to the best
+ * lexical hit. With `band`, a cosine is mapped to `(cosine − (best − band)) / band`, clamped to
+ * 0…1, so the query's best vector hit counts 1: neural cosines sit in a narrow range (e5 ≈ 0.8–0.9)
+ * and are meaningful only relative to each other. Without `band` the raw cosine is used.
+ */
+export interface SemanticFusion {
+  readonly band?: number;
+  readonly lexicalWeight: number;
+  /** Weight of a chunk found only by vectors. */
+  readonly vectorOnlyWeight: number;
+  /** Added per unit of semantic score when lexical retrieval found the same chunk. */
+  readonly corroborationWeight: number;
+}
+
+/** The constants the feature-hash development profile was tuned with. */
+export const LEGACY_SEMANTIC_FUSION: SemanticFusion = {
+  lexicalWeight: 0.78,
+  vectorOnlyWeight: 0.62,
+  corroborationWeight: 0.22,
+};
 
 function normalizeText(value: string): string {
   return value

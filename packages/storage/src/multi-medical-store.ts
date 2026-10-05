@@ -342,6 +342,10 @@ export class MultiMedicalStore implements MedicalStore {
 
   public async searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]> {
     this.assertInitialized();
+    const mounts = this.activeMounts();
+    if (mounts.every((mount) => mount.store.scoreVectors && mount.store.hydrateVectorHits)) {
+      return this.searchVectorTwoPhase(mounts, request);
+    }
     const resultSets = await Promise.all(
       this.activeMounts().map(async (mount) => ({
         mount,
@@ -358,6 +362,53 @@ export class MultiMedicalStore implements MedicalStore {
     }
     return [...fused.values()]
       .toSorted((left, right) => right.score - left.score)
+      .slice(0, request.limit);
+  }
+
+  /**
+   * Scores every pack first and hydrates only the global top window, so a search over hundreds of
+   * small packs reads chunk rows for at most `window` hits instead of each pack's own top list.
+   */
+  private async searchVectorTwoPhase(
+    mounts: readonly InternalMount[],
+    request: VectorSearchRequest,
+  ): Promise<readonly VectorHit[]> {
+    const window = Math.min(500, Math.max(request.limit * 10, 100));
+    const scored = await Promise.all(
+      mounts.map(async (mount) => ({
+        mount,
+        scores: (await mount.store.scoreVectors?.({ ...request, limit: window })) ?? [],
+      })),
+    );
+    const best = new Map<string, { mount: InternalMount; score: number }>();
+    for (const { mount, scores } of scored) {
+      for (const { chunkId, score } of scores) {
+        const weighted = score * mount.searchWeight;
+        const existing = best.get(chunkId);
+        if (!existing || weighted > existing.score) best.set(chunkId, { mount, score: weighted });
+      }
+    }
+    const chosen = [...best.entries()]
+      .toSorted(
+        ([leftId, left], [rightId, right]) =>
+          right.score - left.score || leftId.localeCompare(rightId),
+      )
+      .slice(0, window);
+    const byMount = new Map<InternalMount, { chunkId: string; score: number }[]>();
+    for (const [chunkId, { mount, score }] of chosen) {
+      byMount.set(mount, [...(byMount.get(mount) ?? []), { chunkId, score }]);
+    }
+    const hydrated = await Promise.all(
+      [...byMount].map(
+        async ([mount, scores]) =>
+          (await mount.store.hydrateVectorHits?.(scores, request.filters)) ?? [],
+      ),
+    );
+    return hydrated
+      .flat()
+      .toSorted(
+        (left, right) => right.score - left.score || left.chunk.id.localeCompare(right.chunk.id),
+      )
       .slice(0, request.limit);
   }
 

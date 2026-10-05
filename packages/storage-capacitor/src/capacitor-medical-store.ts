@@ -23,6 +23,7 @@ import type {
   SearchDocumentDescriptor,
   StorageHealth,
   VectorHit,
+  VectorScore,
   VectorSearchRequest,
 } from '@localmed/storage';
 
@@ -657,16 +658,23 @@ export class CapacitorMedicalStore implements MedicalStore {
   }
 
   public async searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]> {
+    // Native code applies document metadata filters while scanning vectors. Keep a wider window
+    // so hydration can still return the requested number after defensive post-filtering.
+    const scores = await this.scoreVectors({
+      ...request,
+      limit: Math.min(500, Math.max(request.limit * 10, 100)),
+    });
+    return (await this.hydrateVectorHits(scores, request.filters)).slice(0, request.limit);
+  }
+
+  public async scoreVectors(request: VectorSearchRequest): Promise<readonly VectorScore[]> {
     this.assertInitialized();
     if (typeof this.plugin.searchVectors !== 'function') return [];
-
     const nativeResult = await this.plugin.searchVectors({
       profileId: request.profileId,
       vectorBase64: encodeSignedInt8(request.vector),
       vectorNorm: request.norm,
-      // Native code applies document metadata filters while scanning vectors. Keep a wider window
-      // so hydration can still return the requested number after defensive post-filtering.
-      limit: Math.min(500, Math.max(request.limit * 10, 100)),
+      limit: request.limit,
       ...(request.filters.documentIds?.length ? { documentIds: request.filters.documentIds } : {}),
       ...(request.filters.specialties?.length ? { specialties: request.filters.specialties } : {}),
       ...(request.filters.ageGroups?.length ? { ageGroups: request.filters.ageGroups } : {}),
@@ -674,9 +682,16 @@ export class CapacitorMedicalStore implements MedicalStore {
         ? { sectionTypes: request.filters.sectionTypes }
         : {}),
     });
-    if (nativeResult.hits.length === 0) return [];
+    return nativeResult.hits;
+  }
 
-    const scoreByChunk = new Map(nativeResult.hits.map((hit) => [hit.chunkId, hit.score]));
+  public async hydrateVectorHits(
+    scores: readonly VectorScore[],
+    filters: SearchFilters,
+  ): Promise<readonly VectorHit[]> {
+    this.assertInitialized();
+    if (scores.length === 0) return [];
+    const scoreByChunk = new Map(scores.map((hit) => [hit.chunkId, hit.score]));
     const chunkIds = [...scoreByChunk.keys()];
     const rows = await this.query(
       `${VECTOR_HIT_SELECT} WHERE c.id IN (${placeholders(chunkIds.length)})`,
@@ -696,11 +711,10 @@ export class CapacitorMedicalStore implements MedicalStore {
         };
       })
       .filter((hit): hit is VectorHit => hit !== null)
-      .filter((hit) => matchesPostFilters(hit.document, request.filters))
+      .filter((hit) => matchesPostFilters(hit.document, filters))
       .toSorted(
         (left, right) => right.score - left.score || left.chunk.id.localeCompare(right.chunk.id),
-      )
-      .slice(0, request.limit);
+      );
   }
 
   public async search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {

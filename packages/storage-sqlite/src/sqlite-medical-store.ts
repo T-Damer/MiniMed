@@ -27,6 +27,7 @@ import type {
   SearchDocumentDescriptor,
   StorageHealth,
   VectorHit,
+  VectorScore,
   VectorSearchRequest,
 } from '@localmed/storage';
 import sqlite3InitModule, {
@@ -483,6 +484,44 @@ function cosine(
   return Math.max(-1, Math.min(1, dot / (leftNorm * rightNorm)));
 }
 
+interface VectorIndex {
+  readonly dimensions: number;
+  readonly chunkIds: readonly string[];
+  readonly documentIds: readonly string[];
+  readonly sectionTypes: readonly string[];
+  readonly values: Int8Array;
+  readonly norms: Float64Array;
+}
+
+/** Bounded best-first list: ties keep the smaller chunk id, as the SQL path did. */
+class TopScores {
+  private readonly items: VectorScore[] = [];
+
+  public constructor(private readonly limit: number) {}
+
+  public offer(chunkId: string, score: number): void {
+    const items = this.items;
+    const last = items[items.length - 1];
+    if (last && items.length >= this.limit && compareScores({ chunkId, score }, last) >= 0) return;
+    let index = items.length;
+    while (index > 0) {
+      const previous = items[index - 1];
+      if (!previous || compareScores(previous, { chunkId, score }) <= 0) break;
+      index -= 1;
+    }
+    items.splice(index, 0, { chunkId, score });
+    if (items.length > this.limit) items.pop();
+  }
+
+  public values(): readonly VectorScore[] {
+    return this.items;
+  }
+}
+
+function compareScores(left: VectorScore, right: VectorScore): number {
+  return right.score - left.score || left.chunkId.localeCompare(right.chunkId);
+}
+
 export interface SqliteIntegrityReport {
   readonly integrity: string;
   readonly foreignKeyViolations: number;
@@ -513,6 +552,8 @@ export interface OpfsOpenOptions {
 export class SqliteMedicalStore implements MedicalStore {
   private initialized = false;
   private referenceDispatch: ReturnType<typeof createDefinitionReferenceDispatch> | undefined;
+  private embeddingProfiles: readonly EmbeddingProfile[] | undefined;
+  private readonly vectorIndexes = new Map<string, VectorIndex>();
 
   public async reference(request: DefinitionReferenceRequest): Promise<DefinitionReferenceReply> {
     if (!this.initialized || !this.database.pointer)
@@ -671,6 +712,8 @@ export class SqliteMedicalStore implements MedicalStore {
   }
 
   private installSeed(seed: ContentPackSeed): void {
+    this.embeddingProfiles = undefined;
+    this.vectorIndexes.clear();
     const existingChecksum = this.database.selectValue(
       'SELECT checksum FROM content_packs WHERE id = ?',
       seed.manifest.id,
@@ -1070,7 +1113,8 @@ export class SqliteMedicalStore implements MedicalStore {
 
   public async listEmbeddingProfiles(): Promise<readonly EmbeddingProfile[]> {
     this.assertInitialized();
-    return queryRows(
+    // Profiles are immutable while a pack is open; every search asks for them.
+    this.embeddingProfiles ??= queryRows(
       this.database,
       `SELECT id, dimensions, vector_format, normalization, generator, generator_version,
         fingerprint, metadata_json
@@ -1086,103 +1130,61 @@ export class SqliteMedicalStore implements MedicalStore {
       fingerprint: readString(row, 'fingerprint'),
       metadata: parseJsonObject(readString(row, 'metadata_json')),
     }));
+    return this.embeddingProfiles;
   }
 
   public async searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]> {
+    const candidateLimit = Math.min(500, Math.max(request.limit * 10, 100));
+    const scores = await this.scoreVectors({ ...request, limit: candidateLimit });
+    return (await this.hydrateVectorHits(scores, request.filters)).slice(0, request.limit);
+  }
+
+  /**
+   * Phase one: cosine over the profile's vectors, top `request.limit` after filters. Vectors are
+   * read once per open pack and scanned in memory; metadata filters use the SQL join instead.
+   */
+  public async scoreVectors(request: VectorSearchRequest): Promise<readonly VectorScore[]> {
     this.assertInitialized();
     const profile = (await this.listEmbeddingProfiles()).find(
       (candidate) => candidate.id === request.profileId,
     );
     if (!profile || profile.dimensions !== request.vector.length) return [];
+    const top = new TopScores(request.limit);
+    if (request.filters.specialties?.length || request.filters.ageGroups?.length) {
+      this.scoreFilteredRows(request, top);
+      return top.values();
+    }
+    const index = this.vectorIndex(profile.id, profile.dimensions);
+    const documentIds = request.filters.documentIds?.length
+      ? new Set(request.filters.documentIds)
+      : null;
+    const sectionTypes = request.filters.sectionTypes?.length
+      ? new Set(request.filters.sectionTypes)
+      : null;
+    const query = Int8Array.from(request.vector);
+    for (let row = 0; row < index.chunkIds.length; row += 1) {
+      if (documentIds && !documentIds.has(index.documentIds[row] ?? '')) continue;
+      if (sectionTypes && !sectionTypes.has(index.sectionTypes[row] ?? '')) continue;
+      const norm = index.norms[row] ?? 0;
+      if (norm === 0 || request.norm === 0) continue;
+      let dot = 0;
+      const offset = row * index.dimensions;
+      for (let dimension = 0; dimension < index.dimensions; dimension += 1) {
+        dot += (query[dimension] ?? 0) * (index.values[offset + dimension] ?? 0);
+      }
+      top.offer(index.chunkIds[row] ?? '', Math.max(-1, Math.min(1, dot / (request.norm * norm))));
+    }
+    return top.values();
+  }
 
-    // Two-phase top-K: phase 1 touches only embedding rows (chunk id, blob, norm) so the scan
-    // stays allocation-light at corpus scale; heavy chunk/section/document hydration waits for
-    // the candidate window. Mirrors the native adapter's searchVectors shape.
-    const candidateLimit = Math.min(500, Math.max(request.limit * 10, 100));
-    const clauses = ['ce.profile_id = ?'];
-    const bind: BindableValue[] = [request.profileId];
-    const joins: string[] = [];
-    let chunksJoined = false;
-    let documentsJoined = false;
-    const hasMetadataFilters = Boolean(
-      request.filters.specialties?.length || request.filters.ageGroups?.length,
-    );
-    if (request.filters.documentIds?.length) {
-      joins.push('JOIN chunks c ON c.id = ce.chunk_id');
-      joins.push('JOIN documents d ON d.current_version_id = c.document_version_id');
-      chunksJoined = true;
-      documentsJoined = true;
-      // A plain `d.id IN (?, ?, ...)` list blows up the bound-parameter count for large
-      // document sets (hundreds of IDs), which can exhaust the WASM SQLite heap with
-      // SQLITE_NOMEM. Binding the IDs as one JSON array and scanning it via json_each keeps
-      // the parameter count constant regardless of how many documents are selected.
-      clauses.push('d.id IN (SELECT value FROM json_each(?))');
-      bind.push(JSON.stringify(request.filters.documentIds));
-    }
-    if (request.filters.sectionTypes?.length) {
-      if (!chunksJoined) {
-        joins.push('JOIN chunks c ON c.id = ce.chunk_id');
-        chunksJoined = true;
-      }
-      joins.push('JOIN sections s ON s.id = c.section_id');
-      clauses.push(`s.section_type IN (${placeholders(request.filters.sectionTypes.length)})`);
-      bind.push(...request.filters.sectionTypes);
-    }
-    if (hasMetadataFilters) {
-      if (!chunksJoined) {
-        joins.push('JOIN chunks c ON c.id = ce.chunk_id');
-        chunksJoined = true;
-      }
-      if (!documentsJoined) {
-        joins.push('JOIN documents d ON d.current_version_id = c.document_version_id');
-        documentsJoined = true;
-      }
-      appendMetadataFilterClauses(clauses, bind, request.filters);
-    }
-    const candidateRows = queryRows(
-      this.database,
-      `SELECT ce.chunk_id AS chunk_id, ce.vector AS vector, ce.vector_norm AS vector_norm
-       FROM chunk_embeddings ce
-       ${joins.join('\n')}
-       WHERE ${clauses.join(' AND ')}`,
-      bind,
-    );
-
-    const candidates: { chunkId: string; score: number }[] = [];
-    const byScoreDescThenIdAsc = (
-      left: { chunkId: string; score: number },
-      right: { chunkId: string; score: number },
-    ): number => right.score - left.score || left.chunkId.localeCompare(right.chunkId);
-    for (const row of candidateRows) {
-      const score = cosine(
-        request.vector,
-        asInt8Vector(readBlob(row, 'vector')),
-        request.norm,
-        readNumber(row, 'vector_norm'),
-      );
-      const candidate = { chunkId: readString(row, 'chunk_id'), score };
-      const last = candidates[candidates.length - 1];
-      if (
-        last &&
-        candidates.length >= candidateLimit &&
-        byScoreDescThenIdAsc(candidate, last) >= 0
-      ) {
-        continue;
-      }
-      let insertionIndex = candidates.length;
-      while (insertionIndex > 0) {
-        const previous = candidates[insertionIndex - 1];
-        if (!previous || byScoreDescThenIdAsc(previous, candidate) <= 0) break;
-        insertionIndex -= 1;
-      }
-      if (candidates.length >= candidateLimit) candidates.pop();
-      candidates.splice(insertionIndex, 0, candidate);
-    }
-    if (candidates.length === 0) return [];
-
-    const scoreByChunk = new Map(
-      candidates.map((candidate) => [candidate.chunkId, candidate.score]),
-    );
+  /** Phase two: chunk/section/document rows for the chosen scores, post-filtered and sorted. */
+  public async hydrateVectorHits(
+    scores: readonly VectorScore[],
+    filters: SearchFilters,
+  ): Promise<readonly VectorHit[]> {
+    this.assertInitialized();
+    if (scores.length === 0) return [];
+    const scoreByChunk = new Map(scores.map((candidate) => [candidate.chunkId, candidate.score]));
     const rows = queryRows(
       this.database,
       `SELECT
@@ -1203,8 +1205,8 @@ export class SqliteMedicalStore implements MedicalStore {
       JOIN sections s ON s.id = c.section_id
       JOIN documents d ON d.current_version_id = c.document_version_id
       JOIN document_versions dv ON dv.id = c.document_version_id
-      WHERE c.id IN (${placeholders(scoreByChunk.size)})`,
-      [...scoreByChunk.keys()],
+      WHERE c.id IN (SELECT value FROM json_each(?))`,
+      [JSON.stringify([...scoreByChunk.keys()])],
     );
 
     return rows
@@ -1220,11 +1222,77 @@ export class SqliteMedicalStore implements MedicalStore {
         };
       })
       .filter((hit): hit is VectorHit => hit !== null)
-      .filter((hit) => matchesPostFilters(hit.document, request.filters))
+      .filter((hit) => matchesPostFilters(hit.document, filters))
       .toSorted(
         (left, right) => right.score - left.score || left.chunk.id.localeCompare(right.chunk.id),
-      )
-      .slice(0, request.limit);
+      );
+  }
+
+  private vectorIndex(profileId: string, dimensions: number): VectorIndex {
+    const cached = this.vectorIndexes.get(profileId);
+    if (cached) return cached;
+    const rows = queryRows(
+      this.database,
+      `SELECT ce.chunk_id AS chunk_id, ce.vector AS vector, ce.vector_norm AS vector_norm,
+         d.id AS document_id, s.section_type AS section_type
+       FROM chunk_embeddings ce
+       JOIN chunks c ON c.id = ce.chunk_id
+       JOIN sections s ON s.id = c.section_id
+       JOIN documents d ON d.current_version_id = c.document_version_id
+       WHERE ce.profile_id = ?
+       ORDER BY ce.chunk_id`,
+      [profileId],
+    );
+    const values = new Int8Array(rows.length * dimensions);
+    rows.forEach((row, index) => {
+      values.set(asInt8Vector(readBlob(row, 'vector')).subarray(0, dimensions), index * dimensions);
+    });
+    const index: VectorIndex = {
+      dimensions,
+      chunkIds: rows.map((row) => readString(row, 'chunk_id')),
+      documentIds: rows.map((row) => readString(row, 'document_id')),
+      sectionTypes: rows.map((row) => readNullableString(row, 'section_type') ?? ''),
+      values,
+      norms: Float64Array.from(rows, (row) => readNumber(row, 'vector_norm')),
+    };
+    this.vectorIndexes.set(profileId, index);
+    return index;
+  }
+
+  private scoreFilteredRows(request: VectorSearchRequest, top: TopScores): void {
+    const clauses = ['ce.profile_id = ?'];
+    const bind: BindableValue[] = [request.profileId];
+    if (request.filters.documentIds?.length) {
+      // One JSON array keeps the bound-parameter count constant for large document sets.
+      clauses.push('d.id IN (SELECT value FROM json_each(?))');
+      bind.push(JSON.stringify(request.filters.documentIds));
+    }
+    if (request.filters.sectionTypes?.length) {
+      clauses.push(`s.section_type IN (${placeholders(request.filters.sectionTypes.length)})`);
+      bind.push(...request.filters.sectionTypes);
+    }
+    appendMetadataFilterClauses(clauses, bind, request.filters);
+    const rows = queryRows(
+      this.database,
+      `SELECT ce.chunk_id AS chunk_id, ce.vector AS vector, ce.vector_norm AS vector_norm
+       FROM chunk_embeddings ce
+       JOIN chunks c ON c.id = ce.chunk_id
+       JOIN sections s ON s.id = c.section_id
+       JOIN documents d ON d.current_version_id = c.document_version_id
+       WHERE ${clauses.join(' AND ')}`,
+      bind,
+    );
+    for (const row of rows) {
+      top.offer(
+        readString(row, 'chunk_id'),
+        cosine(
+          request.vector,
+          asInt8Vector(readBlob(row, 'vector')),
+          request.norm,
+          readNumber(row, 'vector_norm'),
+        ),
+      );
+    }
   }
 
   public async search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]> {

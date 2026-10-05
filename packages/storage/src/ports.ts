@@ -47,6 +47,12 @@ export interface VectorSearchRequest {
   readonly limit: number;
 }
 
+/** Phase one of a two-phase vector search: a chunk's cosine score, before any hydration. */
+export interface VectorScore {
+  readonly chunkId: string;
+  readonly score: number;
+}
+
 export interface VectorHit {
   readonly chunk: ChunkRecord;
   readonly section: SectionRecord;
@@ -88,5 +94,14 @@ export interface MedicalStore {
   listEmbeddingProfiles(): Promise<readonly EmbeddingProfile[]>;
   search(request: LexicalSearchRequest): Promise<readonly LexicalHit[]>;
   searchVector(request: VectorSearchRequest): Promise<readonly VectorHit[]>;
+  /**
+   * Optional two-phase vector search for multi-pack scans: the best `request.limit` scores after
+   * filters, then hydration of only the chunks chosen across every pack (MultiMedicalStore).
+   */
+  scoreVectors?(request: VectorSearchRequest): Promise<readonly VectorScore[]>;
+  hydrateVectorHits?(
+    scores: readonly VectorScore[],
+    filters: SearchFilters,
+  ): Promise<readonly VectorHit[]>;
   close(): Promise<void>;
 }

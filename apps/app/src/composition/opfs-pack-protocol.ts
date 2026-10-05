@@ -1,5 +1,9 @@
-import type { ContentPackSeed, DefinitionReferenceRequest } from '@localmed/contracts';
-import type { LexicalSearchRequest, VectorSearchRequest } from '@localmed/storage';
+import type {
+  ContentPackSeed,
+  DefinitionReferenceRequest,
+  SearchFilters,
+} from '@localmed/contracts';
+import type { LexicalSearchRequest, VectorScore, VectorSearchRequest } from '@localmed/storage';
 import type { EncodedModuleIndex } from '@/features/modules/encoded-index-reader';
 
 export type OpfsPackWorkerMethod =
@@ -24,6 +28,8 @@ export type OpfsPackWorkerMethod =
   | 'listEmbeddingProfiles'
   | 'search'
   | 'searchVector'
+  | 'scoreVectors'
+  | 'hydrateVectorHits'
   | 'close';
 
 export type OpfsPackWorkerRequest =
@@ -92,5 +98,7 @@ export type OpfsPackWorkerCallArgs = {
   readonly listEmbeddingProfiles: readonly [];
   readonly search: readonly [request: LexicalSearchRequest];
   readonly searchVector: readonly [request: VectorSearchRequest];
+  readonly scoreVectors: readonly [request: VectorSearchRequest];
+  readonly hydrateVectorHits: readonly [scores: readonly VectorScore[], filters: SearchFilters];
   readonly close: readonly [];
 };

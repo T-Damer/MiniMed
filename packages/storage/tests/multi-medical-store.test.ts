@@ -1,7 +1,12 @@
 import type { ContentPackSeed } from '@localmed/contracts';
 import { describe, expect, it, vi } from 'vitest';
 
-import { InMemoryMedicalStore, MultiMedicalStore } from '../src';
+import {
+  InMemoryMedicalStore,
+  type MedicalStore,
+  MultiMedicalStore,
+  type VectorScore,
+} from '../src';
 
 function seed(options: {
   readonly packId: string;
@@ -214,6 +219,48 @@ describe('MultiMedicalStore', () => {
     ]);
 
     await expect(multi.initialize()).rejects.toThrow('Duplicate active document ID');
+  });
+
+  it('hydrates only the global vector window across packs', async () => {
+    const hydrated: string[][] = [];
+    const twoPhase = async (packId: string, documentId: string, score: number) => {
+      const base = await store(seed({ packId, documentId, term: 'кашель' }));
+      const chunkId = `${documentId}@1/section#chunk-1`;
+      return Object.assign(base, {
+        scoreVectors: async (): Promise<readonly VectorScore[]> => [{ chunkId, score }],
+        hydrateVectorHits: async (scores: readonly VectorScore[]) => {
+          hydrated.push(scores.map((item) => item.chunkId));
+          const hits = await base.searchVector({
+            profileId: 'test-profile',
+            vector: [127, 0],
+            norm: 127,
+            filters: {},
+            limit: 10,
+          });
+          return hits.map((hit) => ({ ...hit, score: scores[0]?.score ?? 0 }));
+        },
+      }) satisfies MedicalStore;
+    };
+    const multi = new MultiMedicalStore([
+      { moduleId: 'a', store: await twoPhase('a', 'a.doc', 0.9), required: true, searchWeight: 1 },
+      { moduleId: 'b', store: await twoPhase('b', 'b.doc', 0.5), searchWeight: 1 },
+    ]);
+    await multi.initialize();
+
+    const hits = await multi.searchVector({
+      profileId: 'test-profile',
+      vector: [127, 0],
+      norm: 127,
+      filters: {},
+      limit: 1,
+    });
+
+    expect(hits.map((hit) => [hit.document.id, hit.score])).toEqual([['a.doc', 0.9]]);
+    // The window (≥100) holds both, so both packs hydrate exactly their chosen chunk.
+    expect(hydrated.flat().toSorted()).toEqual([
+      'a.doc@1/section#chunk-1',
+      'b.doc@1/section#chunk-1',
+    ]);
   });
 
   it('rejects incompatible schema versions', async () => {
