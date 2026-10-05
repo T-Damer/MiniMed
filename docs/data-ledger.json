@@ -515,6 +515,18 @@
       "modified": "2026-10-05"
     },
     {
+      "path": "output/module-zstd-drug-e5-2026-10-05",
+      "class": "REBUILDABLE",
+      "producer": "STATE E3: tools/ingest/scripts/embed_modules_e5.py --family medications then scripts/reframe-modules-e5.ts --family medications",
+      "consumers": [
+        "catalog.preview.json ГРЛС instruction and Allmed modules (tags grls-instructions-2026.10.05-056961ab2b54-e5, allmed-2026.10.05-2d39a7fc2b43-e5)"
+      ],
+      "rebuild": "uv run tools/ingest/scripts/embed_modules_e5.py --family medications --source data/build/grls-instruction-modules/zst --source data/build/allmed-module/zst --out data/build/drug-e5/decoded; bun scripts/reframe-modules-e5.ts --family medications --decoded-dir data/build/drug-e5/decoded --out-dir output/module-zstd-drug-e5-2026-10-05",
+      "note": "16 medication modules with e5 vectors for their indication sections (14 116 chunks); published 2026-10-05; kept as the local release copy. Supersedes data/build/grls-instruction-modules/zst and data/build/allmed-module/zst as release copies.",
+      "bytes": 283358006,
+      "modified": "2026-10-05"
+    },
+    {
       "path": "data/build/official-clinical-2026-10-02",
       "class": "RELEASED",
       "producer": "KR2 incremental clinical refresh: medbase-clinical-catalog delta/build/plan-sources/build-documents/package-snapshot, medbase compact-module-search, scripts/repack-module-indexes-zstd.ts --compacted",

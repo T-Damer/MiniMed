@@ -43,12 +43,15 @@ export type SearchAudience = 'children' | 'adults';
 export type SearchResultDocumentKind = NonNullable<SearchResultGroup['documentKind']>;
 
 /**
- * Scopes whose answers are clinical recommendations add e5 semantic candidates when the model is
- * installed (ADR 0008 `auto`: lexical without it). Lookup scopes for drugs, law or names stay
- * lexical so an exact name is never outranked by a paraphrase.
+ * Scopes whose packs carry e5 vectors add semantic candidates when the model is installed (ADR
+ * 0008 `auto`: lexical without it): clinical recommendations, and drugs through their indication
+ * sections («таблетки от головы»), where exact names still lead (drug name top-1 unchanged in
+ * `run-semantic-drugs.ts`). Law, conditions and «Все» stay lexical.
  */
 export function searchModeForScope(scope: SearchScope): 'auto' | 'lexical' {
-  return scope === 'diagnosis' || scope === 'guidelines' ? 'auto' : 'lexical';
+  return scope === 'diagnosis' || scope === 'guidelines' || scope === 'medications'
+    ? 'auto'
+    : 'lexical';
 }
 
 const EMPTY_SCOPE_DOCUMENT_ID = '__minimed_empty_search_scope__';
