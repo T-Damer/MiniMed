@@ -221,8 +221,17 @@ export async function routeCoreIdentityFixture(
   await page.route(
     (url) => /\/assets\/module-catalog-[A-Za-z0-9_-]{8}\.js$/u.test(url.pathname),
     async (route) => {
-      const response = await route.fetch();
-      let script = await response.text();
+      // A navigation (the mount's reload) can dispose the request while this handler still reads
+      // the original asset; that request is gone and the reloaded page asks again.
+      let response: Awaited<ReturnType<typeof route.fetch>>;
+      let script: string;
+      try {
+        response = await route.fetch();
+        script = await response.text();
+      } catch (cause) {
+        if (cause instanceof Error && /disposed|closed/iu.test(cause.message)) return;
+        throw cause;
+      }
       for (const [before, after] of [
         [fixture.original, fixture.module],
         [fixture.originalDocumentModule, fixture.documentModule],
