@@ -1,0 +1,12 @@
+.clinician-profile-settings {
+  gap: 0.75rem;
+}
+
+.clinician-profile-settings__fields {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.clinician-profile-settings__field {
+  min-width: 0;
+}

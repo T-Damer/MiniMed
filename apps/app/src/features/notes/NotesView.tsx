@@ -31,6 +31,7 @@ import { Heading } from '@/components/Text';
 import { TextField as UiTextField } from '@/components/TextField';
 import { ItemBookmarkMenu } from '@/features/collections/ItemBookmarkMenu';
 import { ConversationInbox } from '@/features/conversations/ConversationInbox';
+import { type FormsRoute, FormsWorkspace } from '@/features/forms/FormsWorkspace';
 import { SafeMarkdown } from '@/features/library/SafeMarkdown';
 import { UserDocumentReader } from '@/features/library/UserDocumentReader';
 import { USER_LIBRARY_CATALOG_HASH } from '@/features/library/user-library-routing';
@@ -50,6 +51,7 @@ import {
 import { NoteTemplatesCatalog } from '@/features/notes/NoteTemplatesCatalog';
 import { isNoteDrawingFile, isNoteDrawingMime } from '@/features/notes/note-drawing';
 import {
+  notesFormsPath,
   notesNewPatientPath,
   notesPath,
   notesPatientsPath,
@@ -926,6 +928,10 @@ export function NotesView(props: {
       ? current
       : null;
   });
+  const formsRoute = createMemo<FormsRoute | null>(() => {
+    const current = route();
+    return current.kind === 'forms' || current.kind === 'form' ? current : null;
+  });
   const activeTemplateId = (): string | null => {
     const current = route();
     return current.kind === 'template' ? current.documentId : null;
@@ -1232,6 +1238,15 @@ export function NotesView(props: {
           />
         )}
       </Show>
+      <Show when={props.active && formsRoute()}>
+        {(current) => (
+          <FormsWorkspace
+            route={current()}
+            onNavigate={navigate}
+            backLabel={props.backToFiles ? 'К файлам' : 'Назад к заметкам'}
+          />
+        )}
+      </Show>
       <Show when={props.active && route().kind === 'index'}>
         <Page
           class="patient-notes-heading"
@@ -1283,6 +1298,17 @@ export function NotesView(props: {
               <span class="patient-card-title">Пациенты</span>
               <p>Карточки пациентов, визиты и показатели в динамике</p>
               <small>Открыть раздел</small>
+            </button>
+          </article>
+          <article class="patient-notes-forms-card paper-card">
+            <button
+              type="button"
+              class="patient-card-open"
+              onClick={() => navigate(notesFormsPath())}
+            >
+              <span class="patient-card-title">Формы</span>
+              <p>Официальные бланки Минздрава: справки и карты с подстановкой данных пациента</p>
+              <small>Открыть список форм</small>
             </button>
           </article>
           <article class="patient-notes-template-card paper-card">

@@ -20,7 +20,63 @@ export type PatientEventKind =
 
 export type MedicationEventKind = 'start' | 'take' | 'dose-change' | 'stop';
 
-export interface PatientProfile {
+/** Postal-style address used when filling official forms. Every part is optional free text. */
+export interface PatientAddress {
+  readonly subject?: string;
+  readonly district?: string;
+  readonly locality?: string;
+  readonly street?: string;
+  readonly house?: string;
+  readonly building?: string;
+  readonly apartment?: string;
+  readonly phone?: string;
+}
+
+/** Ordered address fields with their Russian labels (form order). */
+export const PATIENT_ADDRESS_FIELDS: readonly {
+  readonly key: keyof PatientAddress;
+  readonly label: string;
+}[] = [
+  { key: 'subject', label: 'Субъект Российской Федерации' },
+  { key: 'district', label: 'Район' },
+  { key: 'locality', label: 'Населённый пункт' },
+  { key: 'street', label: 'Улица' },
+  { key: 'house', label: 'Дом' },
+  { key: 'building', label: 'Строение/корпус' },
+  { key: 'apartment', label: 'Квартира' },
+  { key: 'phone', label: 'Телефон' },
+];
+
+export interface PatientOmsPolicy {
+  readonly number: string;
+  /** ISO calendar date. */
+  readonly issuedAt?: string;
+  readonly insurer?: string;
+}
+
+/**
+ * Administrative data used to fill official forms. It lives inside the patient vault snapshot
+ * only: never in localStorage, search, URLs or logs.
+ */
+export interface PatientProfileData {
+  /** Full name (ФИО); `displayName` stays the short display name. */
+  readonly fullName?: string;
+  /** Registration at the place of residence. */
+  readonly address?: PatientAddress;
+  /** Registration at the place of stay. */
+  readonly stayAddress?: PatientAddress;
+  readonly snils?: string;
+  readonly omsPolicy?: PatientOmsPolicy;
+  /** Workplace or place of study. */
+  readonly workplace?: string;
+}
+
+/** A patch: a key set to `undefined` or an empty value removes that field. */
+export type PatientProfileDataPatch = {
+  readonly [Key in keyof PatientProfileData]?: PatientProfileData[Key] | undefined;
+};
+
+export interface PatientProfile extends PatientProfileData {
   readonly id: string;
   readonly displayName: string;
   readonly avatar?: PatientAvatar;
@@ -34,6 +90,13 @@ export interface PatientProfile {
   readonly updatedAt: string;
 }
 
+/** Episode diagnosis used to prefill official forms. */
+export interface EpisodeDiagnosis {
+  readonly text: string;
+  /** ICD-10 code such as `J45.0`. */
+  readonly icd10?: string;
+}
+
 export interface ClinicalEpisode {
   readonly id: string;
   readonly patientId: string;
@@ -44,6 +107,7 @@ export interface ClinicalEpisode {
   /** Only an explicitly open episode may receive automatic tool recordings. */
   readonly status: 'open' | 'closed';
   readonly closedAt?: string;
+  readonly diagnosis?: EpisodeDiagnosis;
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -184,7 +248,7 @@ export interface PatientVaultSnapshot {
   readonly metricDefinitions: readonly PatientMetricDefinition[];
 }
 
-export interface CreatePatientProfileInput {
+export interface CreatePatientProfileInput extends PatientProfileDataPatch {
   readonly id?: string;
   readonly displayName: string;
   readonly avatar?: PatientAvatar;
@@ -276,9 +340,11 @@ export function createPatientProfile(input: CreatePatientProfileInput): {
     input.context === undefined
       ? undefined
       : normalizeValueRecord(input.context, 'контекст пациента');
+  const profileData = normalizeProfileData(input);
   const profile: PatientProfile = {
     id: input.id ?? createId('patient'),
     displayName,
+    ...profileData,
     ...(input.avatar ? { avatar: normalizePatientAvatar(input.avatar) } : {}),
     ...(input.localRecordNumber?.trim()
       ? { localRecordNumber: input.localRecordNumber.trim() }
@@ -339,6 +405,194 @@ export function createClinicalEpisode(input: {
     createdAt: startedAt,
     updatedAt: startedAt,
   };
+}
+
+const SNILS_PATTERN = /^\d{3}-\d{3}-\d{3} \d{2}$/u;
+const ICD10_PATTERN = /^[A-Z]\d{2}(\.\d{1,2})?$/u;
+
+/**
+ * Normalises a SNILS to `XXX-XXX-XXX YY`. Accepts the dashed form or exactly 11 digits (spaces and
+ * dashes ignored); returns `undefined` for an empty value and throws a Russian error otherwise.
+ */
+export function normalizeSnils(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  if (SNILS_PATTERN.test(trimmed)) return trimmed;
+  const digits = trimmed.replace(/[\s-]/gu, '');
+  if (/^\d{11}$/u.test(digits)) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 9)} ${digits.slice(9)}`;
+  }
+  throw new Error('СНИЛС: введите 11 цифр в формате 123-456-789 01.');
+}
+
+/** Upper-cases and validates an ICD-10 code (`J45`, `J45.0`); empty gives `undefined`. */
+export function normalizeIcd10Code(value: string): string | undefined {
+  const code = value.trim().toUpperCase();
+  if (!code) return undefined;
+  if (!ICD10_PATTERN.test(code)) {
+    throw new Error('Код МКБ-10: ожидается формат вида J45.0.');
+  }
+  return code;
+}
+
+const ADDRESS_KEYS: readonly (keyof PatientAddress)[] = PATIENT_ADDRESS_FIELDS.map(
+  (field) => field.key,
+);
+
+function trimmedOptional(record: UnknownRecord, key: string, label: string): string | undefined {
+  const value = record[key];
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') throw new Error(`Повреждено поле ${label}.`);
+  const trimmed = value.trim();
+  return trimmed || undefined;
+}
+
+function normalizeAddress(value: unknown, label: string): PatientAddress | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) throw new Error(`Повреждено поле ${label}.`);
+  for (const key of Object.keys(value)) {
+    if (!(ADDRESS_KEYS as readonly string[]).includes(key)) {
+      throw new Error(`Повреждено поле ${label}.`);
+    }
+  }
+  const address: Partial<Record<keyof PatientAddress, string>> = {};
+  for (const key of ADDRESS_KEYS) {
+    const part = trimmedOptional(value, key, label);
+    if (part) address[key] = part;
+  }
+  return Object.keys(address).length > 0 ? address : undefined;
+}
+
+function normalizeOmsPolicy(value: unknown): PatientOmsPolicy | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) throw new Error('Повреждено поле полиса ОМС.');
+  for (const key of Object.keys(value)) {
+    if (key !== 'number' && key !== 'issuedAt' && key !== 'insurer') {
+      throw new Error('Повреждено поле полиса ОМС.');
+    }
+  }
+  const number = trimmedOptional(value, 'number', 'номер полиса ОМС');
+  const issuedAt = trimmedOptional(value, 'issuedAt', 'дата выдачи полиса ОМС');
+  const insurer = trimmedOptional(value, 'insurer', 'страховая организация полиса ОМС');
+  if (!number) {
+    if (issuedAt || insurer) throw new Error('Полис ОМС: укажите номер полиса.');
+    return undefined;
+  }
+  return {
+    number,
+    ...(issuedAt ? { issuedAt: validDate(issuedAt, 'выдачи полиса ОМС') } : {}),
+    ...(insurer ? { insurer } : {}),
+  };
+}
+
+function normalizeSnilsField(record: UnknownRecord): string | undefined {
+  const snils = trimmedOptional(record, 'snils', 'СНИЛС');
+  if (snils === undefined) return undefined;
+  try {
+    return normalizeSnils(snils);
+  } catch {
+    throw new Error('Повреждено поле СНИЛС.');
+  }
+}
+
+function normalizeProfileData(source: object): PatientProfileData {
+  const record = source as UnknownRecord;
+  const fullName = trimmedOptional(record, 'fullName', 'ФИО');
+  const address = normalizeAddress(record['address'], 'адрес регистрации');
+  const stayAddress = normalizeAddress(record['stayAddress'], 'адрес пребывания');
+  const snils = normalizeSnilsField(record);
+  const omsPolicy = normalizeOmsPolicy(record['omsPolicy']);
+  const workplace = trimmedOptional(record, 'workplace', 'место работы или учёбы');
+  return {
+    ...(fullName ? { fullName } : {}),
+    ...(address ? { address } : {}),
+    ...(stayAddress ? { stayAddress } : {}),
+    ...(snils ? { snils } : {}),
+    ...(omsPolicy ? { omsPolicy } : {}),
+    ...(workplace ? { workplace } : {}),
+  };
+}
+
+const PROFILE_DATA_KEYS = [
+  'fullName',
+  'address',
+  'stayAddress',
+  'snils',
+  'omsPolicy',
+  'workplace',
+] as const satisfies readonly (keyof PatientProfileData)[];
+
+/**
+ * Returns a new snapshot where the named profile carries the patched administrative data. A key
+ * present in the patch replaces the stored value; `undefined` or an empty value removes it, and
+ * keys absent from the patch are left alone. Throws on invalid values (bad SNILS, bad date).
+ */
+export function updatePatientProfileData(
+  snapshot: PatientVaultSnapshot,
+  patientId: string,
+  patch: PatientProfileDataPatch,
+  updatedAt = nowIso(),
+): PatientVaultSnapshot {
+  asDate(updatedAt, 'Дата изменения карточки');
+  const target = snapshot.profiles.find((profile) => profile.id === patientId);
+  if (!target) throw new Error('Пациент не найден.');
+  const raw = patch as UnknownRecord;
+  for (const key of Object.keys(raw)) {
+    if (!(PROFILE_DATA_KEYS as readonly string[]).includes(key)) {
+      throw new Error('Неизвестное поле данных пациента.');
+    }
+  }
+  const patched = normalizeProfileData(raw);
+  const next: Record<string, unknown> = { ...target };
+  for (const key of PROFILE_DATA_KEYS) {
+    if (!(key in raw)) continue;
+    delete next[key];
+    const value = patched[key];
+    if (value !== undefined) next[key] = value;
+  }
+  next['updatedAt'] = updatedAt;
+  return {
+    ...snapshot,
+    profiles: snapshot.profiles.map((profile) =>
+      profile.id === patientId ? (next as unknown as PatientProfile) : profile,
+    ),
+  };
+}
+
+function normalizeDiagnosis(value: unknown): EpisodeDiagnosis | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) throw new Error('Поврежден диагноз осмотра.');
+  for (const key of Object.keys(value)) {
+    if (key !== 'text' && key !== 'icd10') throw new Error('Поврежден диагноз осмотра.');
+  }
+  const text = trimmedOptional(value, 'text', 'текст диагноза');
+  const rawCode = trimmedOptional(value, 'icd10', 'код МКБ-10');
+  if (!text) {
+    if (rawCode) throw new Error('Диагноз: укажите формулировку диагноза.');
+    return undefined;
+  }
+  const icd10 = rawCode === undefined ? undefined : normalizeIcd10Code(rawCode);
+  return { text, ...(icd10 ? { icd10 } : {}) };
+}
+
+/** Sets (or, with `undefined` / an empty diagnosis, removes) the diagnosis of one episode. */
+export function setEpisodeDiagnosis(
+  snapshot: PatientVaultSnapshot,
+  episodeId: string,
+  diagnosis: EpisodeDiagnosis | undefined,
+  updatedAt = nowIso(),
+): PatientVaultSnapshot {
+  asDate(updatedAt, 'Дата изменения осмотра');
+  const normalized = normalizeDiagnosis(diagnosis);
+  let found = false;
+  const episodes = snapshot.episodes.map((episode) => {
+    if (episode.id !== episodeId) return episode;
+    found = true;
+    const { diagnosis: _previous, ...rest } = episode;
+    return { ...rest, ...(normalized ? { diagnosis: normalized } : {}), updatedAt };
+  });
+  if (!found) throw new Error('Осмотр не найден.');
+  return { ...snapshot, episodes };
 }
 
 export function closeClinicalEpisode(
@@ -1310,6 +1564,7 @@ function normalizeProfile(value: unknown): PatientProfile {
   return {
     id: requiredString(value, 'id', 'идентификатор пациента'),
     displayName: requiredString(value, 'displayName', 'имя пациента'),
+    ...normalizeProfileData(value),
     ...(value['avatar'] === undefined ? {} : { avatar: normalizePatientAvatar(value['avatar']) }),
     ...(localRecordNumber ? { localRecordNumber } : {}),
     ...(birthDate ? { birthDate: validDate(birthDate, 'дата рождения') } : {}),
@@ -1333,6 +1588,7 @@ function normalizeEpisode(value: unknown): ClinicalEpisode {
     value['closedAt'] === undefined ? undefined : validDate(value['closedAt'], 'закрытия осмотра');
   if (status === 'open' && closedAt !== undefined)
     throw new Error('Открытый осмотр не может иметь дату закрытия.');
+  const diagnosis = normalizeDiagnosis(value['diagnosis']);
   return {
     id: requiredString(value, 'id', 'идентификатор осмотра'),
     patientId: requiredString(value, 'patientId', 'пациент осмотра'),
@@ -1342,6 +1598,7 @@ function normalizeEpisode(value: unknown): ClinicalEpisode {
     eventIds,
     status,
     ...(closedAt ? { closedAt } : {}),
+    ...(diagnosis ? { diagnosis } : {}),
     createdAt: validDate(value['createdAt'], 'создания осмотра'),
     updatedAt: validDate(value['updatedAt'], 'изменения осмотра'),
   };

@@ -19,7 +19,11 @@ import {
   parseUserLibraryFolderRoute,
   userLibraryFolderHash,
 } from '@/features/library/user-library-routing';
-import { notesPatientsPath, notesTemplatesPath } from '@/features/notes/notes-routing';
+import {
+  notesFormsPath,
+  notesPatientsPath,
+  notesTemplatesPath,
+} from '@/features/notes/notes-routing';
 import { getPluralMessage } from '@/i18n/browser-i18n';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 import { shareSystemFile } from '@/state/native-share';
@@ -84,11 +88,12 @@ interface DeleteTarget {
 
 const PATIENTS_FOLDER_ID = 'patient-vault-entry';
 const KNOWLEDGE_BASE_FOLDER_ID = 'knowledge-base-entry';
+const FORMS_FOLDER_ID = 'official-forms-entry';
 const KNOWLEDGE_BASE_HASH = '#/modules/documents';
 
 /** Root entries that open another section instead of holding files. */
 const isEntryFolder = (id: string): boolean =>
-  id === PATIENTS_FOLDER_ID || id === KNOWLEDGE_BASE_FOLDER_ID;
+  id === PATIENTS_FOLDER_ID || id === KNOWLEDGE_BASE_FOLDER_ID || id === FORMS_FOLDER_ID;
 
 type SortMode = 'time' | 'name' | 'type';
 
@@ -218,6 +223,7 @@ const USER_LIBRARY_FOLDER_GLYPHS: Readonly<Record<string, AppGlyphName>> = {
   [USER_LIBRARY_NOTES_FOLDER_ID]: 'notes',
   [PATIENTS_FOLDER_ID]: 'users',
   [KNOWLEDGE_BASE_FOLDER_ID]: 'modules',
+  [FORMS_FOLDER_ID]: 'file-text',
 };
 
 /** Reference-stability guard: keeps virtualizer rows from re-measuring when a
@@ -728,6 +734,14 @@ export function UserLibraryPage(props: {
           {
             id: PATIENTS_FOLDER_ID,
             title: 'Пациенты',
+            parentId: null,
+            isSystem: true,
+            createdAt: '',
+            updatedAt: '',
+          } satisfies UserLibraryFolder,
+          {
+            id: FORMS_FOLDER_ID,
+            title: 'Формы',
             parentId: null,
             isSystem: true,
             createdAt: '',
@@ -1382,6 +1396,10 @@ export function UserLibraryPage(props: {
       navigate(KNOWLEDGE_BASE_HASH);
       return;
     }
+    if (folderId === FORMS_FOLDER_ID) {
+      navigate(notesFormsPath());
+      return;
+    }
     if (folderId === USER_LIBRARY_TEMPLATES_FOLDER_ID) {
       navigate(notesTemplatesPath());
       return;
@@ -1703,7 +1721,9 @@ export function UserLibraryPage(props: {
           : 'Отдельное хранилище пациентов'
         : props.folder.id === KNOWLEDGE_BASE_FOLDER_ID
           ? 'Документы и справочники'
-          : getPluralMessage('attachment_count', attachmentCount());
+          : props.folder.id === FORMS_FOLDER_ID
+            ? 'Официальные бланки Минздрава'
+            : getPluralMessage('attachment_count', attachmentCount());
     // Folders that cannot be deleted carry a pin, so the missing «Удалить» is no surprise.
     const pinMark = (): JSX.Element => (
       <Show when={isUserLibrarySystemFolder(props.folder)}>

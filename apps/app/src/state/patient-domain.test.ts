@@ -15,12 +15,17 @@ import {
   createPatientProfile,
   createToolResultEvent,
   emptyPatientVaultSnapshot,
+  normalizeIcd10Code,
   normalizePatientVaultSnapshot,
+  normalizeSnils,
+  PATIENT_ADDRESS_FIELDS,
   type PatientVaultSnapshot,
   patientBindingValue,
   patientContextSnapshot,
   reviseManualObservation,
   selectPatientFromSnapshot,
+  setEpisodeDiagnosis,
+  updatePatientProfileData,
 } from './patient-domain';
 
 describe('patient domain', () => {
@@ -680,5 +685,186 @@ describe('patient domain', () => {
         ],
       }),
     ).toThrow(/структурированный вердикт/u);
+  });
+
+  describe('form data', () => {
+    function baseSnapshot(): PatientVaultSnapshot {
+      const profile = createPatientProfile({
+        id: 'patient-1',
+        displayName: 'Пациент',
+        createdAt: '2025-01-01T00:00:00.000Z',
+      }).profile;
+      const other = createPatientProfile({ id: 'patient-2', displayName: 'Другой' }).profile;
+      const episode = createClinicalEpisode({
+        id: 'episode-1',
+        patientId: 'patient-1',
+        startedAt: '2025-01-02T00:00:00.000Z',
+      });
+      return { ...emptyPatientVaultSnapshot(), profiles: [profile, other], episodes: [episode] };
+    }
+
+    it('lists the eight address fields in form order', () => {
+      expect(PATIENT_ADDRESS_FIELDS.map((field) => field.key)).toEqual([
+        'subject',
+        'district',
+        'locality',
+        'street',
+        'house',
+        'building',
+        'apartment',
+        'phone',
+      ]);
+      expect(PATIENT_ADDRESS_FIELDS[0]?.label).toBe('Субъект Российской Федерации');
+    });
+
+    it('applies and removes administrative data with trimming', () => {
+      const updated = updatePatientProfileData(
+        baseSnapshot(),
+        'patient-1',
+        {
+          fullName: '  Иванов Иван Иванович ',
+          address: { locality: ' Москва ', street: '', house: '5' },
+          stayAddress: { phone: ' +7 900 000-00-00 ' },
+          snils: '12345678901',
+          omsPolicy: { number: ' 1234567890123456 ', issuedAt: '2020-05-17', insurer: '' },
+          workplace: 'ООО «Ромашка»',
+        },
+        '2025-03-01T00:00:00.000Z',
+      );
+      const profile = updated.profiles[0];
+      expect(profile).toMatchObject({
+        fullName: 'Иванов Иван Иванович',
+        address: { locality: 'Москва', house: '5' },
+        stayAddress: { phone: '+7 900 000-00-00' },
+        snils: '123-456-789 01',
+        omsPolicy: { number: '1234567890123456', issuedAt: '2020-05-17' },
+        workplace: 'ООО «Ромашка»',
+        updatedAt: '2025-03-01T00:00:00.000Z',
+      });
+      expect(profile?.address).not.toHaveProperty('street');
+      expect(profile?.omsPolicy).not.toHaveProperty('insurer');
+      expect(updated.profiles[1]?.id).toBe('patient-2');
+      expect(updated.profiles[1]).not.toHaveProperty('fullName');
+
+      const cleared = updatePatientProfileData(updated, 'patient-1', {
+        fullName: undefined,
+        address: {},
+        workplace: '   ',
+        omsPolicy: { number: '' },
+      });
+      const after = cleared.profiles[0];
+      expect(after).not.toHaveProperty('fullName');
+      expect(after).not.toHaveProperty('address');
+      expect(after).not.toHaveProperty('workplace');
+      expect(after).not.toHaveProperty('omsPolicy');
+      expect(after?.stayAddress).toEqual({ phone: '+7 900 000-00-00' });
+      expect(after?.snils).toBe('123-456-789 01');
+    });
+
+    it('rejects bad patches without touching the snapshot', () => {
+      const snapshot = baseSnapshot();
+      expect(() => updatePatientProfileData(snapshot, 'missing', {})).toThrow(/Пациент не найден/u);
+      expect(() => updatePatientProfileData(snapshot, 'patient-1', { snils: '123' })).toThrow(
+        /СНИЛС/u,
+      );
+      expect(() =>
+        updatePatientProfileData(snapshot, 'patient-1', {
+          omsPolicy: { number: '1', issuedAt: '2020-02-31' },
+        }),
+      ).toThrow(/дата/u);
+      expect(() =>
+        updatePatientProfileData(snapshot, 'patient-1', {
+          omsPolicy: { number: '', insurer: 'СК' },
+        }),
+      ).toThrow(/Полис ОМС/u);
+      expect(() =>
+        updatePatientProfileData(snapshot, 'patient-1', { unknown: 'x' } as never),
+      ).toThrow(/Неизвестное поле/u);
+    });
+
+    it('normalises SNILS and ICD-10 codes', () => {
+      expect(normalizeSnils('123-456-789 01')).toBe('123-456-789 01');
+      expect(normalizeSnils('123 456 789 01')).toBe('123-456-789 01');
+      expect(normalizeSnils('')).toBeUndefined();
+      expect(() => normalizeSnils('1234')).toThrow(/СНИЛС/u);
+      expect(normalizeIcd10Code(' j45.0 ')).toBe('J45.0');
+      expect(normalizeIcd10Code('i10')).toBe('I10');
+      expect(normalizeIcd10Code('')).toBeUndefined();
+      expect(() => normalizeIcd10Code('45.0')).toThrow(/МКБ-10/u);
+      expect(() => normalizeIcd10Code('J45.123')).toThrow(/МКБ-10/u);
+    });
+
+    it('sets and clears an episode diagnosis', () => {
+      const withDiagnosis = setEpisodeDiagnosis(
+        baseSnapshot(),
+        'episode-1',
+        { text: '  Бронхиальная астма ', icd10: 'j45.0' },
+        '2025-03-01T00:00:00.000Z',
+      );
+      expect(withDiagnosis.episodes[0]).toMatchObject({
+        diagnosis: { text: 'Бронхиальная астма', icd10: 'J45.0' },
+        updatedAt: '2025-03-01T00:00:00.000Z',
+      });
+      const cleared = setEpisodeDiagnosis(withDiagnosis, 'episode-1', undefined);
+      expect(cleared.episodes[0]).not.toHaveProperty('diagnosis');
+      expect(() => setEpisodeDiagnosis(withDiagnosis, 'missing', undefined)).toThrow(
+        /Осмотр не найден/u,
+      );
+      expect(() =>
+        setEpisodeDiagnosis(withDiagnosis, 'episode-1', { text: 'x', icd10: 'bad' }),
+      ).toThrow(/МКБ-10/u);
+      expect(() =>
+        setEpisodeDiagnosis(withDiagnosis, 'episode-1', { text: ' ', icd10: 'J45' }),
+      ).toThrow(/формулировку/u);
+    });
+
+    it('keeps the data through normalisation, per-patient export and out of patient context', () => {
+      let snapshot = updatePatientProfileData(baseSnapshot(), 'patient-1', {
+        fullName: 'Иванов И. И.',
+        address: { locality: 'Москва' },
+        snils: '123-456-789 01',
+        omsPolicy: { number: '1', issuedAt: '2020-01-01', insurer: 'СК' },
+        workplace: 'Школа 1',
+      });
+      snapshot = setEpisodeDiagnosis(snapshot, 'episode-1', { text: 'ОРВИ', icd10: 'J06.9' });
+      const exported = selectPatientFromSnapshot(snapshot, 'patient-1');
+      const restored = normalizePatientVaultSnapshot(JSON.parse(JSON.stringify(exported)));
+      expect(restored.profiles[0]).toEqual(snapshot.profiles[0]);
+      expect(restored.episodes[0]?.diagnosis).toEqual({ text: 'ОРВИ', icd10: 'J06.9' });
+      const profile = snapshot.profiles[0];
+      if (!profile) throw new Error('missing profile');
+      const context = patientContextSnapshot(profile, snapshot, '2025-03-01T00:00:00.000Z');
+      expect(JSON.stringify(context)).not.toMatch(/Москва|123-456|Иванов|Школа/u);
+    });
+
+    it('rejects corrupt form data at the vault boundary', () => {
+      const snapshot = baseSnapshot();
+      const bad = (profilePatch: Record<string, unknown>) =>
+        normalizePatientVaultSnapshot({
+          ...snapshot,
+          profiles: [{ ...snapshot.profiles[0], ...profilePatch }],
+        });
+      expect(() => bad({ fullName: 5 })).toThrow(/ФИО/u);
+      expect(() => bad({ address: 'Москва' })).toThrow(/адрес/u);
+      expect(() => bad({ address: { planet: 'Mars' } })).toThrow(/адрес/u);
+      expect(() => bad({ snils: 'abc' })).toThrow(/СНИЛС/u);
+      expect(() => bad({ omsPolicy: { number: '1', issuedAt: 'nope' } })).toThrow(/дата/u);
+      expect(() => bad({ omsPolicy: { insurer: 'СК' } })).toThrow(/Полис ОМС/u);
+      expect(() =>
+        normalizePatientVaultSnapshot({
+          ...snapshot,
+          episodes: [{ ...snapshot.episodes[0], diagnosis: { text: 'x', icd10: 'zzz' } }],
+        }),
+      ).toThrow(/МКБ-10/u);
+      expect(() =>
+        normalizePatientVaultSnapshot({
+          ...snapshot,
+          episodes: [{ ...snapshot.episodes[0], diagnosis: 'ОРВИ' }],
+        }),
+      ).toThrow(/диагноз/u);
+      const trimmed = bad({ fullName: '  Иванов  ', workplace: '  ' });
+      expect(trimmed.profiles[0]?.fullName).toBe('Иванов');
+      expect(trimmed.profiles[0]).not.toHaveProperty('workplace');
+    });
   });
 });

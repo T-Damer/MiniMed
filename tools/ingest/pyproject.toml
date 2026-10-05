@@ -43,6 +43,11 @@ src = ["src", "tests"]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
 ignore = ["RUF001"]
 
+[tool.ruff.lint.per-file-ignores]
+# Official Russian form names and typographic dashes appear in docstrings and comments.
+"src/localmed_ingest/medical_form*.py" = ["RUF002", "RUF003"]
+"tests/test_medical_forms.py" = ["RUF002", "RUF003"]
+
 [tool.pyright]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"

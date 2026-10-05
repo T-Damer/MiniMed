@@ -178,5 +178,29 @@
   "graph_of_documents_other": {
     "message": "$1 documents",
     "description": "Total documents in the graph's scope, after «Показано N из»"
+  },
+  "forms_missing_required_count_one": {
+    "message": "$1 required field is empty",
+    "description": "Required fields of an official form that are still empty"
+  },
+  "forms_missing_required_count_other": {
+    "message": "$1 required fields are empty",
+    "description": "Required fields of an official form that are still empty"
+  },
+  "forms_prefilled_count_one": {
+    "message": "$1 field filled from stored data",
+    "description": "Fields of an official form filled in from stored data"
+  },
+  "forms_prefilled_count_other": {
+    "message": "$1 fields filled from stored data",
+    "description": "Fields of an official form filled in from stored data"
+  },
+  "forms_field_count_one": {
+    "message": "$1 field",
+    "description": "Fields of an official form on the blank"
+  },
+  "forms_field_count_other": {
+    "message": "$1 fields",
+    "description": "Fields of an official form on the blank"
   }
 }

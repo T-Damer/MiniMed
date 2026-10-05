@@ -1,4 +1,4 @@
-import { createUniqueId, For, type JSX, Show, splitProps } from 'solid-js';
+import { createEffect, createUniqueId, For, type JSX, Show, splitProps } from 'solid-js';
 
 import '@/components/SelectField.css';
 
@@ -31,6 +31,13 @@ export function SelectField(props: SelectFieldProps): JSX.Element {
     'class',
   ]);
   const generatedId = createUniqueId();
+  let control: HTMLSelectElement | undefined;
+  // The element's own `value` is applied before its options exist, so apply it again once they do.
+  createEffect(() => {
+    const value = select.value;
+    void local.options.length;
+    if (control && value !== undefined) control.value = String(value);
+  });
   const fieldId = () => local.id ?? `ui-select-field-${generatedId}`;
   const hintId = () => `${fieldId()}-hint`;
   const errorId = () => `${fieldId()}-error`;
@@ -49,6 +56,11 @@ export function SelectField(props: SelectFieldProps): JSX.Element {
       </span>
       <select
         {...select}
+        ref={(element) => {
+          control = element;
+          const forwarded = select.ref;
+          if (typeof forwarded === 'function') forwarded(element);
+        }}
         id={fieldId()}
         class="ui-select-field__control"
         classList={{ 'ui-select-field__control--error': Boolean(local.error) }}

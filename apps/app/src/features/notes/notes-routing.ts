@@ -4,6 +4,13 @@ export type NotesRoute =
   | { readonly kind: 'new-patient' }
   | { readonly kind: 'patient'; readonly patientId: string; readonly episodeId?: string }
   | { readonly kind: 'patient-dynamics'; readonly patientId: string }
+  | { readonly kind: 'forms'; readonly patientId?: string; readonly episodeId?: string }
+  | {
+      readonly kind: 'form';
+      readonly formId: string;
+      readonly patientId?: string;
+      readonly episodeId?: string;
+    }
   | { readonly kind: 'templates'; readonly create?: boolean }
   | { readonly kind: 'template'; documentId: string }
   | { readonly kind: 'card'; readonly cardId: string }
@@ -13,6 +20,7 @@ export type NotesRoute =
 const FULLSCREEN_QUERY_KEY = 'fullscreen';
 const CREATE_TEMPLATE_QUERY_KEY = 'create';
 const PATIENT_EPISODE_QUERY_KEY = 'episode';
+const FORM_PATIENT_QUERY_KEY = 'patient';
 
 function notesPathAndQuery(hash: string): readonly [string, string] {
   const separator = hash.indexOf('?');
@@ -45,6 +53,23 @@ export function readNotesRoute(
             ...(requestedEpisodeId ? { episodeId: requestedEpisodeId } : {}),
           }
         : { kind: 'patients' };
+  }
+  if (parts[1] === 'forms') {
+    const params = new URLSearchParams(query);
+    const patientId = params.get(FORM_PATIENT_QUERY_KEY);
+    const episodeId = params.get(PATIENT_EPISODE_QUERY_KEY);
+    const context = {
+      ...(patientId ? { patientId } : {}),
+      ...(episodeId ? { episodeId } : {}),
+    };
+    if (parts.length !== 3 || !parts[2]) return { kind: 'forms', ...context };
+    let formId: string;
+    try {
+      formId = decodeURIComponent(parts[2]);
+    } catch {
+      return { kind: 'forms', ...context };
+    }
+    return { kind: 'form', formId, ...context };
   }
   if (parts[1] === 'templates') {
     if (parts.length === 2) {
@@ -98,6 +123,19 @@ export function notesPatientsPath(
 
 export function notesNewPatientPath(): string {
   return '#/notes/patients/new';
+}
+
+/** `#/notes/forms` lists the official forms; with a form id it opens that form's filling screen. */
+export function notesFormsPath(
+  formId?: string,
+  options: { readonly patientId?: string; readonly episodeId?: string } = {},
+): string {
+  const params = new URLSearchParams();
+  if (options.patientId) params.set(FORM_PATIENT_QUERY_KEY, options.patientId);
+  if (options.episodeId) params.set(PATIENT_EPISODE_QUERY_KEY, options.episodeId);
+  const query = params.toString();
+  const base = formId ? `#/notes/forms/${encodeURIComponent(formId)}` : '#/notes/forms';
+  return query ? `${base}?${query}` : base;
 }
 
 export function notesTemplatesPath(create = false): string {

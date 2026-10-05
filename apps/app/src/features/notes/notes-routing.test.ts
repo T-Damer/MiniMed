@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   isNotesFullscreenRoute,
+  notesFormsPath,
   notesNewPatientPath,
   notesPath,
   notesPatientsPath,
@@ -58,6 +59,37 @@ describe('notes routing', () => {
     expect(readNotesRoute('#/notes/patients/patient%2F1/dynamics')).toEqual({
       kind: 'patient-dynamics',
       patientId: 'patient/1',
+    });
+  });
+
+  it('parses the official forms routes with the patient and episode they were opened from', () => {
+    expect(readNotesRoute('#/notes/forms')).toEqual({ kind: 'forms' });
+    expect(readNotesRoute('#/notes/forms/ru.minzdrav.274n.070u')).toEqual({
+      kind: 'form',
+      formId: 'ru.minzdrav.274n.070u',
+    });
+    expect(readNotesRoute('#/notes/forms/form%2F1?patient=p%2F1&episode=e1')).toEqual({
+      kind: 'form',
+      formId: 'form/1',
+      patientId: 'p/1',
+      episodeId: 'e1',
+    });
+    expect(readNotesRoute('#/notes/forms?patient=p1&episode=e1')).toEqual({
+      kind: 'forms',
+      patientId: 'p1',
+      episodeId: 'e1',
+    });
+    expect(notesFormsPath(undefined, { patientId: 'p 1' })).toBe('#/notes/forms?patient=p+1');
+    expect(readNotesRoute('#/notes/forms/%')).toEqual({ kind: 'forms' });
+    expect(readNotesRoute('#/notes/forms/a/b')).toEqual({ kind: 'forms' });
+    expect(notesFormsPath()).toBe('#/notes/forms');
+    expect(notesFormsPath('f1', { patientId: 'p/1', episodeId: 'e1' })).toBe(
+      '#/notes/forms/f1?patient=p%2F1&episode=e1',
+    );
+    expect(readNotesRoute(notesFormsPath('f 1', { patientId: 'p 1' }))).toEqual({
+      kind: 'form',
+      formId: 'f 1',
+      patientId: 'p 1',
     });
   });
 

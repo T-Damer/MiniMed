@@ -33,7 +33,8 @@ import { TextField } from '@/components/TextField';
 import { VisitRecorder } from '@/features/asr/VisitRecorderPanel';
 import { PatientDiaryPanel } from '@/features/diary/PatientDiaryPanel';
 import type { NotesRoute } from '@/features/notes/notes-routing';
-import { notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
+import { notesFormsPath, notesPath, notesPatientsPath } from '@/features/notes/notes-routing';
+import { EpisodeDiagnosisEditor, PatientFormData } from '@/features/notes/PatientFormData';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import {
   appendEpisode,
@@ -884,6 +885,10 @@ function PatientDetail(props: {
       .filter((candidate) => candidate.patientId === props.profile.id)
       .toSorted((left, right) => right.startedAt.localeCompare(left.startedAt)),
   );
+  // `episode()` is a copy taken at selection time; the diagnosis must come from the live snapshot.
+  const selectedEpisode = createMemo(() =>
+    props.snapshot.episodes.find((candidate) => candidate.id === episode()?.id),
+  );
   const activeEpisodeId = () => (episode()?.status === 'open' ? episode()?.id : undefined);
   createEffect(() => {
     const targetId = props.focusEpisodeId;
@@ -1001,6 +1006,21 @@ function PatientDetail(props: {
           >
             Динамика
           </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            icon={<AppGlyph name="file-text" />}
+            onClick={() =>
+              props.onNavigate(
+                notesFormsPath(undefined, {
+                  patientId: props.profile.id,
+                  ...(episode() ? { episodeId: (episode() as ClinicalEpisode).id } : {}),
+                }),
+              )
+            }
+          >
+            Заполнить форму
+          </Button>
           <Button type="button" variant="quiet" onClick={() => props.onExport(props.profile.id)}>
             Экспорт карточки
           </Button>
@@ -1017,6 +1037,7 @@ function PatientDetail(props: {
           </Button>
         </div>
       </div>
+      <PatientFormData profile={props.profile} onSnapshot={props.onSnapshot} />
       <section class="patient-workspace__panel paper-card">
         <Heading depth={2}>Осмотр</Heading>
         <Show when={episodes().length > 0}>
@@ -1058,6 +1079,11 @@ function PatientDetail(props: {
               )}
             </For>
           </div>
+        </Show>
+        <Show when={selectedEpisode()}>
+          {(selected) => (
+            <EpisodeDiagnosisEditor episode={selected()} onSnapshot={props.onSnapshot} />
+          )}
         </Show>
         <TextArea
           class="patient-workspace__field"

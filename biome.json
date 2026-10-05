@@ -18,6 +18,7 @@
       "!!apps/app/src/features/modules/catalog.clinical-editions.json",
       "!!apps/app/src/features/modules/catalog.preview.json",
       "!!apps/app/src/features/modules/catalog.terminology.json",
+      "!!apps/app/src/features/forms/schemas",
       "!!data",
       "!!packages/storage-sqlite/src/generated",
       "!!packages/test-fixtures/src/generated",

@@ -14,6 +14,7 @@ import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus'
 import { restartOnboarding } from '@/features/onboarding/onboarding-state';
 import { SemanticSearchSettings } from '@/features/semantic/SemanticSearchSettings';
 import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
+import { ClinicianProfileSettings } from '@/features/settings/ClinicianProfileSettings';
 import { EcgModelSettings } from '@/features/settings/EcgModelSettings';
 import { PackagingImagesSettings } from '@/features/settings/PackagingImagesSettings';
 import { ReferenceImagesSettings } from '@/features/settings/ReferenceImagesSettings';
@@ -322,6 +323,9 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
             </Button>
           </div>
         </section>
+
+        <h2 class="settings-page__group-title">Врач и организация</h2>
+        <ClinicianProfileSettings />
 
         <h2 class="settings-page__group-title">Загрузки</h2>
         <a

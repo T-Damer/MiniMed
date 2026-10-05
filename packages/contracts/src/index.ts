@@ -8,6 +8,7 @@ export * from './core';
 export * from './definition-reference-api';
 export * from './documents';
 export * from './errors';
+export * from './form-schema';
 export * from './result';
 export * from './search';
 export * from './semantic';
