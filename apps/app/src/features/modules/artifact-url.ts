@@ -6,7 +6,7 @@ const GITHUB_RELEASE_PATTERN =
   /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/releases\/download\/([^/]+)\/([^/?#]+)$/u;
 
 /** Dataset tags whose `.db.zst` modules live as plain git blobs on `datasets/<tag>` (modules/…). */
-const MEDICATION_MIRROR_TAG = /^(?:esklp|grls-instructions|allmed)-/u;
+const MEDICATION_MIRROR_TAG = /^(?:esklp|grls-instructions|allmed|manufacturer-instructions)-/u;
 
 const RAW_GITHUB_MODULE_BASE =
   'https://raw.githubusercontent.com/T-Damer/MiniMed/main/apps/app/public/content/modules';

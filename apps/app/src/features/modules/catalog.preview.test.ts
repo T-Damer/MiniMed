@@ -156,6 +156,43 @@ describe('catalog.preview.json', () => {
     );
   });
 
+  it('lists the manufacturer-site instructions as one separately labelled module, not a ГРЛС group', () => {
+    const catalog = ContentModuleCatalogSchema.parse(rawCatalog);
+    const module = catalog.modules.find(
+      (entry) => entry.id === 'minimed.medications.instructions.manufacturer-site.ru',
+    );
+    expect(module).toMatchObject({
+      version: 'manufacturer-2026.10.05',
+      kind: 'medication',
+      // Not `grls-instructions`: the sections feature maps that collection to the per-ATC groups.
+      collection: 'manufacturer-instructions',
+      title: 'Инструкции с сайтов производителей',
+      releaseState: 'preview',
+      required: false,
+      tags: ['manufacturer-site', 'official-instruction', 'instructions'],
+      dependencies: [{ moduleId: 'minimed.core.ru', required: true }],
+      compatibility: { minAppVersion: '0.6.48', schemaVersion: 2 },
+      // 272 documents of the 277 manufacturer files (five match only ambiguously and are left out);
+      // see docs/CURRENT_STATE.md «Manufacturer-site instruction module».
+      previewDocumentCount: 272,
+    });
+    expect(module?.description).toContain('не файлы ГРЛС');
+    expect(module?.artifacts).toHaveLength(1);
+    expect(module?.artifacts[0]).toMatchObject({
+      kind: 'index',
+      compression: 'zstd',
+      url: expect.stringMatching(
+        /^https:\/\/github\.com\/T-Damer\/MiniMed\/releases\/download\/manufacturer-instructions-2026\.10\.05-[0-9a-f]{12}\/minimed\.medications\.instructions\.manufacturer-site\.ru\.db\.zst$/u,
+      ),
+    });
+    expect(module?.sizes.downloadBytes).toBe(module?.artifacts[0]?.sizeBytes);
+    expect(module?.sizes.installedBytes).toBe(module?.artifacts[0]?.decodedSizeBytes);
+    // It does not widen the per-group set the instruction-module tests count.
+    expect(
+      catalog.modules.filter((entry) => entry.collection === 'grls-instructions'),
+    ).toHaveLength(ESKLP_MODULE_IDS.length);
+  });
+
   it('puts the official-instruction and Allmed packages into the «Скачать препараты» set', () => {
     const catalog = ContentModuleCatalogSchema.parse(rawCatalog);
     const ids = new Set(drugModules(catalog, () => true).map((module) => module.id));

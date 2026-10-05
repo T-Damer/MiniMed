@@ -168,5 +168,12 @@ describe('resolveContentModuleArtifactUrl', () => {
     ).toBe(
       'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/allmed-2026.10.05-abc123/modules/minimed.medications.ru.db.zst',
     );
+    expect(
+      resolveContentModuleArtifactUrl(
+        'https://github.com/T-Damer/MiniMed/releases/download/manufacturer-instructions-2026.10.05-abc123/minimed.medications.instructions.manufacturer-site.ru.db.zst',
+      ),
+    ).toBe(
+      'https://raw.githubusercontent.com/T-Damer/MiniMed/datasets/manufacturer-instructions-2026.10.05-abc123/modules/minimed.medications.instructions.manufacturer-site.ru.db.zst',
+    );
   });
 });

@@ -103,11 +103,13 @@ bun scripts/repack-module-indexes-zstd.ts --family esklp|clinical --source-dir D
   [--compacted] [--catalog-out candidate.catalog.json]
 ```
 
-New modules that have no catalog artifact yet (the ГРЛС instruction groups, Allmed) go through
-`bun scripts/package-instruction-modules.ts --family grls|allmed --source-dir DIR --out-dir DIR --tag TAG
+New modules that have no catalog artifact yet (the ГРЛС instruction groups, Allmed, the manufacturer-site
+instructions) go through
+`bun scripts/package-instruction-modules.ts --family grls|allmed|manufacturer --source-dir DIR --out-dir DIR --tag TAG
 --catalog-in FILE --catalog-out FILE`, which creates or completes their catalog entries (the tags
-`grls-instructions-…` and `allmed-…` resolve to `datasets/<tag>/modules/`, like `esklp-…`). A blob must stay
-below 100 MB.
+`grls-instructions-…`, `allmed-…` and `manufacturer-instructions-…` resolve to `datasets/<tag>/modules/`, like
+`esklp-…`). `--family grls` leaves `minimed.medications.instructions.manufacturer-site.ru` alone: that module is its
+own family and collection (`manufacturer-instructions`). A blob must stay below 100 MB.
 
 The script verifies every output with the app's own decoder, writes a candidate catalog and a report
 (file, URL, sizes, checksums, mirror path) and never touches a published asset. Publishing is a

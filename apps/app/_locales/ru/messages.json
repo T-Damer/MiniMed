@@ -271,6 +271,10 @@
     "message": "Официальные инструкции ГРЛС",
     "description": "Module catalog collection id: grls-instructions"
   },
+  "collection_manufacturer-instructions": {
+    "message": "Инструкции с сайтов производителей",
+    "description": "Module catalog collection id: manufacturer-instructions"
+  },
   "collection_pediatrics": {
     "message": "Клиническая педиатрия",
     "description": "Module catalog collection id: pediatrics"

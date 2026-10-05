@@ -745,6 +745,57 @@ date, sha256, version/date as printed, OCR flag and match evidence.
   5 ambiguous. Not yet used by any pack or the app; whether to accept `label-unique` is an owner decision.
 - Generic web search for 20 missing ЖНВЛП: 0 verified official documents (reference books and aggregators only).
 
+## Manufacturer-site instruction module (M1 shipped, MED3) — 2026-10-05
+
+Owner decision D2 (2026-10-05): the collected M1 documents ship as ONE separately labelled module,
+`minimed.medications.instructions.manufacturer-site.ru` («Инструкции с сайтов производителей»), version
+`manufacturer-2026.10.05`, catalog entry `kind: medication`, `releaseState: preview`, collection
+`manufacturer-instructions` (not `grls-instructions`: the sections feature reads that collection as the per-ATC groups),
+tags `manufacturer-site`, `official-instruction`, `instructions`, `minAppVersion` 0.6.48, lexical only, search-compacted.
+
+- **Builder** `tools/ingest/src/localmed_ingest/manufacturer_instruction_modules.py`, CLI
+  `tools/ingest/scripts/build_manufacturer_instruction_module.py plan|registry|build`, tests
+  `tests/test_manufacturer_instruction_modules.py`. Flow: `registry` → `medbase prepare` (PDF: normal preparer with the macOS
+  Vision OCR fallback, so the body keeps `localmed:source` spans; DOCX: the collector's cached text written as a `format: text`
+  source) → `build` (stages only the front matter, GI1 guards, `build_content_pack` without embeddings) →
+  `medbase compact-module-search` → `scripts/package-instruction-modules.ts --family manufacturer` (disjoint from `--family grls`) →
+  `publish-module-zstd-mirror.sh --family esklp --create`. Text is never summarised or repaired. The 21 DOCX texts have
+  single-newline paragraphs, so the text preparer finds only 1–2 headings in each (the body is chunked by size); the PDFs keep
+  their headings.
+- **Acceptance.** Only `text-number` (number printed in the document), `page-number` (printed on the holder's product page) and
+  `label-unique` (name + form + holder, no number printed) count; `label-ambiguous` never attaches a document to a registration.
+  A file serves every accepted registration of every manifest row that names its sha256 (373 rows = 277 files). Of the 245
+  registrations the pilot found, **240 are accepted: 45 `text-number`, 16 `page-number`, 179 `label-unique`** (strongest level per
+  registration; as registration × document pairs 47 / 16 / 213). 5 registrations match only ambiguously and are left out
+  (`ЛП-№(004982)`, `(005347)`, `(005543)`, `(005822)`, `(015391)`), with the 5 files that carry only such matches (4 Микроген, 1 Усолье).
+  A document that also has accepted matches keeps only those registrations.
+- **272 documents** (`drug.rf.m1.<20 hex of the file sha256>.instruction`; 251 PDF + 21 DOCX; 16 OCR; none excluded by the guards),
+  5 916 sections, 7 310 chunks. Kinds (read from the text): 153 national instruction, 92 leaflet, 22 ОХЛП, 5 unclassified
+  (scans without a title). Documents / registrations by site: Микроген 103 / 103, КРКА 35 / 16, Вертекс 25 / 21, Акрихин 31 / 27,
+  Промомед 31 / 26, Реневал 27 / 26, Усолье-Сибирский 20 / 21. Documents by their weakest level: 213 `label-unique`, 15 `page-number`,
+  44 `text-number`.
+- **Provenance written to every document's metadata** (all from the manifest): `sourceClass` (`manufacturer-site`), `publisher`,
+  `site`, `tradeName`, `registrationNumber` (primary = strongest, then lowest number), `registrationNumbers`, `registrationMatches`
+  (`registrationNumber`, `tradeName`, `matchLevel`, `evidence`), `matchLevel` (the weakest accepted level of the document) and
+  `matchMethod` (`number-in-text` / `number-on-page` / `name-form-holder`), `officialSourceUrl` (the document URL, https only),
+  `pageUrl`, `fetchedAt`, `httpLastModified`, `documentRevision` (as the collector derived it, file-name dates included),
+  `instructionLabel` (only when a revision/date was printed in the text: 3 documents), `pdfSha256` (the file's sha256, also for DOCX),
+  `fileFormat`, `rawPath`, `documentKind`, `ocr`, `textExtractionMode`, `ocrEngine`/`ocrMeanConfidence` when present,
+  `qualityScore`, `ocrLowConfidenceRatio`, `pdfPageCount`, and `sourceUrls`/`pageUrls` when one file was reached by several links.
+  `sourceType` stays `official_drug_instruction`, so the registration index and the drug screen pick the documents up; the title names a
+  leaflet/ОХЛП like the GRLS ones. Rights of the holders' texts are not assessed (owner decision: shipping approved for this source).
+- **Size:** 7.34 MB download (7 340 963 B, framed zstd), 46.4 MB installed (46 444 544 B; 64.6 MB before compaction). Tag
+  `manufacturer-instructions-2026.10.05-7a74c67f575d` (12 hex of the `sourceSetDigest`), branch
+  `datasets/manufacturer-instructions-2026.10.05-7a74c67f575d` (`modules/<file>.db.zst`, created additively), SHA-256
+  `f8c4ab3c…bb420c`; the raw.githubusercontent.com URL returns the catalog's size and SHA-256 with CORS. Catalog
+  `release-0.6.48-m1.2026.10.05` (828 modules, +1); `artifact-url.ts` maps the `manufacturer-instructions-` tags; locale key
+  `collection_manufacturer-instructions` (ru/en).
+- **Verified:** python:check (1 077 tests), pack integrity and foreign keys, compaction proof, framed zstd decoded with the app's reader
+  (packaging script) and with the reference `zstd` CLI, SQLite query of the built module (272 documents, 240 distinct registration
+  numbers, `sourceClass`/`matchLevel`/`matchMethod` in every document, kinds), vitest (`catalog.preview`, `artifact-url`, shell,
+  sections, onboarding). **Not verified:** installing the module in a browser/Android profile, the drug-screen wording for this source
+  class (MED3 UI), search ranking over the mounted module, text overlap with the ГРЛС version of the same drug.
+
 ## Exact lookup (S2) — 2026-10-05
 
 - Lexical lookup no longer matches a short query word inside a longer one («боли» → `Болиголов`), drops

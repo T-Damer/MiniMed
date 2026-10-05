@@ -201,6 +201,10 @@ byte-exact and adds the manifest's kind, fetch date, OCR flag and quality values
 collector window is a new module version (or extra modules) through the same steps; a registration the daily
 loop adds reaches users only with such a refresh.
 
+The manufacturer-site documents (M1) are a separate module with their own source class, built by
+`tools/ingest/scripts/build_manufacturer_instruction_module.py` and packaged with `--family manufacturer`; see
+`CURRENT_STATE.md` «Manufacturer-site instruction module».
+
 ## Next action
 
 Continue the repaired current-site resolver in bounded eight-worker batches. Use

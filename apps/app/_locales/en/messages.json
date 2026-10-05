@@ -79,6 +79,10 @@
     "message": "Official GRLS instructions",
     "description": "Module catalog collection id: grls-instructions"
   },
+  "collection_manufacturer-instructions": {
+    "message": "Instructions from manufacturer sites",
+    "description": "Module catalog collection id: manufacturer-instructions"
+  },
   "collection_pediatrics": {
     "message": "Clinical pediatrics",
     "description": "Module catalog collection id: pediatrics"

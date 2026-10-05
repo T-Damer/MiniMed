@@ -6,13 +6,16 @@
  * validated before the candidate is written. Nothing is uploaded and the committed catalog is
  * only written with --write-catalog, after the files are published.
  *
- *   bun scripts/package-instruction-modules.ts --family grls|allmed --source-dir DIR --out-dir DIR \
+ *   bun scripts/package-instruction-modules.ts --family grls|allmed|manufacturer --source-dir DIR --out-dir DIR \
  *     --tag TAG --catalog-in FILE [--catalog-out FILE] [--write-catalog] \
  *     [--min-app-version 0.6.48] [--published-at ISO] [--catalog-version V]
  *
  * `--family grls`: every `minimed.medications.instructions.<group>.ru.db` in DIR becomes a new
  * module `kind: medication`, `releaseState: preview`, with its identity read from the database
  * (pack id/version/title, document versions and source checksums → `sourceSetDigest`).
+ * `--family manufacturer`: the one module `minimed.medications.instructions.manufacturer-site.ru.db`
+ * (instructions from the holders' own sites, not ГРЛС files; collection `manufacturer-instructions`,
+ * kept apart from the per-ATC-group `grls-instructions` modules). `grls` skips that module.
  * `--family allmed`: `minimed.medications.ru.db` completes the existing `minimed.medications.ru`
  * entry (same version and source set: installed copies stay valid); its sizes and artifact change.
  *
@@ -49,6 +52,7 @@ const CATALOG_PATH = 'apps/app/src/features/modules/catalog.preview.json';
 const RELEASE_BASE = 'https://github.com/T-Damer/MiniMed/releases/download';
 const GRLS_PREFIX = 'minimed.medications.instructions.';
 const ALLMED_ID = 'minimed.medications.ru';
+const MANUFACTURER_ID = 'minimed.medications.instructions.manufacturer-site.ru';
 
 type Raw = Record<string, unknown>;
 
@@ -162,9 +166,14 @@ const family = values.family;
 const sourceDir = values['source-dir'];
 const outDir = values['out-dir'];
 const tag = values.tag;
-if ((family !== 'grls' && family !== 'allmed') || !sourceDir || !outDir || !tag) {
+if (
+  (family !== 'grls' && family !== 'allmed' && family !== 'manufacturer') ||
+  !sourceDir ||
+  !outDir ||
+  !tag
+) {
   throw new Error(
-    'Usage: bun scripts/package-instruction-modules.ts --family grls|allmed --source-dir DIR --out-dir DIR --tag TAG [--catalog-in FILE] [--catalog-out FILE] [--write-catalog]',
+    'Usage: bun scripts/package-instruction-modules.ts --family grls|allmed|manufacturer --source-dir DIR --out-dir DIR --tag TAG [--catalog-in FILE] [--catalog-out FILE] [--write-catalog]',
   );
 }
 const minAppVersion = values['min-app-version'] as string;
@@ -177,7 +186,12 @@ ContentModuleCatalogSchema.parse(catalog);
 
 const files = readdirSync(sourceDir)
   .filter((name) => name.endsWith('.db'))
-  .filter((name) => (family === 'grls' ? name.startsWith(GRLS_PREFIX) : name === `${ALLMED_ID}.db`))
+  .filter((name) => {
+    if (family === 'allmed') return name === `${ALLMED_ID}.db`;
+    if (family === 'manufacturer') return name === `${MANUFACTURER_ID}.db`;
+    // The manufacturer module shares the prefix but is its own family and collection.
+    return name.startsWith(GRLS_PREFIX) && name !== `${MANUFACTURER_ID}.db`;
+  })
   .sort();
 if (files.length === 0) throw new Error(`No databases for family ${family} in ${sourceDir}.`);
 
@@ -267,18 +281,23 @@ for (const name of files) {
     };
   } else {
     const group = identity.id.slice(GRLS_PREFIX.length, -'.ru'.length);
+    const manufacturer = family === 'manufacturer';
     const entry: Raw = {
       id: identity.id,
       version: identity.version,
       kind: 'medication',
-      collection: 'grls-instructions',
+      collection: manufacturer ? 'manufacturer-instructions' : 'grls-instructions',
       title: identity.title,
-      description: `Официальные инструкции ГРЛС: ${GROUP_TITLES[group] ?? group}. Листки-вкладыши, инструкции по применению и ОХЛП дословно, с редакцией, источником и пометкой OCR.`,
+      description: manufacturer
+        ? 'Инструкции, взятые с сайтов держателей регистрационных удостоверений, а не файлы ГРЛС: дословно, с адресом документа, датой получения и способом сопоставления с регистрацией (номер в тексте, номер на странице или название + форма + держатель), как записано в происхождении каждого документа.'
+        : `Официальные инструкции ГРЛС: ${GROUP_TITLES[group] ?? group}. Листки-вкладыши, инструкции по применению и ОХЛП дословно, с редакцией, источником и пометкой OCR.`,
       required: false,
       releaseState: 'preview',
       specialties: [],
       populations: [],
-      tags: ['grls', 'official-instruction', 'instructions'],
+      tags: manufacturer
+        ? ['manufacturer-site', 'official-instruction', 'instructions']
+        : ['grls', 'official-instruction', 'instructions'],
       compatibility: {
         minAppVersion,
         maxAppVersion: null,
