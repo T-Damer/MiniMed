@@ -30,7 +30,7 @@ export function profilesCompatible(left: EmbeddingProfile, right: EmbeddingProfi
 
 /**
  * intfloat/multilingual-e5-small passage vectors of the released clinical-recommendation modules
- * (`tools/ingest/scripts/embed_clinical_modules_e5.py`, which holds the same literal). Queries are
+ * (`tools/ingest/scripts/embed_modules_e5.py`, which holds the same literal). Queries are
  * embedded on device with the ONNX export of the same model (`apps/app/src/features/semantic`).
  */
 export const E5_SMALL_PROFILE = {

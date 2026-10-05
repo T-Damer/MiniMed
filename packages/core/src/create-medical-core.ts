@@ -41,7 +41,9 @@ import {
   LEGACY_SEMANTIC_FUSION,
   profilesCompatible,
   type QueryEmbedder,
+  queryClauses,
   type SemanticFusion,
+  semanticStrengths,
 } from '@localmed/search-semantic';
 import type {
   LexicalHit,
@@ -837,13 +839,9 @@ function fuseSemanticResults(
   query: string,
   exactAliasDocumentIds: ReadonlySet<string>,
   fusion: SemanticFusion,
+  strengths: ReadonlyMap<string, number>,
 ): readonly SearchResult[] {
   const maximumLexical = Math.max(0.000_001, ...lexicalResults.map((result) => result.finalScore));
-  const bestCosine = Math.max(0, ...vectorHits.map((hit) => hit.score));
-  const semanticStrength = (cosine: number): number =>
-    fusion.band === undefined
-      ? Math.max(0, cosine)
-      : Math.max(0, Math.min(1, (cosine - (bestCosine - fusion.band)) / fusion.band));
   const byChunk = new Map<string, SearchResult>();
 
   if (mode === 'hybrid') {
@@ -857,7 +855,7 @@ function fuseSemanticResults(
 
   for (const hit of vectorHits) {
     const semanticScore = Math.max(0, hit.score);
-    const strength = semanticStrength(hit.score);
+    const strength = strengths.get(hit.chunk.id) ?? 0;
     const existing = byChunk.get(hit.chunk.id);
     if (!existing) {
       const result = vectorResult(hit, terms, semanticScore);
@@ -1313,6 +1311,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         const requestedMode = parsed.data.mode;
         let modeUsed: SearchResponse['modeUsed'] = 'lexical';
         let vectorHits: readonly VectorHit[] = [];
+        let semanticStrengthByChunk: ReadonlyMap<string, number> = new Map();
         let semanticStatus: SearchResponse['diagnostics']['semantic']['status'] =
           requestedMode === 'lexical' ? 'disabled' : 'fallback';
         let semanticProfileId: string | null = null;
@@ -1331,24 +1330,53 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
               semanticFallbackReason = 'embedding-profile-mismatch';
             } else {
               semanticProfileId = compatibleProfile.id;
-              const queryVector = await options.embedder.embedQuery(
-                options.embedder.input === 'original-query'
-                  ? parsed.data.query
-                  : semanticQueryText(plan.analysis),
-              );
+              const embedder = options.embedder;
+              const fusion = embedder.fusion ?? LEGACY_SEMANTIC_FUSION;
+              const original = embedder.input === 'original-query';
+              const texts = [
+                original ? parsed.data.query : semanticQueryText(plan.analysis),
+                ...(original && (fusion.clauseCoverageWeight ?? 0) > 0
+                  ? queryClauses(parsed.data.query)
+                  : []),
+              ];
+              const queryVectors = [];
+              for (const text of texts) queryVectors.push(await embedder.embedQuery(text));
               if (
-                queryVector.profileId !== compatibleProfile.id ||
-                queryVector.values.length !== compatibleProfile.dimensions
+                queryVectors.some(
+                  (vector) =>
+                    vector.profileId !== compatibleProfile.id ||
+                    vector.values.length !== compatibleProfile.dimensions,
+                )
               ) {
                 semanticFallbackReason = 'invalid-query-vector';
               } else {
-                vectorHits = await options.store.searchVector({
-                  profileId: compatibleProfile.id,
-                  vector: queryVector.values,
-                  norm: queryVector.norm,
-                  filters: parsed.data.filters,
-                  limit: Math.max(parsed.data.limit * 5, 50),
-                });
+                const hitLists = await Promise.all(
+                  queryVectors.map((vector) =>
+                    options.store.searchVector({
+                      profileId: compatibleProfile.id,
+                      vector: vector.values,
+                      norm: vector.norm,
+                      filters: parsed.data.filters,
+                      limit: Math.max(parsed.data.limit * 5, 50),
+                    }),
+                  ),
+                );
+                const byChunk = new Map<string, VectorHit>();
+                for (const hit of hitLists.flat()) {
+                  const existing = byChunk.get(hit.chunk.id);
+                  if (!existing || hit.score > existing.score) byChunk.set(hit.chunk.id, hit);
+                }
+                vectorHits = [...byChunk.values()];
+                semanticStrengthByChunk = semanticStrengths(
+                  hitLists.map((hits) =>
+                    hits.map((hit) => ({
+                      chunkId: hit.chunk.id,
+                      documentId: hit.document.id,
+                      score: hit.score,
+                    })),
+                  ),
+                  fusion,
+                );
                 if (vectorHits.length === 0) {
                   semanticFallbackReason = 'no-vector-candidates';
                 } else {
@@ -1378,6 +1406,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
                 parsed.data.query,
                 exactAliasDocumentIds,
                 options.embedder?.fusion ?? LEGACY_SEMANTIC_FUSION,
+                semanticStrengthByChunk,
               );
         // Semantic-only retrieval and hybrid truncation may discard an identity that survived
         // lexical fusion. Reuse its source-backed lexical hits before reading missing identities.
