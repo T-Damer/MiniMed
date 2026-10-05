@@ -30,6 +30,66 @@
   height: 1.1rem;
 }
 
+/* Discovery button: a «⋯» on the item's corner that opens the same menu as right click. */
+.app-context-menu__discover {
+  position: absolute;
+  z-index: var(--z-raised);
+  top: -0.25rem;
+  right: -0.25rem;
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--theme-border);
+  border-radius: 50%;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-raised);
+  box-shadow: 0 0.1rem 0.4rem rgb(0 0 0 / 14%);
+  cursor: pointer;
+  /* Touch and anything without hover: always there, but quiet. */
+  opacity: 0.7;
+  transition:
+    opacity var(--theme-motion-control),
+    transform var(--theme-motion-control);
+}
+
+.app-context-menu__discover::after {
+  position: absolute;
+  inset: -0.45rem;
+  content: "";
+}
+
+.app-context-menu__discover-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+/*
+ * With a mouse the hover area is the stable item itself; only the button fades and scales in. It
+ * ignores the pointer while hidden, so it can never be what keeps the item hovered.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .app-context-menu__discover {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.8);
+  }
+
+  .app-context-menu__trigger:hover > .app-context-menu__discover,
+  .app-context-menu__trigger:has(:focus-visible) > .app-context-menu__discover,
+  .app-context-menu__trigger[data-expanded] > .app-context-menu__discover,
+  .app-context-menu__discover:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+  }
+
+  .app-context-menu__discover:hover {
+    color: var(--theme-text);
+  }
+}
+
 .app-context-menu {
   z-index: var(--z-overlay);
   width: min(20rem, calc(100vw - 1.5rem));

@@ -39,6 +39,7 @@ import cubeBold from '@phosphor-icons/core/assets/bold/cube-bold.svg?raw';
 import diamondsFourBold from '@phosphor-icons/core/assets/bold/diamonds-four-bold.svg?raw';
 import diceFiveBold from '@phosphor-icons/core/assets/bold/dice-five-bold.svg?raw';
 import discBold from '@phosphor-icons/core/assets/bold/disc-bold.svg?raw';
+import dotsThreeBold from '@phosphor-icons/core/assets/bold/dots-three-bold.svg?raw';
 import dotsThreeVerticalBold from '@phosphor-icons/core/assets/bold/dots-three-vertical-bold.svg?raw';
 import downloadSimpleBold from '@phosphor-icons/core/assets/bold/download-simple-bold.svg?raw';
 import envelopeSimpleBold from '@phosphor-icons/core/assets/bold/envelope-simple-bold.svg?raw';
@@ -213,6 +214,7 @@ export type AppGlyphName =
   | 'diamonds-four'
   | 'dice'
   | 'disc'
+  | 'dots-three'
   | 'dots-three-vertical'
   | 'file-pdf'
   | 'file-doc'
@@ -344,6 +346,7 @@ const glyphBodies: Record<AppGlyphName, string> = {
   'diamonds-four': svgBody(diamondsFourBold),
   dice: svgBody(diceFiveBold),
   disc: svgBody(discBold),
+  'dots-three': svgBody(dotsThreeBold),
   'dots-three-vertical': svgBody(dotsThreeVerticalBold),
   'file-pdf': svgBody(filePdfBold),
   'file-doc': svgBody(fileDocBold),

@@ -20,6 +20,17 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Discoverable item menu — 2026-10-05
+
+- Document and folder cards in «Мои файлы» (the only list items that carry the right-click /
+  long-press menu; the knowledge-base lists have none) now show a «⋯» button («Действия с документом»
+  / «Действия с папкой») at the card's top-right corner (`-0.25rem`), via `AppContextMenu`
+  `discoverLabel` (`.app-context-menu__discover`). It opens the same menu, anchored under the button.
+  With a mouse it fades and scales in on hover of the stable card or keyboard focus (hidden, it is
+  `pointer-events: none`, so it cannot feed hover flicker); on touch it is always visible but quiet
+  (opacity 0.7, 1.5 rem with a larger tap area) next to the unchanged long-press. Cards themselves
+  are not tab stops; the button is. E2E: `user-library-doc-menu.spec.ts`.
+
 ## Official forms — 070/у — 2026-10-05 (STATE F1)
 
 - «Формы» (notes → forms, «Мои файлы» → «Формы», patient card → «Заполнить форму»): the first form is

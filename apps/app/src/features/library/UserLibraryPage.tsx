@@ -1502,7 +1502,7 @@ export function UserLibraryPage(props: {
       <AppContextMenu
         class={`user-library-card-menu user-library-card-menu--${viewMode()}`}
         actions={documentActions(props.document)}
-        buttonLabel={`Действия с документом «${props.document.title}»`}
+        discoverLabel="Действия с документом"
         hideButton
       >
         <article
@@ -1758,7 +1758,7 @@ export function UserLibraryPage(props: {
       <AppContextMenu
         class={`user-library-folder-menu user-library-folder-menu--${viewMode()}`}
         actions={isEntry() ? [] : folderActions(props.folder)}
-        buttonLabel={`Действия с папкой «${props.folder.title}»`}
+        discoverLabel="Действия с папкой"
         hideButton
       >
         <article

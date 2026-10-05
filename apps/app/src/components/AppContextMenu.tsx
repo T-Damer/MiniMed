@@ -29,6 +29,12 @@ interface AppContextMenuProps {
   readonly buttonIcon?: AppGlyphName;
   readonly buttonClass?: string;
   readonly hideButton?: boolean;
+  /**
+   * Accessible name of a small «⋯» button that opens this menu from the item's corner. It shows on
+   * hover and keyboard focus (always, subtly, on touch) so the right-click / long-press menu is
+   * discoverable. Pair it with `hideButton`; the inline `buttonLabel` button is a different design.
+   */
+  readonly discoverLabel?: string;
   readonly class?: string;
 }
 
@@ -196,6 +202,17 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
             <Show when={props.buttonIcon} fallback={<span aria-hidden="true">•••</span>}>
               {(icon) => <AppGlyph name={icon()} class="app-context-menu__more-icon" />}
             </Show>
+          </button>
+        </Show>
+        <Show when={props.discoverLabel && props.actions.length > 0}>
+          <button
+            type="button"
+            class="app-context-menu__discover"
+            aria-label={props.discoverLabel}
+            title={props.discoverLabel}
+            onClick={requestContextMenu}
+          >
+            <AppGlyph name="dots-three" class="app-context-menu__discover-icon" />
           </button>
         </Show>
       </ContextMenu.Trigger>
