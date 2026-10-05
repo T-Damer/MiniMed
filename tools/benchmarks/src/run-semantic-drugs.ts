@@ -158,7 +158,8 @@ for (const mode of MODES) {
     hit1 += Number(relevant[0] === true);
     hit5 += Number(relevant.some(Boolean));
     precision5 += relevant.filter(Boolean).length / 5;
-    const perMode = (examples[item.id] ??= { lexical: [], hybrid: [], semantic: [] });
+    const perMode = examples[item.id] ?? { lexical: [], hybrid: [], semantic: [] };
+    examples[item.id] = perMode;
     perMode[mode] = top.map(
       (group, index) => `${relevant[index] ? '+' : '-'}${group.title.slice(0, 40)}`,
     );

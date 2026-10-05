@@ -16,6 +16,7 @@ import { env, pipeline } from '@huggingface/transformers';
 import type { SearchRequest } from '@localmed/contracts';
 import { createMedicalCore } from '@localmed/core';
 import {
+  E5_SMALL_FUSION,
   E5_SMALL_PROFILE,
   LEGACY_SEMANTIC_FUSION,
   NeuralQueryEmbedder,
@@ -90,22 +91,7 @@ for (const method of ['search', 'searchVector'] as const) {
 
 const FUSIONS: Record<string, SemanticFusion> = {
   legacy: LEGACY_SEMANTIC_FUSION,
-  'b.05 lex.78': {
-    band: 0.05,
-    lexicalWeight: 0.78,
-    vectorOnlyWeight: 0.62,
-    corroborationWeight: 0.22,
-  },
-  'b.10 lex.78': {
-    band: 0.1,
-    lexicalWeight: 0.78,
-    vectorOnlyWeight: 0.62,
-    corroborationWeight: 0.22,
-  },
-  'b.05 lex.5': { band: 0.05, lexicalWeight: 0.5, vectorOnlyWeight: 0.8, corroborationWeight: 0.3 },
-  'b.10 lex.5': { band: 0.1, lexicalWeight: 0.5, vectorOnlyWeight: 0.8, corroborationWeight: 0.3 },
-  'b.05 lex.3': { band: 0.05, lexicalWeight: 0.3, vectorOnlyWeight: 1, corroborationWeight: 0.3 },
-  'b.10 lex.3': { band: 0.1, lexicalWeight: 0.3, vectorOnlyWeight: 1, corroborationWeight: 0.3 },
+  e5: E5_SMALL_FUSION,
 };
 const cores = new Map<string, ReturnType<typeof createMedicalCore>>();
 for (const [name, fusion] of Object.entries(FUSIONS)) {
