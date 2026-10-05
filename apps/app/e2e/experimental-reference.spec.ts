@@ -39,9 +39,10 @@ for (const width of [375, 1280]) {
       .getByRole('button', { name: 'Поиск', exact: true })
       .click();
     await allTools.click();
-    // «Справочное» holds only the draft dictionary, so the section goes with it.
+    // «Справочное» keeps the vaccination calendar, which is not experimental; the dictionary goes.
     await expect(sheet.getByRole('heading', { name: 'Приём' })).toBeVisible();
-    await expect(sheet.getByRole('heading', { name: 'Справочное' })).toHaveCount(0);
+    await expect(sheet.getByRole('heading', { name: 'Справочное' })).toBeVisible();
+    await expect(sheet.getByText('Календарь прививок', { exact: true })).toBeVisible();
     await expect(sheet.getByText('Словарь терминов', { exact: true })).toHaveCount(0);
   });
 }
