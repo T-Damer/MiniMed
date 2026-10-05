@@ -249,6 +249,8 @@ const NAVIGATION_DOCUMENT_SELECT = `
       'conceptId', json_extract(d.metadata_json, '$.conceptId'),
       'sourceType', json_extract(d.metadata_json, '$.sourceType'),
       'mkbCode', json_extract(d.metadata_json, '$.mkbCode'),
+      'icd10Codes', json_extract(d.metadata_json, '$.icd10Codes'),
+      'nameLat', json_extract(d.metadata_json, '$.nameLat'),
       'contentMode', json_extract(d.metadata_json, '$.contentMode'),
       'targetDocumentId', json_extract(d.metadata_json, '$.targetDocumentId'),
       'canonicalDefinition', json_extract(d.metadata_json, '$.canonicalDefinition'),
@@ -489,7 +491,11 @@ export class CapacitorMedicalStore implements MedicalStore {
         -- for example) must collapse into one search-result group before the ranker cuts to a fixed
         -- result count (query-group-ranking.ts::collapseGroupsByTargetDocument); that pass needs this
         -- field on the same lean search projection every ranked document goes through.
-        'targetDocumentId', json_extract(metadata_json, '$.targetDocumentId')
+        'targetDocumentId', json_extract(metadata_json, '$.targetDocumentId'),
+        -- Query-time identity bridges (S3): МКБ codes and the Latin name of a drug.
+        'icd10Codes', json_extract(metadata_json, '$.icd10Codes'),
+        'mkbCode', json_extract(metadata_json, '$.mkbCode'),
+        'nameLat', json_extract(metadata_json, '$.nameLat')
       ) AS metadata_json FROM documents ORDER BY title COLLATE NOCASE, id
     `)
       .then((rows) =>

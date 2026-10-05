@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createBunFileMedicalStore } from '@localmed/benchmarks/bun-sqlite-medical-store';
 import type { MedicalCore, MedicalDocumentSummary } from '@localmed/contracts';
-import { createMedicalCore } from '@localmed/core';
+import { type CreateMedicalCoreOptions, createMedicalCore } from '@localmed/core';
 import type { QueryEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
 
@@ -52,6 +52,8 @@ export async function openRealCorpus(
       readonly moduleId: string;
       readonly path: string;
     }[];
+    /** Extra `createMedicalCore` options (feature switches measured before/after). */
+    readonly coreOptions?: Partial<CreateMedicalCoreOptions>;
   } = {},
 ): Promise<RealCorpus> {
   const corePath = options.corePath ? resolve(options.corePath) : resolve(CONTENT, 'core.db');
@@ -88,6 +90,9 @@ export async function openRealCorpus(
     store,
     platform: 'test',
     ...(options.embedder ? { embedder: options.embedder } : {}),
+    // `S3_OFF=1` measures the state before roadmap item 3 (name variants).
+    ...(process.env['S3_OFF'] ? { nameVariants: false } : {}),
+    ...options.coreOptions,
   });
   const initialized = await core.initialize();
   if (!initialized.ok) throw new Error(initialized.error.message);

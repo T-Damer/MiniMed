@@ -316,6 +316,28 @@ export interface QueryCorrection {
   readonly corrections: readonly QueryWordCorrection[];
 }
 
+/**
+ * How a typed name was reinterpreted when the typed form named nothing in the searched documents
+ * (roadmap item 3): `layout` — the same keys on the other keyboard layout («vtnajhvby» →
+ * «метформин»); `transliteration` — a Latin spelling read as a Russian name («nurofen» →
+ * «нурофен»); `layout-transliteration` — Latin typed on the Russian layout («ьуеащкьшт» →
+ * «метформин»); `latin-name` — the declared Latin name of a drug («Nurofen» → «Нурофен»).
+ */
+export type QueryRewriteKind =
+  | 'layout'
+  | 'transliteration'
+  | 'layout-transliteration'
+  | 'latin-name';
+
+/**
+ * Present only when a rewrite of the typed query produced `SearchResponse.groups`: the typed query
+ * itself found no title or alias naming it. UI copy: «Показаны результаты по: {query}».
+ */
+export interface QueryRewrite {
+  readonly kind: QueryRewriteKind;
+  readonly query: string;
+}
+
 export interface SearchResponse {
   /** Exact source names outside clinical FTS; each target must be resolved before opening. */
   readonly identities?: readonly CoreIdentityHit[];
@@ -329,4 +351,6 @@ export interface SearchResponse {
   readonly diagnostics: SearchDiagnostics;
   /** Present only when the corpus-typo fallback corrected and re-ran the query; see above. */
   readonly queryCorrection?: QueryCorrection;
+  /** Present only when the layout / transliteration fallback replaced the typed query. */
+  readonly queryRewrite?: QueryRewrite;
 }

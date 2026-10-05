@@ -1267,6 +1267,18 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
                   </div>
                 </Show>
 
+                <Show when={props.scope !== 'personal' ? response()?.queryRewrite : undefined}>
+                  {(rewrite) => (
+                    <div
+                      class="results-refreshing-note search-rewrite-note"
+                      role="status"
+                      data-testid="search-rewrite-note"
+                    >
+                      Показаны результаты по: «{rewrite().query}»
+                    </div>
+                  )}
+                </Show>
+
                 <Show when={requestedInlineCalculator() ? undefined : calculatorSuggestion()}>
                   {(suggestion) => (
                     <CalculatorSuggestionCard

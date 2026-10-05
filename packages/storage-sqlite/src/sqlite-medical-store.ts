@@ -285,11 +285,15 @@ const SEARCH_METADATA_FIELDS = [
   // (packages/core/src/query-group-ranking.ts::collapseGroupsByTargetDocument); that pass needs
   // this field on the same lean search projection every ranked document goes through.
   'targetDocumentId',
+  // Query-time identity bridges (S3): МКБ codes of a card or recommendation (diagnosis → code →
+  // recommendations) and the Latin name of a drug («nurofen» → «Нурофен»).
+  'icd10Codes',
+  'mkbCode',
+  'nameLat',
 ] as const;
 const NAVIGATION_METADATA_FIELDS = [
   ...SEARCH_METADATA_FIELDS,
   'sourceType',
-  'mkbCode',
   'canonicalDefinition',
   'primaryModuleId',
   'moduleIds',

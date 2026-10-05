@@ -19,6 +19,7 @@ export * from './intent';
 export * from './lookup-subject';
 export { buildLookupQueryPlan } from './medication-lookup';
 export * from './medication-spelling';
+export * from './name-variants';
 export * from './normalize';
 export * from './query';
 export type { DistanceOptions, ExtractMatch, ExtractOptions, SimilarityOptions } from './rapidfuzz';

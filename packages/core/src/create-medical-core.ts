@@ -16,6 +16,7 @@ import {
   type QueryAnalysis,
   type Result,
   type SearchFilters,
+  type SearchRequest,
   SearchRequestSchema,
   type SearchResponse,
   type SearchResult,
@@ -60,6 +61,7 @@ import {
   toMedicalDocument,
   toMedicalSection,
 } from './mappers';
+import { nameVariantCandidates, responseNamesQuery } from './name-variant-fallback';
 import { QueryDocumentIndex } from './query-document-index';
 import {
   collapseGroupsByTargetDocument,
@@ -79,6 +81,8 @@ export interface CreateMedicalCoreOptions {
   readonly platform?: CoreCapabilities['platform'];
   readonly embedder?: QueryEmbedder;
   readonly searchExecution?: CoreCapabilities['searchExecution'];
+  /** S3 switch, on by default; benchmarks turn it off to measure before/after. */
+  readonly nameVariants?: boolean;
 }
 
 interface BranchContribution {
@@ -652,6 +656,7 @@ async function buildExactIdentityResults(
       terms,
       filters: { ...filters, documentIds: remaining },
       limit: Math.min(500, remaining.length * 8),
+      diversifyDocuments: false,
     });
     for (const hit of hits) {
       if (!found.has(hit.document.id)) {
@@ -1085,6 +1090,373 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     };
   };
 
+  const runSearch = async (
+    request: SearchRequest,
+  ): Promise<Result<SearchResponse, LocalMedError>> => {
+    const startedAt = performance.now();
+    const parsed = { data: request };
+
+    try {
+      const aliasesResult = await getAliases();
+      if (!aliasesResult.ok) return err(aliasesResult.error);
+      if (
+        parsed.data.analysisMode === 'lookup' &&
+        lookupExpansion?.aliases !== aliasesResult.value
+      ) {
+        lookupExpansion = {
+          aliases: aliasesResult.value,
+          expand: createAliasExpander(aliasesResult.value),
+        };
+      }
+      // Subject-based pruning of lookup results is a lexical-search rule: a hybrid result often
+      // reaches a document whose title lacks the typed words, by meaning.
+      const lexicalOnly = parsed.data.mode === 'lexical' || !options.embedder;
+      let plan: ReturnType<typeof buildLookupQueryPlan> =
+        parsed.data.analysisMode === 'lookup'
+          ? buildLookupQueryPlan(
+              parsed.data.query,
+              aliasesResult.value,
+              lookupExpansion?.expand(parsed.data.query),
+              { boundShortTerms: lexicalOnly },
+            )
+          : analyzeClinicalQuery(
+              parsed.data.query,
+              aliasesResult.value,
+              parsed.data.includeSuggestions,
+            );
+      const identities =
+        parsed.data.analysisMode === 'lookup' &&
+        !parsed.data.filters.specialties?.length &&
+        !parsed.data.filters.ageGroups?.length &&
+        !parsed.data.filters.sectionTypes?.length
+          ? ((await options.store.lookupCoreIdentities?.(parsed.data.query)) ?? []).filter(
+              (hit) =>
+                !parsed.data.filters.documentIds?.length ||
+                (hit.target.type === 'document' &&
+                  parsed.data.filters.documentIds.includes(hit.target.documentId)),
+            )
+          : [];
+      if (plan.branches.length === 0 && identities.length === 0) {
+        return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
+      }
+
+      const documents = await getSearchDocuments();
+      if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
+        queryDocumentIndex = new QueryDocumentIndex(documents);
+        terminologyIndex = new TerminologySearchIndex(documents);
+        indexedDocuments = documents;
+      }
+      const documentIndex = queryDocumentIndex;
+      const termIndex = terminologyIndex;
+      const terminologyMatch =
+        parsed.data.analysisMode === 'lookup' ? termIndex.match(parsed.data.query) : undefined;
+      const terminologySearches = terminologyMatch
+        ? termIndex.searches(terminologyMatch, parsed.data.filters)
+        : [];
+      const perBranchLimit = Math.max(parsed.data.limit * 5, 50);
+      const runBranchSearches = (
+        searches: readonly {
+          readonly branch: (typeof plan.branches)[number];
+          readonly filters: SearchFilters;
+        }[],
+      ) =>
+        Promise.all(
+          searches.map(async ({ branch, filters }) => {
+            const branchStartedAt = performance.now();
+            const hits = await options.store.search({
+              ftsQuery: branch.ftsQuery,
+              terms: branch.terms,
+              filters,
+              limit: perBranchLimit,
+              diversifyDocuments: parsed.data.analysisMode === 'lookup',
+            });
+            return {
+              branch,
+              hits,
+              diagnostics: {
+                id: branch.id,
+                label: branch.label,
+                ftsQuery: branch.ftsQuery,
+                candidateCount: hits.length,
+                elapsedMs: performance.now() - branchStartedAt,
+                weight: branch.weight,
+              },
+            };
+          }),
+        );
+      const spelling = 'medicationSpelling' in plan ? plan.medicationSpelling : undefined;
+      const baseBranches = spelling ? spelling.withoutSpelling.branches : plan.branches;
+      const [baseSearches, terminologyBranchSearches] = await Promise.all([
+        runBranchSearches(baseBranches.map((branch) => ({ branch, filters: parsed.data.filters }))),
+        runBranchSearches(terminologySearches),
+      ]);
+      let spellingSearches: Awaited<ReturnType<typeof runBranchSearches>> = [];
+      if (spelling) {
+        if (
+          hitsContainExactSubject(
+            [...baseSearches, ...terminologyBranchSearches].flatMap(({ hits }) => hits),
+            spelling.subject,
+          )
+        ) {
+          // The typed word exists in the searched source text, so it is not a misspelling here.
+          plan = spelling.withoutSpelling;
+        } else {
+          const baseIds = new Set(baseBranches.map((branch) => branch.id));
+          spellingSearches = await runBranchSearches(
+            plan.branches
+              .filter((branch) => !baseIds.has(branch.id))
+              .map((branch) => ({ branch, filters: parsed.data.filters })),
+          );
+        }
+      }
+      // A query that names an audience («менингит у ребёнка») also asks the title column for the
+      // subject and the audience together («Вирусные менингиты у детей»): the body text of hundreds
+      // of other mentions would otherwise leave that title out of the candidate window.
+      const titleRescue = lexicalOnly ? plan.lookupTitleRescue : undefined;
+      const titleSearches = titleRescue
+        ? await runBranchSearches([{ branch: titleRescue.branch, filters: parsed.data.filters }])
+        : [];
+      const branchSearches = [
+        ...baseSearches,
+        ...spellingSearches,
+        ...terminologyBranchSearches,
+        ...titleSearches,
+      ];
+      const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
+      const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
+
+      const exactAliasDocumentIds = new Set([
+        ...documentIndex.exactAliasIds(parsed.data.query),
+        ...(terminologyMatch?.documents.map((entry) => entry.documentId) ?? []),
+        ...(terminologyMatch?.related.map((entry) => entry.documentId) ?? []),
+      ]);
+      const exactTitleDocumentIds = documentIndex.exactTitleIds(parsed.data.query);
+      const exactNavigationAliasDocumentIds = documentIndex.exactNavigationAliasIds(
+        parsed.data.query,
+      );
+      const exactShortTitleDocumentIds = documentIndex.exactShortTitleIds(parsed.data.query);
+      const exactSecondaryIdentityDocumentIds = new Set([
+        ...exactNavigationAliasDocumentIds,
+        ...exactShortTitleDocumentIds,
+      ]);
+      const exactIdentityDocumentIds = new Set([
+        ...exactTitleDocumentIds,
+        ...exactSecondaryIdentityDocumentIds,
+      ]);
+      // Spelling alternatives are navigation candidates, never exact matches or medication facts.
+      const spellingDocumentIds = new Set(
+        ('medicationSpellingNames' in plan ? (plan.medicationSpellingNames ?? []) : [])
+          .flatMap((name) => [...documentIndex.exactIdentityIds(name)])
+          .slice(0, 40),
+      );
+      // Keep exact names and every declared meaning through the chunk cutoff for document ranking.
+      const lexicalResults = fuseBranchHits(
+        branchHits,
+        perBranchLimit,
+        parsed.data.query,
+        exactAliasDocumentIds,
+        lexicalOnly && parsed.data.analysisMode === 'lookup',
+      );
+      const requestedMode = parsed.data.mode;
+      let modeUsed: SearchResponse['modeUsed'] = 'lexical';
+      let vectorHits: readonly VectorHit[] = [];
+      let semanticStatus: SearchResponse['diagnostics']['semantic']['status'] =
+        requestedMode === 'lexical' ? 'disabled' : 'fallback';
+      let semanticProfileId: string | null = null;
+      let semanticElapsedMs = 0;
+      let semanticFallbackReason: string | null =
+        requestedMode === 'lexical' ? null : 'query-embedder-unavailable';
+
+      if (requestedMode !== 'lexical' && options.embedder) {
+        const semanticStartedAt = performance.now();
+        try {
+          const profiles = await options.store.listEmbeddingProfiles();
+          const compatibleProfile = profiles.find((profile) =>
+            profilesCompatible(profile, options.embedder?.profile ?? profile),
+          );
+          if (!compatibleProfile) {
+            semanticFallbackReason = 'embedding-profile-mismatch';
+          } else {
+            semanticProfileId = compatibleProfile.id;
+            const queryVector = await options.embedder.embedQuery(
+              options.embedder.input === 'original-query'
+                ? parsed.data.query
+                : semanticQueryText(plan.analysis),
+            );
+            if (
+              queryVector.profileId !== compatibleProfile.id ||
+              queryVector.values.length !== compatibleProfile.dimensions
+            ) {
+              semanticFallbackReason = 'invalid-query-vector';
+            } else {
+              vectorHits = await options.store.searchVector({
+                profileId: compatibleProfile.id,
+                vector: queryVector.values,
+                norm: queryVector.norm,
+                filters: parsed.data.filters,
+                limit: Math.max(parsed.data.limit * 5, 50),
+              });
+              if (vectorHits.length === 0) {
+                semanticFallbackReason = 'no-vector-candidates';
+              } else {
+                semanticStatus = 'used';
+                semanticFallbackReason = null;
+                modeUsed = requestedMode === 'semantic' ? 'semantic' : 'hybrid';
+              }
+            }
+          }
+        } catch (error) {
+          semanticFallbackReason =
+            error instanceof Error ? `semantic-error:${error.message}` : 'semantic-error';
+        } finally {
+          semanticElapsedMs = performance.now() - semanticStartedAt;
+        }
+      }
+
+      const rankedResults =
+        modeUsed === 'lexical'
+          ? lexicalResults
+          : fuseSemanticResults(
+              lexicalResults,
+              vectorHits,
+              plan.terms,
+              modeUsed,
+              perBranchLimit,
+              parsed.data.query,
+              exactAliasDocumentIds,
+              options.embedder?.fusion ?? LEGACY_SEMANTIC_FUSION,
+            );
+      // Semantic-only retrieval and hybrid truncation may discard an identity that survived
+      // lexical fusion. Reuse its source-backed lexical hits before reading missing identities.
+      const retainedResults = mergeExactIdentityResults(
+        rankedResults,
+        lexicalResults.filter((result) => exactIdentityDocumentIds.has(result.documentId)),
+      );
+      const retainedDocumentIds = new Set(retainedResults.map((result) => result.documentId));
+      const missingExactIdentityDocumentIds = new Set(
+        [...exactIdentityDocumentIds].filter((documentId) => !retainedDocumentIds.has(documentId)),
+      );
+      const exactIdentityResults = await buildExactIdentityResults(
+        options.store,
+        missingExactIdentityDocumentIds,
+        parsed.data.filters,
+        plan.terms,
+        baseBranches.slice(0, 1).map((branch) => branch.ftsQuery),
+      );
+      const spellingResults = await buildExactIdentityResults(
+        options.store,
+        new Set([...spellingDocumentIds].filter((id) => !retainedDocumentIds.has(id))),
+        parsed.data.filters,
+        plan.terms,
+        spellingSearches.map(({ branch }) => branch.ftsQuery),
+        true,
+      );
+      const availableDocumentIds = documentIndex.availableIds;
+      const results = filterSupersededSummaryResults(
+        mergeExactIdentityResults(retainedResults, [...exactIdentityResults, ...spellingResults]),
+        availableDocumentIds,
+      );
+      const candidateIds = new Set([
+        ...branchHits.flatMap((item) => item.hits.map((hit) => hit.chunk.id)),
+        ...vectorHits.map((hit) => hit.chunk.id),
+        ...exactIdentityResults.map((result) => result.chunkId),
+        ...spellingResults.map((result) => result.chunkId),
+      ]);
+      const groupedResults = filterSuffixFallbackGroups(
+        groupResults(
+          results,
+          requestedSectionType(plan.analysis.normalizedQuery),
+          !/ограничен/u.test(plan.analysis.normalizedQuery),
+          plan.analysis.normalizedQuery,
+          plan.terms,
+          aliasesResult.value,
+          [...new Set(results.map((result) => result.documentId))].flatMap((id) => {
+            const document = documentIndex.byId.get(id);
+            return document ? [document] : [];
+          }),
+          plan.analysis,
+          lexicalOnly ? plan.lookupTermGroups : undefined,
+        ),
+        plan.analysis.normalizedQuery,
+        aliasesResult.value,
+        new Set([...exactIdentityDocumentIds, ...spellingDocumentIds]),
+      );
+      const subjectGroups =
+        parsed.data.analysisMode === 'lookup' && lexicalOnly && !terminologyMatch
+          ? dropGroupsWithoutSubject(
+              groupedResults,
+              plan.lookupTermGroups,
+              new Set([
+                ...exactIdentityDocumentIds,
+                ...spellingDocumentIds,
+                ...exactAliasDocumentIds,
+              ]),
+            )
+          : groupedResults;
+      const rankedGroups = termIndex
+        .rank(subjectGroups, terminologyMatch)
+        .toSorted(
+          (left, right) =>
+            Number(exactTitleDocumentIds.has(right.documentId)) -
+              Number(exactTitleDocumentIds.has(left.documentId)) ||
+            Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
+              Number(exactSecondaryIdentityDocumentIds.has(left.documentId)) ||
+            Number(spellingDocumentIds.has(right.documentId)) -
+              Number(spellingDocumentIds.has(left.documentId)),
+        );
+      return ok({
+        requestId: requestId(),
+        identities,
+        normalizedQuery: plan.analysis.normalizedQuery,
+        elapsedMs: performance.now() - startedAt,
+        modeUsed,
+        analysis: plan.analysis,
+        suggestions: plan.analysis.suggestions,
+        groups: collapseGroupsByTargetDocument(rankedGroups, documentIndex.byId).slice(
+          0,
+          parsed.data.limit,
+        ),
+        diagnostics: {
+          ftsQuery: branchDiagnostics.map((branch) => branch.ftsQuery).join(' || '),
+          candidateCount: candidateIds.size,
+          aliasMatches: plan.aliasMatches,
+          terms: plan.terms,
+          branches: branchDiagnostics,
+          semantic: {
+            status: semanticStatus,
+            requestedMode,
+            profileId: semanticProfileId,
+            candidateCount: vectorHits.length,
+            elapsedMs: semanticElapsedMs,
+            fallbackReason: semanticFallbackReason,
+          },
+        },
+      });
+    } catch (error) {
+      return err(asLocalMedError(error));
+    }
+  };
+
+  /** Item 3 (S3): see `name-variant-fallback.ts`; the typed query's response stays unless replaced. */
+  const withNameVariantFallback = async (
+    request: SearchRequest,
+    primary: SearchResponse,
+    index: QueryDocumentIndex,
+  ): Promise<Result<SearchResponse, LocalMedError>> => {
+    if (responseNamesQuery(primary, request.query, index)) return ok(primary);
+    for (const candidate of nameVariantCandidates(request.query, index)) {
+      const alternative = await runSearch({ ...request, query: candidate.query });
+      if (!alternative.ok || !responseNamesQuery(alternative.value, candidate.query, index))
+        continue;
+      return ok({
+        ...alternative.value,
+        elapsedMs: primary.elapsedMs + alternative.value.elapsedMs,
+        queryRewrite: { kind: candidate.kind, query: candidate.query },
+      });
+    }
+    return ok(primary);
+  };
+
   return {
     initialize,
 
@@ -1184,7 +1556,6 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
     },
 
     async search(untrustedRequest): Promise<Result<SearchResponse, LocalMedError>> {
-      const startedAt = performance.now();
       const parsed = SearchRequestSchema.safeParse(untrustedRequest);
       if (!parsed.success) {
         return err(
@@ -1193,349 +1564,15 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
           }),
         );
       }
-
-      try {
-        const aliasesResult = await getAliases();
-        if (!aliasesResult.ok) return err(aliasesResult.error);
-        if (
-          parsed.data.analysisMode === 'lookup' &&
-          lookupExpansion?.aliases !== aliasesResult.value
-        ) {
-          lookupExpansion = {
-            aliases: aliasesResult.value,
-            expand: createAliasExpander(aliasesResult.value),
-          };
-        }
-        // Subject-based pruning of lookup results is a lexical-search rule: a hybrid result often
-        // reaches a document whose title lacks the typed words, by meaning.
-        const lexicalOnly = parsed.data.mode === 'lexical' || !options.embedder;
-        let plan: ReturnType<typeof buildLookupQueryPlan> =
-          parsed.data.analysisMode === 'lookup'
-            ? buildLookupQueryPlan(
-                parsed.data.query,
-                aliasesResult.value,
-                lookupExpansion?.expand(parsed.data.query),
-                { boundShortTerms: lexicalOnly },
-              )
-            : analyzeClinicalQuery(
-                parsed.data.query,
-                aliasesResult.value,
-                parsed.data.includeSuggestions,
-              );
-        const identities =
-          parsed.data.analysisMode === 'lookup' &&
-          !parsed.data.filters.specialties?.length &&
-          !parsed.data.filters.ageGroups?.length &&
-          !parsed.data.filters.sectionTypes?.length
-            ? ((await options.store.lookupCoreIdentities?.(parsed.data.query)) ?? []).filter(
-                (hit) =>
-                  !parsed.data.filters.documentIds?.length ||
-                  (hit.target.type === 'document' &&
-                    parsed.data.filters.documentIds.includes(hit.target.documentId)),
-              )
-            : [];
-        if (plan.branches.length === 0 && identities.length === 0) {
-          return err(localMedError('INVALID_REQUEST', 'Search query has no searchable terms.'));
-        }
-
-        const documents = await getSearchDocuments();
-        if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
-          queryDocumentIndex = new QueryDocumentIndex(documents);
-          terminologyIndex = new TerminologySearchIndex(documents);
-          indexedDocuments = documents;
-        }
-        const documentIndex = queryDocumentIndex;
-        const termIndex = terminologyIndex;
-        const terminologyMatch =
-          parsed.data.analysisMode === 'lookup' ? termIndex.match(parsed.data.query) : undefined;
-        const terminologySearches = terminologyMatch
-          ? termIndex.searches(terminologyMatch, parsed.data.filters)
-          : [];
-        const perBranchLimit = Math.max(parsed.data.limit * 5, 50);
-        const runBranchSearches = (
-          searches: readonly {
-            readonly branch: (typeof plan.branches)[number];
-            readonly filters: SearchFilters;
-          }[],
-        ) =>
-          Promise.all(
-            searches.map(async ({ branch, filters }) => {
-              const branchStartedAt = performance.now();
-              const hits = await options.store.search({
-                ftsQuery: branch.ftsQuery,
-                terms: branch.terms,
-                filters,
-                limit: perBranchLimit,
-                diversifyDocuments: parsed.data.analysisMode === 'lookup',
-              });
-              return {
-                branch,
-                hits,
-                diagnostics: {
-                  id: branch.id,
-                  label: branch.label,
-                  ftsQuery: branch.ftsQuery,
-                  candidateCount: hits.length,
-                  elapsedMs: performance.now() - branchStartedAt,
-                  weight: branch.weight,
-                },
-              };
-            }),
-          );
-        const spelling = 'medicationSpelling' in plan ? plan.medicationSpelling : undefined;
-        const baseBranches = spelling ? spelling.withoutSpelling.branches : plan.branches;
-        const [baseSearches, terminologyBranchSearches] = await Promise.all([
-          runBranchSearches(
-            baseBranches.map((branch) => ({ branch, filters: parsed.data.filters })),
-          ),
-          runBranchSearches(terminologySearches),
-        ]);
-        let spellingSearches: Awaited<ReturnType<typeof runBranchSearches>> = [];
-        if (spelling) {
-          if (
-            hitsContainExactSubject(
-              [...baseSearches, ...terminologyBranchSearches].flatMap(({ hits }) => hits),
-              spelling.subject,
-            )
-          ) {
-            // The typed word exists in the searched source text, so it is not a misspelling here.
-            plan = spelling.withoutSpelling;
-          } else {
-            const baseIds = new Set(baseBranches.map((branch) => branch.id));
-            spellingSearches = await runBranchSearches(
-              plan.branches
-                .filter((branch) => !baseIds.has(branch.id))
-                .map((branch) => ({ branch, filters: parsed.data.filters })),
-            );
-          }
-        }
-        // A query that names an audience («менингит у ребёнка») also asks the title column for the
-        // subject and the audience together («Вирусные менингиты у детей»): the body text of hundreds
-        // of other mentions would otherwise leave that title out of the candidate window.
-        const titleRescue = lexicalOnly ? plan.lookupTitleRescue : undefined;
-        const titleSearches = titleRescue
-          ? await runBranchSearches([{ branch: titleRescue.branch, filters: parsed.data.filters }])
-          : [];
-        const branchSearches = [
-          ...baseSearches,
-          ...spellingSearches,
-          ...terminologyBranchSearches,
-          ...titleSearches,
-        ];
-        const branchHits = branchSearches.map(({ branch, hits }) => ({ branch, hits }));
-        const branchDiagnostics = branchSearches.map(({ diagnostics }) => diagnostics);
-
-        const exactAliasDocumentIds = new Set([
-          ...documentIndex.exactAliasIds(parsed.data.query),
-          ...(terminologyMatch?.documents.map((entry) => entry.documentId) ?? []),
-          ...(terminologyMatch?.related.map((entry) => entry.documentId) ?? []),
-        ]);
-        const exactTitleDocumentIds = documentIndex.exactTitleIds(parsed.data.query);
-        const exactNavigationAliasDocumentIds = documentIndex.exactNavigationAliasIds(
-          parsed.data.query,
-        );
-        const exactShortTitleDocumentIds = documentIndex.exactShortTitleIds(parsed.data.query);
-        const exactSecondaryIdentityDocumentIds = new Set([
-          ...exactNavigationAliasDocumentIds,
-          ...exactShortTitleDocumentIds,
-        ]);
-        const exactIdentityDocumentIds = new Set([
-          ...exactTitleDocumentIds,
-          ...exactSecondaryIdentityDocumentIds,
-        ]);
-        // Spelling alternatives are navigation candidates, never exact matches or medication facts.
-        const spellingDocumentIds = new Set(
-          ('medicationSpellingNames' in plan ? (plan.medicationSpellingNames ?? []) : [])
-            .flatMap((name) => [...documentIndex.exactIdentityIds(name)])
-            .slice(0, 40),
-        );
-        // Keep exact names and every declared meaning through the chunk cutoff for document ranking.
-        const lexicalResults = fuseBranchHits(
-          branchHits,
-          perBranchLimit,
-          parsed.data.query,
-          exactAliasDocumentIds,
-          lexicalOnly && parsed.data.analysisMode === 'lookup',
-        );
-        const requestedMode = parsed.data.mode;
-        let modeUsed: SearchResponse['modeUsed'] = 'lexical';
-        let vectorHits: readonly VectorHit[] = [];
-        let semanticStatus: SearchResponse['diagnostics']['semantic']['status'] =
-          requestedMode === 'lexical' ? 'disabled' : 'fallback';
-        let semanticProfileId: string | null = null;
-        let semanticElapsedMs = 0;
-        let semanticFallbackReason: string | null =
-          requestedMode === 'lexical' ? null : 'query-embedder-unavailable';
-
-        if (requestedMode !== 'lexical' && options.embedder) {
-          const semanticStartedAt = performance.now();
-          try {
-            const profiles = await options.store.listEmbeddingProfiles();
-            const compatibleProfile = profiles.find((profile) =>
-              profilesCompatible(profile, options.embedder?.profile ?? profile),
-            );
-            if (!compatibleProfile) {
-              semanticFallbackReason = 'embedding-profile-mismatch';
-            } else {
-              semanticProfileId = compatibleProfile.id;
-              const queryVector = await options.embedder.embedQuery(
-                options.embedder.input === 'original-query'
-                  ? parsed.data.query
-                  : semanticQueryText(plan.analysis),
-              );
-              if (
-                queryVector.profileId !== compatibleProfile.id ||
-                queryVector.values.length !== compatibleProfile.dimensions
-              ) {
-                semanticFallbackReason = 'invalid-query-vector';
-              } else {
-                vectorHits = await options.store.searchVector({
-                  profileId: compatibleProfile.id,
-                  vector: queryVector.values,
-                  norm: queryVector.norm,
-                  filters: parsed.data.filters,
-                  limit: Math.max(parsed.data.limit * 5, 50),
-                });
-                if (vectorHits.length === 0) {
-                  semanticFallbackReason = 'no-vector-candidates';
-                } else {
-                  semanticStatus = 'used';
-                  semanticFallbackReason = null;
-                  modeUsed = requestedMode === 'semantic' ? 'semantic' : 'hybrid';
-                }
-              }
-            }
-          } catch (error) {
-            semanticFallbackReason =
-              error instanceof Error ? `semantic-error:${error.message}` : 'semantic-error';
-          } finally {
-            semanticElapsedMs = performance.now() - semanticStartedAt;
-          }
-        }
-
-        const rankedResults =
-          modeUsed === 'lexical'
-            ? lexicalResults
-            : fuseSemanticResults(
-                lexicalResults,
-                vectorHits,
-                plan.terms,
-                modeUsed,
-                perBranchLimit,
-                parsed.data.query,
-                exactAliasDocumentIds,
-                options.embedder?.fusion ?? LEGACY_SEMANTIC_FUSION,
-              );
-        // Semantic-only retrieval and hybrid truncation may discard an identity that survived
-        // lexical fusion. Reuse its source-backed lexical hits before reading missing identities.
-        const retainedResults = mergeExactIdentityResults(
-          rankedResults,
-          lexicalResults.filter((result) => exactIdentityDocumentIds.has(result.documentId)),
-        );
-        const retainedDocumentIds = new Set(retainedResults.map((result) => result.documentId));
-        const missingExactIdentityDocumentIds = new Set(
-          [...exactIdentityDocumentIds].filter(
-            (documentId) => !retainedDocumentIds.has(documentId),
-          ),
-        );
-        const exactIdentityResults = await buildExactIdentityResults(
-          options.store,
-          missingExactIdentityDocumentIds,
-          parsed.data.filters,
-          plan.terms,
-          baseBranches.slice(0, 1).map((branch) => branch.ftsQuery),
-        );
-        const spellingResults = await buildExactIdentityResults(
-          options.store,
-          new Set([...spellingDocumentIds].filter((id) => !retainedDocumentIds.has(id))),
-          parsed.data.filters,
-          plan.terms,
-          spellingSearches.map(({ branch }) => branch.ftsQuery),
-          true,
-        );
-        const availableDocumentIds = documentIndex.availableIds;
-        const results = filterSupersededSummaryResults(
-          mergeExactIdentityResults(retainedResults, [...exactIdentityResults, ...spellingResults]),
-          availableDocumentIds,
-        );
-        const candidateIds = new Set([
-          ...branchHits.flatMap((item) => item.hits.map((hit) => hit.chunk.id)),
-          ...vectorHits.map((hit) => hit.chunk.id),
-          ...exactIdentityResults.map((result) => result.chunkId),
-          ...spellingResults.map((result) => result.chunkId),
-        ]);
-        const groupedResults = filterSuffixFallbackGroups(
-          groupResults(
-            results,
-            requestedSectionType(plan.analysis.normalizedQuery),
-            !/ограничен/u.test(plan.analysis.normalizedQuery),
-            plan.analysis.normalizedQuery,
-            plan.terms,
-            aliasesResult.value,
-            [...new Set(results.map((result) => result.documentId))].flatMap((id) => {
-              const document = documentIndex.byId.get(id);
-              return document ? [document] : [];
-            }),
-            plan.analysis,
-            lexicalOnly ? plan.lookupTermGroups : undefined,
-          ),
-          plan.analysis.normalizedQuery,
-          aliasesResult.value,
-          new Set([...exactIdentityDocumentIds, ...spellingDocumentIds]),
-        );
-        const subjectGroups =
-          parsed.data.analysisMode === 'lookup' && lexicalOnly && !terminologyMatch
-            ? dropGroupsWithoutSubject(
-                groupedResults,
-                plan.lookupTermGroups,
-                new Set([
-                  ...exactIdentityDocumentIds,
-                  ...spellingDocumentIds,
-                  ...exactAliasDocumentIds,
-                ]),
-              )
-            : groupedResults;
-        return ok({
-          requestId: requestId(),
-          identities,
-          normalizedQuery: plan.analysis.normalizedQuery,
-          elapsedMs: performance.now() - startedAt,
-          modeUsed,
-          analysis: plan.analysis,
-          suggestions: plan.analysis.suggestions,
-          groups: collapseGroupsByTargetDocument(
-            termIndex
-              .rank(subjectGroups, terminologyMatch)
-              .toSorted(
-                (left, right) =>
-                  Number(exactTitleDocumentIds.has(right.documentId)) -
-                    Number(exactTitleDocumentIds.has(left.documentId)) ||
-                  Number(exactSecondaryIdentityDocumentIds.has(right.documentId)) -
-                    Number(exactSecondaryIdentityDocumentIds.has(left.documentId)) ||
-                  Number(spellingDocumentIds.has(right.documentId)) -
-                    Number(spellingDocumentIds.has(left.documentId)),
-              ),
-            documentIndex.byId,
-          ).slice(0, parsed.data.limit),
-          diagnostics: {
-            ftsQuery: branchDiagnostics.map((branch) => branch.ftsQuery).join(' || '),
-            candidateCount: candidateIds.size,
-            aliasMatches: plan.aliasMatches,
-            terms: plan.terms,
-            branches: branchDiagnostics,
-            semantic: {
-              status: semanticStatus,
-              requestedMode,
-              profileId: semanticProfileId,
-              candidateCount: vectorHits.length,
-              elapsedMs: semanticElapsedMs,
-              fallbackReason: semanticFallbackReason,
-            },
-          },
-        });
-      } catch (error) {
-        return err(asLocalMedError(error));
-      }
+      const primary = await runSearch(parsed.data);
+      if (
+        options.nameVariants === false ||
+        !primary.ok ||
+        parsed.data.analysisMode !== 'lookup' ||
+        !queryDocumentIndex
+      )
+        return primary;
+      return withNameVariantFallback(parsed.data, primary.value, queryDocumentIndex);
     },
 
     async reference(request) {

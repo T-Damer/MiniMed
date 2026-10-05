@@ -82,7 +82,14 @@ describe('SqliteMedicalStore', () => {
       expect(document.shortTitle).toBe(original?.shortTitle);
     }
     for (const document of projected) {
-      expect(document.metadata).toEqual({ ...metadata, targetDocumentId: 'downloaded-target' });
+      expect(document.metadata).toEqual({
+        ...metadata,
+        targetDocumentId: 'downloaded-target',
+        // Query-time identity bridges: МКБ codes and the Latin drug name (S3).
+        icd10Codes: null,
+        mkbCode: 'R05',
+        nameLat: null,
+      });
     }
     const navigation = await store.listNavigationDocuments();
     expect(navigation).toHaveLength(seed.documents.length);

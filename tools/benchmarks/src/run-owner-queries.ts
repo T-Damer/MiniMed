@@ -8,8 +8,11 @@ import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
 
 const args = process.argv.slice(2);
 for (const arg of args) {
-  if (!/^--core=.+$/u.test(arg)) throw new Error(`Unknown argument ${arg}`);
+  if (!/^(?:--core=.+|--name-variants=(?:on|off)|--no-report)$/u.test(arg))
+    throw new Error(`Unknown argument ${arg}`);
 }
+// S3 switches (roadmap item 3): measure before/after with `off`; the default is the shipped state.
+const nameVariants = !args.includes('--name-variants=off') && !process.env['S3_OFF'];
 const corePathOverride = args.find((arg) => arg.startsWith('--core='))?.slice('--core='.length);
 
 interface OwnerQuery {
@@ -32,9 +35,28 @@ if (new Set(cases.map((item) => item.id)).size !== cases.length)
   throw new Error('Owner query set contains duplicate ids.');
 
 const reportPath = resolve(REPOSITORY_ROOT, 'data/build/owner-queries-report.json');
-const { core, corpus, target } = await openRealCorpus({ corePath: corePathOverride });
+const { core, corpus, target } = await openRealCorpus({
+  corePath: corePathOverride,
+  // Without explicit switches the shipped defaults apply.
+  coreOptions: {
+    ...(nameVariants ? {} : { nameVariants }),
+  },
+});
 const scoped = new ScopedMedicalCore(core, 'all');
-const rows = [];
+interface OwnerRow {
+  readonly id: string;
+  readonly style: OwnerQuery['style'];
+  readonly intent: string;
+  readonly query: string;
+  readonly rank: number | null;
+  readonly hitAt1: boolean;
+  readonly hitAt5: boolean;
+  readonly reciprocalRank: number;
+  readonly forbidden: readonly string[];
+  readonly milliseconds: number;
+  readonly top: readonly string[];
+}
+const rows: OwnerRow[] = [];
 for (const item of cases) {
   const started = performance.now();
   const response = await scoped.search({
@@ -80,8 +102,10 @@ const summary = {
   rush: summarize(rows.filter((row) => row.style === 'rush')),
   thoughtful: summarize(rows.filter((row) => row.style === 'thoughtful')),
 };
-mkdirSync(dirname(reportPath), { recursive: true });
-writeFileSync(reportPath, `${JSON.stringify({ summary, rows }, null, 2)}\n`);
+if (!args.includes('--no-report')) {
+  mkdirSync(dirname(reportPath), { recursive: true });
+  writeFileSync(reportPath, `${JSON.stringify({ summary, rows }, null, 2)}\n`);
+}
 console.log(JSON.stringify(summary, null, 2));
 for (const row of rows) {
   console.log(`${row.rank ?? '-'}\t${row.style}\t${row.id}`);
