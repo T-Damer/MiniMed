@@ -25,7 +25,6 @@ from localmed_ingest.medical_form_kit import (
     REGISTRATION,
     SNILS_PATTERN,
     blank,
-    date_blanks,
     field_def,
     field_rule,
     options,
@@ -1291,42 +1290,122 @@ SECTIONS: Final[list[dict[str, Any]]] = [
 
 
 # ------------------------------------------------------------------------------- print layout
+#
+# The scan of the blank is typeset in a 9 pt serif with about single line spacing; every layout
+# row is one printed line of it. Blank lengths were measured on the scan in mm and are written as
+# `_ch(mm)` characters of the body font (one character = half the font size).
+
+BODY_FONT_PT: Final = 9.1
+CH_MM: Final = BODY_FONT_PT * 0.5 * 25.4 / 72
+
+
+def _ch(mm: float) -> float:
+    return round(mm / CH_MM, 1)
 
 
 def _line(*segments: dict[str, Any], **kw: Any) -> dict[str, Any]:
     return row(*segments, **kw)
 
 
-def _item(label: str, field_id: str, length: float) -> dict[str, Any]:
-    return _line(text(label), blank(field_id, length, grow=True))
+def _fill(length_mm: float) -> dict[str, Any]:
+    """An empty ruled line (a continuation line the blank prints without a field)."""
+    return {"kind": "rule", "length": _ch(length_mm), "grow": True}
 
 
-def _opt(label: str, field_id: str, separator: str = ", ") -> dict[str, Any]:
-    return _line(text(label), options(field_id, separator))
+FRAME_RIGHT_MM: Final = 281.8  # where a line may end inside the frame, less the gap before a pad
+GAP_MM: Final = 1.2  # the print puts a gap of 0.45 em at both ends of a blank, the scan a space
+
+
+def _pad(end_mm: float) -> dict[str, Any]:
+    """Free space at the end of a line: the line stops at `end_mm` on the scan, not at the frame."""
+    return {"kind": "text", "text": "", "indentMm": max(0.0, round(FRAME_RIGHT_MM - end_mm, 1))}
+
+
+def _b(field_id: str, mm: float, **kw: Any) -> dict[str, Any]:
+    """A blank of `mm` millimetres on the scan (less the gaps the print adds around it)."""
+    return blank(field_id, _ch(mm - GAP_MM), **kw)
+
+
+def _gb(field_id: str, mm: float, **kw: Any) -> dict[str, Any]:
+    """A blank that takes the rest of the line (`mm` is its length on the scan)."""
+    return blank(field_id, _ch(mm), grow=True, **kw)
+
+
+def _joined(value: str) -> dict[str, Any]:
+    return {**text(value), "joined": True}
+
+
+def _date(
+    field_id: str,
+    *,
+    day: float = 4.0,
+    month: float = 17.0,
+    year: float = 3.0,
+    whole_year: bool = False,
+) -> list[dict[str, Any]]:
+    """`«__» ______ 20__ г.` — one date field printed as three blanks (mm on the scan)."""
+    return [
+        text("«"),
+        _b(field_id, day, part="day"),
+        _joined("»"),
+        _b(field_id, month, part="month"),
+        *([] if whole_year else [text("20")]),
+        _b(field_id, year, part="year" if whole_year else "year2"),
+        text("г."),
+    ]
+
+
+def _part(field_id: str, start: int, end: int, *separators: str) -> dict[str, Any]:
+    """Options `[start, end)` of a field whose list the blank breaks around printed words."""
+    segment = options(field_id, ", ")
+    segment["range"] = [start, end]
+    if separators:
+        segment["separators"] = list(separators)
+    return segment
+
+
+def _opt(label: str, field_id: str, separator: str = ", ", **kw: Any) -> dict[str, Any]:
+    return _line(text(label), options(field_id, separator), **kw)
 
 
 def _single(block_id: str, rows: list[dict[str, Any]], **extra: Any) -> dict[str, Any]:
     return {"id": block_id, "columns": [{"widthPercent": 100, "rows": rows}], **extra}
 
 
+def _tail(prefix: str, *, last: float = 10.8) -> list[dict[str, Any]]:
+    """`код по МКБ ___ признак ___ ДН ___ снят с ДН ____` at the right end of a diagnosis line.
+
+    The blanks are written as printed widths (mm): the scan's 8 mm blanks must stay above the
+    8 mm the overlay tool takes for a rule.
+    """
+    return [
+        text("код по МКБ"),
+        blank(f"{prefix}Icd", _ch(8.8)),
+        _joined("признак"),
+        blank(f"{prefix}Sign", _ch(8.8)),
+        _joined("ДН"),
+        blank(f"{prefix}Dn", _ch(9.5)),
+        _joined("снят с ДН"),
+        blank(f"{prefix}DnOff", _ch(last)),
+        _pad(258),
+    ]
+
+
+# the reverse side of the sheet is scanned 1.7 mm further right than the front
+REVERSE_INSET: Final = {"left": 1.7}
+TAIL_PITCH_MM: Final = 3.9  # the lines that end in the «код по МКБ … снят с ДН» group
+
+
+def _tall(line: dict[str, Any]) -> dict[str, Any]:
+    line["minHeightMm"] = TAIL_PITCH_MM
+    return line
+
+
 def _comorbidity_lines(prefix: str, number: str) -> list[dict[str, Any]]:
     lines: list[dict[str, Any]] = []
     for index in range(1, 4):
         lead = [text(f"{number} Сопутствующие заболевания:")] if index == 1 else []
-        lines.append(
-            _line(
-                *lead,
-                blank(f"{prefix}{index}", 30, grow=True),
-                text("код по МКБ"),
-                blank(f"{prefix}{index}Icd", 8),
-                text("признак"),
-                blank(f"{prefix}{index}Sign", 5),
-                text("ДН"),
-                blank(f"{prefix}{index}Dn", 5),
-                text("снят с ДН"),
-                blank(f"{prefix}{index}DnOff", 6),
-            )
-        )
+        lines.append(_tall(_line(*lead, _gb(f"{prefix}{index}", 80), *_tail(f"{prefix}{index}"))))
     return lines
 
 
@@ -1347,97 +1426,142 @@ def _diagnosis_block(
     sign: str,
     dn: str,
     trauma: str,
+    dotted: bool,
 ) -> dict[str, Any]:
     n_main, n_compl, n_comorb, n_ext, n_extra, n_sign, n_dn, n_trauma = items
     rows: list[dict[str, Any]] = [
         _line(
             text(f"{n_main} {title}"),
-            blank(first_field, 30, grow=True),
+            _gb(first_field, 118),
             text("код по МКБ"),
-            blank(first_icd, 10),
+            _b(first_icd, 15),
+            _pad(258),
         ),
-        _line(
-            text(f"{n_compl} Осложнения основанного заболевания:"),
-            blank(complications, 30, grow=True),
-            text("код по МКБ"),
-            blank(complications_icd, 8),
-            text("признак"),
-            blank(f"{complications}Sign", 5),
-            text("ДН"),
-            blank(f"{complications}Dn", 5),
-            text("снят с ДН"),
-            blank(f"{complications}DnOff", 6),
+        _tall(
+            _line(
+                text(f"{n_compl} Осложнения основанного заболевания:"),
+                _gb(complications, 90),
+                *_tail(complications),
+            )
         ),
         *_comorbidity_lines(prefix, n_comorb),
         _line(
             text(f"{n_ext} Внешняя причина (при наличии травм и отравлений)"),
-            blank(external, 30, grow=True),
+            _gb(external, 125),
             text("код по МКБ"),
-            blank(external_icd, 10),
+            _b(external_icd, 10),
+            _pad(248),
         ),
         _line(
             text(f"{n_extra} Дополнительные сведения о заболевании"),
-            blank(extra, 30, grow=True, lines=1),
+            _gb(extra, 168),
+            _pad(248),
         ),
-        _opt(f"{n_sign} Заболевание основное (признак):", sign, ", "),
-        _opt(f"{n_dn} Диспансерное наблюдение по основному заболеванию:", dn, ", "),
-        _opt(f"{n_trauma} Травма:", trauma, ", "),
+        _line(_fill(230), _pad(247)),
+        _opt(f"{n_sign} Заболевание основное (признак):", sign),
+        _line(
+            text(f"{n_dn} Диспансерное наблюдение по основному заболеванию:"),
+            _part(dn, 0, 3),
+            text("из них:"),
+            _part(dn, 3, 7, *([", ", ", ", ", "] + [".,"] * 3 if dotted else [])),
+            _joined("."),
+        ),
+        _line(
+            text(f"{n_trauma} Травма:"),
+            _part(trauma, 0, 2),
+            text("в том числе:"),
+            _part(trauma, 2, 9),
+        ),
     ]
-    return _single(block_id, rows, framed=True)
+    return _single(block_id, rows, framed=True, insetMm=REVERSE_INSET)
 
 
-def _date_row(label: str, field_id: str) -> list[dict[str, Any]]:
-    return [text(label), *date_blanks(field_id, month_length=8), text("г.")]
+def _intervention(
+    field: str, label: str | None, left: float, qty: float, code: float, end: float
+) -> Any:
+    lead = [text(label)] if label else []
+    return _line(
+        *lead,
+        _gb(field, left),
+        text("кол-во"),
+        _b(f"{field}Qty", qty),
+        text("код"),
+        _b(f"{field}Code", code),
+        _pad(end),
+    )
+
+
+def _doctor(prefix: str, number: str, first: float, second: float, third: float) -> dict[str, Any]:
+    return _line(
+        text(f"{number} Врач: должность, специальность"),
+        _b(f"{prefix}Position", first),
+        text("фамилия, имя, отчество (при наличии)"),
+        _gb(f"{prefix}Name", second),
+        text("код"),
+        _b(f"{prefix}Code", third),
+        _pad(260),
+    )
 
 
 LAYOUT: Final[dict[str, Any]] = {
     "page": {
         "size": "A4",
         "orientation": "landscape",
-        "marginMm": {"top": 7, "right": 8, "bottom": 7, "left": 8},
-        "fontSizePt": 9.5,
+        "marginMm": {"top": 7.5, "right": 12.0, "bottom": 2, "left": 14.5},
+        "fontSizePt": BODY_FONT_PT,
+        "lineHeight": 1.1,
     },
     "blocks": [
         {
             "id": "header",
             "columns": [
                 {
-                    "widthPercent": 60,
+                    "widthPercent": 43,
                     "align": "left",
                     "rows": [
+                        row(text("Наименование и адрес медицинской организации"), size="title"),
                         row(
-                            text(
-                                "Наименование и адрес медицинской организации (фамилия, имя, "
-                                "отчество (при наличии) индивидуального предпринимателя и адрес "
-                                "осуществления медицинской деятельности)"
-                            ),
-                            size="small",
+                            text("(фамилия, имя, отчество (при наличии) индивидуального"),
+                            size="title",
                         ),
-                        row(blank("organization", 40, grow=True)),
                         row(
-                            text(
-                                "Основной государственный регистрационный номер (Основной "
-                                "государственный регистрационный номер индивидуального "
-                                "предпринимателя)"
-                            ),
-                            size="small",
+                            text("предпринимателя и адрес осуществления медицинской деятельности)"),
+                            size="title",
+                        ),
+                        row(
+                            text("Основной государственный регистрационный номер"),
+                            size="title",
+                        ),
+                        row(text("(Основной государственный регистрационный"), size="title"),
+                        row(text("номер индивидуального предпринимателя)"), size="title"),
+                        row(
+                            _gb("organization", 60),
+                            _gb("organizationOgrn", 40),
+                            size="title",
                             gap="small",
                         ),
-                        row(blank("organizationOgrn", 40, grow=True)),
                     ],
                 },
                 {
-                    "widthPercent": 40,
+                    "widthPercent": 36,
                     "align": "center",
                     "rows": [
-                        row(text("Медицинская документация"), size="small"),
-                        row(text("Учетная форма № 025-1/у"), size="small"),
+                        row(text("Медицинская документация"), size="title", align="center"),
+                        row(text("Учетная форма № 025-1/у"), size="title", align="center"),
                         row(
-                            text(
-                                "Утверждена приказом Министерства здравоохранения Российской "
-                                "Федерации от 13 мая 2025 г. № 274н"
-                            ),
-                            size="small",
+                            text("Утверждена приказом Министерства"),
+                            size="title",
+                            align="center",
+                        ),
+                        row(
+                            text("здравоохранения Российской Федерации"),
+                            size="title",
+                            align="center",
+                        ),
+                        row(
+                            text("от 13 мая 2025 г. № 274н"),
+                            size="title",
+                            align="center",
                         ),
                     ],
                 },
@@ -1451,7 +1575,7 @@ LAYOUT: Final[dict[str, Any]] = {
                         "ТАЛОН ПАЦИЕНТА, ПОЛУЧАЮЩЕГО МЕДИЦИНСКУЮ ПОМОЩЬ В АМБУЛАТОРНЫХ УСЛОВИЯХ, №",
                         bold=True,
                     ),
-                    blank("talonNumber", 16),
+                    _b("talonNumber", 35),
                     align="center",
                     size="title",
                     gap="medium",
@@ -1461,116 +1585,129 @@ LAYOUT: Final[dict[str, Any]] = {
         _single(
             "items",
             [
-                _line(*_date_row("1. Дата открытия талона:", "openDate")),
-                _item(
-                    "1.1. Номер медицинской карты пациента, получающего помощь в "
-                    "амбулаторных условиях",
-                    "cardNumber",
-                    20,
+                _line(text("1. Дата открытия талона:"), *_date("openDate", month=18)),
+                _line(
+                    text(
+                        "1.1. Номер медицинской карты пациента, получающего помощь в "
+                        "амбулаторных условиях"
+                    ),
+                    _b("cardNumber", 32),
                 ),
-                _item("1.2. Номер участка (при наличии)", "areaNumber", 20),
+                _line(text("1.2. Номер участка (при наличии)"), _b("areaNumber", 32)),
                 _line(
                     text("2. Код меры социальной поддержки"),
-                    blank("socialSupportCode", 10),
+                    _b("socialSupportCode", 28),
                     text("3. Установлена до"),
-                    *date_blanks("socialSupportUntil", month_length=8),
-                    text("г."),
+                    _b("socialSupportUntil", 29),
                 ),
                 _line(
                     text("4. Полис обязательного медицинского страхования: серия"),
-                    blank("omsSeries", 12),
+                    _b("omsSeries", 27),
                     text("№"),
-                    blank("omsNumber", 16),
+                    _b("omsNumber", 35),
                     text("выдан"),
-                    blank("omsIssuer", 20, grow=True),
+                    _b("omsIssuer", 35),
                     text(", дата выдачи"),
-                    *date_blanks("omsIssueDate", month_length=8),
-                    text("г."),
+                    _gb("omsIssueDate", 59),
                 ),
-                _item("5. Страховой номер индивидуального лицевого счёта", "snils", 22),
+                _line(
+                    text("5. Страховой номер индивидуального лицевого счёта"),
+                    _b("snils", 33),
+                ),
                 _line(
                     text("6. Фамилия"),
-                    blank("surname", 18),
+                    _b("surname", 34),
                     text("7. Имя"),
-                    blank("firstName", 18),
+                    _b("firstName", 38),
                     text("8. Отчество (при наличии)"),
-                    blank("patronymic", 18),
+                    _b("patronymic", 32),
                     text("9. Пол:"),
                     options("patientSex"),
                 ),
                 _line(
                     text("10. Дата рождения:"),
-                    *date_blanks("patientBirthDate", month_length=8),
-                    text("г. 10.1. Документ, удостоверяющий личность"),
-                    blank("idDocType", 14),
+                    *_date("patientBirthDate", month=19, year=9.5, whole_year=True),
+                    text("10.1. Документ, удостоверяющий личность"),
+                    _b("idDocType", 24),
                     text("серия"),
-                    blank("idDocSeries", 8),
+                    _b("idDocSeries", 18),
                     text("№"),
-                    blank("idDocNumber", 10),
+                    _b("idDocNumber", 19),
                     text("гражданство"),
-                    blank("citizenship", 12),
+                    _b("citizenship", 19),
                 ),
                 _line(
                     text("11. Регистрация по месту жительства: субъект Российской Федерации"),
-                    blank("residenceSubject", 14),
+                    _b("residenceSubject", 26),
                     text("район"),
-                    blank("residenceDistrict", 14),
+                    _b("residenceDistrict", 21),
+                    {"kind": "rule", "length": _ch(25 - GAP_MM)},
                     text("населенный пункт"),
-                    blank("residenceLocality", 14),
+                    _b("residenceLocality", 26),
                     text("улица"),
-                    blank("residenceStreet", 12),
+                    _b("residenceStreet", 19),
                 ),
                 _line(
                     text("дом"),
-                    blank("residenceHouse", 6),
+                    _b("residenceHouse", 16),
                     text("строение/корпус"),
-                    blank("residenceBuilding", 6),
+                    _b("residenceBuilding", 19),
                     text("квартира"),
-                    blank("residenceApartment", 8),
+                    _b("residenceApartment", 23),
                     text("тел."),
-                    blank("residencePhone", 14),
+                    _b("residencePhone", 29),
                 ),
                 _line(
                     text("11.1. Регистрация по месту пребывания: субъект Российской Федерации"),
-                    blank("staySubject", 14),
+                    _b("staySubject", 23),
                     text("район"),
-                    blank("stayDistrict", 14),
+                    _b("stayDistrict", 39),
                     text("населенный пункт"),
-                    blank("stayLocality", 14),
+                    _b("stayLocality", 26),
                     text("улица"),
-                    blank("stayStreet", 12),
+                    _b("stayStreet", 17),
                     text("дом"),
-                    blank("stayHouse", 6),
+                    _gb("stayHouse", 16),
                 ),
                 _line(
                     text("строение/корпус"),
-                    blank("stayBuilding", 6),
+                    _b("stayBuilding", 14),
                     text("квартира"),
-                    blank("stayApartment", 8),
+                    _b("stayApartment", 13),
                     text("тел."),
-                    blank("stayPhone", 14),
+                    _b("stayPhone", 29),
                 ),
                 _opt("12. Местность:", "localityType"),
                 _opt("13. Занятость:", "employment"),
-                _item("14. Место работы, учебы", "workplace", 40),
+                _line(text("14. Место работы, учебы"), _b("workplace", 193)),
                 _line(
                     text("15. Инвалидность: установлена"),
                     options("disability"),
                     text("16. Группа инвалидности:"),
                     options("disabilityGroup"),
                 ),
-                _opt("17. Оказываемая медицинская помощь:", "careType"),
-                _opt("18. Место обращения (посещения):", "visitPlace"),
+                _opt("17. Оказываемая медицинская помощь:", "careType", align="justify"),
+                _opt("18. Место обращения (посещения):", "visitPlace", align="justify"),
                 _line(text("19. Посещение (цель):")),
-                _line(options("visitPurposeDisease", ", ")),
-                _line(options("visitPurposePrevention", ", ")),
+                _line(_part("visitPurposeDisease", 0, 6), align="stretch"),
+                _line(_part("visitPurposeDisease", 6, 7)),
+                _line(options("visitPurposePrevention", ", "), align="justify"),
                 _opt("20. Обращение (цель):", "appealPurpose"),
                 _opt("21. Обращение (законченный случай лечения):", "closedCase"),
                 _opt("22. Обращение:", "appealKind"),
                 _line(text("23. Результат обращения:")),
                 _opt("23.1.", "result"),
-                _opt("23.2. Дано направление для оказания медицинской помощи:", "referral"),
-                _opt("24. Основной вид оплаты:", "payment"),
+                _opt(
+                    "23.2. Дано направление для оказания медицинской помощи:",
+                    "referral",
+                    align="justify",
+                ),
+                _line(
+                    {**text(""), "indentMm": 2.5},
+                    text("24. Основной вид оплаты:"),
+                    options("payment"),
+                    align="justify",
+                ),
                 {
                     "segments": [
                         {
@@ -1581,6 +1718,8 @@ LAYOUT: Final[dict[str, Any]] = {
                                 + [f"visitDate{index}" for index in range(1, 9)],
                                 [f"visitDate{index}" for index in range(9, 18)],
                             ],
+                            "columnWeights": [37, 30, 30, 30, 28, 27.6, 29.3, 29, 30.7],
+                            "rowHeightMm": 4.2,
                         }
                     ]
                 },
@@ -1590,13 +1729,16 @@ LAYOUT: Final[dict[str, Any]] = {
         {
             "id": "back-title",
             "pageBreakBefore": True,
+            "insetMm": REVERSE_INSET,
             "columns": [
                 {
                     "widthPercent": 100,
-                    "align": "right",
+                    "align": "left",
                     "rows": [
-                        row(text("2"), align="center"),
-                        row(text("оборотная сторона формы № 025-1/у"), align="right"),
+                        row(
+                            {**text("2"), "indentMm": 128.0},
+                            {**text("оборотная сторона формы № 025-1/у"), "indentMm": 85.0},
+                        ),
                     ],
                 }
             ],
@@ -1617,6 +1759,7 @@ LAYOUT: Final[dict[str, Any]] = {
             sign="prelimSign",
             dn="prelimDn",
             trauma="prelimTrauma",
+            dotted=True,
         ),
         _diagnosis_block(
             "final",
@@ -1634,66 +1777,43 @@ LAYOUT: Final[dict[str, Any]] = {
             sign="finalSign",
             dn="finalDn",
             trauma="finalTrauma",
+            dotted=False,
         ),
         _single(
             "operation",
             [
                 _line(
                     text("38. Наименование операции:"),
-                    blank("operationName", 40, grow=True),
+                    _gb("operationName", 164),
                     text("код*"),
-                    blank("operationCode", 14),
+                    _b("operationCode", 28),
+                    _pad(258),
                 ),
                 _opt("39. Анестезия:", "anesthesia"),
                 _opt("40. Операция проведена с использованием аппаратуры:", "apparatus"),
-                _line(
-                    text("41. Врач: должность, специальность"),
-                    blank("operationDoctorPosition", 20, grow=True),
-                    text("фамилия, имя, отчество (при наличии)"),
-                    blank("operationDoctorName", 24, grow=True),
-                    text("код"),
-                    blank("operationDoctorCode", 8),
+                _doctor("operationDoctor", "41.", 35, 87, 8),
+                _intervention(
+                    "intervention1",
+                    "42. Иные медицинские вмешательства, в том числе с целью исследования:",
+                    85,
+                    10.9,
+                    31,
+                    263,
                 ),
-                _line(
-                    text("42. Иные медицинские вмешательства, в том числе с целью исследования:"),
-                    blank("intervention1", 20, grow=True),
-                    text("кол-во"),
-                    blank("intervention1Qty", 6),
-                    text("код"),
-                    blank("intervention1Code", 14),
+                _intervention(
+                    "intervention2",
+                    "в том числе лабораторные, инструментальные и лучевые",
+                    100,
+                    10,
+                    30,
+                    254,
                 ),
-                _line(
-                    text("в том числе лабораторные, инструментальные и лучевые"),
-                    blank("intervention2", 20, grow=True),
-                    text("кол-во"),
-                    blank("intervention2Qty", 6),
-                    text("код"),
-                    blank("intervention2Code", 14),
-                ),
-                _line(
-                    blank("intervention3", 20, grow=True),
-                    text("кол-во"),
-                    blank("intervention3Qty", 6),
-                    text("код"),
-                    blank("intervention3Code", 14),
-                ),
-                _line(
-                    blank("intervention4", 20, grow=True),
-                    text("кол-во"),
-                    blank("intervention4Qty", 6),
-                    text("код"),
-                    blank("intervention4Code", 14),
-                ),
-                _line(
-                    text("43. Врач: должность, специальность"),
-                    blank("interventionDoctorPosition", 20, grow=True),
-                    text("фамилия, имя, отчество (при наличии)"),
-                    blank("interventionDoctorName", 24, grow=True),
-                    text("код"),
-                    blank("interventionDoctorCode", 8),
-                ),
+                _intervention("intervention3", None, 180, 10, 30, 254),
+                _intervention("intervention4", None, 180, 10, 30, 254),
+                _doctor("interventionDoctor", "43.", 44, 76, 11),
             ],
             framed=True,
+            insetMm=REVERSE_INSET,
         ),
         _single(
             "prescriptions",
@@ -1747,11 +1867,13 @@ LAYOUT: Final[dict[str, Any]] = {
                                 ]
                                 for index in (1, 2, 3)
                             ],
-                            "columnWeights": [7, 6, 6, 22, 7, 8, 7, 7, 8, 9],
+                            "columnWeights": [17, 15, 23, 63, 24, 25, 20, 25, 29, 30],
+                            "rowHeightMm": 3.8,
                         }
                     ]
                 },
             ],
+            insetMm=REVERSE_INSET,
         ),
         _single(
             "temp-disability",
@@ -1759,42 +1881,41 @@ LAYOUT: Final[dict[str, Any]] = {
                 _line(
                     text("45. Документ о временной нетрудоспособности:"),
                     options("tempDocKind"),
+                    {**text("."), "joined": True},
+                    text("46. Повод выдачи:"),
+                    _part("tempReason", 0, 2, ", ", "", ", "),
                 ),
                 _line(
-                    text("46. Повод выдачи:"),
-                    options("tempReason"),
-                    text("(фамилия, имя, отчество (при наличии), пол, возраст"),
-                    blank("tempCareRecipient", 24, grow=True),
-                    text(")"),
+                    text("(фамилия, имя, отчество (при наличии), пол, возраст ("),
+                    _gb("tempCareRecipient", 100),
+                    text("),"),
                 ),
-                _line(*_date_row("47. Дата выдачи:", "tempIssueDate")),
+                _line(_part("tempReason", 2, 4)),
+                _line(text("47. Дата выдачи:"), *_date("tempIssueDate", month=19)),
                 _line(
                     text("48. Даты продления:"),
                     *[
                         segment
                         for index in range(1, 7)
-                        for segment in (
-                            *date_blanks(f"tempExtension{index}", month_length=6),
-                            text("г."),
-                        )
+                        for segment in _date(f"tempExtension{index}", day=5.0, month=17.0, year=3.5)
                     ],
                 ),
                 _line(
-                    *_date_row(
-                        "49. Дата закрытия документа о временной нетрудоспособности:",
-                        "tempCloseDate",
-                    )
+                    text("49. Дата закрытия документа о временной нетрудоспособности:"),
+                    *_date("tempCloseDate", month=19),
                 ),
-                _line(*_date_row("50. Дата закрытия талона:", "closeDate")),
+                _line(text("50. Дата закрытия талона:"), *_date("closeDate", month=19)),
                 _line(
                     text("51. Врач: должность, специальность"),
-                    blank("doctorPosition", 20, grow=True),
+                    _b("doctorPosition", 59),
                     text("фамилия, имя, отчество (при наличии), подпись"),
-                    blank("doctorName", 24, grow=True),
-                    signature("doctorSignature", 12),
+                    _gb("doctorName", 80),
+                    signature("doctorSignature", _ch(25)),
+                    _pad(259),
                 ),
             ],
             framed=True,
+            insetMm=REVERSE_INSET,
         ),
     ],
 }

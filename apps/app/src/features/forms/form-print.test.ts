@@ -85,7 +85,7 @@ describe('form print', () => {
     });
     expect(html).toContain('size: A4 landscape');
     expect(html).toContain('form-print__block form-print__block--framed');
-    expect(html).toContain('<table class="form-print__table">');
+    expect(html).toContain('<table class="form-print__table"');
     expect(html).toContain('25. Даты посещений');
     expect(html).toContain('>05.10.2026<');
     expect(html).toContain('>07.10.2026<');

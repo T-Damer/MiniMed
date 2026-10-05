@@ -4589,64 +4589,98 @@
       "size": "A4",
       "orientation": "landscape",
       "marginMm": {
-        "top": 7,
-        "right": 8,
-        "bottom": 7,
-        "left": 8
+        "top": 7.5,
+        "right": 12.0,
+        "bottom": 2,
+        "left": 14.5
       },
-      "fontSizePt": 9.5
+      "fontSizePt": 9.1,
+      "lineHeight": 1.1
     },
     "blocks": [
       {
         "id": "header",
         "columns": [
           {
-            "widthPercent": 60,
+            "widthPercent": 43,
             "align": "left",
             "rows": [
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Наименование и адрес медицинской организации (фамилия, имя, отчество (при наличии) индивидуального предпринимателя и адрес осуществления медицинской деятельности)"
+                    "text": "Наименование и адрес медицинской организации"
                   }
                 ],
-                "size": "small"
+                "size": "title"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(фамилия, имя, отчество (при наличии) индивидуального"
+                  }
+                ],
+                "size": "title"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "предпринимателя и адрес осуществления медицинской деятельности)"
+                  }
+                ],
+                "size": "title"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Основной государственный регистрационный номер"
+                  }
+                ],
+                "size": "title"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(Основной государственный регистрационный"
+                  }
+                ],
+                "size": "title"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "номер индивидуального предпринимателя)"
+                  }
+                ],
+                "size": "title"
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "organization",
-                    "length": 40,
+                    "length": 37.4,
                     "grow": true
-                  }
-                ]
-              },
-              {
-                "segments": [
-                  {
-                    "kind": "text",
-                    "text": "Основной государственный регистрационный номер (Основной государственный регистрационный номер индивидуального предпринимателя)"
-                  }
-                ],
-                "size": "small",
-                "gap": "small"
-              },
-              {
-                "segments": [
+                  },
                   {
                     "kind": "field",
                     "fieldId": "organizationOgrn",
-                    "length": 40,
+                    "length": 24.9,
                     "grow": true
                   }
-                ]
+                ],
+                "size": "title",
+                "gap": "small"
               }
             ]
           },
           {
-            "widthPercent": 40,
+            "widthPercent": 36,
             "align": "center",
             "rows": [
               {
@@ -4656,7 +4690,9 @@
                     "text": "Медицинская документация"
                   }
                 ],
-                "size": "small"
+                "align": "center",
+                "size": "title",
+                "spaceBeforeMm": 1.1
               },
               {
                 "segments": [
@@ -4665,16 +4701,38 @@
                     "text": "Учетная форма № 025-1/у"
                   }
                 ],
-                "size": "small"
+                "align": "center",
+                "size": "title"
               },
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Утверждена приказом Министерства здравоохранения Российской Федерации от 13 мая 2025 г. № 274н"
+                    "text": "Утверждена приказом Министерства"
                   }
                 ],
-                "size": "small"
+                "align": "center",
+                "size": "title"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "здравоохранения Российской Федерации"
+                  }
+                ],
+                "align": "center",
+                "size": "title"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "от 13 мая 2025 г. № 274н"
+                  }
+                ],
+                "align": "center",
+                "size": "title"
               }
             ]
           }
@@ -4696,12 +4754,12 @@
                   {
                     "kind": "field",
                     "fieldId": "talonNumber",
-                    "length": 16
+                    "length": 21.1
                   }
                 ],
                 "align": "center",
                 "size": "title",
-                "gap": "medium"
+                "spaceBeforeMm": 6.15
               }
             ]
           }
@@ -4726,17 +4784,18 @@
                   {
                     "kind": "field",
                     "fieldId": "openDate",
-                    "length": 3,
+                    "length": 1.7,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "openDate",
-                    "length": 8,
+                    "length": 10.5,
                     "part": "month"
                   },
                   {
@@ -4746,7 +4805,7 @@
                   {
                     "kind": "field",
                     "fieldId": "openDate",
-                    "length": 3,
+                    "length": 1.1,
                     "part": "year2"
                   },
                   {
@@ -4764,8 +4823,7 @@
                   {
                     "kind": "field",
                     "fieldId": "cardNumber",
-                    "length": 20,
-                    "grow": true
+                    "length": 19.2
                   }
                 ]
               },
@@ -4778,8 +4836,7 @@
                   {
                     "kind": "field",
                     "fieldId": "areaNumber",
-                    "length": 20,
-                    "grow": true
+                    "length": 19.2
                   }
                 ]
               },
@@ -4792,45 +4849,16 @@
                   {
                     "kind": "field",
                     "fieldId": "socialSupportCode",
-                    "length": 10
+                    "length": 16.7
                   },
                   {
                     "kind": "text",
                     "text": "3. Установлена до"
                   },
                   {
-                    "kind": "text",
-                    "text": "«"
-                  },
-                  {
                     "kind": "field",
                     "fieldId": "socialSupportUntil",
-                    "length": 3,
-                    "part": "day"
-                  },
-                  {
-                    "kind": "text",
-                    "text": "»"
-                  },
-                  {
-                    "kind": "field",
-                    "fieldId": "socialSupportUntil",
-                    "length": 8,
-                    "part": "month"
-                  },
-                  {
-                    "kind": "text",
-                    "text": "20"
-                  },
-                  {
-                    "kind": "field",
-                    "fieldId": "socialSupportUntil",
-                    "length": 3,
-                    "part": "year2"
-                  },
-                  {
-                    "kind": "text",
-                    "text": "г."
+                    "length": 17.3
                   }
                 ]
               },
@@ -4843,7 +4871,7 @@
                   {
                     "kind": "field",
                     "fieldId": "omsSeries",
-                    "length": 12
+                    "length": 16.1
                   },
                   {
                     "kind": "text",
@@ -4852,7 +4880,7 @@
                   {
                     "kind": "field",
                     "fieldId": "omsNumber",
-                    "length": 16
+                    "length": 21.1
                   },
                   {
                     "kind": "text",
@@ -4861,46 +4889,17 @@
                   {
                     "kind": "field",
                     "fieldId": "omsIssuer",
-                    "length": 20,
-                    "grow": true
+                    "length": 21.1
                   },
                   {
                     "kind": "text",
                     "text": ", дата выдачи"
                   },
                   {
-                    "kind": "text",
-                    "text": "«"
-                  },
-                  {
                     "kind": "field",
                     "fieldId": "omsIssueDate",
-                    "length": 3,
-                    "part": "day"
-                  },
-                  {
-                    "kind": "text",
-                    "text": "»"
-                  },
-                  {
-                    "kind": "field",
-                    "fieldId": "omsIssueDate",
-                    "length": 8,
-                    "part": "month"
-                  },
-                  {
-                    "kind": "text",
-                    "text": "20"
-                  },
-                  {
-                    "kind": "field",
-                    "fieldId": "omsIssueDate",
-                    "length": 3,
-                    "part": "year2"
-                  },
-                  {
-                    "kind": "text",
-                    "text": "г."
+                    "length": 36.8,
+                    "grow": true
                   }
                 ]
               },
@@ -4913,8 +4912,7 @@
                   {
                     "kind": "field",
                     "fieldId": "snils",
-                    "length": 22,
-                    "grow": true
+                    "length": 19.8
                   }
                 ]
               },
@@ -4927,7 +4925,7 @@
                   {
                     "kind": "field",
                     "fieldId": "surname",
-                    "length": 18
+                    "length": 20.4
                   },
                   {
                     "kind": "text",
@@ -4936,7 +4934,7 @@
                   {
                     "kind": "field",
                     "fieldId": "firstName",
-                    "length": 18
+                    "length": 22.9
                   },
                   {
                     "kind": "text",
@@ -4945,7 +4943,7 @@
                   {
                     "kind": "field",
                     "fieldId": "patronymic",
-                    "length": 18
+                    "length": 19.2
                   },
                   {
                     "kind": "text",
@@ -4956,7 +4954,8 @@
                     "fieldId": "patientSex",
                     "separator": ", "
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.9
               },
               {
                 "segments": [
@@ -4971,37 +4970,38 @@
                   {
                     "kind": "field",
                     "fieldId": "patientBirthDate",
-                    "length": 3,
+                    "length": 1.7,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "patientBirthDate",
-                    "length": 8,
+                    "length": 11.1,
                     "part": "month"
                   },
                   {
-                    "kind": "text",
-                    "text": "20"
-                  },
-                  {
                     "kind": "field",
                     "fieldId": "patientBirthDate",
-                    "length": 3,
-                    "part": "year2"
+                    "length": 5.2,
+                    "part": "year"
                   },
                   {
                     "kind": "text",
-                    "text": "г. 10.1. Документ, удостоверяющий личность"
+                    "text": "г."
+                  },
+                  {
+                    "kind": "text",
+                    "text": "10.1. Документ, удостоверяющий личность"
                   },
                   {
                     "kind": "field",
                     "fieldId": "idDocType",
-                    "length": 14
+                    "length": 14.2
                   },
                   {
                     "kind": "text",
@@ -5010,7 +5010,7 @@
                   {
                     "kind": "field",
                     "fieldId": "idDocSeries",
-                    "length": 8
+                    "length": 10.5
                   },
                   {
                     "kind": "text",
@@ -5019,7 +5019,7 @@
                   {
                     "kind": "field",
                     "fieldId": "idDocNumber",
-                    "length": 10
+                    "length": 11.1
                   },
                   {
                     "kind": "text",
@@ -5028,7 +5028,7 @@
                   {
                     "kind": "field",
                     "fieldId": "citizenship",
-                    "length": 12
+                    "length": 11.1
                   }
                 ]
               },
@@ -5041,7 +5041,7 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceSubject",
-                    "length": 14
+                    "length": 15.5
                   },
                   {
                     "kind": "text",
@@ -5050,7 +5050,11 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceDistrict",
-                    "length": 14
+                    "length": 12.3
+                  },
+                  {
+                    "kind": "rule",
+                    "length": 14.8
                   },
                   {
                     "kind": "text",
@@ -5059,7 +5063,7 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceLocality",
-                    "length": 14
+                    "length": 15.5
                   },
                   {
                     "kind": "text",
@@ -5068,7 +5072,7 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceStreet",
-                    "length": 12
+                    "length": 11.1
                   }
                 ]
               },
@@ -5081,7 +5085,7 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceHouse",
-                    "length": 6
+                    "length": 9.2
                   },
                   {
                     "kind": "text",
@@ -5090,7 +5094,7 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceBuilding",
-                    "length": 6
+                    "length": 11.1
                   },
                   {
                     "kind": "text",
@@ -5099,7 +5103,7 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceApartment",
-                    "length": 8
+                    "length": 13.6
                   },
                   {
                     "kind": "text",
@@ -5108,7 +5112,7 @@
                   {
                     "kind": "field",
                     "fieldId": "residencePhone",
-                    "length": 14
+                    "length": 17.3
                   }
                 ]
               },
@@ -5121,7 +5125,7 @@
                   {
                     "kind": "field",
                     "fieldId": "staySubject",
-                    "length": 14
+                    "length": 13.6
                   },
                   {
                     "kind": "text",
@@ -5130,7 +5134,7 @@
                   {
                     "kind": "field",
                     "fieldId": "stayDistrict",
-                    "length": 14
+                    "length": 23.5
                   },
                   {
                     "kind": "text",
@@ -5139,7 +5143,7 @@
                   {
                     "kind": "field",
                     "fieldId": "stayLocality",
-                    "length": 14
+                    "length": 15.5
                   },
                   {
                     "kind": "text",
@@ -5148,7 +5152,7 @@
                   {
                     "kind": "field",
                     "fieldId": "stayStreet",
-                    "length": 12
+                    "length": 9.8
                   },
                   {
                     "kind": "text",
@@ -5157,7 +5161,8 @@
                   {
                     "kind": "field",
                     "fieldId": "stayHouse",
-                    "length": 6
+                    "length": 10.0,
+                    "grow": true
                   }
                 ]
               },
@@ -5170,7 +5175,7 @@
                   {
                     "kind": "field",
                     "fieldId": "stayBuilding",
-                    "length": 6
+                    "length": 8.0
                   },
                   {
                     "kind": "text",
@@ -5179,7 +5184,7 @@
                   {
                     "kind": "field",
                     "fieldId": "stayApartment",
-                    "length": 8
+                    "length": 7.4
                   },
                   {
                     "kind": "text",
@@ -5188,9 +5193,10 @@
                   {
                     "kind": "field",
                     "fieldId": "stayPhone",
-                    "length": 14
+                    "length": 17.3
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.44
               },
               {
                 "segments": [
@@ -5227,8 +5233,7 @@
                   {
                     "kind": "field",
                     "fieldId": "workplace",
-                    "length": 40,
-                    "grow": true
+                    "length": 119.5
                   }
                 ]
               },
@@ -5265,7 +5270,9 @@
                     "fieldId": "careType",
                     "separator": ", "
                   }
-                ]
+                ],
+                "align": "justify",
+                "spaceBeforeMm": 0.78
               },
               {
                 "segments": [
@@ -5278,7 +5285,8 @@
                     "fieldId": "visitPlace",
                     "separator": ", "
                   }
-                ]
+                ],
+                "align": "justify"
               },
               {
                 "segments": [
@@ -5293,9 +5301,28 @@
                   {
                     "kind": "options",
                     "fieldId": "visitPurposeDisease",
-                    "separator": ", "
+                    "separator": ", ",
+                    "range": [
+                      0,
+                      6
+                    ]
                   }
-                ]
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "options",
+                    "fieldId": "visitPurposeDisease",
+                    "separator": ", ",
+                    "range": [
+                      6,
+                      7
+                    ]
+                  }
+                ],
+                "spaceBeforeMm": 1.9
               },
               {
                 "segments": [
@@ -5304,7 +5331,9 @@
                     "fieldId": "visitPurposePrevention",
                     "separator": ", "
                   }
-                ]
+                ],
+                "align": "justify",
+                "spaceBeforeMm": 0.0
               },
               {
                 "segments": [
@@ -5377,10 +5406,17 @@
                     "fieldId": "referral",
                     "separator": ", "
                   }
-                ]
+                ],
+                "align": "justify",
+                "spaceBeforeMm": 0.09
               },
               {
                 "segments": [
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 2.5
+                  },
                   {
                     "kind": "text",
                     "text": "24. Основной вид оплаты:"
@@ -5390,7 +5426,9 @@
                     "fieldId": "payment",
                     "separator": ", "
                   }
-                ]
+                ],
+                "align": "justify",
+                "spaceBeforeMm": 0.12
               },
               {
                 "segments": [
@@ -5422,7 +5460,19 @@
                         "visitDate16",
                         "visitDate17"
                       ]
-                    ]
+                    ],
+                    "columnWeights": [
+                      37,
+                      30,
+                      30,
+                      30,
+                      28,
+                      27.6,
+                      29.3,
+                      29,
+                      30.7
+                    ],
+                    "rowHeightMm": 4.2
                   }
                 ]
               }
@@ -5434,28 +5484,27 @@
       {
         "id": "back-title",
         "pageBreakBefore": true,
+        "insetMm": {
+          "left": 1.7
+        },
         "columns": [
           {
             "widthPercent": 100,
-            "align": "right",
+            "align": "left",
             "rows": [
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "2"
-                  }
-                ],
-                "align": "center"
-              },
-              {
-                "segments": [
+                    "text": "2",
+                    "indentMm": 128.0
+                  },
                   {
                     "kind": "text",
-                    "text": "оборотная сторона формы № 025-1/у"
+                    "text": "оборотная сторона формы № 025-1/у",
+                    "indentMm": 85.0
                   }
-                ],
-                "align": "right"
+                ]
               }
             ]
           }
@@ -5476,7 +5525,7 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimDiagnosis",
-                    "length": 30,
+                    "length": 73.5,
                     "grow": true
                   },
                   {
@@ -5486,7 +5535,12 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimDiagnosisIcd",
-                    "length": 10
+                    "length": 8.6
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
                 ]
               },
@@ -5499,7 +5553,7 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimComplications",
-                    "length": 30,
+                    "length": 56.1,
                     "grow": true
                   },
                   {
@@ -5509,36 +5563,45 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimComplicationsIcd",
-                    "length": 8
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "признак"
+                    "text": "признак",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComplicationsSign",
-                    "length": 5
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "ДН"
+                    "text": "ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComplicationsDn",
-                    "length": 5
+                    "length": 5.9
                   },
                   {
                     "kind": "text",
-                    "text": "снят с ДН"
+                    "text": "снят с ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComplicationsDnOff",
-                    "length": 6
+                    "length": 6.7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "minHeightMm": 3.9
               },
               {
                 "segments": [
@@ -5549,7 +5612,7 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity1",
-                    "length": 30,
+                    "length": 49.8,
                     "grow": true
                   },
                   {
@@ -5559,43 +5622,52 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity1Icd",
-                    "length": 8
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "признак"
+                    "text": "признак",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity1Sign",
-                    "length": 5
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "ДН"
+                    "text": "ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity1Dn",
-                    "length": 5
+                    "length": 5.9
                   },
                   {
                     "kind": "text",
-                    "text": "снят с ДН"
+                    "text": "снят с ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity1DnOff",
-                    "length": 6
+                    "length": 6.7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "minHeightMm": 3.9
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity2",
-                    "length": 30,
+                    "length": 49.8,
                     "grow": true
                   },
                   {
@@ -5605,43 +5677,52 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity2Icd",
-                    "length": 8
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "признак"
+                    "text": "признак",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity2Sign",
-                    "length": 5
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "ДН"
+                    "text": "ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity2Dn",
-                    "length": 5
+                    "length": 5.9
                   },
                   {
                     "kind": "text",
-                    "text": "снят с ДН"
+                    "text": "снят с ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity2DnOff",
-                    "length": 6
+                    "length": 6.7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "minHeightMm": 3.9
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity3",
-                    "length": 30,
+                    "length": 49.8,
                     "grow": true
                   },
                   {
@@ -5651,36 +5732,45 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity3Icd",
-                    "length": 8
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "признак"
+                    "text": "признак",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity3Sign",
-                    "length": 5
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "ДН"
+                    "text": "ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity3Dn",
-                    "length": 5
+                    "length": 5.9
                   },
                   {
                     "kind": "text",
-                    "text": "снят с ДН"
+                    "text": "снят с ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "prelimComorbidity3DnOff",
-                    "length": 6
+                    "length": 6.7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "minHeightMm": 3.9
               },
               {
                 "segments": [
@@ -5691,7 +5781,7 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimExternalCause",
-                    "length": 30,
+                    "length": 77.9,
                     "grow": true
                   },
                   {
@@ -5701,7 +5791,12 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimExternalCauseIcd",
-                    "length": 10
+                    "length": 5.5
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 33.8
                   }
                 ]
               },
@@ -5714,9 +5809,27 @@
                   {
                     "kind": "field",
                     "fieldId": "prelimExtra",
-                    "length": 30,
-                    "lines": 1,
+                    "length": 104.7,
                     "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 33.8
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 143.3,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 34.8
                   }
                 ]
               },
@@ -5742,9 +5855,40 @@
                   {
                     "kind": "options",
                     "fieldId": "prelimDn",
-                    "separator": ", "
+                    "separator": ", ",
+                    "range": [
+                      0,
+                      3
+                    ]
+                  },
+                  {
+                    "kind": "text",
+                    "text": "из них:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "prelimDn",
+                    "separator": ", ",
+                    "range": [
+                      3,
+                      7
+                    ],
+                    "separators": [
+                      ", ",
+                      ", ",
+                      ", ",
+                      ".,",
+                      ".,",
+                      ".,"
+                    ]
+                  },
+                  {
+                    "kind": "text",
+                    "text": ".",
+                    "joined": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.67
               },
               {
                 "segments": [
@@ -5755,14 +5899,34 @@
                   {
                     "kind": "options",
                     "fieldId": "prelimTrauma",
-                    "separator": ", "
+                    "separator": ", ",
+                    "range": [
+                      0,
+                      2
+                    ]
+                  },
+                  {
+                    "kind": "text",
+                    "text": "в том числе:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "prelimTrauma",
+                    "separator": ", ",
+                    "range": [
+                      2,
+                      9
+                    ]
                   }
                 ]
               }
             ]
           }
         ],
-        "framed": true
+        "framed": true,
+        "insetMm": {
+          "left": 1.7
+        }
       },
       {
         "id": "final",
@@ -5779,7 +5943,7 @@
                   {
                     "kind": "field",
                     "fieldId": "finalDiagnosis",
-                    "length": 30,
+                    "length": 73.5,
                     "grow": true
                   },
                   {
@@ -5789,9 +5953,15 @@
                   {
                     "kind": "field",
                     "fieldId": "finalDiagnosisIcd",
-                    "length": 10
+                    "length": 8.6
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "spaceBeforeMm": 2.75
               },
               {
                 "segments": [
@@ -5802,7 +5972,7 @@
                   {
                     "kind": "field",
                     "fieldId": "finalComplications",
-                    "length": 30,
+                    "length": 56.1,
                     "grow": true
                   },
                   {
@@ -5812,36 +5982,45 @@
                   {
                     "kind": "field",
                     "fieldId": "finalComplicationsIcd",
-                    "length": 8
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "признак"
+                    "text": "признак",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComplicationsSign",
-                    "length": 5
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "ДН"
+                    "text": "ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComplicationsDn",
-                    "length": 5
+                    "length": 5.9
                   },
                   {
                     "kind": "text",
-                    "text": "снят с ДН"
+                    "text": "снят с ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComplicationsDnOff",
-                    "length": 6
+                    "length": 6.7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "minHeightMm": 3.9
               },
               {
                 "segments": [
@@ -5852,7 +6031,7 @@
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity1",
-                    "length": 30,
+                    "length": 49.8,
                     "grow": true
                   },
                   {
@@ -5862,43 +6041,52 @@
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity1Icd",
-                    "length": 8
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "признак"
+                    "text": "признак",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity1Sign",
-                    "length": 5
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "ДН"
+                    "text": "ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity1Dn",
-                    "length": 5
+                    "length": 5.9
                   },
                   {
                     "kind": "text",
-                    "text": "снят с ДН"
+                    "text": "снят с ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity1DnOff",
-                    "length": 6
+                    "length": 6.7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "minHeightMm": 3.9
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity2",
-                    "length": 30,
+                    "length": 49.8,
                     "grow": true
                   },
                   {
@@ -5908,43 +6096,52 @@
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity2Icd",
-                    "length": 8
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "признак"
+                    "text": "признак",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity2Sign",
-                    "length": 5
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "ДН"
+                    "text": "ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity2Dn",
-                    "length": 5
+                    "length": 5.9
                   },
                   {
                     "kind": "text",
-                    "text": "снят с ДН"
+                    "text": "снят с ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity2DnOff",
-                    "length": 6
+                    "length": 6.7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "minHeightMm": 3.9
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity3",
-                    "length": 30,
+                    "length": 49.8,
                     "grow": true
                   },
                   {
@@ -5954,36 +6151,45 @@
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity3Icd",
-                    "length": 8
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "признак"
+                    "text": "признак",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity3Sign",
-                    "length": 5
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
-                    "text": "ДН"
+                    "text": "ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity3Dn",
-                    "length": 5
+                    "length": 5.9
                   },
                   {
                     "kind": "text",
-                    "text": "снят с ДН"
+                    "text": "снят с ДН",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "finalComorbidity3DnOff",
-                    "length": 6
+                    "length": 6.7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "minHeightMm": 3.9
               },
               {
                 "segments": [
@@ -5994,7 +6200,7 @@
                   {
                     "kind": "field",
                     "fieldId": "finalExternalCause",
-                    "length": 30,
+                    "length": 77.9,
                     "grow": true
                   },
                   {
@@ -6004,7 +6210,12 @@
                   {
                     "kind": "field",
                     "fieldId": "finalExternalCauseIcd",
-                    "length": 10
+                    "length": 5.5
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 33.8
                   }
                 ]
               },
@@ -6017,9 +6228,27 @@
                   {
                     "kind": "field",
                     "fieldId": "finalExtra",
-                    "length": 30,
-                    "lines": 1,
+                    "length": 104.7,
                     "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 33.8
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 143.3,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 34.8
                   }
                 ]
               },
@@ -6045,9 +6274,32 @@
                   {
                     "kind": "options",
                     "fieldId": "finalDn",
-                    "separator": ", "
+                    "separator": ", ",
+                    "range": [
+                      0,
+                      3
+                    ]
+                  },
+                  {
+                    "kind": "text",
+                    "text": "из них:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "finalDn",
+                    "separator": ", ",
+                    "range": [
+                      3,
+                      7
+                    ]
+                  },
+                  {
+                    "kind": "text",
+                    "text": ".",
+                    "joined": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.86
               },
               {
                 "segments": [
@@ -6058,14 +6310,34 @@
                   {
                     "kind": "options",
                     "fieldId": "finalTrauma",
-                    "separator": ", "
+                    "separator": ", ",
+                    "range": [
+                      0,
+                      2
+                    ]
+                  },
+                  {
+                    "kind": "text",
+                    "text": "в том числе:"
+                  },
+                  {
+                    "kind": "options",
+                    "fieldId": "finalTrauma",
+                    "separator": ", ",
+                    "range": [
+                      2,
+                      9
+                    ]
                   }
                 ]
               }
             ]
           }
         ],
-        "framed": true
+        "framed": true,
+        "insetMm": {
+          "left": 1.7
+        }
       },
       {
         "id": "operation",
@@ -6082,7 +6354,7 @@
                   {
                     "kind": "field",
                     "fieldId": "operationName",
-                    "length": 40,
+                    "length": 102.2,
                     "grow": true
                   },
                   {
@@ -6092,9 +6364,15 @@
                   {
                     "kind": "field",
                     "fieldId": "operationCode",
-                    "length": 14
+                    "length": 16.7
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 23.8
                   }
-                ]
+                ],
+                "spaceBeforeMm": 2.7
               },
               {
                 "segments": [
@@ -6120,7 +6398,8 @@
                     "fieldId": "apparatus",
                     "separator": ", "
                   }
-                ]
+                ],
+                "spaceBeforeMm": 1.18
               },
               {
                 "segments": [
@@ -6131,8 +6410,7 @@
                   {
                     "kind": "field",
                     "fieldId": "operationDoctorPosition",
-                    "length": 20,
-                    "grow": true
+                    "length": 21.1
                   },
                   {
                     "kind": "text",
@@ -6141,7 +6419,7 @@
                   {
                     "kind": "field",
                     "fieldId": "operationDoctorName",
-                    "length": 24,
+                    "length": 54.2,
                     "grow": true
                   },
                   {
@@ -6151,9 +6429,15 @@
                   {
                     "kind": "field",
                     "fieldId": "operationDoctorCode",
-                    "length": 8
+                    "length": 4.2
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 21.8
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.56
               },
               {
                 "segments": [
@@ -6164,7 +6448,7 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention1",
-                    "length": 20,
+                    "length": 53.0,
                     "grow": true
                   },
                   {
@@ -6174,7 +6458,7 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention1Qty",
-                    "length": 6
+                    "length": 6.0
                   },
                   {
                     "kind": "text",
@@ -6183,7 +6467,12 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention1Code",
-                    "length": 14
+                    "length": 18.6
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 18.8
                   }
                 ]
               },
@@ -6196,7 +6485,7 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention2",
-                    "length": 20,
+                    "length": 62.3,
                     "grow": true
                   },
                   {
@@ -6206,7 +6495,7 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention2Qty",
-                    "length": 6
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
@@ -6215,16 +6504,22 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention2Code",
-                    "length": 14
+                    "length": 17.9
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 27.8
                   }
-                ]
+                ],
+                "spaceBeforeMm": 2.65
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "intervention3",
-                    "length": 20,
+                    "length": 112.1,
                     "grow": true
                   },
                   {
@@ -6234,7 +6529,7 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention3Qty",
-                    "length": 6
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
@@ -6243,7 +6538,12 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention3Code",
-                    "length": 14
+                    "length": 17.9
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 27.8
                   }
                 ]
               },
@@ -6252,7 +6552,7 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention4",
-                    "length": 20,
+                    "length": 112.1,
                     "grow": true
                   },
                   {
@@ -6262,7 +6562,7 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention4Qty",
-                    "length": 6
+                    "length": 5.5
                   },
                   {
                     "kind": "text",
@@ -6271,7 +6571,12 @@
                   {
                     "kind": "field",
                     "fieldId": "intervention4Code",
-                    "length": 14
+                    "length": 17.9
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 27.8
                   }
                 ]
               },
@@ -6284,8 +6589,7 @@
                   {
                     "kind": "field",
                     "fieldId": "interventionDoctorPosition",
-                    "length": 20,
-                    "grow": true
+                    "length": 26.7
                   },
                   {
                     "kind": "text",
@@ -6294,7 +6598,7 @@
                   {
                     "kind": "field",
                     "fieldId": "interventionDoctorName",
-                    "length": 24,
+                    "length": 47.3,
                     "grow": true
                   },
                   {
@@ -6304,14 +6608,22 @@
                   {
                     "kind": "field",
                     "fieldId": "interventionDoctorCode",
-                    "length": 8
+                    "length": 6.1
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 21.8
                   }
                 ]
               }
             ]
           }
         ],
-        "framed": true
+        "framed": true,
+        "insetMm": {
+          "left": 1.7
+        }
       },
       {
         "id": "prescriptions",
@@ -6418,23 +6730,27 @@
                       ]
                     ],
                     "columnWeights": [
-                      7,
-                      6,
-                      6,
-                      22,
-                      7,
-                      8,
-                      7,
-                      7,
-                      8,
-                      9
-                    ]
+                      17,
+                      15,
+                      23,
+                      63,
+                      24,
+                      25,
+                      20,
+                      25,
+                      29,
+                      30
+                    ],
+                    "rowHeightMm": 3.8
                   }
                 ]
               }
             ]
           }
-        ]
+        ],
+        "insetMm": {
+          "left": 1.7
+        }
       },
       {
         "id": "temp-disability",
@@ -6452,11 +6768,12 @@
                     "kind": "options",
                     "fieldId": "tempDocKind",
                     "separator": ", "
-                  }
-                ]
-              },
-              {
-                "segments": [
+                  },
+                  {
+                    "kind": "text",
+                    "text": ".",
+                    "joined": true
+                  },
                   {
                     "kind": "text",
                     "text": "46. Повод выдачи:"
@@ -6464,21 +6781,47 @@
                   {
                     "kind": "options",
                     "fieldId": "tempReason",
-                    "separator": ", "
-                  },
+                    "separator": ", ",
+                    "range": [
+                      0,
+                      2
+                    ],
+                    "separators": [
+                      ", ",
+                      "",
+                      ", "
+                    ]
+                  }
+                ]
+              },
+              {
+                "segments": [
                   {
                     "kind": "text",
-                    "text": "(фамилия, имя, отчество (при наличии), пол, возраст"
+                    "text": "(фамилия, имя, отчество (при наличии), пол, возраст ("
                   },
                   {
                     "kind": "field",
                     "fieldId": "tempCareRecipient",
-                    "length": 24,
+                    "length": 62.3,
                     "grow": true
                   },
                   {
                     "kind": "text",
-                    "text": ")"
+                    "text": "),"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "options",
+                    "fieldId": "tempReason",
+                    "separator": ", ",
+                    "range": [
+                      2,
+                      4
+                    ]
                   }
                 ]
               },
@@ -6495,17 +6838,18 @@
                   {
                     "kind": "field",
                     "fieldId": "tempIssueDate",
-                    "length": 3,
+                    "length": 1.7,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "tempIssueDate",
-                    "length": 8,
+                    "length": 11.1,
                     "part": "month"
                   },
                   {
@@ -6515,7 +6859,7 @@
                   {
                     "kind": "field",
                     "fieldId": "tempIssueDate",
-                    "length": 3,
+                    "length": 1.1,
                     "part": "year2"
                   },
                   {
@@ -6537,17 +6881,18 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension1",
-                    "length": 3,
+                    "length": 2.4,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "tempExtension1",
-                    "length": 6,
+                    "length": 9.8,
                     "part": "month"
                   },
                   {
@@ -6557,7 +6902,7 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension1",
-                    "length": 3,
+                    "length": 1.4,
                     "part": "year2"
                   },
                   {
@@ -6571,17 +6916,18 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension2",
-                    "length": 3,
+                    "length": 2.4,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "tempExtension2",
-                    "length": 6,
+                    "length": 9.8,
                     "part": "month"
                   },
                   {
@@ -6591,7 +6937,7 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension2",
-                    "length": 3,
+                    "length": 1.4,
                     "part": "year2"
                   },
                   {
@@ -6605,17 +6951,18 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension3",
-                    "length": 3,
+                    "length": 2.4,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "tempExtension3",
-                    "length": 6,
+                    "length": 9.8,
                     "part": "month"
                   },
                   {
@@ -6625,7 +6972,7 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension3",
-                    "length": 3,
+                    "length": 1.4,
                     "part": "year2"
                   },
                   {
@@ -6639,17 +6986,18 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension4",
-                    "length": 3,
+                    "length": 2.4,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "tempExtension4",
-                    "length": 6,
+                    "length": 9.8,
                     "part": "month"
                   },
                   {
@@ -6659,7 +7007,7 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension4",
-                    "length": 3,
+                    "length": 1.4,
                     "part": "year2"
                   },
                   {
@@ -6673,17 +7021,18 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension5",
-                    "length": 3,
+                    "length": 2.4,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "tempExtension5",
-                    "length": 6,
+                    "length": 9.8,
                     "part": "month"
                   },
                   {
@@ -6693,7 +7042,7 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension5",
-                    "length": 3,
+                    "length": 1.4,
                     "part": "year2"
                   },
                   {
@@ -6707,17 +7056,18 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension6",
-                    "length": 3,
+                    "length": 2.4,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "tempExtension6",
-                    "length": 6,
+                    "length": 9.8,
                     "part": "month"
                   },
                   {
@@ -6727,7 +7077,7 @@
                   {
                     "kind": "field",
                     "fieldId": "tempExtension6",
-                    "length": 3,
+                    "length": 1.4,
                     "part": "year2"
                   },
                   {
@@ -6749,17 +7099,18 @@
                   {
                     "kind": "field",
                     "fieldId": "tempCloseDate",
-                    "length": 3,
+                    "length": 1.7,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "tempCloseDate",
-                    "length": 8,
+                    "length": 11.1,
                     "part": "month"
                   },
                   {
@@ -6769,7 +7120,7 @@
                   {
                     "kind": "field",
                     "fieldId": "tempCloseDate",
-                    "length": 3,
+                    "length": 1.1,
                     "part": "year2"
                   },
                   {
@@ -6791,17 +7142,18 @@
                   {
                     "kind": "field",
                     "fieldId": "closeDate",
-                    "length": 3,
+                    "length": 1.7,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "closeDate",
-                    "length": 8,
+                    "length": 11.1,
                     "part": "month"
                   },
                   {
@@ -6811,7 +7163,7 @@
                   {
                     "kind": "field",
                     "fieldId": "closeDate",
-                    "length": 3,
+                    "length": 1.1,
                     "part": "year2"
                   },
                   {
@@ -6829,8 +7181,7 @@
                   {
                     "kind": "field",
                     "fieldId": "doctorPosition",
-                    "length": 20,
-                    "grow": true
+                    "length": 36.0
                   },
                   {
                     "kind": "text",
@@ -6839,21 +7190,29 @@
                   {
                     "kind": "field",
                     "fieldId": "doctorName",
-                    "length": 24,
+                    "length": 49.8,
                     "grow": true
                   },
                   {
                     "kind": "signature",
                     "fieldId": "doctorSignature",
-                    "length": 12,
+                    "length": 15.6,
                     "caption": "подпись"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "",
+                    "indentMm": 22.8
                   }
                 ]
               }
             ]
           }
         ],
-        "framed": true
+        "framed": true,
+        "insetMm": {
+          "left": 1.7
+        }
       }
     ]
   },
