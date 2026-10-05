@@ -164,3 +164,63 @@ describe('name-variant fallback', () => {
     if (response.ok) expect(response.value.queryRewrite).toBeUndefined();
   });
 });
+
+describe('МКБ → recommendation bridge', () => {
+  const search = (core: ReturnType<typeof createMedicalCore>) =>
+    core.search({
+      query: 'острый бронхит неуточненный',
+      mode: 'lexical',
+      analysisMode: 'clinical',
+      limit: 10,
+    });
+
+  it('adds the recommendations that list the code of a matched card, right behind it', async () => {
+    const response = await search(createCore({ icdBridge: true }));
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    const ids = response.value.groups.map((group) => group.documentId);
+    expect(ids).toContain('kr.lower-tract');
+    expect(ids).not.toContain('kr.other');
+    expect(
+      response.value.groups.find((group) => group.documentId === 'kr.lower-tract')?.results[0]
+        ?.matchedBranches,
+    ).toEqual(['Рекомендация по коду МКБ J20.9']);
+  });
+
+  it('also bridges a name lookup whose first group is the card', async () => {
+    const response = await createCore().search({
+      query: 'острый бронхит неуточненный',
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      limit: 10,
+    });
+    expect(response.ok).toBe(true);
+    if (!response.ok) return;
+    const ids = response.value.groups.map((group) => group.documentId);
+    expect(ids[0]).toBe('card.j20.9');
+    expect(ids).toContain('kr.lower-tract');
+  });
+
+  it('adds nothing to a lookup whose first group carries no code', async () => {
+    const response = await createCore().search({
+      query: 'метформин',
+      mode: 'lexical',
+      analysisMode: 'lookup',
+      limit: 10,
+    });
+    expect(response.ok).toBe(true);
+    if (response.ok)
+      expect(
+        response.value.groups.map((group) => group.documentId).some((id) => id.startsWith('kr.')),
+      ).toBe(false);
+  });
+
+  it('changes nothing when switched off', async () => {
+    const response = await search(createCore({ icdBridge: false }));
+    expect(response.ok).toBe(true);
+    if (response.ok)
+      expect(response.value.groups.map((group) => group.documentId)).not.toContain(
+        'kr.lower-tract',
+      );
+  });
+});

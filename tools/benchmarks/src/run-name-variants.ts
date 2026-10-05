@@ -54,7 +54,7 @@ interface Outcome {
 async function runConfiguration(nameVariants: boolean) {
   const { core, target } = await openRealCorpus({
     companions: !process.argv.includes('--no-companions'),
-    coreOptions: { nameVariants },
+    coreOptions: { nameVariants, icdBridge: false },
   });
   const scoped = new ScopedMedicalCore(core, 'all');
   const search = async (query: string) => {

@@ -8,11 +8,12 @@ import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
 
 const args = process.argv.slice(2);
 for (const arg of args) {
-  if (!/^(?:--core=.+|--name-variants=(?:on|off)|--no-report)$/u.test(arg))
+  if (!/^(?:--core=.+|--name-variants=(?:on|off)|--icd-bridge=(?:on|off)|--no-report)$/u.test(arg))
     throw new Error(`Unknown argument ${arg}`);
 }
-// S3 switches (roadmap item 3): measure before/after with `off`; the default is the shipped state.
+// S3 switches (roadmap items 3 and 4): measure before/after with `off`; the default is the shipped state.
 const nameVariants = !args.includes('--name-variants=off') && !process.env['S3_OFF'];
+const icdBridge = !args.includes('--icd-bridge=off') && !process.env['S3_OFF'];
 const corePathOverride = args.find((arg) => arg.startsWith('--core='))?.slice('--core='.length);
 
 interface OwnerQuery {
@@ -37,9 +38,10 @@ if (new Set(cases.map((item) => item.id)).size !== cases.length)
 const reportPath = resolve(REPOSITORY_ROOT, 'data/build/owner-queries-report.json');
 const { core, corpus, target } = await openRealCorpus({
   corePath: corePathOverride,
-  // Without explicit switches the shipped defaults apply.
+  // Without explicit switches the shipped defaults (and `S3_BRIDGE_JSON` of real-corpus.ts) apply.
   coreOptions: {
     ...(nameVariants ? {} : { nameVariants }),
+    ...(icdBridge ? {} : { icdBridge }),
   },
 });
 const scoped = new ScopedMedicalCore(core, 'all');

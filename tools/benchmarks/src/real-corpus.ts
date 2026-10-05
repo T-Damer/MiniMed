@@ -90,8 +90,11 @@ export async function openRealCorpus(
     store,
     platform: 'test',
     ...(options.embedder ? { embedder: options.embedder } : {}),
-    // `S3_OFF=1` measures the state before roadmap item 3 (name variants).
-    ...(process.env['S3_OFF'] ? { nameVariants: false } : {}),
+    // `S3_OFF=1` measures the state before roadmap items 3 and 4 (name variants, МКБ bridge).
+    ...(process.env['S3_OFF'] ? { nameVariants: false, icdBridge: false } : {}),
+    ...(process.env['S3_BRIDGE_JSON']
+      ? { icdBridge: JSON.parse(process.env['S3_BRIDGE_JSON']) }
+      : {}),
     ...options.coreOptions,
   });
   const initialized = await core.initialize();

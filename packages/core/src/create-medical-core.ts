@@ -55,6 +55,14 @@ import type {
 
 import { isSupersededSummaryDocument } from './document-siblings';
 import {
+  DEFAULT_ICD_BRIDGE_TUNING,
+  documentIcdCodes,
+  type IcdBridgeTuning,
+  IcdRecommendationIndex,
+  isRecommendationDocument,
+  titleCoverage,
+} from './icd-bridge';
+import {
   groupChunksBySection,
   metadataStrings,
   toDocumentSummary,
@@ -81,7 +89,8 @@ export interface CreateMedicalCoreOptions {
   readonly platform?: CoreCapabilities['platform'];
   readonly embedder?: QueryEmbedder;
   readonly searchExecution?: CoreCapabilities['searchExecution'];
-  /** S3 switch, on by default; benchmarks turn it off to measure before/after. */
+  /** S3 switches, on by default; benchmarks turn one off to measure before/after. */
+  readonly icdBridge?: boolean | Partial<IcdBridgeTuning>;
   readonly nameVariants?: boolean;
 }
 
@@ -932,6 +941,146 @@ function semanticQueryText(analysis: QueryAnalysis): string {
   return clinicalBranch?.normalizedQuery ?? analysis.normalizedQuery;
 }
 
+function icdBridgeTuning(
+  option: CreateMedicalCoreOptions['icdBridge'],
+  analysisMode: SearchRequest['analysisMode'],
+): IcdBridgeTuning | null {
+  if (option === false) return null;
+  const defaults = DEFAULT_ICD_BRIDGE_TUNING[analysisMode === 'clinical' ? 'clinical' : 'lookup'];
+  return option === true || option === undefined ? defaults : { ...defaults, ...option };
+}
+
+interface IcdBridgeInput {
+  readonly groups: readonly SearchResultGroup[];
+  readonly documentIndex: QueryDocumentIndex;
+  readonly recommendations: IcdRecommendationIndex;
+  readonly tuning: IcdBridgeTuning;
+  readonly store: MedicalStore;
+  readonly filters: SearchFilters;
+  readonly terms: readonly string[];
+  readonly ftsQueries: readonly string[];
+  readonly query: string;
+  /** Groups an exact name, alias or spelling candidate pinned; the bridge never goes before them. */
+  readonly pinnedIds: ReadonlySet<string>;
+  readonly group: (results: readonly SearchResult[]) => readonly SearchResultGroup[];
+}
+
+/**
+ * Item 4 (S3): the best-ranked documents that carry МКБ codes (cards, disease articles) lend their
+ * codes; recommendations listing those codes join the result list. See `icd-bridge.ts`.
+ */
+async function bridgeIcdRecommendations(
+  input: IcdBridgeInput,
+): Promise<readonly SearchResultGroup[]> {
+  const { groups, documentIndex, tuning } = input;
+  if (tuning.requireCardFirst) {
+    const first = groups[0] ? documentIndex.byId.get(groups[0].documentId) : undefined;
+    if (!first || isRecommendationDocument(first) || documentIcdCodes(first).length === 0)
+      return groups;
+  }
+  const cards: {
+    group: SearchResultGroup;
+    codes: readonly string[];
+    strong: boolean;
+  }[] = [];
+  for (const group of groups) {
+    const document = documentIndex.byId.get(group.documentId);
+    if (!document || isRecommendationDocument(document)) continue;
+    const codes = documentIcdCodes(document);
+    if (codes.length === 0) continue;
+    cards.push({
+      group,
+      codes,
+      strong: titleCoverage(group.title, input.query) >= tuning.strongCoverage,
+    });
+    if (cards.length >= tuning.cards) break;
+  }
+  const best = Math.max(0, ...cards.map((card) => card.group.bestScore));
+  const present = new Set(
+    groups.flatMap((group) => {
+      const target = documentIndex.byId.get(group.documentId)?.metadata['targetDocumentId'];
+      return typeof target === 'string' ? [group.documentId, target] : [group.documentId];
+    }),
+  );
+  const picked = new Map<string, { strong: boolean; code: string; score: number }>();
+  for (const card of cards) {
+    if (card.group.bestScore < best * tuning.minCardShare) continue;
+    if (!card.strong && tuning.weakKeep < 0) continue;
+    let added = 0;
+    for (const recommendation of input.recommendations.recommendationsFor(
+      card.codes,
+      tuning.exactOnly,
+    )) {
+      if (picked.size >= tuning.total || added >= tuning.perCard) break;
+      const target = documentIndex.byId.get(recommendation.documentId)?.metadata[
+        'targetDocumentId'
+      ];
+      if (
+        picked.has(recommendation.documentId) ||
+        present.has(recommendation.documentId) ||
+        (typeof target === 'string' && present.has(target))
+      )
+        continue;
+      picked.set(recommendation.documentId, {
+        strong: card.strong,
+        code: recommendation.code,
+        score: card.group.bestScore * tuning.scoreFactor,
+      });
+      added += 1;
+    }
+  }
+  if (picked.size === 0) return groups;
+  const results = (
+    await buildExactIdentityResults(
+      input.store,
+      new Set(picked.keys()),
+      input.filters,
+      input.terms,
+      input.ftsQueries,
+    )
+  ).map((result) => {
+    const source = picked.get(result.documentId);
+    return source
+      ? {
+          ...result,
+          finalScore: source.score,
+          matchedBranches: [`Рекомендация по коду МКБ ${source.code}`],
+        }
+      : result;
+  });
+  const bridged = input.group(results);
+  const strong = bridged.filter((group) => picked.get(group.documentId)?.strong);
+  const weak = bridged.filter((group) => !picked.get(group.documentId)?.strong);
+  // Behind the pinned exact-name groups and the first `keep` recommendations that words found.
+  let pinned = 0;
+  while (pinned < groups.length && input.pinnedIds.has(groups[pinned]?.documentId ?? ''))
+    pinned += 1;
+  const insertionIndex = (keep: number) => {
+    // A lookup keeps the card that named the diagnosis in first place.
+    let index = Math.max(pinned, tuning.requireCardFirst ? 1 : 0);
+    let seen = 0;
+    for (const [position, group] of groups.entries()) {
+      const document = documentIndex.byId.get(group.documentId);
+      if (seen >= keep || !document || !isRecommendationDocument(document)) continue;
+      seen += 1;
+      index = Math.max(index, position + 1);
+    }
+    return index;
+  };
+  const weakAt = insertionIndex(tuning.weakKeep);
+  const strongAt = insertionIndex(tuning.strongKeep);
+  const rest = [...groups];
+  // The later position first, so the earlier index stays valid.
+  if (weakAt >= strongAt) {
+    rest.splice(weakAt, 0, ...weak);
+    rest.splice(strongAt, 0, ...strong);
+  } else {
+    rest.splice(strongAt, 0, ...strong);
+    rest.splice(weakAt, 0, ...weak);
+  }
+  return rest;
+}
+
 export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCore {
   const platform = options.platform ?? 'unknown';
   const seed = options.seed === undefined ? undefined : ContentPackSeedSchema.parse(options.seed);
@@ -943,6 +1092,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
   let aliasesPromise: Promise<Result<MedicalAliasRecords, LocalMedError>> | undefined;
   let queryDocumentIndex: QueryDocumentIndex | undefined;
   let terminologyIndex: TerminologySearchIndex | undefined;
+  let icdRecommendations: IcdRecommendationIndex | undefined;
   let searchDocumentsPromise: Promise<readonly SearchDocumentDescriptor[]> | undefined;
   let navigationDocumentsPromise:
     | Promise<Result<readonly MedicalDocumentSummary[], LocalMedError>>
@@ -961,6 +1111,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       searchDocumentsPromise = undefined;
       queryDocumentIndex = undefined;
       terminologyIndex = undefined;
+      icdRecommendations = undefined;
       const health = await options.store.initialize(seed);
       initialized = true;
       return ok({
@@ -1144,6 +1295,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       if (indexedDocuments !== documents || !queryDocumentIndex || !terminologyIndex) {
         queryDocumentIndex = new QueryDocumentIndex(documents);
         terminologyIndex = new TerminologySearchIndex(documents);
+        icdRecommendations = undefined;
         indexedDocuments = documents;
       }
       const documentIndex = queryDocumentIndex;
@@ -1404,6 +1556,42 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
             Number(spellingDocumentIds.has(right.documentId)) -
               Number(spellingDocumentIds.has(left.documentId)),
         );
+      const bridgeTuning = icdBridgeTuning(options.icdBridge, parsed.data.analysisMode);
+      let finalGroups: readonly SearchResultGroup[] = rankedGroups;
+      if (bridgeTuning) {
+        icdRecommendations ??= new IcdRecommendationIndex(documents);
+        finalGroups = await bridgeIcdRecommendations({
+          groups: rankedGroups,
+          documentIndex,
+          recommendations: icdRecommendations,
+          tuning: bridgeTuning,
+          store: options.store,
+          filters: parsed.data.filters,
+          terms: plan.terms,
+          ftsQueries: baseBranches.slice(0, 1).map((branch) => branch.ftsQuery),
+          query: parsed.data.query,
+          pinnedIds: new Set([
+            ...exactIdentityDocumentIds,
+            ...spellingDocumentIds,
+            ...exactAliasDocumentIds,
+          ]),
+          group: (bridgedResults) =>
+            groupResults(
+              bridgedResults,
+              null,
+              false,
+              plan.analysis.normalizedQuery,
+              plan.terms,
+              aliasesResult.value,
+              [...new Set(bridgedResults.map((result) => result.documentId))].flatMap((id) => {
+                const document = documentIndex.byId.get(id);
+                return document ? [document] : [];
+              }),
+              plan.analysis,
+              undefined,
+            ),
+        });
+      }
       return ok({
         requestId: requestId(),
         identities,
@@ -1412,7 +1600,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
         modeUsed,
         analysis: plan.analysis,
         suggestions: plan.analysis.suggestions,
-        groups: collapseGroupsByTargetDocument(rankedGroups, documentIndex.byId).slice(
+        groups: collapseGroupsByTargetDocument(finalGroups, documentIndex.byId).slice(
           0,
           parsed.data.limit,
         ),
@@ -1689,6 +1877,7 @@ export function createMedicalCore(options: CreateMedicalCoreOptions): MedicalCor
       searchDocumentsPromise = undefined;
       queryDocumentIndex = undefined;
       terminologyIndex = undefined;
+      icdRecommendations = undefined;
     },
   };
 }
