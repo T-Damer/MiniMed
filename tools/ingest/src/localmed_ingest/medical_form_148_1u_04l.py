@@ -928,7 +928,7 @@ def _layout() -> dict[str, Any]:
             table_width_mm=170.2,
         ),
     ]
-    first_row_space(blocks[0], 73.3, 77.3, 72.9)
+    first_row_space(blocks[0], 71.8, 75.8, 71.4)
     first_row_space(next(b for b in blocks if b["id"] == "pharmacy-title"), 3.2)
     return {
         "page": {

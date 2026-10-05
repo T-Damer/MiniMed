@@ -10,20 +10,21 @@
     },
     "fontSizePt": 11.25
   },
-  "lineHeight": 1.171,
+  "lineHeight": 1.136,
   "rows": {
-    "address/0/0": 3.81,
-    "birth/0/0": 4.34,
-    "doctor/0/0": 4.14,
-    "header/0/1": 4.67,
-    "header/0/2": 0.15,
-    "header/0/4": 4.03,
-    "header/0/6": 0.0,
-    "kind/0/0": 3.85,
-    "patient/0/0": 4.09,
-    "recipe-date/0/0": 2.38,
-    "reverse-top/1/0": 6.96,
-    "signature/0/0": 5.36,
-    "validity/0/0": 2.39
+    "address/0/0": 3.92,
+    "birth/0/0": 4.19,
+    "doctor/0/0": 4.16,
+    "header/0/1": 4.45,
+    "header/0/2": 0.03,
+    "header/0/4": 4.14,
+    "header/0/5": 0.0,
+    "kind/0/0": 3.88,
+    "patient/0/0": 3.93,
+    "recipe-date/0/0": 2.68,
+    "reverse-table/0/0": 12.71,
+    "reverse-top/1/0": 6.6,
+    "signature/0/0": 4.88,
+    "validity/0/0": 2.44
   }
 }

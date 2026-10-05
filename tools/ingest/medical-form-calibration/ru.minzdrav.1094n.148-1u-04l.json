@@ -8,28 +8,24 @@
       "bottom": 3,
       "left": 25.4
     },
-    "fontSizePt": 11.25
+    "fontSizePt": 11.0
   },
-  "lineHeight": 1.105,
+  "lineHeight": 1.113,
   "rows": {
-    "card/0/0": 0.26,
-    "doctor/0/0": 0.56,
-    "footnote/0/0": 3.48,
-    "head/1/0": 77.56,
-    "head/2/1": 0.26,
-    "okud/0/1": 2.21,
-    "patient/0/0": 2.89,
-    "patient/0/1": 0.48,
-    "reverse-table/0/0": 6.38,
-    "reverse-top/0/0": 5.17,
-    "reverse-top/1/0": 21.64,
-    "rp/0/3": 0.33,
-    "signature/0/0": 5.54,
-    "snils/0/0": 1.59,
-    "stamp-entrepreneur/0/0": 3.26,
-    "stamp-organization/0/0": 3.95,
-    "stub/0/0": 1.47,
-    "tear-off/0/0": 1.88,
-    "validity/0/0": 4.0
+    "doctor/0/0": 0.28,
+    "footnote/0/0": 2.98,
+    "okud/0/1": 2.09,
+    "patient/0/0": 2.39,
+    "reverse-table/0/0": 5.7,
+    "reverse-top/0/0": 5.25,
+    "reverse-top/1/0": 21.28,
+    "rp/0/3": 0.34,
+    "signature/0/0": 5.31,
+    "snils/0/0": 1.86,
+    "stamp-entrepreneur/0/0": 2.96,
+    "stamp-organization/0/0": 3.96,
+    "stub/0/0": 1.77,
+    "tear-off/0/0": 2.35,
+    "validity/0/0": 3.77
   }
 }

@@ -1333,8 +1333,8 @@
         "bottom": 3,
         "left": 25.4
       },
-      "fontSizePt": 11.25,
-      "lineHeight": 1.105
+      "fontSizePt": 11.0,
+      "lineHeight": 1.113
     },
     "blocks": [
       {
@@ -1351,7 +1351,7 @@
                     "indentMm": 3.6
                   }
                 ],
-                "spaceBeforeMm": 73.3
+                "spaceBeforeMm": 71.8
               },
               {
                 "segments": [
@@ -1384,7 +1384,7 @@
                     "text": "МЕСТО ДЛЯ ШТРИХКОДА*"
                   }
                 ],
-                "spaceBeforeMm": 77.56
+                "spaceBeforeMm": 75.8
               }
             ]
           },
@@ -1398,7 +1398,7 @@
                     "text": "УТВЕРЖДЕНА"
                   }
                 ],
-                "spaceBeforeMm": 72.9
+                "spaceBeforeMm": 71.4
               },
               {
                 "segments": [
@@ -1406,8 +1406,7 @@
                     "kind": "text",
                     "text": "приказом Министерства"
                   }
-                ],
-                "spaceBeforeMm": 0.26
+                ]
               },
               {
                 "segments": [
@@ -1481,7 +1480,7 @@
                 "valign": "top",
                 "heightMm": 3.5,
                 "fontScale": 0.72,
-                "spaceBeforeMm": 3.95
+                "spaceBeforeMm": 3.96
               },
               {
                 "segments": [
@@ -1548,7 +1547,7 @@
                 "valign": "top",
                 "heightMm": 3.5,
                 "fontScale": 0.72,
-                "spaceBeforeMm": 3.26
+                "spaceBeforeMm": 2.96
               },
               {
                 "segments": [
@@ -1614,7 +1613,7 @@
                     "indentMm": 130.3
                   }
                 ],
-                "spaceBeforeMm": 2.21
+                "spaceBeforeMm": 2.09
               }
             ]
           }
@@ -1910,7 +1909,7 @@
                   }
                 ],
                 "heightMm": 3.9,
-                "spaceBeforeMm": 2.89
+                "spaceBeforeMm": 2.39
               },
               {
                 "segments": [
@@ -1966,8 +1965,7 @@
                   }
                 ],
                 "valign": "center",
-                "heightMm": 4.4,
-                "spaceBeforeMm": 0.48
+                "heightMm": 4.4
               }
             ]
           }
@@ -2022,7 +2020,7 @@
                     ]
                   }
                 ],
-                "spaceBeforeMm": 1.59
+                "spaceBeforeMm": 1.86
               }
             ]
           }
@@ -2095,8 +2093,7 @@
                     "text": "Номер медицинской карты пациента, получающего медицинскую помощь в амбулаторных",
                     "indentMm": 4.0
                   }
-                ],
-                "spaceBeforeMm": 0.26
+                ]
               },
               {
                 "segments": [
@@ -2131,7 +2128,7 @@
                     "indentMm": 4.4
                   }
                 ],
-                "spaceBeforeMm": 0.56
+                "spaceBeforeMm": 0.28
               },
               {
                 "segments": [
@@ -2227,7 +2224,7 @@
                     "lineStyle": "dotted"
                   }
                 ],
-                "spaceBeforeMm": 0.33
+                "spaceBeforeMm": 0.34
               }
             ]
           }
@@ -2267,7 +2264,7 @@
                     "indentMm": 4.0
                   }
                 ],
-                "spaceBeforeMm": 5.54
+                "spaceBeforeMm": 5.31
               },
               {
                 "segments": [
@@ -2313,7 +2310,7 @@
                     "text": "(нужное подчеркнуть)"
                   }
                 ],
-                "spaceBeforeMm": 4.0
+                "spaceBeforeMm": 3.77
               }
             ]
           }
@@ -2535,7 +2532,7 @@
                     "lineStyle": "dashed"
                   }
                 ],
-                "spaceBeforeMm": 1.88
+                "spaceBeforeMm": 2.35
               }
             ]
           }
@@ -2651,7 +2648,7 @@
                     ]
                   }
                 ],
-                "spaceBeforeMm": 1.47
+                "spaceBeforeMm": 1.77
               }
             ]
           }
@@ -2692,7 +2689,7 @@
                     "indentMm": 4.0
                   }
                 ],
-                "spaceBeforeMm": 3.48
+                "spaceBeforeMm": 2.98
               }
             ]
           }
@@ -2711,7 +2708,7 @@
                     "text": "Оборотная сторона"
                   }
                 ],
-                "spaceBeforeMm": 5.17
+                "spaceBeforeMm": 5.25
               }
             ]
           },
@@ -2731,7 +2728,7 @@
                 "box": "outline",
                 "minHeightMm": 26.0,
                 "paddingTopMm": 2.2,
-                "spaceBeforeMm": 21.64
+                "spaceBeforeMm": 21.28
               }
             ]
           },
@@ -2790,7 +2787,7 @@
                     "rowHeightMm": 7.6
                   }
                 ],
-                "spaceBeforeMm": 6.38
+                "spaceBeforeMm": 5.7
               }
             ]
           }

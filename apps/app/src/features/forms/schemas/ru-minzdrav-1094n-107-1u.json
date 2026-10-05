@@ -902,8 +902,8 @@
         "bottom": 10,
         "left": 29.4
       },
-      "fontSizePt": 11.5,
-      "lineHeight": 1.166
+      "fontSizePt": 11.25,
+      "lineHeight": 1.175
     },
     "blocks": [
       {
@@ -927,8 +927,7 @@
                     "kind": "text",
                     "text": "Российской Федерации"
                   }
-                ],
-                "spaceBeforeMm": 0.89
+                ]
               }
             ]
           },
@@ -948,7 +947,7 @@
                     "plain": true
                   }
                 ],
-                "spaceBeforeMm": 52.5
+                "spaceBeforeMm": 51.49
               },
               {
                 "segments": [
@@ -963,7 +962,7 @@
                     "plain": true
                   }
                 ],
-                "spaceBeforeMm": 0.51
+                "spaceBeforeMm": 0.26
               }
             ]
           }
@@ -1009,8 +1008,7 @@
                     "kind": "text",
                     "text": "медицинской организации"
                   }
-                ],
-                "spaceBeforeMm": 0.3
+                ]
               },
               {
                 "segments": [
@@ -1030,7 +1028,7 @@
                     "text": "Наименование (штамп)"
                   }
                 ],
-                "spaceBeforeMm": 5.33
+                "spaceBeforeMm": 5.02
               },
               {
                 "segments": [
@@ -1039,7 +1037,7 @@
                     "text": "индивидуального предпринимателя"
                   }
                 ],
-                "spaceBeforeMm": 0.52
+                "spaceBeforeMm": 0.69
               },
               {
                 "segments": [
@@ -1064,7 +1062,7 @@
                     "text": "выдавшего лицензию)"
                   }
                 ],
-                "spaceBeforeMm": 0.7
+                "spaceBeforeMm": 0.43
               },
               {
                 "segments": [
@@ -1096,8 +1094,7 @@
                     "kind": "text",
                     "text": "Утверждена приказом"
                   }
-                ],
-                "spaceBeforeMm": 0.3
+                ]
               },
               {
                 "segments": [
@@ -1105,8 +1102,7 @@
                     "kind": "text",
                     "text": "Министерства здравоохранения"
                   }
-                ],
-                "spaceBeforeMm": 0.3
+                ]
               },
               {
                 "segments": [
@@ -1114,7 +1110,8 @@
                     "kind": "text",
                     "text": "Российской Федерации"
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.3
               },
               {
                 "segments": [
@@ -1179,7 +1176,7 @@
                   }
                 ],
                 "align": "center",
-                "spaceBeforeMm": 3.85
+                "spaceBeforeMm": 3.6
               },
               {
                 "segments": [
@@ -1201,7 +1198,7 @@
                   }
                 ],
                 "align": "center",
-                "spaceBeforeMm": 0.43
+                "spaceBeforeMm": 0.6
               },
               {
                 "segments": [
@@ -1260,7 +1257,7 @@
                     "text": "Фамилия, инициалы имени и отчества (последнее – при наличии)"
                   }
                 ],
-                "spaceBeforeMm": 4.11
+                "spaceBeforeMm": 3.86
               },
               {
                 "segments": [
@@ -1330,7 +1327,7 @@
                   }
                 ],
                 "heightMm": 2.85,
-                "spaceBeforeMm": 3.48
+                "spaceBeforeMm": 3.25
               },
               {
                 "segments": [
@@ -1383,7 +1380,7 @@
                   }
                 ],
                 "heightMm": 2.85,
-                "spaceBeforeMm": 1.89
+                "spaceBeforeMm": 1.85
               },
               {
                 "segments": [
@@ -1436,7 +1433,7 @@
                   }
                 ],
                 "heightMm": 2.85,
-                "spaceBeforeMm": 2.15
+                "spaceBeforeMm": 1.85
               },
               {
                 "segments": [
@@ -1489,7 +1486,7 @@
                     "text": "Подпись"
                   }
                 ],
-                "spaceBeforeMm": 2.38
+                "spaceBeforeMm": 2.08
               },
               {
                 "segments": [
@@ -1553,7 +1550,7 @@
                   }
                 ],
                 "align": "right",
-                "spaceBeforeMm": 2.85
+                "spaceBeforeMm": 2.54
               },
               {
                 "segments": [
@@ -1607,7 +1604,7 @@
                 "box": "outline",
                 "minHeightMm": 26.6,
                 "paddingTopMm": 2.2,
-                "spaceBeforeMm": 3.24
+                "spaceBeforeMm": 2.8
               }
             ]
           }
@@ -1652,7 +1649,7 @@
                     "rowHeightMm": 8.3
                   }
                 ],
-                "spaceBeforeMm": 1.58
+                "spaceBeforeMm": 0.9
               }
             ]
           }

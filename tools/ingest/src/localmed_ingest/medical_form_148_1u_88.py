@@ -453,7 +453,7 @@ def _layout() -> dict[str, Any]:
             table_gap=13.3,
         ),
     ]
-    first_row_space(blocks[0], 79.5)
+    first_row_space(blocks[0], 78.0)
     # «Серия» and «№» are not in the OCR text, so the calibration cannot place the comb: measured
     # on the scan (the cells start 3 mm lower than the flow of the lines above puts them).
     blocks[3]["columns"][0]["rows"][0]["spaceBeforeMm"] = 3.0
