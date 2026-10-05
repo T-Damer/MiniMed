@@ -1,6 +1,7 @@
 import { mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
 import { selectSearchSection, waitForHomeSections } from '@localmed/app/e2e/select-search-section';
 import { expect, test } from '@playwright/test';
+import { openSettingsPage } from './settings-nav';
 
 for (const width of [375, 1280]) {
   test(`unified selector, tool history, folders and long catalog at ${width}px`, async ({
@@ -149,6 +150,7 @@ for (const width of [375, 1280]) {
     await page.keyboard.press('Escape');
     await expect(vaultDialog).toBeHidden();
     await nav.getByRole('button', { name: /^Настройки/u }).click();
+    await openSettingsPage(page, 'Внешний вид');
     await expect(
       page
         .locator('.settings-row')

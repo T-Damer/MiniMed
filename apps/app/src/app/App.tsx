@@ -36,6 +36,7 @@ import {
   onboardingRestartRequests,
 } from '@/features/onboarding/onboarding-state';
 import { searchCoreStatus } from '@/features/search/search-core-status';
+import { requestSettingsPage } from '@/features/settings/settings-routing';
 import { holdCoreStart, isSetupDismissed, releaseCoreStart } from '@/features/setup/setup-state';
 import {
   getFloatingWindowsEnabled,
@@ -485,6 +486,7 @@ export function App(): JSX.Element {
               : {})}
             onOpenAppUpdateSettings={() => {
               rememberReturnTo();
+              requestSettingsPage('general');
               navigation.navigate('settings');
             }}
           />

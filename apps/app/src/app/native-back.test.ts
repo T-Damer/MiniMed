@@ -94,6 +94,14 @@ describe('nativeBackAction', () => {
       type: 'parent',
       hash: '#/settings',
     });
+    expect(nativeBackAction('settings/appearance', 'settings', false)).toEqual({
+      type: 'parent',
+      hash: '#/settings',
+    });
+    expect(nativeBackAction('settings/images/reference', 'settings', false)).toEqual({
+      type: 'parent',
+      hash: '#/settings/images',
+    });
     expect(nativeBackAction('search', 'search', false)).toEqual({ type: 'minimize' });
   });
 

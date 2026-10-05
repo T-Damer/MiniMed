@@ -46,6 +46,7 @@
     "content:lint:clinical": "uv run --project tools/ingest medbase lint --input data/intermediate/full-respiratory-rf",
     "content:build:clinical": "uv run --project tools/ingest medbase build --input data/intermediate/full-respiratory-rf --output data/build/full-respiratory-rf.db --report data/build/full-respiratory-rf-report.json",
     "content:sections:manifest": "bun scripts/build-section-manifest.ts",
+    "content:reference-images:previews": "bun scripts/build-reference-image-previews.ts",
     "forms:check-updates": "uv run --project tools/ingest python -m localmed_ingest.medical_form_updates",
     "forms:prepare": "uv run --project tools/ingest python -m localmed_ingest.medical_forms prepare --form all --source data/raw/medical-forms/0001202505300033.source.json --ocr data/raw/medical-forms/0001202505300033.ocr.json --out-dir apps/app/src/features/forms/schemas",
     "content:rebuild:clinical": "bun run content:catalog:clinical && bun run content:sync:clinical && bun run content:prepare:clinical && bun run content:lint:clinical && bun run content:build:clinical",

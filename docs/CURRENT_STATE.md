@@ -20,6 +20,44 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Settings as a list with sub-pages — 2026-10-05 (STATE SET1)
+
+Settings follow the macOS/iOS pattern. `#/settings` is a list of inset groups of large rows (coloured
+icon tile, title, status with an indicator dot, chevron); each row opens `#/settings/<id>` with the
+existing cards of that area and a `NavBack` arrow (browser and Android back go to the list; the
+reference-images page goes back to «Изображения и дополнительно»). From 900 px the list stays on
+the left and the open page is on the right (the bare `#/settings` shows «Основные»). A filter field
+on the list searches titles, descriptions and card keywords.
+
+| Row (`id`) | Holds | Status (pure function in `settings-status.ts`) |
+| --- | --- | --- |
+| Основные (`general`) | app update, automatic module updates, onboarding restart, DEV source switch | «Есть обновление» / «Обновляется…» / «Актуальная версия» / «Версия x» |
+| Врач и организация (`clinician`) | `ClinicianProfileSettings` | «Не заполнено» / «Заполнено 2 из 5» / «Заполнено» |
+| Загрузки и разделы (`downloads`) | sections download, queue, history (`DownloadsPage` is now body-only) | running/queued/needs-attention counts, else «N раздела · 1,2 ГБ» (sections with something installed; sizes from catalog `installedBytes`), «Не скачано» |
+| Функции ИИ (`ai`) | search by meaning (e5), speech recognition (ASR), ECG recognition | «Готово 2 из 3» / «Готово» / «Скачивается…» / «Есть обновление» / «Не скачано» |
+| Изображения и дополнительно (`images`) | row to «Справочные изображения», packaging images module, «Предварительные материалы» | the reference images' state |
+| Внешний вид (`appearance`) | theme note (follows the device), animations, sounds, vibration, separate tabs, floating windows | «Тёмная» / «Светлая» |
+| Пациенты и данные (`data`) | patient storage description, where the notes backup lives (link to the notes), no new backup UI | «Пусто» / «Защищено» / «Без шифрования» |
+| О приложении (`about`) | technical information, links | «v0.6.50» |
+
+- Statuses are computed from the stores (download queue, e5 cache, ASR selection and cache, ECG
+  package, reference-image cache, patient vault, `matchMedia`) in `use-settings-statuses.ts`; the
+  list never starts a download, a model or a database. The release catalog (~10 MB) loads when the
+  list is shown, to count sections and sizes.
+- `#/settings/images/reference` («Справочные изображения») shows the contents from the verified
+  manifest («9 084 иллюстрации к 5 932 статьям · 456 МБ»), six example thumbnails and the existing
+  download card. Examples: downloaded images are read from the cache only (checksum re-verified,
+  `ReferenceImageResolver.cachedSamples`); before the download six original files bundled in
+  `public/content/reference-images-preview/` (212 KB, byte-identical to the set, `index.json` with
+  article id, source URL and sha256; `bun run content:reference-images:previews`) are shown with a
+  note saying so.
+- The home update notice opens `#/settings/general` through a one-shot `requestSettingsPage`.
+- Not done: no theme choice (the theme follows the device), no new backup/vault UI (it stays in the
+  notes section), the old inline «Скачанные материалы» card of the list is gone.
+- Tests: `settings-status`, `settings-pages`, `settings-routing`, `reference-image-examples`,
+  `native-back` unit tests; `apps/app/e2e/settings-list.spec.ts`; existing specs that touched
+  settings now go through the rows (`settings-nav.ts`).
+
 ## Android microphone access — 2026-10-05 (STATE MIC1)
 
 - Root cause of "denied although granted" (0.6.50 and earlier): Capacitor's `BridgeWebChromeClient`

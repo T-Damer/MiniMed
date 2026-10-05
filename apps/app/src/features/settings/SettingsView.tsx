@@ -1,109 +1,73 @@
 import type { CoreStatus } from '@localmed/contracts';
-import { createSignal, type JSX, lazy, onCleanup, onMount, Show } from 'solid-js';
+import {
+  createMemo,
+  createSignal,
+  type JSX,
+  Match,
+  onCleanup,
+  onMount,
+  Show,
+  Switch,
+} from 'solid-js';
 
-import { AppGlyph } from '@/components/AppGlyph';
-import { Button } from '@/components/Button';
-import { Disclosure } from '@/components/Disclosure';
-import { Page } from '@/components/Page';
-import { RangeSlider } from '@/components/RangeSlider';
-import { ReleaseLinks } from '@/components/ReleaseLinks';
-import { StepSlider } from '@/components/StepSlider';
-import { Switch } from '@/components/Switch';
-import { AsrSettings } from '@/features/asr/AsrSettings';
 import { DownloadsPage } from '@/features/downloads/DownloadsPage';
-import { ContentDownloadStatus } from '@/features/modules/ContentDownloadStatus';
-import { restartOnboarding } from '@/features/onboarding/onboarding-state';
-import { SemanticSearchSettings } from '@/features/semantic/SemanticSearchSettings';
-import { AppUpdateChecker } from '@/features/settings/AppUpdateChecker';
 import { ClinicianProfileSettings } from '@/features/settings/ClinicianProfileSettings';
-import { EcgModelSettings } from '@/features/settings/EcgModelSettings';
-import { PackagingImagesSettings } from '@/features/settings/PackagingImagesSettings';
-import { ReferenceImagesSettings } from '@/features/settings/ReferenceImagesSettings';
+import { ReferenceImagesPage } from '@/features/settings/ReferenceImagesPage';
+import { SettingsAboutPage } from '@/features/settings/SettingsAboutPage';
+import { SettingsAiPage } from '@/features/settings/SettingsAiPage';
+import { SettingsAppearancePage } from '@/features/settings/SettingsAppearancePage';
+import { SettingsDataPage } from '@/features/settings/SettingsDataPage';
 import {
+  SettingsGeneralPage,
+  type SettingsGeneralPageProps,
+} from '@/features/settings/SettingsGeneralPage';
+import { SettingsImagesPage } from '@/features/settings/SettingsImagesPage';
+import { SettingsList } from '@/features/settings/SettingsList';
+import { SettingsSubpage } from '@/features/settings/SettingsSubpage';
+import { type SettingsPageId, settingsPage } from '@/features/settings/settings-pages';
+import {
+  consumeRequestedSettingsPage,
   readSettingsRoute,
-  SETTINGS_DOWNLOADS_HASH,
+  SETTINGS_ROOT_HASH,
   type SettingsRoute,
+  settingsPageHash,
+  settingsParentHash,
 } from '@/features/settings/settings-routing';
-import { StatusPanel } from '@/features/status/StatusPanel';
-import {
-  getExperimentalModulesEnabled,
-  getFloatingWindowsEnabled,
-  getModuleAutoUpdatesEnabled,
-  getMotionSpeed,
-  getSoundVolume,
-  getSplitNavigation,
-  getVibrationEnabled,
-  isMotionSpeed,
-  setExperimentalModulesEnabled,
-  setFloatingWindowsEnabled,
-  setModuleAutoUpdatesEnabled,
-  setMotionSpeed,
-  setSoundVolume,
-  setSplitNavigation,
-  setVibrationEnabled,
-  subscribeAppPreferences,
-} from '@/state/app-preferences';
-import type { AppUpdateProgress } from '@/state/app-update';
-import {
-  consumeAndRestoreReturnTo,
-  peekReturnTo,
-  RETURN_TO_EVENT,
-  returnToControlIcon,
-  returnToControlLabel,
-} from '@/state/return-navigation';
+import { useWideLayout } from '@/features/settings/use-wide-layout';
+import { peekReturnTo, RETURN_TO_EVENT } from '@/state/return-navigation';
+import '@/styles/settings-list.css';
 
-const DevDownloadSettings = import.meta.env.DEV
-  ? lazy(() =>
-      import('./DevDownloadSettings').then((module) => ({ default: module.DevDownloadSettings })),
-    )
-  : undefined;
-
-/** Ordered by speed, slowest to fastest. */
-const MOTION_OPTIONS = [
-  { value: 'off', label: 'Выкл', hint: 'Без анимаций: изменения видны сразу.' },
-  { value: 'slow', label: 'Медленные', hint: 'Переходы и окна появляются неторопливо.' },
-  { value: 'normal', label: 'Обычные', hint: 'Стандартная скорость переходов и окон.' },
-  { value: 'fast', label: 'Быстрые', hint: 'Переходы и окна появляются почти мгновенно.' },
-] as const;
-
-interface SettingsViewProps {
+interface SettingsViewProps extends SettingsGeneralPageProps {
   readonly status: CoreStatus | undefined;
-  readonly appUpdateReady: boolean;
-  readonly appUpdating: boolean;
-  readonly appUpdateChecking: boolean;
-  readonly appUpdateUpToDate: boolean;
-  readonly appUpdateProgress: AppUpdateProgress | undefined;
-  readonly appUpdateError: string | undefined;
-  readonly appUpdateCancellable: boolean;
-  readonly onCheckAppUpdate: () => void;
-  readonly onActivateAppUpdate: () => void;
-  readonly onCancelAppUpdate: () => void;
   /** Connects freshly downloaded packages to the search core. */
   readonly onContentChanged?: () => Promise<void>;
 }
 
+/** A page opened by the one-shot request (the home update notice) replaces the list entry. */
+function resolveRoute(): SettingsRoute {
+  const route = readSettingsRoute();
+  if (route !== 'index') return route;
+  const requested = consumeRequestedSettingsPage();
+  if (!requested) return route;
+  window.history.replaceState({ view: 'settings' }, '', settingsPageHash(requested));
+  return requested;
+}
+
+/**
+ * Settings in the style of the system settings of macOS and iOS: a list of large rows, each
+ * opening a sub-page (`#/settings/<id>`) with the cards of that area. From 900 px the list stays
+ * on the left and the open page is shown on the right.
+ */
 export function SettingsView(props: SettingsViewProps): JSX.Element {
-  const [moduleAutoUpdatesEnabled, setModuleAutoUpdatesEnabledState] = createSignal(
-    getModuleAutoUpdatesEnabled(),
-  );
-  const [route, setRoute] = createSignal<SettingsRoute>(readSettingsRoute());
-  const [splitNavigation, setSplitNavigationState] = createSignal(getSplitNavigation());
-  const [vibrationEnabled, setVibrationEnabledState] = createSignal(getVibrationEnabled());
-  const [soundVolume, setSoundVolumeState] = createSignal(getSoundVolume());
-  const [motionSpeed, setMotionSpeedState] = createSignal(getMotionSpeed());
-  const [floatingWindowsEnabled, setFloatingWindowsEnabledState] = createSignal(
-    getFloatingWindowsEnabled(),
-  );
-  const [experimentalModulesEnabled, setExperimentalModulesEnabledState] = createSignal(
-    getExperimentalModulesEnabled(),
-  );
+  const [route, setRoute] = createSignal<SettingsRoute>(resolveRoute());
   const [returnTo, setReturnTo] = createSignal(peekReturnTo());
+  const wide = useWideLayout();
 
   const refreshRoute = (): void => {
     const next = window.location.hash.replace(/^#\/?/u, '');
     if (next !== '' && next !== 'settings' && !next.startsWith('settings/')) return;
     const previous = route();
-    const resolved = readSettingsRoute();
+    const resolved = resolveRoute();
     setRoute(resolved);
     if (resolved !== previous) window.scrollTo({ top: 0, behavior: 'instant' });
   };
@@ -114,266 +78,134 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
     };
     window.addEventListener('hashchange', refreshRoute);
     window.addEventListener(RETURN_TO_EVENT, syncReturnTo);
-    const unsubscribePreferences = subscribeAppPreferences((preferences) => {
-      setVibrationEnabledState(preferences.vibrationEnabled);
-      setSplitNavigationState(preferences.splitNavigation);
-      setSoundVolumeState(preferences.soundVolume);
-      setMotionSpeedState(preferences.motionSpeed);
-      setFloatingWindowsEnabledState(preferences.floatingWindowsEnabled);
-      setExperimentalModulesEnabledState(preferences.experimentalModulesEnabled);
-      setModuleAutoUpdatesEnabledState(preferences.moduleAutoUpdatesEnabled);
-    });
     onCleanup(() => {
       window.removeEventListener('hashchange', refreshRoute);
       window.removeEventListener(RETURN_TO_EVENT, syncReturnTo);
-      unsubscribePreferences();
     });
   });
 
-  const soundPercent = () => Math.round(soundVolume() * 100);
+  /** The page shown on the right; next to the list the first page stands in for the bare list. */
+  const detail = createMemo((): Exclude<SettingsRoute, 'index'> | undefined => {
+    const current = route();
+    if (current !== 'index') return current;
+    return wide() ? 'general' : undefined;
+  });
+  const listVisible = () => wide() || route() === 'index';
+  const selected = (): SettingsPageId | undefined => {
+    const current = detail();
+    if (current === undefined) return undefined;
+    return current === 'reference-images' ? 'images' : current;
+  };
+  const pageHeading = (): 'h1' | 'h2' => (wide() ? 'h2' : 'h1');
+
+  const frame = (id: SettingsPageId, children: () => JSX.Element, testId?: string): JSX.Element => {
+    const page = settingsPage(id);
+    return (
+      <SettingsSubpage
+        icon={page.icon}
+        tone={page.tone}
+        title={page.title}
+        description={page.description}
+        showBack={!wide()}
+        backHash={SETTINGS_ROOT_HASH}
+        backLabel="К настройкам"
+        headingLevel={pageHeading()}
+        {...(testId ? { testId } : {})}
+      >
+        {children()}
+      </SettingsSubpage>
+    );
+  };
 
   return (
-    <section class="settings-page page-surface page-grain">
-      <Show when={route() === 'downloads'}>
-        <DownloadsPage
-          {...(props.onContentChanged ? { onContentChanged: props.onContentChanged } : {})}
-        />
-        <PackagingImagesSettings />
-      </Show>
-      <Show when={route() === 'index'}>
-        <Page
-          class="settings-page__heading"
-          navigation={
-            <Show when={returnTo()}>
-              {(returnTo) => (
-                <Button
-                  type="button"
-                  variant="icon"
-                  class="knowledge-back-button return-navigation-button settings-page__return"
-                  aria-label={returnToControlLabel(returnTo())}
-                  title={returnToControlLabel(returnTo())}
-                  onClick={() => consumeAndRestoreReturnTo()}
-                  icon={<AppGlyph name={returnToControlIcon(returnTo())} />}
-                />
-              )}
-            </Show>
-          }
-          icon={<AppGlyph name="system" class="page__icon-glyph" />}
-          title={<h1 class="settings-page__title">Настройки</h1>}
-          description="Внешний вид, загрузки и дополнительные возможности."
-        />
-
-        <AppUpdateChecker
-          ready={() => props.appUpdateReady}
-          checking={() => props.appUpdateChecking}
-          upToDate={() => props.appUpdateUpToDate}
-          updating={() => props.appUpdating}
-          progress={() => props.appUpdateProgress}
-          error={() => props.appUpdateError}
-          cancellable={() => props.appUpdateCancellable}
-          onCheck={props.onCheckAppUpdate}
-          onActivate={props.onActivateAppUpdate}
-          onCancel={props.onCancelAppUpdate}
-        />
-
-        <h2 id="settings-interface-heading" class="settings-page__group-title">
-          Основное
-        </h2>
-        <section
-          class="settings-section settings-section--interface paper-sheet"
-          aria-labelledby="settings-interface-heading"
-        >
-          {DevDownloadSettings && <DevDownloadSettings />}
-          <div class="settings-row">
-            <div class="settings-row__text">
-              <span class="settings-row__label settings-row__label--with-icon">
-                <AppGlyph name="squares-four" class="settings-row__label-icon" aria-hidden="true" />
-                Отдельные вкладки разделов
-              </span>
-              <p class="settings-row__helper">
-                Показывать базу знаний, опросники, калькуляторы и заметки отдельными кнопками внизу
-                экрана.
-              </p>
-            </div>
-            <Switch
-              checked={splitNavigation()}
-              aria-label="Отдельные вкладки разделов"
-              onChange={setSplitNavigation}
-            />
-          </div>
-
-          <div class="settings-row">
-            <div class="settings-row__text">
-              <span class="settings-row__label settings-row__label--with-icon">
-                <AppGlyph name="vibrate" class="settings-row__label-icon" aria-hidden="true" />
-                Вибрация
-              </span>
-              <p class="settings-row__helper">Лёгкий отклик телефона при нажатиях.</p>
-            </div>
-            <Switch
-              checked={vibrationEnabled()}
-              aria-label="Вибрация"
-              onChange={(checked) => setVibrationEnabled(checked)}
-            />
-          </div>
-
-          <div class="settings-row">
-            <div class="settings-row__text">
-              <span class="settings-row__label settings-row__label--with-icon">
-                <AppGlyph
-                  name="frame-corners"
-                  class="settings-row__label-icon"
-                  aria-hidden="true"
-                />
-                Плавающие окна
-              </span>
-              <p class="settings-row__helper">
-                Открывать документы и калькуляторы в маленьком окне поверх текущего экрана.
-              </p>
-            </div>
-            <Switch
-              checked={floatingWindowsEnabled()}
-              aria-label="Плавающие окна"
-              onChange={(enabled) => setFloatingWindowsEnabled(enabled)}
-            />
-          </div>
-
-          <div class="settings-row">
-            <div class="settings-row__text">
-              <span class="settings-row__label settings-row__label--with-icon">
-                <AppGlyph name="flask" class="settings-row__label-icon" aria-hidden="true" />
-                Предварительные материалы
-              </span>
-              <p class="settings-row__helper">
-                Показывать черновые наборы препаратов, калькуляторов, опросников и словарь терминов.
-                Они могут быть неполными и ещё меняться.
-              </p>
-            </div>
-            <Switch
-              checked={experimentalModulesEnabled()}
-              aria-label="Предварительные материалы"
-              onChange={(checked) => setExperimentalModulesEnabled(checked)}
-            />
-          </div>
-
-          <div class="settings-row">
-            <div class="settings-row__text">
-              <span class="settings-row__label settings-row__label--with-icon">
-                <AppGlyph name="refresh" class="settings-row__label-icon" aria-hidden="true" />
-                Обновлять материалы автоматически
-              </span>
-              <p class="settings-row__helper">
-                Новые версии уже скачанных наборов загружаются сами.
-              </p>
-            </div>
-            <Switch
-              checked={moduleAutoUpdatesEnabled()}
-              aria-label="Обновлять материалы автоматически"
-              onChange={setModuleAutoUpdatesEnabled}
-            />
-          </div>
-
-          <RangeSlider
-            class="settings-slider"
-            label="Звуки"
-            icon={
-              <AppGlyph name="speaker-high" class="range-input__label-icon" aria-hidden="true" />
-            }
-            valueLabel={`${String(soundPercent())}%`}
-            ariaLabel="Громкость звуков интерфейса"
-            ariaValueText={`${String(soundPercent())}%`}
-            min={0}
-            max={100}
-            step={1}
-            value={soundPercent()}
-            onInput={(percent) => {
-              const next = percent / 100;
-              setSoundVolumeState(next);
-              setSoundVolume(next);
+    <section
+      class="settings-page settings-shell page-surface page-grain"
+      classList={{ 'settings-shell--wide': wide() }}
+    >
+      <Show when={listVisible()}>
+        <div class="settings-shell__list" classList={{ 'settings-shell__list--sticky': wide() }}>
+          <SettingsList
+            selected={selected()}
+            returnTo={returnTo()}
+            statusInputs={{
+              updateReady: () => props.appUpdateReady,
+              updating: () => props.appUpdating,
+              checking: () => props.appUpdateChecking,
+              upToDate: () => props.appUpdateUpToDate,
             }}
           />
-
-          <StepSlider
-            class="settings-slider"
-            label="Анимации"
-            icon={<AppGlyph name="film-strip" class="range-input__label-icon" aria-hidden="true" />}
-            ariaLabel="Скорость анимаций"
-            options={MOTION_OPTIONS}
-            value={motionSpeed()}
-            onChange={(value) => {
-              if (isMotionSpeed(value)) setMotionSpeed(value);
-            }}
-          />
-
-          <div class="settings-row">
-            <div class="settings-row__text">
-              <span class="settings-row__label settings-row__label--with-icon">
-                <AppGlyph name="question" class="settings-row__label-icon" aria-hidden="true" />
-                Обучение
-              </span>
-              <p class="settings-row__helper">
-                Короткая экскурсия по поиску, файлам, инструментам и голосу.
-              </p>
-            </div>
-            <Button class="settings-row__action" onClick={restartOnboarding}>
-              Пройти заново
-            </Button>
-          </div>
-        </section>
-
-        <h2 class="settings-page__group-title">Врач и организация</h2>
-        <ClinicianProfileSettings />
-
-        <h2 class="settings-page__group-title">Загрузки</h2>
-        <a
-          class="settings-section settings-section--downloads paper-sheet"
-          href={SETTINGS_DOWNLOADS_HASH}
-          aria-labelledby="settings-downloads-heading"
-        >
-          <div class="settings-section__heading">
-            <div class="settings-section__heading-main">
-              <AppGlyph name="download-fill" class="settings-section__icon" />
-              <div class="settings-section__heading-copy">
-                <h3 id="settings-downloads-heading" class="settings-section__title">
-                  Скачанные материалы
-                </h3>
-                <p class="settings-section__description">
-                  Что уже на устройстве, что скачивается сейчас и что можно повторить.
-                </p>
-              </div>
-            </div>
-          </div>
-          <ContentDownloadStatus compact />
-        </a>
-
-        <div class="settings-page__group-heading">
-          <h2 class="settings-page__group-title">Дополнительные возможности</h2>
-          <p class="settings-page__group-description">
-            Скачиваются по желанию и дальше работают без интернета.
-          </p>
         </div>
-        <SemanticSearchSettings />
-        <EcgModelSettings />
-        <ReferenceImagesSettings />
-        <AsrSettings />
-
-        <h2 class="settings-page__group-title">О приложении</h2>
-        <Disclosure class="system-technical-panel" title="Техническая информация">
-          <Show
-            when={props.status}
-            fallback={
-              <p class="settings-section__description">
-                Ядро поиска ещё не готово. Файлы и настройки доступны.
-              </p>
-            }
-          >
-            {(status) => <StatusPanel initialStatus={status()} />}
-          </Show>
-        </Disclosure>
-
-        <nav class="settings-page__links" aria-label="Ссылки приложения">
-          <ReleaseLinks linkClass="settings-page__link" />
-        </nav>
+      </Show>
+      <Show when={detail()}>
+        {(current) => (
+          <div class="settings-shell__detail" data-settings-detail={current()}>
+            <Switch>
+              <Match when={current() === 'general'}>
+                {frame('general', () => (
+                  <SettingsGeneralPage {...props} />
+                ))}
+              </Match>
+              <Match when={current() === 'clinician'}>
+                {frame('clinician', () => (
+                  <ClinicianProfileSettings />
+                ))}
+              </Match>
+              <Match when={current() === 'downloads'}>
+                {frame(
+                  'downloads',
+                  () => (
+                    <DownloadsPage
+                      {...(props.onContentChanged
+                        ? { onContentChanged: props.onContentChanged }
+                        : {})}
+                    />
+                  ),
+                  'downloads-page',
+                )}
+              </Match>
+              <Match when={current() === 'ai'}>
+                {frame('ai', () => (
+                  <SettingsAiPage />
+                ))}
+              </Match>
+              <Match when={current() === 'images'}>
+                {frame('images', () => (
+                  <SettingsImagesPage />
+                ))}
+              </Match>
+              <Match when={current() === 'reference-images'}>
+                <SettingsSubpage
+                  icon="image-fill"
+                  tone="orange"
+                  title="Справочные изображения"
+                  description="Иллюстрации к статьям справочника: примеры, состав набора и загрузка."
+                  showBack
+                  backHash={settingsParentHash('settings/images/reference') ?? SETTINGS_ROOT_HASH}
+                  backLabel="К разделу «Изображения и дополнительно»"
+                  headingLevel={pageHeading()}
+                  testId="reference-images-page"
+                >
+                  <ReferenceImagesPage />
+                </SettingsSubpage>
+              </Match>
+              <Match when={current() === 'appearance'}>
+                {frame('appearance', () => (
+                  <SettingsAppearancePage />
+                ))}
+              </Match>
+              <Match when={current() === 'data'}>
+                {frame('data', () => (
+                  <SettingsDataPage />
+                ))}
+              </Match>
+              <Match when={current() === 'about'}>
+                {frame('about', () => (
+                  <SettingsAboutPage status={props.status} />
+                ))}
+              </Match>
+            </Switch>
+          </div>
+        )}
       </Show>
     </section>
   );

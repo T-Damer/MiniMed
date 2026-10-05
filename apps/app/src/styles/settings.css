@@ -106,18 +106,6 @@
   line-height: 1.45;
 }
 
-.settings-section--downloads {
-  color: inherit;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .settings-section--downloads:hover {
-    border-color: var(--theme-accent);
-  }
-}
-
 .settings-page__heading-main {
   display: grid;
   min-width: 0;
@@ -348,27 +336,4 @@
 .settings-update__check,
 .settings-update__apply {
   min-width: 0;
-}
-
-.settings-page__group-heading {
-  display: grid;
-  gap: 0.2rem;
-}
-
-.settings-page__group-title {
-  margin: 0.75rem 0 -0.25rem;
-  padding-inline: 0.25rem;
-  color: var(--theme-text);
-  font-family: var(--font-serif);
-  font-size: 1.15rem;
-  font-weight: 650;
-  line-height: 1.2;
-}
-
-.settings-page__group-description {
-  margin: 0;
-  padding-inline: 0.25rem;
-  color: var(--theme-text-muted);
-  font-size: 0.85rem;
-  line-height: 1.45;
 }

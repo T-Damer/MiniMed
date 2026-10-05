@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { mountBuiltApp } from './mount-built-app';
 import { selectSearchSection, waitForHomeSections } from './select-search-section';
+import { openSettingsPage } from './settings-nav';
 
 test('keeps source and tool lookup together and restores the six-section layout on request', async ({
   page,
@@ -37,6 +38,7 @@ test('keeps source and tool lookup together and restores the six-section layout 
   await nav.getByRole('button', { name: 'Мои файлы', exact: true }).click();
   await expect(page).toHaveURL(/#\/modules\/documents\/user/u);
   await nav.getByRole('button', { name: /^Настройки/u }).click();
+  await openSettingsPage(page, 'Внешний вид');
   const legacy = page.getByRole('switch', { name: 'Отдельные вкладки разделов' });
   await legacy.click();
   await expect(nav.locator('.app-nav-button')).toHaveCount(6);

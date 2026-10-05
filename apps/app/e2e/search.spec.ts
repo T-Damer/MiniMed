@@ -14,6 +14,7 @@ import {
   waitForHomeSections,
 } from '@localmed/app/e2e/select-search-section';
 import { expect, type Locator, type Page, test } from '@playwright/test';
+import { openSettingsPage } from './settings-nav';
 
 // These assertions qualify full-corpus results on CI; latency is measured by benchmarks.
 const query = 'пневмония';
@@ -1072,6 +1073,8 @@ test('shows a settings update checker and nav dot when a web update is waiting',
     .locator('.app-bottom-nav')
     .getByRole('button', { name: /Настройки/u })
     .click();
+  await openSettingsPage(page, 'Основные');
+  await expect(page.getByTestId('settings-status-general')).toHaveText('Есть обновление');
   await expect(page.getByRole('heading', { name: 'Обновление приложения' })).toBeVisible();
   await expect(page.locator('.settings-update__apply')).toBeVisible();
   await page.locator('.settings-update__apply').click();

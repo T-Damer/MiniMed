@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { mountBuiltApp } from './mount-built-app';
+import { openSettingsPage } from './settings-nav';
 
 for (const width of [375, 1280]) {
   test(`the draft dictionary follows the experimental setting at ${width}px`, async ({ page }) => {
@@ -28,6 +29,7 @@ for (const width of [375, 1280]) {
       .locator('.app-bottom-nav')
       .getByRole('button', { name: /^Настройки/u })
       .click();
+    await openSettingsPage(page, 'Изображения и дополнительно');
     const experimental = page.getByRole('switch', { name: 'Предварительные материалы' });
     await expect(experimental).toHaveAttribute('aria-checked', 'true');
     await experimental.click();

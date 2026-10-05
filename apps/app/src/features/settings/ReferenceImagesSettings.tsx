@@ -101,7 +101,7 @@ export function ReferenceImagesSettings(): JSX.Element {
       class="reference-images-settings"
       headingId="settings-reference-images-heading"
       icon="image-fill"
-      title="Картинки к справочнику"
+      title="Иллюстрации на устройстве"
       summary="Иллюстрации к статьям «Красота и медицина» будут открываться без интернета. То, что вы уже смотрели, сохраняется само."
       status={statusLabel()}
       tone={

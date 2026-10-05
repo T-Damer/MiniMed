@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "note": "Originals of the reference illustrations, unchanged; see the manifest for provenance.",
+  "images": [
+    {
+      "documentId": "krasotaimedicina.disease.0dfc63222ca063e3",
+      "alt": "ЭКГ ребенку",
+      "contentType": "image/jpeg",
+      "path": "assets/728df57dc02af607e31f9dca4a1308acc3a0d9ef1b8f2530abbd2c9fe53ebb23.jpg",
+      "sha256": "sha256:728df57dc02af607e31f9dca4a1308acc3a0d9ef1b8f2530abbd2c9fe53ebb23",
+      "size": 28988,
+      "sourceUrl": "https://www.krasotaimedicina.ru/upload/iblock/f92/f92239a07b461163bab9d5ffa894c753.jpeg"
+    },
+    {
+      "documentId": "krasotaimedicina.disease.68d4790d9e08b70d",
+      "alt": "Повреждения барабанной перепонки",
+      "contentType": "image/jpeg",
+      "path": "assets/8a90e8ebc3b30d89cd29266f1449fcf7f29fb50e8081e88ca5909bee856ce43c.jpg",
+      "sha256": "sha256:8a90e8ebc3b30d89cd29266f1449fcf7f29fb50e8081e88ca5909bee856ce43c",
+      "size": 21619,
+      "sourceUrl": "https://www.krasotaimedicina.ru/upload/iblock/5de/5de282c2f516f4afd20d3ed40a510808.jpg"
+    },
+    {
+      "documentId": "krasotaimedicina.disease.8f006221fdac6c7c",
+      "alt": "Потница",
+      "contentType": "image/jpeg",
+      "path": "assets/b7edaf2414e8a2850258b1311f7d770da912effc79f20d6f242407fb66f84362.jpg",
+      "sha256": "sha256:b7edaf2414e8a2850258b1311f7d770da912effc79f20d6f242407fb66f84362",
+      "size": 31192,
+      "sourceUrl": "https://www.krasotaimedicina.ru/upload/iblock/5c4/5c47540af6d440c6758f19f9b5814dcb.jpg"
+    },
+    {
+      "documentId": "krasotaimedicina.disease.b7d6b0b08f097042",
+      "alt": "Аневризма вены Галена",
+      "contentType": "image/jpeg",
+      "path": "assets/afcd0aa4adf42e7f102febc81b77f7a01cc93106cb2955df77b9ab0e4c948380.jpg",
+      "sha256": "sha256:afcd0aa4adf42e7f102febc81b77f7a01cc93106cb2955df77b9ab0e4c948380",
+      "size": 28908,
+      "sourceUrl": "https://www.krasotaimedicina.ru/upload/iblock/6e0/6e09134da4fe812787a7b45700526f93.jpg"
+    },
+    {
+      "documentId": "krasotaimedicina.disease.c4dbdde7d8ef4be4",
+      "alt": "Компьютерная томография. Стрелка указывает на крупную кальцифицированную бляшку в коронарной артерии",
+      "contentType": "image/jpeg",
+      "path": "assets/d0a1dd5956c1b3372addbb36ed875d5a274a1cced62c47c94124760ebe485bbf.jpg",
+      "sha256": "sha256:d0a1dd5956c1b3372addbb36ed875d5a274a1cced62c47c94124760ebe485bbf",
+      "size": 43814,
+      "sourceUrl": "https://www.krasotaimedicina.ru/upload/iblock/076/076dca53c55f6add480a85429ce24032.jpeg"
+    },
+    {
+      "documentId": "krasotaimedicina.disease.d7e6417bb8aa67ea",
+      "alt": "МРТ головного мозга при лимбическом энцефалите. Двусторонний Т2-гиперинтенсивный сигнал в медиальных отделах височных долей (стрелки)",
+      "contentType": "image/jpeg",
+      "path": "assets/4719297070c2ed139c22579abcb29fb7a6487f06915a911cb061a06891bc9641.jpg",
+      "sha256": "sha256:4719297070c2ed139c22579abcb29fb7a6487f06915a911cb061a06891bc9641",
+      "size": 42894,
+      "sourceUrl": "https://www.krasotaimedicina.ru/upload/iblock/daf/y9qax3aiqvn3nlnpkxyrtkq6ko80dqc2.jpeg"
+    }
+  ]
+}

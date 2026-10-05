@@ -1,0 +1,303 @@
+/* Settings as a list of large rows (macOS/iOS style) with sub-pages; master–detail from 900 px. */
+
+.settings-shell {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.settings-shell--wide {
+  grid-template-columns: minmax(19rem, 23rem) minmax(0, 1fr);
+  align-items: start;
+  column-gap: 1.75rem;
+}
+
+.settings-shell__list {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.settings-shell__list--sticky {
+  position: sticky;
+  top: 1rem;
+}
+
+.settings-shell__detail {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+}
+
+.settings-subpage {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.settings-subpage__hint {
+  margin: 0;
+  padding-inline: 0.25rem;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.settings-list {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.settings-list__search {
+  width: 100%;
+}
+
+.settings-list__empty {
+  margin: 0;
+  padding: 0.75rem 0.25rem;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+}
+
+/* An inset group: rounded surface, rows divided by hairlines that start after the tile. */
+.settings-list__group {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: var(--theme-border-hairline) solid var(--theme-border);
+  border-radius: 1rem;
+  background: var(--theme-surface-raised);
+  list-style: none;
+  box-shadow: 0 0.0625rem 0.1875rem rgb(41 35 25 / 8%);
+}
+
+.settings-list__item {
+  display: grid;
+  margin: 0;
+  padding: 0;
+}
+
+.settings-list__row {
+  position: relative;
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  color: var(--theme-text);
+  text-decoration: none;
+  transition: background-color var(--theme-motion-control);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.settings-list__row--divided {
+  border-top: var(--theme-border-hairline) solid var(--theme-border);
+}
+
+.settings-list__row--selected {
+  background: var(--theme-accent-soft);
+}
+
+.settings-list__row:active {
+  background: color-mix(in srgb, var(--theme-accent) 18%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .settings-list__row:hover {
+    background: var(--theme-accent-soft);
+  }
+}
+
+.settings-list__row:focus-visible {
+  outline: var(--theme-outline-width) solid var(--theme-accent);
+  outline-offset: calc(-1 * var(--theme-outline-width));
+}
+
+.settings-list__title {
+  min-width: 0;
+  flex: 1 1 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.settings-list__status {
+  display: inline-flex;
+  min-width: 0;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.375rem;
+  color: var(--theme-text-muted);
+  font-size: 0.875rem;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.settings-list__status--attention {
+  color: var(--theme-warning);
+  font-weight: 600;
+}
+
+.settings-list__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.settings-list__dot--ok {
+  background: var(--theme-accent);
+}
+
+.settings-list__dot--attention {
+  background: var(--theme-warning);
+}
+
+.settings-list__dot--working {
+  background: var(--theme-info);
+}
+
+.settings-list__dot--neutral {
+  display: none;
+}
+
+.settings-list__chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: 0 0 auto;
+  color: var(--theme-text-faint);
+}
+
+/* Coloured icon tile: the same palette in both themes, a white glyph on a muted colour. */
+.settings-tile {
+  --settings-tile-color: #7a7468;
+  --settings-tile-size: 2.25rem;
+  display: grid;
+  width: var(--settings-tile-size);
+  height: var(--settings-tile-size);
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: calc(var(--settings-tile-size) * 0.27);
+  color: #fffaf0;
+  background: var(--settings-tile-color);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
+}
+
+.settings-tile--small {
+  --settings-tile-size: 1.75rem;
+}
+
+.settings-tile--blue {
+  --settings-tile-color: #4a7ca6;
+}
+
+.settings-tile--orange {
+  --settings-tile-color: #b8722b;
+}
+
+.settings-tile--green {
+  --settings-tile-color: #4b7d5c;
+}
+
+.settings-tile--purple {
+  --settings-tile-color: #7a5fa0;
+}
+
+.settings-tile--pink {
+  --settings-tile-color: #ad5a7c;
+}
+
+.settings-tile--teal {
+  --settings-tile-color: #3c8883;
+}
+
+.settings-tile--gray {
+  --settings-tile-color: #767063;
+}
+
+.settings-tile__glyph {
+  width: 58%;
+  height: 58%;
+}
+
+.settings-section__link {
+  justify-self: start;
+  color: var(--theme-link);
+  font-weight: 600;
+  text-underline-offset: 0.15rem;
+}
+
+/* Reference images: what the set holds and real examples from it. */
+.reference-image-examples {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+
+.reference-image-examples__title {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-weight: 650;
+  line-height: 1.15;
+}
+
+.reference-image-examples__contents {
+  margin: 0;
+  color: var(--theme-text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.reference-image-examples__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reference-image-examples__item {
+  min-width: 0;
+  margin: 0;
+}
+
+.reference-image-examples__figure {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.reference-image-examples__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: var(--theme-border-hairline) solid var(--theme-border);
+  border-radius: var(--theme-radius-control);
+  background: var(--theme-surface-muted);
+  object-fit: cover;
+}
+
+.reference-image-examples__caption {
+  color: var(--theme-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.reference-image-examples__note,
+.reference-image-examples__source {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}

@@ -139,6 +139,7 @@ export class ReferenceImageResolver {
   private readonly images = new Map<string, Promise<ResolvedReferenceImage | null>>();
   private readonly objectUrls = new Set<string>();
   private cacheGeneration = 0;
+  private readonly changeListeners = new Set<() => void>();
   private readonly localAssets: boolean;
   private readonly customFetch: boolean;
 
@@ -287,6 +288,60 @@ export class ReferenceImageResolver {
     };
   }
 
+  /** What the downloadable set holds, from its verified manifest: articles, files and bytes. */
+  public async contentSummary(): Promise<{
+    readonly documents: number;
+    readonly files: number;
+    readonly bytes: number;
+  }> {
+    const manifest = await this.manifest();
+    const records = new Map(
+      [...(manifest?.images.values() ?? [])].flat().map((record) => [record.path, record]),
+    );
+    return {
+      documents: manifest?.images.size ?? 0,
+      files: records.size,
+      bytes: [...records.values()].reduce((sum, record) => sum + record.size, 0),
+    };
+  }
+
+  /**
+   * Up to `limit` downloaded images, one per article, read from the local cache only: it never
+   * touches the network and re-checks every file against the manifest checksum.
+   */
+  public async cachedSamples(limit: number): Promise<readonly ResolvedReferenceImage[]> {
+    const cache = await this.cache();
+    const manifest = await this.manifest();
+    if (!cache || !manifest || limit < 1) return [];
+    const generation = this.cacheGeneration;
+    const cached = new Set((await cache.keys()).map((request) => request.url));
+    const samples: ResolvedReferenceImage[] = [];
+    for (const records of manifest.images.values()) {
+      if (samples.length >= limit) break;
+      for (const record of records) {
+        const assetUrl = sameOriginUrl(this.baseUrl, record.path);
+        if (!assetUrl || !cached.has(assetUrl)) continue;
+        const response = await cache.match(assetUrl);
+        if (!response) continue;
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        if (bytes.byteLength !== record.size || (await digest(bytes)) !== record.sha256) continue;
+        if (generation !== this.cacheGeneration) return [];
+        const url = URL.createObjectURL(
+          new Blob([Uint8Array.from(bytes)], { type: record.contentType }),
+        );
+        this.objectUrls.add(url);
+        samples.push({
+          alt: record.alt,
+          contentType: record.contentType,
+          sourceUrl: record.sourceUrl,
+          url,
+        });
+        break;
+      }
+    }
+    return samples;
+  }
+
   public async downloadAll(
     signal: AbortSignal,
     onProgress: (downloadedBytes: number, totalBytes: number) => void,
@@ -359,6 +414,15 @@ export class ReferenceImageResolver {
     await getDownloadQueue().cancel(REFERENCE_IMAGES_DOWNLOAD_ID);
     if (typeof caches !== 'undefined') await caches.delete(this.cacheName());
     this.clear();
+    for (const listener of this.changeListeners) listener();
+  }
+
+  /** Called after the downloaded set was removed; lets views that show it refresh. */
+  public subscribeRemoved(listener: () => void): () => void {
+    this.changeListeners.add(listener);
+    return () => {
+      this.changeListeners.delete(listener);
+    };
   }
 
   public resolve(

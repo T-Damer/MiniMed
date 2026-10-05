@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 import { expect, type Locator, type Page, test } from '@playwright/test';
 
 import { mountBuiltApp } from './mount-built-app';
+import { openSettingsPage } from './settings-nav';
 
 const SCREENS = resolve(import.meta.dirname, '../../../output/f1-screens');
 const CAPTURE = process.env['F1_CAPTURE_SCREENS'] === '1';
@@ -63,6 +64,7 @@ async function openPatientVault(page: Page): Promise<void> {
 async function seedClinicianAndPatient(page: Page): Promise<void> {
   // 1. «Врач и организация» in Settings — device-local, filled into every form.
   await page.getByRole('button', { name: 'Настройки', exact: true }).click();
+  await openSettingsPage(page, 'Врач и организация');
   await expect(page.getByRole('heading', { name: 'Врач и организация' }).first()).toBeVisible();
   const orgName = page.getByLabel(
     'Наименование организации (или ФИО индивидуального предпринимателя)',

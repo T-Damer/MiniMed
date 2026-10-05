@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openSettingsPage } from './settings-nav';
 
 for (const viewport of [
   { width: 360, height: 800 },
@@ -110,6 +111,7 @@ for (const viewport of [
       }
       await navigation.getByRole('button', { name: 'Настройки', exact: true }).click();
       await expect(page.getByRole('heading', { name: 'Настройки', exact: true })).toBeVisible();
+      await openSettingsPage(page, 'Внешний вид');
       await page.getByRole('switch', { name: 'Отдельные вкладки разделов' }).click();
       await expect(navigation.locator('.app-nav-button')).toHaveCount(3);
       await navigation.getByRole('button', { name: 'Поиск', exact: true }).click();

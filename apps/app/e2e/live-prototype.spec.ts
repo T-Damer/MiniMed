@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { openSettingsPage } from './settings-nav';
 
 const LIVE_URL = process.env.MINIMED_LIVE_URL;
 
@@ -15,6 +16,7 @@ test.describe('published MiniMed prototype', () => {
     });
     await expect(nav.locator('.app-nav-button')).toHaveCount(3);
     await nav.getByRole('button', { name: 'Настройки', exact: true }).click();
+    await openSettingsPage(page, 'Внешний вид');
     const splitNavigation = page.getByRole('switch', { name: 'Отдельные вкладки разделов' });
     await splitNavigation.click();
     await expect(splitNavigation).toHaveAttribute('aria-checked', 'true');
