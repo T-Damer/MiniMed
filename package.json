@@ -147,6 +147,7 @@
     "content:restore:core": "bun scripts/restore-core.mjs",
     "benchmark:lookup-quality": "bun run --filter @localmed/benchmarks benchmark:lookup-quality",
     "benchmark:doctor-lookup": "bun run --filter @localmed/benchmarks benchmark:doctor-lookup",
+    "benchmark:owner-queries": "bun run --filter @localmed/benchmarks benchmark:owner-queries",
     "benchmark:real": "bun run --filter @localmed/benchmarks benchmark:real",
     "benchmark:real:release": "bun tools/benchmarks/src/run-real-corpus.ts --path=app --corpus=all --check",
     "benchmark:search-quality-v2": "bun run benchmark:lookup-quality",
