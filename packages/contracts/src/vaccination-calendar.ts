@@ -71,9 +71,16 @@ export const NationalRowSchema = z
     number: z.string().regex(/^\d+$/u),
     category: nonEmpty,
     ageLabel: nonEmpty,
-    /** Age in months from birth for a row that names one age; `null` for a category row. */
-    ageMonths: z
-      .object({ from: z.number().min(0), to: z.number().min(0) })
+    /**
+     * The age a row names: months from birth, or the day of life counted with the day of birth as
+     * day 1. `null` for a category row.
+     */
+    age: z
+      .object({
+        unit: z.enum(['months', 'day-of-life']),
+        from: z.number().min(0),
+        to: z.number().min(0),
+      })
       .strict()
       .nullable(),
     population: VaccinationPopulationSchema,
@@ -117,6 +124,8 @@ export const ProcedureItemSchema = z
   .object({
     id: rowId,
     number: z.string().regex(/^\d+$/u),
+    /** `general` for a rule of every vaccination, otherwise the infection keys it is about. */
+    appliesTo: z.array(z.string().regex(/^[a-z][a-z0-9-]*$/u)).min(1),
     blocks: z.array(nonEmpty).min(1),
     source: VaccinationSourceRefSchema,
     verification: VaccinationVerificationSchema,
@@ -230,7 +239,7 @@ export const VaccinationCalendarSchema = z
       }
     }
     for (const row of calendar.national.rows) {
-      if (row.ageMonths && row.ageMonths.to < row.ageMonths.from) {
+      if (row.age && row.age.to < row.age.from) {
         context.addIssue({ code: 'custom', message: `${row.id}: age range is reversed` });
       }
     }

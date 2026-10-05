@@ -8,9 +8,7 @@
     "inForceFrom": "2024-09-01",
     "validUntil": "2030-09-01",
     "checkedOn": "2026-10-05",
-    "amendingOrders": [
-      "677н"
-    ],
+    "amendingOrders": ["677н"],
     "searchNote": "Поиск на publication.pravo.gov.ru по номеру 1122н и по словам «прививок», «календаря» (2026-10-05) нашёл один изменяющий приказ — № 677н."
   },
   "sources": [
@@ -63,9 +61,10 @@
         "number": "1",
         "category": "Новорожденные в первые 24 часа жизни",
         "ageLabel": "Первые 24 часа",
-        "ageMonths": {
-          "from": 0,
-          "to": 0
+        "age": {
+          "unit": "day-of-life",
+          "from": 1,
+          "to": 1
         },
         "population": "children",
         "items": [
@@ -87,9 +86,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            3
-          ],
+          "pdfPages": [3],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3"
         },
         "verification": {
@@ -102,9 +99,10 @@
         "number": "2",
         "category": "Новорожденные на 3–7 день жизни",
         "ageLabel": "3–7 день",
-        "ageMonths": {
-          "from": 0,
-          "to": 0
+        "age": {
+          "unit": "day-of-life",
+          "from": 3,
+          "to": 7
         },
         "population": "children",
         "items": [
@@ -126,9 +124,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            3
-          ],
+          "pdfPages": [3],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3"
         },
         "verification": {
@@ -141,7 +137,8 @@
         "number": "3",
         "category": "Дети 1 месяц",
         "ageLabel": "1 месяц",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 1,
           "to": 1
         },
@@ -165,9 +162,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            3
-          ],
+          "pdfPages": [3],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3"
         },
         "verification": {
@@ -180,7 +175,8 @@
         "number": "4",
         "category": "Дети 2 месяца",
         "ageLabel": "2 месяца",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 2,
           "to": 2
         },
@@ -218,9 +214,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            3
-          ],
+          "pdfPages": [3],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3"
         },
         "verification": {
@@ -233,7 +227,8 @@
         "number": "5",
         "category": "Дети 3 месяца",
         "ageLabel": "3 месяца",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 3,
           "to": 3
         },
@@ -285,9 +280,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            3
-          ],
+          "pdfPages": [3],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3"
         },
         "verification": {
@@ -300,7 +293,8 @@
         "number": "6",
         "category": "Дети 4,5 месяца",
         "ageLabel": "4,5 месяца",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 4.5,
           "to": 4.5
         },
@@ -366,9 +360,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            3
-          ],
+          "pdfPages": [3],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3"
         },
         "verification": {
@@ -381,7 +373,8 @@
         "number": "7",
         "category": "Дети 6 месяцев",
         "ageLabel": "6 месяцев",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 6,
           "to": 6
         },
@@ -447,9 +440,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            3
-          ],
+          "pdfPages": [3],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3"
         },
         "verification": {
@@ -462,7 +453,8 @@
         "number": "8",
         "category": "Дети 12 месяцев",
         "ageLabel": "12 месяцев",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 12,
           "to": 12
         },
@@ -500,9 +492,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            3
-          ],
+          "pdfPages": [3],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3"
         },
         "verification": {
@@ -515,7 +505,8 @@
         "number": "9",
         "category": "Дети 15 месяцев",
         "ageLabel": "15 месяцев",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 15,
           "to": 15
         },
@@ -539,9 +530,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            3
-          ],
+          "pdfPages": [3],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=3"
         },
         "verification": {
@@ -554,7 +543,8 @@
         "number": "10",
         "category": "Дети 18 месяцев",
         "ageLabel": "18 месяцев",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 18,
           "to": 18
         },
@@ -606,9 +596,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            4
-          ],
+          "pdfPages": [4],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4"
         },
         "verification": {
@@ -621,7 +609,8 @@
         "number": "11",
         "category": "Дети 20 месяцев",
         "ageLabel": "20 месяцев",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 20,
           "to": 20
         },
@@ -645,9 +634,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            4
-          ],
+          "pdfPages": [4],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4"
         },
         "verification": {
@@ -660,7 +647,8 @@
         "number": "12",
         "category": "Дети 6 лет",
         "ageLabel": "6 лет",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 72,
           "to": 72
         },
@@ -698,9 +686,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            4
-          ],
+          "pdfPages": [4],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4"
         },
         "verification": {
@@ -713,7 +699,8 @@
         "number": "13",
         "category": "Дети 6–7 лет",
         "ageLabel": "6–7 лет",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 72,
           "to": 84
         },
@@ -751,9 +738,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            4
-          ],
+          "pdfPages": [4],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4"
         },
         "verification": {
@@ -766,7 +751,8 @@
         "number": "14",
         "category": "Дети 14 лет",
         "ageLabel": "14 лет",
-        "ageMonths": {
+        "age": {
+          "unit": "months",
           "from": 168,
           "to": 168
         },
@@ -790,9 +776,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            4
-          ],
+          "pdfPages": [4],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4"
         },
         "verification": {
@@ -805,7 +789,7 @@
         "number": "15",
         "category": "Взрослые от 18 лет",
         "ageLabel": "Взрослые от 18 лет",
-        "ageMonths": null,
+        "age": null,
         "population": "adults",
         "items": [
           {
@@ -826,9 +810,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            4
-          ],
+          "pdfPages": [4],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4"
         },
         "verification": {
@@ -841,7 +823,7 @@
         "number": "16",
         "category": "Дети от 1 года до 17 лет (включительно), взрослые от 18 до 55 лет, не привитые ранее против вирусного гепатита В",
         "ageLabel": "Категории",
-        "ageMonths": null,
+        "age": null,
         "population": "both",
         "items": [
           {
@@ -862,9 +844,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            4
-          ],
+          "pdfPages": [4],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4"
         },
         "verification": {
@@ -877,7 +857,7 @@
         "number": "17",
         "category": "Дети от 1 года до 17 лет (включительно), женщины от 18 до 25 лет (включительно), не болевшие, не привитые, привитые однократно против краснухи, не имеющие сведений о прививках против краснухи",
         "ageLabel": "Категории",
-        "ageMonths": null,
+        "age": null,
         "population": "both",
         "items": [
           {
@@ -902,9 +882,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            4
-          ],
+          "pdfPages": [4],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4"
         },
         "verification": {
@@ -917,7 +895,7 @@
         "number": "18",
         "category": "Дети от 1 года до 17 лет (включительно), взрослые от 18 до 35 лет (включительно), не болевшие, не привитые, привитые однократно, не имеющие сведений о прививках против кори; взрослые от 36 до 55 лет (включительно), относящиеся к группам риска (работники медицинских и организаций, осуществляющих образовательную деятельность, организаций торговли, транспорта, коммунальной и социальной сферы; лица, работающие вахтовым методом, и сотрудники государственных контрольных органов в пунктах пропуска через государственную границу Российской Федерации), не болевшие, не привитые, привитые однократно, не имеющие сведений о прививках против кори",
         "ageLabel": "Категории",
-        "ageMonths": null,
+        "age": null,
         "population": "both",
         "items": [
           {
@@ -942,10 +920,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            4,
-            5
-          ],
+          "pdfPages": [4, 5],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=4"
         },
         "verification": {
@@ -958,7 +933,7 @@
         "number": "19",
         "category": "Дети с 6 месяцев, учащиеся 1–11 классов; обучающиеся в профессиональных образовательных организациях и образовательных организациях высшего образования; взрослые, работающие по отдельным профессиям и должностям (работники медицинских организаций и организаций, осуществляющих образовательную деятельность, организаций торговли, транспорта, коммунальной и социальной сферы); лица, работающие вахтовым методом, сотрудники правоохранительных органов и государственных контрольных органов в пунктах пропуска через государственную границу Российской Федерации; работники организаций социального обслуживания и многофункциональных центров; государственные гражданские и муниципальные служащие; беременные женщины; взрослые старше 60 лет; лица, подлежащие призыву на военную службу; лица с хроническими заболеваниями, в том числе с заболеваниями легких, сердечно-сосудистыми заболеваниями, метаболическими нарушениями и ожирением",
         "ageLabel": "Категории",
-        "ageMonths": null,
+        "age": null,
         "population": "both",
         "items": [
           {
@@ -979,10 +954,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "1",
-          "pdfPages": [
-            5,
-            6
-          ],
+          "pdfPages": [5, 6],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=5"
         },
         "verification": {
@@ -1028,9 +1000,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            7
-          ],
+          "pdfPages": [7],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=7"
         },
         "verification": {
@@ -1057,9 +1027,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            7
-          ],
+          "pdfPages": [7],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=7"
         },
         "verification": {
@@ -1098,9 +1066,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            7
-          ],
+          "pdfPages": [7],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=7"
         },
         "verification": {
@@ -1139,10 +1105,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            7,
-            8
-          ],
+          "pdfPages": [7, 8],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=7"
         },
         "verification": {
@@ -1165,9 +1128,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            8
-          ],
+          "pdfPages": [8],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=8"
         },
         "verification": {
@@ -1206,9 +1167,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            8
-          ],
+          "pdfPages": [8],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=8"
         },
         "verification": {
@@ -1243,9 +1202,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            8
-          ],
+          "pdfPages": [8],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=8"
         },
         "verification": {
@@ -1276,10 +1233,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            8,
-            9
-          ],
+          "pdfPages": [8, 9],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=8"
         },
         "verification": {
@@ -1306,9 +1260,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            9
-          ],
+          "pdfPages": [9],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=9"
         },
         "verification": {
@@ -1335,9 +1287,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            9
-          ],
+          "pdfPages": [9],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=9"
         },
         "verification": {
@@ -1380,9 +1330,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            9
-          ],
+          "pdfPages": [9],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=9"
         },
         "verification": {
@@ -1413,10 +1361,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            9,
-            10
-          ],
+          "pdfPages": [9, 10],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=9"
         },
         "verification": {
@@ -1455,9 +1400,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            10
-          ],
+          "pdfPages": [10],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=10"
         },
         "verification": {
@@ -1488,9 +1431,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            10
-          ],
+          "pdfPages": [10],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=10"
         },
         "verification": {
@@ -1513,9 +1454,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            10
-          ],
+          "pdfPages": [10],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=10"
         },
         "verification": {
@@ -1538,9 +1477,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            10
-          ],
+          "pdfPages": [10],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=10"
         },
         "verification": {
@@ -1563,10 +1500,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            10,
-            11
-          ],
+          "pdfPages": [10, 11],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=10"
         },
         "verification": {
@@ -1589,9 +1523,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            11
-          ],
+          "pdfPages": [11],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=11"
         },
         "verification": {
@@ -1638,9 +1570,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            11
-          ],
+          "pdfPages": [11],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=11"
         },
         "verification": {
@@ -1663,16 +1593,12 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            11
-          ],
+          "pdfPages": [11],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=11"
         },
         "verification": {
           "ocrCoverage": 0.974,
-          "ocrUnmatchedWords": [
-            "к"
-          ]
+          "ocrUnmatchedWords": ["к"]
         }
       },
       {
@@ -1690,9 +1616,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            11
-          ],
+          "pdfPages": [11],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=11"
         },
         "verification": {
@@ -1715,10 +1639,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            11,
-            12
-          ],
+          "pdfPages": [11, 12],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=11"
         },
         "verification": {
@@ -1741,9 +1662,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "2",
-          "pdfPages": [
-            12
-          ],
+          "pdfPages": [12],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=12"
         },
         "verification": {
@@ -1778,9 +1697,7 @@
         "source": {
           "eoNumber": "0001202401300021",
           "appendix": "2",
-          "pdfPages": [
-            2
-          ],
+          "pdfPages": [2],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202401300021#page=2"
         },
         "verification": {
@@ -1870,9 +1787,7 @@
           "source": {
             "eoNumber": "0001202112200070",
             "appendix": "2",
-            "pdfPages": [
-              12
-            ],
+            "pdfPages": [12],
             "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=12"
           },
           "verification": {
@@ -1890,15 +1805,14 @@
       {
         "id": "p-01",
         "number": "1",
+        "appliesTo": ["general"],
         "blocks": [
           "Профилактические прививки проводятся гражданам в медицинских организациях при наличии лицензии, предусматривающей выполнение работ (услуг) по вакцинации (проведению профилактических прививок)."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            13
-          ],
+          "pdfPages": [13],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=13"
         },
         "verification": {
@@ -1909,15 +1823,14 @@
       {
         "id": "p-02",
         "number": "2",
+        "appliesTo": ["general"],
         "blocks": [
           "Профилактические прививки проводят медицинские работники, прошедшие обучение по вопросам применения иммунобиологических лекарственных препаратов для иммунопрофилактики, организации проведения вакцинации, техники проведения вакцинации, а также по вопросам оказания медицинской помощи в экстренной и неотложной формах."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            13
-          ],
+          "pdfPages": [13],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=13"
         },
         "verification": {
@@ -1928,15 +1841,14 @@
       {
         "id": "p-03",
         "number": "3",
+        "appliesTo": ["general"],
         "blocks": [
           "Профилактические прививки проводятся с использованием иммунобиологических лекарственных препаратов для иммунопрофилактики, зарегистрированных в соответствии с законодательством Российской Федерации, согласно инструкциям по их применению."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            13
-          ],
+          "pdfPages": [13],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=13"
         },
         "verification": {
@@ -1947,15 +1859,14 @@
       {
         "id": "p-04",
         "number": "4",
+        "appliesTo": ["general"],
         "blocks": [
           "Перед проведением профилактической прививки лицу, подлежащему вакцинации или ревакцинации, или его законному представителю разъясняется необходимость иммунопрофилактики инфекционных болезней, возможные поствакцинальные реакции и осложнения, а также последствия отказа от проведения профилактической прививки и оформляется информированное добровольное согласие на медицинское вмешательство в соответствии с требованиями статьи 20 Федерального закона от 21 ноября 2011 г. № 323-ФЗ «Об основах охраны здоровья граждан в Российской Федерации»."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            13
-          ],
+          "pdfPages": [13],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=13"
         },
         "verification": {
@@ -1974,15 +1885,14 @@
       {
         "id": "p-05",
         "number": "5",
+        "appliesTo": ["general"],
         "blocks": [
           "Все лица, которым должны проводиться профилактические прививки, предварительно подлежат осмотру врачом (фельдшером)."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            13
-          ],
+          "pdfPages": [13],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=13"
         },
         "verification": {
@@ -2001,15 +1911,14 @@
       {
         "id": "p-06",
         "number": "6",
+        "appliesTo": ["general"],
         "blocks": [
           "При проведении вакцинации и ревакцинации населения используются вакцины, содержащие актуальные для Российской Федерации антигены, позволяющие обеспечить максимальную эффективность иммунизации, по данным мониторинга Роспотребнадзора."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            13
-          ],
+          "pdfPages": [13],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=13"
         },
         "verification": {
@@ -2028,15 +1937,14 @@
       {
         "id": "p-07",
         "number": "7",
+        "appliesTo": ["general"],
         "blocks": [
           "Профилактические прививки могут проводиться с использованием иммунобиологических лекарственных препаратов для иммунопрофилактики, содержащих комбинации вакцин, предназначенных для применения в соответствующие возрастные периоды."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            14
-          ],
+          "pdfPages": [14],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=14"
         },
         "verification": {
@@ -2047,15 +1955,14 @@
       {
         "id": "p-08",
         "number": "8",
+        "appliesTo": ["general"],
         "blocks": [
           "При изменении сроков вакцинации ее проводят по схемам, предусмотренным национальным календарем профилактических прививок, утвержденным настоящим приказом, настоящим порядком, и в соответствии с инструкциями по применению иммунобиологических лекарственных препаратов для иммунопрофилактики. Допускается введение вакцин (за исключением вакцин для профилактики туберкулеза), применяемых в рамках национального календаря профилактических прививок и календаря профилактических прививок по эпидемическим показаниям, в один день разными шприцами в разные участки тела."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            14
-          ],
+          "pdfPages": [14],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=14"
         },
         "verification": {
@@ -2066,15 +1973,14 @@
       {
         "id": "p-09",
         "number": "9",
+        "appliesTo": ["hepatitis-b", "influenza"],
         "blocks": [
           "При проведении вакцинации против вирусного гепатита В детей первого года жизни, против гриппа детей с 6-месячного возраста, обучающихся в общеобразовательных организациях и в профессиональных образовательных организациях, беременных женщин используются иммунобиологические лекарственные препараты для иммунопрофилактики, не содержащие консервантов."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            14
-          ],
+          "pdfPages": [14],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=14"
         },
         "verification": {
@@ -2085,15 +1991,14 @@
       {
         "id": "p-10",
         "number": "10",
+        "appliesTo": ["tuberculosis"],
         "blocks": [
           "Вакцинация против туберкулеза проводится новорожденным на 3–7 день жизни вакциной для профилактики туберкулеза для щадящей первичной вакцинации (БЦЖ-М); в субъектах Российской Федерации с показателями заболеваемости, превышающими 80 на 100 тысяч населения, а также при наличии в окружении новорожденного больных туберкулезом – вакциной для профилактики туберкулеза (БЦЖ). Ревакцинация детям в 6–7 лет проводится вакциной для профилактики туберкулеза (БЦЖ). При отсутствии вакцинации против туберкулеза в родильном доме она может быть проведена в возрасте до 7 лет туберкулиноотрицательным детям."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            14
-          ],
+          "pdfPages": [14],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=14"
         },
         "verification": {
@@ -2104,6 +2009,7 @@
       {
         "id": "p-11",
         "number": "11",
+        "appliesTo": ["hepatitis-b"],
         "blocks": [
           "Вакцинация против вирусного гепатита В детей первого года жизни проводится по схеме 0-1-6 (1-я доза – в момент начала вакцинации, 2-я доза – через месяц после 1-й прививки, 3-я доза – через 6 месяцев от начала вакцинации).",
           "Вакцинация против вирусного гепатита В детей, относящихся к группам риска (родившимся от матерей – носителей HBsAg, больных вирусным гепатитом В или перенесших вирусный гепатит В в третьем триместре беременности, не имеющих результатов обследования на маркеры гепатита В, потребляющих наркотические средства или психотропные вещества, из семей, в которых есть носитель HBsAg или больной острым вирусным гепатитом В и хроническими вирусными гепатитами), проводится по схеме 0-1-2-12 (1-я доза – в момент начала вакцинации, 2-я доза – через месяц после 1-й прививки, 3-я доза – через 2 месяца от начала вакцинации, 4-я доза – через 12 месяцев от начала вакцинации)."
@@ -2111,9 +2017,7 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            14
-          ],
+          "pdfPages": [14],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=14"
         },
         "verification": {
@@ -2124,6 +2028,7 @@
       {
         "id": "p-12",
         "number": "12",
+        "appliesTo": ["polio"],
         "blocks": [
           "Против полиомиелита первая, вторая, третья вакцинации детям 3 месяцев, 4,5 месяцев, 6 месяцев жизни и первая ревакцинация против полиомиелита детям 18 месяцев жизни проводятся вакциной для профилактики полиомиелита (инактивированной); вторая и третья ревакцинации против полиомиелита детям 20 месяцев и 6 лет проводятся вакциной для профилактики полиомиелита (живой).",
           "Дети, относящиеся к группе риска (с болезнями нервной системы, иммунодефицитными состояниями или анатомическими дефектами, приводящими к резко повышенной опасности заболевания гемофильной инфекцией; с аномалиями развития кишечника; с онкологическими заболеваниями и/или длительно получающим иммуносупрессивную терапию; дети, рожденные от матерей с ВИЧ-инфекцией; дети с ВИЧ-инфекцией; недоношенные и маловесные дети; дети, находящиеся в домах ребенка), подлежат второй и третьей ревакцинации против полиомиелита в 20 месяцев и 6 лет вакциной для профилактики полиомиелита (инактивированной)."
@@ -2131,31 +2036,25 @@
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            14,
-            15
-          ],
+          "pdfPages": [14, 15],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=14"
         },
         "verification": {
           "ocrCoverage": 0.992,
-          "ocrUnmatchedWords": [
-            "18"
-          ]
+          "ocrUnmatchedWords": ["18"]
         }
       },
       {
         "id": "p-13",
         "number": "13",
+        "appliesTo": ["polio"],
         "blocks": [
           "Вакцинация против полиомиелита по эпидемическим показаниям проводится вакциной для профилактики полиомиелита (живой) и вакциной для профилактики полиомиелита (инактивированной). Показаниями для проведения вакцинации по эпидемическим показаниям являются: регистрация заболеваний полиомиелитом, вызванных диким или вакцинородственным полиовирусом, выделение дикого или вакцинородственного полиовируса в биологическом материале человека или из объектов окружающей среды, а также при подтвержденной циркуляции дикого или вакцинородственного полиовируса."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            15
-          ],
+          "pdfPages": [15],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=15"
         },
         "verification": {
@@ -2166,15 +2065,14 @@
       {
         "id": "p-14",
         "number": "14",
+        "appliesTo": ["sars-cov-2"],
         "blocks": [
           "Вакцинация детей от 12 до 17 лет (включительно) против коронавирусной инфекции, вызываемой вирусом SARS-CoV-2, проводится добровольно по письменному заявлению одного из родителей (или иного законного представителя)."
         ],
         "source": {
           "eoNumber": "0001202112200070",
           "appendix": "3",
-          "pdfPages": [
-            15
-          ],
+          "pdfPages": [15],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202112200070#page=15"
         },
         "verification": {
@@ -2185,15 +2083,14 @@
       {
         "id": "p-15",
         "number": "15",
+        "appliesTo": ["sars-cov-2"],
         "blocks": [
           "Повторная вакцинация (ревакцинация) против коронавирусной инфекции, вызываемой вирусом SARS-CoV-2, проводится не ранее, чем через 1 год после предыдущей вакцинации."
         ],
         "source": {
           "eoNumber": "0001202401300021",
           "appendix": "3",
-          "pdfPages": [
-            2
-          ],
+          "pdfPages": [2],
           "url": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202401300021#page=2"
         },
         "verification": {

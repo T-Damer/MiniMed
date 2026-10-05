@@ -170,3 +170,33 @@ def test_a_weak_row_stops_the_build(tmp_path: Path) -> None:
         )
     with pytest.raises(vaccination.VaccinationSourceError, match="coverage floor"):
         vaccination.prepare(tmp_path)
+
+
+def test_procedure_paragraphs_say_what_they_are_about() -> None:
+    items = {item["number"]: item["appliesTo"] for item in committed()["procedure"]["items"]}
+    assert all(items[str(number)] == ["general"] for number in range(1, 9))
+    assert items["9"] == ["hepatitis-b", "influenza"]
+    assert items["10"] == ["tuberculosis"]
+    assert items["12"] == ["polio"]
+    assert items["15"] == ["sars-cov-2"]
+
+
+def test_a_paragraph_that_does_not_name_its_infection_stops_the_build() -> None:
+    paragraph = transcription.ProcedureItem(
+        1,
+        ("Профилактические прививки проводятся в медицинских организациях.",),
+        (13,),
+        applies_to=("polio",),
+    )
+    with pytest.raises(vaccination.VaccinationSourceError, match="is not about"):
+        vaccination._applies_to(paragraph)  # pyright: ignore[reportPrivateUsage]
+
+
+def test_age_rows_carry_their_unit() -> None:
+    rows = {row["number"]: row["age"] for row in committed()["national"]["rows"]}
+    assert rows["1"] == {"unit": "day-of-life", "from": 1, "to": 1}
+    assert rows["2"] == {"unit": "day-of-life", "from": 3, "to": 7}
+    assert rows["6"] == {"unit": "months", "from": 4.5, "to": 4.5}
+    assert rows["13"] == {"unit": "months", "from": 72, "to": 84}
+    assert rows["15"] is None
+    assert rows["19"] is None

@@ -184,10 +184,10 @@ def _national_rows(page_words: dict[int, list[str]]) -> list[dict[str, Any]]:
                 "number": str(row.number),
                 "category": row.category,
                 "ageLabel": row.age_label,
-                "ageMonths": (
+                "age": (
                     None
-                    if row.age_months is None
-                    else {"from": row.age_months[0], "to": row.age_months[1]}
+                    if row.age is None
+                    else {"unit": row.age[0], "from": row.age[1], "to": row.age[2]}
                 ),
                 "population": row.population,
                 "items": [
@@ -240,6 +240,18 @@ def _epidemic_rows(
     return rows
 
 
+def _applies_to(item: blueprint.ProcedureItem) -> list[str]:
+    """What a paragraph of Appendix 3 is about; every infection must occur in its text."""
+    text = " ".join(item.blocks).lower()
+    for key in item.applies_to:
+        if key == "general":
+            continue
+        stem = blueprint.APPLIES_TO_STEMS.get(key)
+        if stem is None or stem not in text:
+            raise VaccinationSourceError(f"paragraph {item.number} is not about {key!r}")
+    return list(item.applies_to)
+
+
 def _procedure_items(
     page_words_by_order: dict[str, dict[int, list[str]]],
 ) -> list[dict[str, Any]]:
@@ -249,6 +261,7 @@ def _procedure_items(
         entry: dict[str, Any] = {
             "id": f"p-{item.number:02d}",
             "number": str(item.number),
+            "appliesTo": _applies_to(item),
             "blocks": list(item.blocks),
             "source": _source_ref(eo_number, "3", item.pages),
             "verification": check_against_ocr(

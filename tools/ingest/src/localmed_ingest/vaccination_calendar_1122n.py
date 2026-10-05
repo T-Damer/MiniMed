@@ -20,6 +20,7 @@ from typing import Final, Literal
 BlockKind = Literal["p", "b"]
 Block = tuple[BlockKind, str]
 Population = Literal["children", "adults", "both"]
+AgeUnit = Literal["months", "day-of-life"]
 
 BASE_EO_NUMBER: Final = "0001202112200070"
 AMENDMENT_EO_NUMBER: Final = "0001202401300021"
@@ -48,8 +49,9 @@ class NationalRow:
     items: tuple[str, ...]
     pages: tuple[int, ...]
     population: Population
-    # Months from birth for a row that names one age point; `None` for a category row.
-    age_months: tuple[float, float] | None
+    # Unit, from and to of the age a row names (`months` from birth, `day-of-life` with the day of
+    # birth as day 1); `None` for a category row.
+    age: tuple[AgeUnit, float, float] | None
     age_label: str
 
 
@@ -60,7 +62,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ("Первая вакцинация против вирусного гепатита В",),
         (3,),
         "children",
-        (0, 0),
+        ("day-of-life", 1, 1),
         "Первые 24 часа",
     ),
     NationalRow(
@@ -69,7 +71,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ("Вакцинация против туберкулеза",),
         (3,),
         "children",
-        (0, 0),
+        ("day-of-life", 3, 7),
         "3–7 день",
     ),
     NationalRow(
@@ -78,7 +80,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ("Вторая вакцинация против вирусного гепатита В",),
         (3,),
         "children",
-        (1, 1),
+        ("months", 1, 1),
         "1 месяц",
     ),
     NationalRow(
@@ -90,7 +92,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ),
         (3,),
         "children",
-        (2, 2),
+        ("months", 2, 2),
         "2 месяца",
     ),
     NationalRow(
@@ -103,7 +105,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ),
         (3,),
         "children",
-        (3, 3),
+        ("months", 3, 3),
         "3 месяца",
     ),
     NationalRow(
@@ -117,7 +119,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ),
         (3,),
         "children",
-        (4.5, 4.5),
+        ("months", 4.5, 4.5),
         "4,5 месяца",
     ),
     NationalRow(
@@ -131,7 +133,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ),
         (3,),
         "children",
-        (6, 6),
+        ("months", 6, 6),
         "6 месяцев",
     ),
     NationalRow(
@@ -143,7 +145,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ),
         (3,),
         "children",
-        (12, 12),
+        ("months", 12, 12),
         "12 месяцев",
     ),
     NationalRow(
@@ -152,7 +154,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ("Ревакцинация против пневмококковой инфекции",),
         (3,),
         "children",
-        (15, 15),
+        ("months", 15, 15),
         "15 месяцев",
     ),
     NationalRow(
@@ -165,7 +167,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ),
         (4,),
         "children",
-        (18, 18),
+        ("months", 18, 18),
         "18 месяцев",
     ),
     NationalRow(
@@ -174,7 +176,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ("Вторая ревакцинация против полиомиелита",),
         (4,),
         "children",
-        (20, 20),
+        ("months", 20, 20),
         "20 месяцев",
     ),
     NationalRow(
@@ -186,7 +188,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ),
         (4,),
         "children",
-        (72, 72),
+        ("months", 72, 72),
         "6 лет",
     ),
     NationalRow(
@@ -198,7 +200,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ),
         (4,),
         "children",
-        (72, 84),
+        ("months", 72, 84),
         "6–7 лет",
     ),
     NationalRow(
@@ -207,7 +209,7 @@ NATIONAL_ROWS: Final[tuple[NationalRow, ...]] = (
         ("Третья ревакцинация против дифтерии, столбняка",),
         (4,),
         "children",
-        (168, 168),
+        ("months", 168, 168),
         "14 лет",
     ),
     NationalRow(
@@ -839,7 +841,19 @@ class ProcedureItem:
     pages: tuple[int, ...]
     footnote: int | None = None
     amended_by: str | None = None
+    # `general` for a rule that applies to every vaccination, otherwise the infection keys the
+    # paragraph is about (checked against the paragraph text by the preparer).
+    applies_to: tuple[str, ...] = ("general",)
 
+
+# Words that must occur in a paragraph that names an infection in `applies_to`.
+APPLIES_TO_STEMS: Final[dict[str, str]] = {
+    "hepatitis-b": "гепатита в",
+    "influenza": "гриппа",
+    "tuberculosis": "туберкулез",
+    "polio": "полиомиелит",
+    "sars-cov-2": "sars-cov-2",
+}
 
 PROCEDURE_ITEMS: Final[tuple[ProcedureItem, ...]] = (
     ProcedureItem(
@@ -938,6 +952,7 @@ PROCEDURE_ITEMS: Final[tuple[ProcedureItem, ...]] = (
             "иммунопрофилактики, не содержащие консервантов.",
         ),
         (14,),
+        applies_to=("hepatitis-b", "influenza"),
     ),
     ProcedureItem(
         10,
@@ -952,6 +967,7 @@ PROCEDURE_ITEMS: Final[tuple[ProcedureItem, ...]] = (
             "до 7 лет туберкулиноотрицательным детям.",
         ),
         (14,),
+        applies_to=("tuberculosis",),
     ),
     ProcedureItem(
         11,
@@ -970,6 +986,7 @@ PROCEDURE_ITEMS: Final[tuple[ProcedureItem, ...]] = (
             "4-я доза – через 12 месяцев от начала вакцинации).",
         ),
         (14,),
+        applies_to=("hepatitis-b",),
     ),
     ProcedureItem(
         12,
@@ -989,6 +1006,7 @@ PROCEDURE_ITEMS: Final[tuple[ProcedureItem, ...]] = (
             "для профилактики полиомиелита (инактивированной).",
         ),
         (14, 15),
+        applies_to=("polio",),
     ),
     ProcedureItem(
         13,
@@ -1003,6 +1021,7 @@ PROCEDURE_ITEMS: Final[tuple[ProcedureItem, ...]] = (
             "полиовируса.",
         ),
         (15,),
+        applies_to=("polio",),
     ),
     ProcedureItem(
         14,
@@ -1012,6 +1031,7 @@ PROCEDURE_ITEMS: Final[tuple[ProcedureItem, ...]] = (
             "одного из родителей (или иного законного представителя).",
         ),
         (15,),
+        applies_to=("sars-cov-2",),
     ),
     ProcedureItem(
         15,
@@ -1022,6 +1042,7 @@ PROCEDURE_ITEMS: Final[tuple[ProcedureItem, ...]] = (
         ),
         (2,),
         amended_by="677н",
+        applies_to=("sars-cov-2",),
     ),
 )
 
