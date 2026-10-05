@@ -18,7 +18,10 @@ import { SheetPopover } from '@/components/SheetPopover';
 import { useStickySurface } from '@/components/sticky-surface';
 import { ASSESSMENT_PACKS_EVENT } from '@/features/assessments/assessment-packs';
 import { CALCULATOR_PACKS_EVENT } from '@/features/calculators/calculator-packs';
-import { ECG_PHOTO_CALIPER_ID } from '@/features/calculators/calculator-registry';
+import {
+  ECG_PHOTO_AGE_SCOPE,
+  ECG_PHOTO_CALIPER_ID,
+} from '@/features/calculators/calculator-registry';
 import { EcgHomeEntry } from '@/features/calculators/EcgHomeEntry';
 import {
   conversationSession,
@@ -39,7 +42,12 @@ import { medicationDocumentGroups } from '@/features/medications/medicationGroup
 import { DefinitionReferencePanel } from '@/features/reference/DefinitionReferencePanel';
 import { HomeFeatureCard } from '@/features/search/HomeFeatureCard';
 import { homeDocumentOrder } from '@/features/search/homeDocumentOrder';
-import { APP_TOOL_IDS, type QuickTool, quickToolsFromCatalog } from '@/features/search/quick-tools';
+import {
+  APP_FEATURE_AGE_SCOPE,
+  APP_TOOL_IDS,
+  type QuickTool,
+  quickToolsFromCatalog,
+} from '@/features/search/quick-tools';
 import { pickRandomDocument } from '@/features/search/random-document';
 import {
   documentMatchesConditionGroup,
@@ -74,6 +82,8 @@ import { sectionsOverviewRows } from '@/features/search/sections-overview';
 import { UnifiedSearchCatalog } from '@/features/search/UnifiedSearchCatalog';
 import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { FeatureTour } from '@/features/setup/FeatureTour';
+import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
+import { VACCINATION_TOOL } from '@/features/vaccination/vaccination-tool';
 import {
   getUsefulFeaturesHidden,
   setUsefulFeaturesHidden,
@@ -198,8 +208,15 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       group.count > 0
     );
   });
+  const [toolAgeFilter, setToolAgeFilter] = createToolAgeFilter();
   const visibleTools = createMemo(() =>
-    matchingCatalogTools(toolRows(), scope(), specialty(), catalogQuery()),
+    matchingCatalogTools(toolRows(), scope(), specialty(), catalogQuery(), toolAgeFilter()),
+  );
+  /** Tools the age choice hides from the current list: a short list is not a short catalog. */
+  const hiddenByAge = createMemo(
+    () =>
+      matchingCatalogTools(toolRows(), scope(), specialty(), catalogQuery()).length -
+      visibleTools().length,
   );
   const visibleDocuments = createMemo(() =>
     documents().filter(
@@ -238,6 +255,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       title: 'Запись беседы',
       kindLabel: 'Запись и расшифровка',
       icon: 'microphone',
+      ageScope: APP_FEATURE_AGE_SCOPE,
       group: 'reception',
       run: () => void startConversation(),
     },
@@ -246,6 +264,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       title: 'ЭКГ по фото',
       kindLabel: 'Интервалы и QTc по снимку ленты',
       icon: 'heartbeat',
+      ageScope: ECG_PHOTO_AGE_SCOPE,
       group: 'reception',
       href: `#/calculators/${ECG_PHOTO_CALIPER_ID}`,
     },
@@ -254,14 +273,25 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       title: 'Формы',
       kindLabel: 'Официальные формы',
       icon: 'file-text',
+      ageScope: APP_FEATURE_AGE_SCOPE,
       group: 'reception',
       href: '#/notes/forms',
+    },
+    {
+      id: VACCINATION_TOOL.id,
+      title: VACCINATION_TOOL.title,
+      kindLabel: VACCINATION_TOOL.kindLabel,
+      icon: VACCINATION_TOOL.icon,
+      ageScope: VACCINATION_TOOL.ageScope,
+      group: 'reference',
+      href: VACCINATION_TOOL.href,
     },
     {
       id: APP_TOOL_IDS.notes,
       title: 'Заметки',
       kindLabel: 'Заметки, PDF и исследования',
       icon: 'notes',
+      ageScope: APP_FEATURE_AGE_SCOPE,
       group: 'files',
       href: '#/notes',
     },
@@ -270,6 +300,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       title: 'Просмотр снимков',
       kindLabel: 'DICOM и NIfTI',
       icon: 'image',
+      ageScope: APP_FEATURE_AGE_SCOPE,
       group: 'files',
       run: () => setImagingOpen(true),
       dropFiles: (files) =>
@@ -282,6 +313,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       title: 'Калькуляторы',
       kindLabel: 'Все расчёты',
       icon: 'calculator',
+      ageScope: APP_FEATURE_AGE_SCOPE,
       group: 'calculations',
       href: '#/calculators',
     },
@@ -291,6 +323,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       title: 'Пациенты',
       kindLabel: 'Карточки и дневники',
       icon: 'users',
+      ageScope: APP_FEATURE_AGE_SCOPE,
       href: '#/notes/patients',
     },
     {
@@ -298,6 +331,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       title: 'Опросники',
       kindLabel: 'Шкалы и анкеты',
       icon: 'list-checks',
+      ageScope: APP_FEATURE_AGE_SCOPE,
       href: '#/assessments',
     },
     // The draft dictionary is an experimental module.
@@ -308,6 +342,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             title: 'Словарь терминов',
             kindLabel: 'Черновой справочник',
             icon: 'book-open' as const,
+            ageScope: APP_FEATURE_AGE_SCOPE,
             group: 'reference' as const,
             run: () => setReferenceOpen(true),
             ...(props.baseCore ? {} : { unavailableReason: 'Откроется, когда база будет готова' }),
@@ -796,6 +831,9 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                     hideDocuments={scope() === 'diagnosis'}
                     documents={catalogDocuments()}
                     tools={visibleTools()}
+                    ageFilter={toolAgeFilter()}
+                    onAgeFilter={setToolAgeFilter}
+                    hiddenByAge={hiddenByAge()}
                     onOpenTool={() => {
                       if (catalogQuery().trim())
                         appendSearchHistory(

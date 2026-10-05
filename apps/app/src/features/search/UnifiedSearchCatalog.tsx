@@ -11,6 +11,9 @@ import {
   ItemFavoriteButton,
   toolItem,
 } from '@/features/search/ToolPinControls';
+import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
+import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
+import type { ToolAgeFilter } from '@/features/tools/tool-age-filter';
 
 export function UnifiedSearchCatalog(props: {
   /** Absent while the medical core opens: tools stay listed, documents wait for the core. */
@@ -21,6 +24,10 @@ export function UnifiedSearchCatalog(props: {
   readonly catalogOnly?: boolean;
   readonly documents: readonly MedicalDocumentSummary[];
   readonly tools: readonly SearchCatalogTool[];
+  /** The remembered «Дети / Взрослые / Все» choice and how many tools it hides from this list. */
+  readonly ageFilter: ToolAgeFilter;
+  readonly onAgeFilter: (filter: ToolAgeFilter) => void;
+  readonly hiddenByAge: number;
   readonly loading: boolean;
   readonly error: string | undefined;
   readonly onOpenTool: () => void;
@@ -30,6 +37,12 @@ export function UnifiedSearchCatalog(props: {
   return (
     <section class="unified-catalog" aria-label="Каталог выбранного раздела">
       <Show when={tools() || (props.scope === 'all' && props.tools.length > 0)}>
+        <ToolAgeFilterBar
+          class="unified-catalog__age-filter"
+          value={props.ageFilter}
+          onChange={props.onAgeFilter}
+          hidden={props.hiddenByAge}
+        />
         <div class="unified-catalog__tools">
           <LayoutVirtualizedGrid data={props.tools}>
             {(entry) => (
@@ -46,6 +59,9 @@ export function UnifiedSearchCatalog(props: {
                   </span>
                   <strong class="catalog-card__title">{entry.title}</strong>
                   <span class="catalog-card__description">{entry.description}</span>
+                  <Show when={!entry.createsNew}>
+                    <ToolAgeBadge scope={entry.ageScope} />
+                  </Show>
                 </a>
                 {/* Siblings of the link, layered over its corner: buttons cannot nest in <a>. */}
                 <div class="unified-catalog__tool-pins">
@@ -57,7 +73,11 @@ export function UnifiedSearchCatalog(props: {
           </LayoutVirtualizedGrid>
         </div>
         <Show when={props.tools.length === 0}>
-          <p class="unified-catalog__empty">Инструменты не найдены. Уточните запрос или раздел.</p>
+          <p class="unified-catalog__empty">
+            {props.hiddenByAge > 0
+              ? 'Для выбранного возраста инструментов не найдено. Выберите «Все», чтобы увидеть остальные.'
+              : 'Инструменты не найдены. Уточните запрос или раздел.'}
+          </p>
         </Show>
       </Show>
       <Show when={!props.hideDocuments && !tools() && !props.query.trim()}>

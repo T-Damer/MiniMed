@@ -1,3 +1,4 @@
+import { anyAgeScope } from '@localmed/contracts';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -20,9 +21,14 @@ describe('quick tools', () => {
         aliases: [],
         group: 'general',
         href: '#/calculators/bmi',
+        ageScope: { groups: ['children', 'adults'], basis: 'Тест' },
       },
     ]);
-    expect(tools[0]).toMatchObject({ id: 'calc.bmi', kindLabel: 'Калькулятор' });
+    expect(tools[0]).toMatchObject({
+      id: 'calc.bmi',
+      kindLabel: 'Калькулятор',
+      ageScope: { groups: ['children', 'adults'] },
+    });
     const resolved = resolveToolRefs(
       ['calc.bmi', 'tool.removed'],
       new Map(tools.map((tool) => [tool.id, tool])),
@@ -39,6 +45,7 @@ describe('quick tools', () => {
       title: id,
       kindLabel: '',
       icon: 'calculator',
+      ageScope: anyAgeScope('Тест'),
       ...(group ? { group } : {}),
     });
     const groups = groupQuickTools([
@@ -60,6 +67,7 @@ describe('quick tools', () => {
       title: 'x',
       kindLabel: '',
       icon: 'dice',
+      ageScope: anyAgeScope('Тест'),
       run: () => {
         opened = true;
       },

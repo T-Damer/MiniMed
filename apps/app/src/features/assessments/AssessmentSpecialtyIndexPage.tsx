@@ -20,10 +20,14 @@ import {
   moduleIdForAssessmentSpecialty,
 } from '@/features/assessments/assessment-packs';
 import type { AssessmentRecord } from '@/features/assessments/assessment-types';
+import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
+import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
+import { type ToolAgeFilter, toolMatchesAgeFilter } from '@/features/tools/tool-age-filter';
 import { assessmentCountLabel } from '@/i18n/labels';
+import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 import {
   type StoredUserQuestionnaire,
-  userQuestionnaireReadinessError,
+  userQuestionnaireAgeScope,
 } from '@/state/user-questionnaires';
 
 function formatDate(value: string): string {
@@ -42,7 +46,12 @@ function questionCountLabel(count: number): string {
 
 export function AssessmentSpecialtyIndexPage(props: {
   readonly mineOnly: boolean;
+  /** The tests to count and list: the age filter already applied. */
   readonly definitions: ReturnType<typeof searchAssessments>;
+  /** The same catalog before the age filter. */
+  readonly allDefinitions: ReturnType<typeof searchAssessments>;
+  readonly ageFilter: ToolAgeFilter;
+  readonly onAgeFilter: (filter: ToolAgeFilter) => void;
   readonly matches: ReturnType<typeof searchAssessments>;
   readonly installation: AssessmentInstallationState;
   readonly query: string;
@@ -66,11 +75,15 @@ export function AssessmentSpecialtyIndexPage(props: {
   const hasQuery = () => props.query.trim().length > 0;
   const visibleSpecialties = () =>
     visibleAssessmentSpecialties(props.query, props.definitions, props.matches);
+  const userQuestionnairesForAge = () =>
+    props.userQuestionnaires.filter((stored) =>
+      toolMatchesAgeFilter(userQuestionnaireAgeScope(stored.questionnaire), props.ageFilter),
+    );
   const visibleUserQuestionnaires = () => {
     const query = props.query.trim();
-    if (!query) return props.userQuestionnaires;
+    if (!query) return userQuestionnairesForAge();
     const normalizedQuery = query.toLocaleLowerCase('ru-RU');
-    return props.userQuestionnaires.filter((stored) =>
+    return userQuestionnairesForAge().filter((stored) =>
       [
         stored.file.title,
         stored.questionnaire.description,
@@ -137,6 +150,17 @@ export function AssessmentSpecialtyIndexPage(props: {
         }
       />
 
+      <ToolAgeFilterBar
+        class="assessment-index__age-filter"
+        value={props.ageFilter}
+        onChange={props.onAgeFilter}
+        hidden={
+          props.mineOnly
+            ? props.userQuestionnaires.length - userQuestionnairesForAge().length
+            : props.allDefinitions.length - props.definitions.length
+        }
+      />
+
       <Show when={!props.mineOnly}>
         <div class="assessment-search-row">
           <SearchField
@@ -183,10 +207,15 @@ export function AssessmentSpecialtyIndexPage(props: {
                 const installedCount = () =>
                   specialtyDefinitions().filter((definition) => installed(definition.id)).length;
                 const empty = () => specialtyDefinitions().length === 0;
+                // Tests exist for the specialty but the age choice hides all of them.
+                const hiddenByAge = () =>
+                  empty() && assessmentsInSpecialty(specialty.id, props.allDefinitions).length > 0;
                 const emptyLabel = () =>
-                  moduleIdForAssessmentSpecialty(specialty.id)
-                    ? 'Набор тестов не загружен'
-                    : 'Тесты появятся позже';
+                  hiddenByAge()
+                    ? 'Нет тестов для выбранного возраста'
+                    : moduleIdForAssessmentSpecialty(specialty.id)
+                      ? 'Набор тестов не загружен'
+                      : 'Тесты появятся позже';
                 return (
                   <button
                     type="button"
@@ -294,6 +323,16 @@ export function AssessmentSpecialtyIndexPage(props: {
                     <small class="assessment-user-questionnaire__meta">
                       {questionCountLabel(stored.questionnaire.questions.length)}
                     </small>
+                    <Show
+                      when={stored.questionnaire.population}
+                      fallback={
+                        <span class="assessment-user-questionnaire__population-missing">
+                          Не указано, для кого опросник
+                        </span>
+                      }
+                    >
+                      <ToolAgeBadge scope={userQuestionnaireAgeScope(stored.questionnaire)} />
+                    </Show>
                     <Button
                       type="button"
                       class="assessment-user-questionnaire__open"
@@ -341,7 +380,7 @@ export function AssessmentSpecialtyIndexPage(props: {
                           {record.kind === 'manual' && 'Результат внесён вручную'}
                           {record.kind === 'incomplete' && (
                             <>
-                              <span class="assessment-history__tag">incomplete</span>{' '}
+                              <span class="assessment-history__tag">Черновик</span>{' '}
                               <span class="assessment-history__count">
                                 {Object.keys(record.answers).length}/{record.totalQuestions}{' '}
                                 отвечено

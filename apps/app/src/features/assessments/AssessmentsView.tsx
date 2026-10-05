@@ -65,6 +65,8 @@ import type {
 import { UserQuestionnaireEditorPage } from '@/features/assessments/UserQuestionnaireEditorPage';
 import { MODULE_CATALOG, moduleForTool } from '@/features/modules/module-catalog';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
+import { filterByAge } from '@/features/tools/tool-age-filter';
+import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
 import { getSplitNavigation } from '@/state/app-preferences';
 import {
   ASSESSMENT_RESULTS_EVENT,
@@ -91,9 +93,9 @@ import {
   listUserQuestionnaires,
   loadUserQuestionnaire,
   type StoredUserQuestionnaire,
-  userQuestionnaireReadinessError,
   userQuestionnaireToAssessmentDefinition,
 } from '@/state/user-questionnaires';
+import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 
 function filterAssessments(
   query: string,
@@ -125,6 +127,9 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
     loadAssessmentInstallationState(getAssessmentCatalog()),
   );
   const [assessmentCatalog, setAssessmentCatalog] = createSignal(getAssessmentCatalog());
+  const [ageFilter, setAgeFilter] = createToolAgeFilter();
+  /** The catalog without the tools the «Дети / Взрослые / Все» choice hides. */
+  const ageFilteredCatalog = createMemo(() => filterByAge(assessmentCatalog(), ageFilter()));
   const [loadedDefinition, setLoadedDefinition] = createSignal<AssessmentDefinition>();
   const [toolsReady, setToolsReady] = createSignal(false);
   const [toolsError, setToolsError] = createSignal('');
@@ -620,8 +625,11 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
       <Show when={route().kind === 'index' || route().kind === 'user-index'}>
         <AssessmentSpecialtyIndexPage
           mineOnly={route().kind === 'user-index'}
-          definitions={assessmentCatalog()}
-          matches={query().trim() ? filterAssessments(query(), assessmentCatalog()) : []}
+          definitions={ageFilteredCatalog()}
+          allDefinitions={assessmentCatalog()}
+          ageFilter={ageFilter()}
+          onAgeFilter={setAgeFilter}
+          matches={query().trim() ? filterAssessments(query(), ageFilteredCatalog()) : []}
           installation={installation()}
           query={query()}
           recentRecords={records().slice(0, 8)}
@@ -657,8 +665,14 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             specialty={specialty()}
             definitions={assessmentsInSpecialty(
               specialty().id,
+              filterAssessments(query(), ageFilteredCatalog()),
+            )}
+            allDefinitions={assessmentsInSpecialty(
+              specialty().id,
               filterAssessments(query(), assessmentCatalog()),
             )}
+            ageFilter={ageFilter()}
+            onAgeFilter={setAgeFilter}
             installation={installation()}
             query={query()}
             onQuery={setQuery}
@@ -697,8 +711,14 @@ export function AssessmentsView(props: { readonly active: boolean }): JSX.Elemen
             sectionId={(route() as { sectionId: AssessmentSectionId }).sectionId}
             definitions={assessmentsInSpecialty(
               specialty().id,
+              filterAssessments(query(), ageFilteredCatalog()),
+            )}
+            allDefinitions={assessmentsInSpecialty(
+              specialty().id,
               filterAssessments(query(), assessmentCatalog()),
             )}
+            ageFilter={ageFilter()}
+            onAgeFilter={setAgeFilter}
             installation={installation()}
             query={query()}
             onQuery={setQuery}

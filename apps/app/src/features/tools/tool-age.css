@@ -1,0 +1,86 @@
+.tool-age-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.tool-age-filter__control {
+  max-width: 100%;
+}
+
+.tool-age-filter__hidden {
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.tool-age-badge {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  color: var(--theme-text-muted);
+  background: var(--theme-surface-muted);
+  font-size: var(--type-micro);
+  font-weight: 650;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.tool-age-badge--children,
+.tool-age-badge--neonates {
+  color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+  border-color: color-mix(in srgb, var(--theme-accent) 45%, var(--theme-border));
+}
+
+.tool-age-badge--adults {
+  color: var(--theme-text);
+}
+
+.tool-population {
+  display: grid;
+  min-width: 0;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tool-population__legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.tool-population__hint {
+  margin: 0;
+  color: var(--theme-text-muted);
+  font-size: 0.8125rem;
+}
+
+.tool-population__group {
+  justify-self: start;
+  max-width: 100%;
+}
+
+.tool-population__range {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
+}
+
+.tool-population__bound {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7rem;
+  align-items: end;
+  gap: 0.5rem;
+}
+
+.tool-population__error {
+  margin: 0;
+  color: var(--theme-danger, #a03a2a);
+  font-size: 0.875rem;
+}

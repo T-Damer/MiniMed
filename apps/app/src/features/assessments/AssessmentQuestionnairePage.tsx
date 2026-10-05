@@ -17,7 +17,11 @@ import { Heading } from '@/components/Text';
 import { AssessmentBackNav } from '@/features/assessments/AssessmentBackNav';
 import { AssessmentDefinitionNotice } from '@/features/assessments/AssessmentDefinitionNotice';
 import { AssessmentImageCarousel } from '@/features/assessments/AssessmentImageCarousel';
-import { answeredQuestionCount, scoreAssessment } from '@/features/assessments/assessment-engine';
+import {
+  answeredQuestionCount,
+  scoreAssessment,
+  sectionHeadingBefore,
+} from '@/features/assessments/assessment-engine';
 import { printBlankAssessment } from '@/features/assessments/assessment-print';
 import { assessmentWorkspaceCrumbs } from '@/features/assessments/assessment-routing';
 import type {
@@ -27,6 +31,7 @@ import type {
   AssessmentResponseValue,
   IncompleteAssessmentRecord,
 } from '@/features/assessments/assessment-types';
+import { pluralRu } from '@/i18n/labels';
 import {
   createCompletedAssessmentRecord,
   removeAssessmentRecord,
@@ -497,66 +502,80 @@ export function AssessmentQuestionnairePage(props: {
       >
         <For each={props.definition.questions}>
           {(question, index) => (
-            <fieldset
-              class="assessment-question paper-card"
-              classList={{
-                'assessment-question--highlight': highlightedQuestionId() === question.id,
-              }}
-              data-question-id={question.id}
-            >
-              <legend
-                class="assessment-question__legend"
+            <>
+              <Show when={sectionHeadingBefore(props.definition, index())}>
+                {(heading) => (
+                  <header class="assessment-section-heading">
+                    <h2 class="assessment-section-heading__title">{heading().title}</h2>
+                    <Show when={heading().description}>
+                      {(description) => (
+                        <p class="assessment-section-heading__description">{description()}</p>
+                      )}
+                    </Show>
+                  </header>
+                )}
+              </Show>
+              <fieldset
+                class="assessment-question paper-card"
                 classList={{
-                  'assessment-question__legend--answered': answers()[question.id] !== undefined,
+                  'assessment-question--highlight': highlightedQuestionId() === question.id,
                 }}
+                data-question-id={question.id}
               >
-                <span
-                  class="assessment-question__number"
+                <legend
+                  class="assessment-question__legend"
                   classList={{
-                    'assessment-question__number--wide': String(index() + 1).length >= 2,
+                    'assessment-question__legend--answered': answers()[question.id] !== undefined,
                   }}
                 >
-                  {index() + 1}
-                </span>
-                <strong class="assessment-question__prompt">{question.prompt}</strong>
-              </legend>
-              <Show when={question.text?.trim()}>
-                {(text) => <p class="assessment-question__text">{text()}</p>}
-              </Show>
-              <Show when={question.images?.length}>
-                <AssessmentImageCarousel
-                  images={question.images ?? []}
-                  label={`Изображения к вопросу ${index() + 1}`}
-                />
-              </Show>
-              <Show
-                when={(question.responseOptions ?? props.definition.responseOptions).length > 5}
-                fallback={
-                  <div
-                    class="assessment-response-options"
-                    style={`--assessment-option-count: ${(question.responseOptions ?? props.definition.responseOptions).length};`}
+                  <span
+                    class="assessment-question__number"
+                    classList={{
+                      'assessment-question__number--wide': String(index() + 1).length >= 2,
+                    }}
                   >
-                    <For each={question.responseOptions ?? props.definition.responseOptions}>
-                      {(option) => responseOptionLabel(question.id, option)}
-                    </For>
-                  </div>
-                }
-              >
-                <HorizontalScroller
-                  class="assessment-response-options-scroll"
-                  viewportClass="assessment-response-options-scroll__viewport"
-                  controls
-                  hideScrollbar
-                  controlLabel="варианты ответов"
+                    {index() + 1}
+                  </span>
+                  <strong class="assessment-question__prompt">{question.prompt}</strong>
+                </legend>
+                <Show when={question.text?.trim()}>
+                  {(text) => <p class="assessment-question__text">{text()}</p>}
+                </Show>
+                <Show when={question.images?.length}>
+                  <AssessmentImageCarousel
+                    images={question.images ?? []}
+                    label={`Изображения к вопросу ${index() + 1}`}
+                  />
+                </Show>
+                <Show
+                  when={(question.responseOptions ?? props.definition.responseOptions).length > 5}
+                  fallback={
+                    <div
+                      class="assessment-response-options"
+                      style={`--assessment-option-count: ${(question.responseOptions ?? props.definition.responseOptions).length};`}
+                    >
+                      <For each={question.responseOptions ?? props.definition.responseOptions}>
+                        {(option) => responseOptionLabel(question.id, option)}
+                      </For>
+                    </div>
+                  }
                 >
-                  <div class="assessment-response-options-scroll__row">
-                    <For each={question.responseOptions ?? props.definition.responseOptions}>
-                      {(option) => responseOptionLabel(question.id, option, true)}
-                    </For>
-                  </div>
-                </HorizontalScroller>
-              </Show>
-            </fieldset>
+                  <HorizontalScroller
+                    class="assessment-response-options-scroll"
+                    viewportClass="assessment-response-options-scroll__viewport"
+                    controls
+                    hideScrollbar
+                    controlLabel="варианты ответов"
+                  >
+                    <div class="assessment-response-options-scroll__row">
+                      <For each={question.responseOptions ?? props.definition.responseOptions}>
+                        {(option) => responseOptionLabel(question.id, option, true)}
+                      </For>
+                    </div>
+                  </HorizontalScroller>
+                </Show>
+              </fieldset>
+            </>
           )}
         </For>
 
@@ -565,7 +584,7 @@ export function AssessmentQuestionnairePage(props: {
             <strong class="assessment-submit-panel__status">
               {complete()
                 ? 'Все пункты заполнены'
-                : `Осталось ${props.definition.questions.length - answered()} пунктов`}
+                : `${pluralRu(remaining(), 'Остался', 'Осталось', 'Осталось')} ${remaining()} ${pluralRu(remaining(), 'пункт', 'пункта', 'пунктов')}`}
             </strong>
             <p class="assessment-submit-panel__disclaimer">{props.definition.disclaimer}</p>
           </div>

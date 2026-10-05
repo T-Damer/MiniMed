@@ -1,3 +1,4 @@
+import { anyAgeScope, type ToolAgeScope } from '@localmed/contracts';
 import type { AppGlyphName } from '@/components/AppGlyph';
 import { openUserLibraryDocument } from '@/features/library/user-library-routing';
 import { notesPath } from '@/features/notes/notes-routing';
@@ -14,6 +15,8 @@ export interface QuickTool {
   readonly title: string;
   readonly kindLabel: string;
   readonly icon: AppGlyphName;
+  /** Who the tool is for: the age filter of «Все инструменты» and the tool row read it. */
+  readonly ageScope: ToolAgeScope;
   readonly href?: string;
   readonly run?: () => void;
   /** Where the tool sits in «Все инструменты»; catalog tools without it are reached via their lists. */
@@ -23,6 +26,11 @@ export interface QuickTool {
   /** Present when the tool takes files: its row accepts a drop and hands the files here. */
   readonly dropFiles?: (files: readonly File[]) => void;
 }
+
+/** App features that work on data, not on a patient's age: every age sees them. */
+export const APP_FEATURE_AGE_SCOPE: ToolAgeScope = anyAgeScope(
+  'Функция приложения: работает с данными и не зависит от возраста пациента.',
+);
 
 export type QuickToolGroupId = 'reception' | 'calculations' | 'reference' | 'files';
 
@@ -72,6 +80,7 @@ export function quickToolsFromCatalog(tools: readonly SearchCatalogTool[]): read
     title: tool.title,
     kindLabel: tool.scope === 'assessments' ? 'Опросник' : 'Калькулятор',
     icon: tool.icon,
+    ageScope: tool.ageScope,
     href: tool.href,
   }));
 }
@@ -114,6 +123,7 @@ export function resolveItemRefs(
               title,
               kindLabel: ref.documentKind === 'user' ? 'Мой файл' : 'Документ',
               icon: 'file-text',
+              ageScope: APP_FEATURE_AGE_SCOPE,
               // A file from «Мои файлы» opens in the personal reader, not the official overlay.
               run: () =>
                 ref.documentKind === 'user'
@@ -125,6 +135,7 @@ export function resolveItemRefs(
               title,
               kindLabel: 'Личная запись',
               icon: 'notes',
+              ageScope: APP_FEATURE_AGE_SCOPE,
               href: notesPath(ref.parentId, ref.parentId ? ref.id : undefined),
             },
     };

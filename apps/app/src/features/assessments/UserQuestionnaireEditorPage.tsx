@@ -16,9 +16,9 @@ import {
   type UserQuestionnaireImage,
   type UserQuestionnaireOption,
   type UserQuestionnaireQuestion,
-  userQuestionnaireReadinessError,
   userQuestionnaireToAssessmentDefinition,
 } from '@/state/user-questionnaires';
+import { userQuestionnaireReadinessError } from '@/state/user-questionnaire-rules';
 
 function replaceQuestion(
   questionnaire: UserQuestionnaire,

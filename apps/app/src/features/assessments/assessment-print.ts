@@ -3,6 +3,7 @@ import { assessmentChartPrintSvg } from '@/features/assessments/assessment-chart
 import {
   formatAssessmentRecord,
   formatBlankAssessment,
+  sectionHeadingBefore,
 } from '@/features/assessments/assessment-engine';
 import type {
   AssessmentDefinition,
@@ -184,7 +185,9 @@ export function printAssessmentRecord(
             const answer = record.answers[question.id];
             const options = question.responseOptions ?? definition.responseOptions;
             const answerLabel = options.find((option) => option.value === answer)?.label;
+            const heading = sectionHeadingBefore(definition, index);
             return [
+              ...(heading ? [heading.title] : []),
               `${index + 1}. ${question.prompt}`,
               `   Ответ: ${answerLabel ?? String(answer ?? 'не указан')}`,
             ];

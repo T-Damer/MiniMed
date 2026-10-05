@@ -38,6 +38,8 @@ export interface AssessmentQuestion {
   readonly text?: string;
   readonly images?: readonly AssessmentImage[];
   readonly scaleId: string;
+  /** The titled group the question is shown under (local questionnaires). */
+  readonly sectionId?: string;
   readonly reverse?: true;
   /**
    * Overrides `AssessmentDefinition.responseOptions` for this question only. Real clinical
@@ -51,6 +53,13 @@ export type AssessmentLicenseKind =
   | 'project-original'
   | 'public-domain-derived'
   | 'third-party-attributed';
+
+/** A heading above a run of questions; scoring is separate (see `scales`). */
+export interface AssessmentSectionHeading {
+  readonly id: string;
+  readonly title: string;
+  readonly description?: string;
+}
 
 export interface AssessmentLicense {
   readonly kind: AssessmentLicenseKind;
@@ -97,6 +106,13 @@ export interface AssessmentDefinition {
   readonly disclaimer: string;
   readonly evidenceNote: string;
   readonly interpretations?: readonly AssessmentInterpretationBand[];
+  /** Headings shown above the questions of each section (local questionnaires). */
+  readonly sections?: readonly AssessmentSectionHeading[];
+  /**
+   * `first` (default): the first matching band is the result. `per-scale`: every scale gets its own
+   * band, shown together (sections scored on their own).
+   */
+  readonly interpretationMode?: 'first' | 'per-scale';
   readonly visuals?: readonly AssessmentVisualDefinition[];
   readonly evaluation?: ToolEvaluation;
   readonly observationMappings?: readonly ObservationMapping[];

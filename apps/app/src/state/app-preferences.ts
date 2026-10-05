@@ -1,4 +1,9 @@
 import type { SearchScope } from '@/features/search/ScopedMedicalCore';
+import {
+  DEFAULT_TOOL_AGE_FILTER,
+  isToolAgeFilter,
+  type ToolAgeFilter,
+} from '@/features/tools/tool-age-filter';
 
 /** AnimationManager speeds (Settings → Анимации); rates live in `src/state/motion.ts`. */
 export type MotionSpeed = 'off' | 'fast' | 'normal' | 'slow';
@@ -23,6 +28,8 @@ export interface AppPreferences {
   readonly motionSpeed: MotionSpeed;
   /** «Полезные функции» on the search home were closed by the user; a link there brings them back. */
   readonly usefulFeaturesHidden: boolean;
+  /** «Дети / Взрослые / Все» in every list of calculators, questionnaires and tools. */
+  readonly toolAgeFilter: ToolAgeFilter;
 }
 
 export const APP_PREFERENCES_KEY = 'minimed.app-preferences.v1';
@@ -40,6 +47,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   moduleAutoUpdatesEnabled: true,
   motionSpeed: 'normal',
   usefulFeaturesHidden: false,
+  toolAgeFilter: DEFAULT_TOOL_AGE_FILTER,
 };
 
 const VALID_SCOPES = new Set<SearchScope>([
@@ -73,6 +81,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly moduleAutoUpdatesEnabled?: unknown;
     readonly motionSpeed?: unknown;
     readonly usefulFeaturesHidden?: unknown;
+    readonly toolAgeFilter?: unknown;
   };
   return {
     ...(typeof candidate.devLocalModuleArtifacts === 'boolean'
@@ -118,6 +127,9 @@ function normalizePreferences(value: unknown): AppPreferences {
       typeof candidate.usefulFeaturesHidden === 'boolean'
         ? candidate.usefulFeaturesHidden
         : DEFAULT_PREFERENCES.usefulFeaturesHidden,
+    toolAgeFilter: isToolAgeFilter(candidate.toolAgeFilter)
+      ? candidate.toolAgeFilter
+      : DEFAULT_PREFERENCES.toolAgeFilter,
   };
 }
 
@@ -230,6 +242,14 @@ export function getUsefulFeaturesHidden(): boolean {
 
 export function setUsefulFeaturesHidden(hidden: boolean): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), usefulFeaturesHidden: hidden });
+}
+
+export function getToolAgeFilter(): ToolAgeFilter {
+  return loadAppPreferences().toolAgeFilter;
+}
+
+export function setToolAgeFilter(filter: ToolAgeFilter): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), toolAgeFilter: filter });
 }
 
 export function subscribeAppPreferences(

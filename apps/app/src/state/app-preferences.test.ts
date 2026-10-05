@@ -9,6 +9,7 @@ import {
   getRememberSearchMode,
   getSoundVolume,
   getSplitNavigation,
+  getToolAgeFilter,
   getUsefulFeaturesHidden,
   getVibrationEnabled,
   loadAppPreferences,
@@ -22,6 +23,7 @@ import {
   setRememberSearchMode,
   setSoundVolume,
   setSplitNavigation,
+  setToolAgeFilter,
   setUsefulFeaturesHidden,
   setVibrationEnabled,
   subscribeAppPreferences,
@@ -80,6 +82,7 @@ describe('app-preferences', () => {
       moduleAutoUpdatesEnabled: true,
       motionSpeed: 'normal',
       usefulFeaturesHidden: false,
+      toolAgeFilter: 'all',
     });
   });
 
@@ -105,6 +108,7 @@ describe('app-preferences', () => {
       moduleAutoUpdatesEnabled: true,
       motionSpeed: 'normal',
       usefulFeaturesHidden: false,
+      toolAgeFilter: 'all',
     });
   });
 
@@ -114,6 +118,16 @@ describe('app-preferences', () => {
     expect(getUsefulFeaturesHidden()).toBe(true);
     setUsefulFeaturesHidden(false);
     expect(loadAppPreferences().usefulFeaturesHidden).toBe(false);
+  });
+
+  it('remembers the «Дети / Взрослые / Все» choice and ignores unknown values', () => {
+    expect(getToolAgeFilter()).toBe('all');
+    setToolAgeFilter('children');
+    expect(getToolAgeFilter()).toBe('children');
+    setToolAgeFilter('adults');
+    expect(loadAppPreferences().toolAgeFilter).toBe('adults');
+    window.localStorage.setItem(APP_PREFERENCES_KEY, JSON.stringify({ toolAgeFilter: 'teens' }));
+    expect(getToolAgeFilter()).toBe('all');
   });
 
   it('stores the animation speed', () => {

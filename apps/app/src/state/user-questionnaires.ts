@@ -1,8 +1,14 @@
+import type { ToolAgeScope } from '@localmed/contracts';
 import { anyAgeScope } from '@localmed/contracts';
 import type {
   AssessmentDefinition,
   AssessmentImage,
 } from '@/features/assessments/assessment-types';
+import {
+  parseUserToolPopulation,
+  type UserToolPopulation,
+  userToolPopulationToAgeScope,
+} from '@/features/tools/user-tool-population';
 import {
   addUserLibraryFile,
   getUserLibraryDocument,
@@ -18,11 +24,21 @@ import {
   type UserLibraryDocument,
   userLibraryQuestionnaireFileName,
 } from '@/state/user-library';
+import {
+  orderedQuestions,
+  questionnaireIsScored,
+  questionnaireScoresBySection,
+  questionnaireSectionLabel,
+} from '@/state/user-questionnaire-rules';
 
 export const USER_QUESTIONNAIRE_FORMAT = 'minimed-questionnaire';
-export const USER_QUESTIONNAIRE_VERSION = 1;
+const DEFAULT_DISCLAIMER = 'Локальный авторский опросник. Его результат не является диагнозом.';
+/** Written files are version 2; version 1 files (no sections, bands or population) still open. */
+export const USER_QUESTIONNAIRE_VERSION = 2;
 
-const MAX_QUESTIONS = 50;
+export const MAX_USER_QUESTIONS = 120;
+export const MAX_USER_SECTIONS = 20;
+export const MAX_USER_BANDS_PER_SCOPE = 12;
 const MAX_OPTIONS_PER_QUESTION = 12;
 const MAX_IMAGES = 24;
 const MAX_IMAGE_DATA_URL_LENGTH = 7 * 1024 * 1024;
@@ -50,6 +66,28 @@ export interface UserQuestionnaireQuestion {
   readonly text: string;
   readonly images: readonly UserQuestionnaireImage[];
   readonly options: readonly UserQuestionnaireOption[];
+  /** The section the question sits in; absent for a question outside every section. */
+  readonly sectionId?: string;
+}
+
+/** A titled group of questions, shown as a heading and optionally scored on its own. */
+export interface UserQuestionnaireSection {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+}
+
+/**
+ * One interpretation range: a score from `min` to `max` (both included) gets this headline and
+ * explanation. `scope` is `total` or the id of a section when scores are kept per section.
+ */
+export interface UserQuestionnaireBand {
+  readonly id: string;
+  readonly scope: string;
+  readonly min: number;
+  readonly max: number;
+  readonly headline: string;
+  readonly message: string;
 }
 
 export interface UserQuestionnaireReference {
@@ -64,7 +102,13 @@ export interface UserQuestionnaire {
   readonly description: string;
   readonly disclaimer: string;
   readonly images: readonly UserQuestionnaireImage[];
+  /** Whom the questionnaire is for; unset until the author chooses, and it cannot run without it. */
+  readonly population?: UserToolPopulation;
+  readonly sections: readonly UserQuestionnaireSection[];
   readonly questions: readonly UserQuestionnaireQuestion[];
+  /** Add scores up per section instead of one total. */
+  readonly scoreBySection: boolean;
+  readonly bands: readonly UserQuestionnaireBand[];
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly sample?: 'whooley';
@@ -84,6 +128,16 @@ interface UntrustedQuestionnaireRecord {
   readonly format?: unknown;
   readonly id?: unknown;
   readonly images?: unknown;
+  readonly bands?: unknown;
+  readonly headline?: unknown;
+  readonly max?: unknown;
+  readonly message?: unknown;
+  readonly min?: unknown;
+  readonly population?: unknown;
+  readonly scope?: unknown;
+  readonly scoreBySection?: unknown;
+  readonly sectionId?: unknown;
+  readonly sections?: unknown;
   readonly label?: unknown;
   readonly name?: unknown;
   readonly notice?: unknown;
@@ -109,10 +163,10 @@ function isRecord(value: unknown): value is UntrustedQuestionnaireRecord {
 }
 
 function boundedText(value: unknown, label: string, allowEmpty = true): string {
-  if (typeof value !== 'string') throw new Error(`${label} должен быть текстом.`);
+  if (typeof value !== 'string') throw new Error(`${label}: нужен текст.`);
   const text = value.trim();
-  if (!allowEmpty && !text) throw new Error(`${label} не должен быть пустым.`);
-  if ([...text].length > MAX_TEXT_LENGTH) throw new Error(`${label} слишком длинный.`);
+  if (!allowEmpty && !text) throw new Error(`${label}: заполните это поле.`);
+  if ([...text].length > MAX_TEXT_LENGTH) throw new Error(`${label}: текст слишком длинный.`);
   return text;
 }
 
@@ -159,11 +213,11 @@ function parseOption(value: unknown): UserQuestionnaireOption {
     weight !== undefined &&
     (typeof weight !== 'number' || !Number.isFinite(weight) || weight < -1000 || weight > 1000)
   ) {
-    throw new Error('Вес ответа должен быть числом от −1000 до 1000.');
+    throw new Error('Баллы за ответ должны быть числом от −1000 до 1000.');
   }
   return {
     id: boundedId(value.id, 'вариант ответа'),
-    label: boundedText(value.label, 'Вариант ответа', false),
+    label: boundedText(value.label ?? '', 'Вариант ответа'),
     ...(weight === undefined ? {} : { weight }),
   };
 }
@@ -176,12 +230,42 @@ function parseQuestion(value: unknown): UserQuestionnaireQuestion {
   const options = value.options.map(parseOption);
   const optionIds = new Set(options.map((option) => option.id));
   if (optionIds.size !== options.length) throw new Error('Варианты ответа не должны повторяться.');
+  const sectionId = value.sectionId;
   return {
     id: boundedId(value.id, 'вопрос'),
     prompt: boundedText(value.prompt, 'Вопрос'),
     text: boundedText(value.text ?? '', 'Текст вопроса'),
     images: parseImages(value.images ?? []),
     options,
+    ...(sectionId === undefined ? {} : { sectionId: boundedId(sectionId, 'раздел вопроса') }),
+  };
+}
+
+function parseSection(value: unknown): UserQuestionnaireSection {
+  if (!isRecord(value)) throw new Error('Некорректный раздел опросника.');
+  return {
+    id: boundedId(value.id, 'раздел'),
+    title: boundedText(value.title ?? '', 'Название раздела'),
+    description: boundedText(value.description ?? '', 'Описание раздела'),
+  };
+}
+
+function boundedScore(value: unknown, label: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > 100_000) {
+    throw new Error(`${label}: нужно число от −100 000 до 100 000.`);
+  }
+  return value;
+}
+
+function parseBand(value: unknown): UserQuestionnaireBand {
+  if (!isRecord(value)) throw new Error('Некорректный диапазон результата.');
+  return {
+    id: boundedId(value.id, 'диапазон'),
+    scope: boundedId(value.scope, 'область диапазона'),
+    min: boundedScore(value.min, 'Диапазон «от»'),
+    max: boundedScore(value.max, 'Диапазон «до»'),
+    headline: boundedText(value.headline ?? '', 'Название результата'),
+    message: boundedText(value.message ?? '', 'Пояснение результата'),
   };
 }
 
@@ -201,16 +285,46 @@ function parseReference(value: unknown): UserQuestionnaireReference | undefined 
 
 export function parseUserQuestionnaire(value: unknown): UserQuestionnaire {
   if (!isRecord(value)) throw new Error('Файл опросника содержит некорректные данные.');
-  if (value.format !== USER_QUESTIONNAIRE_FORMAT || value.version !== USER_QUESTIONNAIRE_VERSION) {
+  // Version 1 files have no sections, bands or population: they are the same file without them.
+  if (
+    value.format !== USER_QUESTIONNAIRE_FORMAT ||
+    (value.version !== USER_QUESTIONNAIRE_VERSION && value.version !== 1)
+  ) {
     throw new Error('Этот файл опросника не поддерживается.');
   }
   const questionsValue = value.questions;
-  if (!Array.isArray(questionsValue) || questionsValue.length > MAX_QUESTIONS) {
-    throw new Error(`В опроснике может быть не более ${MAX_QUESTIONS} вопросов.`);
+  if (!Array.isArray(questionsValue) || questionsValue.length > MAX_USER_QUESTIONS) {
+    throw new Error(`В опроснике может быть не более ${MAX_USER_QUESTIONS} вопросов.`);
   }
   const questions = questionsValue.map(parseQuestion);
   const questionIds = new Set(questions.map((question) => question.id));
   if (questionIds.size !== questions.length) throw new Error('Вопросы не должны повторяться.');
+  const sectionsValue = value.sections ?? [];
+  if (!Array.isArray(sectionsValue) || sectionsValue.length > MAX_USER_SECTIONS) {
+    throw new Error(`В опроснике может быть не более ${MAX_USER_SECTIONS} разделов.`);
+  }
+  const sections = sectionsValue.map(parseSection);
+  const sectionIds = new Set(sections.map((section) => section.id));
+  if (sectionIds.size !== sections.length) throw new Error('Разделы не должны повторяться.');
+  if (questions.some((question) => question.sectionId && !sectionIds.has(question.sectionId))) {
+    throw new Error('Вопрос ссылается на раздел, которого нет в файле.');
+  }
+  const bandsValue = value.bands ?? [];
+  if (
+    !Array.isArray(bandsValue) ||
+    bandsValue.length > MAX_USER_BANDS_PER_SCOPE * (MAX_USER_SECTIONS + 1)
+  ) {
+    throw new Error('В опроснике слишком много диапазонов результата.');
+  }
+  const bands = bandsValue.map(parseBand);
+  if (new Set(bands.map((band) => band.id)).size !== bands.length) {
+    throw new Error('Диапазоны результата не должны повторяться.');
+  }
+  if (bands.some((band) => band.scope !== 'total' && !sectionIds.has(band.scope))) {
+    throw new Error('Диапазон ссылается на раздел, которого нет в файле.');
+  }
+  const scoreBySection = value.scoreBySection ?? false;
+  if (typeof scoreBySection !== 'boolean') throw new Error('Способ подсчёта указан неверно.');
   const title = normalizeUserLibraryName(boundedText(value.title, 'Название', false), 'file');
   const createdAt = boundedText(value.createdAt, 'Дата создания', false);
   const updatedAt = boundedText(value.updatedAt, 'Дата изменения', false);
@@ -226,6 +340,8 @@ export function parseUserQuestionnaire(value: unknown): UserQuestionnaire {
     throw new Error('Суммарный размер изображений превышает 24 МБ.');
   }
   const reference = parseReference(value.reference);
+  const population =
+    value.population === undefined ? undefined : parseUserToolPopulation(value.population);
   return {
     format: USER_QUESTIONNAIRE_FORMAT,
     version: USER_QUESTIONNAIRE_VERSION,
@@ -233,7 +349,11 @@ export function parseUserQuestionnaire(value: unknown): UserQuestionnaire {
     description: boundedText(value.description, 'Описание'),
     disclaimer: boundedText(value.disclaimer, 'Ограничение', false),
     images,
+    ...(population ? { population } : {}),
+    sections,
     questions,
+    scoreBySection,
+    bands,
     createdAt,
     updatedAt,
     ...(sample ? { sample } : {}),
@@ -242,7 +362,15 @@ export function parseUserQuestionnaire(value: unknown): UserQuestionnaire {
 }
 
 function withUpdatedAt(questionnaire: UserQuestionnaire): UserQuestionnaire {
-  return { ...parseUserQuestionnaire(questionnaire), updatedAt: new Date().toISOString() };
+  // An empty title or disclaimer while the doctor is typing must not stop the draft from saving.
+  return {
+    ...parseUserQuestionnaire({
+      ...questionnaire,
+      title: questionnaire.title.trim() || 'Новый опросник',
+      disclaimer: questionnaire.disclaimer.trim() || DEFAULT_DISCLAIMER,
+    }),
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 function questionnaireFile(questionnaire: UserQuestionnaire): File {
@@ -288,12 +416,27 @@ export function createUserQuestionnaireDraft(): UserQuestionnaire {
     version: USER_QUESTIONNAIRE_VERSION,
     title: 'Новый опросник',
     description: '',
-    disclaimer: 'Локальный авторский опросник. Его результат не является диагнозом.',
+    disclaimer: DEFAULT_DISCLAIMER,
     images: [],
+    sections: [],
     questions: [createUserQuestionnaireQuestion()],
+    scoreBySection: false,
+    bands: [],
     createdAt: now,
     updatedAt: now,
   };
+}
+
+export function createUserQuestionnaireSection(title = ''): UserQuestionnaireSection {
+  return { id: createId('section'), title, description: '' };
+}
+
+export function createUserQuestionnaireBand(
+  scope: string,
+  min = 0,
+  max = 0,
+): UserQuestionnaireBand {
+  return { id: createId('band'), scope, min, max, headline: '', message: '' };
 }
 
 function whooleySample(): UserQuestionnaire {
@@ -312,6 +455,8 @@ function whooleySample(): UserQuestionnaire {
     disclaimer:
       'Это сверхкороткий скрининг, а не диагноз. Положительный ответ — повод для более подробного разговора со специалистом.',
     images: [],
+    population: { group: 'adults' },
+    sections: [],
     questions: [
       {
         id: createId('question'),
@@ -330,6 +475,27 @@ function whooleySample(): UserQuestionnaire {
         options: [option('Нет', 0), option('Да', 1)],
       },
     ],
+    scoreBySection: false,
+    bands: [
+      {
+        id: createId('band'),
+        scope: 'total',
+        min: 0,
+        max: 0,
+        headline: 'Отрицательный результат скрининга',
+        message:
+          'Отрицательные ответы на оба вопроса снижают вероятность текущего депрессивного эпизода, но не исключают его полностью.',
+      },
+      {
+        id: createId('band'),
+        scope: 'total',
+        min: 1,
+        max: 2,
+        headline: 'Положительный результат скрининга',
+        message:
+          'Положительный ответ хотя бы на один вопрос — повод обсудить настроение и при необходимости пройти более подробную оценку со специалистом.',
+      },
+    ],
     createdAt: now,
     updatedAt: now,
     sample: 'whooley',
@@ -341,34 +507,60 @@ function whooleySample(): UserQuestionnaire {
   };
 }
 
-export function userQuestionnaireReadinessError(questionnaire: UserQuestionnaire): string | null {
-  if (questionnaire.questions.length === 0) return 'Добавьте хотя бы один вопрос.';
-  const usesWeights = questionnaire.questions.some((question) =>
-    question.options.some((option) => option.weight !== undefined),
-  );
-  for (const [index, question] of questionnaire.questions.entries()) {
-    if (!question.prompt.trim()) return `Заполните вопрос ${index + 1}.`;
-    if (question.options.length < 2) return `Добавьте два варианта ответа к вопросу ${index + 1}.`;
-    // ponytail: weights use one total scale; add per-question score modes if mixed scoring is needed.
-    if (usesWeights && question.options.some((option) => option.weight === undefined)) {
-      return 'Укажите веса у всех вариантов или оставьте все веса пустыми.';
-    }
-    if (!usesWeights) continue;
-    const weights = new Set(question.options.map((option) => option.weight));
-    if (weights.size < 2) return `Задайте разные веса ответов к вопросу ${index + 1}.`;
-  }
-  return null;
+/**
+ * The age scope of a local questionnaire. An author who has not chosen yet is listed under every
+ * age filter (nothing is hidden by a guess), but the questionnaire cannot run until they choose.
+ */
+export function userQuestionnaireAgeScope(questionnaire: UserQuestionnaire): ToolAgeScope {
+  return questionnaire.population
+    ? userToolPopulationToAgeScope(questionnaire.population)
+    : anyAgeScope('Автор ещё не указал возраст пациентов.');
+}
+
+function scaleId(sectionId: string): string {
+  return `section-${sectionId}`;
 }
 
 export function userQuestionnaireToAssessmentDefinition(
   stored: StoredUserQuestionnaire,
 ): AssessmentDefinition {
   const questionnaire = { ...stored.questionnaire, title: stored.file.title };
-  const usesWeights = questionnaire.questions.some((question) =>
-    question.options.some((option) => option.weight !== undefined),
-  );
+  const scored = questionnaireIsScored(questionnaire);
+  const bySection = questionnaireScoresBySection(questionnaire);
+  const ordered = orderedQuestions(questionnaire);
   const images = (items: readonly UserQuestionnaireImage[]): readonly AssessmentImage[] =>
     items.map((image) => ({ id: image.id, alt: image.name, dataUrl: image.dataUrl }));
+  const scales = !scored
+    ? []
+    : bySection
+      ? questionnaire.sections.map((section, index) => ({
+          id: scaleId(section.id),
+          label: questionnaireSectionLabel(section, index),
+          shortLabel: questionnaireSectionLabel(section, index),
+          description: section.description || 'Сумма баллов за ответы раздела.',
+        }))
+      : [
+          {
+            id: 'total',
+            label: 'Общий балл',
+            shortLabel: 'Баллы',
+            description: 'Сумма баллов, заданных автором за выбранные ответы.',
+          },
+        ];
+  const interpretations = scored
+    ? questionnaire.bands
+        .filter(
+          (band) =>
+            band.min <= band.max && (bySection ? band.scope !== 'total' : band.scope === 'total'),
+        )
+        .map((band) => ({
+          minScore: band.min,
+          maxScore: band.max,
+          scaleId: band.scope === 'total' ? 'total' : scaleId(band.scope),
+          headline: band.headline.trim(),
+          message: band.message.trim() || band.headline.trim(),
+        }))
+    : [];
   return {
     schemaVersion: 2,
     id: `user-questionnaire:${stored.file.id}`,
@@ -382,31 +574,36 @@ export function userQuestionnaireToAssessmentDefinition(
     description: questionnaire.description || 'Локальный опросник из «Моих файлов».',
     estimatedMinutes: Math.max(1, Math.ceil(questionnaire.questions.length / 4)),
     audience: 'Локальный файл',
-    ageScope: anyAgeScope('Возраст не указан автором локального опросника.'),
+    ageScope: userQuestionnaireAgeScope(questionnaire),
     responseOptions: [],
-    scales: usesWeights
-      ? [
-          {
-            id: 'total',
-            label: 'Сумма весов ответов',
-            shortLabel: 'Баллы',
-            description: 'Сумма заданных автором весов выбранных ответов.',
-          },
-        ]
-      : [],
-    questions: questionnaire.questions.map((question) => ({
-      id: question.id,
-      prompt: question.prompt,
-      text: question.text,
-      images: images(question.images),
-      scaleId: 'total',
-      responseOptions: question.options.map((option, index) => ({
-        value: usesWeights ? (option.weight ?? index) : index,
-        label: option.label,
-        ...(usesWeights ? {} : { hideValue: true }),
-      })),
-    })),
-    ...(usesWeights ? {} : { scoringMode: 'responses-only' as const }),
+    scales,
+    questions: ordered.map((question) => {
+      const section = questionnaire.sections.find((item) => item.id === question.sectionId);
+      return {
+        id: question.id,
+        prompt: question.prompt,
+        text: question.text,
+        images: images(question.images),
+        scaleId: !scored ? 'total' : bySection && section ? scaleId(section.id) : 'total',
+        ...(section ? { sectionId: section.id } : {}),
+        responseOptions: question.options.map((option, index) => ({
+          value: scored ? (option.weight ?? index) : index,
+          label: option.label,
+          ...(scored ? {} : { hideValue: true as const }),
+        })),
+      };
+    }),
+    ...(questionnaire.sections.length > 0
+      ? {
+          sections: questionnaire.sections.map((section, index) => ({
+            id: section.id,
+            title: questionnaireSectionLabel(section, index),
+            ...(section.description ? { description: section.description } : {}),
+          })),
+        }
+      : {}),
+    ...(scored ? {} : { scoringMode: 'responses-only' as const }),
+    ...(bySection ? { interpretationMode: 'per-scale' as const } : {}),
     evaluation: {
       status: 'unavailable',
       rules: [],
@@ -419,28 +616,7 @@ export function userQuestionnaireToAssessmentDefinition(
     evidenceNote: questionnaire.reference
       ? 'Это локальная копия; проверьте актуальность текста и интерпретации по первичному источнику.'
       : 'Авторский локальный опросник. Интерпретацию результатов задаёт его автор.',
-    ...(usesWeights && questionnaire.sample === 'whooley'
-      ? {
-          interpretations: [
-            {
-              minScore: 0,
-              maxScore: 0,
-              scaleId: 'total',
-              headline: 'Отрицательный результат скрининга',
-              message:
-                'Отрицательные ответы на оба вопроса снижают вероятность текущего депрессивного эпизода, но не исключают его полностью.',
-            },
-            {
-              minScore: 1,
-              maxScore: 2,
-              scaleId: 'total',
-              headline: 'Положительный результат скрининга',
-              message:
-                'Положительный ответ хотя бы на один вопрос — повод обсудить настроение и при необходимости пройти более подробную оценку со специалистом.',
-            },
-          ],
-        }
-      : {}),
+    ...(interpretations.length > 0 ? { interpretations } : {}),
     license: questionnaire.reference
       ? { kind: 'third-party-attributed', ...questionnaire.reference }
       : { kind: 'project-original', notice: 'Локальный пользовательский опросник.' },
@@ -546,6 +722,19 @@ export async function importUserQuestionnaire(file: File): Promise<StoredUserQue
   const source = parseUserQuestionnaire(withQuestionnaireImportDefaults(parsed));
   const now = new Date().toISOString();
   return createUserQuestionnaire({ ...source, createdAt: now, updatedAt: now });
+}
+
+/** A copy under a new name: the same questions, sections, scores and ranges, never the sample mark. */
+export async function duplicateUserQuestionnaire(fileId: string): Promise<StoredUserQuestionnaire> {
+  const source = await loadUserQuestionnaire(fileId);
+  const { sample: _sample, ...rest } = source.questionnaire;
+  const now = new Date().toISOString();
+  return createUserQuestionnaire({
+    ...rest,
+    title: `${source.file.title} (копия)`,
+    createdAt: now,
+    updatedAt: now,
+  });
 }
 
 export async function deleteUserQuestionnaire(fileId: string): Promise<void> {

@@ -23,6 +23,9 @@ import {
 } from '@/features/assessments/assessment-packs';
 import { assessmentCatalogCrumbs } from '@/features/assessments/assessment-routing';
 import { ItemFavoriteButton, toolItem } from '@/features/search/ToolPinControls';
+import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
+import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
+import type { ToolAgeFilter } from '@/features/tools/tool-age-filter';
 import { assessmentCountLabel } from '@/i18n/labels';
 
 export type AssessmentCatalogEntry = ReturnType<typeof searchAssessments>[number];
@@ -55,6 +58,7 @@ export function AssessmentCard(props: {
         <div class="assessment-card-meta">
           <span class="assessment-card-meta__item">{props.definition.bankLabel}</span>
           <span class="assessment-card-meta__item">{props.definition.estimatedMinutes} мин</span>
+          <ToolAgeBadge scope={props.definition.ageScope} />
           <span class="assessment-card-meta__item">
             {props.installed ? 'На устройстве' : 'После скачивания'}
           </span>
@@ -121,7 +125,12 @@ export function AssessmentCard(props: {
 export function AssessmentCatalogPage(props: {
   readonly specialty: AssessmentSpecialty;
   readonly sectionId?: AssessmentSectionId;
+  /** The tools to list: the age filter already applied. */
   readonly definitions: ReturnType<typeof searchAssessments>;
+  /** The same list before the age filter: whether a section is installed does not depend on it. */
+  readonly allDefinitions: ReturnType<typeof searchAssessments>;
+  readonly ageFilter: ToolAgeFilter;
+  readonly onAgeFilter: (filter: ToolAgeFilter) => void;
   readonly installation: AssessmentInstallationState;
   readonly query: string;
   readonly onQuery: (value: string) => void;
@@ -178,7 +187,26 @@ export function AssessmentCatalogPage(props: {
         />
       </div>
 
-      <Show when={props.definitions.length > 0} fallback={<QueryEmptyState />}>
+      <ToolAgeFilterBar
+        class="assessment-catalog-page__age-filter"
+        value={props.ageFilter}
+        onChange={props.onAgeFilter}
+        hidden={props.allDefinitions.length - props.definitions.length}
+      />
+
+      <Show
+        when={props.definitions.length > 0}
+        fallback={
+          <QueryEmptyState
+            {...(props.allDefinitions.length > 0
+              ? {
+                  message:
+                    'Для выбранного возраста в этом разделе нет тестов. Выберите «Все», чтобы увидеть остальные.',
+                }
+              : {})}
+          />
+        }
+      >
         <div class="assessment-section-list">
           <For each={groupAssessmentsBySection(props.definitions)}>
             {(group) => {
@@ -190,10 +218,10 @@ export function AssessmentCatalogPage(props: {
                 isAssessmentSectionComplete(
                   group.section.id,
                   props.installation,
-                  props.definitions,
+                  props.allDefinitions,
                 );
               const fromDatabase = () =>
-                isAssessmentSectionFromDatabase(group.section.id, props.definitions);
+                isAssessmentSectionFromDatabase(group.section.id, props.allDefinitions);
               return (
                 <Show when={!props.sectionId || props.sectionId === group.section.id}>
                   <section

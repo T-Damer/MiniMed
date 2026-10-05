@@ -99,7 +99,10 @@ import {
   snapshotCalculationForNote,
 } from '@/features/notes/note-attached-results';
 import { ItemFavoriteButton, toolItem } from '@/features/search/ToolPinControls';
-import { toolAgeBadge } from '@/features/tools/tool-age-scope';
+import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
+import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
+import { filterByAge, type ToolAgeFilter } from '@/features/tools/tool-age-filter';
+import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
 import {
   getExperimentalModulesEnabled,
   getSplitNavigation,
@@ -177,7 +180,7 @@ function CalculatorCard(props: {
   return (
     <Card class={`calculator-card${disabled() ? ' calculator-card--disabled' : ''}`}>
       <div class="calculator-card-meta" classList={{ 'calculator-card__muted': disabled() }}>
-        <span>{toolAgeBadge(definition.ageScope).label}</span>
+        <ToolAgeBadge scope={definition.ageScope} />
         <span>{definition.clinical ? 'Клинический' : 'Служебный'}</span>
         <span>
           {definition.state === 'planned'
@@ -325,6 +328,8 @@ function CalculatorSectionPage(props: {
   readonly definitions: readonly CalculatorDefinition[];
   readonly downloadableModules: readonly ContentModuleCatalogEntry[];
   readonly downloadLabel: string;
+  readonly ageFilter: ToolAgeFilter;
+  readonly onAgeFilter: (filter: ToolAgeFilter) => void;
   readonly onOpen: (definition: AvailableCalculatorDefinition) => void;
   readonly onInstallCalculator: (definition: AvailableCalculatorDefinition) => void;
   readonly onBack: () => void;
@@ -332,6 +337,7 @@ function CalculatorSectionPage(props: {
   readonly onRemove: (sectionId: CalculatorSectionId) => void;
 }): JSX.Element {
   const definitions = () => calculatorsInSection(props.section.id, props.definitions);
+  const visibleDefinitions = () => filterByAge(definitions(), props.ageFilter);
   const availableCount = () =>
     definitions().filter((definition) => definition.state === 'available').length;
   const complete = () =>
@@ -408,8 +414,22 @@ function CalculatorSectionPage(props: {
           </For>
         </div>
       </Show>
+      <Show when={availableCount() > 0}>
+        <ToolAgeFilterBar
+          class="calculator-section-page__age-filter"
+          value={props.ageFilter}
+          onChange={props.onAgeFilter}
+          hidden={definitions().length - visibleDefinitions().length}
+        />
+      </Show>
+      <Show when={availableCount() > 0 && visibleDefinitions().length === 0}>
+        <p class="calculator-section-page__status" role="status">
+          Для выбранного возраста в этом разделе нет калькуляторов. Выберите «Все», чтобы увидеть
+          остальные.
+        </p>
+      </Show>
       <div class="calculator-catalog-grid">
-        <For each={definitions()}>
+        <For each={visibleDefinitions()}>
           {(definition) => (
             <CalculatorCard
               definition={definition}
@@ -1494,10 +1514,12 @@ export function CalculatorsView(): JSX.Element {
       ? definition
       : undefined;
   });
-  const filtered = createMemo(() => {
+  const [ageFilter, setAgeFilter] = createToolAgeFilter();
+  const searched = createMemo(() => {
     calculatorRegistry();
     return searchCalculators(query());
   });
+  const filtered = createMemo(() => filterByAge(searched(), ageFilter()));
   const installedModules = createMemo(() => {
     calculatorRegistry();
     return new Map(
@@ -1697,7 +1719,26 @@ export function CalculatorsView(): JSX.Element {
                       placeholder="Например: СКФ, 4-2-1, ППТ"
                     />
 
-                    <Show when={filtered().length > 0} fallback={<QueryEmptyState />}>
+                    <ToolAgeFilterBar
+                      class="calculators-heading__age-filter"
+                      value={ageFilter()}
+                      onChange={setAgeFilter}
+                      hidden={searched().length - filtered().length}
+                    />
+
+                    <Show
+                      when={filtered().length > 0}
+                      fallback={
+                        <QueryEmptyState
+                          {...(searched().length > 0
+                            ? {
+                                message:
+                                  'Для выбранного возраста ничего не найдено. Выберите «Все», чтобы увидеть остальные.',
+                              }
+                            : {})}
+                        />
+                      }
+                    >
                       <div class="calculator-section-list">
                         <For
                           each={CALCULATOR_SECTIONS.filter(
@@ -1804,6 +1845,8 @@ export function CalculatorsView(): JSX.Element {
                 definitions={calculatorRegistry()}
                 downloadableModules={downloadableModulesForSection(section().id)}
                 downloadLabel={sectionDownloadLabel(section().id)}
+                ageFilter={ageFilter()}
+                onAgeFilter={setAgeFilter}
                 onOpen={openCalculator}
                 onBack={backToCatalog}
                 onInstall={installSection}

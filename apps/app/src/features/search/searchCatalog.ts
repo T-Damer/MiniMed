@@ -1,4 +1,4 @@
-import type { MedicalDocumentSummary } from '@localmed/contracts';
+import { anyAgeScope, type MedicalDocumentSummary, type ToolAgeScope } from '@localmed/contracts';
 import type { AppGlyphName } from '@/components/AppGlyph';
 import {
   ASSESSMENT_SPECIALTIES,
@@ -23,6 +23,8 @@ import {
   type SearchScope,
   searchResultDocumentKind,
 } from '@/features/search/ScopedMedicalCore';
+import { filterByAge, type ToolAgeFilter } from '@/features/tools/tool-age-filter';
+import { VACCINATION_TOOL } from '@/features/vaccination/vaccination-tool';
 import { specialtyLabel } from '@/i18n/labels';
 import { matchesFuzzyQuery } from '@/state/fuzzy-text';
 
@@ -95,6 +97,10 @@ export interface SearchCatalogTool {
   readonly aliases: readonly string[];
   readonly group: string;
   readonly href: string;
+  /** Who the tool is for; the list filter and the card badge read it. */
+  readonly ageScope: ToolAgeScope;
+  /** An action card that starts making a tool of one's own: it is no tool for a patient, so it has no age badge. */
+  readonly createsNew?: true;
 }
 export function searchCatalogTools(): readonly SearchCatalogTool[] {
   return [
@@ -108,6 +114,7 @@ export function searchCatalogTools(): readonly SearchCatalogTool[] {
         aliases: entry.aliases,
         group: entry.bankId,
         href: assessmentPath(entry.bankId, entry.slug),
+        ageScope: entry.ageScope,
       }),
     ),
     ...getCalculatorRegistry().flatMap((entry): SearchCatalogTool[] =>
@@ -122,10 +129,24 @@ export function searchCatalogTools(): readonly SearchCatalogTool[] {
               aliases: entry.aliases,
               group: entry.category,
               href: `#/calculators/${encodeURIComponent(entry.slug)}`,
+              ageScope: entry.ageScope,
             },
           ]
         : [],
     ),
+    // App-level reference tool: listed with the calculators, which already hold the other
+    // working tools (ECG caliper, unit conversion).
+    {
+      id: VACCINATION_TOOL.id,
+      scope: 'calculators',
+      icon: VACCINATION_TOOL.icon,
+      title: VACCINATION_TOOL.title,
+      description: VACCINATION_TOOL.description,
+      aliases: VACCINATION_TOOL.aliases,
+      group: 'pediatrics',
+      href: VACCINATION_TOOL.href,
+      ageScope: VACCINATION_TOOL.ageScope,
+    },
   ];
 }
 export const CUSTOM_QUESTIONNAIRE: SearchCatalogTool = {
@@ -137,6 +158,8 @@ export const CUSTOM_QUESTIONNAIRE: SearchCatalogTool = {
   aliases: ['создать свое', 'мой опросник', 'новый', 'конструктор'],
   group: '',
   href: userQuestionnaireNewPath(),
+  ageScope: anyAgeScope('Создание своего инструмента: возраст не применим.'),
+  createsNew: true,
 };
 // The source catalog combines obstetrics and gynecology under one specialty.
 export function unifiedSearchSpecialty(group: string): string {
@@ -155,11 +178,12 @@ export function matchingCatalogTools(
   scope: SearchScope,
   group: string | undefined,
   query: string,
+  ageFilter: ToolAgeFilter = 'all',
 ): readonly SearchCatalogTool[] {
-  const candidates =
-    scope === 'assessments' || (scope === 'all' && query.trim())
-      ? [CUSTOM_QUESTIONNAIRE, ...rows]
-      : rows;
+  // The «create your own» card is an action, not a tool for a patient: no age filter hides it.
+  const custom =
+    scope === 'assessments' || (scope === 'all' && query.trim()) ? [CUSTOM_QUESTIONNAIRE] : [];
+  const candidates = [...custom, ...filterByAge(rows, ageFilter)];
   return candidates.filter(
     (entry) =>
       (scope === 'all' || entry.scope === scope) &&

@@ -21,6 +21,11 @@ const DOWNLOADED_CALCULATORS = new Map<string, AvailableCalculatorDefinition>();
 
 export const ECG_PHOTO_CALIPER_ID = 'ecg-photo-caliper';
 
+/** The ECG editor takes any age: child norms exist for 11 days–16 years, otherwise it only measures. */
+export const ECG_PHOTO_AGE_SCOPE: ToolAgeScope = anyAgeScope(
+  'Возрастные группы от 0–6 дней до 18 лет и старше; детские нормы Rijnbeek (2001) охватывают возраст от 11 дней до 16 лет, для остальных возрастов показываются только измерения.',
+);
+
 export function clearDownloadedCalculators(): void {
   DOWNLOADED_CALCULATORS.clear();
   clearDownloadedCalculatorSchemas();
@@ -59,9 +64,7 @@ export const CALCULATOR_REGISTRY: readonly CalculatorDefinition[] = [
     aliases: ['ЭКГ фото', 'интервалы ЭКГ', 'RR', 'P', 'PR', 'QRS', 'QTc', 'оценка ЭКГ'],
     summary:
       'Полноэкранная разметка ЭКГ в пять шагов: снимок, калибровка, отведения, точки зубцов и печатное заключение.',
-    ageScope: anyAgeScope(
-      'Возрастные группы от 0–6 дней до 18 лет и старше; детские нормы Rijnbeek (2001) охватывают возраст от 11 дней до 16 лет, для остальных возрастов показываются только измерения.',
-    ),
+    ageScope: ECG_PHOTO_AGE_SCOPE,
     category: 'cardiology',
     clinical: true,
     formula:

@@ -20,6 +20,11 @@ import {
   ItemFavoriteButton,
   toolItem,
 } from '@/features/search/ToolPinControls';
+import { ToolAgeBadge } from '@/features/tools/ToolAgeBadge';
+import { ToolAgeFilterBar } from '@/features/tools/ToolAgeFilterBar';
+import { filterByAge, toolMatchesAgeFilter } from '@/features/tools/tool-age-filter';
+import { createToolAgeFilter } from '@/features/tools/tool-age-filter-state';
+import { isAnyAge } from '@/features/tools/tool-age-scope';
 import {
   collectionNameError,
   deleteCollection,
@@ -108,6 +113,10 @@ function QuickToolRow(props: {
               <span class="quick-tool-row__meta">
                 {tool().unavailableReason ?? tool().kindLabel}
               </span>
+              {/* «Любой возраст» says nothing on a row; only a real restriction is worth showing. */}
+              <Show when={!isAnyAge(tool().ageScope)}>
+                <ToolAgeBadge scope={tool().ageScope} />
+              </Show>
             </span>
           </button>
         )}
@@ -207,7 +216,8 @@ export function SearchQuickAccess(props: {
   const [pendingDelete, setPendingDelete] = createSignal<ItemCollection>();
   const toolsById = createMemo(() => new Map(props.tools.map((tool) => [tool.id, tool])));
   // The tool row and this sheet hold tools; favourite documents live in «Мои файлы».
-  const favorites = createMemo(() =>
+  const [ageFilter, setAgeFilter] = createToolAgeFilter();
+  const allFavorites = createMemo(() =>
     resolveToolRefs(
       itemCollections()
         .favorites.filter((item) => item.kind === 'tool')
@@ -215,8 +225,18 @@ export function SearchQuickAccess(props: {
       toolsById(),
     ),
   );
+  // A starred tool the age choice hides stays starred; it only leaves this list and the row.
+  const favorites = createMemo(() =>
+    allFavorites().filter(
+      (entry) => !entry.tool || toolMatchesAgeFilter(entry.tool.ageScope, ageFilter()),
+    ),
+  );
   const chips = createMemo(() => favorites().flatMap((entry) => (entry.tool ? [entry.tool] : [])));
-  const groups = createMemo(() => groupQuickTools(props.tools));
+  const visibleTools = createMemo(() => filterByAge(props.tools, ageFilter()));
+  const hiddenByAge = createMemo(
+    () => allFavorites().length - favorites().length + (props.tools.length - visibleTools().length),
+  );
+  const groups = createMemo(() => groupQuickTools(visibleTools()));
   const openFromSheet = (tool: QuickTool): void => {
     setOpen(false);
     openQuickTool(tool);
@@ -253,6 +273,12 @@ export function SearchQuickAccess(props: {
         onClose={() => setOpen(false)}
       >
         <div class="search-quick-access__panel">
+          <ToolAgeFilterBar
+            class="search-quick-access__age-filter"
+            value={ageFilter()}
+            onChange={setAgeFilter}
+            hidden={hiddenByAge()}
+          />
           <section class="search-quick-access__section" aria-labelledby="quick-access-favorites">
             <h2 class="search-quick-access__heading" id="quick-access-favorites">
               Избранное

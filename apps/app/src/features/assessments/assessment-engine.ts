@@ -3,11 +3,13 @@ import type {
   AssessmentAnswers,
   AssessmentDefinition,
   AssessmentEvaluation,
+  AssessmentInterpretationBand,
   AssessmentQuestion,
   AssessmentRecord,
   AssessmentResponseOption,
   AssessmentResponseValue,
   AssessmentScaleScore,
+  AssessmentSectionHeading,
   ScoredAssessment,
 } from '@/features/assessments/assessment-types';
 import {
@@ -150,6 +152,41 @@ function resolveScaleRawScore(
   return scores.find((score) => score.scaleId === resolvedScaleId)?.rawScore;
 }
 
+/** One band per scale, in the order the scales are declared, shown together. */
+function perScaleInterpretation(
+  definition: AssessmentDefinition,
+  scores: readonly AssessmentScaleScore[],
+  interpretations: readonly AssessmentInterpretationBand[],
+): ClinicalInterpretation | undefined {
+  const lines: { readonly label: string; readonly headline: string; readonly message: string }[] =
+    [];
+  for (const scale of definition.scales) {
+    const rawScore = scores.find((score) => score.scaleId === scale.id)?.rawScore;
+    if (rawScore === undefined) continue;
+    const band = interpretations.find(
+      (candidate) =>
+        candidate.scaleId === scale.id &&
+        candidate.minScore !== undefined &&
+        candidate.maxScore !== undefined &&
+        rawScore >= candidate.minScore &&
+        rawScore <= candidate.maxScore,
+    );
+    if (band) lines.push({ label: scale.label, headline: band.headline, message: band.message });
+  }
+  const first = lines[0];
+  if (!first) return undefined;
+  if (lines.length === 1) return { headline: first.headline, summary: first.message };
+  return {
+    headline: 'Результаты по разделам',
+    summary: lines
+      .map(
+        (line) =>
+          `${line.label}: ${line.headline}${line.message && line.message !== line.headline ? `. ${line.message}` : ''}`,
+      )
+      .join('\n'),
+  };
+}
+
 function schemaDrivenInterpretation(
   definition: AssessmentDefinition,
   scores: readonly AssessmentScaleScore[],
@@ -158,6 +195,9 @@ function schemaDrivenInterpretation(
   const interpretations = definition.interpretations;
   if (!interpretations || interpretations.length === 0) return undefined;
   const scope = assessmentScoreScope(scores, answers);
+  if (definition.interpretationMode === 'per-scale') {
+    return perScaleInterpretation(definition, scores, interpretations);
+  }
   for (const band of interpretations) {
     if (band.when) {
       if (evaluateCalculatorExpression(band.when, scope) === 1) {
@@ -320,6 +360,20 @@ export function scoreAssessment(
   };
 }
 
+/**
+ * The section heading to show above the question at `index`, or undefined when the question
+ * continues the section of the one before it (or the questionnaire has no sections).
+ */
+export function sectionHeadingBefore(
+  definition: AssessmentDefinition,
+  index: number,
+): AssessmentSectionHeading | undefined {
+  const question = definition.questions[index];
+  if (!question?.sectionId) return undefined;
+  if (definition.questions[index - 1]?.sectionId === question.sectionId) return undefined;
+  return definition.sections?.find((section) => section.id === question.sectionId);
+}
+
 export function answeredQuestionCount(
   definition: AssessmentDefinition,
   answers: AssessmentAnswers,
@@ -371,9 +425,14 @@ export function formatBlankAssessment(definition: AssessmentDefinition): string 
       const bracket = options.some((option) => !option.hideValue)
         ? `  [ ${options.map((option) => option.value).join('  ')} ]`
         : '';
-      if (!question.responseOptions) return `${index + 1}. ${question.prompt}${bracket}`;
+      const heading = sectionHeadingBefore(definition, index);
+      const headingText = heading
+        ? `${index > 0 ? '\n' : ''}${heading.title}${heading.description ? `\n${heading.description}` : ''}\n`
+        : '';
+      if (!question.responseOptions)
+        return `${headingText}${index + 1}. ${question.prompt}${bracket}`;
       const optionsText = options.map(optionText).join('; ');
-      return `${index + 1}. ${question.prompt}${bracket}\n   ${optionsText}`;
+      return `${headingText}${index + 1}. ${question.prompt}${bracket}\n   ${optionsText}`;
     })
     .join('\n');
   const instruction = hasPerQuestionOptions
