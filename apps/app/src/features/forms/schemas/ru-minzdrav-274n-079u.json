@@ -1522,63 +1522,124 @@
       "orientation": "portrait",
       "marginMm": {
         "top": 10,
-        "right": 10,
+        "right": 12.6,
         "bottom": 10,
-        "left": 15
+        "left": 17.5
       },
-      "fontSizePt": 10
+      "fontSizePt": 13.75,
+      "lineHeight": 1.1
     },
     "blocks": [
       {
         "id": "header",
+        "insetMm": {
+          "left": 5.9,
+          "right": 1.8
+        },
         "columns": [
           {
-            "widthPercent": 56,
+            "widthPercent": 45,
             "align": "left",
             "rows": [
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Наименование и адрес медицинской организации (фамилия, имя, отчество (при наличии) индивидуального предпринимателя и адрес осуществления медицинской деятельности)"
+                    "text": "Наименование и адрес медицинской организации"
                   }
                 ],
-                "size": "small"
+                "align": "stretch",
+                "size": "caption"
               },
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Основной государственный регистрационный номер (Основной государственный регистрационный номер индивидуального предпринимателя)"
+                    "text": "(фамилия, имя, отчество (при наличии)"
                   }
                 ],
-                "size": "small"
+                "size": "caption",
+                "spaceBeforeMm": 0.45
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "индивидуального предпринимателя и адрес"
+                  }
+                ],
+                "size": "caption",
+                "spaceBeforeMm": 0.77
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "осуществления медицинской деятельности)"
+                  }
+                ],
+                "size": "caption"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Основной государственный регистрационный"
+                  }
+                ],
+                "align": "stretch",
+                "size": "caption"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "номер"
+                  }
+                ],
+                "size": "caption"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(Основной государственный регистрационный"
+                  }
+                ],
+                "size": "caption",
+                "spaceBeforeMm": 1.0
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "номер индивидуального предпринимателя)"
+                  }
+                ],
+                "size": "caption"
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "organization",
-                    "length": 40,
-                    "grow": true
+                    "length": 27.8
                   }
-                ],
-                "gap": "small"
+                ]
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "organizationOgrn",
-                    "length": 40,
-                    "grow": true
+                    "length": 27.8
                   }
                 ]
               }
             ]
           },
           {
-            "widthPercent": 44,
+            "widthPercent": 36,
             "align": "center",
             "rows": [
               {
@@ -1588,7 +1649,8 @@
                     "text": "Медицинская документация"
                   }
                 ],
-                "size": "small"
+                "size": "caption",
+                "spaceBeforeMm": 1.12
               },
               {
                 "segments": [
@@ -1597,17 +1659,36 @@
                     "text": "Учетная форма № 079/у"
                   }
                 ],
-                "size": "small"
+                "size": "caption"
               },
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Утверждена приказом Министерства здравоохранения Российской Федерации от 13 мая 2025 г. № 274н"
+                    "text": "Утверждена приказом Министерства"
                   }
                 ],
-                "size": "small",
-                "gap": "small"
+                "size": "caption",
+                "spaceBeforeMm": 3.95
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "здравоохранения Российской Федерации"
+                  }
+                ],
+                "size": "caption"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "от 13 мая 2025 г. № 274н"
+                  }
+                ],
+                "size": "caption",
+                "spaceBeforeMm": 0.35
               }
             ]
           }
@@ -1615,6 +1696,9 @@
       },
       {
         "id": "title",
+        "insetMm": {
+          "left": 4.6
+        },
         "columns": [
           {
             "widthPercent": 100,
@@ -1624,13 +1708,22 @@
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Медицинская справка о состоянии здоровья ребенка, направляемого в организацию отдыха детей и их оздоровления",
-                    "bold": true
+                    "text": "Медицинская справка о состоянии здоровья ребенка, направляемого"
                   }
                 ],
                 "align": "center",
-                "size": "title",
-                "gap": "large"
+                "bold": true,
+                "spaceBeforeMm": 2.45
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "в организацию отдыха детей и их оздоровления"
+                  }
+                ],
+                "align": "center",
+                "bold": true
               }
             ]
           }
@@ -1638,6 +1731,9 @@
       },
       {
         "id": "child",
+        "insetMm": {
+          "left": 4.6
+        },
         "columns": [
           {
             "widthPercent": 100,
@@ -1651,11 +1747,20 @@
                   {
                     "kind": "field",
                     "fieldId": "patientFullName",
-                    "length": 40,
+                    "length": 28.0,
                     "grow": true
                   }
                 ],
-                "gap": "medium"
+                "spaceBeforeMm": 4.53
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 70,
+                    "grow": true
+                  }
+                ]
               },
               {
                 "segments": [
@@ -1670,28 +1775,25 @@
                   {
                     "kind": "field",
                     "fieldId": "patientBirthDate",
-                    "length": 3,
+                    "length": 2.5,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "patientBirthDate",
-                    "length": 10,
+                    "length": 8.6,
                     "part": "month"
                   },
                   {
-                    "kind": "text",
-                    "text": "20"
-                  },
-                  {
                     "kind": "field",
                     "fieldId": "patientBirthDate",
-                    "length": 3,
-                    "part": "year2"
+                    "length": 3.1,
+                    "part": "year"
                   },
                   {
                     "kind": "text",
@@ -1706,7 +1808,8 @@
                     "fieldId": "patientSex",
                     "separator": ", "
                   }
-                ]
+                ],
+                "spaceBeforeMm": 1.33
               },
               {
                 "segments": [
@@ -1717,26 +1820,29 @@
                   {
                     "kind": "field",
                     "fieldId": "citizenship",
-                    "length": 24
+                    "length": 20.1
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.25
               },
               {
                 "segments": [
                   {
                     "kind": "text",
                     "text": "Регистрация по месту жительства: субъект Российской Федерации"
-                  },
-                  {
-                    "kind": "field",
-                    "fieldId": "residenceSubject",
-                    "length": 30,
-                    "grow": true
                   }
-                ]
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.26
               },
               {
                 "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceSubject",
+                    "length": 35.7,
+                    "grow": true
+                  },
                   {
                     "kind": "text",
                     "text": "район"
@@ -1744,20 +1850,36 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceDistrict",
-                    "length": 52,
+                    "length": 28.6,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.17
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 23.5,
                     "grow": true
                   },
                   {
                     "kind": "text",
-                    "text": "населенный пункт"
+                    "text": "населенный"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "пункт",
+                    "indentMm": 1.5
                   },
                   {
                     "kind": "field",
                     "fieldId": "residenceLocality",
-                    "length": 28,
+                    "length": 28.4,
                     "grow": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.59
               },
               {
                 "segments": [
@@ -1768,27 +1890,37 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceStreet",
-                    "length": 27,
-                    "grow": true
+                    "length": 28.0,
+                    "grow": true,
+                    "indentMm": 3.6
                   },
                   {
                     "kind": "text",
-                    "text": "дом"
+                    "text": "дом",
+                    "indentMm": 2.9
                   },
                   {
                     "kind": "field",
                     "fieldId": "residenceHouse",
-                    "length": 4
+                    "length": 4.1,
+                    "indentMm": 2.4
                   },
                   {
                     "kind": "text",
-                    "text": "строение/корпус"
+                    "text": "строение/корпус",
+                    "indentMm": 5.7
                   },
                   {
                     "kind": "field",
                     "fieldId": "residenceBuilding",
-                    "length": 4
-                  },
+                    "length": 4.1,
+                    "indentMm": 5.2
+                  }
+                ],
+                "spaceBeforeMm": 0.35
+              },
+              {
+                "segments": [
                   {
                     "kind": "text",
                     "text": "квартира"
@@ -1796,7 +1928,7 @@
                   {
                     "kind": "field",
                     "fieldId": "residenceApartment",
-                    "length": 6
+                    "length": 5.6
                   },
                   {
                     "kind": "text",
@@ -1805,27 +1937,29 @@
                   {
                     "kind": "field",
                     "fieldId": "residencePhone",
-                    "length": 20,
-                    "grow": true
+                    "length": 19.5
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.33
               },
               {
                 "segments": [
                   {
                     "kind": "text",
                     "text": "Регистрация по месту пребывания: субъект Российской Федерации"
-                  },
-                  {
-                    "kind": "field",
-                    "fieldId": "staySubject",
-                    "length": 30,
-                    "grow": true
                   }
-                ]
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.31
               },
               {
                 "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "staySubject",
+                    "length": 35.9,
+                    "grow": true
+                  },
                   {
                     "kind": "text",
                     "text": "район"
@@ -1833,20 +1967,36 @@
                   {
                     "kind": "field",
                     "fieldId": "stayDistrict",
-                    "length": 48,
+                    "length": 28.1,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.36
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 24.9,
                     "grow": true
                   },
                   {
                     "kind": "text",
-                    "text": "населенный пункт"
+                    "text": "населенный"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "пункт",
+                    "indentMm": 1.5
                   },
                   {
                     "kind": "field",
                     "fieldId": "stayLocality",
-                    "length": 28,
+                    "length": 24.9,
                     "grow": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.29
               },
               {
                 "segments": [
@@ -1857,27 +2007,37 @@
                   {
                     "kind": "field",
                     "fieldId": "stayStreet",
-                    "length": 28,
-                    "grow": true
+                    "length": 28.0,
+                    "grow": true,
+                    "indentMm": 3.6
                   },
                   {
                     "kind": "text",
-                    "text": "дом"
+                    "text": "дом",
+                    "indentMm": 2.9
                   },
                   {
                     "kind": "field",
                     "fieldId": "stayHouse",
-                    "length": 4
+                    "length": 4.1,
+                    "indentMm": 2.4
                   },
                   {
                     "kind": "text",
-                    "text": "строение/корпус"
+                    "text": "строение/корпус",
+                    "indentMm": 5.7
                   },
                   {
                     "kind": "field",
                     "fieldId": "stayBuilding",
-                    "length": 4
-                  },
+                    "length": 4.1,
+                    "indentMm": 5.2
+                  }
+                ],
+                "spaceBeforeMm": 0.7
+              },
+              {
+                "segments": [
                   {
                     "kind": "text",
                     "text": "квартира"
@@ -1885,7 +2045,7 @@
                   {
                     "kind": "field",
                     "fieldId": "stayApartment",
-                    "length": 6
+                    "length": 5.6
                   },
                   {
                     "kind": "text",
@@ -1894,8 +2054,7 @@
                   {
                     "kind": "field",
                     "fieldId": "stayPhone",
-                    "length": 20,
-                    "grow": true
+                    "length": 19.5
                   }
                 ]
               },
@@ -1908,7 +2067,7 @@
                   {
                     "kind": "field",
                     "fieldId": "educationType",
-                    "length": 16,
+                    "length": 15.0,
                     "grow": true
                   },
                   {
@@ -1918,9 +2077,11 @@
                   {
                     "kind": "field",
                     "fieldId": "educationNumber",
-                    "length": 12
+                    "length": 11.1,
+                    "grow": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.34
               },
               {
                 "segments": [
@@ -1931,9 +2092,10 @@
                   {
                     "kind": "field",
                     "fieldId": "educationClass",
-                    "length": 22
+                    "length": 20.0
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.0
               },
               {
                 "segments": [
@@ -1944,10 +2106,12 @@
                   {
                     "kind": "field",
                     "fieldId": "educationName",
-                    "length": 40,
-                    "grow": true
+                    "length": 52.0,
+                    "grow": true,
+                    "indentMm": 10
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.33
               },
               {
                 "segments": [
@@ -1958,7 +2122,7 @@
                   {
                     "kind": "field",
                     "fieldId": "educationUnitNumber",
-                    "length": 16
+                    "length": 13.7
                   },
                   {
                     "kind": "text",
@@ -1967,7 +2131,7 @@
                   {
                     "kind": "field",
                     "fieldId": "educationGroup",
-                    "length": 16
+                    "length": 15.2
                   },
                   {
                     "kind": "text",
@@ -1976,10 +2140,11 @@
                   {
                     "kind": "field",
                     "fieldId": "educationGrade",
-                    "length": 24,
+                    "length": 26.1,
                     "grow": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.72
               },
               {
                 "segments": [
@@ -1988,25 +2153,36 @@
                     "text": "Перенесенные заболевания, операции, травмы"
                   }
                 ],
-                "gap": "small"
+                "spaceBeforeMm": 0.57
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "past1",
-                    "length": 20
+                    "length": 20.8
                   },
                   {
                     "kind": "text",
-                    "text": "код по Международной статистической классификации болезней и проблем, связанных со здоровьем (далее – МКБ)"
+                    "text": "код по Международной статистической классификации"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.54
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "болезней и проблем, связанных со здоровьем (далее – МКБ)"
                   },
                   {
                     "kind": "field",
                     "fieldId": "past1Icd",
-                    "length": 20
+                    "length": 19.0
                   }
-                ]
+                ],
+                "align": "stretch"
               },
               {
                 "segments": [
@@ -2021,17 +2197,18 @@
                   {
                     "kind": "field",
                     "fieldId": "past1Date",
-                    "length": 3,
+                    "length": 4.1,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "past1Date",
-                    "length": 12,
+                    "length": 9.8,
                     "part": "month"
                   },
                   {
@@ -2041,12 +2218,13 @@
                   {
                     "kind": "field",
                     "fieldId": "past1Date",
-                    "length": 3,
+                    "length": 2.1,
                     "part": "year2"
                   },
                   {
                     "kind": "text",
-                    "text": "г."
+                    "text": "г.",
+                    "joined": true
                   }
                 ]
               },
@@ -2055,8 +2233,7 @@
                   {
                     "kind": "field",
                     "fieldId": "past2",
-                    "length": 24,
-                    "grow": true
+                    "length": 20.8
                   },
                   {
                     "kind": "text",
@@ -2065,11 +2242,12 @@
                   {
                     "kind": "field",
                     "fieldId": "past2Icd",
-                    "length": 10
+                    "length": 8.0
                   },
                   {
                     "kind": "text",
-                    "text": "Дата"
+                    "text": "Дата",
+                    "indentMm": 1.5
                   },
                   {
                     "kind": "text",
@@ -2078,17 +2256,19 @@
                   {
                     "kind": "field",
                     "fieldId": "past2Date",
-                    "length": 3,
+                    "length": 4.0,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "past2Date",
-                    "length": 12,
+                    "length": 12.0,
+                    "grow": true,
                     "part": "month"
                   },
                   {
@@ -2098,22 +2278,23 @@
                   {
                     "kind": "field",
                     "fieldId": "past2Date",
-                    "length": 3,
+                    "length": 2.9,
                     "part": "year2"
                   },
                   {
                     "kind": "text",
-                    "text": "г."
+                    "text": "г.",
+                    "joined": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.43
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "past3",
-                    "length": 24,
-                    "grow": true
+                    "length": 20.8
                   },
                   {
                     "kind": "text",
@@ -2122,11 +2303,12 @@
                   {
                     "kind": "field",
                     "fieldId": "past3Icd",
-                    "length": 10
+                    "length": 8.0
                   },
                   {
                     "kind": "text",
-                    "text": "Дата"
+                    "text": "Дата",
+                    "indentMm": 1.5
                   },
                   {
                     "kind": "text",
@@ -2135,17 +2317,19 @@
                   {
                     "kind": "field",
                     "fieldId": "past3Date",
-                    "length": 3,
+                    "length": 4.0,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "past3Date",
-                    "length": 12,
+                    "length": 12.0,
+                    "grow": true,
                     "part": "month"
                   },
                   {
@@ -2155,26 +2339,47 @@
                   {
                     "kind": "field",
                     "fieldId": "past3Date",
-                    "length": 3,
+                    "length": 2.9,
                     "part": "year2"
                   },
                   {
                     "kind": "text",
-                    "text": "г."
+                    "text": "г.",
+                    "joined": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.72
               },
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Проведенные профилактические прививки и результаты обследований, в том числе в целях выявления туберкулеза"
+                    "text": "Проведенные профилактические прививки и результаты обследований, в том числе"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.4
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "в целях выявления туберкулеза"
                   },
                   {
                     "kind": "field",
                     "fieldId": "vaccinationsAndExams",
-                    "length": 30,
-                    "lines": 1,
+                    "length": 43.1,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.27
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 69.9,
                     "grow": true
                   }
                 ]
@@ -2185,8 +2390,7 @@
                     "kind": "text",
                     "text": "Состояние здоровья:"
                   }
-                ],
-                "gap": "small"
+                ]
               },
               {
                 "segments": [
@@ -2197,7 +2401,7 @@
                   {
                     "kind": "field",
                     "fieldId": "health1",
-                    "length": 30,
+                    "length": 32.1,
                     "grow": true
                   },
                   {
@@ -2207,16 +2411,18 @@
                   {
                     "kind": "field",
                     "fieldId": "health1Icd",
-                    "length": 12
+                    "length": 9.2,
+                    "indentMm": 0.8
                   }
-                ]
+                ],
+                "spaceBeforeMm": 1.32
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "health2",
-                    "length": 30,
+                    "length": 32.1,
                     "grow": true
                   },
                   {
@@ -2226,16 +2432,18 @@
                   {
                     "kind": "field",
                     "fieldId": "health2Icd",
-                    "length": 14
+                    "length": 8.0,
+                    "indentMm": 0.8
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.33
               },
               {
                 "segments": [
                   {
                     "kind": "field",
                     "fieldId": "health3",
-                    "length": 30,
+                    "length": 32.1,
                     "grow": true
                   },
                   {
@@ -2245,9 +2453,11 @@
                   {
                     "kind": "field",
                     "fieldId": "health3Icd",
-                    "length": 14
+                    "length": 8.0,
+                    "indentMm": 0.8
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.4
               }
             ]
           }
@@ -2256,6 +2466,9 @@
       {
         "id": "back",
         "pageBreakBefore": true,
+        "insetMm": {
+          "right": 4.4
+        },
         "columns": [
           {
             "widthPercent": 100,
@@ -2264,33 +2477,78 @@
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Аллергические заболевания (пищевая, лекарственная, бытовая аллергия), аллергические реакции:"
-                  },
-                  {
-                    "kind": "field",
-                    "fieldId": "allergies",
-                    "length": 20,
-                    "lines": 1,
-                    "grow": true
+                    "text": "Аллергические заболевания (пищевая, лекарственная, бытовая аллергия),"
                   }
                 ],
-                "align": "justify"
+                "align": "stretch",
+                "spaceBeforeMm": 3.7
               },
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Назначенный лечащим врачом режим лечения (диета, прием лекарственных препаратов для медицинского применения и специализированных продуктов лечебного питания)"
+                    "text": "аллергические реакции:"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "allergies",
+                    "length": 47.9
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.79
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 70.0,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Назначенный лечащим врачом режим лечения (диета, прием лекарственных"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.46
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "препаратов для медицинского применения и специализированных продуктов"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.94
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "лечебного питания)"
                   },
                   {
                     "kind": "field",
                     "fieldId": "treatmentRegime",
-                    "length": 20,
-                    "lines": 1,
+                    "length": 52.9,
                     "grow": true
                   }
-                ],
-                "gap": "small"
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 69.9,
+                    "grow": true
+                  }
+                ]
               },
               {
                 "segments": [
@@ -2301,7 +2559,7 @@
                   {
                     "kind": "field",
                     "fieldId": "heightCm",
-                    "length": 8
+                    "length": 5.0
                   },
                   {
                     "kind": "text",
@@ -2310,26 +2568,47 @@
                   {
                     "kind": "field",
                     "fieldId": "weightKg",
-                    "length": 10
+                    "length": 7.1
+                  },
+                  {
+                    "kind": "text",
+                    "text": "(",
+                    "joined": true
                   },
                   {
                     "kind": "options",
                     "fieldId": "anthropometryNote",
                     "separator": ", ",
                     "codes": false,
-                    "mark": "underline"
+                    "mark": "underline",
+                    "range": [
+                      0,
+                      2
+                    ],
+                    "joined": true
                   }
                 ],
-                "gap": "small"
+                "spaceBeforeMm": 0.51
               },
               {
                 "segments": [
                   {
+                    "kind": "options",
+                    "fieldId": "anthropometryNote",
+                    "separator": ", ",
+                    "codes": false,
+                    "mark": "underline",
+                    "range": [
+                      2,
+                      4
+                    ]
+                  },
+                  {
                     "kind": "text",
-                    "text": "(нужное подчеркнуть)"
+                    "text": "- нужное подчеркнуть)",
+                    "joined": true
                   }
-                ],
-                "size": "small"
+                ]
               },
               {
                 "segments": [
@@ -2340,10 +2619,11 @@
                   {
                     "kind": "field",
                     "fieldId": "healthGroup",
-                    "length": 40,
+                    "length": 56.0,
                     "grow": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.43
               },
               {
                 "segments": [
@@ -2354,10 +2634,11 @@
                   {
                     "kind": "field",
                     "fieldId": "physicalCultureGroup",
-                    "length": 20,
-                    "grow": true
+                    "length": 21.0
                   }
-                ]
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.25
               },
               {
                 "segments": [
@@ -2368,25 +2649,63 @@
                   {
                     "kind": "field",
                     "fieldId": "accessibleEnvironment",
-                    "length": 8
+                    "length": 8.0
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.78
               },
               {
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Необходимость сопровождения ребенка законным представителем в период пребывания в организации отдыха детей и их оздоровления и (или) нуждающегося в индивидуальной помощи в связи с имеющимися физическими, психическими, интеллектуальными или сенсорными нарушениями"
+                    "text": "Необходимость сопровождения ребенка законным представителем в период"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.53
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "пребывания в организации отдыха детей и их оздоровления и (или) нуждающегося"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "в индивидуальной помощи в связи с имеющимися физическими, психическими,"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.62
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "интеллектуальными или сенсорными нарушениями"
                   },
                   {
                     "kind": "field",
                     "fieldId": "escortNeed",
-                    "length": 20,
-                    "lines": 1,
+                    "length": 27.1,
                     "grow": true
                   }
                 ],
-                "align": "justify"
+                "spaceBeforeMm": 0.58
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 70.0,
+                    "grow": true
+                  }
+                ]
               },
               {
                 "segments": [
@@ -2397,7 +2716,7 @@
                   {
                     "kind": "field",
                     "fieldId": "noInfectionContact",
-                    "length": 16,
+                    "length": 13.0,
                     "grow": true
                   }
                 ]
@@ -2411,8 +2730,18 @@
                   {
                     "kind": "field",
                     "fieldId": "pediculosisExam",
-                    "length": 20,
-                    "lines": 1,
+                    "length": 27.1,
+                    "indentMm": 6.3
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 1.13
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 70.0,
                     "grow": true
                   }
                 ]
@@ -2422,11 +2751,17 @@
                   {
                     "kind": "text",
                     "text": "Обследование на гельминтозы (энтеробиоз, гименолепидоз)"
-                  },
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.43
+              },
+              {
+                "segments": [
                   {
                     "kind": "field",
                     "fieldId": "helminthExam",
-                    "length": 20,
+                    "length": 70.0,
                     "grow": true
                   }
                 ]
@@ -2435,17 +2770,43 @@
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Отсутствие медицинских противопоказаний для пребывания в организации отдыха детей и их оздоровления"
+                    "text": "Отсутствие медицинских противопоказаний для пребывания в организации отдыха"
+                  }
+                ],
+                "align": "stretch",
+                "spaceBeforeMm": 0.88
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "детей и их оздоровления"
                   },
                   {
                     "kind": "field",
                     "fieldId": "noContraindications",
-                    "length": 20,
-                    "lines": 2,
+                    "length": 49.0,
                     "grow": true
                   }
-                ],
-                "gap": "small"
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 70.0,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 70.0,
+                    "grow": true
+                  }
+                ]
               },
               {
                 "segments": [
@@ -2454,7 +2815,7 @@
                     "text": "Должность, специальность, фамилия, имя, отчество (при наличии) и подпись врача"
                   }
                 ],
-                "gap": "large"
+                "spaceBeforeMm": 7.27
               },
               {
                 "segments": [
@@ -2462,7 +2823,15 @@
                     "kind": "field",
                     "fieldId": "doctor",
                     "length": 40,
-                    "lines": 2,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 6.2,
                     "grow": true
                   },
                   {
@@ -2477,10 +2846,19 @@
                 "segments": [
                   {
                     "kind": "text",
-                    "text": "Фамилия, имя, отчество (при наличии) и подпись руководителя медицинской организации"
+                    "text": "Фамилия, имя, отчество (при наличии) и подпись руководителя медицинской"
                   }
                 ],
-                "gap": "large"
+                "align": "stretch",
+                "spaceBeforeMm": 2.86
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "организации"
+                  }
+                ]
               },
               {
                 "segments": [
@@ -2488,7 +2866,15 @@
                     "kind": "field",
                     "fieldId": "head",
                     "length": 40,
-                    "lines": 2,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "rule",
+                    "length": 6.2,
                     "grow": true
                   },
                   {
@@ -2507,7 +2893,7 @@
                     "text": "М.П. (при наличии)"
                   }
                 ],
-                "gap": "large"
+                "spaceBeforeMm": 8.34
               },
               {
                 "segments": [
@@ -2518,17 +2904,18 @@
                   {
                     "kind": "field",
                     "fieldId": "formDate",
-                    "length": 3,
+                    "length": 3.1,
                     "part": "day"
                   },
                   {
                     "kind": "text",
-                    "text": "»"
+                    "text": "»",
+                    "joined": true
                   },
                   {
                     "kind": "field",
                     "fieldId": "formDate",
-                    "length": 18,
+                    "length": 17.8,
                     "part": "month"
                   },
                   {
@@ -2538,14 +2925,16 @@
                   {
                     "kind": "field",
                     "fieldId": "formDate",
-                    "length": 3,
+                    "length": 3.3,
                     "part": "year2"
                   },
                   {
                     "kind": "text",
-                    "text": "г."
+                    "text": "г.",
+                    "joined": true
                   }
-                ]
+                ],
+                "spaceBeforeMm": 0.75
               }
             ]
           }

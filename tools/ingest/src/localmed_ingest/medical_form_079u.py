@@ -21,9 +21,7 @@ from localmed_ingest.medical_form_kit import (
     ORDER_TITLE,
     REGISTRATION,
     address_fields,
-    address_rows,
     blank,
-    date_blanks,
     field_def,
     field_rule,
     options,
@@ -549,93 +547,208 @@ SECTIONS: Final[list[dict[str, Any]]] = [
 ]
 
 
-def _icd_row(
-    label: str, field_id: str, icd_id: str, *, extra_lead: str | None = None
+# One character of the body font (14 pt) on the scan, in pixels at 100 dpi: the blank lengths below
+# were measured on the scan in pixels and are converted to printed characters.
+_PX_PER_CH: Final = 9.72
+
+
+def _ch(pixels: float) -> float:
+    return round(pixels / _PX_PER_CH, 1)
+
+
+def _t(
+    value: str, *, indent: float | None = None, joined: bool = False, bold: bool = False
 ) -> dict[str, Any]:
-    lead = [text(extra_lead)] if extra_lead else []
-    return row(*lead, blank(field_id, 30, grow=True), text("код по МКБ"), blank(icd_id, 14))
+    """A caption; `indent` is the extra space before it (mm) where the scan spreads the line."""
+    segment = text(value, bold=bold)
+    if joined:
+        segment["joined"] = True
+    if indent is not None:
+        segment["indentMm"] = indent
+    return segment
+
+
+def _b(
+    field_id: str,
+    pixels: float,
+    *,
+    grow: bool = False,
+    indent: float | None = None,
+    part: str | None = None,
+) -> dict[str, Any]:
+    segment = blank(field_id, _ch(pixels), grow=grow, part=part)
+    if indent is not None:
+        segment["indentMm"] = indent
+    return segment
+
+
+def _ruled(pixels: float, *, indent: float | None = None) -> dict[str, Any]:
+    """A ruled line that is the continuation of the blank before it (no field of its own)."""
+    segment: dict[str, Any] = {"kind": "rule", "length": _ch(pixels), "grow": True}
+    if indent is not None:
+        segment["indentMm"] = indent
+    return segment
+
+
+def _stretch(value: str) -> dict[str, Any]:
+    """One printed line of a justified paragraph: spread over the whole width."""
+    return row(text(value), align="stretch")
+
+
+def _address(
+    prefix: str, caption: str, widths: tuple[float, float, float, float]
+) -> list[dict[str, Any]]:
+    """The five printed lines of a registration address (the scan justifies each of them)."""
+    subject, district, rest, locality = widths
+    return [
+        _stretch(caption),
+        row(
+            _b(f"{prefix}Subject", subject, grow=True),
+            text("район"),
+            _b(f"{prefix}District", district, grow=True),
+        ),
+        row(
+            _ruled(rest),
+            text("населенный"),
+            _t("пункт", indent=1.5),
+            _b(f"{prefix}Locality", locality, grow=True),
+        ),
+        row(
+            text("улица"),
+            _b(f"{prefix}Street", 272, grow=True, indent=3.6),
+            _t("дом", indent=2.9),
+            _b(f"{prefix}House", 40, indent=2.4),
+            _t("строение/корпус", indent=5.7),
+            _b(f"{prefix}Building", 40, indent=5.2),
+        ),
+        row(
+            text("квартира"),
+            _b(f"{prefix}Apartment", 54),
+            text("тел."),
+            _b(f"{prefix}Phone", 190),
+        ),
+    ]
 
 
 def _past_row(index: int) -> dict[str, Any]:
+    """«__________ код по МКБ ______ Дата «__» ________ 20__г.» — one printed line, to the edge."""
     return row(
-        blank(f"past{index}", 24, grow=True),
+        _b(f"past{index}", 202),
         text("код по МКБ"),
-        blank(f"past{index}Icd", 10),
-        text("Дата"),
-        *date_blanks(f"past{index}Date", month_length=12),
-        text("г."),
+        _b(f"past{index}Icd", 78),
+        _t("Дата", indent=1.5),
+        _t("«"),
+        _b(f"past{index}Date", 39, part="day"),
+        _t("»", joined=True),
+        _b(f"past{index}Date", 117, grow=True, part="month"),
+        text("20"),
+        _b(f"past{index}Date", 28, part="year2"),
+        _t("г.", joined=True),
     )
+
+
+def _diagnosis_row(
+    field_id: str, icd_id: str, lead: str | None, icd_pixels: float
+) -> dict[str, Any]:
+    segments = [text(lead)] if lead else []
+    return row(
+        *segments,
+        _b(field_id, 312, grow=True),
+        text("код по МКБ"),
+        _b(icd_id, icd_pixels, indent=0.8),
+    )
+
+
+def _signature_block(caption: list[str], entry_id: str, signature_id: str) -> list[dict[str, Any]]:
+    """The caption lines, then the two ruled lines of the entry; the signature sits on the last."""
+    return [
+        *[_stretch(line) for line in caption[:-1]],
+        row(text(caption[-1])),
+        row(blank(entry_id, 40, grow=True)),
+        row(_ruled(60), signature(signature_id, 14)),
+    ]
 
 
 LAYOUT: Final[dict[str, Any]] = {
     "page": {
         "size": "A4",
         "orientation": "portrait",
-        "marginMm": {"top": 10, "right": 10, "bottom": 10, "left": 15},
-        "fontSizePt": 10,
+        "marginMm": {"top": 10, "right": 12.6, "bottom": 10, "left": 17.5},
+        "fontSizePt": 14,
     },
     "blocks": [
         {
             "id": "header",
+            "insetMm": {"left": 5.9, "right": 1.8},
             "columns": [
                 {
-                    "widthPercent": 56,
+                    "widthPercent": 45,
                     "align": "left",
                     "rows": [
                         row(
-                            text(
-                                "Наименование и адрес медицинской организации (фамилия, имя, "
-                                "отчество (при наличии) индивидуального предпринимателя и адрес "
-                                "осуществления медицинской деятельности)"
-                            ),
-                            size="small",
+                            text("Наименование и адрес медицинской организации"),
+                            align="stretch",
+                            size="caption",
+                        ),
+                        row(text("(фамилия, имя, отчество (при наличии)"), size="caption"),
+                        row(
+                            text("индивидуального предпринимателя и адрес"),
+                            size="caption",
                         ),
                         row(
-                            text(
-                                "Основной государственный регистрационный номер (Основной "
-                                "государственный регистрационный номер индивидуального "
-                                "предпринимателя)"
-                            ),
-                            size="small",
+                            text("осуществления медицинской деятельности)"),
+                            size="caption",
                         ),
-                        row(blank("organization", 40, grow=True), gap="small"),
-                        row(blank("organizationOgrn", 40, grow=True)),
+                        row(
+                            text("Основной государственный регистрационный"),
+                            align="stretch",
+                            size="caption",
+                        ),
+                        row(text("номер"), size="caption"),
+                        row(
+                            text("(Основной государственный регистрационный"),
+                            size="caption",
+                        ),
+                        row(text("номер индивидуального предпринимателя)"), size="caption"),
+                        row(blank("organization", _ch(270))),
+                        row(blank("organizationOgrn", _ch(270))),
                     ],
                 },
                 {
-                    "widthPercent": 44,
+                    "widthPercent": 36,
                     "align": "center",
                     "rows": [
-                        row(text("Медицинская документация"), size="small"),
-                        row(text("Учетная форма № 079/у"), size="small"),
+                        row(text("Медицинская документация"), size="caption"),
+                        row(text("Учетная форма № 079/у"), size="caption"),
                         row(
-                            text(
-                                "Утверждена приказом Министерства здравоохранения Российской "
-                                "Федерации от 13 мая 2025 г. № 274н"
-                            ),
-                            size="small",
+                            text("Утверждена приказом Министерства"),
+                            size="caption",
                             gap="small",
                         ),
+                        row(text("здравоохранения Российской Федерации"), size="caption"),
+                        row(text("от 13 мая 2025 г. № 274н"), size="caption"),
                     ],
                 },
             ],
         },
         {
             "id": "title",
+            "insetMm": {"left": 4.6},
             "columns": [
                 {
                     "widthPercent": 100,
                     "align": "center",
                     "rows": [
                         row(
-                            text(
-                                "Медицинская справка о состоянии здоровья ребенка, направляемого "
-                                "в организацию отдыха детей и их оздоровления",
-                                bold=True,
-                            ),
+                            text("Медицинская справка о состоянии здоровья ребенка, направляемого"),
                             align="center",
-                            size="title",
+                            bold=True,
                             gap="large",
+                        ),
+                        row(
+                            text("в организацию отдыха детей и их оздоровления"),
+                            align="center",
+                            bold=True,
                         ),
                     ],
                 }
@@ -643,79 +756,94 @@ LAYOUT: Final[dict[str, Any]] = {
         },
         {
             "id": "child",
+            "insetMm": {"left": 4.6},
             "columns": [
                 {
                     "widthPercent": 100,
                     "rows": [
                         row(
                             text("Фамилия, имя, отчество (при наличии) ребенка"),
-                            blank("patientFullName", 40, grow=True),
+                            _b("patientFullName", 272, grow=True),
                             gap="medium",
                         ),
+                        row({"kind": "rule", "length": 70, "grow": True}),
                         row(
                             text("Дата рождения:"),
-                            *date_blanks("patientBirthDate", month_length=10),
+                            _t("«"),
+                            _b("patientBirthDate", 24, part="day"),
+                            _t("»", joined=True),
+                            _b("patientBirthDate", 84, part="month"),
+                            _b("patientBirthDate", 30, part="year"),
                             text("г."),
                             text("Пол:"),
                             options("patientSex"),
                         ),
-                        row(text("Гражданство"), blank("citizenship", 24)),
-                        *address_rows(
+                        row(text("Гражданство"), _b("citizenship", 195)),
+                        *_address(
                             "residence",
                             "Регистрация по месту жительства: субъект Российской Федерации",
-                            52,
-                            27,
+                            (347, 278, 228, 276),
                         ),
-                        *address_rows(
+                        *_address(
                             "stay",
                             "Регистрация по месту пребывания: субъект Российской Федерации",
-                            48,
-                            28,
+                            (349, 273, 242, 242),
                         ),
                         row(
                             text("Сведения об образовательной организации: тип:"),
-                            blank("educationType", 16, grow=True),
+                            _b("educationType", 146, grow=True),
                             text("№"),
-                            blank("educationNumber", 12),
+                            _b("educationNumber", 108, grow=True),
                         ),
-                        row(text("класс"), blank("educationClass", 22)),
-                        row(text("(наименование)"), blank("educationName", 40, grow=True)),
+                        row(text("класс"), _b("educationClass", 194)),
+                        row(
+                            text("(наименование)"),
+                            _b("educationName", 505, grow=True, indent=10),
+                        ),
                         row(
                             text("№"),
-                            blank("educationUnitNumber", 16),
+                            _b("educationUnitNumber", 133),
                             text("группа"),
-                            blank("educationGroup", 16),
+                            _b("educationGroup", 148),
                             text("Класс"),
-                            blank("educationGrade", 24, grow=True),
+                            _b("educationGrade", 254, grow=True),
                         ),
-                        row(text("Перенесенные заболевания, операции, травмы"), gap="small"),
+                        row(text("Перенесенные заболевания, операции, травмы")),
                         row(
-                            blank("past1", 20),
-                            text(
-                                "код по Международной статистической классификации болезней и "
-                                "проблем, связанных со здоровьем (далее – МКБ)"
-                            ),
-                            blank("past1Icd", 20),
+                            _b("past1", 202),
+                            text("код по Международной статистической классификации"),
+                            align="stretch",
                         ),
-                        row(text("Дата"), *date_blanks("past1Date", month_length=12), text("г.")),
+                        row(
+                            text("болезней и проблем, связанных со здоровьем (далее – МКБ)"),
+                            _b("past1Icd", 185),
+                            align="stretch",
+                        ),
+                        row(
+                            text("Дата"),
+                            _t("«"),
+                            _b("past1Date", 40, part="day"),
+                            _t("»", joined=True),
+                            _b("past1Date", 95, part="month"),
+                            text("20"),
+                            _b("past1Date", 20, part="year2"),
+                            _t("г.", joined=True),
+                        ),
                         _past_row(2),
                         _past_row(3),
-                        row(
-                            text(
-                                "Проведенные профилактические прививки и результаты "
-                                "обследований, в том числе в целях выявления туберкулеза"
-                            ),
-                            blank("vaccinationsAndExams", 30, grow=True, lines=1),
+                        _stretch(
+                            "Проведенные профилактические прививки и результаты обследований, "
+                            "в том числе"
                         ),
-                        row(text("Состояние здоровья:"), gap="small"),
                         row(
-                            text("Диагноз заболевания"),
-                            blank("health1", 30, grow=True),
-                            text("код по МКБ"),
-                            blank("health1Icd", 12),
+                            text("в целях выявления туберкулеза"),
+                            _b("vaccinationsAndExams", 419, grow=True),
                         ),
-                        _icd_row("", "health2", "health2Icd"),
-                        _icd_row("", "health3", "health3Icd"),
+                        row(_ruled(679)),
+                        row(text("Состояние здоровья:")),
+                        _diagnosis_row("health1", "health1Icd", "Диагноз заболевания", 89),
+                        _diagnosis_row("health2", "health2Icd", None, 78),
+                        _diagnosis_row("health3", "health3Icd", None, 78),
                     ],
                 }
             ],
@@ -723,103 +851,131 @@ LAYOUT: Final[dict[str, Any]] = {
         {
             "id": "back",
             "pageBreakBefore": True,
+            "insetMm": {"right": 4.4},
             "columns": [
                 {
                     "widthPercent": 100,
                     "rows": [
-                        row(
-                            text(
+                        # the sheet starts 3.7 mm lower than its first text line is set (the scan
+                        # prints the page number «2» above the text)
+                        {
+                            **_stretch(
                                 "Аллергические заболевания (пищевая, лекарственная, бытовая "
-                                "аллергия), аллергические реакции:"
+                                "аллергия),"
                             ),
-                            blank("allergies", 20, grow=True, lines=1),
-                            align="justify",
+                            "spaceBeforeMm": 3.7,
+                        },
+                        row(
+                            text("аллергические реакции:"),
+                            _b("allergies", 466),
+                            align="stretch",
+                        ),
+                        row(_ruled(680)),
+                        _stretch(
+                            "Назначенный лечащим врачом режим лечения (диета, прием лекарственных"
+                        ),
+                        _stretch(
+                            "препаратов для медицинского применения и специализированных продуктов"
                         ),
                         row(
-                            text(
-                                "Назначенный лечащим врачом режим лечения (диета, прием "
-                                "лекарственных препаратов для медицинского применения и "
-                                "специализированных продуктов лечебного питания)"
-                            ),
-                            blank("treatmentRegime", 20, grow=True, lines=1),
-                            gap="small",
+                            text("лечебного питания)"),
+                            _b("treatmentRegime", 514, grow=True),
                         ),
+                        row(_ruled(679)),
                         row(
                             text("Рост"),
-                            blank("heightCm", 8),
+                            _b("heightCm", 49),
                             text(", масса тела"),
-                            blank("weightKg", 10),
-                            options("anthropometryNote", ", ", codes=False, underline=True),
-                            gap="small",
+                            _b("weightKg", 69),
+                            _t("(", joined=True),
+                            {
+                                **options("anthropometryNote", ", ", codes=False, underline=True),
+                                "range": [0, 2],
+                                "joined": True,
+                            },
                         ),
-                        row(text("(нужное подчеркнуть)"), size="small"),
-                        row(text("Группа здоровья"), blank("healthGroup", 40, grow=True)),
+                        row(
+                            {
+                                **options("anthropometryNote", ", ", codes=False, underline=True),
+                                "range": [2, 4],
+                            },
+                            _t("- нужное подчеркнуть)", joined=True),
+                        ),
+                        row(text("Группа здоровья"), _b("healthGroup", 544, grow=True)),
                         row(
                             text("Медицинская группа для занятий физической культурой"),
-                            blank("physicalCultureGroup", 20, grow=True),
+                            _b("physicalCultureGroup", 204),
+                            align="stretch",
                         ),
                         row(
                             text("Нуждаемость в условиях доступной среды: да – 1, нет - 2"),
-                            blank("accessibleEnvironment", 8),
+                            _b("accessibleEnvironment", 78),
+                        ),
+                        _stretch(
+                            "Необходимость сопровождения ребенка законным представителем в период"
+                        ),
+                        _stretch(
+                            "пребывания в организации отдыха детей и их оздоровления и (или) "
+                            "нуждающегося"
+                        ),
+                        _stretch(
+                            "в индивидуальной помощи в связи с имеющимися физическими, "
+                            "психическими,"
                         ),
                         row(
-                            text(
-                                "Необходимость сопровождения ребенка законным представителем в "
-                                "период пребывания в организации отдыха детей и их оздоровления "
-                                "и (или) нуждающегося в индивидуальной помощи в связи с "
-                                "имеющимися физическими, психическими, интеллектуальными или "
-                                "сенсорными нарушениями"
-                            ),
-                            blank("escortNeed", 20, grow=True, lines=1),
-                            align="justify",
+                            text("интеллектуальными или сенсорными нарушениями"),
+                            _b("escortNeed", 263, grow=True),
                         ),
+                        row(_ruled(680)),
                         row(
                             text("Отсутствие контакта с больными инфекционными заболеваниями"),
-                            blank("noInfectionContact", 16, grow=True),
+                            _b("noInfectionContact", 126, grow=True),
                         ),
                         row(
                             text("Осмотр на педикулез и чесотку"),
-                            blank("pediculosisExam", 20, grow=True, lines=1),
+                            _b("pediculosisExam", 263, indent=6.3),
+                            align="stretch",
+                        ),
+                        row(_ruled(680)),
+                        _stretch("Обследование на гельминтозы (энтеробиоз, гименолепидоз)"),
+                        row(_b("helminthExam", 680, grow=True)),
+                        _stretch(
+                            "Отсутствие медицинских противопоказаний для пребывания в "
+                            "организации отдыха"
                         ),
                         row(
-                            text("Обследование на гельминтозы (энтеробиоз, гименолепидоз)"),
-                            blank("helminthExam", 20, grow=True),
+                            text("детей и их оздоровления"),
+                            _b("noContraindications", 476, grow=True),
                         ),
-                        row(
-                            text(
-                                "Отсутствие медицинских противопоказаний для пребывания в "
-                                "организации отдыха детей и их оздоровления"
-                            ),
-                            blank("noContraindications", 20, grow=True, lines=2),
-                            gap="small",
+                        row(_ruled(680)),
+                        row(_ruled(680)),
+                        *_signature_block(
+                            [
+                                "Должность, специальность, фамилия, имя, отчество (при наличии) "
+                                "и подпись врача"
+                            ],
+                            "doctor",
+                            "doctorSignature",
                         ),
-                        row(
-                            text(
-                                "Должность, специальность, фамилия, имя, отчество (при "
-                                "наличии) и подпись врача"
-                            ),
-                            gap="large",
-                        ),
-                        row(
-                            blank("doctor", 40, grow=True, lines=2),
-                            signature("doctorSignature"),
-                        ),
-                        row(
-                            text(
+                        *_signature_block(
+                            [
                                 "Фамилия, имя, отчество (при наличии) и подпись руководителя "
-                                "медицинской организации"
-                            ),
-                            gap="large",
+                                "медицинской",
+                                "организации",
+                            ],
+                            "head",
+                            "headSignature",
                         ),
+                        row({"kind": "stamp", "fieldId": "stamp", "text": "М.П. (при наличии)"}),
                         row(
-                            blank("head", 40, grow=True, lines=2),
-                            signature("headSignature"),
+                            _t("«"),
+                            _b("formDate", 30, part="day"),
+                            _t("»", joined=True),
+                            _b("formDate", 173, part="month"),
+                            text("20"),
+                            _b("formDate", 32, part="year2"),
+                            _t("г.", joined=True),
                         ),
-                        row(
-                            {"kind": "stamp", "fieldId": "stamp", "text": "М.П. (при наличии)"},
-                            gap="large",
-                        ),
-                        row(*date_blanks("formDate", month_length=18), text("г.")),
                     ],
                 }
             ],
