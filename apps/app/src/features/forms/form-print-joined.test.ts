@@ -35,6 +35,10 @@ describe('form print: a joined segment continues the previous one', () => {
     expect(html).toContain('<span class="form-print__options form-print__joined">');
     expect(html).toContain('<span class="form-print__text form-print__joined">)</span>');
     expect(html).toContain('.form-print__joined { margin-left: -0.45em; }');
+    // in a running-text row the items are separated by a space (0.25em), which the join removes
+    expect(html).toContain(
+      '.form-print__row--flow > .form-print__joined { margin-left: -0.25em; }',
+    );
   });
 
   it('leaves ordinary segments with their gap', () => {

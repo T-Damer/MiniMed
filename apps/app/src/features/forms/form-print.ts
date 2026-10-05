@@ -73,6 +73,7 @@ const FORM_PRINT_STYLES = `
   .form-print__text--bold { font-weight: bold; }
   .form-print__text--small { font-size: 0.85em; }
   .form-print__joined { margin-left: -0.45em; }
+  .form-print__row--flow > .form-print__joined { margin-left: -0.25em; }
   .form-print__field { display: inline-flex; flex-direction: column; flex: 0 1 auto; min-width: 0; }
   .form-print__field--grow { flex: 1 1 auto; }
   .form-print__field--lines { flex: 1 1 100%; }
