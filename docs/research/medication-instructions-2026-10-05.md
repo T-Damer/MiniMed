@@ -265,6 +265,12 @@ Order logic: 1 is the only item that changes what the doctor sees for most produ
 - **D2 — yes:** the already collected M1 manufacturer-site registrations ship as a separately labelled source class
   (`manufacturer-site`) with the match method visible in provenance and in the drug screen. Only matches with a registration
   match (number in the text, number on the page, `label-unique`) are attached; ambiguous ones are not.
+  Level 2 later reads «Инструкция другого производителя: то же вещество, есть отличия» (coordinator correction: the level-1
+  label must not claim the same strength above a strength warning).
+- **D2a — keep Microgen (owner, 2026-10-05):** 103 of the 240 shipped registrations come from microgen.ru, whose `robots.txt`
+  disallows `/` for named AI crawlers (`anthropic-ai`, `GPTBot`, `CCBot`, `ChatGPT-User` …) while the `*` rules allow the
+  product pages; the pages were collected under the `*` rules. The owner keeps them under the same personal-use decision as the
+  slow ГРЛС collection; no further collection from that site was requested.
 - **D3 — no** official requests for now. **D4 — no** Belarus/Kazakhstan registers for now (the owner expects Russian sources to
   carry them, since the products are sold here). **D5 — no** machine-translated foreign labels.
 
