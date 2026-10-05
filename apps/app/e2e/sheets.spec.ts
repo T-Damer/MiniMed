@@ -1,5 +1,10 @@
 import { E2E_ASSET_ORIGIN, mountBuiltApp } from '@localmed/app/e2e/mount-built-app';
 import { expect, type Page, test } from '@playwright/test';
+import {
+  installMedicationModule,
+  openFirstMedicationCard,
+  routeMedicationModule,
+} from './medication-module-fixture';
 
 /** Waits until a sheet and its scrim have finished their entrance, so screenshots are at rest. */
 async function settled(sheet: ReturnType<Page['getByRole']>): Promise<void> {
@@ -90,6 +95,8 @@ test.describe('phone sheets', () => {
   test('panels open as sheets: search sections, collections and help', async ({
     page,
   }, testInfo) => {
+    test.setTimeout(180_000);
+    await routeMedicationModule(page);
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
     await page.getByRole('button', { name: 'Раздел поиска', exact: true }).click();
     const sections = page.getByRole('dialog', { name: 'Разделы поиска' });
@@ -107,14 +114,13 @@ test.describe('phone sheets', () => {
     await expect(page.getByRole('dialog', { name: 'Как работает поиск' })).toBeVisible();
     await page.keyboard.press('Escape');
 
-    await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/medications`);
+    await installMedicationModule(page);
+    const title = await openFirstMedicationCard(page);
     await page
-      .locator('.medication-product-card')
-      .filter({ hasText: 'Ибупрофен 100 мг/5 мл' })
+      .getByRole('button', { name: /^Сохранить «/u })
       .first()
-      .click({ timeout: 30_000 });
-    await page.getByRole('button', { name: /^Сохранить «Ибупрофен/u }).click();
-    const save = page.getByRole('dialog', { name: /^Сохранить: Ибупрофен/u });
+      .click();
+    const save = page.getByRole('dialog', { name: `Сохранить: ${title}` });
     await settled(save);
     await expect(save.locator('.overlay-dialog__grip')).toBeVisible();
     await expect(save.getByRole('checkbox', { name: /Избранные/u })).toBeVisible();

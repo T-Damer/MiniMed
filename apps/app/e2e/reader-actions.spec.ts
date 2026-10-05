@@ -1,5 +1,10 @@
 import { expect, type Page, test } from '@playwright/test';
-import { E2E_ASSET_ORIGIN, mountBuiltApp } from './mount-built-app';
+import {
+  installMedicationModule,
+  openFirstMedicationCard,
+  routeMedicationModule,
+} from './medication-module-fixture';
+import { mountBuiltApp } from './mount-built-app';
 
 /** Printing opens a popup and calls its print(); count the calls without opening anything. */
 async function mockPrintPopup(page: Page): Promise<void> {
@@ -34,17 +39,29 @@ for (const width of [375, 1280]) {
   test(`a medication card's header menu prints and saves; the bookmark leads the title at ${width}px`, async ({
     page,
   }, testInfo) => {
+    test.setTimeout(180_000);
     await page.setViewportSize({ width, height: 844 });
     await mockPrintPopup(page);
+    await routeMedicationModule(page);
     await mountBuiltApp(page, { skipLargeCompanionPacks: true });
-    await page.goto(`${E2E_ASSET_ORIGIN}/#/modules/documents/medications`);
-    await page
-      .locator('.medication-product-card')
-      .filter({ hasText: 'Ибупрофен 100 мг/5 мл' })
-      .first()
-      .click({ timeout: 30_000 });
+    await installMedicationModule(page);
+    const title = await openFirstMedicationCard(page);
 
-    await expectBookmarkBeforeTitle(page);
+    // The drug screen has its own header: the bookmark sits in it, ahead of the title.
+    const header = page.locator('.drug-header');
+    const bookmark = header.getByRole('button', { name: /^Сохранить «/u });
+    const heading = header.getByRole('heading', { level: 1 });
+    await expect(bookmark).toBeVisible();
+    await expect(heading).toHaveText(title);
+    expect(
+      await bookmark.evaluate(
+        (mark, target) =>
+          Boolean(
+            target && mark.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING,
+          ),
+        await heading.elementHandle(),
+      ),
+    ).toBe(true);
     // Nothing is left of the old lonely bookmark under the card.
     await expect(page.locator('.document-overlay-paper__actions .item-bookmark')).toHaveCount(0);
     await page.screenshot({ path: testInfo.outputPath(`reader-${width}.png`) });
@@ -61,13 +78,11 @@ for (const width of [375, 1280]) {
     await menuButton.focus();
     await page.keyboard.press('Enter');
     await page.getByRole('menuitem', { name: 'Сохранить в коллекцию' }).click();
-    const panel = page.getByRole('dialog', { name: 'Сохранить: Ибупрофен 100 мг/5 мл' });
+    const panel = page.getByRole('dialog', { name: `Сохранить: ${title}` });
     await expect(panel.getByText('Сохранить в')).toBeVisible();
     await panel.getByRole('checkbox', { name: /Избранные/u }).check();
     await page.keyboard.press('Escape');
-    await expect(
-      page.locator('.reader-title-row').getByRole('button', { name: /^Сохранено:/u }),
-    ).toBeVisible();
+    await expect(header.getByRole('button', { name: /^Сохранено:/u })).toBeVisible();
   });
 }
 
