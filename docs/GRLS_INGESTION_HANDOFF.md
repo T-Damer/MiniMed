@@ -205,6 +205,11 @@ The manufacturer-site documents (M1) are a separate module with their own source
 `tools/ingest/scripts/build_manufacturer_instruction_module.py` and packaged with `--family manufacturer`; see
 `CURRENT_STATE.md` «Manufacturer-site instruction module».
 
+After every instruction-module refresh (new GRLS documents, a new manufacturer-site module) rebuild the same-substance fallback
+asset with `bun run content:substance-fallback` and commit `apps/app/src/features/medications/substance-fallback.json`: it lists,
+for registrations without an own text, the donors whose documents the modules now hold
+([ADR-0023](adr/0023-same-substance-instruction-fallback.md), `CURRENT_STATE.md` «Same-substance instruction fallback»).
+
 ## Next action
 
 Continue the repaired current-site resolver in bounded eight-worker batches. Use

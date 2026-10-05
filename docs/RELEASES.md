@@ -110,6 +110,8 @@ instructions) go through
 `grls-instructions-…`, `allmed-…` and `manufacturer-instructions-…` resolve to `datasets/<tag>/modules/`, like
 `esklp-…`). `--family grls` leaves `minimed.medications.instructions.manufacturer-site.ru` alone: that module is its
 own family and collection (`manufacturer-instructions`). A blob must stay below 100 MB.
+After such a module refresh, rebuild the same-substance fallback asset (`bun run content:substance-fallback`, ADR-0023) so
+registrations that gained or lost a document get current donors.
 
 The script verifies every output with the app's own decoder, writes a candidate catalog and a report
 (file, URL, sizes, checksums, mirror path) and never touches a published asset. Publishing is a

@@ -141,6 +141,7 @@
     "benchmark:search-latency": "bun tools/benchmarks/src/run-search-latency.ts",
     "content:catalog:tools": "bun scripts/buildToolCatalog.ts",
     "catalog:shell": "bun scripts/build-module-catalog-shell.ts",
+    "content:substance-fallback": "uv run --project tools/ingest python tools/ingest/scripts/build_substance_fallback.py --modules-dir data/build/grls-instruction-modules --manufacturer-report data/build/manufacturer-instruction-module/reports/minimed.medications.instructions.manufacturer-site.ru.json --report data/build/substance-fallback/report.json",
     "data:ledger": "bun scripts/data-ledger.ts",
     "content:core:knowledge": "uv run --project tools/ingest medbase compose --input apps/app/public/content/core.db --output data/build/core-knowledge.db --edition-manifest data/build/core-knowledge-manifest.json --edition-id minimed.core.ru --edition-version 1.0.0-preview.8 --title \"Ядро MiniMed\" --built-at 2026-09-05T00:00:00Z --compact",
     "content:core:build": "bun scripts/build-core.mjs",

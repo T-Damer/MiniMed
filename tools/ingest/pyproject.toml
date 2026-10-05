@@ -47,6 +47,9 @@ ignore = ["RUF001"]
 # Official Russian form names and typographic dashes appear in docstrings and comments.
 "src/localmed_ingest/medical_form*.py" = ["RUF002", "RUF003"]
 "tests/test_medical_forms.py" = ["RUF002", "RUF003"]
+# МНН, СМНН and ЕСКЛП are written in Cyrillic capitals in docstrings.
+"src/localmed_ingest/substance_fallback.py" = ["RUF002", "RUF003"]
+"tests/test_substance_fallback.py" = ["RUF002", "RUF003"]
 
 [tool.pyright]
 pythonVersion = "3.12"
