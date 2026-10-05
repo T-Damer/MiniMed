@@ -17,6 +17,7 @@ import { AppGlyph, type AppGlyphName } from '@/components/AppGlyph';
 import { AudioWaveformPlayer } from '@/components/AudioWaveformPlayer';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { isAsrReady, transcribeBlob } from '@/features/asr/asr-models';
+import { toastMicrophoneError } from '@/features/conversations/microphone-toast';
 import { documentSectionHeadingTag } from '@/features/library/document-display';
 import {
   DocumentReaderChromeShell,
@@ -1012,9 +1013,9 @@ export function NoteMarkdownEditor(props: NoteMarkdownEditorProps): JSX.Element 
               disabled={Boolean(props.disabled)}
               onComplete={handleRecordingComplete}
               onStart={() => setRecordingOwnerId(props.recordingOwnerId ?? '')}
-              onError={(message) => {
+              onError={(message, openSettings) => {
                 setRecordingOwnerId('');
-                toast.error(message);
+                toastMicrophoneError(message, openSettings ?? false);
               }}
             />
           </Show>

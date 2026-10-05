@@ -1,9 +1,13 @@
 package dev.localmed.search
 
 import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.MediaRecorder
+import android.net.Uri
 import android.os.Build
 import android.os.SystemClock
+import android.provider.Settings
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.PermissionState
@@ -254,6 +258,44 @@ class LocalMedTranscriberPlugin : Plugin() {
                 session.file.delete()
                 call.reject("Не удалось завершить запись.", "RECORDING_STOP_FAILED", error)
             }
+        }
+    }
+
+    /**
+     * The microphone permission as the OS stands right after a refusal (getUserMedia rejected or
+     * the request dialog was declined). Capacitor's own state would say `prompt` here: it only
+     * remembers refusals of its own requestPermissions, not of the WebView's request. Because the
+     * request has just been made, "not granted and no rationale" means refused for good (the
+     * dialog no longer appears), and "not granted with rationale" means it can still be asked.
+     */
+    @PluginMethod
+    fun microphoneStatusAfterRefusal(call: PluginCall) {
+        val granted =
+            context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+        val state =
+            when {
+                granted -> "granted"
+                activity?.shouldShowRequestPermissionRationale(Manifest.permission.RECORD_AUDIO) == true ->
+                    "prompt"
+                else -> "denied"
+            }
+        call.resolve(JSObject().put("microphone", state))
+    }
+
+    /** The app's own Android settings page, where a permission refused for good can be granted. */
+    @PluginMethod
+    fun openAppSettings(call: PluginCall) {
+        try {
+            val intent =
+                Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", context.packageName, null),
+                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            call.resolve()
+        } catch (error: Exception) {
+            call.reject("Не удалось открыть настройки приложения.", "APP_SETTINGS_UNAVAILABLE", error)
         }
     }
 

@@ -18,12 +18,17 @@ import {
   visitRecordingBlobId,
   visitTranscriptText,
 } from '@/features/asr/visit-recording';
+import {
+  microphoneFailure,
+  OPEN_APP_SETTINGS_LABEL,
+} from '@/features/conversations/microphone-access';
 import { DownloadProgress } from '@/features/setup/DownloadProgress';
 import {
   deleteNativeRecording,
   ensureNativeTranscriptionModels,
   getNativeTranscriptionModelStatus,
   isNativeTranscriberAvailable,
+  openNativeAppSettings,
   readNativeRecording,
   requestNativeMicrophonePermission,
   startNativeRecording,
@@ -80,6 +85,7 @@ export function VisitRecorderPanel(props: {
 }): JSX.Element {
   const [phase, setPhase] = createSignal<Phase>({ kind: 'checking' });
   const [error, setError] = createSignal('');
+  const [errorOpensSettings, setErrorOpensSettings] = createSignal(false);
   const [consent, setConsent] = createSignal(false);
   const [elapsedMs, setElapsedMs] = createSignal(0);
   const [speakerNames, setSpeakerNames] = createSignal<Record<string, string>>({});
@@ -120,9 +126,13 @@ export function VisitRecorderPanel(props: {
 
   const start = async (): Promise<void> => {
     setError('');
+    setErrorOpensSettings(false);
     try {
-      if (!(await requestNativeMicrophonePermission())) {
-        setError('Нет доступа к микрофону. Разрешите его в настройках Android.');
+      const permission = await requestNativeMicrophonePermission();
+      if (permission !== 'granted') {
+        const failure = microphoneFailure(new DOMException('', 'NotAllowedError'), permission);
+        setErrorOpensSettings(failure.openSettings);
+        setError(failure.message);
         return;
       }
       await startNativeRecording();
@@ -236,6 +246,20 @@ export function VisitRecorderPanel(props: {
         <p class="visit-recorder__error" role="alert">
           {error()}
         </p>
+        <Show when={errorOpensSettings()}>
+          <div class="visit-recorder__actions">
+            <Button
+              variant="secondary"
+              onClick={() =>
+                void openNativeAppSettings().catch(() =>
+                  setError('Не удалось открыть настройки приложения.'),
+                )
+              }
+            >
+              {OPEN_APP_SETTINGS_LABEL}
+            </Button>
+          </div>
+        </Show>
       </Show>
       {(() => {
         const current = phase();

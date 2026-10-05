@@ -142,6 +142,8 @@ for (const method of [
   'stopRecording',
   'transcribe',
   'deleteRecording',
+  'openAppSettings',
+  'microphoneStatusAfterRefusal',
 ]) {
   requireText('androidTranscriberPlugin', `fun ${method}(`);
   requireText('typescriptTranscriberPlugin', `${method}(`);
@@ -150,6 +152,7 @@ requireText('androidTranscriberPlugin', '@CapacitorPlugin(');
 requireText('androidTranscriberPlugin', 'name = "LocalMedTranscriber"');
 requireText('androidActivity', 'registerPlugin(LocalMedTranscriberPlugin.class)');
 requireText('androidManifest', 'android.permission.RECORD_AUDIO');
+requireText('androidManifest', 'android.permission.MODIFY_AUDIO_SETTINGS');
 requireText(
   'typescriptTranscriberPlugin',
   "registerPlugin<LocalMedTranscriberPlugin>('LocalMedTranscriber')",

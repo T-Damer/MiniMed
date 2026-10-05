@@ -6,7 +6,7 @@ import {
   type LiveTranscriber,
   startLiveTranscriber,
 } from '@/features/conversations/live-transcription';
-import { recordingStartErrorMessage } from '@/features/conversations/recording-errors';
+import { diagnoseMicrophoneFailure } from '@/features/conversations/microphone-access';
 import {
   type ConversationRecorder,
   type ConversationRecording,
@@ -24,6 +24,8 @@ const [elapsedMs, setElapsedMs] = createSignal(0);
 const [level, setLevel] = createSignal(0);
 const [starting, setStarting] = createSignal(false);
 const [error, setError] = createSignal('');
+/** The current error is a microphone refusal by Android itself: settings can fix it. */
+const [errorOpensSettings, setErrorOpensSettings] = createSignal(false);
 const [finished, setFinished] = createSignal<ConversationRecording | null>(null);
 /** The live text window: expanded from the bar, optionally over the whole screen. */
 const [windowOpen, setWindowOpen] = createSignal(false);
@@ -38,6 +40,7 @@ export const conversationSession = {
   level,
   starting,
   error,
+  errorOpensSettings,
   finished,
   windowOpen,
   windowFullscreen,
@@ -51,7 +54,10 @@ export const conversationSession = {
   toggleFullscreen: () => setWindowFullscreen((value) => !value),
   dismissFinished: () => setFinished(null),
   openFinished: (recording: ConversationRecording) => setFinished(recording),
-  clearError: () => setError(''),
+  clearError: () => {
+    setError('');
+    setErrorOpensSettings(false);
+  },
 };
 
 let ticker: number | undefined;
@@ -87,6 +93,7 @@ function endLiveText(): void {
 export async function startConversation(): Promise<void> {
   if (recorder() || starting()) return;
   setError('');
+  setErrorOpensSettings(false);
   setStarting(true);
   try {
     const next = await startConversationRecording((message) => setError(message));
@@ -98,7 +105,9 @@ export async function startConversation(): Promise<void> {
     }, 200);
     void beginLiveText(() => next.snapshot());
   } catch (cause) {
-    setError(recordingStartErrorMessage(cause));
+    const failure = await diagnoseMicrophoneFailure(cause);
+    setErrorOpensSettings(failure.openSettings);
+    setError(failure.message);
   } finally {
     setStarting(false);
   }

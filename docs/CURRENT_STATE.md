@@ -20,6 +20,26 @@ Detailed history, moved verbatim on 2026-09-24:
 - [state/ecg-research-log.md](state/ecg-research-log.md) — ECG digitizer, rule layer and every
   measured or rejected model/engine candidate.
 
+## Android microphone access — 2026-10-05 (STATE MIC1)
+
+- Root cause of "denied although granted" (0.6.50 and earlier): Capacitor's `BridgeWebChromeClient`
+  requests `MODIFY_AUDIO_SETTINGS` together with `RECORD_AUDIO` for every WebView audio capture and
+  denies the page unless both are granted; the manifest declared only `RECORD_AUDIO`, so
+  `getUserMedia` failed with `NotAllowedError` even with the microphone allowed. The manifest now
+  declares `MODIFY_AUDIO_SETTINGS` (normal permission, auto-granted) and `check-native-bridge`
+  requires it.
+- App side: the verdict comes from the failed `getUserMedia` call, never from the Permissions API.
+  `features/conversations/microphone-access.ts` compares a refusal with the OS state
+  (`LocalMedTranscriber.microphoneStatusAfterRefusal`, since Capacitor's `checkPermissions` reports
+  `prompt` for refusals made through the WebView request) and offers «Открыть настройки приложения»
+  (`LocalMedTranscriber.openAppSettings`) only when the OS refused for good; a granted OS state
+  gets its own wording without the button. Applies to conversation recording, note voice
+  recording and the visit recorder.
+- Verified on the emulator (API debug build, `org.med.web`): granted -> recorder runs; first
+  decline -> "allow in the Android prompt"; second decline (USER_FIXED) -> settings button, which
+  opens the app settings. Not verified on a physical phone (HyperOS may add its own audio-record
+  gate).
+
 ## Discoverable item menu — 2026-10-05
 
 - Document and folder cards in «Мои файлы» (the only list items that carry the right-click /

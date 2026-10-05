@@ -16,6 +16,10 @@ import {
   NATIVE_TRANSCRIPTION_MODELS,
   type NativeTranscriptionModelArtifact,
 } from '@/features/asr/native-transcription-models';
+import {
+  type MicrophoneOsPermission,
+  microphonePermissionFromNative,
+} from '@/features/conversations/microphone-access';
 import { downloadFileWithRetry } from '@/features/network/download-retry';
 
 interface NativePermissionStatus {
@@ -43,6 +47,8 @@ interface LocalMedTranscriberPlugin {
   stopRecording(): Promise<unknown>;
   transcribe(options: { readonly filePath: string }): Promise<unknown>;
   deleteRecording(options: { readonly filePath: string }): Promise<void>;
+  openAppSettings(): Promise<void>;
+  microphoneStatusAfterRefusal(): Promise<NativePermissionStatus>;
   checkPermissions(): Promise<NativePermissionStatus>;
   requestPermissions(options?: {
     readonly permissions?: readonly ['microphone'];
@@ -133,12 +139,35 @@ export async function ensureNativeTranscriptionModels(
   return getNativeTranscriptionModelStatus();
 }
 
-export async function requestNativeMicrophonePermission(): Promise<boolean> {
+/**
+ * The Android microphone permission right after a refusal. Capacitor's checkPermissions reports
+ * `prompt` for a permission the WebView's own request has already been refused for good, so the
+ * native side answers from the OS (granted / still askable / refused for good). `unknown`
+ * outside the Android app.
+ */
+export async function readNativeMicrophonePermission(): Promise<MicrophoneOsPermission> {
+  if (!isNativeTranscriberAvailable()) return 'unknown';
+  return microphonePermissionFromNative(
+    (await localMedTranscriber.microphoneStatusAfterRefusal()).microphone,
+  );
+}
+
+/** Asks Android for the microphone when it is not granted yet; returns the resulting state. */
+export async function requestNativeMicrophonePermission(): Promise<MicrophoneOsPermission> {
   assertNativeTranscriber();
-  const current = await localMedTranscriber.checkPermissions();
-  if (current.microphone === 'granted') return true;
-  const requested = await localMedTranscriber.requestPermissions({ permissions: ['microphone'] });
-  return requested.microphone === 'granted';
+  const current = microphonePermissionFromNative(
+    (await localMedTranscriber.checkPermissions()).microphone,
+  );
+  if (current === 'granted') return current;
+  const requested = microphonePermissionFromNative(
+    (await localMedTranscriber.requestPermissions({ permissions: ['microphone'] })).microphone,
+  );
+  return requested === 'granted' ? requested : readNativeMicrophonePermission();
+}
+
+export async function openNativeAppSettings(): Promise<void> {
+  assertNativeTranscriber();
+  await localMedTranscriber.openAppSettings();
 }
 
 export async function startNativeRecording(): Promise<void> {

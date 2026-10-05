@@ -1,6 +1,6 @@
 import { createSignal, type JSX, onCleanup, Show } from 'solid-js';
 import { AppGlyph } from '@/components/AppGlyph';
-import { recordingStartErrorMessage } from '@/features/conversations/recording-errors';
+import { diagnoseMicrophoneFailure } from '@/features/conversations/microphone-access';
 
 function recorderMimeType(): string {
   for (const candidate of ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4']) {
@@ -22,7 +22,7 @@ const RECORDING_TIMESLICE_MS = 1_000;
 export function VoiceRecordingButton(props: {
   readonly onComplete: (file: File) => void;
   readonly onStart?: () => void;
-  readonly onError?: (message: string) => void;
+  readonly onError?: (message: string, openSettings?: boolean) => void;
   readonly disabled?: boolean;
 }): JSX.Element {
   const [recording, setRecording] = createSignal(false);
@@ -69,8 +69,9 @@ export function VoiceRecordingButton(props: {
         },
       });
     } catch (cause) {
+      const failure = await diagnoseMicrophoneFailure(cause);
       if (disposed) return;
-      props.onError?.(recordingStartErrorMessage(cause));
+      props.onError?.(failure.message, failure.openSettings);
       return;
     }
     if (disposed) {

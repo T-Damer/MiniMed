@@ -1,6 +1,5 @@
 import { createEffect, createSignal, For, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
-import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
@@ -15,6 +14,7 @@ import {
   recoverConversations,
   stopConversation,
 } from '@/features/conversations/conversation-session';
+import { toastMicrophoneError } from '@/features/conversations/microphone-toast';
 import { notesPatientsPath } from '@/features/notes/notes-routing';
 import { type ConversationRecording, readConversationAudio } from '@/state/conversation-recordings';
 import type { PatientVaultSnapshot } from '@/state/patient-domain';
@@ -361,7 +361,7 @@ export function ConversationRecorderHost(): JSX.Element {
   createEffect(() => {
     const message = conversationSession.error();
     if (!message) return;
-    toast.error(message);
+    toastMicrophoneError(message, conversationSession.errorOpensSettings());
     conversationSession.clearError();
   });
   return (
