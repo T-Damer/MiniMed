@@ -181,10 +181,13 @@ export const FormRuleParagraphSchema = z.object({
    * spread over several (order 1094н: appendices 1 and 3); `id` is then `<appendix>.<clause>`.
    */
   appendix: z.object({ number: z.number().int().positive(), title: z.string().min(1) }).optional(),
-  /** The paragraph number as printed in that appendix. */
+  /**
+   * The paragraph number as printed in that appendix; a sub-item numbered `3)` under paragraph 6
+   * is `6, подпункт 3` (its `id` is then `6.3`).
+   */
   clause: z
     .string()
-    .regex(/^\d+(?:\.\d+)*$/u)
+    .regex(/^\d+(?:\.\d+)*(?:, подпункт \d+)?$/u)
     .optional(),
   spans: z.array(FormSourceSpanSchema).min(1),
   textSha256: sha256,
@@ -269,6 +272,10 @@ export const FormSegmentSchema = z.discriminatedUnion('kind', [
       .min(1),
     /** Relative column widths (any positive numbers), one per body column. */
     columnWeights: z.array(z.number().positive()).optional(),
+    /** Height of a body row, mm, as ruled on the official blank (a taller entry grows the row). */
+    rowHeightMm: z.number().positive().max(60).optional(),
+    /** Line height inside the cells as a multiple of the font size; measured on the blank. */
+    cellLineHeight: z.number().min(1).max(2).optional(),
   }),
 ]);
 export type FormSegment = z.infer<typeof FormSegmentSchema>;
@@ -373,10 +380,17 @@ export const FormSourceSchema = z.object({
     number: z.number().int().positive(),
     pdfPages: z.array(z.number().int().positive()).min(1),
   }),
-  rulesAppendix: z.object({
-    number: z.number().int().positive(),
-    pdfPages: z.array(z.number().int().positive()).min(1),
-  }),
+  /**
+   * The appendix with the «Порядок заполнения»; absent when the order gives no filling rules for
+   * the form (order 395н: one clause approves the form) — the cited paragraphs are then the order's
+   * own clauses on `paragraph.spans` pages.
+   */
+  rulesAppendix: z
+    .object({
+      number: z.number().int().positive(),
+      pdfPages: z.array(z.number().int().positive()).min(1),
+    })
+    .optional(),
   extraction: z.object({
     method: z.string().min(1),
     /** SHA-256 of the OCR JSON the paragraphs were cut from. */

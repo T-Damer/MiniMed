@@ -58,10 +58,15 @@ export function ruleCitation(schema: FormSchema, paragraph: FormRuleParagraph): 
   const pages = [...new Set(paragraph.spans.map((span) => span.pdfPage))];
   const pageText = pages.length === 1 ? `стр. ${pages[0]}` : `стр. ${pages[0]}–${pages.at(-1)}`;
   const title = paragraph.appendix?.title ?? 'Порядок заполнения';
-  const appendix = paragraph.appendix?.number ?? schema.source.rulesAppendix.number;
+  const appendix = paragraph.appendix?.number ?? schema.source.rulesAppendix?.number;
+  const clause = paragraph.clause ?? paragraph.id;
+  // an order with no filling rules: the clause is cited from the order's own text
+  if (appendix === undefined) {
+    return `Приказ № ${schema.source.orderNumber}, п. ${clause}; ${pageText} официального PDF`;
+  }
   return (
     `${title} (приложение № ${appendix} ` +
-    `к приказу № ${schema.source.orderNumber}), п. ${paragraph.clause ?? paragraph.id}; ${pageText} официального PDF`
+    `к приказу № ${schema.source.orderNumber}), п. ${clause}; ${pageText} официального PDF`
   );
 }
 

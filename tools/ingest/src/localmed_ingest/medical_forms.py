@@ -43,6 +43,7 @@ OCR_METHOD: Final = "macos-vision-ocr-v1"
 ROW_TOLERANCE: Final = 0.009
 PAGE_NUMBER_MIN_Y: Final = 0.955
 PAGE_HEADER_MIN_Y: Final = 0.94
+DEFAULT_RULES_TITLE: Final = "Порядок заполнения"
 
 
 class FormSourceError(RuntimeError):
@@ -273,6 +274,8 @@ PARAGRAPH_START = re.compile(r"^(\d{1,2}(?:\.\d{1,2})*)\.\s+\S")
 class Paragraph:
     number: str
     rows: list[Row]
+    # The printed designation of a sub-item (`6, подпункт 1`) when the id is not the printed number.
+    clause: str | None = None
 
     @property
     def text(self) -> str:
@@ -310,12 +313,25 @@ def join_rows(lines: list[str]) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def split_paragraphs(rows: list[Row]) -> list[Paragraph]:
+BRACKET_START = re.compile(r"^(\d{1,2})\)\s+\S")
+
+
+def split_paragraphs(rows: list[Row], bracket_items: bool = False) -> list[Paragraph]:
+    """Numbered paragraphs; with `bracket_items` a line starting `3) …` is sub-item 3 of the last
+    top-level paragraph (id `6.3`, printed designation `6, подпункт 3`)."""
     paragraphs: list[Paragraph] = []
+    top: str | None = None
     for row in rows:
         match = PARAGRAPH_START.match(row.text)
+        item = BRACKET_START.match(row.text) if bracket_items and top is not None else None
         if match:
             paragraphs.append(Paragraph(match.group(1), [row]))
+            if "." not in match.group(1):
+                top = match.group(1)
+        elif item and top is not None:
+            paragraphs.append(
+                Paragraph(f"{top}.{item.group(1)}", [row], f"{top}, подпункт {item.group(1)}")
+            )
         elif paragraphs:
             paragraphs[-1].rows.append(row)
     return paragraphs
@@ -445,7 +461,9 @@ class FormBlueprint:
     effective_until: str | None
     blank_appendix: int
     blank_pages: tuple[int, ...]
-    rules_appendix: int
+    # `None` when the order has no «Порядок заполнения» for the form (order 395н: the form is
+    # approved by one clause); `rules_pages` are then the pages of the order's own text.
+    rules_appendix: int | None
     rules_pages: tuple[int, ...]
     footnote_below: dict[int, float]
     corrections: tuple[Correction, ...]
@@ -475,11 +493,17 @@ class FormBlueprint:
     # independently), each schema paragraph names its appendix, and `rules_title` is the title of
     # the primary `rules_appendix`. Empty `extra_rules` keeps the single-appendix behaviour.
     extra_rules: tuple[RulesSection, ...] = ()
-    rules_title: str = "Порядок заполнения"
+    rules_title: str = DEFAULT_RULES_TITLE
     # Several forms may share one scan page (order 1094н prints a blank under the reverse side of
     # the previous one): per blank page, the (low, high) share of the page height, origin at the
     # bottom as in the OCR boxes, that belongs to this form. Captions are searched only there.
     blank_regions: dict[int, tuple[float, float]] = dataclass_field(default_factory=dict)
+    # The sub-items of a paragraph are numbered `1)`, `2)` … (order 1092н «6. В медицинском
+    # заключении: 1) в строке 1 …»): each becomes a paragraph `6.1`, `6.2` … with its own clause.
+    bracket_items: bool = False
+    # Paragraphs kept in `rules` although no field cites them: the clause of the order that
+    # approves a form which has no filling rules (the fields are then all `undefined`).
+    order_paragraphs: tuple[str, ...] = ()
 
     @property
     def schema_filename(self) -> str:
@@ -543,16 +567,20 @@ def prepare_form(
         anchor = field.get("_anchor")
         if anchor is None:
             continue
-        if anchor_found(str(anchor), blank_text):
+        reviewed = str(anchor) in blueprint.scan_reviewed_captions
+        # a caption a reviewer confirmed on the scan is not searched fuzzily over the whole blank
+        if _letters(str(anchor)) in _letters(blank_text) or (
+            not reviewed and anchor_found(str(anchor), blank_text)
+        ):
             verified += 1
-        elif str(anchor) in blueprint.scan_reviewed_captions:
+        elif reviewed:
             if str(anchor) not in scan_reviewed:
                 scan_reviewed.append(str(anchor))
         else:
             raise FormSourceError(f"printed caption not found on the blank: {anchor!r}")
 
     sections = [
-        RulesSection(blueprint.rules_appendix, blueprint.rules_title, blueprint.rules_pages),
+        RulesSection(blueprint.rules_appendix or 0, blueprint.rules_title, blueprint.rules_pages),
         *blueprint.extra_rules,
     ]
     prefixed = bool(blueprint.extra_rules)
@@ -562,7 +590,7 @@ def prepare_form(
         body: list[Row] = []
         for page in section.pages:
             body.extend(body_rows(rows_by_page[page]))
-        for paragraph in split_paragraphs(body):
+        for paragraph in split_paragraphs(body, blueprint.bracket_items):
             key = f"{section.appendix}.{paragraph.number}" if prefixed else paragraph.number
             paragraphs[key] = paragraph
             appendix_of[key] = section
@@ -581,6 +609,11 @@ def prepare_form(
                 raise FormSourceError(f"paragraph {paragraph_id} not found in the order text")
             if paragraph_id not in cited:
                 cited.append(paragraph_id)
+    for paragraph_id in blueprint.order_paragraphs:
+        if paragraph_id not in paragraphs:
+            raise FormSourceError(f"paragraph {paragraph_id} not found in the order text")
+        if paragraph_id not in cited:
+            cited.append(paragraph_id)
     cited.sort(key=lambda number: [int(part) for part in number.split(".")])
 
     options: dict[str, list[dict[str, str]]] = {}
@@ -596,7 +629,15 @@ def prepare_form(
                 "number": appendix_of[number].appendix,
                 "title": appendix_of[number].title,
             }
-            entry["clause"] = paragraph.number
+            entry["clause"] = paragraph.clause or paragraph.number
+        else:
+            if blueprint.rules_title != DEFAULT_RULES_TITLE and blueprint.rules_appendix:
+                entry["appendix"] = {
+                    "number": blueprint.rules_appendix,
+                    "title": blueprint.rules_title,
+                }
+            if paragraph.clause:
+                entry["clause"] = paragraph.clause
         if number in blueprint.code_lists.values():
             intro, items = split_list(paragraph.rows)
             text = join_rows([row.text for row in intro])
@@ -656,10 +697,16 @@ def prepare_form(
             "number": blueprint.blank_appendix,
             "pdfPages": list(blueprint.blank_pages),
         },
-        "rulesAppendix": {
-            "number": blueprint.rules_appendix,
-            "pdfPages": list(blueprint.rules_pages),
-        },
+        **(
+            {
+                "rulesAppendix": {
+                    "number": blueprint.rules_appendix,
+                    "pdfPages": list(blueprint.rules_pages),
+                }
+            }
+            if blueprint.rules_appendix is not None
+            else {}
+        ),
         "extraction": {
             "method": OCR_METHOD,
             "ocrSha256": sha256_file(ocr_path),

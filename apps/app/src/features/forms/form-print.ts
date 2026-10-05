@@ -113,16 +113,16 @@ const FORM_PRINT_STYLES = `
     background-size: 100% 1.55em;
   }
   .form-print__option--underlined { text-decoration: underline; }
-  .form-print__table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 0.8mm; }
+  .form-print__table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: var(--table-mt, 0.8mm); }
   .form-print__cell-head, .form-print__cell-body {
     border: 0.25mm solid #000;
-    padding: 0.3mm 0.8mm;
+    padding: var(--cell-pad-y, 0.3mm) 0.8mm;
     text-align: center;
     overflow-wrap: anywhere;
     font-weight: normal;
   }
   .form-print__cell-head { font-size: 0.95em; }
-  .form-print__cell-body { min-height: 1.5em; height: 1.6em; text-align: left; }
+  .form-print__cell-body { min-height: var(--cell-h, 1.5em); height: var(--cell-h, 1.6em); vertical-align: var(--cell-va, middle); line-height: var(--cell-lh, inherit); text-align: left; }
   .form-print__table-caption, .form-print__cell-caption { text-align: left; }
 `;
 
@@ -192,7 +192,20 @@ function tableHtml(schema: FormSchema, values: FormValues, segment: TableSegment
       return `<tr>${tds}</tr>`;
     })
     .join('');
-  return `<table class="form-print__table">${colgroup}<thead>${head}</thead><tbody>${body}</tbody></table>`;
+  // a table ruled to the official blank: fixed row height, text on the top line, no gap above
+  const custom = [
+    ...(segment.cellLineHeight === undefined ? [] : [`--cell-lh:${segment.cellLineHeight}`]),
+    ...(segment.rowHeightMm === undefined
+      ? []
+      : [
+          `--cell-h:${segment.rowHeightMm}mm`,
+          '--cell-va:top',
+          '--table-mt:0mm',
+          '--cell-pad-y:0.1mm',
+        ]),
+  ];
+  const style = custom.length > 0 ? ` style="${custom.join(';')}"` : '';
+  return `<table class="form-print__table"${style}>${colgroup}<thead>${head}</thead><tbody>${body}</tbody></table>`;
 }
 
 function segmentHtml(
