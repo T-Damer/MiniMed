@@ -1,0 +1,29 @@
+{
+  "formId": "ru.minzdrav.1094n.148-1u-88",
+  "method": "page margins and font size from the extent and the line widths of the scan text, line height, and the space above each layout row, fitted so the print lands on the official scan (OCR boxes); `medical_form_overlay calibrate`",
+  "page": {
+    "marginMm": {
+      "top": 18,
+      "right": 15.2,
+      "bottom": 10,
+      "left": 29.4
+    },
+    "fontSizePt": 11.25
+  },
+  "lineHeight": 1.171,
+  "rows": {
+    "address/0/0": 3.81,
+    "birth/0/0": 4.34,
+    "doctor/0/0": 4.14,
+    "header/0/1": 4.67,
+    "header/0/2": 0.15,
+    "header/0/4": 4.03,
+    "header/0/6": 0.0,
+    "kind/0/0": 3.85,
+    "patient/0/0": 4.09,
+    "recipe-date/0/0": 2.38,
+    "reverse-top/1/0": 6.96,
+    "signature/0/0": 5.36,
+    "validity/0/0": 2.39
+  }
+}
