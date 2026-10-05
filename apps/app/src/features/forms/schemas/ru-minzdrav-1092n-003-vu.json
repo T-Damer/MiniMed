@@ -1,0 +1,2492 @@
+{
+  "schemaVersion": 1,
+  "id": "ru.minzdrav.1092n.003-vu",
+  "formNumber": "003-В/у",
+  "title": "Медицинское заключение о наличии (об отсутствии) у водителей транспортных средств (кандидатов в водители транспортных средств) медицинских противопоказаний, медицинских показаний или медицинских ограничений к управлению транспортными средствами",
+  "edition": "Приказ Минздрава России от 24.11.2021 № 1092н, приложение № 3; действует с 01.03.2022 по 01.03.2028",
+  "source": {
+    "issuer": "Министерство здравоохранения Российской Федерации",
+    "orderNumber": "1092н",
+    "orderDate": "2021-11-24",
+    "orderTitle": "Об утверждении порядка проведения обязательного медицинского освидетельствования водителей транспортных средств (кандидатов в водители транспортных средств), порядка выдачи и формы медицинского заключения о наличии (об отсутствии) у водителей транспортных средств (кандидатов в водители транспортных средств) медицинских противопоказаний, медицинских показаний или медицинских ограничений к управлению транспортными средствами, а также о признании утратившими силу отдельных приказов Министерства здравоохранения Российской Федерации",
+    "registration": {
+      "authority": "Министерство юстиции Российской Федерации",
+      "number": "66130",
+      "date": "2021-11-30"
+    },
+    "effectiveFrom": "2022-03-01",
+    "effectiveUntil": "2028-03-01",
+    "publicationUrl": "http://publication.pravo.gov.ru/document/0001202111300131",
+    "pdfUrl": "http://publication.pravo.gov.ru/file/pdf?eoNumber=0001202111300131",
+    "retrievedAt": "2026-10-05",
+    "sha256": "63fd77663077cbf993f49eb093c2a19fd73b86515ecfa893ce1a5a5332244abc",
+    "pdfPages": 17,
+    "blankAppendix": {
+      "number": 3,
+      "pdfPages": [
+        15,
+        16
+      ]
+    },
+    "rulesAppendix": {
+      "number": 2,
+      "pdfPages": [
+        11,
+        12,
+        13,
+        14
+      ]
+    },
+    "extraction": {
+      "method": "macos-vision-ocr-v1",
+      "ocrSha256": "2d9a314012c69d9824eaa6c96467c7567b8c92a993f02bb0fc09878c7409b2dc",
+      "corrections": [
+        {
+          "pdfPage": 11,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 12,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 12,
+          "from": "«xx ххххххххх»",
+          "to": "«xx xxxxxxxxx»",
+          "reason": "Cyrillic х recognised for the Latin x of the printed format mask (same glyph)"
+        },
+        {
+          "pdfPage": 12,
+          "from": "«x» -",
+          "to": "«x» –",
+          "reason": "typographic dash printed in the text, recognised as a hyphen"
+        },
+        {
+          "pdfPage": 12,
+          "from": "ГОД.",
+          "to": "год.",
+          "reason": "capital letters recognised for a lower-case word"
+        },
+        {
+          "pdfPage": 12,
+          "from": "Федерации порядке",
+          "to": "Федерации порядке.",
+          "reason": "the full stop after the footnote mark 3 is lost by the OCR"
+        },
+        {
+          "pdfPage": 13,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 13,
+          "from": "Ф3",
+          "to": "ФЗ",
+          "reason": "OCR renders the Cyrillic З of «ФЗ» as 3"
+        },
+        {
+          "pdfPage": 13,
+          "from": "жительства*;",
+          "to": "жительства;",
+          "reason": "footnote reference mark recognised as punctuation"
+        },
+        {
+          "pdfPage": 13,
+          "from": "фамилия, ИМЯ,",
+          "to": "фамилия, имя,",
+          "reason": "capital letters recognised for a word"
+        },
+        {
+          "pdfPage": 14,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        },
+        {
+          "pdfPage": 15,
+          "from": "Nº",
+          "to": "№",
+          "reason": "OCR renders № as Nº"
+        }
+      ],
+      "blankLabelsVerified": 34,
+      "captionsReviewedOnScan": [
+        "Медицинское заключение серия",
+        "квартира",
+        "комната",
+        "отсутствие (наличие) медицинских ограничений",
+        "Обязательное медицинское освидетельствование проведено",
+        "Категории «С», «СЕ», «D», «DE»"
+      ],
+      "note": "The official PDF is a scan without a text layer. Text recognised by macOS Vision; fragments are regrouped into printed lines (top to bottom, left to right) and footnotes under the per-page limits of the blueprint are dropped. Span line indices count these regrouped lines of each PDF page from 0. Corrections listed here were reviewed against the scan."
+    }
+  },
+  "sections": [
+    {
+      "id": "organization",
+      "title": "Медицинская организация",
+      "description": "Наименование и адрес подставляются из настроек «Врач и организация».",
+      "fieldIds": [
+        "orgName",
+        "orgLicense",
+        "orgAddress",
+        "orgOkpo"
+      ]
+    },
+    {
+      "id": "certificate",
+      "title": "Серия и номер",
+      "description": "Формат «xx xxxxxxxxx»; серия включает код субъекта Российской Федерации.",
+      "fieldIds": [
+        "certSeries",
+        "certNumber",
+        "formDate"
+      ]
+    },
+    {
+      "id": "patient",
+      "title": "Освидетельствуемый",
+      "fieldIds": [
+        "patientFullName",
+        "patientBirthDate"
+      ]
+    },
+    {
+      "id": "residence",
+      "title": "Регистрация по месту жительства (пребывания)",
+      "fieldIds": [
+        "residenceSubject",
+        "residenceDistrict",
+        "residenceCity",
+        "residenceLocality",
+        "residenceStreet",
+        "residenceHouse",
+        "residenceBuilding",
+        "residenceCorpus",
+        "residenceApartment",
+        "residenceRoom"
+      ]
+    },
+    {
+      "id": "results",
+      "title": "Результаты осмотров и обследований",
+      "description": "Результат, фамилия и подпись врача-специалиста и печать — на бумаге.",
+      "fieldIds": [
+        "resultTherapist",
+        "resultOphthalmologist",
+        "resultPsychiatrist",
+        "resultNarcologist",
+        "resultNeurologist",
+        "resultOtolaryngologist",
+        "resultInstrumental",
+        "resultLaboratory"
+      ]
+    },
+    {
+      "id": "findings",
+      "title": "Выявлено",
+      "fieldIds": [
+        "contraindications",
+        "indications",
+        "restrictions",
+        "afterLicenseReturn"
+      ]
+    },
+    {
+      "id": "categories",
+      "title": "Категории и подкатегории транспортных средств, на управление которыми предоставляется специальное право",
+      "description": "Выбранное отмечается знаком «V», в иных графах ставится знак «Z».",
+      "fieldIds": [
+        "categoryA",
+        "categoryB",
+        "categoryC",
+        "categoryD",
+        "categoryBE",
+        "categoryCE",
+        "categoryDE",
+        "categoryTm",
+        "categoryTb",
+        "categoryM",
+        "categoryA1",
+        "categoryB1",
+        "categoryC1",
+        "categoryD1",
+        "categoryC1E",
+        "categoryD1E"
+      ]
+    },
+    {
+      "id": "restrictions",
+      "title": "Медицинские ограничения к управлению транспортным средством",
+      "fieldIds": [
+        "restrictionMotorcycle",
+        "restrictionCar",
+        "restrictionHeavy"
+      ]
+    },
+    {
+      "id": "indications",
+      "title": "Медицинские показания к управлению транспортным средством",
+      "fieldIds": [
+        "indicationManual",
+        "indicationAutomatic",
+        "indicationParking",
+        "indicationVision",
+        "indicationHearing"
+      ]
+    },
+    {
+      "id": "doctor",
+      "title": "Врач, выдавший заключение",
+      "description": "Подпись врача и печать организации ставятся на бумажной форме.",
+      "fieldIds": [
+        "doctorName"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "id": "orgName",
+      "label": "Наименование медицинской организации",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 300,
+      "prefill": {
+        "sources": [
+          "organization.name"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "5"
+        ],
+        "note": "У индивидуального предпринимателя в этой строке — его фамилия, имя, отчество (при наличии); адрес — по месту жительства (п. 5)."
+      }
+    },
+    {
+      "id": "orgLicense",
+      "label": "Лицензия",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 120,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "orgAddress",
+      "label": "Адрес",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 300,
+      "prefill": {
+        "sources": [
+          "organization.address"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "orgOkpo",
+      "label": "Код по ОКПО",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 20,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "5"
+        ]
+      }
+    },
+    {
+      "id": "certSeries",
+      "label": "Серия медицинского заключения",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "pattern": "^[0-9]{2}$",
+      "patternMessage": "Серия — две цифры (формат «xx xxxxxxxxx», п. 3)",
+      "maxLength": 2,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3"
+        ]
+      }
+    },
+    {
+      "id": "certNumber",
+      "label": "Номер медицинского заключения",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "pattern": "^[0-9]{9}$",
+      "patternMessage": "Номер — девять цифр (формат «xx xxxxxxxxx», п. 3)",
+      "maxLength": 9,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "3"
+        ]
+      }
+    },
+    {
+      "id": "patientFullName",
+      "label": "Фамилия, имя, отчество (при наличии)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "patient.fullName"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.1"
+        ]
+      }
+    },
+    {
+      "id": "patientBirthDate",
+      "label": "Дата рождения",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "notAfter": "today",
+      "prefill": {
+        "sources": [
+          "patient.birthDate"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.2"
+        ]
+      }
+    },
+    {
+      "id": "residenceSubject",
+      "label": "субъект Российской Федерации",
+      "type": "text",
+      "required": true,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.subject"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      },
+      "requiredBasis": "editorial"
+    },
+    {
+      "id": "residenceDistrict",
+      "label": "район",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.district"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceCity",
+      "label": "город",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceLocality",
+      "label": "населенный пункт",
+      "type": "text",
+      "required": true,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.locality"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      },
+      "requiredBasis": "editorial"
+    },
+    {
+      "id": "residenceStreet",
+      "label": "улица",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.street"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceHouse",
+      "label": "дом",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.house"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceBuilding",
+      "label": "строение",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.building"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceCorpus",
+      "label": "корпус",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceApartment",
+      "label": "квартира",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "prefill": {
+        "sources": [
+          "patient.address.apartment"
+        ]
+      },
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "residenceRoom",
+      "label": "комната",
+      "type": "text",
+      "required": false,
+      "maxLength": 120,
+      "rule": {
+        "status": "by-line",
+        "paragraphIds": [
+          "6.3"
+        ],
+        "note": "Пункт 6 (подпункт 3) называет строку 3 «Регистрация по месту жительства (пребывания)» целиком; её части (район, город, улица, дом и др.) порядок отдельно не определяет."
+      }
+    },
+    {
+      "id": "formDate",
+      "label": "Дата выдачи медицинского заключения",
+      "type": "date",
+      "required": true,
+      "requiredBasis": "source",
+      "prefill": {
+        "sources": [
+          "today"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.4"
+        ]
+      }
+    },
+    {
+      "id": "resultTherapist",
+      "label": "Осмотр врачом-терапевтом или осмотр врачом общей практики (семейным врачом)",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.5"
+        ]
+      }
+    },
+    {
+      "id": "resultOphthalmologist",
+      "label": "Осмотр врачом-офтальмологом",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.5"
+        ]
+      }
+    },
+    {
+      "id": "resultPsychiatrist",
+      "label": "Обследование врачом-психиатром",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.5"
+        ]
+      }
+    },
+    {
+      "id": "resultNarcologist",
+      "label": "Обследование врачом-психиатром-наркологом",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.5"
+        ]
+      }
+    },
+    {
+      "id": "resultNeurologist",
+      "label": "Осмотр врачом-неврологом",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.5"
+        ]
+      }
+    },
+    {
+      "id": "resultOtolaryngologist",
+      "label": "Осмотр врачом-оториноларингологом",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.5"
+        ]
+      }
+    },
+    {
+      "id": "resultInstrumental",
+      "label": "Инструментальное исследование",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.5"
+        ]
+      }
+    },
+    {
+      "id": "resultLaboratory",
+      "label": "Лабораторные исследования",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "multiline": true,
+      "maxLength": 600,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.5"
+        ]
+      }
+    },
+    {
+      "id": "contraindications",
+      "label": "отсутствие (наличие) медицинских противопоказаний к управлению транспортным средством",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "absent",
+          "label": "отсутствие"
+        },
+        {
+          "value": "present",
+          "label": "наличие"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.6"
+        ]
+      }
+    },
+    {
+      "id": "indications",
+      "label": "отсутствие (наличие) медицинских показаний к управлению транспортным средством",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "absent",
+          "label": "отсутствие"
+        },
+        {
+          "value": "present",
+          "label": "наличие"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.6"
+        ]
+      }
+    },
+    {
+      "id": "restrictions",
+      "label": "отсутствие (наличие) медицинских ограничений к управлению транспортным средством",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "absent",
+          "label": "отсутствие"
+        },
+        {
+          "value": "present",
+          "label": "наличие"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.6"
+        ]
+      }
+    },
+    {
+      "id": "afterLicenseReturn",
+      "label": "Обязательное медицинское освидетельствование проведено в связи с возвратом водительского удостоверения",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "yes",
+          "label": "да"
+        },
+        {
+          "value": "no",
+          "label": "нет"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.7"
+        ]
+      }
+    },
+    {
+      "id": "categoryA",
+      "label": "«A»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryB",
+      "label": "«B»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryC",
+      "label": "«C»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryD",
+      "label": "«D»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryBE",
+      "label": "«BE»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryCE",
+      "label": "«CE»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryDE",
+      "label": "«DE»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryTm",
+      "label": "«Tm»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryTb",
+      "label": "«Tb»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryM",
+      "label": "«M»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ],
+        "note": "Для категории «M» отметка делается по положениям пункта 7 статьи 25 Федерального закона от 10 декабря 1995 г. № 196-ФЗ (текст п. 6, подпункт 8)."
+      }
+    },
+    {
+      "id": "categoryA1",
+      "label": "«A1»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryB1",
+      "label": "«B1»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryC1",
+      "label": "«C1»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryD1",
+      "label": "«D1»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryC1E",
+      "label": "«C1E»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "categoryD1E",
+      "label": "«D1E»",
+      "type": "choice",
+      "required": true,
+      "requiredBasis": "source",
+      "options": [
+        {
+          "value": "V",
+          "label": "«V» — категория выбрана"
+        },
+        {
+          "value": "Z",
+          "label": "«Z» — иная категория"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.8"
+        ]
+      }
+    },
+    {
+      "id": "restrictionMotorcycle",
+      "label": "Категории «А» или «М», подкатегории «А1» или «В1» с мотоциклетной посадкой или рулем мотоциклетного типа",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "V",
+          "label": "отмечено знаком «V»"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6.9"
+        ]
+      }
+    },
+    {
+      "id": "restrictionCar",
+      "label": "Категории «В» или «ВЕ», подкатегории «В1» (кроме транспортного средства с мотоциклетной посадкой или рулем мотоциклетного типа)",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "V",
+          "label": "отмечено знаком «V»"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6.9"
+        ]
+      }
+    },
+    {
+      "id": "restrictionHeavy",
+      "label": "Категории «С», «СЕ», «D», «DE», «Tm» или «Tb», подкатегории «С1», «D1», «С1Е» или «D1E»",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "V",
+          "label": "отмечено знаком «V»"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6.9"
+        ]
+      }
+    },
+    {
+      "id": "indicationManual",
+      "label": "С ручным управлением",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "V",
+          "label": "отмечено знаком «V»"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6.10"
+        ]
+      }
+    },
+    {
+      "id": "indicationAutomatic",
+      "label": "С автоматической трансмиссией",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "V",
+          "label": "отмечено знаком «V»"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6.10"
+        ]
+      }
+    },
+    {
+      "id": "indicationParking",
+      "label": "Оборудованным акустической парковочной системой",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "V",
+          "label": "отмечено знаком «V»"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6.10"
+        ]
+      }
+    },
+    {
+      "id": "indicationVision",
+      "label": "С использованием водителем транспортного средства медицинских изделий для коррекции зрения",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "V",
+          "label": "отмечено знаком «V»"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6.10"
+        ]
+      }
+    },
+    {
+      "id": "indicationHearing",
+      "label": "С использованием водителем транспортного средства медицинских изделий для компенсации потери слуха",
+      "type": "choice",
+      "required": false,
+      "options": [
+        {
+          "value": "V",
+          "label": "отмечено знаком «V»"
+        }
+      ],
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6.10"
+        ]
+      }
+    },
+    {
+      "id": "doctorName",
+      "label": "Фамилия, имя, отчество (при наличии), подпись врача, выдавшего медицинское заключение",
+      "type": "text",
+      "required": true,
+      "requiredBasis": "source",
+      "maxLength": 200,
+      "prefill": {
+        "sources": [
+          "clinician.fullName"
+        ]
+      },
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "4",
+          "6.11"
+        ]
+      }
+    },
+    {
+      "id": "stamp",
+      "label": "МП",
+      "type": "stamp",
+      "required": false,
+      "rule": {
+        "status": "defined",
+        "paragraphIds": [
+          "6.11"
+        ]
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "3",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "text": "3. Серия и перечень номеров медицинских заключений, выдаваемых организациями, находящимися на территории субъекта Российской Федерации, определяются в соответствующем субъекте Российской Федерации на календарный год. Серия медицинского заключения включает в себя кодовое обозначение субъекта Российской Федерации в соответствии с Общероссийским классификатором объектов административно-территориального деления. Нумерация медицинских заключений должна быть сквозной, количество знаков в номере должно состоять из девяти разрядов, при этом серия и номер медицинского заключения записываются в формате «xx xxxxxxxxx», где «x» – цифра от 0 до 9. Проставление серии и номера медицинского заключения осуществляется одной из организаций, указанных в абзаце первом пункта 5 приложения № 1 к настоящему приказу. Дублирование сочетания серии и номера медицинского заключения не допускается.",
+      "spans": [
+        {
+          "pdfPage": 12,
+          "firstLine": 9,
+          "lastLine": 24
+        }
+      ],
+      "textSha256": "e0a2351367e8f936dfc83b476ff4f29a7aa1b0f791f65807ef4f95adba490c5e"
+    },
+    {
+      "id": "4",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "text": "4. Сведения в медицинское заключение должны быть внесены во все его строки и таблицы. В случае если внесение соответствующих сведений в ту или иную строку и таблицу медицинского заключения невозможно ввиду их отсутствия, в медицинском заключении делается запись «не установлено».",
+      "spans": [
+        {
+          "pdfPage": 12,
+          "firstLine": 25,
+          "lastLine": 28
+        }
+      ],
+      "textSha256": "47ae7d669984a27dfbc4da5259f17da84dfdd27bc7abc053c067cb635c54b582"
+    },
+    {
+      "id": "5",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "text": "5. В медицинском заключении указываются полное наименование организации, указанной в абзаце первом пункта 5 приложения № 1 к настоящему приказу, номер и дата выдачи лицензии на осуществление медицинской деятельности, адрес места нахождения указанной организации и код по Общероссийскому классификатору предприятий и организаций (ОКПО). В случае выдачи медицинского заключения индивидуальным предпринимателем, осуществляющим медицинскую деятельность, в медицинское заключение вписываются его фамилия, имя, отчество (при наличии), адрес, по которому индивидуальный предприниматель зарегистрирован по месту жительства в установленном законодательством Российской Федерации порядке.",
+      "spans": [
+        {
+          "pdfPage": 12,
+          "firstLine": 29,
+          "lastLine": 38
+        }
+      ],
+      "textSha256": "7bbfbaec04a768d85aeb21d766847e478d9725bef64403973b1ab96eb173f2ef"
+    },
+    {
+      "id": "6.1",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 1",
+      "text": "1) в строке 1 указываются фамилия, имя, отчество (при наличии) освидетельствуемого по данным документа, удостоверяющего личность;",
+      "spans": [
+        {
+          "pdfPage": 12,
+          "firstLine": 40,
+          "lastLine": 41
+        }
+      ],
+      "textSha256": "cc3f5819dae582ee11a22f32bf37df148cd748808daaff107eb6fee18acf7fb0"
+    },
+    {
+      "id": "6.2",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 2",
+      "text": "2) в строке 2 указывается дата рождения освидетельствуемого (число, месяц, год);",
+      "spans": [
+        {
+          "pdfPage": 13,
+          "firstLine": 1,
+          "lastLine": 2
+        }
+      ],
+      "textSha256": "a2da8afb0df8434228c9ff3cc89bdc4a33a86bf791498640591a4415043cb392"
+    },
+    {
+      "id": "6.3",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 3",
+      "text": "3) в строке 3 указываются сведения в соответствии с отметкой о месте жительства, сделанной в документе, удостоверяющем личность, или на основании иного документа, удостоверяющего регистрацию освидетельствуемого по месту пребывания или по месту жительства;",
+      "spans": [
+        {
+          "pdfPage": 13,
+          "firstLine": 3,
+          "lastLine": 6
+        }
+      ],
+      "textSha256": "cc21e64fff37550c47eade1f97271c8b2a74b7f6a0cbdeffd26d51fda45e4ef6"
+    },
+    {
+      "id": "6.4",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 4",
+      "text": "4) в строке 4 указывается дата выдачи медицинского заключения (число, месяц, год);",
+      "spans": [
+        {
+          "pdfPage": 13,
+          "firstLine": 7,
+          "lastLine": 8
+        }
+      ],
+      "textSha256": "6d5a79a3479f81d3a63922708b406e81ff013f73d1a557a9cba575c74dfb16f3"
+    },
+    {
+      "id": "6.5",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 5",
+      "text": "5) в строках таблицы «5.1. Результаты осмотров и обследований врачами-специалистами, инструментального и лабораторных исследований» указываются результаты осмотров и обследований врачами-специалистами, фамилия, имя, отчество (при наличии) врача-специалиста и его подпись, печать организации, в которой осмотр (обследование) врача-специалиста был проведен, а также результаты инструментального и лабораторных исследований в соответствии с профилем указанных врачей-специалистов;",
+      "spans": [
+        {
+          "pdfPage": 13,
+          "firstLine": 9,
+          "lastLine": 15
+        }
+      ],
+      "textSha256": "8c59abe2b3df596a3a5ac190b20ae2eeef5f25a49b6eb9b4cff136cbf9791edd"
+    },
+    {
+      "id": "6.6",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 6",
+      "text": "6) в строке 5.2 путем подчеркивания отмечается наличие или отсутствие у освидетельствуемого медицинских противопоказаний, медицинских показаний или медицинских ограничений к управлению транспортным средством;",
+      "spans": [
+        {
+          "pdfPage": 13,
+          "firstLine": 16,
+          "lastLine": 18
+        }
+      ],
+      "textSha256": "504365dc20551f65f209a4928d597ebf46463cee4735fc484376fa7b9de568b5"
+    },
+    {
+      "id": "6.7",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 7",
+      "text": "7) в строке 6 путем подчеркивания делается отметка о проведении обязательного медицинского освидетельствования водителей транспортных средств в связи с возвратом водительского удостоверения после истечения срока лишения права на управление транспортными средствами в случае, если прохождение обязательного медицинского освидетельствования требуется в соответствии с законодательством Российской Федерации об административных правонарушениях, либо в связи с возвратом водительского удостоверения после отбытия наказания в виде лишения права занимать определенные должности или заниматься определенной деятельностью (в случае лишения права на управление транспортными средствами);",
+      "spans": [
+        {
+          "pdfPage": 13,
+          "firstLine": 19,
+          "lastLine": 28
+        }
+      ],
+      "textSha256": "ee3cd266bc6f80d2d0f66655c39521de9a7bd3e1d2daeeb02b3921615a717f05"
+    },
+    {
+      "id": "6.8",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 8",
+      "text": "8) в соответствующих категориям и подкатегориям транспортных средств, на управление которыми предоставляется специальное право, графах таблицы «Категории и подкатегории транспортных средств, на управление которыми предоставляется специальное право» выбранное отмечается знаком «V», в иных графах указанной таблицы проставляется знак «Z». В графе указанной таблицы, соответствующей категории транспортных средств «M», отметка делается в соответствии с положениями пункта 7 статьи 25 Федерального закона от 10 декабря 1995 г. № 196-ФЗ «О безопасности дорожного движения»;",
+      "spans": [
+        {
+          "pdfPage": 13,
+          "firstLine": 29,
+          "lastLine": 37
+        }
+      ],
+      "textSha256": "bc4c972765fbfdec7ecc600b1ed643c173c1a2fadd6269f1a63da8499aea6636"
+    },
+    {
+      "id": "6.9",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 9",
+      "text": "9) в строках таблицы «Медицинские ограничения к управлению транспортным средством» выбранное отмечается знаком «V»;",
+      "spans": [
+        {
+          "pdfPage": 14,
+          "firstLine": 1,
+          "lastLine": 2
+        }
+      ],
+      "textSha256": "0250234e6ecf6c96b39fe71c40704c89033bcfa6e3cf903fcd4a14847d41e826"
+    },
+    {
+      "id": "6.10",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 10",
+      "text": "10) в строках таблицы «Медицинские показания к управлению транспортным средством» выбранное отмечается знаком «V»;",
+      "spans": [
+        {
+          "pdfPage": 14,
+          "firstLine": 3,
+          "lastLine": 4
+        }
+      ],
+      "textSha256": "c434ace862cb01d75f2a3b6cc54efafdb3efc022c3fec7de42b900b4dae171ec"
+    },
+    {
+      "id": "6.11",
+      "appendix": {
+        "number": 2,
+        "title": "Порядок выдачи медицинского заключения"
+      },
+      "clause": "6, подпункт 11",
+      "text": "11) в строке 7 указываются фамилия, имя, отчество (при наличии) врача, выдавшего медицинское заключение, и его подпись, печать организации, указанной в абзаце первом пункта 5 приложения № 1 к настоящему приказу.",
+      "spans": [
+        {
+          "pdfPage": 14,
+          "firstLine": 5,
+          "lastLine": 7
+        }
+      ],
+      "textSha256": "972667414bc049fc7aa64c749b3839257abbfbb40246563945e4d8ba8b6b011e"
+    }
+  ],
+  "layout": {
+    "page": {
+      "size": "A4",
+      "orientation": "portrait",
+      "marginMm": {
+        "top": 10,
+        "right": 9.1,
+        "bottom": 10,
+        "left": 18.1
+      },
+      "fontSizePt": 10.0,
+      "lineHeight": 1.1
+    },
+    "blocks": [
+      {
+        "id": "header",
+        "columns": [
+          {
+            "widthPercent": 38,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Наименование медицинской организации"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "orgName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Лицензия          "
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "orgLicense",
+                    "length": 25,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 2.57
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Адрес              "
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "orgAddress",
+                    "length": 25,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.56
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Код по ОКПО  "
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "orgOkpo",
+                    "length": 25,
+                    "grow": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "widthPercent": 58,
+            "align": "center",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинская документация"
+                  }
+                ],
+                "spaceBeforeMm": 13.7
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Форма № 003-В/у"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Утверждена приказом Министерства здравоохранения"
+                  }
+                ],
+                "spaceBeforeMm": 0.5
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Российской Федерации"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "от «"
+                  },
+                  {
+                    "kind": "rule",
+                    "length": 5
+                  },
+                  {
+                    "kind": "text",
+                    "text": "»"
+                  },
+                  {
+                    "kind": "rule",
+                    "length": 12
+                  },
+                  {
+                    "kind": "text",
+                    "text": "2021 г. №"
+                  },
+                  {
+                    "kind": "rule",
+                    "length": 5
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "title",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "center",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинское заключение серия",
+                    "bold": true
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "certSeries",
+                    "length": 8
+                  },
+                  {
+                    "kind": "text",
+                    "text": "№",
+                    "bold": true
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "certNumber",
+                    "length": 8
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 5.04
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "о наличии (об отсутствии) у водителей транспортных средств"
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 0.42
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "(кандидатов в водители транспортных средств) медицинских противопоказаний,"
+                  }
+                ],
+                "align": "center",
+                "bold": true,
+                "spaceBeforeMm": 0.56
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "медицинских показаний или медицинских ограничений"
+                  }
+                ],
+                "align": "center",
+                "bold": true
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "к управлению транспортными средствами"
+                  }
+                ],
+                "align": "center",
+                "bold": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "identity",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "1. Фамилия, имя, отчество (при наличии)"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientFullName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 4.88
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "2. Дата рождения:"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 7,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 11,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "patientBirthDate",
+                    "length": 11,
+                    "part": "year"
+                  }
+                ],
+                "spaceBeforeMm": 0.57
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "3. Регистрация по месту жительства (пребывания): субъект Российской Федерации"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceSubject",
+                    "length": 29,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "район"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceDistrict",
+                    "length": 40,
+                    "grow": true
+                  }
+                ],
+                "spaceBeforeMm": 0.75
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "город"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceCity",
+                    "length": 39,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "населенный пункт"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceLocality",
+                    "length": 39,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "улица"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceStreet",
+                    "length": 59,
+                    "grow": true
+                  },
+                  {
+                    "kind": "text",
+                    "text": "дом"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceHouse",
+                    "length": 11
+                  },
+                  {
+                    "kind": "text",
+                    "text": "строение"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceBuilding",
+                    "length": 11
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "корпус"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceCorpus",
+                    "length": 11
+                  },
+                  {
+                    "kind": "text",
+                    "text": "квартира"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceApartment",
+                    "length": 11
+                  },
+                  {
+                    "kind": "text",
+                    "text": "комната"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "residenceRoom",
+                    "length": 11
+                  }
+                ],
+                "spaceBeforeMm": 0.66
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "4. Дата выдачи медицинского заключения:"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "число"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 7,
+                    "part": "day"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "месяц"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 11,
+                    "part": "month"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "год"
+                  },
+                  {
+                    "kind": "field",
+                    "fieldId": "formDate",
+                    "length": 11,
+                    "part": "year"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "5.1. Результаты осмотров и обследований врачами-специалистами, инструментального и лабораторных исследований:"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "rows": [
+                      [
+                        {
+                          "text": "Осмотр врачом-терапевтом или осмотр врачом общей практики (семейным врачом)"
+                        },
+                        "resultTherapist"
+                      ],
+                      [
+                        {
+                          "text": "Осмотр врачом-офтальмологом"
+                        },
+                        "resultOphthalmologist"
+                      ],
+                      [
+                        {
+                          "text": "Обследование врачом-психиатром"
+                        },
+                        "resultPsychiatrist"
+                      ],
+                      [
+                        {
+                          "text": "Обследование врачом-психиатром-наркологом"
+                        },
+                        "resultNarcologist"
+                      ],
+                      [
+                        {
+                          "text": "Осмотр врачом-неврологом"
+                        },
+                        "resultNeurologist"
+                      ],
+                      [
+                        {
+                          "text": "Осмотр врачом-оториноларингологом"
+                        },
+                        "resultOtolaryngologist"
+                      ],
+                      [
+                        {
+                          "text": "Инструментальное исследование"
+                        },
+                        "resultInstrumental"
+                      ],
+                      [
+                        {
+                          "text": "Лабораторные исследования"
+                        },
+                        "resultLaboratory"
+                      ]
+                    ],
+                    "columnWeights": [
+                      1,
+                      1
+                    ],
+                    "rowHeightMm": 8.5
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "findings",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "5.2. Выявлено (нужное подчеркнуть):"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "options",
+                    "fieldId": "contraindications",
+                    "separator": " (",
+                    "codes": false,
+                    "mark": "underline"
+                  },
+                  {
+                    "kind": "text",
+                    "text": ") медицинских противопоказаний к управлению транспортным средством;",
+                    "joined": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "options",
+                    "fieldId": "indications",
+                    "separator": " (",
+                    "codes": false,
+                    "mark": "underline"
+                  },
+                  {
+                    "kind": "text",
+                    "text": ") медицинских показаний к управлению транспортным средством;",
+                    "joined": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "options",
+                    "fieldId": "restrictions",
+                    "separator": " (",
+                    "codes": false,
+                    "mark": "underline"
+                  },
+                  {
+                    "kind": "text",
+                    "text": ") медицинских ограничений к управлению транспортным средством.",
+                    "joined": true
+                  }
+                ],
+                "spaceBeforeMm": 0.64
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "6. Обязательное медицинское освидетельствование проведено в связи с возвратом водительского удостоверения:"
+                  }
+                ],
+                "align": "stretch"
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "options",
+                    "fieldId": "afterLicenseReturn",
+                    "separator": "/",
+                    "codes": false,
+                    "mark": "underline"
+                  },
+                  {
+                    "kind": "text",
+                    "text": "(нужное подчеркнуть)."
+                  }
+                ],
+                "spaceBeforeMm": 0.48
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "categories",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "center",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Категории и подкатегории транспортных средств, на управление"
+                  }
+                ],
+                "align": "center",
+                "bold": true
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "которыми предоставляется специальное право"
+                  }
+                ],
+                "align": "center",
+                "bold": true
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [
+                      [
+                        {
+                          "text": "«A»"
+                        },
+                        {
+                          "text": "«B»"
+                        },
+                        {
+                          "text": "«C»"
+                        },
+                        {
+                          "text": "«D»"
+                        },
+                        {
+                          "text": "«BE»"
+                        },
+                        {
+                          "text": "«CE»"
+                        },
+                        {
+                          "text": "«DE»"
+                        },
+                        {
+                          "text": "«Tm»"
+                        },
+                        {
+                          "text": "«Tb»"
+                        },
+                        {
+                          "text": "«M»"
+                        },
+                        {
+                          "text": "«A1»"
+                        },
+                        {
+                          "text": "«B1»"
+                        },
+                        {
+                          "text": "«C1»"
+                        },
+                        {
+                          "text": "«D1»"
+                        },
+                        {
+                          "text": "«C1E»"
+                        },
+                        {
+                          "text": "«D1E»"
+                        }
+                      ]
+                    ],
+                    "rows": [
+                      [
+                        "categoryA",
+                        "categoryB",
+                        "categoryC",
+                        "categoryD",
+                        "categoryBE",
+                        "categoryCE",
+                        "categoryDE",
+                        "categoryTm",
+                        "categoryTb",
+                        "categoryM",
+                        "categoryA1",
+                        "categoryB1",
+                        "categoryC1",
+                        "categoryD1",
+                        "categoryC1E",
+                        "categoryD1E"
+                      ]
+                    ],
+                    "rowHeightMm": 4.3
+                  }
+                ],
+                "spaceBeforeMm": 0.22
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинские ограничения к управлению транспортным средством"
+                  }
+                ],
+                "align": "center",
+                "bold": true
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "rows": [
+                      [
+                        {
+                          "text": "Категории «А» или «М», подкатегории «А1» или «В1» с мотоциклетной посадкой или рулем мотоциклетного типа"
+                        },
+                        "restrictionMotorcycle"
+                      ],
+                      [
+                        {
+                          "text": "Категории «В» или «ВЕ», подкатегории «В1» (кроме транспортного средства с мотоциклетной посадкой или рулем мотоциклетного типа)"
+                        },
+                        "restrictionCar"
+                      ],
+                      [
+                        {
+                          "text": "Категории «С», «СЕ», «D», «DE», «Tm» или «Tb», подкатегории «С1», «D1», «С1Е» или «D1E»"
+                        },
+                        "restrictionHeavy"
+                      ]
+                    ],
+                    "columnWeights": [
+                      7,
+                      1
+                    ],
+                    "rowHeightMm": 4.4
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "Медицинские показания к управлению транспортным средством"
+                  }
+                ],
+                "align": "center",
+                "bold": true
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "table",
+                    "header": [],
+                    "rows": [
+                      [
+                        {
+                          "text": "С ручным управлением"
+                        },
+                        "indicationManual"
+                      ],
+                      [
+                        {
+                          "text": "С автоматической трансмиссией"
+                        },
+                        "indicationAutomatic"
+                      ],
+                      [
+                        {
+                          "text": "Оборудованным акустической парковочной системой"
+                        },
+                        "indicationParking"
+                      ],
+                      [
+                        {
+                          "text": "С использованием водителем транспортного средства медицинских изделий для коррекции зрения"
+                        },
+                        "indicationVision"
+                      ],
+                      [
+                        {
+                          "text": "С использованием водителем транспортного средства медицинских изделий для компенсации потери слуха"
+                        },
+                        "indicationHearing"
+                      ]
+                    ],
+                    "columnWeights": [
+                      7,
+                      1
+                    ],
+                    "rowHeightMm": 4.4
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "signature",
+        "columns": [
+          {
+            "widthPercent": 100,
+            "align": "left",
+            "rows": [
+              {
+                "segments": [
+                  {
+                    "kind": "text",
+                    "text": "7. Фамилия, имя, отчество (при наличии), подпись врача, выдавшего медицинское заключение:"
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "field",
+                    "fieldId": "doctorName",
+                    "length": 40,
+                    "grow": true
+                  }
+                ]
+              },
+              {
+                "segments": [
+                  {
+                    "kind": "stamp",
+                    "fieldId": "stamp",
+                    "text": "МП"
+                  }
+                ],
+                "align": "right"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "notes": [
+    "Черновик для просмотра и печати на обычной бумаге. Пункт 7 Порядка выдачи (приложение № 2 к приказу № 1092н, стр. 14 PDF): бланк медицинского заключения — защищенная от подделок полиграфическая продукция уровня защищенности «В», изготавливаемая по единому образцу в соответствии с Техническими требованиями и условиями изготовления защищенной от подделок полиграфической продукции, утвержденными приказом Минфина России от 29 сентября 2020 г. № 217н. Распечатка из приложения — не бланк строгой отчетности и не заменяет его.",
+    "Бланк (приложение № 3) — один печатный лист. Официальный PDF разрывает его на двух страницах (стр. 15–16) только потому, что заголовок приложения «Приложение № 3 к приказу …» занимает верх страницы 15; на печати лист один, строки и таблицы идут в том же порядке.",
+    "Заполнение описано в приложении № 2 (Порядок выдачи): пункт 6 нумерует свои подпункты «1)» … «11)» (строки бланка 1–7); в схеме они записаны как 6.1 … 6.11 и в ссылках названы «п. 6, подпункт N». Общее требование пункта 4: сведения вносятся во все строки и таблицы, а при отсутствии сведений делается запись «не установлено»; поэтому поля строк и таблиц обязательны (basis = source), кроме отметок в таблицах «Медицинские ограничения» и «Медицинские показания» (подпункты 9–10: отмечается только выбранное) и частей адреса (район, город, улица и др. — их порядок отдельно не определяет; подставляются, если есть в карточке пациента). Незаполненные обязательные поля подсвечиваются, печать не блокируется.",
+    "Привязки: «населенный пункт» — patient.address.locality (приложение хранит одно поле населенного пункта; «город» остаётся пустым), «строение» — patient.address.building («строение/корпус»), «корпус», «комната» не подставляются. Адрес пациента — адрес регистрации по месту жительства; адрес по месту пребывания в строку 3 не подставляется.",
+    "Строка «от « » ____ 2021 г. №» в шапке («Утверждена приказом Министерства здравоохранения Российской Федерации …») на образце напечатана с пустыми линиями; порядок не говорит, что в них вписывать, поэтому они остаются пустыми линиями без поля.",
+    "Таблица «Категории и подкатегории…»: по подпункту 8 выбранное отмечается знаком «V», в иных графах ставится знак «Z»; для категории «M» — по пункту 7 статьи 25 Федерального закона № 196-ФЗ. Подписи 16 граф (одиночные буквы) сверены по скану вручную; категории записаны латинскими буквами (одинаковое начертание с кириллическими не различимо на скане).",
+    "Приложение № 3 к приказу содержит также рекомендуемый образец журнала регистрации выданных заключений (стр. 17 PDF, приложение к Порядку выдачи) — это не бланк заключения и в схему не входит. Приложение № 1 (стр. 4–10) — порядок освидетельствования, не форма.",
+    "Поля, которые порядок не определяет (rule.status = undefined): ."
+  ]
+}
