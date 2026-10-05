@@ -2,27 +2,34 @@
 # requires-python = ">=3.11"
 # dependencies = ["numpy>=2", "sentence-transformers>=3.4", "torch>=2.4"]
 # ///
-"""Replace the development feature-hash vectors of the released КР modules with e5-small vectors.
+"""Give released modules e5-small passage vectors (STATE E2/E3, ADR 0008).
 
-Local-only build stage (STATE E2, ADR 0008). Input is the published framed-zstd index of every
-single-recommendation module in the catalog (`minimed.clinical.recommendation.*`), found by the
-file name of its catalog URL in one of `--source` directories and checked against the catalog
-`sha256`. Each index is decoded into `--out`; inside that copy only `embedding_profiles` and
-`chunk_embeddings` change (one profile, one vector per chunk). Documents, sections, chunks, FTS and
-`content_packs` stay byte-identical in content. Run `scripts/reframe-module-indexes.ts` afterwards.
+Local-only build stage. `--family clinical`: every chunk of the single-recommendation modules
+(`minimed.clinical.recommendation.*`), replacing the feature-hash scaffold. `--family medications`:
+only the indication sections («Показания», «Показания к применению», section type `indications`)
+of the ГРЛС instruction modules and the Allmed module, which is what a query such as «таблетки от
+головы» needs. Input is the published framed-zstd index of each module, found by the file name of
+its catalog URL in one of `--source` directories and checked against the catalog `sha256`. Each
+index is decoded into `--out`; inside that copy only `embedding_profiles` and `chunk_embeddings`
+change. Documents, sections, chunks, FTS and `content_packs` keep their content. Run
+`scripts/reframe-modules-e5.ts` afterwards.
 
 Passage text matches the measured E1 setup (docs/research/embeddings-kr-2026-10-02.md):
 `"passage: " + title + ". " + section path + ". " + chunk text`, cut to 1 200 characters and
-256 tokens, mean-pooled, L2-normalised, then the ADR 0008 int8 quantisation (×127, round half
+256 tokens, mean-pooled, L2-normalised, then the ADR 0008 int8 quantisation (times 127, round half
 away from zero). The app embeds queries as `"query: " + text` with the ONNX export of the same
 model (`apps/app/src/features/semantic/e5-model.ts`).
 
-    uv run tools/ingest/scripts/embed_clinical_modules_e5.py \\
+    uv run tools/ingest/scripts/embed_modules_e5.py --family clinical \\
       --source output/module-zstd-2026-10-01/clinical-compacted \\
       --source data/build/official-clinical-2026-10-02/zst \\
       --out data/build/clinical-e5/decoded
 
-Encoding runs in shards saved as they finish (`--out/../shards`), so a stopped run resumes.
+    uv run tools/ingest/scripts/embed_modules_e5.py --family medications \\
+      --source data/build/grls-instruction-modules/zst --source data/build/allmed-module/zst \\
+      --out data/build/drug-e5/decoded
+
+Encoding runs in shards saved as they finish (`--out/../shards-<family>`), so a stopped run resumes.
 """
 
 from __future__ import annotations
@@ -40,7 +47,14 @@ import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 CATALOG = REPO_ROOT / "apps/app/src/features/modules/catalog.preview.json"
-ID_PREFIX = "minimed.clinical.recommendation."
+FAMILIES = {
+    "clinical": {"ids": ("minimed.clinical.recommendation.",), "chunks": ""},
+    "medications": {
+        "ids": ("minimed.medications.instructions.", "minimed.medications.ru"),
+        "chunks": """WHERE s.section_type = 'indications'
+               OR s.title IN ('Показания', 'Показания к применению', 'ПОКАЗАНИЯ К ПРИМЕНЕНИЮ')""",
+    },
+}
 
 MODEL = "intfloat/multilingual-e5-small"
 MODEL_REVISION = "614241f622f53c4eeff9890bdc4f31cfecc418b3"
@@ -75,12 +89,15 @@ def sha256(path: Path) -> str:
     return f"sha256:{digest.hexdigest()}"
 
 
-def released_modules(sources: list[Path]) -> list[tuple[str, Path, str]]:
-    """(module id, local archive, catalog sha256) of every released single-КР index."""
+def released_modules(family: str, sources: list[Path]) -> list[tuple[str, Path, str]]:
+    """(module id, local archive, catalog sha256) of every released index of the family."""
     catalog = json.loads(CATALOG.read_text())
     found: list[tuple[str, Path, str]] = []
     for module in catalog["modules"]:
-        if not module["id"].startswith(ID_PREFIX):
+        if not any(
+            module["id"] == prefix or module["id"].startswith(prefix)
+            for prefix in FAMILIES[family]["ids"]
+        ):
             continue
         artifact = next((a for a in module.get("artifacts", []) if a["kind"] == "index"), None)
         if not artifact or artifact.get("compression") != "zstd":
@@ -111,14 +128,15 @@ def decode(modules: list[tuple[str, Path, str]], out: Path) -> list[Path]:
     return decoded
 
 
-def passages(path: Path) -> list[tuple[str, str]]:
+def passages(path: Path, chunk_filter: str) -> list[tuple[str, str]]:
     db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     rows = db.execute(
-        """SELECT c.id, d.title, s.path_json, c.original_text
+        f"""SELECT c.id, d.title, s.path_json, c.original_text
              FROM chunks c
              JOIN document_versions v ON v.id = c.document_version_id
              JOIN documents d ON d.id = v.document_id
              JOIN sections s ON s.id = c.section_id
+             {chunk_filter}
             ORDER BY c.id"""
     ).fetchall()
     db.close()
@@ -191,7 +209,8 @@ def write_vectors(path: Path, chunk_ids: list[str], vectors: np.ndarray) -> None
             ),
         )
         db.executemany(
-            "INSERT INTO chunk_embeddings(profile_id, chunk_id, vector, vector_norm) VALUES (?, ?, ?, ?)",
+            "INSERT INTO chunk_embeddings(profile_id, chunk_id, vector, vector_norm)"
+            " VALUES (?, ?, ?, ?)",
             (
                 (
                     PROFILE["id"],
@@ -211,17 +230,19 @@ def write_vectors(path: Path, chunk_ids: list[str], vectors: np.ndarray) -> None
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    parser.add_argument("--family", choices=sorted(FAMILIES), required=True)
     parser.add_argument("--source", type=Path, action="append", required=True)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
 
-    modules = released_modules(args.source)
+    family = FAMILIES[args.family]
+    modules = released_modules(args.family, args.source)
     databases = decode(modules, args.out)
     print(f"decoded: {len(databases)} modules → {args.out}", flush=True)
 
-    per_module = [passages(path) for path in databases]
+    per_module = [passages(path, family["chunks"]) for path in databases]
     texts = [text for rows in per_module for _, text in rows]
-    vectors = quantize(encode(texts, args.out.parent / "shards"))
+    vectors = quantize(encode(texts, args.out.parent / f"shards-{args.family}"))
     if len(vectors) != len(texts):
         raise SystemExit(f"{len(vectors)} vectors for {len(texts)} passages: remove stale shards")
 
@@ -233,7 +254,7 @@ def main() -> None:
         )
         offset += len(rows)
         report.append({"file": path.name, "chunks": len(rows), "bytes": path.stat().st_size})
-    (args.out.parent / "embed-report.json").write_text(
+    (args.out.parent / f"embed-report-{args.family}.json").write_text(
         json.dumps(
             {"profile": PROFILE, "modules": len(report), "chunks": offset, "files": report},
             ensure_ascii=False,

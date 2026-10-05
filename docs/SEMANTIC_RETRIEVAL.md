@@ -61,9 +61,9 @@ and fallback behavior. It is **not** evidence of medical semantic understanding.
 | Packs | the 774 single-КР modules, mirror tag `clinical-e5-2026.10.05` (95 827 chunks) |
 | Download | optional, Settings → «Поиск по смыслу», 135 MB, IndexedDB, SHA-256 per file |
 
-Build: `uv run tools/ingest/scripts/embed_clinical_modules_e5.py` (decodes the published modules,
+Build: `uv run tools/ingest/scripts/embed_modules_e5.py` (decodes the published modules,
 checks their catalog SHA-256, replaces only `embedding_profiles`/`chunk_embeddings`), then
-`bun scripts/reframe-clinical-e5.ts` (framed zstd, new tag, catalog URLs/checksums, version `.e5`).
+`bun scripts/reframe-modules-e5.ts` (framed zstd, new tag, catalog URLs/checksums, version `.e5`).
 The vectors add 31 MB (657 → 688 MB) to the whole КР download because dense e5 vectors compress
 worse than the sparse feature-hash ones.
 

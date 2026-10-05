@@ -504,12 +504,12 @@
     {
       "path": "output/module-zstd-e5-2026-10-05",
       "class": "REBUILDABLE",
-      "producer": "STATE E2: tools/ingest/scripts/embed_clinical_modules_e5.py then scripts/reframe-clinical-e5.ts",
+      "producer": "STATE E2: tools/ingest/scripts/embed_modules_e5.py then scripts/reframe-modules-e5.ts",
       "consumers": [
         "catalog.preview.json minimed.clinical.recommendation.* (tag clinical-e5-2026.10.05)",
         "apps/app/e2e/clinical-module-fixture.ts, module-pointer.spec.ts"
       ],
-      "rebuild": "uv run tools/ingest/scripts/embed_clinical_modules_e5.py --source <published zstd dirs> --out data/build/clinical-e5/decoded; bun scripts/reframe-clinical-e5.ts --decoded-dir data/build/clinical-e5/decoded --out-dir output/module-zstd-e5-2026-10-05 --tag clinical-e5-2026.10.05",
+      "rebuild": "uv run tools/ingest/scripts/embed_modules_e5.py --family clinical --source <published zstd dirs> --out data/build/clinical-e5/decoded; bun scripts/reframe-modules-e5.ts --family clinical --decoded-dir data/build/clinical-e5/decoded --out-dir output/module-zstd-e5-2026-10-05 --tag clinical-e5-2026.10.05",
       "note": "774 single-КР modules with e5-small passage vectors; published 2026-10-05 to datasets/clinical-e5-2026.10.05; kept as the local release copy.",
       "bytes": 688576048,
       "modified": "2026-10-05"
