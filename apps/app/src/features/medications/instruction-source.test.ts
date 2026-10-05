@@ -5,8 +5,11 @@ import {
   instructionIndexFromDocuments,
   instructionKindLabel,
   instructionKindOf,
+  instructionMatchLevel,
   instructionModuleIdForSubstanceModule,
   instructionRegistrations,
+  instructionSourceClassIndex,
+  instructionSourceClassOf,
   instructionSourceInfo,
   instructionTextQuality,
 } from './instruction-source';
@@ -175,6 +178,104 @@ describe('instructionTextQuality / instructionSourceInfo', () => {
         metadata: { officialSourceUrl: 'javascript:alert(1)' },
       })?.sourceUrl,
     ).toBeNull();
+  });
+});
+
+describe('manufacturer-site documents (M1, ADR-0023)', () => {
+  const holderSite = {
+    sourceClass: 'manufacturer-site',
+    publisher: 'АО «ВЕРТЕКС»',
+    documentKind: 'national-instruction',
+    officialSourceUrl: 'https://vertex.spb.ru/upload/a.pdf',
+    registrationNumber: 'ЛП-№(003754)-(РГ-RU)',
+    matchLevel: 'label-unique',
+    registrationMatches: [
+      { registrationNumber: 'ЛП-№(003754)-(РГ-RU)', matchLevel: 'text-number' },
+      { registrationNumber: 'ЛП-№(003755)-(РГ-RU)', matchLevel: 'label-unique' },
+    ],
+  };
+
+  it('knows the source class and defaults to a ГРЛС file', () => {
+    expect(instructionSourceClassOf(holderSite)).toBe('manufacturer-site');
+    expect(instructionSourceClassOf({ documentKind: 'leaflet' })).toBe('grls');
+    expect(instructionSourceClassOf(undefined)).toBe('grls');
+  });
+
+  it('reads the match of the registration shown, else the weakest level of the document', () => {
+    expect(instructionMatchLevel(holderSite, 'ЛП-№(003754)-(РГ-RU)')).toBe('text-number');
+    expect(instructionMatchLevel(holderSite, 'ЛП-№(003755)-(РГ-RU)')).toBe('label-unique');
+    expect(instructionMatchLevel(holderSite, 'ЛП-другое')).toBe('label-unique');
+    expect(instructionMatchLevel({ matchLevel: 'invented' })).toBeNull();
+  });
+
+  it('puts the holder and the match method in the source block', () => {
+    const info = instructionSourceInfo(
+      { sourceType: INSTRUCTION, metadata: holderSite },
+      'ЛП-№(003755)-(РГ-RU)',
+    );
+    expect(info).toMatchObject({
+      sourceClass: 'manufacturer-site',
+      publisher: 'АО «ВЕРТЕКС»',
+      matchLevel: 'label-unique',
+      kindLabel: 'Инструкция по медицинскому применению',
+    });
+    expect(info?.matchNote).toContain('номер регистрации в документе не напечатан');
+    const strict = instructionSourceInfo(
+      { sourceType: INSTRUCTION, metadata: holderSite },
+      'ЛП-№(003754)-(РГ-RU)',
+    );
+    expect(strict?.matchNote).toContain('напечатанному в самом документе');
+  });
+
+  it('shows no holder or match for a ГРЛС file', () => {
+    const info = instructionSourceInfo({
+      sourceType: INSTRUCTION,
+      metadata: {
+        documentKind: 'leaflet',
+        publisher: 'не должно показаться',
+        matchLevel: 'text-number',
+      },
+    });
+    expect(info).toMatchObject({ sourceClass: 'grls', publisher: null, matchLevel: null });
+    expect(info?.matchNote).toBeNull();
+  });
+
+  it('a ГРЛС file outranks a holder site for the same registration, whatever the kind', () => {
+    const documents = [
+      {
+        id: 'site.ohlp',
+        sourceType: INSTRUCTION,
+        metadata: {
+          registrationNumber: 'ЛП-1',
+          sourceClass: 'manufacturer-site',
+          documentKind: 'ohlp',
+        },
+      },
+      {
+        id: 'grls.leaflet',
+        sourceType: INSTRUCTION,
+        metadata: { registrationNumber: 'ЛП-1', documentKind: 'leaflet' },
+      },
+      {
+        id: 'site.only',
+        sourceType: INSTRUCTION,
+        metadata: { registrationNumber: 'ЛП-2', sourceClass: 'manufacturer-site' },
+      },
+    ];
+    expect(instructionIndexFromDocuments(documents).get('ЛП-1')).toBe('grls.leaflet');
+    expect(instructionIndexFromDocuments(documents).get('ЛП-2')).toBe('site.only');
+    const classes = instructionSourceClassIndex(documents);
+    expect(classes.get('ЛП-1')).toBe('grls');
+    expect(classes.get('ЛП-2')).toBe('manufacturer-site');
+  });
+
+  it("names an unclassified holder document as the holder's instruction", () => {
+    expect(
+      instructionSourceInfo({
+        sourceType: INSTRUCTION,
+        metadata: { sourceClass: 'manufacturer-site' },
+      })?.kindLabel,
+    ).toBe('Инструкция производителя');
   });
 });
 

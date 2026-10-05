@@ -22,8 +22,14 @@ import {
 } from '@/features/medications/clinical-medication-links';
 import {
   instructionIndexFromSummaries,
+  instructionSourceClassIndexFromSummaries,
   isEsklpSubstanceDocument,
 } from '@/features/medications/drug-screen';
+import {
+  EMPTY_SUBSTANCE_FALLBACK,
+  productWithInstructionFallback,
+  sameInstructionSlot,
+} from '@/features/medications/instruction-fallback';
 import {
   type InstructionModuleOffer,
   instructionModuleOffer,
@@ -38,9 +44,11 @@ import {
   type MedicationReadingMode,
   medicationReadingChoices,
   mergeAllmedSupplementalText,
+  parseEsklpMedicationProducts,
   parseTradeNameSupplement,
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
+import { loadSubstanceFallback } from '@/features/medications/substance-fallback';
 import {
   type ClinicalEditionLink,
   clinicalEditionNotice,
@@ -222,6 +230,35 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const list = await (core.listNavigationDocuments?.() ?? core.listDocuments());
     if (!list.ok) throw new Error(list.error.message);
     return list.value;
+  };
+
+  /**
+   * The product with its instruction resolved against what is installed now: its own text, else
+   * another registration's text of the same МНН (ADR-0023), else none. A missing or malformed
+   * fallback asset only means no fallback.
+   */
+  const resolveProductInstruction = async (
+    product: MedicationProduct,
+    source: MedicalDocument,
+    listed: readonly MedicalDocumentSummary[],
+  ): Promise<MedicationProduct> => {
+    if (product.sourceKind !== 'esklp' || !isEsklpSubstanceDocument(source)) return product;
+    const asset = await loadSubstanceFallback().catch((cause: unknown) => {
+      console.error('Не удалось загрузить сопоставление инструкций по веществу.', cause);
+      return EMPTY_SUBSTANCE_FALLBACK;
+    });
+    const index = instructionIndexFromSummaries(listed);
+    const resolved = productWithInstructionFallback({
+      product,
+      cardProducts: parseEsklpMedicationProducts(
+        source,
+        index,
+        instructionSourceClassIndexFromSummaries(listed),
+      ),
+      asset,
+      instructionIndex: index,
+    });
+    return sameInstructionSlot(resolved, product) ? product : resolved;
   };
 
   const loadOfficial = async (parsed: DocumentReadRoute & { kind: 'official' }): Promise<void> => {
@@ -426,6 +463,23 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
         );
         if (!current()) return;
         setSupplementalPanels(supplements);
+        if (selectedMedicationProduct) {
+          const resolved = await resolveProductInstruction(
+            selectedMedicationProduct,
+            result.value,
+            listed,
+          );
+          if (!current()) return;
+          const shown = medicationProduct();
+          if (
+            resolved !== selectedMedicationProduct &&
+            shown?.registrationNumber === resolved.registrationNumber &&
+            shown.tradeName === resolved.tradeName
+          ) {
+            setMedicationProduct(resolved);
+            rememberMedicationProduct(result.value.id, resolved);
+          }
+        }
       }
       let currentTrail = trail();
       if (currentTrail) {
@@ -492,21 +546,31 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
     const core = props.getCore();
     if (!core || !isEsklpSubstanceDocument(source)) return;
     try {
+      let shown = next;
+      if (next) {
+        const resolved = await resolveProductInstruction(next, source, availableDocuments());
+        if (generation !== productSwitchGeneration || document()?.id !== source.id) return;
+        if (resolved !== next) {
+          shown = resolved;
+          setMedicationProduct(resolved);
+          rememberMedicationProduct(source.id, resolved);
+        }
+      }
       const supplements = await loadTradeNameSupplements(
         core,
         availableDocuments(),
         source.id,
-        next?.tradeName,
-        next,
+        shown?.tradeName,
+        shown,
       );
       if (generation !== productSwitchGeneration || document()?.id !== source.id) return;
       setSupplementalPanels(supplements);
-      if (!next) return;
+      if (!shown) return;
       const merged = mergeAllmedSupplementalText(
-        next,
+        shown,
         supplements.map((supplement) => supplement.product),
       );
-      if (merged === next) return;
+      if (merged === shown) return;
       setMedicationProduct(merged);
       rememberMedicationProduct(source.id, merged);
     } catch (cause) {
@@ -594,14 +658,16 @@ export function DocumentPageHost(props: DocumentPageHostProps): JSX.Element {
       const list = await core.listDocuments();
       if (!list.ok) throw new Error(list.error.message);
       setAvailableDocuments(list.value);
-      const instructionId =
-        instructionIndexFromSummaries(list.value).get(product.registrationNumber) ?? null;
+      let next = await resolveProductInstruction(product, source, list.value);
+      if (!next.instructionDocumentId) {
+        const own = instructionIndexFromSummaries(list.value).get(product.registrationNumber);
+        if (own) next = { ...next, instructionDocumentId: own };
+      }
       setInstructionOffer(null);
-      if (!instructionId) {
+      if (!next.instructionDocumentId) {
         toast.info('В скачанном наборе нет официальной инструкции для этого препарата.');
         return;
       }
-      const next: MedicationProduct = { ...product, instructionDocumentId: instructionId };
       setMedicationProduct(next);
       rememberMedicationProduct(source.id, next);
       await changeMedicationReadingMode('instruction');

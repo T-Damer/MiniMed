@@ -6,7 +6,10 @@
 import type { MedicalDocument, MedicalDocumentSummary, MedicalSection } from '@localmed/contracts';
 
 import { type AtcLevel, atcGroupChain, normalizeAtcCode } from '@/features/medications/atc-code';
-import { instructionIndexFromDocuments } from '@/features/medications/instruction-source';
+import {
+  instructionIndexFromDocuments,
+  instructionSourceClassIndex,
+} from '@/features/medications/instruction-source';
 import type {
   MedicationProduct,
   TradeNameSupplement,
@@ -107,6 +110,13 @@ export function instructionIndexFromSummaries(
   summaries: readonly Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>[],
 ): ReadonlyMap<string, string> {
   return instructionIndexFromDocuments(summaries);
+}
+
+/** Registration number → whether the indexed document is a ГРЛС file or a holder's own text. */
+export function instructionSourceClassIndexFromSummaries(
+  summaries: readonly Pick<MedicalDocumentSummary, 'id' | 'sourceType' | 'metadata'>[],
+): ReturnType<typeof instructionSourceClassIndex> {
+  return instructionSourceClassIndex(summaries);
 }
 
 export function isEsklpSubstanceDocument(document: Pick<MedicalDocument, 'metadata'>): boolean {

@@ -161,6 +161,21 @@ describe('parseMedicationProduct', () => {
       initialMode: 'instruction',
       note: 'Для этого препарата есть только официальная инструкция.',
     });
+    const withFallback = {
+      ...withInstruction,
+      instructionFallback: {
+        level: 1 as const,
+        flags: 0,
+        registrationNumber: 'ЛП-1',
+        tradeName: 'Донор',
+        holder: null,
+        dosageForm: null,
+        strength: null,
+      },
+    };
+    expect(medicationReadingChoices(withFallback, 'drug.allmed.12').note).toContain(
+      'инструкция другого производителя',
+    );
   });
 
   it('expands one ESKLP MNN document into exact TN, form, strength, and KLP variants', () => {

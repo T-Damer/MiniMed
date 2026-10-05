@@ -760,6 +760,85 @@
   font-weight: 600;
 }
 
+.document-instruction-source__match {
+  margin: 0;
+  color: var(--theme-text, var(--ink));
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+/* Another registration's text (ADR-0023): the label, the warnings and the donor product. */
+.document-instruction-fallback {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--theme-border, var(--paper-line));
+  border-left: 0.3rem solid var(--theme-accent, currentColor);
+  border-radius: 0.75rem;
+  background: var(--theme-surface-muted, var(--paper-surface));
+}
+
+.document-instruction-fallback--warned {
+  border-left-color: var(--theme-warning);
+}
+
+.document-instruction-fallback__label {
+  margin: 0;
+  color: var(--theme-text, var(--ink));
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.document-instruction-fallback__warnings {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.5rem;
+  list-style: none;
+  background: var(--theme-warning-soft);
+}
+
+.document-instruction-fallback__warning {
+  color: var(--theme-text, var(--ink));
+  font-size: var(--type-small, 0.875rem);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.document-instruction-fallback__facts {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+}
+
+.document-instruction-fallback__fact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.5rem;
+}
+
+.document-instruction-fallback__term {
+  color: var(--theme-text-muted, var(--ink-muted));
+  font-size: var(--type-small, 0.875rem);
+}
+
+.document-instruction-fallback__value {
+  margin: 0;
+  color: var(--theme-text, var(--ink));
+  font-size: var(--type-small, 0.875rem);
+  overflow-wrap: anywhere;
+}
+
+.document-instruction-fallback__note {
+  margin: 0;
+  color: var(--theme-text-muted, var(--ink-muted));
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
 /* The panel sits on the muted surface; the switch track needs its own ground to stay visible. */
 .document-medication-product__reading-switch {
   background: var(--theme-surface);

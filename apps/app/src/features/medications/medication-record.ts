@@ -1,6 +1,7 @@
 import type { MedicalDocument } from '@localmed/contracts';
 
 import { allmedMatchesProduct } from '@/features/medications/allmed-matching';
+import type { InstructionSourceClass } from '@/features/medications/instruction-source';
 
 export interface MedicationPackage {
   readonly description: string;
@@ -14,11 +15,35 @@ export interface MedicationPresentation {
   readonly packages: readonly MedicationPackage[];
 }
 
+/**
+ * Another registration of the same МНН whose instruction document stands in for a product that has
+ * none of its own (ADR-0023). Every field is a fact of the donor registration as the registry
+ * states it; `level` and `flags` come from the build-time matching asset.
+ */
+export interface InstructionFallbackSource {
+  /** 1: same form and strength; 2: same form class, see `flags`. */
+  readonly level: 1 | 2;
+  /** Bit set of `FALLBACK_FLAG_*`: what differs from the product (level 2 only). */
+  readonly flags: number;
+  readonly registrationNumber: string;
+  readonly tradeName: string;
+  readonly holder: string | null;
+  readonly dosageForm: string | null;
+  readonly strength: string | null;
+}
+
 export interface MedicationProduct {
   readonly sourceKind: 'allmed' | 'esklp' | 'grls';
   readonly registrationDocumentId: string;
   readonly grlsRegistrationDocumentId: string | null;
+  /**
+   * The document of the «Инструкция» tab. Its own registration's text, or — when
+   * `instructionFallback` is set — another registration's text. Never both at once.
+   */
   readonly instructionDocumentId: string | null;
+  /** Present only for a document from a holder's own site; absent means a ГРЛС file. */
+  readonly instructionSourceClass?: InstructionSourceClass;
+  readonly instructionFallback?: InstructionFallbackSource;
   readonly mnnDocumentId: string | null;
   readonly linkedMnnDocumentId: string | null;
   readonly smnnCode: string | null;
@@ -284,6 +309,7 @@ function addEsklpKlpPosition(variant: EsklpVariant, position: MedicationRecord):
 export function parseEsklpMedicationProducts(
   document: MedicalDocument,
   instructions: ReadonlyMap<string, string> = new Map(),
+  instructionSourceClasses: ReadonlyMap<string, InstructionSourceClass> = new Map(),
 ): readonly MedicationProduct[] {
   const metadata = document.metadata as MedicationMetadata;
   if (metadata.contentMode !== 'esklp-mnn') return [];
@@ -365,6 +391,10 @@ export function parseEsklpMedicationProducts(
     registrationDocumentId: document.id,
     grlsRegistrationDocumentId: null,
     instructionDocumentId: variant.instructionDocumentId,
+    ...(variant.instructionDocumentId &&
+    instructionSourceClasses.get(variant.registrationNumber) === 'manufacturer-site'
+      ? { instructionSourceClass: 'manufacturer-site' as const }
+      : {}),
     mnnDocumentId: document.id,
     linkedMnnDocumentId: null,
     smnnCode: variant.smnnCode,
@@ -638,6 +668,9 @@ export function readableMedicationDocumentId(product: MedicationProduct): string
 
 export type MedicationReadingMode = 'short' | 'instruction';
 
+const FALLBACK_READING_NOTE =
+  'Собственной инструкции этого препарата в установленных базах нет: во вкладке — инструкция другого производителя (то же вещество).';
+
 export interface MedicationReadingChoices {
   readonly options: readonly {
     readonly value: MedicationReadingMode;
@@ -668,8 +701,10 @@ export function medicationReadingChoices(
     initialMode: hasShort ? 'short' : 'instruction',
     note: !hasInstruction
       ? 'Официальной инструкции для этого препарата нет в установленных базах.'
-      : !hasShort
-        ? 'Для этого препарата есть только официальная инструкция.'
-        : null,
+      : product.instructionFallback
+        ? FALLBACK_READING_NOTE
+        : !hasShort
+          ? 'Для этого препарата есть только официальная инструкция.'
+          : null,
   };
 }

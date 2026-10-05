@@ -15,6 +15,9 @@ const ROOT = resolve(import.meta.dirname, '../../..');
 export const MEDICATION_MODULE_ID = 'minimed.medications.antiparasitic.ru';
 const PUBLISHED_DIRECTORY = 'output/module-zstd-2026-10-01/esklp-compacted';
 const POINTER = 'core.catalog.pointer.medication.esklp.mnn.албендазол-062d3e89c1c0b8dd';
+export const INSTRUCTION_MODULE_ID = 'minimed.medications.instructions.antiparasitic.ru';
+const INSTRUCTION_DIRECTORY =
+  'output/module-zstd-drug-e5-2026-10-05/grls-instructions-2026.10.05-056961ab2b54-e5';
 
 const documentRoute = (id: string) =>
   `${E2E_ASSET_ORIGIN}/#/modules/documents/d/${Buffer.from(id).toString('base64url')}`;
@@ -31,6 +34,30 @@ export async function routeMedicationModule(page: Page): Promise<void> {
   if (!artifact?.url) throw new Error('Missing medication module artifact');
   const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
   const localPath = resolve(ROOT, PUBLISHED_DIRECTORY, fileName);
+  test.skip(!existsSync(localPath), `The published module file ${fileName} is local-only.`);
+  const bytes = await readFile(localPath);
+  expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);
+  await page.route(
+    (url) => url.pathname.endsWith(`/${fileName}`),
+    (request) => request.fulfill({ body: bytes, contentType: 'application/zstd' }),
+  );
+}
+
+/**
+ * Serves the antiparasitic ГРЛС instruction module's published bytes (the local release copy), the
+ * module the drug screen offers when a product has no text; call before mounting. Skips when absent.
+ */
+export async function routeInstructionModule(page: Page): Promise<void> {
+  const catalog = ContentModuleCatalogSchema.parse(
+    JSON.parse(
+      await readFile(resolve(ROOT, 'apps/app/src/features/modules/catalog.preview.json'), 'utf8'),
+    ),
+  );
+  const artifact = catalog.modules.find((module) => module.id === INSTRUCTION_MODULE_ID)
+    ?.artifacts[0];
+  if (!artifact?.url) throw new Error('Missing instruction module artifact');
+  const fileName = new URL(artifact.url).pathname.split('/').at(-1) ?? '';
+  const localPath = resolve(ROOT, INSTRUCTION_DIRECTORY, fileName);
   test.skip(!existsSync(localPath), `The published module file ${fileName} is local-only.`);
   const bytes = await readFile(localPath);
   expect(`sha256:${createHash('sha256').update(bytes).digest('hex')}`).toBe(artifact.sha256);

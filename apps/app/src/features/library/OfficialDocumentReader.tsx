@@ -71,8 +71,14 @@ import {
   drugSectionIndex,
   drugShareText,
   instructionIndexFromSummaries,
+  instructionSourceClassIndexFromSummaries,
   isEsklpSubstanceDocument,
 } from '@/features/medications/drug-screen';
+import {
+  applyInstructionFallbacks,
+  type FallbackNotice,
+  fallbackNotice,
+} from '@/features/medications/instruction-fallback';
 import {
   INSTRUCTION_UNAVAILABLE_NOTICE,
   type InstructionModuleOffer,
@@ -96,6 +102,7 @@ import {
   type TradeNameSupplement,
 } from '@/features/medications/medication-record';
 import { useMfgCountries } from '@/features/medications/use-mfg-countries';
+import { useSubstanceFallback } from '@/features/medications/use-substance-fallback';
 import type {
   ClinicalEditionLink,
   ClinicalEditionNotice,
@@ -327,8 +334,18 @@ function allmedNotice(supplements: readonly TradeNameSupplement[]): string {
 }
 
 function InstructionSourcePanel(props: { readonly info: InstructionSourceInfo }): JSX.Element {
+  const sourceName = () =>
+    props.info.sourceClass === 'manufacturer-site'
+      ? `Сайт производителя${props.info.publisher ? `: ${props.info.publisher}` : ''}`
+      : 'ГРЛС (Минздрав России)';
   return (
-    <section class="document-instruction-source" aria-label="Источник официального текста">
+    <section
+      class="document-instruction-source"
+      classList={{
+        'document-instruction-source--manufacturer': props.info.sourceClass === 'manufacturer-site',
+      }}
+      aria-label="Источник официального текста"
+    >
       <p class="document-instruction-source__kind">{props.info.kindLabel}</p>
       <dl class="document-instruction-source__facts">
         <Show when={props.info.edition}>
@@ -342,7 +359,7 @@ function InstructionSourcePanel(props: { readonly info: InstructionSourceInfo })
         <div class="document-instruction-source__fact">
           <dt class="document-instruction-source__term">Источник</dt>
           <dd class="document-instruction-source__value">
-            <Show when={props.info.sourceUrl} fallback="ГРЛС (Минздрав России)">
+            <Show when={props.info.sourceUrl} fallback={sourceName()}>
               {(url) => (
                 <a
                   class="document-instruction-source__link"
@@ -350,7 +367,7 @@ function InstructionSourcePanel(props: { readonly info: InstructionSourceInfo })
                   rel="noreferrer"
                   target="_blank"
                 >
-                  ГРЛС (Минздрав России)
+                  {sourceName()}
                 </a>
               )}
             </Show>
@@ -365,6 +382,13 @@ function InstructionSourcePanel(props: { readonly info: InstructionSourceInfo })
           )}
         </Show>
       </dl>
+      <Show when={props.info.matchNote}>
+        {(note) => (
+          <p class="document-instruction-source__match" role="note">
+            {note()}
+          </p>
+        )}
+      </Show>
       <Show when={props.info.qualityNote}>
         {(note) => (
           <p
@@ -378,6 +402,39 @@ function InstructionSourcePanel(props: { readonly info: InstructionSourceInfo })
           </p>
         )}
       </Show>
+    </section>
+  );
+}
+
+/** What stands above another registration's text: label, warnings and the donor product. */
+function InstructionFallbackPanel(props: { readonly notice: FallbackNotice }): JSX.Element {
+  return (
+    <section
+      class="document-instruction-fallback"
+      classList={{
+        'document-instruction-fallback--warned': props.notice.warnings.length > 0,
+      }}
+      aria-label="Инструкция другого производителя"
+    >
+      <p class="document-instruction-fallback__label">{props.notice.label}</p>
+      <Show when={props.notice.warnings.length > 0}>
+        <ul class="document-instruction-fallback__warnings" role="note">
+          <For each={props.notice.warnings}>
+            {(warning) => <li class="document-instruction-fallback__warning">{warning}</li>}
+          </For>
+        </ul>
+      </Show>
+      <dl class="document-instruction-fallback__facts">
+        <For each={props.notice.sourceFacts}>
+          {(fact) => (
+            <div class="document-instruction-fallback__fact">
+              <dt class="document-instruction-fallback__term">{fact.term}</dt>
+              <dd class="document-instruction-fallback__value">{fact.value}</dd>
+            </div>
+          )}
+        </For>
+      </dl>
+      <p class="document-instruction-fallback__note">{props.notice.note}</p>
     </section>
   );
 }
@@ -411,8 +468,15 @@ function MedicationProductPanel(props: {
   );
   const sources = () => [
     ...(props.product.sourceKind === 'esklp' ? ['ЕСКЛП'] : []),
-    ...(props.product.grlsRegistrationDocumentId || props.product.instructionDocumentId
+    ...(props.product.grlsRegistrationDocumentId ||
+    (props.product.instructionDocumentId &&
+      !props.product.instructionFallback &&
+      props.product.instructionSourceClass !== 'manufacturer-site')
       ? ['ГРЛС']
+      : []),
+    ...(props.product.instructionSourceClass === 'manufacturer-site' &&
+    !props.product.instructionFallback
+      ? ['Сайт производителя']
       : []),
     ...(props.product.supplementalDescription || props.product.imageReference ? ['Allmed'] : []),
   ];
@@ -641,15 +705,6 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
   });
 
   // Drug screen: header, quick links and section index. Only for a trade name or a substance card.
-  const drugSourceProducts = createMemo(() => {
-    const source = props.medicationSource ?? props.document;
-    return source && isEsklpSubstanceDocument(source)
-      ? parseEsklpMedicationProducts(
-          source,
-          instructionIndexFromSummaries(props.availableDocuments ?? []),
-        )
-      : [];
-  });
   const listedDocumentTitles = createMemo(
     () =>
       new Map(
@@ -661,6 +716,19 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
     return !!props.medicationProduct || (!!source && isEsklpSubstanceDocument(source));
   });
   const mfgCountries = useMfgCountries(isDrugDocument);
+  const fallbackAsset = useSubstanceFallback(() => isDrugDocument());
+  const drugSourceProducts = createMemo(() => {
+    const source = props.medicationSource ?? props.document;
+    if (!source || !isEsklpSubstanceDocument(source)) return [];
+    const index = instructionIndexFromSummaries(props.availableDocuments ?? []);
+    const products = parseEsklpMedicationProducts(
+      source,
+      index,
+      instructionSourceClassIndexFromSummaries(props.availableDocuments ?? []),
+    );
+    const asset = fallbackAsset();
+    return asset ? applyInstructionFallbacks(products, asset, index) : products;
+  });
   const drugScreen = createMemo(() => {
     const document = props.document;
     if (!document) return null;
@@ -1326,7 +1394,24 @@ export function OfficialDocumentReader(props: OfficialDocumentReaderProps): JSX.
                   />
                 </Show>
 
-                <Show when={instructionSourceInfo(documentValue())}>
+                <Show
+                  when={
+                    props.medicationProduct?.instructionFallback &&
+                    props.medicationProduct.instructionDocumentId === documentValue().id
+                      ? props.medicationProduct.instructionFallback
+                      : null
+                  }
+                >
+                  {(source) => <InstructionFallbackPanel notice={fallbackNotice(source())} />}
+                </Show>
+
+                <Show
+                  when={instructionSourceInfo(
+                    documentValue(),
+                    props.medicationProduct?.instructionFallback?.registrationNumber ??
+                      props.medicationProduct?.registrationNumber,
+                  )}
+                >
                   {(info) => <InstructionSourcePanel info={info()} />}
                 </Show>
 

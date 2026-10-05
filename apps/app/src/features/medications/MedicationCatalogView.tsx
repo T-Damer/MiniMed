@@ -26,7 +26,9 @@ import {
   displayDrugName,
   displayStrength,
   instructionIndexFromSummaries,
+  instructionSourceClassIndexFromSummaries,
 } from '@/features/medications/drug-screen';
+import type { InstructionSourceClass } from '@/features/medications/instruction-source';
 import { MedicationDownloadState } from '@/features/medications/MedicationDownloadState';
 import { rankMedicationCatalog } from '@/features/medications/medication-catalog-search';
 import { processMedicationSummariesInBatches } from '@/features/medications/medication-loading';
@@ -113,6 +115,7 @@ interface ParsedMedicationProducts {
 function parseProducts(
   documents: readonly MedicalDocument[],
   instructions: ReadonlyMap<string, string>,
+  instructionSourceClasses: ReadonlyMap<string, InstructionSourceClass>,
 ): ParsedMedicationProducts {
   const registry: MedicationProduct[] = [];
   const allmed: MedicationProduct[] = [];
@@ -121,7 +124,9 @@ function parseProducts(
     if (metadataContentMode(document.metadata) === 'esklp-mnn') {
       const substance = atcSubstanceFromDocument(document);
       if (substance) substances.push(substance);
-      registry.push(...parseEsklpMedicationProducts(document, instructions));
+      registry.push(
+        ...parseEsklpMedicationProducts(document, instructions, instructionSourceClasses),
+      );
       continue;
     }
     if (document.sourceType === 'official_registry_summary') {
@@ -235,12 +240,13 @@ async function loadProducts(
   );
 
   const instructions = instructionIndexFromSummaries(instructionSummaries);
+  const instructionSourceClasses = instructionSourceClassIndexFromSummaries(instructionSummaries);
 
   const registryProducts = new Map<string, MedicationProduct>();
   const allmedProducts = new Map<string, MedicationProduct>();
   const substances = new Map<string, AtcSubstance>();
   await processMedicationSummariesInBatches(otherSummaries, (batchDocuments) => {
-    const parsed = parseProducts(batchDocuments, instructions);
+    const parsed = parseProducts(batchDocuments, instructions, instructionSourceClasses);
     addProducts(registryProducts, parsed.registry);
     addProducts(allmedProducts, parsed.allmed);
     for (const substance of parsed.substances) substances.set(substance.documentId, substance);
