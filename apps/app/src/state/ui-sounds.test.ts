@@ -94,6 +94,15 @@ describe('UiSoundController', () => {
     expect(mockPlayer.preload).not.toHaveBeenCalled();
   });
 
+  it('builds the audio context and the common cues once, ahead of the first tap', async () => {
+    const { uiSounds, WARM_UP_CUES } = await import('@/state/ui-sounds');
+    uiSounds.warmUp();
+    uiSounds.warmUp();
+    expect(mockPlayer.preload).toHaveBeenCalledTimes(1);
+    expect(mockPlayer.preload).toHaveBeenCalledWith(WARM_UP_CUES);
+    expect(mockPlayer.play).not.toHaveBeenCalled();
+  });
+
   it('plays hover once per control on a fine pointer', async () => {
     const { uiSounds } = await import('@/state/ui-sounds');
     const button = { id: 'save' } as unknown as Element;

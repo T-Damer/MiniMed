@@ -108,3 +108,18 @@ export function returnFromTool(): boolean {
   restoreReturnTo(entry.from);
   return true;
 }
+
+/**
+ * Closes a full-screen tool that has no page of its own (the ECG editor): the tool's history entry
+ * is replaced by the page the user came from, so the system «back» never returns to an empty tool
+ * route. Without a recorded origin (a deep link) it falls back to the search page.
+ */
+export function leaveTool(): void {
+  const entry = readTrail().at(-1);
+  const from: ReturnToLocation =
+    entry && entry.workspace === toolWorkspace(window.location.hash)
+      ? entry.from
+      : { hash: '#/search', search: '' };
+  clearReturnTo();
+  restoreReturnTo(from, { replace: true });
+}

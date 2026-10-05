@@ -2,6 +2,8 @@ import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import ecgPhotoExample from '@/assets/ecg-photo-example.jpg';
 import { AppGlyph } from '@/components/AppGlyph';
 import { OverlayDialog } from '@/components/OverlayDialog';
+import { toolWorkspace } from '@/state/tool-navigation';
+import { ECG_PHOTO_CALIPER_ID } from './calculator-registry';
 import { EcgEditorCanvas } from './EcgEditorCanvas';
 import { EcgEditorControls } from './EcgEditorControls';
 import {
@@ -39,7 +41,12 @@ const BLOCKED_HINTS: Readonly<Record<Exclude<EcgEditorStep, 5>, string>> = {
   4: 'Нужны минимум две вершины R, начало и конец QRS.',
 };
 
-export function EcgPhotoCaliper(): JSX.Element {
+/**
+ * The editor is a full-screen flow, not a page: as the ECG tool route (`onExit` given) it has no
+ * description page behind it, closing it leaves the route for where the user came from, and
+ * opening the route again reopens it. Inline (no `onExit`) it keeps a small launcher.
+ */
+export function EcgPhotoCaliper(props: { readonly onExit?: () => void }): JSX.Element {
   const editor = useEcgEditor();
   const [open, setOpen] = createSignal(true);
   const [numericOpen, setNumericOpen] = createSignal(false);
@@ -60,7 +67,24 @@ export function EcgPhotoCaliper(): JSX.Element {
     receive();
     window.addEventListener(ECG_PHOTO_HANDOFF_EVENT, receive);
     onCleanup(() => window.removeEventListener(ECG_PHOTO_HANDOFF_EVENT, receive));
+    // The route stays mounted after the editor is closed, so entering it again reopens the editor.
+    if (!props.onExit) return;
+    const reopen = (): void => {
+      if (toolWorkspace(window.location.hash) === `calculators/${ECG_PHOTO_CALIPER_ID}`)
+        setOpen(true);
+    };
+    window.addEventListener('hashchange', reopen);
+    onCleanup(() => window.removeEventListener('hashchange', reopen));
   });
+  const closeEditor = (): void => {
+    setOpen(false);
+    props.onExit?.();
+  };
+  const closeNumeric = (): void => {
+    setNumericOpen(false);
+    // Back to the editor the numbers came from (or the one the user opened them beside).
+    if (props.onExit) setOpen(true);
+  };
   const blockedHint = (): string | undefined => {
     const step = editor.step();
     if (step === 5 || editor.canConfirmStep()) return undefined;
@@ -68,19 +92,21 @@ export function EcgPhotoCaliper(): JSX.Element {
   };
   return (
     <section class="ecg-entry" aria-label="Измерения по фото ЭКГ">
-      <p class="ecg-entry__description">
-        Пять шагов от фотографии до печатного заключения. Разметка остаётся на этом устройстве.
-      </p>
-      <button
-        class="ecg-editor__button ecg-editor__button--primary"
-        type="button"
-        onClick={() => setOpen(true)}
-      >
-        {editor.photo() ? 'Продолжить разметку ЭКГ' : 'Открыть редактор ЭКГ'}
-      </button>
-      <button class="ecg-editor__button" type="button" onClick={() => setNumericOpen(true)}>
-        Ввести готовые измерения
-      </button>
+      <Show when={!props.onExit}>
+        <p class="ecg-entry__description">
+          Пять шагов от фотографии до печатного заключения. Разметка остаётся на этом устройстве.
+        </p>
+        <button
+          class="ecg-editor__button ecg-editor__button--primary"
+          type="button"
+          onClick={() => setOpen(true)}
+        >
+          {editor.photo() ? 'Продолжить разметку ЭКГ' : 'Открыть редактор ЭКГ'}
+        </button>
+        <button class="ecg-editor__button" type="button" onClick={() => setNumericOpen(true)}>
+          Ввести готовые измерения
+        </button>
+      </Show>
       <OverlayDialog
         open={open()}
         title={TITLES[editor.step() - 1] ?? TITLES[0]}
@@ -88,7 +114,7 @@ export function EcgPhotoCaliper(): JSX.Element {
         presentation="screen"
         headerClass="ecg-editor__header"
         bodyClass="ecg-editor__body"
-        onClose={() => setOpen(false)}
+        onClose={closeEditor}
       >
         <EcgStepper editor={editor} />
         <Show when={editor.step() === 1}>
@@ -99,6 +125,18 @@ export function EcgPhotoCaliper(): JSX.Element {
                 replacing={Boolean(editor.photo())}
                 onFile={load}
               />
+              <Show when={props.onExit}>
+                <button
+                  class="ecg-editor__button"
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    setNumericOpen(true);
+                  }}
+                >
+                  Ввести готовые измерения
+                </button>
+              </Show>
               <span class="ecg-editor__hint">
                 {editor.photo()
                   ? `${editor.photo()?.width} × ${editor.photo()?.height} · ${editor.photo()?.file.name}`
@@ -236,11 +274,7 @@ export function EcgPhotoCaliper(): JSX.Element {
           </Show>
         </footer>
       </OverlayDialog>
-      <OverlayDialog
-        open={numericOpen()}
-        title="Готовые измерения ЭКГ"
-        onClose={() => setNumericOpen(false)}
-      >
+      <OverlayDialog open={numericOpen()} title="Готовые измерения ЭКГ" onClose={closeNumeric}>
         <EcgNumericDiagnosticPanel
           automaticAmplitudeValues={editor.numericDraft()?.amplitudes ?? {}}
           automaticMeasurementsDraft={editor.numericDraft()?.measurements ?? {}}

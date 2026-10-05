@@ -14,6 +14,7 @@ export function SearchExamples(props: SearchExamplesProps): JSX.Element {
       <HorizontalScroller
         class="example-scroll"
         viewportClass="example-scroll__viewport"
+        controlClass="example-scroll__control"
         controls
         hideScrollbar
         controlLabel="примеры"

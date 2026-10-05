@@ -21,6 +21,8 @@ export interface AppPreferences {
   readonly moduleAutoUpdatesEnabled: boolean;
   /** AnimationManager speed for every transition in the app. */
   readonly motionSpeed: MotionSpeed;
+  /** «Полезные функции» on the search home were closed by the user; a link there brings them back. */
+  readonly usefulFeaturesHidden: boolean;
 }
 
 export const APP_PREFERENCES_KEY = 'minimed.app-preferences.v1';
@@ -37,6 +39,7 @@ const DEFAULT_PREFERENCES: AppPreferences = {
   experimentalModulesEnabled: true,
   moduleAutoUpdatesEnabled: true,
   motionSpeed: 'normal',
+  usefulFeaturesHidden: false,
 };
 
 const VALID_SCOPES = new Set<SearchScope>([
@@ -69,6 +72,7 @@ function normalizePreferences(value: unknown): AppPreferences {
     readonly experimentalModulesEnabled?: unknown;
     readonly moduleAutoUpdatesEnabled?: unknown;
     readonly motionSpeed?: unknown;
+    readonly usefulFeaturesHidden?: unknown;
   };
   return {
     ...(typeof candidate.devLocalModuleArtifacts === 'boolean'
@@ -110,6 +114,10 @@ function normalizePreferences(value: unknown): AppPreferences {
     motionSpeed: isMotionSpeed(candidate.motionSpeed)
       ? candidate.motionSpeed
       : DEFAULT_PREFERENCES.motionSpeed,
+    usefulFeaturesHidden:
+      typeof candidate.usefulFeaturesHidden === 'boolean'
+        ? candidate.usefulFeaturesHidden
+        : DEFAULT_PREFERENCES.usefulFeaturesHidden,
   };
 }
 
@@ -214,6 +222,14 @@ export function getExperimentalModulesEnabled(): boolean {
 
 export function setExperimentalModulesEnabled(enabled: boolean): AppPreferences {
   return saveAppPreferences({ ...loadAppPreferences(), experimentalModulesEnabled: enabled });
+}
+
+export function getUsefulFeaturesHidden(): boolean {
+  return loadAppPreferences().usefulFeaturesHidden;
+}
+
+export function setUsefulFeaturesHidden(hidden: boolean): AppPreferences {
+  return saveAppPreferences({ ...loadAppPreferences(), usefulFeaturesHidden: hidden });
 }
 
 export function subscribeAppPreferences(

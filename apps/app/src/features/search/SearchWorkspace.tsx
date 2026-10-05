@@ -54,6 +54,7 @@ import { loadModuleCatalog } from '@/features/modules/module-catalog-state';
 import { getContentModuleRuntime } from '@/features/modules/module-runtime-service';
 import { PersonalNoteMatches } from '@/features/notes/PersonalNoteMatches';
 import { CalculatorSuggestionCard } from '@/features/search/CalculatorSuggestionCard';
+import { ClinicalAnalysisNote } from '@/features/search/ClinicalAnalysisNote';
 import { CoreIdentityMatches } from '@/features/search/CoreIdentityMatches';
 import {
   type CalculatorSchemaWithSearch,
@@ -481,9 +482,13 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
       setError(undefined);
       lastAnalyzedQuery = '';
       scheduleAnalysis(query());
-      requestAnimationFrame(() =>
-        window.scrollTo({ top: saved?.scrollTop ?? 0, behavior: 'instant' }),
-      );
+      // Opening a section from the list and returning to it is a page change: SearchHome keeps the
+      // list's scroll and starts the section at the top, so only the other switches restore here.
+      const pageChange = !clinicalToggle && (previousScope === 'all' || props.scope === 'all');
+      if (!pageChange)
+        requestAnimationFrame(() =>
+          window.scrollTo({ top: saved?.scrollTop ?? 0, behavior: 'instant' }),
+        );
     }
     activeScope = props.scope;
     const trimmed = searchableQuery(query());
@@ -1214,6 +1219,10 @@ export function SearchWorkspace(props: SearchWorkspaceProps): JSX.Element {
               </Suspense>
             </section>
           )}
+        </Show>
+
+        <Show when={props.scope === 'diagnosis'}>
+          <ClinicalAnalysisNote />
         </Show>
 
         <Show

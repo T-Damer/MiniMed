@@ -781,6 +781,37 @@ date, sha256, version/date as printed, OCR flag and match evidence.
   dots (no longer clipped), autoplay paused while the onboarding is on screen.
 - Not verified on the Android emulator, a physical phone or HyperOS WebView.
 
+### Home polish 2 (UX7) — 2026-10-05
+
+- **Carousel scroll**: the track no longer reads layout per scroll event (stride cached on width change,
+  passive listener + one rAF, signal only when the slide changes), the resize observer reacts to width
+  only, `will-change` is set on the slide frames only while the track moves. On native Android the
+  scroll-driven scale/fade is off (`carousel__frame--plain`). Desktop headless, 4x CPU, 6 touch swipes:
+  scroll-event dispatch 604 ms to 227-316 ms, FunctionCall 1264 to ~800 ms, one 259 ms long task to none;
+  desktop was already 120 fps, so the Android-WebView gain is not measured (the shared emulator was
+  taken by other agents).
+- **First-tap stall (root cause of «hard re-render» on opening a section)**: the first UI sound built
+  the `AudioContext` (~205 ms) inside the tap. `uiSounds.warmUp()` now preloads the common cues in idle
+  time 1.5 s after start (`installUiFeedback`). Opening a section: longest task 428 ms to 85 ms.
+- **Open section = page**: `#/search/section/<id>` (entry pushed with `history.state.searchSection`,
+  replaced on section switch). Back arrow, system/Android back and `Escape` return to the list, which
+  stays mounted and gets its scroll back (`restoreScroll` retries while the page is laid out);
+  the section starts at the top with a 220 ms slide/fade (transform + opacity, `backwards` fill).
+  `SearchWorkspace` leaves list/section scroll to `SearchHome`. A group of «Все источники» has no address.
+- **«Примеры поиска» arrows**: centred on the chips row (`--example-pad-*` variables), row clips sideways
+  only so chip and arrow shadows are not cut; e2e checks centre within 2 px and corner hit-tests.
+- **«ЭКГ по фото»**: the tool route has no description page any more; the editor is the route.
+  Closing it (`leaveTool`) replaces the route's history entry with the recorded origin (search page for a
+  deep link), re-entering reopens it, closing «Готовые измерения» returns to the editor (a button on step 1
+  opens them). Inline use keeps the small launcher. The home «?» opens the editor's first step.
+- **Context menu**: an item with no actions has a disabled trigger (no menu on long press or right click,
+  the event reaches the page menu) and no «⋯» button.
+- **«Клинический разбор»**: a note above the results (`ClinicalAnalysisNote`) and an explanatory
+  placeholder. **«Скрыть»** on «Полезные функции» stores `usefulFeaturesHidden` in app-preferences; a quiet
+  «Показать полезные функции» link at the end of the home restores it (Settings toggle left to SET1).
+- Tests: `ux7-home`, `ecg-close`, `empty-context-menu` e2e, `search-section-route`, `ui-sounds`,
+  `app-preferences` units. Not tested: Android WebView frame rate, physical device.
+
 ### Tools, tour, recording activity and button depth (UX6) — 2026-10-05
 
 - **«Все инструменты»** lists only real app features (`APP_TOOL_IDS`, `quick-tools.ts`): «Запись беседы»,

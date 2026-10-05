@@ -179,8 +179,16 @@ function isInsideControl(node: EventTarget | null, control: Element): boolean {
   return node instanceof Node && control.contains(node);
 }
 
+/** Idle time shortly after start: the first tap must not pay for building the audio context. */
+const SOUND_WARM_UP_DELAY_MS = 1500;
+
 export function installUiFeedback(root: Document = document): () => void {
   uiSounds.ensurePreferences();
+  const warmUpTimer = window.setTimeout(() => {
+    if (typeof window.requestIdleCallback === 'function')
+      window.requestIdleCallback(() => uiSounds.warmUp(), { timeout: 4000 });
+    else uiSounds.warmUp();
+  }, SOUND_WARM_UP_DELAY_MS);
 
   const unlock = (): void => {
     uiSounds.unlock();
@@ -239,6 +247,7 @@ export function installUiFeedback(root: Document = document): () => void {
   root.addEventListener('pointerout', handlePointerOut);
 
   return () => {
+    window.clearTimeout(warmUpTimer);
     root.removeEventListener('pointerdown', handlePointerDown, { capture: true });
     root.removeEventListener('pointerdown', unlock, { capture: true });
     root.removeEventListener('keydown', unlock, { capture: true });

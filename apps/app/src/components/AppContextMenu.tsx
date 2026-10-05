@@ -141,6 +141,8 @@ function MenuItem(props: { readonly action: AppContextMenuAction }): JSX.Element
 
 export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
   const [open, setOpen] = createSignal(false);
+  /** An item with no actions has nothing to open: no long press, no right click, no «⋯» button. */
+  const hasActions = (): boolean => props.actions.length > 0;
 
   const dismissMenu = (): void => {
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
@@ -189,9 +191,10 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
       <ContextMenu.Trigger
         class={`app-context-menu__trigger${props.class ? ` ${props.class}` : ''}`}
         data-app-context-menu-trigger=""
+        disabled={!hasActions()}
       >
         {props.children}
-        <Show when={!props.hideButton}>
+        <Show when={!props.hideButton && hasActions()}>
           <button
             type="button"
             class={`app-context-menu__more${props.buttonClass ? ` ${props.buttonClass}` : ''}`}
@@ -204,7 +207,7 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
             </Show>
           </button>
         </Show>
-        <Show when={props.discoverLabel && props.actions.length > 0}>
+        <Show when={props.discoverLabel && hasActions()}>
           <button
             type="button"
             class="app-context-menu__discover"
@@ -216,16 +219,18 @@ export function AppContextMenu(props: AppContextMenuProps): JSX.Element {
           </button>
         </Show>
       </ContextMenu.Trigger>
-      <ContextMenu.Portal>
-        <ContextMenu.Content
-          class="app-context-menu"
-          onPointerDown={stopMenuPropagation}
-          onClick={stopMenuPropagation}
-          onContextMenu={stopMenuContextMenu}
-        >
-          <For each={props.actions}>{(action) => <MenuItem action={action} />}</For>
-        </ContextMenu.Content>
-      </ContextMenu.Portal>
+      <Show when={hasActions()}>
+        <ContextMenu.Portal>
+          <ContextMenu.Content
+            class="app-context-menu"
+            onPointerDown={stopMenuPropagation}
+            onClick={stopMenuPropagation}
+            onContextMenu={stopMenuContextMenu}
+          >
+            <For each={props.actions}>{(action) => <MenuItem action={action} />}</For>
+          </ContextMenu.Content>
+        </ContextMenu.Portal>
+      </Show>
     </ContextMenu>
   );
 }

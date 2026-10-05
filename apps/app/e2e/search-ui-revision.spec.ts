@@ -64,7 +64,8 @@ for (const width of [375, 1280]) {
     await create.click();
     await expect(page).toHaveURL(/#\/assessments\/mine\/new/u);
     await page.getByRole('button', { name: 'Назад', exact: true }).click();
-    await expect(page).toHaveURL(/#\/search$/u);
+    // Back to the section the tool was opened from, which is now a page of its own.
+    await expect(page).toHaveURL(/#\/search(\/section\/assessments)?$/u);
     await expect(input).toHaveValue('создать свое');
     await input.fill('Командные роли');
     await page
@@ -74,7 +75,7 @@ for (const width of [375, 1280]) {
       .click();
     await expect(page).toHaveURL(/#\/assessments\//u);
     await page.getByRole('button', { name: 'Назад', exact: true }).click();
-    await expect(page).toHaveURL(/#\/search$/u);
+    await expect(page).toHaveURL(/#\/search(\/section\/assessments)?$/u);
 
     await selectSearchSection(page, 'Все источники');
     await page.getByRole('button', { name: 'Показать историю поиска', exact: true }).click();

@@ -5,6 +5,7 @@ import {
   createSignal,
   For,
   type JSX,
+  on,
   onCleanup,
   onMount,
   Show,
@@ -60,6 +61,7 @@ import {
   searchCoreStatusLabel,
   searchCoreStatusNoteVisible,
 } from '@/features/search/search-core-status';
+import { searchSectionFromHash, searchSectionHash } from '@/features/search/search-section-route';
 import {
   matchingCatalogTools,
   SEARCH_SECTIONS,
@@ -72,6 +74,11 @@ import { sectionsOverviewRows } from '@/features/search/sections-overview';
 import { UnifiedSearchCatalog } from '@/features/search/UnifiedSearchCatalog';
 import { useSearchSectionDownloads } from '@/features/search/useSearchSectionDownloads';
 import { FeatureTour } from '@/features/setup/FeatureTour';
+import {
+  getUsefulFeaturesHidden,
+  setUsefulFeaturesHidden,
+  subscribeAppPreferences,
+} from '@/state/app-preferences';
 import { openDocumentOverlay } from '@/state/document-navigation';
 import { experimentalModulesEnabled } from '@/state/experimental-modules';
 import {
@@ -83,6 +90,9 @@ import { appendSearchHistory, replaySearch, type SearchHistoryEntry } from '@/st
 import { USER_LIBRARY_EXAMPLE_MRI_FILE_NAME } from '@/state/user-library';
 
 import '@/features/search/search-help-sheet.css';
+
+const isSearchSection = (value: string): value is SearchScope =>
+  SEARCH_SECTIONS.some((section) => section.id === value);
 
 interface SearchHomeProps {
   /** Absent while the core opens, downloads or waits for another tab; the page stays usable. */
@@ -110,6 +120,10 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     props.coreStatus && searchCoreStatusNoteVisible(props.coreStatus, coreNoteDelayPassed())
       ? props.coreStatus
       : undefined;
+  const [featuresHidden, setFeaturesHidden] = createSignal(getUsefulFeaturesHidden());
+  onCleanup(
+    subscribeAppPreferences((preferences) => setFeaturesHidden(preferences.usefulFeaturesHidden)),
+  );
   const [graphOpen, setGraphOpen] = createSignal(false);
   const [graphShowAll, setGraphShowAll] = createSignal(false);
   const [resultDocumentIds, setResultDocumentIds] = createSignal<readonly string[]>([]);
@@ -417,11 +431,78 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     scope() !== 'diagnosis' &&
     (scope() !== 'all' || Boolean(specialty())) &&
     catalogQuery().trim().length === 0;
-  const backToSections = (): void => {
+  /**
+   * An open section is a page of its own: `#/search/section/<id>` holds a history entry, so the back
+   * arrow, the system back and Android back all return to the section list, which stays mounted
+   * (hidden pages are not rebuilt) and gets its scroll position back.
+   */
+  const openSectionId = (): SearchScope | undefined =>
+    scope() !== 'diagnosis' && (scope() !== 'all' || Boolean(specialty())) ? scope() : undefined;
+  let listScroll = 0;
+  /** The current history entry is one this page pushed for a section (not one a tool return made). */
+  const ownsSectionEntry = (): boolean =>
+    (window.history.state as { readonly searchSection?: unknown } | null)?.searchSection === true;
+  /** The list is laid out over a few frames after it returns, so retry until the page is tall enough. */
+  const restoreScroll = (top: number): void => {
+    let frames = 30;
+    let cancelled = false;
+    const cancel = (): void => {
+      cancelled = true;
+    };
+    window.addEventListener('wheel', cancel, { once: true, passive: true });
+    window.addEventListener('touchstart', cancel, { once: true, passive: true });
+    const step = (): void => {
+      if (cancelled || frames-- <= 0) return;
+      window.scrollTo({ top, behavior: 'instant' });
+      if (Math.abs(window.scrollY - top) > 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  const resetToSections = (): void => {
     setGroups({});
     setSourceScope('all');
     setScope('all');
   };
+  const backToSections = (): void => {
+    if (ownsSectionEntry() && searchSectionFromHash(window.location.hash, isSearchSection)) {
+      // The hashchange listener below resets the section; the effect restores the list's scroll.
+      window.history.back();
+      return;
+    }
+    resetToSections();
+  };
+  const openSection = (next: SearchScope, group?: string): void => {
+    if (openSectionId() === undefined) listScroll = window.scrollY;
+    setGroups({ ...groups(), [next]: group });
+    setSourceScope(next);
+    setScope(next);
+  };
+  // Keep the address and the scroll in step with the open section: opening pushes an entry and
+  // starts the page at the top, switching section replaces it, closing leaves it and puts the
+  // section list back where the user left it.
+  createEffect(
+    on(openSectionId, (id, previous) => {
+      if (!props.active) return;
+      const current = searchSectionFromHash(window.location.hash, isSearchSection);
+      if (id === undefined || id === 'all') {
+        if (current) {
+          if (ownsSectionEntry()) window.history.back();
+          else window.history.replaceState(null, '', '#/search');
+        }
+        if (previous !== undefined && id === undefined) {
+          restoreScroll(listScroll);
+        }
+        return;
+      }
+      if (previous === undefined) window.scrollTo({ top: 0, behavior: 'instant' });
+      if (current === id) return;
+      if (current) {
+        window.history.replaceState(window.history.state, '', searchSectionHash(id));
+      } else {
+        window.history.pushState({ searchSection: true }, '', searchSectionHash(id));
+      }
+    }),
+  );
   const [hasSearchScroll, setHasSearchScroll] = createSignal(false);
   const [fieldForm, setFieldForm] = createSignal<HTMLFormElement>();
   /** The field has scrolled up behind the sticky row: the row offers a way back to it. */
@@ -463,6 +544,28 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
     };
     window.addEventListener('keydown', handleEscape);
     onCleanup(() => window.removeEventListener('keydown', handleEscape));
+    const handleHashChange = (): void => {
+      const hash = window.location.hash;
+      // Other tabs own their routes; only react to the search page's own addresses.
+      if (hash !== '' && !/^#\/search(\/|$)/u.test(hash)) return;
+      const section = searchSectionFromHash(hash, isSearchSection);
+      if (section) {
+        if (openSectionId() !== section) {
+          if (openSectionId() === undefined) listScroll = window.scrollY;
+          setGroups({ ...groups(), [section]: undefined });
+          setSourceScope(section);
+          setScope(section);
+        }
+        return;
+      }
+      // A group of «Все источники» has no address of its own: leaving a section address keeps it.
+      const open = openSectionId();
+      if (open !== undefined && open !== 'all') resetToSections();
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    onCleanup(() => window.removeEventListener('hashchange', handleHashChange));
+    // A page loaded or restored on a section address opens that section.
+    handleHashChange();
   });
 
   onCleanup(() => {
@@ -661,41 +764,41 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             <SearchHomeIntro
               quickAccess={<SearchQuickAccess tools={quickTools()} />}
               features={homeFeatures()}
+              featuresHidden={featuresHidden()}
+              onHideFeatures={() => setUsefulFeaturesHidden(true)}
             />
           }
           catalog={
             <Show
               when={showSectionsOverview()}
               fallback={
-                <UnifiedSearchCatalog
-                  core={props.baseCore}
-                  scope={scope()}
-                  query={catalogQuery()}
-                  catalogOnly={catalogOnly()}
-                  hideDocuments={scope() === 'diagnosis'}
-                  documents={catalogDocuments()}
-                  tools={visibleTools()}
-                  onOpenTool={() => {
-                    if (catalogQuery().trim())
-                      appendSearchHistory(
-                        catalogQuery(),
-                        scope(),
-                        visibleTools().length,
-                        specialty(),
-                      );
-                  }}
-                  loading={catalogLoading()}
-                  error={catalogError()}
-                />
+                <div class="search-section-page">
+                  <UnifiedSearchCatalog
+                    core={props.baseCore}
+                    scope={scope()}
+                    query={catalogQuery()}
+                    catalogOnly={catalogOnly()}
+                    hideDocuments={scope() === 'diagnosis'}
+                    documents={catalogDocuments()}
+                    tools={visibleTools()}
+                    onOpenTool={() => {
+                      if (catalogQuery().trim())
+                        appendSearchHistory(
+                          catalogQuery(),
+                          scope(),
+                          visibleTools().length,
+                          specialty(),
+                        );
+                    }}
+                    loading={catalogLoading()}
+                    error={catalogError()}
+                  />
+                </div>
               }
             >
               <SearchSectionsOverview
                 rows={sectionsOverviewRows(sourceSections(), catalogLoading())}
-                onSelect={(next) => {
-                  setGroups({ ...groups(), [next]: undefined });
-                  setSourceScope(next);
-                  setScope(next);
-                }}
+                onSelect={(next) => openSection(next)}
               />
             </Show>
           }
@@ -704,7 +807,7 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             props.coreStatus && !noteCoreStatus()
               ? searchCoreStatusLabel(props.coreStatus)
               : scope() === 'diagnosis'
-                ? 'Например: 5 лет, мальчик, второй день кашляет и температурит…'
+                ? 'Опишите случай своими словами: жалобы, анамнез, находки'
                 : 'Название, код МКБ, препарат или фраза из документа'
           }
           modePicker={
@@ -718,9 +821,11 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
                 scope={clinicalAnalysis() ? sourceScope() : scope()}
                 group={specialty()}
                 onSelect={(next, group) => {
-                  setGroups({ ...groups(), [next]: group });
-                  setSourceScope(next);
-                  setScope(next);
+                  if (next === 'all' && !group) {
+                    if (openSectionId() !== undefined) backToSections();
+                    return;
+                  }
+                  openSection(next, group);
                 }}
               />
               {/* One compact row under the field: the clinical analysis is an icon toggle. */}
@@ -745,6 +850,15 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
             </div>
           }
         />
+        <Show when={featuresHidden() && showSectionsOverview()}>
+          <Button
+            variant="quiet"
+            class="useful-features-restore"
+            onClick={() => setUsefulFeaturesHidden(false)}
+          >
+            Показать полезные функции
+          </Button>
+        </Show>
       </div>
 
       <Show when={referenceOpen() && experimentalModulesEnabled() && props.baseCore}>

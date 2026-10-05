@@ -17,6 +17,18 @@
   gap: 0.5rem;
 }
 
+/* With an end action the arrows and dots stay centred: one flexible column on each side. */
+.carousel__controls--with-end {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto 1fr;
+}
+
+.carousel__controls-end {
+  display: flex;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
 .carousel__arrow {
   display: inline-grid;
   width: 2rem;
@@ -92,6 +104,16 @@
     animation: carousel-frame-scale linear both;
     animation-timeline: view(inline);
   }
+
+  /* Native Android: no scroll-driven scale or fade, the slides snap at full size. */
+  .carousel__frame--plain {
+    animation: none;
+  }
+}
+
+/* Promoted to its own layer only while the track moves; set and cleared by Carousel.tsx. */
+.carousel__frame--moving {
+  will-change: transform, opacity;
 }
 
 @keyframes carousel-frame-scale {

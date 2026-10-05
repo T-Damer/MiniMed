@@ -164,3 +164,14 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Quiet text actions: closing the block and, once it is closed, bringing it back. */
+.useful-features__hide,
+.useful-features-restore {
+  font-size: 0.75rem;
+}
+
+.useful-features-restore {
+  display: flex;
+  margin: var(--home-gap, 1rem) auto 0;
+}

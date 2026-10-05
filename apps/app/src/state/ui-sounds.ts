@@ -19,10 +19,27 @@ const CUE_GAIN: Partial<Record<CueName, number>> = {
   back: 0.85,
 };
 
+/**
+ * Cues most taps play. The first play of the player builds the AudioContext (opening the audio
+ * device, ~200 ms of main thread) and renders each cue's buffer, so it is done once in idle time
+ * instead of inside the first tap on a button.
+ */
+export const WARM_UP_CUES: readonly CueName[] = [
+  'hover',
+  'press',
+  'select',
+  'forward',
+  'back',
+  'open',
+  'close',
+  'swipe',
+];
+
 export class UiSoundController {
   private readonly player: UISFXPlayer;
   private unlocked = false;
   private preferencesSubscribed = false;
+  private warmedUp = false;
   private hoverTarget: Element | null = null;
   private readonly hoverPlayedAt = new WeakMap<Element, number>();
 
@@ -44,6 +61,13 @@ export class UiSoundController {
     subscribeAppPreferences((preferences) => {
       this.applyVolume(preferences.soundVolume);
     });
+  }
+
+  /** Builds the audio context and the common cues ahead of the first tap; safe to call twice. */
+  warmUp(): void {
+    if (this.warmedUp || getSoundVolume() <= 0) return;
+    this.warmedUp = true;
+    void this.player.preload(WARM_UP_CUES);
   }
 
   unlock(): void {
@@ -83,6 +107,7 @@ export class UiSoundController {
 
   reset(): void {
     this.unlocked = false;
+    this.warmedUp = false;
     this.preferencesSubscribed = false;
     this.hoverTarget = null;
     this.applyVolume(loadAppPreferences().soundVolume);

@@ -124,7 +124,7 @@ import {
   PATIENT_VAULT_LOCK_EVENT,
   readPatientVault,
 } from '@/state/patient-vault';
-import { returnFromTool } from '@/state/tool-navigation';
+import { leaveTool, returnFromTool } from '@/state/tool-navigation';
 
 function currentRoute(): string {
   return window.location.hash.replace(/^#\/?/u, '');
@@ -1820,84 +1820,85 @@ export function CalculatorsView(): JSX.Element {
         }
       >
         {(definition) => (
-          <div class="calculator-workspace">
-            <header class="calculator-subpage-header">
-              <NavBack
-                class="knowledge-back-button"
-                aria-label="Назад"
-                onClick={backFromCalculator}
+          <Show
+            when={definition().id !== ECG_PHOTO_CALIPER_ID}
+            fallback={
+              // The ECG editor is a full-screen flow with no description page behind it.
+              <EcgPhotoCaliper onExit={leaveTool} />
+            }
+          >
+            <div class="calculator-workspace">
+              <header class="calculator-subpage-header">
+                <NavBack
+                  class="knowledge-back-button"
+                  aria-label="Назад"
+                  onClick={backFromCalculator}
+                />
+                <div class="calculator-subpage-header__content">
+                  <AppBreadcrumbs
+                    items={calculatorWorkspaceCrumbs({
+                      title: definition().title,
+                      sectionId: definition().category,
+                      sectionTitle:
+                        CALCULATOR_SECTIONS.find((section) => section.id === definition().category)
+                          ?.title ?? 'Раздел калькуляторов',
+                    })}
+                    onNavigate={(href) => {
+                      window.location.hash = href;
+                    }}
+                  />
+                  <Heading depth={3} class="calculator-subpage-title">
+                    {definition().title}
+                  </Heading>
+                  <p class="calculator-subpage-summary">{definition().summary}</p>
+                  <Disclosure
+                    variant="inline"
+                    class="calculator-subpage-sources"
+                    title={`Источники (${definition().sources.length})`}
+                  >
+                    <ul class="calculator-subpage-sources__list">
+                      <For each={definition().sources}>
+                        {(source) => (
+                          <li class="calculator-subpage-sources__item">
+                            <a
+                              class="calculator-subpage-sources__link"
+                              href={source.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {source.title}
+                            </a>
+                          </li>
+                        )}
+                      </For>
+                    </ul>
+                  </Disclosure>
+                </div>
+              </header>
+
+              <CalculatorForm
+                definition={definition()}
+                onMessage={notify}
+                onRecord={(record) => {
+                  setActiveRecord(record);
+                  setHistory(loadCalculationHistory());
+                }}
               />
-              <div class="calculator-subpage-header__content">
-                <AppBreadcrumbs
-                  items={calculatorWorkspaceCrumbs({
-                    title: definition().title,
-                    sectionId: definition().category,
-                    sectionTitle:
-                      CALCULATOR_SECTIONS.find((section) => section.id === definition().category)
-                        ?.title ?? 'Раздел калькуляторов',
-                  })}
-                  onNavigate={(href) => {
-                    window.location.hash = href;
-                  }}
-                />
-                <Heading depth={3} class="calculator-subpage-title">
-                  {definition().title}
-                </Heading>
-                <p class="calculator-subpage-summary">{definition().summary}</p>
-                <Disclosure
-                  variant="inline"
-                  class="calculator-subpage-sources"
-                  title={`Источники (${definition().sources.length})`}
-                >
-                  <ul class="calculator-subpage-sources__list">
-                    <For each={definition().sources}>
-                      {(source) => (
-                        <li class="calculator-subpage-sources__item">
-                          <a
-                            class="calculator-subpage-sources__link"
-                            href={source.url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {source.title}
-                          </a>
-                        </li>
-                      )}
-                    </For>
-                  </ul>
-                </Disclosure>
-              </div>
-            </header>
 
-            <Show
-              when={definition().id === ECG_PHOTO_CALIPER_ID}
-              fallback={
-                <CalculatorForm
-                  definition={definition()}
-                  onMessage={notify}
-                  onRecord={(record) => {
-                    setActiveRecord(record);
-                    setHistory(loadCalculationHistory());
-                  }}
-                />
-              }
-            >
-              <EcgPhotoCaliper />
-            </Show>
-
-            <Show when={activeRecord()}>
-              {(record) => (
-                <CalculationResultPanel
-                  record={record()}
-                  definition={definition()}
-                  onMessage={notify}
-                  onDelete={() => {
-                    requestDeleteRecord(record());
-                  }}
-                />
-              )}
-            </Show>
-          </div>
+              <Show when={activeRecord()}>
+                {(record) => (
+                  <CalculationResultPanel
+                    record={record()}
+                    definition={definition()}
+                    onMessage={notify}
+                    onDelete={() => {
+                      requestDeleteRecord(record());
+                    }}
+                  />
+                )}
+              </Show>
+            </div>
+          </Show>
         )}
       </Show>
 

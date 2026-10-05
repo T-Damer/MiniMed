@@ -125,3 +125,44 @@
     grid-area: caret;
   }
 }
+
+/* An opened section arrives as a page: a short slide and fade, transform and opacity only. The
+   section list fades back in on return. */
+.search-section-page {
+  animation: search-section-enter 220ms cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+}
+
+.search-sections {
+  animation: search-sections-return 180ms ease-out backwards;
+}
+
+@keyframes search-section-enter {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes search-sections-return {
+  from {
+    opacity: 0;
+    transform: translateX(-0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-section-page,
+  .search-sections {
+    animation: none;
+  }
+}

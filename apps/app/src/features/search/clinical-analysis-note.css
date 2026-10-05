@@ -1,0 +1,25 @@
+.clinical-analysis-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin-block: 0.75rem 0;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--theme-border) 70%, transparent);
+  border-radius: 0.75rem;
+  color: var(--theme-text-muted);
+  background: color-mix(in srgb, var(--theme-surface-raised) 62%, transparent);
+}
+
+.clinical-analysis-note__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  margin-top: 0.0625rem;
+  color: var(--theme-accent);
+}
+
+.clinical-analysis-note__text {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}

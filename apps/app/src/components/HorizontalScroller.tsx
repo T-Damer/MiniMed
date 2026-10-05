@@ -16,6 +16,8 @@ interface HorizontalScrollerProps {
   readonly controls?: boolean;
   readonly hideScrollbar?: boolean;
   readonly controlLabel?: string;
+  /** Extra class for both arrows, e.g. to re-centre them on a padded row. */
+  readonly controlClass?: string;
 }
 
 export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element {
@@ -60,7 +62,7 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
     >
       <Show when={props.controls && canScrollPrevious()}>
         <button
-          class="horizontal-scroll-control previous"
+          class={`horizontal-scroll-control previous ${props.controlClass ?? ''}`}
           type="button"
           aria-label={`Прокрутить ${props.controlLabel ?? 'список'} влево`}
           onClick={() => scroll(-1)}
@@ -95,7 +97,7 @@ export function HorizontalScroller(props: HorizontalScrollerProps): JSX.Element 
       </OverlayScrollbarsComponent>
       <Show when={props.controls && canScrollNext()}>
         <button
-          class="horizontal-scroll-control next"
+          class={`horizontal-scroll-control next ${props.controlClass ?? ''}`}
           type="button"
           aria-label={`Прокрутить ${props.controlLabel ?? 'список'} вправо`}
           onClick={() => scroll(1)}

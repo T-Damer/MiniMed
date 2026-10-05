@@ -9,6 +9,7 @@ import {
   getRememberSearchMode,
   getSoundVolume,
   getSplitNavigation,
+  getUsefulFeaturesHidden,
   getVibrationEnabled,
   loadAppPreferences,
   loadSearchScope,
@@ -21,6 +22,7 @@ import {
   setRememberSearchMode,
   setSoundVolume,
   setSplitNavigation,
+  setUsefulFeaturesHidden,
   setVibrationEnabled,
   subscribeAppPreferences,
 } from '@/state/app-preferences';
@@ -77,6 +79,7 @@ describe('app-preferences', () => {
       experimentalModulesEnabled: true,
       moduleAutoUpdatesEnabled: true,
       motionSpeed: 'normal',
+      usefulFeaturesHidden: false,
     });
   });
 
@@ -101,7 +104,16 @@ describe('app-preferences', () => {
       experimentalModulesEnabled: true,
       moduleAutoUpdatesEnabled: true,
       motionSpeed: 'normal',
+      usefulFeaturesHidden: false,
     });
+  });
+
+  it('stores whether the useful-features block on the search home is closed', () => {
+    expect(getUsefulFeaturesHidden()).toBe(false);
+    setUsefulFeaturesHidden(true);
+    expect(getUsefulFeaturesHidden()).toBe(true);
+    setUsefulFeaturesHidden(false);
+    expect(loadAppPreferences().usefulFeaturesHidden).toBe(false);
   });
 
   it('stores the animation speed', () => {

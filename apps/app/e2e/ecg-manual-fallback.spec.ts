@@ -201,7 +201,10 @@ test('reviews a photo in five fullscreen steps, undoes edits and prints one repo
   await numeric.locator('#ecg-feature-R_Amp_II').scrollIntoViewIfNeeded();
   await page.screenshot({ path: 'output/playwright/ecg-numeric-draft-mobile.png' });
   await numeric.getByRole('button', { name: 'Закрыть' }).click();
-  await page.getByRole('button', { name: 'Продолжить разметку ЭКГ' }).click();
+  // Closing the numbers returns to the editor they came from.
+  await expect(
+    page.getByRole('dialog', { name: 'Результат' }).or(page.locator('.ecg-editor')),
+  ).toBeVisible();
   await page.getByRole('button', { name: 'Предыдущий шаг' }).click();
   await expect(page.locator('.ecg-editor__point-hit')).toHaveCount(7);
   // Any point edit withdraws the confirmation, so the result step closes again.

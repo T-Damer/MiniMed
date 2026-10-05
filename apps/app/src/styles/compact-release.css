@@ -596,7 +596,9 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   gap: 0.3125rem;
   margin-top: var(--home-gap, 1rem);
   padding: 0;
-  overflow: hidden;
+  /* Clip sideways only: the chips' hover shadow and the arrows' shadow hang below the row. */
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 .search-workspace-main .example-row legend {
@@ -619,11 +621,22 @@ html.using-root-view-transition .app-view.root-view-exit-backward .medication-ro
   min-width: 100%;
   gap: 0.3125rem;
   /* Room for the hovered chip's shadow inside the clipping viewport; the frame gives it back. */
-  padding: 0.25rem 0.75rem 1.4rem;
+  padding: var(--example-pad-top) 0.75rem var(--example-pad-bottom);
 }
 
 .search-workspace-main .example-scroll {
-  margin-block: -0.25rem -1.4rem;
+  --example-pad-top: 0.25rem;
+  --example-pad-bottom: 1.4rem;
+  margin-block: calc(-1 * var(--example-pad-top)) calc(-1 * var(--example-pad-bottom));
+}
+
+/* The arrows sit on the middle of the chips row, not of the padded frame around it. */
+.horizontal-scroll-control.example-scroll__control {
+  top: calc(
+    var(--example-pad-top) +
+    (100% - var(--example-pad-top) - var(--example-pad-bottom)) /
+    2
+  );
 }
 
 .search-workspace-main .example-scroll-content__chip {

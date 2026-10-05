@@ -48,10 +48,14 @@ export function consumeReturnTo(): ReturnToLocation | null {
   return location;
 }
 
-export function restoreReturnTo(location: ReturnToLocation): void {
+export function restoreReturnTo(
+  location: ReturnToLocation,
+  options?: { readonly replace?: boolean },
+): void {
   const oldURL = window.location.href;
   const newURL = `${window.location.origin}${window.location.pathname}${location.search}${location.hash}`;
-  window.history.pushState(null, '', newURL);
+  if (options?.replace) window.history.replaceState(null, '', newURL);
+  else window.history.pushState(null, '', newURL);
   window.dispatchEvent(new HashChangeEvent('hashchange', { oldURL, newURL }));
 }
 
