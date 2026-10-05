@@ -1,15 +1,4 @@
-import {
-  createEffect,
-  createResource,
-  createSignal,
-  For,
-  type JSX,
-  lazy,
-  onCleanup,
-  onMount,
-  Show,
-  Suspense,
-} from 'solid-js';
+import { createSignal, type JSX, onCleanup, onMount, Show } from 'solid-js';
 import { toast } from 'solid-sonner';
 
 import { AppGlyph } from '@/components/AppGlyph';
@@ -29,19 +18,9 @@ import { getDownloadQueue } from '@/features/downloads/download-service';
 import { useDrugDownload } from '@/features/medications/use-drug-download';
 import { SectionDownloads } from '@/features/sections/SectionDownloads';
 import { downloadPercent } from '@/features/setup/setup-state';
-import { motionMs } from '@/state/motion';
-import {
-  formatDownloadSize,
-  LARGE_DOWNLOAD_BYTES,
-  mriAttribution,
-  parseMriManifest,
-} from './onboarding-downloads';
+import { MriSliceViewer } from './MriSliceViewer';
+import { formatDownloadSize, LARGE_DOWNLOAD_BYTES } from './onboarding-downloads';
 import type { OnboardingExtra } from './onboarding-steps';
-
-// The drawn imaging demo of the old tour, kept as the fallback when the real slices are missing.
-const ImagingFallback = lazy(() =>
-  import('@/features/setup/FeatureTourDemos').then(({ ImagingDemo }) => ({ default: ImagingDemo })),
-);
 
 /** The extra content a tour step brings into its card. */
 export function OnboardingExtraContent(props: {
@@ -194,99 +173,5 @@ function SpeechModelAction(): JSX.Element {
         </p>
       </Show>
     </div>
-  );
-}
-
-const MRI_FOLDER = 'onboarding/mri/';
-const SLICE_INTERVAL_MS = 1_100;
-
-function mriUrl(file: string): string {
-  return new URL(`${MRI_FOLDER}${file}`, new URL(import.meta.env.BASE_URL, window.location.href))
-    .href;
-}
-
-async function loadMriManifest(): Promise<ReturnType<typeof parseMriManifest>> {
-  try {
-    const response = await fetch(mriUrl('manifest.json'));
-    if (!response.ok) return undefined;
-    return parseMriManifest(await response.json());
-  } catch (cause) {
-    console.warn('Учебные срезы МРТ недоступны, показываем рисованный пример.', cause);
-    return undefined;
-  }
-}
-
-/** The real sample slices, cycling; the drawn demo of the old tour when they are not shipped. */
-function MriSliceViewer(): JSX.Element {
-  const [manifest] = createResource(loadMriManifest);
-  return (
-    <Suspense>
-      <Show
-        when={manifest()}
-        fallback={
-          <Show when={!manifest.loading}>
-            <div class="onboarding-extra onboarding-extra--demo">
-              <ImagingFallback active />
-            </div>
-          </Show>
-        }
-      >
-        {(loaded) => <MriSlices manifest={loaded()} />}
-      </Show>
-    </Suspense>
-  );
-}
-
-function MriSlices(props: {
-  readonly manifest: NonNullable<ReturnType<typeof parseMriManifest>>;
-}): JSX.Element {
-  const [index, setIndex] = createSignal(0);
-  const slices = () => props.manifest.slices;
-  createEffect(() => {
-    if (motionMs(1) === 0 || slices().length < 2) return;
-    const timer = setInterval(
-      () => setIndex((value) => (value + 1) % slices().length),
-      Math.max(SLICE_INTERVAL_MS, motionMs(SLICE_INTERVAL_MS)),
-    );
-    onCleanup(() => clearInterval(timer));
-  });
-  return (
-    <figure class="onboarding-mri">
-      <div class="onboarding-mri__screen">
-        <For each={slices()}>
-          {(file, position) => (
-            <img
-              class="onboarding-mri__slice"
-              classList={{ 'onboarding-mri__slice--active': position() === index() }}
-              src={mriUrl(file)}
-              alt={
-                position() === index()
-                  ? `Срез МРТ головы, ${position() + 1} из ${slices().length}`
-                  : ''
-              }
-              aria-hidden={position() === index() ? undefined : 'true'}
-              width="512"
-              height="512"
-              decoding="async"
-            />
-          )}
-        </For>
-        <span class="onboarding-mri__label" aria-hidden="true">
-          Срез {index() + 1} / {slices().length}
-        </span>
-      </div>
-      <figcaption class="onboarding-mri__caption">
-        <span>Учебные срезы: МРТ головы, T1, аксиальная плоскость.</span>
-        <a
-          class="onboarding-mri__source"
-          href={props.manifest.source.url}
-          target="_blank"
-          rel="noreferrer noopener"
-          title={`${props.manifest.source.author}. Лицензия: ${props.manifest.source.license}`}
-        >
-          {mriAttribution(props.manifest)}
-        </a>
-      </figcaption>
-    </figure>
   );
 }

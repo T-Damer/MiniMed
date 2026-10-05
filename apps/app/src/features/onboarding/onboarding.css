@@ -528,59 +528,6 @@
   line-height: 1.4;
 }
 
-.onboarding-mri {
-  display: grid;
-  margin: 0;
-  gap: 0.375rem;
-}
-
-.onboarding-mri__screen {
-  position: relative;
-  width: min(100%, 10.5rem);
-  justify-self: center;
-  overflow: hidden;
-  border: 1px solid var(--theme-border);
-  border-radius: 0.6rem;
-  background: #000;
-  aspect-ratio: 1;
-}
-
-.onboarding-mri__slice {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transition: opacity 220ms ease;
-}
-
-.onboarding-mri__slice--active {
-  opacity: 1;
-}
-
-.onboarding-mri__label {
-  position: absolute;
-  bottom: 0.3rem;
-  left: 0.4rem;
-  color: #d9ffe6;
-  font: 600 0.65rem / 1 var(--font-mono);
-  text-shadow: 0 1px 2px #000;
-}
-
-.onboarding-mri__caption {
-  display: grid;
-  gap: 0.125rem;
-  color: var(--theme-text-muted);
-  font-size: 0.7rem;
-  line-height: 1.35;
-}
-
-.onboarding-mri__source {
-  color: var(--theme-link);
-  overflow-wrap: anywhere;
-}
-
 /* ---- ring and arrows ---- */
 
 /* One group per step, so a new step redraws its ring and arrow from scratch. */

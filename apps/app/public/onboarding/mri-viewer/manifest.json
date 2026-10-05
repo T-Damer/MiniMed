@@ -1,0 +1,21 @@
+{
+  "modality": "MRI",
+  "region": "head",
+  "sequence": "as acquired in the source volume (not stated by the source)",
+  "plane": "sagittal",
+  "slices": [
+    "sagittal-1.webp",
+    "sagittal-2.webp",
+    "sagittal-3.webp",
+    "sagittal-4.webp",
+    "sagittal-5.webp",
+    "sagittal-6.webp"
+  ],
+  "source": {
+    "title": "MRHead (3D Slicer Sample Data)",
+    "url": "https://github.com/Slicer/Slicer/blob/main/Modules/Scripted/SampleData/SampleData.py",
+    "author": "3D Slicer community",
+    "license": "Свободное использование (передано изображённым человеком без ограничений, см. благодарности 3D Slicer)",
+    "licenseUrl": "https://github.com/Slicer/Slicer/blob/main/Modules/Scripted/SampleData/SampleData.py"
+  }
+}

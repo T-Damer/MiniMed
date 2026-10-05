@@ -298,11 +298,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       kindLabel: 'Скачать в «Мои файлы»',
       icon: 'image',
       group: 'files',
-      run: () => void addCtExample(),
+      run: () => void addImagingExample('ct'),
     },
   ]);
-  /** The CT example is also offered by the first-run tour; the user library loads on demand. */
-  const addCtExample = async (): Promise<void> => {
+  /** The CT and MRI examples (the tour offers the MRI one too); the user library loads on demand. */
+  const addImagingExample = async (id: 'ct' | 'mri'): Promise<void> => {
+    const label = id === 'ct' ? 'КТ' : 'МРТ';
     const [
       { downloadUserLibraryExample, USER_LIBRARY_EXAMPLE_SLOTS },
       { openUserLibraryDocument },
@@ -310,21 +311,21 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
       import('@/state/user-library'),
       import('@/features/library/user-library-routing'),
     ]);
-    const ct = USER_LIBRARY_EXAMPLE_SLOTS.find((slot) => slot.id === 'ct');
-    if (!ct) {
-      toast.error('Пример КТ недоступен в этой сборке.');
+    const slot = USER_LIBRARY_EXAMPLE_SLOTS.find((entry) => entry.id === id);
+    if (!slot) {
+      toast.error(`Пример ${label} недоступен в этой сборке.`);
       return;
     }
-    const pending = toast.loading('Скачиваем пример КТ…');
+    const pending = toast.loading(`Скачиваем пример ${label}…`);
     try {
-      const saved = await downloadUserLibraryExample(ct);
+      const saved = await downloadUserLibraryExample(slot);
       notifyWithOpen(
-        'Пример КТ добавлен в «Мои файлы».',
+        `Пример ${label} добавлен в «Мои файлы».`,
         () => openUserLibraryDocument({ documentId: saved.id, title: saved.title }),
         { id: pending },
       );
     } catch (cause) {
-      toast.error(cause instanceof Error ? cause.message : 'Не удалось скачать пример КТ.', {
+      toast.error(cause instanceof Error ? cause.message : `Не удалось скачать пример ${label}.`, {
         id: pending,
       });
     }
@@ -339,8 +340,12 @@ export function SearchHome(props: SearchHomeProps): JSX.Element {
           icon="image"
           kicker="КТ и МРТ"
           title="Просмотр исследований"
-          text="DICOM и NIfTI открываются на устройстве: срезы, окна «мягкие ткани» и «кость». Попробуйте на примере КТ."
-          action={{ label: 'Скачать пример КТ', icon: 'download', run: () => void addCtExample() }}
+          text="DICOM и NIfTI открываются на устройстве: срезы в трёх плоскостях, 3D и контраст. Попробуйте на примере МРТ головы."
+          action={{
+            label: 'Скачать пример МРТ',
+            icon: 'download',
+            run: () => void addImagingExample('mri'),
+          }}
           secondary={{ label: 'Мои файлы', icon: 'folder-open', href: '#/notes' }}
         />
       ),

@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, For, type JSX, onCleanup, Show 
 
 import { AppGlyph } from '@/components/AppGlyph';
 import { Button } from '@/components/Button';
+import { MriSliceViewer } from '@/features/onboarding/MriSliceViewer';
 
 /**
  * Small, self-contained previews of real MiniMed screens for the first-run tour.
@@ -316,38 +317,25 @@ export function ToolsDemo(props: TourDemoProps): JSX.Element {
   );
 }
 
-const IMAGING_SLICES = 24;
-const IMAGING_WINDOWS = [
-  { label: 'Мягкие ткани', filter: 'contrast(1.15) brightness(1)' },
-  { label: 'Кость', filter: 'contrast(1.9) brightness(0.8)' },
-] as const;
-
 /**
- * A stylised scan in the image viewer: scrolling slices and switching the window. The picture is
- * abstract shapes, not a patient image. A real CT example can be added to «Мои файлы» meanwhile.
+ * The image viewer on real frames: sagittal head-MRI slices captured from MiniMed's viewer on the
+ * downloadable MRI example, which the button adds to «Мои файлы» to open in the viewer itself.
  */
-export function ImagingDemo(props: TourDemoProps): JSX.Element {
-  const [slice, setSlice] = createSignal(12);
-  const [windowIndex, setWindowIndex] = createSignal(0);
+export function ImagingDemo(_props: TourDemoProps): JSX.Element {
   const [example, setExample] = createSignal<
     | { state: 'idle' }
     | { state: 'loading'; progress: number }
     | { state: 'added' }
     | { state: 'error'; message: string }
   >({ state: 'idle' });
-  createEffect(() => {
-    if (!props.active) return;
-    const timer = setInterval(() => setSlice((value) => (value % IMAGING_SLICES) + 1), 280);
-    onCleanup(() => clearInterval(timer));
-  });
   const addExample = (): void => {
     setExample({ state: 'loading', progress: 0 });
     // The user library loads only when asked, so the setup screen stays light.
     import('@/state/user-library')
       .then(({ downloadUserLibraryExample, USER_LIBRARY_EXAMPLE_SLOTS }) => {
-        const ct = USER_LIBRARY_EXAMPLE_SLOTS.find((slot) => slot.id === 'ct');
-        if (!ct) throw new Error('Пример КТ недоступен в этой сборке.');
-        return downloadUserLibraryExample(ct, (progress) =>
+        const mri = USER_LIBRARY_EXAMPLE_SLOTS.find((slot) => slot.id === 'mri');
+        if (!mri) throw new Error('Пример МРТ недоступен в этой сборке.');
+        return downloadUserLibraryExample(mri, (progress) =>
           setExample({ state: 'loading', progress }),
         );
       })
@@ -360,48 +348,26 @@ export function ImagingDemo(props: TourDemoProps): JSX.Element {
           }),
       );
   };
-  const current = () => IMAGING_WINDOWS[windowIndex()] ?? IMAGING_WINDOWS[0];
   return (
     <div class="tour-demo tour-demo--imaging">
-      <div class="tour-imaging__screen" aria-hidden="true">
-        <span
-          class="tour-imaging__slice"
-          style={{ filter: current().filter, '--tour-slice': slice() / IMAGING_SLICES }}
-        />
-        <span class="tour-imaging__label">
-          Срез {slice()} / {IMAGING_SLICES} · {current().label}
-        </span>
-      </div>
-      <div class="tour-imaging__windows">
-        <For each={IMAGING_WINDOWS}>
-          {(preset, index) => (
-            <button
-              class="tour-imaging__window"
-              classList={{ 'tour-imaging__window--active': index() === windowIndex() }}
-              type="button"
-              aria-pressed={index() === windowIndex()}
-              onClick={() => setWindowIndex(index())}
-            >
-              {preset.label}
-            </button>
-          )}
-        </For>
-      </div>
-      <Button
-        class="tour-imaging__action"
-        variant="secondary"
-        disabled={example().state === 'loading' || example().state === 'added'}
-        onClick={addExample}
-        title="Пример КТ появится в «Моих файлах»"
-        icon={<AppGlyph name="download" />}
-      >
-        {(() => {
-          const state = example();
-          if (state.state === 'loading') return `Скачиваем · ${Math.round(state.progress * 100)}%`;
-          if (state.state === 'added') return 'Пример КТ в «Моих файлах»';
-          return 'Скачать пример КТ';
-        })()}
-      </Button>
+      <MriSliceViewer compact>
+        <Button
+          class="tour-imaging__action"
+          variant="secondary"
+          disabled={example().state === 'loading' || example().state === 'added'}
+          onClick={addExample}
+          title="Пример МРТ появится в «Моих файлах»"
+          icon={<AppGlyph name="download" />}
+        >
+          {(() => {
+            const state = example();
+            if (state.state === 'loading')
+              return `Скачиваем · ${Math.round(state.progress * 100)}%`;
+            if (state.state === 'added') return 'Пример МРТ в «Моих файлах»';
+            return 'Скачать пример МРТ';
+          })()}
+        </Button>
+      </MriSliceViewer>
       <Show
         when={(() => {
           const state = example();

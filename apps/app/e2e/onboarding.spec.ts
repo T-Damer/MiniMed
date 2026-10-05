@@ -80,7 +80,7 @@ for (const viewport of [
     await expect(counter).toContainText('7 / 10');
     await expect(card.getByRole('heading', { name: 'Мои файлы' })).toBeVisible();
     await expect(card.locator('.onboarding-mri__slice--active')).toBeVisible();
-    await expect(card.locator('.onboarding-mri__source')).toContainText('OpenNeuro');
+    await expect(card.locator('.onboarding-mri__source')).toContainText('3D Slicer');
     await page.screenshot({ path: testInfo.outputPath('step-6.png') });
 
     await card.getByRole('button', { name: 'Далее', exact: true }).click();

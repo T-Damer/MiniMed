@@ -615,8 +615,11 @@ date, sha256, version/date as printed, OCR flag and match evidence.
 - Optional downloads inside the tour go through the real feature code: «Скачать препараты» queues
   the released `medication` modules through the module runtime (the 10 MB catalog loads only at
   that step, after the intro; size from the catalog), «Скачать модель (в фоне)» activates the first
-  runtime-ready Whisper model through `asr-models`. Step 6 cycles the real MRI slices from
-  `public/onboarding/mri/manifest.json` with their attribution (the drawn imaging demo if absent).
+  runtime-ready Whisper model through `asr-models`. The «Мои файлы» step and the tour's imaging
+  slide cycle six sagittal head-MRI frames captured from MiniMed's own viewer on the downloadable
+  MRI example (`public/onboarding/mri-viewer`, provenance in its SOURCES.md; 2026-10-05, replacing
+  the drawn demo and the OpenNeuro axial slices). The tour dialog «Что умеет MiniMed» had lost its
+  stylesheet with the old first-run modal (0.6.46) and has it again.
 - Dismissal is unchanged: `dismissSetup()` runs only when the core is installed (at the end of the
   tour or when it arrives later); otherwise the tour hides for the session and returns next launch.
   `restartOnboarding()` (`onboarding-state.ts`) runs it again; Settings needs a button for it.

@@ -12,6 +12,7 @@ import {
   ToolsDemo,
   type TourDemoProps,
 } from './FeatureTourDemos';
+import './feature-tour.css';
 
 interface TourSlide {
   readonly id: string;
@@ -56,7 +57,7 @@ const SLIDES: readonly TourSlide[] = [
     id: 'imaging',
     icon: 'image',
     title: 'Снимки КТ и МРТ',
-    text: 'DICOM и NIfTI открываются прямо в «Моих файлах»: срезы, окно, масштаб — без интернета. Пока загружается база, можно добавить пример КТ.',
+    text: 'DICOM и NIfTI открываются прямо в «Моих файлах»: срезы в трёх плоскостях, 3D, контраст — без интернета. Пока загружается база, можно добавить пример МРТ.',
     demo: ImagingDemo,
   },
   {
