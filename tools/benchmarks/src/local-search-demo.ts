@@ -5,7 +5,6 @@ import { createInterface } from 'node:readline';
 
 import { createMedicalCore } from '@localmed/core';
 import { normalizeSurfaceText, searchSubjectText } from '@localmed/search-lexical';
-import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
 import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 
@@ -100,7 +99,7 @@ const stores = await Promise.all(
   })),
 );
 const store = new MultiMedicalStore(stores);
-const core = createMedicalCore({ store, platform: 'test', embedder: new PortableHashEmbedder() });
+const core = createMedicalCore({ store, platform: 'test' });
 try {
   const initialized = await core.initialize();
   if (!initialized.ok) throw new Error(initialized.error.message);

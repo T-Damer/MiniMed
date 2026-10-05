@@ -12,7 +12,6 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { dirname, resolve } from 'node:path';
 
 import type { QueryBranchKind, QueryFactKind, SearchResultGroup } from '@localmed/contracts';
-import { PortableHashEmbedder } from '@localmed/search-semantic';
 
 import { ScopedMedicalCore } from '../../../apps/app/src/features/search/ScopedMedicalCore';
 import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
@@ -123,7 +122,6 @@ const {
   corpus: mounted,
   target,
 } = await openRealCorpus({
-  embedder: new PortableHashEmbedder(),
   companions: corpusScope === 'all',
   corePath: corePathOverride,
   installedModules: guidelineModules,

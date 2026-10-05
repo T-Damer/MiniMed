@@ -3,7 +3,6 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 import { createMedicalCore } from '@localmed/core';
-import { PortableHashEmbedder } from '@localmed/search-semantic';
 import { MultiMedicalStore } from '@localmed/storage';
 import { createBunFileMedicalStore } from './bun-sqlite-medical-store';
 
@@ -61,7 +60,7 @@ const stores = await Promise.all(
   })),
 );
 const store = new MultiMedicalStore(stores);
-const core = createMedicalCore({ store, platform: 'test', embedder: new PortableHashEmbedder() });
+const core = createMedicalCore({ store, platform: 'test' });
 const rows: {
   id: string;
   origin: string;

@@ -13,8 +13,6 @@
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
-import { PortableHashEmbedder } from '@localmed/search-semantic';
-
 import { ScopedMedicalCore } from '../../../apps/app/src/features/search/ScopedMedicalCore';
 import { openRealCorpus, REPOSITORY_ROOT } from './real-corpus';
 import {
@@ -77,7 +75,6 @@ const modules = packDirectories.flatMap((directory) =>
 );
 const mountStarted = performance.now();
 const { core, corpus, target } = await openRealCorpus({
-  embedder: new PortableHashEmbedder(),
   installedModules: modules,
 });
 console.error(
