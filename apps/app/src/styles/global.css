@@ -737,6 +737,9 @@ main {
 
 .query-buttons {
   display: flex;
+  /* The revealed submit button (2.5rem + its 0.25rem frame) sets this height in advance: the field
+     never grows while the button slides in, so nothing below it (skeleton, results) jumps. */
+  min-height: 3rem;
   align-items: center;
   gap: 0.5rem;
 }
